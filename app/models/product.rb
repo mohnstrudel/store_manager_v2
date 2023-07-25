@@ -15,6 +15,8 @@
 #  updated_at   :datetime         not null
 #
 class Product < ApplicationRecord
+  validates :title, presence: true
+  
   belongs_to :supplier
   belongs_to :brand
   belongs_to :franchise

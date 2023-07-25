@@ -8,5 +8,6 @@
 #  updated_at :datetime         not null
 #
 class Franchise < ApplicationRecord
+  validates :title, presence: true
   has_many :products
 end

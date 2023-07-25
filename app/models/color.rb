@@ -8,5 +8,6 @@
 #  updated_at :datetime         not null
 #
 class Color < ApplicationRecord
+  validates :value, presence: true
   has_many :products
 end
