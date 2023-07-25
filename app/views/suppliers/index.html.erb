@@ -8,7 +8,22 @@
     <%= link_to 'New supplier', new_supplier_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
   </div>
 
-  <div id="suppliers" class="min-w-full">
-    <%= render @suppliers %>
+  <div class="sm:px-8">
+    <table class="table-auto border-collapse w-full bg-white dark:bg-slate-800 text-sm">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= render @suppliers %>
+      </tbody>
+    </table>
   </div>
+
+  
 </div>
