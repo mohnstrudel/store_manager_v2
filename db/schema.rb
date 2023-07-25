@@ -26,12 +26,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_21_092423) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "forms", force: :cascade do |t|
-    t.string "title"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "franchises", force: :cascade do |t|
     t.string "title"
     t.datetime "created_at", null: false
@@ -46,16 +40,22 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_21_092423) do
     t.bigint "size_id", null: false
     t.bigint "color_id", null: false
     t.bigint "version_id", null: false
-    t.bigint "form_id", null: false
+    t.bigint "shape_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["brand_id"], name: "index_products_on_brand_id"
     t.index ["color_id"], name: "index_products_on_color_id"
-    t.index ["form_id"], name: "index_products_on_form_id"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
+    t.index ["shape_id"], name: "index_products_on_shape_id"
     t.index ["size_id"], name: "index_products_on_size_id"
     t.index ["supplier_id"], name: "index_products_on_supplier_id"
     t.index ["version_id"], name: "index_products_on_version_id"
+  end
+
+  create_table "shapes", force: :cascade do |t|
+    t.string "title"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "sizes", force: :cascade do |t|
@@ -78,8 +78,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_21_092423) do
 
   add_foreign_key "products", "brands"
   add_foreign_key "products", "colors"
-  add_foreign_key "products", "forms"
   add_foreign_key "products", "franchises"
+  add_foreign_key "products", "shapes"
   add_foreign_key "products", "sizes"
   add_foreign_key "products", "suppliers"
   add_foreign_key "products", "versions"

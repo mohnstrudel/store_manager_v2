@@ -8,7 +8,7 @@ class CreateProducts < ActiveRecord::Migration[7.0]
       t.belongs_to :size, null: false, foreign_key: true
       t.belongs_to :color, null: false, foreign_key: true
       t.belongs_to :version, null: false, foreign_key: true
-      t.belongs_to :form, null: false, foreign_key: true
+      t.belongs_to :shape, null: false, foreign_key: true
 
       t.timestamps
     end
