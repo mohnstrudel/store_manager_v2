@@ -1,0 +1,31 @@
+- if notice.present?
+  article.notice.is-info
+    <i class="icn">😼</i> #{notice} <i class="icn">😼</i>
+
+nav
+  ul
+    li
+      == link_to "Back to versions", versions_path
+      h1
+        == @version.value
+  ul
+    li
+      == link_to edit_version_path(@version)
+        <i class='icn'>✏️</i> Edit
+
+main
+  table(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Value
+        th
+          | Created
+        th
+          | Updated
+    tbody
+      == render @version
+
+== button_to 'Destroy this version', version_path(@version), method: :delete, class: "btn-danger"

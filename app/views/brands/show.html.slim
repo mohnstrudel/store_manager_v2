@@ -1,0 +1,31 @@
+- if notice.present?
+  article.notice.is-info
+    <i class="icn">😼</i> #{notice} <i class="icn">😼</i>
+
+nav
+  ul
+    li
+      == link_to "Back to brands", brands_path
+      h1
+        == @brand.title
+  ul
+    li   
+      == link_to edit_brand_path(@brand)
+        <i class='icn'>✏️</i> Edit
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Title
+        th
+          | Created
+        th
+          | Updated
+    tbody
+      == render @brand
+
+== button_to 'Destroy this brand', brand_path(@brand), method: :delete, class: "btn-danger"  

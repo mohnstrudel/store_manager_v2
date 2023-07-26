@@ -1,0 +1,11 @@
+== form_with(model: shape) do |form|
+  - if shape.errors.any?
+    article.notice.is-error
+      header <i class="icn">🙀</i> #{pluralize(shape.errors.count, "error")} prohibited this shape from being saved: <i class="icn">🙀</i>
+      ul
+        - shape.errors.each do |error|
+          li
+            == error.full_message
+  == form.label :title
+  == form.text_field :title 
+  == form.submit

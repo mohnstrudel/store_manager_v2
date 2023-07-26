@@ -65,6 +65,6 @@ class BrandsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def brand_params
-      params.fetch(:brand, {})
+      params.fetch(:brand, {}).permit(:title)
     end
 end

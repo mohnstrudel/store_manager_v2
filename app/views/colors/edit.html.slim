@@ -1,0 +1,11 @@
+nav
+  ul
+    li
+      == link_to "Back to colors", colors_path
+      h1 Editing color
+  ul
+    li
+      == link_to @color
+        <i class='icn'>📄</i> Show
+
+== render 'form', color: @color

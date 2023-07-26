@@ -1,0 +1,11 @@
+== form_with(model: version) do |form|
+  - if version.errors.any?
+    article.notice.is-error
+      header <i class="icn">🙀</i> #{pluralize(version.errors.count, "error")} prohibited this version from being saved: <i class="icn">🙀</i>
+      ul
+        - version.errors.each do |error|
+          li
+            == error.full_message
+  == form.label :value
+  == form.text_field :value 
+  == form.submit

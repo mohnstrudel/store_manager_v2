@@ -1,0 +1,11 @@
+nav
+  ul
+    li
+      == link_to "Back to brands", @brand
+      h1 Editing brand
+  ul
+    li   
+      == link_to @brand
+        <i class='icn'>📄</i> Show
+
+== render 'form', brand: @brand

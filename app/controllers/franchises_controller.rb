@@ -65,6 +65,6 @@ class FranchisesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def franchise_params
-      params.fetch(:franchise, {})
+      params.fetch(:franchise, {}).permit(:title)
     end
 end

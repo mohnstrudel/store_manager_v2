@@ -1,0 +1,11 @@
+== form_with(model: size) do |form|
+  - if size.errors.any?
+    article.notice.is-error
+      header <i class="icn">🙀</i> #{pluralize(size.errors.count, "error")} prohibited this size from being saved: <i class="icn">🙀</i>
+      ul
+        - size.errors.each do |error|
+          li
+            == error.full_message
+  == form.label :value
+  == form.text_field :value 
+  == form.submit

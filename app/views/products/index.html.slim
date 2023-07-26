@@ -1,0 +1,11 @@
+.w-full
+  |  <% if notice.present? %> 
+  p#notice.py-2.px-3.bg-green-50.mb-5.text-green-500.font-medium.rounded-lg.inline-block
+    | <%= notice %>
+  |  <% end %> 
+  .flex.justify-between.items-center
+    h1.font-bold.text-4xl
+      | Products
+    |  <%= link_to 'New product', new_product_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %> 
+  #products.min-w-full
+    |  <%= render @products %> 

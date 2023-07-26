@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 GEM
   remote: https://rubygems.org/
   specs:
@@ -191,6 +190,13 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    slim (4.1.0)
+      temple (>= 0.7.6, < 0.9)
+      tilt (>= 2.0.6, < 2.1)
+    slim-rails (3.5.1)
+      actionpack (>= 3.1)
+      railties (>= 3.1)
+      slim (>= 3.0, < 5.0)
     sprockets (4.2.0)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -200,11 +206,9 @@ GEM
       sprockets (>= 3.0.0)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
-    tailwindcss-rails (2.0.30-arm64-darwin)
-      railties (>= 6.0.0)
-    tailwindcss-rails (2.0.30-x86_64-linux)
-      railties (>= 6.0.0)
+    temple (0.8.2)
     thor (1.2.2)
+    tilt (2.0.11)
     timeout (0.4.0)
     turbo-rails (1.4.0)
       actionpack (>= 6.0.0)
@@ -231,7 +235,6 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
-  x86_64-linux
 
 DEPENDENCIES
   annotate
@@ -245,9 +248,9 @@ DEPENDENCIES
   rails (~> 7.0.6)
   rails_live_reload
   selenium-webdriver
+  slim-rails
   sprockets-rails
   stimulus-rails
-  tailwindcss-rails (~> 2.0)
   turbo-rails
   tzinfo-data
   web-console
@@ -257,6 +260,5 @@ RUBY VERSION
    ruby 3.2.2p53
 
 BUNDLED WITH
-   2.4.16
 =======
->>>>>>> 5d82a78 (WIP: working on crud, need to remove Tailwind and change ERB to Slim)
+   2.4.17

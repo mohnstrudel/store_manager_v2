@@ -13,3 +13,106 @@
  *= require_tree .
  *= require_self
  */
+@font-face {
+  font-family: "Noto Emo";
+  font-style: normal;
+  font-weight: 400;
+  src: url("noto-emoji-400.woff2") format("woff2");
+}
+i.icn {
+  font-family: "Noto Emo";
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+:root {
+  --form-element-spacing-vertical: 0.4rem;
+}
+@media (min-width: 992px) {
+  body > header,
+  body > main,
+  body > footer,
+  section {
+    --block-spacing-vertical: calc(var(--spacing) * 3);
+  }
+}
+@media (min-width: 1200px) {
+  body > header,
+  body > main,
+  body > footer,
+  section {
+    --block-spacing-vertical: calc(var(--spacing) * 2);
+  }
+}
+[data-theme="light"],
+:root:not([data-theme="dark"]) {
+  --primary: hsl(210deg 100% 50%);
+  --primary-hover: hsl(210deg 100% 60%);
+}
+
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --primary: hsl(210deg 100% 60%);
+    --primary-hover: hsl(210deg 100% 70%);
+  }
+}
+[data-theme="dark"] {
+  --primary: hsl(210deg 100% 60%);
+  --primary-hover: hsl(210deg 100% 70%);
+}
+button,
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+[role="button"] {
+  font-size: var(--font-size);
+}
+nav h1 {
+  margin: 0;
+}
+main main {
+  margin: var(--block-spacing-vertical) 0;
+}
+body > header {
+  padding-top: 1rem;
+}
+body > header > nav a {
+  font-size: small;
+  color: var(--muted-color);
+}
+body > header > nav a:hover {
+  color: var(--contrast);
+}
+.btn-danger {
+  background-color: red;
+  border-color: red;
+}
+td > a:nth-child(1) {
+  margin-right: 0.5rem;
+}
+table.vertical td,
+table.vertical th {
+  display: block;
+  border: none;
+  font-size: inherit;
+}
+table.vertical thead,
+table.vertical tbody {
+  float: left;
+}
+.logo {
+  font-size: 2rem;
+  color: var(--muted-color);
+}
+article.notice.is-info,
+article.notice header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+article.notice.is-error header {
+  color: red;
+}
+article.notice .icn {
+  font-size: 1.5rem;
+}

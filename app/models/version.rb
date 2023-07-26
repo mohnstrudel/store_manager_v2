@@ -8,6 +8,6 @@
 #  updated_at :datetime         not null
 #
 class Version < ApplicationRecord
-  validates :title, presence: true
+  validates :value, presence: true
   has_many :products
 end

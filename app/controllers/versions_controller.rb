@@ -65,6 +65,6 @@ class VersionsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def version_params
-      params.fetch(:version, {})
+      params.fetch(:version, {}).permit(:value)
     end
 end

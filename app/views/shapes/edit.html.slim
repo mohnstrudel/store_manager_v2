@@ -1,0 +1,11 @@
+nav
+  ul
+    li
+      == link_to "Back to shapes", @shape
+      h1 Editing shape
+  ul
+    li   
+      == link_to @shape
+        <i class='icn'>📄</i> Show
+
+== render 'form', shape: @shape

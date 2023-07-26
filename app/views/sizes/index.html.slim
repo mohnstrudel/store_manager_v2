@@ -1,0 +1,28 @@
+- if notice.present?
+  article.notice.is-info
+    <i class="icn">😼</i> #{notice} <i class="icn">😼</i>
+
+nav
+  ul
+    li 
+      h1 Sizes
+  ul
+    li
+      == link_to new_size_path
+        <i class='icn'>🐣</i> New size
+main
+  table(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Value
+        th
+          | Created
+        th
+          | Updated
+        th
+          | Actions
+    tbody
+      == render @sizes

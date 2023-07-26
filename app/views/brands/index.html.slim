@@ -1,0 +1,28 @@
+- if notice.present?
+  article.notice.is-info
+    <i class="icn">😼</i> #{notice} <i class="icn">😼</i>
+
+nav
+  ul
+    li 
+      h1 Brands
+  ul
+    li   
+      == link_to new_brand_path
+        <i class='icn'>🐣</i> New brand
+main
+  table(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Title
+        th
+          | Created
+        th
+          | Updated
+        th
+          | Actions
+    tbody
+      == render @brands

@@ -65,6 +65,6 @@ class ShapesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def shape_params
-      params.fetch(:shape, {})
+      params.fetch(:shape, {}).permit(:title)
     end
 end

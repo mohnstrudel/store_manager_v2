@@ -1,0 +1,11 @@
+== form_with(model: supplier) do |form|
+  - if supplier.errors.any?
+    article.notice.is-error
+      header <i class="icn">🙀</i> #{pluralize(supplier.errors.count, "error")} prohibited this supplier from being saved: <i class="icn">🙀</i>
+      ul
+        - supplier.errors.each do |error|
+          li
+            == error.full_message
+  == form.label :title
+  == form.text_field :title 
+  == form.submit

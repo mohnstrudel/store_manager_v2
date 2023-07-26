@@ -1,0 +1,11 @@
+== form_with(model: brand) do |form|
+  - if brand.errors.any?
+    article.notice.is-error
+      header <i class="icn">🙀</i> #{pluralize(brand.errors.count, "error")} prohibited this brand from being saved: <i class="icn">🙀</i>
+      ul
+        - brand.errors.each do |error|
+          li
+            == error.full_message
+  == form.label :title
+  == form.text_field :title 
+  == form.submit

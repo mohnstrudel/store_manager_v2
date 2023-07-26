@@ -1,0 +1,11 @@
+nav
+  ul
+    li
+      == link_to "Back to versions", versions_path
+      h1 Editing version
+  ul
+    li
+      == link_to @version
+        <i class='icn'>📄</i> Show
+
+== render 'form', version: @version

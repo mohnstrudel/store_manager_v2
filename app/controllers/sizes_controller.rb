@@ -65,6 +65,6 @@ class SizesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def size_params
-      params.fetch(:size, {})
+      params.fetch(:size, {}).permit(:value)
     end
 end
