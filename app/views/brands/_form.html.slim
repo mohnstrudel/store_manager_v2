@@ -1,7 +1,10 @@
 == form_with(model: brand) do |form|
   - if brand.errors.any?
     article.notice.is-error
-      header <i class="icn">🙀</i> #{pluralize(brand.errors.count, "error")} prohibited this brand from being saved: <i class="icn">🙀</i>
+      header
+        i.icn 🙀
+        | Sorry, we can't save this, fix the errors and try again:
+        i.icn 🙀
       ul
         - brand.errors.each do |error|
           li

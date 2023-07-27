@@ -10,6 +10,8 @@ tr id="#{dom_id supplier}"
   - if action_name != "show" 
     td
       == link_to supplier
-        <i class='icn'>📄</i> Show
+        i.icn 📄
+        | Show
       == link_to edit_supplier_path(supplier)
-        <i class='icn'>✏️</i> Edit
+        i.icn ✏️
+        | Edit

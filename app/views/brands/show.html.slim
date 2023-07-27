@@ -1,6 +1,8 @@
 - if notice.present?
   article.notice.is-info
-    <i class="icn">😼</i> #{notice} <i class="icn">😼</i>
+    i.icn 😼
+    == notice
+    i.icn 😼
 
 nav
   ul
@@ -11,7 +13,8 @@ nav
   ul
     li   
       == link_to edit_brand_path(@brand)
-        <i class='icn'>✏️</i> Edit
+        i.icn ✏️
+        | Edit
 
 main
   table.vertical(role="grid")

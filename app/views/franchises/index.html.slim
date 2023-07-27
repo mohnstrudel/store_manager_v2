@@ -1,6 +1,8 @@
 - if notice.present?
   article.notice.is-info
-    <i class="icn">😼</i> #{notice} <i class="icn">😼</i>
+    i.icn 😼
+    == notice
+    i.icn 😼
 
 nav
   ul
@@ -9,7 +11,8 @@ nav
   ul
     li   
       == link_to new_franchise_path
-        <i class='icn'>🐣</i> New franchise
+        i.icn 🐣
+        | New franchise
 main
   table(role="grid")
     thead

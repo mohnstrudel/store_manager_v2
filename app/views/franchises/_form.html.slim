@@ -1,7 +1,10 @@
 == form_with(model: franchise) do |form|
   - if franchise.errors.any?
     article.notice.is-error
-      header <i class="icn">🙀</i> #{pluralize(franchise.errors.count, "error")} prohibited this franchise from being saved: <i class="icn">🙀</i>
+      header
+        i.icn 🙀
+        | Sorry, we can't save this, fix the errors and try again:
+        i.icn 🙀
       ul
         - franchise.errors.each do |error|
           li
