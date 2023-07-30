@@ -28,6 +28,9 @@ i.icn {
 :root {
   --form-element-spacing-vertical: 0.4rem;
 }
+body {
+  padding-bottom: calc(var(--spacing) * 10);
+}
 @media (min-width: 992px) {
   body > header,
   body > main,
@@ -145,4 +148,7 @@ article.notice.is-error header {
 }
 article.notice .icn {
   font-size: 1.5rem;
+}
+[type="submit"] {
+  margin-top: var(--spacing);
 }
