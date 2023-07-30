@@ -1,4 +1,13 @@
-#<%= dom_id product %>
-  |  <% if action_name != "show" %> <%= link_to "Show this product", product, class: "rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %> <%= link_to 'Edit this product', edit_product_path(product), class: "rounded-lg py-3 ml-2 px-5 bg-gray-100 inline-block font-medium" %> 
-  hr.mt-6
-  |  <% end %> 
+tr id="#{dom_id product}"
+  td
+    == product.id
+  td
+    == product.full_name
+  - if action_name != "show" 
+    td
+      == link_to product
+        i.icn 📄
+        | Show
+      == link_to edit_product_path(product)
+        i.icn ✏️
+        | Edit

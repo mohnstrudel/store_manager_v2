@@ -24,4 +24,8 @@ class Product < ApplicationRecord
   belongs_to :color
   belongs_to :version
   belongs_to :shape
+
+  def full_name
+    "#{self.franchise.title} — #{self.title} | #{self.size.value} resin #{self.shape.title} | from #{self.brand.title} | #{self.version.value} | #{self.color.value}"
+  end
 end

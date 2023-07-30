@@ -1,9 +1,48 @@
-.mx-auto.md:w-2/3.w-full.flex
-  .mx-auto
-    |  <% if notice.present? %> 
-    p#notice.py-2.px-3.bg-green-50.mb-5.text-green-500.font-medium.rounded-lg.inline-block
-      | <%= notice %>
-    |  <% end %> <%= render @product %> <%= link_to 'Edit this product', edit_product_path(@product), class: "mt-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %> 
-    .inline-block.ml-2
-      |  <%= button_to 'Destroy this product', product_path(@product), method: :delete, class: "mt-2 rounded-lg py-3 px-5 bg-gray-100 font-medium" %> 
-    |  <%= link_to 'Back to products', products_path, class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %> 
+- if notice.present?
+  article.notice.is-info
+    i.icn 😼
+    == notice
+    i.icn 😼
+
+nav
+  ul
+    li
+      == link_to "Back to products", products_path
+      h1
+        == @product.title
+  ul
+    li   
+      == link_to edit_product_path(@product)
+        i.icn ✏️
+        | Edit
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th ID
+        th Supplier
+        th Franchise
+        th Title
+        th Size
+        th Shape
+        th Brand
+        th Version
+        th Color
+        th Created
+        th Updated
+    tbody
+      tr
+        td == @product.id
+        td == @product.supplier.title
+        td == @product.franchise.title
+        td == @product.title
+        td == @product.size.value
+        td == @product.shape.title
+        td == @product.brand.title
+        td == @product.version.value
+        td == @product.color.value
+        td == @product.created_at
+        td == @product.updated_at
+
+== button_to 'Destroy this product', product_path(@product), method: :delete, class: "btn-danger"

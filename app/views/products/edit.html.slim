@@ -1,4 +1,12 @@
-.mx-auto.md:w-2/3.w-full
-  h1.font-bold.text-4xl
-    | Editing product
-  |  <%= render "form", product: @product %> <%= link_to "Show this product", @product, class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %> <%= link_to "Back to products", products_path, class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %> 
+nav
+  ul
+    li
+      == link_to "Back to products", @product
+      h1 Editing product
+  ul
+    li   
+      == link_to @product
+        i.icn 📄
+        | Show
+
+== render 'form', product: @product
