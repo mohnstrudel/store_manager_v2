@@ -84,11 +84,15 @@ body > header > nav a:hover {
   color: var(--contrast);
 }
 .btn-danger {
-  background-color: red;
-  border-color: red;
+  background-color: var(--form-element-invalid-active-border-color);
+  border-color: var(--form-element-invalid-active-border-color);
 }
 td > a:nth-child(1) {
   margin-right: 0.5rem;
+}
+table thead th {
+  font-size: smaller;
+  font-weight: 600;
 }
 table.vertical td,
 table.vertical th {
@@ -96,13 +100,38 @@ table.vertical th {
   border: none;
   font-size: inherit;
 }
+table.vertical thead th {
+  color: var(--muted-color);
+  text-align: right;
+  font-weight: var(--font-weight);
+}
 table.vertical thead,
 table.vertical tbody {
   float: left;
+  border-radius: 8px;
+  overflow: hidden;
+}
+table.vertical tbody td:last-of-type {
+  padding-bottom: 1.5rem;
+  padding-right: 1.8rem;
 }
 .logo {
   font-size: 2rem;
   color: var(--muted-color);
+}
+article.notice {
+  box-shadow: none;
+}
+article.notice.is-info {
+  color: var(--form-element-valid-border-color);
+  background: var(--form-element-valid-focus-color);
+}
+article.notice.is-error {
+  color: var(--form-element-invalid-active-border-color);
+  background: var(--form-element-invalid-focus-color);
+}
+article.notice.is-error ul {
+  color: var(--form-element-invalid-border-color);
 }
 article.notice.is-info,
 article.notice header {
@@ -111,7 +140,8 @@ article.notice header {
   justify-content: space-between;
 }
 article.notice.is-error header {
-  color: red;
+  background: none;
+  border-color: var(--form-element-invalid-focus-color);
 }
 article.notice .icn {
   font-size: 1.5rem;
