@@ -8,13 +8,13 @@ nav
   ul
     li
       == link_to "Back to products", products_path
-      h1
-        == @product.title
+      hgroup 
+        h1 == @product.title
+        h2 == @product.full_name
   ul
-    li   
-      == link_to edit_product_path(@product)
-        i.icn ✏️
-        | Edit
+    li == link_to edit_product_path(@product)
+      i.icn ✏️
+      | Edit
 
 main
   table.vertical(role="grid")
