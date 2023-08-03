@@ -25,7 +25,7 @@
   == form.collection_select(:shape_id, Shape.all, :id, :title)
 
   == form.label :brand
-  == form.collection_select(:brand_id, Brand.all, :id, :title)
+  == form.collection_select(:brand_id, Brand.all, :id, :title, { class: "select" }, data: { controller: "slim-select" })
 
   == form.label :version
   == form.collection_select(:version_id, Version.all, :id, :value)
