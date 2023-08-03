@@ -1,0 +1,34 @@
+- if notice.present?
+  article.notice.is-info
+    i.icn 😼
+    == notice
+    i.icn 😼
+
+nav
+  ul
+    li
+      == link_to "Back to suppliers", suppliers_path
+      h1
+        == @supplier.title
+  ul
+    li   
+      == link_to edit_supplier_path(@supplier)
+        i.icn ✏️
+        | Edit
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Title
+        th
+          | Created
+        th
+          | Updated
+    tbody
+      == render @supplier
+
+== button_to "Destroy this supplier", supplier_path(@supplier), method: :delete, class: "btn-danger"  

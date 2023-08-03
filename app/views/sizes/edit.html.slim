@@ -1,0 +1,12 @@
+nav
+  ul
+    li
+      == link_to "Back to sizes", sizes_path
+      h1 Editing size
+  ul
+    li
+      == link_to @size
+        i.icn 📄
+        | Show
+main
+  == render "form", size: @size

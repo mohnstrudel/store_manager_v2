@@ -1,0 +1,48 @@
+- if notice.present?
+  article.notice.is-info
+    i.icn 😼
+    == notice
+    i.icn 😼
+
+nav
+  ul
+    li
+      == link_to "Back to products", products_path
+      hgroup 
+        h1 == @product.title
+        h2 == @product.full_title
+  ul
+    li == link_to edit_product_path(@product)
+      i.icn ✏️
+      | Edit
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th ID
+        th Supplier
+        th Franchise
+        th Title
+        th Size
+        th Shape
+        th Brand
+        th Version
+        th Color
+        th Created
+        th Updated
+    tbody
+      tr
+        td == @product.id
+        td == @product.supplier.title
+        td == @product.franchise.title
+        td == @product.title
+        td == @product.size&.value || "-"
+        td == @product.shape.title
+        td == @product.brand.title
+        td == @product.version&.value || "-"
+        td == @product.color&.value || "-"
+        td == @product.created_at
+        td == @product.updated_at
+
+== button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger"

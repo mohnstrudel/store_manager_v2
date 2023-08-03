@@ -1,0 +1,13 @@
+tr id="#{dom_id product}"
+  td
+    == product.id
+  td
+    == product.full_title
+  - if action_name != "show" 
+    td
+      == link_to product
+        i.icn 📄
+        | Show
+      == link_to edit_product_path(product)
+        i.icn ✏️
+        | Edit

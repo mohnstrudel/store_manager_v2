@@ -1,0 +1,29 @@
+- if notice.present?
+  p
+    == notice
+
+nav
+  ul
+    li 
+      h1 Versions
+  ul
+    li
+      == link_to new_version_path
+        i.icn 🐣
+        | New version
+main
+  table(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Value
+        th
+          | Created
+        th
+          | Updated
+        th
+          | Actions
+    tbody
+      == render @versions

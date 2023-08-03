@@ -1,0 +1,17 @@
+tr id="#{dom_id size}"
+  td
+    == size.id
+  td
+    == size.value
+  td
+    == size.created_at
+  td
+    == size.updated_at
+  - if action_name != "show" 
+    td
+      == link_to size
+        i.icn 📄
+        | Show
+      == link_to edit_size_path(size)
+        i.icn ✏️
+        | Edit

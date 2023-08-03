@@ -1,0 +1,12 @@
+nav
+  ul
+    li
+      == link_to "Back to franchises", @franchise
+      h1 Editing franchise
+  ul
+    li   
+      == link_to @franchise
+        i.icn 📄
+        | Show
+main
+  == render "form", franchise: @franchise

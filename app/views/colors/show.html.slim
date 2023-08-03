@@ -1,0 +1,34 @@
+- if notice.present?
+  article.notice.is-info
+    i.icn 😼
+    == notice
+    i.icn 😼
+
+nav
+  ul
+    li
+      == link_to "Back to colors", colors_path
+      h1
+        == @color.value
+  ul
+    li
+      == link_to edit_color_path(@color)
+        i.icn ✏️
+        | Edit
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Value
+        th
+          | Created
+        th
+          | Updated
+    tbody
+      == render @color
+
+== button_to "Destroy this color", color_path(@color), method: :delete, class: "btn-danger"

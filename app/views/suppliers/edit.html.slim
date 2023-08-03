@@ -1,0 +1,12 @@
+nav
+  ul
+    li
+      == link_to "Back to suppliers", @supplier
+      h1 Editing supplier
+  ul
+    li   
+      == link_to @supplier
+        i.icn 📄
+        | Show
+main
+  == render "form", supplier: @supplier

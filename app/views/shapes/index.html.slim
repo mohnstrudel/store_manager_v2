@@ -1,0 +1,31 @@
+- if notice.present?
+  article.notice.is-info
+    i.icn 😼
+    == notice
+    i.icn 😼
+
+nav
+  ul
+    li 
+      h1 Shapes
+  ul
+    li   
+      == link_to new_shape_path
+        i.icn 🐣
+        | New shape
+main
+  table(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Title
+        th
+          | Created
+        th
+          | Updated
+        th
+          | Actions
+    tbody
+      == render @shapes

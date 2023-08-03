@@ -1,0 +1,34 @@
+- if notice.present?
+  article.notice.is-info
+    i.icn 😼
+    == notice
+    i.icn 😼
+
+nav
+  ul
+    li
+      == link_to "Back to shapes", shapes_path
+      h1
+        == @shape.title
+  ul
+    li   
+      == link_to edit_shape_path(@shape)
+        i.icn ✏️
+        | Edit
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th
+          | ID
+        th
+          | Title
+        th
+          | Created
+        th
+          | Updated
+    tbody
+      == render @shape
+
+== button_to "Destroy this shape", shape_path(@shape), method: :delete, class: "btn-danger"  

@@ -1,0 +1,42 @@
+doctype html
+html
+  head
+    title StoreManagerV2
+    meta[name="viewport" content="width=device-width,initial-scale=1"]
+    == csrf_meta_tags
+    == csp_meta_tag
+    == stylesheet_link_tag "application", href = "https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.classless.min.css", "data-turbo-track": "reload"
+    == stylesheet_link_tag "application", href = "https://unpkg.com/slim-select@latest/dist/slimselect.css", "data-turbo-track": "reload"
+    == stylesheet_link_tag "application", "data-turbo-track": "reload"
+    == javascript_importmap_tags
+  body
+    header
+      nav
+        ul 
+         li
+          i.icn.logo 😸
+        ul
+          li
+            == link_to "Dashboard", root_path
+          li
+            == link_to "Sales", "#sales_path"
+          li
+            == link_to "Purchases", "#purchases_path"
+          li
+            == link_to "Products", products_path
+          li
+            == link_to "Suppliers", suppliers_path
+          li
+            == link_to "Brands", brands_path
+          li
+            == link_to "Franchises", franchises_path
+          li
+            == link_to "Colors", colors_path
+          li
+            == link_to "Shapes", shapes_path
+          li
+            == link_to "Sizes", sizes_path
+          li
+            == link_to "Versions", versions_path
+    main
+      == yield
