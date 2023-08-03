@@ -2,7 +2,9 @@ nav
   ul
     li
       == link_to "Back to products", @product
-      h1 Editing "#{@product.title}"
+      hgroup 
+        h1 Editing "#{@product.title}"
+        h2 == @product.full_title
   ul
     li   
       == link_to @product

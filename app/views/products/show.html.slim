@@ -10,7 +10,7 @@ nav
       == link_to "Back to products", products_path
       hgroup 
         h1 == @product.title
-        h2 == @product.full_name
+        h2 == @product.full_title
   ul
     li == link_to edit_product_path(@product)
       i.icn ✏️
@@ -37,11 +37,11 @@ main
         td == @product.supplier.title
         td == @product.franchise.title
         td == @product.title
-        td == @product.size.value
+        td == @product.size&.value || "-"
         td == @product.shape.title
         td == @product.brand.title
-        td == @product.version.value
-        td == @product.color.value
+        td == @product.version&.value || "-"
+        td == @product.color&.value || "-"
         td == @product.created_at
         td == @product.updated_at
 

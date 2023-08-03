@@ -20,12 +20,20 @@ class Product < ApplicationRecord
   belongs_to :supplier
   belongs_to :brand
   belongs_to :franchise
-  belongs_to :size
-  belongs_to :color
-  belongs_to :version
   belongs_to :shape
 
-  def full_name
-    "#{self.franchise.title} — #{self.title} | #{self.size.value} resin #{self.shape.title} | from #{self.brand.title} | #{self.version.value} | #{self.color.value}"
+  belongs_to :size, optional: true
+  belongs_to :version, optional: true
+  belongs_to :color, optional: true
+
+  def full_title
+    title_parts = [
+      "#{franchise.title} — #{title}",
+      "#{size&.value} resin #{shape.title}",
+      brand.title,
+      version&.value,
+      color&.value
+    ]
+    title_parts.compact.join(" | ")
   end
 end

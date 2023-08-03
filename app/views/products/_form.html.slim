@@ -19,7 +19,7 @@
   == form.text_field :title
 
   == form.label :size
-  == form.collection_select(:size_id, Size.all, :id, :value)
+  == form.collection_select(:size_id, Size.all, :id, :value, { include_blank: true })
 
   == form.label :shape
   == form.collection_select(:shape_id, Shape.all, :id, :title)
@@ -28,9 +28,9 @@
   == form.collection_select(:brand_id, Brand.all, :id, :title, { class: "select" }, data: { controller: "slim-select" })
 
   == form.label :version
-  == form.collection_select(:version_id, Version.all, :id, :value)
+  == form.collection_select(:version_id, Version.all, :id, :value, { include_blank: true })
 
   == form.label :color
-  == form.collection_select(:color_id, Color.all, :id, :value)
+  == form.collection_select(:color_id, Color.all, :id, :value, { include_blank: true })
 
   == form.submit

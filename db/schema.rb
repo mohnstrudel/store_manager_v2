@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_07_21_092423) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_03_151232) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -37,9 +37,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_21_092423) do
     t.bigint "supplier_id", null: false
     t.bigint "brand_id", null: false
     t.bigint "franchise_id", null: false
-    t.bigint "size_id", null: false
-    t.bigint "color_id", null: false
-    t.bigint "version_id", null: false
+    t.bigint "size_id"
+    t.bigint "color_id"
+    t.bigint "version_id"
     t.bigint "shape_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
