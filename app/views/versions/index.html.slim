@@ -1,16 +1,7 @@
-- if notice.present?
-  p
-    == notice
+== render "_shared/notice"
 
-nav
-  ul
-    li 
-      h1 Versions
-  ul
-    li
-      == link_to new_version_path
-        i.icn 🐣
-        | New version
+== render "_shared/nav-index", model: @versions
+
 main
   table(role="grid")
     thead

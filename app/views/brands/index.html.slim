@@ -1,18 +1,7 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li 
-      h1 Brands
-  ul
-    li   
-      == link_to new_brand_path
-        i.icn 🐣
-        | New brand
+== render "_shared/nav-index", model: @brands
+
 main
   table(role="grid")
     thead

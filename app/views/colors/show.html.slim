@@ -1,20 +1,6 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li
-      == link_to "Back to colors", colors_path
-      h1
-        == @color.value
-  ul
-    li
-      == link_to edit_color_path(@color)
-        i.icn ✏️
-        | Edit
+== render "_shared/nav-show", model: @color
 
 main
   table.vertical(role="grid")

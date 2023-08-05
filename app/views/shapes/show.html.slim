@@ -1,20 +1,6 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li
-      == link_to "Back to shapes", shapes_path
-      h1
-        == @shape.title
-  ul
-    li   
-      == link_to edit_shape_path(@shape)
-        i.icn ✏️
-        | Edit
+== render "_shared/nav-show", model: @shape
 
 main
   table.vertical(role="grid")

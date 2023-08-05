@@ -1,12 +1,4 @@
-nav
-  ul
-    li
-      == link_to "Back to versions", versions_path
-      h1 Editing version
-  ul
-    li
-      == link_to @version
-        i.icn 📄
-        | Show
+== render "_shared/nav-edit", model: @version
+
 main
   == render "form", version: @version

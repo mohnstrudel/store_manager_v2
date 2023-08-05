@@ -1,14 +1,5 @@
 == form_with(model: color) do |form|
-  - if color.errors.any?
-    article.notice.is-error
-      header
-        i.icn 🙀
-        | Sorry, we can't save this. Fix the errors and try again:
-        i.icn 🙀
-      ul
-        - color.errors.each do |error|
-          li
-            == error.full_message
+  == render "_shared/notice-err", model: color
   == form.label :value
   == form.text_field :value 
   == form.submit

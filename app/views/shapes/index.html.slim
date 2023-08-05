@@ -1,18 +1,7 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li 
-      h1 Shapes
-  ul
-    li   
-      == link_to new_shape_path
-        i.icn 🐣
-        | New shape
+== render "_shared/nav-index", model: @shapes
+
 main
   table(role="grid")
     thead

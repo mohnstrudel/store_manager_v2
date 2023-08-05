@@ -1,14 +1,6 @@
 == form_with(model: product) do |form|
-  - if product.errors.any?
-    article.notice.is-error
-      header
-        i.icn 🙀
-        | Sorry, we can't save this. Fix the errors and try again:
-        i.icn 🙀
-      ul
-        - product.errors.each do |error|
-          li
-            == error.full_message
+  == render "_shared/notice-err", model: product
+
   == form.label :supplier
   == form.collection_select(:supplier_id, Supplier.all, :id, :title)
 

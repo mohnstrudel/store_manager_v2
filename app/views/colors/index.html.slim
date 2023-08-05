@@ -1,18 +1,7 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li 
-      h1 Colors
-  ul
-    li
-      == link_to new_color_path
-        i.icn 🐣
-        | New color
+== render "_shared/nav-index", model: @colors
+
 main
   table(role="grid")
     thead

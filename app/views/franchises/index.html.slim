@@ -1,18 +1,7 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li 
-      h1 Franchises
-  ul
-    li   
-      == link_to new_franchise_path
-        i.icn 🐣
-        | New franchise
+== render "_shared/nav-index", model: @franchises
+
 main
   table(role="grid")
     thead

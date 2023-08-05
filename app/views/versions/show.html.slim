@@ -1,20 +1,6 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li
-      == link_to "Back to versions", versions_path
-      h1
-        == @version.value
-  ul
-    li
-      == link_to edit_version_path(@version)
-        i.icn ✏️
-        | Edit
+== render "_shared/nav-show", model: @version
 
 main
   table(role="grid")

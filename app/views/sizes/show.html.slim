@@ -1,20 +1,6 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li
-      == link_to "Back to sizes", sizes_path
-      h1
-        == @size.value
-  ul
-    li
-      == link_to edit_size_path(@size)
-        i.icn ✏️
-        | Edit
+== render "_shared/nav-show", model: @size
 
 main
   table.vertical(role="grid")

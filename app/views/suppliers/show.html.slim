@@ -1,20 +1,6 @@
-- if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    == notice
-    i.icn 😼
+== render "_shared/notice"
 
-nav
-  ul
-    li
-      == link_to "Back to suppliers", suppliers_path
-      h1
-        == @supplier.title
-  ul
-    li   
-      == link_to edit_supplier_path(@supplier)
-        i.icn ✏️
-        | Edit
+== render "_shared/nav-show", model: @supplier
 
 main
   table.vertical(role="grid")

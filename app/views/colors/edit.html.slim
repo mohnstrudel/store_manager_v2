@@ -1,12 +1,4 @@
-nav
-  ul
-    li
-      == link_to "Back to colors", colors_path
-      h1 Editing color
-  ul
-    li
-      == link_to @color
-        i.icn 📄
-        | Show
+== render "_shared/nav-edit", model: @color
+
 main
   == render "form", color: @color
