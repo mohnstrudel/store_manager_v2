@@ -1,5 +1,5 @@
 class SuppliersController < ApplicationController
-  before_action :set_supplier, only: %i[ show edit update destroy ]
+  before_action :set_supplier, only: %i[show edit update destroy]
 
   # GET /suppliers or /suppliers.json
   def index
@@ -58,13 +58,14 @@ class SuppliersController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_supplier
-      @supplier = Supplier.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def supplier_params
-      params.fetch(:supplier, {}).permit(:title)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_supplier
+    @supplier = Supplier.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def supplier_params
+    params.fetch(:supplier, {}).permit(:title)
+  end
 end
