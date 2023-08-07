@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :purchases
   resources :products
   scope "/admin" do
     resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands

@@ -1,0 +1,11 @@
+p style="color: green" = notice
+
+h1 Purchases
+
+#purchases
+  - @purchases.each do |purchase|
+    == render purchase
+    p
+      = link_to "Show this purchase", purchase
+
+= link_to "New purchase", new_purchase_path
