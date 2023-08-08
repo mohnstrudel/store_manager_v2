@@ -16,4 +16,8 @@ class Purchase < ApplicationRecord
   belongs_to :product
 
   has_many :payments, dependent: :destroy
+
+  def title
+    "№#{order_reference} from #{supplier.title}"
+  end
 end
