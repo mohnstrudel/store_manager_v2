@@ -39,8 +39,10 @@ end
 end
 
 Purchase.all.each do |purchase|
-  purchase.payments.create({
-    value: Faker::Number.decimal(l_digits: 3, r_digits: 2),
-    purchase_id: purchase.id
-  })
+  3.times do
+    purchase.payments.create({
+      value: Faker::Number.decimal(l_digits: 3, r_digits: 2),
+      purchase_id: purchase.id
+    })
+  end
 end

@@ -1,16 +1,24 @@
-div id="#{dom_id purchase}"
-  p
-    strong Supplier:
-    =< purchase.supplier_id
-  p
-    strong Product:
-    =< purchase.product_id
-  p
-    strong Order reference:
-    =< purchase.order_reference
-  p
-    strong Price:
-    =< purchase.price
-  p
-    strong Amount:
-    =< purchase.amount
+tr id="#{dom_id purchase}"
+  td
+    == purchase.product.full_title
+  td.right
+    == purchase.amount
+    .sign
+      |  × 
+    == number_to_currency(purchase.item_price, locale: "de", unit: "€")
+    .sign
+      |  = 
+    == number_to_currency(purchase.price, locale: "de", unit: "€")
+  td.v-bot.right
+    progress.in-td(value=purchase.progress max=100)
+    == number_to_currency(purchase.paid, locale: "de", unit: "€")
+  td
+    == purchase.supplier.title
+  - if action_name != "show" 
+    td
+      == link_to purchase
+        i.icn 📄
+        | Show
+      == link_to edit_purchase_path(purchase)
+        i.icn ✏️
+        | Edit

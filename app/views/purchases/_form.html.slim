@@ -1,30 +1,19 @@
-= form_with(model: @purchase) do |form|
-  - if @purchase.errors.any?
-    div style="color: red"
-      h2 = "#{pluralize(@purchase.errors.count, "error")} prohibited this purchase from being saved:"
-      ul
-        - @purchase.errors.each do |error|
-          li = error.full_message
+== form_with(model: purchase) do |form|
+  == render "_shared/notice-err", model: purchase
 
-  div
-    = form.label :supplier_id, style: "display: block"
-    = form.text_field :supplier_id
+  == form.label :supplier
+  == form.collection_select(:supplier_id, Supplier.all, :id, :title)
 
-  div
-    = form.label :product_id, style: "display: block"
-    = form.text_field :product_id
+  == form.label :product
+  == form.collection_select(:product_id, Product.all, :id, :full_title, { class: "select" }, data: { controller: "slim-select" })
 
-  div
-    = form.label :order_reference, style: "display: block"
-    = form.text_field :order_reference
+  == form.label :order_reference
+  == form.text_field :order_reference
 
-  div
-    = form.label :price, style: "display: block"
-    = form.text_field :price
+  == form.label :price
+  == form.text_field :price
 
-  div
-    = form.label :amount, style: "display: block"
-    = form.number_field :amount
+  == form.label :amount
+  == form.text_field :amount
 
-  div
-    = form.submit
+  == form.submit

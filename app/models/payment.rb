@@ -12,5 +12,5 @@
 class Payment < ApplicationRecord
   validates :value, presence: true
 
-  belongs_to :purchase
+  belongs_to :purchase, touch: true
 end

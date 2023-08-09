@@ -47,6 +47,11 @@ body {
   }
 }
 @media (min-width: 1200px) {
+  body > footer,
+  body > header,
+  body > main {
+    max-width: 80vw;
+  }
   body > header,
   body > main,
   body > footer,
@@ -180,4 +185,18 @@ article.notice .icn {
 .ss-arrow {
   display: none;
   opacity: 0;
+}
+progress.in-td {
+  display: block;
+}
+td.right,
+th.right {
+  text-align: right;
+}
+td.v-bot {
+  vertical-align: bottom;
+}
+.sign {
+  opacity: 0.5;
+  display: inline;
 }

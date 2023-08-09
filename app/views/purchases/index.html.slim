@@ -1,11 +1,20 @@
-p style="color: green" = notice
+== render "_shared/notice"
 
-h1 Purchases
+== render "_shared/nav-index", model: @purchases
 
-#purchases
-  - @purchases.each do |purchase|
-    == render purchase
-    p
-      = link_to "Show this purchase", purchase
-
-= link_to "New purchase", new_purchase_path
+main
+  table(role="grid")
+    thead
+      tr
+        th
+          | Product
+        th.right
+          | Price
+        th.right
+          | Paid
+        th
+          | Supplier
+        th
+          | Actions
+    tbody
+      == render @purchases, cached: true

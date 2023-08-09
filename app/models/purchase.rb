@@ -20,4 +20,16 @@ class Purchase < ApplicationRecord
   def title
     "№#{order_reference} from #{supplier.title}"
   end
+
+  def paid
+    payments.pluck(:value).inject(:+)
+  end
+
+  def progress
+    paid / (price * BigDecimal("0.01"))
+  end
+
+  def item_price
+    price / amount
+  end
 end
