@@ -11,7 +11,7 @@ tr id="#{dom_id purchase}"
     == number_to_currency(purchase.price, locale: "de", unit: "€")
   td.v-bot.right
     progress.in-td(value=purchase.progress max=100)
-    == number_to_currency(purchase.paid, locale: "de", unit: "€")
+    == number_to_currency(purchase.debt, locale: "de", unit: "€")
   td
     == purchase.supplier.title
   - if action_name != "show" 

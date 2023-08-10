@@ -200,3 +200,10 @@ td.v-bot {
   opacity: 0.5;
   display: inline;
 }
+form.payment input[type="number"] {
+  width: 40%;
+  margin-right: 1rem;
+}
+form.payment input[type="submit"] {
+  width: auto;
+}

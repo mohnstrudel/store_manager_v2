@@ -17,12 +17,18 @@ class Purchase < ApplicationRecord
 
   has_many :payments, dependent: :destroy
 
-  def title
-    "№#{order_reference} from #{supplier.title}"
-  end
+  delegate :full_title, to: :product
 
   def paid
-    payments.pluck(:value).inject(:+)
+    payments.pluck(:value).sum
+  end
+
+  def debt
+    price - paid
+  end
+
+  def item_debt
+    (price - paid) / amount
   end
 
   def progress
