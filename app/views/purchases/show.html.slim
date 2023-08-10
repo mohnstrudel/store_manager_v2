@@ -31,7 +31,7 @@ main
           == number_to_currency(@purchase.item_debt, locale: "de", unit: "€")
         td == number_to_currency(@purchase.paid, locale: "de", unit: "€")
         td
-          progress(value=@purchase.progress max=100)
+          progress.no-mg(value=@purchase.progress max=100)
         td == @purchase.order_reference
         td == @purchase.created_at.strftime("%d.%m.%Y")
         td == @purchase.supplier.title
@@ -55,7 +55,7 @@ article
         = message
 
     = form.hidden_field :purchase_id
-    = form.number_field :value, placeholder: "How much did you pay?", id: "payment-amount"
+    = form.number_field :value, placeholder: "How much did you pay?", id: "payment-amount", step: :any
     = form.submit "Add payment", role: "button"
 
 == button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"  

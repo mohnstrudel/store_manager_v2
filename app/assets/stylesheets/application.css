@@ -207,3 +207,6 @@ form.payment input[type="number"] {
 form.payment input[type="submit"] {
   width: auto;
 }
+progress.no-mg {
+  margin: 0;
+}
