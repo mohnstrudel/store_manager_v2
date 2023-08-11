@@ -130,6 +130,9 @@ table.vertical tbody td:last-of-type {
   padding-bottom: 1.5rem;
   padding-right: 1.8rem;
 }
+table.vertical tbody td {
+  min-width: 30rem;
+}
 .logo {
   font-size: 2rem;
   color: var(--muted-color);

@@ -48,7 +48,7 @@ article
         = message
 
     = form.hidden_field :purchase_id
-    = form.number_field :value, placeholder: "How much did you pay?", id: "payment-amount", step: :any
+    = form.number_field :value, placeholder: "What did you pay per statue?", id: "payment-amount", step: :any
     = form.submit "Add payment", role: "button"
 
 == button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"  
