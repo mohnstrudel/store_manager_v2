@@ -7,7 +7,9 @@ main
   table.vertical(role="grid")
     thead
       tr
-        th Price
+        th Amount
+        th Unit price
+        th Total price
         th Debt
         th Paid
         th Progress
@@ -16,20 +18,11 @@ main
         th Supplier
     tbody
       tr
-        td
-          == @purchase.amount
-          .sign
-            |  × 
-          == number_to_currency(@purchase.item_price, locale: "de", unit: "€")
-          .sign
-            |  = 
-          == number_to_currency(@purchase.price, locale: "de", unit: "€")
-        td
-          .sign total: 
-          == number_to_currency(@purchase.debt, locale: "de", unit: "€")
-          .sign , per item: 
-          == number_to_currency(@purchase.item_debt, locale: "de", unit: "€")
-        td == number_to_currency(@purchase.paid, locale: "de", unit: "€")
+        td == @purchase.amount
+        td == number_to_currency(@purchase.item_price, locale: "de")
+        td == number_to_currency(@purchase.total_price, locale: "de")
+        td == number_to_currency(@purchase.debt, locale: "de")
+        td == number_to_currency(@purchase.paid, locale: "de")
         td
           progress.no-mg(value=@purchase.progress max=100)
         td == @purchase.order_reference
@@ -46,7 +39,7 @@ article
     tbody#payments
       - @purchase.payments.each do |payment|
         tr
-          td == number_to_currency(payment.value, locale: "de", unit: "€")
+          td == number_to_currency(payment.value, locale: "de")
           td == payment.payment_date.strftime("%d.%m.%Y")
 
   = form_with model: @purchase.payments.new, class: "payment", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|

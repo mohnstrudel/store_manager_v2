@@ -10,10 +10,15 @@
   == form.label :order_reference
   == form.text_field :order_reference
 
-  == form.label :price
-  == form.text_field :price
+  == form.label :item_price
+  == form.text_field :item_price
 
   == form.label :amount
   == form.text_field :amount
+
+  - if action_name == "new"
+    == form.fields_for :payments do |payment_builder|
+      == payment_builder.label "What did you pay per statue?"
+      == payment_builder.number_field :value
 
   == form.submit

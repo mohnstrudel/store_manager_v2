@@ -32,7 +32,7 @@ end
   Purchase.create({
     amount: Faker::Number.number(digits: 2),
     order_reference: Faker::IDNumber.spanish_foreign_citizen_number,
-    price: Faker::Number.decimal(l_digits: 4, r_digits: 2),
+    item_price: Faker::Number.decimal(l_digits: 3, r_digits: 2),
     product: Product.order("RANDOM()").limit(1).first,
     supplier: Supplier.order("RANDOM()").limit(1).first
   })

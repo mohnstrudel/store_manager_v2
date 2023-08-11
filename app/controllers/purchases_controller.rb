@@ -13,6 +13,7 @@ class PurchasesController < ApplicationController
   # GET /purchases/new
   def new
     @purchase = Purchase.new
+    @purchase.payments.build
   end
 
   # GET /purchases/1/edit
@@ -66,6 +67,6 @@ class PurchasesController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def purchase_params
-    params.require(:purchase).permit(:supplier_id, :product_id, :order_reference, :price, :amount)
+    params.require(:purchase).permit(:supplier_id, :product_id, :order_reference, :item_price, :amount, payments_attributes: [:id, :value, :purchase_id])
   end
 end

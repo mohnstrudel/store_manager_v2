@@ -1,3 +1,3 @@
 tr
-  td == number_to_currency(@payment.value, locale: "de", unit: "€")
+  td == number_to_currency(@payment.value, locale: "de")
   td == @payment.created_at.strftime("%d.%m.%Y")

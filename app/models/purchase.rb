@@ -4,18 +4,22 @@
 #
 #  id              :bigint           not null, primary key
 #  amount          :integer
+#  item_price      :decimal(8, 2)
 #  order_reference :string
-#  price           :decimal(8, 2)
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  product_id      :bigint           not null
 #  supplier_id     :bigint           not null
 #
 class Purchase < ApplicationRecord
+  validates :amount, presence: true
+  validates :item_price, presence: true
+
   belongs_to :supplier
   belongs_to :product
 
   has_many :payments, dependent: :destroy
+  accepts_nested_attributes_for :payments
 
   delegate :full_title, to: :product
 
@@ -24,18 +28,14 @@ class Purchase < ApplicationRecord
   end
 
   def debt
-    price - paid
-  end
-
-  def item_debt
-    (price - paid) / amount
+    total_price - paid
   end
 
   def progress
-    paid / (price * BigDecimal("0.01"))
+    paid / (total_price * BigDecimal("0.01"))
   end
 
-  def item_price
-    price / amount
+  def total_price
+    item_price * amount
   end
 end

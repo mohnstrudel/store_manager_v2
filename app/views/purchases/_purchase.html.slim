@@ -5,13 +5,13 @@ tr id="#{dom_id purchase}"
     == purchase.amount
     .sign
       |  × 
-    == number_to_currency(purchase.item_price, locale: "de", unit: "€")
+    == number_to_currency(purchase.item_price, locale: "de")
     .sign
       |  = 
-    == number_to_currency(purchase.price, locale: "de", unit: "€")
+    == number_to_currency(purchase.total_price, locale: "de")
   td.v-bot.right
     progress.in-td(value=purchase.progress max=100)
-    == number_to_currency(purchase.debt, locale: "de", unit: "€")
+    == number_to_currency(purchase.debt, locale: "de")
   td
     == purchase.supplier.title
   - if action_name != "show" 
