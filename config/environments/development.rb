@@ -1,7 +1,7 @@
 require "active_support/core_ext/integer/time"
 
 # Whitelist all https://ngrok.com subdomains
-# I used this service for webhooks intergration
+# We can use this service for webhooks intergration
 Rails.application.config.hosts << /.*\.ngrok-free\.app/
 
 Rails.application.configure do
