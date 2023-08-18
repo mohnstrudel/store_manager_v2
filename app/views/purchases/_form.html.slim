@@ -18,7 +18,7 @@
 
   - if action_name == "new"
     == form.fields_for :payments do |payment_builder|
-      == payment_builder.label "What did you pay per statue?"
+      == payment_builder.label "What did you pay in total?"
       == payment_builder.number_field :value
 
   == form.submit
