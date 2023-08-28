@@ -27,3 +27,22 @@ end
     version: Version.order("RANDOM()").limit(1).first
   })
 end
+
+10.times do
+  Purchase.create({
+    amount: Faker::Number.number(digits: 2),
+    order_reference: Faker::IDNumber.spanish_foreign_citizen_number,
+    item_price: Faker::Number.decimal(l_digits: 3, r_digits: 2),
+    product: Product.order("RANDOM()").limit(1).first,
+    supplier: Supplier.order("RANDOM()").limit(1).first
+  })
+end
+
+Purchase.all.each do |purchase|
+  5..10.times do
+    purchase.payments.create({
+      value: Faker::Number.decimal(l_digits: 3, r_digits: 2),
+      purchase_id: purchase.id
+    })
+  end
+end

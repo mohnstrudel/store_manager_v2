@@ -1,5 +1,5 @@
 class VersionsController < ApplicationController
-  before_action :set_version, only: %i[ show edit update destroy ]
+  before_action :set_version, only: %i[show edit update destroy]
 
   # GET /versions or /versions.json
   def index
@@ -58,13 +58,14 @@ class VersionsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_version
-      @version = Version.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def version_params
-      params.fetch(:version, {}).permit(:value)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_version
+    @version = Version.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def version_params
+    params.fetch(:version, {}).permit(:value)
+  end
 end

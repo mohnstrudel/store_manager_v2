@@ -47,6 +47,11 @@ body {
   }
 }
 @media (min-width: 1200px) {
+  body > footer,
+  body > header,
+  body > main {
+    max-width: 80vw;
+  }
   body > header,
   body > main,
   body > footer,
@@ -125,6 +130,9 @@ table.vertical tbody td:last-of-type {
   padding-bottom: 1.5rem;
   padding-right: 1.8rem;
 }
+table.vertical tbody td {
+  min-width: 30rem;
+}
 .logo {
   font-size: 2rem;
   color: var(--muted-color);
@@ -180,4 +188,28 @@ article.notice .icn {
 .ss-arrow {
   display: none;
   opacity: 0;
+}
+progress.in-td {
+  display: block;
+}
+td.right,
+th.right {
+  text-align: right;
+}
+td.v-bot {
+  vertical-align: bottom;
+}
+.sign {
+  opacity: 0.5;
+  display: inline;
+}
+form.payment input[type="number"] {
+  width: 40%;
+  margin-right: 1rem;
+}
+form.payment input[type="submit"] {
+  width: auto;
+}
+progress.no-mg {
+  margin: 0;
 }

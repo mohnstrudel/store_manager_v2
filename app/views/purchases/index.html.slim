@@ -1,0 +1,20 @@
+== render "_shared/notice"
+
+== render "_shared/nav-index", model: @purchases
+
+main
+  table(role="grid")
+    thead
+      tr
+        th
+          | Product
+        th.right
+          | Price
+        th.right
+          | Debt
+        th
+          | Supplier
+        th
+          | Actions
+    tbody
+      == render @purchases, cache: true

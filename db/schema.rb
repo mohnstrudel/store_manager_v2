@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_03_151232) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_08_090023) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -32,6 +32,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_03_151232) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "payments", force: :cascade do |t|
+    t.decimal "value", precision: 8, scale: 2
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "purchase_id", null: false
+    t.datetime "payment_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["purchase_id"], name: "index_payments_on_purchase_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.string "title"
     t.bigint "supplier_id", null: false
@@ -50,6 +59,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_03_151232) do
     t.index ["size_id"], name: "index_products_on_size_id"
     t.index ["supplier_id"], name: "index_products_on_supplier_id"
     t.index ["version_id"], name: "index_products_on_version_id"
+  end
+
+  create_table "purchases", force: :cascade do |t|
+    t.bigint "supplier_id", null: false
+    t.bigint "product_id", null: false
+    t.string "order_reference"
+    t.decimal "item_price", precision: 8, scale: 2
+    t.integer "amount"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_purchases_on_product_id"
+    t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
   end
 
   create_table "shapes", force: :cascade do |t|
@@ -76,6 +97,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_03_151232) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "payments", "purchases"
   add_foreign_key "products", "brands"
   add_foreign_key "products", "colors"
   add_foreign_key "products", "franchises"
@@ -83,4 +105,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_03_151232) do
   add_foreign_key "products", "sizes"
   add_foreign_key "products", "suppliers"
   add_foreign_key "products", "versions"
+  add_foreign_key "purchases", "products"
+  add_foreign_key "purchases", "suppliers"
 end

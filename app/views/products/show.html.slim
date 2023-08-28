@@ -1,16 +1,9 @@
 == render "_shared/notice"
 
-nav
-  ul
-    li
-      == link_to "Back to products", products_path
-      hgroup 
-        h1 == @product.title
-        h2 == @product.full_title
-  ul
-    li == link_to edit_product_path(@product)
-      i.icn ✏️
-      | Edit
+== render "_shared/nav-show", model: @product, custom_heading: true
+  hgroup 
+    h1 == @product.title
+    h2 == @product.full_title
 
 main
   table.vertical(role="grid")

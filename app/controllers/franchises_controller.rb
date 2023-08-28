@@ -1,5 +1,5 @@
 class FranchisesController < ApplicationController
-  before_action :set_franchise, only: %i[ show edit update destroy ]
+  before_action :set_franchise, only: %i[show edit update destroy]
 
   # GET /franchises or /franchises.json
   def index
@@ -58,13 +58,14 @@ class FranchisesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_franchise
-      @franchise = Franchise.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def franchise_params
-      params.fetch(:franchise, {}).permit(:title)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_franchise
+    @franchise = Franchise.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def franchise_params
+    params.fetch(:franchise, {}).permit(:title)
+  end
 end

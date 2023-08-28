@@ -1,5 +1,5 @@
 class ShapesController < ApplicationController
-  before_action :set_shape, only: %i[ show edit update destroy ]
+  before_action :set_shape, only: %i[show edit update destroy]
 
   # GET /shapes or /shapes.json
   def index
@@ -58,13 +58,14 @@ class ShapesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_shape
-      @shape = Shape.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def shape_params
-      params.fetch(:shape, {}).permit(:title)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_shape
+    @shape = Shape.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def shape_params
+    params.fetch(:shape, {}).permit(:title)
+  end
 end
