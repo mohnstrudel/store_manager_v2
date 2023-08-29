@@ -9,5 +9,7 @@
 #
 class Version < ApplicationRecord
   validates :value, presence: true
-  has_many :products
+
+  has_many :product_sizes, dependent: :destroy
+  has_many :products, through: :product_sizes
 end

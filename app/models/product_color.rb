@@ -1,13 +1,14 @@
 # == Schema Information
 #
-# Table name: franchises
+# Table name: product_colors
 #
 #  id         :bigint           not null, primary key
-#  title      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  color_id   :bigint
+#  product_id :bigint
 #
-class Franchise < ApplicationRecord
-  validates :title, presence: true
-  has_many :products, dependent: :destroy
+class ProductColor < ApplicationRecord
+  belongs_to :product
+  belongs_to :color
 end

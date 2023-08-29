@@ -3,10 +3,10 @@ Size.create(value: "1:2")
 Size.create(value: "1:4")
 Shape.create(title: "Bust")
 Shape.create(title: "Statue")
+Version.create(value: "Exclusive")
 Version.create(value: "Regular")
-Version.create(value: "Oversize")
-Version.create(value: "Slim")
-Version.create(value: "Skinny")
+Version.create(value: "Deluxe")
+Version.create(value: "VIP")
 
 10.times do
   Supplier.create(title: Faker::Company.name)
@@ -16,16 +16,26 @@ Version.create(value: "Skinny")
 end
 
 20.times do
-  Product.create({
+  product = Product.create({
     title: Faker::DcComics.name,
-    supplier: Supplier.order("RANDOM()").limit(1).first,
     franchise: Franchise.order("RANDOM()").limit(1).first,
-    brand: Brand.order("RANDOM()").limit(1).first,
-    color: Color.order("RANDOM()").limit(1).first,
-    size: Size.order("RANDOM()").limit(1).first,
-    shape: Shape.order("RANDOM()").limit(1).first,
-    version: Version.order("RANDOM()").limit(1).first
+    shape: Shape.order("RANDOM()").limit(1).first
   })
+  Supplier.order("RANDOM()").limit(5).each do |supplier|
+    product.suppliers << supplier
+  end
+  Size.order("RANDOM()").limit(3).each do |size|
+    product.sizes << size
+  end
+  Brand.order("RANDOM()").limit(3).each do |brand|
+    product.brands << brand
+  end
+  Version.order("RANDOM()").limit(4).each do |version|
+    product.versions << version
+  end
+  Color.order("RANDOM()").limit(rand(1..5)).each do |color|
+    product.colors << color
+  end
 end
 
 10.times do
