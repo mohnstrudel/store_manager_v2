@@ -35,3 +35,4 @@
 
 # Ignore macOS shit
 .DS_Store
+/config/credentials/development.key
