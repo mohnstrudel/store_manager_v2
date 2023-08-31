@@ -10,6 +10,7 @@ main
     thead
       tr
         th ID
+        th Shop ID
         th Supplier
         th Franchise
         th Title
@@ -23,6 +24,7 @@ main
     tbody
       tr
         td == @product.id
+        td == @product.woo_id
         td == format_relation(@product.suppliers, "title")
         td == @product.franchise.title
         td == @product.title
