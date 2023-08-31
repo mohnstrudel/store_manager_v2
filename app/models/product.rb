@@ -11,6 +11,8 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
+  paginates_per 50
+
   validates :title, presence: true
 
   belongs_to :franchise

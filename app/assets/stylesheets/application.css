@@ -220,3 +220,9 @@ form.payment input[type="submit"] {
 progress.no-mg {
   margin: 0;
 }
+.pagination {
+  padding-bottom: var(--spacing);
+  max-width: 50vw;
+  margin: 0 auto;
+  font-size: calc(var(--font-size) / 1.15);
+}
