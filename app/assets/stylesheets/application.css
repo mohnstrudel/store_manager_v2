@@ -19,6 +19,9 @@
   --ss-font-color: var(--form-element-color);
   --ss-border-color: var(--form-element-border-color);
   --ss-border-radius: var(--border-radius);
+  --ss-spacing-s: 4px;
+  --ss-spacing-m: 8px;
+  --ss-spacing-l: 10px;
 }
 @font-face {
   font-family: "Noto Emo";
@@ -184,11 +187,15 @@ article.notice .icn {
   background-size: 1rem auto;
   background-repeat: no-repeat;
 }
-.ss-main svg,
 .ss-arrow {
   display: none;
   opacity: 0;
 }
+.ss-main .ss-values .ss-value .ss-value-text {
+  font-size: var(--font-size);
+}
+.ss-main .ss-values .ss-value {
+  background-color: var(--muted-color);
 progress.in-td {
   display: block;
 }
