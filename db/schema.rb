@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_08_062005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
 
   create_table "colors", force: :cascade do |t|
     t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.string "woo_id"
+    t.string "first_name"
+    t.string "last_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -109,6 +117,27 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
   end
 
+  create_table "sales", force: :cascade do |t|
+    t.string "woo_id"
+    t.string "status"
+    t.decimal "discount_total", precision: 8, scale: 2
+    t.decimal "shipping_total", precision: 8, scale: 2
+    t.decimal "total", precision: 8, scale: 2
+    t.string "company"
+    t.string "address_1"
+    t.string "address_2"
+    t.string "city"
+    t.string "state"
+    t.string "postcode"
+    t.string "country"
+    t.string "phone"
+    t.string "note"
+    t.bigint "customer_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_sales_on_customer_id"
+  end
+
   create_table "shapes", force: :cascade do |t|
     t.string "title"
     t.datetime "created_at", null: false
@@ -148,4 +177,5 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
   add_foreign_key "products", "shapes"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
+  add_foreign_key "sales", "customers"
 end

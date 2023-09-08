@@ -1,0 +1,26 @@
+# == Schema Information
+#
+# Table name: sales
+#
+#  id             :bigint           not null, primary key
+#  address_1      :string
+#  address_2      :string
+#  city           :string
+#  company        :string
+#  country        :string
+#  discount_total :decimal(8, 2)
+#  note           :string
+#  phone          :string
+#  postcode       :string
+#  shipping_total :decimal(8, 2)
+#  state          :string
+#  status         :string
+#  total          :decimal(8, 2)
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  customer_id    :bigint           not null
+#  woo_id         :string
+#
+class Sale < ApplicationRecord
+  belongs_to :customer
+end
