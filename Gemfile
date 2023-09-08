@@ -72,6 +72,8 @@ group :development do
   # gem "spring"
   gem "rails_live_reload"
   gem "annotate"
+  gem "solargraph"
+  gem "solargraph-rails"
 end
 
 group :test do

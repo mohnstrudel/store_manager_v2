@@ -6,6 +6,7 @@ class WebhookController < ApplicationController
     return head(:unauthorized) unless verified
     # TODO: https://github.com/mohnstrudel/store_manager_v2/issues/7
     # request.body.read || params.to_json
+    # body = request.body.read
     head(:no_content)
   end
 
