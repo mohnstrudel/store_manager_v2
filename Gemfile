@@ -24,9 +24,6 @@ gem "turbo-rails"
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
 gem "stimulus-rails"
 
-# Build JSON APIs with ease [https://github.com/rails/jbuilder]
-gem "jbuilder"
-
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
 
@@ -59,6 +56,8 @@ group :development, :test do
   gem "standard", "~> 1.30"
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
+  gem "rspec-rails", "~> 6.0.0"
+  gem "factory_bot_rails"
 end
 
 group :development do
