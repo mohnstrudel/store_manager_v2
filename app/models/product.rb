@@ -33,6 +33,9 @@ class Product < ApplicationRecord
   has_many :product_colors, dependent: :destroy
   has_many :colors, through: :product_colors
 
+  has_many :product_sales, dependent: :destroy
+  has_many :sales, through: :product_sales
+
   def full_title
     values_from = ->(i) { i&.pluck(:value)&.join(", ") }
     sizes_string = values_from.call(sizes)

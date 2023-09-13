@@ -1,0 +1,15 @@
+== render "_shared/notice"
+
+== render "_shared/nav-index", model: @sales
+
+main
+  table(role="grid")
+    thead
+      tr
+        th Woo ID
+        th Product
+        th Status
+        th Price
+        th Actions
+    tbody
+      == render @sales

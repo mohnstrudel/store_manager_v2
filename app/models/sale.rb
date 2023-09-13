@@ -23,4 +23,7 @@
 #
 class Sale < ApplicationRecord
   belongs_to :customer
+
+  has_many :product_sales, dependent: :destroy
+  has_many :products, through: :product_sales
 end

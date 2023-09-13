@@ -1,0 +1,7 @@
+== form_with(model: sale) do |form|
+  == render "_shared/notice-err", model: sale
+
+  == form.label :status
+  == form.select :status, options_for_select(["pre-ordered", "processing", "cancelled", "failed", "completed"])
+
+  == form.submit

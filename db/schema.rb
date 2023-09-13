@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_08_062005) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_08_065554) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -49,6 +49,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_08_062005) do
     t.index ["purchase_id"], name: "index_payments_on_purchase_id"
   end
 
+  create_table "product_sales", force: :cascade do |t|
+    t.decimal "price", precision: 8, scale: 2
+    t.integer "qty"
+    t.bigint "product_id", null: false
+    t.bigint "sale_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_product_sales_on_product_id"
+    t.index ["sale_id"], name: "index_product_sales_on_sale_id"
   create_table "product_brands", force: :cascade do |t|
     t.bigint "product_id"
     t.bigint "brand_id"
@@ -163,6 +172,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_08_062005) do
   end
 
   add_foreign_key "payments", "purchases"
+  add_foreign_key "product_sales", "products"
+  add_foreign_key "product_sales", "sales"
+  add_foreign_key "products", "brands"
+  add_foreign_key "products", "colors"
   add_foreign_key "product_brands", "brands"
   add_foreign_key "product_brands", "products"
   add_foreign_key "product_colors", "colors"

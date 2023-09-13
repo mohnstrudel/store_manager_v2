@@ -1,9 +1,10 @@
 nav
   ul
     li 
-      h1 == model.model_name.plural.capitalize
-  ul
-    li   
-      == link_to controller: "#{model.model_name.plural}", action: "new"
-        i.icn 🐣
-        | New #{model.model_name.singular}
+      h1 = model.model_name.plural.capitalize
+  - if Rails.application.routes.url_helpers.respond_to?("new_#{model.name.downcase}_path")
+    ul
+      li
+        = link_to controller: "#{model.model_name.plural}", action: "new"
+          i.icn 🐣
+          | New #{model.model_name.singular}

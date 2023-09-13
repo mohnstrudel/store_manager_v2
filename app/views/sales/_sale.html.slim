@@ -1,0 +1,16 @@
+tr id="#{dom_id sale}"
+  td == sale.woo_id
+  td
+    ol
+      - sale.products.each do |product|
+        li == product.full_title
+  td == sale.status.titleize
+  td == number_to_currency(sale.total, locale: "de")
+  - if action_name != "show" 
+    td
+      == link_to sale
+        i.icn 📄
+        | Show
+      == link_to edit_sale_path(sale)
+        i.icn ✏️
+        | Edit
