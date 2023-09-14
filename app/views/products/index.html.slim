@@ -3,14 +3,16 @@
 == render "_shared/nav-index", model: @products
 
 main
+  == paginate @products  
   table(role="grid")
     thead
       tr
         th
-          | ID
+          | Shop ID
         th
           | Full name
         th
           | Actions
     tbody
       == render @products
+  == paginate @products

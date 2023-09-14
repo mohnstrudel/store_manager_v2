@@ -10,6 +10,7 @@ main
     thead
       tr
         th ID
+        th Shop ID
         th Supplier
         th Franchise
         th Title
@@ -23,15 +24,16 @@ main
     tbody
       tr
         td == @product.id
-        td == @product.supplier.title
+        td == @product.woo_id
+        td == format_relation(@product.suppliers, "title")
         td == @product.franchise.title
         td == @product.title
-        td == @product.size&.value || "-"
+        td == format_relation(@product.sizes, "value")
         td == @product.shape.title
-        td == @product.brand.title
-        td == @product.version&.value || "-"
-        td == @product.color&.value || "-"
+        td == format_relation(@product.brands, "title")
+        td == format_relation(@product.versions, "value")
+        td == format_relation(@product.colors, "value")
         td == @product.created_at
         td == @product.updated_at
 
-== button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger"
+== button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

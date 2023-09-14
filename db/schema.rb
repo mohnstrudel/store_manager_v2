@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_08_090023) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -41,24 +41,60 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_08_090023) do
     t.index ["purchase_id"], name: "index_payments_on_purchase_id"
   end
 
+  create_table "product_brands", force: :cascade do |t|
+    t.bigint "product_id"
+    t.bigint "brand_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["brand_id"], name: "index_product_brands_on_brand_id"
+    t.index ["product_id"], name: "index_product_brands_on_product_id"
+  end
+
+  create_table "product_colors", force: :cascade do |t|
+    t.bigint "product_id"
+    t.bigint "color_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["color_id"], name: "index_product_colors_on_color_id"
+    t.index ["product_id"], name: "index_product_colors_on_product_id"
+  end
+
+  create_table "product_sizes", force: :cascade do |t|
+    t.bigint "product_id"
+    t.bigint "size_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_product_sizes_on_product_id"
+    t.index ["size_id"], name: "index_product_sizes_on_size_id"
+  end
+
+  create_table "product_suppliers", force: :cascade do |t|
+    t.bigint "product_id"
+    t.bigint "supplier_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_product_suppliers_on_product_id"
+    t.index ["supplier_id"], name: "index_product_suppliers_on_supplier_id"
+  end
+
+  create_table "product_versions", force: :cascade do |t|
+    t.bigint "product_id"
+    t.bigint "version_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_product_versions_on_product_id"
+    t.index ["version_id"], name: "index_product_versions_on_version_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.string "title"
-    t.bigint "supplier_id", null: false
-    t.bigint "brand_id", null: false
     t.bigint "franchise_id", null: false
-    t.bigint "size_id"
-    t.bigint "color_id"
-    t.bigint "version_id"
     t.bigint "shape_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["brand_id"], name: "index_products_on_brand_id"
-    t.index ["color_id"], name: "index_products_on_color_id"
+    t.string "woo_id"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
     t.index ["shape_id"], name: "index_products_on_shape_id"
-    t.index ["size_id"], name: "index_products_on_size_id"
-    t.index ["supplier_id"], name: "index_products_on_supplier_id"
-    t.index ["version_id"], name: "index_products_on_version_id"
   end
 
   create_table "purchases", force: :cascade do |t|
@@ -98,13 +134,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_08_090023) do
   end
 
   add_foreign_key "payments", "purchases"
-  add_foreign_key "products", "brands"
-  add_foreign_key "products", "colors"
+  add_foreign_key "product_brands", "brands"
+  add_foreign_key "product_brands", "products"
+  add_foreign_key "product_colors", "colors"
+  add_foreign_key "product_colors", "products"
+  add_foreign_key "product_sizes", "products"
+  add_foreign_key "product_sizes", "sizes"
+  add_foreign_key "product_suppliers", "products"
+  add_foreign_key "product_suppliers", "suppliers"
+  add_foreign_key "product_versions", "products"
+  add_foreign_key "product_versions", "versions"
   add_foreign_key "products", "franchises"
   add_foreign_key "products", "shapes"
-  add_foreign_key "products", "sizes"
-  add_foreign_key "products", "suppliers"
-  add_foreign_key "products", "versions"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
 end
