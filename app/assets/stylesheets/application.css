@@ -196,6 +196,7 @@ article.notice .icn {
 }
 .ss-main .ss-values .ss-value {
   background-color: var(--muted-color);
+}
 progress.in-td {
   display: block;
 }
@@ -222,7 +223,44 @@ progress.no-mg {
 }
 .pagination {
   padding-bottom: var(--spacing);
-  max-width: 50vw;
+  width: 50vw;
   margin: 0 auto;
-  font-size: calc(var(--font-size) / 1.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.pagination-list {
+  order: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+.pagination a {
+  font-size: calc(var(--font-size) / 1.25);
+  margin: 0;
+  padding: 0.5em 1em;
+  border: 1px solid var(--ss-disabled-color);
+  white-space: nowrap;
+}
+.pagination a:hover {
+  background-color: var(--primary-focus);
+  border-color: var(--primary-focus);
+}
+.pagination a[rel="prev"] {
+  order: 1;
+  margin-left: calc(var(--spacing) * 2);
+}
+.pagination a[rel="next"] {
+  order: 2;
+  margin-left: calc(var(--spacing) / 2);
+}
+.pagination-link.is-current {
+  background-color: var(--muted-border-color);
+  border-color: var(--muted-border-color);
+  color: var(--muted-color);
+}
+.pagination-link.is-current:hover {
+  background-color: var(--muted-border-color);
+  border-color: var(--muted-border-color);
+  cursor: default;
 }

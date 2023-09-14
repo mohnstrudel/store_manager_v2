@@ -39,6 +39,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
     t.bigint "purchase_id", null: false
     t.datetime "payment_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.index ["purchase_id"], name: "index_payments_on_purchase_id"
+  end
+
   create_table "product_brands", force: :cascade do |t|
     t.bigint "product_id"
     t.bigint "brand_id"
@@ -131,6 +133,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "payments", "purchases"
   add_foreign_key "product_brands", "brands"
   add_foreign_key "product_brands", "products"
   add_foreign_key "product_colors", "colors"
@@ -143,4 +146,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
   add_foreign_key "product_versions", "versions"
   add_foreign_key "products", "franchises"
   add_foreign_key "products", "shapes"
+  add_foreign_key "purchases", "products"
+  add_foreign_key "purchases", "suppliers"
 end
