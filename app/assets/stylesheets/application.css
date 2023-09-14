@@ -105,9 +105,10 @@ body > header > nav a:hover {
   background-color: var(--form-element-invalid-active-border-color);
   border-color: var(--form-element-invalid-active-border-color);
 }
-td > a:nth-child(1) {
-  margin-right: 0.5rem;
-}
+
+/* 
+  TABLES start
+*/
 table thead th {
   font-size: smaller;
   font-weight: 600;
@@ -136,6 +137,44 @@ table.vertical tbody td:last-of-type {
 table.vertical tbody td {
   min-width: 30rem;
 }
+tr.hoverable:hover td {
+  background-color: var(--primary-focus);
+}
+td.right,
+th.right {
+  text-align: right;
+}
+td.v-bot {
+  vertical-align: bottom;
+}
+th:last-of-type {
+  text-align: right;
+}
+td.actions {
+  font-size: calc(var(--font-size) / 1.15);
+  white-space: nowrap;
+  text-align: right;
+}
+td.actions a {
+  padding: 0.5em;
+  border: 1px solid var(--muted-border-color);
+  border-radius: var(--border-radius);
+}
+td.actions a:hover {
+  border: 1px solid var(--primary-focus);
+  background-color: var(--primary-focus);
+  text-decoration: none;
+}
+td.actions a:not(:first-of-type) {
+  margin-left: 0.25rem;
+}
+table a[data-turbo-method="delete"] {
+  color: tomato;
+}
+/* 
+  TABLES end
+*/
+
 .logo {
   font-size: 2rem;
   color: var(--muted-color);
@@ -200,13 +239,6 @@ article.notice .icn {
 progress.in-td {
   display: block;
 }
-td.right,
-th.right {
-  text-align: right;
-}
-td.v-bot {
-  vertical-align: bottom;
-}
 .sign {
   opacity: 0.5;
   display: inline;
@@ -221,6 +253,10 @@ form.payment input[type="submit"] {
 progress.no-mg {
   margin: 0;
 }
+
+/* 
+  PAGINATION start
+*/
 .pagination {
   padding-bottom: var(--spacing);
   width: 50vw;
@@ -239,7 +275,7 @@ progress.no-mg {
   font-size: calc(var(--font-size) / 1.25);
   margin: 0;
   padding: 0.5em 1em;
-  border: 1px solid var(--ss-disabled-color);
+  border: 1px solid var(--muted-border-color);
   white-space: nowrap;
 }
 .pagination a:hover {
@@ -264,3 +300,6 @@ progress.no-mg {
   border-color: var(--muted-border-color);
   cursor: default;
 }
+/* 
+  PAGINATION end
+*/

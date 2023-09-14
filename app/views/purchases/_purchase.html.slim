@@ -15,7 +15,7 @@ tr id="#{dom_id purchase}"
   td
     == purchase.supplier.title
   - if action_name != "show" 
-    td
+    td.actions
       == link_to purchase
         i.icn 📄
         | Show
