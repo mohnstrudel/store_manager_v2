@@ -135,7 +135,8 @@ table.vertical tbody td:last-of-type {
   padding-right: 1.8rem;
 }
 table.vertical tbody td {
-  min-width: 30rem;
+  min-width: 25vw;
+  max-width: 60vw;
 }
 tr.hoverable:hover td {
   background-color: var(--primary-focus);
@@ -169,7 +170,7 @@ td.actions a:not(:first-of-type) {
   margin-left: 0.25rem;
 }
 table a[data-turbo-method="delete"] {
-  color: tomato;
+  color: var(--form-element-invalid-active-border-color);
 }
 /* 
   TABLES end

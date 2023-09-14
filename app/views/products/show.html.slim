@@ -36,4 +36,4 @@ main
         td == @product.created_at
         td == @product.updated_at
 
-== button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger"
+== button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

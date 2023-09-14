@@ -12,6 +12,3 @@ tr.hoverable id="#{dom_id product}"
       = link_to edit_product_path(product)
         i.icn ✏️
         | Edit
-      = link_to product, data: { "turbo-method": :delete, turbo_confirm: 'Are you sure?' }
-        i.icn 💥
-        | Destroy
