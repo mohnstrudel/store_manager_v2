@@ -15,7 +15,13 @@ Version.create(value: "VIP")
   Franchise.create(title: Faker::DcComics.title)
   Brand.create(title: Faker::App.name)
   Color.create(value: Faker::Color.color_name)
-  Customer.create(first_name: Faker::Name.first_name, last_name: Faker::Name.last_name, woo_id: Faker::IDNumber.spanish_foreign_citizen_number)
+  Customer.create(
+    first_name: Faker::Name.first_name,
+    last_name: Faker::Name.last_name,
+    woo_id: Faker::IDNumber.spanish_foreign_citizen_number,
+    phone: Faker::PhoneNumber.cell_phone,
+    email: Faker::Internet.email
+  )
 end
 
 20.times do
@@ -74,7 +80,6 @@ end
     country: Faker::Address.country,
     discount_total: discount_total,
     note: Faker::Lorem.paragraph,
-    phone: Faker::PhoneNumber.phone_number,
     postcode: Faker::Address.postcode,
     shipping_total: shipping_total,
     state: Faker::Address.state,

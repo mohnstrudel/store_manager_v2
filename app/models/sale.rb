@@ -10,7 +10,6 @@
 #  country        :string
 #  discount_total :decimal(8, 2)
 #  note           :string
-#  phone          :string
 #  postcode       :string
 #  shipping_total :decimal(8, 2)
 #  state          :string
