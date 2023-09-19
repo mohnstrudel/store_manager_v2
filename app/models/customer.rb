@@ -13,4 +13,8 @@
 #
 class Customer < ApplicationRecord
   has_many :sales, dependent: :destroy
+
+  def name_and_email
+    "#{first_name} #{last_name} — #{email}"
+  end
 end

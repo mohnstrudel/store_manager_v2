@@ -1,22 +1,7 @@
 = render "_shared/notice"
 
 = render "_shared/nav-show", model: @sale, custom_heading: true
-  hgroup 
-    h1 = "Sale #{@sale.woo_id}"
-    h2
-      - @sale.product_sales.each do |ps|
-        div
-          = number_to_currency(ps.price * ps.qty, locale: "de")
-          - if ps.qty > 1
-            | (
-            = number_to_currency(ps.price, locale: "de")
-            .sign
-              |  × 
-            = ps.qty
-            | )
-          .sign
-            |  of 
-          = ps.product.full_title
+  h1 = "Sale #{@sale.woo_id}"
 
 main
   table.vertical(role="grid")
@@ -24,39 +9,61 @@ main
       th ID
       th Woo ID
       th Status
+      th Created At
+      th Updated At
+      th &nbsp;
       th Total
-      th Discount Total
-      th Shipping Total
+      th Discount
+      th Shipping
+      th &nbsp;
       th Address 1
       th Address 2
       th City
       th Company
       th Country
-      th Note
       th Phone
       th Postcode
       th State
-      th Created At
-      th Updated At
+      th &nbsp;
       th Customer
       th Customer Woo ID
+      th Note
     tbody
       td = @sale.id
-      td = @sale.woo_id
+      td = @sale&.woo_id || "-"
       td = @sale.status
+      td = @sale.created_at
+      td = @sale.updated_at
+      td &nbsp;
       td = number_to_currency(@sale.total, locale: "de")
       td = number_to_currency(@sale.discount_total, locale: "de")
       td = number_to_currency(@sale.shipping_total, locale: "de")
-      td = @sale.address_1
-      td = @sale.address_2
-      td = @sale.city
+      td &nbsp;
+      td = @sale&.address_1 || "-"
+      td = @sale&.address_2 || "-"
+      td = @sale&.city || "-"
       td = @sale&.company || "-"
-      td = @sale.country
-      td = @sale&.note || "-"
-      td = @sale.phone
-      td = @sale.postcode
+      td = @sale&.country || "-"
+      td = @sale&.customer.phone || "-"
+      td = @sale&.postcode || "-"
       td = @sale&.state || "-"
-      td = @sale.created_at
-      td = @sale.updated_at
+      td &nbsp;
       td = "#{@sale.customer.first_name} #{@sale.customer.last_name}"
       td = @sale.customer&.woo_id || "-"
+      td = @sale&.note || "-"
+
+br
+
+article
+  h3 Order list
+  table
+    thead 
+      th Product
+      th Price
+      th Qty
+    tbody
+      - @sale.product_sales.each do |ps|
+        tr
+          td = ps.product.full_title 
+          td = number_to_currency(ps.price, locale: "de")
+          td = ps.qty

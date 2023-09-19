@@ -54,6 +54,29 @@ class SalesController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def sale_params
-    params.fetch(:sale, {}).permit(:status)
+    params.fetch(:sale, {}).permit(
+      :status,
+      :address_1,
+      :address_2,
+      :city,
+      :company,
+      :country,
+      :discount_total,
+      :note,
+      :postcode,
+      :shipping_total,
+      :state,
+      :total,
+      :woo_id,
+      :customer_id,
+      product_ids: [],
+      product_sales_attributes: [
+        :id,
+        :product_id,
+        :qty,
+        :price,
+        :_destroy
+      ]
+    )
   end
 end
