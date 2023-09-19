@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
-  resources :sales
+  resources :sales do
+    get "/page/:page", action: :index, on: :collection
+  end
   resources :products do
     get "/page/:page", action: :index, on: :collection
   end

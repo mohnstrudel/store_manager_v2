@@ -1,17 +1,17 @@
 tr id="#{dom_id size}"
   td
-    == size.id
+    = size.id
   td
-    == size.value
+    = size.value
   td
-    == size.created_at
+    = size.created_at
   td
-    == size.updated_at
+    = size.updated_at
   - if action_name != "show" 
     td.actions
-      == link_to size
+      = link_to size
         i.icn 📄
         | Show
-      == link_to edit_size_path(size)
+      = link_to edit_size_path(size)
         i.icn ✏️
         | Edit

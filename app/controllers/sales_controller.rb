@@ -3,7 +3,7 @@ class SalesController < ApplicationController
 
   # GET /sales
   def index
-    @sales = Sale.where.not(status: "cancelled")
+    @sales = Sale.where.not(status: "cancelled").order(:created_at).page(params[:page])
   end
 
   # GET /sales/1

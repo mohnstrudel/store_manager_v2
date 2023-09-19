@@ -1,8 +1,9 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-index", model: @sales
+= render "_shared/nav-index", model: @sales
 
 main
+  = paginate @sales
   table(role="grid")
     thead
       tr
@@ -12,4 +13,5 @@ main
         th Price
         th Actions
     tbody
-      == render @sales
+      = render @sales
+  = paginate @sales

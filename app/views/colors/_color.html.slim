@@ -1,17 +1,17 @@
 tr id="#{dom_id color}"
   td
-    == color.id
+    = color.id
   td
-    == color.value
+    = color.value
   td
-    == color.created_at
+    = color.created_at
   td
-    == color.updated_at
+    = color.updated_at
   - if action_name != "show" 
     td.actions
-      == link_to color
+      = link_to color
         i.icn 📄
         | Show
-      == link_to edit_color_path(color)
+      = link_to edit_color_path(color)
         i.icn ✏️
         | Edit

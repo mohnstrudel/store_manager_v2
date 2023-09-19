@@ -1,17 +1,17 @@
 tr id="#{dom_id shape}"
   td
-    == shape.id
+    = shape.id
   td
-    == shape.title
+    = shape.title
   td
-    == shape.created_at
+    = shape.created_at
   td
-    == shape.updated_at
+    = shape.updated_at
   - if action_name != "show" 
     td.actions
-      == link_to shape
+      = link_to shape
         i.icn 📄
         | Show
-      == link_to edit_shape_path(shape)
+      = link_to edit_shape_path(shape)
         i.icn ✏️
         | Edit

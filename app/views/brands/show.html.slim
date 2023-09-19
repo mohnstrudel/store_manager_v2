@@ -1,6 +1,6 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-show", model: @brand
+= render "_shared/nav-show", model: @brand
 
 main
   table.vertical(role="grid")
@@ -15,6 +15,6 @@ main
         th
           | Updated
     tbody
-      == render @brand
+      = render @brand
 
-== button_to "Destroy this brand", brand_path(@brand), method: :delete, class: "btn-danger"  
+= button_to "Destroy this brand", brand_path(@brand), method: :delete, class: "btn-danger"  

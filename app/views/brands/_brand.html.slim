@@ -1,17 +1,17 @@
 tr id="#{dom_id brand}"
   td
-    == brand.id
+    = brand.id
   td
-    == brand.title
+    = brand.title
   td
-    == brand.created_at
+    = brand.created_at
   td
-    == brand.updated_at
+    = brand.updated_at
   - if action_name != "show" 
     td.actions
-      == link_to brand
+      = link_to brand
         i.icn 📄
         | Show
-      == link_to edit_brand_path(brand)
+      = link_to edit_brand_path(brand)
         i.icn ✏️
         | Edit

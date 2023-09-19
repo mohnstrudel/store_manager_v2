@@ -1,6 +1,6 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-show", model: @shape
+= render "_shared/nav-show", model: @shape
 
 main
   table.vertical(role="grid")
@@ -15,6 +15,6 @@ main
         th
           | Updated
     tbody
-      == render @shape
+      = render @shape
 
-== button_to "Destroy this shape", shape_path(@shape), method: :delete, class: "btn-danger"  
+= button_to "Destroy this shape", shape_path(@shape), method: :delete, class: "btn-danger"  

@@ -1,15 +1,15 @@
 nav
   ul
     li
-      == link_to "Back to products", @product
+      = link_to "Back to products", @product
       hgroup 
         h1 Editing "#{@product.title}"
-        h2 == @product.full_title
+        h2 = @product.full_title
   ul
     li   
-      == link_to @product
+      = link_to @product
         i.icn 📄
         | Show
 
 main
-  == render "form", product: @product
+  = render "form", product: @product

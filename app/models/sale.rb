@@ -21,6 +21,8 @@
 #  woo_id         :string
 #
 class Sale < ApplicationRecord
+  paginates_per 50
+
   belongs_to :customer
 
   has_many :product_sales, dependent: :destroy

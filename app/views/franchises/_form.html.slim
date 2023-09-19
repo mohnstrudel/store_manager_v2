@@ -1,5 +1,5 @@
-== form_with(model: franchise) do |form|
-  == render "_shared/notice-err", model: franchise
-  == form.label :title
-  == form.text_field :title 
-  == form.submit
+= form_with(model: franchise) do |form|
+  = render "_shared/notice-err", model: franchise
+  = form.label :title
+  = form.text_field :title 
+  = form.submit

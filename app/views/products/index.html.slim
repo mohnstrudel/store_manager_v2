@@ -1,9 +1,9 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-index", model: @products
+= render "_shared/nav-index", model: @products
 
 main
-  == paginate @products  
+  = paginate @products  
   table(role="grid")
     thead
       tr
@@ -14,5 +14,5 @@ main
         th
           | Actions
     tbody
-      == render @products
-  == paginate @products
+      = render @products
+  = paginate @products

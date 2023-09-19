@@ -51,15 +51,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_15_042304) do
     t.index ["purchase_id"], name: "index_payments_on_purchase_id"
   end
 
-  create_table "product_sales", force: :cascade do |t|
-    t.decimal "price", precision: 8, scale: 2
-    t.integer "qty"
-    t.bigint "product_id", null: false
-    t.bigint "sale_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["product_id"], name: "index_product_sales_on_product_id"
-    t.index ["sale_id"], name: "index_product_sales_on_sale_id"
   create_table "product_brands", force: :cascade do |t|
     t.bigint "product_id"
     t.bigint "brand_id"
@@ -76,6 +67,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_15_042304) do
     t.datetime "updated_at", null: false
     t.index ["color_id"], name: "index_product_colors_on_color_id"
     t.index ["product_id"], name: "index_product_colors_on_product_id"
+  end
+
+  create_table "product_sales", force: :cascade do |t|
+    t.decimal "price", precision: 8, scale: 2
+    t.integer "qty"
+    t.bigint "product_id", null: false
+    t.bigint "sale_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_product_sales_on_product_id"
+    t.index ["sale_id"], name: "index_product_sales_on_sale_id"
   end
 
   create_table "product_sizes", force: :cascade do |t|
@@ -173,14 +175,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_15_042304) do
   end
 
   add_foreign_key "payments", "purchases"
-  add_foreign_key "product_sales", "products"
-  add_foreign_key "product_sales", "sales"
-  add_foreign_key "products", "brands"
-  add_foreign_key "products", "colors"
   add_foreign_key "product_brands", "brands"
   add_foreign_key "product_brands", "products"
   add_foreign_key "product_colors", "colors"
   add_foreign_key "product_colors", "products"
+  add_foreign_key "product_sales", "products"
+  add_foreign_key "product_sales", "sales"
   add_foreign_key "product_sizes", "products"
   add_foreign_key "product_sizes", "sizes"
   add_foreign_key "product_suppliers", "products"
