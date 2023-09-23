@@ -15,6 +15,8 @@
 #  state          :string
 #  status         :string
 #  total          :decimal(8, 2)
+#  woo_created_at :datetime
+#  woo_updated_at :datetime
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  customer_id    :bigint           not null
@@ -32,5 +34,9 @@ class Sale < ApplicationRecord
 
   def self.STATUSES
     ["pre-ordered", "processing", "cancelled", "failed", "completed"]
+  end
+
+  def self.sync_woo_orders
+    SyncWooOrdersJob.perform_later
   end
 end

@@ -6,7 +6,7 @@ class SyncWooProductsJob < ApplicationJob
   CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
   # We can find the published size in the store's dashboard,
   # 1062 was the size when we needed this method.
-  SIZE = 1062
+  SIZE = 1103
   PER_PAGE = 100
 
   def perform(*args)
@@ -71,10 +71,12 @@ class SyncWooProductsJob < ApplicationJob
       next if woo_product[:attributes].blank?
       name = woo_product[:name].gsub(/&amp;/, "&")
       shape = name.match(/\b(bust|statue)\b/i)
+      title = name.split(" - ")[0]
+      franchise = name.split(" - ")[1] && name.split(" - ")[1].split(" | ")[0]
       product = {
         woo_id: woo_product[:id],
-        title: name.split(" - ")[0],
-        franchise: name.split(" - ")[1] && name.split(" - ")[1].split(" | ")[0],
+        title: title,
+        franchise: franchise,
         shape: shape.present? && shape[0]
       }
       options = woo_product[:attributes].map do |attr|

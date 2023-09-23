@@ -9,8 +9,8 @@ main
       th ID
       th Woo ID
       th Status
-      th Created At
-      th Updated At
+      th Woo Created At
+      th Woo Updated At
       th &nbsp;
       th Total
       th Discount
@@ -32,38 +32,39 @@ main
       td = @sale.id
       td = @sale&.woo_id || "-"
       td = @sale.status
-      td = @sale.created_at
-      td = @sale.updated_at
+      td = @sale.woo_created_at
+      td = @sale.woo_updated_at
       td &nbsp;
       td = number_to_currency(@sale.total, locale: "de")
       td = number_to_currency(@sale.discount_total, locale: "de")
       td = number_to_currency(@sale.shipping_total, locale: "de")
       td &nbsp;
-      td = @sale&.address_1 || "-"
-      td = @sale&.address_2 || "-"
-      td = @sale&.city || "-"
-      td = @sale&.company || "-"
-      td = @sale&.country || "-"
-      td = @sale&.customer.phone || "-"
-      td = @sale&.postcode || "-"
-      td = @sale&.state || "-"
+      td = @sale.address_1.present? ? @sale.address_1 : "-"
+      td = @sale.address_2.present? ? @sale.address_2 : "-"
+      td = @sale.city.present? ? @sale.city : "-"
+      td = @sale.company.present? ? @sale.company : "-"
+      td = @sale.country.present? ? @sale.country : "-"
+      td = @sale.customer.phone.present? ? @sale.customer.phone : "-"
+      td = @sale.postcode.present? ? @sale.postcode : "-"
+      td = @sale.state.present? ? @sale.state : "-"
       td &nbsp;
       td = "#{@sale.customer.first_name} #{@sale.customer.last_name}"
       td = @sale.customer&.woo_id || "-"
-      td = @sale&.note || "-"
+      td = @sale.note.present? ? @sale.note : "-"
 
-br
+- if @sale.product_sales.present?
+  br
 
-article
-  h3 Order list
-  table
-    thead 
-      th Product
-      th Price
-      th Qty
-    tbody
-      - @sale.product_sales.each do |ps|
-        tr
-          td = ps.product.full_title 
-          td = number_to_currency(ps.price, locale: "de")
-          td = ps.qty
+  article
+    h3 Order list
+    table
+      thead 
+        th Product
+        th Price
+        th Qty
+      tbody
+        - @sale.product_sales.each do |ps|
+          tr
+            td = ps.product.full_title 
+            td = number_to_currency(ps.price, locale: "de")
+            td = ps.qty
