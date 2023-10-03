@@ -12,7 +12,7 @@ Rails.application.routes.draw do
     resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands
   end
 
-  post "webhook-order", to: "webhook#create_order"
+  post "webhook-order", to: "webhook#order_to_sale"
   get "dashboard/index"
 
   root "dashboard#index"

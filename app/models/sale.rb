@@ -55,6 +55,10 @@ class Sale < ApplicationRecord
     SyncWooOrdersJob.perform_later
   end
 
+  def self.update_order(sale)
+    UpdateWooOrderJob.perform_later(sale)
+  end
+
   def self.deserialize_woo_order(order)
     shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
       el.each { |k, v| memo[k] = v unless v.empty? }

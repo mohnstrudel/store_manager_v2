@@ -1,7 +1,7 @@
 class WebhookController < ApplicationController
   skip_before_action :verify_authenticity_token
 
-  def create_order
+  def order_to_sale
     verified = verify_webhook(Rails.application.credentials.dig(:hooks, :order))
     return head(:unauthorized) unless verified
 
@@ -12,11 +12,14 @@ class WebhookController < ApplicationController
       customer_id: Customer.find_or_create_by(order[:customer]).id
     })
     sale = Sale.find_by(woo_id: order_sale[:woo_id]) || Sale.create(order_sale)
-    # Why use the "less than" sign?
+
+    # We use the if-statement below to update only existing sales.
+    # Not the ones we just created.
+    # But why do we use the "less than" operator?
     # Imagine we have a sale from five days ago.
     # Using unix timestamps:
-    #   5 days ago is 1695922520 seconds
-    #   1 minute ago is 1696328559
+    #   5 days ago is 1695922520 seconds,
+    #   1 minute ago is 1696328559.
     # (1 695 922 520 < 1 696 328 559) == (sale_date < 1.minute.ago)
     if sale.created_at < 1.minute.ago
       sale.update(order_sale)
