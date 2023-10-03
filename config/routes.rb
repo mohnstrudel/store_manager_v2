@@ -7,12 +7,13 @@ Rails.application.routes.draw do
   end
   resources :purchases
   resources :payments, only: [:create]
-  post "webhook-order", to: "webhook#create_order"
 
   scope "/admin" do
     resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands
   end
 
+  post "webhook-order", to: "webhook#create_order"
   get "dashboard/index"
+
   root "dashboard#index"
 end

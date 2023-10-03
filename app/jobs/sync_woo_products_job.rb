@@ -4,9 +4,8 @@ class SyncWooProductsJob < ApplicationJob
   URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
   CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user)
   CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
-  # We can find the published size in the store's dashboard,
-  # 1062 was the size when we needed this method.
-  SIZE = 1103
+  # We can find the published size in the store's dashboard
+  SIZE = 1108
   PER_PAGE = 100
 
   def perform(*args)
@@ -69,7 +68,7 @@ class SyncWooProductsJob < ApplicationJob
   def map_woo_products_to_model(woo_products)
     result = woo_products.map do |woo_product|
       next if woo_product[:attributes].blank?
-      name = woo_product[:name].gsub(/&amp;/, "&")
+      name = woo_product[:name].gsub("&amp;", "&")
       shape = name.match(/\b(bust|statue)\b/i)
       title = name.split(" - ")[0]
       franchise = name.split(" - ")[1] && name.split(" - ")[1].split(" | ")[0]

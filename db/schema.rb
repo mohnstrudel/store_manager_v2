@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_22_081833) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_28_134134) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -76,6 +76,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_22_081833) do
     t.bigint "sale_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "woo_id"
     t.index ["product_id"], name: "index_product_sales_on_product_id"
     t.index ["sale_id"], name: "index_product_sales_on_sale_id"
   end

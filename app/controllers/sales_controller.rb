@@ -75,6 +75,7 @@ class SalesController < ApplicationController
         :product_id,
         :qty,
         :price,
+        :woo_id,
         :_destroy
       ]
     )

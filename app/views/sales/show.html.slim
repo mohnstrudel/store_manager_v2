@@ -27,13 +27,14 @@ main
       th &nbsp;
       th Customer
       th Customer Woo ID
+      th Customer Email
       th Note
     tbody
       td = @sale.id
       td = @sale&.woo_id || "-"
       td = @sale.status
-      td = @sale.woo_created_at
-      td = @sale.woo_updated_at
+      td = @sale&.woo_created_at.to_formatted_s(:long) || "-"
+      td = @sale&.woo_updated_at.to_formatted_s(:long) || "-"
       td &nbsp;
       td = number_to_currency(@sale.total, locale: "de")
       td = number_to_currency(@sale.discount_total, locale: "de")
@@ -50,6 +51,7 @@ main
       td &nbsp;
       td = "#{@sale.customer.first_name} #{@sale.customer.last_name}"
       td = @sale.customer&.woo_id || "-"
+      td = @sale.customer&.email || "-"
       td = @sale.note.present? ? @sale.note : "-"
 
 - if @sale.product_sales.present?

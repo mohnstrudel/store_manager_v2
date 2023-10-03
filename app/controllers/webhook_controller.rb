@@ -4,9 +4,41 @@ class WebhookController < ApplicationController
   def create_order
     verified = verify_webhook(Rails.application.credentials.dig(:hooks, :order))
     return head(:unauthorized) unless verified
-    # TODO: https://github.com/mohnstrudel/store_manager_v2/issues/7
-    # request.body.read || params.to_json
-    # body = request.body.read
+
+    parsed_req = JSON.parse(request.body.read, symbolize_names: true)
+    order = Sale.deserialize_woo_order(parsed_req)
+
+    order_sale = order[:sale].merge({
+      customer_id: Customer.find_or_create_by(order[:customer]).id
+    })
+    sale = Sale.find_by(woo_id: order_sale[:woo_id]) || Sale.create(order_sale)
+    # Why use the "less than" sign?
+    # Imagine we have a sale from five days ago.
+    # Using unix timestamps:
+    #   5 days ago is 1695922520 seconds
+    #   1 minute ago is 1696328559
+    # (1 695 922 520 < 1 696 328 559) == (sale_date < 1.minute.ago)
+    if sale.created_at < 1.minute.ago
+      sale.update(order_sale)
+    end
+
+    order[:products].each do |i|
+      product = Product.find_by(woo_id: i[:product_woo_id])
+      next if product.blank?
+      product_sale = ProductSale.find_by(woo_id: i[:order_woo_id])
+      if product_sale.present?
+        product_sale.update(qty: i[:qty], price: i[:price])
+      else
+        ProductSale.create!({
+          qty: i[:qty],
+          price: i[:price],
+          product: product,
+          sale: sale,
+          woo_id: i[:order_woo_id]
+        })
+      end
+    end
+
     head(:no_content)
   end
 

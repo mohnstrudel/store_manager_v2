@@ -9,6 +9,7 @@
 #  updated_at :datetime         not null
 #  product_id :bigint           not null
 #  sale_id    :bigint           not null
+#  woo_id     :string
 #
 class ProductSale < ApplicationRecord
   belongs_to :product
