@@ -1,0 +1,29 @@
+= render "_shared/notice"
+
+= render "_shared/nav-show", model: @customer, custom_heading: true
+  h1 = @customer.full_name
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th ID
+        th Woo ID
+        th First Name
+        th Last Name
+        th Email
+        th Phone
+        th Created
+        th Updated
+    tbody
+      tr
+        td = @customer.id
+        td = safe_blank_render @customer.woo_id
+        td = @customer.first_name
+        td = @customer.last_name
+        td = safe_blank_render @customer.email
+        td = safe_blank_render @customer.phone
+        td = format_time @customer.created_at
+        td = format_time @customer.updated_at
+
+= button_to "Destroy this customer", customer_path(@customer), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

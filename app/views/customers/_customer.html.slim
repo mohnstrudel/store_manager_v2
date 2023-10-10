@@ -1,0 +1,14 @@
+tr.hoverable id="#{dom_id customer}" data-action="click->table#goTo" data-table-url-param=edit_customer_path(customer)
+  td = customer.woo_id
+  td = customer.full_name
+  td = customer.email
+  td = customer.phone
+
+  - if action_name != "show" 
+    td.actions
+      = link_to customer
+        i.icn 📄
+        | Show
+      = link_to edit_customer_path(customer)
+        i.icn ✏️
+        | Edit

@@ -1,7 +1,7 @@
 nav
   ul
     li
-      = link_to "Back to #{model.model_name.plural}", send("#{model.model_name.plural}_path")
+      = link_to "Back", "javascript:history.back()"
       h1 Editing #{model.model_name.singular}
   ul
     li   

@@ -12,9 +12,15 @@
 #  woo_id     :string
 #
 class Customer < ApplicationRecord
+  paginates_per 50
+
   has_many :sales, dependent: :destroy
 
   def name_and_email
     "#{first_name} #{last_name} — #{email}"
+  end
+
+  def full_name
+    "#{first_name} #{last_name}"
   end
 end

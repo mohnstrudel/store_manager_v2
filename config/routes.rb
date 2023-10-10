@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :customers do
+    get "/page/:page", action: :index, on: :collection
+  end
   resources :sales do
     get "/page/:page", action: :index, on: :collection
   end

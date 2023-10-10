@@ -1,8 +1,8 @@
-tr id="#{dom_id sale}"
+tr.hoverable id="#{dom_id sale}"
   td = sale.woo_id
   td = sale.customer.email
   td = sale.status.titleize
-  td = number_to_currency(sale.total, locale: "de")
+  td.right.mono = number_to_currency(sale.total, unit: "")
   - if action_name != "show" 
     td.actions
       = link_to sale

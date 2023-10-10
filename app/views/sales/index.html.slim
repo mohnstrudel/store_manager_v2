@@ -4,13 +4,13 @@
 
 main
   = paginate @sales
-  table(role="grid")
+  table
     thead
       tr
         th Woo ID
         th Customer
         th Status
-        th Price
+        th.right Price
         th Actions
     tbody
       = render @sales

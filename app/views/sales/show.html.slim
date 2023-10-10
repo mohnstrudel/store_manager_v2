@@ -31,28 +31,28 @@ main
       th Note
     tbody
       td = @sale.id
-      td = @sale&.woo_id || "-"
+      td = safe_blank_render @sale.woo_id
       td = @sale.status
-      td = @sale&.woo_created_at.to_formatted_s(:long) || "-"
-      td = @sale&.woo_updated_at.to_formatted_s(:long) || "-"
+      td = safe_blank_render format_time(@sale.woo_created_at)
+      td = safe_blank_render format_time(@sale.woo_updated_at)
       td &nbsp;
       td = number_to_currency(@sale.total, locale: "de")
       td = number_to_currency(@sale.discount_total, locale: "de")
       td = number_to_currency(@sale.shipping_total, locale: "de")
       td &nbsp;
-      td = @sale.address_1.present? ? @sale.address_1 : "-"
-      td = @sale.address_2.present? ? @sale.address_2 : "-"
-      td = @sale.city.present? ? @sale.city : "-"
-      td = @sale.company.present? ? @sale.company : "-"
-      td = @sale.country.present? ? @sale.country : "-"
-      td = @sale.customer.phone.present? ? @sale.customer.phone : "-"
-      td = @sale.postcode.present? ? @sale.postcode : "-"
-      td = @sale.state.present? ? @sale.state : "-"
+      td = safe_blank_render @sale.address_1
+      td = safe_blank_render @sale.address_2
+      td = safe_blank_render @sale.city
+      td = safe_blank_render @sale.company
+      td = safe_blank_render @sale.country
+      td = safe_blank_render @sale.customer.phone
+      td = safe_blank_render @sale.postcode
+      td = safe_blank_render @sale.state
       td &nbsp;
       td = "#{@sale.customer.first_name} #{@sale.customer.last_name}"
-      td = @sale.customer&.woo_id || "-"
-      td = @sale.customer&.email || "-"
-      td = @sale.note.present? ? @sale.note : "-"
+      td = safe_blank_render @sale.customer.woo_id
+      td = safe_blank_render @sale.customer.email
+      td = safe_blank_render @sale.note
 
 - if @sale.product_sales.present?
   br
