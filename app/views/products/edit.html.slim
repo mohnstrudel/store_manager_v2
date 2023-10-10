@@ -1,12 +1,12 @@
 nav
   ul
     li
-      = link_to "Back to products", @product
-      hgroup 
+      = link_to "Back", :back
+      hgroup
         h1 Editing "#{@product.title}"
         h2 = @product.full_title
   ul
-    li   
+    li
       = link_to @product
         i.icn 📄
         | Show

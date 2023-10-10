@@ -6,7 +6,7 @@ export default class extends Controller {
     if (event.target.className === "actions") return;
     if (event.target.parentNode.className === "actions") return;
     event.preventDefault();
-    const url = window.location.origin + "/" + event.params.url;
+    const url = window.location.origin + event.params.url;
     window.location.assign(url);
   }
 }
