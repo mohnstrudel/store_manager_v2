@@ -104,6 +104,7 @@ body > header {
 body > header > nav a {
   font-size: small;
   color: var(--muted-color);
+  height: auto;
 }
 body > header > nav a:hover {
   color: var(--contrast);
@@ -148,8 +149,14 @@ table.vertical tbody td {
 tr.hoverable {
   cursor: pointer;
 }
+tr.hoverable td {
+  transition: background-color var(--transition);
+}
 tr.hoverable:hover td {
   background-color: var(--primary-focus);
+}
+tr.hoverable .actions a {
+  transition: filter var(--transition);
 }
 tr.hoverable:hover .actions a {
   filter: brightness(0.9);
