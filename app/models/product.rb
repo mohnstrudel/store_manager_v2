@@ -3,6 +3,7 @@
 # Table name: products
 #
 #  id           :bigint           not null, primary key
+#  full_title   :string
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
@@ -12,6 +13,8 @@
 #
 class Product < ApplicationRecord
   paginates_per 50
+
+  before_commit :calculate_full_title
 
   validates :title, presence: true
 
@@ -36,7 +39,13 @@ class Product < ApplicationRecord
   has_many :product_sales, dependent: :destroy
   has_many :sales, through: :product_sales
 
-  def full_title
+  def self.sync_woo_products
+    SyncWooProductsJob.perform_later
+  end
+
+  private
+
+  def calculate_full_title
     values_from = ->(i) { i&.pluck(:value)&.join(", ") }
     sizes_string = values_from.call(sizes)
     versions_string = values_from.call(versions)
@@ -48,10 +57,7 @@ class Product < ApplicationRecord
       brands_string.presence,
       colors_string.presence
     ]
-    title_parts.compact.join(" | ")
-  end
-
-  def self.sync_woo_products
-    SyncWooProductsJob.perform_later
+    self.full_title = title_parts.compact.join(" | ")
+    save
   end
 end

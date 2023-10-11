@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_28_134134) do
+ActiveRecord::Schema[7.1].define(version: 2023_10_11_135521) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -91,10 +91,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_28_134134) do
   end
 
   create_table "product_suppliers", force: :cascade do |t|
-    t.bigint "product_id"
     t.bigint "supplier_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "product_id"
     t.index ["product_id"], name: "index_product_suppliers_on_product_id"
     t.index ["supplier_id"], name: "index_product_suppliers_on_supplier_id"
   end
@@ -115,6 +115,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_28_134134) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "woo_id"
+    t.string "full_title"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
     t.index ["shape_id"], name: "index_products_on_shape_id"
   end
@@ -186,7 +187,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_28_134134) do
   add_foreign_key "product_sales", "sales"
   add_foreign_key "product_sizes", "products"
   add_foreign_key "product_sizes", "sizes"
-  add_foreign_key "product_suppliers", "products"
   add_foreign_key "product_suppliers", "suppliers"
   add_foreign_key "product_versions", "products"
   add_foreign_key "product_versions", "versions"

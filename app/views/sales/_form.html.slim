@@ -9,7 +9,7 @@
           = rdb.label class: "radio-btn--label"
           = rdb.radio_button
 
-  article(data-controller="product-sales")
+  article data-controller="product-sales"
     = f.collection_select(:_, Product.all, :id, :full_title,
         { prompt: "Select a product" },
         { hidden: true, data: { "product-sales-target": "options" }})
