@@ -22,6 +22,9 @@
   --ss-spacing-s: 4px;
   --ss-spacing-m: 8px;
   --ss-spacing-l: 10px;
+  --table-left-part-width: 8rem;
+  --table-spacing-vertical: 3rem;
+  --table-left-part-padding: 1rem;
 }
 @font-face {
   font-family: "Noto Emo";
@@ -117,9 +120,16 @@ body > header > nav a:hover {
 /* 
   TABLES start
 */
+main > table th:last-of-type {
+  text-align: right;
+}
 table thead th {
   font-size: smaller;
   font-weight: 600;
+}
+table.vertical {
+  width: fit-content;
+  margin-bottom: var(--table-spacing-vertical);
 }
 table.vertical td,
 table.vertical th {
@@ -129,8 +139,16 @@ table.vertical th {
 }
 table.vertical thead th {
   color: var(--muted-color);
-  text-align: right;
   font-weight: var(--font-weight);
+  width: var(--table-left-part-width);
+
+  padding-left: 0;
+
+  text-align: right;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 table.vertical thead,
 table.vertical tbody {
@@ -143,7 +161,7 @@ table.vertical tbody td:last-of-type {
   padding-right: 1.8rem;
 }
 table.vertical tbody td {
-  min-width: 25vw;
+  width: 25vw;
   max-width: 60vw;
 }
 tr.hoverable {
@@ -167,9 +185,6 @@ th.right {
 }
 td.v-bot {
   vertical-align: bottom;
-}
-th:last-of-type {
-  text-align: right;
 }
 td.actions {
   font-size: calc(var(--font-size) / 1.15);
@@ -372,4 +387,37 @@ button.is-inverted:hover {
 
 .mono {
   font-family: monospace;
+}
+
+.card {
+  display: flex;
+  margin-bottom: var(--table-spacing-vertical);
+}
+.card-head,
+.card-body {
+  /* padding: calc(var(--spacing) / 2) var(--spacing); */
+  padding: calc(var(--spacing) / 2) var(--table-left-part-padding);
+  padding-left: 0;
+}
+.card-head {
+  width: var(--table-left-part-width);
+  color: var(--muted-color);
+  text-align: right;
+}
+.card-body {
+  background-color: var(--table-row-stripped-background-color);
+  border-radius: 8px;
+  min-width: 70%;
+}
+
+.card table th {
+  font-weight: initial;
+}
+.card table td {
+  font-size: 1rem;
+}
+
+.sale__show__container {
+  display: flex;
+  gap: calc(var(--table-left-part-width) * 0.25);
 }
