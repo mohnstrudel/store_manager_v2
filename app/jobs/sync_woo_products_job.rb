@@ -13,6 +13,7 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def save_woo_products_to_db
+    sync_errors = []
     woo_products = get_woo_products(method(:map_woo_products_to_model))
     woo_products.each do |woo_product|
       next if Product.find_by(woo_id: woo_product[:woo_id])
@@ -22,6 +23,13 @@ class SyncWooProductsJob < ApplicationJob
         franchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
         shape: Shape.find_or_create_by(title: woo_product[:shape])
       })
+      unless product.persisted?
+        sync_errors.push({
+          title: woo_product[:title],
+          woo_id: woo_product[:woo_id], ranchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
+          shape: Shape.find_or_create_by(title: woo_product[:shape])
+        })
+      end
       woo_product[:brands]&.each do |i|
         product.brands << Brand.find_or_create_by(title: i)
       end
@@ -37,6 +45,10 @@ class SyncWooProductsJob < ApplicationJob
     rescue => e
       Rails.logger.error "Full error: #{e}"
       Rails.logger.error "Error occurred at #{e.backtrace.first}"
+    end
+    if sync_errors.any?
+      file_path = Rails.root.join("sync_products_err.json")
+      File.write(file_path, JSON.generate(sync_errors))
     end
   end
 

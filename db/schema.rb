@@ -91,10 +91,10 @@ ActiveRecord::Schema[7.1].define(version: 2023_10_11_135521) do
   end
 
   create_table "product_suppliers", force: :cascade do |t|
+    t.bigint "product_id"
     t.bigint "supplier_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "product_id"
     t.index ["product_id"], name: "index_product_suppliers_on_product_id"
     t.index ["supplier_id"], name: "index_product_suppliers_on_supplier_id"
   end
@@ -187,6 +187,7 @@ ActiveRecord::Schema[7.1].define(version: 2023_10_11_135521) do
   add_foreign_key "product_sales", "sales"
   add_foreign_key "product_sizes", "products"
   add_foreign_key "product_sizes", "sizes"
+  add_foreign_key "product_suppliers", "products"
   add_foreign_key "product_suppliers", "suppliers"
   add_foreign_key "product_versions", "products"
   add_foreign_key "product_versions", "versions"
