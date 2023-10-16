@@ -135,14 +135,19 @@ table.vertical td,
 table.vertical th {
   display: block;
   border: none;
+
   font-size: inherit;
+
+  padding: var(--spacing);
+  padding-bottom: 0;
 }
 table.vertical thead th {
   color: var(--muted-color);
-  font-weight: var(--font-weight);
   width: var(--table-left-part-width);
 
   padding-left: 0;
+
+  font-weight: var(--font-weight);
 
   text-align: right;
 
@@ -388,14 +393,17 @@ button.is-inverted:hover {
 .mono {
   font-family: monospace;
 }
+.mute {
+  color: var(--muted-color);
+}
 
 .card {
   display: flex;
   margin-bottom: var(--table-spacing-vertical);
+  padding-right: calc(var(--spacing) * 3);
 }
 .card-head,
 .card-body {
-  /* padding: calc(var(--spacing) / 2) var(--spacing); */
   padding: calc(var(--spacing) / 2) var(--table-left-part-padding);
   padding-left: 0;
 }
@@ -403,13 +411,13 @@ button.is-inverted:hover {
   width: var(--table-left-part-width);
   color: var(--muted-color);
   text-align: right;
+  flex-shrink: 0;
 }
 .card-body {
   background-color: var(--table-row-stripped-background-color);
   border-radius: 8px;
   min-width: 70%;
 }
-
 .card table th {
   font-weight: initial;
 }

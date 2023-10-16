@@ -31,16 +31,22 @@ main
     .card
       .card-head Products
       .card-body
-        table
+        table data-controller="table"
           thead
+            th.mute #
             th Full Title
             th.right Price
             th.right Quantity
           tbody
-            - @sale.product_sales.each do |ps|
-              td = ps.product.full_title 
-              td.mono.right = number_to_currency(ps.price, unit: "")
-              td.right = ps.qty
+            - @sale.product_sales.each_with_index do |ps, idx|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=product_path(ps.product)
+              )
+                td.mute = idx + 1
+                td = ps.product.full_title 
+                td.mono.right = number_to_currency(ps.price, unit: "")
+                td.right = ps.qty
   
   .sale__show__container
     table.vertical(role="grid")
