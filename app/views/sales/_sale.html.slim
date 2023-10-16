@@ -5,9 +5,6 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
   td.right.mono = number_to_currency(sale.total, unit: "")
   - if action_name != "show" 
     td.actions
-      = link_to sale
-        i.icn 📄
-        | Show
       = link_to edit_sale_path(sale)
         i.icn ✏️
         | Edit

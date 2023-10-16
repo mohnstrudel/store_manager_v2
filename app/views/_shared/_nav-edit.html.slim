@@ -2,7 +2,11 @@ nav
   ul
     li
       = link_to "Back", "javascript:history.back()"
-      h1 Editing #{model.model_name.singular}
+      - if model.respond_to?(:woo_id)
+        h1 Editing #{model.model_name.singular}, Woo ID: #{model.woo_id}
+      - else 
+        h1 Editing #{model.model_name.singular}, ID: #{model.id}
+
   ul
     li   
       = link_to model
