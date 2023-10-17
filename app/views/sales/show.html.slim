@@ -19,13 +19,13 @@ main
 
     table.vertical(role="grid")
       thead
-        th Total
+        th Total, $
         th Discount
         th Shipping
       tbody 
-        td = number_to_currency(@sale.total, locale: "de")
-        td = number_to_currency(@sale.discount_total, locale: "de")
-        td = number_to_currency(@sale.shipping_total, locale: "de")
+        td.right.fit = number_to_currency(@sale.total, locale: "de", unit: "")
+        td.right.fit = number_to_currency(@sale.discount_total, locale: "de", unit: "")
+        td.right.fit = number_to_currency(@sale.shipping_total, locale: "de", unit: "")
 
   - if @sale.product_sales.present?
     .card
@@ -35,7 +35,7 @@ main
           thead
             th.mute #
             th Full Title
-            th.right Price
+            th.right Price, $
             th.right Quantity
           tbody
             - @sale.product_sales.each_with_index do |ps, idx|
@@ -45,7 +45,7 @@ main
               )
                 td.mute = idx + 1
                 td = ps.product.full_title 
-                td.mono.right = number_to_currency(ps.price, unit: "")
+                td.right = number_to_currency(ps.price, unit: "")
                 td.right = ps.qty
   
   .sale__show__container

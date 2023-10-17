@@ -127,12 +127,12 @@ table thead th {
   font-size: smaller;
   font-weight: 600;
 }
-table.vertical {
+.vertical {
   width: fit-content;
   margin-bottom: var(--table-spacing-vertical);
 }
-table.vertical td,
-table.vertical th {
+.vertical td,
+.vertical th {
   display: block;
   border: none;
 
@@ -141,7 +141,7 @@ table.vertical th {
   padding: var(--spacing);
   padding-bottom: 0;
 }
-table.vertical thead th {
+.vertical thead th {
   color: var(--muted-color);
   width: var(--table-left-part-width);
 
@@ -155,19 +155,21 @@ table.vertical thead th {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-table.vertical thead,
-table.vertical tbody {
+.vertical thead,
+.vertical tbody {
   float: left;
   border-radius: 8px;
   overflow: hidden;
 }
-table.vertical tbody td:last-of-type {
+.vertical td:last-of-type {
   padding-bottom: 1.5rem;
-  padding-right: 1.8rem;
 }
-table.vertical tbody td {
+.vertical td {
   width: 25vw;
   max-width: 60vw;
+}
+td.fit {
+  width: 10vw;
 }
 tr.hoverable {
   cursor: pointer;
@@ -416,7 +418,7 @@ button.is-inverted:hover {
 .card-body {
   background-color: var(--table-row-stripped-background-color);
   border-radius: 8px;
-  min-width: 70%;
+  min-width: 75%;
 }
 .card table th {
   font-weight: initial;
