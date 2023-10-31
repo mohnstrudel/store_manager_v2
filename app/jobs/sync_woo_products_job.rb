@@ -5,7 +5,7 @@ class SyncWooProductsJob < ApplicationJob
   CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user)
   CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
   # We can find the published size in the store's dashboard
-  SIZE = 1108
+  SIZE = 1200
   PER_PAGE = 100
 
   def perform(*args)
@@ -17,19 +17,12 @@ class SyncWooProductsJob < ApplicationJob
     woo_products = get_woo_products(method(:map_woo_products_to_model))
     woo_products.each do |woo_product|
       next if Product.find_by(woo_id: woo_product[:woo_id])
-      product = Product.create({
+      product = Product.new({
         title: woo_product[:title],
         woo_id: woo_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
         shape: Shape.find_or_create_by(title: woo_product[:shape])
       })
-      unless product.persisted?
-        sync_errors.push({
-          title: woo_product[:title],
-          woo_id: woo_product[:woo_id], ranchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
-          shape: Shape.find_or_create_by(title: woo_product[:shape])
-        })
-      end
       woo_product[:brands]&.each do |i|
         product.brands << Brand.find_or_create_by(title: i)
       end
@@ -41,6 +34,14 @@ class SyncWooProductsJob < ApplicationJob
       end
       woo_product[:colors]&.each do |i|
         product.colors << Color.find_or_create_by(value: i)
+      end
+      product.save!
+      unless product.persisted?
+        sync_errors.push({
+          title: woo_product[:title],
+          woo_id: woo_product[:woo_id], ranchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
+          shape: Shape.find_or_create_by(title: woo_product[:shape])
+        })
       end
     rescue => e
       Rails.logger.error "Full error: #{e}"

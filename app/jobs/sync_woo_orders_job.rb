@@ -4,7 +4,7 @@ class SyncWooOrdersJob < ApplicationJob
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
   CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user)
   CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
-  SIZE = 1700
+  SIZE = 1800
   PER_PAGE = 100
 
   def perform(*args)

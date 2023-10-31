@@ -14,7 +14,7 @@
 class Product < ApplicationRecord
   paginates_per 50
 
-  before_commit :calculate_full_title
+  after_create :calculate_full_title
 
   validates :title, presence: true
 
@@ -51,9 +51,10 @@ class Product < ApplicationRecord
     versions_string = values_from.call(versions)
     brands_string = brands.pluck(:title).join(", ")
     colors_string = values_from.call(colors)
+    size_and_version = [sizes_string.presence, versions_string.presence].compact.join(" — ")
     title_parts = [
       "#{franchise.title} — #{title}",
-      "#{[sizes_string.presence, versions_string.presence].compact.join(" — ")} resin #{shape.title}",
+      "#{size_and_version.present? ? (size_and_version + " ") : ""}resin #{shape.title}",
       brands_string.presence,
       colors_string.presence
     ]
