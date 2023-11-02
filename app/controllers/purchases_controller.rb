@@ -70,7 +70,6 @@ class PurchasesController < ApplicationController
     params.require(:purchase).permit(
       :supplier_id,
       :product_id,
-      :sale_id,
       :order_reference,
       :item_price,
       :amount,

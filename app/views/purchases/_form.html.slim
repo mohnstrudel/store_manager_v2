@@ -4,9 +4,6 @@
   = form.label :supplier
   = form.collection_select :supplier_id, Supplier.all, :id, :title
 
-  = form.label :sale
-  = form.collection_select :sale_id, Sale.all, :id, :select_title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
-
   = form.label :product
   = form.collection_select :product_id, Product.all, :id, :full_title, { class: "select" }, data: { controller: "slim-select" }
 
