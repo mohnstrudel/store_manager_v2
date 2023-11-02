@@ -8,6 +8,9 @@ class ProductsController < ApplicationController
 
   # GET /products/1 or /products/1.json
   def show
+    @active_sales = @product.product_sales.select { |product_sale|
+      Sale.STATUS_NEW.include? product_sale.status
+    }
   end
 
   # GET /products/new

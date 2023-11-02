@@ -2,19 +2,17 @@
 
 = render "_shared/nav-index", model: @purchases
 
-main
+main.inner data-controller="table"
   table(role="grid")
     thead
       tr
-        th
-          | Product
-        th.right
-          | Price
-        th.right
-          | Debt
-        th
-          | Supplier
-        th
-          | Actions
+        th ID
+        th Product
+        th Qty
+        th.right Price, $
+        th.right Total, $
+        th.right Debt, $
+        th Supplier
+        th Actions
     tbody
       = render @purchases, cache: true

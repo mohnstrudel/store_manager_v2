@@ -1,7 +1,7 @@
 nav
   ul
     li 
-      h1 = model.model_name.plural.capitalize
+      h1.classic = model.model_name.plural.capitalize
   - if Rails.application.routes.url_helpers.respond_to?("new_#{model.name.downcase}_path")
     ul
       li

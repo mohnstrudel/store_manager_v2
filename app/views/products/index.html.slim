@@ -2,8 +2,8 @@
 
 = render "_shared/nav-index", model: @products
 
-main
-  = paginate @products  
+main.inner
+  = paginate @products
   table data-controller="table"
     thead
       tr

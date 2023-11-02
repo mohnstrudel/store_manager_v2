@@ -39,6 +39,8 @@ class Product < ApplicationRecord
   has_many :product_sales, dependent: :destroy
   has_many :sales, through: :product_sales
 
+  has_many :purchases, dependent: :destroy
+
   def self.sync_woo_products
     SyncWooProductsJob.perform_later
   end

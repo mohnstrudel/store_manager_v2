@@ -2,7 +2,7 @@
 
 = render "_shared/nav-index", model: @sales
 
-main
+main.inner
   = paginate @sales
   table data-controller="table"
     thead
@@ -11,7 +11,7 @@ main
         th Customer
         th Status
         th.right Price
-        th Actions
+        th.right Actions
     tbody
       = render @sales
   = paginate @sales

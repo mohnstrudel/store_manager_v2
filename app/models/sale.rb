@@ -32,22 +32,49 @@ class Sale < ApplicationRecord
 
   accepts_nested_attributes_for :product_sales, allow_destroy: true
 
-  def self.STATUS
+  def title
+    woo = woo_id.present? ? "Woo ID: #{woo_id}, " : ""
+    email = customer.email.presence || ""
+    woo + (email.present? ? "#{email}, " : "") + status
+  end
+
+  def select_title
+    woo = woo_id.present? ? "Woo ID: #{woo_id}" : ""
+    email = customer.email.presence || ""
+    woo + " — " + email + " — " + status + ", total: $#{"%.2f" % total}"
+  end
+
+  def created
+    woo_created_at || created_at
+  end
+
+  def self.STATUS_NEW
     [
+      "partially-paid",
+      "po_fully_paid",
+      "pre-ordered",
+      "processing",
+      "ready-to-fullfill"
+    ].freeze
+  end
+
+  def self.STATUS
+    # https://woocommerce.com/document/managing-orders/
+    [
+      "cancelled",
+      "completed",
+      "container-shipped",
+      "failed",
+      "im-zulauf",
       "on-hold",
       "partial-shipped",
-      "updated-tracking",
-      "container-shipped",
-      "pre-ordered",
-      "ready-to-fullfill",
-      "failed",
-      "cancelled",
+      "partially-paid",
       "po_fully_paid",
-      "im-zulauf",
-      "completed",
-      "refunded",
+      "pre-ordered",
       "processing",
-      "partially-paid"
+      "ready-to-fullfill",
+      "refunded",
+      "updated-tracking"
     ].freeze
   end
 
