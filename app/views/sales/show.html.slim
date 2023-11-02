@@ -1,0 +1,86 @@
+= render "_shared/notice"
+
+= render "_shared/nav-show", model: @sale, custom_heading: true
+  h1 = "Sale #{@sale.woo_id}"
+
+main
+  .sale__show__container
+    table.vertical(role="grid")
+      thead
+        th Customer
+        th Woo ID
+        th Email
+        th Note
+      tbody
+        td = "#{@sale.customer.first_name} #{@sale.customer.last_name}"
+        td = safe_blank_render @sale.customer.woo_id
+        td = safe_blank_render @sale.customer.email
+        td = safe_blank_render @sale.note
+
+    table.vertical(role="grid")
+      thead
+        th Total, $
+        th Discount
+        th Shipping
+      tbody 
+        td.right.fit = number_to_currency(@sale.total, locale: "de", unit: "")
+        td.right.fit = number_to_currency(@sale.discount_total, locale: "de", unit: "")
+        td.right.fit = number_to_currency(@sale.shipping_total, locale: "de", unit: "")
+
+  - if @sale.product_sales.present?
+    .card
+      .card-head Products
+      .card-body
+        table data-controller="table"
+          thead
+            th.mute #
+            th Full Title
+            th.right Price, $
+            th.right Quantity
+          tbody
+            - @sale.product_sales.each_with_index do |ps, idx|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=product_path(ps.product)
+              )
+                td.mute = idx + 1
+                td = ps.product.full_title 
+                td.right = number_to_currency(ps.price, unit: "")
+                td.right = ps.qty
+  
+  .sale__show__container
+    table.vertical(role="grid")
+      thead
+        th Address 1
+        th Address 2
+        th City
+        th Company
+        th Country
+        th Phone
+        th Postcode
+        th State
+
+      tbody
+        td = safe_blank_render @sale.address_1
+        td = safe_blank_render @sale.address_2
+        td = safe_blank_render @sale.city
+        td = safe_blank_render @sale.company
+        td = safe_blank_render @sale.country
+        td = safe_blank_render @sale.customer.phone
+        td = safe_blank_render @sale.postcode
+        td = safe_blank_render @sale.state
+
+    table.vertical(role="grid")
+      thead
+        th ID
+        th Woo ID
+        th Status
+        th Woo Created
+        th Woo Upd.
+
+      tbody
+        td = @sale.id
+        td = safe_blank_render @sale.woo_id
+        td = @sale.status
+        td = safe_blank_render format_time(@sale.woo_created_at)
+        td = safe_blank_render format_time(@sale.woo_updated_at)

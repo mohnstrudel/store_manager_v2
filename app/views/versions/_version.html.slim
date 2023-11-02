@@ -1,17 +1,17 @@
 tr id="#{dom_id version}"
   td
-    == version.id
+    = version.id
   td
-    == version.value
+    = version.value
   td
-    == version.created_at
+    = version.created_at
   td
-    == version.updated_at
+    = version.updated_at
   - if action_name != "show" 
     td.actions
-      == link_to version
+      = link_to version
         i.icn 📄
         | Show
-      == link_to edit_version_path(version)
+      = link_to edit_version_path(version)
         i.icn ✏️
         | Edit

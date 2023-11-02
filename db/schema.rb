@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
+ActiveRecord::Schema[7.1].define(version: 2023_10_11_135521) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -24,6 +24,16 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.string "woo_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "email"
+    t.string "phone"
   end
 
   create_table "franchises", force: :cascade do |t|
@@ -57,6 +67,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
     t.datetime "updated_at", null: false
     t.index ["color_id"], name: "index_product_colors_on_color_id"
     t.index ["product_id"], name: "index_product_colors_on_product_id"
+  end
+
+  create_table "product_sales", force: :cascade do |t|
+    t.decimal "price", precision: 8, scale: 2
+    t.integer "qty"
+    t.bigint "product_id", null: false
+    t.bigint "sale_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "woo_id"
+    t.index ["product_id"], name: "index_product_sales_on_product_id"
+    t.index ["sale_id"], name: "index_product_sales_on_sale_id"
   end
 
   create_table "product_sizes", force: :cascade do |t|
@@ -93,6 +115,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "woo_id"
+    t.string "full_title"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
     t.index ["shape_id"], name: "index_products_on_shape_id"
   end
@@ -107,6 +130,28 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_purchases_on_product_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
+  end
+
+  create_table "sales", force: :cascade do |t|
+    t.string "woo_id"
+    t.string "status"
+    t.decimal "discount_total", precision: 8, scale: 2
+    t.decimal "shipping_total", precision: 8, scale: 2
+    t.decimal "total", precision: 8, scale: 2
+    t.string "company"
+    t.string "address_1"
+    t.string "address_2"
+    t.string "city"
+    t.string "state"
+    t.string "postcode"
+    t.string "country"
+    t.string "note"
+    t.bigint "customer_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "woo_created_at"
+    t.datetime "woo_updated_at"
+    t.index ["customer_id"], name: "index_sales_on_customer_id"
   end
 
   create_table "shapes", force: :cascade do |t|
@@ -138,6 +183,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
   add_foreign_key "product_brands", "products"
   add_foreign_key "product_colors", "colors"
   add_foreign_key "product_colors", "products"
+  add_foreign_key "product_sales", "products"
+  add_foreign_key "product_sales", "sales"
   add_foreign_key "product_sizes", "products"
   add_foreign_key "product_sizes", "sizes"
   add_foreign_key "product_suppliers", "products"
@@ -148,4 +195,5 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_28_050027) do
   add_foreign_key "products", "shapes"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
+  add_foreign_key "sales", "customers"
 end

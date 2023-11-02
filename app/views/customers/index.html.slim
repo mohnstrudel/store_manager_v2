@@ -1,0 +1,17 @@
+= render "_shared/notice"
+
+= render "_shared/nav-index", model: @customers
+
+main
+  = paginate @customers
+  table data-controller="table"
+    thead
+      tr
+        th Woo ID
+        th Full name
+        th Email
+        th Phone
+        th Actions
+    tbody
+      = render @customers
+  = paginate @customers

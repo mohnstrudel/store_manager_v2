@@ -1,0 +1,13 @@
+nav
+  ul
+    li
+      = link_to "Back", :back
+      h1 Editing "#{@customer.full_name}"
+  ul
+    li   
+      = link_to @customer
+        i.icn 📄
+        | Show
+
+main
+  = render "form", customer: @customer

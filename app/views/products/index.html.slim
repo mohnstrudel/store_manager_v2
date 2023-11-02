@@ -1,18 +1,15 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-index", model: @products
+= render "_shared/nav-index", model: @products
 
 main
-  == paginate @products  
-  table(role="grid")
+  = paginate @products  
+  table data-controller="table"
     thead
       tr
-        th
-          | Shop ID
-        th
-          | Full name
-        th
-          | Actions
+        th Woo ID
+        th Full name
+        th Actions
     tbody
-      == render @products
-  == paginate @products
+      = render @products
+  = paginate @products

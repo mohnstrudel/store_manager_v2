@@ -1,17 +1,13 @@
 tr id="#{dom_id supplier}"
-  td
-    == supplier.id
-  td
-    == supplier.title
-  td
-    == supplier.created_at
-  td
-    == supplier.updated_at
+  td = supplier.id
+  td = supplier.title
+  td = supplier.created_at
+  td = supplier.updated_at
   - if action_name != "show" 
     td.actions
-      == link_to supplier
+      = link_to supplier
         i.icn 📄
         | Show
-      == link_to edit_supplier_path(supplier)
+      = link_to edit_supplier_path(supplier)
         i.icn ✏️
         | Edit

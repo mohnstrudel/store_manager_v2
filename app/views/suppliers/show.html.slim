@@ -1,6 +1,6 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-show", model: @supplier
+= render "_shared/nav-show", model: @supplier
 
 main
   table.vertical(role="grid")
@@ -15,6 +15,6 @@ main
         th
           | Updated
     tbody
-      == render @supplier
+      = render @supplier
 
-== button_to "Destroy this supplier", supplier_path(@supplier), method: :delete, class: "btn-danger"  
+= button_to "Destroy this supplier", supplier_path(@supplier), method: :delete, class: "btn-danger"  

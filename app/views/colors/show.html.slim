@@ -1,6 +1,6 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-show", model: @color
+= render "_shared/nav-show", model: @color
 
 main
   table.vertical(role="grid")
@@ -15,6 +15,6 @@ main
         th
           | Updated
     tbody
-      == render @color
+      = render @color
 
-== button_to "Destroy this color", color_path(@color), method: :delete, class: "btn-danger"
+= button_to "Destroy this color", color_path(@color), method: :delete, class: "btn-danger"

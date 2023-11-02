@@ -1,17 +1,17 @@
 tr id="#{dom_id franchise}"
   td
-    == franchise.id
+    = franchise.id
   td
-    == franchise.title
+    = franchise.title
   td
-    == franchise.created_at
+    = franchise.created_at
   td
-    == franchise.updated_at
+    = franchise.updated_at
   - if action_name != "show" 
     td.actions
-      == link_to franchise
+      = link_to franchise
         i.icn 📄
         | Show
-      == link_to edit_franchise_path(franchise)
+      = link_to edit_franchise_path(franchise)
         i.icn ✏️
         | Edit

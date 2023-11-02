@@ -3,6 +3,7 @@
 # Table name: products
 #
 #  id           :bigint           not null, primary key
+#  full_title   :string
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
@@ -12,6 +13,8 @@
 #
 class Product < ApplicationRecord
   paginates_per 50
+
+  after_create :calculate_full_title
 
   validates :title, presence: true
 
@@ -33,22 +36,29 @@ class Product < ApplicationRecord
   has_many :product_colors, dependent: :destroy
   has_many :colors, through: :product_colors
 
-  def full_title
+  has_many :product_sales, dependent: :destroy
+  has_many :sales, through: :product_sales
+
+  def self.sync_woo_products
+    SyncWooProductsJob.perform_later
+  end
+
+  private
+
+  def calculate_full_title
     values_from = ->(i) { i&.pluck(:value)&.join(", ") }
     sizes_string = values_from.call(sizes)
     versions_string = values_from.call(versions)
     brands_string = brands.pluck(:title).join(", ")
     colors_string = values_from.call(colors)
+    size_and_version = [sizes_string.presence, versions_string.presence].compact.join(" — ")
     title_parts = [
       "#{franchise.title} — #{title}",
-      "#{[sizes_string.presence, versions_string.presence].compact.join(" — ")} resin #{shape.title}",
+      "#{size_and_version.present? ? (size_and_version + " ") : ""}resin #{shape.title}",
       brands_string.presence,
       colors_string.presence
     ]
-    title_parts.compact.join(" | ")
-  end
-
-  def self.sync_woo_products
-    SyncWooProductsJob.perform_later
+    self.full_title = title_parts.compact.join(" | ")
+    save
   end
 end

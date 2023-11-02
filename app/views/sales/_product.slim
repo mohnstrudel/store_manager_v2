@@ -1,0 +1,7 @@
+.sale_product
+  = f.hidden_field :product_id
+  h6 = product.full_title
+  = f.label :qty
+  = f.number_field :qty
+  = f.label :price
+  = f.number_field :price, value: number_to_currency(f.object.price.to_f, delimiter: '', unit: ''), step: :any

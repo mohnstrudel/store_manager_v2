@@ -1,6 +1,6 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-show", model: @franchise
+= render "_shared/nav-show", model: @franchise
 
 main
   table.vertical(role="grid")
@@ -15,6 +15,6 @@ main
         th
           | Updated
     tbody
-      == render @franchise
+      = render @franchise
 
-== button_to "Destroy this franchise", franchise_path(@franchise), method: :delete, class: "btn-danger"  
+= button_to "Destroy this franchise", franchise_path(@franchise), method: :delete, class: "btn-danger"  

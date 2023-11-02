@@ -1,6 +1,6 @@
-== render "_shared/notice"
+= render "_shared/notice"
 
-== render "_shared/nav-index", model: @suppliers
+= render "_shared/nav-index", model: @suppliers
 
 main
   table(role="grid")
@@ -17,4 +17,4 @@ main
         th
           | Actions
     tbody
-      == render @suppliers
+      = render @suppliers

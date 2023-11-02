@@ -18,5 +18,16 @@ module StoreManagerV2
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    config.generators do |generate|
+      # generate.assets false
+      generate.helper false
+      generate.stylesheets false
+      generate.controller_specs false
+      generate.request_specs false
+      generate.view_specs false
+      generate.helper_specs false
+      generate.routing_specs false
+    end
   end
 end

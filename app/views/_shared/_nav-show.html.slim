@@ -1,13 +1,13 @@
 nav
   ul
     li
-      == link_to "Back to #{model.model_name.plural}", send("#{model.model_name.plural}_path")
+      = link_to "Back", "javascript:history.back()"
       - if defined?(custom_heading)
-        == yield
+        = yield
       - else
         h1 #{model.model_name.name} #{model.respond_to?(:title) ? model.title : model.value}
   ul
     li
-      == link_to controller: "#{model.model_name.plural}", action: "edit", id: model
+      = link_to controller: "#{model.model_name.plural}", action: "edit", id: model
         i.icn ✏️
         | Edit

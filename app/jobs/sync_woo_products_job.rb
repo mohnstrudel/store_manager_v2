@@ -4,9 +4,8 @@ class SyncWooProductsJob < ApplicationJob
   URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
   CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user)
   CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
-  # We can find the published size in the store's dashboard,
-  # 1062 was the size when we needed this method.
-  SIZE = 1062
+  # We can find the published size in the store's dashboard
+  SIZE = 1200
   PER_PAGE = 100
 
   def perform(*args)
@@ -14,10 +13,11 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def save_woo_products_to_db
+    sync_errors = []
     woo_products = get_woo_products(method(:map_woo_products_to_model))
     woo_products.each do |woo_product|
       next if Product.find_by(woo_id: woo_product[:woo_id])
-      product = Product.create({
+      product = Product.new({
         title: woo_product[:title],
         woo_id: woo_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
@@ -35,9 +35,21 @@ class SyncWooProductsJob < ApplicationJob
       woo_product[:colors]&.each do |i|
         product.colors << Color.find_or_create_by(value: i)
       end
+      product.save!
+      unless product.persisted?
+        sync_errors.push({
+          title: woo_product[:title],
+          woo_id: woo_product[:woo_id], ranchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
+          shape: Shape.find_or_create_by(title: woo_product[:shape])
+        })
+      end
     rescue => e
       Rails.logger.error "Full error: #{e}"
       Rails.logger.error "Error occurred at #{e.backtrace.first}"
+    end
+    if sync_errors.any?
+      file_path = Rails.root.join("sync_products_err.json")
+      File.write(file_path, JSON.generate(sync_errors))
     end
   end
 
@@ -69,12 +81,14 @@ class SyncWooProductsJob < ApplicationJob
   def map_woo_products_to_model(woo_products)
     result = woo_products.map do |woo_product|
       next if woo_product[:attributes].blank?
-      name = woo_product[:name].gsub(/&amp;/, "&")
+      name = woo_product[:name].gsub("&amp;", "&")
       shape = name.match(/\b(bust|statue)\b/i)
+      title = name.split(" - ")[0]
+      franchise = name.split(" - ")[1] && name.split(" - ")[1].split(" | ")[0]
       product = {
         woo_id: woo_product[:id],
-        title: name.split(" - ")[0],
-        franchise: name.split(" - ")[1] && name.split(" - ")[1].split(" | ")[0],
+        title: title,
+        franchise: franchise,
         shape: shape.present? && shape[0]
       }
       options = woo_product[:attributes].map do |attr|
