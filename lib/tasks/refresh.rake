@@ -8,4 +8,19 @@ task refresh: :environment do
   SyncWooOrdersJob.perform_now
   puts "SyncWooOrdersJob is finished"
   Rake::Task["db:seed"].invoke
+  puts <<~'EOF'
+
+
+           _,     _   _     ,_
+       .-'` /     \'-'/     \ `'-.
+      /    |      |   |      |    \
+     ;      \_  _/     \_  _/      ;
+    |         ``         ``         |
+    |                               |
+     ;    .-.   .-.   .-.   .-.    ;
+      \  (   '.'   \ /   '.'   )  /
+       '-.;         V         ;.-'
+           `                 `
+
+  EOF
 end
