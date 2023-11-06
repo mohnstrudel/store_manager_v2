@@ -411,6 +411,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rspec
   rubocop-slim (~> 0.2.2)
+  ruby-progressbar
   selenium-webdriver
   slim-rails
   solargraph
