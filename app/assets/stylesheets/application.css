@@ -14,7 +14,7 @@
  *= require_self
  */
 :root {
-  --spacing-m: calc(var(--spacing) * 1.5);
+  xl: calc(var(--spacing) * 1.5);
   --spacing-l: calc(var(--spacing) * 2);
   --spacing-xl: calc(var(--spacing) * 3);
   --ss-primary-color: var(--primary-hover);
@@ -160,6 +160,7 @@ body > header > nav a:hover {
   color: var(--contrast);
 }
 .btn-danger {
+  margin-top: var(--spacing-xl);
   background-color: var(--form-element-invalid-active-border-color);
   border-color: var(--form-element-invalid-active-border-color);
 }
@@ -309,9 +310,6 @@ article.notice.is-error header {
 }
 article.notice .icn {
   font-size: 1.5rem;
-}
-[type="submit"] {
-  margin-top: calc(var(--spacing) * 2);
 }
 .ss-main {
   min-height: calc(
@@ -476,7 +474,7 @@ button.is-inverted:hover {
 .debts--cards {
   display: flex;
   justify-content: space-between;
-  gap: var(--spacing-m);
+  gap: var(xl);
 }
 
 .table-card {
@@ -489,6 +487,9 @@ button.is-inverted:hover {
 }
 .table-card.full-width {
   width: 100%;
+}
+.table-card.mg-t {
+  margin-top: var(--spacing-xl);
 }
 .table-card h3 {
   margin: 0;
@@ -614,4 +615,10 @@ main.inner.w-pd {
 .dropdown:hover .dropdown__content {
   visibility: visible;
   opacity: 1;
+}
+input {
+  display: block;
+}
+[type="submit"] {
+  margin-top: var(--spacing-xl);
 }

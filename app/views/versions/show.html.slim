@@ -3,18 +3,31 @@
 = render "_shared/nav-show", model: @version
 
 main
-  table(role="grid")
-    thead
-      tr
-        th
-          | ID
-        th
-          | Value
-        th
-          | Created
-        th
-          | Updated
-    tbody
-      = render @version
+  .table-card.full-width
+    table role="grid"
+      thead
+        tr
+          th ID
+          th Value
+          th Created
+          th Updated
+      tbody
+        = render @version
+
+  - if @version.products.present?
+  .table-card.full-width.mg-t
+    h3 Products
+    table role="grid" data-controller="table"
+        thead
+          th.mute ID
+          th Full Title
+        tbody
+          - @version.products.each do |product|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_path(product)
+            )
+              td.mute = product.id
+              td = product.full_title 
 
 = button_to "Destroy this version", version_path(@version), method: :delete, class: "btn-danger"

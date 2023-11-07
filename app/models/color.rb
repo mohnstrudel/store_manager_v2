@@ -9,6 +9,7 @@
 #
 class Color < ApplicationRecord
   validates :value, presence: true
-  has_many :product_sizes, dependent: :destroy
-  has_many :products, through: :product_sizes
+
+  has_many :product_colors, dependent: :destroy
+  has_many :products, through: :product_colors
 end
