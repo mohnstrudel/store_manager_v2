@@ -54,7 +54,9 @@ class Sale < ApplicationRecord
       "po_fully_paid",
       "pre-ordered",
       "processing",
-      "ready-to-fullfill"
+      "ready-to-fullfill",
+      "im-zulauf",
+      "container-shipped"
     ].freeze
   end
 
