@@ -26,7 +26,7 @@ class ProductSale < ApplicationRecord
     # - Group by product and sort by the number of missing purchases
     # - Grab a first chunck of 16
     ProductSale
-      .joins(:product)
+      .includes(:product, :sale)
       .select { |product_sale|
         Sale.STATUS_NEW.include? product_sale.status
       }
