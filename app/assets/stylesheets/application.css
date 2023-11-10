@@ -471,12 +471,6 @@ button.is-inverted:hover {
   color: var(--muted-color);
 }
 
-.debts--cards {
-  display: flex;
-  justify-content: space-between;
-  gap: var(xl);
-}
-
 .table-card {
   height: min-content;
   flex-grow: 1;
@@ -507,7 +501,13 @@ button.is-inverted:hover {
 .table-card tr:last-child td {
   border-bottom: 0;
 }
-.debts--cards {
+
+.table-cards-group {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-m);
+}
+.table-cards-group {
   > .table-card {
     padding-bottom: 0;
   }

@@ -17,17 +17,16 @@ class ProductSale < ApplicationRecord
 
   delegate :full_title, to: :product
   delegate :status, to: :sale
+  delegate :purchases, to: :product
 
   def self.sales_trends
-    # 1. Get products that have been ordered
-    # 2. Exclude products that we purchased
-    # 3. Filter out by status because we only want new orders
-    # 4. Group them by product to find the most ordered
-    # 5. Sort by quantity and grab first chunck
-    # Also, 16 — is just a number, no hidden magic behind it
+    # Get a list of products that have been sold but not purchased enough:
+    # - Get products that have been sold
+    # - Exclude irrelevant ones, e.g. completed or failed
+    # - Group by product and sort by the number of missing purchases
+    # - Grab a first chunck of 16
     ProductSale
       .joins(:product)
-      .where.not(product_id: Product.joins(:purchases))
       .select { |product_sale|
         Sale.STATUS_NEW.include? product_sale.status
       }

@@ -35,26 +35,47 @@ main.inner.v-flex.w-pd
       .title Updated
       p = @product.updated_at
 
-  - if @active_sales.present?
-    .table-card
-      h3 Sales
-      table role="grid" data-controller="table"
-        thead
-          th.mute #
-          th Time ago
-          th Customer
-          th.right Price, $
-          th Qty
-        tbody
-          - @active_sales.each_with_index do |ps, idx|
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=sale_path(ps.sale)
-            )
-              td.mute = ps.sale.id
-              td = time_ago_in_words ps.sale.woo_created_at.presence || ps.created_at
-              td = ps.sale.customer.email 
-              td.right.mono = format_money ps.price
-              td = ps.qty
+  .table-cards-group
+    - if @active_sales.present?
+      .table-card
+        h3 Sales
+        table role="grid" data-controller="table"
+          thead
+            th.mute #
+            th Time ago
+            th.right Price, $
+            th Qty
+          tbody
+            - @active_sales.each_with_index do |ps, idx|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=sale_path(ps.sale)
+              )
+                td.mute = idx + 1
+                td.no-wrap = time_ago_in_words ps.sale.woo_created_at.presence || ps.created_at
+                td.right.mono = format_money ps.price
+                td = ps.qty
+
+    - if @product.purchases.present?
+      .table-card
+        h3 Purchases
+        table role="grid" data-controller="table"
+          thead
+            th.mute #
+            th Time ago
+            th Supplier
+            th.right Item Price, $
+            th Qty
+          tbody
+            - @product.purchases.each_with_index do |purchase, idx|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=purchase_path(purchase)
+              )
+                td.mute = idx + 1
+                td.no-wrap = time_ago_in_words purchase.created_at
+                td = purchase.supplier.title
+                td.right.mono = format_money purchase.item_price
+                td = purchase.amount
 
 = button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }
