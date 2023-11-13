@@ -5,35 +5,77 @@
     h1 = @product.title
     h2 = @product.full_title
 
-main
-  table.vertical(role="grid")
-    thead
-      tr
-        th ID
-        th Shop ID
-        th Supplier
-        th Franchise
-        th Title
-        th Size
-        th Shape
-        th Brand
-        th Version
-        th Color
-        th Created
-        th Updated
-    tbody
-      tr
-        td = @product.id
-        td = @product.woo_id
-        td = format_relation(@product.suppliers, "title")
-        td = @product.franchise.title
-        td = @product.title
-        td = format_relation(@product.sizes, "value")
-        td = @product.shape.title
-        td = format_relation(@product.brands, "title")
-        td = format_relation(@product.versions, "value")
-        td = format_relation(@product.colors, "value")
-        td = @product.created_at
-        td = @product.updated_at
+main.inner.v-flex.w-pd
+  .cards
+    .card.grow
+      .title Title
+      p = @product.title
+      .title Franchise
+      p = @product.franchise.title
+      .title Version
+      p = format_relation(@product.versions, "value")
+      .title Brand
+      p = format_relation(@product.brands, "title")
+      .title Size
+      p = format_relation(@product.sizes, "value")
+      .title Shape
+      p = @product.shape.title
+      .title Color
+      p = format_relation(@product.colors, "value")
+
+    .card
+      .title ID
+      p = @product.id
+      .title Woo ID
+      p = @product.woo_id
+      .title Supplier
+      p = format_relation(@product.suppliers, "title")
+      .title Created
+      p = @product.created_at
+      .title Updated
+      p = @product.updated_at
+
+  .table-cards-group
+    - if @active_sales.present?
+      .table-card
+        h3 Sales
+        table role="grid" data-controller="table"
+          thead
+            th.mute #
+            th Time ago
+            th.right Price, $
+            th Qty
+          tbody
+            - @active_sales.each_with_index do |ps, idx|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=sale_path(ps.sale)
+              )
+                td.mute = idx + 1
+                td.no-wrap = time_ago_in_words ps.sale.woo_created_at.presence || ps.created_at
+                td.right.mono = format_money ps.price
+                td = ps.qty
+
+    - if @product.purchases.present?
+      .table-card
+        h3 Purchases
+        table role="grid" data-controller="table"
+          thead
+            th.mute #
+            th Time ago
+            th Supplier
+            th.right Item Price, $
+            th Qty
+          tbody
+            - @product.purchases.each_with_index do |purchase, idx|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=purchase_path(purchase)
+              )
+                td.mute = idx + 1
+                td.no-wrap = time_ago_in_words purchase.created_at
+                td = purchase.supplier.title
+                td.right.mono = format_money purchase.item_price
+                td = purchase.amount
 
 = button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

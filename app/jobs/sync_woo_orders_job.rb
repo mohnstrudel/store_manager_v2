@@ -56,6 +56,8 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def get_orders(size = SIZE, per_page = PER_PAGE)
+    progressbar = ProgressBar.create(title: "SyncWooOrdersJob")
+    step = 100 / (SIZE / PER_PAGE)
     pages = (size / per_page).ceil
     page = 1
     orders = []
@@ -76,6 +78,10 @@ class SyncWooOrdersJob < ApplicationJob
         Sale.deserialize_woo_order(i)
       end
       orders.concat(deserialized_orders)
+      step.times {
+        progressbar.increment
+        sleep 0.5
+      }
       page += 1
     end
     orders

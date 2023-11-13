@@ -3,9 +3,6 @@ tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-u
   td = product.full_title
   - if action_name != "show" 
     td.actions
-      = link_to product
-        i.icn 📄
-        | Show
       = link_to edit_product_path(product)
         i.icn ✏️
         | Edit

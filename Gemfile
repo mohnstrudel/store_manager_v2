@@ -4,7 +4,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby "3.2.2"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.1"
+gem "rails", "~> 7.1.1"
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
@@ -58,6 +58,7 @@ group :development, :test do
   gem "rubocop-rspec", require: false
   gem "rspec-rails", "~> 6.0.0"
   gem "factory_bot_rails"
+  gem "ruby-progressbar"
 end
 
 group :development do

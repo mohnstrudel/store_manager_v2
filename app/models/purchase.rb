@@ -38,4 +38,8 @@ class Purchase < ApplicationRecord
   def total_price
     item_price * amount
   end
+
+  def self.unpaid
+    where.missing(:payments).order(created_at: :asc)
+  end
 end

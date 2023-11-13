@@ -4,6 +4,10 @@ module ApplicationHelper
   end
 
   def format_time(time)
-    time.to_fs(:long)
+    time.to_fs(:long) if time.present?
+  end
+
+  def format_money(amount)
+    number_to_currency(amount.to_f, delimiter: "", unit: "")
   end
 end

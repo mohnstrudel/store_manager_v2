@@ -1,24 +1,17 @@
-tr id="#{dom_id purchase}"
-  td
-    = purchase.product.full_title
-  td.right
-    = purchase.amount
-    .sign
-      |  × 
-    = number_to_currency(purchase.item_price, locale: "de")
-    .sign
-      |  = 
-    = number_to_currency(purchase.total_price, locale: "de")
-  td.v-bot.right
-    progress.in-td(value=purchase.progress max=100)
-    = number_to_currency(purchase.debt, locale: "de")
-  td
-    = purchase.supplier.title
-  - if action_name != "show" 
+tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-url-param=purchase_path(purchase)
+  td = purchase.id
+  td = purchase.product.full_title
+  td.right = purchase.amount
+  td.right.mono = format_money purchase.item_price
+  td.right.mono = format_money purchase.total_price
+  td.right.mono
+    progress.in-td value=purchase.progress max=100
+    | -
+    = format_money purchase.debt
+  td = purchase.supplier.title
+
+  - if action_name != "show"
     td.actions
-      = link_to purchase
-        i.icn 📄
-        | Show
       = link_to edit_purchase_path(purchase)
         i.icn ✏️
         | Edit

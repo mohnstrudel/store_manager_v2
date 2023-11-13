@@ -6,9 +6,6 @@ tr.hoverable id="#{dom_id customer}" data-action="click->table#goTo" data-table-
 
   - if action_name != "show" 
     td.actions
-      = link_to customer
-        i.icn 📄
-        | Show
       = link_to edit_customer_path(customer)
         i.icn ✏️
         | Edit

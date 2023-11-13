@@ -8,7 +8,7 @@ class SyncWooProductsJob < ApplicationJob
   SIZE = 1200
   PER_PAGE = 100
 
-  def perform(*args)
+  def perform
     save_woo_products_to_db
   end
 
@@ -54,6 +54,8 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def get_woo_products(mapper, size = SIZE, per_page = PER_PAGE)
+    progressbar = ProgressBar.create(title: "SyncWooProductsJob")
+    step = 100 / (SIZE / PER_PAGE)
     pages = (size / per_page).ceil
     page = 1
     products = []
@@ -73,6 +75,10 @@ class SyncWooProductsJob < ApplicationJob
       woo_products = JSON.parse(response.body, symbolize_names: true)
       result = mapper.call(woo_products)
       products.concat(result)
+      step.times {
+        progressbar.increment
+        sleep 0.5
+      }
       page += 1
     end
     products

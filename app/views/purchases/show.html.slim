@@ -3,54 +3,53 @@
 = render "_shared/nav-show", model: @purchase, custom_heading: true
   h1 = @purchase.product.full_title
 
-main
-  table.vertical(role="grid")
-    thead
-      tr
-        th Amount
-        th Unit price
-        th Total price
-        th Debt
-        th Paid
-        th Progress
-        th Order reference
-        th Date
-        th Supplier
-    tbody
-      tr
-        td = @purchase.amount
-        td = number_to_currency(@purchase.item_price, locale: "de")
-        td = number_to_currency(@purchase.total_price, locale: "de")
-        td = number_to_currency(@purchase.debt, locale: "de")
-        td = number_to_currency(@purchase.paid, locale: "de")
-        td
-          progress.no-mg(value=@purchase.progress max=100)
-        td = @purchase.order_reference
-        td = @purchase.created_at.strftime("%d.%m.%Y")
-        td = @purchase.supplier.title
+main.inner.v-flex.w-pd
+  .cards
+    .card.grow
+      .title Qty
+      p = @purchase.amount
+      .title Unit price, $
+      p.mono = format_money @purchase.item_price
+      .title Total price
+      p.mono = format_money @purchase.total_price
+      .title Paid
+      p.mono = format_money(@purchase.paid).rjust(2, '0')
+      .title Debt
+      p.mono
+        | -
+        = format_money @purchase.debt
 
-br
+    .card
+      .title Supplier
+      p = @purchase.supplier.title
+      .title Date
+      p = format_time @purchase.created_at
+      .title Order reference
+      p = @purchase.order_reference
+      .title Progress
+      p
+        progress.no-mg value=@purchase.progress max=100
 
-article
-  h3 Payments
-  table
-    thead
-      tr
-        th Amount
-        th Date
-    tbody#payments
-      - @purchase.payments.each do |payment|
+  .table-card
+    h3 Payments
+    table role="grid"
+      thead
         tr
-          td = number_to_currency(payment.value, locale: "de")
-          td = payment.payment_date.strftime("%d.%m.%Y")
+          th Amount, $
+          th Date
+      tbody#payments
+        - @purchase.payments.each do |payment|
+          tr.hoverable
+            td.mono = format_money payment.value
+            td = format_time payment.payment_date
 
-  = form_with model: @purchase.payments.new, class: "payment", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
-    - if form.object.errors.any?
-      - form.object.errors.full_messages.each do |message|
-        = message
-
-    = form.hidden_field :purchase_id
-    = form.number_field :value, placeholder: "What did you pay in total?", id: "payment-amount", step: :any
-    = form.submit "Add payment", role: "button"
+    = form_with model: @purchase.payments.new, class: "payment", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
+      - if form.object.errors.any?
+        - form.object.errors.full_messages.each do |message|
+          = message
+      = form.hidden_field :purchase_id
+      = form.label :amount, "New:"
+      = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any
+      = form.submit "Add payment", role: "button"
 
 = button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"  
