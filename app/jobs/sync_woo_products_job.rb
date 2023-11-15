@@ -9,13 +9,13 @@ class SyncWooProductsJob < ApplicationJob
   PER_PAGE = 100
 
   def perform
-    save_woo_products_to_db
+    woo_products = get_woo_products
+    parsed_woo_products = parse_woo_products(woo_products)
+    save_woo_products_to_db(parsed_woo_products)
   end
 
-  def save_woo_products_to_db
-    sync_errors = []
-    woo_products = get_woo_products(method(:map_woo_products_to_model))
-    woo_products.each do |woo_product|
+  def save_woo_products_to_db(parsed_woo_products)
+    parsed_woo_products.each do |woo_product|
       next if Product.find_by(woo_id: woo_product[:woo_id])
       product = Product.new({
         title: woo_product[:title],
@@ -36,34 +36,20 @@ class SyncWooProductsJob < ApplicationJob
         product.colors << Color.find_or_create_by(value: i)
       end
       product.save!
-      unless product.persisted?
-        sync_errors.push({
-          title: woo_product[:title],
-          woo_id: woo_product[:woo_id], ranchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
-          shape: Shape.find_or_create_by(title: woo_product[:shape])
-        })
-      end
-    rescue => e
-      Rails.logger.error "Full error: #{e}"
-      Rails.logger.error "Error occurred at #{e.backtrace.first}"
-    end
-    if sync_errors.any?
-      file_path = Rails.root.join("sync_products_err.json")
-      File.write(file_path, JSON.generate(sync_errors))
     end
   end
 
-  def get_woo_products(mapper, size = SIZE, per_page = PER_PAGE)
+  def get_woo_products
     progressbar = ProgressBar.create(title: "SyncWooProductsJob")
     step = 100 / (SIZE / PER_PAGE)
-    pages = (size / per_page).ceil
+    pages = (SIZE / PER_PAGE).ceil
     page = 1
-    products = []
+    woo_products = []
     while page <= pages
       response = HTTParty.get(
         URL,
         query: {
-          per_page: per_page,
+          per_page: PER_PAGE,
           page: page,
           status: "publish"
         },
@@ -72,19 +58,17 @@ class SyncWooProductsJob < ApplicationJob
           password: CONSUMER_SECRET
         }
       )
-      woo_products = JSON.parse(response.body, symbolize_names: true)
-      result = mapper.call(woo_products)
-      products.concat(result)
+      woo_products.concat(JSON.parse(response.body, symbolize_names: true))
       step.times {
         progressbar.increment
         sleep 0.5
       }
-      page += 1
+      page += pages
     end
-    products
+    woo_products
   end
 
-  def map_woo_products_to_model(woo_products)
+  def parse_woo_products(woo_products)
     result = woo_products.map do |woo_product|
       next if woo_product[:attributes].blank?
       name = sanitize(woo_product[:name])
