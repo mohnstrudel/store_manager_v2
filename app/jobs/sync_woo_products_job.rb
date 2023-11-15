@@ -87,7 +87,7 @@ class SyncWooProductsJob < ApplicationJob
   def map_woo_products_to_model(woo_products)
     result = woo_products.map do |woo_product|
       next if woo_product[:attributes].blank?
-      name = woo_product[:name].gsub("&amp;", "&")
+      name = sanitize(woo_product[:name])
       shape = name.match(/\b(bust|statue)\b/i)
       title = name.split(" - ")[0]
       franchise = name.split(" - ")[1] && name.split(" - ")[1].split(" | ")[0]
@@ -100,16 +100,16 @@ class SyncWooProductsJob < ApplicationJob
       options = woo_product[:attributes].map do |attr|
         attrs = {}
         if attr[:name] == "Version"
-          attrs[:versions] = attr[:options]
+          attrs[:versions] = attr[:options].map(&method(:sanitize))
         end
         if attr[:name] == "Size" || attr[:name] == "Maßstab"
-          attrs[:sizes] = attr[:options]
+          attrs[:sizes] = attr[:options].map(&method(:sanitize))
         end
         if attr[:name] == "Color"
-          attrs[:colors] = attr[:options]
+          attrs[:colors] = attr[:options].map(&method(:sanitize))
         end
         if attr[:name] == "Marke" || attr[:name] == "Brand"
-          attrs[:brands] = attr[:options]
+          attrs[:brands] = attr[:options].map(&method(:sanitize))
         end
         attrs
       end
@@ -120,24 +120,12 @@ class SyncWooProductsJob < ApplicationJob
 
   private
 
-  # This method was used to get products with empty attributes.
-  # In order to use it again, we need to put in the separate job.
-  def get_empty_attrs_woo_products
-    file_path = Rails.root.join("empty_woo_products.json")
-    result = get_woo_products(method(:map_empty_attrs_products), SIZE)
-    File.write(file_path, JSON.generate(result))
+  def sanitize(string)
+    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 
-  def map_empty_attrs_products(woo_products)
-    result = woo_products.map do |woo_product|
-      next if woo_product[:attributes].present?
-      {
-        id: woo_product[:id],
-        name: woo_product[:name],
-        permalink: woo_product[:permalink],
-        admin_url: "https://store.handsomecake.com/wp-admin/post.php?post=#{woo_product[:id]}&action=edit"
-      }
-    end
-    result.compact
+  def save_file(data, file)
+    file_path = Rails.root.join("#{file}.json")
+    File.write(file_path, JSON.generate(data))
   end
 end
