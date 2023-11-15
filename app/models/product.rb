@@ -56,7 +56,7 @@ class Product < ApplicationRecord
     size_and_version = [sizes_string.presence, versions_string.presence].compact.join(" — ")
     title_parts = [
       "#{franchise.title} — #{title}",
-      "#{size_and_version.present? ? (size_and_version + " ") : ""}resin #{shape.title}",
+      "#{size_and_version.present? ? (size_and_version + " ") : ""}Resin #{shape.title}",
       brands_string.presence,
       colors_string.presence
     ]
