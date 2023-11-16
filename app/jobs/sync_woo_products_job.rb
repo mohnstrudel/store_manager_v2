@@ -72,7 +72,7 @@ class SyncWooProductsJob < ApplicationJob
       next if woo_product[:attributes].blank?
       woo_name = sanitize(woo_product[:name])
       franchise = woo_name.include?(" - ") ? woo_name.split(" - ").first : woo_name.split(" | ").first
-      title = woo_name.include?(" - ") ? woo_name.split(" | ").first.split(" - ").last : title
+      title = woo_name.include?(" - ") ? woo_name.split(" | ").first.split(" - ").last : franchise
       shape = woo_name.match(/\b(bust|statue)\b/i)
       product = {
         woo_id: woo_product[:id],
