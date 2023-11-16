@@ -16,7 +16,6 @@ class SyncWooProductsJob < ApplicationJob
 
   def save_woo_products_to_db(parsed_woo_products)
     parsed_woo_products.each do |woo_product|
-      next if Product.find_by(woo_id: woo_product[:woo_id])
       product = Product.new({
         title: woo_product[:title],
         woo_id: woo_product[:woo_id],
@@ -63,18 +62,18 @@ class SyncWooProductsJob < ApplicationJob
         progressbar.increment
         sleep 0.5
       }
-      page += pages
+      page += 1
     end
     woo_products
   end
 
   def parse_woo_products(woo_products)
-    result = woo_products.map do |woo_product|
+    parsed_woo_products = woo_products.map do |woo_product|
       next if woo_product[:attributes].blank?
-      name = sanitize(woo_product[:name])
-      shape = name.match(/\b(bust|statue)\b/i)
-      title = name.split(" - ")[0]
-      franchise = name.split(" - ")[1] && name.split(" - ")[1].split(" | ")[0]
+      woo_name = sanitize(woo_product[:name])
+      franchise = woo_name.include?(" - ") ? woo_name.split(" - ").first : woo_name.split(" | ").first
+      title = woo_name.include?(" - ") ? woo_name.split(" | ").first.split(" - ").last : title
+      shape = woo_name.match(/\b(bust|statue)\b/i)
       product = {
         woo_id: woo_product[:id],
         title: title,
@@ -99,7 +98,7 @@ class SyncWooProductsJob < ApplicationJob
       end
       product.merge(*options.compact.reject(&:empty?))
     end
-    result.compact
+    parsed_woo_products.compact.uniq { |el| el[:woo_id] }
   end
 
   private
