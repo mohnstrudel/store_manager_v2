@@ -622,3 +622,10 @@ input {
 [type="submit"] {
   margin-top: var(--spacing-xl);
 }
+img.product {
+  height: auto;
+  width: 400px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: var(--border-radius);
+}

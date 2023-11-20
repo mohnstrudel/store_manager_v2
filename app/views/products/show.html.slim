@@ -7,6 +7,8 @@
 
 main.inner.v-flex.w-pd
   .cards
+    - if @product.image.present?
+      img.product src="#{@product.image}"
     .card.grow
       .title Title
       p = @product.title

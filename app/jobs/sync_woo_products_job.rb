@@ -20,7 +20,8 @@ class SyncWooProductsJob < ApplicationJob
         title: woo_product[:title],
         woo_id: woo_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
-        shape: Shape.find_or_create_by(title: woo_product[:shape])
+        shape: Shape.find_or_create_by(title: woo_product[:shape]),
+        image: woo_product[:image]
       })
       woo_product[:brands]&.each do |i|
         product.brands << Brand.find_or_create_by(title: i)
@@ -74,11 +75,13 @@ class SyncWooProductsJob < ApplicationJob
       franchise = woo_name.include?(" - ") ? woo_name.split(" - ").first : woo_name.split(" | ").first
       title = woo_name.include?(" - ") ? woo_name.split(" | ").first.split(" - ").last : franchise
       shape = woo_name.match(/\b(bust|statue)\b/i)
+      image = woo_product[:images].present? ? woo_product[:images].first[:src] : ""
       product = {
         woo_id: woo_product[:id],
         title:,
         franchise:,
-        shape: shape.present? && shape[0]
+        shape: shape.present? && shape[0],
+        image:
       }
       options = woo_product[:attributes].map do |attr|
         attrs = {}
