@@ -76,8 +76,8 @@ class SyncWooProductsJob < ApplicationJob
       shape = woo_name.match(/\b(bust|statue)\b/i)
       product = {
         woo_id: woo_product[:id],
-        title: title,
-        franchise: franchise,
+        title:,
+        franchise:,
         shape: shape.present? && shape[0]
       }
       options = woo_product[:attributes].map do |attr|
@@ -107,8 +107,8 @@ class SyncWooProductsJob < ApplicationJob
     string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 
-  def save_file(data, file)
-    file_path = Rails.root.join("#{file}.json")
+  def save_file(data, file_name)
+    file_path = Rails.root.join("#{file_name}.json")
     File.write(file_path, JSON.generate(data))
   end
 end
