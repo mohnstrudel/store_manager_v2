@@ -24,6 +24,7 @@ RSpec.describe SyncWooProductsJob do
         expect(first_created.woo_id).to eq(first_parsed[:woo_id].to_s)
         expect(first_created.shape.title).to eq(first_parsed[:shape])
         expect(first_created.image).to eq(first_parsed[:image])
+        expect(first_created.store_link).to eq(first_parsed[:permalink])
         expect(first_created.versions.size).to eq(first_parsed[:versions].size)
         expect(first_created.brands.size).to eq(first_parsed[:brands].size)
         expect(first_created.sizes.size).to eq(first_parsed[:sizes].size)

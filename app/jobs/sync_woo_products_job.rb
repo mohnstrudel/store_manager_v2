@@ -78,6 +78,7 @@ class SyncWooProductsJob < ApplicationJob
       image = woo_product[:images].present? ? woo_product[:images].first[:src] : ""
       product = {
         woo_id: woo_product[:id],
+        store_link: woo_product[:permalink],
         title:,
         franchise:,
         shape: shape.present? && shape[0],

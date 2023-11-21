@@ -36,6 +36,8 @@ main.inner.v-flex.w-pd
       p = @product.created_at
       .title Updated
       p = @product.updated_at
+      .title Store Link
+      p = @product.store_link || "-"
 
   .table-cards-group
     - if @active_sales.present?

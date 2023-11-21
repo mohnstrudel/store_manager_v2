@@ -1,6 +1,7 @@
 [
   {
     "woo_id": 111,
+    "store_link": "http://store.handsomecake.com/link-id",
     "title": "Spirited Away",
     "franchise": "Studio Ghibli",
     "shape": "Statue",
@@ -12,6 +13,7 @@
   },
   {
     "woo_id": 222,
+    "store_link": "http://store.handsomecake.com/link-id",
     "title": "Asuka Langley",
     "franchise": "Neon Genesis Evangelion",
     "shape": "Statue",
@@ -23,6 +25,7 @@
   },
   {
     "woo_id": 333,
+    "store_link": "http://store.handsomecake.com/link-id",
     "title": "Spirited Away",
     "franchise": "Studio Ghibli",
     "shape": "Bust",
@@ -34,6 +37,7 @@
   },
   {
     "woo_id": 444,
+    "store_link": "http://store.handsomecake.com/link-id",
     "title": "Asuka Langley",
     "franchise": "Neon Genesis Evangelion",
     "shape": "Bust",
