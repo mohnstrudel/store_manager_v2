@@ -84,23 +84,22 @@ class SyncWooProductsJob < ApplicationJob
         shape: shape.present? && shape[0],
         image:
       }
-      options = woo_product[:attributes].map do |attr|
+      attributes = woo_product[:attributes].map do |attr|
         attrs = {}
-        if attr[:name] == "Version"
-          attrs[:versions] = attr[:options].map(&method(:sanitize))
-        end
-        if attr[:name] == "Size" || attr[:name] == "Maßstab"
-          attrs[:sizes] = attr[:options].map(&method(:sanitize))
-        end
-        if attr[:name] == "Color"
-          attrs[:colors] = attr[:options].map(&method(:sanitize))
-        end
-        if attr[:name] == "Marke" || attr[:name] == "Brand"
-          attrs[:brands] = attr[:options].map(&method(:sanitize))
+        options = attr[:options].map(&method(:sanitize))
+        case attr[:name]
+        when "Version", "Variante"
+          attrs[:versions] = options
+        when "Size", "Maßstab"
+          attrs[:sizes] = options
+        when "Color", "Farbe"
+          attrs[:colors] = options
+        when "Brand", "Marke"
+          attrs[:brands] = options
         end
         attrs
       end
-      product.merge(*options.compact.reject(&:empty?))
+      product.merge(*attributes.compact.reject(&:empty?))
     end
     parsed_woo_products.compact.uniq { |el| el[:woo_id] }
   end
