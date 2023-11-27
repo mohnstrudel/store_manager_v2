@@ -8,76 +8,63 @@ class SyncWooOrdersJob < ApplicationJob
   PER_PAGE = 100
 
   def perform(*args)
-    convert_orders_to_sales
+    woo_orders = get_woo_orders
+    parsed_orders = parse_orders(woo_orders)
+    create_sales(parsed_orders)
   end
 
-  def convert_orders_to_sales
-    Product.sync_woo_products unless Product.any?
-    sync_errors = []
-    get_orders.each do |order|
+  def create_sales(parsed_orders)
+    parsed_orders.each do |order|
       next if Sale.find_by(woo_id: order[:sale][:woo_id])
       customer = Customer.find_or_create_by(order[:customer])
       sale = Sale.create(order[:sale].merge({
         customer_id: customer[:id]
       }))
-      unless sale.persisted?
-        sync_errors.push(order[:sale].merge({
-          customer_id: customer[:id]
-        }))
-      end
-      order[:products].each do |i|
-        product = Product.find_by(woo_id: i[:product_woo_id])
+      order[:products].each do |order_product|
+        product = Product.find_by(woo_id: order_product[:product_woo_id])
         next if product.blank?
-        ps = ProductSale.create!({
-          qty: i[:qty],
-          price: i[:price],
-          product: product,
-          sale: sale,
-          woo_id: i[:order_woo_id]
-        })
-        unless ps.persisted?
-          sync_errors.push({
-            qty: i[:qty],
-            price: i[:price],
-            product: product,
-            sale: sale,
-            woo_id: i[:order_woo_id]
+        variation = if order_product[:variation].present?
+          variation_name = Variation.types.values.find { |types| types.include? order_product[:variation][:display_key] }.first
+          variation_value = variation_name.constantize.find_or_create_by({
+            value: order_product[:variation][:display_value]
+          })
+          Variation.find_or_create_by({
+            :woo_id => order_product[:variation_woo_id],
+            variation_name.downcase => variation_value,
+            :product => product
           })
         end
+        ProductSale.create({
+          woo_id: order_product[:order_woo_id],
+          qty: order_product[:qty],
+          price: order_product[:price],
+          sale: sale,
+          product:,
+          variation:
+        })
       end
-    rescue => e
-      Rails.logger.error "Full error: #{e}"
-      Rails.logger.error "Error occurred at #{e.backtrace.first}"
-    end
-    if sync_errors.any?
-      file_path = Rails.root.join("sync_orders_err.json")
-      File.write(file_path, JSON.generate(sync_errors))
     end
   end
 
-  def get_orders(size = SIZE, per_page = PER_PAGE)
+  def get_woo_orders
     progressbar = ProgressBar.create(title: "SyncWooOrdersJob")
     step = 100 / (SIZE / PER_PAGE)
-    pages = (size / per_page).ceil
+    pages = (SIZE / PER_PAGE).ceil
     page = 1
     orders = []
     while page <= pages
       response = HTTParty.get(
         URL,
         query: {
-          per_page: per_page,
-          page: page
+          per_page: PER_PAGE,
+          page:
         },
         basic_auth: {
           username: CONSUMER_KEY,
           password: CONSUMER_SECRET
         }
       )
-      parsed_response = JSON.parse(response.body, symbolize_names: true)
-      deserialized_orders = parsed_response.map do |i|
-        Sale.deserialize_woo_order(i)
-      end
-      orders.concat(deserialized_orders)
+      orders.concat(JSON.parse(response.body, symbolize_names: true))
       step.times {
         progressbar.increment
         sleep 0.5
@@ -85,5 +72,9 @@ class SyncWooOrdersJob < ApplicationJob
       page += 1
     end
     orders
+  end
+
+  def parse_orders(orders)
+    orders.map { |order| Sale.deserialize_woo_order(order) }
   end
 end

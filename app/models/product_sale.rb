@@ -2,18 +2,20 @@
 #
 # Table name: product_sales
 #
-#  id         :bigint           not null, primary key
-#  price      :decimal(8, 2)
-#  qty        :integer
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  product_id :bigint           not null
-#  sale_id    :bigint           not null
-#  woo_id     :string
+#  id           :bigint           not null, primary key
+#  price        :decimal(8, 2)
+#  qty          :integer
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  product_id   :bigint           not null
+#  sale_id      :bigint           not null
+#  variation_id :bigint
+#  woo_id       :string
 #
 class ProductSale < ApplicationRecord
   belongs_to :product
   belongs_to :sale
+  belongs_to :variation, optional: true
 
   delegate :full_title, to: :product
   delegate :status, to: :sale
@@ -28,7 +30,7 @@ class ProductSale < ApplicationRecord
     ProductSale
       .includes(:product, :sale)
       .select { |product_sale|
-        Sale.STATUS_NEW.include? product_sale.status
+        Sale.list_new_statuses.include? product_sale.status
       }
       .group_by(&:product_id)
       .sort_by { |_product_id, product_sales| -product_sales.size }

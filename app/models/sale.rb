@@ -48,7 +48,7 @@ class Sale < ApplicationRecord
     woo_created_at || created_at
   end
 
-  def self.STATUS_NEW
+  def self.list_new_statuses
     [
       "partially-paid",
       "po_fully_paid",
@@ -60,7 +60,7 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
-  def self.STATUS
+  def self.list_statuses
     # https://woocommerce.com/document/managing-orders/
     [
       "cancelled",
@@ -89,6 +89,7 @@ class Sale < ApplicationRecord
   end
 
   def self.deserialize_woo_order(order)
+    variations = Variation.types.values.flatten
     shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
       el.each { |k, v| memo[k] = v unless v.empty? }
       memo
@@ -123,7 +124,9 @@ class Sale < ApplicationRecord
           product_woo_id: i[:product_id],
           qty: i[:quantity],
           price: i[:price],
-          order_woo_id: i[:id]
+          order_woo_id: i[:id],
+          variation_woo_id: i[:variation_id],
+          variation: i[:meta_data].find { |meta| variations.include? meta[:display_key] }&.slice(:display_key, :display_value)
         }
       }
     }
