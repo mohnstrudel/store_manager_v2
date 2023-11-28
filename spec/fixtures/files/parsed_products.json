@@ -9,7 +9,8 @@
     "versions": ["S Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4"],
-    "colors": ["Rot"]
+    "colors": ["Rot"],
+    "variations": [0, 5]
   },
   {
     "woo_id": 222,
@@ -21,7 +22,8 @@
     "versions": ["S Version", "S+ Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4", "1:6"],
-    "colors": ["Rot", "Blau"]
+    "colors": ["Rot", "Blau"],
+    "variations": []
   },
   {
     "woo_id": 333,
@@ -33,7 +35,8 @@
     "versions": ["S Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4"],
-    "colors": ["Rot"]
+    "colors": ["Rot"],
+    "variations": []
   },
   {
     "woo_id": 444,
@@ -45,6 +48,7 @@
     "versions": ["S Version", "S+ Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4", "1:6"],
-    "colors": ["Rot", "Blau"]
+    "colors": ["Rot", "Blau"],
+    "variations": []
   }
 ]

@@ -15,13 +15,15 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def save_woo_products_to_db(parsed_woo_products)
+    parsed_variations = []
     parsed_woo_products.each do |woo_product|
       product = Product.new({
         title: woo_product[:title],
         woo_id: woo_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: woo_product[:franchise]),
         shape: Shape.find_or_create_by(title: woo_product[:shape]),
-        image: woo_product[:image]
+        image: woo_product[:image],
+        store_link: woo_product[:store_link]
       })
       woo_product[:brands]&.each do |i|
         product.brands << Brand.find_or_create_by(title: i)
@@ -36,7 +38,14 @@ class SyncWooProductsJob < ApplicationJob
         product.colors << Color.find_or_create_by(value: i)
       end
       product.save!
+      if woo_product[:variations].present?
+        parsed_variations.push({
+          product_id: product.id,
+          variations: woo_product[:variations]
+        })
+      end
     end
+    parsed_variations
   end
 
   def get_woo_products
@@ -79,22 +88,23 @@ class SyncWooProductsJob < ApplicationJob
       product = {
         woo_id: woo_product[:id],
         store_link: woo_product[:permalink],
+        shape: shape.present? && shape[0],
+        variations: woo_product[:variations],
         title:,
         franchise:,
-        shape: shape.present? && shape[0],
         image:
       }
       attributes = woo_product[:attributes].map do |attr|
         attrs = {}
         options = attr[:options].map(&method(:sanitize))
         case attr[:name]
-        when "Version", "Variante"
+        when *Variation.types[:version]
           attrs[:versions] = options
-        when "Size", "Maßstab"
+        when *Variation.types[:size]
           attrs[:sizes] = options
-        when "Color", "Farbe"
+        when *Variation.types[:color]
           attrs[:colors] = options
-        when "Brand", "Marke"
+        when *Variation.types[:brand]
           attrs[:brands] = options
         end
         attrs
