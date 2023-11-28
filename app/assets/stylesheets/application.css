@@ -629,3 +629,11 @@ img.product {
   object-position: center;
   border-radius: var(--border-radius);
 }
+.product-variations {
+  padding-top: calc(var(--spacing) / 2);
+  margin-bottom: calc(var(--spacing) / 2.5);
+}
+.product-variations li {
+  list-style: none;
+  margin-left: var(--spacing-m);
+}
