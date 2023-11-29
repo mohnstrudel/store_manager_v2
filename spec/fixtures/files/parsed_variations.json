@@ -1,0 +1,32 @@
+[
+  {
+    "woo_id": 27004,
+    "product_woo_id": 27003,
+    "store_link": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=EX",
+    "version": "EX"
+  },
+  {
+    "woo_id": 27005,
+    "product_woo_id": 27003,
+    "store_link": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=A",
+    "version": "A"
+  },
+  {
+    "woo_id": 27006,
+    "product_woo_id": 27003,
+    "store_link": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=B",
+    "version": "B"
+  },
+  {
+    "woo_id": 26990,
+    "product_woo_id": 26989,
+    "store_link": "https://store.handsomecake.com/product/one-piece-yamato-16-resin-statue-von-dragon-x-pop-studio/?attribute_version=Regular",
+    "version": "Regular"
+  },
+  {
+    "woo_id": 26991,
+    "product_woo_id": 26989,
+    "store_link": "https://store.handsomecake.com/product/one-piece-yamato-16-resin-statue-von-dragon-x-pop-studio/?attribute_version=Exclusive",
+    "version": "Exclusive"
+  }
+]

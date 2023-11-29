@@ -1,21 +1,19 @@
 class SyncWooProductsJob < ApplicationJob
   queue_as :default
 
+  include Gettable
+
   URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
-  CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user)
-  CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
-  # We can find the published size in the store's dashboard
-  SIZE = 1200
-  PER_PAGE = 100
+  PRODUCTS_SIZE = 1200
 
   def perform
-    woo_products = get_woo_products
+    woo_products = api_get_all(URL, PRODUCTS_SIZE, "publish")
     parsed_woo_products = parse_woo_products(woo_products)
     save_woo_products_to_db(parsed_woo_products)
   end
 
   def save_woo_products_to_db(parsed_woo_products)
-    parsed_variations = []
+    products_with_variations = []
     parsed_woo_products.each do |woo_product|
       product = Product.new({
         title: woo_product[:title],
@@ -39,42 +37,10 @@ class SyncWooProductsJob < ApplicationJob
       end
       product.save!
       if woo_product[:variations].present?
-        parsed_variations.push({
-          product_id: product.id,
-          variations: woo_product[:variations]
-        })
+        products_with_variations.push(product.woo_id)
       end
     end
-    parsed_variations
-  end
-
-  def get_woo_products
-    progressbar = ProgressBar.create(title: "SyncWooProductsJob")
-    step = 100 / (SIZE / PER_PAGE)
-    pages = (SIZE / PER_PAGE).ceil
-    page = 1
-    woo_products = []
-    while page <= pages
-      response = HTTParty.get(
-        URL,
-        query: {
-          per_page: PER_PAGE,
-          page: page,
-          status: "publish"
-        },
-        basic_auth: {
-          username: CONSUMER_KEY,
-          password: CONSUMER_SECRET
-        }
-      )
-      woo_products.concat(JSON.parse(response.body, symbolize_names: true))
-      step.times {
-        progressbar.increment
-        sleep 0.5
-      }
-      page += 1
-    end
-    woo_products
+    products_with_variations
   end
 
   def parse_woo_products(woo_products)

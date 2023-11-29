@@ -28,16 +28,14 @@ main.inner.v-flex.w-pd
     .card
       .title ID
       p = @product.id
-      .title Woo ID
-      p = @product.woo_id
       .title Supplier
       p = format_relation(@product.suppliers, "title")
       .title Created
       p = @product.created_at
       .title Updated
       p = @product.updated_at
-      .title Store Link
-      p = @product.store_link || "-"
+      .title Woo ID
+      p = link_to @product.woo_id, @product.store_link, :target => "_blank", "rel" => "noopener noreferrer"
 
   .table-cards-group
     - if @active_sales.present?
