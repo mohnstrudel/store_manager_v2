@@ -16,10 +16,19 @@ RSpec.describe SyncWooProductsJob do
     end
   end
 
-  describe "#save_woo_products_to_db" do
+  describe "#get_products_with_variations" do
+    it "returns products variations after saving products" do
+      expect(job.get_products_with_variations(parsed_products).size).to eq(
+        parsed_products
+          .map { |p| p[:woo_id] if p[:variations].present? }.compact.size
+      )
+    end
+  end
+
+  describe "#create" do
     context "when we parsed products from Woo API" do
       before do
-        @products_variations = job.save_woo_products_to_db(parsed_products)
+        job.create(parsed_products)
       end
 
       it "saves each product to the DB" do
@@ -38,13 +47,6 @@ RSpec.describe SyncWooProductsJob do
         expect(first_created.brands.size).to eq(first_parsed[:brands].size)
         expect(first_created.sizes.size).to eq(first_parsed[:sizes].size)
         expect(first_created.colors.size).to eq(first_parsed[:colors].size)
-      end
-
-      it "returns products variations after saving products" do
-        expect(@products_variations.size).to eq(
-          parsed_products
-            .map { |p| p[:woo_id] if p[:variations].present? }.compact.size
-        )
       end
     end
   end
