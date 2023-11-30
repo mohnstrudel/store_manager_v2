@@ -30,9 +30,7 @@ class WebhookController < ApplicationController
       product = Product.find_by(woo_id: new_product[:product_woo_id])
       if product.blank?
         job = SyncWooProductsJob.new
-        woo_product = job.get_product(new_product[:product_woo_id])
-        parsed_product = job.parse(woo_product)
-        product = job.create(parsed_product)
+        product = job.get_product(new_product[:product_woo_id])
       end
       product_sale = ProductSale.find_by(woo_id: new_product[:order_woo_id])
       variation = if new_product[:variation].present?

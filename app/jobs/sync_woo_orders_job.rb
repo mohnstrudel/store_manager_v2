@@ -22,9 +22,7 @@ class SyncWooOrdersJob < ApplicationJob
         product = Product.find_by(woo_id: order_product[:product_woo_id])
         if product.blank?
           job = SyncWooProductsJob.new
-          woo_product = job.get_product(order_product[:product_woo_id])
-          parsed_product = job.parse(woo_product)
-          product = job.create(parsed_product)
+          product = job.get_product(new_product[:product_woo_id])
         end
         variation = if order_product[:variation].present?
           variation_name = Variation.types.values.find do |types|
