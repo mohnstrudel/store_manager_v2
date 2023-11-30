@@ -7,10 +7,10 @@ RSpec.describe SyncWooProductsJob do
   let(:woo_products) { JSON.parse(file_fixture("api_products.json").read, symbolize_names: true) }
   let(:parsed_products) { JSON.parse(file_fixture("parsed_products.json").read, symbolize_names: true) }
 
-  describe "#parse_woo_products" do
+  describe "#parse_all" do
     context "when we receive an array of products from Woo API" do
       it "gives us parsed result" do
-        parsed = job.parse_woo_products(woo_products)
+        parsed = job.parse_all(woo_products)
         expect(parsed).to eq(parsed_products)
       end
     end
@@ -25,10 +25,10 @@ RSpec.describe SyncWooProductsJob do
     end
   end
 
-  describe "#create" do
+  describe "#create_all" do
     context "when we parsed products from Woo API" do
       before do
-        job.create(parsed_products)
+        job.create_all(parsed_products)
       end
 
       it "saves each product to the DB" do

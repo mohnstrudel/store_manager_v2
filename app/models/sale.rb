@@ -83,48 +83,4 @@ class Sale < ApplicationRecord
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
   end
-
-  def self.deserialize_woo_order(order)
-    variations = Variation.types.values.flatten
-    shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
-      el.each { |k, v| memo[k] = v unless v.empty? }
-      memo
-    end
-    {
-      sale: {
-        woo_id: order[:id],
-        status: order[:status],
-        woo_created_at: DateTime.parse(order[:date_created]),
-        woo_updated_at: DateTime.parse(order[:date_modified]),
-        total: order[:total],
-        shipping_total: order[:shipping_total],
-        discount_total: order[:discount_total],
-        note: order[:customer_note],
-        address_1: shipping[:address_1],
-        address_2: shipping[:address_2],
-        city: shipping[:city],
-        company: shipping[:company],
-        country: shipping[:country],
-        postcode: shipping[:postcode],
-        state: shipping[:state]
-      },
-      customer: {
-        woo_id: order[:customer_id],
-        first_name: shipping[:first_name],
-        last_name: shipping[:last_name],
-        phone: shipping[:phone],
-        email: shipping[:email]
-      },
-      products: order[:line_items].map { |i|
-        {
-          product_woo_id: i[:product_id],
-          qty: i[:quantity],
-          price: i[:price],
-          order_woo_id: i[:id],
-          variation_woo_id: i[:variation_id],
-          variation: i[:meta_data].find { |meta| variations.include? meta[:display_key] }&.slice(:display_key, :display_value)
-        }
-      }
-    }
-  end
 end

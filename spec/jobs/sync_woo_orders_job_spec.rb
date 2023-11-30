@@ -7,10 +7,10 @@ RSpec.describe SyncWooOrdersJob do
   let(:woo_orders) { JSON.parse(file_fixture("api_orders.json").read, symbolize_names: true) }
   let(:parsed_woo_orders) { JSON.parse(file_fixture("parsed_orders.json").read, symbolize_names: true) }
 
-  describe "#parse_orders" do
+  describe "#parse_all" do
     context "when we receive an array of orders from Woo API" do
       it "gives us parsed result" do
-        parsed = job.parse_orders(woo_orders)
+        parsed = job.parse_all(woo_orders)
         expect(parsed).to eq(parsed_woo_orders)
       end
     end
