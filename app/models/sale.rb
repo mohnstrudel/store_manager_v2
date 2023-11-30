@@ -80,10 +80,6 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
-  def self.sync_woo_orders
-    SyncWooOrdersJob.perform_later
-  end
-
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
   end

@@ -44,10 +44,6 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :variations, dependent: :destroy
 
-  def self.sync_woo_products
-    SyncWooProductsJob.perform_later
-  end
-
   private
 
   def calculate_full_title
