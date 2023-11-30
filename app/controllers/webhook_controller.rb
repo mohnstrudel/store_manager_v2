@@ -38,7 +38,7 @@ class WebhookController < ApplicationController
           types.include? new_product[:variation][:display_key]
         end.first
         variation_value = variation_name.constantize.find_or_create_by({
-          value: new_product[:variation][:display_value]
+          value: sanitize(new_product[:variation][:display_value])
         })
         Variation.find_or_create_by({
           :woo_id => new_product[:variation_woo_id],
@@ -75,5 +75,9 @@ class WebhookController < ApplicationController
     req_sign = request.headers["x-wc-webhook-signature"]
     calc_sign = Base64.strict_encode64(OpenSSL::HMAC.digest("sha256", secret, payload))
     ActiveSupport::SecurityUtils.secure_compare(calc_sign, req_sign)
+  end
+
+  def sanitize(string)
+    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end

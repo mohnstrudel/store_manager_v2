@@ -49,9 +49,15 @@ class SyncWooVariationsJob < ApplicationJob
 
   def create(parsed_woo_variations)
     parsed_woo_variations.each do |variation|
-      size = variation[:size].present? ? Size.find_or_create_by(value: variation[:size]) : nil
-      version = variation[:version].present? ? Version.find_or_create_by(value: variation[:version]) : nil
-      color = variation[:color].present? ? Color.find_or_create_by(value: variation[:color]) : nil
+      size = if variation[:size].present?
+        Size.find_or_create_by(value: sanitize(variation[:size]))
+      end
+      version = if variation[:version].present?
+        Version.find_or_create_by(value: sanitize(variation[:version]))
+      end
+      color = if variation[:color].present?
+        Color.find_or_create_by(value: sanitize(variation[:color]))
+      end
       product = Product.find_or_create_by(woo_id: variation[:product_woo_id])
       Variation.create({
         woo_id: variation[:woo_id],
@@ -62,5 +68,11 @@ class SyncWooVariationsJob < ApplicationJob
         product:
       })
     end
+  end
+
+  private
+
+  def sanitize(string)
+    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end
