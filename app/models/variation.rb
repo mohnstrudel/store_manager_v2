@@ -20,6 +20,7 @@ class Variation < ApplicationRecord
   belongs_to :product
 
   has_many :product_sales, dependent: :destroy
+  has_many :purchases, dependent: :destroy
 
   after_create :calculate_title
 
@@ -31,6 +32,10 @@ class Variation < ApplicationRecord
       color: ["Color", "Farbe"],
       brand: ["Brand", "Marke"]
     }.freeze
+  end
+
+  def which
+    [size, version, color].compact.first
   end
 
   private

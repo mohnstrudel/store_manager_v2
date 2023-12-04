@@ -90,8 +90,9 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def get_product(woo_id)
-    woo_product = api_get(URL + woo_id, STATUS)
+    woo_product = api_get(URL + woo_id.to_s, STATUS)
     parsed_product = parse(woo_product)
+    return if parsed_product.blank?
     create(parsed_product)
   end
 

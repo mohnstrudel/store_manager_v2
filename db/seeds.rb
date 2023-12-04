@@ -1,5 +1,3 @@
-STATUSES = ["processing", "shipping", "partially-paid", "cancelled", "paid"]
-
 10.times do
   Supplier.create(title: Faker::Company.name)
 end
@@ -11,6 +9,18 @@ end
     item_price: Sale.order("RANDOM()").limit(1).first.total,
     product: Product.order("RANDOM()").limit(1).first,
     supplier: Supplier.order("RANDOM()").limit(1).first
+  })
+end
+
+5.times do
+  variation = Variation.order("RANDOM()").limit(1).first
+  Purchase.create({
+    amount: Faker::Number.number(digits: 2),
+    order_reference: Faker::IDNumber.spanish_foreign_citizen_number,
+    item_price: Sale.order("RANDOM()").limit(1).first.total,
+    supplier: Supplier.order("RANDOM()").limit(1).first,
+    product: variation.product,
+    variation:
   })
 end
 

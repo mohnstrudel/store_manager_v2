@@ -10,12 +10,15 @@ main.inner.v-flex.w-pd
       p = @sale.status
       .title Customer
       p = "#{@sale.customer.first_name} #{@sale.customer.last_name}"
-      .title Woo ID
-      p = safe_blank_render @sale.customer.woo_id
       .title Email
       p = safe_blank_render @sale.customer.email
       .title Note
       p = safe_blank_render @sale.note
+      .title Customer Woo ID
+      - if @sale.customer.woo_id.present?
+        p = link_to @sale.customer.woo_id, "https://store.handsomecake.com/wp-admin/user-edit.php?user_id=#{@sale.customer.woo_id}"
+      - else
+        p = safe_blank_render @sale.customer.woo_id
 
     .card
       .title Total, $
@@ -28,12 +31,15 @@ main.inner.v-flex.w-pd
     .card
       .title ID
       p = @sale.id
-      .title Woo ID
-      p = safe_blank_render @sale.woo_id
       .title Woo Created
       p = safe_blank_render format_time(@sale.woo_created_at)
       .title Woo Upd.
       p = safe_blank_render format_time(@sale.woo_updated_at)  
+      .title Order Woo ID
+      - if @sale.woo_id.present?
+        p = link_to @sale.woo_id, "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit"
+      - else
+        p = safe_blank_render @sale.woo_id
 
   - if @sale.product_sales.present?
     .table-card.full-width
@@ -41,7 +47,8 @@ main.inner.v-flex.w-pd
       table role="grid" data-controller="table"
           thead
             th.mute #
-            th Full Title
+            th Variation?
+            th Title
             th.right Price, $
             th.right Quantity
           tbody
@@ -51,7 +58,8 @@ main.inner.v-flex.w-pd
                 data-table-url-param=product_path(ps.product)
               )
                 td.mute = idx + 1
-                td = ps.product.full_title 
+                td = ps.variation.present? ? ps.variation.which.value : "-"
+                td = ps.variation.present? ? ps.variation.title : ps.product.full_title 
                 td.right.mono = format_money ps.price
                 td.right = ps.qty
 

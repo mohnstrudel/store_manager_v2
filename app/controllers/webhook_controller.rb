@@ -32,14 +32,16 @@ class WebhookController < ApplicationController
         job = SyncWooProductsJob.new
         product = job.get_product(new_product[:product_woo_id])
       end
+      next if product.blank?
       product_sale = ProductSale.find_by(woo_id: new_product[:order_woo_id])
       variation = if new_product[:variation].present?
         variation_name = Variation.types.values.find do |types|
           types.include? new_product[:variation][:display_key]
         end.first
         variation_value = variation_name.constantize.find_or_create_by({
-          value: sanitize(new_product[:variation][:display_value])
+          value: new_product[:variation][:display_value]
         })
+        next if variation_value.blank?
         Variation.find_or_create_by({
           :woo_id => new_product[:variation_woo_id],
           variation_name.downcase => variation_value,
@@ -75,9 +77,5 @@ class WebhookController < ApplicationController
     req_sign = request.headers["x-wc-webhook-signature"]
     calc_sign = Base64.strict_encode64(OpenSSL::HMAC.digest("sha256", secret, payload))
     ActiveSupport::SecurityUtils.secure_compare(calc_sign, req_sign)
-  end
-
-  def sanitize(string)
-    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end

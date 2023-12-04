@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2023_11_29_133554) do
+ActiveRecord::Schema[7.1].define(version: 2023_12_01_054305) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -126,14 +126,16 @@ ActiveRecord::Schema[7.1].define(version: 2023_11_29_133554) do
 
   create_table "purchases", force: :cascade do |t|
     t.bigint "supplier_id", null: false
-    t.bigint "product_id", null: false
+    t.bigint "product_id"
     t.string "order_reference"
     t.decimal "item_price", precision: 8, scale: 2
     t.integer "amount"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "variation_id"
     t.index ["product_id"], name: "index_purchases_on_product_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
+    t.index ["variation_id"], name: "index_purchases_on_variation_id"
   end
 
   create_table "sales", force: :cascade do |t|
@@ -216,6 +218,7 @@ ActiveRecord::Schema[7.1].define(version: 2023_11_29_133554) do
   add_foreign_key "products", "shapes"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
+  add_foreign_key "purchases", "variations"
   add_foreign_key "sales", "customers"
   add_foreign_key "variations", "colors"
   add_foreign_key "variations", "products"

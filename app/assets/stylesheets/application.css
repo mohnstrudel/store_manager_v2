@@ -637,3 +637,12 @@ img.product {
   list-style: none;
   margin-left: var(--spacing-m);
 }
+
+.icn.is-link {
+  font-weight: 300;
+  font-size: 1rem;
+  vertical-align: text-top;
+  color: var(--primary);
+  cursor: pointer;
+  margin-left: 0.25rem;
+}

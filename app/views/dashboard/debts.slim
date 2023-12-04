@@ -28,21 +28,27 @@ main.inner.no-bd.v-flex
     h3 Sales Without Purchases
     table role="grid" data-controller="table"
       thead
-        th
-          | ID
-          .sign
-            |  :: 
-          | Title
+        th ID
+        th Variation?
+        th Title
         th Qty
       tbody
         - @sales_trends.each do |product_id, sales|
-          tr.hoverable(
-            data-action="click->table#goTo"
-            data-table-url-param=product_path(product_id)
-          )
-            td
-              = product_id
-              .sign
-                |  :: 
-              = sales.first.full_title
-            td = sales.size - sales.first.purchases.size
+          - sales.select { |s| s.variation.blank? }.first do |sale|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_path(product_id)
+            )
+              td = sale.product.id
+              td -
+              td = sale.product.title
+              td = sale.product.product_sales.size - sale.product.purchases.size
+          - sales.select { |s| s.variation.present? }.uniq { |s| s.variation.id }.each do |sale|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_path(product_id)
+            )
+              td = sale.variation.id
+              td = sale.variation.which.value
+              td = sale.variation.title
+              td = sale.variation.product_sales.size - sale.variation.purchases.size

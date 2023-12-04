@@ -12,6 +12,12 @@ class SyncWooOrdersJob < ApplicationJob
     create_sales(parsed_orders)
   end
 
+  def test_parser
+    woo_orders = api_get_all(URL, 500)
+    parsed_orders = parse_all(woo_orders)
+    File.write("test_parser.json", JSON.pretty_generate(parsed_orders))
+  end
+
   def create_sales(parsed_orders)
     parsed_orders.each do |order|
       next if Sale.find_by(woo_id: order[:sale][:woo_id])
@@ -22,8 +28,9 @@ class SyncWooOrdersJob < ApplicationJob
         product = Product.find_by(woo_id: order_product[:product_woo_id])
         if product.blank?
           job = SyncWooProductsJob.new
-          product = job.get_product(new_product[:product_woo_id])
+          product = job.get_product(order_product[:product_woo_id])
         end
+        next if product.blank?
         variation = if order_product[:variation].present?
           variation_name = Variation.types.values.find do |types|
             types.include? order_product[:variation][:display_key]
@@ -31,6 +38,7 @@ class SyncWooOrdersJob < ApplicationJob
           variation_value = variation_name.constantize.find_or_create_by({
             value: order_product[:variation][:display_value]
           })
+          next if variation_value.blank?
           Variation.find_or_create_by({
             :woo_id => order_product[:variation_woo_id],
             variation_name.downcase => variation_value,
@@ -85,15 +93,27 @@ class SyncWooOrdersJob < ApplicationJob
         email: shipping[:email]
       },
       products: order[:line_items].map { |i|
+        variation_woo_id = i[:variation_id]
+        variation = i[:meta_data].find { |meta| variations.include? meta[:display_key] }&.slice(:display_key, :display_value)
+        variations = if variation_woo_id.to_i > 0 && variation.present?
+          variation[:display_value] = sanitize(variation[:display_value])
+          {variation_woo_id:, variation:}
+        else
+          {}
+        end
         {
           product_woo_id: i[:product_id],
           qty: i[:quantity],
           price: i[:price],
-          order_woo_id: i[:id],
-          variation_woo_id: i[:variation_id],
-          variation: i[:meta_data].find { |meta| variations.include? meta[:display_key] }&.slice(:display_key, :display_value)
-        }
+          order_woo_id: i[:id]
+        }.merge(variations)
       }
     }
+  end
+
+  private
+
+  def sanitize(string)
+    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end

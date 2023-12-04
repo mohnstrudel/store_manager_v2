@@ -17,9 +17,7 @@ class ProductSale < ApplicationRecord
   belongs_to :sale
   belongs_to :variation, optional: true
 
-  delegate :full_title, to: :product
   delegate :status, to: :sale
-  delegate :purchases, to: :product
 
   def self.sales_trends
     # Get a list of products that have been sold but not purchased enough:
@@ -33,7 +31,7 @@ class ProductSale < ApplicationRecord
         Sale.list_new_statuses.include? product_sale.status
       }
       .group_by(&:product_id)
-      .sort_by { |_product_id, product_sales| -product_sales.size }
-      .first(16)
+      .sort_by { |_, product_sales| -product_sales.size }
+      .first(32)
   end
 end
