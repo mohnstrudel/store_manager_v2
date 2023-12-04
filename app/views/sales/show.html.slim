@@ -47,8 +47,8 @@ main.inner.v-flex.w-pd
       table role="grid" data-controller="table"
           thead
             th.mute #
-            th Variation?
             th Title
+            th Variation?
             th.right Price, $
             th.right Quantity
           tbody
@@ -58,8 +58,8 @@ main.inner.v-flex.w-pd
                 data-table-url-param=product_path(ps.product)
               )
                 td.mute = idx + 1
-                td = ps.variation.present? ? ps.variation.which.value : "-"
                 td = ps.variation.present? ? ps.variation.title : ps.product.full_title 
+                td = ps.variation.present? ? ps.variation.which.value : "-"
                 td.right.mono = format_money ps.price
                 td.right = ps.qty
 
