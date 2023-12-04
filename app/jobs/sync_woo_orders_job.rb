@@ -12,12 +12,6 @@ class SyncWooOrdersJob < ApplicationJob
     create_sales(parsed_orders)
   end
 
-  def test_parser
-    woo_orders = api_get_all(URL, 500)
-    parsed_orders = parse_all(woo_orders)
-    File.write("test_parser.json", JSON.pretty_generate(parsed_orders))
-  end
-
   def create_sales(parsed_orders)
     parsed_orders.each do |order|
       next if Sale.find_by(woo_id: order[:sale][:woo_id])
