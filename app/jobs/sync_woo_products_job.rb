@@ -41,52 +41,66 @@ class SyncWooProductsJob < ApplicationJob
     parsed_product[:colors]&.each do |i|
       product.colors << Color.find_or_create_by(value: i)
     end
-    product.save!
+    product.save
   end
 
   def parse(woo_product)
-    return if woo_product[:attributes].blank?
+    return if woo_product[:name].blank?
     woo_name = sanitize(woo_product[:name])
-    franchise = woo_name.include?(" - ") ? woo_name.split(" - ").first : woo_name.split(" | ").first
-    title = woo_name.include?(" - ") ? woo_name.split(" | ").first.split(" - ").last : franchise
-    shape = woo_name.match(/\b(bust|statue)\b/i)
-    image = woo_product[:images].present? ? woo_product[:images].first[:src] : ""
+    franchise = woo_name.include?(" - ") ?
+      woo_name.split(" - ").first :
+      woo_name.split(" | ").first
+    if franchise.blank?
+      franchise = woo_product[:name]
+    end
+    title = woo_name.include?(" - ") ?
+      woo_name.split(" | ").first.split(" - ").last :
+      franchise
+    shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
+    image = woo_product[:images].present? ?
+      woo_product[:images].first[:src] :
+      ""
     product = {
       woo_id: woo_product[:id],
       store_link: woo_product[:permalink],
-      shape: shape.present? && shape[0],
+      shape: shape[0],
       variations: woo_product[:variations],
       title:,
       franchise:,
       image:
     }
-    attributes = woo_product[:attributes].map do |attr|
-      attrs = {}
-      options = attr[:options].map(&method(:sanitize))
-      case attr[:name]
-      when *Variation.types[:version]
-        attrs[:versions] = options
-      when *Variation.types[:size]
-        attrs[:sizes] = options
-      when *Variation.types[:color]
-        attrs[:colors] = options
-      when *Variation.types[:brand]
-        attrs[:brands] = options
+    if woo_product[:attributes].present?
+      attributes = woo_product[:attributes].map do |attr|
+        attrs = {}
+        options = attr[:options].map(&method(:sanitize))
+        case attr[:name]
+        when *Variation.types[:version]
+          attrs[:versions] = options
+        when *Variation.types[:size]
+          attrs[:sizes] = options
+        when *Variation.types[:color]
+          attrs[:colors] = options
+        when *Variation.types[:brand]
+          attrs[:brands] = options
+        end
+        attrs
       end
-      attrs
+      product.merge(*attributes.compact.reject(&:empty?))
+    else
+      product
     end
-    product.merge(*attributes.compact.reject(&:empty?))
   end
 
   def parse_all(woo_products)
-    # We use .compact because we can get nil values from the parser:
-    # It returns them if woo_product[:attributes].blank?
+    # We use .compact because we can get nil values from the parser
     # This is because the Woo DB has not been harmonized
     woo_products.map { |woo_product| parse(woo_product) }.compact
   end
 
   def get_products_with_variations(parsed_products)
-    parsed_products.select { |i| i[:variations].present? }.pluck(:woo_id)
+    parsed_products
+      .select { |i| i[:variations].present? }
+      .pluck(:woo_id)
   end
 
   def get_product(woo_id)

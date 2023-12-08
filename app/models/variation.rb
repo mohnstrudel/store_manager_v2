@@ -17,7 +17,7 @@ class Variation < ApplicationRecord
   belongs_to :size, optional: true
   belongs_to :version, optional: true
   belongs_to :color, optional: true
-  belongs_to :product
+  db_belongs_to :product
 
   has_many :product_sales, dependent: :destroy
   has_many :purchases, dependent: :destroy

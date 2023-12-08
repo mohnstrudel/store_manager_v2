@@ -9,6 +9,6 @@
 #  size_id    :bigint
 #
 class ProductSize < ApplicationRecord
-  belongs_to :product
-  belongs_to :size
+  db_belongs_to :product
+  db_belongs_to :size
 end

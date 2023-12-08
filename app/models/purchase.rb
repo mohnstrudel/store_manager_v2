@@ -16,7 +16,7 @@ class Purchase < ApplicationRecord
   validates :amount, presence: true
   validates :item_price, presence: true
 
-  belongs_to :supplier
+  db_belongs_to :supplier
   belongs_to :product, optional: true
   belongs_to :variation, optional: true
 

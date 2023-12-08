@@ -10,7 +10,7 @@ class ProductsController < ApplicationController
   def show
     @active_sales = @product
       .product_sales
-      .order(created_at: :desc)
+      .order(created_at: :asc)
       .select { |product_sale|
         Sale.list_new_statuses.include? product_sale.status
       }

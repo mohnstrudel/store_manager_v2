@@ -4,6 +4,7 @@ require:
   - rubocop-rspec
   - rubocop-performance
   - rubocop-slim
+  - database_validations/rubocop/cops
 
 inherit_gem:
   standard: config/base.yml

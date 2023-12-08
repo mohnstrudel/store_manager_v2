@@ -29,8 +29,8 @@ main.inner.no-bd.v-flex
     table role="grid" data-controller="table"
       thead
         th ID
-        th Variation?
         th Title
+        th Variation
         th Qty
       tbody
         - @sales_trends.each do |product_id, sales|
@@ -40,8 +40,8 @@ main.inner.no-bd.v-flex
               data-table-url-param=product_path(product_id)
             )
               td = sale.product.id
-              td -
               td = sale.product.title
+              td -
               td = sale.product.product_sales.size - sale.product.purchases.size
           - sales.select { |s| s.variation.present? }.uniq { |s| s.variation.id }.each do |sale|
             tr.hoverable(
@@ -49,6 +49,6 @@ main.inner.no-bd.v-flex
               data-table-url-param=product_path(product_id)
             )
               td = sale.variation.id
-              td = sale.variation.which.value
               td = sale.variation.title
+              td = sale.variation.which&.value
               td = sale.variation.product_sales.size - sale.variation.purchases.size

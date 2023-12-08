@@ -20,8 +20,8 @@ class Product < ApplicationRecord
 
   validates :title, presence: true
 
-  belongs_to :franchise
-  belongs_to :shape
+  db_belongs_to :franchise
+  db_belongs_to :shape
 
   has_many :product_brands, dependent: :destroy
   has_many :brands, through: :product_brands

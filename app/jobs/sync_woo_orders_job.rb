@@ -10,36 +10,43 @@ class SyncWooOrdersJob < ApplicationJob
     woo_orders = api_get_all(URL, ORDERS_SIZE)
     parsed_orders = parse_all(woo_orders)
     create_sales(parsed_orders)
+    nil
+  end
+
+  def test
+    woo_orders = api_get_all(URL, ORDERS_SIZE)
+    parsed_orders = parse_all(woo_orders)
+    File.write("__debug/0_woo_orders.json", JSON.pretty_generate(woo_orders))
+    File.write("__debug/1_parsed_orders.json", JSON.pretty_generate(parsed_orders))
   end
 
   def create_sales(parsed_orders)
     parsed_orders.each do |order|
-      next if Sale.find_by(woo_id: order[:sale][:woo_id])
-      sale = Sale.create(order[:sale].merge({
+      sale = Sale.find_or_create_by(order[:sale].merge({
         customer_id: Customer.find_or_create_by(order[:customer]).id
       }))
       order[:products].each do |order_product|
         product = Product.find_by(woo_id: order_product[:product_woo_id])
         if product.blank?
           job = SyncWooProductsJob.new
-          product = job.get_product(order_product[:product_woo_id])
+          job.get_product(order_product[:product_woo_id])
+          product = Product.find_by(woo_id: order_product[:product_woo_id])
         end
         next if product.blank?
         variation = if order_product[:variation].present?
-          variation_name = Variation.types.values.find do |types|
-            types.include? order_product[:variation][:display_key]
+          variation_type = Variation.types.values.find do |type|
+            type.include? order_product[:variation][:display_key]
           end.first
-          variation_value = variation_name.constantize.find_or_create_by({
+          variation_value = variation_type.constantize.find_or_create_by({
             value: order_product[:variation][:display_value]
           })
-          next if variation_value.blank?
           Variation.find_or_create_by({
             :woo_id => order_product[:variation_woo_id],
-            variation_name.downcase => variation_value,
+            variation_type.downcase => variation_value,
             :product => product
-          })
+          }.compact)
         end
-        ProductSale.create({
+        ProductSale.create!({
           woo_id: order_product[:order_woo_id],
           qty: order_product[:qty],
           price: order_product[:price],
@@ -56,7 +63,7 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def parse(order)
-    variations = Variation.types.values.flatten
+    variation_types = Variation.types.values.flatten
     shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
       el.each { |k, v| memo[k] = v unless v.empty? }
       memo
@@ -86,21 +93,23 @@ class SyncWooOrdersJob < ApplicationJob
         phone: shipping[:phone],
         email: shipping[:email]
       },
-      products: order[:line_items].map { |i|
-        variation_woo_id = i[:variation_id]
-        variation = i[:meta_data].find { |meta| variations.include? meta[:display_key] }&.slice(:display_key, :display_value)
-        variations = if variation_woo_id.to_i > 0 && variation.present?
-          variation[:display_value] = sanitize(variation[:display_value])
-          {variation_woo_id:, variation:}
-        else
-          {}
+      products: order[:line_items].map { |line_item|
+        variation_woo_id = if line_item[:variation_id].to_i.positive?
+          line_item[:variation_id]
         end
+        variation = line_item[:meta_data]
+          .find { |meta| variation_types.include? meta[:display_key] }
+          &.slice(:display_key, :display_value)
+          &.transform_values { |v| sanitize(v) }
+        parsed_variation = variation.present? ?
+          {variation_woo_id:, variation:}.compact :
+          {}
         {
-          product_woo_id: i[:product_id],
-          qty: i[:quantity],
-          price: i[:price],
-          order_woo_id: i[:id]
-        }.merge(variations)
+          product_woo_id: line_item[:product_id],
+          qty: line_item[:quantity],
+          price: line_item[:price],
+          order_woo_id: line_item[:id]
+        }.merge(parsed_variation)
       }
     }
   end

@@ -12,6 +12,10 @@ module Gettable
       pages = (total < per_page) ? 1 : (total / per_page).ceil
       page = 1
       result = []
+      step.times {
+        progressbar.increment
+        sleep 0.25
+      }
       while page <= pages
         response = HTTParty.get(
           url,
@@ -19,7 +23,7 @@ module Gettable
             status:,
             page:,
             per_page:
-          },
+          }.compact,
           basic_auth: {
             username: CONSUMER_KEY,
             password: CONSUMER_SECRET
@@ -40,7 +44,7 @@ module Gettable
         url,
         query: {
           status:
-        },
+        }.compact,
         basic_auth: {
           username: CONSUMER_KEY,
           password: CONSUMER_SECRET

@@ -53,8 +53,8 @@ main.inner.v-flex.w-pd
             - @product.variations.each do |variation|
               tr
                 td = variation.id
-                td = variation.which.value
-                td = variation.which.model_name.name
+                td = variation.which&.value
+                td = variation.which.present? && variation.which.model_name.name
                 td.right = format_zero_values variation.product_sales.size
                 td = format_zero_values variation.purchases.size
                 td = link_to variation.woo_id, variation.store_link, :target => "_blank", "rel" => "noopener noreferrer"
@@ -65,9 +65,10 @@ main.inner.v-flex.w-pd
         h3 Sales
         table role="grid" data-controller="table"
           thead
-            th Title
+            th Customer
+            th Date
+            th Status
             th Variation?
-            th Time ago
             th.right Price, $
             th Qty
           tbody
@@ -76,13 +77,13 @@ main.inner.v-flex.w-pd
                 data-action="click->table#goTo"
                 data-table-url-param=sale_path(ps.sale)
               )
+                td = ps.sale.customer.full_name
+                td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
+                td = ps.sale.status
                 - if ps.variation.present?
-                  td = ps.variation.title
-                  td = ps.variation.which.value
+                  td = ps.variation.which&.value
                 - else
                   td -
-                  td = @product.title
-                td.no-wrap = time_ago_in_words ps.sale.woo_created_at.presence || ps.created_at
                 td.right.mono = format_money ps.price
                 td = ps.qty
 
@@ -106,10 +107,10 @@ main.inner.v-flex.w-pd
               )
                 - if purchase.variation.present?
                   td = purchase.variation.title
-                  td = purchase.variation.which.value
+                  td = purchase.variation.which&.value
                 - else
-                  td -
                   td = purchase.product.full_title
+                  td -
                 td.no-wrap = time_ago_in_words purchase.created_at
                 td = purchase.supplier.title
                 td.right.mono = format_money purchase.item_price

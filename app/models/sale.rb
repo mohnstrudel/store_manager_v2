@@ -25,7 +25,7 @@
 class Sale < ApplicationRecord
   paginates_per 50
 
-  belongs_to :customer
+  db_belongs_to :customer
 
   has_many :product_sales, dependent: :destroy
   has_many :products, through: :product_sales

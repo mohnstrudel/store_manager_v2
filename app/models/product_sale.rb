@@ -13,8 +13,8 @@
 #  woo_id       :string
 #
 class ProductSale < ApplicationRecord
-  belongs_to :product
-  belongs_to :sale
+  db_belongs_to :product
+  db_belongs_to :sale
   belongs_to :variation, optional: true
 
   delegate :status, to: :sale

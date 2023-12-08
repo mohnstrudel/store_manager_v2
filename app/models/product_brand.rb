@@ -9,6 +9,6 @@
 #  product_id :bigint
 #
 class ProductBrand < ApplicationRecord
-  belongs_to :product
-  belongs_to :brand
+  db_belongs_to :product
+  db_belongs_to :brand
 end

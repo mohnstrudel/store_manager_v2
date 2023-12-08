@@ -48,6 +48,7 @@ gem "bootsnap", require: false
 gem "slim-rails"
 gem "httparty"
 gem "kaminari"
+gem "database_validations"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
