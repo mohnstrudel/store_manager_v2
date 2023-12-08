@@ -13,13 +13,6 @@ class SyncWooOrdersJob < ApplicationJob
     nil
   end
 
-  def test
-    woo_orders = api_get_all(URL, ORDERS_SIZE)
-    parsed_orders = parse_all(woo_orders)
-    File.write("__debug/0_woo_orders.json", JSON.pretty_generate(woo_orders))
-    File.write("__debug/1_parsed_orders.json", JSON.pretty_generate(parsed_orders))
-  end
-
   def create_sales(parsed_orders)
     parsed_orders.each do |order|
       sale = Sale.find_or_create_by(order[:sale].merge({
