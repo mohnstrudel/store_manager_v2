@@ -12,11 +12,11 @@ module Gettable
       pages = (total < per_page) ? 1 : (total / per_page).ceil
       page = 1
       result = []
-      step.times {
-        progressbar.increment
-        sleep 0.25
-      }
       while page <= pages
+        step.times {
+          progressbar.increment
+          sleep 0.25
+        }
         response = HTTParty.get(
           url,
           query: {
@@ -30,10 +30,6 @@ module Gettable
           }
         )
         result.concat(JSON.parse(response.body, symbolize_names: true))
-        step.times {
-          progressbar.increment
-          sleep 0.25
-        }
         page += 1
       end
       result

@@ -12,7 +12,7 @@ class ProductsController < ApplicationController
       .product_sales
       .order(created_at: :asc)
       .select { |product_sale|
-        Sale.list_new_statuses.include? product_sale.status
+        Sale.wip_statuses.include? product_sale.status
       }
   end
 

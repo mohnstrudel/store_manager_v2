@@ -48,7 +48,7 @@ class Sale < ApplicationRecord
     woo_created_at || created_at
   end
 
-  def self.list_new_statuses
+  def self.wip_statuses
     [
       "partially-paid",
       "po_fully_paid",
@@ -82,5 +82,9 @@ class Sale < ApplicationRecord
 
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
+  end
+
+  def self.has_wip_status?(status)
+    wip_statuses.include?(status)
   end
 end

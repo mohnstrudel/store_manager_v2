@@ -39,7 +39,7 @@ class SyncWooOrdersJob < ApplicationJob
             :product => product
           }.compact)
         end
-        ProductSale.create!({
+        ProductSale.find_or_create_by({
           woo_id: order_product[:order_woo_id],
           qty: order_product[:qty],
           price: order_product[:price],
@@ -100,7 +100,7 @@ class SyncWooOrdersJob < ApplicationJob
         {
           product_woo_id: line_item[:product_id],
           qty: line_item[:quantity],
-          price: line_item[:price],
+          price: line_item[:price].to_i + line_item[:total_tax].to_i,
           order_woo_id: line_item[:id]
         }.merge(parsed_variation)
       }

@@ -25,30 +25,21 @@ main.inner.no-bd.v-flex
               td = unpaid.amount
 
   .table-card
-    h3 Sales Without Purchases
+    h3 Sales Debt
     table role="grid" data-controller="table"
       thead
         th ID
         th Title
         th Variation
-        th Qty
+        th Size
       tbody
-        - @sales_trends.each do |product_id, sales|
-          - sales.select { |s| s.variation.blank? }.first do |sale|
+        - @sales_debt.each do |product_sale|
             tr.hoverable(
               data-action="click->table#goTo"
-              data-table-url-param=product_path(product_id)
+              data-table-url-param=product_path(product_sale.product.id)
+              data-table-id-param=product_sale.item.id
             )
-              td = sale.product.id
-              td = sale.product.title
-              td -
-              td = sale.product.product_sales.size - sale.product.purchases.size
-          - sales.select { |s| s.variation.present? }.uniq { |s| s.variation.id }.each do |sale|
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product_id)
-            )
-              td = sale.variation.id
-              td = sale.variation.title
-              td = sale.variation.which&.value
-              td = sale.variation.product_sales.size - sale.variation.purchases.size
+              td = product_sale.item.id
+              td = product_sale.item_title
+              td = product_sale.item.methods.include?(:which) ? product_sale.item.which.value : "-"
+              td = product_sale.purchase_debt

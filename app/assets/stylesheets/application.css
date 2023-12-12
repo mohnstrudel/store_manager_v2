@@ -66,6 +66,9 @@ i.icn {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+html {
+  scroll-behavior: smooth;
+}
 * {
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
@@ -119,7 +122,7 @@ body {
 }
 @media (prefers-color-scheme: dark) {
   table tbody tr.hoverable:hover td {
-    background-color: oklch(0.18 0.02 226.88 / 1);
+    background-color: oklch(0.34 0.05 227.45 / 0.63);
   }
   .debts--card table tbody tr:nth-child(odd) {
     background-color: oklch(0.26 0.018 227.88 / 1);
@@ -645,4 +648,23 @@ img.product {
   color: var(--primary);
   cursor: pointer;
   margin-left: 0.25rem;
+}
+
+tr.selected {
+  background: var(--mark-background-color) !important;
+}
+tr.selected td {
+  border-bottom-color: var(--secondary-focus);
+}
+@media only screen and (prefers-color-scheme: dark) {
+  tr.selected {
+    background: var(--mark-background-color) !important;
+
+    & > td {
+      color: var(--background-color);
+    }
+  }
+  tr.hoverable.selected:hover td {
+    color: var(--color);
+  }
 }

@@ -19,19 +19,41 @@ class ProductSale < ApplicationRecord
 
   delegate :status, to: :sale
 
+  def item
+    (variation.presence || product)
+  end
+
+  def item_title
+    item.methods.include?(:full_title) ? item.full_title : item.title
+  end
+
+  def wip_sales_size
+    if variation.present?
+      item.product_sales.where.not(variation_id: nil).count { |product_sale|
+        Sale.has_wip_status? product_sale.status
+      }
+    else
+      item.product_sales.where(variation_id: nil).count { |product_sale|
+        Sale.has_wip_status? product_sale.status
+      }
+    end
+  end
+
+  def purchase_debt
+    wip_sales_size - item.purchases.size
+  end
+
   def self.sales_trends
-    # Get a list of products that have been sold but not purchased enough:
-    # - Get products that have been sold
-    # - Exclude irrelevant ones, e.g. completed or failed
-    # - Group by product and sort by the number of missing purchases
-    # - Grab a first chunck of 16
     ProductSale
       .includes(:product, :sale)
-      .select { |product_sale|
-        Sale.list_new_statuses.include? product_sale.status
-      }
+      .filter { |ps| Sale.has_wip_status? ps.status }
       .group_by(&:product_id)
-      .sort_by { |_, product_sales| -product_sales.size }
-      .first(32)
+      .sort_by { |_, product_sales_group| -product_sales_group.size }
+      .first(16)
+      .each { |_, product_sales_group|
+        product_sales_group.uniq! { |ps| ps.item.id }
+      }
+      .flatten
+      .filter { |el| !el.is_a? Integer }
   end
 end

@@ -51,7 +51,7 @@ main.inner.v-flex.w-pd
             th Woo ID
           tbody
             - @product.variations.each do |variation|
-              tr
+              tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == variation.id)
                 td = variation.id
                 td = variation.which&.value
                 td = variation.which.present? && variation.which.model_name.name
@@ -73,7 +73,8 @@ main.inner.v-flex.w-pd
             th Qty
           tbody
             - @active_sales.each_with_index do |ps, idx|
-              tr.hoverable(
+              tr(
+                class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.item.id)
                 data-action="click->table#goTo"
                 data-table-url-param=sale_path(ps.sale)
               )
