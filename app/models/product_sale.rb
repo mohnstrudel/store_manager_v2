@@ -27,33 +27,12 @@ class ProductSale < ApplicationRecord
     item.methods.include?(:full_title) ? item.full_title : item.title
   end
 
-  def wip_sales_size
-    if variation.present?
-      item.product_sales.where.not(variation_id: nil).count { |product_sale|
-        Sale.has_wip_status? product_sale.status
-      }
-    else
-      item.product_sales.where(variation_id: nil).count { |product_sale|
-        Sale.has_wip_status? product_sale.status
-      }
-    end
-  end
-
   def purchase_debt
-    wip_sales_size - item.purchases.size
-  end
-
-  def self.sales_trends
-    ProductSale
-      .includes(:product, :sale)
-      .filter { |ps| Sale.has_wip_status? ps.status }
-      .group_by(&:product_id)
-      .sort_by { |_, product_sales_group| -product_sales_group.size }
-      .first(16)
-      .each { |_, product_sales_group|
-        product_sales_group.uniq! { |ps| ps.item.id }
-      }
-      .flatten
-      .filter { |el| !el.is_a? Integer }
+    wip_product_sales_size = item
+      .product_sales
+      .includes(:sale)
+      .where(sale: {status: Sale.wip_statuses})
+      .size
+    wip_product_sales_size - item.purchases.size
   end
 end
