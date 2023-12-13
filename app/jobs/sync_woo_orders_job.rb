@@ -1,89 +1,115 @@
 class SyncWooOrdersJob < ApplicationJob
   queue_as :default
 
+  include Gettable
+
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
-  CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user)
-  CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
-  SIZE = 1800
-  PER_PAGE = 100
+  ORDERS_SIZE = 1800
 
-  def perform(*args)
-    convert_orders_to_sales
+  def perform
+    woo_orders = api_get_all(URL, ORDERS_SIZE)
+    parsed_orders = parse_all(woo_orders)
+    create_sales(parsed_orders)
+    nil
   end
 
-  def convert_orders_to_sales
-    Product.sync_woo_products unless Product.any?
-    sync_errors = []
-    get_orders.each do |order|
-      next if Sale.find_by(woo_id: order[:sale][:woo_id])
-      customer = Customer.find_or_create_by(order[:customer])
-      sale = Sale.create(order[:sale].merge({
-        customer_id: customer[:id]
+  def create_sales(parsed_orders)
+    parsed_orders.each do |order|
+      sale = Sale.find_or_create_by(order[:sale].merge({
+        customer_id: Customer.find_or_create_by(order[:customer]).id
       }))
-      unless sale.persisted?
-        sync_errors.push(order[:sale].merge({
-          customer_id: customer[:id]
-        }))
-      end
-      order[:products].each do |i|
-        product = Product.find_by(woo_id: i[:product_woo_id])
-        next if product.blank?
-        ps = ProductSale.create!({
-          qty: i[:qty],
-          price: i[:price],
-          product: product,
-          sale: sale,
-          woo_id: i[:order_woo_id]
-        })
-        unless ps.persisted?
-          sync_errors.push({
-            qty: i[:qty],
-            price: i[:price],
-            product: product,
-            sale: sale,
-            woo_id: i[:order_woo_id]
-          })
+      order[:products].each do |order_product|
+        product = Product.find_by(woo_id: order_product[:product_woo_id])
+        if product.blank?
+          job = SyncWooProductsJob.new
+          job.get_product(order_product[:product_woo_id])
+          product = Product.find_by(woo_id: order_product[:product_woo_id])
         end
+        next if product.blank?
+        variation = if order_product[:variation].present?
+          variation_type = Variation.types.values.find do |type|
+            type.include? order_product[:variation][:display_key]
+          end.first
+          variation_value = variation_type.constantize.find_or_create_by({
+            value: order_product[:variation][:display_value]
+          })
+          Variation.find_or_create_by({
+            :woo_id => order_product[:variation_woo_id],
+            variation_type.downcase => variation_value,
+            :product => product
+          }.compact)
+        end
+        ProductSale.find_or_create_by({
+          woo_id: order_product[:order_woo_id],
+          qty: order_product[:qty],
+          price: order_product[:price],
+          sale: sale,
+          product:,
+          variation:
+        })
       end
-    rescue => e
-      Rails.logger.error "Full error: #{e}"
-      Rails.logger.error "Error occurred at #{e.backtrace.first}"
-    end
-    if sync_errors.any?
-      file_path = Rails.root.join("sync_orders_err.json")
-      File.write(file_path, JSON.generate(sync_errors))
     end
   end
 
-  def get_orders(size = SIZE, per_page = PER_PAGE)
-    progressbar = ProgressBar.create(title: "SyncWooOrdersJob")
-    step = 100 / (SIZE / PER_PAGE)
-    pages = (size / per_page).ceil
-    page = 1
-    orders = []
-    while page <= pages
-      response = HTTParty.get(
-        URL,
-        query: {
-          per_page: per_page,
-          page: page
-        },
-        basic_auth: {
-          username: CONSUMER_KEY,
-          password: CONSUMER_SECRET
-        }
-      )
-      parsed_response = JSON.parse(response.body, symbolize_names: true)
-      deserialized_orders = parsed_response.map do |i|
-        Sale.deserialize_woo_order(i)
-      end
-      orders.concat(deserialized_orders)
-      step.times {
-        progressbar.increment
-        sleep 0.5
-      }
-      page += 1
+  def parse_all(orders)
+    orders.map { |order| parse(order) }
+  end
+
+  def parse(order)
+    variation_types = Variation.types.values.flatten
+    shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
+      el.each { |k, v| memo[k] = v unless v.empty? }
+      memo
     end
-    orders
+    {
+      sale: {
+        woo_id: order[:id],
+        status: order[:status],
+        woo_created_at: DateTime.parse(order[:date_created]),
+        woo_updated_at: DateTime.parse(order[:date_modified]),
+        total: order[:total],
+        shipping_total: order[:shipping_total],
+        discount_total: order[:discount_total],
+        note: order[:customer_note],
+        address_1: shipping[:address_1],
+        address_2: shipping[:address_2],
+        city: shipping[:city],
+        company: shipping[:company],
+        country: shipping[:country],
+        postcode: shipping[:postcode],
+        state: shipping[:state]
+      },
+      customer: {
+        woo_id: order[:customer_id],
+        first_name: shipping[:first_name],
+        last_name: shipping[:last_name],
+        phone: shipping[:phone],
+        email: shipping[:email]
+      },
+      products: order[:line_items].map { |line_item|
+        variation_woo_id = if line_item[:variation_id].to_i.positive?
+          line_item[:variation_id]
+        end
+        variation = line_item[:meta_data]
+          .find { |meta| variation_types.include? meta[:display_key] }
+          &.slice(:display_key, :display_value)
+          &.transform_values { |v| sanitize(v) }
+        parsed_variation = variation.present? ?
+          {variation_woo_id:, variation:}.compact :
+          {}
+        {
+          product_woo_id: line_item[:product_id],
+          qty: line_item[:quantity],
+          price: line_item[:price].to_i + line_item[:total_tax].to_i,
+          order_woo_id: line_item[:id]
+        }.merge(parsed_variation)
+      }
+    }
+  end
+
+  private
+
+  def sanitize(string)
+    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end

@@ -9,6 +9,6 @@
 #  version_id :bigint
 #
 class ProductVersion < ApplicationRecord
-  belongs_to :product
-  belongs_to :version
+  db_belongs_to :product
+  db_belongs_to :version
 end

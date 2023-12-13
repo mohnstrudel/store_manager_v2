@@ -4,6 +4,8 @@
 #
 #  id           :bigint           not null, primary key
 #  full_title   :string
+#  image        :string
+#  store_link   :string
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
@@ -18,8 +20,8 @@ class Product < ApplicationRecord
 
   validates :title, presence: true
 
-  belongs_to :franchise
-  belongs_to :shape
+  db_belongs_to :franchise
+  db_belongs_to :shape
 
   has_many :product_brands, dependent: :destroy
   has_many :brands, through: :product_brands
@@ -40,23 +42,22 @@ class Product < ApplicationRecord
   has_many :sales, through: :product_sales
 
   has_many :purchases, dependent: :destroy
-
-  def self.sync_woo_products
-    SyncWooProductsJob.perform_later
-  end
+  has_many :variations, dependent: :destroy
 
   private
 
   def calculate_full_title
     values_from = ->(i) { i&.pluck(:value)&.join(", ") }
+    name = (title == franchise.title) ? title : "#{franchise.title} — #{title}"
     sizes_string = values_from.call(sizes)
     versions_string = values_from.call(versions)
     brands_string = brands.pluck(:title).join(", ")
     colors_string = values_from.call(colors)
-    size_and_version = [sizes_string.presence, versions_string.presence].compact.join(" — ")
     title_parts = [
-      "#{franchise.title} — #{title}",
-      "#{size_and_version.present? ? (size_and_version + " ") : ""}resin #{shape.title}",
+      name,
+      sizes_string.presence,
+      versions_string.presence,
+      "Resin #{shape.title}",
       brands_string.presence,
       colors_string.presence
     ]

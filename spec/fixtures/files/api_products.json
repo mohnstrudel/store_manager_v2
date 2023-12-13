@@ -1,0 +1,214 @@
+[
+  {
+    "id": 111,
+    "permalink": "http://store.handsomecake.com/link-id",
+    "name": "Studio Ghibli - Spirited Away | 1:4 Resin Statue | von ZuoBan Studio",
+    "variations": [0, 5],
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Version",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["S Version"]
+      },
+      {
+        "id": 1,
+        "name": "Marke",
+        "position": 1,
+        "visible": true,
+        "variation": false,
+        "options": ["Zuoban Studio"]
+      },
+      {
+        "id": 7,
+        "name": "Material",
+        "position": 2,
+        "visible": true,
+        "variation": false,
+        "options": ["Resin"]
+      },
+      {
+        "id": 4,
+        "name": "Maßstab",
+        "position": 3,
+        "visible": true,
+        "variation": false,
+        "options": ["1:4"]
+      },
+      {
+        "id": 5,
+        "name": "Color",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["Rot"]
+      }
+    ],
+    "images": [
+      {
+        "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/F-z6rD6bYAADn0H-scaled.jpg"
+      }
+    ]
+  },
+  {
+    "id": 222,
+    "permalink": "http://store.handsomecake.com/link-id",
+    "name": "Neon Genesis Evangelion - Asuka Langley | 1:4 Resin Statue | von Unique Art Studio",
+    "variations": [],
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Version",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["S Version", "S+ Version"]
+      },
+      {
+        "id": 1,
+        "name": "Marke",
+        "position": 1,
+        "visible": true,
+        "variation": false,
+        "options": ["Zuoban Studio"]
+      },
+      {
+        "id": 7,
+        "name": "Material",
+        "position": 2,
+        "visible": true,
+        "variation": false,
+        "options": ["Resin"]
+      },
+      {
+        "id": 4,
+        "name": "Maßstab",
+        "position": 3,
+        "visible": true,
+        "variation": false,
+        "options": ["1:4", "1:6"]
+      },
+      {
+        "id": 5,
+        "name": "Color",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["Rot", "Blau"]
+      }
+    ],
+    "images": [
+      {
+        "src": "https://store.handsomecake.com/wp-content/uploads/2023/10/a53cafd7-7343-5018-b889-8c91fc2cf159.jpg"
+      }
+    ]
+  },
+  {
+    "id": 333,
+    "permalink": "http://store.handsomecake.com/link-id",
+    "name": "Studio Ghibli - Spirited Away | 1:4 Resin Bust | von ZuoBan Studio",
+    "variations": [],
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Version",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["S Version"]
+      },
+      {
+        "id": 1,
+        "name": "Marke",
+        "position": 1,
+        "visible": true,
+        "variation": false,
+        "options": ["Zuoban Studio"]
+      },
+      {
+        "id": 7,
+        "name": "Material",
+        "position": 2,
+        "visible": true,
+        "variation": false,
+        "options": ["Resin"]
+      },
+      {
+        "id": 4,
+        "name": "Maßstab",
+        "position": 3,
+        "visible": true,
+        "variation": false,
+        "options": ["1:4"]
+      },
+      {
+        "id": 5,
+        "name": "Color",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["Rot"]
+      }
+    ],
+    "images": [
+      {
+        "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/F-z6rD6bYAADn0H-scaled.jpg"
+      }
+    ]
+  },
+  {
+    "id": 444,
+    "permalink": "http://store.handsomecake.com/link-id",
+    "name": "Neon Genesis Evangelion - Asuka Langley | 1:4 Resin Bust | von Unique Art Studio",
+    "variations": [],
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Version",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["S Version", "S+ Version"]
+      },
+      {
+        "id": 1,
+        "name": "Marke",
+        "position": 1,
+        "visible": true,
+        "variation": false,
+        "options": ["Zuoban Studio"]
+      },
+      {
+        "id": 7,
+        "name": "Material",
+        "position": 2,
+        "visible": true,
+        "variation": false,
+        "options": ["Resin"]
+      },
+      {
+        "id": 4,
+        "name": "Maßstab",
+        "position": 3,
+        "visible": true,
+        "variation": false,
+        "options": ["1:4", "1:6"]
+      },
+      {
+        "id": 5,
+        "name": "Color",
+        "position": 0,
+        "visible": true,
+        "variation": true,
+        "options": ["Rot", "Blau"]
+      }
+    ],
+    "images": [
+      {
+        "src": "https://store.handsomecake.com/wp-content/uploads/2023/10/a53cafd7-7343-5018-b889-8c91fc2cf159.jpg"
+      }
+    ]
+  }
+]

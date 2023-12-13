@@ -8,15 +8,17 @@
 #  order_reference :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  product_id      :bigint           not null
+#  product_id      :bigint
 #  supplier_id     :bigint           not null
+#  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
   validates :amount, presence: true
   validates :item_price, presence: true
 
-  belongs_to :supplier
-  belongs_to :product
+  db_belongs_to :supplier
+  belongs_to :product, optional: true
+  belongs_to :variation, optional: true
 
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments

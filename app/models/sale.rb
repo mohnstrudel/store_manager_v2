@@ -25,7 +25,7 @@
 class Sale < ApplicationRecord
   paginates_per 50
 
-  belongs_to :customer
+  db_belongs_to :customer
 
   has_many :product_sales, dependent: :destroy
   has_many :products, through: :product_sales
@@ -48,7 +48,7 @@ class Sale < ApplicationRecord
     woo_created_at || created_at
   end
 
-  def self.STATUS_NEW
+  def self.wip_statuses
     [
       "partially-paid",
       "po_fully_paid",
@@ -60,7 +60,7 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
-  def self.STATUS
+  def self.list_statuses
     # https://woocommerce.com/document/managing-orders/
     [
       "cancelled",
@@ -80,52 +80,11 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
-  def self.sync_woo_orders
-    SyncWooOrdersJob.perform_later
-  end
-
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
   end
 
-  def self.deserialize_woo_order(order)
-    shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
-      el.each { |k, v| memo[k] = v unless v.empty? }
-      memo
-    end
-    {
-      sale: {
-        woo_id: order[:id],
-        status: order[:status],
-        woo_created_at: DateTime.parse(order[:date_created]),
-        woo_updated_at: DateTime.parse(order[:date_modified]),
-        total: order[:total],
-        shipping_total: order[:shipping_total],
-        discount_total: order[:discount_total],
-        note: order[:customer_note],
-        address_1: shipping[:address_1],
-        address_2: shipping[:address_2],
-        city: shipping[:city],
-        company: shipping[:company],
-        country: shipping[:country],
-        postcode: shipping[:postcode],
-        state: shipping[:state]
-      },
-      customer: {
-        woo_id: order[:customer_id],
-        first_name: shipping[:first_name],
-        last_name: shipping[:last_name],
-        phone: shipping[:phone],
-        email: shipping[:email]
-      },
-      products: order[:line_items].map { |i|
-        {
-          product_woo_id: i[:product_id],
-          qty: i[:quantity],
-          price: i[:price],
-          order_woo_id: i[:id]
-        }
-      }
-    }
+  def self.has_wip_status?(status)
+    wip_statuses.include?(status)
   end
 end

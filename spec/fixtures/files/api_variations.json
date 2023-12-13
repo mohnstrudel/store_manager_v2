@@ -1,0 +1,517 @@
+[
+  {
+    "id": 27004,
+    "date_created": "2023-11-27T00:06:01",
+    "date_created_gmt": "2023-11-27T00:06:01",
+    "date_modified": "2023-11-27T00:23:00",
+    "date_modified_gmt": "2023-11-27T00:23:00",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=EX",
+    "sku": "enigma-studio-purah-ex",
+    "price": "1250.0",
+    "regular_price": "1250.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "14.0",
+    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 27007,
+      "date_created": "2023-11-27T00:06:17",
+      "date_created_gmt": "2023-11-27T00:06:17",
+      "date_modified": "2023-11-27T00:06:17",
+      "date_modified_gmt": "2023-11-27T00:06:17",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "name": "3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "alt": ""
+    },
+    "attributes": [{ "id": 0, "name": "Version", "option": "EX" }],
+    "menu_order": 1,
+    "meta_data": [
+      { "id": 414768, "key": "_wc_gla_sync_status", "value": "pending" },
+      {
+        "id": 414771,
+        "key": "_wc_gla_errors",
+        "value": ["[imageLink] This value should not be blank."]
+      },
+      {
+        "id": 415048,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      { "id": 415049, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
+      { "id": 415050, "key": "_awcdp_deposits_force_deposit", "value": "no" },
+      {
+        "id": 415051,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      { "id": 415052, "key": "_awcdp_deposits_variation_amount", "value": "0" },
+      {
+        "id": 415053,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      { "id": 415054, "key": "_is_pre_order", "value": "yes" },
+      { "id": 415055, "key": "_pre_order_date", "value": "2024-10-28" },
+      { "id": 415056, "key": "_wc_facebook_sync_enabled", "value": "yes" },
+      { "id": 415057, "key": "fb_visibility", "value": "yes" },
+      { "id": 415058, "key": "fb_product_description", "value": "" },
+      {
+        "id": 415059,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      { "id": 415060, "key": "fb_product_image", "value": "" },
+      { "id": 415061, "key": "fb_product_price", "value": "" }
+    ],
+    "name": "EX",
+    "parent_id": 27003,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations/27004"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003"
+        }
+      ]
+    }
+  },
+  {
+    "id": 27005,
+    "date_created": "2023-11-27T00:06:09",
+    "date_created_gmt": "2023-11-27T00:06:09",
+    "date_modified": "2023-11-27T00:23:00",
+    "date_modified_gmt": "2023-11-27T00:23:00",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=A",
+    "sku": "enigma-studio-purah-a",
+    "price": "780.0",
+    "regular_price": "780.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "13.0",
+    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 27007,
+      "date_created": "2023-11-27T00:06:17",
+      "date_created_gmt": "2023-11-27T00:06:17",
+      "date_modified": "2023-11-27T00:06:17",
+      "date_modified_gmt": "2023-11-27T00:06:17",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "name": "3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "alt": ""
+    },
+    "attributes": [{ "id": 0, "name": "Version", "option": "A" }],
+    "menu_order": 2,
+    "meta_data": [
+      { "id": 414798, "key": "_wc_gla_sync_status", "value": "pending" },
+      {
+        "id": 415033,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      { "id": 415034, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
+      { "id": 415035, "key": "_awcdp_deposits_force_deposit", "value": "no" },
+      {
+        "id": 415036,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      { "id": 415037, "key": "_awcdp_deposits_variation_amount", "value": "0" },
+      {
+        "id": 415038,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      { "id": 415039, "key": "_is_pre_order", "value": "yes" },
+      { "id": 415040, "key": "_pre_order_date", "value": "2024-10-28" },
+      { "id": 415041, "key": "_wc_facebook_sync_enabled", "value": "yes" },
+      { "id": 415042, "key": "fb_visibility", "value": "yes" },
+      { "id": 415043, "key": "fb_product_description", "value": "" },
+      {
+        "id": 415044,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      { "id": 415045, "key": "fb_product_image", "value": "" },
+      { "id": 415046, "key": "fb_product_price", "value": "" }
+    ],
+    "name": "A",
+    "parent_id": 27003,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations/27005"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003"
+        }
+      ]
+    }
+  },
+  {
+    "id": 27006,
+    "date_created": "2023-11-27T00:06:13",
+    "date_created_gmt": "2023-11-27T00:06:13",
+    "date_modified": "2023-11-27T00:23:00",
+    "date_modified_gmt": "2023-11-27T00:23:00",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=B",
+    "sku": "enigma-studio-purah-b",
+    "price": "620.0",
+    "regular_price": "620.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "13.0",
+    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 27007,
+      "date_created": "2023-11-27T00:06:17",
+      "date_created_gmt": "2023-11-27T00:06:17",
+      "date_modified": "2023-11-27T00:06:17",
+      "date_modified_gmt": "2023-11-27T00:06:17",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "name": "3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "alt": ""
+    },
+    "attributes": [{ "id": 0, "name": "Version", "option": "B" }],
+    "menu_order": 3,
+    "meta_data": [
+      { "id": 414825, "key": "_wc_gla_sync_status", "value": "pending" },
+      {
+        "id": 415018,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      { "id": 415019, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
+      { "id": 415020, "key": "_awcdp_deposits_force_deposit", "value": "no" },
+      {
+        "id": 415021,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      { "id": 415022, "key": "_awcdp_deposits_variation_amount", "value": "0" },
+      {
+        "id": 415023,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      { "id": 415024, "key": "_is_pre_order", "value": "yes" },
+      { "id": 415025, "key": "_pre_order_date", "value": "2024-10-28" },
+      { "id": 415026, "key": "_wc_facebook_sync_enabled", "value": "yes" },
+      { "id": 415027, "key": "fb_visibility", "value": "yes" },
+      { "id": 415028, "key": "fb_product_description", "value": "" },
+      {
+        "id": 415029,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      { "id": 415030, "key": "fb_product_image", "value": "" },
+      { "id": 415031, "key": "fb_product_price", "value": "" }
+    ],
+    "name": "B",
+    "parent_id": 27003,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations/27006"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003"
+        }
+      ]
+    }
+  },
+  {
+    "id": 26990,
+    "date_created": "2023-11-27T00:03:18",
+    "date_created_gmt": "2023-11-27T00:03:18",
+    "date_modified": "2023-11-27T00:13:35",
+    "date_modified_gmt": "2023-11-27T00:13:35",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/one-piece-yamato-16-resin-statue-von-dragon-x-pop-studio/?attribute_version=Regular",
+    "sku": "dragon-x-pop-studio-yamato-regular",
+    "price": "700.0",
+    "regular_price": "700.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "none",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 26992,
+      "date_created": "2023-11-27T00:03:27",
+      "date_created_gmt": "2023-11-27T00:03:27",
+      "date_modified": "2023-11-27T00:03:27",
+      "date_modified_gmt": "2023-11-27T00:03:27",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/57ba6e34-5ca3-5c60-9900-5d00790b7fe7-scaled.jpg",
+      "name": "57ba6e34-5ca3-5c60-9900-5d00790b7fe7.jpg",
+      "alt": ""
+    },
+    "attributes": [{ "id": 0, "name": "Version", "option": "Regular" }],
+    "menu_order": 1,
+    "meta_data": [
+      { "id": 414646, "key": "_wc_gla_sync_status", "value": "pending" },
+      {
+        "id": 414880,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      { "id": 414881, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
+      { "id": 414882, "key": "_awcdp_deposits_force_deposit", "value": "no" },
+      {
+        "id": 414883,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      { "id": 414884, "key": "_awcdp_deposits_variation_amount", "value": "0" },
+      {
+        "id": 414885,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      { "id": 414886, "key": "_is_pre_order", "value": "yes" },
+      { "id": 414887, "key": "_pre_order_date", "value": "2024-10-28" },
+      { "id": 414888, "key": "_wc_facebook_sync_enabled", "value": "yes" },
+      { "id": 414889, "key": "fb_visibility", "value": "yes" },
+      { "id": 414890, "key": "fb_product_description", "value": "" },
+      {
+        "id": 414891,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      { "id": 414892, "key": "fb_product_image", "value": "" },
+      { "id": 414893, "key": "fb_product_price", "value": "" }
+    ],
+    "name": "Regular",
+    "parent_id": 26989,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations/26990"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989"
+        }
+      ]
+    }
+  },
+  {
+    "id": 26991,
+    "date_created": "2023-11-27T00:03:23",
+    "date_created_gmt": "2023-11-27T00:03:23",
+    "date_modified": "2023-11-27T00:13:35",
+    "date_modified_gmt": "2023-11-27T00:13:35",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/one-piece-yamato-16-resin-statue-von-dragon-x-pop-studio/?attribute_version=Exclusive",
+    "sku": "dragon-x-pop-studio-yamato-exclusive",
+    "price": "860.0",
+    "regular_price": "860.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "none",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 26992,
+      "date_created": "2023-11-27T00:03:27",
+      "date_created_gmt": "2023-11-27T00:03:27",
+      "date_modified": "2023-11-27T00:03:27",
+      "date_modified_gmt": "2023-11-27T00:03:27",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/57ba6e34-5ca3-5c60-9900-5d00790b7fe7-scaled.jpg",
+      "name": "57ba6e34-5ca3-5c60-9900-5d00790b7fe7.jpg",
+      "alt": ""
+    },
+    "attributes": [{ "id": 0, "name": "Version", "option": "Exclusive" }],
+    "menu_order": 2,
+    "meta_data": [
+      { "id": 414673, "key": "_wc_gla_sync_status", "value": "pending" },
+      {
+        "id": 414865,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      { "id": 414866, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
+      { "id": 414867, "key": "_awcdp_deposits_force_deposit", "value": "no" },
+      {
+        "id": 414868,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      { "id": 414869, "key": "_awcdp_deposits_variation_amount", "value": "0" },
+      {
+        "id": 414870,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      { "id": 414871, "key": "_is_pre_order", "value": "yes" },
+      { "id": 414872, "key": "_pre_order_date", "value": "2024-10-28" },
+      { "id": 414873, "key": "_wc_facebook_sync_enabled", "value": "yes" },
+      { "id": 414874, "key": "fb_visibility", "value": "yes" },
+      { "id": 414875, "key": "fb_product_description", "value": "" },
+      {
+        "id": 414876,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      { "id": 414877, "key": "fb_product_image", "value": "" },
+      { "id": 414878, "key": "fb_product_price", "value": "" }
+    ],
+    "name": "Exclusive",
+    "parent_id": 26989,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations/26991"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989"
+        }
+      ]
+    }
+  }
+]
