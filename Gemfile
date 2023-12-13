@@ -61,7 +61,11 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "ruby-progressbar"
   gem "prosopite"
-  gem "pg_query"
+  gem "pghero"
+  # Add to postgresql.conf this two lines:
+  # shared_preload_libraries = 'pg_stat_statements'
+  # pg_stat_statements.track = all
+  gem "pg_query", ">= 2"
 end
 
 group :development do

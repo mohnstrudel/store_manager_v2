@@ -196,6 +196,8 @@ GEM
     pg (1.5.4)
     pg_query (4.2.3)
       google-protobuf (>= 3.22.3)
+    pghero (3.4.0)
+      activerecord (>= 6)
     prosopite (1.4.1)
     psych (5.1.1.1)
       stringio
@@ -413,7 +415,8 @@ DEPENDENCIES
   importmap-rails
   kaminari
   pg (~> 1.1)
-  pg_query
+  pg_query (>= 2)
+  pghero
   prosopite
   puma (~> 6.0)
   rails (~> 7.1.x)

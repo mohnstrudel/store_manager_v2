@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  if Rails.env.development?
+    mount PgHero::Engine, at: "pghero"
+  end
   resources :customers do
     get "/page/:page", action: :index, on: :collection
   end
