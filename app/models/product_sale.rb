@@ -16,4 +16,8 @@ class ProductSale < ApplicationRecord
   db_belongs_to :product
   db_belongs_to :sale
   belongs_to :variation, optional: true
+
+  def item
+    (variation.presence || product)
+  end
 end

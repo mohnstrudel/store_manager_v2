@@ -4,7 +4,6 @@ class DashboardController < ApplicationController
 
   def debts
     @unpaid_purchases = Purchase.unpaid
-
     @sales_debt = ActiveRecord::Base.connection.execute(sql_debts_query)
       .to_a.first(16).map(&:symbolize_keys)
   end
