@@ -40,8 +40,7 @@ main.inner.no-bd.v-flex
                 data-table-id-param=debt[:variation_id]
               )
                 td = debt[:title]
-                td
-                  i.icn ✓
+                td = [debt[:version], debt[:color], debt[:size]].find(&:present?)
                 td = debt[:variations_sales_count] - debt[:purchase_count]
             - else
               tr.hoverable(

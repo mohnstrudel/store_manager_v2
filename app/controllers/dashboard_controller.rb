@@ -18,6 +18,9 @@ class DashboardController < ApplicationController
         products.full_title,
         product_sales.variation_id,
         variations.title,
+        versions.value AS version,
+        colors.value AS color,
+        sizes.value AS size,
         COUNT(purchases.id) AS purchase_count,
         (
           SELECT COUNT(*)
@@ -50,12 +53,18 @@ class DashboardController < ApplicationController
         ) OR (
           purchases.product_id = product_sales.product_id
         )
+        LEFT JOIN versions ON versions.id = variations.version_id
+        LEFT JOIN colors ON colors.id = variations.color_id
+        LEFT JOIN sizes ON sizes.id = variations.size_id
       WHERE sales.status IN (#{wip_statuses})
       GROUP BY
         product_sales.product_id,
         products.full_title,
         product_sales.variation_id,
-        variations.title
+        variations.title,
+        versions.value,
+        colors.value,
+        sizes.value
       ORDER BY total_sales_count DESC;
     "
   end
