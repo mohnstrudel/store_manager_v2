@@ -28,18 +28,26 @@ main.inner.no-bd.v-flex
     h3 Sales Debt
     table role="grid" data-controller="table"
       thead
-        th ID
         th Title
-        th Variation
+        th Variation?
         th Size
       tbody
-        - @sales_debt.each do |product_sale|
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product_sale.product.id)
-              data-table-id-param=product_sale.item.id
-            )
-              td = product_sale.item.id
-              td = product_sale.item_title
-              td = product_sale.item.methods.include?(:which) ? product_sale.item.which.value : "-"
-              td = product_sale.purchase_debt
+        - @sales_debt.each do |debt|
+            - if debt[:variation_id].present?
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=product_path(debt[:product_id])
+                data-table-id-param=debt[:variation_id]
+              )
+                td = debt[:title]
+                td = [debt[:version], debt[:color], debt[:size]].find(&:present?)
+                td = debt[:variations_sales_count] - debt[:purchase_count]
+            - else
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=product_path(debt[:product_id])
+                data-table-id-param=debt[:product_id]
+              )
+                td = debt[:full_title]
+                td -
+                td = debt[:products_sales_count] - debt[:purchase_count]

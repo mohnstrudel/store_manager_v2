@@ -50,7 +50,7 @@ main.inner.v-flex.w-pd
             th Purchases
             th Woo ID
           tbody
-            - @product.variations.each do |variation|
+            - @product.variations.includes(:version, :color, :size, :purchases, :product_sales).each do |variation|
               tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == variation.id)
                 td = variation.id
                 td = variation.which&.value

@@ -3,16 +3,20 @@ class ProductsController < ApplicationController
 
   # GET /products or /products.json
   def index
-    @products = Product.order(:created_at).page(params[:page])
+    @products = Product.includes(:variations).order(:created_at).page(params[:page])
   end
 
   # GET /products/1 or /products/1.json
   def show
     @active_sales = @product
-      .product_sales
+      .product_sales.includes(
+        :product,
+        sale: :customer,
+        variation: [:version, :color, :size]
+      )
       .order(created_at: :asc)
       .select { |product_sale|
-        Sale.wip_statuses.include? product_sale.status
+        Sale.wip_statuses.include? product_sale.sale.status
       }
   end
 
