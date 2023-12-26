@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2023_12_01_054305) do
+ActiveRecord::Schema[7.1].define(version: 2023_12_25_084838) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "brands", force: :cascade do |t|
@@ -133,6 +134,7 @@ ActiveRecord::Schema[7.1].define(version: 2023_12_01_054305) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "variation_id"
+    t.datetime "purchase_date"
     t.index ["product_id"], name: "index_purchases_on_product_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
     t.index ["variation_id"], name: "index_purchases_on_variation_id"

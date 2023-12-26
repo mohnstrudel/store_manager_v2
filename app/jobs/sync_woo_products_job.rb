@@ -44,19 +44,24 @@ class SyncWooProductsJob < ApplicationJob
     product.save
   end
 
-  def parse(woo_product)
-    return if woo_product[:name].blank?
-    woo_name = sanitize(woo_product[:name])
+  def parse_product_name(woo_product_name)
+    woo_name = sanitize(woo_product_name)
     franchise = woo_name.include?(" - ") ?
       woo_name.split(" - ").first :
       woo_name.split(" | ").first
     if franchise.blank?
-      franchise = woo_product[:name]
+      franchise = woo_product_name
     end
     title = woo_name.include?(" - ") ?
       woo_name.split(" | ").first.split(" - ").last :
       franchise
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
+    [title, franchise, shape]
+  end
+
+  def parse(woo_product)
+    return if woo_product[:name].blank?
+    title, franchise, shape = parse_product_name(woo_product[:name])
     image = woo_product[:images].present? ?
       woo_product[:images].first[:src] :
       ""
