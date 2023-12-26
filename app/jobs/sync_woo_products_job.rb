@@ -50,7 +50,7 @@ class SyncWooProductsJob < ApplicationJob
       woo_name.split(" - ").first :
       woo_name.split(" | ").first
     if franchise.blank?
-      franchise = woo_product_name
+      franchise = woo_name
     end
     title = woo_name.include?(" - ") ?
       woo_name.split(" | ").first.split(" - ").last :
