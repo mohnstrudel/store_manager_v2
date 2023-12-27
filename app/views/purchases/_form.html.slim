@@ -7,6 +7,9 @@
   = form.label :product
   = form.collection_select :product_id, Product.all, :id, :full_title, { class: "select" }, data: { controller: "slim-select" }
 
+  = form.label :variation
+  = form.collection_select :variation_id, Variation.all, :id, :title, { class: "select" }, data: { controller: "slim-select" }
+
   = form.label :order_reference
   = form.text_field :order_reference
 
