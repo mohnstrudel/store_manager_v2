@@ -56,7 +56,7 @@ class SyncWooProductsJob < ApplicationJob
       woo_name.split(" | ").first.split(" - ").last :
       franchise
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
-    [title, franchise, shape]
+    [title, franchise, shape[0]]
   end
 
   def parse(woo_product)
@@ -68,7 +68,7 @@ class SyncWooProductsJob < ApplicationJob
     product = {
       woo_id: woo_product[:id],
       store_link: woo_product[:permalink],
-      shape: shape[0],
+      shape:,
       variations: woo_product[:variations],
       title:,
       franchise:,

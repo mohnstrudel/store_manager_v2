@@ -46,29 +46,36 @@ class Purchase < ApplicationRecord
     where.missing(:payments).order(created_at: :asc)
   end
 
-  def sync_purchases_from_file
-    raw_purchases = JSON.parse(File.read("storage/purchases.json"), symbolize_names: true)
+  def self.sync_purchases_from_file(file)
+    required = [:amount, :supplier, :itemprice, :orderreference, :product]
     product_job = SyncWooProductsJob.new
-    raw_purchases.each do |purchase|
-      title, franchise, shape = product_job.parse_product_name(purchase[:product])
+    file ||= File.read("purchases.json")
+    parsed = JSON.parse(file, symbolize_names: true)
+    parsed.each do |parsed_purchase|
+      empty_keys = required.select { |key| parsed_purchase[key].blank? }
+      if empty_keys.any?
+        warn "\nFile has empty keys: #{empty_keys}\nat: #{JSON.pretty_generate(parsed_purchase)}"
+        break
+      end
+      title, franchise_title, shape_title = product_job.parse_product_name(parsed_purchase[:product])
       product = Product.find_or_create_by({
         title:,
-        franchise: Franchise.find_or_create_by(title: franchise),
-        shape: Shape.find_or_create_by(title: shape)
+        franchise: Franchise.find_or_create_by(title: franchise_title),
+        shape: Shape.find_or_create_by(title: shape_title)
       })
-      variation = if purchase[:version].present?
+      variation = if parsed_purchase[:version].present?
         unknown_colors = ["pink", "white", "weiß", "schwarz"]
-        color = if purchase[:version].in?(unknown_colors)
-          Color.find_or_create_by(value: purchase[:version].capitalize)
+        color = if parsed_purchase[:version].in?(unknown_colors)
+          Color.find_or_create_by(value: parsed_purchase[:version].capitalize)
         else
-          Color.find_by("lower(value) = ?", purchase[:version].downcase)
+          Color.find_by("lower(value) = ?", parsed_purchase[:version].downcase)
         end
-        size = Size.find_by("lower(value) = ?", purchase[:version].downcase)
-        version = Version.find_by("lower(value) = ?", purchase[:version].downcase)
+        size = Size.find_by("lower(value) = ?", parsed_purchase[:version].downcase)
+        version = Version.find_by("lower(value) = ?", parsed_purchase[:version].downcase)
         if {size:, color:, version:}.compact_blank.blank?
           Variation.find_or_create_by({
             product:,
-            version: Version.create(value: purchase[:version])
+            version: Version.create(value: parsed_purchase[:version])
           })
         else
           Variation.find_or_create_by(
@@ -76,18 +83,23 @@ class Purchase < ApplicationRecord
           )
         end
       end
+      purchase_date = if parsed_purchase[:purchasedate].present?
+        Date.parse(parsed_purchase[:purchasedate])
+      else
+        Time.zone.today
+      end
       purchase = Purchase.new({
-        amount: purchase[:amount],
-        order_reference: purchase[:orderreference],
-        item_price: purchase[:itemprice],
-        supplier: Supplier.find_or_create_by(title: purchase[:supplier]),
-        purchase_date: Date.parse(purchase[:purchasedate]),
+        amount: parsed_purchase[:amount],
+        order_reference: parsed_purchase[:orderreference],
+        item_price: parsed_purchase[:itemprice],
+        supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
+        purchase_date:,
         product:,
         variation:
       })
-      payments = purchase.select { |key, _| key.to_s.include?("paymentvalue") }
+      payments = parsed_purchase.select { |key, _| key.to_s.include?("paymentvalue") }
       payments.each do |key, value|
-        date = purchase[:"paymentdate#{key[-1]}"]
+        date = parsed_purchase[:"paymentdate#{key[-1]}"]
         payment_date = if date.present?
           Date.parse(date)
         else
@@ -98,7 +110,7 @@ class Purchase < ApplicationRecord
           payment_date:
         })
       end
-      payments.save!
+      purchase.save!
     end
   end
 end
