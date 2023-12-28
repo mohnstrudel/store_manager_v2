@@ -11,7 +11,6 @@ RSpec.describe SyncWooOrdersJob do
     context "when we receive an array of orders from Woo API" do
       it "gives us parsed result" do
         parsed = job.parse_all(woo_orders)
-        File.write("parsed.json", JSON.pretty_generate(parsed))
         expect(parsed).to eq(parsed_woo_orders)
       end
     end

@@ -1,0 +1,46 @@
+[
+  {
+    "amount": 1,
+    "version": "Deluxe",
+    "supplier": "NHK",
+    "orderreference": "KC202112154777593414",
+    "product": "Resident Evil - Lady Dimitrescu | 1:4 Resin Statue | von CP/LC Studio",
+    "itemprice": 506,
+    "paymentvalue0": 246,
+    "purchasedate": "15.12.2021"
+  },
+  {
+    "amount": 2,
+    "version": "weiß",
+    "supplier": "NHK",
+    "orderreference": "KC202108236606094639",
+    "product": "Resident Evil - Lady Dimitrescu | 1:4 Resin Statue | von CP/LC Studio",
+    "itemprice": 506,
+    "paymentvalue0": 246,
+    "purchasedate": "23.08.2021"
+  },
+  {
+    "amount": 2,
+    "version": "1:6",
+    "supplier": "HWs",
+    "orderreference": "KC202103148584339269",
+    "product": "Yoyo Gohan",
+    "itemprice": 448,
+    "paymentvalue0": 188,
+    "paymentdate0": "20.01.2022",
+    "paymentvalue1": 260,
+    "paymentvalue2": 60
+  },
+  {
+    "canbeignored": true,
+    "amount": 1,
+    "supplier": "HWs",
+    "orderreference": "KC202109182866417021",
+    "product": "One Piece – Nami | 1:4 Resin Statue | von Box Studio  EX",
+    "itemprice": 536,
+    "paymentvalue0": 206,
+    "paymentdate0": "21.09.2022",
+    "paymentvalue1": 330,
+    "purchasedate": "18.09.2021"
+  }
+]
