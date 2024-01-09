@@ -127,7 +127,7 @@ class Purchase < ApplicationRecord
           Time.zone.today
         end
         purchase.payments.build({
-          value:,
+          value: value * parsed_purchase[:amount],
           payment_date:
         })
       end
