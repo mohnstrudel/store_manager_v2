@@ -11,7 +11,9 @@ Rails.application.routes.draw do
   resources :products do
     get "/page/:page", action: :index, on: :collection
   end
-  resources :purchases
+  resources :purchases do
+    get "/page/:page", action: :index, on: :collection
+  end
   resources :payments, only: [:create]
 
   scope "/admin" do
