@@ -46,20 +46,32 @@ class Purchase < ApplicationRecord
     where.missing(:payments).order(created_at: :asc)
   end
 
-  def self.sync_purchases_from_file(file)
-    required = [:amount, :supplier, :itemprice, :orderreference, :product]
-    product_job = SyncWooProductsJob.new
+  def self.sync_purchases_from_file(file = File.read("purchases.json"))
     unknown_colors = ["pink", "white", "weiß", "schwarz"]
-    file ||= File.read("purchases.json")
+    required = [
+      :amount,
+      :supplier,
+      :itemprice,
+      :orderreference,
+      :product,
+      :purchasedate
+    ]
+    errors = []
+    product_job = SyncWooProductsJob.new
     parsed = JSON.parse(file, symbolize_names: true)
     parsed.each do |parsed_purchase|
+      next if parsed_purchase[:canbeignored].present?
       empty_keys = required.select { |key| parsed_purchase[key].blank? }
       if empty_keys.any?
-        warn \
-          "\nFile has empty keys: #{empty_keys}" \
-          "\nat: #{JSON.pretty_generate(parsed_purchase)}"
-        break
+        errors.push({empty_keys:, parsed_purchase:})
+        next
       end
+      id = if parsed_purchase[:orderreference] == "custom"
+        Base64.encode64(parsed_purchase.to_s).last(64)
+      else
+        parsed_purchase[:orderreference]
+      end
+      next if Purchase.find_by(order_reference: id).present?
       title, franchise_title, shape_title = product_job
         .parse_product_name(parsed_purchase[:product])
       product = Product.find_or_create_by({
@@ -97,7 +109,7 @@ class Purchase < ApplicationRecord
       end
       purchase = Purchase.new({
         amount: parsed_purchase[:amount],
-        order_reference: parsed_purchase[:orderreference],
+        order_reference: id,
         item_price: parsed_purchase[:itemprice],
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
         purchase_date:,
@@ -120,6 +132,9 @@ class Purchase < ApplicationRecord
         })
       end
       purchase.save!
+    end
+    if errors.any?
+      File.write("__debug/sync-purchase-errors.json", JSON.pretty_generate(errors))
     end
   end
 end

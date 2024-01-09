@@ -29,10 +29,10 @@
     "paymentvalue0": 188,
     "paymentdate0": "20.01.2022",
     "paymentvalue1": 260,
-    "paymentvalue2": 60
+    "paymentvalue2": 60,
+    "purchasedate": "2.08.2021"
   },
   {
-    "canbeignored": true,
     "amount": 1,
     "supplier": "HWs",
     "orderreference": "KC202109182866417021",
