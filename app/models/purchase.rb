@@ -134,6 +134,7 @@ class Purchase < ApplicationRecord
       purchase.save!
     end
     if errors.any?
+      Dir.mkdir("__debug") unless Dir.exist?("__debug")
       File.write("__debug/sync-purchase-errors.json", JSON.pretty_generate(errors))
     end
   end
