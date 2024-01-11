@@ -45,6 +45,9 @@ class Purchase < ApplicationRecord
   end
 
   def self.unpaid
-    where.missing(:payments).order(created_at: :asc)
+    includes(:supplier)
+      .where
+      .missing(:payments)
+      .order(created_at: :asc)
   end
 end

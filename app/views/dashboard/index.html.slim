@@ -1,6 +1,55 @@
-h1
-  | Dashboard
-h2
-  | $666 debt for 12 suppliers: ...
-h2
-  | 150 items customers paid for, order them soon: ...
+nav
+  ul
+    li
+      h1.classic Dashboard 
+
+main.wide.no-bd.flex.justify-between.flex-col.gap
+  .table-card
+    h3.flex.justify-between
+      span Not Purchased Sales
+      span = @sale_debts.size
+    table role="grid" data-controller="table"
+      thead
+        th Title
+        th Variation
+        th Amount
+      tbody
+        - @sale_debts.first(5).each do |debt|
+          - if debt[:variation_id].present?
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_path(debt[:product_id])
+              data-table-id-param=debt[:variation_id]
+            )
+              td = debt[:title]
+              td = [debt[:version], debt[:color], debt[:size]].find(&:present?)
+              td = debt[:variations_sales_count] - debt[:purchase_count]
+          - else
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_path(debt[:product_id])
+              data-table-id-param=debt[:product_id]
+            )
+              td = debt[:full_title]
+              td -
+              td = debt[:products_sales_count] - debt[:purchase_count]
+        tr
+          td colspan="3" = link_to "See More...", debts_path
+
+  .table-card
+    h3.flex.justify-between
+      span Suppliers Debt
+      span = format_money @total_suppliers_debt, "$"
+    table role="grid" data-controller="table"
+      thead
+        th Supplier
+        th.right Debt, $
+      tbody
+        - @suppliers_debts.each do |supplier_debt|
+          - next if supplier_debt[:total_debt] == 0
+          tr.hoverable(
+            data-action="click->table#goTo"
+            data-table-url-param=supplier_path(supplier_debt[:supplier])
+          )
+            td = supplier_debt[:supplier].title
+            td.mono.right = format_money supplier_debt[:total_debt]

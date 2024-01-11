@@ -3,7 +3,7 @@
 = render "_shared/nav-show", model: @sale, custom_heading: true
   h1 = "Sale #{@sale.woo_id}"
 
-main.inner.v-flex.w-pd
+main.wide.flex.flex-col.gap.w-pd
   .cards
     .card.grow
       .title Status

@@ -544,24 +544,17 @@ h1.classic {
   letter-spacing: -1px;
 }
 
-main.inner {
+main.wide {
   margin: 0 -4rem;
   border: 1px solid var(--table-border-color);
   border-radius: var(--border-radius);
 }
 
-main.inner.no-bd {
+main.wide.no-bd {
   border: none;
 }
 
-main.inner.v-flex {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: calc(var(--spacing) * 2);
-}
-
-main.inner.w-pd {
+main.wide.w-pd {
   padding: 2.5vw 4vw 5vw 2vw;
 }
 
@@ -684,6 +677,19 @@ tr.selected td {
   }
   tr.hoverable.selected:hover td {
     color: var(--color);
+  }
+}
+
+.flex {
+  display: flex;
+  &.justify-between {
+    justify-content: space-between;
+  }
+  &.flex-col {
+    flex-direction: column;
+  }
+  &.gap {
+    gap: calc(var(--spacing) * 2);
   }
 }
 

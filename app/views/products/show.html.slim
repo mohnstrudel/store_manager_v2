@@ -5,7 +5,7 @@
     h1 = @product.title
     h2 = @product.full_title
 
-main.inner.v-flex.w-pd
+main.wide.flex.flex-col.gap.w-pd
   .cards
     - if @product.image.present?
       img.product src="#{@product.image}"

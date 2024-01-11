@@ -5,7 +5,7 @@
     = @purchase.product.full_title
     i.icn.is-link = link_to "🔗", @purchase.product
 
-main.inner.v-flex.w-pd
+main.wide.flex.flex-col.gap.w-pd
   .cards
     - if @purchase.product.image.present?
       img.product src="#{@purchase.product.image}"

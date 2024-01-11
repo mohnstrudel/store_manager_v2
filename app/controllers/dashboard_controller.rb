@@ -1,5 +1,17 @@
 class DashboardController < ApplicationController
   def index
+    @suppliers_debts = Supplier
+      .includes(purchases: :payments)
+      .map do |supplier|
+        {
+          supplier:,
+          total_debt: supplier.purchases.reduce(0) do |memo, purchase|
+            memo + purchase.debt
+          end
+        }
+      end
+    @total_suppliers_debt = @suppliers_debts.pluck(:total_debt).sum
+    @sale_debts = debts
   end
 
   def debts

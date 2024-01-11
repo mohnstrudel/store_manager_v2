@@ -8,13 +8,18 @@ export default class extends Controller {
 
     event.preventDefault();
 
-    const url =
-      window.location.origin +
-      event.params.url +
-      "?selected=" +
-      event.params.id +
-      "#" +
-      event.params.id;
+    let url;
+    if (event.params.id) {
+      url =
+        window.location.origin +
+        event.params.url +
+        "?selected=" +
+        event.params.id +
+        "#" +
+        event.params.id;
+    } else {
+      url = window.location.origin + event.params.url;
+    }
 
     if (event.metaKey || event.ctrlKey) {
       window.open(url, "_blank");
