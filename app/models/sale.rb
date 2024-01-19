@@ -48,7 +48,7 @@ class Sale < ApplicationRecord
     woo_created_at || created_at
   end
 
-  def self.wip_statuses
+  def self.active_status_names
     [
       "partially-paid",
       "po_fully_paid",
@@ -60,7 +60,7 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
-  def self.list_statuses
+  def self.status_names
     # https://woocommerce.com/document/managing-orders/
     [
       "cancelled",
@@ -82,9 +82,5 @@ class Sale < ApplicationRecord
 
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
-  end
-
-  def self.has_wip_status?(status)
-    wip_statuses.include?(status)
   end
 end
