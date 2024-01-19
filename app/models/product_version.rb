@@ -9,6 +9,8 @@
 #  version_id :bigint
 #
 class ProductVersion < ApplicationRecord
+  after_save ->(product_version) { product_version.product.set_full_title }
+
   db_belongs_to :product
   db_belongs_to :version
 end

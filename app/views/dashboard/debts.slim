@@ -30,24 +30,18 @@ main.inner.no-bd.v-flex
       thead
         th Title
         th Variation?
-        th Size
+        th Debt
       tbody
-        - @sales_debt.each do |debt|
-            - if debt[:variation_id].present?
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=product_path(debt[:product_id])
-                data-table-id-param=debt[:variation_id]
-              )
-                td = debt[:title]
-                td = [debt[:version], debt[:color], debt[:size]].find(&:present?)
-                td = debt[:variations_sales_count] - debt[:purchase_count]
-            - else
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=product_path(debt[:product_id])
-                data-table-id-param=debt[:product_id]
-              )
-                td = debt[:full_title]
-                td -
-                td = debt[:products_sales_count] - debt[:purchase_count]
+        - @debts.each do |product|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_path(product.sale_variation_id.presence || product.id)
+              data-table-id-param=product.id
+            )
+              td = product.sale_title
+              - if product.sale_variation_id.present?
+                td = product.variation_name
+              - else
+                td
+              td = product.debt
+

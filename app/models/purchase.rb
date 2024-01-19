@@ -4,6 +4,7 @@
 #
 #  id              :bigint           not null, primary key
 #  amount          :integer
+#  full_title      :string
 #  item_price      :decimal(8, 2)
 #  order_reference :string
 #  purchase_date   :datetime
@@ -14,6 +15,8 @@
 #  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
+  paginates_per 50
+
   validates :amount, presence: true
   validates :item_price, presence: true
 
@@ -23,8 +26,6 @@ class Purchase < ApplicationRecord
 
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments
-
-  delegate :full_title, to: :product
 
   def paid
     payments.pluck(:value).sum
@@ -69,29 +70,42 @@ class Purchase < ApplicationRecord
       id = if parsed_purchase[:orderreference] == "custom"
         Base64.encode64(parsed_purchase.to_s).last(64)
       else
-        parsed_purchase[:orderreference]
+        parsed_purchase[:orderreference].to_s
       end
       next if Purchase.find_by(order_reference: id).present?
+      brand_identifier = parsed_purchase[:product].match(/vom|von/)
+      brand = if brand_identifier.present?
+        brand_title = parsed_purchase[:product]
+          .split(brand_identifier[0])
+          .last
+          .strip
+        Brand.find_or_create_by(title: brand_title)
+      end
       title, franchise_title, shape_title = product_job
         .parse_product_name(parsed_purchase[:product])
-      product = Product.find_or_create_by({
+      product_scaffold = {
         title:,
         franchise: Franchise.find_or_create_by(title: franchise_title),
         shape: Shape.find_or_create_by(title: shape_title)
-      })
-      variation = if parsed_purchase[:version].present?
-        color = if parsed_purchase[:version].in?(unknown_colors)
-          Color.find_or_create_by(value: parsed_purchase[:version].capitalize)
-        else
-          Color.find_by("lower(value) = ?", parsed_purchase[:version].downcase)
-        end
+      }
+      product = if brand.present?
+        brand.products.find_or_create_by(product_scaffold)
+      else
+        Product.find_or_create_by(product_scaffold)
+      end
+      variation, size, version, color = if parsed_purchase[:version].present?
         size = Size.find_by(
           "lower(value) = ?", parsed_purchase[:version].downcase
         )
         version = Version.find_by(
           "lower(value) = ?", parsed_purchase[:version].downcase
         )
-        if {size:, color:, version:}.compact_blank.blank?
+        color = if parsed_purchase[:version].in?(unknown_colors)
+          Color.find_or_create_by(value: parsed_purchase[:version].capitalize)
+        else
+          Color.find_by("lower(value) = ?", parsed_purchase[:version].downcase)
+        end
+        variation = if {size:, color:, version:}.compact_blank.blank?
           Variation.find_or_create_by({
             product:,
             version: Version.create(value: parsed_purchase[:version])
@@ -101,7 +115,15 @@ class Purchase < ApplicationRecord
             {product:}.merge({size:, color:, version:}.compact_blank)
           )
         end
+        [variation, size, version, color]
       end
+      full_title = Product.generate_full_title(
+        product,
+        brand&.title,
+        size&.value,
+        version&.value,
+        color&.value
+      )
       purchase_date = if parsed_purchase[:purchasedate].present?
         Date.parse(parsed_purchase[:purchasedate])
       else
@@ -112,6 +134,7 @@ class Purchase < ApplicationRecord
         order_reference: id,
         item_price: parsed_purchase[:itemprice],
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
+        full_title:,
         purchase_date:,
         product:,
         variation:

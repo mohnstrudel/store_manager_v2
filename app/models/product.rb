@@ -16,7 +16,7 @@
 class Product < ApplicationRecord
   paginates_per 50
 
-  after_create :calculate_full_title
+  after_create :set_full_title
 
   validates :title, presence: true
 
@@ -44,24 +44,36 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :variations, dependent: :destroy
 
-  private
-
-  def calculate_full_title
-    values_from = ->(i) { i&.pluck(:value)&.join(", ") }
-    name = (title == franchise.title) ? title : "#{franchise.title} — #{title}"
-    sizes_string = values_from.call(sizes)
-    versions_string = values_from.call(versions)
-    brands_string = brands.pluck(:title).join(", ")
-    colors_string = values_from.call(colors)
-    title_parts = [
-      name,
-      sizes_string.presence,
-      versions_string.presence,
-      "Resin #{shape.title}",
-      brands_string.presence,
-      colors_string.presence
-    ]
-    self.full_title = title_parts.compact.join(" | ")
+  def set_full_title
+    self.full_title = Product.generate_full_title(self)
     save
+  end
+
+  def self.generate_full_title(
+    product,
+    brand = nil,
+    size = nil,
+    version = nil,
+    color = nil
+  )
+    name = (product.title == product.franchise.title) ?
+      product.title :
+      "#{product.franchise.title} — #{product.title}"
+    format_values = ->(product) { product&.pluck(:value)&.join(", ") }
+    sizes, versions, colors =
+      [
+        format_values.call(product.sizes),
+        format_values.call(product.versions),
+        format_values.call(product.colors)
+      ]
+    brands = product.brands.pluck(:title).join(", ")
+    [
+      name,
+      size.presence || sizes.presence,
+      version.presence || versions.presence,
+      color.presence || colors.presence,
+      "Resin #{product.shape.title}",
+      brand.presence || brands.presence
+    ].compact.join(" | ")
   end
 end

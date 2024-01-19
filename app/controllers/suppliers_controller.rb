@@ -8,6 +8,7 @@ class SuppliersController < ApplicationController
 
   # GET /suppliers/1 or /suppliers/1.json
   def show
+    @purchases = @supplier.purchases.includes(:product, variation: :version)
   end
 
   # GET /suppliers/new

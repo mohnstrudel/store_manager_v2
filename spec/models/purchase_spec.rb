@@ -1,3 +1,19 @@
+# == Schema Information
+#
+# Table name: purchases
+#
+#  id              :bigint           not null, primary key
+#  amount          :integer
+#  full_title      :string
+#  item_price      :decimal(8, 2)
+#  order_reference :string
+#  purchase_date   :datetime
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  product_id      :bigint
+#  supplier_id     :bigint           not null
+#  variation_id    :bigint
+#
 require "rails_helper"
 
 RSpec.describe Purchase do
