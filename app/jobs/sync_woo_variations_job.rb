@@ -43,6 +43,9 @@ class SyncWooVariationsJob < ApplicationJob
         end
         attrs
       end
+      next if attributes.none? { |el|
+        el[:size].present? || el[:color].present? || el[:version].present?
+      }
       result.merge(*attributes.compact.reject(&:empty?))
     end
   end
