@@ -35,8 +35,8 @@ main.inner.no-bd.v-flex
         - @debts.each do |product|
             tr.hoverable(
               data-action="click->table#goTo"
-              data-table-url-param=product_path(product.sale_variation_id.presence || product.id)
-              data-table-id-param=product.id
+              data-table-url-param=product_path(product.id)
+              data-table-id-param=(product.sale_variation_id.presence || product.id)
             )
               td = product.sale_title
               - if product.sale_variation_id.present?
