@@ -73,12 +73,8 @@ class Purchase < ApplicationRecord
         parsed_purchase[:orderreference].to_s
       end
       next if Purchase.find_by(order_reference: id).present?
-      brand_identifier = parsed_purchase[:product].match(/vom|von/)
-      brand = if brand_identifier.present?
-        brand_title = parsed_purchase[:product]
-          .split(brand_identifier[0])
-          .last
-          .strip
+      brand_title = Brand.parse_title(parsed_purchase[:product])
+      brand = if brand_title.present?
         Brand.find_or_create_by(title: brand_title)
       end
       title, franchise_title, shape_title = product_job

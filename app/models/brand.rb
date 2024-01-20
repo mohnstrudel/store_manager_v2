@@ -12,4 +12,14 @@ class Brand < ApplicationRecord
 
   has_many :product_brands, dependent: :destroy
   has_many :products, through: :product_brands
+
+  def self.parse_title(product_title)
+    brand_identifier = product_title.match(/vom|von/)
+    if brand_identifier.present?
+      product_title
+        .split(brand_identifier[0])
+        .last
+        .strip
+    end
+  end
 end

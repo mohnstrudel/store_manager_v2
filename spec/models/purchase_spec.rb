@@ -31,8 +31,18 @@ RSpec.describe Purchase do
       title, franchise_title, shape_title = first_parsed_product
       franchise = create(:franchise, title: franchise_title)
       shape = create(:shape, title: shape_title)
+      brand_title = Brand.parse_title(parsed_file.first[:product])
+      brand = if brand_title.present?
+        create(:brand, title: brand_title)
+      end
       version = create(:version, value: parsed_file.first[:version])
-      product = create(:product, title:, franchise:, shape:)
+      product = create(
+        :product,
+        title:,
+        franchise:,
+        shape:
+      )
+      create(:product_brand, product:, brand:) if brand.present?
       create(
         :variation,
         product: product,
