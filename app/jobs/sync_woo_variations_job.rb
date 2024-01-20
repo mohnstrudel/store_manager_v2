@@ -42,12 +42,10 @@ class SyncWooVariationsJob < ApplicationJob
           attrs[:color] = attr[:option]
         end
         attrs
-      end
-      next if attributes.none? { |el|
-        el[:size].present? || el[:color].present? || el[:version].present?
-      }
-      result.merge(*attributes.compact.reject(&:empty?))
-    end
+      end.reject(&:empty?)
+      next if attributes.empty?
+      result.merge(*attributes)
+    end.compact_blank
   end
 
   def create(parsed_woo_variations)
