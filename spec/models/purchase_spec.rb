@@ -8,6 +8,7 @@
 #  item_price      :decimal(8, 2)
 #  order_reference :string
 #  purchase_date   :datetime
+#  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  product_id      :bigint

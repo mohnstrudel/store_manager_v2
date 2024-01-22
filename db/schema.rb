@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_12_074256) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_22_095800) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -136,6 +136,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_12_074256) do
     t.bigint "variation_id"
     t.datetime "purchase_date"
     t.string "full_title"
+    t.string "synced"
     t.index ["product_id"], name: "index_purchases_on_product_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
     t.index ["variation_id"], name: "index_purchases_on_variation_id"

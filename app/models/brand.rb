@@ -19,7 +19,7 @@ class Brand < ApplicationRecord
     if brand_identifier.present?
       brand_identifier[1]
     elsif studio_identifier.present?
-      studio_identifier[0]
+      studio_identifier[1]
     else
       brand_titles = Brand.pluck(:title)
       brand_titles.find { |title|

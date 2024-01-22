@@ -8,6 +8,7 @@
 #  item_price      :decimal(8, 2)
 #  order_reference :string
 #  purchase_date   :datetime
+#  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  product_id      :bigint
@@ -49,6 +50,10 @@ class Purchase < ApplicationRecord
 
   def self.sync_purchases_from_file(file = File.read("purchases.json"))
     unknown_colors = ["pink", "white", "weiß", "schwarz"]
+    size_match = /1[\/:]([3456]|3\.5|1|7)/
+    resin_statue_match = /Resin Statue/i
+    deposit_match = /Deposit/i
+    copyright_match = /（Copyright）/i
     required = [
       :amount,
       :supplier,
@@ -67,25 +72,21 @@ class Purchase < ApplicationRecord
         errors.push({empty_keys:, parsed_purchase:})
         next
       end
-      id = if parsed_purchase[:orderreference] == "custom"
-        Base64.encode64(parsed_purchase.to_s).last(64)
-      else
-        parsed_purchase[:orderreference].to_s
-      end
-      next if Purchase.find_by(order_reference: id).present?
+      synced = Base64.encode64(parsed_purchase.to_s).last(64)
+      next if Purchase.find_by(synced:).present?
       brand_title = Brand.parse_title(parsed_purchase[:product])
+      product_name = parsed_purchase[:product]
+        .sub(size_match, "")
+        .sub(resin_statue_match, "")
+        .sub(deposit_match, "")
+        .sub(copyright_match, "")
+        .strip
       brand = if brand_title.present?
-        product_name = parsed_purchase[:product]
-          .split(brand_title)
-          .compact_blank
-          .first
-          .strip
-          .gsub(/\A\s*-\s*/, "")
-          .gsub(/\A1\/[456]\s/, "")
+        product_name = product_name.sub(/#{brand_title}/i, "").strip
         Brand.find_or_create_by(title: brand_title)
       end
       title, franchise_title, shape_title = product_job
-        .parse_product_name(product_name.presence || parsed_purchase[:product])
+        .parse_product_name(product_name)
       product_scaffold = {
         title:,
         franchise: Franchise.find_or_create_by(title: franchise_title),
@@ -100,6 +101,10 @@ class Purchase < ApplicationRecord
         size = Size.find_by(
           "lower(value) = ?", parsed_purchase[:version].downcase
         )
+        if size.blank?
+          matched_size = parsed_purchase[:product].match(size_match)
+          size = Size.find_or_create_by(value: matched_size[1])
+        end
         version = Version.find_by(
           "lower(value) = ?", parsed_purchase[:version].downcase
         )
@@ -134,7 +139,7 @@ class Purchase < ApplicationRecord
       end
       purchase = Purchase.new({
         amount: parsed_purchase[:amount],
-        order_reference: id,
+        order_reference: parsed_purchase[:orderreference],
         item_price: parsed_purchase[:itemprice],
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
         full_title:,
