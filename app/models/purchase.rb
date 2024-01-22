@@ -75,10 +75,17 @@ class Purchase < ApplicationRecord
       next if Purchase.find_by(order_reference: id).present?
       brand_title = Brand.parse_title(parsed_purchase[:product])
       brand = if brand_title.present?
+        product_name = parsed_purchase[:product]
+          .split(brand_title)
+          .compact_blank
+          .first
+          .strip
+          .gsub(/\A\s*-\s*/, "")
+          .gsub(/\A1\/[456]\s/, "")
         Brand.find_or_create_by(title: brand_title)
       end
       title, franchise_title, shape_title = product_job
-        .parse_product_name(parsed_purchase[:product])
+        .parse_product_name(product_name.presence || parsed_purchase[:product])
       product_scaffold = {
         title:,
         franchise: Franchise.find_or_create_by(title: franchise_title),

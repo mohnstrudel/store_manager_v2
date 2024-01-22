@@ -14,12 +14,17 @@ class Brand < ApplicationRecord
   has_many :products, through: :product_brands
 
   def self.parse_title(product_title)
-    brand_identifier = product_title.match(/vom|von/)
+    brand_identifier = product_title.match(/vo[nm]\s+(.+)/)
+    studio_identifier = product_title.match(/(.*?studios|.*?studio)\s*(.*)/i)
     if brand_identifier.present?
-      product_title
-        .split(brand_identifier[0])
-        .last
-        .strip
+      brand_identifier[1]
+    elsif studio_identifier.present?
+      studio_identifier[0]
+    else
+      brand_titles = Brand.pluck(:title)
+      brand_titles.find { |title|
+        product_title.match(title)
+      }
     end
   end
 end
