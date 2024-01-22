@@ -30,6 +30,8 @@ main.inner.no-bd.v-flex
       thead
         th Title
         th Variation?
+        th Sold
+        th Purchased
         th Debt
       tbody
         - @debts.each do |product|
@@ -43,5 +45,7 @@ main.inner.no-bd.v-flex
                 td = product.variation_name
               - else
                 td
+              td = product.sold
+              td = product.purchased
               td = product.debt
 
