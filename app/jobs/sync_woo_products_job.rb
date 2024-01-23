@@ -46,6 +46,8 @@ class SyncWooProductsJob < ApplicationJob
 
   def parse_product_name(woo_product_name)
     woo_name = sanitize(woo_product_name)
+    size = Size.parse_size(woo_name)
+    woo_name.gsub(Size.size_match, "")
     franchise = woo_name.include?(" - ") ?
       woo_name.split(" - ").first :
       woo_name.split(" | ").first
@@ -56,7 +58,7 @@ class SyncWooProductsJob < ApplicationJob
       woo_name.split(" | ").first.split(" - ").last :
       franchise
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
-    [title, franchise, shape[0]]
+    [title, franchise, shape[0], size]
   end
 
   def parse(woo_product)

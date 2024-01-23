@@ -51,7 +51,7 @@ class SyncWooVariationsJob < ApplicationJob
   def create(parsed_woo_variations)
     parsed_woo_variations.each do |variation|
       size = if variation[:size].present?
-        Size.find_or_create_by(value: sanitize(variation[:size]))
+        Size.find_or_create_by(value: Size.parse_size(variation[:size]))
       end
       version = if variation[:version].present?
         Version.find_or_create_by(value: sanitize(variation[:version]))

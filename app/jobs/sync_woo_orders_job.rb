@@ -30,8 +30,9 @@ class SyncWooOrdersJob < ApplicationJob
           variation_type = Variation.types.values.find do |type|
             type.include? order_product[:variation][:display_key]
           end.first
+          size = Size.parse_size(order_product[:variation][:display_value])
           variation_value = variation_type.constantize.find_or_create_by({
-            value: order_product[:variation][:display_value]
+            value: size.presence || order_product[:variation][:display_value]
           })
           Variation.find_or_create_by({
             :woo_id => order_product[:variation_woo_id],

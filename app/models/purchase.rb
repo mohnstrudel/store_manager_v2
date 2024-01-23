@@ -50,7 +50,6 @@ class Purchase < ApplicationRecord
 
   def self.sync_purchases_from_file(file = File.read("purchases.json"))
     unknown_colors = ["pink", "white", "weiß", "schwarz"]
-    size_match = /1[\/:]([3456]|3\.5|1|7)/
     resin_statue_match = /Resin Statue/i
     deposit_match = /Deposit/i
     copyright_match = /（Copyright）/i
@@ -76,7 +75,6 @@ class Purchase < ApplicationRecord
       next if Purchase.find_by(synced:).present?
       brand_title = Brand.parse_title(parsed_purchase[:product])
       product_name = parsed_purchase[:product]
-        .sub(size_match, "")
         .sub(resin_statue_match, "")
         .sub(deposit_match, "")
         .sub(copyright_match, "")
@@ -85,7 +83,7 @@ class Purchase < ApplicationRecord
         product_name = product_name.sub(/#{brand_title}/i, "").strip
         Brand.find_or_create_by(title: brand_title)
       end
-      title, franchise_title, shape_title = product_job
+      title, franchise_title, shape_title, parsed_size = product_job
         .parse_product_name(product_name)
       product_scaffold = {
         title:,
@@ -97,13 +95,11 @@ class Purchase < ApplicationRecord
       else
         Product.find_or_create_by(product_scaffold)
       end
+      product.sizes << Size.find_or_create_by(value: parsed_size) if parsed_size.present?
       variation, size, version, color = if parsed_purchase[:version].present?
-        size = Size.find_by(
-          "lower(value) = ?", parsed_purchase[:version].downcase
-        )
-        if size.blank?
-          matched_size = parsed_purchase[:product].match(size_match)
-          size = Size.find_or_create_by(value: matched_size[1])
+        parsed_size = Size.parse_size(parsed_purchase[:version])
+        if parsed_size.present?
+          size = Size.find_by(value: parsed_size)
         end
         version = Version.find_by(
           "lower(value) = ?", parsed_purchase[:version].downcase
