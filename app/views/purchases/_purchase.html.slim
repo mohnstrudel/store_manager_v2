@@ -1,6 +1,13 @@
 tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-url-param=purchase_path(purchase)
   td = purchase.id
-  td = purchase.product.full_title
+  td
+    = purchase.product.full_title
+    - if purchase.variation.present?
+      ul.product-variations
+        li
+          = purchase.variation.which.model_name
+          | : 
+          = purchase.variation.which.value
   td.right = purchase.amount
   td.right.mono = format_money purchase.item_price
   td.right.mono = format_money purchase.total_price

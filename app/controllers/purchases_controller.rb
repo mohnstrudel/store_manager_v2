@@ -4,7 +4,7 @@ class PurchasesController < ApplicationController
   # GET /purchases or /purchases.json
   def index
     @purchases = Purchase
-      .includes(:product, :variation, :supplier, :payments)
+      .includes(:product, :supplier, :payments, variation: [:color, :size, :version])
       .order(id: :desc)
       .page(params[:page])
   end
