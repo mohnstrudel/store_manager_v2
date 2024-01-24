@@ -7,11 +7,10 @@ class DashboardController < ApplicationController
     @debts = Product
       .select(<<-SQL.squish)
         products.*,
-        COALESCE(sold_subquery.total_qty, 0) AS sold,
-        COALESCE(purchased_subquery.total_amount, 0) AS purchased,
-        COALESCE(sold_subquery.total_qty, 0) -
-          COALESCE(purchased_subquery.total_amount, 0) AS debt,
-        purchased_subquery.full_title AS purchase_title,
+        MAX(COALESCE(sold_subquery.total_qty, 0)) AS sold,
+        MAX(COALESCE(purchased_subquery.total_amount, 0)) AS purchased,
+        MAX(COALESCE(sold_subquery.total_qty, 0)) -
+          MAX(COALESCE(purchased_subquery.total_amount, 0)) AS debt,
         sold_subquery.full_title AS sale_title,
         sold_subquery.variation_id AS sale_variation_id,
         variations_subquery.variation_name AS variation_name
@@ -26,9 +25,6 @@ class DashboardController < ApplicationController
       SQL
       .group(<<-SQL.squish)
         products.id,
-        sold_subquery.total_qty,
-        purchased_subquery.total_amount,
-        purchased_subquery.full_title,
         sold_subquery.full_title,
         sold_subquery.variation_id,
         variations_subquery.variation_name
@@ -57,10 +53,9 @@ class DashboardController < ApplicationController
     Purchase
       .select(<<-SQL.squish)
         product_id,
-        full_title,
         SUM(amount) AS total_amount
       SQL
-      .group("product_id, full_title")
+      .group("product_id")
   end
 
   def variations_subquery

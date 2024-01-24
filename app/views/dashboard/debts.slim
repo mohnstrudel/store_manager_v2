@@ -38,9 +38,9 @@ main.inner.no-bd.v-flex
             tr.hoverable(
               data-action="click->table#goTo"
               data-table-url-param=product_path(product.id)
-              data-table-id-param=(product.sale_variation_id.presence || product.id)
+              data-table-id-param=(product.id)
             )
-              td = product.sale_title
+              td = product.full_title
               - if product.sale_variation_id.present?
                 td = product.variation_name
               - else
