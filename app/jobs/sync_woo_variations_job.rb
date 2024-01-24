@@ -2,6 +2,7 @@ class SyncWooVariationsJob < ApplicationJob
   queue_as :default
 
   include Gettable
+  include Sanitizable
 
   def perform(products_with_variations)
     woo_variations = get_variations(products_with_variations, "publish")
@@ -31,19 +32,22 @@ class SyncWooVariationsJob < ApplicationJob
         product_woo_id: variation[:parent_id],
         store_link: variation[:permalink]
       }
+
       attributes = variation[:attributes].map do |attr|
         attrs = {}
+        option = smart_titleize(sanitize(attr[:option]))
         case attr[:name]
         when *Variation.types[:version]
-          attrs[:version] = attr[:option]
+          attrs[:version] = option
         when *Variation.types[:size]
-          attrs[:size] = attr[:option]
+          attrs[:size] = option
         when *Variation.types[:color]
-          attrs[:color] = attr[:option]
+          attrs[:color] = option
         end
         attrs
       end.reject(&:empty?)
       next if attributes.empty?
+
       result.merge(*attributes)
     end.compact_blank
   end
@@ -53,13 +57,17 @@ class SyncWooVariationsJob < ApplicationJob
       size = if variation[:size].present?
         Size.find_or_create_by(value: Size.parse_size(variation[:size]))
       end
+
       version = if variation[:version].present?
         Version.find_or_create_by(value: sanitize(variation[:version]))
       end
+
       color = if variation[:color].present?
         Color.find_or_create_by(value: sanitize(variation[:color]))
       end
+
       product = Product.find_or_create_by(woo_id: variation[:product_woo_id])
+
       Variation.create({
         woo_id: variation[:woo_id],
         store_link: variation[:store_link],
@@ -69,11 +77,5 @@ class SyncWooVariationsJob < ApplicationJob
         product:
       })
     end
-  end
-
-  private
-
-  def sanitize(string)
-    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end

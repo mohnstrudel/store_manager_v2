@@ -1,28 +1,10 @@
-# == Schema Information
-#
-# Table name: purchases
-#
-#  id              :bigint           not null, primary key
-#  amount          :integer
-#  full_title      :string
-#  item_price      :decimal(8, 2)
-#  order_reference :string
-#  purchase_date   :datetime
-#  synced          :string
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  product_id      :bigint
-#  supplier_id     :bigint           not null
-#  variation_id    :bigint
-#
 require "rails_helper"
 
-RSpec.describe Purchase do
+RSpec.describe SyncPurchasesJob do
+  let(:job) { described_class.new }
   let(:product_job) { SyncWooProductsJob.new }
   let(:file) { file_fixture("purchases.json").read }
-  let(:parsed_file) {
-    JSON.parse(file, symbolize_names: true)
-  }
+  let(:parsed_file) { JSON.parse(file, symbolize_names: true) }
   let(:first_parsed_product) {
     product_job.parse_product_name(parsed_file.first[:product])
   }
@@ -32,7 +14,7 @@ RSpec.describe Purchase do
       title, franchise_title, shape_title = first_parsed_product
       franchise = create(:franchise, title: franchise_title)
       shape = create(:shape, title: shape_title)
-      brand_title = Brand.parse_title(parsed_file.first[:product])
+      brand_title = Brand.parse_brand(parsed_file.first[:product])
       brand = if brand_title.present?
         create(:brand, title: brand_title)
       end
@@ -52,19 +34,19 @@ RSpec.describe Purchase do
         woo_id: nil
       )
 
-      described_class.sync_purchases_from_file(file)
+      job.sync_purchases_from_file(file)
     }
 
     it "imports all purchases from the file" do
-      expect(described_class.all.size).to eq(parsed_file.size)
+      expect(Purchase.all.size).to eq(parsed_file.size)
     end
 
     it "use existing products" do
-      expect(described_class.first.product).to eq(Product.first)
+      expect(Purchase.first.product).to eq(Product.first)
     end
 
     it "use existing variations" do
-      expect(described_class.first.variation).to eq(Variation.first)
+      expect(Purchase.first.variation).to eq(Variation.first)
     end
 
     it "imports all payments" do

@@ -2,6 +2,7 @@ class SyncWooProductsJob < ApplicationJob
   queue_as :default
 
   include Gettable
+  include Sanitizable
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
   STATUS = "publish"
@@ -45,9 +46,8 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def parse_product_name(woo_product_name)
-    woo_name = sanitize(woo_product_name)
-    size = Size.parse_size(woo_name)
-    woo_name.gsub(Size.size_match, "")
+    woo_name = smart_titleize(sanitize(woo_product_name))
+      .sub(Size.size_match, "")
     franchise = woo_name.include?(" - ") ?
       woo_name.split(" - ").first :
       woo_name.split(" | ").first
@@ -58,7 +58,7 @@ class SyncWooProductsJob < ApplicationJob
       woo_name.split(" | ").first.split(" - ").last :
       franchise
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
-    [title, franchise, shape[0], size]
+    [title, franchise, shape[0]]
   end
 
   def parse(woo_product)
@@ -79,7 +79,7 @@ class SyncWooProductsJob < ApplicationJob
     if woo_product[:attributes].present?
       attributes = woo_product[:attributes].map do |attr|
         attrs = {}
-        options = attr[:options].map(&method(:sanitize))
+        options = attr[:options].map { |i| smart_titleize(sanitize(i)) }
         case attr[:name]
         when *Variation.types[:version]
           attrs[:versions] = options
@@ -115,11 +115,5 @@ class SyncWooProductsJob < ApplicationJob
     parsed_product = parse(woo_product)
     return if parsed_product.blank?
     create(parsed_product)
-  end
-
-  private
-
-  def sanitize(string)
-    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end
