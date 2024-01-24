@@ -160,7 +160,7 @@ class SyncPurchasesJob < ApplicationJob
       size = Size.find_by(value: variation_size)
     end
 
-    version = Version.find_by(value: parsed_version)
+    version = Version.find_by("LOWER(value) LIKE ?", parsed_version.downcase)
 
     [color, size, version]
   end
