@@ -28,7 +28,8 @@ class SyncPurchasesJob < ApplicationJob
 
       product = if brand_title
         product_name = product_name.sub(/#{brand_title}/i, "").strip
-        brand = Brand.find_or_create_by(title: brand_title)
+        brand = Brand.find_by("LOWER(title) LIKE ?", brand_title.downcase) ||
+          Brand.create(title: brand_title)
         brand.products.find_or_create_by(scaffold_product(product_name))
       else
         Product.find_or_create_by(scaffold_product(product_name))
