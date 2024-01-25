@@ -57,4 +57,85 @@ RSpec.describe SyncPurchasesJob do
       expect(Payment.all.size).to eq(parsed_payments_size)
     end
   end
+
+  describe "#validate_keys" do
+    it "returns no errors and a false boolean indicating there are no validation errors" do
+      parsed_purchase = {
+        amount: 100,
+        supplier: "Supplier Name",
+        itemprice: 50,
+        orderreference: "Order Reference",
+        product: "Product Name",
+        purchasedate: "2022-01-01"
+      }
+      errors = []
+
+      result, has_errors = job.validate_keys(parsed_purchase, errors)
+
+      expect(result).to eq(errors)
+      expect(has_errors).to be(false)
+    end
+
+    it "returns errors and a true boolean indicating there are validation errors" do
+      parsed_purchase = {
+        amount: nil,
+        supplier: "Supplier Name",
+        itemprice: 50,
+        orderreference: "Order Reference",
+        product: "Product Name",
+        purchasedate: "2022-01-01"
+      }
+      errors = []
+
+      result, has_errors = job.validate_keys(parsed_purchase, errors)
+
+      expect(result).to eq(errors)
+      expect(has_errors).to be(true)
+    end
+  end
+
+  describe "sanitize_product_name" do
+    it "removes 'Resin Statue' from the string" do
+      expect(job.sanitize_product_name("Resin Statue | Example")).to eq("| Example")
+    end
+
+    it "removes 'Deposit' from the string" do
+      expect(job.sanitize_product_name("Deposit | Example")).to eq("| Example")
+    end
+
+    it "removes '（Copyright）' from the string" do
+      expect(job.sanitize_product_name("（Copyright） | Example")).to eq("| Example")
+    end
+
+    it "strips the string" do
+      expect(job.sanitize_product_name("  Example  ")).to eq("Example")
+    end
+  end
+
+  describe "#parse_versions" do
+    before {
+      @expected_color = create(:color, value: "Black")
+      @expected_size = create(:size, value: "1:1")
+      @expected_version = create(:version, value: "Deluxe")
+    }
+    let(:parsed_color_version) { "Black" }
+    let(:parsed_size_version) { "1:1" }
+    let(:parsed_version_version) { "Deluxe" }
+
+    it "returns color, size, and version" do
+      color, _, _ = job.parse_versions(parsed_color_version)
+      _, size, _ = job.parse_versions(parsed_size_version)
+      _, _, version = job.parse_versions(parsed_version_version)
+
+      expect(color).to eq(@expected_color)
+      expect(size).to eq(@expected_size)
+      expect(version).to eq(@expected_version)
+    end
+
+    it "handles unknown color" do
+      color, _, _ = job.parse_versions("Pink")
+
+      expect(color.value).to eq("Pink")
+    end
+  end
 end
