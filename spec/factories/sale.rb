@@ -5,7 +5,7 @@ FactoryBot.define do
     city { "Denkendorf" }
     company { "" }
     country { "DE" }
-    customer_id { 1 }
+    customer
     discount_total { BigDecimal("0.0") }
     note { "" }
     postcode { "73770" }

@@ -20,7 +20,7 @@ Rails.application.routes.draw do
     resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands
   end
 
-  post "webhook-order", to: "webhook#order_to_sale"
+  post "update-order", to: "webhook#update_sale"
 
   get "dashboard/index"
 
