@@ -9,6 +9,8 @@
 #  product_id :bigint
 #
 class ProductBrand < ApplicationRecord
+  after_save ->(product_brand) { product_brand.product.set_full_title }
+
   db_belongs_to :product
   db_belongs_to :brand
 end

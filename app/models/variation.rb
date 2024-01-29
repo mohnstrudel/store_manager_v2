@@ -41,16 +41,13 @@ class Variation < ApplicationRecord
   private
 
   def calculate_title
-    name = (product.title == product.franchise.title) ? product.title : "#{product.franchise.title} — #{product.title}"
-    title_parts = [
-      name,
-      size&.value || product.sizes.pluck(:value).join(", "),
-      version&.value || product.versions.pluck(:value).join(", "),
-      color&.value || product.colors.pluck(:value).join(", "),
-      "Resin #{product.shape.title}",
-      product.brands.pluck(:title).join(", ")
-    ]
-    self.title = title_parts.compact_blank.join(" | ")
+    self.title = Product.generate_full_title(
+      product,
+      nil,
+      size&.value,
+      version&.value,
+      color&.value
+    )
     save
   end
 end

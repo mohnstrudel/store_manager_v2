@@ -2,6 +2,7 @@ class SyncWooOrdersJob < ApplicationJob
   queue_as :default
 
   include Gettable
+  include Sanitizable
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
   ORDERS_SIZE = 1800
@@ -18,20 +19,24 @@ class SyncWooOrdersJob < ApplicationJob
       sale = Sale.find_or_create_by(order[:sale].merge({
         customer_id: Customer.find_or_create_by(order[:customer]).id
       }))
+
       order[:products].each do |order_product|
         product = Product.find_by(woo_id: order_product[:product_woo_id])
+
         if product.blank?
           job = SyncWooProductsJob.new
           job.get_product(order_product[:product_woo_id])
           product = Product.find_by(woo_id: order_product[:product_woo_id])
         end
         next if product.blank?
+
         variation = if order_product[:variation].present?
           variation_type = Variation.types.values.find do |type|
             type.include? order_product[:variation][:display_key]
           end.first
+          size = Size.parse_size(order_product[:variation][:display_value])
           variation_value = variation_type.constantize.find_or_create_by({
-            value: order_product[:variation][:display_value]
+            value: size.presence || order_product[:variation][:display_value]
           })
           Variation.find_or_create_by({
             :woo_id => order_product[:variation_woo_id],
@@ -39,6 +44,7 @@ class SyncWooOrdersJob < ApplicationJob
             :product => product
           }.compact)
         end
+
         ProductSale.find_or_create_by({
           woo_id: order_product[:order_woo_id],
           qty: order_product[:qty],
@@ -57,10 +63,12 @@ class SyncWooOrdersJob < ApplicationJob
 
   def parse(order)
     variation_types = Variation.types.values.flatten
+
     shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
       el.each { |k, v| memo[k] = v unless v.empty? }
       memo
     end
+
     {
       sale: {
         woo_id: order[:id],
@@ -93,7 +101,7 @@ class SyncWooOrdersJob < ApplicationJob
         variation = line_item[:meta_data]
           .find { |meta| variation_types.include? meta[:display_key] }
           &.slice(:display_key, :display_value)
-          &.transform_values { |v| sanitize(v) }
+          &.transform_values { |v| smart_titleize(sanitize(v)) }
         parsed_variation = variation.present? ?
           {variation_woo_id:, variation:}.compact :
           {}
@@ -105,11 +113,5 @@ class SyncWooOrdersJob < ApplicationJob
         }.merge(parsed_variation)
       }
     }
-  end
-
-  private
-
-  def sanitize(string)
-    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end

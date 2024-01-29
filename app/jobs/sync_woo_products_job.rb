@@ -2,6 +2,7 @@ class SyncWooProductsJob < ApplicationJob
   queue_as :default
 
   include Gettable
+  include Sanitizable
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
   STATUS = "publish"
@@ -44,26 +45,32 @@ class SyncWooProductsJob < ApplicationJob
     product.save
   end
 
-  def parse(woo_product)
-    return if woo_product[:name].blank?
-    woo_name = sanitize(woo_product[:name])
+  def parse_product_name(woo_product_name)
+    woo_name = smart_titleize(sanitize(woo_product_name))
+      .sub(Size.size_match, "")
     franchise = woo_name.include?(" - ") ?
       woo_name.split(" - ").first :
       woo_name.split(" | ").first
     if franchise.blank?
-      franchise = woo_product[:name]
+      franchise = woo_name
     end
     title = woo_name.include?(" - ") ?
       woo_name.split(" | ").first.split(" - ").last :
       franchise
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
+    [title, franchise, shape[0]]
+  end
+
+  def parse(woo_product)
+    return if woo_product[:name].blank?
+    title, franchise, shape = parse_product_name(woo_product[:name])
     image = woo_product[:images].present? ?
       woo_product[:images].first[:src] :
       ""
     product = {
       woo_id: woo_product[:id],
       store_link: woo_product[:permalink],
-      shape: shape[0],
+      shape:,
       variations: woo_product[:variations],
       title:,
       franchise:,
@@ -72,7 +79,7 @@ class SyncWooProductsJob < ApplicationJob
     if woo_product[:attributes].present?
       attributes = woo_product[:attributes].map do |attr|
         attrs = {}
-        options = attr[:options].map(&method(:sanitize))
+        options = attr[:options].map { |i| smart_titleize(sanitize(i)) }
         case attr[:name]
         when *Variation.types[:version]
           attrs[:versions] = options
@@ -108,11 +115,5 @@ class SyncWooProductsJob < ApplicationJob
     parsed_product = parse(woo_product)
     return if parsed_product.blank?
     create(parsed_product)
-  end
-
-  private
-
-  def sanitize(string)
-    string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
   end
 end

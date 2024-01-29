@@ -3,6 +3,7 @@
 = render "_shared/nav-index", model: @purchases
 
 main.inner data-controller="table"
+  = paginate @purchases
   table(role="grid")
     thead
       tr
@@ -16,3 +17,4 @@ main.inner data-controller="table"
         th Actions
     tbody
       = render @purchases, cache: true
+  = paginate @purchases

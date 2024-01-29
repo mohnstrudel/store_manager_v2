@@ -4,8 +4,11 @@
 #
 #  id              :bigint           not null, primary key
 #  amount          :integer
+#  full_title      :string
 #  item_price      :decimal(8, 2)
 #  order_reference :string
+#  purchase_date   :datetime
+#  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  product_id      :bigint
@@ -13,6 +16,8 @@
 #  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
+  paginates_per 50
+
   validates :amount, presence: true
   validates :item_price, presence: true
 
@@ -22,8 +27,6 @@ class Purchase < ApplicationRecord
 
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments
-
-  delegate :full_title, to: :product
 
   def paid
     payments.pluck(:value).sum

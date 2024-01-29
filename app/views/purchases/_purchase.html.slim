@@ -1,13 +1,21 @@
 tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-url-param=purchase_path(purchase)
   td = purchase.id
-  td = purchase.product.full_title
+  td
+    = purchase.product.full_title
+    - if purchase.variation.present?
+      ul.product-variations
+        li
+          = purchase.variation.which.model_name
+          | : 
+          = purchase.variation.which.value
   td.right = purchase.amount
   td.right.mono = format_money purchase.item_price
   td.right.mono = format_money purchase.total_price
   td.right.mono
-    progress.in-td value=purchase.progress max=100
+    progress.in-td value=purchase.progress max=100 class="#{class_names(finished: purchase.debt == 0, new: purchase.paid == 0)}"
     | -
-    = format_money purchase.debt
+    - if purchase.debt > 0
+      = format_money purchase.debt
   td = purchase.supplier.title
 
   - if action_name != "show"

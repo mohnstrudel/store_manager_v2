@@ -356,6 +356,24 @@ article.notice .icn {
 progress.in-td {
   display: block;
 }
+progress.in-td {
+  color: #f5b332c7;
+}
+progress.in-td::-moz-progress-bar {
+  background: #f5b332c7;
+}
+progress.in-td::-webkit-progress-value {
+  background: #f5b332c7;
+}
+progress.finished {
+  color: var(--form-element-valid-active-border-color);
+}
+progress.finished::-moz-progress-bar {
+  background: var(--form-element-valid-active-border-color);
+}
+progress.finished::-webkit-progress-value {
+  background: var(--form-element-valid-active-border-color);
+}
 .sign {
   opacity: 0.5;
   display: inline;
@@ -667,4 +685,8 @@ tr.selected td {
   tr.hoverable.selected:hover td {
     color: var(--color);
   }
+}
+
+.table-card .pagination:first-of-type {
+  padding-top: 0;
 }

@@ -11,7 +11,9 @@ Rails.application.routes.draw do
   resources :products do
     get "/page/:page", action: :index, on: :collection
   end
-  resources :purchases
+  resources :purchases do
+    get "/page/:page", action: :index, on: :collection
+  end
   resources :payments, only: [:create]
 
   scope "/admin" do
@@ -21,7 +23,9 @@ Rails.application.routes.draw do
   post "webhook-order", to: "webhook#order_to_sale"
 
   get "dashboard/index"
+
   get "debts", to: "dashboard#debts"
+  get "debts/:page", to: "dashboard#debts"
 
   root "dashboard#index"
 end

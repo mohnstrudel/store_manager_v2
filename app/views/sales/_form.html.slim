@@ -4,7 +4,7 @@
   article
     h4 Status
     .radio-buttons
-      = f.collection_radio_buttons(:status, Sale.list_statuses, :itself, :itself) do |rdb|
+      = f.collection_radio_buttons(:status, Sale.status_names, :itself, :itself) do |rdb|
         = rdb.label(class: "radio-btn")
           = rdb.label class: "radio-btn--label"
           = rdb.radio_button

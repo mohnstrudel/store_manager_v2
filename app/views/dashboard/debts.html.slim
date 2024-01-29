@@ -1,0 +1,52 @@
+nav
+  ul
+    li
+      h1.classic Debts 
+
+main.inner.no-bd.v-flex
+  - if @unpaid_purchases.present?
+    .table-card
+      h3 Purchases Without Payments
+      table role="grid" data-controller="table"
+        thead
+          th Purchased Ago
+          th Supplier
+          th.right Cost
+          th Qty
+        tbody
+          - @unpaid_purchases.each do |unpaid|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=purchase_path(unpaid)
+            )
+              td.no-wrap = time_ago_in_words unpaid.created_at
+              td = unpaid.supplier.title
+              td.mono.right = format_money unpaid.item_price
+              td = unpaid.amount
+
+  .table-card
+    h3 Sales Debt
+    = paginate @debts
+    table role="grid" data-controller="table"
+      thead
+        th Title
+        th Variation?
+        th Sold
+        th Purchased
+        th Debt
+      tbody
+        - @debts.each do |product|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_path(product.id)
+              data-table-id-param=(product.id)
+            )
+              td = product.full_title
+              - if product.sale_variation_id.present?
+                td = product.variation_name
+              - else
+                td
+              td = product.sold
+              td = product.purchased
+              td = product.debt
+    = paginate @debts

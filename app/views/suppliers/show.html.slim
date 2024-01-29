@@ -17,4 +17,31 @@ main
     tbody
       = render @supplier
 
+- if @purchases.present?
+    .table-cards-group
+      .table-card
+        h3 Purchases
+        table role="grid" data-controller="table"
+          thead
+            th Title
+            th Variation?
+            th Time ago
+            th.right Item Price, $
+            th Qty
+          tbody
+            - @purchases.each_with_index do |purchase, idx|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=purchase_path(purchase)
+              )
+                - if purchase.variation.present?
+                  td = purchase.variation.title
+                  td = purchase.variation.which&.value
+                - else
+                  td = purchase.product.full_title
+                  td -
+                td.no-wrap = time_ago_in_words purchase.created_at
+                td.right.mono = format_money purchase.item_price
+                td = purchase.amount
+
 = button_to "Destroy this supplier", supplier_path(@supplier), method: :delete, class: "btn-danger"  
