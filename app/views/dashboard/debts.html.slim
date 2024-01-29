@@ -26,6 +26,7 @@ main.inner.no-bd.v-flex
 
   .table-card
     h3 Sales Debt
+    = paginate @debts
     table role="grid" data-controller="table"
       thead
         th Title
@@ -48,4 +49,4 @@ main.inner.no-bd.v-flex
               td = product.sold
               td = product.purchased
               td = product.debt
-
+    = paginate @debts

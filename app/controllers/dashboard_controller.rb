@@ -4,7 +4,13 @@ class DashboardController < ApplicationController
 
   def debts
     @unpaid_purchases = Purchase.unpaid
-    @debts = Product
+    @debts = Kaminari.paginate_array(sale_debts).page(params[:page]).per(25)
+  end
+
+  private
+
+  def sale_debts
+    Product
       .select(<<-SQL.squish)
         products.*,
         MAX(COALESCE(sold_subquery.total_qty, 0)) AS sold,
@@ -30,11 +36,8 @@ class DashboardController < ApplicationController
         variations_subquery.variation_name
       SQL
       .order("debt DESC")
-      .first(16)
       .filter { |product| product.debt > 0 }
   end
-
-  private
 
   def sold_subquery
     ProductSale

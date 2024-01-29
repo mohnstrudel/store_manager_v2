@@ -23,7 +23,9 @@ Rails.application.routes.draw do
   post "webhook-order", to: "webhook#order_to_sale"
 
   get "dashboard/index"
+
   get "debts", to: "dashboard#debts"
+  get "debts/:page", to: "dashboard#debts"
 
   root "dashboard#index"
 end

@@ -686,3 +686,7 @@ tr.selected td {
     color: var(--color);
   }
 }
+
+.table-card .pagination:first-of-type {
+  padding-top: 0;
+}
