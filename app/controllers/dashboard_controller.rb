@@ -11,7 +11,7 @@ class DashboardController < ApplicationController
         }
       end
     @total_suppliers_debt = @suppliers_debts.pluck(:total_debt).sum
-    @sale_debts = debts
+    @sale_debts = sale_debts
   end
 
   def debts

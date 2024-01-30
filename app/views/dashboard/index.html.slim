@@ -6,7 +6,7 @@ nav
 main.wide.no-bd.flex.justify-between.flex-col.gap
   .table-card
     h3.flex.justify-between
-      span Not Purchased Sales
+      span Sales Debt
       span = @sale_debts.size
     table role="grid" data-controller="table"
       thead
@@ -14,25 +14,25 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
         th Variation
         th Amount
       tbody
-        - @sale_debts.first(5).each do |debt|
-          - if debt[:variation_id].present?
+        - @sale_debts.first(5).each do |product|
+          - if product.sale_variation_id.present?
             tr.hoverable(
               data-action="click->table#goTo"
-              data-table-url-param=product_path(debt[:product_id])
-              data-table-id-param=debt[:variation_id]
+              data-table-url-param=product_path(product.id)
+              data-table-id-param=product.sale_variation_id
             )
-              td = debt[:title]
-              td = [debt[:version], debt[:color], debt[:size]].find(&:present?)
-              td = debt[:variations_sales_count] - debt[:purchase_count]
+              td = product.full_title
+              td = product.variation_name
+              td = product.debt
           - else
             tr.hoverable(
               data-action="click->table#goTo"
-              data-table-url-param=product_path(debt[:product_id])
-              data-table-id-param=debt[:product_id]
+              data-table-url-param=product_path(product.id)
+              data-table-id-param=product.id
             )
-              td = debt[:full_title]
+              td = product.full_title
               td -
-              td = debt[:products_sales_count] - debt[:purchase_count]
+              td = product.debt
         tr
           td colspan="3" = link_to "See More...", debts_path
 
