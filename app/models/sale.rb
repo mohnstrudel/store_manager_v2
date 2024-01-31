@@ -23,6 +23,9 @@
 #  woo_id         :string
 #
 class Sale < ApplicationRecord
+  include PgSearch::Model
+  pg_search_scope :search, against: :woo_id, associated_against: {customer: [:email, :first_name, :last_name, :phone, :woo_id]}
+
   paginates_per 50
 
   db_belongs_to :customer

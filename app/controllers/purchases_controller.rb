@@ -3,10 +3,18 @@ class PurchasesController < ApplicationController
 
   # GET /purchases or /purchases.json
   def index
-    @purchases = Purchase
-      .includes(:product, :supplier, :payments, variation: [:color, :size, :version])
-      .order(id: :desc)
-      .page(params[:page])
+    @purchases = if params[:q].present?
+      Purchase
+        .search(params[:q])
+        .includes(:product, :supplier, :payments, variation: [:color, :size, :version])
+        .order(id: :desc)
+        .page(params[:page])
+    else
+      Purchase
+        .includes(:product, :supplier, :payments, variation: [:color, :size, :version])
+        .order(id: :desc)
+        .page(params[:page])
+    end
   end
 
   # GET /purchases/1 or /purchases/1.json

@@ -49,6 +49,8 @@ gem "slim-rails"
 gem "httparty"
 gem "kaminari"
 gem "database_validations"
+gem "rubocop-slim", "~> 0.2.2"
+gem "pg_search"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -88,5 +90,3 @@ group :test do
   # gem "capybara"
   # gem "selenium-webdriver"
 end
-
-gem "rubocop-slim", "~> 0.2.2", group: :development

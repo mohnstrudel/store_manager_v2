@@ -3,7 +3,16 @@ class CustomersController < ApplicationController
 
   # GET /customers
   def index
-    @customers = Customer.order(:created_at).page(params[:page])
+    @customers = if params[:q].present?
+      Customer
+        .search(params[:q])
+        .order(:created_at)
+        .page(params[:page])
+    else
+      Customer
+        .order(:created_at)
+        .page(params[:page])
+    end
   end
 
   # GET /customers/1

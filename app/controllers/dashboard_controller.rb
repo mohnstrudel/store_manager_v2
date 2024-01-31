@@ -20,7 +20,14 @@ class DashboardController < ApplicationController
 
   def debts
     @unpaid_purchases = Purchase.unpaid
-    @debts = Kaminari.paginate_array(sale_debts).page(params[:page]).per(25)
+    @debts = if params[:q].present?
+      sale_debts.select do |product|
+        product.sale_title&.downcase&.include?(params[:q])
+      end
+    else
+      sale_debts
+    end
+    @debts = Kaminari.paginate_array(@debts).page(params[:page]).per(25)
   end
 
   private
@@ -52,7 +59,6 @@ class DashboardController < ApplicationController
         variations_subquery.variation_name
       SQL
       .order("debt DESC")
-      .filter { |product| product.debt > 0 }
   end
 
   def sold_subquery

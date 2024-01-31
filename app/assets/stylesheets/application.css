@@ -441,8 +441,7 @@ button.is-inverted:hover {
   PAGINATION start
 */
 .pagination {
-  padding: var(--spacing);
-  margin: 0 auto;
+  margin: var(--spacing);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -701,4 +700,43 @@ tr.selected td {
 
 tr.has-debt {
   background-color: rgba(var(--rgb-debt-color), 0.1);
+}
+
+.search-form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  width: 70%;
+
+  & input {
+    margin: 0;
+    border-color: var(--contrast-focus);
+
+    &.is-active {
+      border-color: var(--border-color);
+    }
+  }
+
+  & .search-form__clear {
+    margin-left: 1rem;
+    color: var(--del-color);
+  }
+}
+
+.search-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: var(--spacing-l);
+  gap: var(--spacing-xl);
+
+  & .pagination {
+    margin: 0;
+
+    & li {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
 }
