@@ -33,14 +33,14 @@ class Purchase < ApplicationRecord
   end
 
   def debt
-    total_price - paid
+    total_cost - paid
   end
 
   def progress
-    paid / (total_price * BigDecimal("0.01"))
+    paid / (total_cost * BigDecimal("0.01"))
   end
 
-  def total_price
+  def total_cost
     item_price * amount
   end
 

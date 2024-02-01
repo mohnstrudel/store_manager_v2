@@ -15,7 +15,7 @@ main.wide.flex.flex-col.gap.w-pd
       .title Unit price, $
       p.mono = format_money @purchase.item_price
       .title Total price
-      p.mono = format_money @purchase.total_price
+      p.mono = format_money @purchase.total_cost
       .title Paid
       p.mono = format_money(@purchase.paid).rjust(2, '0')
       .title Debt

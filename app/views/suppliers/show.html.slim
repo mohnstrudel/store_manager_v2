@@ -21,27 +21,30 @@ main
     .table-cards-group
       .table-card
         h3 Purchases
-        table role="grid" data-controller="table"
+        table data-controller="table"
           thead
             th Title
-            th Variation?
-            th Time ago
+            th Variation
+            th Purchased ago
             th.right Item Price, $
             th Qty
+            th Debt
           tbody
             - @purchases.each_with_index do |purchase, idx|
               tr.hoverable(
                 data-action="click->table#goTo"
                 data-table-url-param=purchase_path(purchase)
+                class="#{purchase.debt > 0 ? 'has-debt' : 'paid'}"
               )
                 - if purchase.variation.present?
                   td = purchase.variation.title
                   td = purchase.variation.which&.value
                 - else
                   td = purchase.product.full_title
-                  td -
-                td.no-wrap = time_ago_in_words purchase.created_at
+                  td  
+                td.no-wrap = time_ago_in_words (purchase.purchase_date.presence || purchase.created_at)
                 td.right.mono = format_money purchase.item_price
                 td = purchase.amount
+                td = purchase.debt > 0 ? format_money(purchase.debt) : ""
 
 = button_to "Destroy this supplier", supplier_path(@supplier), method: :delete, class: "btn-danger"  

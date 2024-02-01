@@ -31,6 +31,8 @@
   --font-family: "Bricolage Grotesque", sans-serif;
   --form-element-spacing-vertical: 0.4rem;
   --box-shadow-menu: 0px 2px 8px 0px rgba(0, 0, 0, 0.05);
+  --rgb-debt-color: 245, 179, 50;
+  --rgb-paid-color: 67, 160, 71;
 }
 @font-face {
   font-family: "SF Mono";
@@ -357,22 +359,22 @@ progress.in-td {
   display: block;
 }
 progress.in-td {
-  color: #f5b332c7;
+  color: rgba(var(--rgb-debt-color), 0.8);
 }
 progress.in-td::-moz-progress-bar {
-  background: #f5b332c7;
+  background: rgba(var(--rgb-debt-color), 0.8);
 }
 progress.in-td::-webkit-progress-value {
-  background: #f5b332c7;
+  background: rgba(var(--rgb-debt-color), 0.8);
 }
 progress.finished {
-  color: var(--form-element-valid-active-border-color);
+  color: rgb(var(--rgb-paid-color));
 }
 progress.finished::-moz-progress-bar {
-  background: var(--form-element-valid-active-border-color);
+  background: rgb(var(--rgb-paid-color));
 }
 progress.finished::-webkit-progress-value {
-  background: var(--form-element-valid-active-border-color);
+  background: rgb(var(--rgb-paid-color));
 }
 .sign {
   opacity: 0.5;
@@ -695,4 +697,8 @@ tr.selected td {
 
 .table-card .pagination:first-of-type {
   padding-top: 0;
+}
+
+tr.has-debt {
+  background-color: rgba(var(--rgb-debt-color), 0.1);
 }

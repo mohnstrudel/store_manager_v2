@@ -43,7 +43,10 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
     table role="grid" data-controller="table"
       thead
         th Supplier
-        th.right Debt, $
+        th.right Total Cost
+        th Purchases Qty
+        th.right Paid
+        th.right Debt
       tbody
         - @suppliers_debts.each do |supplier_debt|
           - next if supplier_debt[:total_debt] == 0
@@ -52,4 +55,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
             data-table-url-param=supplier_path(supplier_debt[:supplier])
           )
             td = supplier_debt[:supplier].title
+            td.mono.right = format_money supplier_debt[:total_cost]
+            td = supplier_debt[:total_size]
+            td.mono.right = format_money supplier_debt[:paid]
             td.mono.right = format_money supplier_debt[:total_debt]
