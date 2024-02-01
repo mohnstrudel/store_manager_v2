@@ -10,7 +10,7 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
           = purchase.variation.which.value
   td.right = purchase.amount
   td.right.mono = format_money purchase.item_price
-  td.right.mono = format_money purchase.total_price
+  td.right.mono = format_money purchase.total_cost
   td.right.mono
     progress.in-td value=purchase.progress max=100 class="#{class_names(finished: purchase.debt == 0, new: purchase.paid == 0)}"
     | -

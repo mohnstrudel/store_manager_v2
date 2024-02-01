@@ -11,8 +11,14 @@ module ApplicationHelper
     date.strftime("%-d %b %Y")
   end
 
-  def format_money(amount)
-    number_to_currency(amount.to_f, delimiter: "", unit: "")
+  def format_money(amount, unit = "")
+    number_to_currency(
+      amount.to_f,
+      delimiter: ".",
+      separator: ",",
+      format: "%n %u",
+      unit:
+    )
   end
 
   def format_zero_values(value)

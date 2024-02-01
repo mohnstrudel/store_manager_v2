@@ -2,7 +2,7 @@
 
 = render "_shared/nav-index", model: @purchases
 
-main.inner data-controller="table"
+main.wide data-controller="table"
   = paginate @purchases
   table(role="grid")
     thead

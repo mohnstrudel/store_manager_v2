@@ -16,13 +16,11 @@ html
          li
           i.icn.logo 😸
         ul
-          li = link_to "Debts", debts_path
+          li = link_to "Dashboard", root_path
           nav
+            li = link_to "Debts", debts_path
             li = link_to "Sales", sales_path
-            li = link_to "Customers", customers_path
-          nav  
             li = link_to "Purchases", purchases_path
-            li = link_to "Suppliers", suppliers_path
           nav  
             li = link_to "Products", products_path
 
@@ -30,10 +28,12 @@ html
             .dropdown__btn
               i.icn 🍔
             ul.dropdown__content
+              li = link_to "Customers", customers_path
+              li = link_to "Suppliers", suppliers_path
               li = link_to "Brands", brands_path
               li = link_to "Franchises", franchises_path
-              li = link_to "Versions", versions_path
               hr
+              li = link_to "Versions", versions_path
               li = link_to "Colors", colors_path
               li = link_to "Shapes", shapes_path
               li = link_to "Sizes", sizes_path
