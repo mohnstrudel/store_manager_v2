@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   end
   resources :products do
     get "/page/:page", action: :index, on: :collection
+    get "gallery", action: :gallery, on: :member
   end
   resources :purchases do
     get "/page/:page", action: :index, on: :collection

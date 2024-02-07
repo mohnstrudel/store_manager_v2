@@ -9,6 +9,8 @@ html
     = stylesheet_link_tag "application", href = "https://unpkg.com/slim-select@latest/dist/slimselect.css", "data-turbo-track": "reload"
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = javascript_importmap_tags
+    = turbo_refresh_method_tag :morph
+    = turbo_refresh_scroll_tag :preserve
   body
     header
       nav role="navigation" aria-label="main navigation"

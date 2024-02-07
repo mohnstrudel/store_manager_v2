@@ -1,3 +1,5 @@
+require "open-uri"
+
 class SyncWooProductsJob < ApplicationJob
   queue_as :default
 
@@ -22,14 +24,18 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def create(parsed_product)
-    product = Product.new({
+    product = Product.find_or_initialize_by({
       title: parsed_product[:title],
       woo_id: parsed_product[:woo_id],
       franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
       shape: Shape.find_or_create_by(title: parsed_product[:shape]),
-      image: parsed_product[:image],
+      # image: parsed_product[:images][0],
       store_link: parsed_product[:store_link]
     })
+    parsed_product[:images]&.each do |img_url|
+      uri = URI.parse(img_url)
+      product.images.attach(io: uri.open, filename: File.basename(uri))
+    end
     parsed_product[:brands]&.each do |i|
       product.brands << Brand.find_or_create_by(title: i)
     end
@@ -74,7 +80,8 @@ class SyncWooProductsJob < ApplicationJob
       variations: woo_product[:variations],
       title:,
       franchise:,
-      image:
+      image:,
+      images: woo_product[:images].pluck(:src)
     }
     if woo_product[:attributes].present?
       attributes = woo_product[:attributes].map do |attr|

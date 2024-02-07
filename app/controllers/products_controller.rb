@@ -1,5 +1,5 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[show edit update destroy]
+  before_action :set_product, only: %i[show edit update destroy gallery]
 
   # GET /products or /products.json
   def index
@@ -29,6 +29,19 @@ class ProductsController < ApplicationController
       .select { |product_sale|
         Sale.active_status_names.include? product_sale.sale.status
       }
+  end
+
+  def gallery
+    respond_to do |format|
+      format.html {
+        render partial: "gallery_main", locals: {
+          product_id: @product.id,
+          image: @product.images.find_by(id: params[:image_id]),
+          prev_id: @product.prev_image_id(params[:image_id]),
+          next_id: @product.next_image_id(params[:image_id])
+        }
+      }
+    end
   end
 
   # GET /products/new
@@ -95,7 +108,8 @@ class ProductsController < ApplicationController
       color_ids: [],
       size_ids: [],
       supplier_ids: [],
-      version_ids: []
+      version_ids: [],
+      images: []
     )
   end
 end

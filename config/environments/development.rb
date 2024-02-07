@@ -4,6 +4,8 @@ require "active_support/core_ext/integer/time"
 # We can use this service for webhooks intergration
 Rails.application.config.hosts << /.*\.ngrok-free\.app/
 
+# Rails.application.routes.default_url_options[:host] = "localhost:3000"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -77,4 +79,6 @@ Rails.application.configure do
   config.after_initialize do
     Prosopite.rails_logger = true
   end
+
+  config.log_file_size = 100.megabytes
 end

@@ -6,10 +6,23 @@
     h2 = @product.full_title
 
 main.wide.flex.flex-col.gap.w-pd
-  .cards
-    - if @product.image.present?
-      img.product src="#{@product.image}"
-    .card.grow
+  .cards.align-center
+    - if @product.images.present?
+        .gallery data-controller="gallery"
+          .card.gallery__nav
+            - @product.images.each do |img|
+              = image_tag img.representation(:nano), \
+                data: { \
+                  id: @product.images.index(img),\
+                  preview: url_for(img.representation(:preview)), \
+                  "gallery-target": "slide", \
+                  "action": "click->gallery#select" \
+                }
+          .gallery__main
+            button.gallery__btn data-action="gallery#prev" ←
+            button.gallery__btn data-action="gallery#next" →
+            = image_tag @product.images.first.representation(:preview), data: {"gallery-target": "main"}
+    .card.grow.shrink-2
       .title Title
       p = @product.title
       .title Franchise
