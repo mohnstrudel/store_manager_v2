@@ -1,6 +1,10 @@
 tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
   td = sale.woo_id
-  td = sale.customer.email
+  td
+    = sale.customer.email
+    ul.product-variations
+      - sale.product_sales.each do |ps|
+        li = ps.full_title
   td.no-wrap = format_date sale.woo_created_at.presence || sale.created_at
   td = sale.status.titleize
   td.right.mono = format_money sale.total

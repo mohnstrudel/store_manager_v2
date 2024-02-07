@@ -740,3 +740,15 @@ tr.has-debt {
     }
   }
 }
+
+turbo-frame {
+  transition: opacity 500ms ease-out;
+}
+
+turbo-frame[busy] {
+  opacity: 0.35;
+
+  &::before {
+    display: none;
+  }
+}

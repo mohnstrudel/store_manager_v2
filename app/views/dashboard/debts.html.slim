@@ -5,32 +5,33 @@ nav
 
 main.wide.no-bd.flex.justify-between.flex-col.gap
   .table-card
-    .search-navigation
-      = render partial: "_shared/search-form", locals: {path: debts_path}
+    turbo-frame id="debts-sales"
+      .search-navigation
+        = render partial: "_shared/search-form", locals: {path: debts_path}
+        = paginate @debts
+      table role="grid" data-controller="table"
+        thead
+          th Title
+          th Variation
+          th Sold
+          th Purchased
+          th Debt
+        tbody
+          - @debts.each do |product|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=product_path(product.id)
+                data-table-id-param=(product.id)
+              )
+                td = product.full_title
+                - if product.sale_variation_id.present?
+                  td = product.variation_name
+                - else
+                  td
+                td = product.sold
+                td = product.purchased
+                td = product.debt
       = paginate @debts
-    table role="grid" data-controller="table"
-      thead
-        th Title
-        th Variation
-        th Sold
-        th Purchased
-        th Debt
-      tbody
-        - @debts.each do |product|
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product.id)
-              data-table-id-param=(product.id)
-            )
-              td = product.full_title
-              - if product.sale_variation_id.present?
-                td = product.variation_name
-              - else
-                td
-              td = product.sold
-              td = product.purchased
-              td = product.debt
-    = paginate @debts
 
   - if @unpaid_purchases.present?
     .table-card

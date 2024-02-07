@@ -59,6 +59,7 @@ class DashboardController < ApplicationController
         variations_subquery.variation_name
       SQL
       .order("debt DESC")
+      .filter { |product| product.debt > 0 }
   end
 
   def sold_subquery

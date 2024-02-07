@@ -1,7 +1,7 @@
 tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-url-param=purchase_path(purchase)
   td = purchase.id
   td
-    = purchase.product.full_title
+    = purchase.full_title
     - if purchase.variation.present?
       ul.product-variations
         li

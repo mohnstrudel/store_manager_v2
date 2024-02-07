@@ -56,7 +56,7 @@ class SyncPurchasesJob < ApplicationJob
 
       full_title = Product.generate_full_title(
         product,
-        product&.brands,
+        product&.brands&.pluck(:title)&.join(", "),
         size&.value,
         version&.value,
         color&.value
