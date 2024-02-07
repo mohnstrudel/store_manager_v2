@@ -4,26 +4,6 @@ nav
       h1.classic Debts 
 
 main.wide.no-bd.flex.justify-between.flex-col.gap
-  - if @unpaid_purchases.present?
-    .table-card
-      h3 Purchases Without Payments
-      table role="grid" data-controller="table"
-        thead
-          th Purchased Ago
-          th Supplier
-          th.right Cost
-          th Qty
-        tbody
-          - @unpaid_purchases.each do |unpaid|
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=purchase_path(unpaid)
-            )
-              td.no-wrap = time_ago_in_words unpaid.created_at
-              td = unpaid.supplier.title
-              td.mono.right = format_money unpaid.item_price
-              td = unpaid.amount
-
   .table-card
     .search-navigation
       = render partial: "_shared/search-form", locals: {path: debts_path}
@@ -31,7 +11,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
     table role="grid" data-controller="table"
       thead
         th Title
-        th Variation?
+        th Variation
         th Sold
         th Purchased
         th Debt
