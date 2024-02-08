@@ -3,13 +3,16 @@
 = render "_shared/nav-index", model: @products
 
 main.wide
-  = paginate @products
-  table role="grid" data-controller="table"
-    thead
-      tr
-        th Woo ID
-        th Full name
-        th Actions
-    tbody
-      = render @products
-  = paginate @products
+  turbo-frame id="products-index"
+    .search-navigation
+      = render partial: "_shared/search-form", locals: {path: products_path}
+      = paginate @products
+    table role="grid" data-controller="table"
+      thead
+        tr
+          th Woo ID
+          th Full name
+          th Actions
+      tbody
+        = render @products
+    = paginate @products

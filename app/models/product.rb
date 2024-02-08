@@ -14,6 +14,13 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
+  include PgSearch::Model
+  pg_search_scope :search,
+    against: [:full_title, :woo_id],
+    using: {
+      tsearch: {prefix: true}
+    }
+
   paginates_per 50
 
   after_create :set_full_title

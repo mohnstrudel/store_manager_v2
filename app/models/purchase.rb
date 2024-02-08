@@ -16,6 +16,16 @@
 #  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
+  include PgSearch::Model
+  pg_search_scope :search,
+    against: [:full_title, :order_reference],
+    associated_against: {
+      supplier: [:title]
+    },
+    using: {
+      tsearch: {prefix: true}
+    }
+
   paginates_per 50
 
   validates :amount, presence: true

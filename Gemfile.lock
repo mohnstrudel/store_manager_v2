@@ -183,6 +183,9 @@ GEM
     pg (1.5.4)
     pg_query (5.1.0)
       google-protobuf (>= 3.22.3)
+    pg_search (2.3.6)
+      activerecord (>= 5.2)
+      activesupport (>= 5.2)
     pghero (3.4.0)
       activerecord (>= 6)
     prosopite (1.4.2)
@@ -389,6 +392,7 @@ DEPENDENCIES
   kaminari
   pg (~> 1.1)
   pg_query (>= 2)
+  pg_search
   pghero
   prosopite
   puma (~> 6.0)
