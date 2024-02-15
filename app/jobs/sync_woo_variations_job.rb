@@ -11,14 +11,11 @@ class SyncWooVariationsJob < ApplicationJob
   end
 
   def get_variations(products_with_variations, status)
+    progress = 0
     total = products_with_variations.size
-    progressbar = ProgressBar.create(
-      title: self.class.name + " of #{total} products variations",
-      total:
-    )
     products_with_variations.map do |product_woo_id|
-      progressbar.increment
-      warn "Downloading variations for product: #{product_woo_id}"
+      progress += 1
+      warn "\nGetting variations for product: #{product_woo_id}. Remaining: #{total - progress} products"
       api_get(
         "https://store.handsomecake.com/wp-json/wc/v3/products/#{product_woo_id}/variations",
         status
