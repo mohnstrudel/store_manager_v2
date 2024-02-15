@@ -24,18 +24,15 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def create(parsed_product)
+    return if parsed_product.blank?
+
     product = Product.find_or_initialize_by({
       title: parsed_product[:title],
       woo_id: parsed_product[:woo_id],
       franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
       shape: Shape.find_or_create_by(title: parsed_product[:shape]),
-      # image: parsed_product[:images][0],
       store_link: parsed_product[:store_link]
     })
-    parsed_product[:images]&.each do |img_url|
-      uri = URI.parse(img_url)
-      product.images.attach(io: uri.open, filename: File.basename(uri))
-    end
     parsed_product[:brands]&.each do |i|
       product.brands << Brand.find_or_create_by(title: i)
     end
@@ -49,6 +46,11 @@ class SyncWooProductsJob < ApplicationJob
       product.colors << Color.find_or_create_by(value: i)
     end
     product.save
+    parsed_product[:images]&.each do |img_url|
+      AttachImagesToProductsJob
+        .set(wait: 1.hour)
+        .perform_later(product, img_url)
+    end
   end
 
   def parse_product_name(woo_product_name)
@@ -70,9 +72,6 @@ class SyncWooProductsJob < ApplicationJob
   def parse(woo_product)
     return if woo_product[:name].blank?
     title, franchise, shape = parse_product_name(woo_product[:name])
-    image = woo_product[:images].present? ?
-      woo_product[:images].first[:src] :
-      ""
     product = {
       woo_id: woo_product[:id],
       store_link: woo_product[:permalink],
@@ -80,7 +79,6 @@ class SyncWooProductsJob < ApplicationJob
       variations: woo_product[:variations],
       title:,
       franchise:,
-      image:,
       images: woo_product[:images].pluck(:src)
     }
     if woo_product[:attributes].present?
@@ -106,9 +104,7 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def parse_all(woo_products)
-    # We use .compact because we can get nil values from the parser
-    # This is because the Woo DB has not been harmonized
-    woo_products.map { |woo_product| parse(woo_product) }.compact
+    woo_products.map { |woo_product| parse(woo_product) }.compact_blank
   end
 
   def get_products_with_variations(parsed_products)

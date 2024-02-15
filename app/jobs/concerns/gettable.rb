@@ -27,25 +27,39 @@ module Gettable
           basic_auth: {
             username: CONSUMER_KEY,
             password: CONSUMER_SECRET
-          }
+          },
+          timeout: 5
         )
         result.concat(JSON.parse(response.body, symbolize_names: true))
         page += 1
       end
-      result
+      result.compact_blank
     end
 
     def api_get(url, status = nil)
-      response = HTTParty.get(
-        url,
-        query: {
-          status:
-        }.compact,
-        basic_auth: {
-          username: CONSUMER_KEY,
-          password: CONSUMER_SECRET
-        }
-      )
+      retries = 0
+      response = begin
+        HTTParty.get(
+          url,
+          query: {
+            status:
+          }.compact,
+          basic_auth: {
+            username: CONSUMER_KEY,
+            password: CONSUMER_SECRET
+          },
+          timeout: 5
+        )
+      rescue => e
+        retries += 1
+        if retries < 3
+          sleep 10
+          retry
+        else
+          Rails.logger.error "Gettable. Error: #{e.message}"
+          return nil
+        end
+      end
       JSON.parse(response.body, symbolize_names: true)
     end
   end

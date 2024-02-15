@@ -18,11 +18,12 @@ class SyncWooVariationsJob < ApplicationJob
     )
     products_with_variations.map do |product_woo_id|
       progressbar.increment
+      warn "Downloading variations for product: #{product_woo_id}"
       api_get(
         "https://store.handsomecake.com/wp-json/wc/v3/products/#{product_woo_id}/variations",
         status
       )
-    end.flatten
+    end.flatten.compact_blank
   end
 
   def parse(woo_variations)
@@ -33,8 +34,8 @@ class SyncWooVariationsJob < ApplicationJob
         store_link: variation[:permalink]
       }
 
-      attributes = variation[:attributes].map do |attr|
-        attrs = {}
+      attributes = variation[:attributes].each_with_object({}) do |attr, attrs|
+        next if attr[:option].blank?
         option = smart_titleize(sanitize(attr[:option]))
         case attr[:name]
         when *Variation.types[:version]
@@ -44,16 +45,19 @@ class SyncWooVariationsJob < ApplicationJob
         when *Variation.types[:color]
           attrs[:color] = option
         end
-        attrs
-      end.reject(&:empty?)
-      next if attributes.empty?
+      end
 
-      result.merge(*attributes)
+      result.merge(attributes)
+    rescue => e
+      Rails.logger.error "SyncWooVariationsJob. Error: #{e.message}"
+      nil
     end.compact_blank
   end
 
   def create(parsed_woo_variations)
     parsed_woo_variations.each do |variation|
+      next if variation.blank?
+
       size = if variation[:size].present?
         Size.find_or_create_by(value: Size.parse_size(variation[:size]))
       end

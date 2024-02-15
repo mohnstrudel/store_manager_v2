@@ -51,6 +51,7 @@ gem "kaminari"
 gem "database_validations"
 gem "rubocop-slim", "~> 0.2.2"
 gem "pg_search"
+gem "sucker_punch"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -83,6 +84,7 @@ group :development do
   gem "annotate"
   gem "solargraph"
   gem "solargraph-rails"
+  gem "rubocop-slim", "~> 0.2.2"
 end
 
 group :test do
