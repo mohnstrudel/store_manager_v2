@@ -49,7 +49,6 @@ gem "slim-rails"
 gem "httparty"
 gem "kaminari"
 gem "database_validations"
-gem "rubocop-slim", "~> 0.2.2"
 gem "pg_search"
 gem "sucker_punch"
 

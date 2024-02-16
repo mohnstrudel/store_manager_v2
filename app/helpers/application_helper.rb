@@ -24,4 +24,12 @@ module ApplicationHelper
   def format_zero_values(value)
     (value > 0) ? value : "-"
   end
+
+  def format_sale_status(status)
+    if Sale.active_status_names.include? status
+      "<span class='active-sale'>#{status.titleize}</span>".html_safe
+    else
+      status.titleize
+    end
+  end
 end

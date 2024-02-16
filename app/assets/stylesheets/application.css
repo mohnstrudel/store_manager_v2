@@ -1061,3 +1061,8 @@ turbo-frame[busy] {
     background-color: #ffffff;
   }
 }
+
+.active-sale {
+  color: rgb(var(--rgb-debt-color));
+  filter: contrast(0.7);
+}

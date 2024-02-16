@@ -3,18 +3,11 @@ class ProductsController < ApplicationController
 
   # GET /products or /products.json
   def index
-    @products = if params[:q].present?
-      Product
-        .search(params[:q])
-        .includes(:variations)
-        .order(:created_at)
-        .page(params[:page])
-    else
-      Product
-        .includes(:variations)
-        .order(:created_at)
-        .page(params[:page])
-    end
+    @products = Product
+      .includes(:variations)
+      .order(:created_at)
+      .page(params[:page])
+    @products = @products.search(params[:q]) if params[:q].present?
   end
 
   # GET /products/1 or /products/1.json
