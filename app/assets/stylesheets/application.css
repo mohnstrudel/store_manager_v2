@@ -88,67 +88,6 @@ body {
   padding-bottom: calc(var(--spacing) * 10);
 }
 
-@media (min-width: 992px) {
-
-  body>header,
-  body>main,
-  body>footer,
-  section {
-    --block-spacing-vertical: var(--spacing-xl);
-  }
-}
-
-@media (min-width: 1200px) {
-
-  body>footer,
-  body>header,
-  body>main {
-    max-width: 80vw;
-  }
-
-  body>header,
-  body>main,
-  body>footer,
-  section {
-    --block-spacing-vertical: var(--spacing-l);
-  }
-}
-
-[data-theme="light"],
-:root:not([data-theme="dark"]) {
-  --primary: hsl(210deg 100% 50%);
-  --primary-hover: hsl(210deg 100% 60%);
-  --primary-focus: hsl(210deg 100% 80% / 15%);
-}
-
-@media only screen and (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --primary: hsl(210deg 100% 60%);
-    --primary-hover: hsl(210deg 100% 70%);
-  }
-}
-
-[data-theme="dark"] {
-  --primary: hsl(210deg 100% 60%);
-  --primary-hover: hsl(210deg 100% 70%);
-}
-
-@media (prefers-color-scheme: light) {
-  table[role="grid"]:not(.vertical) tbody tr:nth-child(odd) {
-    --table-row-stripped-background-color: oklch(0.99 0 0 / 1);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  table tbody tr.hoverable:hover td {
-    background-color: oklch(0.34 0.05 227.45 / 0.63);
-  }
-
-  .debts--card table tbody tr:nth-child(odd) {
-    background-color: oklch(0.26 0.018 227.88 / 1);
-  }
-}
-
 button,
 input[type="submit"],
 input[type="button"],
@@ -646,7 +585,7 @@ h1.classic {
 }
 
 main.wide {
-  margin: 0 -6rem;
+  margin: 0 -5rem;
   border: 1px solid var(--table-border-color);
   border-radius: var(--border-radius);
 }
@@ -658,15 +597,6 @@ main.wide.no-bd {
 main.wide.w-pd {
   padding: var(--spacing-m);
   padding-bottom: var(--spacing-l);
-}
-
-@media (min-width: 1200px) {
-
-  body>footer,
-  body>header,
-  body>main {
-    max-width: 66vw;
-  }
 }
 
 .purchase-show__payments {
@@ -950,7 +880,7 @@ turbo-frame[busy] {
   gap: var(--spacing-m);
   width: 600px;
   height: 600px;
-  flex-shrink: 1;
+  flex-shrink: 0;
 
   .gallery__nav {
     width: 120px;
@@ -1027,6 +957,10 @@ turbo-frame[busy] {
   flex-shrink: 2;
 }
 
+.shrink-4 {
+  flex-shrink: 4;
+}
+
 .align-center {
   align-items: center;
 }
@@ -1065,4 +999,78 @@ turbo-frame[busy] {
 .active-sale {
   color: rgb(var(--rgb-debt-color));
   filter: contrast(0.7);
+}
+
+
+/* 
+  MEDIA QUERIES
+*/
+
+@media (max-width: 1199px) {
+
+  body>header,
+  body>main,
+  body>footer,
+  section {
+    --block-spacing-vertical: var(--spacing-xl);
+  }
+
+  body>main {
+    max-width: 70vw;
+  }
+}
+
+@media (min-width: 1200px) {
+
+  body>footer,
+  body>header,
+  body>main {
+    max-width: 70vw;
+  }
+
+  body>header,
+  body>main,
+  body>footer,
+  section {
+    --block-spacing-vertical: var(--spacing-l);
+  }
+
+  main.wide {
+    margin: 0 -5rem;
+  }
+}
+
+[data-theme="light"],
+:root:not([data-theme="dark"]) {
+  --primary: hsl(210deg 100% 50%);
+  --primary-hover: hsl(210deg 100% 60%);
+  --primary-focus: hsl(210deg 100% 80% / 15%);
+}
+
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --primary: hsl(210deg 100% 60%);
+    --primary-hover: hsl(210deg 100% 70%);
+  }
+}
+
+[data-theme="dark"] {
+  --primary: hsl(210deg 100% 60%);
+  --primary-hover: hsl(210deg 100% 70%);
+}
+
+@media (prefers-color-scheme: light) {
+  table[role="grid"]:not(.vertical) tbody tr:nth-child(odd) {
+    --table-row-stripped-background-color: oklch(0.99 0 0 / 1);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  table tbody tr.hoverable:hover td {
+    background-color: oklch(0.34 0.05 227.45 / 0.63);
+  }
+
+  .debts--card table tbody tr:nth-child(odd) {
+    background-color: oklch(0.26 0.018 227.88 / 1);
+  }
 }

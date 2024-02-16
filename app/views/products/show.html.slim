@@ -22,7 +22,7 @@ main.wide.flex.flex-col.gap.w-pd
             button.gallery__btn data-action="gallery#prev" ←
             button.gallery__btn data-action="gallery#next" →
             = image_tag @product.images.first.representation(:preview), data: {"gallery-target": "main"}
-    .card.grow.shrink-2
+    .card.grow.shrink-4
       .title Title
       p = @product.title
       .title Franchise
