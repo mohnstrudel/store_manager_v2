@@ -10,6 +10,6 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
   td.right.mono = format_money sale.total
   - if action_name != "show" 
     td.actions
-      = link_to edit_sale_path(sale)
+      = link_to edit_sale_path(sale), data: {turbo: false}
         i.icn ✏️
         | Edit
