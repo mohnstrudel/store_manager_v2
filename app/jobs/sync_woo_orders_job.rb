@@ -21,6 +21,8 @@ class SyncWooOrdersJob < ApplicationJob
       }))
 
       order[:products].each do |order_product|
+        next if ProductSale.find_by(woo_id: order_product[:order_woo_id])
+
         product = Product.find_by(woo_id: order_product[:product_woo_id])
 
         if product.blank?

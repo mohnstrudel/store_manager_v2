@@ -18,6 +18,7 @@ class SyncWooProductsJob < ApplicationJob
 
   def create_all(parsed_products)
     parsed_products.each do |parsed_product|
+      next if Product.find_by(woo_id: parsed_product[:woo_id])
       create(parsed_product)
     end
   end
