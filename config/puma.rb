@@ -30,7 +30,11 @@ pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 # Workers do not work on JRuby or Windows (both of which do not support
 # processes).
 #
-workers Integer(ENV.fetch("WEB_CONCURRENCY")) { 2 }
+# For macOS only. Enable multithreading:
+# export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+# source ~/.zshrc
+#
+workers Integer(ENV.fetch("WEB_CONCURRENCY") { 2 })
 
 # Use the `preload_app!` method when specifying a `workers` number.
 # This directive tells Puma to first boot the application and load code
