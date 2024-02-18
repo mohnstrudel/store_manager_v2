@@ -18,7 +18,7 @@ module StoreManagerV2
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
-    jobs_concers_path = Rails.root.join("/app/jobs/concerns")
+    jobs_concers_path = Rails.root.join("app/jobs/concerns")
     config.autoload_paths << jobs_concers_path
     config.eager_load_paths << jobs_concers_path
 
