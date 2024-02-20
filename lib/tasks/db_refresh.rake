@@ -4,7 +4,7 @@ namespace :db do
     Rake::Task["db:drop"].invoke
     Rake::Task["db:create"].invoke
     Rake::Task["db:migrate"].invoke
-    Rake::Task["fill_db"].invoke
+    Rake::Task["db:fill"].invoke
     Rake::Task["db:seed"].invoke
     puts <<~'EOF'
 
