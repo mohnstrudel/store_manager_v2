@@ -3,20 +3,12 @@ class SalesController < ApplicationController
 
   # GET /sales
   def index
-    @sales = if params[:q].present?
-      Sale
-        .search(params[:q])
-        .includes(:customer)
-        .where.not(status: "cancelled")
-        .order(:created_at)
-        .page(params[:page])
-    else
-      Sale
-        .includes(:customer)
-        .where.not(status: "cancelled")
-        .order(:created_at)
-        .page(params[:page])
-    end
+    @sales = Sale
+      .includes(:customer, :product_sales)
+      .where.not(status: "cancelled")
+      .order(:created_at)
+      .page(params[:page])
+    @sales = @sales.search(params[:q]) if params[:q].present?
   end
 
   # GET /sales/1

@@ -17,35 +17,59 @@ module Gettable
           progressbar.increment
           sleep 0.25
         }
-        response = HTTParty.get(
+        retries = 0
+        response = begin
+          HTTParty.get(
+            url,
+            query: {
+              status:,
+              page:,
+              per_page:
+            }.compact,
+            basic_auth: {
+              username: CONSUMER_KEY,
+              password: CONSUMER_SECRET
+            }
+          )
+        rescue => e
+          retries += 1
+          if retries < 3
+            sleep 10
+            retry
+          else
+            Rails.logger.error "Gettable. Error: #{e.message}"
+            nil
+          end
+        end
+        result.concat(JSON.parse(response.body, symbolize_names: true))
+        page += 1
+      end
+      result.compact_blank
+    end
+
+    def api_get(url, status = nil)
+      retries = 0
+      response = begin
+        HTTParty.get(
           url,
           query: {
-            status:,
-            page:,
-            per_page:
+            status:
           }.compact,
           basic_auth: {
             username: CONSUMER_KEY,
             password: CONSUMER_SECRET
           }
         )
-        result.concat(JSON.parse(response.body, symbolize_names: true))
-        page += 1
+      rescue => e
+        retries += 1
+        if retries < 3
+          sleep 10
+          retry
+        else
+          Rails.logger.error "Gettable. Error: #{e.message}"
+          nil
+        end
       end
-      result
-    end
-
-    def api_get(url, status = nil)
-      response = HTTParty.get(
-        url,
-        query: {
-          status:
-        }.compact,
-        basic_auth: {
-          username: CONSUMER_KEY,
-          password: CONSUMER_SECRET
-        }
-      )
       JSON.parse(response.body, symbolize_names: true)
     end
   end

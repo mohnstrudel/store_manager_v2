@@ -14,6 +14,7 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
+  broadcasts_refreshes
   include PgSearch::Model
   pg_search_scope :search,
     against: [:full_title, :woo_id],
@@ -51,6 +52,12 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :variations, dependent: :destroy
 
+  has_many_attached :images do |attachable|
+    attachable.variant :preview, resize_to_limit: [800, 800]
+    attachable.variant :thumb, resize_to_limit: [640, 480]
+    attachable.variant :nano, resize_to_limit: [160, 160]
+  end
+
   def set_full_title
     self.full_title = Product.generate_full_title(self)
     save
@@ -82,5 +89,13 @@ class Product < ApplicationRecord
       "Resin #{product.shape.title}",
       brand.presence || brands.presence
     ].compact.join(" | ")
+  end
+
+  def prev_image_id(img_id)
+    (images.where("id < ?", img_id).last || images.last).id
+  end
+
+  def next_image_id(img_id)
+    (images.where("id > ?", img_id).first || images.first).id
   end
 end

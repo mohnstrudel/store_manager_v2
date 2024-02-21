@@ -5,7 +5,9 @@
     "title": "Spirited Away",
     "franchise": "Studio Ghibli",
     "shape": "Statue",
-    "image": "https://store.handsomecake.com/wp-content/uploads/2023/11/F-z6rD6bYAADn0H-scaled.jpg",
+    "images": [
+      "https://store.handsomecake.com/wp-content/uploads/2023/11/F-z6rD6bYAADn0H-scaled.jpg"
+    ],
     "versions": ["S Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4"],
@@ -18,7 +20,9 @@
     "title": "Asuka Langley",
     "franchise": "Neon Genesis Evangelion",
     "shape": "Statue",
-    "image": "https://store.handsomecake.com/wp-content/uploads/2023/10/a53cafd7-7343-5018-b889-8c91fc2cf159.jpg",
+    "images": [
+      "https://store.handsomecake.com/wp-content/uploads/2023/10/a53cafd7-7343-5018-b889-8c91fc2cf159.jpg"
+    ],
     "versions": ["S Version", "S+ Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4", "1:6"],
@@ -31,7 +35,9 @@
     "title": "Spirited Away",
     "franchise": "Studio Ghibli",
     "shape": "Bust",
-    "image": "https://store.handsomecake.com/wp-content/uploads/2023/11/F-z6rD6bYAADn0H-scaled.jpg",
+    "images": [
+      "https://store.handsomecake.com/wp-content/uploads/2023/11/F-z6rD6bYAADn0H-scaled.jpg"
+    ],
     "versions": ["S Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4"],
@@ -44,7 +50,9 @@
     "title": "Asuka Langley",
     "franchise": "Neon Genesis Evangelion",
     "shape": "Bust",
-    "image": "https://store.handsomecake.com/wp-content/uploads/2023/10/a53cafd7-7343-5018-b889-8c91fc2cf159.jpg",
+    "images": [
+      "https://store.handsomecake.com/wp-content/uploads/2023/10/a53cafd7-7343-5018-b889-8c91fc2cf159.jpg"
+    ],
     "versions": ["S Version", "S+ Version"],
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4", "1:6"],

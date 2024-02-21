@@ -1,3 +1,5 @@
+require "open-uri"
+
 class SyncWooProductsJob < ApplicationJob
   queue_as :default
 
@@ -9,8 +11,7 @@ class SyncWooProductsJob < ApplicationJob
   PRODUCTS_SIZE = 1200
 
   def perform
-    woo_products = api_get_all(URL, PRODUCTS_SIZE, STATUS)
-    parsed_products = parse_all(woo_products)
+    parsed_products = parse_all(get_woo_products)
     create_all(parsed_products)
     get_products_with_variations(parsed_products)
   end
@@ -21,13 +22,18 @@ class SyncWooProductsJob < ApplicationJob
     end
   end
 
+  def get_woo_products
+    api_get_all(URL, PRODUCTS_SIZE, STATUS)
+  end
+
   def create(parsed_product)
-    product = Product.new({
+    return if parsed_product.blank?
+
+    product = Product.find_or_initialize_by({
       title: parsed_product[:title],
       woo_id: parsed_product[:woo_id],
       franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
       shape: Shape.find_or_create_by(title: parsed_product[:shape]),
-      image: parsed_product[:image],
       store_link: parsed_product[:store_link]
     })
     parsed_product[:brands]&.each do |i|
@@ -43,6 +49,11 @@ class SyncWooProductsJob < ApplicationJob
       product.colors << Color.find_or_create_by(value: i)
     end
     product.save
+    parsed_product[:images]&.each do |img_url|
+      AttachImagesToProductsJob
+        .set(wait: 1.hour)
+        .perform_later(product, img_url)
+    end
   end
 
   def parse_product_name(woo_product_name)
@@ -64,9 +75,6 @@ class SyncWooProductsJob < ApplicationJob
   def parse(woo_product)
     return if woo_product[:name].blank?
     title, franchise, shape = parse_product_name(woo_product[:name])
-    image = woo_product[:images].present? ?
-      woo_product[:images].first[:src] :
-      ""
     product = {
       woo_id: woo_product[:id],
       store_link: woo_product[:permalink],
@@ -74,7 +82,7 @@ class SyncWooProductsJob < ApplicationJob
       variations: woo_product[:variations],
       title:,
       franchise:,
-      image:
+      images: woo_product[:images].pluck(:src)
     }
     if woo_product[:attributes].present?
       attributes = woo_product[:attributes].map do |attr|
@@ -99,9 +107,7 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def parse_all(woo_products)
-    # We use .compact because we can get nil values from the parser
-    # This is because the Woo DB has not been harmonized
-    woo_products.map { |woo_product| parse(woo_product) }.compact
+    woo_products.map { |woo_product| parse(woo_product) }.compact_blank
   end
 
   def get_products_with_variations(parsed_products)

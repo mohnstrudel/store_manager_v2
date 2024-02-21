@@ -6,10 +6,10 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
       - sale.product_sales.each do |ps|
         li = ps.full_title
   td.no-wrap = format_date sale.woo_created_at.presence || sale.created_at
-  td = sale.status.titleize
+  td = format_sale_status sale.status
   td.right.mono = format_money sale.total
   - if action_name != "show" 
     td.actions
-      = link_to edit_sale_path(sale)
+      = link_to edit_sale_path(sale), data: {turbo: false}
         i.icn ✏️
         | Edit

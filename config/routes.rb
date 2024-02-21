@@ -2,18 +2,24 @@ Rails.application.routes.draw do
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"
   end
+
   resources :customers do
     get "/page/:page", action: :index, on: :collection
   end
+
   resources :sales do
     get "/page/:page", action: :index, on: :collection
   end
+
   resources :products do
     get "/page/:page", action: :index, on: :collection
+    get "gallery", action: :gallery, on: :member
   end
+
   resources :purchases do
     get "/page/:page", action: :index, on: :collection
   end
+
   resources :payments, only: [:create]
 
   scope "/admin" do
