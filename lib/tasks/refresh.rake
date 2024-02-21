@@ -20,7 +20,7 @@ task refresh: :environment do
   puts "SyncWooOrdersJob is finished"
   SyncPurchasesJob.perform_now
   puts "SyncPurchasesJob is finished"
-  Rake::Task["db:seed"].invoke
+  AttachImagesToProductsJob.perform_later
   puts <<~'EOF'
 
 

@@ -11,8 +11,7 @@ class SyncWooProductsJob < ApplicationJob
   PRODUCTS_SIZE = 1200
 
   def perform
-    woo_products = api_get_all(URL, PRODUCTS_SIZE, STATUS)
-    parsed_products = parse_all(woo_products)
+    parsed_products = parse_all(get_woo_products)
     create_all(parsed_products)
     get_products_with_variations(parsed_products)
   end
@@ -21,6 +20,10 @@ class SyncWooProductsJob < ApplicationJob
     parsed_products.each do |parsed_product|
       create(parsed_product)
     end
+  end
+
+  def get_woo_products
+    api_get_all(URL, PRODUCTS_SIZE, STATUS)
   end
 
   def create(parsed_product)
