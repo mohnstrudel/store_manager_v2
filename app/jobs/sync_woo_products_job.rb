@@ -57,11 +57,6 @@ class SyncWooProductsJob < ApplicationJob
     end
 
     product.save
-    parsed_product[:images]&.each do |img_url|
-      AttachImagesToProductsJob
-        .set(wait: 1.hour)
-        .perform_later(product, img_url)
-    end
   end
 
   def parse_product_name(woo_product_name)
