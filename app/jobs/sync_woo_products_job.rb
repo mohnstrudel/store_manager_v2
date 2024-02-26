@@ -17,7 +17,10 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def create_all(parsed_products)
+    products = Product.where(woo_id: parsed_products.pluck(:woo_id))
+
     parsed_products.each do |parsed_product|
+      next if products.find { |i| i.woo_id == parsed_product[:woo_id].to_s }
       create(parsed_product)
     end
   end
@@ -36,44 +39,50 @@ class SyncWooProductsJob < ApplicationJob
       shape: Shape.find_or_create_by(title: parsed_product[:shape]),
       store_link: parsed_product[:store_link]
     })
+
     parsed_product[:brands]&.each do |i|
       product.brands << Brand.find_or_create_by(title: i)
     end
+
     parsed_product[:sizes]&.each do |i|
       product.sizes << Size.find_or_create_by(value: i)
     end
+
     parsed_product[:versions]&.each do |i|
       product.versions << Version.find_or_create_by(value: i)
     end
+
     parsed_product[:colors]&.each do |i|
       product.colors << Color.find_or_create_by(value: i)
     end
+
     product.save
-    parsed_product[:images]&.each do |img_url|
-      AttachImagesToProductsJob
-        .set(wait: 1.hour)
-        .perform_later(product, img_url)
-    end
   end
 
   def parse_product_name(woo_product_name)
     woo_name = smart_titleize(sanitize(woo_product_name))
       .sub(Size.size_match, "")
+
     franchise = woo_name.include?(" - ") ?
       woo_name.split(" - ").first :
       woo_name.split(" | ").first
+
     if franchise.blank?
       franchise = woo_name
     end
+
     title = woo_name.include?(" - ") ?
       woo_name.split(" | ").first.split(" - ").last :
       franchise
+
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
+
     [title, franchise, shape[0]]
   end
 
   def parse(woo_product)
     return if woo_product[:name].blank?
+
     title, franchise, shape = parse_product_name(woo_product[:name])
     product = {
       woo_id: woo_product[:id],
@@ -84,10 +93,12 @@ class SyncWooProductsJob < ApplicationJob
       franchise:,
       images: woo_product[:images].pluck(:src)
     }
+
     if woo_product[:attributes].present?
       attributes = woo_product[:attributes].map do |attr|
         attrs = {}
         options = attr[:options].map { |i| smart_titleize(sanitize(i)) }
+
         case attr[:name]
         when *Variation.types[:version]
           attrs[:versions] = options
@@ -98,8 +109,10 @@ class SyncWooProductsJob < ApplicationJob
         when *Variation.types[:brand]
           attrs[:brands] = options
         end
+
         attrs
       end
+
       product.merge(*attributes.compact.reject(&:empty?))
     else
       product
@@ -119,7 +132,9 @@ class SyncWooProductsJob < ApplicationJob
   def get_product(woo_id)
     woo_product = api_get(URL + woo_id.to_s, STATUS)
     parsed_product = parse(woo_product)
+
     return if parsed_product.blank?
+
     create(parsed_product)
   end
 end

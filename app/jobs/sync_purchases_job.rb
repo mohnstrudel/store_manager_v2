@@ -11,7 +11,15 @@ class SyncPurchasesJob < ApplicationJob
     invalid_purchases = []
     parsed_purchases = JSON.parse(file, symbolize_names: true)
 
+    total = parsed_purchases.size
+    progressbar = ProgressBar.create(
+      title: self.class.name + " of #{total} purchases",
+      total:
+    )
+
     parsed_purchases.each do |parsed_purchase|
+      progressbar.increment
+
       next if parsed_purchase[:canbeignored].present?
 
       invalid_purchases, has_erros = validate_keys(

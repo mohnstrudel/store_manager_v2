@@ -11,7 +11,9 @@ class AttachImagesToProductsJob < ApplicationJob
       parsed_product = parsed_products.find do |parsed_product|
         parsed_product[:woo_id].to_s == product.woo_id
       end
+
       next unless parsed_product
+
       parsed_product[:images].each do |img_url|
         attach_images(product, img_url) if img_url
       end
@@ -19,11 +21,12 @@ class AttachImagesToProductsJob < ApplicationJob
   end
 
   def attach_images(product, img_url)
+    retries = 0
     uri = URI.parse(img_url)
     filename = File.basename(uri.path)
+
     return if product.images.any? { |i| i.filename == filename }
 
-    retries = 0
     io = begin
       uri.open
     rescue OpenURI::HTTPError => e
@@ -36,6 +39,7 @@ class AttachImagesToProductsJob < ApplicationJob
         nil
       end
     end
+
     return unless io
 
     product.images.attach(io:, filename:)

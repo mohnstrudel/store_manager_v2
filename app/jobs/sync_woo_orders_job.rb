@@ -9,40 +9,47 @@ class SyncWooOrdersJob < ApplicationJob
 
   def perform
     woo_orders = api_get_all(URL, ORDERS_SIZE)
-    parsed_orders = parse_all(woo_orders)
+    parsed_orders = job.parse_all(woo_orders)
     create_sales(parsed_orders)
     nil
   end
 
   def create_sales(parsed_orders)
+    parsed_products = parsed_orders.pluck(:products).flatten
+    products = Product.where(
+      woo_id: parsed_products.pluck(:product_woo_id)
+    )
+    product_sales = ProductSale.where(
+      woo_id: parsed_products.pluck(:woo_id)
+    )
+    variation_types = Variation.types.values
+
     parsed_orders.each do |order|
       sale = Sale.find_or_create_by(order[:sale].merge({
         customer_id: Customer.find_or_create_by(order[:customer]).id
       }))
 
       order[:products].each do |order_product|
-        product = Product.find_by(woo_id: order_product[:product_woo_id])
+        next if product_sales.find { |ps|
+                  ps.woo_id == order_product[:order_woo_id].to_s
+                }
+
+        product = products.find { |p|
+          p.woo_id == order_product[:product_woo_id].to_s
+        }
 
         if product.blank?
           job = SyncWooProductsJob.new
           job.get_product(order_product[:product_woo_id])
           product = Product.find_by(woo_id: order_product[:product_woo_id])
         end
+
         next if product.blank?
 
-        variation = if order_product[:variation].present?
-          variation_type = Variation.types.values.find do |type|
-            type.include? order_product[:variation][:display_key]
-          end.first
-          size = Size.parse_size(order_product[:variation][:display_value])
-          variation_value = variation_type.constantize.find_or_create_by({
-            value: size.presence || order_product[:variation][:display_value]
-          })
-          Variation.find_or_create_by({
-            :woo_id => order_product[:variation_woo_id],
-            variation_type.downcase => variation_value,
-            :product => product
-          }.compact)
+        if order_product[:variation].present?
+          variation = create_variation(
+            product, variation_types, order_product[:variation]
+          )
         end
 
         ProductSale.find_or_create_by({
@@ -98,13 +105,16 @@ class SyncWooOrdersJob < ApplicationJob
         variation_woo_id = if line_item[:variation_id].to_i.positive?
           line_item[:variation_id]
         end
+
         variation = line_item[:meta_data]
           .find { |meta| variation_types.include? meta[:display_key] }
           &.slice(:display_key, :display_value)
           &.transform_values { |v| smart_titleize(sanitize(v)) }
+
         parsed_variation = variation.present? ?
-          {variation_woo_id:, variation:}.compact :
+          {variation: variation.merge({woo_id: variation_woo_id})}.compact :
           {}
+
         {
           product_woo_id: line_item[:product_id],
           qty: line_item[:quantity],
@@ -113,5 +123,23 @@ class SyncWooOrdersJob < ApplicationJob
         }.merge(parsed_variation)
       }
     }
+  end
+
+  def create_variation(product, variation_types, parsed_variation)
+    variation_type = variation_types.find do |type|
+      type.include? parsed_variation[:display_key]
+    end.first
+
+    size = Size.parse_size(parsed_variation[:display_value])
+
+    variation_value = variation_type.constantize.find_or_create_by({
+      value: size.presence || parsed_variation[:display_value]
+    })
+
+    Variation.find_or_create_by({
+      :woo_id => parsed_variation[:woo_id],
+      variation_type.downcase => variation_value,
+      :product => product
+    }.compact)
   end
 end
