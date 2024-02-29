@@ -52,6 +52,7 @@ gem "database_validations"
 gem "pg_search"
 gem "sucker_punch"
 gem "aws-sdk-s3", require: false
+gem "ruby-progressbar"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -62,7 +63,6 @@ group :development, :test do
   gem "rubocop-rspec", require: false
   gem "rspec-rails", "~> 6.0.0"
   gem "factory_bot_rails"
-  gem "ruby-progressbar"
   gem "prosopite"
   gem "pghero"
   # Add to postgresql.conf this two lines:
