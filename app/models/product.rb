@@ -15,14 +15,15 @@
 #
 class Product < ApplicationRecord
   broadcasts_refreshes
+  paginates_per 50
+
   include PgSearch::Model
+
   pg_search_scope :search,
     against: [:full_title, :woo_id],
     using: {
       tsearch: {prefix: true}
     }
-
-  paginates_per 50
 
   after_create :set_full_title
 
@@ -54,8 +55,8 @@ class Product < ApplicationRecord
 
   has_many_attached :images do |attachable|
     attachable.variant :preview, resize_to_limit: [800, 800]
-    attachable.variant :thumb, resize_to_limit: [640, 480]
-    attachable.variant :nano, resize_to_limit: [160, 160]
+    attachable.variant :thumb, resize_to_limit: [640, 480], preprocessed: true
+    attachable.variant :nano, resize_to_limit: [160, 160], preprocessed: true
   end
 
   def set_full_title

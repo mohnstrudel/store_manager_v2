@@ -51,6 +51,7 @@ gem "kaminari"
 gem "database_validations"
 gem "pg_search"
 gem "sucker_punch"
+gem "aws-sdk-s3", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

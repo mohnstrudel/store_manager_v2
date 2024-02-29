@@ -9,7 +9,7 @@ class SyncWooOrdersJob < ApplicationJob
 
   def perform
     woo_orders = api_get_all(URL, ORDERS_SIZE)
-    parsed_orders = job.parse_all(woo_orders)
+    parsed_orders = parse_all(woo_orders)
     create_sales(parsed_orders)
     nil
   end

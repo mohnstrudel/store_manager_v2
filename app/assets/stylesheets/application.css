@@ -914,7 +914,7 @@ turbo-frame[busy] {
 
     &.loading {
       border-radius: 2px;
-      animation: pulse 2s infinite ease-in-out;
+      animation: pulse 1400ms infinite ease-in-out;
     }
   }
 
