@@ -54,9 +54,17 @@ class Product < ApplicationRecord
   has_many :variations, dependent: :destroy
 
   has_many_attached :images do |attachable|
-    attachable.variant :preview, resize_to_limit: [800, 800]
-    attachable.variant :thumb, resize_to_limit: [640, 480], preprocessed: true
-    attachable.variant :nano, resize_to_limit: [160, 160], preprocessed: true
+    attachable.variant :preview,
+      resize_to_limit: [800, 800],
+      saver: {strip: true, optimize_coding: true, optimize_scans: true, trellis_quant: true, quant_table: 3}
+    attachable.variant :thumb,
+      resize_to_limit: [300, 300],
+      saver: {strip: true, optimize_coding: true, optimize_scans: true, trellis_quant: true, quant_table: 3},
+      preprocessed: true
+    attachable.variant :nano,
+      resize_to_limit: [120, 120],
+      saver: {strip: true, optimize_coding: true, optimize_scans: true, trellis_quant: true, quant_table: 3}.merge({quality: 50}),
+      preprocessed: true
   end
 
   def set_full_title

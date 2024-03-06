@@ -1,0 +1,20 @@
+i.icn {
+  font-style: normal;
+  font-family: "Noto Emo";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icn.is-link {
+  vertical-align: text-top;
+  cursor: pointer;
+  margin-left: 0.25rem;
+  color: var(--primary);
+  font-weight: 300;
+  font-size: 1rem;
+}
+
+.logo {
+  color: var(--muted-color);
+  font-size: 2rem;
+}

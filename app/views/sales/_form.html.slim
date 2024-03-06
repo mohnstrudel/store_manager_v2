@@ -16,7 +16,7 @@
     h4 Products 
     - sale.product_sales.each do |product_sale|
       = f.fields_for :product_sales, product_sale do |ps_f|
-        = render "product", f: ps_f, product: product_sale.product
+        = render "product_fields", f: ps_f, product: product_sale.product
     button.is-inverted(data-action="product-sales#addProduct" data-product-sales-target="btn") Add Product
 
   article

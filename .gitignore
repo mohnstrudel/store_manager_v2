@@ -38,4 +38,4 @@
 # Misc
 .DS_Store
 /__debug
-node_modules
+/node_modules

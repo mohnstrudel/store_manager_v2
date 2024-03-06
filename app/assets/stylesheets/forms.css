@@ -1,0 +1,62 @@
+form.payment {
+  padding-top: var(--spacing);
+  padding-left: var(--spacing);
+}
+
+form.payment input[type="number"] {
+  margin-right: 1rem;
+  width: 40%;
+}
+
+form.payment input[type="submit"] {
+  margin: 0;
+  width: auto;
+}
+
+.ss-main {
+  margin-bottom: var(--spacing);
+
+  background-image: var(--icon-chevron);
+  background-position: center right 0.75rem;
+  background-size: 1rem auto;
+  background-repeat: no-repeat;
+
+  background-color: var(--form-element-background-color);
+  padding: var(--form-element-spacing-vertical) 0;
+  padding-right: calc(var(--form-element-spacing-horizontal) + 1.5rem);
+  padding-left: var(--form-element-spacing-horizontal);
+  min-height: calc(
+    1rem * var(--line-height) + var(--form-element-spacing-vertical) * 2 +
+      var(--border-width) * 2
+  );
+}
+
+.ss-content .ss-search input {
+  background-position: center right 0.75rem;
+  background-size: 1rem auto;
+  background-repeat: no-repeat;
+}
+
+.ss-arrow {
+  display: none;
+  opacity: 0;
+}
+
+.ss-main .ss-values .ss-value .ss-value-text {
+  font-size: var(--font-size);
+}
+
+.ss-main .ss-values .ss-value {
+  background-color: var(--muted-color);
+}
+
+.ss-option {
+  min-height: calc(
+    1rem * var(--line-height) + var(--form-element-spacing-vertical) * 2 +
+      var(--border-width) * 2
+  );
+}
+
+.sales-form__product_fields {
+  margin: 1.5rem 0;
+}

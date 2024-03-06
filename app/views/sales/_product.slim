@@ -1,7 +1,0 @@
-.sale_product
-  = f.hidden_field :product_id
-  h6 = product.full_title
-  = f.label :qty
-  = f.number_field :qty
-  = f.label :price
-  = f.number_field :price, value: format_money(f.object.price), step: :any

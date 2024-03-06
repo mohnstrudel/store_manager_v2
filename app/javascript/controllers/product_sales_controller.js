@@ -4,9 +4,10 @@ export default class extends Controller {
   static targets = ["options", "btn"];
   addProduct(e) {
     e.preventDefault();
-    let id = this.element.querySelectorAll(".sale_product").length + 1;
+    let id =
+      this.element.querySelectorAll(".sales-form__product_fields").length + 1;
     let template = `
-      <div class="sale_product">
+      <div class="sales-form__product_fields">
         <nav>
           <h6>New product</h6>
           <a href="" data-action="product-sales#removeProduct">Remove</a>
@@ -23,7 +24,7 @@ export default class extends Controller {
   }
   removeProduct(e) {
     e.preventDefault();
-    let wrapper = e.target.closest(".sale_product");
+    let wrapper = e.target.closest(".sales-form__product_fields");
     wrapper.remove();
   }
 }

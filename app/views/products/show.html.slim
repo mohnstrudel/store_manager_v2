@@ -6,7 +6,7 @@
     h2 = @product.full_title
 
 main.wide.flex.flex-col.gap.w-pd
-  .cards.align-center
+  .cards.items-center
     - if @product.images.present?
         .gallery data-controller="gallery"
           .card.gallery__nav

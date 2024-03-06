@@ -1,7 +1,7 @@
 tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-url-param=product_path(product)
   td.text-center
     - if product.images.present?
-      = image_tag product.images.first.representation(:thumb), class: "thumb"
+      = render "preloadable_img", src: product.images.first.representation(:thumb).url, class_names: "zoomable", width: 100
     - else
       i.icn 🧌
   td

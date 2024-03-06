@@ -1,0 +1,138 @@
+article:not(.notice) {
+  padding-right: calc(var(--block-spacing-horizontal) * 2);
+  padding-bottom: calc(var(--block-spacing-vertical) * 2);
+}
+
+article.notice {
+  box-shadow: none;
+}
+
+article.notice.is-info {
+  background: var(--form-element-valid-focus-color);
+  color: var(--form-element-valid-border-color);
+}
+
+article.notice.is-error {
+  background: var(--form-element-invalid-focus-color);
+  color: var(--form-element-invalid-active-border-color);
+}
+
+article.notice.is-error ul {
+  color: var(--form-element-invalid-border-color);
+}
+
+article.notice.is-info,
+article.notice header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+article.notice.is-error header {
+  border-color: var(--form-element-invalid-focus-color);
+  background: none;
+}
+
+article.notice .icn {
+  font-size: 1.5rem;
+}
+
+.table-card {
+  flex-grow: 1;
+  border: 1px solid var(--table-border-color);
+  border-radius: var(--border-radius);
+  padding-bottom: 0;
+  height: min-content;
+  overflow: hidden;
+}
+
+.table-card .pagination:first-of-type {
+  padding-top: 0;
+}
+
+.table-card.full-width {
+  width: 100%;
+}
+
+.table-card.mg-t {
+  margin-top: var(--spacing-xl);
+}
+
+.table-card h3 {
+  margin: 0;
+  margin-bottom: var(--spacing);
+  padding: var(--spacing);
+  padding-bottom: 0;
+}
+
+.table-card table {
+  margin-bottom: 0;
+}
+
+.table-card th {
+  font-weight: 700;
+  font-size: calc(var(--font-size) * 0.8);
+}
+
+.table-card tr:last-child td {
+  border-bottom: 0;
+}
+
+.table-cards-group {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-m);
+}
+
+.table-cards-group {
+  > .table-card {
+    padding-bottom: 0;
+  }
+
+  > .table-card table {
+    margin-bottom: 0;
+  }
+}
+
+main.wide {
+  margin: 0 -5rem;
+  border: 1px solid var(--table-border-color);
+  border-radius: var(--border-radius);
+}
+
+main.wide.no-bd {
+  border: none;
+}
+
+main.wide.w-pd {
+  padding: var(--spacing-m);
+  padding-bottom: var(--spacing-l);
+}
+
+.purchase-show__payments {
+  margin-bottom: var(--spacing-xl);
+}
+
+.cards {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--typography-spacing-vertical);
+  width: 100%;
+}
+
+.card {
+  border-radius: var(--border-radius);
+  background: var(--table-row-stripped-background-color);
+  padding: var(--spacing);
+  padding-right: calc(var(--spacing) * 2);
+  height: fit-content;
+
+  > .title {
+    color: var(--muted-color);
+    font-size: smaller;
+  }
+}
+
+.card.grow {
+  flex-grow: 1;
+}
