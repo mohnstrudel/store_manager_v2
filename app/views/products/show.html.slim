@@ -11,7 +11,7 @@ main.wide.flex.flex-col.gap.w-pd
         .gallery data-controller="gallery"
           .card.gallery__nav
             - @product.images.each do |img|
-              = image_tag img.representation(:nano), \
+              = render "preloadable_img", src: url_for(img.representation(:nano)), width: 70, \
                 data: { \
                   id: @product.images.index(img),\
                   preview: url_for(img.representation(:preview)), \

@@ -55,14 +55,14 @@ export default class extends Controller {
   showCurrentSlide() {
     this.slideTargets.forEach((element, index) => {
       if (index === this.index) {
-        element.className = "active";
+        element.classList.add("active");
         element.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
           inline: "start",
         });
       } else {
-        element.className = "";
+        element.classList.remove("active");
       }
     });
   }

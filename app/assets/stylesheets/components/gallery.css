@@ -23,7 +23,6 @@
       transition: all var(--transition);
       border-radius: 4px;
       padding: 6px;
-      width: 5rem;
       object-fit: cover;
       object-position: center;
 

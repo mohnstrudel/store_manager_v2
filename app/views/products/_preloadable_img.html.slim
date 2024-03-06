@@ -1,3 +1,5 @@
+- data = {} if local_assigns[:data].nil?
+
 .preloadable-img__container data-controller="preloadable-img" data-preloadable-img-src-value=src
-  img.preloadable-img__img data-preloadable-img-target="img" class=class_names style="width: #{width}px;"
+  = image_tag "", class: "preloadable-img__img #{class_names}", style: "width: #{width}px;", data: {"preloadable-img-target":"img", **data}
   .preloadable-img__skeleton.visible data-preloadable-img-target="skeleton" style="width: #{width}px; height: #{width * 1.2}px;"
