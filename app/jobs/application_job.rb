@@ -1,5 +1,7 @@
 class ApplicationJob < ActiveJob::Base
-  include SuckerPunch::Job
+  unless Rails.env.production?
+    include SuckerPunch::Job
+  end
 
   # Automatically retry jobs that encountered a deadlock
   # retry_on ActiveRecord::Deadlocked
