@@ -180,6 +180,11 @@ GEM
     mini_magick (4.12.0)
     mini_mime (1.1.5)
     minitest (5.22.2)
+    mission_control-jobs (0.1.1)
+      importmap-rails
+      rails (~> 7.1)
+      stimulus-rails
+      turbo-rails
     msgpack (1.7.2)
     multi_xml (0.6.0)
     mutex_m (0.2.0)
@@ -418,6 +423,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   importmap-rails
   kaminari
+  mission_control-jobs
   pg (~> 1.1)
   pg_query (>= 2)
   pg_search
