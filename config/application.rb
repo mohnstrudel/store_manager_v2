@@ -32,7 +32,5 @@ module StoreManagerV2
       generate.helper_specs false
       generate.routing_specs false
     end
-
-    config.active_job.queue_adapter = :sucker_punch
   end
 end

@@ -50,9 +50,9 @@ gem "httparty"
 gem "kaminari"
 gem "database_validations"
 gem "pg_search"
-gem "sucker_punch"
 gem "aws-sdk-s3", require: false
 gem "ruby-progressbar"
+gem "solid_queue"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -69,6 +69,7 @@ group :development, :test do
   # shared_preload_libraries = 'pg_stat_statements'
   # pg_stat_statements.track = all
   gem "pg_query", ">= 2"
+  gem "sucker_punch"
 end
 
 group :development do

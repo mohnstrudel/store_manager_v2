@@ -353,6 +353,8 @@ GEM
     solargraph-rails (1.1.0)
       activesupport
       solargraph
+    solid_queue (0.2.2)
+      rails (~> 7.1)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -432,6 +434,7 @@ DEPENDENCIES
   slim-rails
   solargraph
   solargraph-rails
+  solid_queue
   sprockets-rails
   standard (~> 1.30)
   stimulus-rails

@@ -84,4 +84,6 @@ Rails.application.configure do
   end
 
   config.log_file_size = 100.megabytes
+
+  config.active_job.queue_adapter = :sucker_punch
 end
