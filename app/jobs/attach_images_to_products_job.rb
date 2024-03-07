@@ -1,6 +1,5 @@
 class AttachImagesToProductsJob < ApplicationJob
   queue_as :default
-  workers 5
 
   def perform
     product_job = SyncWooProductsJob.new
