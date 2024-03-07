@@ -21,7 +21,7 @@ main.wide.flex.flex-col.gap.w-pd
           .gallery__main
             button.gallery__btn data-action="gallery#prev" ←
             button.gallery__btn data-action="gallery#next" →
-            = image_tag @product.images.first.representation(:preview), data: {"gallery-target": "main"}
+            = image_tag @product.images.first.representation(:preview), data: {"gallery-target": "main"}, fetchpriority: "high"
     .card.grow.shrink-4
       .title Title
       p = @product.title

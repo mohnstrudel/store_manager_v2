@@ -29,6 +29,7 @@ export default class extends Controller {
       this.mainTarget.src = nextImage.src;
       this.togglePreloader(false);
     };
+    nextImage.fetchPriority = "high";
     nextImage.src = imageSrc;
   }
 

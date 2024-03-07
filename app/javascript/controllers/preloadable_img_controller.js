@@ -48,6 +48,7 @@ export default class PreloadableImg extends Controller {
       this.skeletonTarget.classList = "";
       this.skeletonTarget.innerHTML = "<i class='icn'>🧌</i>";
     };
+    img.fetchPriority = "low";
     img.src = imageSrc;
     this.handleTurboFrameChange(img);
   }
