@@ -28,15 +28,19 @@ class AttachImagesToProductsJob < ApplicationJob
 
   def attach_images(product, img_url)
     retries = 0
-    uri = URI.parse(img_url)
+
+    uri = begin
+      URI.parse(img_url)
+    rescue URI::InvalidURIError => e
+      URI.parse(URI::DEFAULT_PARSER.escape(img_url))
+    end
+
     filename = File.basename(uri.path)
 
     return if product.images.any? { |i| i.filename == filename }
 
     io = begin
       uri.open
-    rescue URI::InvalidURIError => e
-      uri = URI.parse(URI::DEFAULT_PARSER.escape(img_url))
     rescue OpenURI::HTTPError => e
       retries += 1
       if retries < 3
