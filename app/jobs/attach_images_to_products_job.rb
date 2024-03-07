@@ -36,6 +36,8 @@ class AttachImagesToProductsJob < ApplicationJob
 
     io = begin
       uri.open
+    rescue URI::InvalidURIError => e
+      uri = URI.parse(URI::DEFAULT_PARSER.escape(img_url))
     rescue OpenURI::HTTPError => e
       retries += 1
       if retries < 3
