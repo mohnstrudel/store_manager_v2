@@ -1,7 +1,5 @@
 Rails.application.routes.draw do
-  if Rails.env.production?
-    mount MissionControl::Jobs::Engine, at: "/jobs"
-  end
+  mount MissionControl::Jobs::Engine, at: "/jobs"
 
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"

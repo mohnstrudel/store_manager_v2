@@ -45,3 +45,6 @@ preload_app!
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
+
+# Add Solid Queue support
+plugin :solid_queue if ENV.fetch("RAILS_ENV", "development") == "production"
