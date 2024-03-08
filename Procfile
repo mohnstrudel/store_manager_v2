@@ -1,2 +1,1 @@
-web: bundle exec puma -C config/puma.rb
-jobs: bin/rails solid_queue:start
+web: SSL_DOMAIN=store-manager.herokuapp.com thrust bundle exec puma -C config/puma.rb

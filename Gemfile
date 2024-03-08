@@ -57,6 +57,7 @@ gem "mission_control-jobs"
 # https://github.com/basecamp/mission_control-jobs/issues/42#issuecomment-1920891445
 gem "irb"
 gem "sucker_punch"
+gem "thruster"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
