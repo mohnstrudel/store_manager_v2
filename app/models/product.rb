@@ -55,15 +55,16 @@ class Product < ApplicationRecord
 
   has_many_attached :images do |attachable|
     attachable.variant :preview,
+      format: :webp,
       resize_to_limit: [800, 800],
-      saver: {strip: true, optimize_coding: true, optimize_scans: true, trellis_quant: true, quant_table: 3}
+      preprocessed: true
     attachable.variant :thumb,
+      format: :webp,
       resize_to_limit: [300, 300],
-      saver: {strip: true, optimize_coding: true, optimize_scans: true, trellis_quant: true, quant_table: 3},
       preprocessed: true
     attachable.variant :nano,
+      format: :webp,
       resize_to_limit: [120, 120],
-      saver: {strip: true, optimize_coding: true, optimize_scans: true, trellis_quant: true, quant_table: 3}.merge({quality: 50}),
       preprocessed: true
   end
 
