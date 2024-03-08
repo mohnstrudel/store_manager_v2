@@ -64,8 +64,8 @@ Rails.application.configure do
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_name_prefix = "store_manager_v2_production"
 
-  # Use Solid Queue as the Active Job's queue backend
-  config.active_job.queue_adapter = :solid_queue
+  # Define the Active Job's queue adapter
+  config.active_job.queue_adapter = :sucker_punch
 
   config.action_mailer.perform_caching = false
 

@@ -4,6 +4,8 @@
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
 #
+# Heroku dynos don't have the CPU for very many threads. So 5 is OK.
+#
 max_threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
 min_threads_count = ENV.fetch("RAILS_MIN_THREADS") { max_threads_count }
 threads min_threads_count, max_threads_count
@@ -30,6 +32,9 @@ pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 # Workers do not work on JRuby or Windows (both of which do not support
 # processes).
 #
+# Each worker consume 200-500 MB of memory. On a standard 1X Dyno,
+# you'll hit your memory quota with anything higher than 3, maybe even 2.
+#
 # For macOS only. Enable multithreading:
 # export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 # source ~/.zshrc
@@ -45,6 +50,3 @@ preload_app!
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
-
-# Add Solid Queue support
-# plugin :solid_queue if ENV.fetch("RAILS_ENV", "development") == "production"

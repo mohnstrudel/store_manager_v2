@@ -52,29 +52,24 @@ gem "database_validations"
 gem "pg_search"
 gem "aws-sdk-s3", require: false
 gem "ruby-progressbar"
-gem "solid_queue"
 gem "mission_control-jobs"
 # Add IRB to fix the Mission Control's bug:
 # https://github.com/basecamp/mission_control-jobs/issues/42#issuecomment-1920891445
 gem "irb"
+gem "sucker_punch"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[mri mingw x64_mingw]
   gem "faker", "~> 3.2"
-  gem "standard", "~> 1.30"
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
   gem "rspec-rails", "~> 6.0.0"
   gem "factory_bot_rails"
-  gem "prosopite"
-  gem "pghero"
   # Add to postgresql.conf this two lines:
   # shared_preload_libraries = 'pg_stat_statements'
   # pg_stat_statements.track = all
   gem "pg_query", ">= 2"
-  gem "sucker_punch"
-  gem "pry", "~> 0.14.2"
 end
 
 group :development do
@@ -91,6 +86,14 @@ group :development do
   gem "solargraph"
   gem "solargraph-rails"
   gem "rubocop-slim", "~> 0.2.2"
+  gem "pry", "~> 0.14.2"
+  # A performance dashboard for Postgres,
+  # access at /pghero
+  gem "pghero"
+  # Prosopite is able to auto-detect Rails N+1 queries
+  gem "prosopite"
+  # Ruby Style Guide, with linter & automatic code fixer
+  gem "standard", "~> 1.30"
 end
 
 group :test do
