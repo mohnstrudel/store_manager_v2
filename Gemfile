@@ -54,6 +54,9 @@ gem "aws-sdk-s3", require: false
 gem "ruby-progressbar"
 gem "solid_queue"
 gem "mission_control-jobs"
+# Add IRB to fix the Mission Control's bug:
+# https://github.com/basecamp/mission_control-jobs/issues/42#issuecomment-1920891445
+gem "irb"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -71,6 +74,7 @@ group :development, :test do
   # pg_stat_statements.track = all
   gem "pg_query", ">= 2"
   gem "sucker_punch"
+  gem "pry", "~> 0.14.2"
 end
 
 group :development do
