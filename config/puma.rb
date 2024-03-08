@@ -47,4 +47,4 @@ preload_app!
 plugin :tmp_restart
 
 # Add Solid Queue support
-plugin :solid_queue if ENV.fetch("RAILS_ENV", "development") == "production"
+# plugin :solid_queue if ENV.fetch("RAILS_ENV", "development") == "production"
