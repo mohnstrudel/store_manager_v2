@@ -1,1 +1,2 @@
-web: SSL_DOMAIN=store-manager.herokuapp.com thrust bundle exec puma -C config/puma.rb
+web: TARGET_PORT=$PORT thrust bundle exec puma -C config/puma.rb
+worker: bundle exec sidekiq -c 2

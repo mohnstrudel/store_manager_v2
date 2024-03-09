@@ -22,6 +22,8 @@ module StoreManagerV2
     config.autoload_paths << jobs_concers_path
     config.eager_load_paths << jobs_concers_path
 
+    config.active_job.queue_adapter = :sidekiq
+
     config.generators do |generate|
       # generate.assets false
       generate.helper false
