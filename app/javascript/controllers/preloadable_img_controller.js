@@ -11,6 +11,13 @@ export default class PreloadableImg extends Controller {
   isObserved = false;
 
   connect() {
+    if (this.srcValue) {
+      this.skeletonTarget.classList.add("visible");
+    } else {
+      this.displayNoImage();
+      return;
+    }
+
     this.observer = new IntersectionObserver(
       (entries) => this.handleIntersection(entries),
       {
@@ -19,11 +26,12 @@ export default class PreloadableImg extends Controller {
         threshold: 0.1,
       },
     );
+
     this.observer.observe(this.skeletonTarget);
   }
 
   disconnect() {
-    this.observer.disconnect();
+    if (this.observer) this.observer.disconnect();
   }
 
   handleIntersection(entries) {
@@ -44,9 +52,7 @@ export default class PreloadableImg extends Controller {
       this.displayImg();
     };
     img.onerror = () => {
-      this.skeletonTarget.style = "";
-      this.skeletonTarget.classList = "";
-      this.skeletonTarget.innerHTML = "<i class='icn'>🧌</i>";
+      this.displayNoImage();
     };
     img.fetchPriority = "low";
     img.src = imageSrc;
@@ -56,6 +62,12 @@ export default class PreloadableImg extends Controller {
   displayImg() {
     this.skeletonTarget.classList.toggle("visible");
     this.imgTarget.classList.toggle("visible");
+  }
+
+  displayNoImage() {
+    this.skeletonTarget.style = "";
+    this.skeletonTarget.classList = "";
+    this.skeletonTarget.innerHTML = "<i class='icn'>🧌</i>";
   }
 
   handleTurboFrameChange(img) {
