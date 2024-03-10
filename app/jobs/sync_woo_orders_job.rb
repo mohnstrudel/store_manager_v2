@@ -5,7 +5,7 @@ class SyncWooOrdersJob < ApplicationJob
   include Sanitizable
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
-  ORDERS_SIZE = 1800
+  ORDERS_SIZE = 2300
 
   def perform
     woo_orders = api_get_all(URL, ORDERS_SIZE)
