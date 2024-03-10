@@ -1,9 +1,6 @@
 tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-url-param=product_path(product)
   td.text-center
-    - if product.images.present?
-      = render "preloadable_img", src: product_thumb_url(product), class_names: "zoomable", width: 100
-    - else
-      i.icn 🧌
+    = render "preloadable_img", src: product_thumb_url(product), class_names: "zoomable", width: 100
   td
     = product.full_title
     - if product.variations.present?
