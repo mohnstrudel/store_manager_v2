@@ -62,6 +62,9 @@ gem "pg_query", ">= 2"
 group :production do
   gem "thruster"
   gem "barnes"
+  # Prevents webserver from spending time working on a request
+  # that has been in-flight for longer than 30 seconds
+  gem "rack-timeout"
 end
 
 group :development, :test do
