@@ -178,7 +178,8 @@
   },
   {
     "amount": 3,
-    "orderreference": "direct",
+    "supplier": "Infinite Studio",
+    "orderreference": "custom",
     "product": "Infinite Studio - Lifesize Goku",
     "itemprice": 2380,
     "paymentvalue0": 238,
@@ -238,7 +239,6 @@
     "purchasedate": "28.07.2022"
   },
   {
-    "canbeignored": true,
     "amount": 10,
     "version": "1:6",
     "supplier": "HWs",
@@ -250,7 +250,6 @@
     "purchasedate": "15.06.2021"
   },
   {
-    "canbeignored": true,
     "amount": 5,
     "version": "1:4",
     "supplier": "HWs",
@@ -259,8 +258,8 @@
   },
   {
     "amount": 2,
-    "supplier": "Custom",
-    "orderreference": "direct",
+    "supplier": "Imaginary Koncept",
+    "orderreference": "custom",
     "product": "Invincible - Omni Man | 1:4 Resin Statue | von Imaginary Koncepts",
     "itemprice": 850,
     "paymentvalue0": 281.04,
@@ -271,8 +270,8 @@
   },
   {
     "amount": 1,
-    "supplier": "Custom",
-    "orderreference": "direct",
+    "supplier": "Imaginary Koncept",
+    "orderreference": "custom",
     "product": "Invincible - Omni Man | 1:4 Resin Statue | von Imaginary Koncepts",
     "itemprice": 850,
     "paymentvalue0": 210,
@@ -283,8 +282,8 @@
   },
   {
     "amount": 2,
-    "supplier": "Custom",
-    "orderreference": "direct",
+    "supplier": "Imaginary Koncept",
+    "orderreference": "custom",
     "product": "Marvel - Wolverine vs. Omega Red | 1:4 Resin Statue | von Imaginary Koncepts",
     "itemprice": 1150,
     "paymentvalue0": 258.96,
@@ -408,6 +407,7 @@
   },
   {
     "amount": 2,
+    "supplier": "MFA",
     "orderreference": "custom",
     "product": "Star Wars - Battle Damaged Darth Vader | 1:1 Resin Bust | von MFA Collectibles",
     "itemprice": 1299,
@@ -420,18 +420,25 @@
   {
     "amount": 4,
     "version": "black",
+    "supplier": "MFA",
     "orderreference": "custom",
     "product": "DC Comics - Batman & Wayne Tower | 1:4 Resin Statue | von MFA Collectibles",
-    "itemprice": 1199
+    "itemprice": 1199,
+    "paymentdate0": "12.10.2022",
+    "purchasedate": "12.10.2022"
   },
   {
     "amount": 4,
     "version": "blue",
+    "supplier": "MFA",
     "orderreference": "custom",
     "product": "DC Comics - Batman & Wayne Tower | 1:4 Resin Statue | von MFA Collectibles",
-    "itemprice": 1199
+    "itemprice": 1199,
+    "paymentdate0": "12.10.2022",
+    "purchasedate": "12.10.2022"
   },
   {
+    "amount": 1,
     "supplier": "FNC",
     "orderreference": 61560,
     "product": "CW - Cartoon World - Goku",
@@ -444,7 +451,15 @@
     "amount": 1,
     "supplier": "Exoresin",
     "orderreference": "custom",
-    "product": "Marvel - Hulk (Modern Version) | 1:3.5 Resin Statue | von CustomDesign Studios"
+    "product": "Marvel - Hulk (Modern Version) | 1:3.5 Resin Statue | von CustomDesign Studios",
+    "itemprice": 1470,
+    "paymentvalue0": 472.5,
+    "paymentvalue1": 498.75,
+    "paymentdate1": "25.04.2022",
+    "paymentvalue2": 498.75,
+    "paymentdate2": "15.11.2022",
+    "paymentdate0": "04.10.2021",
+    "purchasedate": "04.10.2021"
   },
   {
     "amount": 5,
@@ -550,8 +565,8 @@
     "product": "Final Fantasy - Cloud & Sephiroth | 1:4 Resin Statue | von Solar Studio",
     "itemprice": 1440,
     "paymentvalue0": 180,
-    "paymentvalue1": 540,
-    "paymentdate1": "05.01.2024",
+    "paymentvalue1": 720,
+    "paymentdate1": "27.02.2024",
     "paymentvalue2": 540,
     "paymentdate2": "30.01.2024",
     "paymentdate0": "10.01.2023",
@@ -560,10 +575,14 @@
   {
     "amount": 5,
     "supplier": "Mayflies Studio",
-    "orderreference": "direct",
+    "orderreference": "custom",
     "product": "Diablo - Imperius | 1:5 Resin Statue | von Mayflies Studio",
+    "itemprice": 606,
+    "paymentvalue0": 240,
     "paymentvalue1": 366,
-    "paymentdate1": "21.03.2023"
+    "paymentdate1": "21.03.2023",
+    "paymentdate0": "12.05.2022",
+    "purchasedate": "12.05.2022"
   },
   {
     "amount": 4,
@@ -583,7 +602,9 @@
     "itemprice": 860,
     "paymentvalue0": 225,
     "paymentvalue1": 200,
-    "paymentdate1": "21.03.2023"
+    "paymentdate1": "21.03.2023",
+    "paymentdate0": "28.11.2022",
+    "purchasedate": "28.11.2022"
   },
   {
     "amount": 2,
@@ -616,7 +637,11 @@
     "orderreference": "custom",
     "product": "Star Wars - Darth Maul Cyborg | 1:4 Resin Statue | von XionArt Collectibles",
     "itemprice": 785,
-    "paymentvalue0": 250
+    "paymentvalue0": 250,
+    "paymentvalue1": 535,
+    "paymentdate1": "21.06.2023",
+    "paymentdate0": "06.03.2023",
+    "purchasedate": "06.03.2023"
   },
   {
     "amount": 5,
@@ -692,24 +717,9 @@
     "purchasedate": "09.03.2023"
   },
   {
-    "amount": 2,
-    "version": "EPO",
-    "supplier": "MFA",
-    "product": "MFA Doomsday",
-    "paymentdate0": "21.03.2023",
-    "purchasedate": "21.03.2023"
-  },
-  {
-    "amount": 2,
-    "version": "NPO",
-    "supplier": "MFA",
-    "product": "MFA Doomsday",
-    "paymentdate0": "21.03.2023",
-    "purchasedate": "21.03.2023"
-  },
-  {
     "amount": 3,
     "supplier": "MFA",
+    "orderreference": "custom",
     "product": "Invincible - Omni Man | 1:4 Resin Statue | von MFA Collectibles",
     "itemprice": 888,
     "paymentvalue0": 200,
@@ -719,6 +729,7 @@
   {
     "amount": 4,
     "supplier": "FNC",
+    "orderreference": 76102,
     "product": "One Piece - Carrot | 1:4 Resin Statue | von Light Year Studio",
     "itemprice": 845,
     "paymentvalue0": 240,
@@ -803,15 +814,21 @@
     "orderreference": 80618,
     "product": "Final Fantasy - Tifa Lockhart | 1:4 Resin Statue | von Fallen Angel Studio",
     "itemprice": 861.42,
-    "paymentvalue0": 273.42
+    "paymentvalue0": 273.42,
+    "paymentdate0": "01.05.2023",
+    "purchasedate": "01.05.2023"
   },
   {
     "amount": 1,
     "supplier": "Exoresin",
     "orderreference": "custom",
-    "product": "Old Man Logan",
+    "product": "Marvel – Old Man Logan | 1:4 Resin Statue | von Exoresin",
+    "itemprice": 900,
+    "paymentvalue0": 427.5,
     "paymentvalue1": 472.5,
-    "paymentdate1": "03.06.2023"
+    "paymentdate1": "03.06.2023",
+    "paymentdate0": "02.05.2023",
+    "purchasedate": "02.05.2023"
   },
   {
     "amount": 1,
@@ -953,6 +970,8 @@
     "supplier": "TheCollectiblesClub",
     "orderreference": 11465,
     "product": "Nier Automata - YoRHa No.2 Type B | 1:1 Lifesize Resin Statue | von Animal Universe Studio ft. Force Studio",
+    "itemprice": 2162.64,
+    "paymentvalue0": 2162.64,
     "paymentdate0": "12.06.2023",
     "purchasedate": "12.06.2023"
   },
@@ -1356,6 +1375,7 @@
   {
     "amount": 1,
     "version": "S-",
+    "supplier": "HWs",
     "orderreference": "KC2023081698113358400",
     "product": "Dragon Ball Z - Gogeta | Resin Statue | von Last Sleep Studio",
     "itemprice": 517,
@@ -1366,6 +1386,7 @@
   {
     "amount": 1,
     "version": "S+",
+    "supplier": "HWs",
     "orderreference": "KC2023081698113358400",
     "product": "Dragon Ball Z - Gogeta | Resin Statue | von Last Sleep Studio",
     "itemprice": 727,
@@ -1405,8 +1426,8 @@
     "product": "Final Fantasy – Yuna & Valefore | 1:4 Resin Statue | von Solar Studio",
     "itemprice": 1296,
     "paymentvalue0": 129.33333333333334,
-    "paymentvalue1": 258.6666666666667,
-    "paymentdate1": "05.01.2024",
+    "paymentvalue1": 388,
+    "paymentdate1": "10.03.2024",
     "paymentvalue2": 258.6666666666667,
     "paymentdate2": "30.01.2024",
     "paymentdate0": "15.06.2023",
@@ -1560,7 +1581,9 @@
     "orderreference": "CW13637514",
     "product": "One Piece - Going Merry | 1:6 Resin Statue | von Wasp Studio",
     "itemprice": 435,
-    "paymentvalue0": 185
+    "paymentvalue0": 185,
+    "paymentdate0": "19.11.2023",
+    "purchasedate": "19.11.2023"
   },
   {
     "amount": 6,
@@ -1620,7 +1643,9 @@
     "orderreference": "custom",
     "product": "Marvel - X-Force Storm | 1:3.5 Resin Statue | von Exoresin",
     "itemprice": 900,
-    "paymentvalue0": 472.5
+    "paymentvalue0": 472.5,
+    "paymentdate0": "30.09.2023",
+    "purchasedate": "30.09.2023"
   },
   {
     "amount": 1,
@@ -2106,6 +2131,8 @@
     "product": "Street Fighter - Chun Li Deluxe Version | 1:4 Resin Statue | von Prime 1 Studio",
     "itemprice": 880,
     "paymentvalue0": 250,
+    "paymentvalue1": 630,
+    "paymentdate1": "28.02.2024",
     "paymentdate0": "15.11.2023",
     "purchasedate": "15.11.2023"
   },
@@ -2146,7 +2173,10 @@
     "supplier": "FNC",
     "orderreference": 98125,
     "product": "Genshin Impact - Shenhe | 1:4 Resin Statue | von Fallen Angel Studio",
-    "paymentvalue0": 263.62
+    "itemprice": 753.62,
+    "paymentvalue0": 263.62,
+    "paymentdate0": "16.11.2023",
+    "purchasedate": "16.11.2023"
   },
   {
     "amount": 1,
@@ -2795,7 +2825,7 @@
     "version": "E",
     "supplier": "FNC",
     "orderreference": 104385,
-    "product": "\nFinal Fantasy - Tifa Lockhart | 1:4 Resin Statue | von Fallen Angel Studio",
+    "product": "Final Fantasy - Tifa Lockhart | 1:4 Resin Statue | von Fallen Angel Studio",
     "itemprice": 1014.3,
     "paymentvalue0": 328.3,
     "paymentdate0": "19.01.2024",
@@ -2826,7 +2856,7 @@
     "amount": 3,
     "supplier": "FNC",
     "orderreference": 104912,
-    "product": "Hummingbird Mercy",
+    "product": "Overwatch – Mercy | 1:4 Resin Statue | von Hummingbird Studio",
     "itemprice": 534.1,
     "paymentvalue0": 99.98,
     "paymentdate0": "25.01.2024",
@@ -2877,6 +2907,8 @@
   {
     "amount": 12,
     "version": "Additional Pack",
+    "supplier": "AnitoysGK",
+    "orderreference": "CW14613594",
     "product": "Coolbear Studio Elden Ring Malenia Resin Statue Deposit - ",
     "itemprice": 180,
     "paymentvalue0": 55,
@@ -2886,6 +2918,8 @@
   {
     "amount": 4,
     "version": "C",
+    "supplier": "AnitoysGK",
+    "orderreference": "CW14613594",
     "product": "Coolbear Studio Elden Ring Malenia Resin Statue Deposit - Style C (Revealing Armor)",
     "itemprice": 553,
     "paymentvalue0": 170,
@@ -2895,10 +2929,286 @@
   {
     "amount": 8,
     "version": "A",
+    "supplier": "AnitoysGK",
+    "orderreference": "CW14613594",
     "product": "Coolbear Studio Elden Ring Malenia Resin Statue Deposit - Style A (Regular Armor)",
     "itemprice": 553,
     "paymentvalue0": 170,
     "paymentdate0": "05.02.2024",
     "purchasedate": "05.02.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "ATF Want",
+    "orderreference": "custom",
+    "product": "ATF Want - Juggernaut vs. Colossus",
+    "itemprice": 1530,
+    "paymentvalue0": 315,
+    "paymentvalue1": 400,
+    "paymentvalue2": 315,
+    "paymentdate0": "06.02.2024",
+    "purchasedate": "06.02.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "ATF Want",
+    "orderreference": "custom",
+    "product": "ATF Want - Kratos on Throne",
+    "itemprice": 1400,
+    "paymentvalue0": 250,
+    "paymentdate0": "06.02.2024",
+    "purchasedate": "06.02.2024"
+  },
+  {
+    "amount": 1,
+    "version": "Original Color",
+    "supplier": "Outworld Creations",
+    "orderreference": "custom",
+    "product": "Mortal Kombat - Mileena | 1:4 Resin Statue | von Outworld Creations",
+    "itemprice": 875,
+    "paymentvalue0": 259.55,
+    "paymentdate0": "08.02.2024",
+    "purchasedate": "08.02.2024"
+  },
+  {
+    "amount": 1,
+    "version": "Purple",
+    "supplier": "Outworld Creations",
+    "orderreference": "custom",
+    "product": "Mortal Kombat - Mileena | 1:4 Resin Statue | von Outworld Creations",
+    "itemprice": 875,
+    "paymentvalue0": 259.55,
+    "paymentdate0": "08.02.2024",
+    "purchasedate": "08.02.2024"
+  },
+  {
+    "amount": 5,
+    "supplier": "FNC",
+    "orderreference": 106141,
+    "product": "Naruto - Pain | 1:7 Resin Statue | von Yoyo Studio",
+    "itemprice": 469.42,
+    "paymentvalue0": 175.42,
+    "paymentdate0": "09.02.2024",
+    "purchasedate": "09.02.2024"
+  },
+  {
+    "amount": 1,
+    "version": "1:6",
+    "supplier": "FNC",
+    "orderreference": 106456,
+    "product": "One Piece - Monkey D. Luffy | 1:3 Resin Statue | von DiTaiShe Studio",
+    "itemprice": 165.62,
+    "paymentvalue0": 67.62,
+    "paymentdate0": "16.02.2024",
+    "purchasedate": "16.02.2024"
+  },
+  {
+    "amount": 1,
+    "version": "1:3, Umhang",
+    "supplier": "FNC",
+    "orderreference": 106456,
+    "product": "One Piece - Monkey D. Luffy | 1:3 Resin Statue | von DiTaiShe Studio",
+    "itemprice": 249.9,
+    "paymentvalue0": 93.1,
+    "paymentdate0": "16.02.2024",
+    "purchasedate": "16.02.2024"
+  },
+  {
+    "amount": 1,
+    "version": "1:3",
+    "supplier": "FNC",
+    "orderreference": 106456,
+    "product": "One Piece - Monkey D. Luffy | 1:3 Resin Statue | von DiTaiShe Studio",
+    "itemprice": 204.82,
+    "paymentvalue0": 87.22,
+    "paymentdate0": "16.02.2024",
+    "purchasedate": "16.02.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 106457,
+    "product": "Genshin Impact – Raiden Shogun | 1:4 Resin Statue | von DT x UME Studios",
+    "itemprice": 587.02,
+    "paymentvalue0": 587.02,
+    "paymentdate0": "16.02.2024",
+    "purchasedate": "16.02.2024"
+  },
+  {
+    "amount": 1,
+    "version": "EX",
+    "supplier": "FNC",
+    "orderreference": 106458,
+    "product": "Cyberpunk: Edgerunners - David Martinez | 1:6 Resin Statue | von Gentleman 18 Studio",
+    "itemprice": 410.62,
+    "paymentvalue0": 410.62,
+    "paymentdate0": "16.02.2024",
+    "purchasedate": "16.02.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 106576,
+    "product": "Dragon Ball - Son Goku vs. Frieza | 1:6 Resin Statue | von SHK Studios",
+    "itemprice": 459.62,
+    "paymentvalue0": 459.62,
+    "paymentdate0": "18.02.2024",
+    "purchasedate": "18.02.2024"
+  },
+  {
+    "amount": 2,
+    "version": "EX",
+    "supplier": "FNC",
+    "orderreference": 106577,
+    "product": "Neo Genesis Evangelion - Asuka Langley | 1:4 Resin Statue | von Dragon Studio",
+    "itemprice": 675.22,
+    "paymentvalue0": 675.22,
+    "paymentdate0": "18.02.2024",
+    "purchasedate": "18.02.2024"
+  },
+  {
+    "amount": 5,
+    "supplier": "FNC",
+    "orderreference": 106964,
+    "product": "One Piece - Monkey D. Luffy | 1:6 Resin Statue | von MWZB Studio",
+    "itemprice": 224.42,
+    "paymentvalue0": 87.22,
+    "paymentdate0": "26.02.2024",
+    "purchasedate": "26.02.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "Dazzling Designs",
+    "orderreference": "custom",
+    "product": "Dazzling Designs - Power Girl",
+    "itemprice": 800,
+    "paymentvalue0": 250,
+    "paymentvalue1": 223,
+    "paymentdate0": "14.12.2023",
+    "purchasedate": "14.12.2023"
+  },
+  {
+    "amount": 3,
+    "supplier": "SolarStudio",
+    "orderreference": "custom",
+    "product": "Final Fantasy - Yuffie Kisaragi | 1:4 Resin Statue | von Solar Studio",
+    "itemprice": 764.3333333333334,
+    "paymentvalue0": 200,
+    "paymentdate0": "27.02.2024",
+    "purchasedate": "27.02.2024"
+  },
+  {
+    "amount": 3,
+    "supplier": "SolarStudio",
+    "orderreference": "custom",
+    "product": "Final Fantasy - Beatrix | 1:4 Resin Statue | von Solar Studio",
+    "itemprice": 629,
+    "paymentvalue0": 295.6666666666667,
+    "paymentdate0": "27.02.2024",
+    "purchasedate": "27.02.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "FNC",
+    "orderreference": 107184,
+    "product": "Studio Ghibli – Spirited Away | 1:7 Resin Statue | von CHIKARA Studio",
+    "itemprice": 289.1,
+    "paymentvalue0": 289.1,
+    "paymentdate0": "29.02.2024",
+    "purchasedate": "29.02.2024"
+  },
+  {
+    "amount": 3,
+    "version": "1:6",
+    "supplier": "FNC",
+    "orderreference": 107187,
+    "product": "Jujutsu Kaisen - Fushiguro Toji | 1:4 Resin Statue | von RD Studio",
+    "itemprice": 371.42,
+    "paymentvalue0": 175.42,
+    "paymentdate0": "29.02.2024",
+    "purchasedate": "29.02.2024"
+  },
+  {
+    "amount": 2,
+    "version": "1:1",
+    "supplier": "FNC",
+    "orderreference": 107259,
+    "product": "One Piece – Monkey D. Luffy | 1:1 Resin Lifesize Bust | von Evil Studio",
+    "itemprice": 645.82,
+    "paymentvalue0": 645.82,
+    "paymentdate0": "01.03.2024",
+    "purchasedate": "01.03.2024"
+  },
+  {
+    "amount": 1,
+    "version": "A",
+    "supplier": "FNC",
+    "orderreference": 107262,
+    "product": "One Piece – Brook | 1:6 Resin Statue | von LX Studio",
+    "itemprice": 146.02,
+    "paymentvalue0": 146.02,
+    "paymentdate0": "01.03.2024",
+    "purchasedate": "01.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 107263,
+    "product": "One Piece – Monkey D. Luffy | 1:4 Resin Statue | von Iron Curtain Studio",
+    "itemprice": 391.02,
+    "paymentvalue0": 97.02,
+    "paymentdate0": "01.03.2024",
+    "purchasedate": "01.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 107264,
+    "product": "One Piece – Roronoa Zoro | 1:6 Resin Statue | von OPM Studio",
+    "itemprice": 504.7,
+    "paymentvalue0": 151.9,
+    "paymentdate0": "01.03.2024",
+    "purchasedate": "01.03.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "FNC",
+    "orderreference": 107567,
+    "product": "Jujutsu Kaisen - Nanami Kento | 1:6 Resin Statue | von Fantasy Studio",
+    "itemprice": 322.42,
+    "paymentvalue0": 126.42,
+    "paymentdate0": "04.03.2024",
+    "purchasedate": "04.03.2024"
+  },
+  {
+    "amount": 1,
+    "version": "1:6",
+    "supplier": "FNC",
+    "orderreference": 107567,
+    "product": "Jujutsu Kaisen - Fushiguro Toji | 1:4 Resin Statue | von RD Studio",
+    "itemprice": 371.42,
+    "paymentvalue0": 175.42,
+    "paymentdate0": "04.03.2024",
+    "purchasedate": "04.03.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "FNC",
+    "orderreference": 107988,
+    "product": "One Piece - Charlotte Katakuri | 1:6 Resin Statue | von Water Bear Studio",
+    "itemprice": 332.22,
+    "paymentvalue0": 332.22,
+    "paymentdate0": "08.03.2024",
+    "purchasedate": "08.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 107996,
+    "product": "Dragon Ball – Spirit Bomb | 1:6 Resin Statue | von Hunter Studio",
+    "itemprice": 514.5,
+    "paymentvalue0": 514.5,
+    "paymentdate0": "08.03.2024",
+    "purchasedate": "08.03.2024"
   }
 ]
