@@ -1,0 +1,31 @@
+@font-face {
+  font-style: normal;
+  font-weight: 400;
+  src: url("sf-mono-regular-webfont.woff2") format("woff2");
+  font-family: "SF Mono";
+}
+
+@font-face {
+  font-style: normal;
+  font-weight: 400;
+  src: url("noto-emoji-400.woff2") format("woff2");
+  font-family: "Noto Emo";
+}
+
+@font-face {
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  src: url("BricolageGrotesque-Regular.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  font-display: auto;
+}
+
+@font-face {
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  src: url("BricolageGrotesque-Bold.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  font-display: auto;
+}

@@ -1,0 +1,47 @@
+.btn-danger {
+  margin-top: var(--spacing-xl);
+  border-color: var(--form-element-invalid-active-border-color);
+  background-color: var(--form-element-invalid-active-border-color);
+}
+
+.radio-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.radio-buttons input,
+.radio-buttons label {
+  margin: 0;
+}
+
+.radio-btn {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 0.5em;
+  cursor: pointer;
+  border: 1px solid var(--muted-border-color);
+  border-radius: var(--border-radius);
+  padding: 0.5em;
+}
+
+.radio-btn:hover {
+  border: 1px solid var(--primary-focus);
+  background-color: var(--primary-focus);
+}
+
+.radio-btn--label {
+  cursor: pointer;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+button.is-inverted {
+  --background-color: var(--background-color);
+  --color: var(--primary);
+}
+
+button.is-inverted:hover {
+  --background-color: var(--primary-focus);
+}

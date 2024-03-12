@@ -1,0 +1,27 @@
+@keyframes pulse {
+  0% {
+    background-color: #ffffff;
+  }
+
+  50% {
+    background-color: var(--table-row-stripped-background-color);
+  }
+
+  100% {
+    background-color: #ffffff;
+  }
+}
+
+.active-sale {
+  filter: contrast(0.7);
+  color: rgb(var(--rgb-debt-color));
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}

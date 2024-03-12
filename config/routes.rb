@@ -1,4 +1,8 @@
+require "sidekiq/web"
+
 Rails.application.routes.draw do
+  mount Sidekiq::Web => "/jobs"
+
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"
   end

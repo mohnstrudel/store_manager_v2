@@ -1,0 +1,31 @@
+progress.in-td {
+  display: block;
+}
+
+progress.in-td {
+  color: rgba(var(--rgb-debt-color), 0.8);
+}
+
+progress.in-td::-moz-progress-bar {
+  background: rgba(var(--rgb-debt-color), 0.8);
+}
+
+progress.in-td::-webkit-progress-value {
+  background: rgba(var(--rgb-debt-color), 0.8);
+}
+
+progress.finished {
+  color: rgb(var(--rgb-paid-color));
+}
+
+progress.finished::-moz-progress-bar {
+  background: rgb(var(--rgb-paid-color));
+}
+
+progress.finished::-webkit-progress-value {
+  background: rgb(var(--rgb-paid-color));
+}
+
+progress.no-mg {
+  margin: 0;
+}

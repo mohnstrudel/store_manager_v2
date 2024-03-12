@@ -1,8 +1,18 @@
+# Use Barnes for Ruby runtime metrics
+# https://devcenter.heroku.com/articles/language-runtime-metrics-ruby#add-the-barnes-gem-to-your-application
+require "barnes"
+
+before_fork do
+  Barnes.start
+end
+
 # Puma can serve each request in a thread from an internal thread pool.
 # The `threads` method setting takes two numbers: a minimum and maximum.
 # Any libraries that use thread pools should be configured to match
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
+#
+# Heroku dynos don't have the CPU for very many threads. So 5 is OK.
 #
 max_threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }
 min_threads_count = ENV.fetch("RAILS_MIN_THREADS") { max_threads_count }
@@ -29,6 +39,9 @@ pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 # the concurrency of the application would be max `threads` * `workers`.
 # Workers do not work on JRuby or Windows (both of which do not support
 # processes).
+#
+# Each worker consume 200-500 MB of memory. On a standard 1X Dyno,
+# you'll hit your memory quota with anything higher than 3, maybe even 2.
 #
 # For macOS only. Enable multithreading:
 # export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES

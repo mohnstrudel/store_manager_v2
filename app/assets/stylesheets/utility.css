@@ -1,0 +1,51 @@
+.flex {
+  display: flex;
+
+  &.gap {
+    gap: calc(var(--spacing) * 2);
+  }
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.mono {
+  font-family: "SF Mono", SFMono-Regular, ui-monospace, "DejaVu Sans Mono",
+    Menlo, Consolas, monospace;
+}
+
+h1.classic {
+  margin-bottom: 1.2rem;
+  font-size: 3rem;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.mute {
+  color: var(--muted-color);
+}
+
+.shrink-2 {
+  flex-shrink: 2;
+}
+
+.shrink-4 {
+  flex-shrink: 4;
+}
+
+.text-center {
+  text-align: center;
+}

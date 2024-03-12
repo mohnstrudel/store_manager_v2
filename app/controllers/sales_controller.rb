@@ -6,7 +6,7 @@ class SalesController < ApplicationController
     @sales = Sale
       .includes(:customer, :product_sales)
       .where.not(status: "cancelled")
-      .order(:created_at)
+      .order("woo_id::integer DESC")
       .page(params[:page])
     @sales = @sales.search(params[:q]) if params[:q].present?
   end

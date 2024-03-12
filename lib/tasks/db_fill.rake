@@ -9,8 +9,6 @@ namespace :db do
     SyncWooOrdersJob.perform_now
     puts "\n== Get purchases"
     SyncPurchasesJob.perform_now
-    AttachImagesToProductsJob.perform_later
-    puts "\n== Getting images in the background, it may take about an hour"
-    puts "\n== Everything else is done!"
+    puts "\n== Everything is done!"
   end
 end

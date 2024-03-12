@@ -10,27 +10,27 @@ export default class extends Controller {
 
   select(event) {
     event.preventDefault();
-    let container = document.querySelector(".gallery__main");
     // Change navigation
     this.index = Number(event.target.dataset.id);
     this.showCurrentSlide();
     this.changeImage(event.target.dataset.preview);
   }
 
+  togglePreloader(switcher) {
+    let container = document.querySelector(".gallery__main");
+    container.classList.toggle("loading", switcher);
+  }
+
   changeImage(imageSrc) {
-    // Prepare loading animation
-    let showPreloader = () => {
-      container.classList.add("loading");
-    };
-    // Change main image
+    this.mainTarget.src = "";
+    this.togglePreloader(true);
     let nextImage = new Image();
     nextImage.onload = () => {
       this.mainTarget.src = nextImage.src;
-      clearTimeout(timer);
+      this.togglePreloader(false);
     };
+    nextImage.fetchPriority = "high";
     nextImage.src = imageSrc;
-    let timer = setTimeout(showPreloader, 500);
-    this.mainTarget.src = "";
   }
 
   next() {
@@ -56,14 +56,14 @@ export default class extends Controller {
   showCurrentSlide() {
     this.slideTargets.forEach((element, index) => {
       if (index === this.index) {
-        element.className = "active";
+        element.classList.add("active");
         element.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
           inline: "start",
         });
       } else {
-        element.className = "";
+        element.classList.remove("active");
       }
     });
   }

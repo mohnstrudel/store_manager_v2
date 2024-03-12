@@ -1,0 +1,21 @@
+:root {
+  --spacing-m: calc(var(--spacing) * 1.5);
+  --spacing-l: calc(var(--spacing) * 2);
+  --spacing-xl: calc(var(--spacing) * 3);
+  --ss-primary-color: var(--primary-hover);
+  --ss-bg-color: var(--background-color);
+  --ss-font-color: var(--form-element-color);
+  --ss-border-color: var(--form-element-border-color);
+  --ss-border-radius: var(--border-radius);
+  --ss-spacing-s: 4px;
+  --ss-spacing-m: 8px;
+  --ss-spacing-l: 10px;
+  --table-left-part-width: 8rem;
+  --table-spacing-vertical: 3rem;
+  --table-left-part-padding: 1rem;
+  --font-family: "Bricolage Grotesque", sans-serif;
+  --form-element-spacing-vertical: 0.4rem;
+  --box-shadow-menu: 0px 2px 8px 0px rgba(0, 0, 0, 0.05);
+  --rgb-debt-color: 245, 179, 50;
+  --rgb-paid-color: 67, 160, 71;
+}

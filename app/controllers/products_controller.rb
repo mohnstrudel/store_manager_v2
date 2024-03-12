@@ -5,6 +5,7 @@ class ProductsController < ApplicationController
   def index
     @products = Product
       .includes(:variations)
+      .with_attached_images
       .order(:created_at)
       .page(params[:page])
     @products = @products.search(params[:q]) if params[:q].present?
