@@ -1,37 +1,78 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class PreloadableImg extends Controller {
-  static targets = ["skeleton", "img"];
+  static targets = ["img"];
 
   static values = {
     src: String,
   };
 
-  observer = null;
+  observers = [];
   isObserved = false;
+  placeholder = null;
 
   connect() {
     if (this.srcValue) {
-      this.skeletonTarget.classList.add("visible");
+      this.displayLoading();
     } else {
-      this.displayNoImage();
-      return;
+      this.displayNothing();
     }
-
-    this.observer = new IntersectionObserver(
-      (entries) => this.handleIntersection(entries),
-      {
-        root: null,
-        rootMargin: "0% 0% 25% 0%",
-        threshold: 0.1,
-      },
-    );
-
-    this.observer.observe(this.skeletonTarget);
+    this.placeholder = document.querySelector("#preloader-img__placeholder");
+    this.useIntersectionObserver();
+    this.useMutationObserver();
   }
 
   disconnect() {
-    if (this.observer) this.observer.disconnect();
+    if (this.observers.length > 0) {
+      this.observers.forEach((observer) => {
+        observer.disconnect();
+      });
+      this.observers = [];
+    }
+  }
+
+  useMutationObserver() {
+    let observer = new MutationObserver((mutations) => {
+      const mutation = mutations[0];
+      const newUrl = mutation.target.src;
+      const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
+      const isImage = imageExtensions.some(
+        (extension) => newUrl.indexOf(extension) !== -1,
+      );
+      const isTransparent = newUrl.includes("data:image");
+
+      if (isImage && !isTransparent) {
+        this.displayImg();
+        return;
+      }
+
+      if (isTransparent) {
+        this.displayLoading();
+        return;
+      }
+
+      this.displayNothing();
+    });
+
+    observer.observe(this.imgTarget, {
+      attributes: true,
+      attributeFilter: ["src"],
+    });
+
+    this.observers.push(observer);
+  }
+
+  useIntersectionObserver() {
+    let observer = new IntersectionObserver(
+      (entries) => this.handleIntersection(entries),
+      {
+        root: null,
+        rootMargin: "0% 0% 30% 0%",
+        threshold: 0.1,
+      },
+    );
+    observer.observe(this.imgTarget);
+    this.observers.push(observer);
   }
 
   handleIntersection(entries) {
@@ -46,28 +87,44 @@ export default class PreloadableImg extends Controller {
   }
 
   preloadImg(imageSrc) {
+    if (imageSrc === "") {
+      this.displayNothing();
+      return;
+    }
     let img = new Image();
+    img.fetchPriority = "low";
+    this.imgTarget.src =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
     img.onload = () => {
       this.imgTarget.src = img.src;
-      this.displayImg();
     };
     img.onerror = () => {
-      this.displayNoImage();
+      this.imgTarget.src = "";
     };
-    img.fetchPriority = "low";
     img.src = imageSrc;
     this.handleTurboFrameChange(img);
   }
 
   displayImg() {
-    this.skeletonTarget.classList.toggle("visible");
-    this.imgTarget.classList.toggle("visible");
+    if (this.placeholder) this.placeholder.classList.add("hidden");
+    this.imgTarget.classList.remove("hidden");
+    this.imgTarget.classList.remove("loading");
+    this.imgTarget.classList.remove("not-found");
+    this.imgTarget.style.height = "fit-content";
   }
 
-  displayNoImage() {
-    this.skeletonTarget.style = "";
-    this.skeletonTarget.classList = "";
-    this.skeletonTarget.innerHTML = "<i class='icn'>🧌</i>";
+  displayLoading() {
+    this.imgTarget.style.height = "100%";
+    this.imgTarget.classList.remove("hidden");
+    this.imgTarget.classList.remove("not-found");
+    this.imgTarget.classList.add("loading");
+  }
+
+  displayNothing() {
+    if (this.placeholder) this.placeholder.classList.remove("hidden");
+    if (this.imgTarget.classList.contains("not-found")) return;
+    this.imgTarget.classList.remove("loading");
+    this.imgTarget.classList.add("not-found");
   }
 
   handleTurboFrameChange(img) {

@@ -13,27 +13,24 @@
     flex-flow: column;
     justify-content: flex-start;
     align-self: center;
-    gap: 4px;
-    padding: 16px;
-    width: 120px;
+    gap: 18px;
+    padding: 24px 16px;
+    width: 128px;
     height: 80%;
     overflow: scroll;
 
     img {
-      transition: all var(--transition);
-      border-radius: 4px;
-      padding: 6px;
-      object-fit: cover;
-      object-position: center;
+      border: 0px solid var(--table-row-stripped-background-color);
 
       &:hover {
+        transform: scale3d(1.2, 1.2, 2);
         cursor: pointer;
-        box-shadow: 0 0 6px 2px rgba(97, 184, 241, 0.5);
       }
     }
 
     img.active {
-      box-shadow: 0 0 4px 2px rgba(115, 130, 140, 0.25);
+      box-shadow: 0 0 6px 2px rgba(97, 184, 241, 0.5);
+      border: 6px solid var(--table-row-stripped-background-color);
     }
   }
 
@@ -47,12 +44,6 @@
 
     img {
       align-self: center;
-      height: fit-content;
-    }
-
-    &.loading {
-      animation: pulse 1400ms infinite ease-in-out;
-      border-radius: 2px;
     }
   }
 
@@ -64,6 +55,7 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    z-index: 10;
     border: none;
     background: transparent;
     width: 5rem;

@@ -3,59 +3,59 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["slide", "main"];
 
+  nextImage = null;
+
   initialize() {
-    this.index = 0;
+    this.selectedImgIndex = 0;
     this.showCurrentSlide();
   }
 
   select(event) {
     event.preventDefault();
-    // Change navigation
-    this.index = Number(event.target.dataset.id);
+    let newSelectedImgIndex = Number(event.target.dataset.id);
+    if (this.selectedImgIndex === newSelectedImgIndex) return;
+    this.selectedImgIndex = newSelectedImgIndex;
     this.showCurrentSlide();
     this.changeImage(event.target.dataset.preview);
   }
 
-  togglePreloader(switcher) {
-    let container = document.querySelector(".gallery__main");
-    container.classList.toggle("loading", switcher);
-  }
-
   changeImage(imageSrc) {
-    this.mainTarget.src = "";
-    this.togglePreloader(true);
-    let nextImage = new Image();
-    nextImage.onload = () => {
-      this.mainTarget.src = nextImage.src;
-      this.togglePreloader(false);
+    this.mainTarget.src =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+    this.nextImage = new Image();
+    this.nextImage.onload = () => {
+      this.mainTarget.src = this.nextImage.src;
     };
-    nextImage.fetchPriority = "high";
-    nextImage.src = imageSrc;
+    this.nextImage.onerror = () => {
+      this.mainTarget.src = "";
+    };
+    this.nextImage.fetchPriority = "high";
+    this.nextImage.src = imageSrc;
   }
 
   next() {
-    if (this.index + 1 >= this.slideTargets.length) {
-      this.index = 0;
+    if (this.selectedImgIndex + 1 >= this.slideTargets.length) {
+      this.selectedImgIndex = 0;
     } else {
-      this.index++;
+      this.selectedImgIndex++;
     }
     this.showCurrentSlide();
-    this.changeImage(this.slideTargets[this.index].dataset.preview);
+    this.changeImage(this.slideTargets[this.selectedImgIndex].dataset.preview);
   }
 
   prev() {
-    if (this.index - 1 < 0) {
-      this.index = this.slideTargets.length - 1;
+    if (this.selectedImgIndex - 1 < 0) {
+      this.selectedImgIndex = this.slideTargets.length - 1;
     } else {
-      this.index--;
+      this.selectedImgIndex--;
     }
     this.showCurrentSlide();
-    this.changeImage(this.slideTargets[this.index].dataset.preview);
+    this.changeImage(this.slideTargets[this.selectedImgIndex].dataset.preview);
   }
 
   showCurrentSlide() {
     this.slideTargets.forEach((element, index) => {
-      if (index === this.index) {
+      if (index === this.selectedImgIndex) {
         element.classList.add("active");
         element.scrollIntoView({
           behavior: "smooth",
