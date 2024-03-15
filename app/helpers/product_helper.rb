@@ -6,7 +6,7 @@ module ProductHelper
 
   def product_thumb_url(product)
     if product.images.present?
-      product.images.first.representation(:thumb).url
+      url_for(product.images.first.representation(:thumb))
     end
   end
 end
