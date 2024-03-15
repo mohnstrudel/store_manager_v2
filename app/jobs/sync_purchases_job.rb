@@ -44,12 +44,14 @@ class SyncPurchasesJob < ApplicationJob
       end
 
       parsed_size = Size.parse_size(product_name)
+
       if parsed_size
         product.sizes.find_or_create_by(value: parsed_size)
       end
 
       if parsed_purchase[:version]
         color, size, version = parse_versions(parsed_purchase[:version])
+
         variation = if {color:, size:, version:}.compact_blank.blank?
           Variation.find_or_create_by({
             product:,
@@ -90,13 +92,16 @@ class SyncPurchasesJob < ApplicationJob
       payments = parsed_purchase.select { |key, _|
         key.to_s.include?("paymentvalue")
       }
+
       payments.each do |key, value|
         date = parsed_purchase[:"paymentdate#{key[-1]}"]
+
         payment_date = if date.present?
           Date.parse(date)
         else
           Time.zone.today
         end
+
         purchase.payments.build({
           value: value * parsed_purchase[:amount],
           payment_date:

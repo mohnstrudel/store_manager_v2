@@ -250,13 +250,6 @@
     "purchasedate": "15.06.2021"
   },
   {
-    "amount": 5,
-    "version": "1:4",
-    "supplier": "HWs",
-    "orderreference": "KC202106309985479042",
-    "product": "Light Weapon Broly"
-  },
-  {
     "amount": 2,
     "supplier": "Imaginary Koncept",
     "orderreference": "custom",
