@@ -1,0 +1,56 @@
+name: Rspec
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    env:
+      BUNDLE_WITHOUT: development
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      RAILS_ENV: test
+      REDIS_HOST: redis
+
+    services:
+      postgres:
+        image: postgres
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+    redis:
+      image: redis
+      options: >-
+        --health-cmd "redis-cli ping"
+        --health-interval 10s
+        --health-timeout 5s
+        --health-retries 5
+      ports: ["6379:6379"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install libvips
+        run: >-
+          sudo apt-get update -y && sudo apt-get install -y -qq libvips
+
+      - name: Set up test database
+        env:
+            PGHOST: localhost
+            PGUSER: postgres
+            PGPASSWORD: postgres
+            RAILS_ENV: test
+        run: bundle exec rails db:setup
+
+      - run: bundle exec rspec
