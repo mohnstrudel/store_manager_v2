@@ -14,11 +14,11 @@ class Size < ApplicationRecord
   has_many :products, through: :product_sizes
 
   def self.parse_size(product_title)
-    size = product_title.match(size_match)
-    size[0].tr("/", ":") if size.present?
+    num_size = product_title.match(numeric_size_match)
+    num_size[0].tr("/", ":") if num_size.present?
   end
 
-  def self.size_match
+  def self.numeric_size_match
     /1[\/:]([3456]|3\.5|1|7)/
   end
 end

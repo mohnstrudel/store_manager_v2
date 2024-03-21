@@ -61,7 +61,7 @@ class SyncWooProductsJob < ApplicationJob
 
   def parse_product_name(woo_product_name)
     woo_name = smart_titleize(sanitize(woo_product_name))
-      .sub(Size.size_match, "")
+      .sub(Size.numeric_size_match, "")
 
     franchise = woo_name.include?(" - ") ?
       woo_name.split(" - ").first :
