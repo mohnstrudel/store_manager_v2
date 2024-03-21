@@ -141,10 +141,12 @@ class SyncPurchasesJob < ApplicationJob
     resin_statue_match = /Resin Statue/i
     deposit_match = /Deposit/i
     copyright_match = /（Copyright）/i
+    more_than_one_space_match = /\s{2,}/
     string
       .sub(resin_statue_match, "")
       .sub(deposit_match, "")
       .sub(copyright_match, "")
+      .sub(more_than_one_space_match, " ")
       .strip
   end
 
