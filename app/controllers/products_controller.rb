@@ -1,5 +1,5 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[show edit update destroy gallery]
+  before_action :set_product, only: %i[show edit update destroy variations]
 
   # GET /products or /products.json
   def index
@@ -23,19 +23,6 @@ class ProductsController < ApplicationController
       .select { |product_sale|
         Sale.active_status_names.include? product_sale.sale.status
       }
-  end
-
-  def gallery
-    respond_to do |format|
-      format.html {
-        render partial: "gallery_main", locals: {
-          product_id: @product.id,
-          image: @product.images.find_by(id: params[:image_id]),
-          prev_id: @product.prev_image_id(params[:image_id]),
-          next_id: @product.next_image_id(params[:image_id])
-        }
-      }
-    end
   end
 
   # GET /products/new
@@ -66,6 +53,8 @@ class ProductsController < ApplicationController
   def update
     respond_to do |format|
       if @product.update(product_params)
+        @product.set_full_title
+
         format.html { redirect_to product_url(@product), notice: "Product was successfully updated." }
         format.json { render :show, status: :ok, location: @product }
       else
@@ -85,6 +74,18 @@ class ProductsController < ApplicationController
     end
   end
 
+  # GET /products/:id/variations?target=${html-id}
+  def variations
+    @target = params[:target]
+    @variations = @product.variations.select do |i|
+      OpenStruct.new(id: i.id, title: i.title) if i.title.present?
+    end
+
+    respond_to do |format|
+      format.turbo_stream
+    end
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -98,6 +99,7 @@ class ProductsController < ApplicationController
       :title,
       :franchise_id,
       :shape_id,
+      :target,
       brand_ids: [],
       color_ids: [],
       size_ids: [],

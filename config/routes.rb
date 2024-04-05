@@ -17,7 +17,7 @@ Rails.application.routes.draw do
 
   resources :products do
     get "/page/:page", action: :index, on: :collection
-    get "gallery", action: :gallery, on: :member
+    get "variations", on: :member
   end
 
   resources :purchases do

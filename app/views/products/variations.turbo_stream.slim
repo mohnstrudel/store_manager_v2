@@ -1,0 +1,5 @@
+= turbo_stream.update @target 
+  - if @variations.present?
+    = label :purchase, :variation
+    = collection_select :purchase, :variation_id, @variations, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
+
