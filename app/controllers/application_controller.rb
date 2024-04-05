@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
     )
   end
 
-  unless Rails.env.production?
+  if Rails.env.development?
     around_action :n_plus_one_detection
 
     def n_plus_one_detection
