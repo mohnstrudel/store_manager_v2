@@ -75,6 +75,8 @@ RSpec.describe "Search", js: "true", type: :system do
       Purchase.find_each(&:destroy)
       Brand.find_each(&:destroy)
       Franchise.find_each(&:destroy)
+      Shape.find_each(&:destroy)
+      Supplier.find_each(&:destroy)
     end
 
     it "shows two sales and two suppliers debts in index" do
