@@ -5,10 +5,10 @@ nav
 
 main.wide.no-bd.flex.justify-between.flex-col.gap
   .table-card
-    turbo-frame id="debts-sales"
-      .search-navigation
-        = render partial: "_shared/search-form", locals: {path: debts_path}
-        = paginate @debts
+    .search-navigation
+      = render partial: "_shared/search-form", locals: {path: debts_path}
+      = paginate @debts
+    - if @debts.present?  
       table role="grid" data-controller="table"
         thead
           th Title
@@ -32,6 +32,8 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
                 td = product.purchased
                 td = product.debt
       = paginate @debts
+    - else 
+      = render "_shared/search-results-empty"
 
   - if @unpaid_purchases.present?
     .table-card
