@@ -10,4 +10,12 @@
 class Franchise < ApplicationRecord
   validates :title, presence: true
   has_many :products, dependent: :destroy
+
+  after_save :update_products
+
+  private
+
+  def update_products
+    products.each(&:set_full_title)
+  end
 end

@@ -28,7 +28,7 @@ class Sale < ApplicationRecord
     against: :woo_id,
     associated_against: {
       customer: [:email, :first_name, :last_name, :phone, :woo_id],
-      product_sales: [:full_title]
+      products: [:full_title]
     },
     using: {
       tsearch: {prefix: true}

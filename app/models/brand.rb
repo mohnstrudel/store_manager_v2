@@ -15,6 +15,8 @@ class Brand < ApplicationRecord
   has_many :product_brands, dependent: :destroy
   has_many :products, through: :product_brands
 
+  after_save :update_products
+
   def self.parse_brand(product_title)
     product_title = smart_titleize(sanitize(product_title))
     brand_identifier = product_title.match(/Vo[nm]\s+(.+)/)
@@ -29,5 +31,11 @@ class Brand < ApplicationRecord
         product_title.match(title)
       }
     end
+  end
+
+  private
+
+  def update_products
+    products.each(&:set_full_title)
   end
 end
