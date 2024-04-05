@@ -59,6 +59,8 @@ gem "sidekiq", "~> 7.2"
 # pg_stat_statements.track = all
 gem "pg_query", ">= 2"
 
+gem "requestjs-rails"
+
 group :production do
   gem "thruster"
   gem "barnes"
@@ -104,6 +106,7 @@ end
 
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
-  # gem "capybara"
-  # gem "selenium-webdriver"
+  gem "capybara"
+  gem "selenium-webdriver"
+  gem "cuprite"
 end
