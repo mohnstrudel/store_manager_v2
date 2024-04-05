@@ -49,7 +49,7 @@ class SyncPurchasesJob < ApplicationJob
         product.sizes.find_or_create_by(value: parsed_size)
       end
 
-      if parsed_purchase[:version]
+      if parsed_purchase[:version].present?
         color, size, version = parse_versions(parsed_purchase[:version])
 
         variation = if {color:, size:, version:}.compact_blank.blank?
@@ -64,14 +64,6 @@ class SyncPurchasesJob < ApplicationJob
         end
       end
 
-      full_title = Product.generate_full_title(
-        product,
-        product&.brands&.pluck(:title)&.join(", "),
-        size&.value,
-        version&.value,
-        color&.value
-      )
-
       purchase_date = if parsed_purchase[:purchasedate]
         Date.parse(parsed_purchase[:purchasedate])
       else
@@ -83,7 +75,6 @@ class SyncPurchasesJob < ApplicationJob
         order_reference: parsed_purchase[:orderreference],
         item_price: parsed_purchase[:itemprice],
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
-        full_title:,
         purchase_date:,
         product:,
         variation:
