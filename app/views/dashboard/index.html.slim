@@ -23,7 +23,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
             )
               td = product.full_title
               td = product.variation_name
-              td = product.debt
+              td = product.debt.to_i
           - else
             tr.hoverable(
               data-action="click->table#goTo"
@@ -32,7 +32,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
             )
               td = product.full_title
               td -
-              td = product.debt
+              td = product.debt.to_i
         tr
           td colspan="3" = link_to "See More...", debts_path
 
