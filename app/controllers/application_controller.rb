@@ -7,7 +7,9 @@ class ApplicationController < ActionController::Base
   end
 
   if Rails.env.development?
-    ActiveStorage::Current.url_options = {host: "http://localhost:3000"}
+    before_action do
+      ActiveStorage::Current.url_options = {host: "http://localhost:3000"}
+    end
 
     around_action :n_plus_one_detection
 
