@@ -3,24 +3,24 @@
 = render "_shared/nav-index", model: @purchases
 
 main.wide data-controller="table"
-  turbo-frame id="purchases-index"
-    .search-navigation
-      = render partial: "_shared/search-form", locals: {path: purchases_path}
-      = paginate @purchases
-    - if @purchases.present?
-      table(role="grid")
-        thead
-          tr
-            th ID
-            th Product
-            th Qty
-            th.right Price, $
-            th.right Total, $
-            th.right Debt, $
-            th Supplier
-            th Actions
-        tbody
-          = render @purchases, cache: true
-      = paginate @purchases
-    - else 
-      = render "_shared/search-results-empty"
+  .search-navigation
+    = render partial: "_shared/search-form", locals: {path: purchases_path}
+    = paginate @purchases
+  - if @purchases.present?
+    table(role="grid")
+      thead
+        tr
+          th Image
+          th ID
+          th Product
+          th Qty
+          th.right Price, $
+          th.right Total, $
+          th.right Debt, $
+          th Supplier
+          th Actions
+      tbody
+        = render @purchases, cache: true
+    = paginate @purchases
+  - else 
+    = render "_shared/search-results-empty"

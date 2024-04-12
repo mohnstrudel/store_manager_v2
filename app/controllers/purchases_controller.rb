@@ -5,9 +5,9 @@ class PurchasesController < ApplicationController
   def index
     @purchases = Purchase
       .includes(
-        :product,
         :supplier,
         :payments,
+        product: [images_attachments: :blob],
         variation: [:color, :size, :version]
       )
       .order(id: :desc)

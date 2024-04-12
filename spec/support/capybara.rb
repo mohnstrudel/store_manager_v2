@@ -3,11 +3,12 @@ require "capybara/cuprite"
 
 Capybara.default_max_wait_time = 3
 Capybara.default_normalize_ws = true
+Capybara.disable_animation = ENV.fetch("DISABLE_ANIMATION", "true") == "true"
 
 Capybara.register_driver(:better_cuprite) do |app|
   Capybara::Cuprite::Driver.new(
     app,
-    window_size: [1280, 1000],
+    window_size: [1000, 1000],
     # See additional options for Dockerized environment in the respective section of this article
     browser_options: {},
     # Increase Chrome startup wait time (required for stable CI builds)

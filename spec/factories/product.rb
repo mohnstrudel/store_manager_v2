@@ -6,6 +6,14 @@ FactoryBot.define do
     title { "Spirited Away" }
     woo_id { "26626" }
 
+    trait :with_brand do
+      brand
+    end
+
+    trait :with_variation do
+      variation
+    end
+
     factory(:product_with_brands) do
       transient do
         brand_title { "Studio Ghibli" }

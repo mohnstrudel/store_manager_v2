@@ -3,22 +3,21 @@
 = render "_shared/nav-index", model: @sales
 
 main.wide
-  turbo-frame id="sales-index"
-    .search-navigation
-      = render partial: "_shared/search-form", locals: {path: sales_path}
-      = paginate @sales
-    - if @sales.present?
-      table role="grid" data-controller="table"
-        thead
-          tr
-            th Woo ID
-            th Customer and Products
-            th Date
-            th Status
-            th.right Price
-            th.right Actions
-        tbody
-          = render @sales
-      = paginate @sales
-    - else 
-      = render "_shared/search-results-empty"
+  .search-navigation
+    = render partial: "_shared/search-form", locals: {path: sales_path}
+    = paginate @sales
+  - if @sales.present?
+    table role="grid" data-controller="table"
+      thead
+        tr
+          th Woo ID
+          th Customer and Products
+          th Date
+          th Status
+          th.right Price
+          th.right Actions
+      tbody
+        = render @sales
+    = paginate @sales
+  - else 
+    = render "_shared/search-results-empty"

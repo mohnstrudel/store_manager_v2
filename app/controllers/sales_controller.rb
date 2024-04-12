@@ -4,7 +4,7 @@ class SalesController < ApplicationController
   # GET /sales
   def index
     @sales = Sale
-      .includes(:customer, :product_sales)
+      .includes(:customer, product_sales: [:product, variation: [:version, :color, :size]])
       .where.not(status: "cancelled")
       .order("woo_id::integer DESC")
       .page(params[:page])

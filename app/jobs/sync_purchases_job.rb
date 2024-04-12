@@ -46,7 +46,7 @@ class SyncPurchasesJob < ApplicationJob
       parsed_size = Size.parse_size(product_name)
 
       if parsed_size
-        product.sizes.find_or_create_by(value: parsed_size)
+        product.sizes << Size.find_or_create_by(value: parsed_size)
       end
 
       if parsed_purchase[:version].present?
@@ -164,7 +164,7 @@ class SyncPurchasesJob < ApplicationJob
 
     variation_size = Size.parse_size(parsed_version)
     if variation_size
-      size = Size.find_by(value: variation_size)
+      size = Size.find_or_create_by(value: variation_size)
     end
 
     version = Version.find_by("LOWER(value) LIKE ?", parsed_version.downcase)

@@ -77,7 +77,7 @@ class SyncWooProductsJob < ApplicationJob
 
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
 
-    [title, franchise, shape[0]]
+    [title, franchise, smart_titleize(shape[0])]
   end
 
   def parse(woo_product)

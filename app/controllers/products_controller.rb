@@ -4,7 +4,7 @@ class ProductsController < ApplicationController
   # GET /products or /products.json
   def index
     @products = Product
-      .includes(:variations)
+      .includes(variations: [:version, :color, :size])
       .with_attached_images
       .order(:created_at)
       .page(params[:page])

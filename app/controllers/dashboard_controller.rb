@@ -37,35 +37,50 @@ class DashboardController < ApplicationController
   private
 
   def sale_debts
+    variation_debt_query = <<-SQL.squish
+      SUM(COALESCE(sold.total_qty, 0)) - SUM(COALESCE(purchased_variations.amount, 0))
+    SQL
+
+    debt_query = <<-SQL.squish
+      CASE
+        WHEN sold.variation_id > 0 THEN #{variation_debt_query}
+        ELSE
+          SUM(COALESCE(sold.total_qty, 0)) - SUM(COALESCE(purchased.amount, 0))
+      END
+    SQL
+
     Product
       .select(<<-SQL.squish)
         products.*,
-        MAX(COALESCE(sold_subquery.total_qty, 0)) AS sold,
-        MAX(COALESCE(purchased_subquery.total_amount, 0)) AS purchased,
-        MAX(COALESCE(sold_subquery.total_qty, 0)) -
-          MAX(COALESCE(purchased_subquery.total_amount, 0)) AS debt,
-        sold_subquery.variation_id AS sale_variation_id,
-        variations_subquery.variation_name AS variation_name
+        SUM(sold.total_qty) AS sold_amount,
+        SUM(purchased.amount) AS purchased_amount,
+        SUM(purchased_variations.amount) AS purchased_variations_amount,
+        #{debt_query} AS debt,
+        #{variation_debt_query} AS variations_debt,
+        sold.variation_id AS sale_variation_id,
+        variations.variation_name AS variation_name
       SQL
       .joins(<<-SQL.squish)
-        LEFT JOIN (#{sold_subquery.to_sql}) sold_subquery
-          ON sold_subquery.product_id = products.id
-        LEFT JOIN (#{purchased_subquery.to_sql}) purchased_subquery
-          ON purchased_subquery.product_id = products.id
-        LEFT JOIN (#{variations_subquery.to_sql}) variations_subquery
-          ON variations_subquery.variation_id = sold_subquery.variation_id
+        LEFT JOIN (#{sold.to_sql}) sold
+          ON sold.product_id = products.id
+        LEFT JOIN (#{purchased.to_sql}) purchased
+          ON purchased.product_id = products.id
+        LEFT JOIN (#{purchased_variations.to_sql}) purchased_variations
+          ON purchased_variations.variation_id = sold.variation_id
+        LEFT JOIN (#{variations.to_sql}) variations
+          ON variations.variation_id = sold.variation_id
       SQL
       .group(<<-SQL.squish)
         products.id,
         products.full_title,
-        sold_subquery.variation_id,
-        variations_subquery.variation_name
+        sold.variation_id,
+        variations.variation_name
       SQL
-      .order("debt DESC")
-      .filter { |product| product.debt > 0 }
+      .having("#{debt_query} > 0 AND #{variation_debt_query} > 0")
+      .order(debt: :desc, variations_debt: :desc)
   end
 
-  def sold_subquery
+  def sold
     ProductSale
       .select(<<-SQL.squish)
         product_id,
@@ -77,16 +92,28 @@ class DashboardController < ApplicationController
       .group("product_id, variation_id")
   end
 
-  def purchased_subquery
+  def purchased
     Purchase
       .select(<<-SQL.squish)
         product_id,
-        SUM(amount) AS total_amount
+        variation_id,
+        SUM(amount) AS amount
       SQL
-      .group("product_id")
+      .where(variation_id: nil)
+      .group("product_id, variation_id")
   end
 
-  def variations_subquery
+  def purchased_variations
+    Purchase
+      .select(<<-SQL.squish)
+        variation_id,
+        SUM(amount) AS amount
+      SQL
+      .where.not(variation_id: nil)
+      .group("variation_id")
+  end
+
+  def variations
     Variation
       .select(<<-SQL.squish)
         variations.id AS variation_id,
