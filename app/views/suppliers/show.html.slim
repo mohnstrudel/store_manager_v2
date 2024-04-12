@@ -37,8 +37,8 @@ main
                 class="#{purchase.debt > 0 ? 'has-debt' : 'paid'}"
               )
                 - if purchase.variation.present?
+                  td = purchase.product.full_title
                   td = purchase.variation.title
-                  td = purchase.variation.which&.value
                 - else
                   td = purchase.product.full_title
                   td  
