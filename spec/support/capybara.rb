@@ -1,18 +1,17 @@
 require "capybara/rspec"
 require "capybara/cuprite"
 
-Capybara.default_max_wait_time = 3
+Capybara.default_max_wait_time = 2
 Capybara.default_normalize_ws = true
-Capybara.disable_animation = ENV.fetch("DISABLE_ANIMATION", "true") == "true"
 
 Capybara.register_driver(:better_cuprite) do |app|
   Capybara::Cuprite::Driver.new(
     app,
-    window_size: [1000, 1000],
+    window_size: [1400, 1400],
     # See additional options for Dockerized environment in the respective section of this article
-    browser_options: {},
+    browser_options: {"no-sandbox": nil},
     # Increase Chrome startup wait time (required for stable CI builds)
-    process_timeout: 10,
+    process_timeout: 20,
     # Enable debugging capabilities
     inspector: true,
     # Allow running Chrome in a headful mode by setting HEADLESS env
@@ -39,4 +38,8 @@ end
 
 RSpec.configure do |config|
   config.include CupriteHelpers, type: :system
+
+  config.before(:each, type: :system) do
+    driven_by :better_cuprite, using: :headless_chrome, screen_size: [1400, 1400]
+  end
 end

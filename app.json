@@ -1,0 +1,11 @@
+{
+  "buildpacks": [
+    { "url": "heroku-community/chrome-for-testing" },
+    { "url": "heroku/ruby" }
+  ],
+  "environments": {
+    "test": {
+      "addons": ["heroku-postgresql:in-dyno", "heroku-redis:in-dyno"]
+    }
+  }
+}

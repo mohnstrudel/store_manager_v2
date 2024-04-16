@@ -175,12 +175,12 @@ RSpec.describe "Search, create, and destroy", js: "true", type: :system do
       find("tr[data-table-url-param='/purchases/#{@purchase_batman.id}").click
       find(:link, "Edit").click
 
-      find("label[for='purchase_product'] ~ div").click
+      find("#purchase-product-select div[role='combobox']").click
       find("div[aria-selected='false']", text: @asuka.full_title).click
 
       scroll_to("label[for='purchase_variation'] ~ div")
 
-      find("label[for='purchase_variation'] ~ div").click
+      find("#purchase-variation-select:last-child").click
       find("div[aria-selected='false']", text: asuka_variation.title).click
 
       scroll_to("input[type=submit]")
