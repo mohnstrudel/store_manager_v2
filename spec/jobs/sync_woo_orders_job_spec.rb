@@ -17,8 +17,15 @@ RSpec.describe SyncWooOrdersJob do
   end
 
   describe "#create_sales" do
+    let(:denpasar) { "Denpasar" }
+
     context "when we parsed orders from Woo API" do
       before do
+        create(
+          :sale,
+          woo_id: parsed_woo_orders.first[:sale][:woo_id],
+          city: denpasar
+        )
         parsed_woo_orders.pluck(:products).flatten.each do |p|
           create(:product, woo_id: p[:product_woo_id])
         end
@@ -33,6 +40,11 @@ RSpec.describe SyncWooOrdersJob do
         with_variation = ProductSale.where.not(variation_id: nil)
         parsed_variations_count = parsed_woo_orders.pluck(:products).flatten.count { |product| product[:variation].present? }
         expect(with_variation.size).to eq(parsed_variations_count)
+      end
+
+      it "reuses existing sales" do
+        existing_sale = Sale.find_by(woo_id: parsed_woo_orders.first[:sale][:woo_id])
+        expect(existing_sale.city).not_to eq(denpasar)
       end
     end
   end

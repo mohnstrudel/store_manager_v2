@@ -80,6 +80,7 @@ main.wide.flex.flex-col.gap.w-pd
         table role="grid" data-controller="table"
           thead
             th Customer
+            th Email
             th Date
             th Status
             th Variation?
@@ -93,6 +94,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-table-url-param=sale_path(ps.sale)
               )
                 td = ps.sale.customer.full_name
+                td = ps.sale.customer.email
                 td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
                 td = ps.sale.status
                 - if ps.variation.present?

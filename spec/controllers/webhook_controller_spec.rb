@@ -8,6 +8,7 @@ RSpec.describe WebhookController do
     JSON.parse(file_fixture("parsed_hooks_order.json").read, symbolize_names: true)
   }
 
+  # rubocop:disable RSpec/MultipleMemoizedHelpers
   describe "#verify_webhook" do
     let(:invalid_signature) { "invalid_signature" }
     let(:secret) { "my_secret" }
@@ -30,17 +31,31 @@ RSpec.describe WebhookController do
       expect(subject.send(:verify_webhook, secret)).to be_falsy
     end
   end
+  # rubocop:enable RSpec/MultipleMemoizedHelpers
 
-  describe "#get_sale" do
+  describe "#handle_sale" do
+    let(:customer_id) {
+      subject.send(:handle_customer, parsed_order[:customer])
+    }
+
     it "returns a sale object" do
-      customer_payload = parsed_order[:customer]
-      sale_payload = parsed_order[:sale]
-      sale = subject.send(:get_sale, customer_payload, sale_payload)
+      sale_payload = parsed_order[:sale].merge({customer_id:})
+      sale = subject.send(:handle_sale, sale_payload)
 
       expect(sale).to be_a(Sale)
     end
+
+    it "reuses the same sale object" do
+      sale_payload = parsed_order[:sale].merge({customer_id:})
+      existing_sale = create(:sale, woo_id: sale_payload[:woo_id])
+      sale = subject.send(:handle_sale, sale_payload)
+
+      expect(sale.woo_id).to eq(existing_sale.woo_id)
+      expect(sale.id).to eq(existing_sale.id)
+    end
   end
 
+  # rubocop:disable RSpec/ExampleLength
   describe "#get_variation_type" do
     it "returns a variation type" do
       parsed_variation = parsed_order[:products].find { |el|
@@ -81,4 +96,5 @@ RSpec.describe WebhookController do
       expect(ProductSale.find(product_sale.id).price).to eq(BigDecimal("235"))
     end
   end
+  # rubocop:enable RSpec/ExampleLength
 end
