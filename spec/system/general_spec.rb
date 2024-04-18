@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Search, create, and destroy", js: "true", type: :system do
+RSpec.describe "Search, create, and destroy", js: "true" do
   # rubocop:disable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll
   describe "works accross products, sales, purchases, and debts" do
     before(:all) do
