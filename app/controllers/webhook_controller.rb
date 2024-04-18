@@ -2,7 +2,7 @@ class WebhookController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def update_sale
-    verified = verify_webhook(Rails.application.credentraiials.dig(:hooks, :order))
+    verified = verify_webhook(Rails.application.credentials.dig(:hooks, :order))
     return head(:unauthorized) unless verified
 
     orders_job = SyncWooOrdersJob.new
