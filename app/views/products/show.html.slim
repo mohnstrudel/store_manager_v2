@@ -76,11 +76,14 @@ main.wide.flex.flex-col.gap.w-pd
   - if @active_sales.present?
     .table-cards-group
       .table-card
-        h3 Sales
+        h3.flex.justify-between
+          span Active Sales
+          span = @active_sales.size
         table role="grid" data-controller="table"
           thead
             th Customer
             th Email
+            th Country
             th Date
             th Status
             th Variation?
@@ -95,6 +98,7 @@ main.wide.flex.flex-col.gap.w-pd
               )
                 td = ps.sale.customer.full_name
                 td = ps.sale.customer.email
+                td = ps.sale.country
                 td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
                 td = ps.sale.status
                 - if ps.variation.present?
@@ -103,6 +107,41 @@ main.wide.flex.flex-col.gap.w-pd
                   td -
                 td.right.mono = format_money ps.price
                 td = ps.qty
+
+  - if @complete_sales.present?
+    .table-cards-group
+      .table-card
+        h3.flex.justify-between
+          span Completed Sales
+          span = @complete_sales.size
+        table role="grid" data-controller="table"
+          thead
+            th Email
+            th Date
+            th.right Price, $
+            th Qty
+            th Customer
+            th Country
+            th City
+            th Variation?
+          tbody
+            - @complete_sales.each_with_index do |ps, idx|
+              tr(
+                class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.item.id)
+                data-action="click->table#goTo"
+                data-table-url-param=sale_path(ps.sale)
+              )
+                td = ps.sale.customer.email
+                td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
+                td.right.mono = format_money ps.price
+                td = ps.qty
+                td = ps.sale.customer.full_name
+                td = ps.sale.country
+                td = ps.sale.city
+                - if ps.variation.present?
+                  td = ps.variation.which&.value
+                - else
+                  td -
 
   - if @product.purchases.present?
     .table-cards-group

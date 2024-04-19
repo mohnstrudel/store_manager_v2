@@ -13,16 +13,21 @@ class ProductsController < ApplicationController
 
   # GET /products/1 or /products/1.json
   def show
-    @active_sales = @product
+    sales = @product
       .product_sales.includes(
         :product,
         sale: :customer,
         variation: [:version, :color, :size]
       )
       .order(created_at: :asc)
-      .select { |product_sale|
-        Sale.active_status_names.include? product_sale.sale.status
-      }
+
+    @active_sales = sales.select { |product_sale|
+      Sale.active_status_names.include? product_sale.sale.status
+    }
+
+    @complete_sales = sales.select { |product_sale|
+      product_sale.sale.status == "completed"
+    }
   end
 
   # GET /products/new
