@@ -4,7 +4,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     = sale.customer.email
     ul.product-variations
       - sale.product_sales.each do |ps|
-        li = ps.full_title
+        li = ps.title
   td.no-wrap = format_date sale.woo_created_at.presence || sale.created_at
   td = format_sale_status sale.status
   td.right.mono = format_money sale.total

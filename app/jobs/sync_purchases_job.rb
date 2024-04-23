@@ -46,10 +46,10 @@ class SyncPurchasesJob < ApplicationJob
       parsed_size = Size.parse_size(product_name)
 
       if parsed_size
-        product.sizes.find_or_create_by(value: parsed_size)
+        product.sizes << Size.find_or_create_by(value: parsed_size)
       end
 
-      if parsed_purchase[:version]
+      if parsed_purchase[:version].present?
         color, size, version = parse_versions(parsed_purchase[:version])
 
         variation = if {color:, size:, version:}.compact_blank.blank?
@@ -64,14 +64,6 @@ class SyncPurchasesJob < ApplicationJob
         end
       end
 
-      full_title = Product.generate_full_title(
-        product,
-        product&.brands&.pluck(:title)&.join(", "),
-        size&.value,
-        version&.value,
-        color&.value
-      )
-
       purchase_date = if parsed_purchase[:purchasedate]
         Date.parse(parsed_purchase[:purchasedate])
       else
@@ -83,7 +75,6 @@ class SyncPurchasesJob < ApplicationJob
         order_reference: parsed_purchase[:orderreference],
         item_price: parsed_purchase[:itemprice],
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
-        full_title:,
         purchase_date:,
         product:,
         variation:
@@ -141,10 +132,12 @@ class SyncPurchasesJob < ApplicationJob
     resin_statue_match = /Resin Statue/i
     deposit_match = /Deposit/i
     copyright_match = /（Copyright）/i
+    more_than_one_space_match = /\s{2,}/
     string
       .sub(resin_statue_match, "")
       .sub(deposit_match, "")
       .sub(copyright_match, "")
+      .sub(more_than_one_space_match, " ")
       .strip
   end
 
@@ -171,7 +164,7 @@ class SyncPurchasesJob < ApplicationJob
 
     variation_size = Size.parse_size(parsed_version)
     if variation_size
-      size = Size.find_by(value: variation_size)
+      size = Size.find_or_create_by(value: variation_size)
     end
 
     version = Version.find_by("LOWER(value) LIKE ?", parsed_version.downcase)

@@ -61,7 +61,7 @@ class SyncWooProductsJob < ApplicationJob
 
   def parse_product_name(woo_product_name)
     woo_name = smart_titleize(sanitize(woo_product_name))
-      .sub(Size.size_match, "")
+      .sub(Size.numeric_size_match, "")
 
     franchise = woo_name.include?(" - ") ?
       woo_name.split(" - ").first :
@@ -77,7 +77,7 @@ class SyncWooProductsJob < ApplicationJob
 
     shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
 
-    [title, franchise, shape[0]]
+    [title, franchise, smart_titleize(shape[0])]
   end
 
   def parse(woo_product)

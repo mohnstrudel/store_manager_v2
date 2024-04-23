@@ -45,12 +45,10 @@ jobs:
         run: >-
           sudo apt-get update -y && sudo apt-get install -y -qq libvips
 
-      - name: Set up test database
-        env:
-            PGHOST: localhost
-            PGUSER: postgres
-            PGPASSWORD: postgres
-            RAILS_ENV: test
+      - name: Install Google Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Setup test DB
         run: bundle exec rails db:setup
 
       - run: bundle exec rspec

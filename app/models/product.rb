@@ -21,6 +21,12 @@ class Product < ApplicationRecord
 
   pg_search_scope :search,
     against: [:full_title, :woo_id],
+    associated_against: {
+      suppliers: [:title],
+      sizes: [:value],
+      versions: [:value],
+      colors: [:value]
+    },
     using: {
       tsearch: {prefix: true}
     }
@@ -75,28 +81,14 @@ class Product < ApplicationRecord
 
   def self.generate_full_title(
     product,
-    brand = nil,
-    size = nil,
-    version = nil,
-    color = nil
+    brand = nil
   )
     name = (product.title == product.franchise.title) ?
       product.title :
       "#{product.franchise.title} — #{product.title}"
-    format_values = ->(product) { product&.pluck(:value)&.join(", ") }
-    sizes, versions, colors =
-      [
-        format_values.call(product.sizes),
-        format_values.call(product.versions),
-        format_values.call(product.colors)
-      ]
     brands = product.brands.pluck(:title).join(", ")
     [
       name,
-      size.presence || sizes.presence,
-      version.presence || versions.presence,
-      color.presence || colors.presence,
-      "Resin #{product.shape.title}",
       brand.presence || brands.presence
     ].compact.join(" | ")
   end

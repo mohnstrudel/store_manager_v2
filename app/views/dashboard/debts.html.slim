@@ -5,10 +5,10 @@ nav
 
 main.wide.no-bd.flex.justify-between.flex-col.gap
   .table-card
-    turbo-frame id="debts-sales"
-      .search-navigation
-        = render partial: "_shared/search-form", locals: {path: debts_path}
-        = paginate @debts
+    .search-navigation
+      = render partial: "_shared/search-form", locals: {path: debts_path}
+      = paginate @debts
+    - if @debts.present?  
       table role="grid" data-controller="table"
         thead
           th Title
@@ -21,17 +21,25 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
               tr.hoverable(
                 data-action="click->table#goTo"
                 data-table-url-param=product_path(product.id)
-                data-table-id-param=(product.id)
+                data-table-id-param=(product.sale_variation_id || product.id)
               )
                 td = product.full_title
                 - if product.sale_variation_id.present?
                   td = product.variation_name
                 - else
                   td
-                td = product.sold
-                td = product.purchased
-                td = product.debt
+                td = product.sold_amount.to_i
+                - if product.sale_variation_id.present?
+                  td = product.purchased_variations_amount.to_i
+                - else
+                  td = product.purchased_amount.to_i
+                - if product.sale_variation_id.present?
+                  td = product.variations_debt.to_i
+                - else
+                  td = product.debt.to_i
       = paginate @debts
+    - else 
+      = render "_shared/search-results-empty"
 
   - if @unpaid_purchases.present?
     .table-card

@@ -4,7 +4,6 @@
 #
 #  id              :bigint           not null, primary key
 #  amount          :integer
-#  full_title      :string
 #  item_price      :decimal(8, 2)
 #  order_reference :string
 #  purchase_date   :datetime
@@ -18,9 +17,13 @@
 class Purchase < ApplicationRecord
   include PgSearch::Model
   pg_search_scope :search,
-    against: [:full_title, :order_reference],
+    against: [:order_reference],
     associated_against: {
-      supplier: [:title]
+      supplier: [:title],
+      product: [:full_title],
+      sizes: [:value],
+      versions: [:value],
+      colors: [:value]
     },
     using: {
       tsearch: {prefix: true}
@@ -34,6 +37,10 @@ class Purchase < ApplicationRecord
   db_belongs_to :supplier
   belongs_to :product, optional: true
   belongs_to :variation, optional: true
+
+  has_many :sizes, through: :variation
+  has_many :versions, through: :variation
+  has_many :colors, through: :variation
 
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments

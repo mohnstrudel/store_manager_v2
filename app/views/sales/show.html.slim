@@ -58,7 +58,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-table-url-param=product_path(ps.product)
               )
                 td.mute = idx + 1
-                td = ps.variation.present? ? ps.variation.title : ps.product.full_title 
+                td = ps.product.full_title 
                 td = ps.variation.present? ? ps.variation.which.value : "-"
                 td.right.mono = format_money ps.price
                 td.right = ps.qty

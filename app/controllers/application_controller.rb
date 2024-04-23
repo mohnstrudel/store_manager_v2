@@ -6,7 +6,11 @@ class ApplicationController < ActionController::Base
     )
   end
 
-  unless Rails.env.production?
+  if Rails.env.development?
+    before_action do
+      ActiveStorage::Current.url_options = {host: "http://localhost:3000"}
+    end
+
     around_action :n_plus_one_detection
 
     def n_plus_one_detection

@@ -1,11 +1,12 @@
 FactoryBot.define do
   factory(:sale) do
+    customer
+
     address_1 { "ToFactory: RubyParser exception parsing this attribute" }
     address_2 { "" }
     city { "Denkendorf" }
     company { "" }
     country { "DE" }
-    customer
     discount_total { BigDecimal("0.0") }
     note { "" }
     postcode { "73770" }

@@ -3,10 +3,10 @@
 = render "_shared/nav-index", model: @sales
 
 main.wide
-  turbo-frame id="sales-index"
-    .search-navigation
-      = render partial: "_shared/search-form", locals: {path: sales_path}
-      = paginate @sales
+  .search-navigation
+    = render partial: "_shared/search-form", locals: {path: sales_path}
+    = paginate @sales
+  - if @sales.present?
     table role="grid" data-controller="table"
       thead
         tr
@@ -19,3 +19,5 @@ main.wide
       tbody
         = render @sales
     = paginate @sales
+  - else 
+    = render "_shared/search-results-empty"

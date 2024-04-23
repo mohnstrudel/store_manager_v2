@@ -11,7 +11,7 @@ main.wide.flex.flex-col.gap.w-pd
         .gallery data-controller="gallery"
           .card.gallery__nav
             - @product.images.each do |img|
-              = render "preloadable_img", src: url_for(img.representation(:nano)), width: 70, \
+              = render "_shared/preloadable_img", src: url_for(img.representation(:nano)), width: 70, \
                 data: { \
                   id: @product.images.index(img),\
                   preview: url_for(img.representation(:preview)), \
@@ -22,7 +22,7 @@ main.wide.flex.flex-col.gap.w-pd
             button.gallery__btn data-action="gallery#prev" ←
             button.gallery__btn data-action="gallery#next" →
             / = image_tag @product.images.first.representation(:preview), data: {"gallery-target": "main"}, fetchpriority: "high"
-            = render "preloadable_img", src: @product.images.first.representation(:preview).url, data: {"gallery-target": "main"}
+            = render "_shared/preloadable_img", src: @product.images.first.representation(:preview).url, data: {"gallery-target": "main"}
     .card.grow.shrink-4
       .title Title
       p = @product.title
@@ -80,6 +80,7 @@ main.wide.flex.flex-col.gap.w-pd
         table role="grid" data-controller="table"
           thead
             th Customer
+            th Email
             th Date
             th Status
             th Variation?
@@ -93,6 +94,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-table-url-param=sale_path(ps.sale)
               )
                 td = ps.sale.customer.full_name
+                td = ps.sale.customer.email
                 td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
                 td = ps.sale.status
                 - if ps.variation.present?

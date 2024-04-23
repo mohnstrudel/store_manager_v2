@@ -4,11 +4,15 @@
   = form.label :supplier
   = form.collection_select :supplier_id, Supplier.all, :id, :title
 
-  = form.label :product
-  = form.collection_select :product_id, Product.all, :id, :full_title, { class: "select" }, data: { controller: "slim-select" }
+  .stimulus data-controller="purchase-variation"
+    = form.label :product
+    .stimulus#purchase-product-select
+      = form.collection_select :product_id, Product.all, :id, :full_title, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-variation#change" }
 
-  = form.label :variation
-  = form.collection_select :variation_id, Variation.all, :id, :title, { class: "select" }, data: { controller: "slim-select" }
+    .stimulus#purchase-variation-select data-purchase-variation-target="select"
+      - if purchase.product&.variations.present?
+        = form.label :variation
+        = form.collection_select :variation_id, purchase.product.variations, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
 
   = form.label :order_reference
   = form.text_field :order_reference

@@ -25,9 +25,11 @@ class SyncWooOrdersJob < ApplicationJob
     variation_types = Variation.types.values
 
     parsed_orders.each do |order|
-      sale = Sale.find_or_create_by(order[:sale].merge({
+      sale = Sale.find_or_initialize_by(woo_id: order[:sale][:woo_id])
+      sale.assign_attributes(order[:sale].merge({
         customer_id: Customer.find_or_create_by(order[:customer]).id
       }))
+      sale.save
 
       order[:products].each do |order_product|
         next if product_sales.find { |ps|
@@ -56,7 +58,7 @@ class SyncWooOrdersJob < ApplicationJob
           woo_id: order_product[:order_woo_id],
           qty: order_product[:qty],
           price: order_product[:price],
-          sale: sale,
+          sale:,
           product:,
           variation:
         })

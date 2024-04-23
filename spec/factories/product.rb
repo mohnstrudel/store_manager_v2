@@ -2,9 +2,33 @@ FactoryBot.define do
   factory(:product) do
     franchise
     shape
-    image { "https://store.handsomecake.com/wp-content/uploads/2023/11/F-z6rD6bYAADn0H-scaled.jpg" }
     store_link { nil }
     title { "Spirited Away" }
     woo_id { "26626" }
+
+    trait :with_brand do
+      brand
+    end
+
+    trait :with_variation do
+      variation
+    end
+
+    factory(:product_with_brands) do
+      transient do
+        brand_title { "Studio Ghibli" }
+        brands_count { 1 }
+      end
+
+      after(:create) do |product, evaluator|
+        create_list(
+          :brand,
+          evaluator.brands_count,
+          title: evaluator.brand_title,
+          products: [product]
+        )
+        product.reload
+      end
+    end
   end
 end

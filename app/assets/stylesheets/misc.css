@@ -3,6 +3,10 @@ i.icn {
   font-family: "Noto Emo";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  &.xxl {
+    font-size: 10rem;
+  }
 }
 
 .icn.is-link {

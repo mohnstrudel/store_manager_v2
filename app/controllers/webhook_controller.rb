@@ -9,7 +9,8 @@ class WebhookController < ApplicationController
     parsed_req = JSON.parse(request.body.read, symbolize_names: true)
     parsed_order = orders_job.parse(parsed_req)
 
-    sale = get_sale(parsed_order[:customer], parsed_order[:sale])
+    customer_id = handle_customer(parsed_order[:customer])
+    sale = handle_sale(parsed_order[:sale].merge({customer_id:}))
     parsed_order[:products].each { |i| handle_parsed_product(i, sale) }
 
     head(:no_content)
@@ -26,12 +27,17 @@ class WebhookController < ApplicationController
     ActiveSupport::SecurityUtils.secure_compare(calc_sign, req_sign)
   end
 
-  def get_sale(customer_payload, sale_payload)
-    customer = Customer.find_or_create_by(customer_payload)
-    parsed_sale = sale_payload.merge({customer_id: customer.id})
+  def handle_customer(customer_payload)
+    customer = Customer.find_or_initialize_by(woo_id: customer_payload[:woo_id])
+    customer.assign_attributes(customer_payload)
+    customer.save
 
-    sale = Sale.find_or_initialize_by(woo_id: parsed_sale[:woo_id])
-    sale.assign_attributes(parsed_sale)
+    customer.id
+  end
+
+  def handle_sale(sale_payload)
+    sale = Sale.find_or_initialize_by(woo_id: sale_payload[:woo_id])
+    sale.assign_attributes(sale_payload)
     sale.save
 
     sale

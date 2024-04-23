@@ -49,3 +49,7 @@ h1.classic {
 .text-center {
   text-align: center;
 }
+
+.hidden {
+  display: none;
+}

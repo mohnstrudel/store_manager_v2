@@ -23,7 +23,8 @@ RSpec.describe SyncPurchasesJob do
         :product,
         title:,
         franchise:,
-        shape:
+        shape:,
+        woo_id: nil
       )
       create(:product_brand, product:, brand:) if brand.present?
       create(
