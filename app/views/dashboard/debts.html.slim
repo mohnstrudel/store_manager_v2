@@ -20,7 +20,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
           - @debts.each do |product|
               tr.hoverable(
                 data-action="click->table#goTo"
-                data-table-url-param=product_path(product.id)
+                data-table-url-param=product_path(product.slug)
                 data-table-id-param=(product.sale_variation_id || product.id)
               )
                 td = product.full_title

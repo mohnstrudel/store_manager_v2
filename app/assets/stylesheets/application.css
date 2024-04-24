@@ -28,11 +28,7 @@ img.product {
 
 @media only screen and (prefers-color-scheme: dark) {
   tr.selected {
-    background: var(--mark-background-color) !important;
-
-    & > td {
-      color: var(--background-color);
-    }
+    background: rgba(var(--rgb-debt-color), 0.1) !important;
   }
 
   tr.hoverable.selected:hover td {

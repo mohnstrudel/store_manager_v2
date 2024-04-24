@@ -16,19 +16,23 @@ main.wide.flex.flex-col.gap.w-pd
   .cards
     - if @purchase.product.image.present?
       img.product src="#{@purchase.product.image}"
-    .card.grow
-      .title Qty
-      p = @purchase.amount
-      .title Unit price, $
-      p.mono = format_money @purchase.item_price
-      .title Total price
-      p.mono = format_money @purchase.total_cost
-      .title Paid
-      p.mono = format_money(@purchase.paid).rjust(2, '0')
-      .title Debt
-      p.mono
-        | -
-        = format_money @purchase.debt
+    .flex.card.grow
+      .column
+        .title ID
+        p = @purchase.id
+        .title Qty
+        p = @purchase.amount
+        .title Unit price, $
+        p.mono = format_money @purchase.item_price
+        .title Total price
+        p.mono = format_money @purchase.total_cost
+      .column
+        .title Paid
+        p.mono = format_money(@purchase.paid).rjust(2, '0')
+        .title Debt
+        p.mono
+          | -
+          = format_money @purchase.debt
 
     .card
       .title Supplier
@@ -36,7 +40,7 @@ main.wide.flex.flex-col.gap.w-pd
       .title Order reference
       p = @purchase.order_reference
       .title Date
-      p = format_time @purchase.created_at
+      p = format_time @purchase.purchase_date || @purchase.created_at
       .title Progress
       p
         progress.no-mg value=@purchase.progress max=100

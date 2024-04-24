@@ -53,3 +53,7 @@ h1.classic {
 .hidden {
   display: none;
 }
+
+.column {
+  flex: 1;
+}

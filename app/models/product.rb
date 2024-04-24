@@ -5,6 +5,7 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
+#  slug         :string
 #  store_link   :string
 #  title        :string
 #  created_at   :datetime         not null
@@ -16,6 +17,9 @@
 class Product < ApplicationRecord
   broadcasts_refreshes
   paginates_per 50
+
+  extend FriendlyId
+  friendly_id :full_title, use: :slugged
 
   include PgSearch::Model
 

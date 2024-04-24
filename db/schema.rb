@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_27_090402) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_24_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -68,6 +68,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_090402) do
     t.string "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "friendly_id_slugs", force: :cascade do |t|
+    t.string "slug", null: false
+    t.integer "sluggable_id", null: false
+    t.string "sluggable_type", limit: 50
+    t.string "scope"
+    t.datetime "created_at"
+    t.index ["slug", "sluggable_type", "scope"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type_and_scope", unique: true
+    t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
+    t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -148,8 +159,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_090402) do
     t.string "full_title"
     t.string "image"
     t.string "store_link"
+    t.string "slug"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
     t.index ["shape_id"], name: "index_products_on_shape_id"
+    t.index ["slug"], name: "index_products_on_slug", unique: true
   end
 
   create_table "purchases", force: :cascade do |t|
@@ -163,7 +176,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_090402) do
     t.bigint "variation_id"
     t.datetime "purchase_date"
     t.string "synced"
+    t.string "slug"
     t.index ["product_id"], name: "index_purchases_on_product_id"
+    t.index ["slug"], name: "index_purchases_on_slug", unique: true
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
     t.index ["variation_id"], name: "index_purchases_on_variation_id"
   end
@@ -187,7 +202,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_090402) do
     t.datetime "updated_at", null: false
     t.datetime "woo_created_at"
     t.datetime "woo_updated_at"
+    t.string "slug"
     t.index ["customer_id"], name: "index_sales_on_customer_id"
+    t.index ["slug"], name: "index_sales_on_slug", unique: true
   end
 
   create_table "shapes", force: :cascade do |t|
@@ -206,6 +223,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_090402) do
     t.string "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slug"
+    t.index ["slug"], name: "index_suppliers_on_slug", unique: true
   end
 
   create_table "variations", force: :cascade do |t|

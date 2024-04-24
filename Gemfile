@@ -60,6 +60,7 @@ gem "sidekiq", "~> 7.2"
 gem "pg_query", ">= 2"
 
 gem "requestjs-rails"
+gem "friendly_id"
 
 group :production do
   gem "thruster"

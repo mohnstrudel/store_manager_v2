@@ -4,7 +4,7 @@ module ApplicationHelper
   end
 
   def format_time(time)
-    time.to_fs(:long) if time.present?
+    time.to_date.to_fs(:long) if time.present?
   end
 
   def format_date(date)

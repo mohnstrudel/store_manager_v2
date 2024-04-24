@@ -125,7 +125,7 @@ th {
 }
 
 tr.selected {
-  background: var(--mark-background-color) !important;
+  background: rgba(var(--rgb-debt-color), 0.1) !important;
 }
 
 tr.selected td {

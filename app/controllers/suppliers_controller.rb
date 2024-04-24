@@ -62,7 +62,7 @@ class SuppliersController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_supplier
-    @supplier = Supplier.find(params[:id])
+    @supplier = Supplier.friendly.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.

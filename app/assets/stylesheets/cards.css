@@ -127,7 +127,7 @@ main.wide.w-pd {
   padding-right: calc(var(--spacing) * 2);
   height: fit-content;
 
-  > .title {
+  .title {
     color: var(--muted-color);
     font-size: smaller;
   }
