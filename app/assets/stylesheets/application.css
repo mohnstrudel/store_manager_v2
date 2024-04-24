@@ -34,6 +34,10 @@ img.product {
   tr.hoverable.selected:hover td {
     color: var(--color);
   }
+
+  .preloadable-img__img.zoomable:hover {
+    background-color: rgba(10, 10, 10, 0.5);
+  }
 }
 
 @media (max-width: 1199px) {
