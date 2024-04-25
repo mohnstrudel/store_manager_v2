@@ -22,11 +22,11 @@ class ProductsController < ApplicationController
       .order(created_at: :asc)
 
     @active_sales = sales.select { |product_sale|
-      Sale.active_status_names.include? product_sale.sale.status
+      product_sale.sale.status.in? Sale.active_status_names
     }
 
     @complete_sales = sales.select { |product_sale|
-      product_sale.sale.status == "completed"
+      product_sale.sale.status.in? Sale.completed_status_names
     }
   end
 
