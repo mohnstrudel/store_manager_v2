@@ -42,6 +42,8 @@ main.wide.flex.flex-col.gap.w-pd
     .card.shrink-2
       .title ID
       p = @product.id
+      .title SKU
+      p = @product.sku.presence || "-"
       .title Supplier
       p = format_relation(@product.suppliers, "title")
       .title Created

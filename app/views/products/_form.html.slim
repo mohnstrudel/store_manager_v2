@@ -10,6 +10,9 @@
   = form.label :title
   = form.text_field :title
 
+  = form.label :sku
+  = form.text_field :sku
+
   = form.label :size
   = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})   
 

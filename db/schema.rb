@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_24_110000) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_25_101942) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -160,8 +160,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_24_110000) do
     t.string "image"
     t.string "store_link"
     t.string "slug"
+    t.string "sku"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
     t.index ["shape_id"], name: "index_products_on_shape_id"
+    t.index ["sku"], name: "index_products_on_sku", unique: true
     t.index ["slug"], name: "index_products_on_slug", unique: true
   end
 

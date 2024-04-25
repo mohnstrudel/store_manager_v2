@@ -5,6 +5,7 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
+#  sku          :string
 #  slug         :string
 #  store_link   :string
 #  title        :string
@@ -19,7 +20,7 @@ class Product < ApplicationRecord
   paginates_per 50
 
   extend FriendlyId
-  friendly_id :full_title, use: :slugged
+  friendly_id :get_slug, use: :slugged
 
   include PgSearch::Model
 
@@ -103,5 +104,9 @@ class Product < ApplicationRecord
 
   def next_image_id(img_id)
     (images.where("id > ?", img_id).first || images.first).id
+  end
+
+  def get_slug
+    sku.presence || full_title
   end
 end
