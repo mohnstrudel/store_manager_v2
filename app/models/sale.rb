@@ -71,6 +71,10 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
+  def self.completed_status_names
+    ["completed", "updated-tracking"].freeze
+  end
+
   def self.status_names
     # https://woocommerce.com/document/managing-orders/
     [
