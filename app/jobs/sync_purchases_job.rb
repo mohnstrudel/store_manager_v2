@@ -116,9 +116,9 @@ class SyncPurchasesJob < ApplicationJob
     required_keys = [
       :amount,
       :supplier,
-      :itemprice,
       :orderreference,
       :product,
+      :itemprice,
       :purchasedate
     ]
     empty_keys = required_keys.select { |key| parsed_purchase[key].blank? }
