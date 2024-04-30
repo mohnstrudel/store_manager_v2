@@ -61,6 +61,7 @@ gem "pg_query", ">= 2"
 
 gem "requestjs-rails"
 gem "friendly_id"
+gem "state_machines-activerecord"
 
 group :production do
   gem "thruster"
