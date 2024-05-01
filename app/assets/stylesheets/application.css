@@ -42,6 +42,22 @@ img.product {
   }
 }
 
+@media only screen and (prefers-color-scheme: dark) {
+  .preloadable-img__img.loading {
+    animation-duration: 5s;
+    background: hsl(206, 30%, 14%) 10%;
+    background: linear-gradient(
+      to right,
+      hsl(206, 30%, 14%) 10%,
+      hsl(206 30% 18% / 1) 50%,
+      hsl(206 29% 14% / 1) 50%
+    );
+  }
+  .gallery__main .preloadable-img__img.loading {
+    animation-duration: 2s;
+  }
+}
+
 @media (max-width: 1199px) {
   body > header,
   body > main,
