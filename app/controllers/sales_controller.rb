@@ -37,7 +37,7 @@ class SalesController < ApplicationController
 
   # PATCH/PUT /sales/1
   def update
-    if @sale.update(sale_params)
+    if @sale.update(sale_params.merge(slug: nil))
       changes = @sale.saved_changes.transform_values(&:last)
       if changes[:status]
         Sale.update_order(woo_id: @sale.woo_id, status: changes[:status])

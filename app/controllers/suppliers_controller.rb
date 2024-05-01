@@ -38,7 +38,7 @@ class SuppliersController < ApplicationController
   # PATCH/PUT /suppliers/1 or /suppliers/1.json
   def update
     respond_to do |format|
-      if @supplier.update(supplier_params)
+      if @supplier.update(supplier_params.merge(slug: nil))
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated." }
         format.json { render :show, status: :ok, location: @supplier }
       else
