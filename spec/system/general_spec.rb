@@ -172,7 +172,7 @@ RSpec.describe "Search, create, and destroy", js: "true" do
       fill_in "q", with: @purchase_batman.order_reference
       find_by_id("q").native.send_keys(:return)
 
-      find("tr[data-table-url-param='/purchases/#{@purchase_batman.id}").click
+      find("tr[data-table-url-param='/purchases/#{@purchase_batman.friendly_id}']").click
       find(:link, "Edit").click
 
       find("#purchase-product-select div[role='combobox']").click

@@ -66,7 +66,8 @@ class Purchase < ApplicationRecord
   end
 
   def full_title
-    "#{supplier.title} | #{product.full_title} | #{purchase_date.presence.strftime("%Y-%m-%d") || created_at.strftime("%Y-%m-%d")}"
+    date = purchase_date || created_at
+    "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
   end
 
   def self.unpaid
