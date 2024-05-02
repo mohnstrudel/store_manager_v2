@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.0"
+ruby "3.3.1"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.x"
@@ -53,6 +53,7 @@ gem "pg_search"
 gem "aws-sdk-s3", require: false
 gem "ruby-progressbar"
 gem "sidekiq", "~> 7.2"
+gem "MailchimpTransactional"
 
 # Add to postgresql.conf this two lines:
 # shared_preload_libraries = 'pg_stat_statements'
