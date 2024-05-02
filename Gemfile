@@ -56,6 +56,7 @@ gem "pg_search"
 gem "aws-sdk-s3", require: false
 gem "ruby-progressbar"
 gem "sidekiq", "~> 7.2"
+gem "MailchimpTransactional"
 
 # Add to postgresql.conf this two lines:
 # shared_preload_libraries = 'pg_stat_statements'
