@@ -5,6 +5,8 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
+#  sku          :string
+#  slug         :string
 #  store_link   :string
 #  title        :string
 #  created_at   :datetime         not null

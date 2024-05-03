@@ -47,7 +47,7 @@ class PurchasesController < ApplicationController
   # PATCH/PUT /purchases/1 or /purchases/1.json
   def update
     respond_to do |format|
-      if @purchase.update(purchase_params)
+      if @purchase.update(purchase_params.merge(slug: nil))
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated." }
         format.json { render :show, status: :ok, location: @purchase }
       else
@@ -71,7 +71,7 @@ class PurchasesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_purchase
-    @purchase = Purchase.find(params[:id])
+    @purchase = Purchase.friendly.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.

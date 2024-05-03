@@ -57,7 +57,7 @@ class ProductsController < ApplicationController
   # PATCH/PUT /products/1 or /products/1.json
   def update
     respond_to do |format|
-      if @product.update(product_params)
+      if @product.update(product_params.merge(slug: nil))
         @product.set_full_title
 
         format.html { redirect_to product_url(@product), notice: "Product was successfully updated." }
@@ -95,7 +95,7 @@ class ProductsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_product
-    @product = Product.find(params[:id])
+    @product = Product.friendly.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.
@@ -105,6 +105,7 @@ class ProductsController < ApplicationController
       :franchise_id,
       :shape_id,
       :target,
+      :sku,
       brand_ids: [],
       color_ids: [],
       size_ids: [],

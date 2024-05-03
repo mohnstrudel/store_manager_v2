@@ -12,6 +12,7 @@
 #  note           :string
 #  postcode       :string
 #  shipping_total :decimal(8, 2)
+#  slug           :string
 #  state          :string
 #  status         :string
 #  total          :decimal(8, 2)
@@ -23,6 +24,9 @@
 #  woo_id         :string
 #
 class Sale < ApplicationRecord
+  extend FriendlyId
+  friendly_id :full_title, use: :slugged
+
   include PgSearch::Model
   pg_search_scope :search,
     against: :woo_id,
@@ -57,6 +61,10 @@ class Sale < ApplicationRecord
 
   def created
     woo_created_at || created_at
+  end
+
+  def full_title
+    "#{customer.name_and_email} | #{woo_id.presence}"
   end
 
   def self.active_status_names

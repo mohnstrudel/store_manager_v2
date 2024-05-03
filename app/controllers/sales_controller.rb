@@ -37,7 +37,7 @@ class SalesController < ApplicationController
 
   # PATCH/PUT /sales/1
   def update
-    if @sale.update(sale_params)
+    if @sale.update(sale_params.merge(slug: nil))
       changes = @sale.saved_changes.transform_values(&:last)
       if changes[:status]
         Sale.update_order(woo_id: @sale.woo_id, status: changes[:status])
@@ -58,7 +58,7 @@ class SalesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_sale
-    @sale = Sale.find(params[:id])
+    @sale = Sale.friendly.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.

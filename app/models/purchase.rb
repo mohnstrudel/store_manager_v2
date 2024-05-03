@@ -7,6 +7,7 @@
 #  item_price      :decimal(8, 2)
 #  order_reference :string
 #  purchase_date   :datetime
+#  slug            :string
 #  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
@@ -15,6 +16,9 @@
 #  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
+  extend FriendlyId
+  friendly_id :full_title, use: :slugged
+
   include PgSearch::Model
   pg_search_scope :search,
     against: [:order_reference],
@@ -59,6 +63,11 @@ class Purchase < ApplicationRecord
 
   def total_cost
     item_price * amount
+  end
+
+  def full_title
+    date = purchase_date || created_at
+    "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
   end
 
   def self.unpaid

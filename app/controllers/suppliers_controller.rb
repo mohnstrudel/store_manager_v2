@@ -38,7 +38,7 @@ class SuppliersController < ApplicationController
   # PATCH/PUT /suppliers/1 or /suppliers/1.json
   def update
     respond_to do |format|
-      if @supplier.update(supplier_params)
+      if @supplier.update(supplier_params.merge(slug: nil))
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated." }
         format.json { render :show, status: :ok, location: @supplier }
       else
@@ -62,7 +62,7 @@ class SuppliersController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_supplier
-    @supplier = Supplier.find(params[:id])
+    @supplier = Supplier.friendly.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.

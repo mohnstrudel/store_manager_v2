@@ -616,7 +616,7 @@
     "version": "1:3",
     "supplier": "XionArt",
     "orderreference": "custom",
-    "product": "Superman",
+    "product": "DC Comics - Superman | von XionArt",
     "itemprice": 1250,
     "paymentvalue0": 350,
     "paymentvalue1": 900,
@@ -3203,5 +3203,310 @@
     "paymentvalue0": 514.5,
     "paymentdate0": "08.03.2024",
     "purchasedate": "08.03.2024"
+  },
+  {
+    "amount": 5,
+    "version": "1:4",
+    "supplier": "HWs",
+    "orderreference": "KC202106309985479042",
+    "product": "Dragon Ball Z - Broly | von Light Weapon Studio"
+  },
+  {
+    "amount": 2,
+    "supplier": "FNC",
+    "orderreference": 108264,
+    "product": "Sekiro: Shadows Die Twice – Sekiro vs. Genichiro Ashina | 1:6 Resin Statue | von Bard x CorgiProGKit Studios",
+    "itemprice": 622.3,
+    "paymentvalue0": 230.3,
+    "paymentdate0": "12.03.2024",
+    "purchasedate": "12.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "StatueCorp",
+    "orderreference": 4043,
+    "product": "Bleach - Kenpachi Zaraki | 1:6 Resin Statue | von YuanMeng Studio",
+    "itemprice": 458.95,
+    "paymentvalue0": 458.95,
+    "paymentdate0": "18.03.2024",
+    "purchasedate": "18.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "StatueCorp",
+    "orderreference": 4044,
+    "product": "Bleach - Kenpachi Zaraki | 1:6 Resin Statue | von YuanMeng Studio",
+    "itemprice": 458.95,
+    "paymentvalue0": 458.95,
+    "paymentdate0": "18.03.2024",
+    "purchasedate": "18.03.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "FNC",
+    "orderreference": 108932,
+    "product": "One Piece - Portgas D. Ace | 1:4 Resin Statue | von DOD & GOD Studios",
+    "itemprice": 410.62,
+    "paymentvalue0": 264.98,
+    "paymentdate0": "18.03.2024",
+    "purchasedate": "18.03.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "Exoresin",
+    "orderreference": "custom",
+    "product": "Marvel – Archangel Museum | 1:3.5 Resin Statue | von Exoresin",
+    "itemprice": 1125,
+    "paymentvalue0": 367.5,
+    "paymentdate0": "20.03.2024",
+    "purchasedate": "20.03.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "FNC",
+    "orderreference": 109561,
+    "product": "Dragon Ball - Kid Goku | 1:6 Resin Statue | von New Journey Studio",
+    "itemprice": 230.3,
+    "paymentvalue0": 83.3,
+    "paymentdate0": "25.03.2024",
+    "purchasedate": "25.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 109562,
+    "product": "Elden Ring – Malenia | 1:4 Resin Statue | von Sword & Wing Studio",
+    "itemprice": 416.5,
+    "paymentvalue0": 122.5,
+    "paymentdate0": "25.03.2024",
+    "purchasedate": "25.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 109566,
+    "product": "One Piece - Monkey D. Luffy | 1:6 Resin Statue | von Ventus Studio",
+    "itemprice": 686,
+    "paymentvalue0": 686,
+    "paymentdate0": "25.03.2024",
+    "purchasedate": "25.03.2024"
+  },
+  {
+    "amount": 1,
+    "version": "A",
+    "supplier": "FNC",
+    "orderreference": 109582,
+    "product": "Metroid - Samus Aran | 1:4 Resin Statue | von Creation Studio",
+    "itemprice": 489.02,
+    "paymentvalue0": 489.02,
+    "paymentdate0": "25.03.2024",
+    "purchasedate": "25.03.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "FNC",
+    "orderreference": 109616,
+    "product": "One Piece - Marco | 1:6 Resin Statue | von Jimei Palace",
+    "itemprice": 587,
+    "paymentvalue0": 158.98,
+    "paymentdate0": "26.03.2024",
+    "purchasedate": "26.03.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 109634,
+    "product": "Pokémon – Groudon | 1:6 Resin Statue | von PcHouse Studio",
+    "itemprice": 322.42,
+    "paymentvalue0": 126.42,
+    "paymentdate0": "26.03.2024",
+    "purchasedate": "26.03.2024"
+  },
+  {
+    "amount": 4,
+    "supplier": "FNC",
+    "orderreference": 109691,
+    "product": "Dragon Ball - Son Goku (Kakarotto Migatte no Gokui) | 1:6 Resin Statue | von Waigua Bear Studio",
+    "itemprice": 308.7,
+    "paymentvalue0": 308.7,
+    "paymentdate0": "27.03.2024",
+    "purchasedate": "27.03.2024"
+  },
+  {
+    "amount": 5,
+    "supplier": "Infinite",
+    "orderreference": "custom",
+    "product": "Dragon Ball Z - Son Goku Lifesize | 1:1 Resin Statue | vom Infinite Studio",
+    "itemprice": 2000,
+    "paymentvalue0": 200,
+    "paymentvalue1": 1800,
+    "paymentdate1": "05.04.2024",
+    "paymentdate0": "19.06.2023",
+    "purchasedate": "19.06.2023"
+  },
+  {
+    "amount": 4,
+    "supplier": "FNC",
+    "orderreference": 110475,
+    "product": "Final Fantasy - Tifa Lockhart & Aerith Gainsborough | 1:4 Resin Statue | von Light and Dust Studio",
+    "itemprice": 524.3,
+    "paymentvalue0": 151.9,
+    "paymentdate0": "07.04.2024",
+    "purchasedate": "07.04.2024"
+  },
+  {
+    "amount": 2,
+    "supplier": "Aries/Taurus",
+    "orderreference": "custom",
+    "product": "Diablo - Tyrael | 1:12 | von Aries Studio",
+    "itemprice": 410,
+    "paymentvalue0": 410,
+    "paymentdate0": "08.04.2024",
+    "purchasedate": "08.04.2024"
+  },
+  {
+    "amount": 4,
+    "version": "EX",
+    "supplier": "FNC",
+    "orderreference": 110653,
+    "product": "Jujutsu Kaisen - Choso | 1:6 Resin Statue | von Karasu Collectibles",
+    "itemprice": 302.82,
+    "paymentvalue0": 106.82,
+    "paymentdate0": "08.04.2024",
+    "purchasedate": "08.04.2024"
+  },
+  {
+    "amount": 5,
+    "supplier": "BlackSwainCollectibles",
+    "orderreference": "custom",
+    "product": "Donkey Kong – Donkey Kong | 1:6 Resin Statue | von Black Swan Collectibles",
+    "itemprice": 480,
+    "paymentvalue0": 200,
+    "paymentdate0": "10.04.2024",
+    "purchasedate": "10.04.2024"
+  },
+  {
+    "amount": 5,
+    "supplier": "FNC",
+    "orderreference": 111109,
+    "product": "DC Comics - Heath Ledger Joker | 1:1 Lifesize Resin Bust | von Infinity Studio",
+    "itemprice": 3655.4,
+    "paymentvalue0": 294,
+    "paymentdate0": "15.04.2024",
+    "purchasedate": "15.04.2024"
+  },
+  {
+    "amount": 5,
+    "supplier": "FNC",
+    "orderreference": 111110,
+    "product": "Elden Ring - Ranni | 1:4 | von HunDian STUDIO",
+    "itemprice": 534.1,
+    "paymentvalue0": 142.1,
+    "paymentdate0": "15.04.2024",
+    "purchasedate": "15.04.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "eBay",
+    "orderreference": "custom",
+    "product": "DC Comics - Dark Knight Batman | 1:3 Resin Statue | von Prime 1 Studio",
+    "itemprice": 1470,
+    "paymentvalue0": 1470,
+    "paymentdate0": "15.04.2024",
+    "purchasedate": "15.04.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 111112,
+    "product": "Witcher - Geralt of Rivia | 1:3 | Resin Statue | von Prime 1 Studio",
+    "itemprice": 1126.02,
+    "paymentvalue0": 1126.02,
+    "paymentdate0": "15.04.2024",
+    "purchasedate": "15.04.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 111112,
+    "product": "Witcher - Yennefer | 1:3 | Resin Statue | von Prime 1 Studio",
+    "itemprice": 1420,
+    "paymentvalue0": 1420,
+    "paymentdate0": "15.04.2024",
+    "purchasedate": "15.04.2024"
+  },
+  {
+    "amount": 1,
+    "supplier": "FNC",
+    "orderreference": 111111,
+    "product": "Dragon Ball - Majin Buu | 1:1 Resin Statue | von 1:1 Studio",
+    "itemprice": 773.22,
+    "paymentvalue0": 196,
+    "paymentdate0": "15.04.2024",
+    "purchasedate": "15.04.2024"
+  },
+  {
+    "amount": 4,
+    "supplier": "FNC",
+    "orderreference": 111133,
+    "product": "Witcher - Geralt of Rivia | 1:3 Resin Statue | von Prime 1 Studio",
+    "itemprice": 1126.02,
+    "paymentvalue0": 392,
+    "paymentdate0": "15.04.2024",
+    "purchasedate": "15.04.2024"
+  },
+  {
+    "amount": 2,
+    "version": "1:6, EX",
+    "supplier": "FNC",
+    "orderreference": 111196,
+    "product": "Jujutsu Kaisen - Suguru Geto | von Temple & DiTaiShe Studio",
+    "itemprice": 240.1,
+    "paymentvalue0": 83.3,
+    "paymentdate0": "16.04.2024",
+    "purchasedate": "16.04.2024"
+  },
+  {
+    "amount": 2,
+    "version": "1:4, EX",
+    "supplier": "FNC",
+    "orderreference": 111196,
+    "product": "Jujutsu Kaisen - Suguru Geto | von Temple & DiTaiShe Studio",
+    "itemprice": 328.3,
+    "paymentvalue0": 132.3,
+    "paymentdate0": "16.04.2024",
+    "purchasedate": "16.04.2024"
+  },
+  {
+    "amount": 1,
+    "version": "1:2, EX",
+    "supplier": "FNC",
+    "orderreference": 111196,
+    "product": "Jujutsu Kaisen - Suguru Geto | von Temple & DiTaiShe Studio",
+    "itemprice": 534.1,
+    "paymentvalue0": 181.3,
+    "paymentdate0": "16.04.2024",
+    "purchasedate": "16.04.2024"
+  },
+  {
+    "amount": 1,
+    "version": "1:2, B",
+    "supplier": "FNC",
+    "orderreference": 111196,
+    "product": "Jujutsu Kaisen - Suguru Geto | von Temple & DiTaiShe Studio",
+    "itemprice": 430.22,
+    "paymentvalue0": 136.22,
+    "paymentdate0": "16.04.2024",
+    "purchasedate": "16.04.2024"
+  },
+  {
+    "amount": 5,
+    "supplier": "FNC",
+    "orderreference": 111199,
+    "product": "Pokémon - Team Rocket | 1:6 Resin Statue | von EGG Studio",
+    "itemprice": 479.22,
+    "paymentvalue0": 92.97999999999999,
+    "paymentdate0": "16.04.2024",
+    "purchasedate": "16.04.2024"
   }
 ]
