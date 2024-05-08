@@ -113,10 +113,15 @@ class SyncWooProductsJob < ApplicationJob
         attrs
       end
 
-      product.merge(*attributes.compact.reject(&:empty?))
-    else
-      product
+      product = product.merge(*attributes.compact.reject(&:empty?))
     end
+
+    if product[:brands].nil?
+      brand_title = Brand.parse_brand(woo_product[:name])
+      product[:brands] = [brand_title] if brand_title
+    end
+
+    product
   end
 
   def parse_all(woo_products)
