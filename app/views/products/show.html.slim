@@ -21,7 +21,6 @@ main.wide.flex.flex-col.gap.w-pd
           .gallery__main
             button.gallery__btn data-action="gallery#prev" ←
             button.gallery__btn data-action="gallery#next" →
-            / = image_tag @product.images.first.representation(:preview), data: {"gallery-target": "main"}, fetchpriority: "high"
             = render "_shared/preloadable_img", src: @product.images.first.representation(:preview).url, data: {"gallery-target": "main"}
     .card.grow.shrink-4
       .title Title
@@ -166,7 +165,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-table-url-param=purchase_path(purchase)
               )
                 - if purchase.variation.present?
-                  td = purchase.variation.title
+                  td = purchase.product.full_title
                   td = purchase.variation.which&.value
                 - else
                   td = purchase.product.full_title
