@@ -1,6 +1,8 @@
 tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
   td = sale.woo_id
   td
+    = sale.customer.full_name
+    br
     = sale.customer.email
     ul.product-variations
       - sale.product_sales.each do |ps|
