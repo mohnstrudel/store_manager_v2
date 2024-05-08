@@ -82,6 +82,7 @@ main.wide.flex.flex-col.gap.w-pd
           span = @active_sales.size
         table role="grid" data-controller="table"
           thead
+            th Woo ID
             th Status
             th Customer
             th Email
@@ -98,6 +99,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-action="click->table#goTo"
                 data-table-url-param=sale_path(ps.sale)
               )
+                td = ps.sale.woo_id
                 td = ps.sale.status.capitalize
                 td = ps.sale.customer.full_name
                 td = ps.sale.customer.email
