@@ -6,8 +6,13 @@ nav
         = yield
       - else
         h1 #{model.model_name.name} #{model.respond_to?(:title) ? model.title : model.value}
-  ul
+  ul.gap
     li
-      = link_to controller: "#{model.model_name.plural}", action: "edit", id: model
+      a.btn href="#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
         i.icn ✏️
         | Edit
+    - if defined?(is_purchasable)
+      li
+        a.btn href="#{url_for new_purchase_path(product: model)}" 
+          i.icn 💰
+          | Purchase

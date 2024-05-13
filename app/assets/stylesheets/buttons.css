@@ -45,3 +45,17 @@ button.is-inverted {
 button.is-inverted:hover {
   --background-color: var(--primary-focus);
 }
+
+.btn {
+  border: 1px solid var(--primary-unmuted);
+  border-radius: var(--border-radius);
+  background-color: var(--primary-muted);
+  padding: 0.5em 1em;
+  font-size: calc(var(--font-size) / 1.25);
+  white-space: nowrap;
+}
+
+.btn:hover {
+  border-color: var(--primary-focus);
+  background-color: var(--primary-focus);
+}

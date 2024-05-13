@@ -1,4 +1,4 @@
-= link_to "Back to versions", versions_path
-h1 New version
+= render "_shared/nav-new", model: @version
+
 main
   = render "form", version: @version

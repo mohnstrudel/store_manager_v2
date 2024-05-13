@@ -1,6 +1,6 @@
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @product, custom_heading: true
+= render "_shared/nav-show", model: @product, custom_heading: true, is_purchasable: true
   hgroup 
     h1 = @product.title
     h2 = @product.full_title

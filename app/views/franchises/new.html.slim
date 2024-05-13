@@ -1,4 +1,4 @@
-= link_to "Back to franchises", franchises_path
-h1 New franchise
+= render "_shared/nav-new", model: @franchise
+
 main
   = render "form", franchise: @franchise

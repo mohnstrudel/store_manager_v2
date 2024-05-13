@@ -1,4 +1,4 @@
-= link_to "Back to customers", customers_path
-h1 New customer
+= render "_shared/nav-new", model: @customer
+
 main
   = render "form", customer: @customer
