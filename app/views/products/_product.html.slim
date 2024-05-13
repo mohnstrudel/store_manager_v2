@@ -8,8 +8,10 @@ tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-u
         - product.variations.each do |variation|
           li = variation.title
   td = product.woo_id
-  - if action_name != "show" 
-    td.actions
-      = link_to edit_product_path(product), data: {turbo: false}
-        i.icn ✏️
-        | Edit
+  td.actions
+    = link_to edit_product_path(product), {class: "no-events"}
+      i.icn ✏️
+      | Edit
+    = link_to new_purchase_path(product:), {class: "no-events"}
+      i.icn 💰
+      | Purchase

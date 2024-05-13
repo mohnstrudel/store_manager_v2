@@ -1,6 +1,6 @@
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @product, custom_heading: true
+= render "_shared/nav-show", model: @product, custom_heading: true, is_purchasable: true
   hgroup 
     h1 = @product.title
     h2 = @product.full_title
@@ -21,7 +21,6 @@ main.wide.flex.flex-col.gap.w-pd
           .gallery__main
             button.gallery__btn data-action="gallery#prev" ←
             button.gallery__btn data-action="gallery#next" →
-            / = image_tag @product.images.first.representation(:preview), data: {"gallery-target": "main"}, fetchpriority: "high"
             = render "_shared/preloadable_img", src: @product.images.first.representation(:preview).url, data: {"gallery-target": "main"}
     .card.grow.shrink-4
       .title Title
@@ -83,6 +82,7 @@ main.wide.flex.flex-col.gap.w-pd
           span = @active_sales.size
         table role="grid" data-controller="table"
           thead
+            th Woo ID
             th Status
             th Customer
             th Email
@@ -99,6 +99,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-action="click->table#goTo"
                 data-table-url-param=sale_path(ps.sale)
               )
+                td = ps.sale.woo_id
                 td = ps.sale.status.capitalize
                 td = ps.sale.customer.full_name
                 td = ps.sale.customer.email
@@ -166,7 +167,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-table-url-param=purchase_path(purchase)
               )
                 - if purchase.variation.present?
-                  td = purchase.variation.title
+                  td = purchase.product.full_title
                   td = purchase.variation.which&.value
                 - else
                   td = purchase.product.full_title

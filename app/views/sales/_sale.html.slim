@@ -1,6 +1,8 @@
 tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
   td = sale.woo_id
   td
+    = sale.customer.full_name
+    br
     = sale.customer.email
     ul.product-variations
       - sale.product_sales.each do |ps|
@@ -10,6 +12,6 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
   td.right.mono = format_money sale.total
   - if action_name != "show" 
     td.actions
-      = link_to edit_sale_path(sale), data: {turbo: false}
+      = link_to edit_sale_path(sale), {class: "no-events"}
         i.icn ✏️
         | Edit

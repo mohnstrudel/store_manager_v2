@@ -8,7 +8,7 @@
 #  updated_at :datetime         not null
 #
 class Size < ApplicationRecord
-  validates :value, presence: true
+  validates :value, presence: true, uniqueness: true
 
   has_many :product_sizes, dependent: :destroy
   has_many :products, through: :product_sizes

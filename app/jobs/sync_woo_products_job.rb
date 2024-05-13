@@ -41,19 +41,27 @@ class SyncWooProductsJob < ApplicationJob
     })
 
     parsed_product[:brands]&.each do |i|
-      product.brands << Brand.find_or_create_by(title: i)
+      if product.brands.find_by(title: i).nil?
+        product.brands << Brand.find_or_create_by(title: i)
+      end
     end
 
     parsed_product[:sizes]&.each do |i|
-      product.sizes << Size.find_or_create_by(value: i)
+      if product.sizes.find_by(value: i).nil?
+        product.sizes << Size.find_or_create_by(value: i)
+      end
     end
 
     parsed_product[:versions]&.each do |i|
-      product.versions << Version.find_or_create_by(value: i)
+      if product.versions.find_by(value: i).nil?
+        product.versions << Version.find_or_create_by(value: i)
+      end
     end
 
     parsed_product[:colors]&.each do |i|
-      product.colors << Color.find_or_create_by(value: i)
+      if product.colors.find_by(value: i).nil?
+        product.colors << Color.find_or_create_by(value: i)
+      end
     end
 
     product.save
@@ -113,10 +121,15 @@ class SyncWooProductsJob < ApplicationJob
         attrs
       end
 
-      product.merge(*attributes.compact.reject(&:empty?))
-    else
-      product
+      product = product.merge(*attributes.compact.reject(&:empty?))
     end
+
+    if product[:brands].nil?
+      brand_title = Brand.parse_brand(woo_product[:name])
+      product[:brands] = [brand_title] if brand_title
+    end
+
+    product
   end
 
   def parse_all(woo_products)

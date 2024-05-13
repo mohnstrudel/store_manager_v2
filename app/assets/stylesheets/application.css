@@ -77,6 +77,8 @@ img.product {
   --primary: hsl(210deg 100% 50%);
   --primary-hover: hsl(210deg 100% 60%);
   --primary-focus: hsl(210deg 100% 80% / 15%);
+  --primary-muted: hsl(210deg 100% 80% / 5%);
+  --primary-unmuted: hsl(210deg 100% 80% / 20%);
 }
 
 @media only screen and (prefers-color-scheme: dark) {

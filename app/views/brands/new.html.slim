@@ -1,5 +1,4 @@
-= link_to "Back to brands", brands_path
-h1 New brand
+= render "_shared/nav-new", model: @brand
 
 main
   = render "form", brand: @brand

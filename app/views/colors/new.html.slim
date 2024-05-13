@@ -1,4 +1,4 @@
-= link_to "Back to colors", colors_path
-h1 New color
+= render "_shared/nav-new", model: @color
+
 main
   = render "form", color: @color

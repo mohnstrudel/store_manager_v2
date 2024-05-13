@@ -23,6 +23,10 @@ class PurchasesController < ApplicationController
   def new
     @purchase = Purchase.new
     @purchase.payments.build
+    if params[:product]
+      product = Product.friendly.find(params[:product])
+      @purchase.product = product
+    end
   end
 
   # GET /purchases/1/edit

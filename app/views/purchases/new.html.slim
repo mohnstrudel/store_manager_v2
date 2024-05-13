@@ -1,4 +1,4 @@
-= link_to "Back to purchases", purchases_path
-h1 New purchase
+= render "_shared/nav-new", model: @purchase
+
 main
   = render "form", purchase: @purchase

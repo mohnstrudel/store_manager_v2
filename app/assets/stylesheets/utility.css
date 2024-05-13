@@ -57,3 +57,11 @@ h1.classic {
 .column {
   flex: 1;
 }
+
+.gap {
+  gap: calc(var(--spacing) * 1);
+}
+
+.no-events > * {
+  pointer-events: none;
+}

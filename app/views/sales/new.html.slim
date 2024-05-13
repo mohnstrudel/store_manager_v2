@@ -1,4 +1,4 @@
-= link_to "Back to sales", sales_path
-h1 New sale
+= render "_shared/nav-new", model: @sale
+
 main
   = render "form", sale: @sale
