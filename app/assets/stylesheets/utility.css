@@ -69,3 +69,7 @@ h1.classic {
 .bold {
   font-weight: 700;
 }
+
+.break-words {
+  word-break: break-all;
+}

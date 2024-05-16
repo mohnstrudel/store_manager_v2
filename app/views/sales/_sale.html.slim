@@ -1,5 +1,7 @@
 tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
-  td = sale.woo_id
+  td.text-center
+    - sale.product_sales.each do |ps|
+      = render "_shared/preloadable_img", src: product_thumb_url(ps.product), class_names: "zoomable", width: 100
   td
     span.bold = sale.customer.full_name
     br
@@ -7,9 +9,10 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     ul.product-variations
       - sale.product_sales.each do |ps|
         li = ps.title
+  td.right.mono = format_money sale.total
   td.no-wrap = format_date sale.woo_created_at.presence || sale.created_at
   td = format_sale_status sale.status
-  td.right.mono = format_money sale.total
+  td = sale.woo_id
   - if action_name != "show" 
     td.actions
       = link_to edit_sale_path(sale), {class: "no-events"}

@@ -11,13 +11,12 @@ main.wide data-controller="table"
       thead
         tr
           th Image
-          th ID
           th Product
+          th Supplier
           th Qty
           th.right Price, $
           th.right Total, $
           th.right Debt, $
-          th Supplier
           th Actions
       tbody
         = render @purchases, cache: true
