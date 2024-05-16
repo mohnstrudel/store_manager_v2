@@ -33,14 +33,14 @@ RSpec.describe WebhookController do
   end
   # rubocop:enable RSpec/MultipleMemoizedHelpers
 
-  describe "#handle_sale" do
+  describe "#update_sale" do
     let(:customer_id) {
-      subject.send(:handle_customer, parsed_order[:customer])
+      subject.send(:update_customer, parsed_order[:customer])
     }
 
     it "returns a sale object" do
       sale_payload = parsed_order[:sale].merge({customer_id:})
-      sale = subject.send(:handle_sale, sale_payload)
+      sale = subject.send(:update_sale, sale_payload)
 
       expect(sale).to be_a(Sale)
     end
@@ -48,7 +48,7 @@ RSpec.describe WebhookController do
     it "reuses the same sale object" do
       sale_payload = parsed_order[:sale].merge({customer_id:})
       existing_sale = create(:sale, woo_id: sale_payload[:woo_id])
-      sale = subject.send(:handle_sale, sale_payload)
+      sale = subject.send(:update_sale, sale_payload)
 
       expect(sale.woo_id).to eq(existing_sale.woo_id)
       expect(sale.id).to eq(existing_sale.id)
@@ -56,22 +56,7 @@ RSpec.describe WebhookController do
   end
 
   # rubocop:disable RSpec/ExampleLength
-  describe "#get_variation_type" do
-    it "returns a variation type" do
-      parsed_variation = parsed_order[:products].find { |el|
-        el[:variation].present?
-      }[:variation]
-      result = subject.send(:get_variation_type, parsed_variation)
-      result_key = result.keys.first
-      result_value = result.values.first
-
-      expect(result_key).to eq("version")
-      expect(result_value).to be_a(Version)
-      expect(result_value[:value]).to eq("Deluxe Version")
-    end
-  end
-
-  describe "#handle_parsed_product" do
+  describe "#update_parsed_product" do
     it "updates a product sale related to the parsed product" do
       customer = create(:customer, woo_id: "4")
       sale = create(:sale, woo_id: "24263", customer:)
@@ -90,7 +75,7 @@ RSpec.describe WebhookController do
         el[:product_woo_id] == 11
       }
 
-      subject.send(:handle_parsed_product, parsed_product, sale)
+      subject.send(:update_parsed_product, parsed_product, sale)
 
       expect(ProductSale.find(product_sale.id).qty).to eq(1)
       expect(ProductSale.find(product_sale.id).price).to eq(BigDecimal("235"))

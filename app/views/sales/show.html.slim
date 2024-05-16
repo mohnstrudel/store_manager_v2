@@ -59,7 +59,7 @@ main.wide.flex.flex-col.gap.w-pd
               )
                 td.mute = idx + 1
                 td = ps.product.full_title 
-                td = ps.variation.present? ? ps.variation.which.value : "-"
+                td = ps.variation.present? ? ps.variation.title : "-"
                 td.right.mono = format_money ps.price
                 td.right = ps.qty
 

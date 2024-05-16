@@ -68,11 +68,14 @@ main.wide.flex.flex-col.gap.w-pd
             - @product.variations.includes(:version, :color, :size, :purchases, :product_sales).each do |variation|
               tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == variation.id)
                 td = variation.id
-                td = variation.which&.value
-                td = variation.which.present? && variation.which.model_name.name
+                td = variation.title
+                td = variation.types
                 td.right = format_zero_values variation.product_sales.size
                 td = format_zero_values variation.purchases.size
-                td = link_to variation.woo_id, variation.store_link, :target => "_blank", "rel" => "noopener noreferrer"
+                - if variation.store_link.present?
+                  td = link_to variation.woo_id, variation.store_link, :target => "_blank", "rel" => "noopener noreferrer"
+                - else 
+                  td = variation.woo_id
 
   - if @active_sales.present?
     .table-cards-group
@@ -107,7 +110,7 @@ main.wide.flex.flex-col.gap.w-pd
                 td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
                 - if @product.variations.any?
                   - if ps.variation.present?
-                    td = ps.variation.which&.value
+                    td = ps.variation.title
                   - else
                     td -
                 td.right.mono = format_money ps.price
@@ -142,7 +145,7 @@ main.wide.flex.flex-col.gap.w-pd
                 td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
                 - if @product.variations.any?
                   - if ps.variation.present?
-                    td = ps.variation.which&.value
+                    td = ps.variation.title
                   - else
                     td -
                 td.right.mono = format_money ps.price
@@ -168,7 +171,7 @@ main.wide.flex.flex-col.gap.w-pd
               )
                 - if purchase.variation.present?
                   td = purchase.product.full_title
-                  td = purchase.variation.which&.value
+                  td = purchase.variation.title
                 - else
                   td = purchase.product.full_title
                   td -

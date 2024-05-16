@@ -4,6 +4,8 @@ class SyncWooVariationsJob < ApplicationJob
   include Gettable
   include Sanitizable
 
+  TYPES = Variation.types.values
+
   def perform(products_with_variations)
     woo_variations = get_variations(products_with_variations, "publish")
     parsed_woo_variations = parse(woo_variations)
@@ -37,52 +39,75 @@ class SyncWooVariationsJob < ApplicationJob
         store_link: variation[:permalink]
       }
 
-      attributes = variation[:attributes].each_with_object({}) do |attr, attrs|
-        next if attr[:option].blank?
+      parsed_variations = variation[:attributes].each_with_object([]) do |attr, attrs|
+        next attrs if attr[:option].blank?
+
         option = smart_titleize(sanitize(attr[:option]))
-        case attr[:name]
-        when *Variation.types[:version]
-          attrs[:version] = option
-        when *Variation.types[:size]
-          attrs[:size] = option
-        when *Variation.types[:color]
-          attrs[:color] = option
+
+        if attr[:name].in? TYPES.flatten
+          attrs << {
+            type: attr[:name],
+            value: option
+          }
         end
       end
 
-      result.merge(attributes)
+      result.merge(variations: parsed_variations)
     rescue => e
       Rails.logger.error "SyncWooVariationsJob. Error: #{e.message}"
       nil
-    end.compact_blank
+    end
   end
 
   def create(parsed_woo_variations)
-    parsed_woo_variations.each do |variation|
-      next if variation.blank?
+    parsed_woo_variations.each do |parsed_variation|
+      next if parsed_variation.blank?
 
-      size = if variation[:size].present?
-        Size.find_or_create_by(value: Size.parse_size(variation[:size]))
-      end
+      product = Product.find_or_create_by(
+        woo_id: parsed_variation[:product_woo_id]
+      )
 
-      version = if variation[:version].present?
-        Version.find_or_create_by(value: sanitize(variation[:version]))
-      end
-
-      color = if variation[:color].present?
-        Color.find_or_create_by(value: sanitize(variation[:color]))
-      end
-
-      product = Product.find_or_create_by(woo_id: variation[:product_woo_id])
-
-      Variation.create({
-        woo_id: variation[:woo_id],
-        store_link: variation[:store_link],
-        size:,
-        version:,
-        color:,
-        product:
-      })
+      create_variation(
+        product:,
+        variation_woo_id: parsed_variation[:woo_id],
+        variation_types: parsed_variation[:variations],
+        store_link: parsed_variation[:store_link]
+      )
     end
+  end
+
+  def create_variation(
+    product:,
+    variation_woo_id:,
+    variation_types:,
+    store_link: nil
+  )
+    variation_types = [variation_types] if variation_types.is_a? Hash
+
+    mapped_variation_types = variation_types.map do |variation_type|
+      type_name = TYPES.find do |type|
+        type.include? variation_type[:type]
+      end.first
+
+      if type_name == "Size"
+        variation_type[:value] = Size.parse_size(variation_type[:value])
+      end
+
+      type_instance = type_name.constantize.find_or_create_by({
+        value: variation_type[:value]
+      })
+
+      product.send(:"product_#{type_name.downcase.pluralize}")
+        .find_or_create_by({type_name.downcase => type_instance})
+
+      {type_name.downcase => type_instance}
+    end
+
+    Variation.find_by(woo_id: variation_woo_id).presence ||
+      Variation.create({
+        product:,
+        store_link:,
+        woo_id: variation_woo_id
+      }.merge(*mapped_variation_types).compact)
   end
 end

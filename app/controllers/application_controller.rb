@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
     http_basic_authenticate_with(
       name: Rails.application.credentials.dig(:basic_auth, :log),
       password: Rails.application.credentials.dig(:basic_auth, :pas),
-      except: "update_sale"
+      except: "process_order"
     )
   end
 

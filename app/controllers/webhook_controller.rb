@@ -1,17 +1,23 @@
 class WebhookController < ApplicationController
   skip_before_action :verify_authenticity_token
 
-  def update_sale
+  SYNC_ORDERS_JOB = SyncWooOrdersJob.new
+  SYNC_VARIATIONS_JOB = SyncWooVariationsJob.new
+
+  def process_order
     verified = verify_webhook(Rails.application.credentials.dig(:hooks, :order))
     return head(:unauthorized) unless verified
 
-    orders_job = SyncWooOrdersJob.new
     parsed_req = JSON.parse(request.body.read, symbolize_names: true)
-    parsed_order = orders_job.parse(parsed_req)
+    parsed_order = SYNC_ORDERS_JOB.parse(parsed_req)
 
-    customer_id = handle_customer(parsed_order[:customer])
-    sale = handle_sale(parsed_order[:sale].merge({customer_id:}))
-    parsed_order[:products].each { |i| handle_parsed_product(i, sale) }
+    if Sale.find_by(woo_id: parsed_order[:sale][:woo_id]).blank?
+      SYNC_ORDERS_JOB.create_sales([parsed_order])
+    else
+      customer_id = update_customer(parsed_order[:customer])
+      sale = update_sale(parsed_order[:sale].merge({customer_id:}))
+      parsed_order[:products].each { |i| update_parsed_product(i, sale) }
+    end
 
     head(:no_content)
   end
@@ -27,7 +33,7 @@ class WebhookController < ApplicationController
     ActiveSupport::SecurityUtils.secure_compare(calc_sign, req_sign)
   end
 
-  def handle_customer(customer_payload)
+  def update_customer(customer_payload)
     customer = Customer.find_or_initialize_by(woo_id: customer_payload[:woo_id])
     customer.assign_attributes(customer_payload)
     customer.save
@@ -35,7 +41,7 @@ class WebhookController < ApplicationController
     customer.id
   end
 
-  def handle_sale(sale_payload)
+  def update_sale(sale_payload)
     sale = Sale.find_or_initialize_by(woo_id: sale_payload[:woo_id])
     sale.assign_attributes(sale_payload)
     sale.save
@@ -43,23 +49,7 @@ class WebhookController < ApplicationController
     sale
   end
 
-  def get_variation_type(parsed_variation)
-    variation_type = Variation.types.values.find do |types|
-      types.include? parsed_variation[:display_key]
-    end&.first
-
-    return unless variation_type
-
-    variation_value = variation_type.constantize.find_or_create_by({
-      value: parsed_variation[:display_value]
-    })
-
-    return unless variation_value
-
-    {variation_type.downcase => variation_value}
-  end
-
-  def handle_parsed_product(parsed_product, sale)
+  def update_parsed_product(parsed_product, sale)
     product = Product.find_by(woo_id: parsed_product[:product_woo_id])
 
     if product.blank?
@@ -69,10 +59,12 @@ class WebhookController < ApplicationController
     return if product.blank?
 
     variation = if parsed_product[:variation].present?
-      Variation.find_or_create_by({
-        woo_id: parsed_product[:variation_woo_id],
-        product:
-      }.merge(get_variation_type(parsed_product[:variation])))
+      Variation.find_by(woo_id: parsed_product[:variation_woo_id]).presence ||
+        SYNC_VARIATIONS_JOB.create_variation(
+          product: parsed_product,
+          variation_woo_id: parsed_product[:variation_woo_id],
+          variation_types: parsed_product[:variation]
+        )
     end
 
     product_sale = ProductSale.find_or_initialize_by(
