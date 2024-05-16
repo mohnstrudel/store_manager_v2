@@ -90,7 +90,7 @@ class SyncWooVariationsJob < ApplicationJob
       end.first
 
       if type_name == "Size"
-        variation_type[:value] = Size.parse_size(variation_type[:value])
+        variation_type[:value] = Size.sanitize_size(variation_type[:value])
       end
 
       type_instance = type_name.constantize.find_or_create_by({
