@@ -3,7 +3,7 @@ class ColorsController < ApplicationController
 
   # GET /colors or /colors.json
   def index
-    @colors = Color.all
+    @colors = Color.order(:value)
   end
 
   # GET /colors/1 or /colors/1.json
