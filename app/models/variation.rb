@@ -31,11 +31,15 @@ class Variation < ApplicationRecord
     }.freeze
   end
 
-  def which
-    [size, version, color].compact.first
-  end
-
   def title
     [size&.value, version&.value, color&.value].compact.join(" | ")
+  end
+
+  def types
+    [size, version, color].map { |i| i.presence && i.model_name.name }.compact.join(" | ")
+  end
+
+  def types_size
+    [size.presence, version.presence, color.presence].compact.size
   end
 end

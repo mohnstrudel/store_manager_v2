@@ -8,7 +8,7 @@ class SyncWooProductsJob < ApplicationJob
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
   STATUS = "publish"
-  PRODUCTS_SIZE = 1300
+  PRODUCTS_SIZE = ENV["PRODUCTS_SIZE"] || 1400
 
   def perform
     parsed_products = parse_all(get_woo_products)

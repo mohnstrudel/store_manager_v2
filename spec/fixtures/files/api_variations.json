@@ -1,15 +1,15 @@
 [
   {
-    "id": 27004,
-    "date_created": "2023-11-27T00:06:01",
-    "date_created_gmt": "2023-11-27T00:06:01",
-    "date_modified": "2023-11-27T00:23:00",
-    "date_modified_gmt": "2023-11-27T00:23:00",
+    "id": 31418,
+    "date_created": "2024-04-08T17:31:47",
+    "date_created_gmt": "2024-04-08T17:31:47",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
     "description": "",
-    "permalink": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=EX",
-    "sku": "enigma-studio-purah-ex",
-    "price": "1250.0",
-    "regular_price": "1250.0",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=B+Exclusive",
+    "sku": "bus-studio-sylvanas-windrunner-dark-b-ex",
+    "price": "1040.0",
+    "regular_price": "1040.0",
     "sale_price": "",
     "date_on_sale_from": null,
     "date_on_sale_from_gmt": null,
@@ -32,91 +32,147 @@
     "backorders_allowed": false,
     "backordered": false,
     "low_stock_amount": null,
-    "weight": "14.0",
-    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
     "shipping_class": "",
     "shipping_class_id": 0,
     "image": {
-      "id": 27007,
-      "date_created": "2023-11-27T00:06:17",
-      "date_created_gmt": "2023-11-27T00:06:17",
-      "date_modified": "2023-11-27T00:06:17",
-      "date_modified_gmt": "2023-11-27T00:06:17",
-      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
-      "name": "3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
       "alt": ""
     },
-    "attributes": [{ "id": 0, "name": "Version", "option": "EX" }],
-    "menu_order": 1,
-    "meta_data": [
-      { "id": 414768, "key": "_wc_gla_sync_status", "value": "pending" },
+    "attributes": [
       {
-        "id": 414771,
-        "key": "_wc_gla_errors",
-        "value": ["[imageLink] This value should not be blank."]
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "Forsaken (dunkler)"
       },
       {
-        "id": 415048,
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "B Exclusive"
+      }
+    ],
+    "menu_order": 10,
+    "meta_data": [
+      {
+        "id": 604757,
+        "key": "fb_product_item_id",
+        "value": "7588865097824066"
+      },
+      {
+        "id": 605133,
         "key": "_awcdp_deposits_override_product_settings",
         "value": "yes"
       },
-      { "id": 415049, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
-      { "id": 415050, "key": "_awcdp_deposits_force_deposit", "value": "no" },
       {
-        "id": 415051,
+        "id": 605134,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605135,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605136,
         "key": "_awcdp_deposits_amount_type",
         "value": "payment_plan"
       },
-      { "id": 415052, "key": "_awcdp_deposits_variation_amount", "value": "0" },
       {
-        "id": 415053,
+        "id": 605137,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605138,
         "key": "_awcdp_deposits_variation_plans",
         "value": ["23077", "23076", "23075"]
       },
-      { "id": 415054, "key": "_is_pre_order", "value": "yes" },
-      { "id": 415055, "key": "_pre_order_date", "value": "2024-10-28" },
-      { "id": 415056, "key": "_wc_facebook_sync_enabled", "value": "yes" },
-      { "id": 415057, "key": "fb_visibility", "value": "yes" },
-      { "id": 415058, "key": "fb_product_description", "value": "" },
       {
-        "id": 415059,
+        "id": 605139,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605140,
+        "key": "_pre_order_date",
+        "value": "2025-02-28"
+      },
+      {
+        "id": 605141,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605142,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605143,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605144,
         "key": "_wc_facebook_product_image_source",
         "value": "product"
       },
-      { "id": 415060, "key": "fb_product_image", "value": "" },
-      { "id": 415061, "key": "fb_product_price", "value": "" }
+      {
+        "id": 605145,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605146,
+        "key": "fb_product_price",
+        "value": ""
+      }
     ],
-    "name": "EX",
-    "parent_id": 27003,
+    "name": "Forsaken (dunkler), B Exclusive",
+    "parent_id": 31408,
     "_links": {
       "self": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations/27004"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31418"
         }
       ],
       "collection": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
         }
       ],
       "up": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
         }
       ]
     }
   },
   {
-    "id": 27005,
-    "date_created": "2023-11-27T00:06:09",
-    "date_created_gmt": "2023-11-27T00:06:09",
-    "date_modified": "2023-11-27T00:23:00",
-    "date_modified_gmt": "2023-11-27T00:23:00",
+    "id": 31417,
+    "date_created": "2024-04-08T17:31:43",
+    "date_created_gmt": "2024-04-08T17:31:43",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
     "description": "",
-    "permalink": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=A",
-    "sku": "enigma-studio-purah-a",
-    "price": "780.0",
-    "regular_price": "780.0",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=B+Exclusive",
+    "sku": "bus-studio-sylvanas-windrunner-white-b-ex",
+    "price": "1040.0",
+    "regular_price": "1040.0",
     "sale_price": "",
     "date_on_sale_from": null,
     "date_on_sale_from_gmt": null,
@@ -139,86 +195,147 @@
     "backorders_allowed": false,
     "backordered": false,
     "low_stock_amount": null,
-    "weight": "13.0",
-    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
     "shipping_class": "",
     "shipping_class_id": 0,
     "image": {
-      "id": 27007,
-      "date_created": "2023-11-27T00:06:17",
-      "date_created_gmt": "2023-11-27T00:06:17",
-      "date_modified": "2023-11-27T00:06:17",
-      "date_modified_gmt": "2023-11-27T00:06:17",
-      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
-      "name": "3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
       "alt": ""
     },
-    "attributes": [{ "id": 0, "name": "Version", "option": "A" }],
-    "menu_order": 2,
-    "meta_data": [
-      { "id": 414798, "key": "_wc_gla_sync_status", "value": "pending" },
+    "attributes": [
       {
-        "id": 415033,
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "High Elf (weißer)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "B Exclusive"
+      }
+    ],
+    "menu_order": 9,
+    "meta_data": [
+      {
+        "id": 604756,
+        "key": "fb_product_item_id",
+        "value": "7596875890369540"
+      },
+      {
+        "id": 605148,
         "key": "_awcdp_deposits_override_product_settings",
         "value": "yes"
       },
-      { "id": 415034, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
-      { "id": 415035, "key": "_awcdp_deposits_force_deposit", "value": "no" },
       {
-        "id": 415036,
+        "id": 605149,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605150,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605151,
         "key": "_awcdp_deposits_amount_type",
         "value": "payment_plan"
       },
-      { "id": 415037, "key": "_awcdp_deposits_variation_amount", "value": "0" },
       {
-        "id": 415038,
+        "id": 605152,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605153,
         "key": "_awcdp_deposits_variation_plans",
         "value": ["23077", "23076", "23075"]
       },
-      { "id": 415039, "key": "_is_pre_order", "value": "yes" },
-      { "id": 415040, "key": "_pre_order_date", "value": "2024-10-28" },
-      { "id": 415041, "key": "_wc_facebook_sync_enabled", "value": "yes" },
-      { "id": 415042, "key": "fb_visibility", "value": "yes" },
-      { "id": 415043, "key": "fb_product_description", "value": "" },
       {
-        "id": 415044,
+        "id": 605154,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605155,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605156,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605157,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605158,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605159,
         "key": "_wc_facebook_product_image_source",
         "value": "product"
       },
-      { "id": 415045, "key": "fb_product_image", "value": "" },
-      { "id": 415046, "key": "fb_product_price", "value": "" }
+      {
+        "id": 605160,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605161,
+        "key": "fb_product_price",
+        "value": ""
+      }
     ],
-    "name": "A",
-    "parent_id": 27003,
+    "name": "High Elf (weißer), B Exclusive",
+    "parent_id": 31408,
     "_links": {
       "self": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations/27005"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31417"
         }
       ],
       "collection": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
         }
       ],
       "up": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
         }
       ]
     }
   },
   {
-    "id": 27006,
-    "date_created": "2023-11-27T00:06:13",
-    "date_created_gmt": "2023-11-27T00:06:13",
-    "date_modified": "2023-11-27T00:23:00",
-    "date_modified_gmt": "2023-11-27T00:23:00",
+    "id": 31416,
+    "date_created": "2024-04-08T17:31:40",
+    "date_created_gmt": "2024-04-08T17:31:40",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
     "description": "",
-    "permalink": "https://store.handsomecake.com/product/legend-of-zelda-purah-14-resin-statue-von-enigma-studio/?attribute_version=B",
-    "sku": "enigma-studio-purah-b",
-    "price": "620.0",
-    "regular_price": "620.0",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=A+Exclusive",
+    "sku": "bus-studio-sylvanas-windrunner-dark-a-ex",
+    "price": "1110.0",
+    "regular_price": "1110.0",
     "sale_price": "",
     "date_on_sale_from": null,
     "date_on_sale_from_gmt": null,
@@ -241,86 +358,962 @@
     "backorders_allowed": false,
     "backordered": false,
     "low_stock_amount": null,
-    "weight": "13.0",
-    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
     "shipping_class": "",
     "shipping_class_id": 0,
     "image": {
-      "id": 27007,
-      "date_created": "2023-11-27T00:06:17",
-      "date_created_gmt": "2023-11-27T00:06:17",
-      "date_modified": "2023-11-27T00:06:17",
-      "date_modified_gmt": "2023-11-27T00:06:17",
-      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
-      "name": "3a3ab5f4-4e6c-54b0-a9b3-7e11f7460ae5.jpg",
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
       "alt": ""
     },
-    "attributes": [{ "id": 0, "name": "Version", "option": "B" }],
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "Forsaken (dunkler)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "A Exclusive"
+      }
+    ],
+    "menu_order": 8,
+    "meta_data": [
+      {
+        "id": 604755,
+        "key": "fb_product_item_id",
+        "value": "7164004413719426"
+      },
+      {
+        "id": 605163,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      {
+        "id": 605164,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605165,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605166,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      {
+        "id": 605167,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605168,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      {
+        "id": 605169,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605170,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605171,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605172,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605173,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605174,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      {
+        "id": 605175,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605176,
+        "key": "fb_product_price",
+        "value": ""
+      }
+    ],
+    "name": "Forsaken (dunkler), A Exclusive",
+    "parent_id": 31408,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31416"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
+        }
+      ]
+    }
+  },
+  {
+    "id": 31415,
+    "date_created": "2024-04-08T17:31:36",
+    "date_created_gmt": "2024-04-08T17:31:36",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=A+Exclusive",
+    "sku": "bus-studio-sylvanas-windrunner-white-a-ex",
+    "price": "1110.0",
+    "regular_price": "1110.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
+      "alt": ""
+    },
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "High Elf (weißer)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "A Exclusive"
+      }
+    ],
+    "menu_order": 7,
+    "meta_data": [
+      {
+        "id": 604754,
+        "key": "fb_product_item_id",
+        "value": "7848936548463210"
+      },
+      {
+        "id": 605178,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      {
+        "id": 605179,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605180,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605181,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      {
+        "id": 605182,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605183,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      {
+        "id": 605184,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605185,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605186,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605187,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605188,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605189,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      {
+        "id": 605190,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605191,
+        "key": "fb_product_price",
+        "value": ""
+      }
+    ],
+    "name": "High Elf (weißer), A Exclusive",
+    "parent_id": 31408,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31415"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
+        }
+      ]
+    }
+  },
+  {
+    "id": 31414,
+    "date_created": "2024-04-08T17:31:32",
+    "date_created_gmt": "2024-04-08T17:31:32",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=C+%28Sitzende+%2B+Kleid+abnehmbar%29",
+    "sku": "bus-studio-sylvanas-windrunner-dark-c",
+    "price": "1020.0",
+    "regular_price": "1020.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
+      "alt": ""
+    },
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "Forsaken (dunkler)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "C (Sitzende + Kleid abnehmbar)"
+      }
+    ],
+    "menu_order": 6,
+    "meta_data": [
+      {
+        "id": 604753,
+        "key": "fb_product_item_id",
+        "value": "7388916571163975"
+      },
+      {
+        "id": 605193,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      {
+        "id": 605194,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605195,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605196,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      {
+        "id": 605197,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605198,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      {
+        "id": 605199,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605200,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605201,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605202,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605203,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605204,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      {
+        "id": 605205,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605206,
+        "key": "fb_product_price",
+        "value": ""
+      }
+    ],
+    "name": "Forsaken (dunkler), C (Sitzende + Kleid abnehmbar)",
+    "parent_id": 31408,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31414"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
+        }
+      ]
+    }
+  },
+  {
+    "id": 31413,
+    "date_created": "2024-04-08T17:31:29",
+    "date_created_gmt": "2024-04-08T17:31:29",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=C+%28Sitzende+%2B+Kleid+abnehmbar%29",
+    "sku": "bus-studio-sylvanas-windrunner-white-c",
+    "price": "1020.0",
+    "regular_price": "1020.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
+      "alt": ""
+    },
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "High Elf (weißer)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "C (Sitzende + Kleid abnehmbar)"
+      }
+    ],
+    "menu_order": 5,
+    "meta_data": [
+      {
+        "id": 604752,
+        "key": "fb_product_item_id",
+        "value": "7441101822592493"
+      },
+      {
+        "id": 605208,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      {
+        "id": 605209,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605210,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605211,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      {
+        "id": 605212,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605213,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      {
+        "id": 605214,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605215,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605216,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605217,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605218,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605219,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      {
+        "id": 605220,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605221,
+        "key": "fb_product_price",
+        "value": ""
+      }
+    ],
+    "name": "High Elf (weißer), C (Sitzende + Kleid abnehmbar)",
+    "parent_id": 31408,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31413"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
+        }
+      ]
+    }
+  },
+  {
+    "id": 31412,
+    "date_created": "2024-04-08T17:31:25",
+    "date_created_gmt": "2024-04-08T17:31:25",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=B+%28Sitzende%29",
+    "sku": "bus-studio-sylvanas-windrunner-dark-b",
+    "price": "790.0",
+    "regular_price": "790.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
+      "alt": ""
+    },
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "Forsaken (dunkler)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "B (Sitzende)"
+      }
+    ],
+    "menu_order": 4,
+    "meta_data": [
+      {
+        "id": 604751,
+        "key": "fb_product_item_id",
+        "value": "7323389674376146"
+      },
+      {
+        "id": 605223,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      {
+        "id": 605224,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605225,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605226,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      {
+        "id": 605227,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605228,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      {
+        "id": 605229,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605230,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605231,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605232,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605233,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605234,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      {
+        "id": 605235,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605236,
+        "key": "fb_product_price",
+        "value": ""
+      }
+    ],
+    "name": "Forsaken (dunkler), B (Sitzende)",
+    "parent_id": 31408,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31412"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
+        }
+      ]
+    }
+  },
+  {
+    "id": 31411,
+    "date_created": "2024-04-08T17:31:21",
+    "date_created_gmt": "2024-04-08T17:31:21",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=B+%28Sitzende%29",
+    "sku": "bus-studio-sylvanas-windrunner-white-b",
+    "price": "790.0",
+    "regular_price": "790.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
+      "alt": ""
+    },
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "High Elf (weißer)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "B (Sitzende)"
+      }
+    ],
     "menu_order": 3,
     "meta_data": [
-      { "id": 414825, "key": "_wc_gla_sync_status", "value": "pending" },
       {
-        "id": 415018,
+        "id": 604750,
+        "key": "fb_product_item_id",
+        "value": "25082105348101782"
+      },
+      {
+        "id": 605238,
         "key": "_awcdp_deposits_override_product_settings",
         "value": "yes"
       },
-      { "id": 415019, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
-      { "id": 415020, "key": "_awcdp_deposits_force_deposit", "value": "no" },
       {
-        "id": 415021,
+        "id": 605239,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605240,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605241,
         "key": "_awcdp_deposits_amount_type",
         "value": "payment_plan"
       },
-      { "id": 415022, "key": "_awcdp_deposits_variation_amount", "value": "0" },
       {
-        "id": 415023,
+        "id": 605242,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605243,
         "key": "_awcdp_deposits_variation_plans",
         "value": ["23077", "23076", "23075"]
       },
-      { "id": 415024, "key": "_is_pre_order", "value": "yes" },
-      { "id": 415025, "key": "_pre_order_date", "value": "2024-10-28" },
-      { "id": 415026, "key": "_wc_facebook_sync_enabled", "value": "yes" },
-      { "id": 415027, "key": "fb_visibility", "value": "yes" },
-      { "id": 415028, "key": "fb_product_description", "value": "" },
       {
-        "id": 415029,
+        "id": 605244,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605245,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605246,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605247,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605248,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605249,
         "key": "_wc_facebook_product_image_source",
         "value": "product"
       },
-      { "id": 415030, "key": "fb_product_image", "value": "" },
-      { "id": 415031, "key": "fb_product_price", "value": "" }
+      {
+        "id": 605250,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605251,
+        "key": "fb_product_price",
+        "value": ""
+      }
     ],
-    "name": "B",
-    "parent_id": 27003,
+    "name": "High Elf (weißer), B (Sitzende)",
+    "parent_id": 31408,
     "_links": {
       "self": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations/27006"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31411"
         }
       ],
       "collection": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003/variations"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
         }
       ],
       "up": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/27003"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
         }
       ]
     }
   },
   {
-    "id": 26990,
-    "date_created": "2023-11-27T00:03:18",
-    "date_created_gmt": "2023-11-27T00:03:18",
-    "date_modified": "2023-11-27T00:13:35",
-    "date_modified_gmt": "2023-11-27T00:13:35",
+    "id": 31410,
+    "date_created": "2024-04-08T17:31:17",
+    "date_created_gmt": "2024-04-08T17:31:17",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
     "description": "",
-    "permalink": "https://store.handsomecake.com/product/one-piece-yamato-16-resin-statue-von-dragon-x-pop-studio/?attribute_version=Regular",
-    "sku": "dragon-x-pop-studio-yamato-regular",
-    "price": "700.0",
-    "regular_price": "700.0",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=A+%28Stehende%29",
+    "sku": "bus-studio-sylvanas-windrunner-dark-a",
+    "price": "1020.0",
+    "regular_price": "1020.0",
     "sale_price": "",
     "date_on_sale_from": null,
     "date_on_sale_from_gmt": null,
@@ -334,7 +1327,7 @@
     "downloads": [],
     "download_limit": -1,
     "download_expiry": -1,
-    "tax_status": "none",
+    "tax_status": "taxable",
     "tax_class": "",
     "manage_stock": true,
     "stock_quantity": 2,
@@ -344,172 +1337,289 @@
     "backordered": false,
     "low_stock_amount": null,
     "weight": "0.0",
-    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
     "shipping_class": "",
     "shipping_class_id": 0,
     "image": {
-      "id": 26992,
-      "date_created": "2023-11-27T00:03:27",
-      "date_created_gmt": "2023-11-27T00:03:27",
-      "date_modified": "2023-11-27T00:03:27",
-      "date_modified_gmt": "2023-11-27T00:03:27",
-      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/57ba6e34-5ca3-5c60-9900-5d00790b7fe7-scaled.jpg",
-      "name": "57ba6e34-5ca3-5c60-9900-5d00790b7fe7.jpg",
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
       "alt": ""
     },
-    "attributes": [{ "id": 0, "name": "Version", "option": "Regular" }],
-    "menu_order": 1,
-    "meta_data": [
-      { "id": 414646, "key": "_wc_gla_sync_status", "value": "pending" },
+    "attributes": [
       {
-        "id": 414880,
-        "key": "_awcdp_deposits_override_product_settings",
-        "value": "yes"
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "Forsaken (dunkler)"
       },
-      { "id": 414881, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
-      { "id": 414882, "key": "_awcdp_deposits_force_deposit", "value": "no" },
       {
-        "id": 414883,
-        "key": "_awcdp_deposits_amount_type",
-        "value": "payment_plan"
-      },
-      { "id": 414884, "key": "_awcdp_deposits_variation_amount", "value": "0" },
-      {
-        "id": 414885,
-        "key": "_awcdp_deposits_variation_plans",
-        "value": ["23077", "23076", "23075"]
-      },
-      { "id": 414886, "key": "_is_pre_order", "value": "yes" },
-      { "id": 414887, "key": "_pre_order_date", "value": "2024-10-28" },
-      { "id": 414888, "key": "_wc_facebook_sync_enabled", "value": "yes" },
-      { "id": 414889, "key": "fb_visibility", "value": "yes" },
-      { "id": 414890, "key": "fb_product_description", "value": "" },
-      {
-        "id": 414891,
-        "key": "_wc_facebook_product_image_source",
-        "value": "product"
-      },
-      { "id": 414892, "key": "fb_product_image", "value": "" },
-      { "id": 414893, "key": "fb_product_price", "value": "" }
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "A (Stehende)"
+      }
     ],
-    "name": "Regular",
-    "parent_id": 26989,
-    "_links": {
-      "self": [
-        {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations/26990"
-        }
-      ],
-      "collection": [
-        {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations"
-        }
-      ],
-      "up": [
-        {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989"
-        }
-      ]
-    }
-  },
-  {
-    "id": 26991,
-    "date_created": "2023-11-27T00:03:23",
-    "date_created_gmt": "2023-11-27T00:03:23",
-    "date_modified": "2023-11-27T00:13:35",
-    "date_modified_gmt": "2023-11-27T00:13:35",
-    "description": "",
-    "permalink": "https://store.handsomecake.com/product/one-piece-yamato-16-resin-statue-von-dragon-x-pop-studio/?attribute_version=Exclusive",
-    "sku": "dragon-x-pop-studio-yamato-exclusive",
-    "price": "860.0",
-    "regular_price": "860.0",
-    "sale_price": "",
-    "date_on_sale_from": null,
-    "date_on_sale_from_gmt": null,
-    "date_on_sale_to": null,
-    "date_on_sale_to_gmt": null,
-    "on_sale": false,
-    "status": "publish",
-    "purchasable": true,
-    "virtual": false,
-    "downloadable": false,
-    "downloads": [],
-    "download_limit": -1,
-    "download_expiry": -1,
-    "tax_status": "none",
-    "tax_class": "",
-    "manage_stock": true,
-    "stock_quantity": 2,
-    "stock_status": "instock",
-    "backorders": "no",
-    "backorders_allowed": false,
-    "backordered": false,
-    "low_stock_amount": null,
-    "weight": "0.0",
-    "dimensions": { "length": "0.0", "width": "0.0", "height": "0.0" },
-    "shipping_class": "",
-    "shipping_class_id": 0,
-    "image": {
-      "id": 26992,
-      "date_created": "2023-11-27T00:03:27",
-      "date_created_gmt": "2023-11-27T00:03:27",
-      "date_modified": "2023-11-27T00:03:27",
-      "date_modified_gmt": "2023-11-27T00:03:27",
-      "src": "https://store.handsomecake.com/wp-content/uploads/2023/11/57ba6e34-5ca3-5c60-9900-5d00790b7fe7-scaled.jpg",
-      "name": "57ba6e34-5ca3-5c60-9900-5d00790b7fe7.jpg",
-      "alt": ""
-    },
-    "attributes": [{ "id": 0, "name": "Version", "option": "Exclusive" }],
     "menu_order": 2,
     "meta_data": [
-      { "id": 414673, "key": "_wc_gla_sync_status", "value": "pending" },
       {
-        "id": 414865,
+        "id": 604749,
+        "key": "fb_product_item_id",
+        "value": "7521935301202132"
+      },
+      {
+        "id": 605253,
         "key": "_awcdp_deposits_override_product_settings",
         "value": "yes"
       },
-      { "id": 414866, "key": "_awcdp_deposits_enable_deposit", "value": "yes" },
-      { "id": 414867, "key": "_awcdp_deposits_force_deposit", "value": "no" },
       {
-        "id": 414868,
+        "id": 605254,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605255,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605256,
         "key": "_awcdp_deposits_amount_type",
         "value": "payment_plan"
       },
-      { "id": 414869, "key": "_awcdp_deposits_variation_amount", "value": "0" },
       {
-        "id": 414870,
+        "id": 605257,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605258,
         "key": "_awcdp_deposits_variation_plans",
         "value": ["23077", "23076", "23075"]
       },
-      { "id": 414871, "key": "_is_pre_order", "value": "yes" },
-      { "id": 414872, "key": "_pre_order_date", "value": "2024-10-28" },
-      { "id": 414873, "key": "_wc_facebook_sync_enabled", "value": "yes" },
-      { "id": 414874, "key": "fb_visibility", "value": "yes" },
-      { "id": 414875, "key": "fb_product_description", "value": "" },
       {
-        "id": 414876,
+        "id": 605259,
+        "key": "_is_pre_order",
+        "value": "yes"
+      },
+      {
+        "id": 605260,
+        "key": "_pre_order_date",
+        "value": "2025-02-24"
+      },
+      {
+        "id": 605261,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605262,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605263,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605264,
         "key": "_wc_facebook_product_image_source",
         "value": "product"
       },
-      { "id": 414877, "key": "fb_product_image", "value": "" },
-      { "id": 414878, "key": "fb_product_price", "value": "" }
+      {
+        "id": 605265,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605266,
+        "key": "fb_product_price",
+        "value": ""
+      }
     ],
-    "name": "Exclusive",
-    "parent_id": 26989,
+    "name": "Forsaken (dunkler), A (Stehende)",
+    "parent_id": 31408,
     "_links": {
       "self": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations/26991"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31410"
         }
       ],
       "collection": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989/variations"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
         }
       ],
       "up": [
         {
-          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/26989"
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
+        }
+      ]
+    }
+  },
+  {
+    "id": 31409,
+    "date_created": "2024-04-08T17:31:13",
+    "date_created_gmt": "2024-04-08T17:31:13",
+    "date_modified": "2024-04-08T17:57:22",
+    "date_modified_gmt": "2024-04-08T17:57:22",
+    "description": "",
+    "permalink": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=A+%28Stehende%29",
+    "sku": "bus-studio-sylvanas-windrunner-white-a",
+    "price": "1020.0",
+    "regular_price": "1020.0",
+    "sale_price": "",
+    "date_on_sale_from": null,
+    "date_on_sale_from_gmt": null,
+    "date_on_sale_to": null,
+    "date_on_sale_to_gmt": null,
+    "on_sale": false,
+    "status": "publish",
+    "purchasable": true,
+    "virtual": false,
+    "downloadable": false,
+    "downloads": [],
+    "download_limit": -1,
+    "download_expiry": -1,
+    "tax_status": "taxable",
+    "tax_class": "",
+    "manage_stock": true,
+    "stock_quantity": 2,
+    "stock_status": "instock",
+    "backorders": "no",
+    "backorders_allowed": false,
+    "backordered": false,
+    "low_stock_amount": null,
+    "weight": "0.0",
+    "dimensions": {
+      "length": "0.0",
+      "width": "0.0",
+      "height": "0.0"
+    },
+    "shipping_class": "",
+    "shipping_class_id": 0,
+    "image": {
+      "id": 31427,
+      "date_created": "2024-04-08T17:37:09",
+      "date_created_gmt": "2024-04-08T17:37:09",
+      "date_modified": "2024-04-08T17:37:09",
+      "date_modified_gmt": "2024-04-08T17:37:09",
+      "src": "https://store.handsomecake.com/wp-content/uploads/2024/04/77B70474-900F-4E91-B484-972A3770BED5.png",
+      "name": "77B70474-900F-4E91-B484-972A3770BED5",
+      "alt": ""
+    },
+    "attributes": [
+      {
+        "id": 0,
+        "name": "Color",
+        "slug": "color",
+        "option": "High Elf (weißer)"
+      },
+      {
+        "id": 0,
+        "name": "Version",
+        "slug": "version",
+        "option": "A (Stehende)"
+      }
+    ],
+    "menu_order": 1,
+    "meta_data": [
+      {
+        "id": 604748,
+        "key": "fb_product_item_id",
+        "value": "26119073817692166"
+      },
+      {
+        "id": 605268,
+        "key": "_awcdp_deposits_override_product_settings",
+        "value": "yes"
+      },
+      {
+        "id": 605269,
+        "key": "_awcdp_deposits_enable_deposit",
+        "value": "yes"
+      },
+      {
+        "id": 605270,
+        "key": "_awcdp_deposits_force_deposit",
+        "value": "no"
+      },
+      {
+        "id": 605271,
+        "key": "_awcdp_deposits_amount_type",
+        "value": "payment_plan"
+      },
+      {
+        "id": 605272,
+        "key": "_awcdp_deposits_variation_amount",
+        "value": "0"
+      },
+      {
+        "id": 605273,
+        "key": "_awcdp_deposits_variation_plans",
+        "value": ["23077", "23076", "23075"]
+      },
+      {
+        "id": 605274,
+        "key": "_is_pre_order",
+        "value": "no"
+      },
+      {
+        "id": 605275,
+        "key": "_wc_facebook_sync_enabled",
+        "value": "yes"
+      },
+      {
+        "id": 605276,
+        "key": "fb_visibility",
+        "value": "yes"
+      },
+      {
+        "id": 605277,
+        "key": "fb_product_description",
+        "value": ""
+      },
+      {
+        "id": 605278,
+        "key": "_wc_facebook_product_image_source",
+        "value": "product"
+      },
+      {
+        "id": 605279,
+        "key": "fb_product_image",
+        "value": ""
+      },
+      {
+        "id": 605280,
+        "key": "fb_product_price",
+        "value": ""
+      }
+    ],
+    "name": "High Elf (weißer), A (Stehende)",
+    "parent_id": 31408,
+    "_links": {
+      "self": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations/31409"
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408/variations"
+        }
+      ],
+      "up": [
+        {
+          "href": "https://store.handsomecake.com/wp-json/wc/v3/products/31408"
         }
       ]
     }

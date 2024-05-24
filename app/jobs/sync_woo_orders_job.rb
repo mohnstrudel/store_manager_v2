@@ -5,7 +5,8 @@ class SyncWooOrdersJob < ApplicationJob
   include Sanitizable
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
-  ORDERS_SIZE = 2300
+  ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2300
+  VARIATION_TYPES = Variation.types.values.flatten
 
   def perform
     woo_orders = api_get_all(URL, ORDERS_SIZE)
@@ -22,7 +23,7 @@ class SyncWooOrdersJob < ApplicationJob
     product_sales = ProductSale.where(
       woo_id: parsed_products.pluck(:woo_id)
     )
-    variation_types = Variation.types.values
+    variations_job = SyncWooVariationsJob.new
 
     parsed_orders.each do |order|
       sale = Sale.find_or_initialize_by(woo_id: order[:sale][:woo_id])
@@ -49,9 +50,17 @@ class SyncWooOrdersJob < ApplicationJob
         next if product.blank?
 
         if order_product[:variation].present?
-          variation = create_variation(
-            product, variation_types, order_product[:variation]
-          )
+          variation = Variation.find_by(
+            woo_id: order_product[:variation][:woo_id]
+          ).presence ||
+            variations_job.create_variation(
+              product:,
+              variation_woo_id: order_product[:variation][:woo_id],
+              variation_types: {
+                type: order_product[:variation][:type],
+                value: order_product[:variation][:value]
+              }
+            )
         end
 
         ProductSale.find_or_create_by({
@@ -71,8 +80,6 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def parse(order)
-    variation_types = Variation.types.values.flatten
-
     shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
       el.each { |k, v| memo[k] = v unless v.empty? }
       memo
@@ -104,44 +111,35 @@ class SyncWooOrdersJob < ApplicationJob
         email: shipping[:email]
       },
       products: order[:line_items].map { |line_item|
-        variation_woo_id = if line_item[:variation_id].to_i.positive?
-          line_item[:variation_id]
-        end
-
-        variation = line_item[:meta_data]
-          .find { |meta| variation_types.include? meta[:display_key] }
-          &.slice(:display_key, :display_value)
-          &.transform_values { |v| smart_titleize(sanitize(v)) }
-
-        parsed_variation = variation.present? ?
-          {variation: variation.merge({woo_id: variation_woo_id})}.compact :
-          {}
-
         {
           product_woo_id: line_item[:product_id],
           qty: line_item[:quantity],
           price: line_item[:price].to_i + line_item[:total_tax].to_i,
-          order_woo_id: line_item[:id]
-        }.merge(parsed_variation)
+          order_woo_id: line_item[:id],
+          variation: parse_variation(line_item)
+        }.compact
       }
     }
   end
 
-  def create_variation(product, variation_types, parsed_variation)
-    variation_type = variation_types.find do |type|
-      type.include? parsed_variation[:display_key]
-    end.first
+  def parse_variation(line_item)
+    variation = line_item[:meta_data]
+      .find { |el| el[:display_key].in? VARIATION_TYPES }
 
-    size = Size.parse_size(parsed_variation[:display_value])
+    return if variation.nil?
 
-    variation_value = variation_type.constantize.find_or_create_by({
-      value: size.presence || parsed_variation[:display_value]
-    })
+    variation = variation.slice(:display_key, :display_value)
+      .transform_keys({
+        display_key: :type,
+        display_value: :value
+      })
 
-    Variation.find_or_create_by({
-      :woo_id => parsed_variation[:woo_id],
-      variation_type.downcase => variation_value,
-      :product => product
-    }.compact)
+    woo_id = if line_item[:variation_id].to_i.positive?
+      line_item[:variation_id]
+    end
+
+    variation
+      .transform_values { |v| smart_titleize(sanitize(v)) }
+      .merge({woo_id:})
   end
 end

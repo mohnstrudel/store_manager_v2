@@ -32,8 +32,8 @@
         "order_woo_id": 7449,
         "variation": {
           "woo_id": 1111,
-          "display_key": "Version",
-          "display_value": "Deluxe Version"
+          "type": "Version",
+          "value": "Deluxe Version"
         }
       }
     ]

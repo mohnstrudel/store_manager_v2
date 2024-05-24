@@ -65,3 +65,11 @@ h1.classic {
 .no-events > * {
   pointer-events: none;
 }
+
+.bold {
+  font-weight: 700;
+}
+
+.break-words {
+  word-break: break-all;
+}

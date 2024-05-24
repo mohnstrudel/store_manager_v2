@@ -18,6 +18,16 @@ class Size < ApplicationRecord
     num_size[0].tr("/", ":") if num_size.present?
   end
 
+  def self.sanitize_size(product_title)
+    num_size = product_title.match(numeric_size_match)
+    converted_title = num_size[0].tr("/", ":") if num_size.present?
+    if converted_title
+      product_title.sub(num_size[0], converted_title)
+    else
+      product_title
+    end
+  end
+
   def self.numeric_size_match
     /1[\/:]([3456]|3\.5|1|7)/
   end

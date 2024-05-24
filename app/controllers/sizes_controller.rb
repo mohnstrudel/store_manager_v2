@@ -3,7 +3,7 @@ class SizesController < ApplicationController
 
   # GET /sizes or /sizes.json
   def index
-    @sizes = Size.all
+    @sizes = Size.order(:value)
   end
 
   # GET /sizes/1 or /sizes/1.json

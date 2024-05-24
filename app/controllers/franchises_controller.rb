@@ -3,7 +3,7 @@ class FranchisesController < ApplicationController
 
   # GET /franchises or /franchises.json
   def index
-    @franchises = Franchise.all
+    @franchises = Franchise.order(:title)
   end
 
   # GET /franchises/1 or /franchises/1.json

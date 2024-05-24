@@ -162,10 +162,7 @@ class SyncPurchasesJob < ApplicationJob
       Color.find_by(value: parsed_version)
     end
 
-    variation_size = Size.parse_size(parsed_version)
-    if variation_size
-      size = Size.find_or_create_by(value: variation_size)
-    end
+    size = Size.find_by(value: Size.sanitize_size(parsed_version))
 
     version = Version.find_by("LOWER(value) LIKE ?", parsed_version.downcase)
 

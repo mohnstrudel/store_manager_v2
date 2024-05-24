@@ -23,7 +23,7 @@ class ProductSale < ApplicationRecord
 
   def title
     variation_id.present? ?
-      "#{product.full_title} | #{variation.title}" :
+      "#{product.full_title} → #{variation.title}" :
       product.full_title
   end
 end

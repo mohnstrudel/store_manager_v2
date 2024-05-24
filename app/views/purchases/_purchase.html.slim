@@ -1,15 +1,15 @@
 tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-url-param=purchase_path(purchase)
   td.text-center
     = render "_shared/preloadable_img", src: product_thumb_url(purchase.product), class_names: "zoomable", width: 100
-  td = purchase.id
   td
     = purchase.product.full_title
     - if purchase.variation.present?
       ul.product-variations
         li
-          = purchase.variation.which.model_name
+          = purchase.variation.types
           | : 
-          = purchase.variation.which.value
+          = purchase.variation.title
+  td.break-words = purchase.supplier.title
   td.right = purchase.amount
   td.right.mono = format_money purchase.item_price
   td.right.mono = format_money purchase.total_cost
@@ -18,7 +18,6 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
     | -
     - if purchase.debt > 0
       = format_money purchase.debt
-  td = purchase.supplier.title
 
   - if action_name != "show"
     td.actions

@@ -4,8 +4,12 @@ RSpec.describe SyncWooOrdersJob do
   let(:job) {
     described_class.new
   }
-  let(:woo_orders) { JSON.parse(file_fixture("api_orders.json").read, symbolize_names: true) }
-  let(:parsed_woo_orders) { JSON.parse(file_fixture("parsed_orders.json").read, symbolize_names: true) }
+  let(:woo_orders) {
+    JSON.parse(file_fixture("api_orders.json").read, symbolize_names: true)
+  }
+  let(:parsed_woo_orders) {
+    JSON.parse(file_fixture("parsed_orders.json").read, symbolize_names: true)
+  }
 
   describe "#parse_all" do
     context "when we receive an array of orders from Woo API" do
