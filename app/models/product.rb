@@ -64,6 +64,9 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :variations, dependent: :destroy
 
+  has_many :warehouse_products, dependent: :destroy
+  has_many :warehouses, through: :warehouse_products
+
   has_many_attached :images do |attachable|
     attachable.variant :preview,
       format: :webp,

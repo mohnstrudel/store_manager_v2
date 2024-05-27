@@ -3,12 +3,14 @@ nav
     li
       = link_to "Back", "javascript:history.back()"
       - if model.respond_to?(:woo_id)
-        h1 Editing #{model.model_name.singular}, Woo ID: #{model.woo_id}
-      - else 
-        h1 Editing #{model.model_name.singular}, ID: #{model.id}
+        h1 Editing #{model.model_name.singular}
+        h4 Woo ID: #{model.woo_id}
+      - else
+        h1 Editing #{model.model_name.singular}
+        h4 ID: #{model.id}
 
   ul
-    li   
+    li
       = link_to model
         i.icn 📄
         | Show

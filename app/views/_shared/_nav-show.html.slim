@@ -5,7 +5,8 @@ nav
       - if defined?(custom_heading)
         = yield
       - else
-        h1 #{model.model_name.name} #{model.respond_to?(:title) ? model.title : model.value}
+        h1 #{format_show_page_title(model)}
+        h4 #{model.model_name.name}
   ul.gap
     li
       a.btn.l.is-primary.translate-y-1 href="#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"

@@ -1,0 +1,22 @@
+= render "_shared/notice"
+
+= render "_shared/nav-show", model: @warehouse
+
+main.wide.no-bd
+  .cards
+    .card.grow
+      .title Name
+      p = @warehouse.name
+      .title External Name for Clients
+      p = @warehouse.external_name
+      .title Courier Tracking URL
+      p = @warehouse.courier_tracking_url
+    .card
+      .title CBM
+      p = @warehouse.cbm
+      .title Container Tracking Number
+      p = @warehouse.container_tracking_number
+      .title Created At
+      p = format_time @warehouse.created_at
+
+= button_to "Destroy this warehouse", warehouse_path(@warehouse), method: :delete, class: "btn-danger"

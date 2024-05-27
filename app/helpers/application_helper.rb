@@ -34,4 +34,10 @@ module ApplicationHelper
       "<span class='sale-status--inactive'>#{status_title}</span>".html_safe
     end
   end
+
+  def format_show_page_title(record)
+    return record.title if record.respond_to?(:title)
+    return record.name if record.respond_to?(:name)
+    record.value if record.respond_to?(:value)
+  end
 end

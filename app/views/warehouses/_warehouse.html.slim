@@ -1,0 +1,13 @@
+tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param=warehouse_path(warehouse)
+  td
+    strong = warehouse.name
+    br
+    = warehouse.external_name
+  td.mono = warehouse.container_tracking_number
+  td = warehouse.courier_tracking_url
+  td.mono = warehouse.cbm
+  - if action_name != "show" 
+    td.actions
+      = link_to edit_warehouse_path(warehouse), {class: "no-events"}
+        i.icn ✏️
+        | Edit

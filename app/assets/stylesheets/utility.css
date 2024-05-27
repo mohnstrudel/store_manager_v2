@@ -74,6 +74,8 @@ h1.classic {
   word-break: break-all;
 }
 
+.fw-400 {
+  font-weight: 400;
 .my-16 {
   margin-top: 16px;
   margin-bottom: 16px;

@@ -1,0 +1,19 @@
+= form_with(model: warehouse) do |form|
+  = render "_shared/notice-err", model: warehouse
+
+  = form.label :name
+  = form.text_field :name
+
+  = form.label :external_name
+  = form.text_field :external_name
+
+  = form.label :container_tracking_number
+  = form.text_field :container_tracking_number
+
+  = form.label :courier_tracking_url
+  = form.text_field :courier_tracking_url
+
+  = form.label :cbm
+  = form.text_field :cbm
+
+  = form.submit
