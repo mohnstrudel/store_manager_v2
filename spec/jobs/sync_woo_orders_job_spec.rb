@@ -22,6 +22,7 @@ RSpec.describe SyncWooOrdersJob do
 
   describe "#create_sales" do
     let(:denpasar) { "Denpasar" }
+    let(:weird_link) { "hey ho, let's go" }
 
     context "when we parsed orders from Woo API" do
       before do
@@ -29,6 +30,11 @@ RSpec.describe SyncWooOrdersJob do
           :sale,
           woo_id: parsed_woo_orders.first[:sale][:woo_id],
           city: denpasar
+        )
+        create(
+          :variation,
+          woo_id: parsed_woo_orders.first[:products].first[:variation][:woo_id],
+          store_link: weird_link
         )
         parsed_woo_orders.pluck(:products).flatten.each do |p|
           create(:product, woo_id: p[:product_woo_id])
@@ -49,6 +55,11 @@ RSpec.describe SyncWooOrdersJob do
       it "reuses existing sales" do
         existing_sale = Sale.find_by(woo_id: parsed_woo_orders.first[:sale][:woo_id])
         expect(existing_sale.city).not_to eq(denpasar)
+      end
+
+      it "reuses existing variations" do
+        existing_variation = Variation.find_by(woo_id: parsed_woo_orders.first[:products].first[:variation][:woo_id])
+        expect(existing_variation.store_link).to eq(weird_link)
       end
     end
   end

@@ -3,6 +3,24 @@ nav
     li
       h1.classic Dashboard 
 
+= render "_shared/notice"
+
+- if @config.sales_hook_disabled?
+  article.notice.is-error
+    header
+      i.icn 🪝
+      | Webhook for sales is deactivated.
+      i.icn 🪝
+    ol
+      li Go to <a href="https://store.handsomecake.com/wp-admin/admin.php?page=wc-settings&tab=advanced&section=webhooks&edit-webhook=3" target="_blank" class="underline">the Woo settings page</a> and change the webhook status to "Active".
+      li
+        | Press the button below:
+        br
+        br
+        = link_to "pull-last-orders", class: "btn xl is-danger my-16"
+          i.icn ⚡️
+          | Get missing sales from Woo
+
 main.wide.no-bd.flex.justify-between.flex-col.gap
   .table-card
     h3.flex.justify-between

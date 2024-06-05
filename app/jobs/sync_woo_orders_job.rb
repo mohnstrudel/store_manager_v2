@@ -8,8 +8,8 @@ class SyncWooOrdersJob < ApplicationJob
   ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2300
   VARIATION_TYPES = Variation.types.values.flatten
 
-  def perform
-    woo_orders = api_get_all(URL, ORDERS_SIZE)
+  def perform(page = nil)
+    woo_orders = api_get_all(URL, ORDERS_SIZE, nil, page)
     parsed_orders = parse_all(woo_orders)
     create_sales(parsed_orders)
     nil
@@ -19,9 +19,6 @@ class SyncWooOrdersJob < ApplicationJob
     parsed_products = parsed_orders.pluck(:products).flatten
     products = Product.where(
       woo_id: parsed_products.pluck(:product_woo_id)
-    )
-    product_sales = ProductSale.where(
-      woo_id: parsed_products.pluck(:woo_id)
     )
     variations_job = SyncWooVariationsJob.new
 
@@ -33,10 +30,6 @@ class SyncWooOrdersJob < ApplicationJob
       sale.save
 
       order[:products].each do |order_product|
-        next if product_sales.find { |ps|
-                  ps.woo_id == order_product[:order_woo_id].to_s
-                }
-
         product = products.find { |p|
           p.woo_id == order_product[:product_woo_id].to_s
         }

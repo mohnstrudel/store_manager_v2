@@ -1,3 +1,7 @@
+button {
+  margin: 0;
+}
+
 .btn-danger {
   margin-top: var(--spacing-xl);
   border-color: var(--form-element-invalid-active-border-color);
@@ -47,15 +51,46 @@ button.is-inverted:hover {
 }
 
 .btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
   border: 1px solid var(--primary-unmuted);
   border-radius: var(--border-radius);
-  background-color: var(--primary-muted);
-  padding: 0.5em 1em;
+
+  padding: 0.75em;
+  width: auto;
   font-size: calc(var(--font-size) / 1.25);
+  text-decoration: none;
   white-space: nowrap;
 }
 
-.btn:hover {
+.btn.is-primary {
+  border-radius: var(--border-radius);
+  background-color: var(--primary-muted);
+}
+
+.btn.is-primary:hover {
   border-color: var(--primary-focus);
   background-color: var(--primary-focus);
+}
+
+.btn .icn {
+  font-size: inherit !important;
+}
+
+.btn.is-danger {
+  border-color: rgba(255, 0, 0, 0.1);
+  background-color: rgba(255, 0, 0, 0.05);
+  color: var(--form-element-invalid-active-border-color);
+}
+
+.btn.is-danger:hover {
+  border-color: rgba(255, 0, 0, 0.12);
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.btn.xl {
+  padding: 0.75em;
+  font-size: calc(var(--font-size) * 1);
 }

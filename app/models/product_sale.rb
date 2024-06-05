@@ -13,6 +13,8 @@
 #  woo_id       :string
 #
 class ProductSale < ApplicationRecord
+  validates_db_uniqueness_of :woo_id
+
   db_belongs_to :product
   db_belongs_to :sale
   belongs_to :variation, optional: true

@@ -73,3 +73,16 @@ h1.classic {
 .break-words {
   word-break: break-all;
 }
+
+.my-16 {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+br.xl {
+  margin: 2em 0;
+}
