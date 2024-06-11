@@ -39,6 +39,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: 3.3.2
           bundler-cache: true
 
       - name: Install libvips
@@ -49,6 +50,8 @@ jobs:
         uses: browser-actions/setup-chrome@v1
 
       - name: Setup test DB
-        run: bundle exec rails db:setup
+        run: |
+          bundle exec rails db:setup
+          bundle exec rails db:test:prepare
 
       - run: bundle exec rspec
