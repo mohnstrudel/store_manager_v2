@@ -6,7 +6,6 @@ class SalesController < ApplicationController
     @sales = Sale
       .includes(:customer, product_sales: [:product, variation: [:version, :color, :size]])
       .where.not(status: "cancelled")
-      .order("woo_id::integer DESC")
       .page(params[:page])
     @sales = @sales.search(params[:q]) if params[:q].present?
   end

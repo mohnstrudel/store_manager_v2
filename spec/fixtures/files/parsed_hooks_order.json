@@ -24,15 +24,13 @@
     "email": "dev@handsomecake.com"
   },
   "products": [
-    { "product_woo_id": 137, "qty": 1, "price": 67, "order_woo_id": 5768 },
-    { "product_woo_id": 1350, "qty": 1, "price": 924, "order_woo_id": 5769 },
     {
       "product_woo_id": 11,
       "qty": 1,
       "price": 235,
       "order_woo_id": 7449,
-      "variation_woo_id": 1111,
       "variation": {
+        "woo_id": 1111,
         "display_key": "Version",
         "display_value": "Deluxe Version"
       }
