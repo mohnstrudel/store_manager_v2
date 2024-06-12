@@ -86,3 +86,7 @@ h1.classic {
 br.xl {
   margin: 2em 0;
 }
+
+.translate-y-1 {
+  transform: translateY(0.25em);
+}

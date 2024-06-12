@@ -8,11 +8,11 @@ nav
         h1 #{model.model_name.name} #{model.respond_to?(:title) ? model.title : model.value}
   ul.gap
     li
-      a.btn.is-primary href="#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
+      a.btn.l.is-primary.translate-y-1 href="#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
         i.icn ✏️
         | Edit
     - if defined?(is_purchasable)
       li
-        a.btn.is-primary href="#{url_for new_purchase_path(product: model)}" 
+        a.btn.l.is-primary.translate-y-1 href="#{url_for new_purchase_path(product: model)}" 
           i.icn 💰
           | Purchase
