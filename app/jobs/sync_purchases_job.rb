@@ -158,8 +158,6 @@ class SyncPurchasesJob < ApplicationJob
 
     parsed_size = Size.parse_size(product_name)
 
-    warn "woo_product_id: #{woo_product_id}" unless product
-
     if parsed_size
       product.sizes << Size.find_or_create_by(value: parsed_size)
     end
