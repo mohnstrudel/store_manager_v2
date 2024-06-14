@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_08_121847) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_14_121500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,6 +50,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_08_121847) do
 
   create_table "colors", force: :cascade do |t|
     t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "configs", force: :cascade do |t|
+    t.integer "sales_hook_status", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -120,6 +126,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_08_121847) do
     t.index ["product_id"], name: "index_product_sales_on_product_id"
     t.index ["sale_id"], name: "index_product_sales_on_sale_id"
     t.index ["variation_id"], name: "index_product_sales_on_variation_id"
+    t.index ["woo_id"], name: "index_product_sales_on_woo_id", unique: true
   end
 
   create_table "product_sizes", force: :cascade do |t|
@@ -239,14 +246,42 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_08_121847) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "store_link"
+    t.string "sku"
     t.index ["color_id"], name: "index_variations_on_color_id"
     t.index ["product_id"], name: "index_variations_on_product_id"
     t.index ["size_id"], name: "index_variations_on_size_id"
+    t.index ["sku"], name: "index_variations_on_sku", unique: true
     t.index ["version_id"], name: "index_variations_on_version_id"
   end
 
   create_table "versions", force: :cascade do |t|
     t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "warehouse_products", force: :cascade do |t|
+    t.bigint "warehouse_id", null: false
+    t.bigint "product_id", null: false
+    t.integer "weight"
+    t.integer "length"
+    t.integer "width"
+    t.integer "height"
+    t.decimal "price", precision: 8, scale: 2
+    t.decimal "shipping_price", precision: 8, scale: 2
+    t.string "tracking_number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_warehouse_products_on_product_id"
+    t.index ["warehouse_id"], name: "index_warehouse_products_on_warehouse_id"
+  end
+
+  create_table "warehouses", force: :cascade do |t|
+    t.string "name"
+    t.string "external_name"
+    t.string "container_tracking_number"
+    t.string "courier_tracking_url"
+    t.string "cbm"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -277,4 +312,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_08_121847) do
   add_foreign_key "variations", "products"
   add_foreign_key "variations", "sizes"
   add_foreign_key "variations", "versions"
+  add_foreign_key "warehouse_products", "products"
+  add_foreign_key "warehouse_products", "warehouses"
 end

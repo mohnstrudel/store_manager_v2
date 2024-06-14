@@ -83,7 +83,7 @@ class ProductsController < ApplicationController
   def variations
     @target = params[:target]
     @variations = @product.variations.select do |i|
-      OpenStruct.new(id: i.id, title: i.title) if i.title.present?
+      Hash.new(id: i.id, title: i.title) if i.title.present?
     end
 
     respond_to do |format|

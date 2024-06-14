@@ -65,6 +65,8 @@ class SyncWooProductsJob < ApplicationJob
     end
 
     product.save
+
+    product
   end
 
   def parse_product_name(woo_product_name)
@@ -105,17 +107,18 @@ class SyncWooProductsJob < ApplicationJob
     if woo_product[:attributes].present?
       attributes = woo_product[:attributes].map do |attr|
         attrs = {}
-        options = attr[:options].map { |i| smart_titleize(sanitize(i)) }
+        options = attr[:options].presence || [attr[:option]]
+        values = options.map { |i| smart_titleize(sanitize(i)) }
 
         case attr[:name]
         when *Variation.types[:version]
-          attrs[:versions] = options
+          attrs[:versions] = values
         when *Variation.types[:size]
-          attrs[:sizes] = options
+          attrs[:sizes] = values
         when *Variation.types[:color]
-          attrs[:colors] = options
+          attrs[:colors] = values
         when *Variation.types[:brand]
-          attrs[:brands] = options
+          attrs[:brands] = values
         end
 
         attrs

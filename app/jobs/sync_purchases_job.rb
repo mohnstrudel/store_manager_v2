@@ -3,6 +3,8 @@ class SyncPurchasesJob < ApplicationJob
 
   include Sanitizable
 
+  PRODUCTS_JOB = SyncWooProductsJob.new
+
   def perform(*)
     sync_purchases_from_file(*)
   end
@@ -28,39 +30,22 @@ class SyncPurchasesJob < ApplicationJob
       )
       next if has_erros
 
-      synced = Base64.encode64(parsed_purchase.to_s).last(64)
-      next if Purchase.find_by(synced:).present?
+      product = find_or_create_product(
+        parsed_purchase[:wooid],
+        parsed_purchase[:product]
+      )
+      variation = find_or_create_variation(
+        product,
+        parsed_purchase[:wooid],
+        parsed_purchase[:variationid],
+        parsed_purchase[:version]
+      )
 
-      product_name = sanitize_product_name(parsed_purchase[:product])
-      brand_title = Brand.parse_brand(product_name)
-
-      product = if brand_title
-        product_name = product_name.sub(/#{brand_title}/i, "").strip
-        brand = Brand.find_by("LOWER(title) LIKE ?", brand_title.downcase) ||
-          Brand.create(title: brand_title)
-        brand.products.find_or_create_by(scaffold_product(product_name))
-      else
-        Product.find_or_create_by(scaffold_product(product_name))
-      end
-
-      parsed_size = Size.parse_size(product_name)
-
-      if parsed_size
-        product.sizes << Size.find_or_create_by(value: parsed_size)
-      end
-
-      if parsed_purchase[:version].present?
-        color, size, version = parse_versions(parsed_purchase[:version])
-
-        variation = if {color:, size:, version:}.compact_blank.blank?
-          Variation.find_or_create_by({
-            product:,
-            version: Version.create(value: parsed_purchase[:version])
-          })
+      if parsed_purchase[:sku]
+        if variation
+          variation.update(sku: parsed_purchase[:sku])
         else
-          Variation.find_or_create_by(
-            {product:}.merge({color:, size:, version:}.compact_blank)
-          )
+          product.update(sku: parsed_purchase[:sku])
         end
       end
 
@@ -152,6 +137,36 @@ class SyncPurchasesJob < ApplicationJob
     }
   end
 
+  def find_or_create_product(woo_product_id, parsed_product)
+    product_name = sanitize_product_name(parsed_product)
+
+    product = if woo_product_id && woo_product_id != "NEW"
+      Product.find_by(woo_id: woo_product_id).presence ||
+        PRODUCTS_JOB.get_product(woo_product_id)
+    else
+      brand_title = Brand.parse_brand(product_name)
+
+      if brand_title
+        product_name = product_name.sub(/#{brand_title}/i, "").strip
+        brand = Brand.find_by("LOWER(title) LIKE ?", brand_title.downcase) ||
+          Brand.create(title: brand_title)
+        brand.products.find_or_create_by(scaffold_product(product_name))
+      else
+        Product.find_or_create_by(scaffold_product(product_name))
+      end
+    end
+
+    parsed_size = Size.parse_size(product_name)
+
+    warn "woo_product_id: #{woo_product_id}" unless product
+
+    if parsed_size
+      product.sizes << Size.find_or_create_by(value: parsed_size)
+    end
+
+    product
+  end
+
   def parse_versions(parsed_version)
     parsed_version = smart_titleize(sanitize(parsed_version))
     unknown_colors = ["Pink", "White", "Weiß", "Schwarz"]
@@ -167,5 +182,33 @@ class SyncPurchasesJob < ApplicationJob
     version = Version.find_by("LOWER(value) LIKE ?", parsed_version.downcase)
 
     [color, size, version]
+  end
+
+  def find_or_create_variation(
+    product,
+    woo_product_id,
+    woo_variation_id,
+    parsed_version
+  )
+    if woo_variation_id
+      Variation.find_by(woo_id: woo_variation_id).presence ||
+        (SyncWooVariationsJob.perform_now([woo_product_id]) &&
+          Variation.find_by(woo_id: woo_variation_id))
+    else
+      return if parsed_version.blank?
+
+      color, size, version = parse_versions(parsed_version)
+
+      if {color:, size:, version:}.compact_blank.blank?
+        Variation.find_or_create_by({
+          product:,
+          version: Version.create(value: parsed_version)
+        })
+      else
+        Variation.find_or_create_by(
+          {product:}.merge({color:, size:, version:}.compact_blank)
+        )
+      end
+    end
   end
 end
