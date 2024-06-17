@@ -137,10 +137,12 @@ class SyncPurchasesJob < ApplicationJob
     }
   end
 
-  def find_or_create_product(woo_product_id, parsed_product)
+  def find_or_create_product(parsed_woo_product_id, parsed_product)
     product_name = sanitize_product_name(parsed_product)
+    woo_product_id = parsed_woo_product_id.to_i
+    woo_product_id = nil if woo_product_id.to_s != parsed_woo_product_id
 
-    product = if woo_product_id && woo_product_id != "NEW"
+    product = if woo_product_id
       Product.find_by(woo_id: woo_product_id).presence ||
         PRODUCTS_JOB.get_product(woo_product_id)
     else
