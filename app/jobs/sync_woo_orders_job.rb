@@ -63,14 +63,19 @@ class SyncWooOrdersJob < ApplicationJob
             )
         end
 
-        ProductSale.find_or_create_by({
-          woo_id: order_product[:order_woo_id],
+        product_sale = ProductSale.find_or_initialize_by({
+          woo_id: order_product[:order_woo_id]
+        })
+
+        product_sale.assign_attributes({
           qty: order_product[:qty],
           price: order_product[:price],
           sale:,
           product:,
           variation:
-        })
+        }.compact)
+
+        product_sale.save
       end
     end
   end

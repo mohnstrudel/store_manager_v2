@@ -3,6 +3,8 @@ class SyncPurchasesJob < ApplicationJob
 
   include Sanitizable
 
+  PRODUCTS_JOB = SyncWooProductsJob.new
+
   def perform(*)
     sync_purchases_from_file(*)
   end
@@ -28,39 +30,23 @@ class SyncPurchasesJob < ApplicationJob
       )
       next if has_erros
 
-      synced = Base64.encode64(parsed_purchase.to_s).last(64)
-      next if Purchase.find_by(synced:).present?
+      product = find_or_create_product(
+        parsed_purchase[:wooid],
+        parsed_purchase[:product]
+      )
 
-      product_name = sanitize_product_name(parsed_purchase[:product])
-      brand_title = Brand.parse_brand(product_name)
+      variation = find_or_create_variation(
+        product,
+        parsed_purchase[:wooid],
+        parsed_purchase[:variationid],
+        parsed_purchase[:version]
+      )
 
-      product = if brand_title
-        product_name = product_name.sub(/#{brand_title}/i, "").strip
-        brand = Brand.find_by("LOWER(title) LIKE ?", brand_title.downcase) ||
-          Brand.create(title: brand_title)
-        brand.products.find_or_create_by(scaffold_product(product_name))
-      else
-        Product.find_or_create_by(scaffold_product(product_name))
-      end
-
-      parsed_size = Size.parse_size(product_name)
-
-      if parsed_size
-        product.sizes << Size.find_or_create_by(value: parsed_size)
-      end
-
-      if parsed_purchase[:version].present?
-        color, size, version = parse_versions(parsed_purchase[:version])
-
-        variation = if {color:, size:, version:}.compact_blank.blank?
-          Variation.find_or_create_by({
-            product:,
-            version: Version.create(value: parsed_purchase[:version])
-          })
+      if parsed_purchase[:sku]
+        if variation
+          variation.update(sku: parsed_purchase[:sku])
         else
-          Variation.find_or_create_by(
-            {product:}.merge({color:, size:, version:}.compact_blank)
-          )
+          product.update(sku: parsed_purchase[:sku])
         end
       end
 
@@ -70,34 +56,20 @@ class SyncPurchasesJob < ApplicationJob
         Time.zone.today
       end
 
-      purchase = Purchase.new({
+      purchase = Purchase.find_or_initialize_by({
+        order_reference: parsed_purchase[:orderreference]
+      })
+
+      purchase.assign_attributes({
         amount: parsed_purchase[:amount],
-        order_reference: parsed_purchase[:orderreference],
-        item_price: parsed_purchase[:itemprice],
+        item_price: BigDecimal(parsed_purchase[:itemprice].to_s),
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
         purchase_date:,
         product:,
         variation:
       })
 
-      payments = parsed_purchase.select { |key, _|
-        key.to_s.include?("paymentvalue")
-      }
-
-      payments.each do |key, value|
-        date = parsed_purchase[:"paymentdate#{key[-1]}"]
-
-        payment_date = if date.present?
-          Date.parse(date)
-        else
-          Time.zone.today
-        end
-
-        purchase.payments.build({
-          value: value * parsed_purchase[:amount],
-          payment_date:
-        })
-      end
+      find_or_create_payments(purchase, parsed_purchase)
 
       purchase.save!
     end
@@ -152,6 +124,36 @@ class SyncPurchasesJob < ApplicationJob
     }
   end
 
+  def find_or_create_product(parsed_woo_product_id, parsed_product)
+    product_name = sanitize_product_name(parsed_product)
+    woo_product_id = parsed_woo_product_id.to_i
+    woo_product_id = nil if woo_product_id.to_s != parsed_woo_product_id.to_s
+
+    product = if woo_product_id
+      Product.find_by(woo_id: woo_product_id).presence ||
+        PRODUCTS_JOB.get_product(woo_product_id)
+    else
+      brand_title = Brand.parse_brand(product_name)
+
+      if brand_title
+        product_name = product_name.sub(/#{brand_title}/i, "").strip
+        brand = Brand.find_by("LOWER(title) LIKE ?", brand_title.downcase) ||
+          Brand.create(title: brand_title)
+        brand.products.find_or_create_by(scaffold_product(product_name))
+      else
+        Product.find_or_create_by(scaffold_product(product_name))
+      end
+    end
+
+    parsed_size = Size.parse_size(product_name)
+
+    if parsed_size
+      product.sizes.find_or_create_by(value: parsed_size)
+    end
+
+    product
+  end
+
   def parse_versions(parsed_version)
     parsed_version = smart_titleize(sanitize(parsed_version))
     unknown_colors = ["Pink", "White", "Weiß", "Schwarz"]
@@ -167,5 +169,58 @@ class SyncPurchasesJob < ApplicationJob
     version = Version.find_by("LOWER(value) LIKE ?", parsed_version.downcase)
 
     [color, size, version]
+  end
+
+  def find_or_create_variation(
+    product,
+    woo_product_id,
+    woo_variation_id,
+    parsed_version
+  )
+    if woo_variation_id
+      Variation.find_by(woo_id: woo_variation_id).presence ||
+        (SyncWooVariationsJob.perform_now([woo_product_id]) &&
+          Variation.find_by(woo_id: woo_variation_id))
+    else
+      return if parsed_version.blank?
+
+      color, size, version = parse_versions(parsed_version)
+
+      if {color:, size:, version:}.compact_blank.blank?
+        Variation.find_or_create_by({
+          product:,
+          version: Version.create(value: parsed_version)
+        })
+      else
+        Variation.find_or_create_by(
+          {product:}.merge({color:, size:, version:}.compact_blank)
+        )
+      end
+    end
+  end
+
+  def find_or_create_payments(purchase, parsed_purchase)
+    payments = parsed_purchase.select { |key, _|
+      key.to_s.include?("paymentvalue")
+    }
+
+    payments.each do |key, value|
+      date = parsed_purchase[:"paymentdate#{key[-1]}"]
+
+      payment_date = if date.present?
+        Date.parse(date)
+      else
+        Time.zone.today
+      end
+
+      payment = purchase.payments.find_by(payment_date:)
+
+      unless payment
+        purchase.payments.build({
+          value: value * parsed_purchase[:amount],
+          payment_date:
+        })
+      end
+    end
   end
 end

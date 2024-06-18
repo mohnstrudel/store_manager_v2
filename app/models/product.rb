@@ -109,4 +109,9 @@ class Product < ApplicationRecord
   def get_slug
     sku.presence || full_title
   end
+
+  def woo_id_full_title
+    woo_id = self.woo_id.presence || "N/A"
+    "#{woo_id} | #{full_title}"
+  end
 end

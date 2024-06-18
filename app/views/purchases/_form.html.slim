@@ -7,7 +7,7 @@
   .stimulus data-controller="purchase-variation"
     = form.label :product
     .stimulus#purchase-product-select
-      = form.collection_select :product_id, Product.all, :id, :full_title, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-variation#change" }
+      = form.collection_select :product_id, Product.all, :id, :woo_id_full_title, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-variation#change" }
 
     .stimulus#purchase-variation-select data-purchase-variation-target="select"
       - if purchase.product&.variations.present?
