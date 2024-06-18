@@ -34,6 +34,7 @@ class SyncPurchasesJob < ApplicationJob
         parsed_purchase[:wooid],
         parsed_purchase[:product]
       )
+
       variation = find_or_create_variation(
         product,
         parsed_purchase[:wooid],
@@ -55,34 +56,20 @@ class SyncPurchasesJob < ApplicationJob
         Time.zone.today
       end
 
-      purchase = Purchase.new({
+      purchase = Purchase.find_or_initialize_by({
+        order_reference: parsed_purchase[:orderreference]
+      })
+
+      purchase.assign_attributes({
         amount: parsed_purchase[:amount],
-        order_reference: parsed_purchase[:orderreference],
-        item_price: parsed_purchase[:itemprice],
+        item_price: BigDecimal(parsed_purchase[:itemprice].to_s),
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
         purchase_date:,
         product:,
         variation:
       })
 
-      payments = parsed_purchase.select { |key, _|
-        key.to_s.include?("paymentvalue")
-      }
-
-      payments.each do |key, value|
-        date = parsed_purchase[:"paymentdate#{key[-1]}"]
-
-        payment_date = if date.present?
-          Date.parse(date)
-        else
-          Time.zone.today
-        end
-
-        purchase.payments.build({
-          value: value * parsed_purchase[:amount],
-          payment_date:
-        })
-      end
+      find_or_create_payments(purchase, parsed_purchase)
 
       purchase.save!
     end
@@ -140,7 +127,7 @@ class SyncPurchasesJob < ApplicationJob
   def find_or_create_product(parsed_woo_product_id, parsed_product)
     product_name = sanitize_product_name(parsed_product)
     woo_product_id = parsed_woo_product_id.to_i
-    woo_product_id = nil if woo_product_id.to_s != parsed_woo_product_id
+    woo_product_id = nil if woo_product_id.to_s != parsed_woo_product_id.to_s
 
     product = if woo_product_id
       Product.find_by(woo_id: woo_product_id).presence ||
@@ -161,7 +148,7 @@ class SyncPurchasesJob < ApplicationJob
     parsed_size = Size.parse_size(product_name)
 
     if parsed_size
-      product.sizes << Size.find_or_create_by(value: parsed_size)
+      product.sizes.find_or_create_by(value: parsed_size)
     end
 
     product
@@ -208,6 +195,31 @@ class SyncPurchasesJob < ApplicationJob
         Variation.find_or_create_by(
           {product:}.merge({color:, size:, version:}.compact_blank)
         )
+      end
+    end
+  end
+
+  def find_or_create_payments(purchase, parsed_purchase)
+    payments = parsed_purchase.select { |key, _|
+      key.to_s.include?("paymentvalue")
+    }
+
+    payments.each do |key, value|
+      date = parsed_purchase[:"paymentdate#{key[-1]}"]
+
+      payment_date = if date.present?
+        Date.parse(date)
+      else
+        Time.zone.today
+      end
+
+      payment = purchase.payments.find_by(payment_date:)
+
+      unless payment
+        purchase.payments.build({
+          value: value * parsed_purchase[:amount],
+          payment_date:
+        })
       end
     end
   end

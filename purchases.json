@@ -5355,7 +5355,7 @@
     "purchasedate": "24.05.2024"
   },
   {
-    "wooid": 17349,
+    "wooid": 17335,
     "sku": "gentleman18-studio-david-martinez",
     "amount": 1,
     "supplier": "YesGK",
@@ -5578,7 +5578,8 @@
     "purchasedate": "05.06.2024"
   },
   {
-    "wooid": 29351,
+    "wooid": 29350,
+    "variationid": 29351,
     "sku": "mayflies-studio-shadowheart-ex",
     "amount": 3,
     "version": "Exclusive",
