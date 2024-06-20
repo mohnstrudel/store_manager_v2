@@ -34,6 +34,17 @@
         "display_key": "Version",
         "display_value": "Deluxe Version"
       }
+    },
+    {
+      "product_woo_id": 11,
+      "qty": 6,
+      "price": 228,
+      "order_woo_id": 666999,
+      "variation": {
+        "woo_id": 1234,
+        "display_key": "Version",
+        "display_value": "Deluxe Version"
+      }
     }
   ]
 }

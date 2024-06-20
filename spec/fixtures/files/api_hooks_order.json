@@ -77,6 +77,22 @@
         }
       ],
       "price": 235.294118
+    },
+    {
+      "id": 666999,
+      "product_id": 11,
+      "variation_id": 1234,
+      "quantity": 6,
+      "meta_data": [
+        {
+          "id": 62209,
+          "key": "pa_statue-version",
+          "value": "deluxe-version-2",
+          "display_key": "Version",
+          "display_value": "Deluxe Version"
+        }
+      ],
+      "price": 228.294118
     }
   ],
   "tax_lines": [],
