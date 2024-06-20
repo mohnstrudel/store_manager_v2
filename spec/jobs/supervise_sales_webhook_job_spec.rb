@@ -9,19 +9,28 @@ RSpec.describe SuperviseSalesWebhookJob do
   }
 
   it "does nothing if the webhook is disabled" do
-    allow(Config).to receive(:sales_hook_disabled?).and_return(true)
-    expect(job.perform).to be_nil
+    Config.disable_sales_hook
+
+    job.perform
+
+    expect(Config.sales_hook_disabled?).to be true
   end
 
   it "does nothing if the webhook is enabled and sales are in sync" do
-    allow(Config).to receive(:sales_hook_disabled?).and_return(false)
+    Config.enable_sales_hook
+
     allow(job).to receive(:api_get_latest).and_return({id: sale.woo_id})
-    expect(job.perform).to be_nil
+    job.perform
+
+    expect(Config.sales_hook_disabled?).to be false
   end
 
-  it "disables the webhook is sales are not in sync" do
-    allow(Config).to receive(:sales_hook_disabled?).and_return(false)
+  it "change the webhook status to disabled if sales and orders are not in sync" do
+    Config.enable_sales_hook
+
     allow(job).to receive(:api_get_latest).and_return({id: 666})
-    expect(job.perform).to be true
+    job.perform
+
+    expect(Config.sales_hook_disabled?).to be true
   end
 end

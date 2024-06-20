@@ -6,7 +6,7 @@ nav
 = render "_shared/notice"
 
 - if @config.sales_hook_disabled?
-  article.notice.is-error
+  article#webhook-error.notice.is-error
     header
       i.icn 🪝
       | Webhook for sales is deactivated.
