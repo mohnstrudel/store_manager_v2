@@ -145,7 +145,7 @@ class SyncWooProductsJob < ApplicationJob
       .pluck(:woo_id)
   end
 
-  def get_product(woo_id)
+  def get_and_create_product(woo_id)
     woo_product = api_get(URL + woo_id.to_s, STATUS)
     parsed_product = parse(woo_product)
 

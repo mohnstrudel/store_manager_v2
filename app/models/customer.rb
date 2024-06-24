@@ -21,11 +21,19 @@ class Customer < ApplicationRecord
 
   has_many :sales, dependent: :destroy
 
+  before_save :downcase_email
+
   def name_and_email
     "#{first_name} #{last_name} — #{email}"
   end
 
   def full_name
     "#{first_name} #{last_name}"
+  end
+
+  private
+
+  def downcase_email
+    self.email = email&.downcase
   end
 end

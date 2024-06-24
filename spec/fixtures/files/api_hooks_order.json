@@ -63,64 +63,6 @@
   ],
   "line_items": [
     {
-      "id": 5768,
-      "name": "Steampunk Batman | Batman Actionfigur (Kai Arts Actionfigur)",
-      "product_id": 137,
-      "variation_id": 0,
-      "quantity": 1,
-      "tax_class": "",
-      "subtotal": "67.22",
-      "subtotal_tax": "0.00",
-      "total": "67.22",
-      "total_tax": "0.00",
-      "taxes": [],
-      "meta_data": [
-        {
-          "id": 55730,
-          "key": "_reduced_stock",
-          "value": "1",
-          "display_key": "[FILTERED]",
-          "display_value": "1"
-        }
-      ],
-      "sku": "",
-      "price": 67.218487,
-      "image": {
-        "id": "272",
-        "src": "https://store.handsomecake.com/wp-content/uploads/2020/05/ezgif.com-webp-to-png-5.png"
-      },
-      "parent_name": null
-    },
-    {
-      "id": 5769,
-      "name": "World of Warcraft - Sylvanas Windrunner | 1:4 Resin Statue | von Windseeker Studios",
-      "product_id": 1350,
-      "variation_id": 0,
-      "quantity": 1,
-      "tax_class": "",
-      "subtotal": "924.37",
-      "subtotal_tax": "0.00",
-      "total": "924.37",
-      "total_tax": "0.00",
-      "taxes": [],
-      "meta_data": [
-        {
-          "id": 55731,
-          "key": "_reduced_stock",
-          "value": "1",
-          "display_key": "[FILTERED]",
-          "display_value": "1"
-        }
-      ],
-      "sku": "",
-      "price": 924.369748,
-      "image": {
-        "id": "1354",
-        "src": "https://store.handsomecake.com/wp-content/uploads/2020/10/WechatIMG30__66829.1593634753.jpg"
-      },
-      "parent_name": null
-    },
-    {
       "id": 7449,
       "product_id": 11,
       "variation_id": 1111,
@@ -135,6 +77,22 @@
         }
       ],
       "price": 235.294118
+    },
+    {
+      "id": 666999,
+      "product_id": 11,
+      "variation_id": 1234,
+      "quantity": 6,
+      "meta_data": [
+        {
+          "id": 62209,
+          "key": "pa_statue-version",
+          "value": "deluxe-version-2",
+          "display_key": "Version",
+          "display_value": "Deluxe Version"
+        }
+      ],
+      "price": 228.294118
     }
   ],
   "tax_lines": [],
@@ -161,158 +119,5 @@
     "customer": [
       { "href": "https://store.handsomecake.com/wp-json/wc/v3/customers/4" }
     ]
-  },
-  "webhook": {
-    "id": 24263,
-    "parent_id": 0,
-    "status": "partially-paid",
-    "currency": "EUR",
-    "version": "8.5.2",
-    "prices_include_tax": true,
-    "date_created": "2023-08-15T08:49:14",
-    "date_modified": "2024-01-28T06:16:32",
-    "discount_total": "0.00",
-    "discount_tax": "0.00",
-    "shipping_total": "0.00",
-    "shipping_tax": "0.00",
-    "cart_tax": "0.00",
-    "total": "991.59",
-    "total_tax": "0.00",
-    "customer_id": 4,
-    "order_key": "[FILTERED]",
-    "billing": {
-      "first_name": "Anton",
-      "last_name": "Tester",
-      "company": "",
-      "address_1": "Cheruskerstr. 42",
-      "address_2": "",
-      "city": "Stuttgart",
-      "state": "",
-      "postcode": "70435",
-      "country": "DE",
-      "email": "dev@handsomecake.com",
-      "phone": "123123"
-    },
-    "shipping": {
-      "first_name": "Anton",
-      "last_name": "Tester",
-      "company": "",
-      "address_1": "Cheruskerstr. 42",
-      "address_2": "",
-      "city": "Stuttgart",
-      "state": "",
-      "postcode": "70435",
-      "country": "DE",
-      "phone": "123123"
-    },
-    "payment_method": "",
-    "payment_method_title": "",
-    "transaction_id": "",
-    "customer_ip_address": "",
-    "customer_user_agent": "",
-    "created_via": "admin",
-    "customer_note": "",
-    "date_completed": "2023-09-28T16:14:54",
-    "date_paid": "2023-08-17T05:57:51",
-    "cart_hash": "",
-    "number": "24263",
-    "meta_data": [
-      {
-        "id": 346576,
-        "key": "wc_esd_date_for_order_137",
-        "value": "1692523059"
-      },
-      {
-        "id": 346577,
-        "key": "wc_esd_date_for_order_1350",
-        "value": "1696411059"
-      },
-      { "id": 346578, "key": "wc_esd_date_for_order_is_sated", "value": "1" }
-    ],
-    "line_items": [
-      {
-        "id": 5768,
-        "name": "Steampunk Batman | Batman Actionfigur (Kai Arts Actionfigur)",
-        "product_id": 137,
-        "variation_id": 0,
-        "quantity": 1,
-        "tax_class": "",
-        "subtotal": "67.22",
-        "subtotal_tax": "0.00",
-        "total": "67.22",
-        "total_tax": "0.00",
-        "taxes": [],
-        "meta_data": [
-          {
-            "id": 55730,
-            "key": "_reduced_stock",
-            "value": "1",
-            "display_key": "[FILTERED]",
-            "display_value": "1"
-          }
-        ],
-        "sku": "",
-        "price": 67.218487,
-        "image": {
-          "id": "272",
-          "src": "https://store.handsomecake.com/wp-content/uploads/2020/05/ezgif.com-webp-to-png-5.png"
-        },
-        "parent_name": null
-      },
-      {
-        "id": 5769,
-        "name": "World of Warcraft - Sylvanas Windrunner | 1:4 Resin Statue | von Windseeker Studios",
-        "product_id": 1350,
-        "variation_id": 0,
-        "quantity": 1,
-        "tax_class": "",
-        "subtotal": "924.37",
-        "subtotal_tax": "0.00",
-        "total": "924.37",
-        "total_tax": "0.00",
-        "taxes": [],
-        "meta_data": [
-          {
-            "id": 55731,
-            "key": "_reduced_stock",
-            "value": "1",
-            "display_key": "[FILTERED]",
-            "display_value": "1"
-          }
-        ],
-        "sku": "",
-        "price": 924.369748,
-        "image": {
-          "id": "1354",
-          "src": "https://store.handsomecake.com/wp-content/uploads/2020/10/WechatIMG30__66829.1593634753.jpg"
-        },
-        "parent_name": null
-      }
-    ],
-    "tax_lines": [],
-    "shipping_lines": [],
-    "fee_lines": [],
-    "coupon_lines": [],
-    "refunds": [],
-    "payment_url": "https://store.handsomecake.com/checkout/order-pay/24263/?pay_for_order=true\u0026key=wc_order_zDvFNJWx8gTAR",
-    "is_editable": false,
-    "needs_payment": true,
-    "needs_processing": true,
-    "date_created_gmt": "2023-08-15T08:49:14",
-    "date_modified_gmt": "2024-01-28T06:16:32",
-    "date_completed_gmt": "2023-09-28T16:14:54",
-    "date_paid_gmt": "2023-08-17T05:57:51",
-    "currency_symbol": "€",
-    "_links": {
-      "self": [
-        { "href": "https://store.handsomecake.com/wp-json/wc/v3/orders/24263" }
-      ],
-      "collection": [
-        { "href": "https://store.handsomecake.com/wp-json/wc/v3/orders" }
-      ],
-      "customer": [
-        { "href": "https://store.handsomecake.com/wp-json/wc/v3/customers/4" }
-      ]
-    }
   }
 }

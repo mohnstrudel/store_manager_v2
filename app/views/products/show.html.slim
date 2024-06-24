@@ -69,7 +69,7 @@ main.wide.flex.flex-col.gap.w-pd
               tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == variation.id)
                 td = variation.id
                 td = variation.title
-                td = variation.types
+                td = variation.types_name
                 td.right = format_zero_values variation.product_sales.size
                 td = format_zero_values variation.purchases.size
                 - if variation.store_link.present?

@@ -82,9 +82,12 @@ class ProductsController < ApplicationController
   # GET /products/:id/variations?target=${html-id}
   def variations
     @target = params[:target]
-    @variations = @product.variations.select do |i|
-      Hash.new(id: i.id, title: i.title) if i.title.present?
-    end
+    @variations = @product
+      .variations
+      .includes(:version, :color, :size)
+      .select { |i|
+        Hash.new(id: i.id, title: i.title) if i.title.present?
+      }
 
     respond_to do |format|
       format.turbo_stream

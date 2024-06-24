@@ -16,6 +16,7 @@ class DashboardController < ApplicationController
       .sort_by { |a| -a[:total_debt] }
     @total_suppliers_debt = @suppliers_debts.pluck(:total_debt).sum
     @sale_debts = sale_debts
+    @config = Config
   end
 
   def debts
@@ -32,6 +33,15 @@ class DashboardController < ApplicationController
       sale_debts
     end
     @debts = Kaminari.paginate_array(@debts).page(params[:page]).per(25)
+  end
+
+  def pull_last_orders
+    SyncWooOrdersJob.perform_later(-2)
+    Config.enable_sales_hook
+
+    respond_to do |format|
+      format.html { redirect_to request.referer, notice: "Started getting missing sales. It'll take around 5–10 minutes" }
+    end
   end
 
   private

@@ -7,65 +7,48 @@ class SyncWooOrdersJob < ApplicationJob
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
   ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2300
   VARIATION_TYPES = Variation.types.values.flatten
+  SYNC_VARIATIONS_JOB = SyncWooVariationsJob.new
 
-  def perform
-    woo_orders = api_get_all(URL, ORDERS_SIZE)
+  def perform(page = nil)
+    woo_orders = api_get_all(URL, ORDERS_SIZE, nil, page)
     parsed_orders = parse_all(woo_orders)
     create_sales(parsed_orders)
     nil
   end
 
   def create_sales(parsed_orders)
-    parsed_products = parsed_orders.pluck(:products).flatten
+    parsed_products_woo_ids = parsed_orders
+      .pluck(:products)
+      .flatten
+      .pluck(:product_woo_id)
     products = Product.where(
-      woo_id: parsed_products.pluck(:product_woo_id)
+      woo_id: parsed_products_woo_ids
     )
-    product_sales = ProductSale.where(
-      woo_id: parsed_products.pluck(:woo_id)
-    )
-    variations_job = SyncWooVariationsJob.new
 
     parsed_orders.each do |order|
-      sale = Sale.find_or_initialize_by(woo_id: order[:sale][:woo_id])
-      sale.assign_attributes(order[:sale].merge({
-        customer_id: Customer.find_or_create_by(order[:customer]).id
-      }))
-      sale.save
+      customer_id = get_customer_id(order[:customer])
+      sale = get_sale(order[:sale].merge(customer_id:))
 
       order[:products].each do |order_product|
-        next if product_sales.find { |ps|
-                  ps.woo_id == order_product[:order_woo_id].to_s
-                }
-
-        product = products.find { |p|
-          p.woo_id == order_product[:product_woo_id].to_s
-        }
+        product = if parsed_orders.size > 1
+          products.find { |p|
+            p.woo_id == order_product[:product_woo_id].to_s
+          }
+        else
+          Product.find_by(woo_id: order_product[:product_woo_id])
+        end
 
         if product.blank?
-          job = SyncWooProductsJob.new
-          job.get_product(order_product[:product_woo_id])
-          product = Product.find_by(woo_id: order_product[:product_woo_id])
+          product = get_product_from_woo(order_product[:product_woo_id])
         end
 
         next if product.blank?
 
-        if order_product[:variation].present?
-          variation = Variation.find_by(
-            woo_id: order_product[:variation][:woo_id]
-          ).presence ||
-            variations_job.create_variation(
-              product:,
-              variation_woo_id: order_product[:variation][:woo_id],
-              variation_types: {
-                type: order_product[:variation][:type],
-                value: order_product[:variation][:value]
-              }
-            )
-        end
+        variation = get_variation(order_product[:variation], product)
 
-        product_sale = ProductSale.find_or_initialize_by({
+        product_sale = ProductSale.find_or_initialize_by(
           woo_id: order_product[:order_woo_id]
-        })
+        )
 
         product_sale.assign_attributes({
           qty: order_product[:qty],
@@ -145,6 +128,61 @@ class SyncWooOrdersJob < ApplicationJob
 
     variation
       .transform_values { |v| smart_titleize(sanitize(v)) }
-      .merge({woo_id:})
+      .merge(woo_id:)
+  end
+
+  def get_customer_id(parsed_customer)
+    if parsed_customer[:woo_id] == "0"
+      email = parsed_customer[:email].downcase
+      woo_id = Digest::MD5.hexdigest(email)
+      customer = Customer.where("lower(email) = ?", email).first.presence ||
+        Customer.new
+      customer.assign_attributes(parsed_customer.merge(woo_id:))
+    else
+      customer = Customer.find_or_initialize_by(
+        woo_id: parsed_customer[:woo_id]
+      )
+      customer.assign_attributes(parsed_customer)
+    end
+    customer.save
+    customer.id
+  end
+
+  def get_sale(parsed_sale)
+    sale = Sale.find_or_initialize_by(woo_id: parsed_sale[:woo_id])
+    sale.assign_attributes(parsed_sale)
+    sale.save
+
+    sale
+  end
+
+  def get_product_from_woo(woo_id)
+    job = SyncWooProductsJob.new
+    job.get_and_create_product(woo_id)
+    Product.find_by(woo_id:)
+  end
+
+  def get_variation(parsed_variation, product)
+    return if parsed_variation.blank?
+
+    variation = Variation.find_by(
+      woo_id: parsed_variation[:woo_id]
+    )
+
+    if variation
+      variation.send(parsed_variation[:type].downcase).update(
+        value: parsed_variation[:value]
+      )
+      variation
+    else
+      SYNC_VARIATIONS_JOB.create_variation(
+        product:,
+        variation_woo_id: parsed_variation[:woo_id],
+        variation_types: {
+          type: parsed_variation[:type],
+          value: parsed_variation[:value]
+        }
+      )
+    end
   end
 end

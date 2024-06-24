@@ -7,6 +7,10 @@ article.notice {
   box-shadow: none;
 }
 
+article.notice header {
+  font-weight: bold;
+}
+
 article.notice.is-info {
   background: var(--form-element-valid-focus-color);
   color: var(--form-element-valid-border-color);
@@ -35,6 +39,10 @@ article.notice.is-error header {
 
 article.notice .icn {
   font-size: 1.5rem;
+}
+
+article.notice * {
+  color: inherit;
 }
 
 .table-card {

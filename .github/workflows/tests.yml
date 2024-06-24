@@ -49,6 +49,8 @@ jobs:
         uses: browser-actions/setup-chrome@v1
 
       - name: Setup test DB
-        run: bundle exec rails db:setup
+        run: |
+          bundle exec rails db:setup
+          bundle exec rails db:test:prepare
 
       - run: bundle exec rspec

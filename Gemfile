@@ -1,7 +1,10 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.1"
+ruby "3.3.3"
+
+# Fix needed until Ruby 3.3.4 is released https://github.com/ruby/ruby/pull/11006
+gem "net-pop", github: "ruby/net-pop", require: false
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.x"
@@ -25,7 +28,7 @@ gem "turbo-rails"
 gem "stimulus-rails"
 
 # Use Redis adapter to run Action Cable in production
-gem "redis", "~> 4.0"
+gem "redis"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"

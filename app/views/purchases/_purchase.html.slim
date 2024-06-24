@@ -6,7 +6,7 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
     - if purchase.variation.present?
       ul.product-variations
         li
-          = purchase.variation.types
+          = purchase.variation.types_name
           | : 
           = purchase.variation.title
   td.break-words = purchase.supplier.title
