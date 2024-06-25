@@ -169,24 +169,13 @@ class SyncWooOrdersJob < ApplicationJob
   def get_variation(parsed_variation, product)
     return if parsed_variation.blank?
 
-    variation = Variation.find_by(
-      woo_id: parsed_variation[:woo_id]
-    )
-
-    if variation
-      variation.send(parsed_variation[:type].downcase).update(
+    SYNC_VARIATIONS_JOB.create_variation(
+      product:,
+      variation_woo_id: parsed_variation[:woo_id],
+      variation_types: {
+        type: parsed_variation[:type],
         value: parsed_variation[:value]
-      )
-      variation
-    else
-      SYNC_VARIATIONS_JOB.create_variation(
-        product:,
-        variation_woo_id: parsed_variation[:woo_id],
-        variation_types: {
-          type: parsed_variation[:type],
-          value: parsed_variation[:value]
-        }
-      )
-    end
+      }
+    )
   end
 end

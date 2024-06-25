@@ -103,11 +103,15 @@ class SyncWooVariationsJob < ApplicationJob
       {type_name => type_instance}
     end
 
-    Variation.find_by(woo_id: variation_woo_id).presence ||
-      Variation.create({
-        product:,
-        store_link:,
-        woo_id: variation_woo_id
-      }.merge(*mapped_variation_types).compact)
+    variation = Variation.find_or_initialize_by(woo_id: variation_woo_id)
+
+    variation.assign_attributes({
+      product:,
+      store_link:
+    }.merge(*mapped_variation_types).compact)
+
+    variation.save
+
+    variation
   end
 end
