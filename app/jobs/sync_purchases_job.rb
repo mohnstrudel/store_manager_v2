@@ -131,7 +131,7 @@ class SyncPurchasesJob < ApplicationJob
 
     product = if woo_product_id
       Product.find_by(woo_id: woo_product_id).presence ||
-        PRODUCTS_JOB.get_product(woo_product_id)
+        PRODUCTS_JOB.get_and_create_product(woo_product_id)
     else
       brand_title = Brand.parse_brand(product_name)
 
