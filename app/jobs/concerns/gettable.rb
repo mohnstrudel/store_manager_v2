@@ -6,7 +6,8 @@ module Gettable
   PER_PAGE = 100
 
   included do
-    def api_get_all(url, total, status = nil, page = 1)
+    def api_get_all(url, total, page, status = nil)
+      page ||= 1
       total = total.to_i
       pages = (total < PER_PAGE) ? 1 : (total / PER_PAGE).ceil
 

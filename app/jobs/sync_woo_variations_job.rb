@@ -85,22 +85,22 @@ class SyncWooVariationsJob < ApplicationJob
     variation_types = [variation_types] if variation_types.is_a? Hash
 
     mapped_variation_types = variation_types.map do |variation_type|
-      type_name = TYPES.find do |type|
+      type_name = TYPES.find { |type|
         type.include? variation_type[:type]
-      end.first
+      }.first.downcase
 
       if type_name == "Size"
         variation_type[:value] = Size.sanitize_size(variation_type[:value])
       end
 
-      type_instance = type_name.constantize.find_or_create_by({
+      type_instance = type_name.capitalize.constantize.find_or_create_by({
         value: variation_type[:value]
       })
 
-      product.send(:"product_#{type_name.downcase.pluralize}")
-        .find_or_create_by({type_name.downcase => type_instance})
+      product.send(:"product_#{type_name.pluralize}")
+        .find_or_create_by({type_name => type_instance})
 
-      {type_name.downcase => type_instance}
+      {type_name => type_instance}
     end
 
     Variation.find_by(woo_id: variation_woo_id).presence ||

@@ -6,11 +6,11 @@ class SyncWooOrdersJob < ApplicationJob
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
   ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2300
-  VARIATION_TYPES = Variation.types.values.flatten
+  VARIATION_TYPES = Variation.types.values
   SYNC_VARIATIONS_JOB = SyncWooVariationsJob.new
 
   def perform(page = nil)
-    woo_orders = api_get_all(URL, ORDERS_SIZE, nil, page)
+    woo_orders = api_get_all(URL, ORDERS_SIZE, page)
     parsed_orders = parse_all(woo_orders)
     create_sales(parsed_orders)
     nil
@@ -112,7 +112,7 @@ class SyncWooOrdersJob < ApplicationJob
 
   def parse_variation(line_item)
     variation = line_item[:meta_data]
-      .find { |el| el[:display_key].in? VARIATION_TYPES }
+      .find { |el| el[:display_key].in? VARIATION_TYPES.flatten }
 
     return if variation.nil?
 
@@ -121,6 +121,10 @@ class SyncWooOrdersJob < ApplicationJob
         display_key: :type,
         display_value: :value
       })
+
+    variation[:type] = VARIATION_TYPES.find { |type|
+      type.include? variation[:type]
+    }.first.downcase
 
     woo_id = if line_item[:variation_id].to_i.positive?
       line_item[:variation_id]

@@ -26,7 +26,8 @@ class SyncWooProductsJob < ApplicationJob
   end
 
   def get_woo_products
-    api_get_all(URL, PRODUCTS_SIZE, STATUS)
+    page = nil
+    api_get_all(URL, PRODUCTS_SIZE, page, STATUS)
   end
 
   def create(parsed_product)
