@@ -11,7 +11,14 @@ module Sanitizable
     end
 
     def sanitize(string)
-      string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
+      string
+        .tr(" ", " ")
+        .gsub(/—|–/, "-")
+        .gsub("&amp;", "&")
+        .split("<span>")[0]
+        .split("|")
+        .map { |s| s.strip }
+        .join(" | ")
     end
   end
 
@@ -25,7 +32,14 @@ module Sanitizable
     end
 
     def sanitize(string)
-      string.tr(" ", " ").gsub(/—|–/, "-").gsub("&amp;", "&").split("|").map { |s| s.strip }.join(" | ")
+      string
+        .tr(" ", " ")
+        .gsub(/—|–/, "-")
+        .gsub("&amp;", "&")
+        .split("<span>")[0]
+        .split("|")
+        .map { |s| s.strip }
+        .join(" | ")
     end
   end
 end
