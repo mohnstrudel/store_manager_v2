@@ -51,10 +51,10 @@ class SyncWooOrdersJob < ApplicationJob
         )
 
         product_sale.assign_attributes({
-          qty: order_product[:qty],
           price: order_product[:price],
-          sale:,
           product:,
+          qty: order_product[:qty],
+          sale:,
           variation:
         }.compact)
 
@@ -75,35 +75,35 @@ class SyncWooOrdersJob < ApplicationJob
 
     {
       sale: {
-        woo_id: order[:id],
-        status: order[:status],
-        woo_created_at: DateTime.parse(order[:date_created]),
-        woo_updated_at: DateTime.parse(order[:date_modified]),
-        total: order[:total],
-        shipping_total: order[:shipping_total],
-        discount_total: order[:discount_total],
-        note: order[:customer_note],
         address_1: shipping[:address_1],
         address_2: shipping[:address_2],
         city: shipping[:city],
         company: shipping[:company],
         country: shipping[:country],
+        discount_total: order[:discount_total],
+        note: order[:customer_note],
         postcode: shipping[:postcode],
-        state: shipping[:state]
+        shipping_total: order[:shipping_total],
+        state: shipping[:state],
+        status: order[:status],
+        total: order[:total],
+        woo_created_at: DateTime.parse(order[:date_created]),
+        woo_id: order[:id],
+        woo_updated_at: DateTime.parse(order[:date_modified])
       },
       customer: {
-        woo_id: order[:customer_id],
+        email: shipping[:email],
         first_name: shipping[:first_name],
         last_name: shipping[:last_name],
         phone: shipping[:phone],
-        email: shipping[:email]
+        woo_id: order[:customer_id]
       },
       products: order[:line_items].map { |line_item|
         {
+          order_woo_id: line_item[:id],
+          price: line_item[:price].to_i + line_item[:total_tax].to_i,
           product_woo_id: line_item[:product_id],
           qty: line_item[:quantity],
-          price: line_item[:price].to_i + line_item[:total_tax].to_i,
-          order_woo_id: line_item[:id],
           variation: parse_variation(line_item)
         }.compact
       }

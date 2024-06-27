@@ -4346,7 +4346,8 @@
     "paymentvalue1": 259.55,
     "paymentdate1": "15.04.2024",
     "paymentdate0": "08.02.2024",
-    "purchasedate": "08.02.2024"
+    "purchasedate": "08.02.2024",
+    "supplier": "Outworld Creations"
   },
   {
     "wooid": 32712,
@@ -4359,7 +4360,8 @@
     "itemprice": 875,
     "paymentvalue0": 259.55,
     "paymentdate0": "08.02.2024",
-    "purchasedate": "08.02.2024"
+    "purchasedate": "08.02.2024",
+    "supplier": "Outworld Creations"
   },
   {
     "wooid": 18773,
@@ -4485,7 +4487,8 @@
     "paymentvalue0": 250,
     "paymentvalue1": 223,
     "paymentdate0": "14.12.2023",
-    "purchasedate": "14.12.2023"
+    "purchasedate": "14.12.2023",
+    "itemprice": 850
   },
   {
     "wooid": 29337,
@@ -5498,7 +5501,8 @@
     "product": "Bleach - Rukia Kuchiki | 1:6 Resin Statue | von YuanMeng Studio - Transparent (mit LED)",
     "paymentvalue0": 87.22,
     "paymentdate0": "05.06.2024",
-    "purchasedate": "05.06.2024"
+    "purchasedate": "05.06.2024",
+    "itemprice": 289
   },
   {
     "wooid": 32869,

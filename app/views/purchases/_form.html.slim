@@ -2,7 +2,7 @@
   = render "_shared/notice-err", model: purchase
 
   = form.label :supplier
-  = form.collection_select :supplier_id, Supplier.all, :id, :title
+  = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title
 
   .stimulus data-controller="purchase-variation"
     = form.label :product
@@ -26,6 +26,6 @@
   - if action_name == "new"
     = form.fields_for :payments do |payment_builder|
       = payment_builder.label "What did you pay in total?"
-      = payment_builder.number_field :value
+      = payment_builder.number_field :value, step: :any
 
   = form.submit

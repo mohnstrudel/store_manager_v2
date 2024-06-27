@@ -19,6 +19,7 @@
   align-items: flex-start;
   visibility: hidden;
   opacity: 0;
+  z-index: 10;
   transition: all var(--transition);
   box-shadow: var(--box-shadow-menu);
   border: 1px solid var(--table-border-color);

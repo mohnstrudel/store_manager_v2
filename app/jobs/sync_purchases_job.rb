@@ -56,11 +56,8 @@ class SyncPurchasesJob < ApplicationJob
         Time.zone.today
       end
 
-      purchase = Purchase.find_or_initialize_by({
-        order_reference: parsed_purchase[:orderreference]
-      })
-
-      purchase.assign_attributes({
+      purchase = Purchase.new({
+        order_reference: parsed_purchase[:orderreference],
         amount: parsed_purchase[:amount],
         item_price: BigDecimal(parsed_purchase[:itemprice].to_s),
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
@@ -131,7 +128,7 @@ class SyncPurchasesJob < ApplicationJob
 
     product = if woo_product_id
       Product.find_by(woo_id: woo_product_id).presence ||
-        PRODUCTS_JOB.get_and_create_product(woo_product_id)
+        PRODUCTS_JOB.get_product(woo_product_id)
     else
       brand_title = Brand.parse_brand(product_name)
 
