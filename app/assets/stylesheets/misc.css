@@ -22,3 +22,13 @@ i.icn {
   color: var(--muted-color);
   font-size: 2rem;
 }
+
+.sale-status--active {
+  filter: contrast(0.6);
+  color: rgb(var(--rgb-active-status-color));
+}
+
+.sale-status--inactive {
+  filter: contrast(0.6);
+  color: rgb(var(--rgb-inactive-status-color));
+}

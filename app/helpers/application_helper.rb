@@ -26,10 +26,12 @@ module ApplicationHelper
   end
 
   def format_sale_status(status)
+    status_title = status.titleize
+
     if Sale.active_status_names.include? status
-      "<span class='active-sale'>#{status.titleize}</span>".html_safe
+      "<span class='sale-status--active'>#{status_title}</span>".html_safe
     else
-      status.titleize
+      "<span class='sale-status--inactive'>#{status_title}</span>".html_safe
     end
   end
 end
