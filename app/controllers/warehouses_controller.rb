@@ -45,15 +45,29 @@ class WarehousesController < ApplicationController
     redirect_to warehouses_url, notice: "Warehouse was successfully destroyed.", status: :see_other
   end
 
+  def remove_image
+    @image = ActiveStorage::Attachment.find(params[:id])
+    @image.purge_later
+
+    head :no_content
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
   def set_warehouse
-    @warehouse = Warehouse.find(params[:id])
+    @warehouse = Warehouse.with_attached_images.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.
   def warehouse_params
-    params.require(:warehouse).permit(:name, :external_name, :container_tracking_number, :courier_tracking_url, :cbm)
+    params.require(:warehouse).permit(
+      :cbm,
+      :container_tracking_number,
+      :courier_tracking_url,
+      :external_name,
+      :name,
+      images: []
+    )
   end
 end

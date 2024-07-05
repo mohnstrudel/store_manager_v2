@@ -7,7 +7,11 @@ Rails.application.routes.draw do
     mount PgHero::Engine, at: "pghero"
   end
 
-  resources :warehouses
+  resources :warehouses do
+    member do
+      delete :remove_image
+    end
+  end
 
   resources :customers do
     get "/page/:page", action: :index, on: :collection

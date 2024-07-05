@@ -16,4 +16,17 @@
   = form.label :cbm
   = form.text_field :cbm
 
+  - if warehouse.images.attached?
+    br
+    .card.flex.wrap.gap.even-pd.items-end data-controller="removable"
+      - warehouse.images.each do |image|
+        .form__img-card data-removable-target="element"
+          = form.hidden_field :images, multiple: true, value: image.signed_id
+          = render "_shared/preloadable_img", src: image.representation(:thumb).url
+          = link_to "Remove", remove_image_warehouse_path(image), data: { turbo_confirm: "Are you sure?", turbo_method: :delete, action: "click->removable#remove" }
+    br
+
+  = form.label :images 
+  = form.file_field :images, multiple: true
+
   = form.submit

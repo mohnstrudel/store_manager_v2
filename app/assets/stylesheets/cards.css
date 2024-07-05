@@ -139,6 +139,10 @@ main.wide.w-pd {
     color: var(--muted-color);
     font-size: smaller;
   }
+
+  &.even-pd {
+    padding: var(--spacing-m);
+  }
 }
 
 .card.grow {
