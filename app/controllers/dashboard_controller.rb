@@ -36,7 +36,7 @@ class DashboardController < ApplicationController
   end
 
   def pull_last_orders
-    SyncWooOrdersJob.perform_later(-2)
+    SyncWooOrdersJob.perform_later(2)
     Config.enable_sales_hook
 
     respond_to do |format|

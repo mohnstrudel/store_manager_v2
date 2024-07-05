@@ -6,22 +6,17 @@ module Gettable
   PER_PAGE = 100
 
   included do
-    def api_get_all(url, total, page, status = nil)
-      page ||= 1
-      total = total.to_i
-      pages = (total < PER_PAGE) ? 1 : (total / PER_PAGE).ceil
+    def api_get_all(url, total_records, pages = nil, status = nil)
+      total_records = total_records.to_i
+      pages ||= (total_records < PER_PAGE) ? 1 : (total_records / PER_PAGE).ceil
 
       progressbar = ProgressBar.create(title: self.class.name)
       progress_step = 100 / pages
 
-      if page < 0
-        page = pages + page
-        progress_step = (100 / (pages - page)).floor
-      end
-
       result = []
+      page = 1
 
-      while page <= pages
+      while page < pages
         unless progressbar.finished?
           progress_step.times {
             progressbar.increment
@@ -36,8 +31,9 @@ module Gettable
       result.compact_blank
     end
 
-    def api_get_latest(url)
-      api_get(url, nil, PER_PAGE, 1, "asc")
+    def api_get_latest_orders
+      orders_api_endpoint = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
+      api_get(orders_api_endpoint, nil, PER_PAGE, 1)
     end
 
     def api_get(url, status = nil, per_page = nil, page = nil, order = nil)

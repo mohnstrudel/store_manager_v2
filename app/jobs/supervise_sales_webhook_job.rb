@@ -3,13 +3,13 @@ class SuperviseSalesWebhookJob < ApplicationJob
 
   include Gettable
 
-  URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
-
   def perform
     return if Config.sales_hook_disabled?
 
-    order = api_get_latest(URL)
-    woo_id = order[:id]
+    latest_order = api_get_latest_orders.find do |order|
+      order[:status].in? Sale.active_status_names
+    end
+    woo_id = latest_order[:id]
 
     if Sale.find_by(woo_id:).blank?
       Config.disable_sales_hook
