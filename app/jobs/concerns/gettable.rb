@@ -14,9 +14,9 @@ module Gettable
       progress_step = 100 / pages
 
       result = []
-      page = 1
+      page = 0
 
-      while page < pages
+      while page <= pages
         unless progressbar.finished?
           progress_step.times {
             progressbar.increment
