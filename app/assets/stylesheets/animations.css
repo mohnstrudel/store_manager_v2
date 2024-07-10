@@ -12,11 +12,6 @@
   }
 }
 
-.active-sale {
-  filter: contrast(0.7);
-  color: rgb(var(--rgb-debt-color));
-}
-
 @keyframes shimmer {
   0% {
     background-position: -468px 0;

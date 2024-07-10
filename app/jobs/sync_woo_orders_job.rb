@@ -9,8 +9,8 @@ class SyncWooOrdersJob < ApplicationJob
   VARIATION_TYPES = Variation.types.values
   SYNC_VARIATIONS_JOB = SyncWooVariationsJob.new
 
-  def perform(page = nil)
-    woo_orders = api_get_all(URL, ORDERS_SIZE, page)
+  def perform(pages = nil)
+    woo_orders = api_get_all(URL, ORDERS_SIZE, pages)
     parsed_orders = parse_all(woo_orders)
     create_sales(parsed_orders)
     nil
@@ -92,7 +92,7 @@ class SyncWooOrdersJob < ApplicationJob
         woo_updated_at: DateTime.parse(order[:date_modified])
       },
       customer: {
-        email: shipping[:email],
+        email: shipping[:email].downcase,
         first_name: shipping[:first_name],
         last_name: shipping[:last_name],
         phone: shipping[:phone],
@@ -136,18 +136,16 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def get_customer_id(parsed_customer)
-    if parsed_customer[:woo_id] == "0"
-      email = parsed_customer[:email].downcase
-      woo_id = Digest::MD5.hexdigest(email)
-      customer = Customer.where("lower(email) = ?", email).first.presence ||
-        Customer.new
-      customer.assign_attributes(parsed_customer.merge(woo_id:))
+    customer = if parsed_customer[:woo_id].in? [0, "0", ""]
+      Customer.find_or_initialize_by(
+        email: parsed_customer[:email]
+      )
     else
-      customer = Customer.find_or_initialize_by(
+      Customer.find_or_initialize_by(
         woo_id: parsed_customer[:woo_id]
       )
-      customer.assign_attributes(parsed_customer)
     end
+    customer.assign_attributes(parsed_customer)
     customer.save
     customer.id
   end

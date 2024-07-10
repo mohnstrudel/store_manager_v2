@@ -5,7 +5,7 @@ RSpec.describe SuperviseSalesWebhookJob do
     described_class.new
   }
   let(:sale) {
-    create(:sale, woo_id: 123)
+    create(:sale, woo_id: 123, status: Sale.active_status_names.first)
   }
 
   it "does nothing if the webhook is disabled" do
@@ -19,7 +19,10 @@ RSpec.describe SuperviseSalesWebhookJob do
   it "does nothing if the webhook is enabled and sales are in sync" do
     Config.enable_sales_hook
 
-    allow(job).to receive(:api_get_latest).and_return({id: sale.woo_id})
+    allow(job).to receive(:api_get_latest_orders).and_return([{
+      id: sale.woo_id,
+      status: sale.status
+    }])
     job.perform
 
     expect(Config.sales_hook_disabled?).to be false
@@ -28,7 +31,10 @@ RSpec.describe SuperviseSalesWebhookJob do
   it "change the webhook status to disabled if sales and orders are not in sync" do
     Config.enable_sales_hook
 
-    allow(job).to receive(:api_get_latest).and_return({id: 666})
+    allow(job).to receive(:api_get_latest_orders).and_return([{
+      id: 666,
+      status: sale.status
+    }])
     job.perform
 
     expect(Config.sales_hook_disabled?).to be true

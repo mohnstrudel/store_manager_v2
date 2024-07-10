@@ -3,11 +3,28 @@ class SalesController < ApplicationController
 
   # GET /sales
   def index
-    @sales = Sale
-      .includes(:customer, product_sales: [:product, variation: [:version, :color, :size]])
-      .where.not(status: "cancelled")
+    sale_records = Sale
+      .includes(
+        :customer,
+        product_sales: [
+          :product,
+          variation: [
+            :version,
+            :color,
+            :size
+          ]
+        ]
+      )
+      .order(woo_updated_at: :desc, updated_at: :desc)
       .page(params[:page])
-    @sales = @sales.search(params[:q]) if params[:q].present?
+
+    @sales = if params[:q].present?
+      sale_records
+        .search(params[:q])
+    else
+      sale_records
+        .where.not(status: "cancelled")
+    end
   end
 
   # GET /sales/1
