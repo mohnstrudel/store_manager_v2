@@ -24,11 +24,11 @@ i.icn {
 }
 
 .sale-status--active {
-  filter: contrast(0.6);
+  filter: contrast(0.8);
   color: rgb(var(--rgb-active-status-color));
 }
 
 .sale-status--inactive {
-  filter: contrast(0.6);
+  filter: contrast(0.7);
   color: rgb(var(--rgb-inactive-status-color));
 }
