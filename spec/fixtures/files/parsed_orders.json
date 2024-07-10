@@ -18,7 +18,7 @@
       "state": ""
     },
     "customer": {
-      "woo_id": 0,
+      "woo_id": 1234,
       "first_name": "Robert",
       "last_name": "Dethloff",
       "phone": "017631584891",
