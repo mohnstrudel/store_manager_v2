@@ -136,13 +136,13 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def get_customer_id(parsed_customer)
-    customer = if parsed_customer[:woo_id].in? [0, "0", ""]
+    customer = if Customer.woo_id_is_valid? parsed_customer[:woo_id]
       Customer.find_or_initialize_by(
-        email: parsed_customer[:email]
+        woo_id: parsed_customer[:woo_id]
       )
     else
       Customer.find_or_initialize_by(
-        woo_id: parsed_customer[:woo_id]
+        email: parsed_customer[:email]
       )
     end
     customer.assign_attributes(parsed_customer)

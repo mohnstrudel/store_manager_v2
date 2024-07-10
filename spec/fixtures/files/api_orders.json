@@ -7,7 +7,7 @@
     "discount_total": "0.00",
     "shipping_total": "20.00",
     "total": "300.00",
-    "customer_id": 0,
+    "customer_id": 1234,
     "billing": {
       "first_name": "Robert",
       "last_name": "Dethloff",
