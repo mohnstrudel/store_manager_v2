@@ -15,7 +15,9 @@ class SalesController < ApplicationController
           ]
         ]
       )
-      .order(woo_updated_at: :desc, updated_at: :desc)
+      .order(
+        Arel.sql("woo_updated_at DESC, updated_at DESC, CAST(woo_id AS int) DESC")
+      )
       .page(params[:page])
 
     @sales = if params[:q].present?
