@@ -26,7 +26,7 @@ RSpec.describe SyncWooOrdersJob do
         parsed_customer = parsed_woo_orders.first[:customer]
         existing_customer = create(
           :customer,
-          email: "fake@mail.com",
+          email: "#{SecureRandom.hex(5)}@mail.com",
           woo_id: parsed_customer[:woo_id]
         )
         parsed_customer_id = job.get_customer_id(parsed_customer)

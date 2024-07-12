@@ -41,7 +41,7 @@ describe "Purchases are taken into account when calculating debts" do
     )
   end
 
-  it "Shows the correct amount of purchases" do
+  it "Debts page shows the correct amount of purchases" do
     visit debts_path
 
     malenia_tr = "tr[data-table-id-param='#{@malenia.id}']"
