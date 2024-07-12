@@ -1,6 +1,6 @@
 require "rails_helper"
 
-describe "Purchases are taken into account when calculating debts" do
+describe "Debts can take purchases into account" do
   before do
     elder_ring = create(:franchise, title: "Elder Ring")
 
@@ -14,6 +14,9 @@ describe "Purchases are taken into account when calculating debts" do
       product: @malenia,
       brand: create(:brand, title: "Coolbear Studio")
     )
+
+    # Create a bunch of variation to prevent this test failing at production environment
+    create_list(:variation, 3)
 
     @malenia_regular = create(
       :variation,
@@ -41,79 +44,77 @@ describe "Purchases are taken into account when calculating debts" do
     )
   end
 
-  it "Debts page shows the correct amount of purchases" do
+  it "shows the correct amount of purchases" do
     visit debts_path
 
-    malenia_tr_selector = "tr[data-table-id-param='#{@malenia.id}']"
-    malenia_regular_tr_selector = "tr[data-table-id-param='#{@malenia_regular.id}']"
-    malenia_revealing_tr_selector = "tr[data-table-id-param='#{@malenia_revealing.id}']"
-    purchases_td_selector = "td:nth-child(4)"
+    malenia_selector = "tr[data-table-id-param='#{@malenia.id}']"
+    malenia_regular_selector = "tr[data-table-id-param='#{@malenia_regular.id}']"
+    malenia_revealing_selector = "tr[data-table-id-param='#{@malenia_revealing.id}']"
+
+    purchases_selector = "td:nth-child(4)"
 
     expect(page).to have_text(@malenia.full_title)
     expect(page).to have_text(@malenia_regular.title)
     expect(page).to have_text(@malenia_revealing.title)
 
-    expect(Product.count).to eq(1)
-    expect(Variation.count).to eq(2)
-
-    within malenia_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("0")
+    within malenia_selector do
+      expect(find(purchases_selector)).to have_text("0")
     end
 
-    within malenia_regular_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("0")
+    within malenia_regular_selector do
+      expect(find(purchases_selector)).to have_text("0")
     end
 
-    within malenia_revealing_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("0")
+    within malenia_revealing_selector do
+      expect(find(purchases_selector)).to have_text("0")
     end
 
     create(:purchase, product: @malenia, amount: 1)
 
     refresh
 
-    within malenia_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("1")
+    within malenia_selector do
+      expect(find(purchases_selector)).to have_text("1")
     end
 
-    within malenia_regular_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("0")
+    within malenia_regular_selector do
+      expect(find(purchases_selector)).to have_text("0")
     end
 
-    within malenia_revealing_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("0")
+    within malenia_revealing_selector do
+      expect(find(purchases_selector)).to have_text("0")
     end
 
     create(:purchase, product: @malenia, variation: @malenia_regular, amount: 2)
 
     refresh
 
-    within malenia_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("1")
+    within malenia_selector do
+      expect(find(purchases_selector)).to have_text("1")
     end
 
-    within malenia_regular_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("2")
+    within malenia_regular_selector do
+      expect(find(purchases_selector)).to have_text("2")
     end
 
-    within malenia_revealing_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("0")
+    within malenia_revealing_selector do
+      expect(find(purchases_selector)).to have_text("0")
     end
 
     create(:purchase, product: @malenia, variation: @malenia_revealing, amount: 3)
 
     refresh
 
-    within malenia_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("1")
+    within malenia_selector do
+      expect(find(purchases_selector)).to have_text("1")
     end
 
-    within malenia_regular_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("2")
+    within malenia_regular_selector do
+      expect(find(purchases_selector)).to have_text("2")
     end
 
-    within malenia_revealing_tr_selector do
-      expect(find(purchases_td_selector)).to have_text("3")
+    within malenia_revealing_selector do
+      expect(find(purchases_selector)).to have_text("3")
     end
   end
 end
