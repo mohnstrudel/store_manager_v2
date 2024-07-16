@@ -14,7 +14,7 @@ module Gettable
       progress_step = 100 / pages
 
       result = []
-      page = 0
+      page = 1
 
       while page <= pages
         unless progressbar.finished?
@@ -24,11 +24,11 @@ module Gettable
           }
         end
         parsed_payload = api_get(url, status, PER_PAGE, page)
-        result.concat(parsed_payload)
+        result << parsed_payload
         page += 1
       end
 
-      result.compact_blank
+      result.flatten.compact_blank
     end
 
     def api_get_latest_orders
