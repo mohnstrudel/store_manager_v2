@@ -20,6 +20,61 @@ RSpec.describe SyncWooOrdersJob do
     end
   end
 
+  describe "#get_customer_id" do
+    context "when we receive a valid woo_id" do
+      it "returns existing customer" do
+        parsed_customer = parsed_woo_orders.first[:customer]
+        existing_customer = create(
+          :customer,
+          email: "#{SecureRandom.hex(5)}@mail.com",
+          woo_id: parsed_customer[:woo_id]
+        )
+        parsed_customer_id = job.get_customer_id(parsed_customer)
+
+        expect(parsed_customer_id).to eq(existing_customer.id)
+      end
+    end
+
+    context "when we receive invalid woo_id" do
+      let(:parsed_customer) { parsed_woo_orders.last[:customer] }
+
+      let(:existing_customer) {
+        create(
+          :customer,
+          email: parsed_customer[:email],
+          woo_id: nil
+        )
+      }
+
+      it "returns existing customer if woo_id == 0" do
+        existing_customer_id = existing_customer.id
+        parsed_customer_id = job.get_customer_id(
+          parsed_customer.merge(woo_id: 0)
+        )
+
+        expect(parsed_customer_id).to eq(existing_customer_id)
+      end
+
+      it "returns existing customer if woo_id == '0'" do
+        existing_customer_id = existing_customer.id
+        parsed_customer_id = job.get_customer_id(
+          parsed_customer.merge(woo_id: "0")
+        )
+
+        expect(parsed_customer_id).to eq(existing_customer_id)
+      end
+
+      it "returns existing customer if woo_id == ''" do
+        existing_customer_id = existing_customer.id
+        parsed_customer_id = job.get_customer_id(
+          parsed_customer.merge(woo_id: "")
+        )
+
+        expect(parsed_customer_id).to eq(existing_customer_id)
+      end
+    end
+  end
+
   describe "#create_sales" do
     let(:denpasar) { "Denpasar" }
     let(:weird_link) { "hey ho, let's go" }
