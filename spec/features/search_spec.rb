@@ -1,4 +1,5 @@
 require "rails_helper"
+SOLD_BATMAN_AMOUNT = 6
 
 describe "Search works accross products, sales, purchases, and debts", js: "true" do
   # rubocop:disable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll
@@ -87,7 +88,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     expect(page).to have_text(@supplier_agk.title)
   end
 
-  it "finds one product in Debts page" do
+  it "finds the queried product in Debts page" do
     visit debts_path
 
     expect(page).to have_text(@batman.full_title)
@@ -100,7 +101,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     expect(page).to have_no_text(@guts.full_title)
   end
 
-  it "finds one customer in Sales page" do
+  it "finds the queried customer in Sales page" do
     visit sales_path
 
     expect(page).to have_text(@laura_palmer.email)
@@ -113,7 +114,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     expect(page).to have_no_text(@dale_cooper.email)
   end
 
-  it "finds one purchase in Purchases page" do
+  it "finds the queried purchase in Purchases page" do
     visit purchases_path
 
     expect(page).to have_text(@asuka.full_title)
@@ -136,6 +137,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
         variation: nil
       )
     end
+
     dc_comics = create(:franchise, title: "DC Comics")
 
     visit debts_path
@@ -144,7 +146,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     find_by_id("q").native.send_keys(:return)
 
     expect(page).to have_text(@batman.full_title)
-    expect(page).to have_text(6)
+    expect(page).to have_text(SOLD_BATMAN_AMOUNT)
 
     find("tr[data-table-id-param='#{@batman.id}']").click
     find(:link, "Edit").click
@@ -160,7 +162,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     find_by_id("q").native.send_keys(:return)
 
     expect(page).to have_text(Product.find(@batman.id).full_title)
-    expect(page).to have_text(6)
+    expect(page).to have_text(SOLD_BATMAN_AMOUNT)
   end
 
   it "finds purchases when we change them" do
