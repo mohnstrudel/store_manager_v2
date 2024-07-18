@@ -109,6 +109,7 @@ class ProductsController < ApplicationController
       :shape_id,
       :target,
       :sku,
+      :woo_id,
       brand_ids: [],
       color_ids: [],
       size_ids: [],
