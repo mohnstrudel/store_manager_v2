@@ -1,5 +1,4 @@
 require "rails_helper"
-SOLD_BATMAN_AMOUNT = 6
 
 describe "Search works accross products, sales, purchases, and debts", js: "true" do
   # rubocop:disable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll
@@ -145,10 +144,16 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     fill_in "q", with: @batman.title
     find_by_id("q").native.send_keys(:return)
 
-    expect(page).to have_text(@batman.full_title)
-    expect(page).to have_text(SOLD_BATMAN_AMOUNT)
+    batman_selector = "tr[data-table-id-param='#{@batman.id}']"
+    sold_amount_selector = "td:nth-child(3)"
+    sold_amount = 6
 
-    find("tr[data-table-id-param='#{@batman.id}']").click
+    within batman_selector do
+      expect(page).to have_text(@batman.full_title)
+      expect(find(sold_amount_selector)).to have_text(sold_amount)
+    end
+
+    find(batman_selector).click
     find(:link, "Edit").click
     find("div[aria-expanded='false']", text: "Studio Ghibli").click
 
@@ -161,8 +166,10 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     fill_in "q", with: dc_comics.title
     find_by_id("q").native.send_keys(:return)
 
-    expect(page).to have_text(Product.find(@batman.id).full_title)
-    expect(page).to have_text(SOLD_BATMAN_AMOUNT)
+    within batman_selector do
+      expect(page).to have_text(Product.find(@batman.id).full_title)
+      expect(find(sold_amount_selector)).to have_text(sold_amount)
+    end
   end
 
   it "finds purchases when we change them" do
