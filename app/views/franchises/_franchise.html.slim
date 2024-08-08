@@ -12,6 +12,4 @@ tr id="#{dom_id franchise}"
       = link_to franchise
         i.icn 📄
         | Show
-      = link_to edit_franchise_path(franchise)
-        i.icn ✏️
-        | Edit
+      = render "_shared/action-edit", route: edit_franchise_path(franchise)

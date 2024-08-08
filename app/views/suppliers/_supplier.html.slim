@@ -8,6 +8,4 @@ tr id="#{dom_id supplier}"
       = link_to supplier
         i.icn 📄
         | Show
-      = link_to edit_supplier_path(supplier)
-        i.icn ✏️
-        | Edit
+      = render "_shared/action-edit", route: edit_supplier_path(supplier)

@@ -1,6 +1,6 @@
 tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-url-param=purchase_path(purchase)
   td.text-center
-    = render "_shared/preloadable_img", src: product_thumb_url(purchase.product), class_names: "zoomable", width: 100
+    = render "_shared/preloadable_img", src: thumb_url(purchase.product), class_names: "zoomable", width: 100
   td
     = purchase.product.full_title
     - if purchase.variation.present?
@@ -21,6 +21,4 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
 
   - if action_name != "show"
     td.actions
-      = link_to edit_purchase_path(purchase), {class: "no-events"}
-        i.icn ✏️
-        | Edit
+      = render "_shared/action-edit", route: edit_purchase_path(purchase)

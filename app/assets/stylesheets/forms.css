@@ -61,24 +61,11 @@ form.payment input[type="submit"] {
   margin: 1.5rem 0;
 }
 
-.form__img-card {
-  transform-origin: bottom;
-  transition: transform 0.3s;
-
-  &.removed {
-    animation: fade-out 400ms ease-in;
-  }
+.checkbox-remove:focus {
+  border-color: red;
 }
 
-.form__img-card:hover {
-  transform: scale3d(1.2, 1.2, 1.2);
-}
-
-@keyframes fade-out {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+.checkbox-remove:checked {
+  border-color: red;
+  background-color: red;
 }

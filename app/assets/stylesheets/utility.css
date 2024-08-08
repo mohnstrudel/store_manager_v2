@@ -71,7 +71,7 @@ h1.classic {
 }
 
 .gap {
-  gap: calc(var(--spacing) * 1);
+  gap: calc(var(--spacing) * 0.5);
 }
 
 .no-events > * {
@@ -103,4 +103,24 @@ br.xl {
 
 .translate-y-1 {
   transform: translateY(0.25em);
+}
+
+.inline {
+  display: inline;
+}
+
+.pd-2 {
+  padding-top: 0.5rem;
+}
+
+.p {
+  padding: var(--spacing);
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.font-smaller {
+  font-size: calc(var(--font-size) / 1.2);
 }

@@ -3,11 +3,19 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all
+    @warehouses = Warehouse.all.with_attached_images
   end
 
   # GET /warehouses/1
   def show
+    @purchased_products = @warehouse
+      .purchased_products
+      .with_attached_images
+      .includes(:product)
+      .order(updated_at: :desc)
+      .page(params[:page])
+    @total_purchased_products = @warehouse.purchased_products.size
+    @purchased_products = @purchased_products.search(params[:q]) if params[:q].present?
   end
 
   # GET /warehouses/new
@@ -32,7 +40,11 @@ class WarehousesController < ApplicationController
 
   # PATCH/PUT /warehouses/1
   def update
+    if params[:deleted_img_ids].present?
+      attachments = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
+    end
     if @warehouse.update(warehouse_params)
+      attachments&.map(&:purge_later)
       redirect_to @warehouse, notice: "Warehouse was successfully updated.", status: :see_other
     else
       render :edit, status: :unprocessable_entity
@@ -43,13 +55,6 @@ class WarehousesController < ApplicationController
   def destroy
     @warehouse.destroy!
     redirect_to warehouses_url, notice: "Warehouse was successfully destroyed.", status: :see_other
-  end
-
-  def remove_image
-    @image = ActiveStorage::Attachment.find(params[:id])
-    @image.purge_later
-
-    head :no_content
   end
 
   private
@@ -67,6 +72,7 @@ class WarehousesController < ApplicationController
       :courier_tracking_url,
       :external_name,
       :name,
+      deleted_img_ids: [],
       images: []
     )
   end

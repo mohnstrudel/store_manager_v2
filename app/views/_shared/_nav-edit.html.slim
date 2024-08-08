@@ -1,16 +1,18 @@
+- route = local_assigns[:model] if local_assigns[:route].nil?
+
 nav
   ul
     li
       = link_to "Back", "javascript:history.back()"
       - if model.respond_to?(:woo_id)
-        h1 Editing #{model.model_name.singular}
+        h1 Editing #{model.model_name.name.titleize}
         h4 Woo ID: #{model.woo_id}
       - else
-        h1 Editing #{model.model_name.singular}
+        h1 Editing #{model.model_name.name.titleize}
         h4 ID: #{model.id}
 
   ul
     li
-      = link_to model
+      = link_to route
         i.icn 📄
         | Show

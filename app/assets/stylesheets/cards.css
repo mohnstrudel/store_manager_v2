@@ -51,7 +51,6 @@ article.notice * {
   border-radius: var(--border-radius);
   padding-bottom: 0;
   height: min-content;
-  overflow: hidden;
 }
 
 .table-card .pagination:first-of-type {
@@ -142,6 +141,10 @@ main.wide.w-pd {
 
   &.even-pd {
     padding: var(--spacing-m);
+  }
+
+  p {
+    overflow-wrap: anywhere;
   }
 }
 

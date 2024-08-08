@@ -15,8 +15,8 @@
 #  product_id      :bigint           not null
 #  warehouse_id    :bigint           not null
 #
-require 'rails_helper'
+require "rails_helper"
 
-RSpec.describe WarehouseProduct, type: :model do
+RSpec.describe PurchasedProduct, type: :model do
   pending "add some examples to (or delete) #{__FILE__}"
 end

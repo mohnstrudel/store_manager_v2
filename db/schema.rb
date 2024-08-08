@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_14_121500) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_01_122749) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -174,6 +174,22 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_14_121500) do
     t.index ["slug"], name: "index_products_on_slug", unique: true
   end
 
+  create_table "purchased_products", force: :cascade do |t|
+    t.bigint "warehouse_id", null: false
+    t.integer "weight"
+    t.integer "length"
+    t.integer "width"
+    t.integer "height"
+    t.decimal "price", precision: 8, scale: 2
+    t.decimal "shipping_price", precision: 8, scale: 2
+    t.string "tracking_number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "purchase_id"
+    t.index ["purchase_id"], name: "index_purchased_products_on_purchase_id"
+    t.index ["warehouse_id"], name: "index_purchased_products_on_warehouse_id"
+  end
+
   create_table "purchases", force: :cascade do |t|
     t.bigint "supplier_id", null: false
     t.bigint "product_id"
@@ -260,22 +276,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_14_121500) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "warehouse_products", force: :cascade do |t|
-    t.bigint "warehouse_id", null: false
-    t.bigint "product_id", null: false
-    t.integer "weight"
-    t.integer "length"
-    t.integer "width"
-    t.integer "height"
-    t.decimal "price", precision: 8, scale: 2
-    t.decimal "shipping_price", precision: 8, scale: 2
-    t.string "tracking_number"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["product_id"], name: "index_warehouse_products_on_product_id"
-    t.index ["warehouse_id"], name: "index_warehouse_products_on_warehouse_id"
-  end
-
   create_table "warehouses", force: :cascade do |t|
     t.string "name"
     t.string "external_name"
@@ -304,6 +304,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_14_121500) do
   add_foreign_key "product_versions", "versions"
   add_foreign_key "products", "franchises"
   add_foreign_key "products", "shapes"
+  add_foreign_key "purchased_products", "purchases"
+  add_foreign_key "purchased_products", "warehouses"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
   add_foreign_key "purchases", "variations"
@@ -312,6 +314,4 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_14_121500) do
   add_foreign_key "variations", "products"
   add_foreign_key "variations", "sizes"
   add_foreign_key "variations", "versions"
-  add_foreign_key "warehouse_products", "products"
-  add_foreign_key "warehouse_products", "warehouses"
 end

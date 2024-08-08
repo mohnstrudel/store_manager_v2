@@ -12,13 +12,15 @@ module ApplicationHelper
   end
 
   def format_money(amount, unit = "")
-    number_to_currency(
-      amount.to_f,
-      delimiter: ".",
-      separator: ",",
-      format: "%n %u",
-      unit:
-    )
+    if amount.presence
+      number_to_currency(
+        amount.to_f,
+        delimiter: ".",
+        separator: ",",
+        format: "%n %u",
+        unit:
+      )
+    end
   end
 
   def format_zero_values(value)
@@ -36,8 +38,21 @@ module ApplicationHelper
   end
 
   def format_show_page_title(record)
-    return record.title if record.respond_to?(:title)
-    return record.name if record.respond_to?(:name)
-    record.value if record.respond_to?(:value)
+    return record.title.titleize if record.respond_to?(:title)
+    return record.name.titleize if record.respond_to?(:name)
+    record.value.titleize if record.respond_to?(:value)
+  end
+
+  def format_item_size(item)
+    length = item.length ? "ℓ#{item.length}" : nil
+    width = item.width ? "w#{item.width}" : nil
+    height = item.height ? "h#{item.height}" : nil
+    [length, width, height].compact.join(" × ")
+  end
+
+  def thumb_url(model)
+    if model.images.present?
+      url_for(model.images.first.representation(:thumb))
+    end
   end
 end

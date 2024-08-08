@@ -12,8 +12,8 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
-  has_many :warehouse_products, dependent: :destroy
-  has_many :products, through: :warehouse_products
+  has_many :purchased_products, dependent: :destroy
+  has_many :purchases, through: :purchased_products
 
   has_many_attached :images do |attachable|
     attachable.variant :preview,

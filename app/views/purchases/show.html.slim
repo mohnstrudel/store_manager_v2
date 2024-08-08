@@ -1,19 +1,26 @@
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @purchase, custom_heading: true
-  - if @purchase.variation
-    hgroup
-      h1
-        = @purchase.product.full_title
-        i.icn.is-link = link_to "🔗", @purchase.product
-      h2
-        = @purchase.variation.types_name
-        | : 
-        = @purchase.variation.title
-  - else
-    h1
-      = @purchase.product.full_title
-      i.icn.is-link = link_to "🔗", @purchase.product
+nav
+  ul
+    li
+      - if @purchase.variation
+        hgroup
+          h1
+            = @purchase.product.full_title
+            i.icn.is-link = link_to "🔗", @purchase.product
+          h2
+            = @purchase.variation.types
+            | : 
+            = @purchase.variation.title
+      - else
+        h1
+          = @purchase.product.full_title
+          i.icn.is-link = link_to "🔗", @purchase.product
+  ul.gap
+    li
+      a.btn href="#{url_for controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase}"
+        i.icn ✏️
+        | Edit
 
 main.wide.flex.flex-col.gap.w-pd
   .cards
@@ -69,5 +76,29 @@ main.wide.flex.flex-col.gap.w-pd
       = form.label :amount, "New:"
       = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any
       = form.submit "Add payment", role: "button"
+
+  - if @purchase.purchased_products.any?
+    .table-cards-group
+      .table-card
+        h3 Stored in Warehouses
+        table role="grid" data-controller="table"
+          thead
+            th Supplier
+            - if @purchase.variation.present?
+              th Variation?
+            th Warehouse
+            th Last Updated
+          tbody
+            - @purchase.purchased_products.ordered_by_updated_date.each do |pp|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=warehouse_path(pp.warehouse)
+              )
+                td = @purchase.supplier.title
+                - if @purchase.variation.present?
+                  td = @purchase.which_variation
+                td = pp.warehouse.name
+                td = time_ago_in_words pp.updated_at
+
 
 = button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"  

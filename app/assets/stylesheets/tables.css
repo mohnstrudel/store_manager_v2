@@ -7,6 +7,11 @@ table thead th {
   font-size: smaller;
 }
 
+table.compact th,
+table.compact td {
+  padding: calc(var(--spacing) / 2) calc(var(--spacing) / 2.5);
+}
+
 .vertical {
   margin: 0;
   margin-bottom: var(--table-spacing-vertical);
@@ -36,7 +41,6 @@ table thead th {
 
   text-align: right;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .vertical thead,
@@ -116,12 +120,15 @@ td.actions a:not(:first-of-type) {
   margin-left: 0.25rem;
 }
 
-table a[data-turbo-method="delete"] {
-  color: var(--form-element-invalid-active-border-color);
+table a[data-turbo-method="delete"],
+table a.danger {
+  color: rgb(var(--danger-color));
 }
 
-th {
-  white-space: nowrap;
+table a[data-turbo-method="delete"]:hover,
+table a.danger:hover {
+  border-color: rgba(var(--danger-color), 0.05) !important;
+  background: rgba(var(--danger-color), 0.1);
 }
 
 tr.selected {
@@ -134,4 +141,13 @@ tr.selected td {
 
 tr.has-debt {
   background-color: rgba(var(--rgb-debt-color), 0.1);
+}
+
+.table-hgroup {
+  margin: var(--spacing);
+
+  h3 {
+    margin: 0;
+    padding: 0;
+  }
 }
