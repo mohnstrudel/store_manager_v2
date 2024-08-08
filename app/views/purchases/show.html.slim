@@ -77,7 +77,7 @@ main.wide.flex.flex-col.gap.w-pd
       = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any
       = form.submit "Add payment", role: "button"
 
-  - if @purchase.purchased_products.any?
+  - if @purchased_products.any?
     .table-cards-group
       .table-card
         h3 Stored in Warehouses
@@ -89,7 +89,7 @@ main.wide.flex.flex-col.gap.w-pd
             th Warehouse
             th Last Updated
           tbody
-            - @purchase.purchased_products.ordered_by_updated_date.each do |pp|
+            - @purchased_products.each do |pp|
               tr.hoverable(
                 data-action="click->table#goTo"
                 data-table-url-param=warehouse_path(pp.warehouse)

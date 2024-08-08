@@ -98,7 +98,10 @@ class ProductsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_product
-    @product = Product.with_attached_images.friendly.find(params[:id])
+    @product = Product.includes(
+      purchases: [:product, variation: [:version, :color, :size]],
+      purchased_products: [:warehouse, :purchase]
+    ).with_attached_images.friendly.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.
