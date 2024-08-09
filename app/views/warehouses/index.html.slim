@@ -1,0 +1,18 @@
+= render "_shared/notice"
+
+= render "_shared/nav-index", model: @warehouses
+
+main.wide
+  table role="grid" data-controller="table"
+    thead
+      tr
+        th
+          | Name
+          br
+          <span class="fw-400">External Name for Clients</span>
+        th CBM
+        th Container Tracking Number
+        th Courier Tracking URL
+        th.right Actions
+    tbody
+      = render @warehouses

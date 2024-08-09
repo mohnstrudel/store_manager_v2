@@ -3,7 +3,7 @@
   justify-content: space-between;
   align-items: center;
   margin: 0;
-  width: 70%;
+  width: 100%;
 
   & input {
     margin: 0;
@@ -35,6 +35,10 @@
       padding-bottom: 0;
     }
   }
+}
+
+search-navigation.spacing-m {
+  margin: var(--spacing-m);
 }
 
 .search-results--empty {

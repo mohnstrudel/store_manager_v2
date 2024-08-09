@@ -1,7 +1,6 @@
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @sale, custom_heading: true
-  h1 = "Sale #{@sale.woo_id}"
+= render "_shared/nav-show", model: @sale
 
 main.wide.flex.flex-col.gap.w-pd
   .cards

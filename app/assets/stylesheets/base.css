@@ -42,7 +42,8 @@ nav ul nav li {
 }
 
 main main {
-  margin: var(--block-spacing-vertical) 0;
+  /* margin: var(--block-spacing-vertical) 0; */
+  margin: 0;
 }
 
 body > header {

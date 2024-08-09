@@ -1,0 +1,42 @@
+.table-cards-group
+  .table-card
+    .table-hgroup.flex.justify-between
+      h3 Purchased Products
+      h3 = @total_purchased_products
+
+    .search-navigation.spacing-m
+      = render partial: "_shared/search-form", locals: {path: warehouse_path}
+      = paginate @purchased_products
+
+    - if @purchased_products.present?
+      table role="grid" data-controller="table"
+        thead
+          th Photo
+          th Title
+          th Length × Width × Height, cm
+          th.right Kg
+          th.right Price
+          th.right Shipping
+          th Tracking Number
+          th Actions
+        tbody
+          - @purchased_products.each do |purchased|
+            tr(
+              class="hoverable"
+              data-action="click->table#goTo"
+              data-table-url-param=purchased_product_path(purchased)
+            )
+              td.text-center
+                = render "_shared/preloadable_img", src: thumb_url(purchased), class_names: "zoomable", width: 100
+              td = purchased.purchase.product.full_title
+              td.mono = format_item_size(purchased)
+              td.mono.right = purchased.weight
+              td.mono.right = format_money purchased.price
+              td.mono.right = format_money purchased.shipping_price
+              td = purchased.tracking_number
+              td.actions
+                = render "_shared/action-destroy", route: purchased_product_path(purchased)
+                = render "_shared/action-edit", route: edit_purchased_product_path(purchased)
+      = paginate @purchased_products
+    - else
+      = render "_shared/search-results-empty"    

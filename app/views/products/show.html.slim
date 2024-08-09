@@ -1,27 +1,27 @@
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @product, custom_heading: true, is_purchasable: true
-  hgroup 
-    h1 = @product.title
-    h2 = @product.full_title
+nav
+  ul
+    li
+      = link_to "Back", "javascript:history.back()"
+      hgroup 
+        h1 = @product.title
+        h2 = @product.full_title
+  ul.gap
+    li
+      a.btn href="#{url_for controller: "#{@product.model_name.plural}", action: "edit", id: @product}"
+        i.icn ✏️
+        | Edit
+    li
+      a.btn href="#{url_for new_purchase_path(product: @product)}" 
+        i.icn 💰
+        | Purchase
+
 
 main.wide.flex.flex-col.gap.w-pd
   .cards.items-center
-    - if @product.images.present?
-        .gallery data-controller="gallery"
-          .card.gallery__nav
-            - @product.images.each do |img|
-              = render "_shared/preloadable_img", src: url_for(img.representation(:nano)), width: 70, \
-                data: { \
-                  id: @product.images.index(img),\
-                  preview: url_for(img.representation(:preview)), \
-                  "gallery-target": "slide", \
-                  "action": "click->gallery#select" \
-                }
-          .gallery__main
-            button.gallery__btn data-action="gallery#prev" ←
-            button.gallery__btn data-action="gallery#next" →
-            = render "_shared/preloadable_img", src: @product.images.first.representation(:preview).url, data: {"gallery-target": "main"}
+    = render "_shared/gallery", images: @product.images
+
     .card.grow.shrink-4
       .title Title
       p = @product.title
@@ -157,10 +157,11 @@ main.wide.flex.flex-col.gap.w-pd
         h3 Purchases
         table role="grid" data-controller="table"
           thead
-            th Title
-            th Variation?
-            th Time ago
             th Supplier
+            th Title
+            - if @product.variations.any?
+              th Variation?
+            th Time ago
             th.right Item Price, $
             th Qty
           tbody
@@ -169,15 +170,37 @@ main.wide.flex.flex-col.gap.w-pd
                 data-action="click->table#goTo"
                 data-table-url-param=purchase_path(purchase)
               )
+                td = purchase.supplier.title
                 - if purchase.variation.present?
                   td = purchase.product.full_title
                   td = purchase.variation.title
                 - else
                   td = purchase.product.full_title
-                  td -
                 td.no-wrap = time_ago_in_words purchase.created_at
-                td = purchase.supplier.title
                 td.right.mono = format_money purchase.item_price
                 td = purchase.amount
+
+  - if @product.purchased_products.present?
+    .table-cards-group
+      .table-card
+        h3 Stored in Warehouses
+        table role="grid" data-controller="table"
+          thead
+            th Supplier
+            - if @product.variations.any?
+              th Variation?
+            th Warehouse
+            th Last Updated
+          tbody
+            - @product.purchased_products.ordered_by_updated_date.each do |pp|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=warehouse_path(pp.warehouse)
+              )
+                td = pp.purchase.supplier.title
+                - if @product.variations.any?
+                  td = pp.purchase.which_variation
+                td = pp.warehouse.name
+                td = time_ago_in_words pp.updated_at
 
 = button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

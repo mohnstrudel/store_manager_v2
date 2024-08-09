@@ -12,6 +12,4 @@ tr id="#{dom_id shape}"
       = link_to shape
         i.icn 📄
         | Show
-      = link_to edit_shape_path(shape)
-        i.icn ✏️
-        | Edit
+      = render "_shared/action-edit", route: edit_sale_path(sale)

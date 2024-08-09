@@ -8,6 +8,11 @@ button {
   background-color: var(--form-element-invalid-active-border-color);
 }
 
+.btn-warning {
+  background-color: var(--color);
+  color: var(--contrast-inverse);
+}
+
 .radio-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -54,13 +59,32 @@ button.is-inverted:hover {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  gap: 2px;
   cursor: pointer;
   border: 1px solid var(--primary-unmuted);
   border-radius: var(--border-radius);
 
-  padding: 0.75em;
+  padding: 0.35em 0.6em;
+
   width: auto;
-  font-size: calc(var(--font-size) / 1.25);
+  font-size: calc(var(--font-size) / 1.2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-wrapper a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  border: 1px solid var(--primary-unmuted);
+  border-radius: var(--border-radius);
+
+  padding: 0.35em 0.6em;
+
+  width: auto;
+  font-size: calc(var(--font-size) / 1.2);
   text-decoration: none;
   white-space: nowrap;
 }

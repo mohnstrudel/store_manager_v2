@@ -49,4 +49,8 @@ class Variation < ApplicationRecord
   def types_size
     [size.presence, version.presence, color.presence].compact.size
   end
+
+  def type_name_and_value
+    [size, version, color].compact.map { |i| "#{i.model_name.name}: #{i.value}" }.join(", ")
+  end
 end

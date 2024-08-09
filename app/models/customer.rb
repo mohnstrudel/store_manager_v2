@@ -31,6 +31,10 @@ class Customer < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
+  def title
+    full_name
+  end
+
   def self.woo_id_is_valid?(woo_id)
     !woo_id.in? [0, "0", ""]
   end

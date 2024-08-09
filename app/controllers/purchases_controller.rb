@@ -17,6 +17,10 @@ class PurchasesController < ApplicationController
 
   # GET /purchases/1 or /purchases/1.json
   def show
+    @purchased_products = @purchase
+      .purchased_products
+      .includes(:warehouse)
+      .order(updated_at: :desc)
   end
 
   # GET /purchases/new

@@ -1,7 +1,6 @@
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @customer, custom_heading: true
-  h1 = @customer.full_name
+= render "_shared/nav-show", model: @customer
 
 main
   table.vertical(role="grid")

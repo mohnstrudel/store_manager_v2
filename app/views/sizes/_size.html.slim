@@ -12,6 +12,4 @@ tr id="#{dom_id size}"
       = link_to size
         i.icn 📄
         | Show
-      = link_to edit_size_path(size)
-        i.icn ✏️
-        | Edit
+      = render "_shared/action-edit", route: edit_size_path(size)
