@@ -7,7 +7,7 @@ class SalesController < ApplicationController
       .includes(
         :customer,
         product_sales: [
-          :product,
+          product: [images_attachments: :blob],
           variation: [
             :version,
             :color,

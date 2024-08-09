@@ -7,8 +7,6 @@ nav
         h4 #{model.model_name.name}
   ul.gap
     li
-      a.btn.l.is-primary.translate-y-1 href="#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
-        i.icn ✏️
-        | Edit
+      .btn-wrapper = render "_shared/action-edit", route: "#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
     = yield
 
