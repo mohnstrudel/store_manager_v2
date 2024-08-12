@@ -7,6 +7,7 @@
 #  container_tracking_number :string
 #  courier_tracking_url      :string
 #  external_name             :string
+#  is_default                :boolean          default(FALSE), not null
 #  name                      :string
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null

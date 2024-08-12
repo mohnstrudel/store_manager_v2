@@ -31,6 +31,8 @@ main.wide.no-bd.flex.flex-col.gap
             = link_to @warehouse.courier_tracking_url, @warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer"
           - else
             | -
+        .title Is Default?
+        p = @warehouse.is_default ? "Yes" : "No"
         .title Created At
         p = format_time @warehouse.created_at
 

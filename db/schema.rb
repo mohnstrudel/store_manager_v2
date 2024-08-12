@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_01_122749) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_12_064442) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -182,7 +182,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_122749) do
     t.integer "height"
     t.decimal "price", precision: 8, scale: 2
     t.decimal "shipping_price", precision: 8, scale: 2
-    t.string "tracking_number"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "purchase_id"
@@ -284,6 +283,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_122749) do
     t.string "cbm"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_default", default: false, null: false
+    t.index ["is_default"], name: "index_warehouses_on_is_default", unique: true, where: "(is_default = true)"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

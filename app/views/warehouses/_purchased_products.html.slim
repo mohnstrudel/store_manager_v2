@@ -17,7 +17,6 @@
           th.right Kg
           th.right Price
           th.right Shipping
-          th Tracking Number
           th Actions
         tbody
           - @purchased_products.each do |purchased|
@@ -33,7 +32,6 @@
               td.mono.right = purchased.weight
               td.mono.right = format_money purchased.price
               td.mono.right = format_money purchased.shipping_price
-              td = purchased.tracking_number
               td.actions
                 = render "_shared/action-destroy", route: purchased_product_path(purchased)
                 = render "_shared/action-edit", route: edit_purchased_product_path(purchased)

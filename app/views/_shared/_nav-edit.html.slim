@@ -3,7 +3,7 @@
 nav
   ul
     li
-      = link_to "Back", "javascript:history.back()"
+      = link_to "Back", :back
       - if model.respond_to?(:woo_id)
         h1 Editing #{model.model_name.name.titleize}
         h4 Woo ID: #{model.woo_id}

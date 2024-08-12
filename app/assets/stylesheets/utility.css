@@ -126,3 +126,7 @@ br.xl {
 .font-smaller {
   font-size: calc(var(--font-size) / 1.2);
 }
+
+.danger {
+  color: rgb(var(--danger-color));
+}

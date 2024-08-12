@@ -7,6 +7,7 @@
 #  container_tracking_number :string
 #  courier_tracking_url      :string
 #  external_name             :string
+#  is_default                :boolean          default(FALSE), not null
 #  name                      :string
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
@@ -28,5 +29,15 @@ class Warehouse < ApplicationRecord
       format: :webp,
       resize_to_limit: [120, 120],
       preprocessed: true
+  end
+
+  before_save :ensure_only_one_default
+
+  private
+
+  def ensure_only_one_default
+    if is_default
+      Warehouse.where.not(id:).update_all(is_default: false)
+    end
   end
 end

@@ -1,7 +1,7 @@
 nav
   ul
     li
-      = link_to "Back", "javascript:history.back()"
+      = link_to "Back to index", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
       hgroup
         h1 #{format_show_page_title(model)}
         h4 #{model.model_name.name}

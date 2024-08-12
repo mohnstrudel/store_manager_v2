@@ -3,7 +3,7 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products)
+    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products).order(updated_at: :desc)
   end
 
   # GET /warehouses/1
@@ -72,6 +72,7 @@ class WarehousesController < ApplicationController
       :courier_tracking_url,
       :external_name,
       :name,
+      :is_default,
       deleted_img_ids: [],
       images: []
     )

@@ -67,7 +67,6 @@ class PurchasedProductsController < ApplicationController
       :weight,
       :price,
       :shipping_price,
-      :tracking_number,
       :warehouse_id,
       :purchase_id,
       deleted_img_ids: [],
