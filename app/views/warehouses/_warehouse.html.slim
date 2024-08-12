@@ -9,6 +9,7 @@ tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table
     td = link_to warehouse.courier_tracking_url, warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer"
   - else
     td
+  td.mono = warehouse.purchased_products.size  
   - if action_name != "show" 
     td.actions
       = render "_shared/action-edit", route: edit_warehouse_path(warehouse)

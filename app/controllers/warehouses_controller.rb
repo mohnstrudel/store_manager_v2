@@ -3,7 +3,7 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images
+    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products)
   end
 
   # GET /warehouses/1
