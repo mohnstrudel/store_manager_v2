@@ -91,7 +91,7 @@ class Purchase < ApplicationRecord
   private
 
   def create_purchased_products
-    warehouse = Warehouse.find_or_create_by(name: "In production")
+    warehouse = Warehouse.find_by(is_default: true)
     return if warehouse.nil?
 
     amount.times do
