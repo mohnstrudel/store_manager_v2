@@ -69,3 +69,11 @@ form.payment input[type="submit"] {
   border-color: red;
   background-color: red;
 }
+
+.field_with_errors input {
+  box-shadow: 2px 2px 8px var(--form-element-invalid-focus-color);
+  border: 1px solid var(--form-element-invalid-border-color);
+}
+.field_with_errors label {
+  color: var(--form-element-invalid-border-color);
+}

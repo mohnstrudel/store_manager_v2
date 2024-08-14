@@ -1,6 +1,4 @@
 = form_with(model: warehouse) do |form|
-  = render "_shared/notice-err", model: warehouse
-
   = form.label :name
   = form.text_field :name
 
@@ -33,5 +31,7 @@
 
   = form.label :images 
   = form.file_field :images, multiple: true
+
+  = render "_shared/notice-err", model: warehouse
 
   = form.submit

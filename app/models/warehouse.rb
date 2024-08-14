@@ -33,6 +33,9 @@ class Warehouse < ApplicationRecord
 
   before_save :ensure_only_one_default
 
+  validates :name, presence: true
+  validates :external_name, presence: true
+
   private
 
   def ensure_only_one_default
