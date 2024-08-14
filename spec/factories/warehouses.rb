@@ -14,10 +14,11 @@
 #
 FactoryBot.define do
   factory :warehouse do
-    name { "MyString" }
-    external_name { "MyString" }
-    container_tracking_number { "MyString" }
-    courier_tracking_url { "MyString" }
-    cbm { "MyString" }
+    name { "Virtual Warehouse" }
+    external_name { "In Production" }
+    container_tracking_number { "666" }
+    courier_tracking_url { "" }
+    cbm { "42" }
+    is_default { false }
   end
 end
