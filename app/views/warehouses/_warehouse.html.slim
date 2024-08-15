@@ -2,7 +2,9 @@ tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table
   td
     strong = warehouse.name
     - if warehouse.is_default?
-      span.danger *
+      span.has-memo.danger
+        | *
+        span.memo-notice This is the default warehouse for newly purchased products
     br
     = warehouse.external_name
   td.mono = warehouse.cbm
