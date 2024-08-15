@@ -15,8 +15,15 @@
 #  product_id      :bigint           not null
 #  warehouse_id    :bigint           not null
 #
-require "rails_helper"
-
-RSpec.describe PurchasedProduct, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+FactoryBot.define do
+  factory :purchased_product do
+    warehouse
+    purchase
+    weight { 1 }
+    length { 1 }
+    width { 1 }
+    height { 1 }
+    price { "9.99" }
+    shipping_price { "9.99" }
+  end
 end

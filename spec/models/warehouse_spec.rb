@@ -20,6 +20,7 @@ RSpec.describe Warehouse, type: :model do
       warehouse = described_class.new(name: nil, external_name: "External Name")
       expect(warehouse).not_to be_valid
     end
+
     it "validates presence of external name" do
       warehouse = described_class.new(name: "Name", external_name: nil)
       expect(warehouse).not_to be_valid

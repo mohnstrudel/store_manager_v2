@@ -15,16 +15,12 @@
 #  product_id      :bigint           not null
 #  warehouse_id    :bigint           not null
 #
-FactoryBot.define do
-  factory :warehouse_product do
-    warehouse { nil }
-    product { nil }
-    weight { 1 }
-    length { 1 }
-    width { 1 }
-    height { 1 }
-    price { "9.99" }
-    shipping_price { "9.99" }
-    tracking_number { "MyString" }
+require "rails_helper"
+
+RSpec.describe PurchasedProduct, type: :model do
+  describe "#name" do
+    subject(:purchased_product) { create(:purchased_product) }
+
+    it { expect(purchased_product.name).to eq(purchased_product.purchase.full_title) }
   end
 end
