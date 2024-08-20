@@ -183,7 +183,7 @@ main.wide.flex.flex-col.gap.w-pd
   - if @product.purchased_products.present?
     .table-cards-group
       .table-card
-        h3 Stored in Warehouses
+        h3 Stored in Warehouses: #{@product.purchased_products.count}
         table role="grid" data-controller="table"
           thead
             th Supplier

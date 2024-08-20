@@ -78,7 +78,11 @@ main.wide.flex.flex-col.gap.w-pd
   - if @purchased_products.any?
     .table-cards-group
       .table-card
-        h3 Stored in Warehouses
+        h3
+          - if @purchased_products.count == @purchase.amount
+            | Stored in Warehouses: #{@purchased_products.count}
+          - else
+            | Stored in Warehouses: #{@purchased_products.count} of #{@purchase.amount}
         table role="grid" data-controller="table"
           thead
             th Supplier
