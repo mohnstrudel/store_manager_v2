@@ -2,17 +2,18 @@
 #
 # Table name: purchased_products
 #
-#  id             :bigint           not null, primary key
-#  height         :integer
-#  length         :integer
-#  price          :decimal(8, 2)
-#  shipping_price :decimal(8, 2)
-#  weight         :integer
-#  width          :integer
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  purchase_id    :bigint
-#  warehouse_id   :bigint           not null
+#  id              :bigint           not null, primary key
+#  height          :integer
+#  length          :integer
+#  price           :decimal(8, 2)
+#  shipping_price  :decimal(8, 2)
+#  weight          :integer
+#  width           :integer
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  product_sale_id :bigint
+#  purchase_id     :bigint
+#  warehouse_id    :bigint           not null
 #
 class PurchasedProduct < ApplicationRecord
   include PgSearch::Model
@@ -26,6 +27,8 @@ class PurchasedProduct < ApplicationRecord
 
   db_belongs_to :warehouse
   db_belongs_to :purchase
+
+  belongs_to :product_sale, optional: true
 
   has_one :product, through: :purchase
 

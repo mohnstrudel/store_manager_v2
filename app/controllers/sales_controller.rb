@@ -1,5 +1,5 @@
 class SalesController < ApplicationController
-  before_action :set_sale, only: %i[show edit update destroy]
+  before_action :set_sale, only: %i[show edit update destroy link_purchased_products]
 
   # GET /sales
   def index
@@ -70,6 +70,11 @@ class SalesController < ApplicationController
   def destroy
     @sale.destroy
     redirect_to sales_url, notice: "Sale was successfully destroyed.", status: :see_other
+  end
+
+  def link_purchased_products
+    @sale.product_sales.each(&:link_purchased_products)
+    redirect_to @sale, notice: "Purchased products have been connected."
   end
 
   private

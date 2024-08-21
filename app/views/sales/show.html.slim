@@ -1,6 +1,11 @@
 = render "_shared/notice"
 
 = render "_shared/nav-show", model: @sale
+  - if @sale.active? && @sale.has_unlinked_purchased_products?
+    li
+      a.btn href="#{url_for link_purchased_products_sale_path(warehouse_id: @sale)}" 
+        i.icn 🪢
+        | Link with Purchased Products
 
 main.wide.flex.flex-col.gap.w-pd
   .cards
@@ -61,6 +66,27 @@ main.wide.flex.flex-col.gap.w-pd
                 td = ps.variation.present? ? ps.variation.title : "-"
                 td.right.mono = format_money ps.price
                 td.right = ps.qty
+
+  - if @sale.has_linked_purchased_products?
+    .table-card.full-width
+      h3 Purchased Products
+      table role="grid" data-controller="table"
+        thead
+          th Product
+          th Variation
+          th.right Price, $
+          th Warehouse
+        tbody
+          - @sale.product_sales.each do |ps|
+            - ps.purchased_products.each do |purchased_product|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=purchased_product_path(purchased_product)
+              )
+                td = ps.product.full_title
+                td = ps.variation.present? ? ps.variation.title : "-"
+                td.right.mono = format_money purchased_product.price
+                td = purchased_product.warehouse.name
 
   .table-card.full-width
     h3 Address
