@@ -6,8 +6,9 @@ export default class extends Controller {
   nextImage = null;
 
   initialize() {
+    let isInit = true;
     this.selectedImgIndex = 0;
-    this.showCurrentSlide();
+    this.showCurrentSlide(isInit);
   }
 
   select(event) {
@@ -53,15 +54,17 @@ export default class extends Controller {
     this.changeImage(this.slideTargets[this.selectedImgIndex].dataset.preview);
   }
 
-  showCurrentSlide() {
+  showCurrentSlide(isInit = false) {
     this.slideTargets.forEach((element, index) => {
       if (index === this.selectedImgIndex) {
         element.classList.add("active");
-        element.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "start",
-        });
+        if (!isInit) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start",
+          });
+        }
       } else {
         element.classList.remove("active");
       }
