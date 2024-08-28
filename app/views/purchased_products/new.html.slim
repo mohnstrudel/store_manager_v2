@@ -1,4 +1,4 @@
-= render "_shared/nav-new", model: @purchased_product
+= render "_shared/nav-new", model: @purchased_product, custom_link: link_to("Back to warehouse", warehouse_path(@warehouse))
 
 main
   = render "form", purchased_product: @purchased_product, warehouse: @warehouse
