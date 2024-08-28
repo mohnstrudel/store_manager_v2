@@ -14,6 +14,7 @@ class PurchasedProductsController < ApplicationController
   def new
     @warehouse = Warehouse.find(params[:warehouse_id])
     @purchased_product = PurchasedProduct.new(warehouse: @warehouse)
+    @purchases = Purchase.includes(:product, :supplier).order(purchase_date: :desc, created_at: :desc)
   end
 
   # GET /purchased_products/1/edit

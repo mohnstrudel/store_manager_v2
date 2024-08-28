@@ -5,7 +5,7 @@
   = form.collection_select(:warehouse_id, Warehouse.order(:name), :id, :name, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
   
   = form.label :purchase
-  = form.collection_select(:purchase_id, Purchase.order(purchase_date: :desc, created_at: :desc), :id, :full_title, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+  = form.collection_select(:purchase_id, @purchases, :id, :full_title, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
 
   = form.label :length
   = form.text_field :length
