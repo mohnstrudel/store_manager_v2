@@ -19,6 +19,7 @@ class PurchasedProductsController < ApplicationController
 
   # GET /purchased_products/1/edit
   def edit
+    @purchases = Purchase.includes(:product, :supplier).order(purchase_date: :desc, created_at: :desc)
   end
 
   # POST /warehouse_products
