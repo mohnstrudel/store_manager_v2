@@ -7,6 +7,15 @@ article.notice {
   box-shadow: none;
 }
 
+article.notice p {
+  margin: 0;
+  padding-inline: var(--spacing-l);
+}
+
+article.notice a {
+  text-decoration: underline;
+}
+
 article.notice header {
   font-weight: bold;
 }

@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   end
 
   resources :purchased_products
+  post "purchased_products/move", to: "purchased_products#move", as: :move_purchased_products
 
   resources :warehouses do
     get "/page/:page", action: :show, on: :member

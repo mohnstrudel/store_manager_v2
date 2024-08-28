@@ -94,7 +94,7 @@ main.wide.flex.flex-col.gap.w-pd
             - @purchased_products.each do |pp|
               tr.hoverable(
                 data-action="click->table#goTo"
-                data-table-url-param=warehouse_path(pp.warehouse)
+                data-table-url-param=purchased_product_path(pp)
               )
                 td = @purchase.supplier.title
                 - if @purchase.variation.present?

@@ -91,12 +91,12 @@ button.is-inverted:hover {
 
 .btn.is-primary {
   border-radius: var(--border-radius);
-  background-color: var(--primary-muted);
+  background-color: var(--primary);
+  color: var(--primary-inverse);
 }
 
 .btn.is-primary:hover {
-  border-color: var(--primary-focus);
-  background-color: var(--primary-focus);
+  background-color: var(--primary-hover, brightness(110%));
 }
 
 .btn .icn {

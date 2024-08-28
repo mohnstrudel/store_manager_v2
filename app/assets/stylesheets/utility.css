@@ -74,10 +74,6 @@ h1.classic {
   gap: calc(var(--spacing) * 0.5);
 }
 
-.no-events > * {
-  pointer-events: none;
-}
-
 .bold {
   font-weight: 700;
 }
@@ -129,4 +125,13 @@ br.xl {
 
 .danger {
   color: rgb(var(--danger-color));
+}
+
+.relative {
+  position: relative;
+}
+
+.mx-auto {
+  margin-right: auto;
+  margin-left: auto;
 }

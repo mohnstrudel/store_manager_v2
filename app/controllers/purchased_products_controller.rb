@@ -52,6 +52,21 @@ class PurchasedProductsController < ApplicationController
     redirect_to warehouse, notice: "Purchased product was successfully destroyed.", status: :see_other, turbolinks: false
   end
 
+  def move
+    ids = params[:product_ids]
+    destination_id = params[:destination_id]
+    warehouse = Warehouse.find(params[:warehouse_id])
+
+    moved_count = PurchasedProduct.where(id: ids).update_all(warehouse_id: destination_id)
+
+    if moved_count > 0
+      destination = Warehouse.find(destination_id)
+      flash[:notice] = "Success! #{moved_count} purchased #{"product".pluralize(moved_count)} moved to: #{view_context.link_to(destination.name, warehouse_path(destination))}".html_safe
+    end
+
+    redirect_to warehouse_path(warehouse)
+  end
+
   private
 
   def set_purchased_product

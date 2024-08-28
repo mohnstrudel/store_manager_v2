@@ -5,6 +5,9 @@ export default class extends Controller {
   goTo(event) {
     if (event.target.className === "actions") return;
     if (event.target.parentNode.className === "actions") return;
+    if (event.target.closest(".no-events")) {
+      return;
+    }
 
     event.preventDefault();
 

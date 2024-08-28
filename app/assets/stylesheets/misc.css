@@ -57,3 +57,22 @@ i.icn {
   color: var(--mark-color);
   font-size: smaller;
 }
+
+.semi-link {
+  cursor: pointer;
+  border-bottom: 2px dashed var(--muted-color);
+}
+
+.semi-link:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.semi-link.undo {
+  border-bottom: 2px dashed rgb(var(--danger-color));
+  color: rgb(var(--danger-color));
+}
+
+.semi-link.undo:hover {
+  color: rgb(var(--danger-color));
+}
