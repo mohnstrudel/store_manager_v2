@@ -22,7 +22,7 @@ main
         td = @customer.last_name
         td = safe_blank_render @customer.email
         td = safe_blank_render @customer.phone
-        td = format_time @customer.created_at
-        td = format_time @customer.updated_at
+        td = format_date @customer.created_at
+        td = format_date @customer.updated_at
 
 = button_to "Destroy this customer", customer_path(@customer), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

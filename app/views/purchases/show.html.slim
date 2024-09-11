@@ -1,24 +1,21 @@
 = render "_shared/notice"
 
 nav
-  ul
-    li
-      - if @purchase.variation
-        hgroup
-          h1
-            = @purchase.product.full_title
-            i.icn.is-link = link_to "🔗", @purchase.product
-          h2
-            = @purchase.variation.type_name_and_value
-      - else
-        h1
-          = @purchase.product.full_title
-          i.icn.is-link = link_to "🔗", @purchase.product
+  ul.font-smaller
+    li = link_to "Purchases", purchases_path
+    li = link_to "Product", @purchase.product
   ul.gap
     li
       a.btn href="#{url_for controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase}"
         i.icn ✏️
         | Edit
+
+- if @purchase.variation
+  hgroup
+    h1 = @purchase.product.full_title
+    h2 = @purchase.variation.type_name_and_value
+- else
+  h1 = @purchase.product.full_title
 
 main.wide.flex.flex-col.gap.w-pd
   .cards
@@ -48,7 +45,7 @@ main.wide.flex.flex-col.gap.w-pd
       .title Order reference
       p = @purchase.order_reference
       .title Date
-      p = format_time @purchase.purchase_date || @purchase.created_at
+      p = format_date @purchase.purchase_date || @purchase.created_at
       .title Progress
       p
         progress.no-mg value=@purchase.progress max=100
@@ -64,7 +61,7 @@ main.wide.flex.flex-col.gap.w-pd
         - @purchase.payments.each do |payment|
           tr.hoverable
             td.mono = format_money payment.value
-            td = format_time payment.payment_date
+            td = format_date payment.payment_date
 
     = form_with model: @purchase.payments.new, class: "payment", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
       - if form.object.errors.any?

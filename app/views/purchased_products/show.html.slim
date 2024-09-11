@@ -38,8 +38,8 @@ main.wide.w-pd.flex.flex-col.gap
       .title Shipping
       p.mono = format_money safe_blank_render @purchased_product.shipping_price
       .title Created at
-      p = format_time @purchased_product.created_at
+      p = format_date @purchased_product.created_at
       .title Updated at
-      p = format_time @purchased_product.updated_at
+      p = format_date @purchased_product.updated_at
 
 = button_to "Destroy this purchased product", purchased_product_path(@purchased_product), method: :delete, class: "btn-danger"

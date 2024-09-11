@@ -34,6 +34,6 @@ main.wide.no-bd.flex.flex-col.gap
         .title Is Default?
         p = @warehouse.is_default ? "Yes" : "No"
         .title Created At
-        p = format_time @warehouse.created_at
+        p = format_date @warehouse.created_at
 
 = button_to "Destroy this warehouse", warehouse_path(@warehouse), method: :delete, class: "btn-danger"

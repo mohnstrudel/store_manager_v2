@@ -1,8 +1,8 @@
 tr id="#{dom_id version}"
   td = version.id
   td = version.value
-  td = format_time version.created_at
-  td = format_time version.updated_at
+  td = format_date version.created_at
+  td = format_date version.updated_at
   - if action_name != "show" 
     td.actions
       = link_to version

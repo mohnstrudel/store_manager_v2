@@ -1,12 +1,11 @@
 = render "_shared/notice"
 
 = render "_shared/nav-show", model: @sale
-  - if @sale.active? && @sale.has_unlinked_purchased_products?
+  - if @sale.active? && @sale.has_unlinked_purchased_products? && @sale.products.any? { |product| product.purchased_products.any? }
     li
       a.btn href="#{url_for link_purchased_products_sale_path(warehouse_id: @sale)}" 
-        i.icn 🪢
+        i.icn 🔗
         | Link with Purchased Products
-
 main.wide.flex.flex-col.gap.w-pd
   .cards
     .card.grow
@@ -36,9 +35,9 @@ main.wide.flex.flex-col.gap.w-pd
       .title ID
       p = @sale.id
       .title Woo Created
-      p = safe_blank_render format_time(@sale.woo_created_at)
+      p = safe_blank_render format_date(@sale.woo_created_at)
       .title Woo Upd.
-      p = safe_blank_render format_time(@sale.woo_updated_at)  
+      p = safe_blank_render format_date(@sale.woo_updated_at)  
       .title Order Woo ID
       - if @sale.woo_id.present?
         p = link_to @sale.woo_id, "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit"

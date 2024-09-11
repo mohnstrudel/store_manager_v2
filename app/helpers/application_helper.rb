@@ -3,12 +3,8 @@ module ApplicationHelper
     value.presence || "-"
   end
 
-  def format_time(time)
-    time.to_date.to_fs(:long) if time.present?
-  end
-
   def format_date(date)
-    date.strftime("%-d %b ’%y")
+    date.strftime("%-d. %B ’%y")
   end
 
   def format_money(amount, unit = "")

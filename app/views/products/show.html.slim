@@ -46,9 +46,9 @@ main.wide.flex.flex-col.gap.w-pd
       .title Supplier
       p = format_relation(@product.suppliers, "title")
       .title Created
-      p = @product.created_at
+      p = format_date @product.created_at
       .title Updated
-      p = @product.updated_at
+      p = format_date @product.updated_at
       .title Woo ID
       p = link_to @product.woo_id, @product.store_link, :target => "_blank", "rel" => "noopener noreferrer"
 
