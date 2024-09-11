@@ -11,7 +11,7 @@ describe "GET /sales" do
         create(
           :sale,
           status:,
-          woo_updated_at: idx.days.ago,
+          woo_created_at: idx.days.ago,
           woo_id: 666 - idx
         )
       end
@@ -30,8 +30,8 @@ describe "GET /sales" do
 
     it "shows sales in correct order" do
       valid_sales = Sale.where.not(status: CANCELLED_STATUS)
-      newer_sale = valid_sales.find { |s| s.woo_updated_at > 3.days.ago }
-      older_sale = valid_sales.find { |s| s.woo_updated_at < 3.days.ago }
+      newer_sale = valid_sales.find { |s| s.woo_created_at > 3.days.ago }
+      older_sale = valid_sales.find { |s| s.woo_created_at < 3.days.ago }
 
       expect("<td>#{newer_sale.woo_id}</td>").to appear_before("<td>#{older_sale.woo_id}</td>")
     end
