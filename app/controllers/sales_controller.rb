@@ -16,7 +16,7 @@ class SalesController < ApplicationController
         ]
       )
       .order(
-        Arel.sql("woo_updated_at DESC, updated_at DESC, CAST(woo_id AS int) DESC")
+        Arel.sql("woo_created_at DESC, created_at DESC, CAST(woo_id AS int) DESC")
       )
       .page(params[:page])
 
