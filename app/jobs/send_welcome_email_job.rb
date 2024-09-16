@@ -5,7 +5,7 @@ class SendWelcomeEmailJob < ApplicationJob
 
   def perform(email, subject, text)
     message = {
-      from_email: "hello@handsomecake.com",
+      from_email: "store@handsomecake.com",
       subject:,
       text:,
       to: [
