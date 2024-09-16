@@ -1,10 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.3"
-
-# Fix needed until Ruby 3.3.4 is released https://github.com/ruby/ruby/pull/11006
-gem "net-pop", github: "ruby/net-pop", require: false
+ruby "3.3.5"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.x"
