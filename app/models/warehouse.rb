@@ -39,8 +39,11 @@ class Warehouse < ApplicationRecord
   private
 
   def ensure_only_one_default
-    if is_default
-      Warehouse.where.not(id:).update_all(is_default: false)
+    if is_default_changed? && is_default
+      Warehouse
+        .where(is_default: true)
+        .where.not(id:)
+        .update_all(is_default: false)
     end
   end
 end
