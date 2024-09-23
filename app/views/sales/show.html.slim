@@ -3,7 +3,7 @@
 = render "_shared/nav-show", model: @sale
   - if @sale.active? && @sale.has_unlinked_purchased_products? && @sale.products.any? { |product| product.purchased_products.any? }
     li
-      a.btn href="#{url_for link_purchased_products_sale_path(warehouse_id: @sale)}" 
+      a.btn href=link_purchased_products_sale_path
         i.icn 🔗
         | Link with Purchased Products
 main.wide.flex.flex-col.gap.w-pd
@@ -46,10 +46,9 @@ main.wide.flex.flex-col.gap.w-pd
 
   - if @sale.product_sales.present?
     .table-card.full-width
-      h3 Products
+      h3 Sold Products
       table role="grid" data-controller="table"
           thead
-            th.mute #
             th Title
             th Variation?
             th.right Price, $
@@ -60,7 +59,6 @@ main.wide.flex.flex-col.gap.w-pd
                 data-action="click->table#goTo"
                 data-table-url-param=product_path(ps.product)
               )
-                td.mute = idx + 1
                 td = ps.product.full_title 
                 td = ps.variation.present? ? ps.variation.title : "-"
                 td.right.mono = format_money ps.price
@@ -71,7 +69,7 @@ main.wide.flex.flex-col.gap.w-pd
       h3 Purchased Products
       table role="grid" data-controller="table"
         thead
-          th Product
+          th Title
           th Variation
           th.right Price, $
           th Warehouse
