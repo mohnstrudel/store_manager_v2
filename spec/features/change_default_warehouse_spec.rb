@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Changing default warehouse", type: :feature do
+describe "Changing default warehouse" do
   let!(:existing_default_warehouse) { create(:warehouse, name: "Default Warehouse", is_default: true) }
   let!(:non_default_warehouse) { create(:warehouse, name: "Non-Default Warehouse", is_default: false) }
 

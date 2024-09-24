@@ -15,22 +15,18 @@ describe "Moving purchased products between warehouses" do
     find("tbody tr:nth-child(1) input[type='checkbox']").check
     find("tbody tr:nth-child(2) input[type='checkbox']").check
 
+    # Enable the form to be visible in the test environment
     page.execute_script("document.querySelector('.floating-form').style.position = 'static';")
 
     # Select where to move products
     find(".ss-values", text: "Select a warehouse").click
     find(".ss-option", text: warehouse_to.name).click
 
-    # Move products
     click_link "Move"
 
-    # Wait for the move operation to complete
     expect(page).to have_content("Success! 2 purchased products moved to: #{warehouse_to.name}")
-
-    # Check the count of purchased products in "Warehouse From"
     expect(page).to have_content("Purchased Products 1")
 
-    # Visit "Warehouse To" and check the count of purchased products
     visit warehouse_path(warehouse_to)
     expect(page).to have_content("Purchased Products 2")
   end
