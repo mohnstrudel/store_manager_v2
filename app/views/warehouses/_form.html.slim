@@ -15,7 +15,7 @@
   = form.text_field :courier_tracking_url
 
   = form.label :is_default
-  = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]]), {selected: "0"}
+  = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
 
   - if warehouse.images.attached?
     br
