@@ -1,5 +1,6 @@
 class WarehousesController < ApplicationController
   before_action :set_warehouse, only: %i[show edit update destroy]
+  before_action :validate_default_warehouse, only: %i[create update]
 
   # GET /warehouses
   def index
@@ -32,6 +33,10 @@ class WarehousesController < ApplicationController
     @warehouse = Warehouse.new(warehouse_params)
 
     if @warehouse.save
+      if @warehouse.is_default?
+        Warehouse.ensure_only_one_default(@warehouse.id)
+      end
+
       redirect_to @warehouse, notice: "Warehouse was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -43,8 +48,14 @@ class WarehousesController < ApplicationController
     if params[:deleted_img_ids].present?
       attachments = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
     end
+
     if @warehouse.update(warehouse_params)
       attachments&.map(&:purge_later)
+
+      if @warehouse.is_default?
+        Warehouse.ensure_only_one_default(@warehouse.id)
+      end
+
       redirect_to @warehouse, notice: "Warehouse was successfully updated.", status: :see_other
     else
       render :edit, status: :unprocessable_entity
@@ -83,5 +94,18 @@ class WarehousesController < ApplicationController
       deleted_img_ids: [],
       images: []
     )
+  end
+
+  def validate_default_warehouse
+    if warehouse_params[:is_default] == "1"
+      current_default = Warehouse.find_by(is_default: true)
+
+      if current_default && current_default != @warehouse
+        error_message = "change the current default warehouse \"#{view_context.link_to(current_default.name, warehouse_path(current_default))}\" before setting a new one".html_safe
+
+        @warehouse.errors.add(:is_default, error_message)
+        render :edit, status: :unprocessable_entity
+      end
+    end
   end
 end

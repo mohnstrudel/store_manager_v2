@@ -31,19 +31,13 @@ class Warehouse < ApplicationRecord
       preprocessed: true
   end
 
-  before_save :ensure_only_one_default
-
   validates :name, presence: true
   validates :external_name, presence: true
 
-  private
-
-  def ensure_only_one_default
-    if is_default_changed? && is_default
-      Warehouse
-        .where(is_default: true)
-        .where.not(id:)
-        .update_all(is_default: false)
-    end
+  def self.ensure_only_one_default(id)
+    Warehouse
+      .where(is_default: true)
+      .where.not(id:)
+      .update_all(is_default: false)
   end
 end
