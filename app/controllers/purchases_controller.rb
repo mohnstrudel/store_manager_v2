@@ -84,7 +84,7 @@ class PurchasesController < ApplicationController
   end
 
   def set_default_warehouse_id
-    @default_warehouse_id = Warehouse.find_by(is_default: true).id
+    @default_warehouse_id = Warehouse.find_by(is_default: true)&.id
   end
 
   # Only allow a list of trusted parameters through.
