@@ -1,0 +1,17 @@
+- if images.present?
+  .gallery data-controller="gallery"
+    - if images.size > 1
+      .card.gallery__nav
+        - images.each do |img|
+          = render "_shared/preloadable_img", src: url_for(img.representation(:nano)), width: 70, \
+            data: { \
+              id: images.index(img),\
+              preview: url_for(img.representation(:preview)), \
+              "gallery-target": "slide", \
+              "action": "click->gallery#select" \
+            }
+    .gallery__main
+      - if images.size > 1
+        button.gallery__btn data-action="gallery#prev" ←
+        button.gallery__btn data-action="gallery#next" →
+      = render "_shared/preloadable_img", src: images.first.representation(:preview).url, data: {"gallery-target": "main"}

@@ -20,4 +20,12 @@
   --rgb-paid-color: 67, 160, 71;
   --rgb-active-status-color: 0, 150, 40;
   --rgb-inactive-status-color: 150, 50, 0;
+  --danger-color: 211, 47, 47;
+  --transparent-bg: oklab(1 0 0 / 0.85);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --transparent-bg: oklab(0.35 -0.01 -0.01 / 0.8);
+  }
 }

@@ -41,10 +41,6 @@ nav ul nav li {
   padding-left: calc(var(--nav-element-spacing-horizontal) * 0.8);
 }
 
-main main {
-  margin: var(--block-spacing-vertical) 0;
-}
-
 body > header {
   padding-top: 1rem;
 }

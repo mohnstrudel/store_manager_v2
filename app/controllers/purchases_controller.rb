@@ -1,4 +1,5 @@
 class PurchasesController < ApplicationController
+  before_action :set_default_warehouse_id, only: %i[new edit]
   before_action :set_purchase, only: %i[show edit update destroy]
 
   # GET /purchases or /purchases.json
@@ -17,6 +18,10 @@ class PurchasesController < ApplicationController
 
   # GET /purchases/1 or /purchases/1.json
   def show
+    @purchased_products = @purchase
+      .purchased_products
+      .includes(:warehouse)
+      .order(updated_at: :desc)
   end
 
   # GET /purchases/new
@@ -76,6 +81,10 @@ class PurchasesController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_purchase
     @purchase = Purchase.friendly.find(params[:id])
+  end
+
+  def set_default_warehouse_id
+    @default_warehouse_id = Warehouse.find_by(is_default: true).id
   end
 
   # Only allow a list of trusted parameters through.

@@ -1,5 +1,9 @@
 nav
   ul
     li
-      = link_to "Back", "javascript:history.back()"
-      h1 New #{model.model_name.singular}
+      - if defined?(custom_link) && custom_link.present?
+        = custom_link
+      - else
+        = link_to "Back to index", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
+      h1 New #{model.model_name.name.titleize.singularize}
+      h4

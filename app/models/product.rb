@@ -61,8 +61,10 @@ class Product < ApplicationRecord
   has_many :product_sales, dependent: :destroy
   has_many :sales, through: :product_sales
 
-  has_many :purchases, dependent: :destroy
   has_many :variations, dependent: :destroy
+
+  has_many :purchases, dependent: :destroy
+  has_many :purchased_products, through: :purchases
 
   has_many_attached :images do |attachable|
     attachable.variant :preview,

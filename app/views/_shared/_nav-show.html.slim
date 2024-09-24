@@ -1,18 +1,12 @@
 nav
   ul
     li
-      = link_to "Back", "javascript:history.back()"
-      - if defined?(custom_heading)
-        = yield
-      - else
-        h1 #{model.model_name.name} #{model.respond_to?(:title) ? model.title : model.value}
+      = link_to "Back to index", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
+      hgroup
+        h1 #{format_show_page_title(model)}
+        h4 #{model.model_name.name}
   ul.gap
     li
-      a.btn.l.is-primary.translate-y-1 href="#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
-        i.icn ✏️
-        | Edit
-    - if defined?(is_purchasable)
-      li
-        a.btn.l.is-primary.translate-y-1 href="#{url_for new_purchase_path(product: model)}" 
-          i.icn 💰
-          | Purchase
+      .btn-wrapper = render "_shared/action-edit", route: "#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
+    = yield
+

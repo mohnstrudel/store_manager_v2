@@ -1,0 +1,37 @@
+= form_with(model: warehouse) do |form|
+  = form.label :name
+  = form.text_field :name
+
+  = form.label :external_name
+  = form.text_field :external_name
+
+  = form.label :cbm
+  = form.text_field :cbm
+
+  = form.label :container_tracking_number
+  = form.text_field :container_tracking_number
+
+  = form.label :courier_tracking_url
+  = form.text_field :courier_tracking_url
+
+  = form.label :is_default
+  = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
+
+  - if warehouse.images.attached?
+    br
+    .card.flex.wrap.gap.even-pd.items-end
+      - warehouse.images.each do |image|
+        .form__img-card
+          = form.hidden_field :images, multiple: true, value: image.signed_id
+          = render "_shared/preloadable_img", src: image.representation(:thumb).url
+          = label_tag nil, class: "pd-2 pointer"
+            = check_box_tag "deleted_img_ids[]", image.id, class: "inline checkbox-remove"
+            | Remove image
+    br
+
+  = form.label :images 
+  = form.file_field :images, multiple: true
+
+  = render "_shared/notice-err", model: warehouse
+
+  = form.submit

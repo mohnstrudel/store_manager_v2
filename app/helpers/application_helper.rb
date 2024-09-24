@@ -3,22 +3,20 @@ module ApplicationHelper
     value.presence || "-"
   end
 
-  def format_time(time)
-    time.to_date.to_fs(:long) if time.present?
-  end
-
   def format_date(date)
-    date.strftime("%-d %b ’%y")
+    date&.strftime("%-d. %B ’%y")
   end
 
   def format_money(amount, unit = "")
-    number_to_currency(
-      amount.to_f,
-      delimiter: ".",
-      separator: ",",
-      format: "%n %u",
-      unit:
-    )
+    if amount.presence
+      number_to_currency(
+        amount.to_f,
+        delimiter: ".",
+        separator: ",",
+        format: "%n %u",
+        unit:
+      )
+    end
   end
 
   def format_zero_values(value)
@@ -32,6 +30,25 @@ module ApplicationHelper
       "<span class='sale-status--active'>#{status_title}</span>".html_safe
     else
       "<span class='sale-status--inactive'>#{status_title}</span>".html_safe
+    end
+  end
+
+  def format_show_page_title(record)
+    return record.title.titleize if record.respond_to?(:title)
+    return record.name.titleize if record.respond_to?(:name)
+    record.value.titleize if record.respond_to?(:value)
+  end
+
+  def format_item_size(item)
+    length = item.length ? "ℓ#{item.length}" : nil
+    width = item.width ? "w#{item.width}" : nil
+    height = item.height ? "h#{item.height}" : nil
+    [length, width, height].compact.join(" × ")
+  end
+
+  def thumb_url(model)
+    if model.images.present?
+      url_for(model.images.first.representation(:thumb))
     end
   end
 end

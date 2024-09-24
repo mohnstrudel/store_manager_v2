@@ -7,8 +7,21 @@ article.notice {
   box-shadow: none;
 }
 
+article.notice p {
+  margin: 0;
+  padding-inline: var(--spacing-l);
+}
+
+article.notice a {
+  text-decoration: underline;
+}
+
 article.notice header {
   font-weight: bold;
+}
+
+article.notice header .icn {
+  font-weight: normal;
 }
 
 article.notice.is-info {
@@ -26,10 +39,12 @@ article.notice.is-error ul {
 }
 
 article.notice.is-info,
+article.notice.is-error .container,
 article.notice header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  text-align: center;
 }
 
 article.notice.is-error header {
@@ -51,7 +66,6 @@ article.notice * {
   border-radius: var(--border-radius);
   padding-bottom: 0;
   height: min-content;
-  overflow: hidden;
 }
 
 .table-card .pagination:first-of-type {
@@ -138,6 +152,14 @@ main.wide.w-pd {
   .title {
     color: var(--muted-color);
     font-size: smaller;
+  }
+
+  &.even-pd {
+    padding: var(--spacing-m);
+  }
+
+  p {
+    overflow-wrap: anywhere;
   }
 }
 

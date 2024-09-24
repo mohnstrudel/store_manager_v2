@@ -7,12 +7,22 @@ Rails.application.routes.draw do
     mount PgHero::Engine, at: "pghero"
   end
 
+  resources :purchased_products
+  post "purchased_products/move", to: "purchased_products#move", as: :move_purchased_products
+
+  resources :warehouses do
+    get "/page/:page", action: :show, on: :member
+  end
+
   resources :customers do
     get "/page/:page", action: :index, on: :collection
   end
 
   resources :sales do
     get "/page/:page", action: :index, on: :collection
+    member do
+      get :link_purchased_products
+    end
   end
 
   resources :products do

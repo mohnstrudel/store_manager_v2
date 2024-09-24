@@ -1,0 +1,45 @@
+= render "_shared/notice"
+
+nav
+  ul.font-smaller
+    li
+      = link_to "Warehouse", @purchased_product.warehouse
+    li  
+      = link_to "Purchase", @purchased_product.purchase
+    li  
+      = link_to "Product", @purchased_product.purchase.product
+  ul
+    li
+      .btn = render "_shared/action-edit", route: edit_purchased_product_path(@purchased_product)
+
+hgroup
+  h1 #{format_show_page_title(@purchased_product)}
+  h4 #{@purchased_product.warehouse.name}
+
+main.wide.w-pd.flex.flex-col.gap
+  .cards.items-center
+    = render "_shared/gallery", images: @purchased_product.images
+
+    .card.shrink-2
+      .title ID
+      p = safe_blank_render @purchased_product.id
+      .title Length, cm
+      p = safe_blank_render @purchased_product.length
+      .title Width, cm
+      p = safe_blank_render @purchased_product.width
+      .title Height, cm
+      p = safe_blank_render @purchased_product.height
+      .title Weight, kg
+      p = safe_blank_render @purchased_product.weight
+
+    .card.grow
+      .title Price
+      p.mono = format_money safe_blank_render @purchased_product.price
+      .title Shipping
+      p.mono = format_money safe_blank_render @purchased_product.shipping_price
+      .title Created at
+      p = format_date @purchased_product.created_at
+      .title Updated at
+      p = format_date @purchased_product.updated_at
+
+= button_to "Destroy this purchased product", purchased_product_path(@purchased_product), method: :delete, class: "btn-danger"

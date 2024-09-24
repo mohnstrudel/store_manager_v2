@@ -67,6 +67,10 @@ class Sale < ApplicationRecord
     "#{customer.name_and_email} | #{woo_id.presence}"
   end
 
+  def active?
+    self.class.active_status_names.include?(status)
+  end
+
   def self.active_status_names
     [
       "partially-paid",
@@ -105,5 +109,13 @@ class Sale < ApplicationRecord
 
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
+  end
+
+  def has_unlinked_purchased_products?
+    product_sales.any? { |ps| ps.purchased_products.size < ps.qty }
+  end
+
+  def has_linked_purchased_products?
+    product_sales.any? { |ps| ps.purchased_products.size > 0 }
   end
 end

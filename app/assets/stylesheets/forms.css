@@ -60,3 +60,66 @@ form.payment input[type="submit"] {
 .sales-form__product_fields {
   margin: 1.5rem 0;
 }
+
+.checkbox-remove:focus {
+  border-color: red;
+}
+
+.checkbox-remove:checked {
+  border-color: red;
+  background-color: red;
+}
+
+.field_with_errors select,
+.field_with_errors input {
+  box-shadow: 2px 2px 8px var(--form-element-invalid-focus-color);
+  border: 1px solid var(--form-element-invalid-border-color);
+}
+.field_with_errors label {
+  color: var(--form-element-invalid-border-color);
+}
+
+.floating-form {
+  position: fixed;
+  right: 0;
+  bottom: 1rem;
+  left: 0;
+  z-index: 10;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  margin: 0 auto;
+  box-shadow: var(--dropdown-box-shadow);
+  border-radius: var(--border-radius);
+  background: var(--transparent-bg);
+  padding: 2rem;
+  width: 80%;
+}
+
+.floating-form form {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.floating-form form .select {
+  margin: 0;
+  padding: 0;
+}
+
+.floating-form form .btn {
+  margin-left: 1.2rem;
+  height: 2.6rem;
+}
+
+.floating-form form .ss-values {
+  margin: auto 0px auto 1rem;
+  height: 2.6rem;
+}
+
+.ss-main {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.ss-main:focus.has-error {
+  box-shadow: 0 0 10px var(--ss-error-color) !important;
+}

@@ -1,0 +1,41 @@
+= render "_shared/notice"
+
+= render "_shared/nav-show", model: @warehouse
+  li
+    a.btn href="#{url_for new_purchased_product_path(warehouse_id: @warehouse)}" 
+      i.icn 📦
+      | Add product
+
+main.wide.no-bd.flex.flex-col.gap
+  - if @warehouse.purchased_products.present?
+    = render "purchased_products"
+
+
+  .table-card.full-width
+    h3 About Warehouse
+    .cards.items-center.p
+      = render "_shared/gallery", images: @warehouse.images
+
+      .card.grow
+        .title Name
+        p = @warehouse.name
+        .title External Name for Clients
+        p = safe_blank_render @warehouse.external_name
+        .title CBM
+        p = safe_blank_render @warehouse.cbm
+        .title Container Tracking Number
+        p = safe_blank_render @warehouse.container_tracking_number
+        .title Courier Tracking URL
+        p
+          - if @warehouse.courier_tracking_url.present?
+            = link_to @warehouse.courier_tracking_url, @warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer"
+          - else
+            | -
+        .title Is Default?
+        p = @warehouse.is_default ? "Yes" : "No"
+        .title Created At
+        p = format_date @warehouse.created_at
+
+= render "_shared/notice-err", model: @warehouse
+
+= button_to "Destroy this warehouse", warehouse_path(@warehouse), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure you want to delete this warehouse?' }

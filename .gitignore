@@ -39,3 +39,4 @@
 .DS_Store
 /__debug
 /node_modules
+.zed

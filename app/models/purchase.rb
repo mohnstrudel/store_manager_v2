@@ -16,6 +16,8 @@
 #  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
+  after_create :create_purchased_products
+
   extend FriendlyId
   friendly_id :full_title, use: :slugged
 
@@ -49,6 +51,9 @@ class Purchase < ApplicationRecord
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments
 
+  has_many :purchased_products, dependent: :destroy
+  has_many :warehouses, through: :purchased_products
+
   def paid
     payments.pluck(:value).sum
   end
@@ -70,10 +75,27 @@ class Purchase < ApplicationRecord
     "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
   end
 
+  def which_variation
+    variation ?
+      variation.title :
+      "-"
+  end
+
   def self.unpaid
     includes(:supplier)
       .where
       .missing(:payments)
       .order(created_at: :asc)
+  end
+
+  private
+
+  def create_purchased_products
+    warehouse = Warehouse.find_by(is_default: true)
+    return if warehouse.nil?
+
+    amount.times do
+      warehouse.purchased_products.create(purchase_id: id)
+    end
   end
 end

@@ -3,6 +3,7 @@ require "rails_helper"
 describe "Search works accross products, sales, purchases, and debts", js: "true" do
   # rubocop:disable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll
   before(:all) do
+    create(:warehouse, is_default: true)
     @asuka = create(:product, title: "Asuka")
     @batman = create(:product, title: "Batman")
     @guts = create(:product, title: "Guts")
@@ -67,6 +68,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
   end
 
   after(:all) do
+    Warehouse.find_each(&:destroy)
     Product.find_each(&:destroy)
     Customer.find_each(&:destroy)
     Sale.find_each(&:destroy)
