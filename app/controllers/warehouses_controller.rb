@@ -53,8 +53,15 @@ class WarehousesController < ApplicationController
 
   # DELETE /warehouses/1
   def destroy
-    @warehouse.destroy!
-    redirect_to warehouses_url, notice: "Warehouse was successfully destroyed.", status: :see_other
+    warehouse_name = @warehouse.name
+
+    if @warehouse.purchased_products.any?
+      flash[:error] = "Error. Please select and move out all purchased products before deleting the warehouse."
+      redirect_to @warehouse
+    else
+      @warehouse.destroy!
+      redirect_to warehouses_url, notice: "Warehouse #{warehouse_name} was successfully destroyed.", status: :see_other
+    end
   end
 
   private

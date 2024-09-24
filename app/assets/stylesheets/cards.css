@@ -20,6 +20,10 @@ article.notice header {
   font-weight: bold;
 }
 
+article.notice header .icn {
+  font-weight: normal;
+}
+
 article.notice.is-info {
   background: var(--form-element-valid-focus-color);
   color: var(--form-element-valid-border-color);
@@ -35,10 +39,12 @@ article.notice.is-error ul {
 }
 
 article.notice.is-info,
+article.notice.is-error .container,
 article.notice header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  text-align: center;
 }
 
 article.notice.is-error header {

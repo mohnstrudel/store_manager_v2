@@ -36,4 +36,6 @@ main.wide.no-bd.flex.flex-col.gap
         .title Created At
         p = format_date @warehouse.created_at
 
-= button_to "Destroy this warehouse", warehouse_path(@warehouse), method: :delete, class: "btn-danger"
+= render "_shared/notice-err", model: @warehouse
+
+= button_to "Destroy this warehouse", warehouse_path(@warehouse), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure you want to delete this warehouse?' }
