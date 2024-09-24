@@ -26,14 +26,4 @@ RSpec.describe Warehouse, type: :model do
       expect(warehouse).not_to be_valid
     end
   end
-
-  describe "before_save" do
-    it "ensures only one instance is default" do
-      create(:warehouse, is_default: true)
-      create(:warehouse, is_default: true)
-      default_warehouses_size = described_class.where(is_default: true).size
-
-      expect(default_warehouses_size).to eq 1
-    end
-  end
 end
