@@ -20,7 +20,7 @@ nav
     li
       = render "_shared/action-edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
 
-main.wide.flex.flex-col.gap.w-pd
+main.wide.flex.flex-col.gap.w-pd data-controller="move-items"
   .cards
     - if @purchase.product.image.present?
       img.product src="#{@purchase.product.image}"
@@ -76,6 +76,8 @@ main.wide.flex.flex-col.gap.w-pd
       = form.submit "Add payment", role: "button"
 
   - if @purchased_products.any?
+    = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(purchase_id: @purchase.id)
+
     .table-cards-group
       .table-card
         h3
@@ -83,9 +85,10 @@ main.wide.flex.flex-col.gap.w-pd
             | Stored in Warehouses: #{@purchased_products.count}
           - else
             | Stored in Warehouses: #{@purchased_products.count} of #{@purchase.amount}
+
         table role="grid" data-controller="table"
           thead
-            th Supplier
+            = render "_shared/move_to_warehouse/th"
             - if @purchase.variation.present?
               th Variation?
             th Warehouse
@@ -96,7 +99,7 @@ main.wide.flex.flex-col.gap.w-pd
                 data-action="click->table#goTo"
                 data-table-url-param=purchased_product_path(pp)
               )
-                td = @purchase.supplier.title
+                = render "_shared/move_to_warehouse/td", id: pp.id
                 - if @purchase.variation.present?
                   td = @purchase.which_variation
                 td = pp.warehouse.name
