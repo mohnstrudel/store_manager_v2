@@ -2,18 +2,28 @@
 
 = render "_shared/nav-index", model: @purchases
 
-main.wide data-controller="table"
+main.wide data-controller="table move-items"
   .search-navigation
     = render partial: "_shared/search-form", locals: {path: purchases_path}
     = paginate @purchases
+  
   - if @purchases.present?
+    .floating-form.hidden
+      = form_with url: move_purchases_path, method: :post, data: { move_items_target: "form" } do |form|
+        = form.collection_select :destination_id, Warehouse.all, :id, :name, { prompt: "Select a warehouse" }, { class: "select", data: { controller: "slim-select", move_items_target: "destination" } }
+        a.btn.is-primary href="#" data-action="click->move-items#move"
+          i.icn 🚚
+          |  Move 
+          span data-move-items-target="count"
+
     table(role="grid")
       thead
         tr
+          th
+            span.semi-link data-action="click->move-items#toggleAll" data-move-items-target="toggleAllLink" Select
           th Image
           th Product
           th Supplier
-          th Qty
           th.right Price, $
           th.right Total, $
           th.right Debt, $

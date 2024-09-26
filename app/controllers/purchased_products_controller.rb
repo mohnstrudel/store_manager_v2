@@ -55,7 +55,7 @@ class PurchasedProductsController < ApplicationController
   end
 
   def move
-    ids = params[:product_ids]
+    ids = params[:selected_items_ids]
     destination_id = params[:destination_id]
     warehouse = Warehouse.find(params[:warehouse_id])
 

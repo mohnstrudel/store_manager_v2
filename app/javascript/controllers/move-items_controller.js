@@ -37,7 +37,7 @@ export default class extends Controller {
     selectedIds.forEach((id) => {
       const hiddenField = document.createElement("input");
       hiddenField.type = "hidden";
-      hiddenField.name = "product_ids[]";
+      hiddenField.name = "selected_items_ids[]";
       hiddenField.value = id;
       form.appendChild(hiddenField);
     });
