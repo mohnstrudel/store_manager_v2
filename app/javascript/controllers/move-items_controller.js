@@ -65,7 +65,7 @@ export default class extends Controller {
   }
 
   toggleFloatingBox() {
-    const container = this.element.querySelector(".floating-form");
+    const container = this.element.querySelector(".move_to_warehouse__form");
     container.classList.toggle(
       "hidden",
       this.checkboxTargets.every((checkbox) => !checkbox.checked),

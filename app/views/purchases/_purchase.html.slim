@@ -1,6 +1,5 @@
 tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-url-param=purchase_path(purchase)
-  td.no-events
-    = check_box_tag "purchase_ids[]", purchase.id, false, data: { 'move-items-target': 'checkbox', action: 'change->move-items#updateSelection' }, class: "mx-auto"
+  = render "_shared/move_to_warehouse/td", id: purchase.id
   td.text-center
     = render "_shared/preloadable_img", src: thumb_url(purchase.product), class_names: "zoomable", width: 100
   td

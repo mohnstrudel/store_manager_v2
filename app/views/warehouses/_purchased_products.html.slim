@@ -9,18 +9,11 @@
       = paginate @purchased_products
 
     - if @purchased_products.present?
-      .floating-form.hidden
-        = form_with url: move_purchased_products_path(warehouse_id: @warehouse.id), method: :post, data: { move_items_target: "form" } do |form|
-          = form.collection_select :destination_id, Warehouse.all, :id, :name, { prompt: "Select a warehouse" }, { class: "select", data: { controller: "slim-select", move_items_target: "destination" } }
-          a.btn.is-primary href="#" data-action="click->move-items#move"
-            i.icn 🚚
-            |  Move 
-            span data-move-items-target="count"
+      = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(warehouse_id: @warehouse.id)
 
       table role="grid" data-controller="table"
         thead
-          th
-            span.semi-link data-action="click->move-items#toggleAll" data-move-items-target="toggleAllLink" Select
+          = render "_shared/move_to_warehouse/th"
           th Photo
           th Title
           th Length × Width × Height, cm
@@ -35,8 +28,7 @@
               data-action="click->table#goTo"
               data-table-url-param=purchased_product_path(purchased)
             )
-              td.no-events
-                = check_box_tag "product_ids[]", purchased.id, false, data: { 'move-items-target': 'checkbox', action: 'change->move-items#updateSelection' }, class: "mx-auto"
+              = render "_shared/move_to_warehouse/td", id: purchased.id
               td.text-center
                 = render "_shared/preloadable_img", src: thumb_url(purchased), class_names: "zoomable", width: 100
               td = purchased.purchase.product.full_title

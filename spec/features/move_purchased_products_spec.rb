@@ -16,7 +16,7 @@ describe "Moving purchased products between warehouses" do
     find("tbody tr:nth-child(2) input[type='checkbox']").check
 
     # Enable the form to be visible in the test environment
-    page.execute_script("document.querySelector('.floating-form').style.position = 'static';")
+    page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
     # Select where to move products
     find(".ss-values", text: "Select a warehouse").click
