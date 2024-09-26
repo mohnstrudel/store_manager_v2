@@ -2,7 +2,7 @@ nav
   ul
     li
       ul
-        li = link_to "Back to all #{model.model_name.plural}", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
+        li = link_to "All #{model.model_name.plural}", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
       hgroup
         h1 #{format_show_page_title(model)}
         h4 #{model.model_name.name}

@@ -4,8 +4,8 @@ nav
   ul
     li
       ul
-        li = link_to "Back to all purchases", purchases_path
-        li = link_to "Go to the product", @purchase.product
+        li = link_to "All purchases", purchases_path
+        li = link_to "Product", @purchase.product
       hgroup
         h1 Purchase №#{@purchase.id}
         h4 = @purchase.product.full_title
