@@ -12,6 +12,10 @@ body {
   padding-bottom: calc(var(--spacing) * 10);
 }
 
+main.main {
+  padding-block-start: var(--spacing);
+}
+
 button,
 input[type="submit"],
 input[type="button"],

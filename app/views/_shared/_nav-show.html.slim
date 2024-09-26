@@ -1,12 +1,13 @@
 nav
   ul
     li
-      = link_to "Back to index", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
+      ul
+        li = link_to "Back to all #{model.model_name.plural}", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
       hgroup
         h1 #{format_show_page_title(model)}
         h4 #{model.model_name.name}
   ul.gap
     li
-      .btn-wrapper = render "_shared/action-edit", route: "#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}"
+      = render "_shared/action-edit", route: "#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}", btn: true
     = yield
 

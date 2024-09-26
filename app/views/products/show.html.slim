@@ -3,15 +3,14 @@
 nav
   ul
     li
-      = link_to "Back to index", products_path
+      ul 
+        li = link_to "Back to all products", products_path
       hgroup 
         h1 = @product.title
         h2 = @product.full_title
   ul.gap
     li
-      a.btn href="#{url_for controller: "#{@product.model_name.plural}", action: "edit", id: @product}"
-        i.icn ✏️
-        | Edit
+      = render "_shared/action-edit", route: "#{url_for controller: "#{@product.model_name.plural}", action: "edit", id: @product}", btn: true
     li
       a.btn href="#{url_for new_purchase_path(product: @product)}" 
         i.icn 💰
