@@ -4,6 +4,6 @@ nav
       - if defined?(custom_link) && custom_link.present?
         = custom_link
       - else
-        = link_to "Back to index", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
+        = link_to "To index", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
       h1 New #{model.model_name.name.titleize.singularize}
       h4

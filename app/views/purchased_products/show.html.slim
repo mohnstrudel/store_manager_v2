@@ -1,20 +1,19 @@
 = render "_shared/notice"
 
 nav
-  ul.font-smaller
-    li
-      = link_to "Warehouse", @purchased_product.warehouse
-    li  
-      = link_to "Purchase", @purchased_product.purchase
-    li  
-      = link_to "Product", @purchased_product.purchase.product
   ul
     li
-      .btn = render "_shared/action-edit", route: edit_purchased_product_path(@purchased_product)
-
-hgroup
-  h1 #{format_show_page_title(@purchased_product)}
-  h4 #{@purchased_product.warehouse.name}
+      ul
+        li = link_to "Warehouse", @purchased_product.warehouse
+        li = link_to "Purchase", @purchased_product.purchase
+        li = link_to "Product", @purchased_product.purchase.product
+      hgroup
+        h1 Purchased Product №#{@purchased_product.id}
+        h4 #{format_show_page_title(@purchased_product)}
+        h4 Warehouse: #{@purchased_product.warehouse.name}  
+  ul
+    li
+      = render "_shared/action-edit", route: edit_purchased_product_path(@purchased_product), btn: true
 
 main.wide.w-pd.flex.flex-col.gap
   .cards.items-center

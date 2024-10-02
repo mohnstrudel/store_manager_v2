@@ -11,8 +11,8 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
         li = ps.title
   td = format_sale_status sale.status
   td.right.mono = format_money sale.total
-  td.no-wrap = format_date sale.woo_created_at.presence || sale.created_at
-  td.no-wrap = format_date sale.woo_updated_at.presence || sale.updated_at
+  td = format_date sale.woo_created_at.presence || sale.created_at
+  td = format_date sale.woo_updated_at.presence || sale.updated_at
   td = sale.woo_id
   - if action_name != "show" 
     td.actions

@@ -8,6 +8,7 @@ class PurchasesController < ApplicationController
       .includes(
         :supplier,
         :payments,
+        purchased_products: [:warehouse],
         product: [images_attachments: :blob],
         variation: [:color, :size, :version]
       )
@@ -76,6 +77,43 @@ class PurchasesController < ApplicationController
     end
   end
 
+  def move
+    warn "*" * 100
+    warn params[:purchase_id]
+    warn params[:selected_items_ids]
+    warn "*" * 100
+
+    purchase_id = params[:purchase_id]
+    purchases_ids = params[:selected_items_ids]
+    purchases_ids = purchase_id if purchases_ids.blank?
+
+    destination_id = params[:destination_id]
+    destination_warehouse = Warehouse.find(destination_id)
+
+    moved_count = 0
+
+    Purchase.where(id: purchases_ids).find_each do |purchase|
+      if purchase.purchased_products.empty?
+        purchase.amount.times do
+          purchase.purchased_products.create(warehouse_id: destination_id)
+          moved_count += 1
+        end
+      else
+        moved_count += purchase.purchased_products.update_all(warehouse_id: destination_id)
+      end
+    end
+
+    if moved_count > 0
+      flash[:notice] = "Success! #{moved_count} purchased #{"product".pluralize(moved_count)} moved to: #{view_context.link_to(destination_warehouse.name, warehouse_path(destination_warehouse))}".html_safe
+    end
+
+    if purchase_id.present?
+      redirect_to purchase_path(Purchase.find(purchase_id))
+    else
+      redirect_to purchases_path
+    end
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -96,6 +134,8 @@ class PurchasesController < ApplicationController
       :order_reference,
       :item_price,
       :amount,
+      :purchase_id,
+      :selected_items_ids,
       payments_attributes: [:id, :value, :purchase_id]
     )
   end

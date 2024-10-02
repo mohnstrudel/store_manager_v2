@@ -55,9 +55,10 @@ class PurchasedProductsController < ApplicationController
   end
 
   def move
-    ids = params[:product_ids]
+    ids = params[:selected_items_ids]
     destination_id = params[:destination_id]
-    warehouse = Warehouse.find(params[:warehouse_id])
+    warehouse = Warehouse.find(params[:warehouse_id]) if params[:warehouse_id]
+    purchase = Purchase.find(params[:purchase_id]) if params[:purchase_id]
 
     moved_count = PurchasedProduct.where(id: ids).update_all(warehouse_id: destination_id)
 
@@ -66,7 +67,11 @@ class PurchasedProductsController < ApplicationController
       flash[:notice] = "Success! #{moved_count} purchased #{"product".pluralize(moved_count)} moved to: #{view_context.link_to(destination.name, warehouse_path(destination))}".html_safe
     end
 
-    redirect_to warehouse_path(warehouse)
+    if purchase
+      redirect_to purchase_path(purchase)
+    else
+      redirect_to warehouse_path(warehouse)
+    end
   end
 
   private

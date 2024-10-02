@@ -2,18 +2,21 @@
 
 = render "_shared/nav-index", model: @purchases
 
-main.wide data-controller="table"
+main.wide data-controller="table move-items"
   .search-navigation
     = render partial: "_shared/search-form", locals: {path: purchases_path}
     = paginate @purchases
+  
   - if @purchases.present?
+    = render "_shared/move_to_warehouse/form", form_url: move_purchases_path
+
     table(role="grid")
       thead
         tr
+          = render "_shared/move_to_warehouse/th"
           th Image
           th Product
           th Supplier
-          th Qty
           th.right Price, $
           th.right Total, $
           th.right Debt, $
