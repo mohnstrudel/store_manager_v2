@@ -98,5 +98,31 @@ describe "Moving purchased products between warehouses" do
       visit warehouse_path(warehouse_to)
       expect(page).to have_content("Purchased Products 2")
     end
+
+    scenario "move purchase without purchased products to another warehouse", js: true do
+      purchase_without_products = create(:purchase, product: product, amount: 2)
+
+      visit purchase_path(purchase_without_products)
+
+      move_btn_el = 'a.btn[data-action="click->move-items#toggleFormVisibility"]'
+
+      find(move_btn_el).click
+
+      # a.btn[data-action="click->move-items#toggleFormVisibility"]
+
+      # Enable the form to be visible in the test environment
+      page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
+
+      # Select where to move the purchase
+      find(".ss-values", text: "Select a warehouse").click
+      find(".ss-option", text: warehouse_to.name).click
+
+      click_link "Move"
+
+      expect(page).to have_content("Success! 2 purchased products moved to: #{warehouse_to.name}")
+
+      # Verify we are redirected back to the same page
+      expect(page).to have_current_path(purchase_path(purchase_without_products))
+    end
   end
 end

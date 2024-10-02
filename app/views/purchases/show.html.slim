@@ -24,7 +24,7 @@ nav
         = render "_shared/move_to_warehouse/form", form_url: move_purchases_path(purchase_id: @purchase.id)
         a.btn data-action="click->move-items#toggleFormVisibility"
           i.icn 📦
-          | Move to warehouse
+          | Move all
 
 main.wide.flex.flex-col.gap.w-pd
   .cards
