@@ -22,23 +22,26 @@
           th.right Shipping
           th.right Actions
         tbody
-          - @purchased_products.each do |purchased|
+          - @purchased_products.each do |pp|
             tr(
               class="hoverable"
               data-action="click->table#goTo"
-              data-table-url-param=purchased_product_path(purchased)
+              data-table-url-param=purchased_product_path(pp)
             )
-              = render "_shared/move_to_warehouse/td", id: purchased.id
+              = render "_shared/move_to_warehouse/td", id: pp.id
               td.text-center
-                = render "_shared/preloadable_img", src: thumb_url(purchased), class_names: "zoomable", width: 100
-              td = purchased.purchase.product.full_title
-              td.mono = format_item_size(purchased)
-              td.mono.right = purchased.weight
-              td.mono.right = format_money purchased.price
-              td.mono.right = format_money purchased.shipping_price
+                = render "_shared/preloadable_img", src: thumb_url(pp), class_names: "zoomable", width: 100
+              td
+                = pp.purchase.product.full_title
+                - if pp.purchase.variation.present?
+                  | → #{pp.purchase.variation.title}
+              td.mono = format_item_size(pp)
+              td.mono.right = pp.weight
+              td.mono.right = format_money pp.price
+              td.mono.right = format_money pp.shipping_price
               td.actions
-                = render "_shared/action-destroy", route: purchased_product_path(purchased)
-                = render "_shared/action-edit", route: edit_purchased_product_path(purchased)
+                = render "_shared/action-destroy", route: purchased_product_path(pp)
+                = render "_shared/action-edit", route: edit_purchased_product_path(pp)
       = paginate @purchased_products
     - else
       = render "_shared/search-results-empty"    
