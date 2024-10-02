@@ -1,157 +1,162 @@
 td {
-  text-wrap: balance;
+    text-wrap: balance;
 }
 
-main > table th:last-of-type {
-  text-align: right;
+main>table th:last-of-type {
+    text-align: right;
 }
 
 table thead th {
-  font-weight: 700;
-  font-size: smaller;
+    font-weight: 700;
+    font-size: smaller;
 }
 
 table.compact th,
 table.compact td {
-  padding: calc(var(--spacing) / 2) calc(var(--spacing) / 2.5);
+    padding: calc(var(--spacing) / 2) calc(var(--spacing) / 2.5);
 }
 
 .vertical {
-  margin: 0;
-  margin-bottom: var(--table-spacing-vertical);
-  width: fit-content;
-  min-width: fit-content;
+    margin: 0;
+    margin-bottom: var(--table-spacing-vertical);
+    width: fit-content;
+    min-width: fit-content;
 }
 
 .vertical td,
 .vertical th {
-  display: block;
-  border: none;
+    display: block;
+    border: none;
 
-  padding: var(--spacing);
-  padding-bottom: 0;
+    padding: var(--spacing);
+    padding-bottom: 0;
 
-  font-size: inherit;
+    font-size: inherit;
 }
 
 .vertical thead th {
-  padding-left: 0;
-  width: var(--table-left-part-width);
+    padding-left: 0;
+    width: var(--table-left-part-width);
 
-  overflow: hidden;
-  color: var(--muted-color);
+    overflow: hidden;
+    color: var(--muted-color);
 
-  font-weight: var(--font-weight);
+    font-weight: var(--font-weight);
 
-  text-align: right;
-  text-overflow: ellipsis;
+    text-align: right;
+    text-overflow: ellipsis;
 }
 
 .vertical thead,
 .vertical tbody {
-  float: left;
-  border-radius: 8px;
-  overflow: hidden;
+    float: left;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .vertical td:last-of-type {
-  padding-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
 }
 
 .vertical td {
-  min-width: 20vw;
-  max-width: 60vw;
+    min-width: 20vw;
+    max-width: 60vw;
 }
 
 td.fit {
-  width: 10vw;
+    width: 10vw;
 }
 
 td.no-wrap {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 
 tr.hoverable {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 tr.hoverable td {
-  transition: all var(--transition);
+    transition: all var(--transition);
 }
 
 tr.hoverable:hover td {
-  border-color: var(--primary-focus);
-  background-color: var(--primary-focus);
+    border-color: var(--primary-focus);
+    background-color: var(--primary-focus);
 }
 
 tr.hoverable .actions a {
-  transition: all var(--transition);
+    transition: all var(--transition);
 }
 
 tr.hoverable:hover .actions a {
-  filter: brightness(0.9);
-  border-color: var(--primary-focus);
+    filter: brightness(0.9);
+    border-color: var(--primary-focus);
 }
 
 td.right,
 th.right {
-  text-align: right;
+    text-align: right;
 }
 
 td.v-bot {
-  vertical-align: bottom;
+    vertical-align: bottom;
 }
 
 td.actions {
-  font-size: calc(var(--font-size) / 1.15);
-  text-align: right;
-  white-space: nowrap;
+    font-size: calc(var(--font-size) / 1.15);
+    text-align: right;
+    white-space: nowrap;
 }
 
 td.actions a {
-  border: 1px solid var(--muted-border-color);
-  border-radius: var(--border-radius);
-  padding: 0.5em;
+    border: 1px solid var(--muted-border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5em;
 }
 
 td.actions a:hover {
-  border: 1px solid var(--primary-focus);
-  background-color: var(--primary-focus);
-  text-decoration: none;
+    border: 1px solid var(--primary-focus);
+    background-color: var(--primary-focus);
+    text-decoration: none;
 }
 
 td.actions a:not(:first-of-type) {
-  margin-left: 0.25rem;
+    margin-left: 0.25rem;
+}
+
+th.narrow-select {
+    padding-inline: 0;
+    width: 88px;
 }
 
 table a[data-turbo-method="delete"],
 table a.danger {
-  color: rgb(var(--danger-color));
+    color: rgb(var(--danger-color));
 }
 
 table a[data-turbo-method="delete"]:hover,
 table a.danger:hover {
-  border-color: rgba(var(--danger-color), 0.05) !important;
-  background: rgba(var(--danger-color), 0.1);
+    border-color: rgba(var(--danger-color), 0.05) !important;
+    background: rgba(var(--danger-color), 0.1);
 }
 
 tr.selected {
-  background: rgba(var(--rgb-debt-color), 0.1) !important;
+    background: rgba(var(--rgb-debt-color), 0.1) !important;
 }
 
 tr.selected td {
-  border-bottom-color: var(--secondary-focus);
+    border-bottom-color: var(--secondary-focus);
 }
 
 tr.has-debt {
-  background-color: rgba(var(--rgb-debt-color), 0.1);
+    background-color: rgba(var(--rgb-debt-color), 0.1);
 }
 
 .table-hgroup {
-  margin: var(--spacing);
+    margin: var(--spacing);
 
-  h3 {
-    margin: 0;
-    padding: 0;
-  }
+    h3 {
+        margin: 0;
+        padding: 0;
+    }
 }

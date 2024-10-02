@@ -1,78 +1,78 @@
 i.icn {
-  font-style: normal;
-  font-family: "Noto Emo";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-style: normal;
+    font-family: "Noto Emo";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 
-  &.xxl {
-    font-size: 10rem;
-  }
+    &.xxl {
+        font-size: 10rem;
+    }
 }
 
 .icn.is-link {
-  vertical-align: text-top;
-  cursor: pointer;
-  margin-left: 0.25rem;
-  color: var(--primary);
-  font-weight: 300;
-  font-size: 1rem;
+    vertical-align: text-top;
+    cursor: pointer;
+    margin-left: 0.25rem;
+    color: var(--primary);
+    font-weight: 300;
+    font-size: 1rem;
 }
 
 .logo {
-  color: var(--muted-color);
-  font-size: 2rem;
+    color: var(--muted-color);
+    font-size: 2rem;
 }
 
 .sale-status--active {
-  filter: contrast(0.8);
-  color: rgb(var(--rgb-active-status-color));
+    filter: contrast(0.8);
+    color: rgb(var(--rgb-active-status-color));
 }
 
 .sale-status--inactive {
-  filter: contrast(0.7);
-  color: rgb(var(--rgb-inactive-status-color));
+    filter: contrast(0.7);
+    color: rgb(var(--rgb-inactive-status-color));
 }
 
 .has-memo {
-  position: relative;
-  cursor: pointer;
+    position: relative;
+    cursor: pointer;
 }
 
 .has-memo:hover .memo-notice {
-  display: flex;
-  opacity: 1;
+    display: flex;
+    opacity: 1;
 }
 
 .memo-notice {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  box-shadow: var(--box-shadow-menu);
-  border-radius: var(--border-radius);
-  background-color: var(--mark-background-color);
-  padding: 16px 24px 32px 16px;
-  width: 250px;
-  color: var(--mark-color);
-  font-size: smaller;
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    box-shadow: var(--box-shadow-menu);
+    border-radius: var(--border-radius);
+    background-color: var(--mark-background-color);
+    padding: 16px 24px 32px 16px;
+    width: 250px;
+    color: var(--mark-color);
+    font-size: smaller;
 }
 
 .semi-link {
-  cursor: pointer;
-  border-bottom: 2px dashed var(--muted-color);
+    cursor: pointer;
+    border-bottom: 2px dashed var(--muted-color);
 }
 
 .semi-link:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .semi-link.undo {
-  border-bottom: 2px dashed rgb(var(--danger-color));
-  color: rgb(var(--danger-color));
+    border-bottom: 2px dashed rgb(var(--danger-color));
+    color: rgb(var(--danger-color));
 }
 
 .semi-link.undo:hover {
-  color: rgb(var(--danger-color));
+    color: rgb(var(--danger-color));
 }

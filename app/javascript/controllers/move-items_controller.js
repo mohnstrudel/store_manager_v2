@@ -9,30 +9,23 @@ export default class extends Controller {
     "form",
   ];
 
+  haveCheckboxes;
+  prevCheckedCount = 0;
+
   connect() {
-    this.updateCount();
-  }
-
-  updateSelection() {
-    this.updateCount();
-    this.toggleFloatingBox();
-  }
-
-  selectAll() {
-    this.checkboxTargets.forEach((checkbox) => (checkbox.checked = true));
-    this.updateCount();
+    this.haveCheckboxes = this.checkboxTargets.length > 0;
+    this.updateCountLabel();
   }
 
   move(e) {
     e.preventDefault();
 
     const form = this.formTarget;
+    const destinationId = this.destinationTarget.value;
 
     const selectedIds = this.checkboxTargets
       .filter((checkbox) => checkbox.checked)
       .map((checkbox) => checkbox.value);
-
-    const destinationId = this.destinationTarget.value;
 
     selectedIds.forEach((id) => {
       const hiddenField = document.createElement("input");
@@ -42,7 +35,7 @@ export default class extends Controller {
       form.appendChild(hiddenField);
     });
 
-    if (selectedIds.length > 0) {
+    if (!this.haveCheckboxes || selectedIds.length > 0) {
       if (destinationId) {
         form.submit();
       } else {
@@ -56,30 +49,46 @@ export default class extends Controller {
     }
   }
 
-  updateCount() {
-    const count = this.checkboxTargets.filter(
-      (checkbox) => checkbox.checked,
-    ).length;
-    let text = count === 1 ? "item" : "items";
-    this.countTarget.textContent = `${count} ${text}`;
+  toggleFormVisibility() {
+    const form = this.element.querySelector(".move_to_warehouse__form");
+
+    if (!this.haveCheckboxes) return form.classList.toggle("hidden");
+
+    const prevCount = this.prevCheckedCount;
+    const nextCount = this.getCheckedCount();
+
+    this.updateCountLabel(nextCount);
+
+    if (nextCount === 0 || (prevCount === 0 && nextCount > 0)) {
+      form.classList.toggle("hidden");
+    }
+    this.prevCheckedCount = nextCount;
   }
 
-  toggleFloatingBox() {
-    const container = this.element.querySelector(".move_to_warehouse__form");
-    container.classList.toggle(
-      "hidden",
-      this.checkboxTargets.every((checkbox) => !checkbox.checked),
-    );
+  getCheckedCount() {
+    return this.checkboxTargets.filter((checkbox) => checkbox.checked).length;
   }
 
-  toggleAll(event) {
+  updateCountLabel(count) {
+    count = this.getCheckedCount();
+    if (count === 0) {
+      this.countTarget.textContent = "";
+    } else {
+      let text = count === 1 ? "item" : "items";
+      this.countTarget.textContent = `${count} ${text}`;
+    }
+  }
+
+  toggleCheckboxes(checked) {
+    this.checkboxTargets.forEach((checkbox) => (checkbox.checked = checked));
+  }
+
+  toggleMassSelect(event) {
     event.preventDefault();
     const link = this.toggleAllLinkTarget;
     const isSelecting = link.textContent === "Select";
 
-    this.checkboxTargets.forEach(
-      (checkbox) => (checkbox.checked = isSelecting),
-    );
+    this.toggleCheckboxes(isSelecting);
 
     if (isSelecting) {
       link.textContent = "Undo";
@@ -89,7 +98,6 @@ export default class extends Controller {
       link.classList.toggle("undo");
     }
 
-    this.updateCount();
-    this.toggleFloatingBox();
+    this.toggleFormVisibility();
   }
 }

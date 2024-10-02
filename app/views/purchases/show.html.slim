@@ -16,11 +16,17 @@ nav
           - if @purchase.variation
             | , 
             = @purchase.variation.type_name_and_value
-  ul
+  ul.gap
     li
       = render "_shared/action-edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
+    - if @purchase.purchased_products.none?
+      li data-controller="move-items"
+        = render "_shared/move_to_warehouse/form", form_url: move_purchases_path(purchase_id: @purchase.id)
+        a.btn data-action="click->move-items#toggleFormVisibility"
+          i.icn 📦
+          | Move to warehouse
 
-main.wide.flex.flex-col.gap.w-pd data-controller="move-items"
+main.wide.flex.flex-col.gap.w-pd
   .cards
     - if @purchase.product.image.present?
       img.product src="#{@purchase.product.image}"
@@ -76,9 +82,8 @@ main.wide.flex.flex-col.gap.w-pd data-controller="move-items"
       = form.submit "Add payment", role: "button"
 
   - if @purchased_products.any?
-    = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(purchase_id: @purchase.id)
-
-    .table-cards-group
+    .table-cards-group data-controller="move-items"
+      = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(purchase_id: @purchase.id)
       .table-card
         h3
           - if @purchased_products.count == @purchase.amount
@@ -106,4 +111,4 @@ main.wide.flex.flex-col.gap.w-pd data-controller="move-items"
                 td = time_ago_in_words pp.updated_at
 
 
-= button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"  
+= button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"
