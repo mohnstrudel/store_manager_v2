@@ -108,8 +108,6 @@ describe "Moving purchased products between warehouses" do
 
       find(move_btn_el).click
 
-      # a.btn[data-action="click->move-items#toggleFormVisibility"]
-
       # Enable the form to be visible in the test environment
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 

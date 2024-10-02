@@ -8,6 +8,7 @@ class PurchasesController < ApplicationController
       .includes(
         :supplier,
         :payments,
+        purchased_products: [:warehouse],
         product: [images_attachments: :blob],
         variation: [:color, :size, :version]
       )
