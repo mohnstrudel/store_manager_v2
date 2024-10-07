@@ -81,6 +81,10 @@ class Purchase < ApplicationRecord
       "-"
   end
 
+  def date
+    purchase_date || created_at
+  end
+
   def self.unpaid
     includes(:supplier)
       .where

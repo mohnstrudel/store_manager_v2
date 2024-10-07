@@ -14,8 +14,9 @@ module ApplicationHelper
         delimiter: ".",
         separator: ",",
         format: "%n %u",
+        precision: 0,
         unit:
-      )
+      ).strip
     end
   end
 

@@ -52,4 +52,8 @@ class PurchasedProduct < ApplicationRecord
   def name
     purchase.full_title
   end
+
+  def cost
+    (price || 0) + (purchase.item_price || 0)
+  end
 end

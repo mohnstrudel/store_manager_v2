@@ -2,7 +2,7 @@ require "rails_helper"
 
 describe "Sale show page" do
   let(:sale) { create(:sale) }
-  let(:link_label) { "🔗 Link with Purchased Products" }
+  let(:link_label) { "🔗 Link with purchases" }
 
   context "when the nav link should be hidden" do
     before do

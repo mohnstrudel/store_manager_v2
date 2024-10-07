@@ -48,9 +48,8 @@ class Sale < ApplicationRecord
   accepts_nested_attributes_for :product_sales, allow_destroy: true
 
   def title
-    woo = woo_id.present? ? "Woo ID: #{woo_id}, " : ""
     email = customer.email.presence || ""
-    woo + (email.present? ? "#{email}, " : "") + status
+    (email.present? ? "#{email}, " : "") + status
   end
 
   def select_title

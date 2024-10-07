@@ -74,7 +74,7 @@ class SalesController < ApplicationController
 
   def link_purchased_products
     @sale.product_sales.each(&:link_purchased_products)
-    redirect_to @sale, notice: "Purchased products have been connected."
+    redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
   end
 
   private
