@@ -80,3 +80,8 @@ i.icn {
 .sales_show__order-list {
   padding-right: var(--spacing);
 }
+
+.edit-header-pd {
+  margin-top: calc(1.5 * var(--typography-spacing-vertical));
+  margin-bottom: calc(0.5 * var(--typography-spacing-vertical));
+}

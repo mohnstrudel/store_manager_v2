@@ -6,7 +6,8 @@ nav
       = link_to "Back", "javascript:history.back()"
       - if model.respond_to?(:woo_id)
         h1 Editing #{model.model_name.name.titleize}
-        h4 Woo ID: #{model.woo_id}
+        - if model.woo_id
+          h4 Woo ID: #{model.woo_id}
       - else
         h1 Editing #{model.model_name.name.titleize}
         h4 ID: #{model.id}
