@@ -18,7 +18,7 @@
           th Title
           th Length × Width × Height, cm
           th.right Kg
-          th.right Price
+          th.right Expenses
           th.right Shipping
           th.right Actions
         tbody
@@ -37,7 +37,7 @@
                   | → #{pp.purchase.variation.title}
               td.mono = format_item_size(pp)
               td.mono.right = pp.weight
-              td.mono.right = format_money pp.price
+              td.mono.right = format_money pp.expenses
               td.mono.right = format_money pp.shipping_price
               td.actions
                 = render "_shared/action-destroy", route: purchased_product_path(pp)

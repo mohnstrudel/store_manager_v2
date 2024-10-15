@@ -3,9 +3,9 @@
 # Table name: purchased_products
 #
 #  id              :bigint           not null, primary key
+#  expenses        :decimal(8, 2)
 #  height          :integer
 #  length          :integer
-#  price           :decimal(8, 2)
 #  shipping_price  :decimal(8, 2)
 #  weight          :integer
 #  width           :integer
@@ -23,7 +23,7 @@ FactoryBot.define do
     length { 1 }
     width { 1 }
     height { 1 }
-    price { "9.99" }
+    expenses { "9.99" }
     shipping_price { "9.99" }
   end
 end

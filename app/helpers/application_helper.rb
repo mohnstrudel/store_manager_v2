@@ -52,4 +52,14 @@ module ApplicationHelper
       url_for(model.images.first.representation(:thumb))
     end
   end
+
+  def format_purchased_sold_ratio(purchased, sold)
+    ratio = "#{purchased} / #{sold}"
+
+    if purchased >= sold
+      "<mark class='smaller muted'>#{ratio}</mark>".html_safe
+    else
+      "<mark class='smaller'>#{ratio}</mark>".html_safe
+    end
+  end
 end

@@ -8,8 +8,11 @@ Rails.application.routes.draw do
   end
 
   resources :purchased_products
+  resources :product_sales
 
   post "purchased_products/move", to: "purchased_products#move", as: :move_purchased_products
+
+  post "purchased_products/unlink", to: "purchased_products#unlink", as: :unlink_purchased_product
 
   post "move_purchases", to: "purchases#move"
 

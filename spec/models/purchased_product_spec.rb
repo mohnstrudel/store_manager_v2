@@ -3,9 +3,9 @@
 # Table name: purchased_products
 #
 #  id              :bigint           not null, primary key
+#  expenses        :decimal(8, 2)
 #  height          :integer
 #  length          :integer
-#  price           :decimal(8, 2)
 #  shipping_price  :decimal(8, 2)
 #  weight          :integer
 #  width           :integer

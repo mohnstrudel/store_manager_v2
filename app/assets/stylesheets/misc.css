@@ -85,3 +85,35 @@ i.icn {
   margin-top: calc(1.5 * var(--typography-spacing-vertical));
   margin-bottom: calc(0.5 * var(--typography-spacing-vertical));
 }
+
+ul.with_separator li:not(:last-child) {
+  position: relative;
+}
+
+ul.with_separator li:not(:first-child) {
+  padding-inline: 1rem;
+}
+
+ul.with_separator li:first-child {
+  padding-right: 1rem;
+}
+
+ul.with_separator li:not(:last-child)::after {
+  display: block;
+  position: absolute;
+  right: 0;
+  transform: translate(50%, -100%);
+  opacity: 0.25;
+  content: "|";
+  color: var(--primary);
+}
+
+mark.muted {
+  background-color: var(--muted-border-color);
+  color: var(--color);
+}
+
+mark.smaller {
+  vertical-align: text-top;
+  font-size: smaller;
+}

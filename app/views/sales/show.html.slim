@@ -1,6 +1,5 @@
 = render "_shared/notice"
 
-
 nav
   ul
     li
@@ -14,52 +13,36 @@ nav
       = render "_shared/action-edit", route: url_for(controller: "#{@sale.model_name.plural}", action: "edit", id: @sale), btn: true
 
 main.wide.flex.flex-col.gap.w-pd.no-bd
+
   - if @sale.product_sales.present?
     .table-card.full-width
+
       .sales_show__order-list.flex.justify-between.items-center
         h3 Order List
-        - if @sale.active? && @sale.has_unlinked_purchased_products? && @sale.products.any? { |product| product.purchased_products.any? }
-          a.btn href=link_purchased_products_sale_path
-            i.icn 🔗
-            | Link with purchases
+        = render "link_btn", sale: @sale
 
       table role="grid" data-controller="table"
-          thead
-            th.text-center Image
-            th Product
-            th Variation
-            th.right Price, $
-            th.right Quantity
-          tbody
-            - @sale.product_sales.each_with_index do |ps, idx|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=product_path(ps.product)
-              )
-                td.text-center = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
-                td
-                  = ps.product.full_title 
-                  ul.product-variations
-                    - ps.purchased_products.each do |purchased_product|
-                      li
-                        a.no-events href=purchased_product_path(purchased_product)
-                          i.icn 📦
-                          | #{purchased_product.warehouse.name}
-                          - if purchased_product.price
-                            | — costs: $
-                            .mono.inline = format_money purchased_product.price
-                        br
-                        a.no-events href=purchase_path(purchased_product.purchase)
-                          i.icn 💰
-                          |  #{purchased_product.purchase.supplier.title}
-                          | , #{format_date purchased_product.purchase.date}
-                          - if purchased_product.purchase.item_price
-                            | — costs: $
-                            .mono.inline = format_money purchased_product.purchase.item_price
+        thead
+          th.text-center Image
+          th Product
+          th Variation
+          th.right Price, $
+          th.right Purchased / Sold Amount
+        tbody
+          - @sale.product_sales.each_with_index do |ps, idx|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=product_sale_path(ps)
+            )
+              td.text-center = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
+              td
+                = ps.product.full_title 
+                - if ps.purchased_products.present?
+                  = render "purchased_products", purchased_products: ps.purchased_products
+              td = ps.variation.present? ? ps.variation.title : "-"
+              td.right.mono = format_money ps.price
+              td.right = format_purchased_sold_ratio(ps.purchased_products.size, ps.qty)
 
-                td = ps.variation.present? ? ps.variation.title : "-"
-                td.right.mono = format_money ps.price
-                td.right = ps.qty
 
   .cards
     .card.grow
@@ -98,8 +81,10 @@ main.wide.flex.flex-col.gap.w-pd.no-bd
       - else
         p = safe_blank_render @sale.woo_id
 
+
   .table-card.full-width
     h3 Address
+
     table role="grid"
       thead
         th Address 1

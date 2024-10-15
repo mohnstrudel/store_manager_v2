@@ -78,11 +78,6 @@ class PurchasesController < ApplicationController
   end
 
   def move
-    warn "*" * 100
-    warn params[:purchase_id]
-    warn params[:selected_items_ids]
-    warn "*" * 100
-
     purchase_id = params[:purchase_id]
     purchases_ids = params[:selected_items_ids]
     purchases_ids = purchase_id if purchases_ids.blank?

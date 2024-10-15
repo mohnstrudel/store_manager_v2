@@ -1,3 +1,5 @@
+- options = {} if local_assigns[:options].nil?
+
 .move_to_warehouse__form.hidden
   = form_with url: form_url, method: :post, data: { move_items_target: "form" } do |form|
     = form.collection_select :destination_id, Warehouse.all, :id, :name, { prompt: "Select a warehouse" }, { class: "select", data: { controller: "slim-select", move_items_target: "destination" } }
@@ -5,3 +7,6 @@
       i.icn 🚚
       |  Move 
       span data-move-items-target="count"
+
+    - if options[:redirect_to_product_sale]
+      = form.hidden_field :redirect_to_product_sale, value: true

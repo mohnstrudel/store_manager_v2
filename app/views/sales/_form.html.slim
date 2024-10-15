@@ -3,7 +3,7 @@
 
   h4.edit-header-pd Status
   .radio-buttons
-    = f.collection_radio_buttons(:status, Sale.status_names.map(&:titleize), :itself, :itself) do |rdb|
+    = f.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
       = rdb.label(class: "radio-btn")
         = rdb.label class: "radio-btn--label"
         = rdb.radio_button

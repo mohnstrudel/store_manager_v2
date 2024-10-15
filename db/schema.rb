@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_21_090912) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -180,7 +180,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_21_090912) do
     t.integer "length"
     t.integer "width"
     t.integer "height"
-    t.decimal "price", precision: 8, scale: 2
+    t.decimal "expenses", precision: 8, scale: 2
     t.decimal "shipping_price", precision: 8, scale: 2
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

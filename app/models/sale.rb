@@ -63,7 +63,7 @@ class Sale < ApplicationRecord
   end
 
   def full_title
-    "#{customer.name_and_email} | #{woo_id.presence}"
+    [customer.name_and_email, woo_id.presence].compact.join(" | ")
   end
 
   def active?
@@ -110,11 +110,7 @@ class Sale < ApplicationRecord
     UpdateWooOrderJob.perform_later(sale)
   end
 
-  def has_unlinked_purchased_products?
-    product_sales.any? { |ps| ps.purchased_products.size < ps.qty }
-  end
-
-  def has_linked_purchased_products?
-    product_sales.any? { |ps| ps.purchased_products.size > 0 }
+  def has_unlinked_product_sales?
+    product_sales.any? { |ps| ps.has_unlinked_purchased_products? }
   end
 end
