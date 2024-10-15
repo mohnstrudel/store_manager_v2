@@ -8,7 +8,7 @@
 #  updated_at        :datetime         not null
 #
 class Config < ApplicationRecord
-  enum sales_hook_status: {active: 1, disabled: 0}
+  enum :sales_hook_status, [:disabled, :active]
 
   CONFIG = Config.first_or_create
 
