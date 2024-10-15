@@ -59,10 +59,10 @@ class PurchasedProduct < ApplicationRecord
   end
 
   def self.unlinked_records(product_id)
-    where(
-      product_sale_id: nil,
-      purchase: {product_id:}
-    )
+    where(product_sale_id: nil)
       .joins(:purchase)
+      .where(
+        purchase: {product_id:}
+      )
   end
 end

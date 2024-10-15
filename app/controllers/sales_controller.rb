@@ -1,5 +1,5 @@
 class SalesController < ApplicationController
-  before_action :set_sale, only: %i[show edit update destroy link_purchased_products]
+  before_action :set_sale, only: %i[edit update destroy link_purchased_products]
 
   # GET /sales
   def index
@@ -7,6 +7,7 @@ class SalesController < ApplicationController
       .includes(
         :customer,
         product_sales: [
+          :purchased_products,
           product: [images_attachments: :blob],
           variation: [
             :version,
@@ -31,6 +32,15 @@ class SalesController < ApplicationController
 
   # GET /sales/1
   def show
+    @sale = Sale
+      .includes(
+        product_sales: [
+          purchased_products: [:warehouse, purchase: :supplier],
+          product: [images_attachments: :blob]
+        ]
+      )
+      .friendly
+      .find(params[:id])
   end
 
   # GET /sales/new

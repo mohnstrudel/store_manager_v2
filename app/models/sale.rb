@@ -111,6 +111,8 @@ class Sale < ApplicationRecord
   end
 
   def has_unlinked_product_sales?
-    product_sales.any? { |ps| ps.has_unlinked_purchased_products? }
+    product_ids = product_sales.pluck(:product_id)
+
+    PurchasedProduct.unlinked_records(product_ids).exists?
   end
 end

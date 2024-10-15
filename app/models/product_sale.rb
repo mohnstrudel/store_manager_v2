@@ -42,18 +42,13 @@ class ProductSale < ApplicationRecord
     [id, title, pretty_sale_email, pretty_sale_id, pretty_woo_id].compact.join(" | ")
   end
 
-  def unlinked_purchased_products
-    PurchasedProduct.unlinked_records(product_id).limit(qty)
-  end
-
-  def has_unlinked_purchased_products?
-    unlinked_purchased_products.size > 0 && purchased_products.size < qty
-  end
-
   def link_purchased_products
     return unless sale.active?
     return if purchased_products.size >= qty
 
-    unlinked_purchased_products.update_all(product_sale_id: id)
+    PurchasedProduct
+      .unlinked_records(product_id)
+      .limit(qty)
+      .update_all(product_sale_id: id)
   end
 end

@@ -3,6 +3,7 @@ class ProductSalesController < ApplicationController
 
   # GET /product_sales/1
   def show
+    @product_sale = ProductSale.includes(purchased_products: :warehouse).find(params[:id])
   end
 
   # GET /product_sales/1/edit
