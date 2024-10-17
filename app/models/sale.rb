@@ -111,6 +111,11 @@ class Sale < ApplicationRecord
   end
 
   def has_unlinked_product_sales?
+    total_sold = product_sales.sum(:qty)
+    total_purchased = product_sales.sum { |ps| ps.purchased_products.size }
+
+    return if total_sold == total_purchased
+
     product_ids = product_sales.pluck(:product_id)
 
     PurchasedProduct.unlinked_records(product_ids).exists?
