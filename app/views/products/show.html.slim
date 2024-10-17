@@ -179,27 +179,4 @@ main.wide.flex.flex-col.gap.w-pd
                 td.right.mono = format_money purchase.item_price
                 td = purchase.amount
 
-  - if @product.purchased_products.present?
-    .table-cards-group
-      .table-card
-        h3 Stored in Warehouses: #{@product.purchased_products.count}
-        table role="grid" data-controller="table"
-          thead
-            th Supplier
-            - if @product.variations.any?
-              th Variation?
-            th Warehouse
-            th Last Updated
-          tbody
-            - @product.purchased_products.ordered_by_updated_date.each do |pp|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=warehouse_path(pp.warehouse)
-              )
-                td = pp.purchase.supplier.title
-                - if @product.variations.any?
-                  td = pp.purchase.which_variation
-                td = pp.warehouse.name
-                td = time_ago_in_words pp.updated_at
-
 = button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

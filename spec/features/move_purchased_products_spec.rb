@@ -69,9 +69,9 @@ describe "Moving purchased products between warehouses" do
       visit purchase_path(purchase)
 
       # Verify that we have purchased products in the original warehouse
-      expect(page).to have_content("Stored in Warehouses: 3")
-      # 3 items inside the table, 1 in the select
-      expect(page).to have_text(warehouse_from.name, count: 4)
+      expect(page).to have_content("Purchased Products 3")
+      # 3 items inside the table, 2 in two selects
+      expect(page).to have_text(warehouse_from.name, count: 5)
 
       # Select 2 out of 3 purchased products
       find("tbody tr:nth-child(1) input[type='checkbox']").check
@@ -89,11 +89,11 @@ describe "Moving purchased products between warehouses" do
       expect(page).to have_content("Success! 2 purchased products moved to: #{warehouse_to.name}")
 
       # Verify we have the same amount of purchased products
-      expect(page).to have_content("Stored in Warehouses: 3")
+      expect(page).to have_content("Purchased Products 3")
 
       # Verify the moved purchases are no longer in the original warehouse
-      # 1 time in the notice, 1 in the select, 2 inside the table
-      expect(page).to have_text(warehouse_to.name, count: 4)
+      # 1 time in the notice, 2 in two selects, 2 inside the table
+      expect(page).to have_text(:visible, warehouse_to.name, count: 5)
 
       visit warehouse_path(warehouse_to)
       expect(page).to have_content("Purchased Products 2")

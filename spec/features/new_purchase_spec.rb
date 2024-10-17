@@ -25,6 +25,10 @@ RSpec.describe "Creating a new purchase", type: :feature do
   end
 
   scenario "displays warehouse information on the purchase page after creation" do
+    visit product_path(product)
+
+    expect(page).not_to have_selector("h3", text: "Purchases")
+
     visit new_purchase_path
 
     find("#purchase_supplier_id").set(supplier.id)
@@ -38,9 +42,10 @@ RSpec.describe "Creating a new purchase", type: :feature do
     purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))
 
-    expect(page).to have_content("Stored in Warehouses: 5")
+    expect(page).to have_text("Purchased Products 5")
 
     visit product_path(product)
-    expect(page).to have_content("Stored in Warehouses: 5")
+
+    expect(page).to have_selector("h3", text: "Purchases")
   end
 end

@@ -6,8 +6,12 @@ describe "Sale show page" do
 
   context "when the nav link should be hidden" do
     before do
-      allow(sale).to receive_messages(active?: false, has_unlinked_purchased_products?: false)
-      allow(sale.products).to receive(:any?).and_return(false)
+      allow(sale).to receive_messages(active?: false, has_unlinked_product_sales?: false)
+      allow(PurchasedProduct).to receive(:unlinked_records).and_return([])
+
+      product = create(:product)
+      create(:product_sale, sale: sale, product: product, qty: 2)
+      create(:purchased_product, product: product)
     end
 
     it "does not show the link when all conditions are false" do
@@ -24,42 +28,8 @@ describe "Sale show page" do
       expect(page).not_to have_link(link_label)
     end
 
-    it "does not show the link when only #has_unlinked_purchased_products? is true" do
-      allow(sale).to receive(:has_unlinked_purchased_products?).and_return(true)
-
-      visit sale_path(sale)
-
-      expect(page).not_to have_link(link_label)
-    end
-
-    it "does not show the link when only #products.any? is true" do
-      allow(sale.products).to receive(:any?).and_return(true)
-
-      visit sale_path(sale)
-
-      expect(page).not_to have_link(link_label)
-    end
-
-    it "does not show the link when #active? and #has_unlinked_purchased_products? are true" do
-      allow(sale).to receive_messages(active?: true, has_unlinked_purchased_products?: true)
-
-      visit sale_path(sale)
-
-      expect(page).not_to have_link(link_label)
-    end
-
-    it "does not show the link when #active? and #products.any? are true" do
-      allow(sale).to receive(:active?).and_return(true)
-      allow(sale.products).to receive(:any?).and_return(true)
-
-      visit sale_path(sale)
-
-      expect(page).not_to have_link(link_label)
-    end
-
-    it "does not show the link when #has_unlinked_purchased_products? and #products.any? are true" do
-      allow(sale).to receive(:has_unlinked_purchased_products?).and_return(true)
-      allow(sale.products).to receive(:any?).and_return(true)
+    it "does not show the link when only #has_unlinked_product_sales? is true" do
+      allow(sale).to receive(:has_unlinked_product_sales?).and_return(true)
 
       visit sale_path(sale)
 
@@ -75,8 +45,7 @@ describe "Sale show page" do
     end
 
     it "shows the link when all conditions are true" do
-      allow(sale).to receive_messages(active?: true, has_unlinked_purchased_products?: true)
-      allow(sale.products).to receive(:any?).and_return(true)
+      allow(sale).to receive_messages(active?: true, has_unlinked_product_sales?: true)
 
       visit sale_path(sale)
 
