@@ -17,7 +17,7 @@
 #
 require "rails_helper"
 
-RSpec.describe PurchasedProduct, type: :model do
+describe PurchasedProduct do
   describe "#name" do
     subject(:purchased_product) { create(:purchased_product) }
 
