@@ -63,6 +63,8 @@ gem "requestjs-rails"
 gem "friendly_id"
 gem "state_machines-activerecord"
 
+gem "inline_svg"
+
 group :production do
   gem "thruster"
   gem "barnes"

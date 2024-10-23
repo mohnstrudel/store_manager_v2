@@ -6,7 +6,13 @@ nav
       ul
         li = link_to "All sales", sales_path
       hgroup
-        h1 Sale №#{@sale.id}
+        - if @sale.woo_id.blank?
+          h1 Sale
+        - else
+          h1.relative.w-fit
+            | Sale №#{@sale.woo_id}
+            = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit", class: "link-icn in-heading"
+              = inline_svg "link-icn.svg" 
         h4 = @sale.title
   ul
     li
@@ -18,7 +24,7 @@ main.wide.flex.flex-col.gap.w-pd.no-bd
     .table-card.full-width
 
       .sales_show__order-list.flex.justify-between.items-center
-        h3 Order List
+        h3 Order Items List
         = render "link_btn", sale: @sale
 
       table role="grid" data-controller="table"

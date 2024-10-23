@@ -168,6 +168,9 @@ GEM
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
       railties (>= 6.0.0)
+    inline_svg (1.10.0)
+      activesupport (>= 3.0)
+      nokogiri (>= 1.6)
     io-console (0.7.2)
     irb (1.14.0)
       rdoc (>= 4.0.0)
@@ -477,6 +480,7 @@ DEPENDENCIES
   httparty
   image_processing (~> 1.2)
   importmap-rails
+  inline_svg
   kaminari
   pg (~> 1.1)
   pg_query (>= 2)
