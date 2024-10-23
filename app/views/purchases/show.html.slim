@@ -61,7 +61,11 @@ main.wide.flex.flex-col.gap.no-bd
                 )
                   = render "_shared/move_to_warehouse/td", id: pp.id
                   td = pp.warehouse.name
-                  td = pp.product_sale&.title
+                  td
+                    = pp.sale&.select_title
+                    - if pp.sale&.woo_id
+                      = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{pp.sale.woo_id}&action=edit", class: "link-icn td no-events"
+                        = inline_svg "link-icn.svg" 
                   td.mono = format_item_size(pp)
                   td.mono.right = pp.weight
                   td.mono.right = format_money pp.expenses

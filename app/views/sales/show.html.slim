@@ -11,8 +11,8 @@ nav
         - else
           h1.relative.w-fit
             | Sale №#{@sale.woo_id}
-            = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit", class: "link-icn in-heading"
-              = inline_svg "link-icn.svg" 
+            = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit", class: "link-icn h1"
+              = inline_svg "link-icn.svg"
         h4 = @sale.title
   ul
     li

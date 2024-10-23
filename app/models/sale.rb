@@ -53,9 +53,10 @@ class Sale < ApplicationRecord
   end
 
   def select_title
-    woo = woo_id.present? ? "Woo ID: #{woo_id}" : ""
-    email = customer.email.presence || ""
-    woo + " — " + email + " — " + status + ", total: $#{"%.2f" % total}"
+    name = customer.full_name.presence
+    email = customer.email.presence
+    woo = woo_id.presence
+    [name, email, status.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
   end
 
   def created
