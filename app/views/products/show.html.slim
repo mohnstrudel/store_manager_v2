@@ -3,9 +3,9 @@
 nav
   ul
     li
-      ul 
+      ul
         li = link_to "All products", products_path
-      hgroup 
+      hgroup
         h1 = @product.title
         h2 = @product.full_title
   ul.gap
@@ -18,165 +18,12 @@ nav
 
 
 main.wide.flex.flex-col.gap.w-pd
-  .cards.items-center
-    = render "_shared/gallery", images: @product.images
-
-    .card.grow.shrink-4
-      .title Title
-      p = @product.title
-      .title Franchise
-      p = @product.franchise.title
-      .title Version
-      p = format_relation(@product.versions, "value")
-      .title Brand
-      p = format_relation(@product.brands, "title")
-      .title Size
-      p = format_relation(@product.sizes, "value")
-      .title Shape
-      p = @product.shape.title
-      .title Color
-      p = format_relation(@product.colors, "value")
-
-    .card.shrink-2
-      .title ID
-      p = @product.id
-      .title SKU
-      p = @product.sku.presence || "-"
-      .title Supplier
-      p = format_relation(@product.suppliers, "title")
-      .title Created
-      p = format_date @product.created_at
-      .title Updated
-      p = format_date @product.updated_at
-      .title Woo ID
-      p = link_to @product.woo_id, @product.store_link, :target => "_blank", "rel" => "noopener noreferrer"
-
-  .table-cards-group
-    - if @product.variations.any?
-      .table-card
-        h3 Variations
-        table role="grid" data-controller="table"
-          thead
-            th ID
-            th Name
-            th Type
-            th.right Sales
-            th Purchases
-            th Woo ID
-          tbody
-            - @product.variations.includes(:version, :color, :size, :purchases, :product_sales).each do |variation|
-              tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == variation.id)
-                td = variation.id
-                td = variation.title
-                td = variation.types_name
-                td.right = format_zero_values variation.product_sales.size
-                td = format_zero_values variation.purchases.size
-                - if variation.store_link.present?
-                  td = link_to variation.woo_id, variation.store_link, :target => "_blank", "rel" => "noopener noreferrer"
-                - else 
-                  td = variation.woo_id
-
-  - if @active_sales.present?
-    .table-cards-group
-      .table-card
-        h3.flex.justify-between
-          span Active Sales
-          span = @active_sales.size
-        table role="grid" data-controller="table"
-          thead
-            th Woo ID
-            th Status
-            th Customer
-            th Email
-            th Country
-            th Date
-            - if @product.variations.any?
-              th Variation?
-            th.right Price, $
-            th Qty
-          tbody
-            - @active_sales.each_with_index do |ps, idx|
-              tr(
-                class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.item.id)
-                data-action="click->table#goTo"
-                data-table-url-param=sale_path(ps.sale)
-              )
-                td = ps.sale.woo_id
-                td = ps.sale.status.capitalize
-                td = ps.sale.customer.full_name
-                td = ps.sale.customer.email
-                td = ps.sale.country
-                td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
-                - if @product.variations.any?
-                  - if ps.variation.present?
-                    td = ps.variation.title
-                  - else
-                    td -
-                td.right.mono = format_money ps.price
-                td = ps.qty
-
-  - if @complete_sales.present?
-    .table-cards-group
-      .table-card
-        h3.flex.justify-between
-          span Completed Sales
-          span = @complete_sales.size
-        table role="grid" data-controller="table"
-          thead
-            th Customer
-            th Email
-            th Country
-            th Date
-            - if @product.variations.any?
-              th Variation?
-            th.right Price, $
-            th Qty
-          tbody
-            - @complete_sales.each_with_index do |ps, idx|
-              tr(
-                class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.item.id)
-                data-action="click->table#goTo"
-                data-table-url-param=sale_path(ps.sale)
-              )
-                td = ps.sale.customer.full_name
-                td = ps.sale.customer.email
-                td = ps.sale.country
-                td.no-wrap = format_date ps.sale.woo_created_at.presence || ps.created_at
-                - if @product.variations.any?
-                  - if ps.variation.present?
-                    td = ps.variation.title
-                  - else
-                    td -
-                td.right.mono = format_money ps.price
-                td = ps.qty
-
-  - if @product.purchases.present?
-    .table-cards-group
-      .table-card
-        h3 Purchases
-        table role="grid" data-controller="table"
-          thead
-            th Supplier
-            th Title
-            th Variation
-            th Time ago
-            th.right Item Price, $
-            th Qty
-          tbody
-            - @product.purchases.each_with_index do |purchase, idx|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=purchase_path(purchase)
-              )
-                td = purchase.supplier.title
-                - if purchase.variation.present?
-                  td = purchase.product.full_title
-                  td = purchase.variation.title
-                - else
-                  td = purchase.product.full_title
-                  td
-                td.no-wrap = time_ago_in_words purchase.created_at
-                td.right.mono = format_money purchase.item_price
-                td = purchase.amount
+  = render "product_attributes", product: @product
+  = render "product_variations", product: @product
+  = render "product_active_sales", product: @product,\
+    active_sales: @active_sales
+  = render "product_complete_sales", product: @product,\
+    complete_sales: @complete_sales
+  = render "product_purchases", product: @product
 
 = button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }

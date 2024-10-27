@@ -16,6 +16,7 @@
           = render "_shared/move_to_warehouse/th"
           th Photo
           th Title
+          th Sale
           th Length × Width × Height, cm
           th.right Kg
           th.right Expenses
@@ -35,6 +36,9 @@
                 = pp.purchase.product.full_title
                 - if pp.purchase.variation.present?
                   | → #{pp.purchase.variation.title}
+              td
+                - if pp.sale
+                  = link_to pp.sale.title, pp.sale, class: "no-events"
               td.mono = format_item_size(pp)
               td.mono.right = pp.weight
               td.mono.right = format_money pp.expenses

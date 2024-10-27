@@ -49,7 +49,7 @@ class Sale < ApplicationRecord
 
   def title
     email = customer.email.presence || ""
-    (email.present? ? "#{email}, " : "") + status
+    [status&.titleize, email].compact.join(" | ")
   end
 
   def select_title

@@ -1,0 +1,27 @@
+.table-card.full-width
+  h3 Address
+  table role="grid"
+    thead
+      th Address 1
+      - if sale.address_2.present?
+        th Address 2
+      th City
+      - if sale.company.present?
+        th Company
+      th Country
+      th Phone
+      th Postcode
+      - if sale.state.present?
+        th State
+    tbody
+      td = safe_blank_render sale.address_1
+      - if sale.address_2.present?
+        td = safe_blank_render sale.address_2
+      td = safe_blank_render sale.city
+      - if sale.company.present?
+        td = safe_blank_render sale.company
+      td = safe_blank_render sale.country
+      td = safe_blank_render sale.customer.phone
+      td = safe_blank_render sale.postcode
+      - if sale.state.present?
+        td = safe_blank_render sale.state
