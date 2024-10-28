@@ -21,7 +21,7 @@ module ApplicationHelper
   end
 
   def format_zero_values(value)
-    (value > 0) ? value : "-"
+    (value.to_i > 0) ? value : "-"
   end
 
   def format_sale_status(status)

@@ -10,13 +10,13 @@
         th Purchases
         th Woo ID
       tbody
-        - product.variations.includes(:version, :color, :size, :purchases, :product_sales).each do |variation|
+        - product.variations.each do |variation|
           tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == variation.id)
             td = variation.id
             td = variation.title
             td = variation.types_name
-            td.right = format_zero_values variation.product_sales.sum(:qty)
-            td = format_zero_values variation.purchases.sum(:amount)
+            td.right = format_zero_values @variations_sales_sums[variation.id]
+            td = format_zero_values @variations_purchases_sums[variation.id]
             - if variation.store_link.present?
               td = link_to variation.woo_id, variation.store_link, :target => "_blank", "rel" => "noopener noreferrer"
             - else 

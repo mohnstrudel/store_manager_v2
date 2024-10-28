@@ -19,7 +19,7 @@
           )
             td.text-center = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
             td
-              = ps.product.full_title 
+              = link_to ps.product.full_title, ps.product, class: "no-events"
               - if ps.purchased_products.present?
                 = render "purchased_products", purchased_products: ps.purchased_products
             td = ps.variation.present? ? ps.variation.title : "-"

@@ -28,6 +28,15 @@ class ProductsController < ApplicationController
     @complete_sales = sales.select { |product_sale|
       product_sale.sale.status.in? Sale.completed_status_names
     }
+
+    @variations_sales_sums = ProductSale
+      .where(variation: @product.variations)
+      .group(:variation_id)
+      .sum(:qty)
+    @variations_purchases_sums = Purchase
+      .where(variation: @product.variations)
+      .group(:variation_id)
+      .sum(:amount)
   end
 
   # GET /products/new
@@ -99,9 +108,19 @@ class ProductsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_product
     @product = Product.includes(
-      purchases: [:product, variation: [:version, :color, :size]],
-      purchased_products: [:warehouse, :purchase]
-    ).with_attached_images.friendly.find(params[:id])
+      purchases: [:product, :supplier, variation: [:version, :color, :size]],
+      purchased_products: [:warehouse, :purchase],
+      variations: [
+        :version,
+        :color,
+        :size,
+        {product_sales: :sale},
+        {purchases: :supplier}
+      ]
+    )
+      .with_attached_images
+      .friendly
+      .find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.
