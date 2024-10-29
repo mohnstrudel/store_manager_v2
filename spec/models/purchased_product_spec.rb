@@ -3,9 +3,9 @@
 # Table name: purchased_products
 #
 #  id              :bigint           not null, primary key
+#  expenses        :decimal(8, 2)
 #  height          :integer
 #  length          :integer
-#  price           :decimal(8, 2)
 #  shipping_price  :decimal(8, 2)
 #  weight          :integer
 #  width           :integer
@@ -17,7 +17,7 @@
 #
 require "rails_helper"
 
-RSpec.describe PurchasedProduct, type: :model do
+describe PurchasedProduct do
   describe "#name" do
     subject(:purchased_product) { create(:purchased_product) }
 

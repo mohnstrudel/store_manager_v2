@@ -1,0 +1,32 @@
+.cards.items-center
+  = render "_shared/gallery", images: product.images
+
+  .card.grow.shrink-4
+    .title Title
+    p = product.title
+    .title Franchise
+    p = product.franchise.title
+    .title Version
+    p = format_relation(product.versions, "value")
+    .title Brand
+    p = format_relation(product.brands, "title")
+    .title Size
+    p = format_relation(product.sizes, "value")
+    .title Shape
+    p = product.shape.title
+    .title Color
+    p = format_relation(product.colors, "value")
+
+  .card.shrink-2
+    .title ID
+    p = product.id
+    .title SKU
+    p = product.sku.presence || "-"
+    .title Supplier
+    p = format_relation(product.suppliers, "title")
+    .title Created
+    p = format_date product.created_at
+    .title Updated
+    p = format_date product.updated_at
+    .title Woo ID
+    p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer"

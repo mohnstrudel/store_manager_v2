@@ -48,15 +48,16 @@ class Sale < ApplicationRecord
   accepts_nested_attributes_for :product_sales, allow_destroy: true
 
   def title
-    woo = woo_id.present? ? "Woo ID: #{woo_id}, " : ""
     email = customer.email.presence || ""
-    woo + (email.present? ? "#{email}, " : "") + status
+    [status&.titleize, email].compact.join(" | ")
   end
 
   def select_title
-    woo = woo_id.present? ? "Woo ID: #{woo_id}" : ""
-    email = customer.email.presence || ""
-    woo + " — " + email + " — " + status + ", total: $#{"%.2f" % total}"
+    name = customer.full_name.presence
+    email = customer.email.presence
+    woo = woo_id.presence
+    total = total.presence || 0
+    [name, email, status.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
   end
 
   def created
@@ -64,7 +65,7 @@ class Sale < ApplicationRecord
   end
 
   def full_title
-    "#{customer.name_and_email} | #{woo_id.presence}"
+    [customer.name_and_email, woo_id.presence].compact.join(" | ")
   end
 
   def active?
@@ -111,11 +112,14 @@ class Sale < ApplicationRecord
     UpdateWooOrderJob.perform_later(sale)
   end
 
-  def has_unlinked_purchased_products?
-    product_sales.any? { |ps| ps.purchased_products.size < ps.qty }
-  end
+  def has_unlinked_product_sales?
+    total_sold = product_sales.sum(:qty)
+    total_purchased = product_sales.sum { |ps| ps.purchased_products.size }
 
-  def has_linked_purchased_products?
-    product_sales.any? { |ps| ps.purchased_products.size > 0 }
+    return if total_sold == total_purchased
+
+    product_ids = product_sales.pluck(:product_id)
+
+    PurchasedProduct.unlinked_records(product_ids).exists?
   end
 end

@@ -1,78 +1,173 @@
 i.icn {
-    font-style: normal;
-    font-family: "Noto Emo";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-style: normal;
+  font-family: "Noto Emo";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
-    &.xxl {
-        font-size: 10rem;
-    }
+  &.xxl {
+    font-size: 10rem;
+  }
 }
 
 .icn.is-link {
-    vertical-align: text-top;
-    cursor: pointer;
-    margin-left: 0.25rem;
-    color: var(--primary);
-    font-weight: 300;
-    font-size: 1rem;
+  vertical-align: text-top;
+  cursor: pointer;
+  margin-left: 0.25rem;
+  color: var(--primary);
+  font-weight: 300;
+  font-size: 1rem;
 }
 
 .logo {
-    color: var(--muted-color);
-    font-size: 2rem;
+  color: var(--muted-color);
+  font-size: 2rem;
 }
 
 .sale-status--active {
-    filter: contrast(0.8);
-    color: rgb(var(--rgb-active-status-color));
+  filter: contrast(0.8);
+  color: rgb(var(--rgb-active-status-color));
 }
 
 .sale-status--inactive {
-    filter: contrast(0.7);
-    color: rgb(var(--rgb-inactive-status-color));
+  filter: contrast(0.7);
+  color: rgb(var(--rgb-inactive-status-color));
 }
 
 .has-memo {
-    position: relative;
-    cursor: pointer;
+  position: relative;
+  cursor: pointer;
 }
 
 .has-memo:hover .memo-notice {
-    display: flex;
-    opacity: 1;
+  display: flex;
+  opacity: 1;
 }
 
 .memo-notice {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    box-shadow: var(--box-shadow-menu);
-    border-radius: var(--border-radius);
-    background-color: var(--mark-background-color);
-    padding: 16px 24px 32px 16px;
-    width: 250px;
-    color: var(--mark-color);
-    font-size: smaller;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  box-shadow: var(--box-shadow-menu);
+  border-radius: var(--border-radius);
+  background-color: var(--mark-background-color);
+  padding: 16px 24px 24px 16px;
+  width: auto;
+  min-width: 200px;
+  max-width: 250px;
+  color: var(--mark-color);
+  font-size: smaller;
+  text-wrap: pretty;
+}
+
+.memo-notice.away {
+  top: 24px;
+  left: 24px;
 }
 
 .semi-link {
-    cursor: pointer;
-    border-bottom: 2px dashed var(--muted-color);
+  cursor: pointer;
+  border-bottom: 2px dashed var(--muted-color);
 }
 
 .semi-link:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .semi-link.undo {
-    border-bottom: 2px dashed rgb(var(--danger-color));
-    color: rgb(var(--danger-color));
+  border-bottom: 2px dashed rgb(var(--danger-color));
+  color: rgb(var(--danger-color));
 }
 
 .semi-link.undo:hover {
-    color: rgb(var(--danger-color));
+  color: rgb(var(--danger-color));
+}
+
+.sales_show__order-list {
+  padding-right: var(--spacing);
+}
+
+.edit-header-pd {
+  margin-top: calc(1.5 * var(--typography-spacing-vertical));
+  margin-bottom: calc(0.5 * var(--typography-spacing-vertical));
+}
+
+ul.with_separator li:not(:last-child) {
+  position: relative;
+}
+
+ul.with_separator li:not(:first-child) {
+  padding-inline: 1rem;
+}
+
+ul.with_separator li:first-child {
+  padding-right: 1rem;
+}
+
+ul.with_separator li:not(:last-child)::after {
+  display: block;
+  position: absolute;
+  right: 0;
+  transform: translate(50%, -100%);
+  opacity: 0.25;
+  content: "|";
+  color: var(--primary);
+}
+
+mark.muted {
+  background-color: var(--muted-border-color);
+  color: var(--color);
+}
+
+mark.smaller {
+  vertical-align: text-top;
+  font-size: smaller;
+}
+
+.link-icn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin: 0;
+  border: 1px solid var(--primary-muted);
+  border-radius: 8px;
+  background-color: var(--primary-muted);
+  padding: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.link-icn.h1 {
+  position: absolute;
+  top: -10px;
+  right: -30px;
+}
+
+.link-icn.td {
+  vertical-align: -2px;
+  margin-left: 4px;
+  border-radius: 6px;
+  padding: 2px;
+  width: 22px;
+  height: 22px;
+}
+
+.link-icn:hover {
+  background-color: var(--primary-focus);
+}
+
+.link-icn:hover svg {
+  color: var(--primary-hover);
+}
+
+.link-icn svg {
+  display: block;
+  margin-bottom: 1px;
+  margin-left: 2px;
+  width: 16px;
+  height: 16px;
+  color: var(--primary);
 }

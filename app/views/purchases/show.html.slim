@@ -19,6 +19,7 @@ nav
   ul.gap
     li
       = render "_shared/action-edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
+
     - if @purchase.purchased_products.none?
       li data-controller="move-items"
         = render "_shared/move_to_warehouse/form", form_url: move_purchases_path(purchase_id: @purchase.id)
@@ -26,11 +27,59 @@ nav
           i.icn 📦
           | Move all
 
-main.wide.flex.flex-col.gap.w-pd
+
+main.wide.flex.flex-col.gap.no-bd
+
+  - if @purchased_products.any?
+      .table-cards-group data-controller="move-items"
+        = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(purchase_id: @purchase.id)
+
+        .table-card
+          .table-hgroup.flex.justify-between
+            h3.flex.justify-between.w-full
+              span Purchased Products
+              span = @purchased_products.size
+
+          = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path, options: {redirect_to_product_sale: true}
+
+          table role="grid" data-controller="table"
+            thead
+              = render "_shared/move_to_warehouse/th"
+              th Warehouse
+              th Sale
+              th Length × Width × Height, cm
+              th.right Kg
+              th.right Expenses
+              th.right Shipping
+              th.right Actions
+            tbody
+              - @purchased_products.each do |pp|
+                tr(
+                  class="hoverable"
+                  data-action="click->table#goTo"
+                  data-table-url-param=purchased_product_path(pp)
+                )
+                  = render "_shared/move_to_warehouse/td", id: pp.id
+                  td = pp.warehouse.name
+                  td
+                    = pp.sale&.select_title
+                    - if pp.sale&.woo_id
+                      = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{pp.sale.woo_id}&action=edit", class: "link-icn td no-events"
+                        = inline_svg "link-icn.svg" 
+                  td.mono = format_item_size(pp)
+                  td.mono.right = pp.weight
+                  td.mono.right = format_money pp.expenses
+                  td.mono.right = format_money pp.shipping_price
+                  td.actions
+                    = render "_shared/action-destroy", route: purchased_product_path(pp)
+                    = render "_shared/action-edit", route: edit_purchased_product_path(pp, redirect_to_product_sale: true)
+
+
   .cards
     - if @purchase.product.image.present?
       img.product src="#{@purchase.product.image}"
-    .flex.card.grow
+
+    .card.flex.grow
       .column
         .title ID
         p = @purchase.id
@@ -59,8 +108,11 @@ main.wide.flex.flex-col.gap.w-pd
       p
         progress.no-mg value=@purchase.progress max=100
 
+
   .table-card
+
     h3 Payments
+
     table role="grid"
       thead
         tr
@@ -80,35 +132,6 @@ main.wide.flex.flex-col.gap.w-pd
       = form.label :amount, "New:"
       = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any
       = form.submit "Add payment", role: "button"
-
-  - if @purchased_products.any?
-    .table-cards-group data-controller="move-items"
-      = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(purchase_id: @purchase.id)
-      .table-card
-        h3
-          - if @purchased_products.count == @purchase.amount
-            | Stored in Warehouses: #{@purchased_products.count}
-          - else
-            | Stored in Warehouses: #{@purchased_products.count} of #{@purchase.amount}
-
-        table role="grid" data-controller="table"
-          thead
-            = render "_shared/move_to_warehouse/th"
-            - if @purchase.variation.present?
-              th Variation?
-            th Warehouse
-            th Last Updated
-          tbody
-            - @purchased_products.each do |pp|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=purchased_product_path(pp)
-              )
-                = render "_shared/move_to_warehouse/td", id: pp.id
-                - if @purchase.variation.present?
-                  td = @purchase.which_variation
-                td = pp.warehouse.name
-                td = time_ago_in_words pp.updated_at
 
 
 = button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"

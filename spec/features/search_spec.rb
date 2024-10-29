@@ -175,32 +175,44 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
   end
 
   it "finds purchases when we change them" do
+    # Create a variation of the product that we will use later
     asuka_variation = create(:variation, product: @asuka)
 
+    # Go to all purchases
     visit purchases_path
 
+    # Find @purchase_batman
     fill_in "q", with: @purchase_batman.order_reference
     find_by_id("q").native.send_keys(:return)
 
+    # Go to the purchase page we were searching for
     find("tr[data-table-url-param='/purchases/#{@purchase_batman.friendly_id}']").click
-    find(:link, "Edit").click
 
-    find("#purchase-product-select div[role='combobox']").click
-    find("div[aria-selected='false']", text: @asuka.full_title).click
+    # "Edit" the current purchase
+    find("a[href='/purchases/#{@purchase_batman.friendly_id}/edit']", text: "Edit").click
+
+    # Click on the products dropdown select
+    # and select a different product
+    slim_select(@batman.woo_id_full_title, @asuka.woo_id_full_title)
 
     scroll_to("label[for='purchase_variation'] ~ div")
 
+    # Select a variation of the new product
     find("#purchase-variation-select:last-child").click
     find("div[aria-selected='false']", text: asuka_variation.title).click
 
+    # Save changes
     scroll_to("input[type=submit]")
     find("input[type=submit]").click
 
+    # Go back to all purchases
     visit purchases_path
 
+    # Search for our edited purchase by the reference
     fill_in "q", with: @purchase_batman.order_reference
     find_by_id("q").native.send_keys(:return)
 
+    # Expect to find the edited purchase
     expect(page).to have_text(asuka_variation.title)
   end
   # rubocop:enable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll

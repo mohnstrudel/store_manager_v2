@@ -1,0 +1,37 @@
+- if active_sales.present?
+  .table-card
+    h3.flex.justify-between
+      span Active Sales
+      span = active_sales.size
+    table role="grid" data-controller="table"
+      thead
+        th Woo ID
+        th Status
+        th Customer
+        th Email
+        th Country
+        th Date
+        - if product.variations.any?
+          th Variation?
+        th.right Price, $
+        th Qty
+      tbody
+        - active_sales.each_with_index do |ps, idx|
+          tr(
+            class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.item.id)
+            data-action="click->table#goTo"
+            data-table-url-param=sale_path(ps.sale)
+          )
+            td = ps.sale.woo_id
+            td = ps.sale.status.capitalize
+            td = ps.sale.customer.full_name
+            td = ps.sale.customer.email
+            td = ps.sale.country
+            td = format_date ps.sale.woo_created_at.presence || ps.created_at
+            - if product.variations.any?
+              - if ps.variation.present?
+                td = ps.variation.title
+              - else
+                td -
+            td.right.mono = format_money ps.price
+            td = ps.qty

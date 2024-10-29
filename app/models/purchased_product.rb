@@ -3,9 +3,9 @@
 # Table name: purchased_products
 #
 #  id              :bigint           not null, primary key
+#  expenses        :decimal(8, 2)
 #  height          :integer
 #  length          :integer
-#  price           :decimal(8, 2)
 #  shipping_price  :decimal(8, 2)
 #  weight          :integer
 #  width           :integer
@@ -29,6 +29,7 @@ class PurchasedProduct < ApplicationRecord
   db_belongs_to :purchase
 
   belongs_to :product_sale, optional: true
+  has_one :sale, through: :product_sale
 
   has_one :product, through: :purchase
 
@@ -51,5 +52,17 @@ class PurchasedProduct < ApplicationRecord
 
   def name
     purchase.full_title
+  end
+
+  def cost
+    (price || 0) + (purchase.item_price || 0)
+  end
+
+  def self.unlinked_records(product_id)
+    where(product_sale_id: nil)
+      .joins(:purchase)
+      .where(
+        purchase: {product_id:}
+      )
   end
 end

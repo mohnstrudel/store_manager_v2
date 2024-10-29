@@ -34,17 +34,21 @@ class ProductSale < ApplicationRecord
       product.full_title
   end
 
+  def title_for_select
+    pretty_sale_email = sale.customer.email
+    pretty_sale_id = "sale id: #{sale_id}"
+    pretty_woo_id = woo_id && "woo id: #{woo_id}"
+
+    [id, title, pretty_sale_email, pretty_sale_id, pretty_woo_id].compact.join(" | ")
+  end
+
   def link_purchased_products
     return unless sale.active?
     return if purchased_products.size >= qty
 
-    available_purchased_products = PurchasedProduct.where(
-      product_sale_id: nil,
-      purchase: {product_id:}
-    )
-      .joins(:purchase)
+    PurchasedProduct
+      .unlinked_records(product_id)
       .limit(qty)
-
-    available_purchased_products.update_all(product_sale_id: id)
+      .update_all(product_sale_id: id)
   end
 end

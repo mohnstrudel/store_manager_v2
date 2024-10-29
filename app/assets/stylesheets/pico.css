@@ -791,7 +791,7 @@ ul li {
 }
 
 mark {
-  vertical-align: baseline;
+  border-radius: var(--border-radius);
   background-color: var(--mark-background-color);
   padding: 0.125rem 0.25rem;
   color: var(--mark-color);

@@ -7,7 +7,7 @@ Capybara.default_normalize_ws = true
 Capybara.register_driver(:better_cuprite) do |app|
   Capybara::Cuprite::Driver.new(
     app,
-    window_size: [1400, 1400],
+    window_size: [1400, 4000],
     # See additional options for Dockerized environment in the respective section of this article
     browser_options: {"no-sandbox": nil},
     # Increase Chrome startup wait time (required for stable CI builds)
@@ -37,9 +37,9 @@ module CupriteHelpers
 end
 
 RSpec.configure do |config|
-  config.include CupriteHelpers, type: :system
+  config.include CupriteHelpers, type: :feature
 
-  config.before(:each, type: :system) do
-    driven_by :better_cuprite, using: :headless_chrome, screen_size: [1400, 1400]
+  config.before(:each, :js, type: :feature) do
+    Capybara.current_driver = :better_cuprite
   end
 end

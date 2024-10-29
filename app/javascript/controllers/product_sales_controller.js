@@ -10,7 +10,7 @@ export default class extends Controller {
       <div class="sales-form__product_fields">
         <nav>
           <h6>New product</h6>
-          <a href="" data-action="product-sales#removeProduct">Remove</a>
+          <a class="danger" href="" data-action="product-sales#removeProduct">Remove</a>
         </nav>
         <input type="hidden" value="" name="sale[product_sales_attributes][${id}][product_id]" />
         <select name="sale[product_sales_attributes][${id}][product_id]">

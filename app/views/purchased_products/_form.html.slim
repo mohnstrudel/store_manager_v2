@@ -6,6 +6,9 @@
   
   = form.label :purchase
   = form.collection_select(:purchase_id, @purchases, :id, :full_title, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+  
+  = form.label :product_sale
+  = form.collection_select(:product_sale_id, @product_sales, :id, :title_for_select, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
 
   = form.label :length
   = form.text_field :length
@@ -19,8 +22,8 @@
   = form.label :weight
   = form.text_field :weight
 
-  = form.label :price
-  = form.text_field :price
+  = form.label :expenses
+  = form.text_field :expenses
 
   = form.label :shipping_price
   = form.text_field :shipping_price
@@ -39,5 +42,8 @@
 
   = form.label :images 
   = form.file_field :images, multiple: true
+
+  - if params[:redirect_to_product_sale].present?
+    = form.hidden_field :redirect_to_product_sale, value: true
 
   = form.submit

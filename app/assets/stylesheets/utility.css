@@ -135,3 +135,11 @@ br.xl {
   margin-right: auto;
   margin-left: auto;
 }
+
+.w-full {
+  width: 100%;
+}
+
+.w-fit {
+  width: fit-content;
+}

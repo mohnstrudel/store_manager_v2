@@ -1,64 +1,60 @@
 = form_with model: sale do |f|
   = render "_shared/notice-err", model: sale
 
-  article
-    h4 Status
-    .radio-buttons
-      = f.collection_radio_buttons(:status, Sale.status_names, :itself, :itself) do |rdb|
-        = rdb.label(class: "radio-btn")
-          = rdb.label class: "radio-btn--label"
-          = rdb.radio_button
+  h4.edit-header-pd Status
+  .radio-buttons
+    = f.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
+      = rdb.label(class: "radio-btn")
+        = rdb.label class: "radio-btn--label"
+        = rdb.radio_button
 
-  article data-controller="product-sales"
+  h4.edit-header-pd Price
+  = f.label :total
+  = f.text_field :total
+
+  = f.label :discount_total
+  = f.text_field :discount_total
+
+  = f.label :shipping_total
+  = f.text_field :shipping_total  
+
+  h4.edit-header-pd Customer
+  = f.label :customer
+  = f.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
+
+  = f.label :note
+  = f.text_field :note
+
+  h4.edit-header-pd Address
+  = f.label :company
+  = f.text_field :company
+
+  = f.label :country
+  = f.text_field :country
+
+  = f.label :state
+  = f.text_field :state
+
+  = f.label :city
+  = f.text_field :city
+
+  = f.label :address_1
+  = f.text_field :address_1
+
+  = f.label :address_2
+  = f.text_field :address_2
+
+  = f.label :postcode
+  = f.text_field :postcode
+
+  h4.edit-header-pd Products 
+  div data-controller="product-sales"
     = f.collection_select(:_, Product.all, :id, :full_title,
         { prompt: "Select a product" },
         { hidden: true, data: { "product-sales-target": "options" }})
-    h4 Products 
     - sale.product_sales.each do |product_sale|
       = f.fields_for :product_sales, product_sale do |ps_f|
         = render "product_fields", f: ps_f, product: product_sale.product
     button.is-inverted(data-action="product-sales#addProduct" data-product-sales-target="btn") Add Product
-
-  article
-    h4 Cost
-    = f.label :total
-    = f.text_field :total
-
-    = f.label :discount_total
-    = f.text_field :discount_total
-
-    = f.label :shipping_total
-    = f.text_field :shipping_total  
-
-  article
-    h4 Customer
-    = f.label :customer
-    = f.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
-
-    = f.label :note
-    = f.text_field :note
-
-  article
-    h4 Address
-    = f.label :company
-    = f.text_field :company
-
-    = f.label :country
-    = f.text_field :country
-
-    = f.label :state
-    = f.text_field :state
-
-    = f.label :city
-    = f.text_field :city
-
-    = f.label :address_1
-    = f.text_field :address_1
-
-    = f.label :address_2
-    = f.text_field :address_2
-
-    = f.label :postcode
-    = f.text_field :postcode
 
   = f.submit

@@ -21,7 +21,7 @@ class PurchasesController < ApplicationController
   def show
     @purchased_products = @purchase
       .purchased_products
-      .includes(:warehouse)
+      .includes(:warehouse, :product_sale)
       .order(updated_at: :desc)
   end
 
@@ -78,11 +78,6 @@ class PurchasesController < ApplicationController
   end
 
   def move
-    warn "*" * 100
-    warn params[:purchase_id]
-    warn params[:selected_items_ids]
-    warn "*" * 100
-
     purchase_id = params[:purchase_id]
     purchases_ids = params[:selected_items_ids]
     purchases_ids = purchase_id if purchases_ids.blank?

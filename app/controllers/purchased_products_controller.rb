@@ -19,7 +19,20 @@ class PurchasedProductsController < ApplicationController
 
   # GET /purchased_products/1/edit
   def edit
-    @purchases = Purchase.includes(:product, :supplier).order(purchase_date: :desc, created_at: :desc)
+    all_product_sales = ProductSale.includes(
+      :product,
+      sale: [:customer],
+      variation: [:color, :size, :version]
+    )
+    @product_sales = all_product_sales.where(
+      product_id: @purchased_product.product
+    ) + all_product_sales.where.not(
+      product_id: @purchased_product.product
+    )
+    @purchases = Purchase.includes(:product, :supplier).order(
+      purchase_date: :desc,
+      created_at: :desc
+    )
   end
 
   # POST /warehouse_products
@@ -36,11 +49,19 @@ class PurchasedProductsController < ApplicationController
   # PATCH/PUT /purchased_products/1
   def update
     if params[:deleted_img_ids].present?
-      attachments = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
+      deleted_imgs = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
     end
-    if @purchased_product.update(purchased_product_params)
-      attachments&.map(&:purge_later)
-      redirect_to @purchased_product, notice: "Purchased product was successfully updated.", status: :see_other
+
+    if @purchased_product.update(
+      purchased_product_params.except(:redirect_to_product_sale)
+    )
+      path = purchased_product_params[:redirect_to_product_sale] ?
+        @purchased_product.product_sale :
+        @purchased_product
+
+      deleted_imgs&.map(&:purge_later)
+
+      redirect_to path, notice: "Purchased product was successfully updated.", status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -69,8 +90,22 @@ class PurchasedProductsController < ApplicationController
 
     if purchase
       redirect_to purchase_path(purchase)
+    elsif params[:redirect_to_product_sale]
+      product_sale = PurchasedProduct.find(ids.first).product_sale
+      redirect_to product_sale
     else
       redirect_to warehouse_path(warehouse)
+    end
+  end
+
+  def unlink
+    purchased_product = PurchasedProduct.find(params[:id])
+    product_sale = purchased_product.product_sale
+
+    if purchased_product.update(product_sale: nil)
+      redirect_to product_sale, notice: "Purchased product was successfully unlinked.", status: :see_other
+    else
+      redirect_to product_sale, alert: "Something went wrong. Try again later or contact the administrators.", status: :see_other, turbolinks: false
     end
   end
 
@@ -87,10 +122,12 @@ class PurchasedProductsController < ApplicationController
       :width,
       :height,
       :weight,
-      :price,
+      :expenses,
       :shipping_price,
       :warehouse_id,
       :purchase_id,
+      :product_sale_id,
+      :redirect_to_product_sale,
       deleted_img_ids: [],
       images: []
     )

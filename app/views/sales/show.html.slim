@@ -1,114 +1,23 @@
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @sale
-  - if @sale.active? && @sale.has_unlinked_purchased_products? && @sale.products.any? { |product| product.purchased_products.any? }
+nav
+  ul
     li
-      a.btn href=link_purchased_products_sale_path
-        i.icn 🔗
-        | Link with Purchased Products
-main.wide.flex.flex-col.gap.w-pd
-  .cards
-    .card.grow
-      .title Status
-      p = @sale.status
-      .title Customer
-      p = "#{@sale.customer.first_name} #{@sale.customer.last_name}"
-      .title Email
-      p = safe_blank_render @sale.customer.email
-      .title Note
-      p = safe_blank_render @sale.note
-      .title Customer Woo ID
-      - if @sale.customer.woo_id.present?
-        p = link_to @sale.customer.woo_id, "https://store.handsomecake.com/wp-admin/user-edit.php?user_id=#{@sale.customer.woo_id}"
-      - else
-        p = safe_blank_render @sale.customer.woo_id
+      ul
+        li = link_to "All sales", sales_path
+      hgroup
+        - if @sale.woo_id.blank?
+          h1 Sale
+        - else
+          h1.relative.w-fit
+            | Sale №#{@sale.woo_id}
+            = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit", class: "link-icn h1"
+              = inline_svg "link-icn.svg"
+        h4 = @sale.title
+  ul
+    li = render "_shared/action-edit", route: url_for(controller: "#{@sale.model_name.plural}", action: "edit", id: @sale), btn: true
 
-    .card
-      .title Total, $
-      p.right.fit.mono = format_money @sale.total
-      .title Discount
-      p.right.fit.mono = format_money @sale.discount_total
-      .title Shipping
-      p.right.fit.mono = format_money @sale.shipping_total
-
-    .card
-      .title ID
-      p = @sale.id
-      .title Woo Created
-      p = safe_blank_render format_date(@sale.woo_created_at)
-      .title Woo Upd.
-      p = safe_blank_render format_date(@sale.woo_updated_at)  
-      .title Order Woo ID
-      - if @sale.woo_id.present?
-        p = link_to @sale.woo_id, "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit"
-      - else
-        p = safe_blank_render @sale.woo_id
-
-  - if @sale.product_sales.present?
-    .table-card.full-width
-      h3 Sold Products
-      table role="grid" data-controller="table"
-          thead
-            th Title
-            th Variation?
-            th.right Price, $
-            th.right Quantity
-          tbody
-            - @sale.product_sales.each_with_index do |ps, idx|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=product_path(ps.product)
-              )
-                td = ps.product.full_title 
-                td = ps.variation.present? ? ps.variation.title : "-"
-                td.right.mono = format_money ps.price
-                td.right = ps.qty
-
-  - if @sale.has_linked_purchased_products?
-    .table-card.full-width
-      h3 Purchased Products
-      table role="grid" data-controller="table"
-        thead
-          th Title
-          th Variation
-          th.right Price, $
-          th Warehouse
-        tbody
-          - @sale.product_sales.each do |ps|
-            - ps.purchased_products.each do |purchased_product|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=purchased_product_path(purchased_product)
-              )
-                td = ps.product.full_title
-                td = ps.variation.present? ? ps.variation.title : "-"
-                td.right.mono = format_money purchased_product.price
-                td = purchased_product.warehouse.name
-
-  .table-card.full-width
-    h3 Address
-    table role="grid"
-      thead
-        th Address 1
-        - if @sale.address_2.present?
-          th Address 2
-        th City
-        - if @sale.company.present?
-          th Company
-        th Country
-        th Phone
-        th Postcode
-        - if @sale.state.present?
-          th State
-      tbody
-        td = safe_blank_render @sale.address_1
-        - if @sale.address_2.present?
-          td = safe_blank_render @sale.address_2
-        td = safe_blank_render @sale.city
-        - if @sale.company.present?
-          td = safe_blank_render @sale.company
-        td = safe_blank_render @sale.country
-        td = safe_blank_render @sale.customer.phone
-        td = safe_blank_render @sale.postcode
-        - if @sale.state.present?
-          td = safe_blank_render @sale.state
+main.wide.flex.flex-col.gap.w-pd.no-bd
+  = render "order_items_list", sale: @sale
+  = render "sale_attributes", sale: @sale
+  = render "sale_address", sale: @sale

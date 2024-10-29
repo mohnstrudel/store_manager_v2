@@ -3,10 +3,13 @@
 nav
   ul
     li
-      ul
+      ul.with_separator
         li = link_to "Warehouse", @purchased_product.warehouse
         li = link_to "Purchase", @purchased_product.purchase
         li = link_to "Product", @purchased_product.purchase.product
+        - if @purchased_product.product_sale
+          li = link_to "Sale", @purchased_product.sale
+          li = link_to "Order Item", @purchased_product.product_sale
       hgroup
         h1 Purchased Product №#{@purchased_product.id}
         h4 #{format_show_page_title(@purchased_product)}
@@ -32,8 +35,8 @@ main.wide.w-pd.flex.flex-col.gap
       p = safe_blank_render @purchased_product.weight
 
     .card.grow
-      .title Price
-      p.mono = format_money safe_blank_render @purchased_product.price
+      .title Expenses
+      p.mono = format_money safe_blank_render @purchased_product.expenses
       .title Shipping
       p.mono = format_money safe_blank_render @purchased_product.shipping_price
       .title Created at

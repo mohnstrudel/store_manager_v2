@@ -14,13 +14,14 @@ module ApplicationHelper
         delimiter: ".",
         separator: ",",
         format: "%n %u",
+        precision: 0,
         unit:
-      )
+      ).strip
     end
   end
 
   def format_zero_values(value)
-    (value > 0) ? value : "-"
+    (value.to_i > 0) ? value : "-"
   end
 
   def format_sale_status(status)
@@ -49,6 +50,16 @@ module ApplicationHelper
   def thumb_url(model)
     if model.images.present?
       url_for(model.images.first.representation(:thumb))
+    end
+  end
+
+  def format_purchased_sold_ratio(purchased, sold)
+    ratio = "#{purchased} / #{sold}"
+
+    if purchased >= sold
+      "<mark class='smaller muted'>#{ratio}</mark>".html_safe
+    else
+      "<mark class='smaller'>#{ratio}</mark>".html_safe
     end
   end
 end

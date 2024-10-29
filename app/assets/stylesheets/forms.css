@@ -58,7 +58,11 @@ form.payment input[type="submit"] {
 }
 
 .sales-form__product_fields {
-  margin: 1.5rem 0;
+  margin: 2rem 0 3rem 0;
+}
+
+.sales-form__product_fields:first-of-type {
+  margin: 1.5rem 0 3rem 0;
 }
 
 .checkbox-remove:focus {

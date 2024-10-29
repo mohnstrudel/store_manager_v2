@@ -1,0 +1,29 @@
+- if product.purchases.present?
+  .table-card
+    h3.flex.justify-between
+      span Purchases
+      span = product.purchases.sum(:amount)
+    table role="grid" data-controller="table"
+      thead
+        th Supplier
+        th Title
+        th Variation
+        th Time ago
+        th.right Item Price, $
+        th Amount
+      tbody
+        - product.purchases.each_with_index do |purchase, idx|
+          tr.hoverable(
+            data-action="click->table#goTo"
+            data-table-url-param=purchase_path(purchase)
+          )
+            td = purchase.supplier.title
+            - if purchase.variation.present?
+              td = purchase.product.full_title
+              td = purchase.variation.title
+            - else
+              td = purchase.product.full_title
+              td
+            td = time_ago_in_words purchase.created_at
+            td.right.mono = format_money purchase.item_price
+            td = purchase.amount
