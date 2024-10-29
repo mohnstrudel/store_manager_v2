@@ -56,6 +56,7 @@ class Sale < ApplicationRecord
     name = customer.full_name.presence
     email = customer.email.presence
     woo = woo_id.presence
+    total = total.presence || 0
     [name, email, status.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
   end
 
