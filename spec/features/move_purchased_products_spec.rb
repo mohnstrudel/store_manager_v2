@@ -21,8 +21,7 @@ describe "Moving purchased products between warehouses" do
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
       # Select where to move products
-      find(".ss-values", text: "Select a warehouse").click
-      find(".ss-option", text: warehouse_to.name).click
+      slim_select("Select a warehouse", warehouse_to.name)
 
       click_link "Move"
 
@@ -48,8 +47,7 @@ describe "Moving purchased products between warehouses" do
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
       # Select where to move purchases
-      find(".ss-values", text: "Select a warehouse").click
-      find(".ss-option", text: warehouse_to.name).click
+      slim_select("Select a warehouse", warehouse_to.name)
 
       click_link "Move"
 
@@ -81,8 +79,7 @@ describe "Moving purchased products between warehouses" do
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
       # Select where to move products
-      find(".ss-values", text: "Select a warehouse").click
-      find(".ss-option", text: warehouse_to.name).click
+      slim_select("Select a warehouse", warehouse_to.name)
 
       click_link "Move"
 
@@ -112,8 +109,7 @@ describe "Moving purchased products between warehouses" do
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
       # Select where to move the purchase
-      find(".ss-values", text: "Select a warehouse").click
-      find(".ss-option", text: warehouse_to.name).click
+      slim_select("Select a warehouse", warehouse_to.name)
 
       click_link "Move"
 

@@ -192,10 +192,8 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     find("a[href='/purchases/#{@purchase_batman.friendly_id}/edit']", text: "Edit").click
 
     # Click on the products dropdown select
-    find(".ss-single", text: @batman.woo_id_full_title).click
-
-    # Select a different product
-    find("div[aria-selected='false']", text: @asuka.woo_id_full_title).click
+    # and select a different product
+    slim_select(@batman.woo_id_full_title, @asuka.woo_id_full_title)
 
     scroll_to("label[for='purchase_variation'] ~ div")
 
