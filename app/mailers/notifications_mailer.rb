@@ -1,0 +1,43 @@
+class NotificationsMailer < ApplicationMailer
+  def product_purchased_email(
+    customer_name:,
+    email:,
+    item_name:,
+    order_number:,
+    warehouse_name:
+  )
+    @customer_name = customer_name
+    @item_name = item_name
+    @order_number = order_number
+    @warehouse_name = warehouse_name
+
+    mail(
+      subject: "We moved the #{item_name} to #{warehouse_name}",
+      to: email
+    ) do |format|
+      format.text
+    end
+  end
+
+  def warehouse_changed_email(
+    customer_name:,
+    email:,
+    from_warehouse:,
+    item_name:,
+    order_number:,
+    to_warehouse:
+  )
+    @customer_name = customer_name
+    @item_name = item_name
+    @new_status = to_warehouse
+    @order_number = order_number
+    @previous_status = from_warehouse
+
+    mail(
+      subject: "We moved the #{item_name} from #{from_warehouse} to #{to_warehouse}",
+      to: email
+    ) do |format|
+      format.text
+    end
+  end
+end

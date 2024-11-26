@@ -46,9 +46,21 @@ class ProductSale < ApplicationRecord
     return unless sale.active?
     return if purchased_products.size >= qty
 
-    PurchasedProduct
+    purchased_products_to_link = PurchasedProduct
       .unlinked_records(product_id)
       .limit(qty)
-      .update_all(product_sale_id: id)
+
+    ids = purchased_products_to_link.pluck(:id)
+
+    purchased_products_to_link.update_all(product_sale_id: id)
+
+    ids.each do |purchased_product_id|
+      Notification.dispatch(
+        event: Notification.event_types[:product_purchased],
+        context: {
+          purchased_product_id:
+        }
+      )
+    end
   end
 end

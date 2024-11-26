@@ -1,10 +1,10 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.5"
+ruby "3.3.6"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.1.x"
+gem "rails", "~> 8.x.x"
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
@@ -64,6 +64,7 @@ gem "friendly_id"
 gem "state_machines-activerecord"
 
 gem "inline_svg"
+gem "mailtrap"
 
 group :production do
   gem "thruster"
@@ -80,7 +81,7 @@ group :development, :test do
   gem "faker", "~> 3.2"
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
-  gem "rspec-rails", "~> 6.0.0"
+  gem "rspec-rails", "~> 7.x.x"
   gem "factory_bot_rails"
 end
 
@@ -94,7 +95,7 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
   gem "rails_live_reload"
-  gem "annotate"
+  gem "annotaterb"
   gem "solargraph"
   gem "solargraph-rails"
   gem "rubocop-slim", "~> 0.2.2"
@@ -106,6 +107,7 @@ group :development do
   gem "prosopite"
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
+  gem "letter_opener"
 end
 
 group :test do

@@ -32,6 +32,40 @@
   = form.label :images 
   = form.file_field :images, multiple: true
 
+  label Transition notifications
+  .table-card data-controller="edit-warehouse-transition"
+    table
+      thead
+        tr
+          th To Warehouse
+          th Actions
+      tbody
+        - WarehouseTransition.where(from_warehouse: warehouse).includes(:to_warehouse).each do |transition|
+          tr.no-select-margin
+            td
+              = select_tag "warehouse[to_warehouse_ids][]",
+                options_from_collection_for_select(Warehouse.where.not(id: warehouse.id), :id, :name, transition.to_warehouse_id),
+                class: "form-select"
+            td
+              = link_to "Remove", "#",
+                class: "btn is-danger",
+                data: { action: "click->edit-warehouse-transition#removeTransition" }
+        tr
+          td
+            = link_to "Add Transition", "#", class: "btn", data: { action: "click->edit-warehouse-transition#addTransition" }
+          td
+
+    template#transition-template
+      tr.no-select-margin
+        td
+          = select_tag "warehouse[to_warehouse_ids][]",
+            options_from_collection_for_select(Warehouse.where.not(id: warehouse.id), :id, :name),
+            class: "form-select"
+        td
+          = link_to "Remove", "#",
+            class: "btn is-danger",
+            data: { action: "click->edit-warehouse-transition#removeTransition" }
+
   = render "_shared/notice-err", model: warehouse
 
   = form.submit

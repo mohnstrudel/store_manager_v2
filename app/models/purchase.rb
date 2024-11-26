@@ -118,15 +118,28 @@ class Purchase < ApplicationRecord
       break if unlinked_purchased_products_count <= 0
 
       if unlinked_purchased_products_count > ps.qty
+        qty_to_link = ps.qty
         unlinked_purchased_products_count -= ps.qty
-        purchased_products
-          .limit(ps.qty)
-          .update_all(product_sale_id: ps.id)
       else
+        qty_to_link = unlinked_purchased_products_count
         unlinked_purchased_products_count = 0
-        purchased_products
-          .limit(unlinked_purchased_products_count)
-          .update_all(product_sale_id: ps.id)
+      end
+
+      purchased_products_to_link = purchased_products
+        .where(product_sale_id: nil)
+        .limit(qty_to_link)
+
+      ids = purchased_products_to_link.pluck(:id)
+
+      purchased_products_to_link.update_all(product_sale_id: ps.id)
+
+      ids.each do |purchased_product_id|
+        Notification.dispatch(
+          event: Notification.event_types[:product_purchased],
+          context: {
+            purchased_product_id:
+          }
+        )
       end
     end
   end

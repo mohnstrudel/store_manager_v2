@@ -80,12 +80,32 @@ class PurchasedProductsController < ApplicationController
     destination_id = params[:destination_id]
     warehouse = Warehouse.find(params[:warehouse_id]) if params[:warehouse_id]
     purchase = Purchase.find(params[:purchase_id]) if params[:purchase_id]
+    purchased_products = PurchasedProduct.where(id: ids)
 
-    moved_count = PurchasedProduct.where(id: ids).update_all(warehouse_id: destination_id)
+    from_warehouses_and_products_ids = purchased_products
+      .pluck(:warehouse_id, :id)
+      .group_by(&:first)
+      .transform_values do |pairs|
+        pairs.map { |_warehouse_id, purchased_product_id| purchased_product_id }
+      end
+
+    moved_count = purchased_products.update_all(warehouse_id: destination_id)
 
     if moved_count > 0
       destination = Warehouse.find(destination_id)
+
       flash[:notice] = "Success! #{moved_count} purchased #{"product".pluralize(moved_count)} moved to: #{view_context.link_to(destination.name, warehouse_path(destination))}".html_safe
+
+      from_warehouses_and_products_ids.each do |from_id, purchased_product_ids|
+        Notification.dispatch(
+          event: Notification.event_types[:warehouse_changed],
+          context: {
+            purchased_product_ids:,
+            from_id:,
+            to_id: destination_id
+          }
+        )
+      end
     end
 
     if purchase

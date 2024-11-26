@@ -84,4 +84,8 @@ Rails.application.configure do
   end
 
   config.log_file_size = 100.megabytes
+
+  config.action_mailer.preview_paths << Rails.root.join("app/mailers/previews").to_s
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.delivery_method = :letter_opener
 end

@@ -1,19 +1,19 @@
 # == Schema Information
 #
-# Table name: purchased_products
+# Table name: purchases
 #
 #  id              :bigint           not null, primary key
-#  expenses        :decimal(8, 2)
-#  height          :integer
-#  length          :integer
-#  shipping_price  :decimal(8, 2)
-#  weight          :integer
-#  width           :integer
+#  amount          :integer
+#  item_price      :decimal(8, 2)
+#  order_reference :string
+#  purchase_date   :datetime
+#  slug            :string
+#  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  product_sale_id :bigint
-#  purchase_id     :bigint
-#  warehouse_id    :bigint           not null
+#  product_id      :bigint
+#  supplier_id     :bigint           not null
+#  variation_id    :bigint
 #
 require "rails_helper"
 
