@@ -107,7 +107,6 @@ group :development do
   gem "prosopite"
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
-  gem "letter_opener"
 end
 
 group :test do

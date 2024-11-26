@@ -87,5 +87,10 @@ Rails.application.configure do
 
   config.action_mailer.preview_paths << Rails.root.join("app/mailers/previews").to_s
   config.action_mailer.perform_deliveries = true
-  config.action_mailer.delivery_method = :letter_opener
+  config.action_mailer.delivery_method = :mailtrap
+  config.action_mailer.mailtrap_settings = {
+    api_key: Rails.application.credentials.dig(:mailtrap, :api_key),
+    sandbox: true,
+    inbox_id: 3265246
+  }
 end

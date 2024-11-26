@@ -68,7 +68,7 @@ class WarehousesController < ApplicationController
 
             notification = Notification.find_or_create_by!(
               name: "Warehouse transition",
-              event_type: :warehouse_changed,
+              event_type: Notification.event_types[:warehouse_changed],
               status: :active
             )
 
