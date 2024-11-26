@@ -49,18 +49,6 @@ class WarehousesController < ApplicationController
       attachments = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
     end
 
-    # if @warehouse.update(warehouse_params)
-    #   attachments&.map(&:purge_later)
-
-    #   if @warehouse.is_default?
-    #     Warehouse.ensure_only_one_default(@warehouse.id)
-    #   end
-
-    #   redirect_to @warehouse, notice: "Warehouse was successfully updated.", status: :see_other
-    # else
-    #   render :edit, status: :unprocessable_entity
-    # end
-    #
     ActiveRecord::Base.transaction do
       if @warehouse.update(warehouse_params)
         attachments&.map(&:purge_later)
