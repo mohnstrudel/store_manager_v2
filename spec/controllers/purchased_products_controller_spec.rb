@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe PurchasedProductsController, type: :controller do
+describe PurchasedProductsController do
   describe "DELETE #destroy" do
     it "destroys the purchased_product without destroying the associated purchase" do
       warehouse = create(:warehouse)
