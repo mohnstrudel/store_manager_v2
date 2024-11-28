@@ -25,6 +25,7 @@ RSpec.describe Notification do
     end
   end
 
+  # rubocop:disable RSpec/MultipleMemoizedHelpers
   describe ".dispatch" do
     let(:customer) { create(:customer, email: "test@example.com", first_name: "John", last_name: "Doe") }
     let(:sale) { create(:sale, customer: customer, woo_id: "123") }
@@ -67,4 +68,5 @@ RSpec.describe Notification do
       end
     end
   end
+  # rubocop:enable RSpec/MultipleMemoizedHelpers
 end
