@@ -40,6 +40,7 @@ describe Purchase do
       let!(:product_sale2) { create(:product_sale, product: product, qty: 2) }
 
       before do
+        allow(Notification).to receive(:dispatch)
         purchase.create_purchased_products
       end
 
@@ -48,6 +49,15 @@ describe Purchase do
 
         expect(linked_purchased_products.count).to eq(4)
         expect(linked_purchased_products.pluck(:product_sale_id).uniq.sort).to eq([product_sale1.id, product_sale2.id].sort)
+      end
+
+      it "dispatches notifications for each linked product" do
+        expect(Notification).to have_received(:dispatch)
+          .exactly(4).times
+          .with(
+            event: Notification.event_types[:product_purchased],
+            context: hash_including(:purchased_product_id)
+          )
       end
 
       it "leaves excess purchased products unlinked" do
