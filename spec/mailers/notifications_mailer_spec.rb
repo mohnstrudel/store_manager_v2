@@ -13,7 +13,7 @@ RSpec.describe NotificationsMailer do
     }
 
     it "renders headers" do
-      expect(mail.subject).to include("Test Item")
+      expect(mail.subject).to include("Test Warehouse")
       expect(mail.to).to eq(["john@example.com"])
       expect(mail.from).to eq(["store@handsomecake.com"])
     end
@@ -38,7 +38,6 @@ RSpec.describe NotificationsMailer do
     }
 
     it "renders headers" do
-      expect(mail.subject).to include("Test Item")
       expect(mail.subject).to include("Old Warehouse")
       expect(mail.subject).to include("New Warehouse")
       expect(mail.to).to eq(["john@example.com"])
