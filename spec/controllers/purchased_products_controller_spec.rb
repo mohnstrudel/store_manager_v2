@@ -7,8 +7,6 @@ describe PurchasedProductsController do
       purchase = create(:purchase)
       purchased_product = create_list(:purchased_product, 5, warehouse: warehouse, purchase: purchase).first
 
-      warn PurchasedProduct.find(purchased_product.id).inspect
-
       expect {
         delete :destroy, params: {id: purchased_product.id}
       }.to change(PurchasedProduct, :count).by(-1)
