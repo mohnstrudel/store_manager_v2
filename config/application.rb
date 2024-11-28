@@ -24,6 +24,8 @@ module StoreManagerV2
 
     config.active_job.queue_adapter = :sidekiq
 
+    config.action_mailer.preview_paths << Rails.root.join("app/mailers/previews").to_s
+
     config.generators do |generate|
       # generate.assets false
       generate.helper false
