@@ -1,3 +1,14 @@
+# == Schema Information
+#
+# Table name: warehouse_transitions
+#
+#  id                :bigint           not null, primary key
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  from_warehouse_id :bigint
+#  notification_id   :bigint           not null
+#  to_warehouse_id   :bigint
+#
 require "rails_helper"
 
 RSpec.describe WarehouseTransition do

@@ -144,6 +144,7 @@ class PurchasedProductsController < ApplicationController
       :weight,
       :expenses,
       :shipping_price,
+      :tracking_number,
       :warehouse_id,
       :purchase_id,
       :product_sale_id,
