@@ -67,44 +67,21 @@ class PurchasedProductsController < ApplicationController
   def move
     ids = params[:selected_items_ids]
     destination_id = params[:destination_id]
-    warehouse = Warehouse.find(params[:warehouse_id]) if params[:warehouse_id]
-    purchase = Purchase.find(params[:purchase_id]) if params[:purchase_id]
-    purchased_products = PurchasedProduct.where(id: ids)
 
-    from_warehouses_and_products_ids = purchased_products
-      .pluck(:warehouse_id, :id)
-      .group_by(&:first)
-      .transform_values do |pairs|
-        pairs.map { |_warehouse_id, purchased_product_id| purchased_product_id }
-      end
-
-    moved_count = purchased_products.update_all(warehouse_id: destination_id)
+    moved_count = PurchasedProduct.bulk_move_to_warehouse(ids, destination_id)
 
     if moved_count > 0
       destination = Warehouse.find(destination_id)
+      destination_link = view_context.link_to(
+        destination.name,
+        warehouse_path(destination)
+      )
+      products = "product".pluralize(moved_count)
 
-      flash[:notice] = "Success! #{moved_count} purchased #{"product".pluralize(moved_count)} moved to: #{view_context.link_to(destination.name, warehouse_path(destination))}".html_safe
-
-      from_warehouses_and_products_ids.each do |from_id, purchased_product_ids|
-        Notification.dispatch(
-          event: Notification.event_types[:warehouse_changed],
-          context: {
-            purchased_product_ids:,
-            from_id:,
-            to_id: destination_id
-          }
-        )
-      end
+      flash[:notice] = "Success! #{moved_count} purchased #{products} moved to: #{destination_link}".html_safe
     end
 
-    if purchase
-      redirect_to purchase_path(purchase)
-    elsif params[:redirect_to_product_sale]
-      product_sale = PurchasedProduct.find(ids.first).product_sale
-      redirect_to product_sale
-    else
-      redirect_to warehouse_path(warehouse)
-    end
+    redirect_to_appropriate_path
   end
 
   def unlink
@@ -119,6 +96,17 @@ class PurchasedProductsController < ApplicationController
   end
 
   private
+
+  def redirect_to_appropriate_path
+    if params[:purchase_id].present?
+      redirect_to purchase_path(params[:purchase_id])
+    elsif params[:redirect_to_product_sale] && params[:selected_items_ids].present?
+      product_sale = PurchasedProduct.find(params[:selected_items_ids].first).product_sale
+      redirect_to product_sale
+    else
+      redirect_to warehouse_path(params[:warehouse_id])
+    end
+  end
 
   def set_purchased_product
     @purchased_product = PurchasedProduct.with_attached_images.find(params[:id])
