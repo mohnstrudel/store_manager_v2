@@ -15,24 +15,12 @@ class PurchasedProductsController < ApplicationController
     @warehouse = Warehouse.find(params[:warehouse_id])
     @purchased_product = PurchasedProduct.new(warehouse: @warehouse)
     @purchases = Purchase.includes(:product, :supplier).order(purchase_date: :desc, created_at: :desc)
+    @shipping_companies = ShippingCompany.all
   end
 
   # GET /purchased_products/1/edit
   def edit
-    all_product_sales = ProductSale.includes(
-      :product,
-      sale: [:customer],
-      variation: [:color, :size, :version]
-    )
-    @product_sales = all_product_sales.where(
-      product_id: @purchased_product.product
-    ) + all_product_sales.where.not(
-      product_id: @purchased_product.product
-    )
-    @purchases = Purchase.includes(:product, :supplier).order(
-      purchase_date: :desc,
-      created_at: :desc
-    )
+    set_data_for_edit
   end
 
   # POST /warehouse_products
@@ -63,6 +51,7 @@ class PurchasedProductsController < ApplicationController
 
       redirect_to path, notice: "Purchased product was successfully updated.", status: :see_other
     else
+      set_data_for_edit
       render :edit, status: :unprocessable_entity
     end
   end
@@ -135,6 +124,24 @@ class PurchasedProductsController < ApplicationController
     @purchased_product = PurchasedProduct.with_attached_images.find(params[:id])
   end
 
+  def set_data_for_edit
+    all_product_sales = ProductSale.includes(
+      :product,
+      sale: [:customer],
+      variation: [:color, :size, :version]
+    )
+    @product_sales = all_product_sales.where(
+      product_id: @purchased_product.product
+    ) + all_product_sales.where.not(
+      product_id: @purchased_product.product
+    )
+    @purchases = Purchase.includes(:product, :supplier).order(
+      purchase_date: :desc,
+      created_at: :desc
+    )
+    @shipping_companies = ShippingCompany.all
+  end
+
   # Only allow a list of trusted parameters through.
   def purchased_product_params
     params.require(:purchased_product).permit(
@@ -149,6 +156,7 @@ class PurchasedProductsController < ApplicationController
       :purchase_id,
       :product_sale_id,
       :redirect_to_product_sale,
+      :shipping_company_id,
       deleted_img_ids: [],
       images: []
     )

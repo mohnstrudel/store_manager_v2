@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2024_11_29_050955) do
+ActiveRecord::Schema[8.0].define(version: 2024_11_29_061354) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -196,8 +196,10 @@ ActiveRecord::Schema[8.0].define(version: 2024_11_29_050955) do
     t.bigint "purchase_id"
     t.bigint "product_sale_id"
     t.string "tracking_number"
+    t.bigint "shipping_company_id"
     t.index ["product_sale_id"], name: "index_purchased_products_on_product_sale_id"
     t.index ["purchase_id"], name: "index_purchased_products_on_purchase_id"
+    t.index ["shipping_company_id"], name: "index_purchased_products_on_shipping_company_id"
     t.index ["warehouse_id"], name: "index_purchased_products_on_warehouse_id"
   end
 
@@ -247,6 +249,14 @@ ActiveRecord::Schema[8.0].define(version: 2024_11_29_050955) do
     t.string "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "shipping_companies", force: :cascade do |t|
+    t.string "name"
+    t.string "tracking_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_shipping_companies_on_name", unique: true
   end
 
   create_table "sizes", force: :cascade do |t|
@@ -331,6 +341,7 @@ ActiveRecord::Schema[8.0].define(version: 2024_11_29_050955) do
   add_foreign_key "products", "shapes"
   add_foreign_key "purchased_products", "product_sales"
   add_foreign_key "purchased_products", "purchases"
+  add_foreign_key "purchased_products", "shipping_companies"
   add_foreign_key "purchased_products", "warehouses"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"

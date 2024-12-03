@@ -2,19 +2,20 @@
 #
 # Table name: purchased_products
 #
-#  id              :bigint           not null, primary key
-#  expenses        :decimal(8, 2)
-#  height          :integer
-#  length          :integer
-#  shipping_price  :decimal(8, 2)
-#  tracking_number :string
-#  weight          :integer
-#  width           :integer
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  product_sale_id :bigint
-#  purchase_id     :bigint
-#  warehouse_id    :bigint           not null
+#  id                  :bigint           not null, primary key
+#  expenses            :decimal(8, 2)
+#  height              :integer
+#  length              :integer
+#  shipping_price      :decimal(8, 2)
+#  tracking_number     :string
+#  weight              :integer
+#  width               :integer
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  product_sale_id     :bigint
+#  purchase_id         :bigint
+#  shipping_company_id :bigint
+#  warehouse_id        :bigint           not null
 #
 class PurchasedProduct < ApplicationRecord
   include PgSearch::Model
@@ -33,6 +34,16 @@ class PurchasedProduct < ApplicationRecord
   has_one :sale, through: :product_sale
 
   has_one :product, through: :purchase
+
+  belongs_to :shipping_company, optional: true
+
+  validates :tracking_number,
+    presence: true,
+    if: -> { shipping_company_id.present? }
+
+  validates :shipping_company_id,
+    presence: true,
+    if: -> { tracking_number.present? }
 
   scope :ordered_by_updated_date, -> { order(updated_at: :desc) }
 

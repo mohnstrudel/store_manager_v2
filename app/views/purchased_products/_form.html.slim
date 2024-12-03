@@ -5,10 +5,10 @@
   = form.collection_select(:warehouse_id, Warehouse.order(:name), :id, :name, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
   
   = form.label :purchase
-  = form.collection_select(:purchase_id, @purchases, :id, :full_title, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+  = form.collection_select(:purchase_id, @purchases || [], :id, :full_title, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
   
   = form.label :product_sale
-  = form.collection_select(:product_sale_id, @product_sales, :id, :title_for_select, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+  = form.collection_select(:product_sale_id, @product_sales || [], :id, :title_for_select, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
 
   = form.label :length
   = form.text_field :length
@@ -30,6 +30,9 @@
 
   = form.label :tracking_number
   = form.text_field :tracking_number
+
+  = form.label :shipping_company
+  = form.collection_select(:shipping_company_id, @shipping_companies || [], :id, :name, { class: "select", include_blank: true })
 
   - if purchased_product.images.attached?
     br

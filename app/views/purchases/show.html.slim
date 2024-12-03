@@ -72,7 +72,7 @@ main.wide.flex.flex-col.gap.no-bd
                   td.mono.right = format_money pp.shipping_price
                   td.actions
                     = render "_shared/action-destroy", route: purchased_product_path(pp)
-                    = render "_shared/action-edit", route: edit_purchased_product_path(pp, redirect_to_product_sale: true)
+                    = render "_shared/action-edit", route: edit_purchased_product_path(pp)
 
 
   .cards
