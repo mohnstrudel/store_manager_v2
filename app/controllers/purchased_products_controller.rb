@@ -1,4 +1,6 @@
 class PurchasedProductsController < ApplicationController
+  include WarehouseMovementNotification
+
   before_action :set_purchased_product, only: %i[show edit update destroy]
 
   # GET /warehouse_products
@@ -76,16 +78,7 @@ class PurchasedProductsController < ApplicationController
 
     moved_count = PurchasedProduct.bulk_move_to_warehouse(ids, destination_id)
 
-    if moved_count > 0
-      destination = Warehouse.find(destination_id)
-      destination_link = view_context.link_to(
-        destination.name,
-        warehouse_path(destination)
-      )
-      products = "product".pluralize(moved_count)
-
-      flash[:notice] = "Success! #{moved_count} purchased #{products} moved to: #{destination_link}".html_safe
-    end
+    flash_movement_notice(moved_count, Warehouse.find(destination_id))
 
     redirect_to_appropriate_path
   end
