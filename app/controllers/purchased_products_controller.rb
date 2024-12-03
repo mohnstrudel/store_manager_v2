@@ -14,7 +14,9 @@ class PurchasedProductsController < ApplicationController
   def new
     @warehouse = Warehouse.find(params[:warehouse_id])
     @purchased_product = PurchasedProduct.new(warehouse: @warehouse)
-    @purchases = Purchase.includes(:product, :supplier).order(purchase_date: :desc, created_at: :desc)
+    @purchases = Purchase
+      .includes(:product, :supplier)
+      .order(purchase_date: :desc, created_at: :desc)
     @shipping_companies = ShippingCompany.all
   end
 
@@ -28,7 +30,8 @@ class PurchasedProductsController < ApplicationController
     @purchased_product = PurchasedProduct.new(purchased_product_params)
 
     if @purchased_product.save
-      redirect_to @purchased_product.warehouse, notice: "Purchased product was successfully created."
+      redirect_to @purchased_product.warehouse,
+        notice: "Purchased product was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -61,7 +64,10 @@ class PurchasedProductsController < ApplicationController
     warehouse = @purchased_product.warehouse
     @purchased_product.destroy!
 
-    redirect_to warehouse, notice: "Purchased product was successfully destroyed.", status: :see_other, turbolinks: false
+    redirect_to warehouse,
+      notice: "Purchased product was successfully destroyed.",
+      status: :see_other,
+      turbolinks: false
   end
 
   def move
@@ -89,9 +95,14 @@ class PurchasedProductsController < ApplicationController
     product_sale = purchased_product.product_sale
 
     if purchased_product.update(product_sale: nil)
-      redirect_to product_sale, notice: "Purchased product was successfully unlinked.", status: :see_other
+      redirect_to product_sale,
+        notice: "Purchased product was successfully unlinked.",
+        status: :see_other
     else
-      redirect_to product_sale, alert: "Something went wrong. Try again later or contact the administrators.", status: :see_other, turbolinks: false
+      redirect_to product_sale,
+        alert: "Something went wrong. Try again later or contact the administrators.",
+        status: :see_other,
+        turbolinks: false
     end
   end
 
@@ -101,7 +112,9 @@ class PurchasedProductsController < ApplicationController
     if params[:purchase_id].present?
       redirect_to purchase_path(params[:purchase_id])
     elsif params[:redirect_to_product_sale] && params[:selected_items_ids].present?
-      product_sale = PurchasedProduct.find(params[:selected_items_ids].first).product_sale
+      product_sale = PurchasedProduct
+        .find(params[:selected_items_ids].first)
+        .product_sale
       redirect_to product_sale
     else
       redirect_to warehouse_path(params[:warehouse_id])
