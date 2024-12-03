@@ -18,7 +18,9 @@
 #  warehouse_id        :bigint           not null
 #
 class PurchasedProduct < ApplicationRecord
+  include HasPreviewImages
   include PgSearch::Model
+
   pg_search_scope :search,
     associated_against: {
       product: [:full_title]
@@ -46,21 +48,6 @@ class PurchasedProduct < ApplicationRecord
     if: -> { tracking_number.present? }
 
   scope :ordered_by_updated_date, -> { order(updated_at: :desc) }
-
-  has_many_attached :images do |attachable|
-    attachable.variant :preview,
-      format: :webp,
-      resize_to_limit: [800, 800],
-      preprocessed: true
-    attachable.variant :thumb,
-      format: :webp,
-      resize_to_limit: [300, 300],
-      preprocessed: true
-    attachable.variant :nano,
-      format: :webp,
-      resize_to_limit: [120, 120],
-      preprocessed: true
-  end
 
   def name
     purchase.full_title
