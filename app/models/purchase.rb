@@ -103,44 +103,54 @@ class Purchase < ApplicationRecord
     end
   end
 
+  private
+
   def link_purchased_products
-    return if purchased_products.count == 0
-
-    available_product_sales = ProductSale.where(product_id:)
-
-    return if available_product_sales.blank?
+    return if purchased_products.empty?
+    return if (unlinked_sales = ProductSale.where(product_id:)).empty?
 
     unlinked_purchased_products_count = PurchasedProduct
       .where(product_sale_id: nil, purchase_id: id)
       .count
 
-    available_product_sales.each do |ps|
-      break if unlinked_purchased_products_count <= 0
+    linked_ids = []
 
-      if unlinked_purchased_products_count > ps.qty
-        qty_to_link = ps.qty
-        unlinked_purchased_products_count -= ps.qty
-      else
-        qty_to_link = unlinked_purchased_products_count
-        unlinked_purchased_products_count = 0
-      end
+    unlinked_sales.each do |product_sale|
+      break if unlinked_purchased_products_count.zero?
 
-      purchased_products_to_link = purchased_products
-        .where(product_sale_id: nil)
-        .limit(qty_to_link)
+      linkable_count = [product_sale.qty, unlinked_purchased_products_count].min
+      unlinked_purchased_products_count -= linkable_count
 
-      ids = purchased_products_to_link.pluck(:id)
+      just_linked_ids = link_purchased_products_to_sale(
+        product_sale,
+        linkable_count
+      )
+      linked_ids += just_linked_ids
+    end
 
-      purchased_products_to_link.update_all(product_sale_id: ps.id)
+    if linked_ids.any?
+      notify_products_purchased(linked_ids)
+    end
+  end
 
-      ids.each do |purchased_product_id|
-        Notification.dispatch(
-          event: Notification.event_types[:product_purchased],
-          context: {
-            purchased_product_id:
-          }
-        )
-      end
+  def link_purchased_products_to_sale(product_sale, quantity)
+    unlinked = purchased_products
+      .where(product_sale_id: nil)
+      .limit(quantity)
+
+    linked_ids = unlinked.pluck(:id)
+
+    unlinked.update_all(product_sale_id: product_sale.id)
+
+    linked_ids
+  end
+
+  def notify_products_purchased(product_ids)
+    product_ids.each do |purchased_product_id|
+      Notification.dispatch(
+        event: Notification.event_types[:product_purchased],
+        context: {purchased_product_id:}
+      )
     end
   end
 
