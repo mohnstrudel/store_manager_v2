@@ -25,13 +25,17 @@ class NotificationsMailer < ApplicationMailer
     from_warehouse:,
     item_name:,
     order_number:,
-    to_warehouse:
+    to_warehouse:,
+    tracking_number:,
+    tracking_url:
   )
     @customer_name = customer_name
     @item_name = item_name
     @new_status = to_warehouse
     @order_number = order_number
     @previous_status = from_warehouse
+    @tracking_number = tracking_number
+    @tracking_url = tracking_url
 
     mail(
       subject: "We relocated your order from \"#{from_warehouse}\" to \"#{to_warehouse}\"",

@@ -33,7 +33,9 @@ RSpec.describe NotificationsMailer do
         from_warehouse: "Old Warehouse",
         item_name: "Test Item",
         order_number: "123",
-        to_warehouse: "New Warehouse"
+        to_warehouse: "New Warehouse",
+        tracking_number: "ABC123",
+        tracking_url: "https://example.com/tracking"
       )
     }
 

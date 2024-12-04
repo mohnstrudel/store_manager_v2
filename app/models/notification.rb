@@ -89,6 +89,8 @@ class Notification < ApplicationRecord
             transition.from_warehouse.name
           to_warehouse = transition.to_warehouse.external_name.presence ||
             transition.to_warehouse.name
+          tracking_number = purchased_product.tracking_number
+          tracking_url = purchased_product&.shipping_company&.tracking_url
 
           next if email.blank?
 
@@ -98,7 +100,9 @@ class Notification < ApplicationRecord
             from_warehouse:,
             item_name:,
             order_number:,
-            to_warehouse:
+            to_warehouse:,
+            tracking_number:,
+            tracking_url:
           ).deliver_later
         end
       end
