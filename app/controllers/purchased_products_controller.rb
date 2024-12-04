@@ -76,9 +76,23 @@ class PurchasedProductsController < ApplicationController
     ids = params[:selected_items_ids]
     destination_id = params[:destination_id]
 
-    moved_count = PurchasedProduct.bulk_move_to_warehouse(ids, destination_id)
+    moved_count, moved_ids_grouped_by_prev_warehouse = PurchasedProduct
+      .bulk_move_to_warehouse(ids, destination_id)
+
+    return if moved_count.zero?
 
     flash_movement_notice(moved_count, Warehouse.find(destination_id))
+
+    moved_ids_grouped_by_prev_warehouse.each do |prev_warehouse_id, ids|
+      Notification.dispatch(
+        event: Notification.event_types[:warehouse_changed],
+        context: {
+          purchased_product_ids: ids,
+          from_id: prev_warehouse_id,
+          to_id: destination_id
+        }
+      )
+    end
 
     redirect_to_appropriate_path
   end

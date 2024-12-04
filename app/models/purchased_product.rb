@@ -68,7 +68,7 @@ class PurchasedProduct < ApplicationRecord
   def self.bulk_move_to_warehouse(ids, destination_id)
     purchased_products = where(id: ids)
 
-    ids_grouped_by_warehouse = purchased_products
+    moved_ids_grouped_by_prev_warehouse = purchased_products
       .group_by(&:warehouse_id)
       .transform_values { |purchased_products|
         purchased_products.pluck(:id)
@@ -76,19 +76,6 @@ class PurchasedProduct < ApplicationRecord
 
     moved_count = purchased_products.update_all(warehouse_id: destination_id)
 
-    return moved_count if moved_count == 0
-
-    ids_grouped_by_warehouse.each do |from_id, purchased_product_ids|
-      Notification.dispatch(
-        event: Notification.event_types[:warehouse_changed],
-        context: {
-          purchased_product_ids:,
-          from_id:,
-          to_id: destination_id
-        }
-      )
-    end
-
-    moved_count
+    [moved_count, moved_ids_grouped_by_prev_warehouse]
   end
 end
