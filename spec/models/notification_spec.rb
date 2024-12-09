@@ -53,7 +53,7 @@ RSpec.describe Notification do
             event: described_class.event_types[:product_purchased],
             context: {purchased_product_id: purchased_product.id}
           )
-        }.to have_enqueued_job.on_queue("default")
+        }.to have_enqueued_mail(NotificationsMailer, :product_purchased_email)
       end
     end
 
@@ -75,7 +75,7 @@ RSpec.describe Notification do
               to_id: to_warehouse.id
             }
           )
-        }.to have_enqueued_job.on_queue("default")
+        }.to have_enqueued_mail(NotificationsMailer, :warehouse_changed_email)
       end
     end
   end
