@@ -22,52 +22,58 @@ class Notification < ApplicationRecord
 
   has_many :warehouse_transitions, dependent: :nullify
 
-  def self.dispatch(event:, context: {})
-    case event
-    when event_types[:product_purchased]
+  class << self
+    def dispatch(event:, context: {})
+      case event
+      when event_types[:product_purchased]
+        handle_product_purchased(context)
+      when event_types[:warehouse_changed]
+        handle_warehouse_changed(context)
+      end
+    end
+
+    private
+
+    def format_warehouse_name(warehouse)
+      warehouse.external_name.presence || warehouse.name
+    end
+
+    def extract_common_data(purchased_product)
+      return {} if purchased_product.sale.blank?
+
+      {
+        email: purchased_product.sale.customer.email,
+        customer_name: purchased_product.sale.customer.full_name,
+        order_number: purchased_product.sale.woo_id,
+        item_name: purchased_product.product_sale.title
+      }
+    end
+
+    def handle_product_purchased(context)
       purchased_product = PurchasedProduct
-        .includes(
-          :warehouse,
-          sale: :customer,
-          product_sale: [
-            :product,
-            variation: [:size, :version, :color]
-          ]
-        )
-        .where(id: context[:purchased_product_id])
-        .first
+        .with_notification_details
+        .includes(:warehouse)
+        .find_by(id: context[:purchased_product_id])
 
-      return if purchased_product.sale.blank?
+      return if purchased_product&.sale.blank?
 
-      email = purchased_product.sale.customer.email
-      customer_name = purchased_product.sale.customer.full_name
-      order_number = purchased_product.sale.woo_id
-      item_name = purchased_product.product_sale.title
-      warehouse_name = purchased_product.warehouse.external_name.presence ||
-        purchased_product.warehouse.name
-
-      return if email.blank?
+      data = extract_common_data(purchased_product)
+      return if data[:email].blank?
 
       NotificationsMailer.product_purchased_email(
-        customer_name:,
-        email:,
-        item_name:,
-        order_number:,
-        warehouse_name:
+        **data,
+        warehouse_name: format_warehouse_name(purchased_product.warehouse)
       ).deliver_later
+    end
 
-    when event_types[:warehouse_changed]
-      purchased_product_ids = context[:purchased_product_ids] ||
-        [context[:purchased_product_id]]
+    def handle_warehouse_changed(context)
+      purchased_product_ids = Array(
+        context[:purchased_product_ids] ||
+        context[:purchased_product_id]
+      )
 
       purchased_products = PurchasedProduct
-        .includes(
-          sale: [:customer],
-          product_sale: [
-            :product,
-            variation: [:size, :version, :color]
-          ]
-        )
+        .with_notification_details
         .where(id: purchased_product_ids)
 
       transition = WarehouseTransition
@@ -77,34 +83,19 @@ class Notification < ApplicationRecord
           to_warehouse_id: context[:to_id]
         )
 
-      if transition&.notification&.active?
-        purchased_products.each do |purchased_product|
-          next if purchased_product.sale.blank?
+      return unless transition&.notification&.active?
 
-          email = purchased_product.sale.customer.email
-          customer_name = purchased_product.sale.customer.full_name
-          order_number = purchased_product.sale.woo_id
-          item_name = purchased_product.product_sale.title
-          from_warehouse = transition.from_warehouse.external_name.presence ||
-            transition.from_warehouse.name
-          to_warehouse = transition.to_warehouse.external_name.presence ||
-            transition.to_warehouse.name
-          tracking_number = purchased_product.tracking_number
-          tracking_url = purchased_product&.shipping_company&.tracking_url
+      purchased_products.each do |purchased_product|
+        data = extract_common_data(purchased_product)
+        next if data[:email].blank?
 
-          next if email.blank?
-
-          NotificationsMailer.warehouse_changed_email(
-            customer_name:,
-            email:,
-            from_warehouse:,
-            item_name:,
-            order_number:,
-            to_warehouse:,
-            tracking_number:,
-            tracking_url:
-          ).deliver_later
-        end
+        NotificationsMailer.warehouse_changed_email(
+          **data,
+          from_warehouse: format_warehouse_name(transition.from_warehouse),
+          to_warehouse: format_warehouse_name(transition.to_warehouse),
+          tracking_number: purchased_product.tracking_number,
+          tracking_url: purchased_product&.shipping_company&.tracking_url
+        ).deliver_later
       end
     end
   end

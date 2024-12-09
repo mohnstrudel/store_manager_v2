@@ -49,6 +49,16 @@ class PurchasedProduct < ApplicationRecord
 
   scope :ordered_by_updated_date, -> { order(updated_at: :desc) }
 
+  scope :with_notification_details, -> {
+    includes(
+      sale: :customer,
+      product_sale: [
+        :product,
+        variation: [:size, :version, :color]
+      ]
+    )
+  }
+
   def name
     purchase.full_title
   end
