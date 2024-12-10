@@ -12,7 +12,7 @@ class NotificationsMailer < ApplicationMailer
     @warehouse_name = warehouse_name
 
     mail(
-      subject: "We relocated your order to \"#{warehouse_name}\"",
+      subject: "HandsomeCake Goodies. We updated your order, new status: \"#{warehouse_name}\"",
       to: email
     ) do |format|
       format.text
@@ -38,7 +38,7 @@ class NotificationsMailer < ApplicationMailer
     @tracking_url = tracking_url
 
     mail(
-      subject: "We relocated your order from \"#{from_warehouse}\" to \"#{to_warehouse}\"",
+      subject: "HandsomeCake Goodies. We updated your order, new status: \"#{to_warehouse}\", previous status: \"#{from_warehouse}\"",
       to: email
     ) do |format|
       format.text
