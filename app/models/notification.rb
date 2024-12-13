@@ -28,6 +28,7 @@ class Notification < ApplicationRecord
       when event_types[:product_purchased]
         handle_product_purchased(context)
       when event_types[:warehouse_changed]
+        return if context[:from_id] == context[:to_id]
         handle_warehouse_changed(context)
       end
     end
@@ -67,15 +68,6 @@ class Notification < ApplicationRecord
     end
 
     def handle_warehouse_changed(context)
-      purchased_product_ids = Array(
-        context[:purchased_product_ids] ||
-        context[:purchased_product_id]
-      )
-
-      purchased_products = PurchasedProduct
-        .with_notification_details
-        .where(id: purchased_product_ids)
-
       transition = WarehouseTransition
         .includes(:notification, :from_warehouse, :to_warehouse)
         .find_by(
@@ -84,6 +76,15 @@ class Notification < ApplicationRecord
         )
 
       return unless transition&.notification&.active?
+
+      purchased_product_ids = Array(
+        context[:purchased_product_ids] ||
+        context[:purchased_product_id]
+      )
+
+      purchased_products = PurchasedProduct
+        .with_notification_details
+        .where(id: purchased_product_ids)
 
       purchased_products.each do |purchased_product|
         data = extract_common_data(purchased_product)

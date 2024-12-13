@@ -77,6 +77,33 @@ RSpec.describe Notification do
           )
         }.to have_enqueued_mail(NotificationsMailer, :warehouse_changed_email)
       end
+
+      it "does not send email when from and to warehouse are the same" do
+        expect {
+          described_class.dispatch(
+            event: described_class.event_types[:warehouse_changed],
+            context: {
+              purchased_product_id: purchased_product.id,
+              from_id: warehouse.id,
+              to_id: warehouse.id
+            }
+          )
+        }.not_to have_enqueued_mail(NotificationsMailer, :warehouse_changed_email)
+      end
+
+      it "does not send email when no matching transition exists" do
+        different_warehouse = create(:warehouse)
+        expect {
+          described_class.dispatch(
+            event: described_class.event_types[:warehouse_changed],
+            context: {
+              purchased_product_id: purchased_product.id,
+              from_id: warehouse.id,
+              to_id: different_warehouse.id
+            }
+          )
+        }.not_to have_enqueued_mail(NotificationsMailer, :warehouse_changed_email)
+      end
     end
   end
   # rubocop:enable RSpec/MultipleMemoizedHelpers
