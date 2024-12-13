@@ -122,42 +122,29 @@ class Purchase < ApplicationRecord
 
   def link_purchased_products
     return if purchased_products.empty?
-    return if (unlinked_sales = ProductSale.where(product_id:)).empty?
 
-    unlinked_purchased_products_count = PurchasedProduct
-      .where(product_sale_id: nil, purchase_id: id)
-      .count
+    product_sales = ProductSale
+      .where(variation_id.present? ? {variation_id:} : {product_id:})
+      .limit(purchased_products.where(product_sale_id: nil).count)
+
+    return if product_sales.empty?
 
     linked_ids = []
 
-    unlinked_sales.each do |product_sale|
-      break if unlinked_purchased_products_count.zero?
+    product_sales.each do |product_sale|
+      available_qty = product_sale.qty
+      unlinked_purchases = purchased_products.where(product_sale_id: nil)
 
-      linkable_count = [product_sale.qty, unlinked_purchased_products_count].min
-      unlinked_purchased_products_count -= linkable_count
+      unlinked_purchases.each do |purchased_product|
+        break if available_qty <= 0
 
-      just_linked_ids = link_purchased_products_to_sale(
-        product_sale,
-        linkable_count
-      )
-      linked_ids += just_linked_ids
+        purchased_product.update(product_sale_id: product_sale.id)
+        linked_ids.push(purchased_product.id)
+        available_qty -= 1
+      end
     end
 
-    if linked_ids.any?
-      notify_products_purchased(linked_ids)
-    end
-  end
-
-  def link_purchased_products_to_sale(product_sale, quantity)
-    unlinked = purchased_products
-      .where(product_sale_id: nil)
-      .limit(quantity)
-
-    linked_ids = unlinked.pluck(:id)
-
-    unlinked.update_all(product_sale_id: product_sale.id)
-
-    linked_ids
+    notify_products_purchased(linked_ids) if linked_ids.any?
   end
 
   def notify_products_purchased(product_ids)
