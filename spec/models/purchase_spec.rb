@@ -50,9 +50,11 @@ describe Purchase do
     context "when there are unlinked product sales" do
       let!(:product_sale_one) { create(:product_sale, product: product, variation: nil, qty: 2) }
       let!(:product_sale_two) { create(:product_sale, product: product, variation: nil, qty: 2) }
+      let(:inactive_product_sale) { create(:product_sale, product: product, variation: nil, qty: 2) }
 
       before do
         allow(Notification).to receive(:dispatch)
+        inactive_product_sale.sale.update(status: :cancelled)
         purchase.id
       end
 
@@ -76,6 +78,14 @@ describe Purchase do
         unlinked_products = PurchasedProduct.where(product_sale_id: nil)
 
         expect(unlinked_products.count).to eq(1)
+      end
+
+      it "doesn't link purchased products to inactive sales" do
+        linked_sale_ids = PurchasedProduct.where.not(product_sale_id: nil)
+          .pluck(:product_sale_id)
+          .uniq
+
+        expect(linked_sale_ids).not_to include(inactive_product_sale.id)
       end
     end
 

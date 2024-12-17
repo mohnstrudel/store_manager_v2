@@ -124,6 +124,7 @@ class Purchase < ApplicationRecord
     return if purchased_products.empty?
 
     product_sales = ProductSale
+      .includes(:sale)
       .where(variation_id.present? ? {variation_id:} : {product_id:})
       .limit(purchased_products.where(product_sale_id: nil).count)
 
@@ -132,6 +133,8 @@ class Purchase < ApplicationRecord
     linked_ids = []
 
     product_sales.each do |product_sale|
+      next unless product_sale.sale.active?
+
       available_qty = product_sale.qty
       unlinked_purchases = purchased_products.where(product_sale_id: nil)
 
