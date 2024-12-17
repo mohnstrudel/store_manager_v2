@@ -35,11 +35,12 @@ class ProductSale < ApplicationRecord
   end
 
   def title_for_select
-    pretty_sale_email = sale.customer.email
-    pretty_sale_id = "sale id: #{sale_id}"
-    pretty_woo_id = woo_id && "woo id: #{woo_id}"
+    status = sale.status&.titleize
+    email = sale.customer.email
+    pretty_sale_id = "Sale ID: #{sale_id}"
+    pretty_woo_id = woo_id && "Woo ID: #{woo_id}"
 
-    [id, title, pretty_sale_email, pretty_sale_id, pretty_woo_id].compact.join(" | ")
+    [id, status, title, email, pretty_sale_id, pretty_woo_id].compact.join(" | ")
   end
 
   def link_purchased_products

@@ -57,7 +57,7 @@ class Sale < ApplicationRecord
     email = customer.email.presence
     woo = woo_id.presence
     total = total.presence || 0
-    [name, email, status.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
+    [name, email, status&.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
   end
 
   def created
@@ -70,6 +70,10 @@ class Sale < ApplicationRecord
 
   def active?
     self.class.active_status_names.include?(status)
+  end
+
+  def completed?
+    self.class.completed_status_names.include?(status)
   end
 
   def self.active_status_names

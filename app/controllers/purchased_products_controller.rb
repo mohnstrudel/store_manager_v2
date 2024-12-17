@@ -137,6 +137,8 @@ class PurchasedProductsController < ApplicationController
       :product,
       sale: [:customer],
       variation: [:color, :size, :version]
+    ).where(
+      sales: {status: Sale.active_status_names + Sale.completed_status_names}
     )
     @product_sales = all_product_sales.where(
       product_id: @purchased_product.product
