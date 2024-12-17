@@ -23,6 +23,8 @@ RSpec:
   Enabled: true # enable rubocop-rspec cops
 RSpec/DescribeClass:
   Enabled: false # ignore missing comments on classes
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false # ignore multiple memoized helpers
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we will have duplicated gems when dual booting
 Rails/I18nLocaleTexts:
