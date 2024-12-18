@@ -16,8 +16,6 @@
 #  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
-  after_create :create_purchased_products, :link_purchased_products
-
   extend FriendlyId
   friendly_id :full_title, use: :slugged
 
@@ -92,17 +90,6 @@ class Purchase < ApplicationRecord
       .order(created_at: :asc)
   end
 
-  def create_purchased_products
-    warehouse = Warehouse.find_by(is_default: true)
-
-    return if warehouse.nil?
-    return if purchased_products.count >= amount
-
-    amount.times do
-      warehouse.purchased_products.create(purchase_id: id)
-    end
-  end
-
   def move_products_to_warehouse(destination_id)
     moved_count = 0
 
@@ -116,46 +103,5 @@ class Purchase < ApplicationRecord
     end
 
     moved_count
-  end
-
-  private
-
-  def link_purchased_products
-    return if purchased_products.empty?
-
-    product_sales = ProductSale
-      .includes(:sale)
-      .where(variation_id.present? ? {variation_id:} : {product_id:})
-      .limit(purchased_products.where(product_sale_id: nil).count)
-
-    return if product_sales.empty?
-
-    linked_ids = []
-
-    product_sales.each do |product_sale|
-      next unless product_sale.sale.active?
-
-      available_qty = product_sale.qty
-      unlinked_purchases = purchased_products.where(product_sale_id: nil)
-
-      unlinked_purchases.each do |purchased_product|
-        break if available_qty <= 0
-
-        purchased_product.update(product_sale_id: product_sale.id)
-        linked_ids.push(purchased_product.id)
-        available_qty -= 1
-      end
-    end
-
-    notify_products_purchased(linked_ids) if linked_ids.any?
-  end
-
-  def notify_products_purchased(product_ids)
-    product_ids.each do |purchased_product_id|
-      Notification.dispatch(
-        event: Notification.event_types[:product_purchased],
-        context: {purchased_product_id:}
-      )
-    end
   end
 end

@@ -43,10 +43,10 @@ class PurchasesController < ApplicationController
 
   # POST /purchases or /purchases.json
   def create
-    @purchase = Purchase.new(purchase_params)
+    @purchase = PurchaseCreator.new(purchase_params).call
 
     respond_to do |format|
-      if @purchase.save
+      if @purchase.persisted?
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }
         format.json { render :show, status: :created, location: @purchase }
       else
@@ -121,6 +121,7 @@ class PurchasesController < ApplicationController
       :amount,
       :purchase_id,
       :selected_items_ids,
+      :warehouse_id,
       payments_attributes: [:id, :value, :purchase_id]
     )
   end

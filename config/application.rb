@@ -22,6 +22,9 @@ module StoreManagerV2
     config.autoload_paths << jobs_concers_path
     config.eager_load_paths << jobs_concers_path
 
+    services_path = Rails.root.join("app/services")
+    config.autoload_paths << services_path
+
     config.active_job.queue_adapter = :sidekiq
 
     config.action_mailer.preview_paths << Rails.root.join("app/mailers/previews").to_s

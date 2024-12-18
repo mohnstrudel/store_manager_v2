@@ -24,6 +24,10 @@ class ProductSale < ApplicationRecord
 
   has_many :purchased_products, dependent: :nullify
 
+  scope :only_active, -> {
+    joins(:sale).where(sales: {status: Sale.active_status_names})
+  }
+
   def item
     variation.presence || product
   end
