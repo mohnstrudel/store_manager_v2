@@ -43,7 +43,7 @@ class PurchasesController < ApplicationController
 
   # POST /purchases or /purchases.json
   def create
-    @purchase = PurchaseCreator.new(purchase_params).call
+    @purchase = PurchaseCreator.new(purchase_params).create
 
     respond_to do |format|
       if @purchase.persisted?
@@ -87,7 +87,7 @@ class PurchasesController < ApplicationController
     moved_count = Purchase.friendly
       .where(id: purchases_ids)
       .sum { |purchase|
-        purchase.move_products_to_warehouse(destination_id)
+        ProductMover.new(warehouse_id: destination_id, purchase:).move
       }
 
     flash_movement_notice(moved_count, Warehouse.find(destination_id))

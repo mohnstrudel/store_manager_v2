@@ -89,19 +89,4 @@ class Purchase < ApplicationRecord
       .missing(:payments)
       .order(created_at: :asc)
   end
-
-  def move_products_to_warehouse(destination_id)
-    moved_count = 0
-
-    if purchased_products.empty?
-      amount.times do
-        purchased_products.create(warehouse_id: destination_id)
-        moved_count += 1
-      end
-    else
-      moved_count = purchased_products.update_all(warehouse_id: destination_id)
-    end
-
-    moved_count
-  end
 end

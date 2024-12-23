@@ -4,7 +4,7 @@ class PurchaseCreator
     @warehouse_id = purchase_params.delete(:warehouse_id)
   end
 
-  def call
+  def create
     purchase = Purchase.new(@purchase_params)
 
     if purchase.save
@@ -28,15 +28,9 @@ class PurchaseCreator
   private
 
   def create_purchased_products(purchase, warehouse)
-    purchased_products = []
-
-    purchase.amount.times do
-      purchased_products << warehouse.purchased_products.create(
-        purchase_id: purchase.id
-      )
+    Array.new(purchase.amount) do
+      warehouse.purchased_products.create(purchase_id: purchase.id)
     end
-
-    purchased_products
   end
 
   def link_with_product_sales(purchased_products, active_product_sales)

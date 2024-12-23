@@ -74,18 +74,4 @@ class PurchasedProduct < ApplicationRecord
         purchase: {product_id:}
       )
   end
-
-  def self.bulk_move_to_warehouse(ids, destination_id)
-    purchased_products = where(id: ids)
-
-    moved_ids_grouped_by_prev_warehouse = purchased_products
-      .group_by(&:warehouse_id)
-      .transform_values { |purchased_products|
-        purchased_products.pluck(:id)
-      }
-
-    moved_count = purchased_products.update_all(warehouse_id: destination_id)
-
-    [moved_count, moved_ids_grouped_by_prev_warehouse]
-  end
 end

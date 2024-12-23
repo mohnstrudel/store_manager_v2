@@ -16,13 +16,13 @@ describe PurchaseCreator do
 
   describe "#call" do
     it "creates a purchase with purchased products" do
-      purchase = described_class.new(purchase_params).call
+      purchase = described_class.new(purchase_params).create
 
       expect(purchase.purchased_products.count).to eq(PURCHASED_AMOUNT)
     end
 
     it "links purchased products with the correct warehouse" do
-      purchase = described_class.new(purchase_params).call
+      purchase = described_class.new(purchase_params).create
       purchased_products_warehouse_id = purchase
         .purchased_products
         .pluck(:warehouse_id)
@@ -51,7 +51,7 @@ describe PurchaseCreator do
           amount: 3
         )
 
-        purchase = described_class.new(variation_params).call
+        purchase = described_class.new(variation_params).create
         linked_product_sales_ids = purchase
           .purchased_products
           .pluck(:product_sale_id)
@@ -78,7 +78,7 @@ describe PurchaseCreator do
       end
 
       it "links purchased products to product sales" do
-        described_class.new(purchase_params).call
+        described_class.new(purchase_params).create
 
         linked_purchased_products = PurchasedProduct.where.not(
           product_sale_id: nil
@@ -94,7 +94,7 @@ describe PurchaseCreator do
       end
 
       it "dispatches notifications for each linked product" do
-        described_class.new(purchase_params).call
+        described_class.new(purchase_params).create
 
         expect(Notification).to have_received(:dispatch)
           .exactly(4).times
@@ -105,7 +105,7 @@ describe PurchaseCreator do
       end
 
       it "leaves excess purchased products unlinked" do
-        described_class.new(purchase_params).call
+        described_class.new(purchase_params).create
 
         unlinked_products = PurchasedProduct.where(product_sale_id: nil)
 
@@ -113,7 +113,7 @@ describe PurchaseCreator do
       end
 
       it "doesn't link purchased products to inactive sales" do
-        described_class.new(purchase_params).call
+        described_class.new(purchase_params).create
 
         linked_sale_ids = PurchasedProduct
           .where.not(product_sale_id: nil)
@@ -126,7 +126,7 @@ describe PurchaseCreator do
 
     context "when there are no product sales to link with" do
       it "creates purchased products without linking them" do
-        described_class.new(purchase_params).call
+        described_class.new(purchase_params).create
 
         unlinked_products = PurchasedProduct.where(product_sale_id: nil)
 

@@ -28,7 +28,7 @@ class Notification < ApplicationRecord
       when event_types[:product_purchased]
         handle_product_purchased(context)
       when event_types[:warehouse_changed]
-        return if context[:from_id] == context[:to_id]
+        return if context[:from_id].to_i == context[:to_id].to_i
         handle_warehouse_changed(context)
       end
     end

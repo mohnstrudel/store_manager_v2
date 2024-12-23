@@ -56,7 +56,7 @@ describe PurchasedProductsController do
         context: {
           purchased_product_ids: purchased_products.map(&:id),
           from_id: from_warehouse.id,
-          to_id: to_warehouse.id.to_s
+          to_id: to_warehouse.id
         }
       ).exactly(1).times
     end
