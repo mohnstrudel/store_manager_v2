@@ -26,8 +26,8 @@ class NotificationsMailer < ApplicationMailer
     item_name:,
     order_number:,
     to_warehouse:,
-    tracking_number:,
-    tracking_url:
+    tracking_number: nil,
+    tracking_url: nil
   )
     @customer_name = customer_name
     @item_name = item_name

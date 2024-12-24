@@ -7,7 +7,7 @@ class Notifier
   )
     @from_id = from_id.to_i
     @to_id = to_id.to_i
-    @purchased_product_id = purchased_product_id.to_i
+    @purchased_product_id = purchased_product_id
     @purchased_product_ids = purchased_product_ids
   end
 
