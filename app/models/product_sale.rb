@@ -52,7 +52,7 @@ class ProductSale < ApplicationRecord
     return if purchased_products.size >= qty
 
     purchased_products_to_link = PurchasedProduct
-      .unlinked_records(product_id)
+      .without_product_sales(product_id)
       .limit(qty)
 
     ids = purchased_products_to_link.pluck(:id)

@@ -59,19 +59,17 @@ class PurchasedProduct < ApplicationRecord
     )
   }
 
+  scope :without_product_sales, ->(product_id) {
+    where(product_sale_id: nil)
+      .joins(:purchase)
+      .where(purchase: {product_id:})
+  }
+
   def name
     purchase.full_title
   end
 
   def cost
     (price || 0) + (purchase.item_price || 0)
-  end
-
-  def self.unlinked_records(product_id)
-    where(product_sale_id: nil)
-      .joins(:purchase)
-      .where(
-        purchase: {product_id:}
-      )
   end
 end

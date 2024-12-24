@@ -124,6 +124,6 @@ class Sale < ApplicationRecord
 
     product_ids = product_sales.pluck(:product_id)
 
-    PurchasedProduct.unlinked_records(product_ids).exists?
+    PurchasedProduct.without_product_sales(product_ids).exists?
   end
 end
