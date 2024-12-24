@@ -71,9 +71,12 @@ describe PurchaseCreator do
       let(:inactive_product_sale) {
         create(:product_sale, product: product, variation: nil, qty: 2)
       }
+      let(:notifier_instance) { instance_double(Notifier, handle_product_purchase: nil) }
 
       before do
-        allow(Notification).to receive(:dispatch)
+        allow(Notifier).to receive(:new).and_return(
+          notifier_instance
+        )
         inactive_product_sale.sale.update(status: :cancelled)
       end
 
@@ -96,12 +99,11 @@ describe PurchaseCreator do
       it "dispatches notifications for each linked product" do
         described_class.new(purchase_params).create
 
-        expect(Notification).to have_received(:dispatch)
+        expect(Notifier).to have_received(:new)
           .exactly(4).times
-          .with(
-            event: Notification.event_types[:product_purchased],
-            context: hash_including(:purchased_product_id)
-          )
+          .with(hash_including(:purchased_product_id))
+        expect(notifier_instance).to have_received(:handle_product_purchase)
+          .exactly(4).times
       end
 
       it "leaves excess purchased products unlinked" do

@@ -55,10 +55,7 @@ class PurchaseCreator
 
   def notify_linked_products(product_ids)
     product_ids.each do |purchased_product_id|
-      Notification.dispatch(
-        event: Notification.event_types[:product_purchased],
-        context: {purchased_product_id:}
-      )
+      Notifier.new(purchased_product_id:).handle_product_purchase
     end
   end
 

@@ -6,10 +6,9 @@ class NotifyCustomersAboutOrderLocationJob < ApplicationJob
       .includes(:product_sale)
       .where.not(product_sale: nil)
       .find_each do |purchased_product|
-        Notification.dispatch(
-          event: Notification.event_types[:product_purchased],
-          context: {purchased_product_id: purchased_product.id}
-        )
+        Notifier.new(
+          purchased_product_id: purchased_product.id
+        ).handle_product_purchase
       end
   end
 end

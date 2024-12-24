@@ -22,11 +22,8 @@ describe PurchasedProductsController do
     let(:from_warehouse) { create(:warehouse) }
     let(:to_warehouse) { create(:warehouse) }
     let(:purchased_products) { create_list(:purchased_product, 3, warehouse: from_warehouse) }
-    let(:notification_service) {
-      class_spy(Notification).tap do |spy|
-        allow(spy).to receive(:event_types).and_return({warehouse_changed: 1})
-      end
-    }
+
+    let(:notifier) { instance_double(Notifier, handle_warehouse_change: true) }
 
     let(:valid_params) do
       {
@@ -37,7 +34,7 @@ describe PurchasedProductsController do
     end
 
     before do
-      stub_const("Notification", notification_service)
+      allow(Notifier).to receive(:new).and_return(notifier)
     end
 
     it "moves products to destination warehouse" do
@@ -48,17 +45,15 @@ describe PurchasedProductsController do
       end
     end
 
-    it "dispatches notifications for each moved product" do
+    it "notifies about warehouse change" do
       post :move, params: valid_params
 
-      expect(notification_service).to have_received(:dispatch).with(
-        event: Notification.event_types[:warehouse_changed],
-        context: {
-          purchased_product_ids: purchased_products.map(&:id),
-          from_id: from_warehouse.id,
-          to_id: to_warehouse.id
-        }
-      ).exactly(1).times
+      expect(Notifier).to have_received(:new).with(
+        purchased_product_ids: purchased_products.map(&:id),
+        from_id: from_warehouse.id,
+        to_id: to_warehouse.id
+      )
+      expect(notifier).to have_received(:handle_warehouse_change)
     end
   end
 end

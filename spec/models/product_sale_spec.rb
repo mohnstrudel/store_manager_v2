@@ -60,21 +60,18 @@ RSpec.describe ProductSale, type: :model do
       expect(connected_products.first.created_at).to be < connected_products.last.created_at
     end
 
-    it "dispatches notifications for linked purchased products" do
-      notification_class = class_spy(Notification)
-      allow(notification_class).to receive(:event_types)
-        .and_return({product_purchased: 0})
-      stub_const("Notification", notification_class)
+    it "sends notifications for linked purchased products" do
+      notifier = instance_double(Notifier, handle_product_purchase: true)
+      allow(Notifier).to receive(:new).and_return(notifier)
 
       product_sale.save
 
       linked_purchased_products = PurchasedProduct.where(product_sale:)
 
-      expect(notification_class).to have_received(:dispatch)
-        .with(
-          event: 0,
-          context: hash_including(purchased_product_id: kind_of(Integer))
-        )
+      expect(Notifier).to have_received(:new)
+        .with(purchased_product_id: kind_of(Integer))
+        .exactly(linked_purchased_products.count).times
+      expect(notifier).to have_received(:handle_product_purchase)
         .exactly(linked_purchased_products.count).times
     end
   end

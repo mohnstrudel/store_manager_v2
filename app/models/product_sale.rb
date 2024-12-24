@@ -60,12 +60,7 @@ class ProductSale < ApplicationRecord
     purchased_products_to_link.update_all(product_sale_id: id)
 
     ids.each do |purchased_product_id|
-      Notification.dispatch(
-        event: Notification.event_types[:product_purchased],
-        context: {
-          purchased_product_id:
-        }
-      )
+      Notifier.new(purchased_product_id:).handle_product_purchase
     end
   end
 end

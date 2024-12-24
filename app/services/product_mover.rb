@@ -39,10 +39,9 @@ class ProductMover
 
   def notify_on_purchase(purchased_products)
     purchased_products.each do |purchased_product|
-      Notification.dispatch(
-        event: Notification.event_types[:product_purchased],
-        context: {purchased_product_id: purchased_product.id}
-      )
+      Notifier.new(
+        purchased_product_id: purchased_product.id
+      ).handle_product_purchase
     end
   end
 
@@ -56,14 +55,11 @@ class ProductMover
 
   def notify_on_move(grouped_product_ids)
     grouped_product_ids.each do |prev_warehouse_id, ids|
-      Notification.dispatch(
-        event: Notification.event_types[:warehouse_changed],
-        context: {
-          purchased_product_ids: ids,
-          from_id: prev_warehouse_id,
-          to_id: @warehouse.id
-        }
-      )
+      Notifier.new(
+        purchased_product_ids: ids,
+        from_id: prev_warehouse_id,
+        to_id: @warehouse.id
+      ).handle_warehouse_change
     end
   end
 
