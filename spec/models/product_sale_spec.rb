@@ -66,13 +66,11 @@ RSpec.describe ProductSale, type: :model do
 
       product_sale.save
 
-      linked_purchased_products = PurchasedProduct.where(product_sale:)
-
       expect(Notifier).to have_received(:new)
-        .with(purchased_product_id: kind_of(Integer))
-        .exactly(linked_purchased_products.count).times
+        .with(purchased_product_ids: kind_of(Array))
+        .exactly(1).time
       expect(notifier).to have_received(:handle_product_purchase)
-        .exactly(linked_purchased_products.count).times
+        .exactly(1).times
     end
   end
 end

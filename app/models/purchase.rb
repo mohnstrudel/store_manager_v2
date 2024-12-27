@@ -52,6 +52,13 @@ class Purchase < ApplicationRecord
   has_many :purchased_products, dependent: :destroy
   has_many :warehouses, through: :purchased_products
 
+  scope :unpaid, -> {
+    includes(:supplier)
+      .where
+      .missing(:payments)
+      .order(created_at: :asc)
+  }
+
   def paid
     payments.pluck(:value).sum
   end
@@ -81,12 +88,5 @@ class Purchase < ApplicationRecord
 
   def date
     purchase_date || created_at
-  end
-
-  def self.unpaid
-    includes(:supplier)
-      .where
-      .missing(:payments)
-      .order(created_at: :asc)
   end
 end

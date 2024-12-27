@@ -27,7 +27,7 @@ RSpec.describe NotifyCustomersAboutOrderLocationJob do
       described_class.perform_now
 
       expect(Notifier).to have_received(:new)
-        .with(purchased_product_id: purchased_product_with_sale.id)
+        .with(purchased_product_ids: [purchased_product_with_sale.id])
       expect(notifier).to have_received(:handle_product_purchase)
     end
 
@@ -35,7 +35,7 @@ RSpec.describe NotifyCustomersAboutOrderLocationJob do
       described_class.perform_now
 
       expect(Notifier).not_to have_received(:new)
-        .with(purchased_product_id: purchased_product_without_sale.id)
+        .with(purchased_product_ids: [purchased_product_without_sale.id])
     end
   end
 end

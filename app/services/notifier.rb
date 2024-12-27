@@ -1,22 +1,24 @@
 class Notifier
   def initialize(
+    purchased_product_ids:,
     from_id: nil,
-    to_id: nil,
-    purchased_product_id: nil,
-    purchased_product_ids: []
+    to_id: nil
   )
+    @purchased_product_ids = purchased_product_ids
     @from_id = from_id.to_i
     @to_id = to_id.to_i
-    @purchased_product_id = purchased_product_id
-    @purchased_product_ids = purchased_product_ids
   end
 
   def handle_product_purchase
+    return if @purchased_product_ids.blank?
+
     dispatch_product_purchased_message
   end
 
   def handle_warehouse_change
     return if @from_id == @to_id
+    return if @purchased_product_ids.blank?
+
     dispatch_warehouse_changed_message
   end
 
@@ -38,20 +40,22 @@ class Notifier
   end
 
   def dispatch_product_purchased_message
-    purchased_product = PurchasedProduct
+    purchased_products = PurchasedProduct
       .with_notification_details
       .includes(:warehouse)
-      .find_by(id: @purchased_product_id)
+      .where(id: @purchased_product_ids)
 
-    return if purchased_product&.sale.blank?
+    purchased_products.each do |purchased_product|
+      next if purchased_product&.sale.blank?
 
-    data = extract_common_data(purchased_product)
-    return if data[:email].blank?
+      data = extract_common_data(purchased_product)
+      next if data[:email].blank?
 
-    NotificationsMailer.product_purchased_email(
-      **data,
-      warehouse_name: format_warehouse_name(purchased_product.warehouse)
-    ).deliver_later
+      NotificationsMailer.product_purchased_email(
+        **data,
+        warehouse_name: format_warehouse_name(purchased_product.warehouse)
+      ).deliver_later
+    end
   end
 
   def dispatch_warehouse_changed_message
@@ -64,16 +68,9 @@ class Notifier
 
     return unless transition&.notification&.active?
 
-    purchased_product_ids = Array(
-      @purchased_product_id ||
-      @purchased_product_ids.presence
-    )
-
-    return if purchased_product_ids.blank?
-
     purchased_products = PurchasedProduct
       .with_notification_details
-      .where(id: purchased_product_ids)
+      .where(id: @purchased_product_ids)
 
     purchased_products.each do |purchased_product|
       data = extract_common_data(purchased_product)

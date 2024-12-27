@@ -43,10 +43,26 @@ class PurchasesController < ApplicationController
 
   # POST /purchases or /purchases.json
   def create
-    @purchase = PurchaseCreator.new(purchase_params).create
+    warehouse_id = purchase_params.delete(:warehouse_id)
+    @purchase = Purchase.new(purchase_params.except(:warehouse_id))
 
     respond_to do |format|
-      if @purchase.persisted?
+      if @purchase.save
+        warehouse = Warehouse.find_by(id: warehouse_id) ||
+          Warehouse.find_by(is_default: true)
+
+        if warehouse.present?
+          Array.new(@purchase.amount) do
+            warehouse.purchased_products.create(purchase_id: @purchase.id)
+          end
+
+          purchased_product_ids = PurchaseSaleLinker.new(
+            purchase: @purchase
+          ).link
+
+          Notifier.new(purchased_product_ids:).handle_product_purchase
+        end
+
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }
         format.json { render :show, status: :created, location: @purchase }
       else

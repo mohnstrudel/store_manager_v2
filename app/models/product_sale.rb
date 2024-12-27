@@ -51,16 +51,8 @@ class ProductSale < ApplicationRecord
     return unless sale.active?
     return if purchased_products.size >= qty
 
-    purchased_products_to_link = PurchasedProduct
-      .without_product_sales(product_id)
-      .limit(qty)
+    purchased_product_ids = PurchaseSaleLinker.new(sale:).link
 
-    ids = purchased_products_to_link.pluck(:id)
-
-    purchased_products_to_link.update_all(product_sale_id: id)
-
-    ids.each do |purchased_product_id|
-      Notifier.new(purchased_product_id:).handle_product_purchase
-    end
+    Notifier.new(purchased_product_ids:).handle_product_purchase
   end
 end

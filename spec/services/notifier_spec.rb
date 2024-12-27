@@ -18,7 +18,7 @@ describe Notifier do
   describe "#handle_product_purchase" do
     it "sends product purchased email" do
       expect {
-        described_class.new(purchased_product_id: purchased_product.id)
+        described_class.new(purchased_product_ids: Array(purchased_product.id))
           .handle_product_purchase
       }.to have_enqueued_mail(NotificationsMailer, :product_purchased_email)
     end
@@ -35,7 +35,7 @@ describe Notifier do
     it "sends warehouse changed email" do
       expect {
         described_class.new(
-          purchased_product_id: purchased_product.id,
+          purchased_product_ids: Array(purchased_product.id),
           from_id: warehouse.id,
           to_id: to_warehouse.id
         ).handle_warehouse_change
@@ -45,7 +45,7 @@ describe Notifier do
     it "does not send email when warehouses are the same" do
       expect {
         described_class.new(
-          purchased_product_id: purchased_product.id,
+          purchased_product_ids: Array(purchased_product.id),
           from_id: warehouse.id,
           to_id: warehouse.id
         ).handle_warehouse_change
