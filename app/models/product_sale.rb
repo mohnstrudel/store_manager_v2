@@ -48,11 +48,7 @@ class ProductSale < ApplicationRecord
   end
 
   def link_purchased_products
-    return unless sale.active?
-    return if purchased_products.size >= qty
-
-    purchased_product_ids = PurchaseSaleLinker.new(sale:).link
-
-    Notifier.new(purchased_product_ids:).handle_product_purchase
+    linked_ids = PurchaseSaleLinker.new(sale:).link
+    Notifier.new(purchased_product_ids: linked_ids).handle_product_purchase
   end
 end
