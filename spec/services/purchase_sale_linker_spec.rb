@@ -48,6 +48,14 @@ describe PurchaseSaleLinker do
         expect(linked_sale_ids).to include(product_sale_active.id)
       end
 
+      it "does not link purchase to product sales with no quantity left" do
+        create_list(:purchased_product, 2, product:, warehouse:, product_sale: product_sale_active)
+
+        linked_count = described_class.new(purchase:).link.size
+
+        expect(linked_count).to eq(0)
+      end
+
       context "when purchase has variation" do
         let(:variation) { create(:variation) }
         let(:purchase_with_variation) {
@@ -107,6 +115,14 @@ describe PurchaseSaleLinker do
           .where(product_sale_id: product_sale.id)
 
         expect(linked_products.count).to eq(0)
+      end
+
+      it "does not link more than needed purchased products" do
+        create_list(:purchased_product, 2, product:, warehouse:, product_sale:)
+
+        linked_count = described_class.new(sale:).link.size
+
+        expect(linked_count).to eq(0)
       end
     end
   end

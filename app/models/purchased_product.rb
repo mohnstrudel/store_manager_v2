@@ -32,7 +32,7 @@ class PurchasedProduct < ApplicationRecord
   db_belongs_to :warehouse
   db_belongs_to :purchase
 
-  belongs_to :product_sale, optional: true
+  belongs_to :product_sale, optional: true, counter_cache: true
   has_one :sale, through: :product_sale
 
   has_one :product, through: :purchase

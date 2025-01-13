@@ -2,15 +2,16 @@
 #
 # Table name: product_sales
 #
-#  id           :bigint           not null, primary key
-#  price        :decimal(8, 2)
-#  qty          :integer
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  product_id   :bigint           not null
-#  sale_id      :bigint           not null
-#  variation_id :bigint
-#  woo_id       :string
+#  id                       :bigint           not null, primary key
+#  price                    :decimal(8, 2)
+#  purchased_products_count :integer          default(0), not null
+#  qty                      :integer
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  product_id               :bigint           not null
+#  sale_id                  :bigint           not null
+#  variation_id             :bigint
+#  woo_id                   :string
 #
 class ProductSale < ApplicationRecord
   after_create :link_purchased_products
@@ -26,6 +27,10 @@ class ProductSale < ApplicationRecord
 
   scope :only_active, -> {
     joins(:sale).where(sales: {status: Sale.active_status_names})
+  }
+
+  scope :linkable, -> {
+    where("qty > purchased_products_count")
   }
 
   def item

@@ -24,6 +24,7 @@ class PurchaseSaleLinker
 
     ProductSale
       .only_active
+      .linkable
       .where(
         variation_id.present? ?
           {variation_id:} :
@@ -52,9 +53,7 @@ class PurchaseSaleLinker
   end
 
   def link_sale_to_purchased_products
-    @sale.product_sales.flat_map do |product_sale|
-      next if product_sale.purchased_products.size >= product_sale.qty
-
+    @sale.product_sales.linkable.flat_map do |product_sale|
       purchased_products_to_link = PurchasedProduct
         .without_product_sales(product_sale.product_id)
         .limit(product_sale.qty)
