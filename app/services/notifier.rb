@@ -66,7 +66,10 @@ class Notifier
         to_warehouse_id: @to_id
       )
 
-    return unless transition&.notification&.active?
+    unless transition&.notification&.active?
+      warn "  ↳ Skipping notifications. No active transitions found for warehouses: #{@from_id} -> #{@to_id}"
+      return
+    end
 
     purchased_products = PurchasedProduct
       .with_notification_details
