@@ -55,37 +55,57 @@ describe PurchaseSaleLinker do
 
         expect(linked_count).to eq(0)
       end
+    end
 
-      context "when purchase has variation" do
-        let(:variation) { create(:variation) }
-        let(:purchase_with_variation) {
-          create(:purchase, supplier:, product:, variation:, amount: 2)
-        }
-        let!(:product_sale_with_variation) {
-          create(:product_sale, product:, variation:, sale: active_sale, qty: 1)
-        }
-        let!(:product_sale_without_variation) {
-          create(:product_sale, product:, sale: active_sale, qty: 1)
-        }
+    context "when we link variations" do
+      let(:variation_regular)	{ create(:variation, :with_version, version_value: "Regular Armor") }
+      let(:variation_revealing)	{ create(:variation, :with_version, version_value: "Revealing Armor") }
+      let(:purchase_regular) {
+        create(:purchase, supplier:, product:, variation: variation_regular, amount: 2)
+      }
+      let(:product_sale_regular) {
+        create(:product_sale, product:, variation: variation_regular, sale: active_sale, qty: 1)
+      }
+      let(:product_sale_revealing) {
+        create(:product_sale, product:, variation: variation_revealing, sale: active_sale, qty: 1)
+      }
+      let(:product_sale_no_variation) {
+        create(:product_sale, product:, sale: active_sale, qty: 1)
+      }
 
-        before do
-          purchase_with_variation.purchased_products.create([
-            {warehouse:},
-            {warehouse:}
-          ])
-        end
+      before do
+        purchase_regular.purchased_products.create([
+          {warehouse:},
+          {warehouse:}
+        ])
+      end
 
-        it "only links to product sales with matching variation" do
-          described_class.new(purchase: purchase_with_variation).link
+      it "does not link when no exact variation present" do
+        product_sale_revealing
+        product_sale_no_variation
 
-          linked_sale_ids = purchase_with_variation.purchased_products
-            .where.not(product_sale_id: nil)
-            .pluck(:product_sale_id)
-            .uniq
+        expect(described_class.new(purchase: purchase_regular).link).to be_empty
+      end
 
-          expect(linked_sale_ids).to include(product_sale_with_variation.id)
-          expect(linked_sale_ids).not_to include(product_sale_without_variation.id)
-        end
+      it "does not link to the same product without the variation" do
+        product_sale_no_variation
+
+        expect(described_class.new(purchase: purchase_regular).link).to be_empty
+      end
+
+      it "links to correct variation" do
+        product_sale_revealing
+        product_sale_no_variation
+        product_sale_regular
+
+        described_class.new(purchase: purchase_regular).link
+
+        linked_sale_ids = purchase_regular.purchased_products
+          .where.not(product_sale_id: nil)
+          .pluck(:product_sale_id)
+          .uniq
+
+        expect(linked_sale_ids).to include(product_sale_regular.id)
       end
     end
 
