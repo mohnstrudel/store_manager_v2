@@ -1,4 +1,4 @@
-- if sale.active? && sale.has_unlinked_product_sales?
+- if (sale.active? || sale.completed?) && sale.has_unlinked_product_sales?
   a.btn href=link_purchased_products_sale_path
     i.icn 🔗
     | Link with purchases

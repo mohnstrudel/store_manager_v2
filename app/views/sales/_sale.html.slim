@@ -9,7 +9,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     ul.product-variations
       - sale.product_sales.each do |ps|
         li
-          - if sale.active?
+          - if sale.active? || sale.completed?
             = format_purchased_sold_ratio(ps.purchased_products.size, ps.qty)
             | 
           = ps.title
