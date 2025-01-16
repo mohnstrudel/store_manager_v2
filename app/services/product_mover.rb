@@ -1,6 +1,6 @@
-NOTHING_MOVED = 0
-
 class ProductMover
+  NOTHING_MOVED = 0
+
   def initialize(warehouse_id:, purchase: nil, purchased_products_ids: [])
     @warehouse = Warehouse.find(warehouse_id)
     @purchase = purchase

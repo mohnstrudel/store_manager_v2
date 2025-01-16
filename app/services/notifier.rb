@@ -34,7 +34,7 @@ class Notifier
     {
       email: purchased_product.sale.customer.email,
       customer_name: purchased_product.sale.customer.full_name,
-      order_number: purchased_product.sale.woo_id,
+      order_number: purchased_product.sale.woo_id || purchased_product.sale.id,
       item_name: purchased_product.product_sale.title
     }
   end
