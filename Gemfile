@@ -66,7 +66,7 @@ gem "state_machines-activerecord"
 gem "inline_svg"
 gem "mailtrap"
 
-group :production do
+group :production, :staging do
   gem "thruster"
   gem "barnes"
   # Prevents webserver from spending time working on a request
