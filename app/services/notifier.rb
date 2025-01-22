@@ -9,15 +9,31 @@ class Notifier
     @to_id = to_id.to_i
   end
 
+  def warn_about(subj, id = nil)
+    prefix = "  ↳ Skipping notifications. %s"
+    case subj
+    when :same_destination
+      warn prefix % "Destination is the same as the original location"
+    when :no_payload
+      warn prefix % "Missing purchased products"
+    when :no_transitions
+      warn prefix % "No active transitions found for warehouses: #{@from_id} -> #{@to_id}"
+    when :no_sale
+      warn prefix % "Missing sale for purchased product ID: #{id}"
+    when :no_email
+      warn prefix % "Missing email for purchased product ID: #{id}"
+    end
+  end
+
   def handle_product_purchase
-    return if @purchased_product_ids.blank?
+    return warn_about(:no_payload) if @purchased_product_ids.blank?
 
     dispatch_product_purchased_message
   end
 
   def handle_warehouse_change
-    return if @from_id == @to_id
-    return if @purchased_product_ids.blank?
+    return warn_about(:same_destination) if @from_id == @to_id
+    return warn_about(:no_payload) if @purchased_product_ids.blank?
 
     dispatch_warehouse_changed_message
   end
@@ -46,10 +62,16 @@ class Notifier
       .where(id: @purchased_product_ids)
 
     purchased_products.each do |purchased_product|
-      next if purchased_product&.sale.blank?
+      if purchased_product&.sale.blank?
+        warn_about(:no_sale, purchased_product.id)
+        next
+      end
 
       data = extract_common_data(purchased_product)
-      next if data[:email].blank?
+      if data[:email].blank?
+        warn_about(:no_email, purchased_product.id)
+        next
+      end
 
       NotificationsMailer.product_purchased_email(
         **data,
@@ -67,8 +89,7 @@ class Notifier
       )
 
     unless transition&.notification&.active?
-      warn "  ↳ Skipping notifications. No active transitions found for warehouses: #{@from_id} -> #{@to_id}"
-      return
+      return warn_about(:no_transitions)
     end
 
     purchased_products = PurchasedProduct
@@ -77,7 +98,11 @@ class Notifier
 
     purchased_products.each do |purchased_product|
       data = extract_common_data(purchased_product)
-      next if data[:email].blank?
+
+      if data[:email].blank?
+        warn_about(:no_email, purchased_product.id)
+        next
+      end
 
       NotificationsMailer.warehouse_changed_email(
         **data,
