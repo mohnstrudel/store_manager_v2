@@ -72,6 +72,9 @@ group :production, :staging do
   # Prevents webserver from spending time working on a request
   # that has been in-flight for longer than 30 seconds
   gem "rack-timeout"
+end
+
+gem :production do
   gem "scout_apm"
 end
 
