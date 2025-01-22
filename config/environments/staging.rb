@@ -98,6 +98,6 @@ Rails.application.configure do
   config.action_mailer.mailtrap_settings = {
     api_key: ENV["MAIL_API_KEY"],
     sandbox: true,
-    inbox_id: 3265246
+    inbox_id: ENV["MAIL_INBOX_ID"]
   }
 end
