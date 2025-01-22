@@ -1,7 +1,13 @@
 doctype html
 html
   head
-    title StoreManagerV2
+    - if Rails.env.staging?
+      title 🐶 Staging Mate 🐶
+    - if Rails.env.development?
+      title 🐞 Development Mate 🐞
+    - else
+      title 😸 Store Mate 😸
+    meta[name="robots" content="noindex"]
     meta[name="viewport" content="width=device-width,initial-scale=1"]
     = csrf_meta_tags
     = csp_meta_tag
@@ -14,7 +20,12 @@ html
       nav role="navigation" aria-label="main navigation"
         ul 
          li
-          i.icn.logo 😸
+          - if Rails.env.staging?
+            i.icn.logo.danger 🐶
+          - if Rails.env.development?
+            i.icn.logo.danger 🐞
+          - else
+            i.icn.logo 😸
         ul
           li = link_to "Dashboard", root_path
           nav
