@@ -74,7 +74,7 @@ group :production, :staging do
   gem "rack-timeout"
 end
 
-gem :production do
+group :production do
   gem "scout_apm"
 end
 
