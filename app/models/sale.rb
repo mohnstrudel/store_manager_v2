@@ -112,6 +112,10 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
+  def self.inactive_status_names
+    status_names - active_status_names - completed_status_names
+  end
+
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
   end

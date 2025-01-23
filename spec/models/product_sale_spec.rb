@@ -40,7 +40,7 @@ RSpec.describe ProductSale, type: :model do
     end
 
     it "does not connect purchased products when the sale has an inactive status" do
-      inactive_sale = create(:sale, status: (Sale.status_names - Sale.active_status_names).sample)
+      inactive_sale = create(:sale, status: Sale.inactive_status_names.sample)
       inactive_product_sale = build(:product_sale, product:, sale: inactive_sale, qty: 2)
 
       expect {
