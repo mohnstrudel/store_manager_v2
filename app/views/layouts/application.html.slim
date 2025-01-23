@@ -24,7 +24,7 @@ html
             i.icn.logo.danger 🐶
           - if Rails.env.development?
             i.icn.logo.danger 🐞
-          - else
+          - if Rails.env.production?
             i.icn.logo 😸
         ul
           li = link_to "Dashboard", root_path
