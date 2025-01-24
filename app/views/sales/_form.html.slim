@@ -1,6 +1,4 @@
 = form_with model: sale do |f|
-  = render "_shared/notice-err", model: sale
-
   h4.edit-header-pd Status
   .radio-buttons
     = f.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
@@ -56,5 +54,7 @@
       = f.fields_for :product_sales, product_sale do |ps_f|
         = render "product_fields", f: ps_f, product: product_sale.product
     button.is-inverted(data-action="product-sales#addProduct" data-product-sales-target="btn") Add Product
+
+  = render "_shared/notice-err", model: sale
 
   = f.submit
