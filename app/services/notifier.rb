@@ -9,22 +9,6 @@ class Notifier
     @to_id = to_id.to_i
   end
 
-  def warn_about(subj, id = nil)
-    prefix = "  ↳ Skipping notifications. %s"
-    case subj
-    when :same_destination
-      warn prefix % "Destination is the same as the original location"
-    when :no_payload
-      warn prefix % "Missing purchased products"
-    when :no_transitions
-      warn prefix % "No active transitions found for warehouses: #{@from_id} -> #{@to_id}"
-    when :no_sale
-      warn prefix % "Missing sale for purchased product ID: #{id}"
-    when :no_email
-      warn prefix % "Missing email for purchased product ID: #{id}"
-    end
-  end
-
   def handle_product_purchase
     return warn_about(:no_payload) if @purchased_product_ids.blank?
 
@@ -111,6 +95,22 @@ class Notifier
         tracking_number: transition.to_warehouse&.container_tracking_number,
         tracking_url: transition.to_warehouse&.courier_tracking_url
       ).deliver_later
+    end
+  end
+
+  def warn_about(subj, id = nil)
+    prefix = "  ↳ Skipping notifications. %s"
+    case subj
+    when :same_destination
+      warn prefix % "Destination is the same as the original location"
+    when :no_payload
+      warn prefix % "Missing purchased products"
+    when :no_transitions
+      warn prefix % "No active transitions found for warehouses: #{@from_id} -> #{@to_id}"
+    when :no_sale
+      warn prefix % "Missing sale for purchased product ID: #{id}"
+    when :no_email
+      warn prefix % "Missing email for purchased product ID: #{id}"
     end
   end
 end
