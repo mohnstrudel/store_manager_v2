@@ -173,3 +173,7 @@ mark.smaller {
   height: 16px;
   color: var(--primary);
 }
+
+.no-bg-hover:hover {
+  background-color: transparent !important;
+}

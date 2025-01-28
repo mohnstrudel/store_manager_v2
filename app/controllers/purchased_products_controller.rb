@@ -93,7 +93,7 @@ class PurchasedProductsController < ApplicationController
     product_sale = purchased_product.product_sale
 
     if purchased_product.update(product_sale: nil)
-      redirect_to product_sale,
+      redirect_to (request.referer || product_sale),
         notice: "Purchased product was successfully unlinked.",
         status: :see_other
     else
