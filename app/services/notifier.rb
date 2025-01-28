@@ -108,8 +108,8 @@ class Notifier
         **data,
         from_warehouse: format_warehouse_name(transition.from_warehouse),
         to_warehouse: format_warehouse_name(transition.to_warehouse),
-        tracking_number: purchased_product.tracking_number,
-        tracking_url: purchased_product&.shipping_company&.tracking_url
+        tracking_number: transition.to_warehouse&.container_tracking_number,
+        tracking_url: transition.to_warehouse&.courier_tracking_url
       ).deliver_later
     end
   end
