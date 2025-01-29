@@ -10,9 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_13_115111) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -87,6 +87,15 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
     t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "event_type", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_type", "status"], name: "index_notifications_on_event_type_and_status"
+  end
+
   create_table "payments", force: :cascade do |t|
     t.decimal "value", precision: 8, scale: 2
     t.datetime "created_at", null: false
@@ -123,6 +132,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
     t.datetime "updated_at", null: false
     t.string "woo_id"
     t.bigint "variation_id"
+    t.integer "purchased_products_count", default: 0, null: false
     t.index ["product_id"], name: "index_product_sales_on_product_id"
     t.index ["sale_id"], name: "index_product_sales_on_sale_id"
     t.index ["variation_id"], name: "index_product_sales_on_variation_id"
@@ -186,8 +196,11 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
     t.datetime "updated_at", null: false
     t.bigint "purchase_id"
     t.bigint "product_sale_id"
+    t.string "tracking_number"
+    t.bigint "shipping_company_id"
     t.index ["product_sale_id"], name: "index_purchased_products_on_product_sale_id"
     t.index ["purchase_id"], name: "index_purchased_products_on_purchase_id"
+    t.index ["shipping_company_id"], name: "index_purchased_products_on_shipping_company_id"
     t.index ["warehouse_id"], name: "index_purchased_products_on_warehouse_id"
   end
 
@@ -239,6 +252,14 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "shipping_companies", force: :cascade do |t|
+    t.string "name"
+    t.string "tracking_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_shipping_companies_on_name", unique: true
+  end
+
   create_table "sizes", force: :cascade do |t|
     t.string "value"
     t.datetime "created_at", null: false
@@ -277,6 +298,18 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "warehouse_transitions", force: :cascade do |t|
+    t.bigint "from_warehouse_id"
+    t.bigint "to_warehouse_id"
+    t.bigint "notification_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["from_warehouse_id"], name: "index_warehouse_transitions_on_from_warehouse_id"
+    t.index ["notification_id", "from_warehouse_id", "to_warehouse_id"], name: "index_warehouse_transitions_uniqueness", unique: true
+    t.index ["notification_id"], name: "index_warehouse_transitions_on_notification_id"
+    t.index ["to_warehouse_id"], name: "index_warehouse_transitions_on_to_warehouse_id"
+  end
+
   create_table "warehouses", force: :cascade do |t|
     t.string "name"
     t.string "external_name"
@@ -309,6 +342,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
   add_foreign_key "products", "shapes"
   add_foreign_key "purchased_products", "product_sales"
   add_foreign_key "purchased_products", "purchases"
+  add_foreign_key "purchased_products", "shipping_companies"
   add_foreign_key "purchased_products", "warehouses"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
@@ -318,4 +352,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_07_054605) do
   add_foreign_key "variations", "products"
   add_foreign_key "variations", "sizes"
   add_foreign_key "variations", "versions"
+  add_foreign_key "warehouse_transitions", "notifications"
+  add_foreign_key "warehouse_transitions", "warehouses", column: "from_warehouse_id"
+  add_foreign_key "warehouse_transitions", "warehouses", column: "to_warehouse_id"
 end

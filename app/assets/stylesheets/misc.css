@@ -1,8 +1,10 @@
 i.icn {
   font-style: normal;
-  font-family: "Noto Emo";
+  font-family: "Noto Emoji", serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  font-optical-sizing: auto;
 
   &.xxl {
     font-size: 10rem;
@@ -170,4 +172,8 @@ mark.smaller {
   width: 16px;
   height: 16px;
   color: var(--primary);
+}
+
+.no-bg-hover:hover {
+  background-color: transparent !important;
 }

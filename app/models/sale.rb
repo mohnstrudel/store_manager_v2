@@ -57,7 +57,7 @@ class Sale < ApplicationRecord
     email = customer.email.presence
     woo = woo_id.presence
     total = total.presence || 0
-    [name, email, status.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
+    [name, email, status&.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
   end
 
   def created
@@ -70,6 +70,10 @@ class Sale < ApplicationRecord
 
   def active?
     self.class.active_status_names.include?(status)
+  end
+
+  def completed?
+    self.class.completed_status_names.include?(status)
   end
 
   def self.active_status_names
@@ -108,6 +112,10 @@ class Sale < ApplicationRecord
     ].freeze
   end
 
+  def self.inactive_status_names
+    status_names - active_status_names - completed_status_names
+  end
+
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
   end
@@ -120,6 +128,6 @@ class Sale < ApplicationRecord
 
     product_ids = product_sales.pluck(:product_id)
 
-    PurchasedProduct.unlinked_records(product_ids).exists?
+    PurchasedProduct.without_product_sales(product_ids).exists?
   end
 end

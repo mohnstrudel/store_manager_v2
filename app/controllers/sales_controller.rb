@@ -83,7 +83,12 @@ class SalesController < ApplicationController
   end
 
   def link_purchased_products
-    @sale.product_sales.each(&:link_purchased_products)
+    purchased_product_ids = PurchaseSaleLinker.new(
+      sale: @sale
+    ).link
+
+    Notifier.new(purchased_product_ids:).handle_product_purchase
+
     redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
   end
 

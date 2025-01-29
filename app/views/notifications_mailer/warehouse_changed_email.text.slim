@@ -1,0 +1,27 @@
+| Hello #{@customer_name},
+= "\r\n"
+= "\r\n"
+| Good news! The status of your order #{@order_number} has been updated.
+= "\r\n"
+= "\r\n"
+| Previous Status: #{@previous_status}
+= "\r\n"
+| New Status: #{@new_status}
+= "\r\n"
+= "\r\n"
+| Order Item: #{@item_name}
+= "\r\n"
+= "\r\n"
+- if @tracking_number.present?
+  | You can track your order on this page: #{@tracking_url} using the following tracking code #{@tracking_number}.
+  = "\r\n"
+  = "\r\n"
+| If you have any questions about this update, don't hesitate to reach out to us at support@handsomecake.com
+= "\r\n"
+= "\r\n"
+| Thank you for shopping with us!
+= "\r\n"
+= "\r\n"
+| Warm regards,
+= "\r\n"
+| The HandsomeCake Goodies Team

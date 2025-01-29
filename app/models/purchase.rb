@@ -16,8 +16,6 @@
 #  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
-  after_create :create_purchased_products, :link_purchased_products
-
   extend FriendlyId
   friendly_id :full_title, use: :slugged
 
@@ -54,6 +52,13 @@ class Purchase < ApplicationRecord
   has_many :purchased_products, dependent: :destroy
   has_many :warehouses, through: :purchased_products
 
+  scope :unpaid, -> {
+    includes(:supplier)
+      .where
+      .missing(:payments)
+      .order(created_at: :asc)
+  }
+
   def paid
     payments.pluck(:value).sum
   end
@@ -83,51 +88,5 @@ class Purchase < ApplicationRecord
 
   def date
     purchase_date || created_at
-  end
-
-  def self.unpaid
-    includes(:supplier)
-      .where
-      .missing(:payments)
-      .order(created_at: :asc)
-  end
-
-  def create_purchased_products
-    warehouse = Warehouse.find_by(is_default: true)
-
-    return if warehouse.nil?
-    return if purchased_products.count >= amount
-
-    amount.times do
-      warehouse.purchased_products.create(purchase_id: id)
-    end
-  end
-
-  def link_purchased_products
-    return if purchased_products.count == 0
-
-    available_product_sales = ProductSale.where(product_id:)
-
-    return if available_product_sales.blank?
-
-    unlinked_purchased_products_count = PurchasedProduct
-      .where(product_sale_id: nil, purchase_id: id)
-      .count
-
-    available_product_sales.each do |ps|
-      break if unlinked_purchased_products_count <= 0
-
-      if unlinked_purchased_products_count > ps.qty
-        unlinked_purchased_products_count -= ps.qty
-        purchased_products
-          .limit(ps.qty)
-          .update_all(product_sale_id: ps.id)
-      else
-        unlinked_purchased_products_count = 0
-        purchased_products
-          .limit(unlinked_purchased_products_count)
-          .update_all(product_sale_id: ps.id)
-      end
-    end
   end
 end

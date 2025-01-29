@@ -84,4 +84,12 @@ Rails.application.configure do
   end
 
   config.log_file_size = 100.megabytes
+
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.delivery_method = :mailtrap
+  config.action_mailer.mailtrap_settings = {
+    api_key: Rails.application.credentials.dig(:mailtrap, :api_key),
+    sandbox: true,
+    inbox_id: 3265246
+  }
 end

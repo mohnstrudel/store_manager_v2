@@ -2,21 +2,25 @@
 #
 # Table name: purchased_products
 #
-#  id              :bigint           not null, primary key
-#  expenses        :decimal(8, 2)
-#  height          :integer
-#  length          :integer
-#  shipping_price  :decimal(8, 2)
-#  weight          :integer
-#  width           :integer
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  product_sale_id :bigint
-#  purchase_id     :bigint
-#  warehouse_id    :bigint           not null
+#  id                  :bigint           not null, primary key
+#  expenses            :decimal(8, 2)
+#  height              :integer
+#  length              :integer
+#  shipping_price      :decimal(8, 2)
+#  tracking_number     :string
+#  weight              :integer
+#  width               :integer
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  product_sale_id     :bigint
+#  purchase_id         :bigint
+#  shipping_company_id :bigint
+#  warehouse_id        :bigint           not null
 #
 class PurchasedProduct < ApplicationRecord
+  include HasPreviewImages
   include PgSearch::Model
+
   pg_search_scope :search,
     associated_against: {
       product: [:full_title]
@@ -28,27 +32,38 @@ class PurchasedProduct < ApplicationRecord
   db_belongs_to :warehouse
   db_belongs_to :purchase
 
-  belongs_to :product_sale, optional: true
+  belongs_to :product_sale, optional: true, counter_cache: true
   has_one :sale, through: :product_sale
 
   has_one :product, through: :purchase
 
+  belongs_to :shipping_company, optional: true
+
+  validates :tracking_number,
+    presence: true,
+    if: -> { shipping_company_id.present? }
+
+  validates :shipping_company_id,
+    presence: true,
+    if: -> { tracking_number.present? }
+
   scope :ordered_by_updated_date, -> { order(updated_at: :desc) }
 
-  has_many_attached :images do |attachable|
-    attachable.variant :preview,
-      format: :webp,
-      resize_to_limit: [800, 800],
-      preprocessed: true
-    attachable.variant :thumb,
-      format: :webp,
-      resize_to_limit: [300, 300],
-      preprocessed: true
-    attachable.variant :nano,
-      format: :webp,
-      resize_to_limit: [120, 120],
-      preprocessed: true
-  end
+  scope :with_notification_details, -> {
+    includes(
+      sale: :customer,
+      product_sale: [
+        :product,
+        variation: [:size, :version, :color]
+      ]
+    )
+  }
+
+  scope :without_product_sales, ->(product_id) {
+    where(product_sale_id: nil)
+      .joins(:purchase)
+      .where(purchase: {product_id:})
+  }
 
   def name
     purchase.full_title
@@ -56,13 +71,5 @@ class PurchasedProduct < ApplicationRecord
 
   def cost
     (price || 0) + (purchase.item_price || 0)
-  end
-
-  def self.unlinked_records(product_id)
-    where(product_sale_id: nil)
-      .joins(:purchase)
-      .where(
-        purchase: {product_id:}
-      )
   end
 end

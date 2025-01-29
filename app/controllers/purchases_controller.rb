@@ -1,4 +1,6 @@
 class PurchasesController < ApplicationController
+  include WarehouseMovementNotification
+
   before_action :set_default_warehouse_id, only: %i[new edit]
   before_action :set_purchase, only: %i[show edit update destroy]
 
@@ -41,10 +43,26 @@ class PurchasesController < ApplicationController
 
   # POST /purchases or /purchases.json
   def create
-    @purchase = Purchase.new(purchase_params)
+    warehouse_id = purchase_params.delete(:warehouse_id)
+    @purchase = Purchase.new(purchase_params.except(:warehouse_id))
 
     respond_to do |format|
       if @purchase.save
+        warehouse = Warehouse.find_by(id: warehouse_id) ||
+          Warehouse.find_by(is_default: true)
+
+        if warehouse.present?
+          Array.new(@purchase.amount) do
+            warehouse.purchased_products.create(purchase_id: @purchase.id)
+          end
+
+          purchased_product_ids = PurchaseSaleLinker.new(
+            purchase: @purchase
+          ).link
+
+          Notifier.new(purchased_product_ids:).handle_product_purchase
+        end
+
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }
         format.json { render :show, status: :created, location: @purchase }
       else
@@ -79,31 +97,19 @@ class PurchasesController < ApplicationController
 
   def move
     purchase_id = params[:purchase_id]
-    purchases_ids = params[:selected_items_ids]
-    purchases_ids = purchase_id if purchases_ids.blank?
-
+    purchases_ids = params[:selected_items_ids].presence || purchase_id
     destination_id = params[:destination_id]
-    destination_warehouse = Warehouse.find(destination_id)
 
-    moved_count = 0
+    moved_count = Purchase.friendly
+      .where(id: purchases_ids)
+      .sum { |purchase|
+        ProductMover.new(warehouse_id: destination_id, purchase:).move
+      }
 
-    Purchase.where(id: purchases_ids).find_each do |purchase|
-      if purchase.purchased_products.empty?
-        purchase.amount.times do
-          purchase.purchased_products.create(warehouse_id: destination_id)
-          moved_count += 1
-        end
-      else
-        moved_count += purchase.purchased_products.update_all(warehouse_id: destination_id)
-      end
-    end
+    flash_movement_notice(moved_count, Warehouse.find(destination_id))
 
-    if moved_count > 0
-      flash[:notice] = "Success! #{moved_count} purchased #{"product".pluralize(moved_count)} moved to: #{view_context.link_to(destination_warehouse.name, warehouse_path(destination_warehouse))}".html_safe
-    end
-
-    if purchase_id.present?
-      redirect_to purchase_path(Purchase.find(purchase_id))
+    if purchase_id
+      redirect_to purchase_path(Purchase.friendly.find(purchase_id))
     else
       redirect_to purchases_path
     end
@@ -131,6 +137,7 @@ class PurchasesController < ApplicationController
       :amount,
       :purchase_id,
       :selected_items_ids,
+      :warehouse_id,
       payments_attributes: [:id, :value, :purchase_id]
     )
   end

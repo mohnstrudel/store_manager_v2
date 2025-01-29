@@ -12,7 +12,7 @@ class WarehousesController < ApplicationController
     @purchased_products = @warehouse
       .purchased_products
       .with_attached_images
-      .includes(:product)
+      .includes(:product, sale: :customer)
       .order(updated_at: :desc)
       .page(params[:page])
     @total_purchased_products = @warehouse.purchased_products.size
@@ -49,16 +49,41 @@ class WarehousesController < ApplicationController
       attachments = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
     end
 
-    if @warehouse.update(warehouse_params)
-      attachments&.map(&:purge_later)
+    ActiveRecord::Base.transaction do
+      if @warehouse.update(warehouse_params)
+        attachments&.map(&:purge_later)
 
-      if @warehouse.is_default?
-        Warehouse.ensure_only_one_default(@warehouse.id)
+        if @warehouse.is_default?
+          Warehouse.ensure_only_one_default(@warehouse.id)
+        end
+
+        if params[:warehouse][:to_warehouse_ids].present?
+          WarehouseTransition
+            .where(from_warehouse: @warehouse)
+            .where.not(to_warehouse_id: params[:warehouse][:to_warehouse_ids])
+            .destroy_all
+
+          params[:warehouse][:to_warehouse_ids].each do |to_id|
+            next if to_id.blank?
+
+            notification = Notification.find_or_create_by!(
+              name: "Warehouse transition",
+              event_type: Notification.event_types[:warehouse_changed],
+              status: :active
+            )
+
+            WarehouseTransition.find_or_create_by!(
+              from_warehouse: @warehouse,
+              to_warehouse_id: to_id,
+              notification: notification
+            )
+          end
+        end
+
+        redirect_to @warehouse, notice: "Warehouse was successfully updated.", status: :see_other
+      else
+        render :edit, status: :unprocessable_entity
       end
-
-      redirect_to @warehouse, notice: "Warehouse was successfully updated.", status: :see_other
-    else
-      render :edit, status: :unprocessable_entity
     end
   end
 

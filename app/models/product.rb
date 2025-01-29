@@ -16,13 +16,14 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
+  include HasPreviewImages
+  include PgSearch::Model
+
   broadcasts_refreshes
   paginates_per 50
 
   extend FriendlyId
   friendly_id :get_slug, use: :slugged
-
-  include PgSearch::Model
 
   pg_search_scope :search,
     against: [:full_title, :woo_id],
@@ -65,21 +66,6 @@ class Product < ApplicationRecord
 
   has_many :purchases, dependent: :destroy
   has_many :purchased_products, through: :purchases
-
-  has_many_attached :images do |attachable|
-    attachable.variant :preview,
-      format: :webp,
-      resize_to_limit: [800, 800],
-      preprocessed: true
-    attachable.variant :thumb,
-      format: :webp,
-      resize_to_limit: [300, 300],
-      preprocessed: true
-    attachable.variant :nano,
-      format: :webp,
-      resize_to_limit: [120, 120],
-      preprocessed: true
-  end
 
   def set_full_title
     self.full_title = Product.generate_full_title(self)

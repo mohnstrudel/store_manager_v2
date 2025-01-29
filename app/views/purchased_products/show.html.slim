@@ -39,6 +39,10 @@ main.wide.w-pd.flex.flex-col.gap
       p.mono = format_money safe_blank_render @purchased_product.expenses
       .title Shipping
       p.mono = format_money safe_blank_render @purchased_product.shipping_price
+      .title Tracking Number
+      p = safe_blank_render @purchased_product.tracking_number
+      .title Shipping Company
+      p = safe_blank_render @purchased_product.shipping_company&.name
       .title Created at
       p = format_date @purchased_product.created_at
       .title Updated at
