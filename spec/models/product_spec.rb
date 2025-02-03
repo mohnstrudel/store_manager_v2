@@ -31,4 +31,140 @@ RSpec.describe Product do
       end
     end
   end
+
+  describe "#build_variations" do
+    let(:product) { create(:product) }
+    let(:size1) { create(:size, value: "S") }
+    let(:size2) { create(:size, value: "M") }
+    let(:version1) { create(:version, value: "Regular") }
+    let(:version2) { create(:version, value: "Limited") }
+    let(:version3) { create(:version, value: "Pro") }
+    let(:color1) { create(:color, value: "Red") }
+    let(:color2) { create(:color, value: "Blue") }
+    let(:color3) { create(:color, value: "Green") }
+
+    context "when product has no attributes" do
+      it "builds no variations" do
+        product.build_variations
+        expect(product.variations).to be_empty
+      end
+    end
+
+    context "when product has only sizes" do
+      before do
+        product.sizes << [size1, size2]
+      end
+
+      it "builds variations for each size" do
+        product.build_variations
+        expect(product.variations.size).to eq(2)
+      end
+    end
+
+    context "when product has only versions" do
+      before do
+        product.versions << [version1]
+      end
+
+      it "builds variations for each size" do
+        product.build_variations
+        expect(product.variations.size).to eq(1)
+      end
+    end
+
+    context "when product has only colors" do
+      before do
+        product.colors << [color1, color2]
+      end
+
+      it "builds variations for each size" do
+        product.build_variations
+        expect(product.variations.size).to eq(2)
+      end
+    end
+
+    context "when product has sizes and versions" do
+      before do
+        product.sizes << [size1, size2]
+        product.versions << [version1, version2]
+      end
+
+      it "builds variations for each size-version combination" do
+        product.build_variations
+        expect(product.variations.size).to eq(4) # 2 sizes × 2 versions
+      end
+    end
+
+    context "when product has sizes, versions and colors" do
+      before do
+        product.sizes << [size1, size2]
+        product.versions << [version1, version2, version3]
+        product.colors << [color1, color2, color3]
+      end
+
+      it "builds variations for each size-version-color combination" do
+        product.build_variations
+        expect(product.variations.size).to eq(18)
+      end
+    end
+
+    context "when product has only versions and colors" do
+      before do
+        product.versions << [version1, version2]
+        product.colors << [color1, color2, color3]
+      end
+
+      it "builds variations for each version-color combination" do
+        product.build_variations
+        expect(product.variations.size).to eq(6) # 2 versions × 3 colors
+      end
+    end
+
+    context "when product has only one size and colors" do
+      before do
+        product.sizes << [size1]
+        product.colors << [color1, color2, color3]
+      end
+
+      it "builds variations for each size-color combination" do
+        product.build_variations
+        expect(product.variations.size).to eq(3) # 1 size × 3 colors
+      end
+    end
+
+    context "when product attributes are removed" do
+      before do
+        product.sizes << [size1, size2]
+        product.versions << [version1, version2]
+        product.colors << [color1, color2]
+        product.build_variations
+        product.save
+      end
+
+      it "removes variations when size is removed" do
+        product.sizes.delete(size1)
+        product.build_variations
+        expect(product.variations.count(&:marked_for_destruction?)).to eq(4)
+      end
+
+      it "removes variations when version is removed" do
+        product.versions.delete(version1)
+        product.build_variations
+        expect(product.variations.count(&:marked_for_destruction?)).to eq(4)
+      end
+
+      it "removes variations when color is removed" do
+        product.colors.delete(color1)
+        product.build_variations
+        expect(product.variations.count(&:marked_for_destruction?)).to eq(4)
+      end
+
+      it "keeps valid variations when removing attributes" do
+        initial_variations_count = product.variations.count
+        product.colors.delete(color1)
+        product.build_variations
+        expect(product.variations.count { |element| !element.marked_for_destruction? }).to eq(initial_variations_count / 2)
+      end
+    end
+  end
 end
