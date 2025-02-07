@@ -16,6 +16,7 @@ class SalesController < ApplicationController
           ]
         ]
       )
+      .not_cancelled_or_completed
       .order(
         Arel.sql("woo_created_at DESC, created_at DESC, CAST(woo_id AS int) DESC")
       )
@@ -26,7 +27,6 @@ class SalesController < ApplicationController
         .search(params[:q])
     else
       sale_records
-        .where.not(status: "cancelled")
     end
   end
 
