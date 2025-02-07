@@ -47,6 +47,10 @@ class Sale < ApplicationRecord
 
   accepts_nested_attributes_for :product_sales, allow_destroy: true
 
+  scope :not_cancelled_or_completed, -> {
+    where.not(status: cancelled_status_names + completed_status_names)
+  }
+
   def title
     email = customer.email.presence || ""
     [status&.titleize, email].compact.join(" | ")
@@ -90,6 +94,10 @@ class Sale < ApplicationRecord
 
   def self.completed_status_names
     ["completed", "updated-tracking"].freeze
+  end
+
+  def self.cancelled_status_names
+    ["cancelled", "failed"].freeze
   end
 
   def self.status_names
