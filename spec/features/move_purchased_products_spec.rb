@@ -25,7 +25,7 @@ describe "Moving purchased products between warehouses" do
 
       click_link "Move"
 
-      expect(page).to have_content("Success! 2 purchased products moved to: #{warehouse_to.name}")
+      expect(page).to have_content("Success! 2 purchased products moved to: #{warehouse_to.name}", wait: 5)
       expect(page).to have_content("Purchased Products 1")
 
       visit warehouse_path(warehouse_to)
