@@ -7,10 +7,14 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
     - if purchase.variation.present?
       | → #{purchase.variation.title}
     ul.product-variations
-      li Total amount: #{purchase.amount}
-      - if purchase.purchased_products.present?
+      - if purchase.purchased_products.size == purchase.amount
         - purchase.purchased_products.group_by(&:warehouse).each do |warehouse, pp|
           li #{warehouse.name}: #{pp.count}
+      - else
+        li <mark class="smaller">Warehouses: #{purchase.purchased_products.size} / Purchased: #{purchase.amount}</mark>
+        - if purchase.purchased_products.present?
+          - purchase.purchased_products.group_by(&:warehouse).each do |warehouse, pp|
+            li #{warehouse.name}: #{pp.count}
   td.break-words = purchase.supplier.title
   td.right.mono = format_money purchase.item_price
   td.right.mono = format_money purchase.total_cost

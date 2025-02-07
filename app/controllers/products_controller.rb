@@ -51,6 +51,7 @@ class ProductsController < ApplicationController
   # POST /products or /products.json
   def create
     @product = Product.new(product_params)
+    @product.build_variations
 
     respond_to do |format|
       if @product.save
@@ -68,6 +69,8 @@ class ProductsController < ApplicationController
     respond_to do |format|
       if @product.update(product_params.merge(slug: nil))
         @product.set_full_title
+        @product.build_variations
+        @product.save
 
         format.html { redirect_to product_url(@product), notice: "Product was successfully updated." }
         format.json { render :show, status: :ok, location: @product }
@@ -95,7 +98,7 @@ class ProductsController < ApplicationController
       .variations
       .includes(:version, :color, :size)
       .select { |i|
-        Hash.new(id: i.id, title: i.title) if i.title.present?
+        Hash.new({id: i.id, title: i.title}) if i.title.present?
       }
 
     respond_to do |format|

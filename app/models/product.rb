@@ -40,6 +40,7 @@ class Product < ApplicationRecord
   after_create :set_full_title
 
   validates :title, presence: true
+  validates_db_uniqueness_of :sku
 
   db_belongs_to :franchise
   db_belongs_to :shape
@@ -62,7 +63,7 @@ class Product < ApplicationRecord
   has_many :product_sales, dependent: :destroy
   has_many :sales, through: :product_sales
 
-  has_many :variations, dependent: :destroy
+  has_many :variations, dependent: :destroy, autosave: true
 
   has_many :purchases, dependent: :destroy
   has_many :purchased_products, through: :purchases
@@ -101,5 +102,51 @@ class Product < ApplicationRecord
   def woo_id_full_title
     woo_id = self.woo_id.presence || "N/A"
     "#{woo_id} | #{full_title}"
+  end
+
+  def build_variations
+    return unless sizes.any? || versions.any? || colors.any?
+
+    mark_absent_variations_for_destruction
+
+    variations.build(variation_attributes)
+  end
+
+  private
+
+  def mark_absent_variations_for_destruction
+    variations.each do |variation|
+      should_delete = (variation.size && sizes.exclude?(variation.size)) ||
+        (variation.version && versions.exclude?(variation.version)) ||
+        (variation.color && colors.exclude?(variation.color))
+      variation.mark_for_destruction if should_delete
+    end
+  end
+
+  def variation_attributes
+    size_items = sizes.any? ? sizes : [nil]
+    version_items = versions.any? ? versions : [nil]
+    color_items = colors.any? ? colors : [nil]
+
+    variation_attributes = []
+
+    size_items.each do |size|
+      version_items.each do |version|
+        color_items.each do |color|
+          attributes = {
+            product_id: id,
+            size_id: size&.id,
+            version_id: version&.id,
+            color_id: color&.id
+          }.compact_blank
+
+          next if variations.exists?(attributes)
+
+          variation_attributes << attributes
+        end
+      end
+    end
+
+    variation_attributes
   end
 end

@@ -40,6 +40,16 @@ img.product {
   .preloadable-img__img.zoomable:hover {
     background-color: rgba(10, 10, 10, 0.5);
   }
+
+  .preloadable-img__img.loading {
+    background: #1a242c;
+    background: linear-gradient(
+      to right,
+      hsl(210 25% 14% / 1) 10%,
+      hsl(210 25% 18% / 1) 25%,
+      hsl(210 25% 14% / 1) 35%
+    );
+  }
 }
 
 @media (max-width: 1199px) {
