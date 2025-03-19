@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_13_115111) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_06_084251) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -178,8 +178,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_13_115111) do
     t.string "store_link"
     t.string "slug"
     t.string "sku"
+    t.string "shopify_id"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
     t.index ["shape_id"], name: "index_products_on_shape_id"
+    t.index ["shopify_id"], name: "index_products_on_shopify_id"
     t.index ["sku"], name: "index_products_on_sku", unique: true
     t.index ["slug"], name: "index_products_on_slug", unique: true
   end
@@ -260,6 +262,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_13_115111) do
     t.index ["name"], name: "index_shipping_companies_on_name", unique: true
   end
 
+  create_table "shops", force: :cascade do |t|
+    t.string "shopify_domain", null: false
+    t.string "shopify_token", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "access_scopes"
+    t.index ["shopify_domain"], name: "index_shops_on_shopify_domain", unique: true
+  end
+
   create_table "sizes", force: :cascade do |t|
     t.string "value"
     t.datetime "created_at", null: false
@@ -285,8 +296,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_13_115111) do
     t.datetime "updated_at", null: false
     t.string "store_link"
     t.string "sku"
+    t.string "shopify_id"
     t.index ["color_id"], name: "index_variations_on_color_id"
     t.index ["product_id"], name: "index_variations_on_product_id"
+    t.index ["shopify_id"], name: "index_variations_on_shopify_id"
     t.index ["size_id"], name: "index_variations_on_size_id"
     t.index ["sku"], name: "index_variations_on_sku", unique: true
     t.index ["version_id"], name: "index_variations_on_version_id"

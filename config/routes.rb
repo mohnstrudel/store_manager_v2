@@ -1,6 +1,10 @@
 require "sidekiq/web"
 
 Rails.application.routes.draw do
+  root "dashboard#index"
+  get "shopify", to: "home#index"
+
+  mount ShopifyApp::Engine, at: "/"
   mount Sidekiq::Web => "/jobs"
 
   if Rails.env.development?
@@ -54,6 +58,4 @@ Rails.application.routes.draw do
   get "debts/:page", to: "dashboard#debts"
 
   get "pull-last-orders", to: "dashboard#pull_last_orders"
-
-  root "dashboard#index"
 end
