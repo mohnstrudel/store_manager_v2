@@ -13,6 +13,7 @@
 #  updated_at   :datetime         not null
 #  franchise_id :bigint           not null
 #  shape_id     :bigint           not null
+#  shopify_id   :string
 #  woo_id       :string
 #
 class Product < ApplicationRecord
