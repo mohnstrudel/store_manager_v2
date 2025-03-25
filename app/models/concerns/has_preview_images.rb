@@ -2,7 +2,7 @@ module HasPreviewImages
   extend ActiveSupport::Concern
 
   included do
-    has_many_attached :images do |attachable|
+    has_many_attached :images, dependent: :purge_later do |attachable|
       attachable.variant :preview,
         format: :webp,
         resize_to_limit: [800, 800],
