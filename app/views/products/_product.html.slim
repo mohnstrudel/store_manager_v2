@@ -8,7 +8,7 @@ tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-u
         - product.variations.each do |variation|
           li = variation.title
   td = product.woo_id
-  td = product.shopify_id
+  td = product.shopify_id&.gsub('gid://shopify/Product/', '')
   td.actions
     = render "_shared/action-edit", route: edit_product_path(product)
     = link_to new_purchase_path(product:), {class: "no-events"}

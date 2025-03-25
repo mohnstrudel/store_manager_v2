@@ -105,6 +105,10 @@ class Product < ApplicationRecord
     "#{woo_id} | #{full_title}"
   end
 
+  def shopify_store_link
+    "https://handsomecake.com/products/#{store_link}"
+  end
+
   def build_variations
     return unless sizes.any? || versions.any? || colors.any?
 
