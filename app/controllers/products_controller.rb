@@ -98,7 +98,7 @@ class ProductsController < ApplicationController
       .variations
       .includes(:version, :color, :size)
       .select { |i|
-        Hash.new({id: i.id, title: i.title}) if i.title.present?
+        {id: i.id, title: i.title} if i.title.present?
       }
 
     respond_to do |format|
