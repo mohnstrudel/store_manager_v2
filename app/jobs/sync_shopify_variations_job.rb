@@ -12,6 +12,8 @@ class SyncShopifyVariationsJob < ApplicationJob
   private
 
   def create_attrs(variant)
+    return if variant["options"].blank?
+
     attributes = {}
 
     variant["options"].each do |option|
