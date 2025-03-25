@@ -8,6 +8,8 @@ nav
         h1 Editing #{model.model_name.name.titleize}
         - if model.woo_id
           h4 Woo ID: #{model.woo_id}
+        - if model.shopify_id
+          h4 Shopify ID: #{model.shopify_id}
       - else
         h1 Editing #{model.model_name.name.titleize}
         h4 ID: #{model.id}

@@ -28,5 +28,9 @@
     p = format_date product.created_at
     .title Updated
     p = format_date product.updated_at
-    .title Woo ID
-    p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer"
+    - if product.woo_id.present?
+      .title Woo ID
+      p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer"
+    - if product.shopify_id.present?
+      .title Shopify ID
+      p = link_to product.shopify_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer"

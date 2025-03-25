@@ -4,6 +4,9 @@
   = form.label :woo_id, "Woo ID"
   = form.text_field :woo_id
 
+  = form.label :shopify_id, "Shopify ID"
+  = form.text_field :shopify_id
+
   = form.label :supplier
   = form.collection_select(:supplier_ids, Supplier.all, :id, :title, { class: "select", include_blank: true }, {multiple: true, data: { controller: "slim-multi-select" }})
 
