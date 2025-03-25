@@ -1,14 +1,8 @@
 namespace :db do
-  desc "Fill our database with real data from Woo"
+  desc "Fill our database with real data from Shopify"
   task fill: :environment do
     puts "\n== Get products"
-    products_variations = SyncWooProductsJob.perform_now
-    puts "\n== Get products variations"
-    SyncWooVariationsJob.perform_now(products_variations)
-    puts "\n== Get sales"
-    SyncWooOrdersJob.perform_now
-    puts "\n== Get purchases"
-    SyncPurchasesJob.perform_now
+    SyncShopifyProductsJob.perform_later
     puts "\n== Everything is done!"
   end
 end
