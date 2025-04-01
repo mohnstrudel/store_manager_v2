@@ -4,8 +4,6 @@ class SyncShopifyVariationsJob < ApplicationJob
   include Sanitizable
 
   def perform(product, parsed_variations)
-    # warn "product #{product.pretty_inspect}"
-    # warn "parsed_variations #{parsed_variations.pretty_inspect}"
     find_or_create_variations(product, parsed_variations)
   end
 
@@ -32,6 +30,8 @@ class SyncShopifyVariationsJob < ApplicationJob
 
   def find_or_create_variations(product, variants)
     variants.each do |variant|
+      variant = variant.with_indifferent_access
+
       attrs = create_attrs(variant)
 
       next if attrs.blank?
