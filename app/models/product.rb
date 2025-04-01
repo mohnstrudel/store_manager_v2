@@ -109,6 +109,10 @@ class Product < ApplicationRecord
     "https://handsomecake.com/products/#{store_link}"
   end
 
+  def shopify_id_short
+    shopify_id&.gsub("gid://shopify/Product/", "")
+  end
+
   def build_variations
     return unless sizes.any? || versions.any? || colors.any?
 
