@@ -56,7 +56,7 @@ describe SyncShopifyImagesJob do
     end
 
     it "does not attach a duplicate image" do
-      allow(product.images).to receive(:find_by).with(checksum: "checksum123").and_return(active_storage_attachment)
+      allow(product.images.blobs).to receive(:find_by).with(checksum: "checksum123").and_return(active_storage_attachment)
 
       job.send(:attach_image, product, img_url)
       expect(product.images).not_to have_received(:attach)
