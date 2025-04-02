@@ -4,8 +4,17 @@ class SyncShopifyProductsJob < ApplicationJob
   include Sanitizable
 
   PRODUCTS_QUERY = <<~GQL
-    query($first: Int!) {
-      products(first: $first, sortKey: CREATED_AT, reverse: true) {
+    query($first: Int!, $after: String) {
+      products(
+        first: $first,
+        after: $after,
+        sortKey: CREATED_AT,
+        reverse: true
+      ) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         edges {
           node {
             id
@@ -36,43 +45,68 @@ class SyncShopifyProductsJob < ApplicationJob
     }
   GQL
 
-  BATCH_SIZE = 5
+  BATCH_SIZE = 250
 
-  def perform
-    parsed_products = get_shopify_products
+  def perform(cursor = nil, attempts = 0)
+    response_data = fetch_shopify_products(cursor)
+
+    parsed_products = response_data[:products]
       .map { |api_product| parse(api_product) }
       .compact_blank
 
     parsed_products.each do |parsed_product|
       product = find_or_create_product(parsed_product)
 
+      next if product.blank?
+
       SyncShopifyVariationsJob.perform_later(
         product,
         parsed_product[:variations]
       )
 
-      SyncShopifyImagesJob.perform_later(
-        product,
-        parsed_product[:images]
-      )
+      SyncShopifyImagesJob
+        .perform_later(
+          product,
+          parsed_product[:images]
+        )
+    end
+
+    if response_data[:has_next_page]
+      SyncShopifyProductsJob
+        .set(wait: 1.second)
+        .perform_later(response_data[:end_cursor])
+    end
+  rescue ShopifyAPI::Errors::HttpResponseError => e
+    if e.code == 429 # Rate limit error
+      # Wait and retry with a linear backoff pattern
+      retry_delay = attempts * 5 + 5
+      SyncShopifyProductsJob
+        .set(wait: retry_delay.seconds)
+        .perform_later(cursor, attempts + 1)
+    else
+      raise e
     end
   end
 
   private
 
-  def get_shopify_products
+  def fetch_shopify_products(cursor = nil)
     session = ShopifyAPI::Auth::Session.new(
       shop: ENV.fetch("SHOPIFY_DOMAIN"),
       access_token: ENV.fetch("SHOPIFY_API_TOKEN")
     )
     client = ShopifyAPI::Clients::Graphql::Admin.new(session:)
-
     response = client.query(
       query: PRODUCTS_QUERY,
-      variables: {first: BATCH_SIZE}
+      variables: {first: BATCH_SIZE, after: cursor}
     )
+    data = response.body["data"]["products"]
 
-    response.body["data"]["products"]["edges"].pluck("node")
+    {
+      products: data["edges"].pluck("node"),
+      has_next_page: data["pageInfo"]["hasNextPage"],
+      end_cursor: data["pageInfo"]["endCursor"]
+    }
   end
 
   def parse(shopify_product)
@@ -123,7 +157,9 @@ class SyncShopifyProductsJob < ApplicationJob
 
     synced_product = Product.find_by(shopify_id: parsed_product[:shopify_id])
 
-    brand = Brand.find_or_create_by(title: parsed_product[:brand])
+    if parsed_product[:brand].present?
+      brand = Brand.find_or_create_by(title: parsed_product[:brand])
+    end
 
     product_core_attributes = {
       title: parsed_product[:title],
@@ -133,8 +169,7 @@ class SyncShopifyProductsJob < ApplicationJob
 
     product = synced_product || (brand ?
       brand.products.find_or_initialize_by(product_core_attributes) :
-      Product.initialize_by(product_core_attributes)
-                                )
+      Product.find_or_initialize_by(product_core_attributes))
 
     product.assign_attributes(
       shopify_id: parsed_product[:shopify_id],
@@ -154,8 +189,11 @@ class SyncShopifyProductsJob < ApplicationJob
       product.sizes << Size.find_or_create_by(value: parsed_product[:size])
     end
 
-    product.save
-    product.set_full_title if synced_product
+    ActiveRecord::Base.transaction do
+      product.save!
+      product.update_full_title
+    end
+
     product
   end
 end

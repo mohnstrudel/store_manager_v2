@@ -1,19 +1,32 @@
 require "rails_helper"
 
 RSpec.describe SyncShopifyProductsJob do
+  include ActiveJob::TestHelper
+
   let(:job) { described_class.new }
   let(:api_response) { eval(file_fixture("shopify_api_products.rb").read) }
   let(:parsed_products) {
     eval(file_fixture("shopify_parsed_products.rb").read)
   }
 
+  let(:mock_response_data) {
+    {
+      products: api_response,
+      has_next_page: false,
+      end_cursor: "end_cursor_value"
+    }
+  }
+
   describe "#perform" do
     before do
-      allow(job).to receive(:get_shopify_products).and_return(api_response)
+      allow(job).to receive(:fetch_shopify_products).and_return(mock_response_data)
       allow(SyncShopifyVariationsJob).to receive(:perform_later)
       allow(SyncShopifyImagesJob).to receive(:perform_later)
+      allow(described_class).to receive(:perform_later)
 
-      job.perform
+      perform_enqueued_jobs do
+        job.perform
+      end
     end
 
     it "creates correct number of products" do
@@ -63,7 +76,10 @@ RSpec.describe SyncShopifyProductsJob do
       modified_api_response = api_response.deep_dup
       modified_api_response.first["title"] = "Stellar Blade - Updated Title | 1:4 Resin Statue | von Light and Dust Studio"
 
-      allow(job).to receive(:get_shopify_products).and_return(modified_api_response)
+      modified_response_data = mock_response_data.deep_dup
+      modified_response_data[:products] = modified_api_response
+
+      allow(job).to receive(:fetch_shopify_products).and_return(modified_response_data)
 
       job.perform
 
