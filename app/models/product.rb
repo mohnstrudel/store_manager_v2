@@ -38,7 +38,7 @@ class Product < ApplicationRecord
       tsearch: {prefix: true}
     }
 
-  after_create :set_full_title
+  after_create :update_full_title
 
   validates :title, presence: true
   validates_db_uniqueness_of :sku
@@ -69,7 +69,7 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :purchased_products, through: :purchases
 
-  def set_full_title
+  def update_full_title
     self.full_title = Product.generate_full_title(self)
     save
   end

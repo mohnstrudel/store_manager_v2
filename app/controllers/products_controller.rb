@@ -68,7 +68,7 @@ class ProductsController < ApplicationController
   def update
     respond_to do |format|
       if @product.update(product_params.merge(slug: nil))
-        @product.set_full_title
+        @product.update_full_title
         @product.build_variations
         @product.save
 
