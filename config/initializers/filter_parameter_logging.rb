@@ -6,3 +6,7 @@
 Rails.application.config.filter_parameters += [
   :passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
 ]
+
+if Rails.env.development?
+  ActiveSupport::Notifications.unsubscribe("enqueue.active_job")
+end
