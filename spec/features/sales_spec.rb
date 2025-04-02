@@ -1,8 +1,9 @@
 require "rails_helper"
 require "support/matcher_appear_before"
 
-CANCELLED_SALES_COUNT = 1
-CANCELLED_STATUS = "cancelled"
+CANCELLED_COMPLETED_SALES_COUNT = 4
+CANCELLED_STATUS = Sale.cancelled_status_names.map(&:titleize)
+COMPLETED_STATUS = Sale.completed_status_names.map(&:titleize)
 
 describe "GET /sales" do
   context "when we have different time and status" do
@@ -20,16 +21,20 @@ describe "GET /sales" do
 
     it "shows all sales except cancelled" do
       expect(page.all("tbody > tr").count).to eql(
-        Sale.status_names.count - CANCELLED_SALES_COUNT
+        Sale.status_names.count - CANCELLED_COMPLETED_SALES_COUNT
       )
     end
 
     it "do not shows cancelled sales" do
-      expect(page).to have_no_text(CANCELLED_STATUS.titleize)
+      expect(page).to have_no_text(CANCELLED_STATUS)
+    end
+
+    it "do not shows completed sales" do
+      expect(page).to have_no_text(COMPLETED_STATUS)
     end
 
     it "shows sales in correct order" do
-      valid_sales = Sale.where.not(status: CANCELLED_STATUS)
+      valid_sales = Sale.except_cancelled_or_completed
       newer_sale = valid_sales.find { |s| s.woo_created_at > 3.days.ago }
       older_sale = valid_sales.find { |s| s.woo_created_at < 3.days.ago }
 
