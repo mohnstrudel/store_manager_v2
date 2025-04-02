@@ -10,18 +10,18 @@ class SyncShopifyVariationsJob < ApplicationJob
   private
 
   def create_attrs(variant)
-    return if variant["options"].blank?
+    return if variant[:options].blank?
 
     attributes = {}
 
-    variant["options"].each do |option|
-      case option["name"]
+    variant[:options].each do |option|
+      case option[:name]
       when "Color"
-        attributes[:color] = Color.find_or_create_by(value: option["value"])
+        attributes[:color] = Color.find_or_create_by(value: option[:value])
       when "Size", "Scale"
-        attributes[:size] = Size.find_or_create_by(value: option["value"])
+        attributes[:size] = Size.find_or_create_by(value: option[:value])
       when "Version", "Edition"
-        attributes[:version] = Version.find_or_create_by(value: option["value"])
+        attributes[:version] = Version.find_or_create_by(value: option[:value])
       end
     end
 
@@ -39,7 +39,7 @@ class SyncShopifyVariationsJob < ApplicationJob
       variation = Variation
         .where(
           product:,
-          shopify_id: variant["id"]
+          shopify_id: variant[:id]
         )
         .or(Variation.where(
           product:,
@@ -48,7 +48,7 @@ class SyncShopifyVariationsJob < ApplicationJob
         ))
         .first_or_initialize
 
-      variation.assign_attributes(shopify_id: variant["id"], **attrs)
+      variation.assign_attributes(shopify_id: variant[:id], **attrs)
 
       variation.save
     end
