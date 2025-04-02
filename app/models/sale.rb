@@ -47,7 +47,7 @@ class Sale < ApplicationRecord
 
   accepts_nested_attributes_for :product_sales, allow_destroy: true
 
-  scope :not_cancelled_or_completed, -> {
+  scope :except_cancelled_or_completed, -> {
     where.not(status: cancelled_status_names + completed_status_names)
   }
 
