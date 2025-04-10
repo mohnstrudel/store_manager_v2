@@ -16,6 +16,6 @@ class Franchise < ApplicationRecord
   private
 
   def update_products
-    products.each(&:set_full_title)
+    products.each(&:update_full_title)
   end
 end

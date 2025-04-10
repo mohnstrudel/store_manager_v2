@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.7"
+ruby "3.4.2"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.x.x"
@@ -66,6 +66,8 @@ gem "state_machines-activerecord"
 gem "inline_svg"
 gem "mailtrap"
 
+gem "shopify_app"
+
 group :production, :staging do
   gem "thruster"
   gem "barnes"
@@ -86,6 +88,7 @@ group :development, :test do
   gem "rubocop-rspec", require: false
   gem "rspec-rails", "~> 7.x.x"
   gem "factory_bot_rails"
+  gem "dotenv"
 end
 
 group :development do

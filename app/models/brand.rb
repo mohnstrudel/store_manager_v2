@@ -19,13 +19,13 @@ class Brand < ApplicationRecord
 
   def self.parse_brand(product_title)
     product_title = smart_titleize(sanitize(product_title))
-    brand_identifier = product_title.match(/Vo[nm]\s+(.+)/)
+    brand_identifier = product_title.match(/(?:vo[nm]|by)\s+(.+)/i)
     brand_identifier[1] if brand_identifier.present?
   end
 
   private
 
   def update_products
-    products.each(&:set_full_title)
+    products.each(&:update_full_title)
   end
 end

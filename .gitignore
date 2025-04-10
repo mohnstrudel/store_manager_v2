@@ -40,3 +40,4 @@
 /__debug
 /node_modules
 .zed
+.env

@@ -9,6 +9,7 @@
 #  updated_at :datetime         not null
 #  color_id   :bigint
 #  product_id :bigint           not null
+#  shopify_id :string
 #  size_id    :bigint
 #  version_id :bigint
 #  woo_id     :string

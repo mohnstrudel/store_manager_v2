@@ -13,6 +13,7 @@
 #  updated_at   :datetime         not null
 #  franchise_id :bigint           not null
 #  shape_id     :bigint           not null
+#  shopify_id   :string
 #  woo_id       :string
 #
 class Product < ApplicationRecord
@@ -37,7 +38,7 @@ class Product < ApplicationRecord
       tsearch: {prefix: true}
     }
 
-  after_create :set_full_title
+  after_create :update_full_title
 
   validates :title, presence: true
   validates_db_uniqueness_of :sku
@@ -68,7 +69,7 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :purchased_products, through: :purchases
 
-  def set_full_title
+  def update_full_title
     self.full_title = Product.generate_full_title(self)
     save
   end
@@ -102,6 +103,14 @@ class Product < ApplicationRecord
   def woo_id_full_title
     woo_id = self.woo_id.presence || "N/A"
     "#{woo_id} | #{full_title}"
+  end
+
+  def shopify_store_link
+    "https://handsomecake.com/products/#{store_link}"
+  end
+
+  def shopify_id_short
+    shopify_id&.gsub("gid://shopify/Product/", "")
   end
 
   def build_variations

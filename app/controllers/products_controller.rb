@@ -68,7 +68,7 @@ class ProductsController < ApplicationController
   def update
     respond_to do |format|
       if @product.update(product_params.merge(slug: nil))
-        @product.set_full_title
+        @product.update_full_title
         @product.build_variations
         @product.save
 
@@ -98,7 +98,7 @@ class ProductsController < ApplicationController
       .variations
       .includes(:version, :color, :size)
       .select { |i|
-        Hash.new({id: i.id, title: i.title}) if i.title.present?
+        {id: i.id, title: i.title} if i.title.present?
       }
 
     respond_to do |format|
