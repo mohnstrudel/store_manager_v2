@@ -135,6 +135,7 @@ class ProductsController < ApplicationController
       :target,
       :sku,
       :woo_id,
+      :shopify_id,
       brand_ids: [],
       color_ids: [],
       size_ids: [],
