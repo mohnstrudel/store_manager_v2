@@ -4,11 +4,11 @@ nav
   ul
     li
       = link_to "Back", "javascript:history.back()"
-      - if model.respond_to?(:woo_id)
+      - if model.respond_to?(:woo_id) || model.respond_to?(:shopify_id)
         h1 Editing #{model.model_name.name.titleize}
-        - if model.woo_id
+        - if model.respond_to?(:woo_id) && model.woo_id
           h4 Woo ID: #{model.woo_id}
-        - if model.shopify_id
+        - if model.respond_to?(:shopify_id) && model.shopify_id
           h4 Shopify ID: #{model.shopify_id}
       - else
         h1 Editing #{model.model_name.name.titleize}
