@@ -113,6 +113,7 @@ group :development do
   gem "prosopite"
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
+  gem "rubycritic", require: false
 end
 
 group :test do
