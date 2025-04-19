@@ -29,14 +29,18 @@ class Notifier
   end
 
   def extract_common_data(purchased_product)
-    return {} if purchased_product.sale.blank?
+    sale = purchased_product.sale
 
-    {
-      email: purchased_product.sale.customer.email,
-      customer_name: purchased_product.sale.customer.full_name,
-      order_number: purchased_product.sale.woo_id || purchased_product.sale.id,
-      item_name: purchased_product.product_sale.title
-    }
+    if sale.blank?
+      {}
+    else
+      {
+        email: sale.customer.email,
+        customer_name: sale.customer.full_name,
+        order_number: sale.woo_id || sale.id,
+        item_name: purchased_product.product_sale.title
+      }
+    end
   end
 
   def dispatch_product_purchased_message
@@ -52,6 +56,7 @@ class Notifier
       end
 
       data = extract_common_data(purchased_product)
+
       if data[:email].blank?
         warn_about(:no_email, purchased_product.id)
         next
