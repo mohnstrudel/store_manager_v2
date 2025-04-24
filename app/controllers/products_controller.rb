@@ -106,6 +106,21 @@ class ProductsController < ApplicationController
     end
   end
 
+  def sync
+    limit = params[:limit].to_i
+
+    SyncShopifyProductsJob.perform_later(limit:)
+    Config.update_shopify_products_sync_time
+
+    statuses_link = view_context.link_to(
+      "jobs statuses dashboard", root_url + "jobs/statuses"
+    )
+
+    flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
+
+    redirect_back(fallback_location: products_path)
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.

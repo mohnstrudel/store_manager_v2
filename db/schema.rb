@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_06_084251) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_24_114657) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,6 +58,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_06_084251) do
     t.integer "sales_hook_status", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "shopify_products_sync"
   end
 
   create_table "customers", force: :cascade do |t|

@@ -2,10 +2,11 @@
 #
 # Table name: configs
 #
-#  id                :bigint           not null, primary key
-#  sales_hook_status :integer          default("disabled")
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
+#  id                    :bigint           not null, primary key
+#  sales_hook_status     :integer          default("disabled")
+#  shopify_products_sync :datetime
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
 #
 FactoryBot.define do
   factory :config do

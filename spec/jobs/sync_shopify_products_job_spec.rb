@@ -88,4 +88,28 @@ RSpec.describe SyncShopifyProductsJob do
         .to have_attributes(title: "Updated Title")
     end
   end
+
+  describe "#perform with limit" do
+    it "passes the limit parameter to fetch_shopify_products" do
+      limit = 5
+      allow(job).to receive(:fetch_shopify_products).and_return(mock_response_data)
+
+      job.perform(limit: limit)
+
+      expect(job).to have_received(:fetch_shopify_products).with(nil, limit)
+    end
+
+    it "does not schedule another job when limit is provided" do
+      limit = 5
+      mock_data_with_next_page = mock_response_data.deep_dup
+      mock_data_with_next_page[:has_next_page] = true
+
+      allow(job).to receive(:fetch_shopify_products).and_return(mock_data_with_next_page)
+      allow(described_class).to receive(:perform_later)
+
+      job.perform(limit: limit)
+
+      expect(described_class).not_to have_received(:perform_later)
+    end
+  end
 end

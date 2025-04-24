@@ -47,8 +47,8 @@ class SyncShopifyProductsJob < ApplicationJob
 
   BATCH_SIZE = 250
 
-  def perform(cursor = nil, attempts = 0)
-    response_data = fetch_shopify_products(cursor)
+  def perform(attempts: 0, cursor: nil, limit: nil)
+    response_data = fetch_shopify_products(cursor, limit)
 
     parsed_products = response_data[:products]
       .map { |api_product| parse(api_product) }
@@ -71,10 +71,10 @@ class SyncShopifyProductsJob < ApplicationJob
         )
     end
 
-    if response_data[:has_next_page]
+    if response_data[:has_next_page] && !limit
       SyncShopifyProductsJob
         .set(wait: 1.second)
-        .perform_later(response_data[:end_cursor])
+        .perform_later(cursor: response_data[:end_cursor])
     end
   rescue ShopifyAPI::Errors::HttpResponseError => e
     if e.code == 429 # Rate limit error
@@ -82,7 +82,7 @@ class SyncShopifyProductsJob < ApplicationJob
       retry_delay = attempts * 5 + 5
       SyncShopifyProductsJob
         .set(wait: retry_delay.seconds)
-        .perform_later(cursor, attempts + 1)
+        .perform_later(attempts: attempts + 1, cursor:)
     else
       raise e
     end
@@ -90,7 +90,7 @@ class SyncShopifyProductsJob < ApplicationJob
 
   private
 
-  def fetch_shopify_products(cursor = nil)
+  def fetch_shopify_products(cursor = nil, batch_size = nil)
     session = ShopifyAPI::Auth::Session.new(
       shop: ENV.fetch("SHOPIFY_DOMAIN"),
       access_token: ENV.fetch("SHOPIFY_API_TOKEN")
@@ -98,7 +98,7 @@ class SyncShopifyProductsJob < ApplicationJob
     client = ShopifyAPI::Clients::Graphql::Admin.new(session:)
     response = client.query(
       query: PRODUCTS_QUERY,
-      variables: {first: BATCH_SIZE, after: cursor}
+      variables: {first: batch_size || BATCH_SIZE, after: cursor}
     )
     data = response.body["data"]["products"]
 
