@@ -85,18 +85,18 @@ GEM
     annotaterb (4.14.0)
     ast (2.4.3)
     aws-eventstream (1.3.2)
-    aws-partitions (1.1091.0)
-    aws-sdk-core (3.222.2)
+    aws-partitions (1.1100.0)
+    aws-sdk-core (3.223.0)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
       base64
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-kms (1.99.0)
+    aws-sdk-kms (1.100.0)
       aws-sdk-core (~> 3, >= 3.216.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-s3 (1.183.0)
+    aws-sdk-s3 (1.185.0)
       aws-sdk-core (~> 3, >= 3.216.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
@@ -134,7 +134,7 @@ GEM
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
     concurrent-ruby (1.3.5)
-    connection_pool (2.5.2)
+    connection_pool (2.5.3)
     crass (1.0.6)
     csv (3.3.4)
     cuprite (0.15.1)
@@ -240,7 +240,7 @@ GEM
       reline (>= 0.4.2)
     jaro_winkler (1.6.0)
     jmespath (1.6.2)
-    json (2.11.0)
+    json (2.11.3)
     jwt (2.10.1)
       base64
     kaminari (1.2.2)
@@ -288,9 +288,9 @@ GEM
     minitest (5.25.5)
     msgpack (1.8.0)
     multi_json (1.15.0)
-    multi_xml (0.7.1)
+    multi_xml (0.7.2)
       bigdecimal (~> 3.1)
-    net-imap (0.5.7)
+    net-imap (0.5.8)
       date
       net-protocol
     net-pop (0.1.2)
@@ -332,15 +332,15 @@ GEM
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    psych (5.2.3)
+    psych (5.2.4)
       date
       stringio
-    public_suffix (6.0.1)
+    public_suffix (6.0.2)
     puma (6.6.0)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.1.13)
-    rack-session (2.1.0)
+    rack (3.1.14)
+    rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
     rack-test (2.2.0)
@@ -406,17 +406,17 @@ GEM
     regexp_parser (2.10.0)
     reline (0.6.1)
       io-console (~> 0.5)
-    requestjs-rails (0.0.12)
-      railties (>= 6.1.0)
+    requestjs-rails (0.0.13)
+      railties (>= 7.1.0)
     reverse_markdown (3.0.0)
       nokogiri
     rexml (3.4.1)
     rspec-core (3.13.3)
       rspec-support (~> 3.13.0)
-    rspec-expectations (3.13.3)
+    rspec-expectations (3.13.4)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-mocks (3.13.2)
+    rspec-mocks (3.13.4)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-rails (7.1.1)
@@ -427,8 +427,8 @@ GEM
       rspec-expectations (~> 3.13)
       rspec-mocks (~> 3.13)
       rspec-support (~> 3.13)
-    rspec-support (3.13.2)
-    rubocop (1.75.3)
+    rspec-support (3.13.3)
+    rubocop (1.75.5)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -481,7 +481,7 @@ GEM
       parser
     securerandom (0.4.1)
     sexp_processor (4.17.3)
-    shopify_api (14.9.0)
+    shopify_api (14.10.0)
       activesupport
       concurrent-ruby
       hash_diff
@@ -526,9 +526,9 @@ GEM
       temple
       thor
       tilt
-    solargraph (0.54.0)
+    solargraph (0.54.2)
       backport (~> 1.2)
-      benchmark
+      benchmark (~> 0.4)
       bundler (~> 2.0)
       diff-lcs (~> 1.4)
       jaro_winkler (~> 1.6)
@@ -539,7 +539,7 @@ GEM
       ostruct (~> 0.6)
       parser (~> 3.0)
       rbs (~> 3.3)
-      reverse_markdown (>= 2.0, < 4)
+      reverse_markdown (~> 3.0)
       rubocop (~> 1.38)
       thor (~> 1.0)
       tilt (~> 2.0)
@@ -548,7 +548,7 @@ GEM
     solargraph-rails (1.1.0)
       activesupport
       solargraph
-    sorbet-runtime (0.5.12032)
+    sorbet-runtime (0.5.12079)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
       logger
