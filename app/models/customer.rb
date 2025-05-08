@@ -9,6 +9,7 @@
 #  phone      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  shopify_id :string
 #  woo_id     :string
 #
 class Customer < ApplicationRecord
@@ -24,7 +25,7 @@ class Customer < ApplicationRecord
   before_save :downcase_email
 
   def name_and_email
-    "#{first_name} #{last_name} — #{email}"
+    [full_name, email].compact.join(" — ")
   end
 
   def full_name

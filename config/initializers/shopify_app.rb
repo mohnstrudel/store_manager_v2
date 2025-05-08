@@ -2,13 +2,13 @@ ShopifyApp.configure do |config|
   config.disable_webpacker = true
   config.application_name = "My Shopify App"
   config.old_secret = ""
-  config.scope = "read_products" # Consult this page for more scope options:
+  config.scope = "read_products, read_orders, read_order_edits, read_customers, read_inventory" # Consult this page for more scope options:
   # https://help.shopify.com/en/api/getting-started/authentication/oauth/scopes
   config.embedded_app = false
   config.new_embedded_auth_strategy = false
 
   config.after_authenticate_job = false
-  config.api_version = "2025-01"
+  config.api_version = "2025-04"
   # config.user_session_repository = ShopifyApp::InMemoryUserSessionStore
   # config.shop_session_repository = ShopifyApp::InMemoryShopSessionStore
   config.shop_session_repository = "Shop"

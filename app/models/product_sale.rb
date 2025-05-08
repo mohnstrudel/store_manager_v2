@@ -10,6 +10,7 @@
 #  updated_at               :datetime         not null
 #  product_id               :bigint           not null
 #  sale_id                  :bigint           not null
+#  shopify_id               :string
 #  variation_id             :bigint
 #  woo_id                   :string
 #

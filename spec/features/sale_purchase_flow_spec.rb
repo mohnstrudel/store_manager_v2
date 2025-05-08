@@ -11,7 +11,7 @@ feature "Link sales with purchases flow" do
     # because we don't want it to be automatically linked to the sale
     visit purchases_path
 
-    click_on "🐣 New purchase"
+    click_on "🐣 New"
 
     select supplier.title, from: "purchase[supplier_id]"
 
@@ -28,7 +28,7 @@ feature "Link sales with purchases flow" do
 
     visit sales_path
 
-    click_on "🐣 New sale"
+    click_on "🐣 New"
 
     # Set an active status so the sale will be visible in the list
     choose "Processing"

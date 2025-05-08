@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_24_114657) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_29_113611) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -69,6 +69,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_114657) do
     t.datetime "updated_at", null: false
     t.string "email"
     t.string "phone"
+    t.string "shopify_id"
+    t.index ["shopify_id"], name: "index_customers_on_shopify_id"
   end
 
   create_table "franchises", force: :cascade do |t|
@@ -134,8 +136,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_114657) do
     t.string "woo_id"
     t.bigint "variation_id"
     t.integer "purchased_products_count", default: 0, null: false
+    t.string "shopify_id"
     t.index ["product_id"], name: "index_product_sales_on_product_id"
     t.index ["sale_id"], name: "index_product_sales_on_sale_id"
+    t.index ["shopify_id"], name: "index_product_sales_on_shopify_id"
     t.index ["variation_id"], name: "index_product_sales_on_variation_id"
     t.index ["woo_id"], name: "index_product_sales_on_woo_id", unique: true
   end
@@ -245,7 +249,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_114657) do
     t.datetime "woo_created_at"
     t.datetime "woo_updated_at"
     t.string "slug"
+    t.string "shopify_id"
+    t.datetime "shopify_created_at"
+    t.datetime "shopify_updated_at"
+    t.string "fulfillment_status"
+    t.string "financial_status"
+    t.string "return_status"
+    t.boolean "confirmed", default: false
+    t.boolean "closed", default: false
+    t.datetime "closed_at"
+    t.datetime "cancelled_at"
+    t.string "cancel_reason"
     t.index ["customer_id"], name: "index_sales_on_customer_id"
+    t.index ["shopify_id"], name: "index_sales_on_shopify_id"
     t.index ["slug"], name: "index_sales_on_slug", unique: true
   end
 

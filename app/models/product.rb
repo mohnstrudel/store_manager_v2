@@ -78,12 +78,18 @@ class Product < ApplicationRecord
     product,
     brand = nil
   )
-    name = (product.title == product.franchise.title) ?
-      product.title :
+    title_part = if product.title == product.franchise.title
+      product.title
+    else
       "#{product.franchise.title} — #{product.title}"
-    brands = product.brands.pluck(:title).join(", ")
+    end
+
+    brands = if product.brands.size >= 1
+      product.brands.pluck(:title).join(", ")
+    end
+
     [
-      name,
+      title_part,
       brand.presence || brands.presence
     ].compact.join(" | ")
   end
