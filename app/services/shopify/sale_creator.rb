@@ -13,7 +13,10 @@ class Shopify::SaleCreator
       update_or_create_product_sales!
     end
   rescue ActiveRecord::RecordInvalid => e
-    raise OrderProcessingError, "Failed to process. #{e.message}"
+    model_name = e.record.class.name
+    detailed_errors = e.record.errors.full_messages.join(", ")
+
+    raise OrderProcessingError, "Failed to process #{model_name}: #{detailed_errors}"
   end
 
   private
@@ -109,6 +112,9 @@ class Shopify::SaleCreator
   end
 
   def find_or_create_product_variation_by_title!(parsed_product_sale)
+    return if parsed_product_sale[:variation_title].blank?
+    return if parsed_product_sale[:shopify_variation_id].blank?
+
     product = Shopify::ProductCreator
       .new(parsed_title: parsed_product_sale[:full_title])
       .update_or_create_by_title
