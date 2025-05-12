@@ -35,7 +35,7 @@ RSpec.describe Shopify::SaleCreator do
       end
     end
 
-    context "when creating a new order" do
+    context "when creating a new sale" do
       it "creates all required records" do
         expect { creator.update_or_create! }.to change(Sale, :count).by(1)
           .and change(Customer, :count).by(1)
@@ -50,7 +50,7 @@ RSpec.describe Shopify::SaleCreator do
       end
     end
 
-    context "when order already exists" do
+    context "when sale already exists" do
       before do
         creator.update_or_create!
       end
@@ -101,6 +101,29 @@ RSpec.describe Shopify::SaleCreator do
         expect(Sale.count).to eq(0)
         expect(Customer.count).to eq(0)
         expect(ProductSale.count).to eq(0)
+      end
+    end
+
+    context "when customer already exists" do
+      let!(:existing_customer) do
+        create(:customer,
+          shopify_id: valid_parsed_order[:customer][:shopify_id],
+          email: "old_email@example.com",
+          first_name: "OldFirstName",
+          last_name: "OldLastName",
+          phone: "1234567890")
+      end
+
+      it "updates existing customer with new data" do
+        expect {
+          creator.update_or_create!
+        }.not_to change(Customer, :count)
+
+        existing_customer.reload
+        expect(existing_customer.email).to eq(valid_parsed_order[:customer][:email])
+        expect(existing_customer.first_name).to eq(valid_parsed_order[:customer][:first_name])
+        expect(existing_customer.last_name).to eq(valid_parsed_order[:customer][:last_name])
+        expect(existing_customer.phone).to eq(valid_parsed_order[:customer][:phone])
       end
     end
   end
