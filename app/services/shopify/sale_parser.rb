@@ -1,6 +1,7 @@
 class Shopify::SaleParser
   def initialize(api_order)
     @order = api_order || {}
+    raise ArgumentError, "Order data is required" if @order.blank?
   end
 
   def parse
@@ -17,21 +18,21 @@ class Shopify::SaleParser
 
   def parse_sale
     {
-      address_1: @order["shippingAddress"]["address1"],
-      address_2: @order["shippingAddress"]["address2"],
+      address_1: @order["shippingAddress"].try(:[], "address1"),
+      address_2: @order["shippingAddress"].try(:[], "address2"),
       cancel_reason: @order["cancelReason"],
       cancelled_at: @order["cancelledAt"] ? DateTime.parse(@order["cancelledAt"]) : nil,
-      city: @order["shippingAddress"]["city"],
+      city: @order["shippingAddress"].try(:[], "city"),
       closed: @order["closed"],
       closed_at: @order["closedAt"] ? DateTime.parse(@order["closedAt"]) : nil,
-      company: @order["shippingAddress"]["company"],
+      company: @order["shippingAddress"].try(:[], "company"),
       confirmed: @order["confirmed"],
-      country: @order["shippingAddress"]["country"],
+      country: @order["shippingAddress"].try(:[], "country"),
       discount_total: @order["totalDiscounts"],
       financial_status: @order["displayFinancialStatus"],
       fulfillment_status: @order["displayFulfillmentStatus"],
       note: @order["note"],
-      postcode: @order["shippingAddress"]["zip"],
+      postcode: @order["shippingAddress"].try(:[], "zip"),
       return_status: @order["returnStatus"],
       shipping_total: @order["totalShippingPrice"],
       shopify_created_at: DateTime.parse(@order["createdAt"]),
