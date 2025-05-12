@@ -149,4 +149,16 @@ class Sale < ApplicationRecord
 
     PurchasedProduct.without_product_sales(product_ids).exists?
   end
+
+  def shop_created_at
+    shopify_created_at || woo_created_at
+  end
+
+  def shop_updated_at
+    shopify_updated_at || woo_updated_at
+  end
+
+  def shopify_id_short
+    shopify_id&.gsub("gid://shopify/Order/", "")
+  end
 end
