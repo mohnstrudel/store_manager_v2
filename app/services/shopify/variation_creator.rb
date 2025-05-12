@@ -28,7 +28,7 @@ class Shopify::VariationCreator
         attributes[:color] = Color.find_or_create_by!(value: option[:value])
       when "Size", "Scale"
         attributes[:size] = Size.find_or_create_by!(value: option[:value])
-      when "Version", "Edition"
+      when "Version", "Edition", "Variante"
         attributes[:version] = Version.find_or_create_by!(value: option[:value])
       end
     end
