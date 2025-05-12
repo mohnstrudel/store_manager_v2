@@ -20,7 +20,7 @@ RSpec.describe Shopify::ProductCreator do
 
     context "when product doesn't exist" do
       it "creates a new product with correct attributes" do
-        expect { creator.update_or_create }.to change(Product, :count).by(1)
+        expect { creator.update_or_create! }.to change(Product, :count).by(1)
           .and change(Franchise, :count).by(1)
           .and change(Shape, :count).by(1)
           .and change(Brand, :count).by(1)
@@ -40,7 +40,7 @@ RSpec.describe Shopify::ProductCreator do
         allow(Shopify::SyncVariationsJob).to receive(:perform_later)
         allow(Shopify::SyncImagesJob).to receive(:perform_later)
 
-        creator.update_or_create
+        creator.update_or_create!
 
         expect(Shopify::SyncVariationsJob).to have_received(:perform_later)
         expect(Shopify::SyncImagesJob).to have_received(:perform_later)
@@ -55,7 +55,7 @@ RSpec.describe Shopify::ProductCreator do
       end
 
       it "updates the existing product" do
-        expect { creator.update_or_create }.not_to change(Product, :count)
+        expect { creator.update_or_create! }.not_to change(Product, :count)
 
         existing_product.reload
         expect(existing_product.title).to eq("Eve")
@@ -65,7 +65,7 @@ RSpec.describe Shopify::ProductCreator do
 
     it "returns nil if parsed_product is blank" do
       creator = described_class.new(parsed_product: {})
-      expect(creator.update_or_create).to be_nil
+      expect(creator.update_or_create!).to be_nil
     end
   end
 

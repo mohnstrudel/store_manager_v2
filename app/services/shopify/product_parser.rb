@@ -7,7 +7,7 @@ class Shopify::ProductParser
   end
 
   def parse
-    raise ArgumentError, "Product data is required" if @product.blank?
+    return nil if @product.blank?
     raise ArgumentError, "Product data must be a Hash" unless @product.is_a?(Hash)
 
     title, franchise, size, shape, brand = parse_product_title

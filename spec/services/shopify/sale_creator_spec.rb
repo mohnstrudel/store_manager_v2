@@ -77,17 +77,18 @@ RSpec.describe Shopify::SaleCreator do
         order = valid_parsed_order.deep_dup
         order[:product_sales].first[:shopify_variation_id] = nil
         order[:product_sales].first[:shopify_product_id] = nil
+        order[:product_sales].first[:variation_title] = nil
         order
       end
       let(:creator_corrupted) { described_class.new(parsed_order_corrupted) }
 
-      it "creates a new variation from title" do
-        expect { creator_corrupted.update_or_create! }.to change(Variation, :count).by(1)
+      it "does not create a new variation when variation_title is missing" do
+        expect { creator_corrupted.update_or_create! }.not_to change(Variation, :count)
       end
 
-      it "associates variation with product" do
-        creator_corrupted.update_or_create!
-        expect(Product.last.variations).to include(Variation.last)
+      it "still creates the product sale without a variation" do
+        expect { creator_corrupted.update_or_create! }.to change(ProductSale, :count).by(1)
+        expect(ProductSale.last.variation).to be_nil
       end
     end
 

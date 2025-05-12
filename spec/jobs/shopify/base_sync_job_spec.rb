@@ -37,7 +37,7 @@ RSpec.describe Shopify::BaseSyncJob do
             @item = item
           end
 
-          def update_or_create
+          def update_or_create!
             true
           end
         end
@@ -62,7 +62,7 @@ RSpec.describe Shopify::BaseSyncJob do
   end
 
   let(:parser) { instance_double("Parser", parse: {}) }
-  let(:creator) { instance_double("Creator", update_or_create: true) }
+  let(:creator) { instance_double("Creator", update_or_create!: true) }
   let(:parser_class) { class_double("ParserClass", new: parser) }
   let(:creator_class) { class_double("CreatorClass", new: creator) }
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }

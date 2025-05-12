@@ -112,9 +112,12 @@ RSpec.describe Shopify::SaleParser do
       )
     end
 
-    it "returns nil if order is blank" do
-      parser = described_class.new(nil)
-      expect(parser.parse).to be_nil
+    it "raises ArgumentError if order is blank" do
+      expect { described_class.new(nil) }.to raise_error(ArgumentError, "Order data is required")
+    end
+
+    it "raises ArgumentError if order is empty" do
+      expect { described_class.new({}) }.to raise_error(ArgumentError, "Order data is required")
     end
 
     it "handles cancelled orders" do
