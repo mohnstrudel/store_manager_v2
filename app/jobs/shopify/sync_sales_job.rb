@@ -51,6 +51,8 @@ class Shopify::SyncSalesJob < Shopify::BaseSyncJob
               totalShippingPrice
               unpaid
               updatedAt
+              phone
+              email
               customer {
                 id
                 lastName
@@ -65,6 +67,7 @@ class Shopify::SyncSalesJob < Shopify::BaseSyncJob
                 company
                 country
                 zip
+                phone
               }
               lineItems(first: 10) {
                 nodes {

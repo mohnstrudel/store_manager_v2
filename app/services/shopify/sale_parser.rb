@@ -45,12 +45,16 @@ class Shopify::SaleParser
 
   def parse_customer
     {
-      email: @order["email"]&.downcase,
+      email: @order["customer"]["email"]&.downcase || @order["email"]&.downcase,
       first_name: @order["customer"]["firstName"],
       last_name: @order["customer"]["lastName"],
-      phone: @order["customer"]["phone"],
+      phone: find_customer_phone,
       shopify_id: @order["customer"]["id"]
     }
+  end
+
+  def find_customer_phone
+    @order["customer"]["phone"] || @order["phone"] || @order.dig("shippingAddress", "phone")
   end
 
   def parse_product_sales
