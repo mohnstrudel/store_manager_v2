@@ -4,7 +4,7 @@ class Shopify::ProductCreator
     @parsed_title = parsed_title
   end
 
-  def update_or_create
+  def update_or_create!
     return if @parsed_product.blank?
 
     product = ActiveRecord::Base.transaction do
