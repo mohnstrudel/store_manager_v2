@@ -3,11 +3,12 @@ class Shopify::ProductParser
 
   def initialize(api_product: {}, title: "")
     @product = api_product
-    @title = title || @product["title"]
+    @title = title.presence || @product["title"]
   end
 
   def parse
-    return if @product.blank?
+    raise ArgumentError, "Product data is required" if @product.blank?
+    raise ArgumentError, "Product data must be a Hash" unless @product.is_a?(Hash)
 
     title, franchise, size, shape, brand = parse_product_title
 
@@ -33,6 +34,8 @@ class Shopify::ProductParser
   end
 
   def parse_product_title
+    raise ArgumentError, "Product title is required" if @title.blank?
+
     shopify_name = smart_titleize(sanitize(@title))
 
     parts = shopify_name.split("|").map(&:strip)
