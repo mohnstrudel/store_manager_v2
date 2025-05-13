@@ -109,7 +109,7 @@ class ProductsController < ApplicationController
   def sync
     limit = params[:limit].to_i
 
-    Shopify::SyncProductsJob.perform_later(limit:)
+    Shopify::PullProductsJob.perform_later(limit:)
     Config.update_shopify_products_sync_time
 
     statuses_link = view_context.link_to(

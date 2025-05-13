@@ -18,11 +18,11 @@ class Shopify::ProductCreator
     end
 
     if product
-      Shopify::SyncVariationsJob.perform_later(
+      Shopify::PullVariationsJob.perform_later(
         product,
         @parsed_product[:variations]
       )
-      Shopify::SyncImagesJob.perform_later(
+      Shopify::PullImagesJob.perform_later(
         product,
         @parsed_product[:images]
       )

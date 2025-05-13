@@ -95,7 +95,7 @@ class SalesController < ApplicationController
   def sync
     limit = params[:limit].to_i
 
-    Shopify::SyncSalesJob.perform_later(limit:)
+    Shopify::PullSalesJob.perform_later(limit:)
     Config.update_shopify_sales_sync_time
 
     statuses_link = view_context.link_to(

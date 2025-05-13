@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Shopify::SyncVariationsJob do
+RSpec.describe Shopify::PullVariationsJob do
   let(:job) { described_class.new }
   let(:product) { create(:product) }
   let(:parsed_variations) do

@@ -37,13 +37,13 @@ RSpec.describe Shopify::ProductCreator do
       end
 
       it "enqueues sync jobs for variations and images" do
-        allow(Shopify::SyncVariationsJob).to receive(:perform_later)
-        allow(Shopify::SyncImagesJob).to receive(:perform_later)
+        allow(Shopify::PullVariationsJob).to receive(:perform_later)
+        allow(Shopify::PullImagesJob).to receive(:perform_later)
 
         creator.update_or_create!
 
-        expect(Shopify::SyncVariationsJob).to have_received(:perform_later)
-        expect(Shopify::SyncImagesJob).to have_received(:perform_later)
+        expect(Shopify::PullVariationsJob).to have_received(:perform_later)
+        expect(Shopify::PullImagesJob).to have_received(:perform_later)
       end
     end
 

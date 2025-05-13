@@ -1,4 +1,4 @@
-class Shopify::SyncProductsJob < Shopify::BaseSyncJob
+class Shopify::PullProductsJob < Shopify::BasePullJob
   private
 
   def resource_name

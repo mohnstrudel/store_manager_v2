@@ -1,4 +1,4 @@
-class Shopify::SyncImagesJob < ApplicationJob
+class Shopify::PullImagesJob < ApplicationJob
   queue_as :default
   require "open-uri"
 

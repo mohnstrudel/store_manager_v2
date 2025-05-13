@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Shopify::BaseSyncJob do
+RSpec.describe Shopify::BasePullJob do
   let(:job_class) do
     Class.new(described_class) do
       def self.name

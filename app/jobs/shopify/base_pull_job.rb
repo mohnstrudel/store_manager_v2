@@ -1,4 +1,4 @@
-class Shopify::BaseSyncJob < ApplicationJob
+class Shopify::BasePullJob < ApplicationJob
   queue_as :default
   include Sanitizable
 
