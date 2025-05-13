@@ -24,16 +24,6 @@ module ApplicationHelper
     (value.to_i > 0) ? value : "-"
   end
 
-  def format_sale_status(status)
-    status_title = status.titleize
-
-    if Sale.active_status_names.include? status
-      "<span class='sale-status--active'>#{status_title}</span>".html_safe
-    else
-      "<span class='sale-status--inactive'>#{status_title}</span>".html_safe
-    end
-  end
-
   def format_show_page_title(record)
     return record.title.titleize if record.respond_to?(:title)
     return record.name.titleize if record.respond_to?(:name)

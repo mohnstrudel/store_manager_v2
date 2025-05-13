@@ -40,6 +40,14 @@ class Customer < ApplicationRecord
     !woo_id.in? [0, "0", ""]
   end
 
+  def shopify_id_short
+    shopify_id&.gsub("gid://shopify/Customer/", "")
+  end
+
+  def shop_id
+    shopify_id_short || woo_id
+  end
+
   private
 
   def downcase_email

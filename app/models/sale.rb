@@ -161,4 +161,8 @@ class Sale < ApplicationRecord
   def shopify_id_short
     shopify_id&.gsub("gid://shopify/Order/", "")
   end
+
+  def shop_id
+    shopify_id_short || woo_id
+  end
 end

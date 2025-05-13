@@ -6,15 +6,10 @@ nav
       ul
         li = link_to "All sales", sales_path
       hgroup
-        - if @sale.shopify_id.present?
+        - if @sale.shop_id.present?
           h1.relative.w-fit
-            | Sale №#{@sale.shopify_id_short}
-            = link_to "https://admin.shopify.com/store/68d8f5-af/orders/#{@sale.shopify_id_short}", class: "link-icn h1"
-              = inline_svg "link-icn.svg"
-        - elsif @sale.woo_id.present?
-          h1.relative.w-fit
-            | Sale №#{@sale.woo_id}
-            = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{@sale.woo_id}&action=edit", class: "link-icn h1"
+            | Sale №#{@sale.shop_id}
+            = link_to sale_shop_link(@sale), class: "link-icn h1"
               = inline_svg "link-icn.svg"
         - else
           h1 Sale
