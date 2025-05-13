@@ -1,4 +1,5 @@
 - subheading = "Previously run on #{Config.shopify_products_sync_time}" if Config.shopify_products_sync_time.present?
+
 = render "_shared/modal-container", heading: "Products Synchronization", subheading:, content_partial: "modal_sync_menu"
 = render "_shared/notice"
 = render "_shared/nav-index", model: @products, show_modal: true

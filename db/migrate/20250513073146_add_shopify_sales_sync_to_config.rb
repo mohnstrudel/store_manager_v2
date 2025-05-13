@@ -1,0 +1,5 @@
+class AddShopifySalesSyncToConfig < ActiveRecord::Migration[8.0]
+  def change
+    add_column :configs, :shopify_sales_sync, :datetime
+  end
+end
