@@ -106,11 +106,17 @@ class ProductsController < ApplicationController
     end
   end
 
-  def sync
+  def pull
     limit = params[:limit].to_i
+    product_id = params[:id]
 
-    Shopify::PullProductsJob.perform_later(limit:)
-    Config.update_shopify_products_sync_time
+    if product_id.present?
+      product = Product.friendly.find(product_id)
+      Shopify::PullProductJob.perform_later(product.shopify_id)
+    else
+      Shopify::PullProductsJob.perform_later(limit:)
+      Config.update_shopify_products_sync_time
+    end
 
     statuses_link = view_context.link_to(
       "jobs statuses dashboard", root_url + "jobs/statuses"

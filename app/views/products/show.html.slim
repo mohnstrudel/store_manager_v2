@@ -9,6 +9,11 @@ nav
         h1 = @product.title
         h2 = @product.full_title
   ul.gap
+    - if @product.shopify_id
+      li
+        a.btn href="#{url_for pull_product_path(product: @product)}" 
+          i.icn 📥
+          | Pull
     li
       = render "_shared/action-edit", route: "#{url_for controller: "#{@product.model_name.plural}", action: "edit", id: @product}", btn: true
     li

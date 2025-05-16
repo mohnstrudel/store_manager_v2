@@ -40,7 +40,8 @@ Rails.application.routes.draw do
   resources :products do
     get "/page/:page", action: :index, on: :collection
     get "editions", on: :member
-    get "sync", action: :sync, on: :collection
+    get "pull", action: :pull, on: :collection
+    get "pull", action: :pull, on: :member
   end
 
   resources :purchases do
