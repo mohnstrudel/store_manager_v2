@@ -31,7 +31,7 @@ class Shopify::PullImagesJob < ApplicationJob
         sleep 5
         retry
       else
-        Rails.logger.error "SyncShopifyImagesJob. Failed to download an image #{img_url}: #{e.message}"
+        Rails.logger.error "ShopifyPullImagesJob. Failed to download an image #{img_url}: #{e.message}"
         nil
       end
     end
