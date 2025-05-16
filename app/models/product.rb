@@ -90,7 +90,7 @@ class Product < ApplicationRecord
 
     [
       title_part,
-      brand.presence.title || brands.presence
+      brand&.title || brands.presence
     ].compact.join(" | ")
   end
 
