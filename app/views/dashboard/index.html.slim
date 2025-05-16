@@ -29,18 +29,18 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
     table role="grid" data-controller="table"
       thead
         th Title
-        th Variation
+        th Edition
         th Amount
       tbody
         - @sale_debts.first(5).each do |product|
-          - if product.sale_variation_id.present?
+          - if product.sale_edition_id.present?
             tr.hoverable(
               data-action="click->table#goTo"
               data-table-url-param=product_path(product.slug)
-              data-table-id-param=product.sale_variation_id
+              data-table-id-param=product.sale_edition_id
             )
               td = product.full_title
-              td = product.variation_name
+              td = product.edition_name
               td = product.debt.to_i
           - else
             tr.hoverable(

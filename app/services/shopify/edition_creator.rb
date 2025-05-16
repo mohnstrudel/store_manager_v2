@@ -1,4 +1,4 @@
-class Shopify::VariationCreator
+class Shopify::EditionCreator
   def initialize(product, parsed_variant)
     @product = product
     @parsed_variant = parsed_variant.with_indifferent_access
@@ -9,9 +9,9 @@ class Shopify::VariationCreator
     raise ArgumentError, "Variant must be present" if @parsed_variant[:options].blank?
 
     ActiveRecord::Base.transaction do
-      variation_attrs = prepare_attrs!
-      variation = find_or_initialize(variation_attrs)
-      variation.save!
+      edition_attrs = prepare_attrs!
+      edition = find_or_initialize(edition_attrs)
+      edition.save!
     end
   end
 
@@ -39,20 +39,20 @@ class Shopify::VariationCreator
   def find_or_initialize(attrs)
     return if attrs.blank?
 
-    variation = Variation
+    edition = Edition
       .where(
         product: @product,
         shopify_id: @parsed_variant[:id]
       )
-      .or(Variation.where(
+      .or(Edition.where(
         product: @product,
         shopify_id: nil,
         **attrs
       ))
       .first_or_initialize
 
-    variation.assign_attributes(shopify_id: @parsed_variant[:id], **attrs)
+    edition.assign_attributes(shopify_id: @parsed_variant[:id], **attrs)
 
-    variation
+    edition
   end
 end

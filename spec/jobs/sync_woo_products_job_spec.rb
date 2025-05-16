@@ -16,11 +16,11 @@ RSpec.describe SyncWooProductsJob do
     end
   end
 
-  describe "#get_products_with_variations" do
-    it "returns products variations after saving products" do
-      expect(job.get_products_with_variations(parsed_products).size).to eq(
+  describe "#get_products_with_editions" do
+    it "returns products editions after saving products" do
+      expect(job.get_products_with_editions(parsed_products).size).to eq(
         parsed_products
-          .map { |p| p[:woo_id] if p[:variations].present? }.compact.size
+          .map { |p| p[:woo_id] if p[:editions].present? }.compact.size
       )
     end
   end

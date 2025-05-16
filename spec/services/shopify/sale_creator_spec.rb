@@ -41,7 +41,7 @@ RSpec.describe Shopify::SaleCreator do
           .and change(Customer, :count).by(1)
           .and change(ProductSale, :count).by(1)
           .and change(Product, :count).by(products_size)
-          .and change(Variation, :count).by(2)
+          .and change(Edition, :count).by(2)
       end
 
       it "associates customer with sale" do
@@ -62,33 +62,33 @@ RSpec.describe Shopify::SaleCreator do
       end
     end
 
-    context "when variation already exists" do
+    context "when edition already exists" do
       let(:parsed_order) { valid_parsed_order }
-      let!(:existing_variation) { create(:variation, shopify_id: parsed_order[:product_sales].first[:shopify_variation_id]) }
+      let!(:existing_edition) { create(:edition, shopify_id: parsed_order[:product_sales].first[:shopify_edition_id]) }
 
-      it "uses existing variation" do
-        expect { creator.update_or_create! }.not_to change(Variation, :count)
-        expect(ProductSale.last.variation).to eq(existing_variation)
+      it "uses existing edition" do
+        expect { creator.update_or_create! }.not_to change(Edition, :count)
+        expect(ProductSale.last.edition).to eq(existing_edition)
       end
     end
 
     context "when product sale is corrupted" do
       let(:parsed_order_corrupted) do
         order = valid_parsed_order.deep_dup
-        order[:product_sales].first[:shopify_variation_id] = nil
+        order[:product_sales].first[:shopify_edition_id] = nil
         order[:product_sales].first[:shopify_product_id] = nil
-        order[:product_sales].first[:variation_title] = nil
+        order[:product_sales].first[:edition_title] = nil
         order
       end
       let(:creator_corrupted) { described_class.new(parsed_order_corrupted) }
 
-      it "does not create a new variation when variation_title is missing" do
-        expect { creator_corrupted.update_or_create! }.not_to change(Variation, :count)
+      it "does not create a new edition when edition_title is missing" do
+        expect { creator_corrupted.update_or_create! }.not_to change(Edition, :count)
       end
 
-      it "still creates the product sale without a variation" do
+      it "still creates the product sale without a edition" do
         expect { creator_corrupted.update_or_create! }.to change(ProductSale, :count).by(1)
-        expect(ProductSale.last.variation).to be_nil
+        expect(ProductSale.last.edition).to be_nil
       end
     end
 

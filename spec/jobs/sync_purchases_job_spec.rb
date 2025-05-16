@@ -28,7 +28,7 @@ RSpec.describe SyncPurchasesJob do
       )
       create(:product_brand, product:, brand:) if brand.present?
       create(
-        :variation,
+        :edition,
         product: product,
         version:,
         store_link: nil,
@@ -46,8 +46,8 @@ RSpec.describe SyncPurchasesJob do
       expect(Purchase.first.product).to eq(Product.first)
     end
 
-    it "use existing variations" do
-      expect(Purchase.first.variation).to eq(Variation.first)
+    it "use existing editions" do
+      expect(Purchase.first.edition).to eq(Edition.first)
     end
 
     it "imports all payments" do

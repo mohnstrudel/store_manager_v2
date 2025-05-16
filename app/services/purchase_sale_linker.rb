@@ -19,15 +19,15 @@ class PurchaseSaleLinker
   private
 
   def matching_sales
-    variation_id = @purchase.variation_id
+    edition_id = @purchase.edition_id
     product_id = @purchase.product_id
 
     ProductSale
       .only_active
       .linkable
       .where(
-        variation_id.present? ?
-          {variation_id:} :
+        edition_id.present? ?
+          {edition_id:} :
           {product_id:}
       )
       .limit(@purchase.amount)

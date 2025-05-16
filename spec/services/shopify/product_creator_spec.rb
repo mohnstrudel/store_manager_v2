@@ -12,7 +12,7 @@ RSpec.describe Shopify::ProductCreator do
         shape: "Statue",
         brand: "Light and Dust Studio",
         images: [{"src" => "https://example.com/image1.jpg"}],
-        variations: [{id: "gid://shopify/ProductVariant/67890"}]
+        editions: [{id: "gid://shopify/ProductVariant/67890"}]
       }
     end
 
@@ -36,13 +36,13 @@ RSpec.describe Shopify::ProductCreator do
         expect(product.sizes.first.value).to eq("1:4")
       end
 
-      it "enqueues sync jobs for variations and images" do
-        allow(Shopify::PullVariationsJob).to receive(:perform_later)
+      it "enqueues sync jobs for editions and images" do
+        allow(Shopify::PullEditionsJob).to receive(:perform_later)
         allow(Shopify::PullImagesJob).to receive(:perform_later)
 
         creator.update_or_create!
 
-        expect(Shopify::PullVariationsJob).to have_received(:perform_later)
+        expect(Shopify::PullEditionsJob).to have_received(:perform_later)
         expect(Shopify::PullImagesJob).to have_received(:perform_later)
       end
     end

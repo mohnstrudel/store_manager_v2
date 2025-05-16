@@ -1,10 +1,10 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[show edit update destroy variations]
+  before_action :set_product, only: %i[show edit update destroy editions]
 
   # GET /products or /products.json
   def index
     @products = Product
-      .includes(variations: [:version, :color, :size])
+      .includes(editions: [:version, :color, :size])
       .with_attached_images
       .order(:created_at)
       .page(params[:page])
@@ -17,7 +17,7 @@ class ProductsController < ApplicationController
       .product_sales.includes(
         :product,
         sale: :customer,
-        variation: [:version, :color, :size]
+        edition: [:version, :color, :size]
       )
       .order(created_at: :asc)
 
@@ -29,13 +29,13 @@ class ProductsController < ApplicationController
       product_sale.sale.status.in? Sale.completed_status_names
     }
 
-    @variations_sales_sums = ProductSale
-      .where(variation: @product.variations)
-      .group(:variation_id)
+    @editions_sales_sums = ProductSale
+      .where(edition: @product.editions)
+      .group(:edition_id)
       .sum(:qty)
-    @variations_purchases_sums = Purchase
-      .where(variation: @product.variations)
-      .group(:variation_id)
+    @editions_purchases_sums = Purchase
+      .where(edition: @product.editions)
+      .group(:edition_id)
       .sum(:amount)
   end
 
@@ -51,7 +51,7 @@ class ProductsController < ApplicationController
   # POST /products or /products.json
   def create
     @product = Product.new(product_params)
-    @product.build_variations
+    @product.build_editions
 
     respond_to do |format|
       if @product.save
@@ -69,7 +69,7 @@ class ProductsController < ApplicationController
     respond_to do |format|
       if @product.update(product_params.merge(slug: nil))
         @product.update_full_title
-        @product.build_variations
+        @product.build_editions
         @product.save
 
         format.html { redirect_to product_url(@product), notice: "Product was successfully updated." }
@@ -91,11 +91,11 @@ class ProductsController < ApplicationController
     end
   end
 
-  # GET /products/:id/variations?target=${html-id}
-  def variations
+  # GET /products/:id/editions?target=${html-id}
+  def editions
     @target = params[:target]
-    @variations = @product
-      .variations
+    @editions = @product
+      .editions
       .includes(:version, :color, :size)
       .select { |i|
         {id: i.id, title: i.title} if i.title.present?
@@ -126,9 +126,9 @@ class ProductsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_product
     @product = Product.includes(
-      purchases: [:product, :supplier, variation: [:version, :color, :size]],
+      purchases: [:product, :supplier, edition: [:version, :color, :size]],
       purchased_products: [:warehouse, :purchase],
-      variations: [
+      editions: [
         :version,
         :color,
         :size,

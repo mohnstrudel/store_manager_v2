@@ -30,7 +30,7 @@
         "qty": 1,
         "price": 235,
         "order_woo_id": 7449,
-        "variation": {
+        "edition": {
           "woo_id": 1111,
           "type": "Version",
           "value": "Deluxe Version"

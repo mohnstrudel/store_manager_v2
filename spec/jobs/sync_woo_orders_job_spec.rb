@@ -87,8 +87,8 @@ RSpec.describe SyncWooOrdersJob do
           city: denpasar
         )
         create(
-          :variation,
-          woo_id: parsed_woo_orders.first[:products].first[:variation][:woo_id],
+          :edition,
+          woo_id: parsed_woo_orders.first[:products].first[:edition][:woo_id],
           store_link: weird_link
         )
         parsed_woo_orders.pluck(:products).flatten.each do |p|
@@ -101,10 +101,10 @@ RSpec.describe SyncWooOrdersJob do
         expect(Sale.all.size).to eq(parsed_woo_orders.size)
       end
 
-      it "creates product sales with variations" do
-        with_variation = ProductSale.where.not(variation_id: nil)
-        parsed_variations_count = parsed_woo_orders.pluck(:products).flatten.count { |product| product[:variation].present? }
-        expect(with_variation.size).to eq(parsed_variations_count)
+      it "creates product sales with editions" do
+        with_edition = ProductSale.where.not(edition_id: nil)
+        parsed_editions_count = parsed_woo_orders.pluck(:products).flatten.count { |product| product[:edition].present? }
+        expect(with_edition.size).to eq(parsed_editions_count)
       end
 
       it "reuses existing sales" do
@@ -112,9 +112,9 @@ RSpec.describe SyncWooOrdersJob do
         expect(existing_sale.city).not_to eq(denpasar)
       end
 
-      it "reuses existing variations" do
-        existing_variation = Variation.find_by(woo_id: parsed_woo_orders.first[:products].first[:variation][:woo_id])
-        expect(existing_variation.store_link).to eq(weird_link)
+      it "reuses existing editions" do
+        existing_edition = Edition.find_by(woo_id: parsed_woo_orders.first[:products].first[:edition][:woo_id])
+        expect(existing_edition.store_link).to eq(weird_link)
       end
     end
   end

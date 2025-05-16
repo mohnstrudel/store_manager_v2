@@ -8,10 +8,10 @@
 #  qty                      :integer
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
+#  edition_id               :bigint
 #  product_id               :bigint           not null
 #  sale_id                  :bigint           not null
 #  shopify_id               :string
-#  variation_id             :bigint
 #  woo_id                   :string
 #
 class ProductSale < ApplicationRecord
@@ -22,7 +22,7 @@ class ProductSale < ApplicationRecord
   db_belongs_to :product
   db_belongs_to :sale
 
-  belongs_to :variation, optional: true
+  belongs_to :edition, optional: true
 
   has_many :purchased_products, dependent: :nullify
 
@@ -35,12 +35,12 @@ class ProductSale < ApplicationRecord
   }
 
   def item
-    variation.presence || product
+    edition.presence || product
   end
 
   def title
-    variation_id.present? ?
-      "#{product.full_title} → #{variation.title}" :
+    edition_id.present? ?
+      "#{product.full_title} → #{edition.title}" :
       product.full_title
   end
 

@@ -8,7 +8,7 @@
       thead
         th.text-center Image
         th Product
-        th Variation
+        th Edition
         th.right Price, $
         th.right Purchased / Sold Amount
       tbody
@@ -22,6 +22,6 @@
               = link_to ps.product.full_title, ps.product, class: "no-events"
               - if ps.purchased_products.present?
                 = render "purchased_products", purchased_products: ps.purchased_products
-            td = ps.variation.present? ? ps.variation.title : "-"
+            td = ps.edition.present? ? ps.edition.title : "-"
             td.right.mono = format_money ps.price
             td.right = format_purchased_sold_ratio(ps.purchased_products.size, ps.qty)

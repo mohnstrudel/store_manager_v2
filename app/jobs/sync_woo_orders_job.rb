@@ -6,8 +6,8 @@ class SyncWooOrdersJob < ApplicationJob
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
   ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2300
-  VARIATION_TYPES = Variation.types.values
-  SYNC_VARIATIONS_JOB = SyncWooVariationsJob.new
+  EDITION_TYPES = Edition.types.values
+  SYNC_EDITIONS_JOB = SyncWooEditionsJob.new
 
   def perform(pages = nil)
     woo_orders = api_get_all(URL, ORDERS_SIZE, pages)
@@ -44,7 +44,7 @@ class SyncWooOrdersJob < ApplicationJob
 
         next if product.blank?
 
-        variation = get_variation(order_product[:variation], product)
+        edition = get_edition(order_product[:edition], product)
 
         product_sale = ProductSale.find_or_initialize_by(
           woo_id: order_product[:order_woo_id]
@@ -55,7 +55,7 @@ class SyncWooOrdersJob < ApplicationJob
           product:,
           qty: order_product[:qty],
           sale:,
-          variation:
+          edition:
         }.compact)
 
         product_sale.save
@@ -104,33 +104,33 @@ class SyncWooOrdersJob < ApplicationJob
           price: line_item[:price].to_i + line_item[:total_tax].to_i,
           product_woo_id: line_item[:product_id],
           qty: line_item[:quantity],
-          variation: parse_variation(line_item)
+          edition: parse_edition(line_item)
         }.compact
       }
     }
   end
 
-  def parse_variation(line_item)
-    variation = line_item[:meta_data]
-      .find { |el| el[:display_key].in? VARIATION_TYPES.flatten }
+  def parse_edition(line_item)
+    edition = line_item[:meta_data]
+      .find { |el| el[:display_key].in? EDITION_TYPES.flatten }
 
-    return if variation.nil?
+    return if edition.nil?
 
-    variation = variation.slice(:display_key, :display_value)
+    edition = edition.slice(:display_key, :display_value)
       .transform_keys({
         display_key: :type,
         display_value: :value
       })
 
-    variation[:type] = VARIATION_TYPES.find { |type|
-      type.include? variation[:type]
+    edition[:type] = EDITION_TYPES.find { |type|
+      type.include? edition[:type]
     }.first.downcase
 
-    woo_id = if line_item[:variation_id].to_i.positive?
-      line_item[:variation_id]
+    woo_id = if line_item[:edition_id].to_i.positive?
+      line_item[:edition_id]
     end
 
-    variation
+    edition
       .transform_values { |v| smart_titleize(sanitize(v)) }
       .merge(woo_id:)
   end
@@ -164,15 +164,15 @@ class SyncWooOrdersJob < ApplicationJob
     Product.find_by(woo_id:)
   end
 
-  def get_variation(parsed_variation, product)
-    return if parsed_variation.blank?
+  def get_edition(parsed_edition, product)
+    return if parsed_edition.blank?
 
-    SYNC_VARIATIONS_JOB.create_variation(
+    SYNC_EDITIONS_JOB.create_edition(
       product:,
-      variation_woo_id: parsed_variation[:woo_id],
-      variation_types: {
-        type: parsed_variation[:type],
-        value: parsed_variation[:value]
+      edition_woo_id: parsed_edition[:woo_id],
+      edition_types: {
+        type: parsed_edition[:type],
+        value: parsed_edition[:value]
       }
     )
   end

@@ -12,7 +12,7 @@ class PurchasesController < ApplicationController
         :payments,
         purchased_products: [:warehouse],
         product: [images_attachments: :blob],
-        variation: [:color, :size, :version]
+        edition: [:color, :size, :version]
       )
       .order(id: :desc)
       .page(params[:page])
@@ -131,7 +131,7 @@ class PurchasesController < ApplicationController
     params.require(:purchase).permit(
       :supplier_id,
       :product_id,
-      :variation_id,
+      :edition_id,
       :order_reference,
       :item_price,
       :amount,

@@ -35,7 +35,7 @@ class SyncPurchasesJob < ApplicationJob
         parsed_purchase[:product]
       )
 
-      variation = find_or_create_variation(
+      edition = find_or_create_edition(
         product,
         parsed_purchase[:wooid],
         parsed_purchase[:variationid],
@@ -43,8 +43,8 @@ class SyncPurchasesJob < ApplicationJob
       )
 
       if parsed_purchase[:sku]
-        if variation
-          variation.update(sku: parsed_purchase[:sku])
+        if edition
+          edition.update(sku: parsed_purchase[:sku])
         else
           product.update(sku: parsed_purchase[:sku])
         end
@@ -63,7 +63,7 @@ class SyncPurchasesJob < ApplicationJob
         supplier: Supplier.find_or_create_by(title: parsed_purchase[:supplier]),
         purchase_date:,
         product:,
-        variation:
+        edition:
       })
 
       find_or_create_payments(purchase, parsed_purchase)
@@ -168,28 +168,28 @@ class SyncPurchasesJob < ApplicationJob
     [color, size, version]
   end
 
-  def find_or_create_variation(
+  def find_or_create_edition(
     product,
     woo_product_id,
-    woo_variation_id,
+    woo_edition_id,
     parsed_version
   )
-    if woo_variation_id
-      Variation.find_by(woo_id: woo_variation_id).presence ||
-        (SyncWooVariationsJob.perform_now([woo_product_id]) &&
-          Variation.find_by(woo_id: woo_variation_id))
+    if woo_edition_id
+      Edition.find_by(woo_id: woo_edition_id).presence ||
+        (SyncWooEditionsJob.perform_now([woo_product_id]) &&
+          Edition.find_by(woo_id: woo_edition_id))
     else
       return if parsed_version.blank?
 
       color, size, version = parse_versions(parsed_version)
 
       if {color:, size:, version:}.compact_blank.blank?
-        Variation.find_or_create_by({
+        Edition.find_or_create_by({
           product:,
           version: Version.create(value: parsed_version)
         })
       else
-        Variation.find_or_create_by(
+        Edition.find_or_create_by(
           {product:}.merge({color:, size:, version:}.compact_blank)
         )
       end

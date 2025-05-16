@@ -10,8 +10,8 @@ FactoryBot.define do
       brand
     end
 
-    trait :with_variation do
-      variation
+    trait :with_edition do
+      edition
     end
 
     factory(:product_with_brands) do

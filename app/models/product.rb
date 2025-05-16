@@ -64,7 +64,7 @@ class Product < ApplicationRecord
   has_many :product_sales, dependent: :destroy
   has_many :sales, through: :product_sales
 
-  has_many :variations, dependent: :destroy, autosave: true
+  has_many :editions, dependent: :destroy, autosave: true
 
   has_many :purchases, dependent: :destroy
   has_many :purchased_products, through: :purchases
@@ -119,31 +119,31 @@ class Product < ApplicationRecord
     shopify_id&.gsub("gid://shopify/Product/", "")
   end
 
-  def build_variations
+  def build_editions
     return unless sizes.any? || versions.any? || colors.any?
 
-    mark_absent_variations_for_destruction
+    mark_absent_editions_for_destruction
 
-    variations.build(variation_attributes)
+    editions.build(edition_attributes)
   end
 
   private
 
-  def mark_absent_variations_for_destruction
-    variations.each do |variation|
-      should_delete = (variation.size && sizes.exclude?(variation.size)) ||
-        (variation.version && versions.exclude?(variation.version)) ||
-        (variation.color && colors.exclude?(variation.color))
-      variation.mark_for_destruction if should_delete
+  def mark_absent_editions_for_destruction
+    editions.each do |edition|
+      should_delete = (edition.size && sizes.exclude?(edition.size)) ||
+        (edition.version && versions.exclude?(edition.version)) ||
+        (edition.color && colors.exclude?(edition.color))
+      edition.mark_for_destruction if should_delete
     end
   end
 
-  def variation_attributes
+  def edition_attributes
     size_items = sizes.any? ? sizes : [nil]
     version_items = versions.any? ? versions : [nil]
     color_items = colors.any? ? colors : [nil]
 
-    variation_attributes = []
+    edition_attributes = []
 
     size_items.each do |size|
       version_items.each do |version|
@@ -155,13 +155,13 @@ class Product < ApplicationRecord
             color_id: color&.id
           }.compact_blank
 
-          next if variations.exists?(attributes)
+          next if editions.exists?(attributes)
 
-          variation_attributes << attributes
+          edition_attributes << attributes
         end
       end
     end
 
-    variation_attributes
+    edition_attributes
   end
 end

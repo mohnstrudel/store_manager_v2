@@ -1,0 +1,23 @@
+- if product.editions.any?
+  .table-card
+    h3 Editions
+    table role="grid" data-controller="table"
+      thead
+        th ID
+        th Name
+        th Type
+        th.right Sales
+        th Purchases
+        th Woo ID
+      tbody
+        - product.editions.each do |edition|
+          tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == edition.id)
+            td = edition.id
+            td = edition.title
+            td = edition.types_name
+            td.right = format_zero_values @editions_sales_sums[edition.id]
+            td = format_zero_values @editions_purchases_sums[edition.id]
+            - if edition.store_link.present?
+              td = link_to edition.woo_id, edition.store_link, :target => "_blank", "rel" => "noopener noreferrer"
+            - else 
+              td = edition.woo_id

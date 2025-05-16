@@ -13,7 +13,7 @@ class SyncWooProductsJob < ApplicationJob
   def perform
     parsed_products = parse_all(get_woo_products)
     create_all(parsed_products)
-    get_products_with_variations(parsed_products)
+    get_products_with_editions(parsed_products)
   end
 
   def create_all(parsed_products)
@@ -99,7 +99,7 @@ class SyncWooProductsJob < ApplicationJob
       woo_id: woo_product[:id],
       store_link: woo_product[:permalink],
       shape:,
-      variations: woo_product[:variations],
+      editions: woo_product[:editions],
       title:,
       franchise:,
       images: woo_product[:images].pluck(:src)
@@ -112,13 +112,13 @@ class SyncWooProductsJob < ApplicationJob
         values = options.map { |i| smart_titleize(sanitize(i)) }
 
         case attr[:name]
-        when *Variation.types[:version]
+        when *Edition.types[:version]
           attrs[:versions] = values
-        when *Variation.types[:size]
+        when *Edition.types[:size]
           attrs[:sizes] = values
-        when *Variation.types[:color]
+        when *Edition.types[:color]
           attrs[:colors] = values
-        when *Variation.types[:brand]
+        when *Edition.types[:brand]
           attrs[:brands] = values
         end
 
@@ -140,9 +140,9 @@ class SyncWooProductsJob < ApplicationJob
     woo_products.map { |woo_product| parse(woo_product) }.compact_blank
   end
 
-  def get_products_with_variations(parsed_products)
+  def get_products_with_editions(parsed_products)
     parsed_products
-      .select { |i| i[:variations].present? }
+      .select { |i| i[:editions].present? }
       .pluck(:woo_id)
   end
 

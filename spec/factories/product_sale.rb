@@ -5,6 +5,6 @@ FactoryBot.define do
     woo_id { SecureRandom.alphanumeric(5) }
     product
     sale
-    variation
+    edition
   end
 end

@@ -31,25 +31,25 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
       :product_sale,
       sale: @sale_cooper,
       product: @asuka,
-      variation: nil
+      edition: nil
     )
     @ps_cooper_2 = create(
       :product_sale,
       sale: @sale_cooper,
       product: @batman,
-      variation: nil
+      edition: nil
     )
     @ps_cooper_3 = create(
       :product_sale,
       sale: @sale_cooper,
       product: @guts,
-      variation: nil
+      edition: nil
     )
     @ps_palmer = create(
       :product_sale,
       sale: @sale_palmer,
       product: @batman,
-      variation: nil
+      edition: nil
     )
 
     @purchase_asuka = create(
@@ -135,7 +135,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
         :product_sale,
         sale: @sale_cooper,
         product: @batman,
-        variation: nil
+        edition: nil
       )
     end
 
@@ -175,8 +175,8 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
   end
 
   it "finds purchases when we change them" do
-    # Create a variation of the product that we will use later
-    asuka_variation = create(:variation, product: @asuka)
+    # Create a edition of the product that we will use later
+    asuka_edition = create(:edition, product: @asuka)
 
     # Go to all purchases
     visit purchases_path
@@ -195,11 +195,11 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     # and select a different product
     slim_select(@batman.woo_id_full_title, @asuka.woo_id_full_title)
 
-    scroll_to("label[for='purchase_variation'] ~ div")
+    scroll_to("label[for='purchase_edition'] ~ div")
 
-    # Select a variation of the new product
-    find("#purchase-variation-select:last-child").click
-    find("div[aria-selected='false']", text: asuka_variation.title).click
+    # Select a edition of the new product
+    find("#purchase-edition-select:last-child").click
+    find("div[aria-selected='false']", text: asuka_edition.title).click
 
     # Save changes
     scroll_to("input[type=submit]")
@@ -213,7 +213,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     find_by_id("q").native.send_keys(:return)
 
     # Expect to find the edited purchase
-    expect(page).to have_text(asuka_variation.title)
+    expect(page).to have_text(asuka_edition.title)
   end
   # rubocop:enable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll
 end

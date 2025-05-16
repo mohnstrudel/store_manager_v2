@@ -9,13 +9,13 @@ nav
       hgroup
         h1 Purchase №#{@purchase.id}
         h4 = @purchase.product.full_title
-        - if @purchase.variation
+        - if @purchase.edition
         h4
           | Supplier 
           = @purchase.supplier.title
-          - if @purchase.variation
+          - if @purchase.edition
             | , 
-            = @purchase.variation.type_name_and_value
+            = @purchase.edition.type_name_and_value
   ul.gap
     li
       = render "_shared/action-edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true

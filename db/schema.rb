@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_13_073146) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_13_104122) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -74,6 +74,25 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_073146) do
     t.index ["shopify_id"], name: "index_customers_on_shopify_id"
   end
 
+  create_table "editions", force: :cascade do |t|
+    t.string "woo_id"
+    t.bigint "size_id"
+    t.bigint "version_id"
+    t.bigint "color_id"
+    t.bigint "product_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "store_link"
+    t.string "sku"
+    t.string "shopify_id"
+    t.index ["color_id"], name: "index_editions_on_color_id"
+    t.index ["product_id"], name: "index_editions_on_product_id"
+    t.index ["shopify_id"], name: "index_editions_on_shopify_id"
+    t.index ["size_id"], name: "index_editions_on_size_id"
+    t.index ["sku"], name: "index_editions_on_sku", unique: true
+    t.index ["version_id"], name: "index_editions_on_version_id"
+  end
+
   create_table "franchises", force: :cascade do |t|
     t.string "title"
     t.datetime "created_at", null: false
@@ -135,13 +154,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_073146) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "woo_id"
-    t.bigint "variation_id"
+    t.bigint "edition_id"
     t.integer "purchased_products_count", default: 0, null: false
     t.string "shopify_id"
+    t.index ["edition_id"], name: "index_product_sales_on_edition_id"
     t.index ["product_id"], name: "index_product_sales_on_product_id"
     t.index ["sale_id"], name: "index_product_sales_on_sale_id"
     t.index ["shopify_id"], name: "index_product_sales_on_shopify_id"
-    t.index ["variation_id"], name: "index_product_sales_on_variation_id"
     t.index ["woo_id"], name: "index_product_sales_on_woo_id", unique: true
   end
 
@@ -220,14 +239,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_073146) do
     t.integer "amount"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "variation_id"
+    t.bigint "edition_id"
     t.datetime "purchase_date"
     t.string "synced"
     t.string "slug"
+    t.index ["edition_id"], name: "index_purchases_on_edition_id"
     t.index ["product_id"], name: "index_purchases_on_product_id"
     t.index ["slug"], name: "index_purchases_on_slug", unique: true
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
-    t.index ["variation_id"], name: "index_purchases_on_variation_id"
   end
 
   create_table "sales", force: :cascade do |t|
@@ -304,25 +323,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_073146) do
     t.index ["slug"], name: "index_suppliers_on_slug", unique: true
   end
 
-  create_table "variations", force: :cascade do |t|
-    t.string "woo_id"
-    t.bigint "size_id"
-    t.bigint "version_id"
-    t.bigint "color_id"
-    t.bigint "product_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "store_link"
-    t.string "sku"
-    t.string "shopify_id"
-    t.index ["color_id"], name: "index_variations_on_color_id"
-    t.index ["product_id"], name: "index_variations_on_product_id"
-    t.index ["shopify_id"], name: "index_variations_on_shopify_id"
-    t.index ["size_id"], name: "index_variations_on_size_id"
-    t.index ["sku"], name: "index_variations_on_sku", unique: true
-    t.index ["version_id"], name: "index_variations_on_version_id"
-  end
-
   create_table "versions", force: :cascade do |t|
     t.string "value"
     t.datetime "created_at", null: false
@@ -355,14 +355,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_073146) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "editions", "colors"
+  add_foreign_key "editions", "products"
+  add_foreign_key "editions", "sizes"
+  add_foreign_key "editions", "versions"
   add_foreign_key "payments", "purchases"
   add_foreign_key "product_brands", "brands"
   add_foreign_key "product_brands", "products"
   add_foreign_key "product_colors", "colors"
   add_foreign_key "product_colors", "products"
+  add_foreign_key "product_sales", "editions"
   add_foreign_key "product_sales", "products"
   add_foreign_key "product_sales", "sales"
-  add_foreign_key "product_sales", "variations"
   add_foreign_key "product_sizes", "products"
   add_foreign_key "product_sizes", "sizes"
   add_foreign_key "product_suppliers", "products"
@@ -375,14 +379,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_073146) do
   add_foreign_key "purchased_products", "purchases"
   add_foreign_key "purchased_products", "shipping_companies"
   add_foreign_key "purchased_products", "warehouses"
+  add_foreign_key "purchases", "editions"
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
-  add_foreign_key "purchases", "variations"
   add_foreign_key "sales", "customers"
-  add_foreign_key "variations", "colors"
-  add_foreign_key "variations", "products"
-  add_foreign_key "variations", "sizes"
-  add_foreign_key "variations", "versions"
   add_foreign_key "warehouse_transitions", "notifications"
   add_foreign_key "warehouse_transitions", "warehouses", column: "from_warehouse_id"
   add_foreign_key "warehouse_transitions", "warehouses", column: "to_warehouse_id"

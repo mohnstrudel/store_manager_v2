@@ -54,7 +54,7 @@ class PurchasedProduct < ApplicationRecord
       sale: :customer,
       product_sale: [
         :product,
-        variation: [:size, :version, :color]
+        edition: [:size, :version, :color]
       ]
     )
   }

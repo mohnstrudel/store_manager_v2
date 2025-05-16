@@ -53,11 +53,11 @@ class Shopify::SaleCreator
 
     @parsed_order[:product_sales].each do |parsed_ps|
       if product_sale_is_corrupted(**parsed_ps)
-        product, variation = find_or_create_product_variation_by_title!(parsed_ps)
+        product, edition = find_or_create_product_edition_by_title!(parsed_ps)
       end
 
       product ||= find_or_create_product(parsed_ps)
-      variation ||= find_or_create_variation!(parsed_ps, product)
+      edition ||= find_or_create_edition!(parsed_ps, product)
 
       product_sale = ProductSale.find_or_initialize_by(
         shopify_id: parsed_ps[:shopify_id]
@@ -67,7 +67,7 @@ class Shopify::SaleCreator
         price: parsed_ps[:price],
         qty: parsed_ps[:qty],
         product:,
-        variation:,
+        edition:,
         sale:
       )
 
@@ -78,11 +78,11 @@ class Shopify::SaleCreator
   def product_sale_is_corrupted(
     full_title:,
     shopify_product_id:,
-    shopify_variation_id:,
+    shopify_edition_id:,
     **_rest
   )
     full_title.present? &&
-      shopify_variation_id.blank? &&
+      shopify_edition_id.blank? &&
       shopify_product_id.blank?
   end
 
@@ -93,43 +93,43 @@ class Shopify::SaleCreator
         .update_or_create!
   end
 
-  def find_or_create_variation!(parsed_ps, product)
-    return if parsed_ps[:variation_title].blank?
+  def find_or_create_edition!(parsed_ps, product)
+    return if parsed_ps[:edition_title].blank?
 
-    existing_variation = Variation.find_by(
-      shopify_id: parsed_ps[:shopify_variation_id]
+    existing_edition = Edition.find_by(
+      shopify_id: parsed_ps[:shopify_edition_id]
     )
-    return existing_variation if existing_variation
+    return existing_edition if existing_edition
 
-    create_variations_for_product!(parsed_ps[:product][:variations], product)
-    Variation.find_by!(shopify_id: parsed_ps[:shopify_variation_id])
+    create_editions_for_product!(parsed_ps[:product][:editions], product)
+    Edition.find_by!(shopify_id: parsed_ps[:shopify_edition_id])
   end
 
-  def create_variations_for_product!(parsed_variations, product)
-    parsed_variations.each do |v|
-      Shopify::VariationCreator.new(product, v).update_or_create!
+  def create_editions_for_product!(parsed_editions, product)
+    parsed_editions.each do |v|
+      Shopify::EditionCreator.new(product, v).update_or_create!
     end
   end
 
-  def find_or_create_product_variation_by_title!(parsed_product_sale)
-    return if parsed_product_sale[:variation_title].blank?
-    return if parsed_product_sale[:shopify_variation_id].blank?
+  def find_or_create_product_edition_by_title!(parsed_product_sale)
+    return if parsed_product_sale[:edition_title].blank?
+    return if parsed_product_sale[:shopify_edition_id].blank?
 
     product = Shopify::ProductCreator
       .new(parsed_title: parsed_product_sale[:full_title])
       .update_or_create_by_title
 
-    existing_variation = product.variations.find do |v|
-      v.title == parsed_product_sale[:variation_title]
+    existing_edition = product.editions.find do |v|
+      v.title == parsed_product_sale[:edition_title]
     end
-    return [product, existing_variation] if existing_variation
+    return [product, existing_edition] if existing_edition
 
     product.versions.create!(
-      value: parsed_product_sale[:variation_title]
+      value: parsed_product_sale[:edition_title]
     )
-    product.build_variations
+    product.build_editions
     product.save!
 
-    [product, product.variations.last]
+    [product, product.editions.last]
   end
 end

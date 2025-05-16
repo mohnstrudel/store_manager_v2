@@ -127,7 +127,7 @@ class PurchasedProductsController < ApplicationController
     all_product_sales = ProductSale.includes(
       :product,
       sale: [:customer],
-      variation: [:color, :size, :version]
+      edition: [:color, :size, :version]
     ).where(
       sales: {status: Sale.active_status_names + Sale.completed_status_names}
     )

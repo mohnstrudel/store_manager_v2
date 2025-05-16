@@ -11,8 +11,8 @@
         th Email
         th Country
         th Date
-        - if product.variations.any?
-          th Variation?
+        - if product.editions.any?
+          th Edition?
         th.right Price, $
         th Qty
       tbody
@@ -28,9 +28,9 @@
             td = ps.sale.customer.email
             td = ps.sale.country
             td = format_date ps.sale.woo_created_at.presence || ps.created_at
-            - if product.variations.any?
-              - if ps.variation.present?
-                td = ps.variation.title
+            - if product.editions.any?
+              - if ps.edition.present?
+                td = ps.edition.title
               - else
                 td -
             td.right.mono = format_money ps.price

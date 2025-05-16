@@ -53,7 +53,7 @@ RSpec.describe Shopify::ProductParser do
         {"src" => "https://example.com/image2.jpg"}
       ])
 
-      expect(result[:variations]).to eq([
+      expect(result[:editions]).to eq([
         {
           id: "gid://shopify/ProductVariant/67890",
           title: "Regular",

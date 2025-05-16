@@ -11,9 +11,9 @@
 #  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  edition_id      :bigint
 #  product_id      :bigint
 #  supplier_id     :bigint           not null
-#  variation_id    :bigint
 #
 class Purchase < ApplicationRecord
   extend FriendlyId
@@ -40,11 +40,11 @@ class Purchase < ApplicationRecord
 
   db_belongs_to :supplier
   belongs_to :product, optional: true
-  belongs_to :variation, optional: true
+  belongs_to :edition, optional: true
 
-  has_many :sizes, through: :variation
-  has_many :versions, through: :variation
-  has_many :colors, through: :variation
+  has_many :sizes, through: :edition
+  has_many :versions, through: :edition
+  has_many :colors, through: :edition
 
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments
@@ -80,9 +80,9 @@ class Purchase < ApplicationRecord
     "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
   end
 
-  def which_variation
-    variation ?
-      variation.title :
+  def which_edition
+    edition ?
+      edition.title :
       "-"
   end
 

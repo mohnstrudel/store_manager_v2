@@ -9,7 +9,7 @@ class SalesController < ApplicationController
         product_sales: [
           :purchased_products,
           product: [images_attachments: :blob],
-          variation: [
+          edition: [
             :version,
             :color,
             :size

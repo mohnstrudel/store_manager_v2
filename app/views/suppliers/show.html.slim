@@ -24,7 +24,7 @@ main
         table data-controller="table"
           thead
             th Title
-            th Variation
+            th Edition
             th Purchased ago
             th.right Item Price, $
             th Qty
@@ -36,9 +36,9 @@ main
                 data-table-url-param=purchase_path(purchase)
                 class="#{purchase.debt > 0 ? 'has-debt' : 'paid'}"
               )
-                - if purchase.variation.present?
+                - if purchase.edition.present?
                   td = purchase.product.full_title
-                  td = purchase.variation.title
+                  td = purchase.edition.title
                 - else
                   td = purchase.product.full_title
                   td  

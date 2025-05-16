@@ -65,7 +65,7 @@
     {
       "id": 7449,
       "product_id": 11,
-      "variation_id": 1111,
+      "edition_id": 1111,
       "quantity": 1,
       "meta_data": [
         {
@@ -81,7 +81,7 @@
     {
       "id": 666999,
       "product_id": 11,
-      "variation_id": 1234,
+      "edition_id": 1234,
       "quantity": 6,
       "meta_data": [
         {

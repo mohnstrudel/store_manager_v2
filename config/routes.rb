@@ -39,7 +39,7 @@ Rails.application.routes.draw do
 
   resources :products do
     get "/page/:page", action: :index, on: :collection
-    get "variations", on: :member
+    get "editions", on: :member
     get "sync", action: :sync, on: :collection
   end
 

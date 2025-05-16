@@ -18,9 +18,9 @@ class Shopify::ProductCreator
     end
 
     if product
-      Shopify::PullVariationsJob.perform_later(
+      Shopify::PullEditionsJob.perform_later(
         product,
-        @parsed_product[:variations]
+        @parsed_product[:editions]
       )
       Shopify::PullImagesJob.perform_later(
         product,

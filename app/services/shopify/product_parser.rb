@@ -12,7 +12,7 @@ class Shopify::ProductParser
 
     title, franchise, size, shape, brand = parse_product_title
 
-    variations = @product["variants"]["edges"].map do |edge|
+    editions = @product["variants"]["edges"].map do |edge|
       {
         id: edge["node"]["id"],
         title: edge["node"]["title"],
@@ -29,7 +29,7 @@ class Shopify::ProductParser
       size:,
       brand:,
       images: @product["images"]["edges"].pluck("node"),
-      variations:
+      editions:
     }
   end
 

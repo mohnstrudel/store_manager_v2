@@ -15,32 +15,32 @@ describe "Debts can take purchases into account" do
       brand: create(:brand, title: "Coolbear Studio")
     )
 
-    # Create a bunch of variation to prevent this test failing at production environment
-    create_list(:variation, 3)
+    # Create a bunch of edition to prevent this test failing at production environment
+    create_list(:edition, 3)
 
     @malenia_regular = create(
-      :variation,
+      :edition,
       product: @malenia,
       version: regular
     )
     @malenia_revealing = create(
-      :variation,
+      :edition,
       product: @malenia,
       version: revealing
     )
 
-    create_list(:product_sale, 3, product: @malenia, variation: nil)
+    create_list(:product_sale, 3, product: @malenia, edition: nil)
     create_list(
       :product_sale,
       6,
       product: @malenia,
-      variation: @malenia_regular
+      edition: @malenia_regular
     )
     create_list(
       :product_sale,
       9,
       product: @malenia,
-      variation: @malenia_revealing
+      edition: @malenia_revealing
     )
   end
 
@@ -85,7 +85,7 @@ describe "Debts can take purchases into account" do
       expect(find(purchases_selector)).to have_text("0")
     end
 
-    create(:purchase, product: @malenia, variation: @malenia_regular, amount: 2)
+    create(:purchase, product: @malenia, edition: @malenia_regular, amount: 2)
 
     refresh
 
@@ -101,7 +101,7 @@ describe "Debts can take purchases into account" do
       expect(find(purchases_selector)).to have_text("0")
     end
 
-    create(:purchase, product: @malenia, variation: @malenia_revealing, amount: 3)
+    create(:purchase, product: @malenia, edition: @malenia_revealing, amount: 3)
 
     refresh
 

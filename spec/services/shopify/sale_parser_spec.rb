@@ -105,8 +105,8 @@ RSpec.describe Shopify::SaleParser do
         shopify_id: "gid://shopify/LineItem/111",
         price: "95.00",
         qty: 1,
-        variation_title: "Regular",
-        shopify_variation_id: "gid://shopify/ProductVariant/222",
+        edition_title: "Regular",
+        shopify_edition_id: "gid://shopify/ProductVariant/222",
         shopify_product_id: "gid://shopify/Product/333",
         full_title: "Stellar Blade - Eve | 1:4 Resin Statue"
       )
