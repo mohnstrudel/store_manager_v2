@@ -6,7 +6,7 @@ class ProductsController < ApplicationController
     @products = Product
       .includes(editions: [:version, :color, :size])
       .with_attached_images
-      .order(:created_at)
+      .order(created_at: :desc)
       .page(params[:page])
     @products = @products.search(params[:q]) if params[:q].present?
   end
