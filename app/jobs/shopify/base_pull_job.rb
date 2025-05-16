@@ -20,7 +20,7 @@ class Shopify::BasePullJob < ApplicationJob
   def fetch_shopify_data(cursor = nil, limit = nil)
     api_client = Shopify::ApiClient.new
     response = api_client.query(
-      query: query,
+      query: api_client.gql_query(resource_name),
       variables: {
         first: limit || batch_size,
         after: cursor
@@ -61,10 +61,6 @@ class Shopify::BasePullJob < ApplicationJob
 
   def creator_class
     raise NotImplementedError, "#{self.class} must implement #creator_class"
-  end
-
-  def query
-    raise NotImplementedError, "#{self.class} must implement #query"
   end
 
   def batch_size

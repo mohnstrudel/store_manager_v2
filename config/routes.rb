@@ -31,7 +31,8 @@ Rails.application.routes.draw do
 
   resources :sales do
     get "/page/:page", action: :index, on: :collection
-    get "sync", action: :sync, on: :collection
+    get "pull", action: :pull, on: :collection
+    get "pull", action: :pull, on: :member
     member do
       get :link_purchased_products
     end

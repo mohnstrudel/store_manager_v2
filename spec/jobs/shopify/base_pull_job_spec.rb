@@ -7,10 +7,6 @@ RSpec.describe Shopify::BasePullJob do
         "TestJob"
       end
 
-      def query
-        "query { test { id } }"
-      end
-
       def resource_name
         "test"
       end
@@ -69,7 +65,11 @@ RSpec.describe Shopify::BasePullJob do
 
   before do
     allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+    allow(api_client).to receive(:gql_query)
+      .with("test")
+      .and_return("query { test { id } }")
     allow(api_client).to receive(:query).and_return(response)
+
     allow(job).to receive(:parser_class).and_return(parser_class)
     allow(job).to receive(:creator_class).and_return(creator_class)
     allow(job_class).to receive(:set).and_return(job_setter)
@@ -199,10 +199,6 @@ RSpec.describe Shopify::BasePullJob do
 
     it "raises NotImplementedError for creator_class" do
       expect { base_job.send(:creator_class) }.to raise_error(NotImplementedError)
-    end
-
-    it "raises NotImplementedError for query" do
-      expect { base_job.send(:query) }.to raise_error(NotImplementedError)
     end
 
     it "raises NotImplementedError for batch_size" do

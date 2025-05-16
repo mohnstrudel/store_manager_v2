@@ -19,19 +19,5 @@ RSpec.describe Shopify::PullSalesJob do
     it "sets the correct batch_size" do
       expect(job.send(:batch_size)).to eq(250)
     end
-
-    it "defines the correct GraphQL query" do
-      query = job.send(:query)
-
-      # Check for essential parts of the query
-      expect(query).to include("query($first: Int!, $after: String)")
-      expect(query).to include("orders(")
-      expect(query).to include("first: $first")
-      expect(query).to include("after: $after")
-      expect(query).to include("sortKey: CREATED_AT")
-      expect(query).to include("reverse: true")
-      expect(query).to include("hasNextPage")
-      expect(query).to include("endCursor")
-    end
   end
 end

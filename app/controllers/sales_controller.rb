@@ -92,11 +92,18 @@ class SalesController < ApplicationController
     redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
   end
 
-  def sync
+  def pull
     limit = params[:limit].to_i
 
-    Shopify::PullSalesJob.perform_later(limit:)
-    Config.update_shopify_sales_sync_time
+    sale_id = params[:id]
+
+    if sale_id.present?
+      sale = Sale.friendly.find(sale_id)
+      Shopify::PullSaleJob.perform_later(sale.shopify_id)
+    else
+      Shopify::PullSalesJob.perform_later(limit:)
+      Config.update_shopify_sales_sync_time
+    end
 
     statuses_link = view_context.link_to(
       "jobs statuses dashboard", root_url + "jobs/statuses"

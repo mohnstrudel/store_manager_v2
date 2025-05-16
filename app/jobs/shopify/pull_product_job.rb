@@ -5,12 +5,9 @@ class Shopify::PullProductJob < ApplicationJob
     return if product_id.blank?
 
     api_client = Shopify::ApiClient.new
-    response_body = api_client.query(
-      query: query,
-      variables: {id: product_id}
-    ).body
+    response_body = api_client.pull_product(product_id)
 
-    if response_body["errors"].blank? && response_body["data"]["product"].present?
+    if response_body["errors"].blank?
       product_data = response_body["data"]["product"]
       parsed_product = Shopify::ProductParser
         .new(api_product: product_data)
@@ -22,38 +19,5 @@ class Shopify::PullProductJob < ApplicationJob
           .update_or_create!
       end
     end
-  end
-
-  private
-
-  def query
-    <<~GQL
-      query($id: ID!) {
-        product(id: $id) {
-          id
-          title
-          handle
-          images(first: 10) {
-            edges {
-              node {
-                src
-              }
-            }
-          }
-          variants(first: 10) {
-            edges {
-              node {
-                id
-                title
-                selectedOptions {
-                  value
-                  name
-                }
-              }
-            }
-          }
-        }
-      }
-    GQL
   end
 end
