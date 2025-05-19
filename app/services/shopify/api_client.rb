@@ -88,7 +88,7 @@ class Shopify::ApiClient
     }
   GQL
 
-  def initialize(limit = nil)
+  def initialize
     session = ShopifyAPI::Auth::Session.new(
       shop: ENV.fetch("SHOPIFY_DOMAIN"),
       access_token: ENV.fetch("SHOPIFY_API_TOKEN")
@@ -97,17 +97,23 @@ class Shopify::ApiClient
   end
 
   def pull_product(id)
+    raise ArgumentError, "Product ID is required" if id.blank?
+
     @client.query(
       query: gql_query("product"),
       variables: {id:}
-    ).body
+    )
+      .body["data"]["product"]
   end
 
   def pull_order(id)
+    raise ArgumentError, "Order ID is required" if id.blank?
+
     @client.query(
       query: gql_query("order"),
       variables: {id:}
-    ).body
+    )
+      .body["data"]["order"]
   end
 
   def gql_query(name)
