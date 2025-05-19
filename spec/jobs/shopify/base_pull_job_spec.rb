@@ -43,17 +43,14 @@ RSpec.describe Shopify::BasePullJob do
 
   let(:job) { job_class.new }
   let(:api_client) { instance_double(Shopify::ApiClient) }
-  let(:response) { instance_double("Response", body: {"data" => {"test" => api_data}}) }
-  let(:api_data) do
+  let(:api_response) do
     {
-      "edges" => [
-        {"node" => {"id" => "1"}},
-        {"node" => {"id" => "2"}}
+      items: [
+        {"id" => "1"},
+        {"id" => "2"}
       ],
-      "pageInfo" => {
-        "hasNextPage" => false,
-        "endCursor" => "end_cursor_value"
-      }
+      has_next_page: false,
+      end_cursor: "end_cursor_value"
     }
   end
 
@@ -65,10 +62,7 @@ RSpec.describe Shopify::BasePullJob do
 
   before do
     allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
-    allow(api_client).to receive(:gql_query)
-      .with("test")
-      .and_return("query { test { id } }")
-    allow(api_client).to receive(:query).and_return(response)
+    allow(api_client).to receive(:pull).and_return(api_response)
 
     allow(job).to receive(:parser_class).and_return(parser_class)
     allow(job).to receive(:creator_class).and_return(creator_class)
@@ -81,12 +75,10 @@ RSpec.describe Shopify::BasePullJob do
 
     it "uses the configured batch size" do
       perform_job
-      expect(api_client).to have_received(:query).with(
-        query: "query { test { id } }",
-        variables: {
-          first: 10,
-          after: nil
-        }
+      expect(api_client).to have_received(:pull).with(
+        resource_name: "test",
+        cursor: nil,
+        limit: 10
       )
     end
 
@@ -101,19 +93,17 @@ RSpec.describe Shopify::BasePullJob do
 
       it "uses the provided limit" do
         perform_job
-        expect(api_client).to have_received(:query).with(
-          query: "query { test { id } }",
-          variables: {
-            first: 5,
-            after: nil
-          }
+        expect(api_client).to have_received(:pull).with(
+          resource_name: "test",
+          cursor: nil,
+          limit: 5
         )
       end
 
       it "does not schedule another job even with more pages" do
-        modified_api_data = api_data.deep_dup
-        modified_api_data["pageInfo"]["hasNextPage"] = true
-        allow(response).to receive(:body).and_return({"data" => {"test" => modified_api_data}})
+        modified_api_response = api_response.dup
+        modified_api_response[:has_next_page] = true
+        allow(api_client).to receive(:pull).and_return(modified_api_response)
 
         perform_job
         expect(job_class).not_to have_received(:set)
@@ -136,7 +126,7 @@ RSpec.describe Shopify::BasePullJob do
       end
 
       before do
-        allow(api_client).to receive(:query).and_raise(rate_limit_error)
+        allow(api_client).to receive(:pull).and_raise(rate_limit_error)
       end
 
       it "retries with exponential backoff" do
@@ -154,32 +144,32 @@ RSpec.describe Shopify::BasePullJob do
         other_error = ShopifyAPI::Errors::HttpResponseError.new(
           response: other_response
         )
-        allow(api_client).to receive(:query).and_raise(other_error)
+        allow(api_client).to receive(:pull).and_raise(other_error)
 
         expect { perform_job }.to raise_error(ShopifyAPI::Errors::HttpResponseError)
       end
     end
 
     context "when handling pagination" do
-      let(:modified_api_data) do
-        api_data.deep_dup.tap do |data|
-          data["pageInfo"]["hasNextPage"] = true
+      let(:modified_api_response) do
+        api_response.dup.tap do |data|
+          data[:has_next_page] = true
         end
       end
 
       before do
-        allow(response).to receive(:body).and_return({"data" => {"test" => modified_api_data}})
+        allow(api_client).to receive(:pull).and_return(modified_api_response)
       end
 
       it "schedules next job when there are more pages" do
         perform_job
         expect(job_class).to have_received(:set).with(wait: 1.second)
         expect(job_setter).to have_received(:perform_later)
-          .with(cursor: modified_api_data["pageInfo"]["endCursor"])
+          .with(cursor: modified_api_response[:end_cursor])
       end
 
       it "does not schedule next job when there are no more pages" do
-        allow(response).to receive(:body).and_return({"data" => {"test" => api_data}})
+        allow(api_client).to receive(:pull).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
       end
