@@ -29,7 +29,7 @@ RSpec.describe Shopify::ProductParser do
       }
     end
 
-    let(:parser) { described_class.new(api_product: api_product) }
+    let(:parser) { described_class.new(api_item: api_product) }
 
     it "parses product data correctly" do
       allow(parser).to receive(:parse_product_title).and_return(
@@ -65,7 +65,7 @@ RSpec.describe Shopify::ProductParser do
     end
 
     it "returns nil if product is blank" do
-      parser = described_class.new(api_product: {})
+      parser = described_class.new(api_item: {})
       expect(parser.parse).to be_nil
     end
   end

@@ -6,7 +6,7 @@ class Shopify::BasePullJob < ApplicationJob
     response_data = fetch_shopify_data(cursor:, limit:)
 
     response_data[:items].each do |api_item|
-      parsed_item = parser_class.new(api_item).parse
+      parsed_item = parser_class.new(api_item:).parse
       creator_class.new(parsed_item).update_or_create!
     end
 

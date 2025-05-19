@@ -1,8 +1,8 @@
 class Shopify::ProductParser
   include Sanitizable
 
-  def initialize(api_product: {}, title: "")
-    @product = api_product
+  def initialize(api_item: {}, title: "")
+    @product = api_item
     @title = title.presence || @product["title"]
   end
 

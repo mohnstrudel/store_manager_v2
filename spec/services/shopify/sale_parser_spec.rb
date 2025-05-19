@@ -61,7 +61,7 @@ RSpec.describe Shopify::SaleParser do
       }
     end
 
-    let(:parser) { described_class.new(api_order) }
+    let(:parser) { described_class.new(api_item: api_order) }
 
     before do
       allow_any_instance_of(Shopify::ProductParser).to receive(:parse).and_return({
@@ -113,11 +113,11 @@ RSpec.describe Shopify::SaleParser do
     end
 
     it "raises ArgumentError if order is blank" do
-      expect { described_class.new(nil) }.to raise_error(ArgumentError, "Order data is required")
+      expect { described_class.new(api_item: nil) }.to raise_error(ArgumentError, "Order data is required")
     end
 
     it "raises ArgumentError if order is empty" do
-      expect { described_class.new({}) }.to raise_error(ArgumentError, "Order data is required")
+      expect { described_class.new(api_item: {}) }.to raise_error(ArgumentError, "Order data is required")
     end
 
     it "handles cancelled orders" do
@@ -127,7 +127,7 @@ RSpec.describe Shopify::SaleParser do
       cancelled_order["displayFinancialStatus"] = "REFUNDED"
       cancelled_order["displayFulfillmentStatus"] = "UNFULFILLED"
 
-      parser = described_class.new(cancelled_order)
+      parser = described_class.new(api_item: cancelled_order)
       result = parser.parse
 
       expect(result[:sale][:cancelled_at]).to eq(DateTime.parse("2023-01-03T12:00:00Z"))
@@ -140,7 +140,7 @@ RSpec.describe Shopify::SaleParser do
       completed_order["displayFinancialStatus"] = "PAID"
       completed_order["displayFulfillmentStatus"] = "FULFILLED"
 
-      parser = described_class.new(completed_order)
+      parser = described_class.new(api_item: completed_order)
       result = parser.parse
 
       expect(result[:sale][:status]).to eq("completed")
@@ -150,7 +150,7 @@ RSpec.describe Shopify::SaleParser do
       partially_paid_order = api_order.deep_dup
       partially_paid_order["displayFinancialStatus"] = "PARTIALLY_PAID"
 
-      parser = described_class.new(partially_paid_order)
+      parser = described_class.new(api_item: partially_paid_order)
       result = parser.parse
 
       expect(result[:sale][:status]).to eq("partially-paid")
@@ -160,7 +160,7 @@ RSpec.describe Shopify::SaleParser do
       processing_order = api_order.deep_dup
       processing_order["displayFinancialStatus"] = "PENDING"
 
-      parser = described_class.new(processing_order)
+      parser = described_class.new(api_item: processing_order)
       result = parser.parse
 
       expect(result[:sale][:status]).to eq("processing")
@@ -170,7 +170,7 @@ RSpec.describe Shopify::SaleParser do
       uppercase_email_order = api_order.deep_dup
       uppercase_email_order["email"] = "CUSTOMER@EXAMPLE.COM"
 
-      parser = described_class.new(uppercase_email_order)
+      parser = described_class.new(api_item: uppercase_email_order)
       result = parser.parse
 
       expect(result[:customer][:email]).to eq("customer@example.com")

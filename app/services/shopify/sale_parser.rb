@@ -1,6 +1,6 @@
 class Shopify::SaleParser
-  def initialize(api_order)
-    @order = api_order || {}
+  def initialize(api_item:)
+    @order = api_item || {}
     raise ArgumentError, "Order data is required" if @order.blank?
   end
 
@@ -60,7 +60,7 @@ class Shopify::SaleParser
   def parse_product_sales
     @order["lineItems"]["nodes"].map do |line_item|
       parsed_product = if line_item["product"]
-        Shopify::ProductParser.new(api_product: line_item["product"]).parse
+        Shopify::ProductParser.new(api_item: line_item["product"]).parse
       end
       {
         price: line_item["originalTotal"],
