@@ -3,7 +3,7 @@ class Shopify::BasePullJob < ApplicationJob
   include Sanitizable
 
   def perform(attempts: 0, cursor: nil, limit: nil)
-    response_data = fetch_shopify_data(cursor, limit)
+    response_data = fetch_shopify_data(cursor:, limit:)
 
     response_data[:items].each do |api_item|
       parsed_item = parser_class.new(api_item).parse
@@ -17,21 +17,10 @@ class Shopify::BasePullJob < ApplicationJob
 
   private
 
-  def fetch_shopify_data(cursor = nil, limit = nil)
+  def fetch_shopify_data(cursor: nil, limit: nil)
+    limit ||= batch_size
     api_client = Shopify::ApiClient.new
-    response = api_client.query(
-      query: api_client.gql_query(resource_name),
-      variables: {
-        first: limit || batch_size,
-        after: cursor
-      }
-    )
-    data = response.body["data"][resource_name]
-    {
-      items: data["edges"].pluck("node"),
-      has_next_page: data["pageInfo"]["hasNextPage"],
-      end_cursor: data["pageInfo"]["endCursor"]
-    }
+    api_client.pull(resource_name: resource_name, cursor:, limit:)
   end
 
   def schedule_next_page(response_data)

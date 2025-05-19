@@ -1,9 +1,4 @@
-require "forwardable"
-
 class Shopify::ApiClient
-  extend Forwardable
-  def_delegators :@client, :query
-
   PRODUCT_FIELDS = <<~GQL
     id
     title
@@ -114,6 +109,25 @@ class Shopify::ApiClient
       variables: {id:}
     )
       .body["data"]["order"]
+  end
+
+  def pull(resource_name:, cursor:, limit:)
+    raise ArgumentError, "Name is required" if resource_name.blank?
+
+    response_data = @client.query(
+      query: gql_query(resource_name),
+      variables: {
+        first: limit,
+        after: cursor
+      }
+    )
+      .body["data"][resource_name]
+
+    {
+      items: response_data["edges"].pluck("node"),
+      has_next_page: response_data["pageInfo"]["hasNextPage"],
+      end_cursor: response_data["pageInfo"]["endCursor"]
+    }
   end
 
   def gql_query(name)
