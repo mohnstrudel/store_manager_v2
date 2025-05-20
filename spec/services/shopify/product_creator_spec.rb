@@ -16,7 +16,7 @@ RSpec.describe Shopify::ProductCreator do
       }
     end
 
-    let(:creator) { described_class.new(parsed_product: parsed_product) }
+    let(:creator) { described_class.new(parsed_item: parsed_product) }
 
     context "when product doesn't exist" do
       it "creates a new product with correct attributes" do
@@ -63,8 +63,8 @@ RSpec.describe Shopify::ProductCreator do
       end
     end
 
-    it "returns nil if parsed_product is blank" do
-      creator = described_class.new(parsed_product: {})
+    it "returns nil if parsed_item is blank" do
+      creator = described_class.new(parsed_item: {})
       expect(creator.update_or_create!).to be_nil
     end
   end

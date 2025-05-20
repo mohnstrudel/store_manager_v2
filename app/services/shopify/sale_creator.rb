@@ -2,7 +2,7 @@ class Shopify::SaleCreator
   class OrderProcessingError < StandardError; end
 
   def initialize(parsed_item:)
-    @parsed_order = parsed_order
+    @parsed_order = parsed_item
     validate_parsed_order!
   end
 
@@ -89,7 +89,7 @@ class Shopify::SaleCreator
   def find_or_create_product(parsed_ps)
     Product.find_by(shopify_id: parsed_ps[:shopify_product_id]) ||
       Shopify::ProductCreator
-        .new(parsed_product: parsed_ps[:product])
+        .new(parsed_item: parsed_ps[:product])
         .update_or_create!
   end
 
