@@ -1,15 +1,19 @@
 class Shopify::EditionCreator
-  def initialize(product, parsed_variant)
+  def initialize(product, parsed_edition)
     @product = product
-    @parsed_variant = parsed_variant.with_indifferent_access
+    @parsed_edition = parsed_edition.with_indifferent_access
   end
 
   def update_or_create!
+    return if @parsed_edition[:options].blank?
+
     raise ArgumentError, "Product must be present" if @product.blank?
-    raise ArgumentError, "Variant must be present" if @parsed_variant[:options].blank?
+
+    edition_attrs = find_or_create_edition_attrs
+
+    return if edition_attrs.blank?
 
     ActiveRecord::Base.transaction do
-      edition_attrs = prepare_attrs!
       edition = find_or_initialize(edition_attrs)
       edition.save!
     end
@@ -17,19 +21,17 @@ class Shopify::EditionCreator
 
   private
 
-  def prepare_attrs!
-    return if @parsed_variant[:options].blank?
-
+  def find_or_create_edition_attrs
     attributes = {}
 
-    @parsed_variant[:options].each do |option|
+    @parsed_edition[:options].each do |option|
       case option[:name]
       when "Color"
-        attributes[:color] = Color.find_or_create_by!(value: option[:value])
+        attributes[:color] = Color.find_or_create_by(value: option[:value])
       when "Size", "Scale"
-        attributes[:size] = Size.find_or_create_by!(value: option[:value])
+        attributes[:size] = Size.find_or_create_by(value: option[:value])
       when "Version", "Edition", "Variante"
-        attributes[:version] = Version.find_or_create_by!(value: option[:value])
+        attributes[:version] = Version.find_or_create_by(value: option[:value])
       end
     end
 
@@ -42,7 +44,7 @@ class Shopify::EditionCreator
     edition = Edition
       .where(
         product: @product,
-        shopify_id: @parsed_variant[:id]
+        shopify_id: @parsed_edition[:id]
       )
       .or(Edition.where(
         product: @product,
@@ -51,7 +53,7 @@ class Shopify::EditionCreator
       ))
       .first_or_initialize
 
-    edition.assign_attributes(shopify_id: @parsed_variant[:id], **attrs)
+    edition.assign_attributes(shopify_id: @parsed_edition[:id], **attrs)
 
     edition
   end

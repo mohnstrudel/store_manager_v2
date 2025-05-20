@@ -68,9 +68,25 @@ RSpec.describe Shopify::EditionCreator do
         expect { creator.update_or_create! }.to raise_error(ArgumentError, "Product must be present")
       end
 
-      it "raises error when variant options are blank" do
+      it "returns nil and does not create an edition" do
         creator = described_class.new(product, {options: []})
-        expect { creator.update_or_create! }.to raise_error(ArgumentError, "Variant must be present")
+        expect { creator.update_or_create! }.not_to change(Edition, :count)
+        expect(creator.update_or_create!).to be_nil
+      end
+    end
+
+    context "when edition_attrs is blank" do
+      it "returns nil and does not create an edition" do
+        # Simulate options that do not match any known attribute names
+        parsed_variant = {
+          id: "gid://shopify/ProductVariant/99999",
+          options: [
+            {name: "Unknown", value: "Mystery"}
+          ]
+        }
+        creator = described_class.new(product, parsed_variant)
+        expect { creator.update_or_create! }.not_to change(Edition, :count)
+        expect(creator.update_or_create!).to be_nil
       end
     end
   end
