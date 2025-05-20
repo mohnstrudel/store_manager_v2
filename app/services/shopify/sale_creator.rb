@@ -1,7 +1,7 @@
 class Shopify::SaleCreator
   class OrderProcessingError < StandardError; end
 
-  def initialize(parsed_order)
+  def initialize(parsed_item:)
     @parsed_order = parsed_order
     validate_parsed_order!
   end

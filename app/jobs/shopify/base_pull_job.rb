@@ -7,7 +7,7 @@ class Shopify::BasePullJob < ApplicationJob
 
     response_data[:items].each do |api_item|
       parsed_item = parser_class.new(api_item:).parse
-      creator_class.new(parsed_item).update_or_create!
+      creator_class.new(parsed_item:).update_or_create!
     end
 
     schedule_next_page(response_data) if response_data[:has_next_page] && !limit

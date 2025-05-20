@@ -1,6 +1,6 @@
 class Shopify::ProductCreator
-  def initialize(parsed_product: {}, parsed_title: "")
-    @parsed_product = parsed_product
+  def initialize(parsed_item: {}, parsed_title: "")
+    @parsed_product = parsed_item
     @parsed_title = parsed_title
   end
 

@@ -4,8 +4,8 @@ class Shopify::PullEditionsJob < ApplicationJob
   include Sanitizable
 
   def perform(product, parsed_editions)
-    parsed_editions.each do |variant|
-      Shopify::EditionCreator.new(product, variant).update_or_create!
+    parsed_editions.each do |pe|
+      Shopify::EditionCreator.new(product, pe).update_or_create!
     end
   end
 end
