@@ -34,8 +34,8 @@
                 = render "_shared/preloadable_img", src: thumb_url(pp), class_names: "zoomable", width: 100
               td
                 = pp.purchase.product.full_title
-                - if pp.purchase.variation.present?
-                  | → #{pp.purchase.variation.title}
+                - if pp.purchase.edition.present?
+                  | → #{pp.purchase.edition.title}
               td
                 - if pp.sale
                   = link_to pp.sale.title, pp.sale, class: "no-events"

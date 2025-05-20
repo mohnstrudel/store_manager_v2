@@ -12,7 +12,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
       table role="grid" data-controller="table"
         thead
           th Title
-          th Variation
+          th Edition
           th Sold
           th Purchased
           th Debt
@@ -21,20 +21,20 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
               tr.hoverable(
                 data-action="click->table#goTo"
                 data-table-url-param=product_path(product.slug)
-                data-table-id-param=(product.sale_variation_id || product.id)
+                data-table-id-param=(product.sale_edition_id || product.id)
               )
                 td = product.full_title
-                - if product.sale_variation_id.present?
-                  td = product.variation_name
+                - if product.sale_edition_id.present?
+                  td = product.edition_name
                 - else
                   td
                 td = product.sold_amount.to_i
-                - if product.sale_variation_id.present?
-                  td = product.purchased_variations_amount.to_i
+                - if product.sale_edition_id.present?
+                  td = product.purchased_editions_amount.to_i
                 - else
                   td = product.purchased_amount.to_i
-                - if product.sale_variation_id.present?
-                  td = product.variations_debt.to_i
+                - if product.sale_edition_id.present?
+                  td = product.editions_debt.to_i
                 - else
                   td = product.debt.to_i
       = paginate @debts

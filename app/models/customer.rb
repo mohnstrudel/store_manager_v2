@@ -9,6 +9,7 @@
 #  phone      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  shopify_id :string
 #  woo_id     :string
 #
 class Customer < ApplicationRecord
@@ -24,7 +25,7 @@ class Customer < ApplicationRecord
   before_save :downcase_email
 
   def name_and_email
-    "#{first_name} #{last_name} — #{email}"
+    [full_name, email].compact.join(" — ")
   end
 
   def full_name
@@ -37,6 +38,14 @@ class Customer < ApplicationRecord
 
   def self.woo_id_is_valid?(woo_id)
     !woo_id.in? [0, "0", ""]
+  end
+
+  def shopify_id_short
+    shopify_id&.gsub("gid://shopify/Customer/", "")
+  end
+
+  def shop_id
+    shopify_id_short || woo_id
   end
 
   private

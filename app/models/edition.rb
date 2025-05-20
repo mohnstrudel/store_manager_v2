@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: variations
+# Table name: editions
 #
 #  id         :bigint           not null, primary key
 #  sku        :string
@@ -14,7 +14,7 @@
 #  version_id :bigint
 #  woo_id     :string
 #
-class Variation < ApplicationRecord
+class Edition < ApplicationRecord
   belongs_to :size, optional: true
   belongs_to :version, optional: true
   belongs_to :color, optional: true

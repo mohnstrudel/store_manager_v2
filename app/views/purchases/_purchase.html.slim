@@ -4,9 +4,9 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
     = render "_shared/preloadable_img", src: thumb_url(purchase.product), class_names: "zoomable", width: 100
   td
     = purchase.product.full_title
-    - if purchase.variation.present?
-      | → #{purchase.variation.title}
-    ul.product-variations
+    - if purchase.edition.present?
+      | → #{purchase.edition.title}
+    ul.product-editions
       - if purchase.purchased_products.size == purchase.amount
         - purchase.purchased_products.group_by(&:warehouse).each do |warehouse, pp|
           li #{warehouse.name}: #{pp.count}

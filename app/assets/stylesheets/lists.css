@@ -1,9 +1,9 @@
-ul.product-variations {
+ul.product-editions {
   margin-bottom: calc(var(--spacing) / 2.5);
   padding-top: calc(var(--spacing) / 2);
 }
 
-ul.product-variations li {
+ul.product-editions li {
   margin-left: var(--spacing-m);
   list-style: none;
 }

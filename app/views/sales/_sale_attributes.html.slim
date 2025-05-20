@@ -8,11 +8,9 @@
     p = safe_blank_render sale.customer.email
     .title Note
     p = safe_blank_render sale.note
-    .title Customer Woo ID
-    - if sale.customer.woo_id.present?
-      p = link_to sale.customer.woo_id, "https://store.handsomecake.com/wp-admin/user-edit.php?user_id=#{sale.customer.woo_id}"
-    - else
-      p = safe_blank_render sale.customer.woo_id
+    - if sale.customer.shop_id.present?
+      .title Customer Shop ID
+      p = link_to sale.customer.shop_id, customer_shop_link(sale.customer)
 
   .card
     .title Total, $
@@ -25,12 +23,10 @@
   .card
     .title ID
     p = sale.id
-    .title Woo Created
-    p = safe_blank_render format_date(sale.woo_created_at)
-    .title Woo Upd.
-    p = safe_blank_render format_date(sale.woo_updated_at)  
-    .title Order Woo ID
-    - if sale.woo_id.present?
-      p = link_to sale.woo_id, "https://store.handsomecake.com/wp-admin/post.php?post=#{sale.woo_id}&action=edit"
-    - else
-      p = safe_blank_render sale.woo_id
+    .title Shop Created
+    p = safe_blank_render format_date(sale.shop_created_at)
+    .title Shop Updated
+    p = safe_blank_render format_date(sale.shop_updated_at)  
+    - if sale.shop_id.present?
+      .title Order Shop ID
+      p = link_to sale.shop_id, sale_shop_link(sale)

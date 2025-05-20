@@ -1,7 +1,7 @@
 require "rails_helper"
 require "open-uri"
 
-describe SyncShopifyImagesJob do
+describe Shopify::PullImagesJob do
   include ActiveJob::TestHelper
 
   let(:job) { described_class.new }

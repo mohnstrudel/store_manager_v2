@@ -14,12 +14,12 @@ RSpec.describe WebhookController do
       customer = create(:customer, woo_id: parsed_order[:customer][:woo_id])
       sale = create(:sale, woo_id: parsed_order[:sale][:woo_id], customer:)
       product = create(:product, woo_id: parsed_order[:products].first[:product_woo_id])
-      variation = create(:variation, woo_id: parsed_order[:products].first[:variation][:woo_id], product:)
+      edition = create(:edition, woo_id: parsed_order[:products].first[:edition][:woo_id], product:)
       @product_sale = create(
         :product_sale,
         sale:,
         product:,
-        variation:,
+        edition:,
         qty: 666,
         price: 666,
         woo_id: parsed_order[:products].first[:order_woo_id]
@@ -38,8 +38,8 @@ RSpec.describe WebhookController do
       expect(updated_product_sale.price).to eq(
         BigDecimal(parsed_product[:price])
       )
-      expect(updated_product_sale.variation.title).to eq(
-        parsed_product[:variation][:display_value]
+      expect(updated_product_sale.edition.title).to eq(
+        parsed_product[:edition][:display_value]
       )
     end
 
@@ -51,8 +51,8 @@ RSpec.describe WebhookController do
       expect(new_sale.price).to eq(
         BigDecimal(parsed_product[:price])
       )
-      expect(new_sale.variation.title).to eq(
-        parsed_product[:variation][:display_value]
+      expect(new_sale.edition.title).to eq(
+        parsed_product[:edition][:display_value]
       )
     end
   end

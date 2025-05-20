@@ -9,7 +9,7 @@ class SalesController < ApplicationController
         product_sales: [
           :purchased_products,
           product: [images_attachments: :blob],
-          variation: [
+          edition: [
             :version,
             :color,
             :size
@@ -18,7 +18,7 @@ class SalesController < ApplicationController
       )
       .except_cancelled_or_completed
       .order(
-        Arel.sql("woo_created_at DESC, created_at DESC, CAST(woo_id AS int) DESC")
+        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC, CAST(woo_id AS int) DESC")
       )
       .page(params[:page])
 
@@ -90,6 +90,28 @@ class SalesController < ApplicationController
     Notifier.new(purchased_product_ids:).handle_product_purchase
 
     redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
+  end
+
+  def pull
+    limit = params[:limit].to_i
+
+    sale_id = params[:id]
+
+    if sale_id.present?
+      sale = Sale.friendly.find(sale_id)
+      Shopify::PullSaleJob.perform_later(sale.shopify_id)
+    else
+      Shopify::PullSalesJob.perform_later(limit:)
+      Config.update_shopify_sales_sync_time
+    end
+
+    statuses_link = view_context.link_to(
+      "jobs statuses dashboard", root_url + "jobs/statuses"
+    )
+
+    flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
+
+    redirect_back(fallback_location: sales_path)
   end
 
   private

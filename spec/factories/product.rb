@@ -10,8 +10,8 @@ FactoryBot.define do
       brand
     end
 
-    trait :with_variation do
-      variation
+    trait :with_edition do
+      edition
     end
 
     factory(:product_with_brands) do
@@ -20,14 +20,19 @@ FactoryBot.define do
         brands_count { 1 }
       end
 
-      after(:create) do |product, evaluator|
-        create_list(
-          :brand,
-          evaluator.brands_count,
-          title: evaluator.brand_title,
-          products: [product]
-        )
-        product.reload
+      before(:create) do |product, evaluator|
+        existing_brand = Brand.find_by(title: evaluator.brand_title)
+
+        if existing_brand
+          product.brands << existing_brand
+        else
+          create_list(
+            :brand,
+            evaluator.brands_count,
+            title: evaluator.brand_title,
+            products: [product]
+          )
+        end
       end
     end
   end

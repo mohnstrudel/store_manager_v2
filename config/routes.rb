@@ -1,4 +1,5 @@
 require "sidekiq/web"
+require "sidekiq-status/web"
 
 Rails.application.routes.draw do
   root "dashboard#index"
@@ -30,6 +31,8 @@ Rails.application.routes.draw do
 
   resources :sales do
     get "/page/:page", action: :index, on: :collection
+    get "pull", action: :pull, on: :collection
+    get "pull", action: :pull, on: :member
     member do
       get :link_purchased_products
     end
@@ -37,7 +40,9 @@ Rails.application.routes.draw do
 
   resources :products do
     get "/page/:page", action: :index, on: :collection
-    get "variations", on: :member
+    get "editions", on: :member
+    get "pull", action: :pull, on: :collection
+    get "pull", action: :pull, on: :member
   end
 
   resources :purchases do

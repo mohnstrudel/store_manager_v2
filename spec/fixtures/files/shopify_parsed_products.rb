@@ -25,7 +25,7 @@
       "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/a6ac066d0a8e512c73e95e9d3d73a72b__35163.jpg?v=1741362361"},
     {"src" =>
       "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/b98c0eefe8ddb937e5f993cf2dfa35ba__67461.jpg?v=1741362361"}],
-  variations: [{id: "gid://shopify/ProductVariant/51858971590985",
+  editions: [{id: "gid://shopify/ProductVariant/51858971590985",
                 title: "Default Title",
                 options: [{"value" => "Default Title", "name" => "Title"}]}]},
   {shopify_id: "gid://shopify/Product/9575524073801",
@@ -55,7 +55,7 @@
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/d9006914a8a7c3bb_1.webp?v=1741357030"},
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/d9006914a8a7c3bb.webp?v=1741357030"}],
-   variations: [{id: "gid://shopify/ProductVariant/51858210095433",
+   editions: [{id: "gid://shopify/ProductVariant/51858210095433",
                  title: "A",
                  options: [{"value" => "A", "name" => "Edition"}]},
      {id: "gid://shopify/ProductVariant/51858210128201",
@@ -87,7 +87,7 @@
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/68934995-d173-5133-b0e6-a7779d57989f.jpg?v=1741354522"},
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/d6bfed2e-ad0c-5606-a9e3-cd7a37c2a125.jpg?v=1741354519"}],
-   variations: [{id: "gid://shopify/ProductVariant/51857799283017",
+   editions: [{id: "gid://shopify/ProductVariant/51857799283017",
                  title: "Default Title",
                  options: [{"value" => "Default Title", "name" => "Title"}]}]},
   {shopify_id: "gid://shopify/Product/9575334445385",
@@ -117,7 +117,7 @@
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/2025-03-06_13.22.48__67521.png?v=1741352793"},
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/2025-03-06_13.webp?v=1741352793"}],
-   variations: [{id: "gid://shopify/ProductVariant/51857360585033",
+   editions: [{id: "gid://shopify/ProductVariant/51857360585033",
                  title: "A",
                  options: [{"value" => "A", "name" => "Edition"}]},
      {id: "gid://shopify/ProductVariant/51857360617801",
@@ -150,6 +150,6 @@
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/0ea9d5c7-4514-594c-83b5-3dde48b0a544.jpg?v=1741352388"},
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/1cd66e3e-c673-5567-8c98-2c9faf6863c0.jpg?v=1741352391"}],
-   variations: [{id: "gid://shopify/ProductVariant/51857274798409",
+   editions: [{id: "gid://shopify/ProductVariant/51857274798409",
                  title: "Default Title",
                  options: [{"value" => "Default Title", "name" => "Title"}]}]}]

@@ -45,7 +45,7 @@ class ProductSalesController < ApplicationController
       :price,
       :qty,
       :sale_id,
-      :variation_id,
+      :edition_id,
       :woo_id
     )
   end

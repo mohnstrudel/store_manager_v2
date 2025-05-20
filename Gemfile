@@ -53,6 +53,7 @@ gem "pg_search"
 gem "aws-sdk-s3", require: false
 gem "ruby-progressbar"
 gem "sidekiq", "~> 7.2"
+gem "sidekiq-status"
 
 # Add to postgresql.conf this two lines:
 # shared_preload_libraries = 'pg_stat_statements'
@@ -113,6 +114,7 @@ group :development do
   gem "prosopite"
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
+  gem "rubycritic", require: false
 end
 
 group :test do

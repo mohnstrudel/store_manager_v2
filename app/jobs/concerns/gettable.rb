@@ -10,22 +10,11 @@ module Gettable
       total_records = total_records.to_i
       pages ||= (total_records < PER_PAGE) ? 1 : (total_records / PER_PAGE).ceil
 
-      progressbar = ProgressBar.create(title: self.class.name)
-      progress_step = 100 / pages
-
       result = []
-      page = 1
 
-      while page <= pages
-        unless progressbar.finished?
-          progress_step.times {
-            progressbar.increment
-            sleep 0.25
-          }
-        end
+      (1..pages).each do |page|
         parsed_payload = api_get(url, status, PER_PAGE, page)
         result << parsed_payload
-        page += 1
       end
 
       result.flatten.compact_blank

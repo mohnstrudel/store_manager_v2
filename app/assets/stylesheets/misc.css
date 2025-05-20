@@ -177,3 +177,25 @@ mark.smaller {
 .no-bg-hover:hover {
   background-color: transparent !important;
 }
+
+dialog hgroup {
+  margin-bottom: 0;
+  min-width: 300px;
+}
+
+dialog h4 {
+  margin: 0;
+}
+
+dialog {
+  transform: translateY(-10px);
+  opacity: 0;
+  transition:
+    opacity 0.15s ease-out,
+    transform 0.15s ease-out;
+}
+
+dialog[open] {
+  transform: translateY(0);
+  opacity: 1;
+}

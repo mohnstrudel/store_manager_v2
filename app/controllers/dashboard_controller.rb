@@ -25,8 +25,8 @@ class DashboardController < ApplicationController
       search_query = params[:q].downcase
       sale_debts.select do |product|
         product.full_title&.downcase&.include?(search_query) ||
-          product.variations.any? do |variation|
-            variation.title&.downcase&.include?(search_query)
+          product.editions.any? do |edition|
+            edition.title&.downcase&.include?(search_query)
           end
       end
     else
@@ -47,13 +47,13 @@ class DashboardController < ApplicationController
   private
 
   def sale_debts
-    variation_debt_query = <<-SQL.squish
-      SUM(COALESCE(sold.total_qty, 0)) - SUM(COALESCE(purchased_variations.amount, 0))
+    edition_debt_query = <<-SQL.squish
+      SUM(COALESCE(sold.total_qty, 0)) - SUM(COALESCE(purchased_editions.amount, 0))
     SQL
 
     debt_query = <<-SQL.squish
       CASE
-        WHEN sold.variation_id > 0 THEN #{variation_debt_query}
+        WHEN sold.edition_id > 0 THEN #{edition_debt_query}
         ELSE
           SUM(COALESCE(sold.total_qty, 0)) - SUM(COALESCE(purchased.amount, 0))
       END
@@ -64,76 +64,76 @@ class DashboardController < ApplicationController
         products.*,
         SUM(sold.total_qty) AS sold_amount,
         SUM(purchased.amount) AS purchased_amount,
-        SUM(purchased_variations.amount) AS purchased_variations_amount,
+        SUM(purchased_editions.amount) AS purchased_editions_amount,
         #{debt_query} AS debt,
-        #{variation_debt_query} AS variations_debt,
-        sold.variation_id AS sale_variation_id,
-        variations.variation_name AS variation_name
+        #{edition_debt_query} AS editions_debt,
+        sold.edition_id AS sale_edition_id,
+        editions.edition_name AS edition_name
       SQL
       .joins(<<-SQL.squish)
         LEFT JOIN (#{sold.to_sql}) sold
           ON sold.product_id = products.id
         LEFT JOIN (#{purchased.to_sql}) purchased
           ON purchased.product_id = products.id
-        LEFT JOIN (#{purchased_variations.to_sql}) purchased_variations
-          ON purchased_variations.variation_id = sold.variation_id
-        LEFT JOIN (#{variations.to_sql}) variations
-          ON variations.variation_id = sold.variation_id
+        LEFT JOIN (#{purchased_editions.to_sql}) purchased_editions
+          ON purchased_editions.edition_id = sold.edition_id
+        LEFT JOIN (#{editions.to_sql}) editions
+          ON editions.edition_id = sold.edition_id
       SQL
       .group(<<-SQL.squish)
         products.id,
         products.full_title,
-        sold.variation_id,
-        variations.variation_name
+        sold.edition_id,
+        editions.edition_name
       SQL
-      .having("#{debt_query} > 0 AND #{variation_debt_query} > 0")
-      .order(debt: :desc, variations_debt: :desc)
+      .having("#{debt_query} > 0 AND #{edition_debt_query} > 0")
+      .order(debt: :desc, editions_debt: :desc)
   end
 
   def sold
     ProductSale
       .select(<<-SQL.squish)
         product_id,
-        variation_id,
+        edition_id,
         SUM(qty) AS total_qty
       SQL
       .joins(:sale)
       .where(sales: {status: Sale.active_status_names})
-      .group("product_id, variation_id")
+      .group("product_id, edition_id")
   end
 
   def purchased
     Purchase
       .select(<<-SQL.squish)
         product_id,
-        variation_id,
+        edition_id,
         SUM(amount) AS amount
       SQL
-      .where(variation_id: nil)
-      .group("product_id, variation_id")
+      .where(edition_id: nil)
+      .group("product_id, edition_id")
   end
 
-  def purchased_variations
+  def purchased_editions
     Purchase
       .select(<<-SQL.squish)
-        variation_id,
+        edition_id,
         SUM(amount) AS amount
       SQL
-      .where.not(variation_id: nil)
-      .group("variation_id")
+      .where.not(edition_id: nil)
+      .group("edition_id")
   end
 
-  def variations
-    Variation
+  def editions
+    Edition
       .select(<<-SQL.squish)
-        variations.id AS variation_id,
-        COALESCE(versions.value, colors.value, sizes.value) AS variation_name
+        editions.id AS edition_id,
+        COALESCE(versions.value, colors.value, sizes.value) AS edition_name
       SQL
       .joins(<<-SQL.squish)
-        LEFT JOIN versions ON versions.id = variations.version_id
-        LEFT JOIN colors ON colors.id = variations.version_id
-        LEFT JOIN sizes ON sizes.id = variations.version_id
+        LEFT JOIN versions ON versions.id = editions.version_id
+        LEFT JOIN colors ON colors.id = editions.version_id
+        LEFT JOIN sizes ON sizes.id = editions.version_id
       SQL
-      .group("variations.id, versions.value, colors.value, sizes.value")
+      .group("editions.id, versions.value, colors.value, sizes.value")
   end
 end

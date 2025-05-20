@@ -57,19 +57,19 @@ describe PurchaseSaleLinker do
       end
     end
 
-    context "when we link variations" do
-      let(:variation_regular)	{ create(:variation, :with_version, version_value: "Regular Armor") }
-      let(:variation_revealing)	{ create(:variation, :with_version, version_value: "Revealing Armor") }
+    context "when we link editions" do
+      let(:edition_regular)	{ create(:edition, :with_version, version_value: "Regular Armor") }
+      let(:edition_revealing)	{ create(:edition, :with_version, version_value: "Revealing Armor") }
       let(:purchase_regular) {
-        create(:purchase, supplier:, product:, variation: variation_regular, amount: 2)
+        create(:purchase, supplier:, product:, edition: edition_regular, amount: 2)
       }
       let(:product_sale_regular) {
-        create(:product_sale, product:, variation: variation_regular, sale: active_sale, qty: 1)
+        create(:product_sale, product:, edition: edition_regular, sale: active_sale, qty: 1)
       }
       let(:product_sale_revealing) {
-        create(:product_sale, product:, variation: variation_revealing, sale: active_sale, qty: 1)
+        create(:product_sale, product:, edition: edition_revealing, sale: active_sale, qty: 1)
       }
-      let(:product_sale_no_variation) {
+      let(:product_sale_no_edition) {
         create(:product_sale, product:, sale: active_sale, qty: 1)
       }
 
@@ -80,22 +80,22 @@ describe PurchaseSaleLinker do
         ])
       end
 
-      it "does not link when no exact variation present" do
+      it "does not link when no exact edition present" do
         product_sale_revealing
-        product_sale_no_variation
+        product_sale_no_edition
 
         expect(described_class.new(purchase: purchase_regular).link).to be_empty
       end
 
-      it "does not link to the same product without the variation" do
-        product_sale_no_variation
+      it "does not link to the same product without the edition" do
+        product_sale_no_edition
 
         expect(described_class.new(purchase: purchase_regular).link).to be_empty
       end
 
-      it "links to correct variation" do
+      it "links to correct edition" do
         product_sale_revealing
-        product_sale_no_variation
+        product_sale_no_edition
         product_sale_regular
 
         described_class.new(purchase: purchase_regular).link

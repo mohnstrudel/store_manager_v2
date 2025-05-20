@@ -1,8 +1,3 @@
-article:not(.notice) {
-  padding-right: calc(var(--block-spacing-horizontal) * 2);
-  padding-bottom: calc(var(--block-spacing-vertical) * 2);
-}
-
 article.notice {
   box-shadow: none;
 }

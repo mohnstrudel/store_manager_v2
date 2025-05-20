@@ -8,7 +8,7 @@ export default class extends Controller {
     let productId = event.target.selectedOptions[0].value;
     let target = this.selectTarget.id;
 
-    get(`/products/${productId}/variations?target=${target}`, {
+    get(`/products/${productId}/editions?target=${target}`, {
       responseKind: "turbo-stream",
     });
   }

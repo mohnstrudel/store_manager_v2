@@ -8,9 +8,10 @@
 #  qty                      :integer
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
+#  edition_id               :bigint
 #  product_id               :bigint           not null
 #  sale_id                  :bigint           not null
-#  variation_id             :bigint
+#  shopify_id               :string
 #  woo_id                   :string
 #
 require "rails_helper"

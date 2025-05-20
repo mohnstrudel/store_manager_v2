@@ -3,7 +3,7 @@
     "woo_id": 31418,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=B+Exclusive",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "Forsaken (dunkler)"
@@ -18,7 +18,7 @@
     "woo_id": 31417,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=B+Exclusive",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "High Elf (weißer)"
@@ -33,7 +33,7 @@
     "woo_id": 31416,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=A+Exclusive",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "Forsaken (dunkler)"
@@ -48,7 +48,7 @@
     "woo_id": 31415,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=A+Exclusive",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "High Elf (weißer)"
@@ -63,7 +63,7 @@
     "woo_id": 31414,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=C+%28Sitzende+%2B+Kleid+abnehmbar%29",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "Forsaken (dunkler)"
@@ -78,7 +78,7 @@
     "woo_id": 31413,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=C+%28Sitzende+%2B+Kleid+abnehmbar%29",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "High Elf (weißer)"
@@ -93,7 +93,7 @@
     "woo_id": 31412,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=B+%28Sitzende%29",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "Forsaken (dunkler)"
@@ -108,7 +108,7 @@
     "woo_id": 31411,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=B+%28Sitzende%29",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "High Elf (weißer)"
@@ -123,7 +123,7 @@
     "woo_id": 31410,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=Forsaken+%28dunkler%29&attribute_version=A+%28Stehende%29",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "Forsaken (dunkler)"
@@ -138,7 +138,7 @@
     "woo_id": 31409,
     "product_woo_id": 31408,
     "store_link": "https://store.handsomecake.com/product/world-of-warcraft-sylvanas-windrunner-14-resin-statue-von-bus-studio/?attribute_color=High+Elf+%28wei%C3%9Fer%29&attribute_version=A+%28Stehende%29",
-    "variations": [
+    "editions": [
       {
         "type": "Color",
         "value": "High Elf (weißer)"

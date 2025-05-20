@@ -7,7 +7,7 @@
       thead
         th Supplier
         th Title
-        th Variation
+        th Edition
         th Time ago
         th.right Item Price, $
         th Amount
@@ -18,9 +18,9 @@
             data-table-url-param=purchase_path(purchase)
           )
             td = purchase.supplier.title
-            - if purchase.variation.present?
+            - if purchase.edition.present?
               td = purchase.product.full_title
-              td = purchase.variation.title
+              td = purchase.edition.title
             - else
               td = purchase.product.full_title
               td

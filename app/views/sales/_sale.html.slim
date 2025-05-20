@@ -6,7 +6,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     span.bold = sale.customer.full_name
     br
     = sale.customer.email
-    ul.product-variations
+    ul.product-editions
       - sale.product_sales.each do |ps|
         li
           - if sale.active? || sale.completed?
@@ -16,10 +16,11 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
   td = format_sale_status sale.status
   td.right.mono = format_money sale.total
   td
-    = format_date sale.woo_created_at.presence || sale.created_at
+    = format_date sale.shop_created_at.presence || sale.created_at
     br
-    = format_date sale.woo_updated_at.presence || sale.updated_at
+    = format_date sale.shop_updated_at.presence || sale.updated_at
   td = sale.woo_id
+  td = sale.shopify_id_short
   - if action_name != "show" 
     td.actions
       = render "_shared/action-edit", route: edit_sale_path(sale)
