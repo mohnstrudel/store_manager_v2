@@ -1,12 +1,12 @@
 require "rails_helper"
 
 RSpec.describe Shopify::ApiClient do
-  describe "#initialize" do
-    before do
-      allow(ENV).to receive(:fetch).with("SHOPIFY_DOMAIN").and_return("test-store.myshopify.com")
-      allow(ENV).to receive(:fetch).with("SHOPIFY_API_TOKEN").and_return("test-token")
-    end
+  before do
+    allow(ENV).to receive(:fetch).with("SHOPIFY_DOMAIN").and_return("test-store.myshopify.com")
+    allow(ENV).to receive(:fetch).with("SHOPIFY_API_TOKEN").and_return("test-token")
+  end
 
+  describe "#initialize" do
     it "initializes a ShopifyAPI GraphQL client with correct session" do
       session_double = instance_double(ShopifyAPI::Auth::Session)
       client_double = instance_double(ShopifyAPI::Clients::Graphql::Admin)
