@@ -54,4 +54,12 @@ class Edition < ApplicationRecord
   def type_name_and_value
     [size, version, color].compact.map { |i| "#{i.model_name.name}: #{i.value}" }.join(", ")
   end
+
+  def shopify_id_short
+    shopify_id&.gsub("gid://shopify/ProductVariant/", "")
+  end
+
+  def shop_id
+    shopify_id_short || woo_id
+  end
 end

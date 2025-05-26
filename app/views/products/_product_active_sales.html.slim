@@ -5,16 +5,22 @@
       span = active_sales.size
     table role="grid" data-controller="table"
       thead
-        th Woo ID
-        th Status
-        th Customer
-        th Email
-        th Country
+        th Shop ID
+        th
+          | Customer
+          br
+          <span class="fw-400">Email</span>
+          br
+          <span class="fw-400">Country</span>
         th Date
         - if product.editions.any?
           th Edition?
         th.right Price, $
-        th Qty
+        th Amount
+        th
+          | Status
+          br
+          <span class="fw-400">Purchase Status</span>
       tbody
         - active_sales.each_with_index do |ps, idx|
           tr(
@@ -22,11 +28,13 @@
             data-action="click->table#goTo"
             data-table-url-param=sale_path(ps.sale)
           )
-            td = ps.sale.woo_id
-            td = ps.sale.status.capitalize
-            td = ps.sale.customer.full_name
-            td = ps.sale.customer.email
-            td = ps.sale.country
+            td = ps.sale.shop_id
+            td
+              strong = ps.sale.customer.full_name
+              br
+              = ps.sale.customer.email
+              br
+              = ps.sale.country
             td = format_date ps.sale.woo_created_at.presence || ps.created_at
             - if product.editions.any?
               - if ps.edition.present?
@@ -35,3 +43,16 @@
                 td -
             td.right.mono = format_money ps.price
             td = ps.qty
+            td
+              = ps.sale.status.capitalize
+              - if ps.purchased_products.present?
+                br
+                ul.v-align.list-none.mg-0.pd-0
+                  - ps.purchased_products.each do |purchased_product|
+                    li
+                      a.no-events href=purchased_product_path(purchased_product)
+                        i.icn 📦
+                        | #{purchased_product.warehouse.name}
+                        - if purchased_product.expenses
+                          | — expenses: $
+                          .mono.inline = format_money purchased_product.expenses

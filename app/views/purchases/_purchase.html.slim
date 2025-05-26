@@ -6,7 +6,7 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
     = purchase.product.full_title
     - if purchase.edition.present?
       | → #{purchase.edition.title}
-    ul.product-editions
+    ul.v-align.ml-s.list-none
       - if purchase.purchased_products.size == purchase.amount
         - purchase.purchased_products.group_by(&:warehouse).each do |warehouse, pp|
           li #{warehouse.name}: #{pp.count}

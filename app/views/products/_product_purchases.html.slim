@@ -6,11 +6,11 @@
     table role="grid" data-controller="table"
       thead
         th Supplier
-        th Title
-        th Edition
+        th Edition?
         th Time ago
         th.right Item Price, $
         th Amount
+        th Warehouse
       tbody
         - product.purchases.each_with_index do |purchase, idx|
           tr.hoverable(
@@ -19,11 +19,19 @@
           )
             td = purchase.supplier.title
             - if purchase.edition.present?
-              td = purchase.product.full_title
               td = purchase.edition.title
             - else
-              td = purchase.product.full_title
               td
             td = time_ago_in_words purchase.created_at
             td.right.mono = format_money purchase.item_price
             td = purchase.amount
+            td
+              ul.list-none.mg-0.pd-0
+                - purchase.purchased_products.each do |purchased_product|
+                  li
+                    a.no-events href=purchased_product_path(purchased_product)
+                      i.icn 📦
+                      | #{purchased_product.warehouse.name}
+                      - if purchased_product.expenses
+                        | — expenses: $
+                        .mono.inline = format_money purchased_product.expenses
