@@ -128,4 +128,72 @@ RSpec.describe Shopify::SaleCreator do
       end
     end
   end
+
+  describe "#link_sale" do
+    it "calls SaleLinker with the created sale" do
+      sale_linker = instance_double(SaleLinker)
+      expect(SaleLinker).to receive(:new).with(an_instance_of(Sale)).and_return(sale_linker)
+      expect(sale_linker).to receive(:link).and_return([1, 2, 3])
+
+      creator.update_or_create!
+    end
+  end
+
+  describe "#notify_customers" do
+    it "calls Notifier with the linked product IDs" do
+      linked_ids = [1, 2, 3]
+      sale_linker = instance_double(SaleLinker)
+      allow(SaleLinker).to receive(:new).and_return(sale_linker)
+      allow(sale_linker).to receive(:link).and_return(linked_ids)
+
+      notifier = instance_double(Notifier)
+      expect(Notifier).to receive(:new).with(purchased_product_ids: linked_ids).and_return(notifier)
+      expect(notifier).to receive(:handle_product_purchase)
+
+      creator.update_or_create!
+    end
+  end
+
+  describe "#create_editions_for_product!" do
+    it "creates editions for a product using EditionCreator" do
+      product = create(:product)
+      parsed_editions = [
+        {title: "Edition 1", shopify_id: "ed1"},
+        {title: "Edition 2", shopify_id: "ed2"}
+      ]
+
+      edition_creator = instance_double(Shopify::EditionCreator)
+      expect(Shopify::EditionCreator).to receive(:new).twice.and_return(edition_creator)
+      expect(edition_creator).to receive(:update_or_create!).twice
+
+      creator.send(:create_editions_for_product!, parsed_editions, product)
+    end
+  end
+
+  describe "transaction behavior" do
+    context "when an error occurs during product creation" do
+      before do
+        allow_any_instance_of(Shopify::ProductCreator).to receive(:update_or_create!).and_raise(ActiveRecord::RecordInvalid.new(Product.new))
+      end
+
+      it "rolls back all changes including customer and sale" do
+        expect { creator.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
+        expect(Customer.count).to eq(0)
+        expect(Sale.count).to eq(0)
+      end
+    end
+
+    context "when an error occurs during edition creation" do
+      before do
+        allow_any_instance_of(Shopify::EditionCreator).to receive(:update_or_create!).and_raise(ActiveRecord::RecordInvalid.new(Edition.new))
+      end
+
+      it "rolls back all changes" do
+        expect { creator.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
+        expect(Customer.count).to eq(0)
+        expect(Sale.count).to eq(0)
+        expect(Product.count).to eq(0)
+      end
+    end
+  end
 end

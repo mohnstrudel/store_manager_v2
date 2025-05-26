@@ -15,9 +15,7 @@
 #  woo_id                   :string
 #
 class ProductSale < ApplicationRecord
-  after_create :link_purchased_products
-
-  validates_db_uniqueness_of :woo_id
+  validates_db_uniqueness_of :woo_id, allow_nil: true
 
   db_belongs_to :product
   db_belongs_to :sale
@@ -51,10 +49,5 @@ class ProductSale < ApplicationRecord
     pretty_woo_id = woo_id && "Woo ID: #{woo_id}"
 
     [id, status, title, email, pretty_sale_id, pretty_woo_id].compact.join(" | ")
-  end
-
-  def link_purchased_products
-    linked_ids = PurchaseSaleLinker.new(sale:).link
-    Notifier.new(purchased_product_ids: linked_ids).handle_product_purchase
   end
 end
