@@ -4,7 +4,7 @@ tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-u
   td
     = product.full_title
     - if product.editions.present?
-      ul.product-editions
+      ul.v-align.ml-s.list-none
         - product.editions.each do |edition|
           li = edition.title
   td = product.woo_id

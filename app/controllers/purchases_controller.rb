@@ -56,9 +56,7 @@ class PurchasesController < ApplicationController
             warehouse.purchased_products.create(purchase_id: @purchase.id)
           end
 
-          purchased_product_ids = PurchaseSaleLinker.new(
-            purchase: @purchase
-          ).link
+          purchased_product_ids = PurchaseLinker.new(@purchase).link
 
           Notifier.new(purchased_product_ids:).handle_product_purchase
         end

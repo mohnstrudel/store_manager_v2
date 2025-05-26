@@ -57,6 +57,8 @@ class SalesController < ApplicationController
     @sale = Sale.new(sale_params)
 
     if @sale.save
+      linked_ids = SaleLinker.new(@sale).link
+      Notifier.new(purchased_product_ids: linked_ids).handle_product_purchase
       redirect_to @sale, notice: "Sale was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -83,9 +85,7 @@ class SalesController < ApplicationController
   end
 
   def link_purchased_products
-    purchased_product_ids = PurchaseSaleLinker.new(
-      sale: @sale
-    ).link
+    purchased_product_ids = SaleLinker.new(@sale).link
 
     Notifier.new(purchased_product_ids:).handle_product_purchase
 

@@ -6,7 +6,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     span.bold = sale.customer.full_name
     br
     = sale.customer.email
-    ul.product-editions
+    ul.v-align.ml-s.list-none
       - sale.product_sales.each do |ps|
         li
           - if sale.active? || sale.completed?

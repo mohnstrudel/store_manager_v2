@@ -3,6 +3,7 @@ FactoryBot.define do
     product
     store_link { "https://store.handsomecake.com/link-id?edition=666" }
     woo_id { "666" }
+    shopify_id { "999666" }
     version
 
     trait(:with_size) do

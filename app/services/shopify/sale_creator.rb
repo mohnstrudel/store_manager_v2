@@ -4,6 +4,7 @@ class Shopify::SaleCreator
   def initialize(parsed_item:)
     @parsed_order = parsed_item
     validate_parsed_order!
+    @sale_shopify_id = parsed_item[:sale][:shopify_id]
   end
 
   def update_or_create!
@@ -11,6 +12,8 @@ class Shopify::SaleCreator
       customer = find_or_create_customer!
       update_or_create_sale!(customer)
       update_or_create_product_sales!
+      linked_ids = link_sale
+      notify_customers(linked_ids)
     end
   rescue ActiveRecord::RecordInvalid => e
     model_name = e.record.class.name
@@ -39,7 +42,7 @@ class Shopify::SaleCreator
 
   def update_or_create_sale!(customer)
     existing_sale = Sale.find_by(
-      shopify_id: @parsed_order[:sale][:shopify_id]
+      shopify_id: @sale_shopify_id
     )
     if existing_sale
       existing_sale.update!(customer:)
@@ -49,7 +52,7 @@ class Shopify::SaleCreator
   end
 
   def update_or_create_product_sales!
-    sale = Sale.find_by!(shopify_id: @parsed_order[:sale][:shopify_id])
+    sale = Sale.find_by!(shopify_id: @sale_shopify_id)
 
     @parsed_order[:product_sales].each do |parsed_ps|
       if product_sale_is_corrupted(**parsed_ps)
@@ -96,13 +99,17 @@ class Shopify::SaleCreator
   def find_or_create_edition!(parsed_ps, product)
     return if parsed_ps[:edition_title].blank?
 
-    existing_edition = Edition.find_by(
-      shopify_id: parsed_ps[:shopify_edition_id]
-    )
-    return existing_edition if existing_edition
+    if parsed_ps[:shopify_edition_id].present?
+      existing_edition = Edition.find_by(
+        shopify_id: parsed_ps[:shopify_edition_id]
+      )
+      return existing_edition if existing_edition
+    end
 
-    create_editions_for_product!(parsed_ps[:product][:editions], product)
-    Edition.find_by!(shopify_id: parsed_ps[:shopify_edition_id])
+    if parsed_ps[:product] && parsed_ps[:product][:editions].present?
+      create_editions_for_product!(parsed_ps[:product][:editions], product)
+      Edition.find_by!(shopify_id: parsed_ps[:shopify_edition_id])
+    end
   end
 
   def create_editions_for_product!(parsed_editions, product)
@@ -131,5 +138,14 @@ class Shopify::SaleCreator
     product.save!
 
     [product, product.editions.last]
+  end
+
+  def link_sale
+    sale = Sale.find_by!(shopify_id: @sale_shopify_id)
+    SaleLinker.new(sale).link
+  end
+
+  def notify_customers(linked_ids)
+    Notifier.new(purchased_product_ids: linked_ids).handle_product_purchase
   end
 end

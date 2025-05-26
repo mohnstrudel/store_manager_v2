@@ -1,9 +1,28 @@
-ul.product-editions {
+ul.pd-0 {
+  padding: 0;
+}
+
+ul.mg-0 {
+  margin: 0;
+}
+
+ul.list-none li {
+  list-style: none;
+}
+
+ul.v-align {
   margin-bottom: calc(var(--spacing) / 2.5);
   padding-top: calc(var(--spacing) / 2);
 }
 
-ul.product-editions li {
+ul.ml-m li {
   margin-left: var(--spacing-m);
-  list-style: none;
+}
+
+ul.ml-s li {
+  margin-left: var(--spacing-s);
+}
+
+ul.ml-0 li {
+  margin-left: 0;
 }

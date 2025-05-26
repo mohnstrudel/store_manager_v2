@@ -30,6 +30,7 @@ class ProductsController < ApplicationController
     }
 
     @editions_sales_sums = ProductSale
+      .only_active
       .where(edition: @product.editions)
       .group(:edition_id)
       .sum(:qty)
