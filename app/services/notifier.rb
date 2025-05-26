@@ -10,14 +10,14 @@ class Notifier
   end
 
   def handle_product_purchase
-    return warn_about(:no_payload) if @purchased_product_ids.blank?
+    return if @purchased_product_ids.blank?
 
     dispatch_product_purchased_message
   end
 
   def handle_warehouse_change
     return warn_about(:same_destination) if @from_id == @to_id
-    return warn_about(:no_payload) if @purchased_product_ids.blank?
+    return if @purchased_product_ids.blank?
 
     dispatch_warehouse_changed_message
   end
@@ -108,8 +108,6 @@ class Notifier
     case subj
     when :same_destination
       warn prefix % "Destination is the same as the original location"
-    when :no_payload
-      warn prefix % "Missing purchased products"
     when :no_transitions
       warn prefix % "No active transitions found for warehouses: #{@from_id} -> #{@to_id}"
     when :no_sale
