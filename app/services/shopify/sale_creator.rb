@@ -35,20 +35,17 @@ class Shopify::SaleCreator
   def find_or_create_customer!
     customer = Customer.find_by(
       shopify_id: @parsed_order[:customer][:shopify_id]
-    ) || Customer.new(@parsed_order[:customer])
+    ) || Customer.new
     customer.update!(@parsed_order[:customer])
     customer
   end
 
   def update_or_create_sale!(customer)
-    existing_sale = Sale.find_by(
+    sale = Sale.find_by(
       shopify_id: @sale_shopify_id
-    )
-    if existing_sale
-      existing_sale.update!(customer:)
-    else
-      Sale.create!(customer:, **@parsed_order[:sale])
-    end
+    ) || Sale.new
+    sale.update!(customer:, **@parsed_order[:sale])
+    sale
   end
 
   def update_or_create_product_sales!
