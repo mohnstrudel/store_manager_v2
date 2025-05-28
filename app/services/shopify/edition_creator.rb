@@ -35,7 +35,7 @@ class Shopify::EditionCreator
         attributes[:color] = Color.find_or_create_by(value: option[:value])
       when "Size", "Scale"
         attributes[:size] = Size.find_or_create_by(value: option[:value])
-      when "Version", "Edition", "Variante"
+      when "Version", "Edition", "Variante", "Variants"
         attributes[:version] = Version.find_or_create_by(value: option[:value])
       end
     end
