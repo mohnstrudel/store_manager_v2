@@ -10,31 +10,33 @@ class Shopify::BasePullJob < ApplicationJob
       creator_class.new(parsed_item:).update_or_create!
     end
 
-    schedule_next_page(response_data) if response_data[:has_next_page] && !limit
+    if response_data[:has_next_page] && !limit
+      schedule_next_page(response_data[:end_cursor])
+    end
   rescue ShopifyAPI::Errors::HttpResponseError => e
-    handle_api_error(e, attempts, cursor)
+    handle_api_error(e, attempts, cursor, limit)
   end
 
   private
 
-  def fetch_shopify_data(cursor: nil, limit: nil)
+  def fetch_shopify_data(cursor:, limit:)
     limit ||= batch_size
     api_client = Shopify::ApiClient.new
     api_client.pull(resource_name: resource_name, cursor:, limit:)
   end
 
-  def schedule_next_page(response_data)
+  def schedule_next_page(cursor)
     self.class
       .set(wait: 1.second)
-      .perform_later(cursor: response_data[:end_cursor])
+      .perform_later(cursor:)
   end
 
-  def handle_api_error(error, attempts, cursor)
+  def handle_api_error(error, attempts, cursor, limit)
     if error.response.code == 429 # Rate limit error
       retry_delay = attempts * 5 + 5
       self.class
         .set(wait: retry_delay.seconds)
-        .perform_later(attempts: attempts + 1, cursor:)
+        .perform_later(attempts: attempts + 1, cursor:, limit:)
     else
       raise error
     end
