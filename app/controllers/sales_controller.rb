@@ -93,7 +93,7 @@ class SalesController < ApplicationController
   end
 
   def pull
-    limit = params[:limit].to_i
+    limit = params[:limit]
 
     sale_id = params[:id]
 
