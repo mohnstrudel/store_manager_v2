@@ -1,5 +1,7 @@
 class Shopify::EditionCreator
   def initialize(product, parsed_edition)
+    raise ArgumentError, "Expected a Product" unless product.is_a?(Product)
+
     @product = product
     @parsed_edition = parsed_edition.with_indifferent_access
   end
@@ -7,16 +9,19 @@ class Shopify::EditionCreator
   def update_or_create!
     return if @parsed_edition[:options].blank?
 
-    raise ArgumentError, "Product must be present" if @product.blank?
-
     edition_attrs = find_or_create_edition_attrs
-
     return if edition_attrs.blank?
 
     ActiveRecord::Base.transaction do
-      edition = find_or_initialize(edition_attrs)
-      edition.save!
+      @edition = find_or_initialize(edition_attrs)
+      @edition.assign_attributes(
+        shopify_id: @parsed_edition[:id],
+        **edition_attrs
+      )
+      @edition.save!
     end
+
+    @edition
   end
 
   private
@@ -39,22 +44,16 @@ class Shopify::EditionCreator
   end
 
   def find_or_initialize(attrs)
-    return if attrs.blank?
-
-    edition = Edition
+    Edition
       .where(
-        product: @product,
+        product_id: @product.id,
         shopify_id: @parsed_edition[:id]
       )
       .or(Edition.where(
-        product: @product,
+        product_id: @product.id,
         shopify_id: nil,
         **attrs
       ))
       .first_or_initialize
-
-    edition.assign_attributes(shopify_id: @parsed_edition[:id], **attrs)
-
-    edition
   end
 end
