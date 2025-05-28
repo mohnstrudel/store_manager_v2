@@ -8,7 +8,7 @@ nav
       hgroup
         - if @sale.shop_id.present?
           h1.relative.w-fit
-            | Sale №#{@sale.shop_id}
+            | Sale #{@sale.shopify_name}
             = link_to sale_shop_link(@sale), class: "link-icn h1"
               = inline_svg "link-icn.svg"
         - else

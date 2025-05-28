@@ -14,9 +14,9 @@ main.wide
         tr
           th.text-center Image
           th
-            | Customer
+            <span>Customer</span>
             br
-            | Products
+            <span class="fw-400 pl-s">Products</span>
           th Status
           th.right Price
           th
@@ -24,7 +24,10 @@ main.wide
             br
             | Updated
           th Woo ID
-          th Shopify ID
+          th
+            | Shopify name
+            br
+            <span class="fw-400 mute">Shopify ID</span>
           th.right Actions
       tbody
         = render @sales
