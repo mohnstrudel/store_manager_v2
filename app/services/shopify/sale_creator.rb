@@ -104,11 +104,11 @@ class Shopify::SaleCreator
       return existing_edition if existing_edition
     end
 
-    if product && parsed_ps[:product][:editions].present?
+    if parsed_ps[:product] && parsed_ps[:product][:editions]
       editions = parsed_ps[:product][:editions].map do |parsed_edition|
         Shopify::EditionCreator.new(product, parsed_edition).update_or_create!
       end
-      editions.find { |edition| edition.shopify_id == parsed_ps[:shopify_edition_id] }
+      editions.compact_blank.find { |edition| edition.shopify_id == parsed_ps[:shopify_edition_id] }
     end
   end
 
