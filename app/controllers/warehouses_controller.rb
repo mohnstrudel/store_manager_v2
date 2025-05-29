@@ -4,7 +4,7 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products).order(updated_at: :desc)
+    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products).order(:position)
   end
 
   # GET /warehouses/1
@@ -97,6 +97,28 @@ class WarehousesController < ApplicationController
     else
       @warehouse.destroy!
       redirect_to warehouses_url, notice: "Warehouse #{warehouse_name} was successfully destroyed.", status: :see_other
+    end
+  end
+
+  def change_position
+    new_position = params[:position].to_i
+
+    return head :bad_request unless new_position.positive?
+
+    warehouse = Warehouse.find(params[:id])
+
+    prev_position = warehouse.position
+
+    if warehouse.update(position: new_position)
+      respond_to do |format|
+        format.html { redirect_to warehouses_url, notice: "We changed \"#{warehouse.name}\" position from #{prev_position} to #{new_position}.", status: :see_other }
+        format.json { head :ok }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to warehouses_url, alert: "Failed to update position.", status: :unprocessable_entity }
+        format.json { head :unprocessable_entity }
+      end
     end
   end
 

@@ -6,6 +6,7 @@ main.wide
   table role="grid" data-controller="table"
     thead
       tr
+        th Position
         th
           | Name
           br
@@ -16,4 +17,4 @@ main.wide
         th Products
         th.right Actions
     tbody
-      = render @warehouses
+      = render @warehouses, warehouses_count: @warehouses.size

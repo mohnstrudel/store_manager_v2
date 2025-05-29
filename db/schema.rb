@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_13_104122) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_28_115950) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -280,6 +280,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_104122) do
     t.datetime "closed_at"
     t.datetime "cancelled_at"
     t.string "cancel_reason"
+    t.string "shopify_name"
     t.index ["customer_id"], name: "index_sales_on_customer_id"
     t.index ["shopify_id"], name: "index_sales_on_shopify_id"
     t.index ["slug"], name: "index_sales_on_slug", unique: true
@@ -350,7 +351,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_104122) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_default", default: false, null: false
+    t.integer "position", default: 1, null: false
     t.index ["is_default"], name: "index_warehouses_on_is_default", unique: true, where: "(is_default = true)"
+    t.index ["position"], name: "index_warehouses_on_position", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

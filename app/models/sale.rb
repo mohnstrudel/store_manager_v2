@@ -21,6 +21,7 @@
 #  return_status      :string
 #  shipping_total     :decimal(8, 2)
 #  shopify_created_at :datetime
+#  shopify_name       :string
 #  shopify_updated_at :datetime
 #  slug               :string
 #  state              :string
