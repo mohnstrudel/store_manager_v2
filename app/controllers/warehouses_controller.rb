@@ -22,10 +22,12 @@ class WarehousesController < ApplicationController
   # GET /warehouses/new
   def new
     @warehouse = Warehouse.new
+    @positions_count = Warehouse.count + 1
   end
 
   # GET /warehouses/1/edit
   def edit
+    @positions_count = Warehouse.count
   end
 
   # POST /warehouses
@@ -138,6 +140,7 @@ class WarehousesController < ApplicationController
       :external_name,
       :name,
       :is_default,
+      :position,
       deleted_img_ids: [],
       images: []
     )

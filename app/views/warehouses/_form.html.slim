@@ -14,6 +14,9 @@
   = form.label :courier_tracking_url
   = form.text_field :courier_tracking_url
 
+  = form.label :position
+  = form.select :position, options_for_select((1..positions_count).to_a, warehouse.position), {}, class: "form-select"
+
   = form.label :is_default
   = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
 
