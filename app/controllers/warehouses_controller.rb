@@ -4,7 +4,7 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products).order(updated_at: :desc)
+    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products).order(:position)
   end
 
   # GET /warehouses/1
@@ -22,10 +22,12 @@ class WarehousesController < ApplicationController
   # GET /warehouses/new
   def new
     @warehouse = Warehouse.new
+    @positions_count = Warehouse.count + 1
   end
 
   # GET /warehouses/1/edit
   def edit
+    @positions_count = Warehouse.count
   end
 
   # POST /warehouses
@@ -100,6 +102,28 @@ class WarehousesController < ApplicationController
     end
   end
 
+  def change_position
+    new_position = params[:position].to_i
+
+    return head :bad_request unless new_position.positive?
+
+    warehouse = Warehouse.find(params[:id])
+
+    prev_position = warehouse.position
+
+    if warehouse.update(position: new_position)
+      respond_to do |format|
+        format.html { redirect_to warehouses_url, notice: "We changed \"#{warehouse.name}\" position from #{prev_position} to #{new_position}.", status: :see_other }
+        format.json { head :ok }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to warehouses_url, alert: "Failed to update position.", status: :unprocessable_entity }
+        format.json { head :unprocessable_entity }
+      end
+    end
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -116,6 +140,7 @@ class WarehousesController < ApplicationController
       :external_name,
       :name,
       :is_default,
+      :position,
       deleted_img_ids: [],
       images: []
     )
@@ -129,6 +154,7 @@ class WarehousesController < ApplicationController
         error_message = "change the current default warehouse \"#{view_context.link_to(current_default.name, warehouse_path(current_default))}\" before setting a new one".html_safe
 
         @warehouse.errors.add(:is_default, error_message)
+        @positions_count = Warehouse.count
         render :edit, status: :unprocessable_entity
       end
     end
