@@ -108,7 +108,7 @@ class ProductsController < ApplicationController
   end
 
   def pull
-    limit = params[:limit].to_i
+    limit = params[:limit]
     product_id = params[:id]
 
     if product_id.present?

@@ -9,10 +9,10 @@ class Shopify::SaleCreator
 
   def update_or_create!
     ActiveRecord::Base.transaction do
-      customer = find_or_create_customer!
-      update_or_create_sale!(customer)
-      update_or_create_product_sales!
-      linked_ids = link_sale
+      customer = update_or_create_customer!
+      sale = update_or_create_sale!(customer)
+      update_or_create_product_sales!(sale)
+      linked_ids = SaleLinker.new(sale).link
       notify_customers(linked_ids)
     end
   rescue ActiveRecord::RecordInvalid => e
@@ -32,35 +32,40 @@ class Shopify::SaleCreator
     raise ArgumentError, "Product sales data is required" if @parsed_order[:product_sales].blank?
   end
 
-  def find_or_create_customer!
+  def update_or_create_customer!
     customer = Customer.find_by(
       shopify_id: @parsed_order[:customer][:shopify_id]
-    ) || Customer.new(@parsed_order[:customer])
+    ) || Customer.new
     customer.update!(@parsed_order[:customer])
     customer
   end
 
   def update_or_create_sale!(customer)
-    existing_sale = Sale.find_by(
+    sale = Sale.find_by(
       shopify_id: @sale_shopify_id
-    )
-    if existing_sale
-      existing_sale.update!(customer:)
-    else
-      Sale.create!(customer:, **@parsed_order[:sale])
-    end
+    ) || Sale.new
+    sale.update!(customer:, **@parsed_order[:sale])
+    sale
   end
 
-  def update_or_create_product_sales!
-    sale = Sale.find_by!(shopify_id: @sale_shopify_id)
+  def find_or_create_product(shopify_product_id, parsed_product)
+    Product.find_by(shopify_id: shopify_product_id) ||
+      Shopify::ProductCreator
+        .new(parsed_item: parsed_product)
+        .update_or_create!
+  end
 
+  def update_or_create_product_sales!(sale)
     @parsed_order[:product_sales].each do |parsed_ps|
       if product_sale_is_corrupted(**parsed_ps)
         product, edition = find_or_create_product_edition_by_title!(parsed_ps)
       end
 
-      product ||= find_or_create_product(parsed_ps)
-      edition ||= find_or_create_edition!(parsed_ps, product)
+      product ||= find_or_create_product(
+        parsed_ps[:shopify_product_id],
+        parsed_ps[:product]
+      )
+      edition ||= find_or_create_edition(parsed_ps, product)
 
       product_sale = ProductSale.find_or_initialize_by(
         shopify_id: parsed_ps[:shopify_id]
@@ -89,14 +94,7 @@ class Shopify::SaleCreator
       shopify_product_id.blank?
   end
 
-  def find_or_create_product(parsed_ps)
-    Product.find_by(shopify_id: parsed_ps[:shopify_product_id]) ||
-      Shopify::ProductCreator
-        .new(parsed_item: parsed_ps[:product])
-        .update_or_create!
-  end
-
-  def find_or_create_edition!(parsed_ps, product)
+  def find_or_create_edition(parsed_ps, product)
     return if parsed_ps[:edition_title].blank?
 
     if parsed_ps[:shopify_edition_id].present?
@@ -106,15 +104,11 @@ class Shopify::SaleCreator
       return existing_edition if existing_edition
     end
 
-    if parsed_ps[:product] && parsed_ps[:product][:editions].present?
-      create_editions_for_product!(parsed_ps[:product][:editions], product)
-      Edition.find_by!(shopify_id: parsed_ps[:shopify_edition_id])
-    end
-  end
-
-  def create_editions_for_product!(parsed_editions, product)
-    parsed_editions.each do |v|
-      Shopify::EditionCreator.new(product, v).update_or_create!
+    if parsed_ps[:product] && parsed_ps[:product][:editions]
+      editions = parsed_ps[:product][:editions].map do |parsed_edition|
+        Shopify::EditionCreator.new(product, parsed_edition).update_or_create!
+      end
+      editions.compact_blank.find { |edition| edition.shopify_id == parsed_ps[:shopify_edition_id] }
     end
   end
 
@@ -138,11 +132,6 @@ class Shopify::SaleCreator
     product.save!
 
     [product, product.editions.last]
-  end
-
-  def link_sale
-    sale = Sale.find_by!(shopify_id: @sale_shopify_id)
-    SaleLinker.new(sale).link
   end
 
   def notify_customers(linked_ids)

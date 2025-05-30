@@ -143,3 +143,27 @@ br.xl {
 .w-fit {
   width: fit-content;
 }
+
+.pd-0 {
+  padding: 0;
+}
+
+.pl-s {
+  padding-left: var(--spacing);
+}
+
+.mg-0 {
+  margin: 0;
+}
+
+.ml-0 {
+  margin-left: 0;
+}
+
+.ml-s {
+  margin-left: var(--spacing);
+}
+
+.ml-m {
+  margin-left: var(--spacing-m);
+}

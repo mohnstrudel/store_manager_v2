@@ -31,6 +31,7 @@ class Shopify::SaleParser
       discount_total: @order["totalDiscounts"],
       financial_status: @order["displayFinancialStatus"],
       fulfillment_status: @order["displayFulfillmentStatus"],
+      shopify_name: @order["name"],
       note: @order["note"],
       postcode: @order["shippingAddress"].try(:[], "zip"),
       return_status: @order["returnStatus"],

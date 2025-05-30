@@ -114,14 +114,15 @@ class Shopify::ApiClient
   def pull(resource_name:, cursor:, limit:)
     raise ArgumentError, "Name is required" if resource_name.blank?
 
-    response_data = @client.query(
+    response_body = @client.query(
       query: gql_query(resource_name),
       variables: {
         first: limit,
         after: cursor
       }
-    )
-      .body["data"][resource_name]
+    ).body["data"]
+
+    response_data = response_body[resource_name] || response_body
 
     {
       items: response_data["edges"].pluck("node"),

@@ -1,11 +1,3 @@
-ul.pd-0 {
-  padding: 0;
-}
-
-ul.mg-0 {
-  margin: 0;
-}
-
 ul.list-none li {
   list-style: none;
 }
@@ -13,16 +5,4 @@ ul.list-none li {
 ul.v-align {
   margin-bottom: calc(var(--spacing) / 2.5);
   padding-top: calc(var(--spacing) / 2);
-}
-
-ul.ml-m li {
-  margin-left: var(--spacing-m);
-}
-
-ul.ml-s li {
-  margin-left: var(--spacing-s);
-}
-
-ul.ml-0 li {
-  margin-left: 0;
 }
