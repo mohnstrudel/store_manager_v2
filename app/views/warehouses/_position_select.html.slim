@@ -2,4 +2,4 @@
   = select_tag :position, 
     options_for_select((1..warehouses_count).to_a, warehouse.position),
     data: { action: "change->warehouse-position#changePosition", warehouse_id: warehouse.id },
-    class: "w-fit m-auto"
+    class: "w-fit m-auto select--light"
