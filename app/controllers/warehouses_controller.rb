@@ -154,6 +154,7 @@ class WarehousesController < ApplicationController
         error_message = "change the current default warehouse \"#{view_context.link_to(current_default.name, warehouse_path(current_default))}\" before setting a new one".html_safe
 
         @warehouse.errors.add(:is_default, error_message)
+        @positions_count = Warehouse.count
         render :edit, status: :unprocessable_entity
       end
     end

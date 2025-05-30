@@ -1,4 +1,4 @@
-tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param=warehouse_path(warehouse)
+tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param=warehouse_path(warehouse) data-warehouse-id=warehouse.id
   td.right = render "position_select", warehouse: warehouse, warehouses_count: warehouses_count
   td
     strong = warehouse.name
