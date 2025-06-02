@@ -132,7 +132,7 @@ RSpec.describe Shopify::BasePullJob do
       it "retries with exponential backoff" do
         perform_job
         expect(job_class).to have_received(:set).with(wait: 15.seconds)
-        expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: nil)
+        expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: nil, limit: nil)
       end
 
       it "raises other Shopify API errors" do

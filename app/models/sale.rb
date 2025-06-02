@@ -41,7 +41,7 @@ class Sale < ApplicationRecord
 
   include PgSearch::Model
   pg_search_scope :search,
-    against: :woo_id,
+    against: [:woo_id, :shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
     associated_against: {
       customer: [:email, :first_name, :last_name, :phone, :woo_id],
       products: [:full_title]

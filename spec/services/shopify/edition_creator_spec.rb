@@ -64,8 +64,7 @@ RSpec.describe Shopify::EditionCreator do
 
     context "with invalid data" do
       it "raises error when product is blank" do
-        creator = described_class.new(nil, parsed_variant)
-        expect { creator.update_or_create! }.to raise_error(ArgumentError, "Product must be present")
+        expect { described_class.new(nil, parsed_variant) }.to raise_error(ArgumentError, "Expected a Product")
       end
 
       it "returns nil and does not create an edition" do
