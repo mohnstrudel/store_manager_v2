@@ -131,6 +131,10 @@ br.xl {
   position: relative;
 }
 
+.m-auto {
+  margin: auto;
+}
+
 .mx-auto {
   margin-right: auto;
   margin-left: auto;

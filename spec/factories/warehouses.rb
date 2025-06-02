@@ -9,16 +9,20 @@
 #  external_name             :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
+#  position                  :integer          default(1), not null
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #
 FactoryBot.define do
   factory :warehouse do
-    name { "Virtual Warehouse" }
-    external_name { "In Production" }
-    container_tracking_number { "666" }
-    courier_tracking_url { "" }
-    cbm { "42" }
+    sequence(:name) { |n| "Warehouse #{n}" }
+    sequence(:external_name) { |n| "External Name #{n}" }
+    sequence(:position) { |n| n }
     is_default { false }
+    
+    trait :default do
+      is_default { true }
+    end
   end
 end
+

@@ -1,8 +1,8 @@
 require "rails_helper"
 
 describe "Changing default warehouse" do
-  let!(:existing_default_warehouse) { create(:warehouse, name: "Default Warehouse", is_default: true) }
-  let!(:non_default_warehouse) { create(:warehouse, name: "Non-Default Warehouse", is_default: false) }
+  let!(:existing_default_warehouse) { create(:warehouse, :default, name: "Default Warehouse") }
+  let!(:non_default_warehouse) { create(:warehouse, name: "Non-Default Warehouse") }
 
   scenario "cannot change default warehouse when another default exists" do
     visit edit_warehouse_path(non_default_warehouse)

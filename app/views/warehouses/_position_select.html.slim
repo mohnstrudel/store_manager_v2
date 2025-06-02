@@ -1,0 +1,5 @@
+= form_with url: change_position_warehouse_path(warehouse), method: :post, data: {controller: "warehouse-position"}, class: "no-events m-auto" do |form|
+  = select_tag :position, 
+    options_for_select((1..warehouses_count).to_a, warehouse.position),
+    data: { action: "change->warehouse-position#changePosition", warehouse_id: warehouse.id },
+    class: "w-fit m-auto select--light"
