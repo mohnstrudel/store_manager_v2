@@ -13,6 +13,9 @@
 #  woo_id     :string
 #
 class Customer < ApplicationRecord
+  audited
+  has_associated_audits
+
   include PgSearch::Model
   pg_search_scope :search,
     against: [:woo_id, :email, :first_name, :last_name, :phone],

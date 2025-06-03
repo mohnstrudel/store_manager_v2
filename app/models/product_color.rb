@@ -9,7 +9,7 @@
 #  product_id :bigint
 #
 class ProductColor < ApplicationRecord
-  after_save ->(product_color) { product_color.product.update_full_title }
+  audited
 
   db_belongs_to :product
   db_belongs_to :color

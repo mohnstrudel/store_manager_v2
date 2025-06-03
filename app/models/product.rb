@@ -17,6 +17,9 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
+  audited associated_with: :franchise
+  has_associated_audits
+
   include HasPreviewImages
   include PgSearch::Model
 

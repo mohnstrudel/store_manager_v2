@@ -15,6 +15,8 @@
 #  woo_id     :string
 #
 class Edition < ApplicationRecord
+  audited associated_with: :product
+
   belongs_to :size, optional: true
   belongs_to :version, optional: true
   belongs_to :color, optional: true

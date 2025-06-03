@@ -9,6 +9,8 @@
 #  supplier_id :bigint
 #
 class ProductSupplier < ApplicationRecord
+  audited
+
   db_belongs_to :product
   db_belongs_to :supplier
 end

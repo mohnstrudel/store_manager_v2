@@ -36,6 +36,9 @@
 #  woo_id             :string
 #
 class Sale < ApplicationRecord
+  audited associated_with: :customer
+  has_associated_audits
+
   extend FriendlyId
   friendly_id :full_title, use: :slugged
 

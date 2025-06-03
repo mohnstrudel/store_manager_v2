@@ -15,6 +15,8 @@
 #  woo_id                   :string
 #
 class ProductSale < ApplicationRecord
+  audited associated_with: :sale
+
   validates_db_uniqueness_of :woo_id, allow_nil: true
 
   db_belongs_to :product

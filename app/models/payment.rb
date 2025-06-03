@@ -10,6 +10,8 @@
 #  purchase_id  :bigint           not null
 #
 class Payment < ApplicationRecord
+  audited associated_with: :purchase
+
   validates :value, presence: true
 
   db_belongs_to :purchase, touch: true

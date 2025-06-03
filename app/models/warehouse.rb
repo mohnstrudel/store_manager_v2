@@ -14,6 +14,9 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
+  audited
+  has_associated_audits
+
   include HasPreviewImages
 
   positioned

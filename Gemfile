@@ -69,6 +69,7 @@ gem "mailtrap"
 
 gem "shopify_app"
 
+gem "audited"
 gem "positioning"
 
 group :production, :staging do

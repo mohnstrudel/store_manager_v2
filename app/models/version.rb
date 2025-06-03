@@ -8,6 +8,8 @@
 #  updated_at :datetime         not null
 #
 class Version < ApplicationRecord
+  audited
+
   validates :value, presence: true
 
   has_many :product_versions, dependent: :destroy
