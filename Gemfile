@@ -69,6 +69,8 @@ gem "mailtrap"
 
 gem "shopify_app"
 
+gem "audited"
+
 group :production, :staging do
   gem "thruster"
   gem "barnes"

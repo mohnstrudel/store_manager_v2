@@ -9,6 +9,7 @@
 #  external_name             :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
+#  position                  :integer          default(1), not null
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #
@@ -24,6 +25,12 @@ RSpec.describe Warehouse, type: :model do
     it "validates presence of external name" do
       warehouse = described_class.new(name: "Name", external_name: nil)
       expect(warehouse).not_to be_valid
+    end
+  end
+
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
     end
   end
 end

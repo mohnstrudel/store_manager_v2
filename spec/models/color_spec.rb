@@ -7,11 +7,12 @@
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #
-class Color < ApplicationRecord
-  audited
+require "rails_helper"
 
-  validates :value, presence: true
-
-  has_many :product_colors, dependent: :destroy
-  has_many :products, through: :product_colors
+RSpec.describe Color do
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
+    end
+  end
 end

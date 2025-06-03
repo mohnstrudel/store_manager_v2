@@ -9,6 +9,9 @@
 #  updated_at :datetime         not null
 #
 class Supplier < ApplicationRecord
+  audited
+  has_associated_audits
+
   extend FriendlyId
   friendly_id :title, use: :slugged
 

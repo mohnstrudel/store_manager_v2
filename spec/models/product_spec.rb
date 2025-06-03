@@ -168,4 +168,10 @@ RSpec.describe Product do
       end
     end
   end
+
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
+    end
+  end
 end

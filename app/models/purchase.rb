@@ -16,6 +16,9 @@
 #  supplier_id     :bigint           not null
 #
 class Purchase < ApplicationRecord
+  audited associated_with: :supplier
+  has_associated_audits
+
   extend FriendlyId
   friendly_id :full_title, use: :slugged
 

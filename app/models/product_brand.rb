@@ -9,6 +9,8 @@
 #  product_id :bigint
 #
 class ProductBrand < ApplicationRecord
+  audited
+
   after_save ->(product_brand) { product_brand.product.update_full_title }
 
   db_belongs_to :product
