@@ -11,6 +11,7 @@
 #
 class Notification < ApplicationRecord
   audited
+  has_associated_audits
 
   enum :status, {
     disabled: 0,
