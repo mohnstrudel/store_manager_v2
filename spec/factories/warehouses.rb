@@ -9,7 +9,6 @@
 #  external_name             :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
-#  position                  :integer          default(1), not null
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #

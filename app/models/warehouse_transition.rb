@@ -10,7 +10,7 @@
 #  to_warehouse_id   :bigint
 #
 class WarehouseTransition < ApplicationRecord
-  audited associated_with: :warehouse
+  audited associated_with: :notification
 
   db_belongs_to :notification
   db_belongs_to :from_warehouse, class_name: "Warehouse"
