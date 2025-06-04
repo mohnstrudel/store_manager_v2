@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.4.2"
+ruby "3.4.4"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.x.x"
@@ -62,7 +62,6 @@ gem "pg_query", ">= 2"
 
 gem "requestjs-rails"
 gem "friendly_id"
-gem "state_machines-activerecord"
 
 gem "inline_svg"
 gem "mailtrap"
