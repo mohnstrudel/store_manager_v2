@@ -198,14 +198,14 @@ RSpec.describe Shopify::SaleCreator do
   end
 
   describe "#notify_customers" do
-    it "calls Notifier with the linked product IDs" do
+    it "calls PurchasedNotifier with the linked product IDs" do
       linked_ids = [1, 2, 3]
       sale_linker = instance_double(SaleLinker)
       allow(SaleLinker).to receive(:new).and_return(sale_linker)
       allow(sale_linker).to receive(:link).and_return(linked_ids)
 
-      notifier = instance_double(Notifier)
-      expect(Notifier).to receive(:new).with(purchased_product_ids: linked_ids).and_return(notifier)
+      notifier = instance_double(PurchasedNotifier)
+      expect(PurchasedNotifier).to receive(:new).with(purchased_product_ids: linked_ids).and_return(notifier)
       expect(notifier).to receive(:handle_product_purchase)
 
       creator.update_or_create!

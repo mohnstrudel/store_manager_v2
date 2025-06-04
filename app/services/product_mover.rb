@@ -39,7 +39,7 @@ class ProductMover
 
   def notify_on_purchase(purchased_products)
     purchased_product_ids = purchased_products.pluck(:id)
-    Notifier.new(purchased_product_ids:).handle_product_purchase
+    PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
   end
 
   def group_by_prev_warehouse(purchased_products)
@@ -52,7 +52,7 @@ class ProductMover
 
   def notify_on_move(grouped_product_ids)
     grouped_product_ids.each do |prev_warehouse_id, ids|
-      Notifier.new(
+      PurchasedNotifier.new(
         purchased_product_ids: ids,
         from_id: prev_warehouse_id,
         to_id: @warehouse.id

@@ -1,4 +1,4 @@
-class Notifier
+class PurchasedNotifier
   def initialize(
     purchased_product_ids:,
     from_id: nil,
