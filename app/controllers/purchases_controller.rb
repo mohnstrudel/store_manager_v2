@@ -58,7 +58,7 @@ class PurchasesController < ApplicationController
 
           purchased_product_ids = PurchaseLinker.new(@purchase).link
 
-          Notifier.new(purchased_product_ids:).handle_product_purchase
+          PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
         end
 
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }

@@ -1,6 +1,6 @@
 require "rails_helper"
 
-describe Notifier do
+describe PurchasedNotifier do
   include ActiveJob::TestHelper
 
   before do
