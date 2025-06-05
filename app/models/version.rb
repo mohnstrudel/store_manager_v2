@@ -9,6 +9,7 @@
 #
 class Version < ApplicationRecord
   audited
+  include HasAuditNotifications
 
   validates :value, presence: true
 

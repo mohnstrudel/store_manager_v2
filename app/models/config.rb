@@ -11,8 +11,9 @@
 #
 class Config < ApplicationRecord
   audited
+  include HasAuditNotifications
 
-  enum :sales_hook_status, [:disabled, :active]
+  enum :sales_hook_status, {disabled: 0, active: 1}
 
   CONFIG = Config.first_or_create
 

@@ -16,6 +16,7 @@
 #
 class Edition < ApplicationRecord
   audited associated_with: :product
+  include HasAuditNotifications
 
   belongs_to :size, optional: true
   belongs_to :version, optional: true

@@ -9,6 +9,7 @@
 #
 class Color < ApplicationRecord
   audited
+  include HasAuditNotifications
 
   validates :value, presence: true
 

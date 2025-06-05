@@ -9,6 +9,7 @@
 #
 class Shape < ApplicationRecord
   audited
+  include HasAuditNotifications
 
   validates :title, presence: true
 

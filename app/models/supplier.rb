@@ -11,6 +11,7 @@
 class Supplier < ApplicationRecord
   audited
   has_associated_audits
+  include HasAuditNotifications
 
   extend FriendlyId
   friendly_id :title, use: :slugged

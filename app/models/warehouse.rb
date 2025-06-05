@@ -15,6 +15,7 @@
 class Warehouse < ApplicationRecord
   audited
   has_associated_audits
+  include HasAuditNotifications
 
   include HasPreviewImages
 

@@ -15,6 +15,7 @@
 class Customer < ApplicationRecord
   audited
   has_associated_audits
+  include HasAuditNotifications
 
   include PgSearch::Model
   pg_search_scope :search,
@@ -27,6 +28,10 @@ class Customer < ApplicationRecord
 
   before_save :downcase_email
 
+  def self.woo_id_is_valid?(woo_id)
+    !woo_id.in? [0, "0", ""]
+  end
+
   def name_and_email
     [full_name, email].compact.join(" — ")
   end
@@ -37,10 +42,6 @@ class Customer < ApplicationRecord
 
   def title
     full_name
-  end
-
-  def self.woo_id_is_valid?(woo_id)
-    !woo_id.in? [0, "0", ""]
   end
 
   def shopify_id_short
