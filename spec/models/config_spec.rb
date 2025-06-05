@@ -27,4 +27,10 @@ RSpec.describe Config do
       expect(described_class.sales_hook_disabled?).to be true
     end
   end
+
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
+    end
+  end
 end

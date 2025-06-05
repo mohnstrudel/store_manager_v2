@@ -10,6 +10,10 @@
 #  updated_at :datetime         not null
 #
 class Notification < ApplicationRecord
+  audited
+  has_associated_audits
+  include HasAuditNotifications
+
   enum :status, {
     disabled: 0,
     active: 1

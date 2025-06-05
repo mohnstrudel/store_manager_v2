@@ -9,7 +9,8 @@
 #  size_id    :bigint
 #
 class ProductSize < ApplicationRecord
-  after_save ->(product_size) { product_size.product.update_full_title }
+  audited
+  include HasAuditNotifications
 
   db_belongs_to :product
   db_belongs_to :size

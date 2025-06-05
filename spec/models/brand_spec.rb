@@ -1,17 +1,18 @@
 # == Schema Information
 #
-# Table name: shapes
+# Table name: brands
 #
 #  id         :bigint           not null, primary key
 #  title      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #
-class Shape < ApplicationRecord
-  audited
-  include HasAuditNotifications
+require "rails_helper"
 
-  validates :title, presence: true
-
-  has_many :products, dependent: :destroy
+RSpec.describe Brand do
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
+    end
+  end
 end

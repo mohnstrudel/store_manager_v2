@@ -13,6 +13,10 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
+  audited
+  has_associated_audits
+  include HasAuditNotifications
+
   include HasPreviewImages
 
   has_many :purchased_products, dependent: :destroy

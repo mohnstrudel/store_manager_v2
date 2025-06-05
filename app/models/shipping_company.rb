@@ -9,6 +9,9 @@
 #  updated_at   :datetime         not null
 #
 class ShippingCompany < ApplicationRecord
+  audited
+  include HasAuditNotifications
+
   has_many :purchased_products, dependent: :nullify
 
   validates_db_uniqueness_of :name

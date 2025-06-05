@@ -8,6 +8,9 @@
 #  updated_at :datetime         not null
 #
 class Size < ApplicationRecord
+  audited
+  include HasAuditNotifications
+
   validates :value, presence: true, uniqueness: true
 
   has_many :product_sizes, dependent: :destroy

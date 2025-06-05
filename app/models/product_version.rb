@@ -9,7 +9,8 @@
 #  version_id :bigint
 #
 class ProductVersion < ApplicationRecord
-  after_save ->(product_version) { product_version.product.update_full_title }
+  audited
+  include HasAuditNotifications
 
   db_belongs_to :product
   db_belongs_to :version
