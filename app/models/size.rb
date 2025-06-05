@@ -9,6 +9,7 @@
 #
 class Size < ApplicationRecord
   audited
+  include HasAuditNotifications
 
   validates :value, presence: true, uniqueness: true
 

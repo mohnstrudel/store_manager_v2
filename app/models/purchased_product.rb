@@ -19,6 +19,7 @@
 #
 class PurchasedProduct < ApplicationRecord
   audited associated_with: :purchase
+  include HasAuditNotifications
 
   include HasPreviewImages
   include PgSearch::Model

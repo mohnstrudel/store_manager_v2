@@ -38,6 +38,7 @@
 class Sale < ApplicationRecord
   audited associated_with: :customer
   has_associated_audits
+  include HasAuditNotifications
 
   extend FriendlyId
   friendly_id :full_title, use: :slugged
@@ -65,35 +66,6 @@ class Sale < ApplicationRecord
   scope :except_cancelled_or_completed, -> {
     where.not(status: cancelled_status_names + completed_status_names)
   }
-
-  def title
-    email = customer.email.presence || ""
-    [status&.titleize, email].compact.join(" | ")
-  end
-
-  def select_title
-    name = customer.full_name.presence
-    email = customer.email.presence
-    woo = woo_id.presence
-    total = total.presence || 0
-    [name, email, status&.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
-  end
-
-  def created
-    woo_created_at || created_at
-  end
-
-  def full_title
-    [customer.name_and_email, woo_id.presence].compact.join(" | ")
-  end
-
-  def active?
-    self.class.active_status_names.include?(status)
-  end
-
-  def completed?
-    self.class.completed_status_names.include?(status)
-  end
 
   def self.active_status_names
     [
@@ -141,6 +113,35 @@ class Sale < ApplicationRecord
 
   def self.update_order(sale)
     UpdateWooOrderJob.perform_later(sale)
+  end
+
+  def title
+    email = customer.email.presence || ""
+    [status&.titleize, email].compact.join(" | ")
+  end
+
+  def select_title
+    name = customer.full_name.presence
+    email = customer.email.presence
+    woo = woo_id.presence
+    total = total.presence || 0
+    [name, email, status&.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
+  end
+
+  def created
+    woo_created_at || created_at
+  end
+
+  def full_title
+    [customer.name_and_email, woo_id.presence].compact.join(" | ")
+  end
+
+  def active?
+    self.class.active_status_names.include?(status)
+  end
+
+  def completed?
+    self.class.completed_status_names.include?(status)
   end
 
   def has_unlinked_product_sales?

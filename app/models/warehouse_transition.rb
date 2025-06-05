@@ -11,6 +11,7 @@
 #
 class WarehouseTransition < ApplicationRecord
   audited associated_with: :notification
+  include HasAuditNotifications
 
   db_belongs_to :notification
   db_belongs_to :from_warehouse, class_name: "Warehouse"

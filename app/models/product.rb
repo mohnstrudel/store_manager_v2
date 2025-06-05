@@ -19,6 +19,7 @@
 class Product < ApplicationRecord
   audited associated_with: :franchise
   has_associated_audits
+  include HasAuditNotifications
 
   include HasPreviewImages
   include PgSearch::Model
@@ -72,11 +73,6 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :purchased_products, through: :purchases
 
-  def update_full_title
-    self.full_title = Product.generate_full_title(self)
-    save
-  end
-
   def self.generate_full_title(
     product,
     brand = nil
@@ -97,8 +93,13 @@ class Product < ApplicationRecord
     ].compact.join(" | ")
   end
 
+  def update_full_title
+    self.full_title = Product.generate_full_title(self)
+    save
+  end
+
   def prev_image_id(img_id)
-    (images.where("id < ?", img_id).last || images.last).id
+    (images.where(id: ...img_id).last || images.last).id
   end
 
   def next_image_id(img_id)

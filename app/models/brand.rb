@@ -8,10 +8,11 @@
 #  updated_at :datetime         not null
 #
 class Brand < ApplicationRecord
+  include Sanitizable
+
   audited
   has_associated_audits
-
-  include Sanitizable
+  include HasAuditNotifications
 
   validates :title, presence: true
 

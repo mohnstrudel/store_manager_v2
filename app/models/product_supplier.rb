@@ -10,6 +10,7 @@
 #
 class ProductSupplier < ApplicationRecord
   audited
+  include HasAuditNotifications
 
   db_belongs_to :product
   db_belongs_to :supplier

@@ -10,6 +10,7 @@
 #
 class ShippingCompany < ApplicationRecord
   audited
+  include HasAuditNotifications
 
   has_many :purchased_products, dependent: :nullify
 

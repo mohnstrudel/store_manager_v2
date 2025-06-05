@@ -10,6 +10,7 @@
 #
 class ProductBrand < ApplicationRecord
   audited
+  include HasAuditNotifications
 
   after_save ->(product_brand) { product_brand.product.update_full_title }
 

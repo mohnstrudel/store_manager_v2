@@ -16,6 +16,7 @@
 #
 class ProductSale < ApplicationRecord
   audited associated_with: :sale
+  include HasAuditNotifications
 
   validates_db_uniqueness_of :woo_id, allow_nil: true
 

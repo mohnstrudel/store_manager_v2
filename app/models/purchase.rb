@@ -18,6 +18,7 @@
 class Purchase < ApplicationRecord
   audited associated_with: :supplier
   has_associated_audits
+  include HasAuditNotifications
 
   extend FriendlyId
   friendly_id :full_title, use: :slugged

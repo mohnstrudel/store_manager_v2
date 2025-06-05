@@ -11,6 +11,7 @@
 #
 class Payment < ApplicationRecord
   audited associated_with: :purchase
+  include HasAuditNotifications
 
   validates :value, presence: true
 
