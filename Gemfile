@@ -117,6 +117,7 @@ group :development do
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
   gem "rubycritic", require: false
+  gem "strong_migrations"
 end
 
 group :test do
