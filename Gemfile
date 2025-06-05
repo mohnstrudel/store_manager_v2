@@ -70,6 +70,8 @@ gem "shopify_app"
 
 gem "audited"
 
+gem "strong_migrations"
+
 group :production, :staging do
   gem "thruster"
   gem "barnes"
@@ -116,7 +118,6 @@ group :development do
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
   gem "rubycritic", require: false
-  gem "strong_migrations"
 end
 
 group :test do

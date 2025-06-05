@@ -1,5 +1,3 @@
-require "strong_migrations"
-
 # Mark existing migrations as safe
 StrongMigrations.start_after = 20250605052203
 
