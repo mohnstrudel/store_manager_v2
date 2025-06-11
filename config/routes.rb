@@ -23,6 +23,7 @@ Rails.application.routes.draw do
 
   resources :warehouses do
     get "/page/:page", action: :show, on: :member
+    post :change_position, on: :member
   end
 
   resources :customers do

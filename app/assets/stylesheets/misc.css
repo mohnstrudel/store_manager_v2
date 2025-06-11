@@ -199,3 +199,12 @@ dialog[open] {
   transform: translateY(0);
   opacity: 1;
 }
+
+.select--light {
+  cursor: pointer;
+  border-color: var(--dropdown-border-color);
+}
+
+.select--light:hover {
+  border-color: var(--form-element-border-color);
+}
