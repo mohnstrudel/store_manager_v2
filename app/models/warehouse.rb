@@ -9,17 +9,18 @@
 #  external_name             :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
+#  position                  :integer          default(1), not null
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
   audited
   has_associated_audits
-  include HasAuditNotifications
-
-  include HasPreviewImages
 
   positioned
+
+  include HasAuditNotifications
+  include HasPreviewImages
 
   has_many :purchased_products, dependent: :destroy
   has_many :purchases, through: :purchased_products
