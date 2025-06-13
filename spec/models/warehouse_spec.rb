@@ -27,4 +27,10 @@ RSpec.describe Warehouse, type: :model do
       expect(warehouse).not_to be_valid
     end
   end
+
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
+    end
+  end
 end

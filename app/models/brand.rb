@@ -10,6 +10,10 @@
 class Brand < ApplicationRecord
   include Sanitizable
 
+  audited
+  has_associated_audits
+  include HasAuditNotifications
+
   validates :title, presence: true
 
   has_many :product_brands, dependent: :destroy

@@ -14,9 +14,13 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
-  include HasPreviewImages
+  audited
+  has_associated_audits
 
   positioned
+
+  include HasAuditNotifications
+  include HasPreviewImages
 
   has_many :purchased_products, dependent: :destroy
   has_many :purchases, through: :purchased_products

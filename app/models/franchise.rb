@@ -8,6 +8,10 @@
 #  updated_at :datetime         not null
 #
 class Franchise < ApplicationRecord
+  audited
+  has_associated_audits
+  include HasAuditNotifications
+
   validates :title, presence: true
   has_many :products, dependent: :destroy
 

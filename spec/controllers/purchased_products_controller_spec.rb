@@ -23,7 +23,7 @@ describe PurchasedProductsController do
     let(:to_warehouse) { create(:warehouse) }
     let(:purchased_products) { create_list(:purchased_product, 3, warehouse: from_warehouse) }
 
-    let(:notifier) { instance_double(Notifier, handle_warehouse_change: true) }
+    let(:notifier) { instance_double(PurchasedNotifier, handle_warehouse_change: true) }
 
     let(:valid_params) do
       {
@@ -34,7 +34,7 @@ describe PurchasedProductsController do
     end
 
     before do
-      allow(Notifier).to receive(:new).and_return(notifier)
+      allow(PurchasedNotifier).to receive(:new).and_return(notifier)
     end
 
     it "moves products to destination warehouse" do
@@ -48,7 +48,7 @@ describe PurchasedProductsController do
     it "notifies about warehouse change" do
       post :move, params: valid_params
 
-      expect(Notifier).to have_received(:new).with(
+      expect(PurchasedNotifier).to have_received(:new).with(
         purchased_product_ids: purchased_products.map(&:id),
         from_id: from_warehouse.id,
         to_id: to_warehouse.id

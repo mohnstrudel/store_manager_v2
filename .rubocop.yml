@@ -1,10 +1,12 @@
 require:
   - standard
-  - rubocop-rails
-  - rubocop-rspec
-  - rubocop-performance
   - rubocop-slim
   - database_validations/rubocop/cops
+
+plugins:
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rspec
 
 inherit_gem:
   standard: config/base.yml
@@ -19,6 +21,16 @@ AllCops:
 
 Rails:
   Enabled: true # enable rubocop-rails cops
+Rails/I18nLocaleTexts:
+  Enabled: false
+Rails/UnknownEnv:
+  Environments:
+    - development
+    - test
+    - production
+    - staging
+Layout/ClassStructure:
+  Enabled: true
 RSpec:
   Enabled: true # enable rubocop-rspec cops
 RSpec/DescribeClass:
@@ -29,5 +41,3 @@ RSpec/ExampleLength:
   Enabled: false
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we will have duplicated gems when dual booting
-Rails/I18nLocaleTexts:
-  Enabled: false

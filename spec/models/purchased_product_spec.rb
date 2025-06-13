@@ -25,4 +25,10 @@ describe PurchasedProduct do
 
     it { expect(purchased_product.name).to eq(purchased_product.purchase.full_title) }
   end
+
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
+    end
+  end
 end
