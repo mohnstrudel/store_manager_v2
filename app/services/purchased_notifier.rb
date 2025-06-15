@@ -37,7 +37,7 @@ class PurchasedNotifier
       {
         email: sale.customer.email,
         customer_name: sale.customer.full_name,
-        order_number: sale.woo_id || sale.shopify_name || sale.id,
+        order_number: sale.woo_id.presence || sale.shopify_name.presence || sale.id,
         item_name: purchased_product.product_sale.title
       }
     end
