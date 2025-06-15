@@ -11,7 +11,7 @@ class Shopify::ProductCreator
       find_or_initialize_product
       assign_relation("brands", @parsed_product[:brand])
       assign_relation("sizes", @parsed_product[:size])
-      update_full_title
+      build_full_title
       @product.save!
     end
 
@@ -63,7 +63,7 @@ class Shopify::ProductCreator
     end
   end
 
-  def update_full_title
+  def build_full_title
     @product.full_title = Product.generate_full_title(@product)
   end
 end
