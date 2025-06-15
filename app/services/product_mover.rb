@@ -2,47 +2,42 @@ class ProductMover
   NOTHING_MOVED = 0
 
   def initialize(warehouse_id:, purchase: nil, purchased_products_ids: [])
-    @warehouse = Warehouse.find(warehouse_id)
+    @destination = Warehouse.find(warehouse_id)
     @purchase = purchase
     @purchased_products = PurchasedProduct.where(
       id: purchased_products_ids
-    )
+    ).presence || purchase&.purchased_products || []
   end
 
   def move
-    purchased_products = @purchased_products.presence ||
-      @purchase&.purchased_products
-
-    if purchased_products&.any?
-      grouped_product_ids = group_by_prev_warehouse(purchased_products)
-      if update_location_for(purchased_products)
-        notify_on_move(grouped_product_ids)
-      end
+    if @purchased_products.any?
+      notify_on_move if items_relocated?
     else
       return NOTHING_MOVED if @purchase.nil?
-      purchased_products = create_purchased_products
-      if purchased_products.any?
-        notify_on_purchase(purchased_products)
-      end
+      notify_on_purchase if create_purchased_products.any?
     end
 
-    purchased_products.size
+    @purchased_products.size
   end
 
   private
 
-  def create_purchased_products
-    Array.new(@purchase.amount) do
-      @warehouse.purchased_products.create(purchase_id: @purchase.id)
+  def notify_on_move
+    @items_grouped_by_origin.each do |origin_warehouse_id, items_ids|
+      PurchasedNotifier.new(
+        purchased_product_ids: items_ids,
+        from_id: origin_warehouse_id,
+        to_id: @destination.id
+      ).handle_warehouse_change
     end
   end
 
-  def notify_on_purchase(purchased_products)
-    purchased_product_ids = purchased_products.pluck(:id)
-    PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
+  def items_relocated?
+    @items_grouped_by_origin = groupe_by_origin(@purchased_products)
+    @purchased_products.update_all(warehouse_id: @destination.id) > 0
   end
 
-  def group_by_prev_warehouse(purchased_products)
+  def groupe_by_origin(purchased_products)
     purchased_products
       .group_by(&:warehouse_id)
       .transform_values do |purchased_products|
@@ -50,17 +45,14 @@ class ProductMover
       end
   end
 
-  def notify_on_move(grouped_product_ids)
-    grouped_product_ids.each do |prev_warehouse_id, ids|
-      PurchasedNotifier.new(
-        purchased_product_ids: ids,
-        from_id: prev_warehouse_id,
-        to_id: @warehouse.id
-      ).handle_warehouse_change
+  def create_purchased_products
+    @purchased_products = Array.new(@purchase.amount) do
+      @destination.purchased_products.create(purchase_id: @purchase.id)
     end
   end
 
-  def update_location_for(purchased_products)
-    purchased_products.update_all(warehouse_id: @warehouse.id) > 0
+  def notify_on_purchase
+    purchased_product_ids = @purchased_products.pluck(:id)
+    PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
   end
 end
