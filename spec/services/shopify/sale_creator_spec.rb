@@ -9,29 +9,29 @@ RSpec.describe Shopify::SaleCreator do
   describe "#update_or_create" do
     context "with invalid input" do
       it "raises error when parsed_order is not a Hash" do
-        expect { described_class.new(parsed_item: nil).update_or_create! }.to raise_error(ArgumentError, "Order data must be a Hash")
+        expect { described_class.new(parsed_item: nil).update_or_create! }.to raise_error(ArgumentError, "parsed_item must be a Hash")
       end
 
       it "raises error when parsed_order is blank" do
-        expect { described_class.new(parsed_item: {}).update_or_create! }.to raise_error(ArgumentError, "Order data is required")
+        expect { described_class.new(parsed_item: {}).update_or_create! }.to raise_error(ArgumentError, "parsed_item cannot be blank")
       end
 
       it "raises error when customer data is missing" do
         invalid_order = valid_parsed_order.dup
         invalid_order[:customer] = nil
-        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "Customer data is required")
+        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "parsed_item[:customer] cannot be blank")
       end
 
       it "raises error when sale data is missing" do
         invalid_order = valid_parsed_order.dup
         invalid_order[:sale] = nil
-        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "Sale data is required")
+        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "parsed_item[:sale] cannot be blank")
       end
 
       it "raises error when product_sales is missing" do
         invalid_order = valid_parsed_order.dup
         invalid_order[:product_sales] = nil
-        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "Product sales data is required")
+        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "parsed_item[:product_sales] cannot be blank")
       end
     end
 
@@ -107,6 +107,93 @@ RSpec.describe Shopify::SaleCreator do
       it "still creates the product sale without a edition" do
         expect { creator_corrupted.update_or_create! }.to change(ProductSale, :count).by(1)
         expect(ProductSale.last.edition).to be_nil
+      end
+    end
+
+    context "when creating new edition" do
+      let(:parsed_order_with_new_edition) do
+        order = valid_parsed_order.deep_dup
+        order[:product_sales].first.merge!(
+          edition_title: "New Edition",
+          shopify_edition_id: nil,
+          shopify_product_id: nil,
+          full_title: "Test Product",
+          product: nil
+        )
+        order
+      end
+      let(:creator_with_new_edition) { described_class.new(parsed_item: parsed_order_with_new_edition) }
+
+      it "creates new edition with correct title" do
+        product = create(:product)
+        product_creator = instance_double(Shopify::ProductFromTitleCreator)
+        allow(Shopify::ProductFromTitleCreator).to receive(:new).and_return(product_creator)
+        allow(product_creator).to receive(:call).and_return(product)
+
+        expect { creator_with_new_edition.update_or_create! }.to change(Edition, :count).by(1)
+        expect(Edition.last.version.value).to eq("New Edition")
+        expect(Edition.last.product).to eq(product)
+      end
+    end
+
+    context "when creating edition with multiple attributes" do
+      let(:parsed_order_with_complex_edition) do
+        order = valid_parsed_order.deep_dup
+        order[:product_sales].first.merge!(
+          edition_title: "1:4 | New Edition | Red",
+          shopify_edition_id: nil,
+          shopify_product_id: nil,
+          full_title: "Test Product",
+          product: nil
+        )
+        order
+      end
+      let(:creator_with_complex_edition) { described_class.new(parsed_item: parsed_order_with_complex_edition) }
+
+      it "creates new edition with multiple attributes" do
+        product = create(:product)
+        product_creator = instance_double(Shopify::ProductFromTitleCreator)
+        allow(Shopify::ProductFromTitleCreator).to receive(:new).and_return(product_creator)
+        allow(product_creator).to receive(:call).and_return(product)
+
+        expect { creator_with_complex_edition.update_or_create! }.to change(Edition, :count).by(1)
+        expect(Edition.last.title).to eq("1:4 | New Edition | Red")
+        expect(Edition.last.product).to eq(product)
+      end
+    end
+
+    context "when edition creation fails" do
+      let(:parsed_order_with_invalid_edition) do
+        order = valid_parsed_order.deep_dup
+        order[:product_sales].first.merge!(
+          edition_title: "Invalid Edition",
+          shopify_edition_id: "gid://shopify/ProductVariant/12345",
+          shopify_product_id: "gid://shopify/Product/67890",
+          product: {
+            title: "Test Product",
+            editions: [{
+              shopify_id: "gid://shopify/ProductVariant/12345",
+              title: "Invalid Edition"
+            }]
+          }
+        )
+        order
+      end
+      let(:creator_with_invalid_edition) { described_class.new(parsed_item: parsed_order_with_invalid_edition) }
+
+      it "rolls back all changes when edition creation fails" do
+        product = create(:product)
+        product_creator = instance_double(Shopify::ProductCreator)
+        allow(Shopify::ProductCreator).to receive(:new).and_return(product_creator)
+        allow(product_creator).to receive(:update_or_create!).and_return(product)
+
+        edition_creator = instance_double(Shopify::EditionCreator)
+        allow(Shopify::EditionCreator).to receive(:new).and_return(edition_creator)
+        allow(edition_creator).to receive(:update_or_create!).and_raise(ActiveRecord::RecordInvalid.new(Edition.new))
+
+        expect { creator_with_invalid_edition.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
+        expect(Edition.count).to eq(0)
+        expect(ProductSale.count).to eq(0)
       end
     end
 
@@ -235,6 +322,16 @@ RSpec.describe Shopify::SaleCreator do
         expect(Customer.count).to eq(0)
         expect(Sale.count).to eq(0)
         expect(Product.count).to eq(0)
+      end
+    end
+
+    context "when customer is missing during sale creation" do
+      before do
+        allow_any_instance_of(Shopify::SaleCreator).to receive(:prepare_customer).and_return(nil)
+      end
+
+      it "raises error when trying to create sale" do
+        expect { creator.update_or_create! }.to raise_error(StandardError, "@customer cannot be blank")
       end
     end
   end

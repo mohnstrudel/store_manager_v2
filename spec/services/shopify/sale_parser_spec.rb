@@ -112,12 +112,12 @@ RSpec.describe Shopify::SaleParser do
       )
     end
 
-    it "raises ArgumentError if order is blank" do
-      expect { described_class.new(api_item: nil) }.to raise_error(ArgumentError, "Order data is required")
+    it "raises ArgumentError if api_item is blank" do
+      expect { described_class.new(api_item: {}) }.to raise_error(ArgumentError, "api_item cannot be blank")
     end
 
-    it "raises ArgumentError if order is empty" do
-      expect { described_class.new(api_item: {}) }.to raise_error(ArgumentError, "Order data is required")
+    it "raises ArgumentError if api_item is not Hash" do
+      expect { described_class.new(api_item: nil) }.to raise_error(ArgumentError, "api_item must be a Hash")
     end
 
     it "handles cancelled orders" do
@@ -174,6 +174,107 @@ RSpec.describe Shopify::SaleParser do
       result = parser.parse
 
       expect(result[:customer][:email]).to eq("customer@example.com")
+    end
+
+    it "handles missing shipping address" do
+      order_without_address = api_order.deep_dup
+      order_without_address["shippingAddress"] = nil
+
+      parser = described_class.new(api_item: order_without_address)
+      result = parser.parse
+
+      expect(result[:sale]).to include(
+        address_1: nil,
+        address_2: nil,
+        city: nil,
+        company: nil,
+        country: nil,
+        postcode: nil
+      )
+    end
+
+    it "handles missing variant data" do
+      order_without_variant = api_order.deep_dup
+      order_without_variant["lineItems"]["nodes"].first["variant"] = nil
+
+      parser = described_class.new(api_item: order_without_variant)
+      result = parser.parse
+
+      expect(result[:product_sales].first).to include(
+        shopify_edition_id: nil,
+        shopify_product_id: nil
+      )
+    end
+
+    it "handles missing product data" do
+      order_without_product = api_order.deep_dup
+      order_without_product["lineItems"]["nodes"].first["product"] = nil
+
+      parser = described_class.new(api_item: order_without_product)
+      result = parser.parse
+
+      expect(result[:product_sales].first[:product]).to be_nil
+    end
+
+    it "parses product data correctly" do
+      product_parser = instance_double(Shopify::ProductParser)
+      allow(Shopify::ProductParser).to receive(:new).and_return(product_parser)
+      allow(product_parser).to receive(:parse).and_return({
+        shopify_id: "gid://shopify/Product/333",
+        title: "Eve",
+        franchise: "Stellar Blade",
+        editions: [{
+          shopify_id: "gid://shopify/ProductVariant/222",
+          title: "Regular"
+        }]
+      })
+
+      result = parser.parse
+
+      expect(result[:product_sales].first[:product]).to include(
+        shopify_id: "gid://shopify/Product/333",
+        title: "Eve",
+        franchise: "Stellar Blade"
+      )
+    end
+
+    it "handles missing customer data" do
+      order_without_customer = api_order.deep_dup
+      order_without_customer["customer"] = nil
+      order_without_customer["email"] = "customer@example.com"
+
+      parser = described_class.new(api_item: order_without_customer)
+      result = parser.parse
+
+      expect(result[:customer]).to include(
+        shopify_id: nil,
+        email: "customer@example.com",
+        first_name: nil,
+        last_name: nil,
+        phone: nil
+      )
+    end
+
+    it "handles missing line items" do
+      order_without_items = api_order.deep_dup
+      order_without_items["lineItems"] = {"nodes" => []}
+
+      parser = described_class.new(api_item: order_without_items)
+      result = parser.parse
+
+      expect(result[:product_sales]).to be_empty
+    end
+
+    it "handles missing dates" do
+      order_without_dates = api_order.deep_dup
+      order_without_dates["createdAt"] = nil
+      order_without_dates["updatedAt"] = nil
+
+      parser = described_class.new(api_item: order_without_dates)
+      result = parser.parse
+
+      expect(result[:sale][:shopify_created_at]).to be_nil
+      expect(result[:sale][:shopify_updated_at]).to be_nil
     end
   end
 end

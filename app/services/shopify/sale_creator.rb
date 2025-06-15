@@ -2,17 +2,17 @@ class Shopify::SaleCreator
   class OrderProcessingError < StandardError; end
 
   def initialize(parsed_item:)
+    validate_input!(parsed_item)
     @parsed_order = parsed_item
-    validate_parsed_order!
     @sale_shopify_id = parsed_item[:sale][:shopify_id]
   end
 
   def update_or_create!
     ActiveRecord::Base.transaction do
-      customer = update_or_create_customer!
-      sale = update_or_create_sale!(customer)
-      update_or_create_product_sales!(sale)
-      linked_ids = SaleLinker.new(sale).link
+      prepare_customer
+      prepare_sale
+      update_or_create_product_sales!
+      linked_ids = SaleLinker.new(@sale).link
       notify_customers(linked_ids)
     end
   rescue ActiveRecord::RecordInvalid => e
@@ -24,48 +24,63 @@ class Shopify::SaleCreator
 
   private
 
-  def validate_parsed_order!
-    raise ArgumentError, "Order data must be a Hash" unless @parsed_order.is_a?(Hash)
-    raise ArgumentError, "Order data is required" if @parsed_order.blank?
-    raise ArgumentError, "Customer data is required" if @parsed_order[:customer].blank?
-    raise ArgumentError, "Sale data is required" if @parsed_order[:sale].blank?
-    raise ArgumentError, "Product sales data is required" if @parsed_order[:product_sales].blank?
+  def validate_input!(parsed_item)
+    raise ArgumentError, "parsed_item must be a Hash" unless parsed_item.is_a?(Hash)
+    raise ArgumentError, "parsed_item cannot be blank" if parsed_item.blank?
+    raise ArgumentError, "parsed_item[:sale] cannot be blank" if parsed_item[:sale].blank?
+    raise ArgumentError, "parsed_item[:customer] cannot be blank" if parsed_item[:customer].blank?
+    raise ArgumentError, "parsed_item[:product_sales] cannot be blank" if parsed_item[:product_sales].blank?
   end
 
-  def update_or_create_customer!
-    customer = Customer.find_by(
-      shopify_id: @parsed_order[:customer][:shopify_id]
-    ) || Customer.new
-    customer.update!(@parsed_order[:customer])
-    customer
+  def prepare_customer
+    @customer = update_or_create_with!("customer")
   end
 
-  def update_or_create_sale!(customer)
-    sale = Sale.find_by(
-      shopify_id: @sale_shopify_id
-    ) || Sale.new
-    sale.update!(customer:, **@parsed_order[:sale])
-    sale
+  def prepare_sale
+    @sale = update_or_create_with!("sale")
   end
 
-  def find_or_create_product(shopify_product_id, parsed_product)
-    Product.find_by(shopify_id: shopify_product_id) ||
-      Shopify::ProductCreator
-        .new(parsed_item: parsed_product)
-        .update_or_create!
+  def update_or_create_with!(class_name)
+    record = record_for(class_name)
+    record.update!(parsed_data_for(class_name))
+    record
   end
 
-  def update_or_create_product_sales!(sale)
+  def record_for(class_name)
+    klass = class_name.camelize.constantize
+    klass.find_by(
+      shopify_id: @parsed_order[class_name.to_sym][:shopify_id]
+    ) || klass.new
+  end
+
+  def parsed_data_for(class_name)
+    if class_name == "customer"
+      @parsed_order[:customer]
+    elsif class_name == "sale"
+      raise StandardError, "@customer cannot be blank" if @customer.blank?
+      @parsed_order[:sale].merge(customer: @customer)
+    end
+  end
+
+  def update_or_create_product_sales!
     @parsed_order[:product_sales].each do |parsed_ps|
-      if product_sale_is_corrupted(**parsed_ps)
-        product, edition = find_or_create_product_edition_by_title!(parsed_ps)
+      if having_only_product_title?(**parsed_ps)
+        product = create_product_with(parsed_ps[:full_title])
+        edition = find_or_create_edition_with(
+          parsed_ps[:edition_title],
+          product
+        )
+      else
+        product = find_or_create_product!(
+          parsed_ps[:shopify_product_id],
+          parsed_ps[:product]
+        )
+        edition = find_or_create_edition!(
+          parsed_ps[:shopify_edition_id],
+          parsed_ps[:product][:editions],
+          product
+        )
       end
-
-      product ||= find_or_create_product(
-        parsed_ps[:shopify_product_id],
-        parsed_ps[:product]
-      )
-      edition ||= find_or_create_edition(parsed_ps, product)
 
       product_sale = ProductSale.find_or_initialize_by(
         shopify_id: parsed_ps[:shopify_id]
@@ -76,17 +91,18 @@ class Shopify::SaleCreator
         qty: parsed_ps[:qty],
         product:,
         edition:,
-        sale:
+        sale: @sale
       )
 
       product_sale.save!
     end
   end
 
-  def product_sale_is_corrupted(
+  def having_only_product_title?(
     full_title:,
     shopify_product_id:,
     shopify_edition_id:,
+    edition_title:,
     **_rest
   )
     full_title.present? &&
@@ -94,44 +110,46 @@ class Shopify::SaleCreator
       shopify_product_id.blank?
   end
 
-  def find_or_create_edition(parsed_ps, product)
-    return if parsed_ps[:edition_title].blank?
-
-    if parsed_ps[:shopify_edition_id].present?
-      existing_edition = Edition.find_by(
-        shopify_id: parsed_ps[:shopify_edition_id]
-      )
-      return existing_edition if existing_edition
-    end
-
-    if parsed_ps[:product] && parsed_ps[:product][:editions]
-      editions = parsed_ps[:product][:editions].map do |parsed_edition|
-        Shopify::EditionCreator.new(product, parsed_edition).update_or_create!
-      end
-      editions.compact_blank.find { |edition| edition.shopify_id == parsed_ps[:shopify_edition_id] }
-    end
+  def create_product_with(parsed_title)
+    Shopify::ProductFromTitleCreator
+      .new(api_title: parsed_title)
+      .call
   end
 
-  def find_or_create_product_edition_by_title!(parsed_product_sale)
-    return if parsed_product_sale[:edition_title].blank?
-    return if parsed_product_sale[:shopify_edition_id].blank?
+  def find_or_create_product!(shopify_product_id, parsed_product)
+    Product.find_by(shopify_id: shopify_product_id) ||
+      Shopify::ProductCreator
+        .new(parsed_item: parsed_product)
+        .update_or_create!
+  end
 
-    product = Shopify::ProductCreator
-      .new(parsed_title: parsed_product_sale[:full_title])
-      .update_or_create_by_title
+  def find_or_create_edition_with(edition_title, product)
+    return if edition_title.blank?
 
     existing_edition = product.editions.find do |v|
-      v.title == parsed_product_sale[:edition_title]
+      v.title == edition_title
     end
-    return [product, existing_edition] if existing_edition
+    return existing_edition if existing_edition
 
-    product.versions.create!(
-      value: parsed_product_sale[:edition_title]
-    )
+    product.versions.create!(value: edition_title)
     product.build_editions
     product.save!
 
-    [product, product.editions.last]
+    product.editions.last
+  end
+
+  def find_or_create_edition!(shopify_edition_id, parsed_editions, product)
+    existing_edition = Edition.find_by(
+      shopify_id: shopify_edition_id
+    )
+    return existing_edition if existing_edition
+
+    if parsed_editions
+      editions = parsed_editions.map do |parsed_edition|
+        Shopify::EditionCreator.new(product, parsed_edition).update_or_create!
+      end
+      editions.compact_blank.find { |edition| edition.shopify_id == shopify_edition_id }
+    end
   end
 
   def notify_customers(linked_ids)
