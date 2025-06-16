@@ -35,6 +35,16 @@ class ProductSale < ApplicationRecord
     where("qty > purchased_products_count")
   }
 
+  def self.linkable_for(purchase)
+    only_active
+      .linkable
+      .where(
+        purchase.edition_id.present? ?
+          {edition_id: purchase.edition_id} :
+          {product_id: purchase.product_id, edition_id: nil}
+      )
+  end
+
   def item
     edition.presence || product
   end

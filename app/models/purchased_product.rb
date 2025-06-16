@@ -79,4 +79,8 @@ class PurchasedProduct < ApplicationRecord
   def relocate_to(destination_id)
     update!(warehouse_id: destination_id)
   end
+
+  def link_with(product_sale_id)
+    update!(product_sale_id:)
+  end
 end

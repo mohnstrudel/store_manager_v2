@@ -13,7 +13,7 @@ class PurchaseLinker
 
     unlinked_purchased_products = @purchase.purchased_products.where(product_sale_id: nil).to_a
 
-    linkable_product_sales.each do |ps|
+    ProductSale.linkable_for(@purchase).each do |ps|
       break if unlinked_purchased_products.empty?
 
       remaining = [
@@ -23,32 +23,11 @@ class PurchaseLinker
       ].min
 
       unlinked_purchased_products.shift(remaining).each do |pp|
-        link_purchased_with_sold(pp, ps.id)
-        save_linked_id(pp.id)
+        pp.link_with(ps.id)
+        @linked_ids << pp.id
       end
     end
 
     @linked_ids
-  end
-
-  private
-
-  def linkable_product_sales
-    ProductSale
-      .only_active
-      .linkable
-      .where(
-        @edition_id.present? ?
-          {edition_id: @edition_id} :
-          {product_id: @product_id, edition_id: nil}
-      )
-  end
-
-  def link_purchased_with_sold(purchased_product, product_sale_id)
-    purchased_product.update(product_sale_id:)
-  end
-
-  def save_linked_id(purchased_product_id)
-    @linked_ids.push(purchased_product_id)
   end
 end
