@@ -10,19 +10,22 @@ class ProductMover
   end
 
   def move
-    if @purchased_products.any?
-      notify_on_move if items_relocated?
-    else
-      return NOTHING_MOVED if @purchase.nil?
-      notify_on_purchase if create_purchased_products.any?
-    end
-
+    return NOTHING_MOVED if @purchased_products.blank? && @purchase.nil?
+    notify_after_move if items_moved?
     @purchased_products.size
   end
 
   private
 
-  def notify_on_move
+  def notify_after_move
+    if @items_grouped_by_origin.present?
+      notify_on_relocation
+    else
+      notify_on_newly_located_items
+    end
+  end
+
+  def notify_on_relocation
     @items_grouped_by_origin.each do |origin_warehouse_id, items_ids|
       PurchasedNotifier.new(
         purchased_product_ids: items_ids,
@@ -32,9 +35,21 @@ class ProductMover
     end
   end
 
-  def items_relocated?
-    @items_grouped_by_origin = groupe_by_origin(@purchased_products)
-    @purchased_products.update_all(warehouse_id: @destination.id) > 0
+  def notify_on_newly_located_items
+    purchased_product_ids = @purchased_products.pluck(:id)
+    PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
+  end
+
+  def items_moved?
+    if @purchased_products.any?
+      @items_grouped_by_origin = groupe_by_origin(@purchased_products)
+      @purchased_products.update_all(warehouse_id: @destination.id) > 0
+    else
+      @purchased_products = Array.new(@purchase.amount) do
+        @destination.purchased_products.create(purchase_id: @purchase.id)
+      end
+      @purchased_products.any?
+    end
   end
 
   def groupe_by_origin(purchased_products)
@@ -43,16 +58,5 @@ class ProductMover
       .transform_values do |purchased_products|
         purchased_products.pluck(:id)
       end
-  end
-
-  def create_purchased_products
-    @purchased_products = Array.new(@purchase.amount) do
-      @destination.purchased_products.create(purchase_id: @purchase.id)
-    end
-  end
-
-  def notify_on_purchase
-    purchased_product_ids = @purchased_products.pluck(:id)
-    PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
   end
 end
