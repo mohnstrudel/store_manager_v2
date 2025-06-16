@@ -158,5 +158,112 @@ RSpec.describe PurchaseLinker do
         end
       end
     end
+
+    context "edge cases" do
+      let(:purchase) { create(:purchase, product: product, amount: 0) }
+      let!(:purchased_products) { [] }
+
+      it "handles purchase with zero amount" do
+        linker = described_class.new(purchase)
+        expect(linker.link).to be_nil
+      end
+
+      it "handles product sale with zero quantity" do
+        purchase.update(amount: 3)
+        purchased_products = 3.times.map { create(:purchased_product, purchase:) }
+        sale = create(:sale, status: active_status)
+        create(:product_sale, product:, sale:, qty: 0)
+
+        linker = described_class.new(purchase)
+        linked_ids = linker.link
+
+        expect(linked_ids).to be_empty
+        purchased_products.each do |pp|
+          expect(pp.reload.product_sale_id).to be_nil
+        end
+      end
+
+      it "handles all product sales being fully linked" do
+        purchase.update(amount: 3)
+        purchased_products = 3.times.map { create(:purchased_product, purchase:) }
+        sale = create(:sale, status: active_status)
+        create(:product_sale, product:, sale:, qty: 3, purchased_products_count: 3)
+
+        linker = described_class.new(purchase)
+        linked_ids = linker.link
+
+        expect(linked_ids).to be_empty
+        purchased_products.each do |pp|
+          expect(pp.reload.product_sale_id).to be_nil
+        end
+      end
+    end
+
+    context "error handling" do
+      let(:purchase) { create(:purchase, product: product, amount: 3) }
+      let!(:purchased_products) do
+        3.times.map { create(:purchased_product, purchase:) }
+      end
+
+      it "handles invalid product sale during linking" do
+        sale = create(:sale, status: active_status)
+        create(:product_sale, product:, sale:, qty: 3)
+
+        # Make product sale invalid by setting qty to nil
+        allow_any_instance_of(ProductSale).to receive(:valid?).and_return(false)
+
+        linker = described_class.new(purchase)
+        linked_ids = linker.link
+
+        expect(linked_ids).to be_empty
+        purchased_products.each do |pp|
+          expect(pp.reload.product_sale_id).to be_nil
+        end
+      end
+
+      it "handles invalid purchase during linking" do
+        sale = create(:sale, status: active_status)
+        create(:product_sale, product:, sale:, qty: 3)
+
+        # Make purchase invalid
+        allow_any_instance_of(Purchase).to receive(:valid?).and_return(false)
+
+        linker = described_class.new(purchase)
+        linked_ids = linker.link
+
+        expect(linked_ids).to be_empty
+        purchased_products.each do |pp|
+          expect(pp.reload.product_sale_id).to be_nil
+        end
+      end
+    end
+
+    context "transaction safety" do
+      let(:purchase) { create(:purchase, product: product, amount: 3) }
+      let!(:purchased_products) do
+        3.times.map { create(:purchased_product, purchase:) }
+      end
+
+      it "ensures atomic linking (all or nothing)" do
+        sale = create(:sale, status: active_status)
+        product_sale = create(:product_sale, product:, sale:, qty: 3)
+
+        # Simulate an error during the second link
+        allow_any_instance_of(PurchasedProduct).to receive(:update).and_wrap_original do |original_method, *args|
+          if args.first[:product_sale_id] == product_sale.id && original_method.receiver == purchased_products[1]
+            raise ActiveRecord::RecordInvalid.new(original_method.receiver)
+          end
+          original_method.call(*args)
+        end
+
+        linker = described_class.new(purchase)
+        linked_ids = linker.link
+
+        expect(linked_ids).to be_empty
+        purchased_products.each do |pp|
+          expect(pp.reload.product_sale_id).to be_nil
+        end
+      end
+    end
   end
 end

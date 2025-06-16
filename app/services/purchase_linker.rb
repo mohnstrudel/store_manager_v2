@@ -3,31 +3,28 @@ class PurchaseLinker
     raise ArgumentError, "Missing purchase" if purchase.blank?
 
     @purchase = purchase
-    @purchased_products = purchase.purchased_products
-    @limit = purchase.amount
     @edition_id = purchase.edition_id
     @product_id = purchase.product_id
     @linked_ids = []
   end
 
   def link
-    return if @purchased_products.blank?
+    return if @purchase.purchased_products.blank?
 
-    product_sales.each do |product_sale|
-      remaining = count_linkable(
-        product_sale.qty,
-        linkable_purchased_products_count
-      )
+    unlinked_purchased_products = @purchase.purchased_products.where(product_sale_id: nil).to_a
 
-      break if remaining == 0
+    linkable_product_sales.each do |ps|
+      break if unlinked_purchased_products.empty?
 
-      @purchased_products.where(product_sale_id: nil).find_each do |purchased_product|
-        break if remaining == 0
+      remaining = [
+        ps.qty,
+        @purchase.amount,
+        unlinked_purchased_products.size
+      ].min
 
-        purchased_product.update(product_sale_id: product_sale.id)
-        @linked_ids.push(purchased_product.id)
-
-        remaining -= 1
+      unlinked_purchased_products.shift(remaining).each do |pp|
+        link_purchased_with_sold(pp, ps.id)
+        save_linked_id(pp.id)
       end
     end
 
@@ -36,15 +33,7 @@ class PurchaseLinker
 
   private
 
-  def linkable_purchased_products_count
-    (@linked_ids.size - @limit).abs
-  end
-
-  def count_linkable(qty, limit)
-    (qty >= limit) ? limit : qty
-  end
-
-  def product_sales
+  def linkable_product_sales
     ProductSale
       .only_active
       .linkable
@@ -53,5 +42,13 @@ class PurchaseLinker
           {edition_id: @edition_id} :
           {product_id: @product_id, edition_id: nil}
       )
+  end
+
+  def link_purchased_with_sold(purchased_product, product_sale_id)
+    purchased_product.update(product_sale_id:)
+  end
+
+  def save_linked_id(purchased_product_id)
+    @linked_ids.push(purchased_product_id)
   end
 end
