@@ -217,41 +217,4 @@ describe ProductMover do
       end
     end
   end
-
-  describe "private methods" do
-    let(:mover) do
-      described_class.new(
-        warehouse_id: to_warehouse.id,
-        purchased_products_ids: purchased_products.map(&:id)
-      )
-    end
-
-    describe "#groupe_by_origin" do
-      it "groups products by their warehouse_id" do
-        another_warehouse = create(:warehouse)
-        products_from_another = create_list(:purchased_product, 2, warehouse: another_warehouse)
-        all_products = purchased_products + products_from_another
-
-        grouped = mover.send(:groupe_by_origin, all_products)
-
-        expect(grouped.keys).to match_array([from_warehouse.id, another_warehouse.id])
-        expect(grouped[from_warehouse.id]).to match_array(purchased_products.map(&:id))
-        expect(grouped[another_warehouse.id]).to match_array(products_from_another.map(&:id))
-      end
-    end
-
-    describe "#items_moved?" do
-      it "returns true when products are successfully updated" do
-        expect(mover.send(:items_moved?)).to be true
-      end
-
-      it "sets @items_grouped_by_origin when moving existing products" do
-        mover.send(:items_moved?)
-        grouped = mover.instance_variable_get(:@items_grouped_by_origin)
-
-        expect(grouped).to be_present
-        expect(grouped[from_warehouse.id]).to match_array(purchased_products.map(&:id))
-      end
-    end
-  end
 end

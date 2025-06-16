@@ -93,4 +93,10 @@ class Purchase < ApplicationRecord
   def date
     purchase_date || created_at
   end
+
+  def create_purchased_products_in(warehouse)
+    Array.new(amount) do
+      warehouse.purchased_products.create(purchase_id: id)
+    end
+  end
 end

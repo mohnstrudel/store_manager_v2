@@ -75,4 +75,8 @@ class PurchasedProduct < ApplicationRecord
   def cost
     (price || 0) + (purchase.item_price || 0)
   end
+
+  def relocate_to(destination_id)
+    update!(warehouse_id: destination_id)
+  end
 end

@@ -52,9 +52,7 @@ class PurchasesController < ApplicationController
           Warehouse.find_by(is_default: true)
 
         if warehouse.present?
-          Array.new(@purchase.amount) do
-            warehouse.purchased_products.create(purchase_id: @purchase.id)
-          end
+          @purchase.create_purchased_products_in(warehouse)
 
           purchased_product_ids = PurchaseLinker.new(@purchase).link
 
