@@ -193,7 +193,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
 
     # Click on the products dropdown select
     # and select a different product
-    slim_select(@batman.woo_id_full_title, @asuka.woo_id_full_title)
+    slim_select(@batman.full_title_with_shop_id, @asuka.full_title_with_shop_id)
 
     scroll_to("label[for='purchase_edition'] ~ div")
 

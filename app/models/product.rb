@@ -93,6 +93,16 @@ class Product < ApplicationRecord
     ].compact.join(" | ")
   end
 
+  def self.listed
+    includes(editions: [:version, :color, :size])
+      .with_attached_images
+      .order(created_at: :desc)
+  end
+
+  def self.search_by(query)
+    query.present? ? search(query) : all
+  end
+
   def update_full_title
     self.full_title = Product.generate_full_title(self)
     save
@@ -110,9 +120,8 @@ class Product < ApplicationRecord
     sku.presence || full_title
   end
 
-  def woo_id_full_title
-    woo_id = self.woo_id.presence || "N/A"
-    "#{woo_id} | #{full_title}"
+  def full_title_with_shop_id
+    "#{full_title} | #{shop_id || "N/A"}"
   end
 
   def shopify_store_link
@@ -123,12 +132,47 @@ class Product < ApplicationRecord
     shopify_id&.gsub("gid://shopify/Product/", "")
   end
 
+  def shop_id
+    woo_id.presence || shopify_id_short.presence
+  end
+
   def build_editions
     return unless sizes.any? || versions.any? || colors.any?
 
     mark_absent_editions_for_destruction
 
     editions.build(edition_attributes)
+  end
+
+  def active_product_sales
+    product_sales
+      .includes(purchased_products: :warehouse)
+      .includes_details
+      .active
+      .order(created_at: :asc)
+  end
+
+  def completed_product_sales
+    product_sales.includes_details.completed.order(created_at: :asc)
+  end
+
+  def editions_product_sales_size
+    ProductSale
+      .active
+      .where(edition: editions)
+      .group(:edition_id)
+      .sum(:qty)
+  end
+
+  def editions_purchased_products_size
+    Purchase
+      .where(edition: editions)
+      .group(:edition_id)
+      .sum(:amount)
+  end
+
+  def editions_with_title
+    editions.includes_details.select { |edition| edition.title.present? }
   end
 
   private

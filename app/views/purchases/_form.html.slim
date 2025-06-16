@@ -7,12 +7,12 @@
   .stimulus data-controller="purchase-edition"
     = form.label :product
     .stimulus#purchase-product-select
-      = form.collection_select :product_id, Product.all, :id, :woo_id_full_title, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-edition#change" }
+      = form.collection_select :product_id, Product.all, :id, :full_title_with_shop_id, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-edition#change" }
 
     .stimulus#purchase-edition-select data-purchase-edition-target="select"
       - if purchase.product&.editions.present?
         = form.label :edition
-        = form.collection_select :edition_id, purchase.product.editions.includes(:size, :color, :version), :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
+        = form.collection_select :edition_id, purchase.product.editions_with_title, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
 
   = form.label :order_reference
   = form.text_field :order_reference

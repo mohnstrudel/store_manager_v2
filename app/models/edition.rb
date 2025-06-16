@@ -26,6 +26,8 @@ class Edition < ApplicationRecord
   has_many :product_sales, dependent: :destroy
   has_many :purchases, dependent: :destroy
 
+  scope :includes_details, -> { includes(:version, :color, :size) }
+
   def self.types
     # Values should follow this rule: [English, German]
     {

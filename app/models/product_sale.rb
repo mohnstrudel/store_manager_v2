@@ -22,21 +22,28 @@ class ProductSale < ApplicationRecord
 
   db_belongs_to :product
   db_belongs_to :sale
-
   belongs_to :edition, optional: true
 
   has_many :purchased_products, dependent: :nullify
 
-  scope :only_active, -> {
+  scope :active, -> {
     joins(:sale).where(sales: {status: Sale.active_status_names})
+  }
+
+  scope :completed, -> {
+    joins(:sale).where(sales: {status: Sale.completed_status_names})
   }
 
   scope :linkable, -> {
     where("qty > purchased_products_count")
   }
 
+  scope :includes_details, -> {
+    includes(:product, sale: :customer, edition: [:version, :color, :size])
+  }
+
   def self.linkable_for(purchase)
-    only_active
+    active
       .linkable
       .where(
         purchase.edition_id.present? ?

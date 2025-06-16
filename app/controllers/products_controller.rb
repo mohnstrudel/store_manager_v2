@@ -1,43 +1,17 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[show edit update destroy editions]
+  before_action :set_product, only: %i[show edit update destroy]
 
   # GET /products or /products.json
   def index
-    @products = Product
-      .includes(editions: [:version, :color, :size])
-      .with_attached_images
-      .order(created_at: :desc)
-      .page(params[:page])
-    @products = @products.search(params[:q]) if params[:q].present?
+    @products = Product.listed.search_by(params[:q]).page(params[:page])
   end
 
   # GET /products/1 or /products/1.json
   def show
-    sales = @product
-      .product_sales.includes(
-        :product,
-        sale: :customer,
-        edition: [:version, :color, :size]
-      )
-      .order(created_at: :asc)
-
-    @active_sales = sales.select { |product_sale|
-      product_sale.sale.status.in? Sale.active_status_names
-    }
-
-    @complete_sales = sales.select { |product_sale|
-      product_sale.sale.status.in? Sale.completed_status_names
-    }
-
-    @editions_sales_sums = ProductSale
-      .only_active
-      .where(edition: @product.editions)
-      .group(:edition_id)
-      .sum(:qty)
-    @editions_purchases_sums = Purchase
-      .where(edition: @product.editions)
-      .group(:edition_id)
-      .sum(:amount)
+    @active_sales = @product.active_product_sales
+    @complete_sales = @product.completed_product_sales
+    @editions_sales_sums = @product.editions_product_sales_size
+    @editions_purchases_sums = @product.editions_purchased_products_size
   end
 
   # GET /products/new
@@ -89,21 +63,6 @@ class ProductsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to products_url, notice: "Product was successfully destroyed." }
       format.json { head :no_content }
-    end
-  end
-
-  # GET /products/:id/editions?target=${html-id}
-  def editions
-    @target = params[:target]
-    @editions = @product
-      .editions
-      .includes(:version, :color, :size)
-      .select { |i|
-        {id: i.id, title: i.title} if i.title.present?
-      }
-
-    respond_to do |format|
-      format.turbo_stream
     end
   end
 

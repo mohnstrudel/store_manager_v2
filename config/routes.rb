@@ -41,13 +41,15 @@ Rails.application.routes.draw do
 
   resources :products do
     get "/page/:page", action: :index, on: :collection
-    get "editions", on: :member
     get "pull", action: :pull, on: :collection
     get "pull", action: :pull, on: :member
   end
 
   resources :purchases do
-    get "/page/:page", action: :index, on: :collection
+    collection do
+      get "/page/:page", action: :index
+      get "product_editions"
+    end
   end
 
   resources :payments, only: [:create]

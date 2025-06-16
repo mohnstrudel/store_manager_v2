@@ -7,9 +7,10 @@ export default class extends Controller {
   change(event) {
     let productId = event.target.selectedOptions[0].value;
     let target = this.selectTarget.id;
+    let queryPath = `?product_id=${productId}&target=${target}`;
 
-    get(`/products/${productId}/editions?target=${target}`, {
+    get(`/purchases/product_editions${queryPath}`, {
       responseKind: "turbo-stream",
-    });
+    }).catch((error) => console.error("Failed to load editions:", error));
   }
 }

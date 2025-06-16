@@ -111,6 +111,21 @@ class PurchasesController < ApplicationController
     end
   end
 
+  # Used for Turbo in:
+  #  - purchase-edition_controller.js
+  #  - app/views/purchases/editions.turbo_stream.slim
+  #  - app/views/purchases/_form.html.slim
+  # Shows edition select when we choose a product with editions
+  def product_editions
+    @target = params[:target]
+    @product = Product.find(params[:product_id])
+    @editions = @product.editions_with_title
+
+    respond_to do |format|
+      format.turbo_stream
+    end
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
