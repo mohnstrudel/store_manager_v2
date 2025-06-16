@@ -12,7 +12,7 @@ class Shopify::SaleCreator
       prepare_customer
       prepare_sale
       update_or_create_product_sales!
-      linked_ids = SaleLinker.new(@sale).link
+      linked_ids = @sale.link_with_purchased_products
       notify_customers(linked_ids)
     end
   rescue ActiveRecord::RecordInvalid => e

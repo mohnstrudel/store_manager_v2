@@ -68,6 +68,10 @@ class PurchasedProduct < ApplicationRecord
       .where(purchase: {product_id:})
   }
 
+  def self.linkable_for(product_id, limit:)
+    without_product_sales(product_id).limit(limit)
+  end
+
   def name
     purchase.full_title
   end

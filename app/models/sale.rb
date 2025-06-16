@@ -170,4 +170,26 @@ class Sale < ApplicationRecord
   def shop_id
     shopify_id_short || woo_id
   end
+
+  def link_with_purchased_products
+    return unless active? || completed?
+
+    product_sales.linkable.map do |product_sale|
+      already_linked_size = product_sale.purchased_products.count
+      remaining_size = product_sale.qty - already_linked_size
+
+      next if remaining_size <= 0
+
+      linkable_purchased_products = PurchasedProduct.linkable_for(
+        product_sale.product_id,
+        limit: remaining_size
+      )
+
+      linked_purchased_products_ids = linkable_purchased_products.pluck(:id)
+
+      linkable_purchased_products.each { it.link_with(product_sale.id) }
+
+      linked_purchased_products_ids
+    end.compact.flatten
+  end
 end

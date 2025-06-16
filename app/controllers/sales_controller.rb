@@ -57,7 +57,7 @@ class SalesController < ApplicationController
     @sale = Sale.new(sale_params)
 
     if @sale.save
-      linked_ids = SaleLinker.new(@sale).link
+      linked_ids = @sale.link_with_purchased_products
       PurchasedNotifier.new(purchased_product_ids: linked_ids).handle_product_purchase
       redirect_to @sale, notice: "Sale was successfully created."
     else
@@ -85,7 +85,7 @@ class SalesController < ApplicationController
   end
 
   def link_purchased_products
-    purchased_product_ids = SaleLinker.new(@sale).link
+    purchased_product_ids = @sale.link_with_purchased_products
 
     PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
 

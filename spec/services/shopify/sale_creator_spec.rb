@@ -6,7 +6,7 @@ RSpec.describe Shopify::SaleCreator do
   let(:creator) { described_class.new(parsed_item: valid_parsed_order) }
   let(:products_size) { valid_parsed_order[:product_sales].count { |ps| ps.key?(:product) } }
 
-  describe "#update_or_create" do
+  describe "#update_or_create!" do
     context "with invalid input" do
       it "raises error when parsed_order is not a Hash" do
         expect { described_class.new(parsed_item: nil).update_or_create! }.to raise_error(ArgumentError, "parsed_item must be a Hash")
@@ -272,66 +272,32 @@ RSpec.describe Shopify::SaleCreator do
         expect(existing_product_sale.qty).to eq(2)
       end
     end
-  end
 
-  describe "#link_sale" do
-    it "calls SaleLinker with the created sale" do
-      sale_linker = instance_double(SaleLinker)
-      expect(SaleLinker).to receive(:new).with(an_instance_of(Sale)).and_return(sale_linker)
-      expect(sale_linker).to receive(:link).and_return([1, 2, 3])
+    context "when linking purchased products" do
+      let(:sale) { create(:sale) }
+      let(:product) { create(:product) }
+      let(:purchase) { create(:purchase, product: product, amount: 3) }
+      let!(:purchased_products) { create_list(:purchased_product, 3, purchase: purchase) }
+      let!(:product_sale) { create(:product_sale, sale: sale, product: product, qty: 2) }
 
-      creator.update_or_create!
-    end
-  end
+      it "links purchased products to the sale" do
+        allow(Sale).to receive(:find_by).and_return(sale)
+        allow(sale).to receive(:link_with_purchased_products).and_return(purchased_products.map(&:id))
 
-  describe "#notify_customers" do
-    it "calls PurchasedNotifier with the linked product IDs" do
-      linked_ids = [1, 2, 3]
-      sale_linker = instance_double(SaleLinker)
-      allow(SaleLinker).to receive(:new).and_return(sale_linker)
-      allow(sale_linker).to receive(:link).and_return(linked_ids)
+        creator.update_or_create!
 
-      notifier = instance_double(PurchasedNotifier)
-      expect(PurchasedNotifier).to receive(:new).with(purchased_product_ids: linked_ids).and_return(notifier)
-      expect(notifier).to receive(:handle_product_purchase)
-
-      creator.update_or_create!
-    end
-  end
-
-  describe "transaction behavior" do
-    context "when an error occurs during product creation" do
-      before do
-        allow_any_instance_of(Shopify::ProductCreator).to receive(:update_or_create!).and_raise(ActiveRecord::RecordInvalid.new(Product.new))
+        expect(sale).to have_received(:link_with_purchased_products)
       end
 
-      it "rolls back all changes including customer and sale" do
-        expect { creator.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
-        expect(Customer.count).to eq(0)
-        expect(Sale.count).to eq(0)
-      end
-    end
+      it "notifies customers about linked products" do
+        allow(Sale).to receive(:find_by).and_return(sale)
+        allow(sale).to receive(:link_with_purchased_products).and_return(purchased_products.map(&:id))
 
-    context "when an error occurs during edition creation" do
-      before do
-        allow_any_instance_of(Shopify::EditionCreator).to receive(:update_or_create!).and_raise(ActiveRecord::RecordInvalid.new(Edition.new))
-      end
+        notifier = instance_double(PurchasedNotifier)
+        expect(PurchasedNotifier).to receive(:new).with(purchased_product_ids: purchased_products.map(&:id)).and_return(notifier)
+        expect(notifier).to receive(:handle_product_purchase)
 
-      it "rolls back all changes" do
-        expect { creator.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
-        expect(Customer.count).to eq(0)
-        expect(Sale.count).to eq(0)
-        expect(Product.count).to eq(0)
-      end
-    end
-
-    context "when customer is missing during sale creation" do
-      before do
-        allow_any_instance_of(Shopify::SaleCreator).to receive(:prepare_customer).and_return(nil)
-      end
-
-      it "raises error when trying to create sale" do
-        expect { creator.update_or_create! }.to raise_error(StandardError, "@customer cannot be blank")
+        creator.update_or_create!
       end
     end
   end

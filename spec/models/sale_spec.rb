@@ -1,15 +1,15 @@
 require "rails_helper"
 
-RSpec.describe SaleLinker do
+RSpec.describe Sale, type: :model do
   let(:warehouse) { create(:warehouse, is_default: true) }
   let(:product) { create(:product) }
   let(:supplier) { create(:supplier) }
   let(:purchase) { create(:purchase, supplier:, product:, amount: 3) }
-  let(:active_status) { Sale.active_status_names.first }
-  let(:completed_status) { Sale.completed_status_names.first }
-  let(:cancelled_status) { Sale.cancelled_status_names.first }
+  let(:active_status) { described_class.active_status_names.first }
+  let(:completed_status) { described_class.completed_status_names.first }
+  let(:cancelled_status) { described_class.cancelled_status_names.first }
 
-  describe "#link" do
+  describe "#link_with_purchased_products" do
     context "when sale is active" do
       let(:sale) { create(:sale, status: active_status) }
       let!(:product_sale) { create(:product_sale, sale:, product:, qty: 2) }
@@ -20,19 +20,19 @@ RSpec.describe SaleLinker do
 
       it "links up to qty purchased products to product_sale" do
         expect {
-          described_class.new(sale).link
+          sale.link_with_purchased_products
         }.to change { PurchasedProduct.where(product_sale_id: product_sale.id).count }.from(0).to(2)
       end
 
       it "returns the ids of linked purchased products" do
-        linked_ids = described_class.new(sale).link
-        expect(linked_ids.flatten.size).to eq(2)
-        expect(PurchasedProduct.where(id: linked_ids.flatten, product_sale_id: product_sale.id).count).to eq(2)
+        linked_ids = sale.link_with_purchased_products
+        expect(linked_ids.size).to eq(2)
+        expect(PurchasedProduct.where(id: linked_ids, product_sale_id: product_sale.id).count).to eq(2)
       end
 
       it "does not link more than needed purchased products" do
         create_list(:purchased_product, 2, product_sale:, purchase:, warehouse:)
-        expect(described_class.new(sale).link.flatten.size).to eq(0)
+        expect(sale.link_with_purchased_products.size).to eq(0)
       end
     end
 
@@ -46,7 +46,7 @@ RSpec.describe SaleLinker do
 
       it "links purchased products" do
         expect {
-          described_class.new(sale).link
+          sale.link_with_purchased_products
         }.to change { PurchasedProduct.where(product_sale_id: product_sale.id).count }.from(0).to(1)
       end
     end
@@ -60,7 +60,7 @@ RSpec.describe SaleLinker do
       end
 
       it "does not link any purchased products" do
-        expect(described_class.new(sale).link).to be_nil
+        expect(sale.link_with_purchased_products).to be_nil
         expect(PurchasedProduct.where(product_sale_id: product_sale.id).count).to eq(0)
       end
     end
@@ -83,7 +83,7 @@ RSpec.describe SaleLinker do
       let!(:purchased_product_none) { create(:purchased_product, purchase: purchase_none, warehouse:) }
       let!(:purchased_product_wrong_edition) { create(:purchased_product, purchase:, warehouse:) }
 
-      before { described_class.new(sale).link }
+      before { sale.link_with_purchased_products }
 
       it "links only purchased products with matching edition to product_sale" do
         expect(purchased_product_a1.reload.product_sale_id).to eq(product_sale_a.id)
@@ -98,14 +98,14 @@ RSpec.describe SaleLinker do
 
       it "does not link more purchased products than product_sale qty" do
         extra = create(:purchased_product, purchase: purchase_a, warehouse:)
-        described_class.new(sale).link
+        sale.link_with_purchased_products
         expect([purchased_product_a1, purchased_product_a2, extra].count { |pp| pp.reload.product_sale_id == product_sale_a.id }).to eq(2)
         expect(extra.reload.product_sale_id).to be_nil
       end
 
       it "does not relink already linked purchased products" do
         purchased_product_a1.update!(product_sale_id: product_sale_a.id)
-        described_class.new(sale).link
+        sale.link_with_purchased_products
         expect(purchased_product_a1.reload.product_sale_id).to eq(product_sale_a.id)
       end
     end
@@ -114,7 +114,7 @@ RSpec.describe SaleLinker do
       let(:sale) { create(:sale, status: active_status) }
 
       it "returns an empty array" do
-        expect(described_class.new(sale).link).to eq([])
+        expect(sale.link_with_purchased_products).to eq([])
       end
     end
   end
