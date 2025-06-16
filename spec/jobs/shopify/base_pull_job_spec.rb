@@ -78,7 +78,7 @@ RSpec.describe Shopify::BasePullJob do
       expect(api_client).to have_received(:pull).with(
         resource_name: "test",
         cursor: nil,
-        limit: 10
+        batch_size: 10
       )
     end
 
@@ -96,7 +96,7 @@ RSpec.describe Shopify::BasePullJob do
         expect(api_client).to have_received(:pull).with(
           resource_name: "test",
           cursor: nil,
-          limit: 5
+          batch_size: 5
         )
       end
 

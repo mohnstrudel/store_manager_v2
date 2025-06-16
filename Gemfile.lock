@@ -96,7 +96,7 @@ GEM
       base64
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-kms (1.104.0)
+    aws-sdk-kms (1.105.0)
       aws-sdk-core (~> 3, >= 3.225.0)
       aws-sigv4 (~> 1.5)
     aws-sdk-s3 (1.189.1)
@@ -186,11 +186,11 @@ GEM
       zeitwerk (~> 2.6)
     erb (5.0.1)
     erubi (1.13.1)
-    factory_bot (6.5.3)
+    factory_bot (6.5.4)
       activesupport (>= 6.1.0)
-    factory_bot_rails (6.4.4)
+    factory_bot_rails (6.5.0)
       factory_bot (~> 6.5)
-      railties (>= 5.0.0)
+      railties (>= 6.1.0)
     faker (3.5.1)
       i18n (>= 1.8.11, < 2)
     ferrum (0.17.1)
@@ -246,7 +246,7 @@ GEM
     jaro_winkler (1.6.1)
     jmespath (1.6.2)
     json (2.12.2)
-    jwt (2.10.1)
+    jwt (3.0.0)
       base64
     kaminari (1.2.2)
       activesupport (>= 4.1.0)
@@ -489,6 +489,15 @@ GEM
     scout_apm (5.6.4)
       parser
     securerandom (0.4.1)
+    sentry-rails (5.25.0)
+      railties (>= 5.0)
+      sentry-ruby (~> 5.25.0)
+    sentry-ruby (5.25.0)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+    sentry-sidekiq (5.25.0)
+      sentry-ruby (~> 5.25.0)
+      sidekiq (>= 3.0)
     sexp_processor (4.17.3)
     shopify_api (14.10.0)
       activesupport
@@ -557,7 +566,7 @@ GEM
     solargraph-rails (1.1.0)
       activesupport
       solargraph
-    sorbet-runtime (0.5.12167)
+    sorbet-runtime (0.5.12176)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
       logger
@@ -669,6 +678,9 @@ DEPENDENCIES
   ruby-progressbar
   rubycritic
   scout_apm
+  sentry-rails
+  sentry-ruby
+  sentry-sidekiq
   shopify_app
   sidekiq (~> 7.2)
   sidekiq-status

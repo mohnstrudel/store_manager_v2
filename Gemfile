@@ -73,6 +73,10 @@ gem "positioning"
 
 gem "strong_migrations"
 
+gem "sentry-ruby"
+gem "sentry-rails"
+gem "sentry-sidekiq"
+
 group :production, :staging do
   gem "thruster"
   gem "barnes"

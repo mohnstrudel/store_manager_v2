@@ -3,16 +3,9 @@ class Shopify::BasePullJob < ApplicationJob
   include Sanitizable
 
   def perform(attempts: 0, cursor: nil, limit: nil)
-    response_data = fetch_shopify_data(cursor:, limit:)
-
-    response_data[:items].each do |api_item|
-      parsed_item = parser_class.new(api_item:).parse
-      creator_class.new(parsed_item:).update_or_create!
-    end
-
-    if response_data[:has_next_page] && !limit
-      schedule_next_page(response_data[:end_cursor])
-    end
+    fetch_shopify_data(cursor:, limit:)
+    merge_new_items
+    schedule_next_page(limit)
   rescue ShopifyAPI::Errors::HttpResponseError => e
     handle_api_error(e, attempts, cursor, limit)
   end
@@ -22,13 +15,26 @@ class Shopify::BasePullJob < ApplicationJob
   def fetch_shopify_data(cursor:, limit:)
     limit ||= batch_size
     api_client = Shopify::ApiClient.new
-    api_client.pull(resource_name: resource_name, cursor:, limit:)
+    @api_payload = api_client.pull(
+      resource_name: resource_name,
+      cursor:,
+      batch_size: limit
+    )
   end
 
-  def schedule_next_page(cursor)
-    self.class
-      .set(wait: 1.second)
-      .perform_later(cursor:)
+  def merge_new_items
+    @api_payload[:items].each do |api_item|
+      parsed_item = parser_class.new(api_item:).parse
+      creator_class.new(parsed_item:).update_or_create!
+    end
+  end
+
+  def schedule_next_page(has_limit)
+    if @api_payload[:has_next_page] && !has_limit
+      self.class
+        .set(wait: 1.second)
+        .perform_later(cursor: @api_payload[:end_cursor])
+    end
   end
 
   def handle_api_error(error, attempts, cursor, limit)

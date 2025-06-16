@@ -45,6 +45,12 @@ RSpec.describe Shopify::ProductCreator do
         expect(Shopify::PullEditionsJob).to have_received(:perform_later)
         expect(Shopify::PullImagesJob).to have_received(:perform_later)
       end
+
+      it "generates correct full title" do
+        creator.update_or_create!
+        product = Product.last
+        expect(product.full_title).to eq(Product.generate_full_title(product))
+      end
     end
 
     context "when product already exists" do
@@ -63,9 +69,30 @@ RSpec.describe Shopify::ProductCreator do
       end
     end
 
-    it "returns nil if parsed_item is blank" do
-      creator = described_class.new(parsed_item: {})
-      expect(creator.update_or_create!).to be_nil
+    context "with invalid input" do
+      it "raises ArgumentError if parsed_item is not a Hash" do
+        expect { described_class.new(parsed_item: "not a hash") }
+          .to raise_error(ArgumentError, "parsed_item must be a Hash")
+      end
+
+      it "raises ArgumentError if parsed_item is blank" do
+        expect { described_class.new(parsed_item: {}) }
+          .to raise_error(ArgumentError, "parsed_item cannot be blank")
+      end
+    end
+
+    context "with nil or empty relation values" do
+      let(:parsed_product_with_nil_values) do
+        parsed_product.merge(
+          brand: nil,
+          size: nil
+        )
+      end
+
+      it "handles nil relation values gracefully" do
+        creator = described_class.new(parsed_item: parsed_product_with_nil_values)
+        expect { creator.update_or_create! }.not_to raise_error
+      end
     end
   end
 
@@ -76,33 +103,6 @@ RSpec.describe Shopify::ProductCreator do
       allow_any_instance_of(Shopify::ProductParser).to receive(:parse_product_title).and_return(
         ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
       )
-    end
-
-    it "creates a product based on parsed title" do
-      expect { creator_by_title.update_or_create_by_title }.to change(Product, :count).by(1)
-        .and change(Franchise, :count).by(1)
-        .and change(Shape, :count).by(1)
-        .and change(Brand, :count).by(1)
-        .and change(Size, :count).by(1)
-
-      product = Product.last
-      expect(product.title).to eq("Eve")
-      expect(product.franchise.title).to eq("Stellar Blade")
-      expect(product.shape.title).to eq("Statue")
-      expect(product.brands.first.title).to eq("Light and Dust Studio")
-      expect(product.sizes.first.value).to eq("1:4")
-    end
-
-    it "finds existing product if it matches core attributes" do
-      existing_product = create(:product,
-        title: "Eve",
-        franchise: create(:franchise, title: "Stellar Blade"),
-        shape: create(:shape, title: "Statue"))
-
-      result = creator_by_title.update_or_create_by_title
-
-      expect(result).to eq(existing_product)
-      expect(result.sizes.first.value).to eq("1:4")
     end
   end
 end

@@ -64,9 +64,38 @@ RSpec.describe Shopify::ProductParser do
       ])
     end
 
-    it "returns nil if product is blank" do
-      parser = described_class.new(api_item: {})
-      expect(parser.parse).to be_nil
+    it "handles missing variants" do
+      product_without_variants = api_product.deep_dup
+      product_without_variants["variants"] = {"edges" => []}
+
+      parser = described_class.new(api_item: product_without_variants)
+      allow(parser).to receive(:parse_product_title).and_return(
+        ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
+      )
+
+      result = parser.parse
+      expect(result[:editions]).to be_empty
+    end
+
+    it "handles missing images" do
+      product_without_images = api_product.deep_dup
+      product_without_images["images"] = {"edges" => []}
+
+      parser = described_class.new(api_item: product_without_images)
+      allow(parser).to receive(:parse_product_title).and_return(
+        ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
+      )
+
+      result = parser.parse
+      expect(result[:images]).to be_empty
+    end
+
+    it "raises error when api_item is not a Hash" do
+      expect { described_class.new(api_item: nil).parse }.to raise_error(ArgumentError, "api_item must be a Hash")
+    end
+
+    it "raises error when api_item is blank" do
+      expect { described_class.new(api_item: {}).parse }.to raise_error(ArgumentError, "api_item cannot be blank")
     end
   end
 
@@ -105,6 +134,50 @@ RSpec.describe Shopify::ProductParser do
       expect(size).to be_nil
       expect(shape).to eq("Statue")
       expect(brand).to be_nil
+    end
+
+    it "handles titles with bust shape" do
+      parser = described_class.new(title: "Elden Ring - Malenia | 1:4 Resin Bust")
+
+      title, franchise, size, shape, brand = parser.parse_product_title
+
+      expect(title).to eq("Malenia")
+      expect(franchise).to eq("Elden Ring")
+      expect(size).to eq("1:4")
+      expect(shape).to eq("Bust")
+      expect(brand).to be_nil
+    end
+
+    it "handles titles with special characters" do
+      parser = described_class.new(title: "Elden Ring - Malenia, Blade of Miquella | 1:4 Resin Statue")
+
+      title, franchise, size, shape, brand = parser.parse_product_title
+
+      expect(title).to eq("Malenia, Blade Of Miquella")
+      expect(franchise).to eq("Elden Ring")
+      expect(size).to eq("1:4")
+      expect(shape).to eq("Statue")
+      expect(brand).to be_nil
+    end
+
+    it "handles titles with multiple brands" do
+      parser = described_class.new(title: "Elden Ring - Malenia | 1:4 Resin Statue | Prime 1 Studio & Gecco")
+
+      title, franchise, size, shape, brand = parser.parse_product_title
+
+      expect(title).to eq("Malenia")
+      expect(franchise).to eq("Elden Ring")
+      expect(size).to eq("1:4")
+      expect(shape).to eq("Statue")
+      expect(brand).to eq("Prime 1 Studio & Gecco")
+    end
+
+    it "raises error when title is not a String" do
+      expect { described_class.new(title: nil).parse_product_title }.to raise_error(ArgumentError, "Product title must be a String")
+    end
+
+    it "raises error when title is blank" do
+      expect { described_class.new(title: "").parse_product_title }.to raise_error(ArgumentError, "Product title cannot be blank")
     end
   end
 end

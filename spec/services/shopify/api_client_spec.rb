@@ -63,11 +63,11 @@ RSpec.describe Shopify::ApiClient do
         }
       )
 
-      api_client.pull(resource_name: "products", cursor: "cursor123", limit: 10)
+      api_client.pull(resource_name: "products", cursor: "cursor123", batch_size: 10)
     end
 
     it "transforms the response into the expected format" do
-      result = api_client.pull(resource_name: "products", cursor: nil, limit: 10)
+      result = api_client.pull(resource_name: "products", cursor: nil, batch_size: 10)
 
       expect(result).to eq({
         items: [
@@ -81,7 +81,7 @@ RSpec.describe Shopify::ApiClient do
 
     it "raises an error when resource_name is blank" do
       expect {
-        api_client.pull(resource_name: "", cursor: nil, limit: 10)
+        api_client.pull(resource_name: "", cursor: nil, batch_size: 10)
       }.to raise_error(ArgumentError, "Name is required")
     end
   end

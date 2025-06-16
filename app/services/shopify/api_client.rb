@@ -111,13 +111,13 @@ class Shopify::ApiClient
       .body["data"]["order"]
   end
 
-  def pull(resource_name:, cursor:, limit:)
+  def pull(resource_name:, cursor:, batch_size:)
     raise ArgumentError, "Name is required" if resource_name.blank?
 
     response_body = @client.query(
       query: gql_query(resource_name),
       variables: {
-        first: limit,
+        first: batch_size,
         after: cursor
       }
     ).body["data"]

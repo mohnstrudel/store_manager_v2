@@ -7,18 +7,18 @@ class SaleLinker
     return unless @sale.active? || @sale.completed?
 
     @sale.product_sales.linkable.flat_map do |product_sale|
-      already_linked = product_sale.purchased_products.count
-      needed = product_sale.qty - already_linked
+      already_linked_size = product_sale.purchased_products.count
+      remaining_size = product_sale.qty - already_linked_size
 
-      next if needed <= 0
+      next if remaining_size <= 0
 
-      purchased_products_to_link = PurchasedProduct
+      linkable_purchased_products = PurchasedProduct
         .without_product_sales(product_sale.product_id)
-        .limit(needed)
+        .limit(remaining_size)
 
-      linked_ids = purchased_products_to_link.pluck(:id)
+      linked_ids = linkable_purchased_products.pluck(:id)
 
-      purchased_products_to_link.update_all(product_sale_id: product_sale.id)
+      linkable_purchased_products.update_all(product_sale_id: product_sale.id)
 
       linked_ids
     end
