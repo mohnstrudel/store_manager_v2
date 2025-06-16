@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Shopify::ProductParser do
   describe "#parse" do
-    let(:api_product) do
+    let(:api_item) do
       {
         "id" => "gid://shopify/Product/12345",
         "title" => "Stellar Blade - Eve | 1:4 Resin Statue | Light and Dust Studio",
@@ -29,7 +29,7 @@ RSpec.describe Shopify::ProductParser do
       }
     end
 
-    let(:parser) { described_class.new(api_item: api_product) }
+    let(:parser) { described_class.new(api_item: api_item) }
 
     it "parses product data correctly" do
       allow(parser).to receive(:parse_product_title).and_return(
@@ -65,7 +65,7 @@ RSpec.describe Shopify::ProductParser do
     end
 
     it "handles missing variants" do
-      product_without_variants = api_product.deep_dup
+      product_without_variants = api_item.deep_dup
       product_without_variants["variants"] = {"edges" => []}
 
       parser = described_class.new(api_item: product_without_variants)
@@ -78,7 +78,7 @@ RSpec.describe Shopify::ProductParser do
     end
 
     it "handles missing images" do
-      product_without_images = api_product.deep_dup
+      product_without_images = api_item.deep_dup
       product_without_images["images"] = {"edges" => []}
 
       parser = described_class.new(api_item: product_without_images)
