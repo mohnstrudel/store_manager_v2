@@ -16,14 +16,23 @@
 #  supplier_id     :bigint           not null
 #
 class Purchase < ApplicationRecord
+  #
+  # == Concerns
+  #
+  include HasAuditNotifications
+  include Searchable
+
+  #
+  # == Extensions
+  #
+  extend FriendlyId
+
+  #
+  # == Configuration
+  #
   audited associated_with: :supplier
   has_associated_audits
-  include HasAuditNotifications
-
-  extend FriendlyId
   friendly_id :full_title, use: :slugged
-
-  include Searchable
   set_search_scope :search,
     against: [:order_reference],
     associated_against: {
@@ -36,12 +45,17 @@ class Purchase < ApplicationRecord
     using: {
       tsearch: {prefix: true}
     }
-
   paginates_per 50
 
+  #
+  # == Validations
+  #
   validates :amount, presence: true
   validates :item_price, presence: true
 
+  #
+  # == Associations
+  #
   db_belongs_to :supplier
   belongs_to :product, optional: true
   belongs_to :edition, optional: true
@@ -56,6 +70,9 @@ class Purchase < ApplicationRecord
   has_many :purchase_items, dependent: :destroy
   has_many :warehouses, through: :purchase_items
 
+  #
+  # == Scopes
+  #
   scope :unpaid, -> {
     includes(:supplier)
       .where
@@ -63,6 +80,14 @@ class Purchase < ApplicationRecord
       .order(created_at: :asc)
   }
 
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
   def paid
     payments.pluck(:value).sum
   end

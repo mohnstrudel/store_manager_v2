@@ -10,13 +10,41 @@
 #  updated_at            :datetime         not null
 #
 class Config < ApplicationRecord
-  audited
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
-  enum :sales_hook_status, {disabled: 0, active: 1}
+  #
+  # == Extensions
+  #
+  # (none)
 
+  #
+  # == Configuration
+  #
+  audited
+  enum :sales_hook_status, {disabled: 0, active: 1}
   CONFIG = Config.first_or_create
 
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
+  # (none)
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
   def self.sales_hook_disabled?
     CONFIG.sales_hook_status == "disabled"
   end
@@ -44,4 +72,9 @@ class Config < ApplicationRecord
   def self.shopify_sales_sync_time
     CONFIG.shopify_sales_sync&.localtime&.strftime("%d.%m at %H:%M")
   end
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

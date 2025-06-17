@@ -4,7 +4,7 @@
 #
 #  id                       :bigint           not null, primary key
 #  price                    :decimal(8, 2)
-#  purchase_items_count :integer          default(0), not null
+#  purchase_items_count     :integer          default(0), not null
 #  qty                      :integer
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
@@ -15,17 +15,39 @@
 #  woo_id                   :string
 #
 class SaleItem < ApplicationRecord
-  audited associated_with: :sale
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited associated_with: :sale
   validates_db_uniqueness_of :woo_id, allow_nil: true
 
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
   db_belongs_to :product
   db_belongs_to :sale
   belongs_to :edition, optional: true
 
   has_many :purchase_items, dependent: :nullify
 
+  #
+  # == Scopes
+  #
   scope :active, -> {
     joins(:sale).where(sales: {status: Sale.active_status_names})
   }
@@ -42,6 +64,9 @@ class SaleItem < ApplicationRecord
     includes(:product, sale: :customer, edition: [:version, :color, :size])
   }
 
+  #
+  # == Class Methods
+  #
   def self.linkable_for(purchase)
     active
       .linkable
@@ -52,6 +77,9 @@ class SaleItem < ApplicationRecord
       )
   end
 
+  #
+  # == Domain Methods
+  #
   def item
     edition.presence || product
   end

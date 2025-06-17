@@ -15,9 +15,29 @@
 #  woo_id     :string
 #
 class Edition < ApplicationRecord
-  audited associated_with: :product
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited associated_with: :product
+
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
   belongs_to :size, optional: true
   belongs_to :version, optional: true
   belongs_to :color, optional: true
@@ -26,8 +46,14 @@ class Edition < ApplicationRecord
   has_many :sale_items, dependent: :destroy
   has_many :purchases, dependent: :destroy
 
+  #
+  # == Scopes
+  #
   scope :includes_details, -> { includes(:version, :color, :size) }
 
+  #
+  # == Class Methods
+  #
   def self.types
     # Values should follow this rule: [English, German]
     {
@@ -38,6 +64,9 @@ class Edition < ApplicationRecord
     }.freeze
   end
 
+  #
+  # == Domain Methods
+  #
   def title
     [size&.value, version&.value, color&.value].compact.join(" | ")
   end

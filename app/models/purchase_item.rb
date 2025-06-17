@@ -12,18 +12,28 @@
 #  width               :integer
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
-#  sale_item_id     :bigint
+#  sale_item_id        :bigint
 #  purchase_id         :bigint
 #  shipping_company_id :bigint
 #  warehouse_id        :bigint           not null
 #
 class PurchaseItem < ApplicationRecord
-  audited associated_with: :purchase
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
-
   include HasPreviewImages
   include Searchable
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited associated_with: :purchase
   set_search_scope :search,
     associated_against: {
       product: [:full_title]
@@ -32,6 +42,20 @@ class PurchaseItem < ApplicationRecord
       tsearch: {prefix: true}
     }
 
+  #
+  # == Validations
+  #
+  validates :tracking_number,
+    presence: true,
+    if: -> { shipping_company_id.present? }
+
+  validates :shipping_company_id,
+    presence: true,
+    if: -> { tracking_number.present? }
+
+  #
+  # == Associations
+  #
   db_belongs_to :warehouse
   db_belongs_to :purchase
 
@@ -42,14 +66,9 @@ class PurchaseItem < ApplicationRecord
 
   belongs_to :shipping_company, optional: true
 
-  validates :tracking_number,
-    presence: true,
-    if: -> { shipping_company_id.present? }
-
-  validates :shipping_company_id,
-    presence: true,
-    if: -> { tracking_number.present? }
-
+  #
+  # == Scopes
+  #
   scope :ordered_by_updated_date, -> { order(updated_at: :desc) }
 
   scope :with_notification_details, -> {
@@ -68,10 +87,16 @@ class PurchaseItem < ApplicationRecord
       .where(purchase: {product_id:})
   }
 
+  #
+  # == Class Methods
+  #
   def self.linkable_for(product_id, limit:)
     without_sale_items(product_id).limit(limit)
   end
 
+  #
+  # == Domain Methods
+  #
   def name
     purchase.full_title
   end

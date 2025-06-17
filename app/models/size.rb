@@ -8,14 +8,40 @@
 #  updated_at :datetime         not null
 #
 class Size < ApplicationRecord
-  audited
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited
+
+  #
+  # == Validations
+  #
   validates :value, presence: true, uniqueness: true
 
+  #
+  # == Associations
+  #
   has_many :product_sizes, dependent: :destroy
   has_many :products, through: :product_sizes
 
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
   def self.parse_size(product_title)
     num_sizes = product_title.scan(numeric_size_match).flatten
 
@@ -41,4 +67,9 @@ class Size < ApplicationRecord
     # and 1/2, 1/3, etc.
     /(1[\/:](?:[23456789]|3\.5|1[0]?))/
   end
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

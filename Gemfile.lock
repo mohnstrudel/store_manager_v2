@@ -566,7 +566,7 @@ GEM
     solargraph-rails (1.1.0)
       activesupport
       solargraph
-    sorbet-runtime (0.5.12176)
+    sorbet-runtime (0.5.12184)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
       logger

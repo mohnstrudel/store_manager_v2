@@ -13,25 +13,57 @@
 #  woo_id     :string
 #
 class Customer < ApplicationRecord
+  #
+  # == Concerns
+  #
+  include HasAuditNotifications
+  include Searchable
+
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
   audited
   has_associated_audits
-  include HasAuditNotifications
-
-  include Searchable
   set_search_scope :search,
     against: [:woo_id, :email, :first_name, :last_name, :phone],
     associated_against: {sales: :woo_id}
-
   paginates_per 50
 
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
   has_many :sales, dependent: :destroy
 
+  #
+  # == Callbacks
+  #
   before_save :downcase_email
 
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
   def self.woo_id_is_valid?(woo_id)
     !woo_id.in? [0, "0", ""]
   end
 
+  #
+  # == Domain Methods
+  #
   def name_and_email
     [full_name, email].compact.join(" — ")
   end

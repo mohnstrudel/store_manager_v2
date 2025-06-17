@@ -9,9 +9,44 @@
 #  size_id    :bigint
 #
 class ProductSize < ApplicationRecord
-  audited
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited
+
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
   db_belongs_to :product
   db_belongs_to :size
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

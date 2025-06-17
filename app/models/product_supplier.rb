@@ -9,9 +9,44 @@
 #  supplier_id :bigint
 #
 class ProductSupplier < ApplicationRecord
-  audited
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited
+
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
   db_belongs_to :product
   db_belongs_to :supplier
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

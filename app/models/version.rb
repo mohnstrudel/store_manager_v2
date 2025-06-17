@@ -8,11 +8,44 @@
 #  updated_at :datetime         not null
 #
 class Version < ApplicationRecord
-  audited
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited
+
+  #
+  # == Validations
+  #
   validates :value, presence: true
 
+  #
+  # == Associations
+  #
   has_many :product_versions, dependent: :destroy
   has_many :products, through: :product_versions
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

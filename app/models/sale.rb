@@ -36,14 +36,24 @@
 #  woo_id             :string
 #
 class Sale < ApplicationRecord
+  #
+  # == Concerns
+  #
+  include HasAuditNotifications
+  include Searchable
+
+  #
+  # == Extensions
+  #
+  extend FriendlyId
+
+  #
+  # == Configuration
+  #
+  friendly_id :full_title, use: :slugged
+  paginates_per 50
   audited associated_with: :customer
   has_associated_audits
-  include HasAuditNotifications
-
-  extend FriendlyId
-  friendly_id :full_title, use: :slugged
-
-  include Searchable
   set_search_scope :search,
     against: [:woo_id, :shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
     associated_against: {
@@ -54,8 +64,9 @@ class Sale < ApplicationRecord
       tsearch: {prefix: true}
     }
 
-  paginates_per 50
-
+  #
+  # == Associations
+  #
   db_belongs_to :customer
 
   has_many :sale_items, dependent: :destroy
@@ -63,10 +74,16 @@ class Sale < ApplicationRecord
 
   accepts_nested_attributes_for :sale_items, allow_destroy: true
 
+  #
+  # == Scopes
+  #
   scope :except_cancelled_or_completed, -> {
     where.not(status: cancelled_status_names + completed_status_names)
   }
 
+  #
+  # == Class Methods
+  #
   def self.active_status_names
     [
       "partially-paid",
@@ -115,6 +132,9 @@ class Sale < ApplicationRecord
     UpdateWooOrderJob.perform_later(sale)
   end
 
+  #
+  # == Domain Methods
+  #
   def title
     email = customer.email.presence || ""
     [status&.titleize, email].compact.join(" | ")
