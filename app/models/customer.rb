@@ -17,8 +17,8 @@ class Customer < ApplicationRecord
   has_associated_audits
   include HasAuditNotifications
 
-  include PgSearch::Model
-  pg_search_scope :search,
+  include Searchable
+  set_search_scope :search,
     against: [:woo_id, :email, :first_name, :last_name, :phone],
     associated_against: {sales: :woo_id}
 

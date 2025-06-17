@@ -43,8 +43,8 @@ class Sale < ApplicationRecord
   extend FriendlyId
   friendly_id :full_title, use: :slugged
 
-  include PgSearch::Model
-  pg_search_scope :search,
+  include Searchable
+  set_search_scope :search,
     against: [:woo_id, :shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
     associated_against: {
       customer: [:email, :first_name, :last_name, :phone, :woo_id],

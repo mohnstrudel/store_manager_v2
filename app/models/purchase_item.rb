@@ -22,9 +22,9 @@ class PurchaseItem < ApplicationRecord
   include HasAuditNotifications
 
   include HasPreviewImages
-  include PgSearch::Model
+  include Searchable
 
-  pg_search_scope :search,
+  set_search_scope :search,
     associated_against: {
       product: [:full_title]
     },

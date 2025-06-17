@@ -23,8 +23,8 @@ class Purchase < ApplicationRecord
   extend FriendlyId
   friendly_id :full_title, use: :slugged
 
-  include PgSearch::Model
-  pg_search_scope :search,
+  include Searchable
+  set_search_scope :search,
     against: [:order_reference],
     associated_against: {
       supplier: [:title],

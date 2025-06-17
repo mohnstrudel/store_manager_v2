@@ -17,20 +17,27 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
-  audited associated_with: :franchise
-  has_associated_audits
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
-
   include HasPreviewImages
-  include PgSearch::Model
+  include Searchable
 
+  #
+  # == Extensions
+  #
+  extend FriendlyId
+
+  #
+  # == Configuration
+  #
+  friendly_id :get_slug, use: :slugged
   broadcasts_refreshes
   paginates_per 50
-
-  extend FriendlyId
-  friendly_id :get_slug, use: :slugged
-
-  pg_search_scope :search,
+  audited associated_with: :franchise
+  has_associated_audits
+  set_search_scope :search,
     against: [:full_title, :woo_id],
     associated_against: {
       suppliers: [:title],
@@ -42,13 +49,24 @@ class Product < ApplicationRecord
       tsearch: {prefix: true}
     }
 
+  #
+  # == Callbacks
+  #
   after_create :update_full_title
 
+  #
+  # == Validations
+  #
   validates :title, presence: true
   validates_db_uniqueness_of :sku
 
+  #
+  # == Associations
+  #
   db_belongs_to :franchise
   db_belongs_to :shape
+
+  has_many :editions, dependent: :destroy, autosave: true
 
   has_many :product_brands, dependent: :destroy
   has_many :brands, through: :product_brands
@@ -68,11 +86,21 @@ class Product < ApplicationRecord
   has_many :sale_items, dependent: :destroy
   has_many :sales, through: :sale_items
 
-  has_many :editions, dependent: :destroy, autosave: true
-
   has_many :purchases, dependent: :destroy
   has_many :purchase_items, through: :purchases
 
+  #
+  # == Scopes
+  #
+  scope :listed, -> {
+    includes(editions: [:version, :color, :size])
+      .with_attached_images
+      .order(created_at: :desc)
+  }
+
+  #
+  # == Class Methods
+  #
   def self.generate_full_title(
     product,
     brand = nil
@@ -93,27 +121,12 @@ class Product < ApplicationRecord
     ].compact.join(" | ")
   end
 
-  def self.listed
-    includes(editions: [:version, :color, :size])
-      .with_attached_images
-      .order(created_at: :desc)
-  end
-
-  def self.search_by(query)
-    query.present? ? search(query) : all
-  end
-
+  #
+  # == Domain Methods
+  #
   def update_full_title
     self.full_title = Product.generate_full_title(self)
     save
-  end
-
-  def prev_image_id(img_id)
-    (images.where(id: ...img_id).last || images.last).id
-  end
-
-  def next_image_id(img_id)
-    (images.where("id > ?", img_id).first || images.first).id
   end
 
   def get_slug
@@ -124,24 +137,16 @@ class Product < ApplicationRecord
     "#{full_title} | #{shop_id || "N/A"}"
   end
 
-  def shopify_store_link
-    "https://handsomecake.com/products/#{store_link}"
+  def shop_id
+    woo_id.presence || shopify_id_short.presence
   end
 
   def shopify_id_short
     shopify_id&.gsub("gid://shopify/Product/", "")
   end
 
-  def shop_id
-    woo_id.presence || shopify_id_short.presence
-  end
-
-  def build_editions
-    return unless sizes.any? || versions.any? || colors.any?
-
-    mark_absent_editions_for_destruction
-
-    editions.build(edition_attributes)
+  def shopify_store_link
+    "https://handsomecake.com/products/#{store_link}"
   end
 
   def active_sale_items
@@ -169,6 +174,14 @@ class Product < ApplicationRecord
       .where(edition: editions)
       .group(:edition_id)
       .sum(:amount)
+  end
+
+  def build_editions
+    return unless sizes.any? || versions.any? || colors.any?
+
+    mark_absent_editions_for_destruction
+
+    editions.build(edition_attributes)
   end
 
   def editions_with_title
