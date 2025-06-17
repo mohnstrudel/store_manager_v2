@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: purchased_products
+# Table name: purchase_items
 #
 #  id                  :bigint           not null, primary key
 #  expenses            :decimal(8, 2)
@@ -12,20 +12,23 @@
 #  width               :integer
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
-#  product_sale_id     :bigint
+#  sale_item_id     :bigint
 #  purchase_id         :bigint
 #  shipping_company_id :bigint
 #  warehouse_id        :bigint           not null
 #
-FactoryBot.define do
-  factory :purchased_product do
-    warehouse
-    purchase
-    weight { 1 }
-    length { 1 }
-    width { 1 }
-    height { 1 }
-    expenses { "9.99" }
-    shipping_price { "9.99" }
+require "rails_helper"
+
+describe PurchaseItem do
+  describe "#name" do
+    subject(:purchase_item) { create(:purchase_item) }
+
+    it { expect(purchase_item.name).to eq(purchase_item.purchase.full_title) }
+  end
+
+  describe "auditing" do
+    it "is audited" do
+      expect(described_class.auditing_enabled).to be true
+    end
   end
 end

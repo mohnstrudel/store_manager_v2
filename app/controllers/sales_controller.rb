@@ -1,13 +1,13 @@
 class SalesController < ApplicationController
-  before_action :set_sale, only: %i[edit update destroy link_purchased_products]
+  before_action :set_sale, only: %i[edit update destroy link_purchase_items]
 
   # GET /sales
   def index
     sale_records = Sale
       .includes(
         :customer,
-        product_sales: [
-          :purchased_products,
+        sale_items: [
+          :purchase_items,
           product: [images_attachments: :blob],
           edition: [
             :version,
@@ -34,8 +34,8 @@ class SalesController < ApplicationController
   def show
     @sale = Sale
       .includes(
-        product_sales: [
-          purchased_products: [:warehouse, purchase: :supplier],
+        sale_items: [
+          purchase_items: [:warehouse, purchase: :supplier],
           product: [images_attachments: :blob]
         ]
       )
@@ -57,8 +57,8 @@ class SalesController < ApplicationController
     @sale = Sale.new(sale_params)
 
     if @sale.save
-      linked_ids = @sale.link_with_purchased_products
-      PurchasedNotifier.new(purchased_product_ids: linked_ids).handle_product_purchase
+      linked_ids = @sale.link_with_purchase_items
+      PurchasedNotifier.new(purchase_item_ids: linked_ids).handle_product_purchase
       redirect_to @sale, notice: "Sale was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -84,10 +84,10 @@ class SalesController < ApplicationController
     redirect_to sales_url, notice: "Sale was successfully destroyed.", status: :see_other
   end
 
-  def link_purchased_products
-    purchased_product_ids = @sale.link_with_purchased_products
+  def link_purchase_items
+    purchase_item_ids = @sale.link_with_purchase_items
 
-    PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
+    PurchasedNotifier.new(purchase_item_ids:).handle_product_purchase
 
     redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
   end
@@ -139,7 +139,7 @@ class SalesController < ApplicationController
       :woo_id,
       :customer_id,
       product_ids: [],
-      product_sales_attributes: [
+      sale_items_attributes: [
         :id,
         :product_id,
         :qty,

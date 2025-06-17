@@ -4,7 +4,7 @@ RSpec.describe Shopify::SaleCreator do
   let(:parsed_orders) { instance_eval(file_fixture("shopify_parsed_orders.rb").read) }
   let(:valid_parsed_order) { parsed_orders.first }
   let(:creator) { described_class.new(parsed_item: valid_parsed_order) }
-  let(:products_size) { valid_parsed_order[:product_sales].count { |ps| ps.key?(:product) } }
+  let(:products_size) { valid_parsed_order[:sale_items].count { |ps| ps.key?(:product) } }
 
   describe "#update_or_create!" do
     context "with invalid input" do
@@ -28,10 +28,10 @@ RSpec.describe Shopify::SaleCreator do
         expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "parsed_item[:sale] cannot be blank")
       end
 
-      it "raises error when product_sales is missing" do
+      it "raises error when sale_items is missing" do
         invalid_order = valid_parsed_order.dup
-        invalid_order[:product_sales] = nil
-        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "parsed_item[:product_sales] cannot be blank")
+        invalid_order[:sale_items] = nil
+        expect { described_class.new(parsed_item: invalid_order).update_or_create! }.to raise_error(ArgumentError, "parsed_item[:sale_items] cannot be blank")
       end
     end
 
@@ -39,7 +39,7 @@ RSpec.describe Shopify::SaleCreator do
       it "creates all required records" do
         expect { creator.update_or_create! }.to change(Sale, :count).by(1)
           .and change(Customer, :count).by(1)
-          .and change(ProductSale, :count).by(1)
+          .and change(SaleItem, :count).by(1)
           .and change(Product, :count).by(products_size)
           .and change(Edition, :count).by(2)
       end
@@ -58,7 +58,7 @@ RSpec.describe Shopify::SaleCreator do
       it "updates existing records instead of creating new ones" do
         expect { creator.update_or_create! }.not_to change(Sale, :count)
         expect { creator.update_or_create! }.not_to change(Customer, :count)
-        expect { creator.update_or_create! }.not_to change(ProductSale, :count)
+        expect { creator.update_or_create! }.not_to change(SaleItem, :count)
       end
 
       it "updates existing sale with new data" do
@@ -82,20 +82,20 @@ RSpec.describe Shopify::SaleCreator do
 
     context "when edition already exists" do
       let(:parsed_order) { valid_parsed_order }
-      let!(:existing_edition) { create(:edition, shopify_id: parsed_order[:product_sales].first[:shopify_edition_id]) }
+      let!(:existing_edition) { create(:edition, shopify_id: parsed_order[:sale_items].first[:shopify_edition_id]) }
 
       it "uses existing edition" do
         expect { creator.update_or_create! }.not_to change(Edition, :count)
-        expect(ProductSale.last.edition).to eq(existing_edition)
+        expect(SaleItem.last.edition).to eq(existing_edition)
       end
     end
 
     context "when product sale is corrupted" do
       let(:parsed_order_corrupted) do
         order = valid_parsed_order.deep_dup
-        order[:product_sales].first[:shopify_edition_id] = nil
-        order[:product_sales].first[:shopify_product_id] = nil
-        order[:product_sales].first[:edition_title] = nil
+        order[:sale_items].first[:shopify_edition_id] = nil
+        order[:sale_items].first[:shopify_product_id] = nil
+        order[:sale_items].first[:edition_title] = nil
         order
       end
       let(:creator_corrupted) { described_class.new(parsed_item: parsed_order_corrupted) }
@@ -105,15 +105,15 @@ RSpec.describe Shopify::SaleCreator do
       end
 
       it "still creates the product sale without a edition" do
-        expect { creator_corrupted.update_or_create! }.to change(ProductSale, :count).by(1)
-        expect(ProductSale.last.edition).to be_nil
+        expect { creator_corrupted.update_or_create! }.to change(SaleItem, :count).by(1)
+        expect(SaleItem.last.edition).to be_nil
       end
     end
 
     context "when creating new edition" do
       let(:parsed_order_with_new_edition) do
         order = valid_parsed_order.deep_dup
-        order[:product_sales].first.merge!(
+        order[:sale_items].first.merge!(
           edition_title: "New Edition",
           shopify_edition_id: nil,
           shopify_product_id: nil,
@@ -139,7 +139,7 @@ RSpec.describe Shopify::SaleCreator do
     context "when creating edition with multiple attributes" do
       let(:parsed_order_with_complex_edition) do
         order = valid_parsed_order.deep_dup
-        order[:product_sales].first.merge!(
+        order[:sale_items].first.merge!(
           edition_title: "1:4 | New Edition | Red",
           shopify_edition_id: nil,
           shopify_product_id: nil,
@@ -165,7 +165,7 @@ RSpec.describe Shopify::SaleCreator do
     context "when edition creation fails" do
       let(:parsed_order_with_invalid_edition) do
         order = valid_parsed_order.deep_dup
-        order[:product_sales].first.merge!(
+        order[:sale_items].first.merge!(
           edition_title: "Invalid Edition",
           shopify_edition_id: "gid://shopify/ProductVariant/12345",
           shopify_product_id: "gid://shopify/Product/67890",
@@ -193,7 +193,7 @@ RSpec.describe Shopify::SaleCreator do
 
         expect { creator_with_invalid_edition.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
         expect(Edition.count).to eq(0)
-        expect(ProductSale.count).to eq(0)
+        expect(SaleItem.count).to eq(0)
       end
     end
 
@@ -206,7 +206,7 @@ RSpec.describe Shopify::SaleCreator do
         expect { creator.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
         expect(Sale.count).to eq(0)
         expect(Customer.count).to eq(0)
-        expect(ProductSale.count).to eq(0)
+        expect(SaleItem.count).to eq(0)
       end
     end
 
@@ -236,18 +236,18 @@ RSpec.describe Shopify::SaleCreator do
     context "when product already exists" do
       let!(:existing_product) do
         create(:product,
-          shopify_id: valid_parsed_order[:product_sales].first[:shopify_product_id],
+          shopify_id: valid_parsed_order[:sale_items].first[:shopify_product_id],
           title: "Old Product Title")
       end
     end
 
-    context "when product_sale already exists" do
+    context "when sale_item already exists" do
       let!(:existing_sale) { create(:sale, shopify_id: valid_parsed_order[:sale][:shopify_id]) }
-      let!(:existing_product) { create(:product, shopify_id: valid_parsed_order[:product_sales].first[:shopify_product_id]) }
-      let!(:existing_edition) { create(:edition, shopify_id: valid_parsed_order[:product_sales].first[:shopify_edition_id]) }
-      let!(:existing_product_sale) do
-        create(:product_sale,
-          shopify_id: valid_parsed_order[:product_sales].first[:shopify_id],
+      let!(:existing_product) { create(:product, shopify_id: valid_parsed_order[:sale_items].first[:shopify_product_id]) }
+      let!(:existing_edition) { create(:edition, shopify_id: valid_parsed_order[:sale_items].first[:shopify_edition_id]) }
+      let!(:existing_sale_item) do
+        create(:sale_item,
+          shopify_id: valid_parsed_order[:sale_items].first[:shopify_id],
           price: "500.00",
           qty: 1,
           sale: existing_sale,
@@ -255,21 +255,21 @@ RSpec.describe Shopify::SaleCreator do
           edition: existing_edition)
       end
 
-      it "updates existing product_sale with new data" do
+      it "updates existing sale_item with new data" do
         # Modify the parsed order data
         modified_order = valid_parsed_order.deep_dup
-        modified_order[:product_sales].first[:price] = "600.00"
-        modified_order[:product_sales].first[:qty] = 2
+        modified_order[:sale_items].first[:price] = "600.00"
+        modified_order[:sale_items].first[:qty] = 2
 
         modified_creator = described_class.new(parsed_item: modified_order)
 
         expect {
           modified_creator.update_or_create!
-        }.not_to change(ProductSale, :count)
+        }.not_to change(SaleItem, :count)
 
-        existing_product_sale.reload
-        expect(existing_product_sale.price).to eq(BigDecimal("600.00"))
-        expect(existing_product_sale.qty).to eq(2)
+        existing_sale_item.reload
+        expect(existing_sale_item.price).to eq(BigDecimal("600.00"))
+        expect(existing_sale_item.qty).to eq(2)
       end
     end
 
@@ -277,24 +277,24 @@ RSpec.describe Shopify::SaleCreator do
       let(:sale) { create(:sale) }
       let(:product) { create(:product) }
       let(:purchase) { create(:purchase, product: product, amount: 3) }
-      let!(:purchased_products) { create_list(:purchased_product, 3, purchase: purchase) }
-      let!(:product_sale) { create(:product_sale, sale: sale, product: product, qty: 2) }
+      let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase) }
+      let!(:sale_item) { create(:sale_item, sale: sale, product: product, qty: 2) }
 
       it "links purchased products to the sale" do
         allow(Sale).to receive(:find_by).and_return(sale)
-        allow(sale).to receive(:link_with_purchased_products).and_return(purchased_products.map(&:id))
+        allow(sale).to receive(:link_with_purchase_items).and_return(purchase_items.map(&:id))
 
         creator.update_or_create!
 
-        expect(sale).to have_received(:link_with_purchased_products)
+        expect(sale).to have_received(:link_with_purchase_items)
       end
 
       it "notifies customers about linked products" do
         allow(Sale).to receive(:find_by).and_return(sale)
-        allow(sale).to receive(:link_with_purchased_products).and_return(purchased_products.map(&:id))
+        allow(sale).to receive(:link_with_purchase_items).and_return(purchase_items.map(&:id))
 
         notifier = instance_double(PurchasedNotifier)
-        expect(PurchasedNotifier).to receive(:new).with(purchased_product_ids: purchased_products.map(&:id)).and_return(notifier)
+        expect(PurchasedNotifier).to receive(:new).with(purchase_item_ids: purchase_items.map(&:id)).and_return(notifier)
         expect(notifier).to receive(:handle_product_purchase)
 
         creator.update_or_create!

@@ -1,5 +1,5 @@
-class AddWooIdToProductSales < ActiveRecord::Migration[7.0]
+class AddWooIdToSaleItems < ActiveRecord::Migration[7.0]
   def change
-    add_column :product_sales, :woo_id, :string
+    add_column :sale_items, :woo_id, :string
   end
 end

@@ -36,17 +36,17 @@ feature "Link sales with purchases flow" do
 
     # Add product to sale
     click_button "Add Product"
-    select product.title, from: "sale[product_sales_attributes][1][product_id]"
-    fill_in "sale[product_sales_attributes][1][qty]", with: 1
-    fill_in "sale[product_sales_attributes][1][price]", with: "100.00"
+    select product.title, from: "sale[sale_items_attributes][1][product_id]"
+    fill_in "sale[sale_items_attributes][1][qty]", with: 1
+    fill_in "sale[sale_items_attributes][1][price]", with: "100.00"
 
     click_on "Create Sale"
 
     expect(page).to have_content("Sale was successfully created")
 
-    # Verify "Order Items List" exists
+    # Verify "Sale Items List" exists
     # and that it contains the product we added to the sale
-    expect(page).to have_content("Order Items List")
+    expect(page).to have_content("Sale Items List")
     expect(page).to have_content(product.full_title)
     expect(page).to have_content(supplier.title)
     expect(page).to have_content(warehouse.name)

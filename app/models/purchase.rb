@@ -53,8 +53,8 @@ class Purchase < ApplicationRecord
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments
 
-  has_many :purchased_products, dependent: :destroy
-  has_many :warehouses, through: :purchased_products
+  has_many :purchase_items, dependent: :destroy
+  has_many :warehouses, through: :purchase_items
 
   scope :unpaid, -> {
     includes(:supplier)
@@ -94,9 +94,9 @@ class Purchase < ApplicationRecord
     purchase_date || created_at
   end
 
-  def create_purchased_products_in(warehouse)
+  def create_purchase_items_in(warehouse)
     Array.new(amount) do
-      warehouse.purchased_products.create(purchase_id: id)
+      warehouse.purchase_items.create(purchase_id: id)
     end
   end
 end

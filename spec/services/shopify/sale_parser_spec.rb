@@ -101,7 +101,7 @@ RSpec.describe Shopify::SaleParser do
         phone: "555-1234"
       )
 
-      expect(result[:product_sales].first).to include(
+      expect(result[:sale_items].first).to include(
         shopify_id: "gid://shopify/LineItem/111",
         price: "95.00",
         qty: 1,
@@ -200,7 +200,7 @@ RSpec.describe Shopify::SaleParser do
       parser = described_class.new(api_item: order_without_variant)
       result = parser.parse
 
-      expect(result[:product_sales].first).to include(
+      expect(result[:sale_items].first).to include(
         shopify_edition_id: nil,
         shopify_product_id: nil
       )
@@ -213,7 +213,7 @@ RSpec.describe Shopify::SaleParser do
       parser = described_class.new(api_item: order_without_product)
       result = parser.parse
 
-      expect(result[:product_sales].first[:product]).to be_nil
+      expect(result[:sale_items].first[:product]).to be_nil
     end
 
     it "parses product data correctly" do
@@ -231,7 +231,7 @@ RSpec.describe Shopify::SaleParser do
 
       result = parser.parse
 
-      expect(result[:product_sales].first[:product]).to include(
+      expect(result[:sale_items].first[:product]).to include(
         shopify_id: "gid://shopify/Product/333",
         title: "Eve",
         franchise: "Stellar Blade"
@@ -262,7 +262,7 @@ RSpec.describe Shopify::SaleParser do
       parser = described_class.new(api_item: order_without_items)
       result = parser.parse
 
-      expect(result[:product_sales]).to be_empty
+      expect(result[:sale_items]).to be_empty
     end
 
     it "handles missing dates" do

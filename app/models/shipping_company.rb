@@ -12,7 +12,7 @@ class ShippingCompany < ApplicationRecord
   audited
   include HasAuditNotifications
 
-  has_many :purchased_products, dependent: :nullify
+  has_many :purchase_items, dependent: :nullify
 
   validates_db_uniqueness_of :name
   validates :tracking_url, presence: true

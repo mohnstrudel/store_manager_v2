@@ -1,23 +1,23 @@
 class PurchasedNotifier
   def initialize(
-    purchased_product_ids:,
+    purchase_item_ids:,
     from_id: nil,
     to_id: nil
   )
-    @purchased_product_ids = purchased_product_ids
+    @purchase_item_ids = purchase_item_ids
     @from_id = from_id.to_i
     @to_id = to_id.to_i
   end
 
   def handle_product_purchase
-    return if @purchased_product_ids.blank?
+    return if @purchase_item_ids.blank?
 
     dispatch_product_purchased_message
   end
 
   def handle_warehouse_change
     return warn_about(:same_destination) if @from_id == @to_id
-    return if @purchased_product_ids.blank?
+    return if @purchase_item_ids.blank?
 
     dispatch_warehouse_changed_message
   end
@@ -28,8 +28,8 @@ class PurchasedNotifier
     warehouse.external_name.presence || warehouse.name
   end
 
-  def extract_common_data(purchased_product)
-    sale = purchased_product.sale
+  def extract_common_data(purchase_item)
+    sale = purchase_item.sale
 
     if sale.blank?
       {}
@@ -38,33 +38,33 @@ class PurchasedNotifier
         email: sale.customer.email,
         customer_name: sale.customer.full_name,
         order_number: sale.woo_id.presence || sale.shopify_name.presence || sale.id,
-        item_name: purchased_product.product_sale.title
+        item_name: purchase_item.sale_item.title
       }
     end
   end
 
   def dispatch_product_purchased_message
-    purchased_products = PurchasedProduct
+    purchase_items = PurchaseItem
       .with_notification_details
       .includes(:warehouse)
-      .where(id: @purchased_product_ids)
+      .where(id: @purchase_item_ids)
 
-    purchased_products.each do |purchased_product|
-      if purchased_product&.sale.blank?
-        warn_about(:no_sale, purchased_product.id)
+    purchase_items.each do |purchase_item|
+      if purchase_item&.sale.blank?
+        warn_about(:no_sale, purchase_item.id)
         next
       end
 
-      data = extract_common_data(purchased_product)
+      data = extract_common_data(purchase_item)
 
       if data[:email].blank?
-        warn_about(:no_email, purchased_product.id)
+        warn_about(:no_email, purchase_item.id)
         next
       end
 
       NotificationsMailer.product_purchased_email(
         **data,
-        warehouse_name: format_warehouse_name(purchased_product.warehouse)
+        warehouse_name: format_warehouse_name(purchase_item.warehouse)
       ).deliver_later
     end
   end
@@ -81,15 +81,15 @@ class PurchasedNotifier
       return warn_about(:no_transitions)
     end
 
-    purchased_products = PurchasedProduct
+    purchase_items = PurchaseItem
       .with_notification_details
-      .where(id: @purchased_product_ids)
+      .where(id: @purchase_item_ids)
 
-    purchased_products.each do |purchased_product|
-      data = extract_common_data(purchased_product)
+    purchase_items.each do |purchase_item|
+      data = extract_common_data(purchase_item)
 
       if data[:email].blank?
-        warn_about(:no_email, purchased_product.id)
+        warn_about(:no_email, purchase_item.id)
         next
       end
 

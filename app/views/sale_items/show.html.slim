@@ -4,27 +4,27 @@ nav
   ul
     li
       ul.with_separator
-        li = link_to "Sale", @product_sale.sale
-        li = link_to "Product", @product_sale.product
+        li = link_to "Sale", @sale_item.sale
+        li = link_to "Product", @sale_item.product
       hgroup
-        h1 Order Item №#{@product_sale.id}
-        h4 #{format_show_page_title(@product_sale)}
+        h1 Sale Item №#{@sale_item.id}
+        h4 #{format_show_page_title(@sale_item)}
         h4
-          | Amount: #{@product_sale.qty}
-          - if @product_sale.price
+          | Amount: #{@sale_item.qty}
+          - if @sale_item.price
             | , price: 
-            .mono.inline $#{format_money @product_sale.price}
+            .mono.inline $#{format_money @sale_item.price}
 
 main.wide.flex.flex-col.gap.no-bd
-  - if @product_sale.purchased_products.present?
+  - if @sale_item.purchase_items.present?
     .table-cards-group
       .table-card data-controller="move-items"
         .table-hgroup.flex.justify-between
           h3.flex.justify-between.w-full
-            span Purchased Products
-            span = @product_sale.purchased_products.size
+            span Purchase Items
+            span = @sale_item.purchase_items.size
 
-        = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path, options: {redirect_to_product_sale: true}
+        = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
 
         table role="grid" data-controller="table"
           thead
@@ -36,11 +36,11 @@ main.wide.flex.flex-col.gap.no-bd
             th.right Shipping
             th.right Actions
           tbody
-            - @product_sale.purchased_products.each do |pp|
+            - @sale_item.purchase_items.each do |pp|
               tr(
                 class="hoverable"
                 data-action="click->table#goTo"
-                data-table-url-param=purchased_product_path(pp)
+                data-table-url-param=purchase_item_path(pp)
               )
                 = render "_shared/move_to_warehouse/td", id: pp.id
                 td = pp.warehouse.name
@@ -49,7 +49,7 @@ main.wide.flex.flex-col.gap.no-bd
                 td.mono.right = format_money pp.expenses
                 td.mono.right = format_money pp.shipping_price
                 td.actions
-                  = link_to unlink_purchased_product_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                  = link_to unlink_purchase_item_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
                     i.icn ✂︎
                     | Unlink
-                  = render "_shared/action-edit", route: edit_purchased_product_path(pp, redirect_to_product_sale: true)
+                  = render "_shared/action-edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)

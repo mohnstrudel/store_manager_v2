@@ -58,10 +58,10 @@ class Sale < ApplicationRecord
 
   db_belongs_to :customer
 
-  has_many :product_sales, dependent: :destroy
-  has_many :products, through: :product_sales
+  has_many :sale_items, dependent: :destroy
+  has_many :products, through: :sale_items
 
-  accepts_nested_attributes_for :product_sales, allow_destroy: true
+  accepts_nested_attributes_for :sale_items, allow_destroy: true
 
   scope :except_cancelled_or_completed, -> {
     where.not(status: cancelled_status_names + completed_status_names)
@@ -144,15 +144,15 @@ class Sale < ApplicationRecord
     self.class.completed_status_names.include?(status)
   end
 
-  def has_unlinked_product_sales?
-    total_sold = product_sales.sum(:qty)
-    total_purchased = product_sales.sum { |ps| ps.purchased_products.size }
+  def has_unlinked_sale_items?
+    total_sold = sale_items.sum(:qty)
+    total_purchased = sale_items.sum { |ps| ps.purchase_items.size }
 
     return if total_sold == total_purchased
 
-    product_ids = product_sales.pluck(:product_id)
+    product_ids = sale_items.pluck(:product_id)
 
-    PurchasedProduct.without_product_sales(product_ids).exists?
+    PurchaseItem.without_sale_items(product_ids).exists?
   end
 
   def shop_created_at
@@ -171,25 +171,25 @@ class Sale < ApplicationRecord
     shopify_id_short || woo_id
   end
 
-  def link_with_purchased_products
+  def link_with_purchase_items
     return unless active? || completed?
 
-    product_sales.linkable.map do |product_sale|
-      already_linked_size = product_sale.purchased_products.count
-      remaining_size = product_sale.qty - already_linked_size
+    sale_items.linkable.map do |sale_item|
+      already_linked_size = sale_item.purchase_items.count
+      remaining_size = sale_item.qty - already_linked_size
 
       next if remaining_size <= 0
 
-      linkable_purchased_products = PurchasedProduct.linkable_for(
-        product_sale.product_id,
+      linkable_purchase_items = PurchaseItem.linkable_for(
+        sale_item.product_id,
         limit: remaining_size
       )
 
-      linked_purchased_products_ids = linkable_purchased_products.pluck(:id)
+      linked_purchase_items_ids = linkable_purchase_items.pluck(:id)
 
-      linkable_purchased_products.each { it.link_with(product_sale.id) }
+      linkable_purchase_items.each { it.link_with(sale_item.id) }
 
-      linked_purchased_products_ids
+      linked_purchase_items_ids
     end.compact.flatten
   end
 end

@@ -10,7 +10,7 @@ class PurchasesController < ApplicationController
       .includes(
         :supplier,
         :payments,
-        purchased_products: [:warehouse],
+        purchase_items: [:warehouse],
         product: [images_attachments: :blob],
         edition: [:color, :size, :version]
       )
@@ -21,9 +21,9 @@ class PurchasesController < ApplicationController
 
   # GET /purchases/1 or /purchases/1.json
   def show
-    @purchased_products = @purchase
-      .purchased_products
-      .includes(:warehouse, :product_sale)
+    @purchase_items = @purchase
+      .purchase_items
+      .includes(:warehouse, :sale_item)
       .order(updated_at: :desc)
   end
 
@@ -52,11 +52,11 @@ class PurchasesController < ApplicationController
           Warehouse.find_by(is_default: true)
 
         if warehouse.present?
-          @purchase.create_purchased_products_in(warehouse)
+          @purchase.create_purchase_items_in(warehouse)
 
-          purchased_product_ids = PurchaseLinker.new(@purchase).link
+          purchase_item_ids = PurchaseLinker.new(@purchase).link
 
-          PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
+          PurchasedNotifier.new(purchase_item_ids:).handle_product_purchase
         end
 
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }

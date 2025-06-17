@@ -1,0 +1,51 @@
+= render "_shared/notice"
+
+nav
+  ul
+    li
+      ul.with_separator
+        li = link_to "Warehouse", @purchase_item.warehouse
+        li = link_to "Purchase", @purchase_item.purchase
+        li = link_to "Product", @purchase_item.purchase.product
+        - if @purchase_item.sale_item
+          li = link_to "Sale", @purchase_item.sale
+          li = link_to "Sale Item", @purchase_item.sale_item
+      hgroup
+        h1 Purchase Item №#{@purchase_item.id}
+        h4 #{format_show_page_title(@purchase_item)}
+        h4 Warehouse: #{@purchase_item.warehouse.name}  
+  ul
+    li
+      = render "_shared/action-edit", route: edit_purchase_item_path(@purchase_item), btn: true
+
+main.wide.w-pd.flex.flex-col.gap
+  .cards.items-center
+    = render "_shared/gallery", images: @purchase_item.images
+
+    .card.shrink-2
+      .title ID
+      p = safe_blank_render @purchase_item.id
+      .title Length, cm
+      p = safe_blank_render @purchase_item.length
+      .title Width, cm
+      p = safe_blank_render @purchase_item.width
+      .title Height, cm
+      p = safe_blank_render @purchase_item.height
+      .title Weight, kg
+      p = safe_blank_render @purchase_item.weight
+
+    .card.grow
+      .title Expenses
+      p.mono = format_money safe_blank_render @purchase_item.expenses
+      .title Shipping
+      p.mono = format_money safe_blank_render @purchase_item.shipping_price
+      .title Tracking Number
+      p = safe_blank_render @purchase_item.tracking_number
+      .title Shipping Company
+      p = safe_blank_render @purchase_item.shipping_company&.name
+      .title Created at
+      p = format_date @purchase_item.created_at
+      .title Updated at
+      p = format_date @purchase_item.updated_at
+
+= button_to "Destroy this purchased product", purchase_item_path(@purchase_item), method: :delete, class: "btn-danger"

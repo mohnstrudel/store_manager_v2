@@ -46,11 +46,11 @@ class SyncWooOrdersJob < ApplicationJob
 
         edition = get_edition(order_product[:edition], product)
 
-        product_sale = ProductSale.find_or_initialize_by(
+        sale_item = SaleItem.find_or_initialize_by(
           woo_id: order_product[:order_woo_id]
         )
 
-        product_sale.assign_attributes({
+        sale_item.assign_attributes({
           price: order_product[:price],
           product:,
           qty: order_product[:qty],
@@ -58,7 +58,7 @@ class SyncWooOrdersJob < ApplicationJob
           edition:
         }.compact)
 
-        product_sale.save
+        sale_item.save
       end
     end
   end

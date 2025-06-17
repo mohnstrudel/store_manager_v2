@@ -20,7 +20,7 @@ nav
     li
       = render "_shared/action-edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
 
-    - if @purchase.purchased_products.none?
+    - if @purchase.purchase_items.none?
       li data-controller="move-items"
         = render "_shared/move_to_warehouse/form", form_url: move_purchases_path(purchase_id: @purchase.id)
         a.btn data-action="click->move-items#toggleFormVisibility"
@@ -30,17 +30,17 @@ nav
 
 main.wide.flex.flex-col.gap.no-bd
 
-  - if @purchased_products.any?
+  - if @purchase_items.any?
       .table-cards-group data-controller="move-items"
-        = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(purchase_id: @purchase.id)
+        = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(purchase_id: @purchase.id)
 
         .table-card
           .table-hgroup.flex.justify-between
             h3.flex.justify-between.w-full
-              span Purchased Products
-              span = @purchased_products.size
+              span Purchase Items
+              span = @purchase_items.size
 
-          = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path, options: {redirect_to_product_sale: true}
+          = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
 
           table role="grid" data-controller="table"
             thead
@@ -53,11 +53,11 @@ main.wide.flex.flex-col.gap.no-bd
               th.right Shipping
               th.right Actions
             tbody
-              - @purchased_products.each do |pp|
+              - @purchase_items.each do |pp|
                 tr(
                   class="hoverable"
                   data-action="click->table#goTo"
-                  data-table-url-param=purchased_product_path(pp)
+                  data-table-url-param=purchase_item_path(pp)
                 )
                   = render "_shared/move_to_warehouse/td", id: pp.id
                   td = pp.warehouse.name
@@ -72,11 +72,11 @@ main.wide.flex.flex-col.gap.no-bd
                   td.mono.right = format_money pp.shipping_price
                   td.actions
                     - if pp.sale
-                      = link_to unlink_purchased_product_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                      = link_to unlink_purchase_item_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
                         i.icn ✂︎
                         | Unlink
-                    = render "_shared/action-destroy", route: purchased_product_path(pp)
-                    = render "_shared/action-edit", route: edit_purchased_product_path(pp)
+                    = render "_shared/action-destroy", route: purchase_item_path(pp)
+                    = render "_shared/action-edit", route: edit_purchase_item_path(pp)
 
 
   .cards

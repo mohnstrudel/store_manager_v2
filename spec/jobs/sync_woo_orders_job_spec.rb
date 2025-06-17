@@ -102,7 +102,7 @@ RSpec.describe SyncWooOrdersJob do
       end
 
       it "creates product sales with editions" do
-        with_edition = ProductSale.where.not(edition_id: nil)
+        with_edition = SaleItem.where.not(edition_id: nil)
         parsed_editions_count = parsed_woo_orders.pluck(:products).flatten.count { |product| product[:edition].present? }
         expect(with_edition.size).to eq(parsed_editions_count)
       end

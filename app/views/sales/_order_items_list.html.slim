@@ -1,7 +1,7 @@
-- if sale.product_sales.present?
+- if sale.sale_items.present?
   .table-card.full-width
     .sales_show__order-list.flex.justify-between.items-center
-      h3 Order Items List
+      h3 Sale Items List
       = render "link_btn", sale: sale
 
     table role="grid" data-controller="table"
@@ -12,16 +12,16 @@
         th.right Price, $
         th.right Purchased / Sold Amount
       tbody
-        - sale.product_sales.each_with_index do |ps, idx|
+        - sale.sale_items.each_with_index do |ps, idx|
           tr.hoverable(
             data-action="click->table#goTo"
-            data-table-url-param=product_sale_path(ps)
+            data-table-url-param=sale_item_path(ps)
           )
             td.text-center = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
             td
               = link_to ps.product.full_title, ps.product, class: "no-events"
-              - if ps.purchased_products.present?
-                = render "purchased_products", purchased_products: ps.purchased_products
+              - if ps.purchase_items.present?
+                = render "purchase_items", purchase_items: ps.purchase_items
             td = ps.edition.present? ? ps.edition.title : "-"
             td.right.mono = format_money ps.price
-            td.right = format_purchased_sold_ratio(ps.purchased_products.size, ps.qty)
+            td.right = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)

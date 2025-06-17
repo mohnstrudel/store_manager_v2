@@ -12,12 +12,12 @@ Rails.application.routes.draw do
     mount PgHero::Engine, at: "pghero"
   end
 
-  resources :purchased_products
-  resources :product_sales
+  resources :purchase_items
+  resources :sale_items
 
-  post "purchased_products/move", to: "purchased_products#move", as: :move_purchased_products
+  post "purchase_items/move", to: "purchase_items#move", as: :move_purchase_items
 
-  post "purchased_products/unlink", to: "purchased_products#unlink", as: :unlink_purchased_product
+  post "purchase_items/unlink", to: "purchase_items#unlink", as: :unlink_purchase_item
 
   post "move_purchases", to: "purchases#move"
 
@@ -35,7 +35,7 @@ Rails.application.routes.draw do
     get "pull", action: :pull, on: :collection
     get "pull", action: :pull, on: :member
     member do
-      get :link_purchased_products
+      get :link_purchase_items
     end
   end
 

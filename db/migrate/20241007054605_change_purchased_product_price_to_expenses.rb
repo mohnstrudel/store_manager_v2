@@ -1,5 +1,5 @@
-class ChangePurchasedProductPriceToExpenses < ActiveRecord::Migration[7.2]
+class ChangePurchaseItemPriceToExpenses < ActiveRecord::Migration[7.2]
   def change
-    rename_column :purchased_products, :price, :expenses
+    rename_column :purchase_items, :price, :expenses
   end
 end

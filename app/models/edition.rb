@@ -23,7 +23,7 @@ class Edition < ApplicationRecord
   belongs_to :color, optional: true
   db_belongs_to :product
 
-  has_many :product_sales, dependent: :destroy
+  has_many :sale_items, dependent: :destroy
   has_many :purchases, dependent: :destroy
 
   scope :includes_details, -> { includes(:version, :color, :size) }

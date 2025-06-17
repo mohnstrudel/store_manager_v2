@@ -91,7 +91,7 @@ class DashboardController < ApplicationController
   end
 
   def sold
-    ProductSale
+    SaleItem
       .select(<<-SQL.squish)
         product_id,
         edition_id,

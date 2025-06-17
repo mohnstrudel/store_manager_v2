@@ -1,73 +1,73 @@
-class PurchasedProductsController < ApplicationController
+class PurchaseItemsController < ApplicationController
   include WarehouseMovementNotification
 
-  before_action :set_purchased_product, only: %i[show edit update destroy]
+  before_action :set_purchase_item, only: %i[show edit update destroy]
 
   # GET /warehouse_products
   def index
-    @purchased_products = PurchasedProduct.all
+    @purchase_items = PurchaseItem.all
   end
 
-  # GET /purchased_products/1
+  # GET /purchase_items/1
   def show
   end
 
-  # GET /purchased_products/new
+  # GET /purchase_items/new
   def new
     @warehouse = Warehouse.find(params[:warehouse_id])
-    @purchased_product = PurchasedProduct.new(warehouse: @warehouse)
+    @purchase_item = PurchaseItem.new(warehouse: @warehouse)
     @purchases = Purchase
       .includes(:product, :supplier)
       .order(purchase_date: :desc, created_at: :desc)
     @shipping_companies = ShippingCompany.all
   end
 
-  # GET /purchased_products/1/edit
+  # GET /purchase_items/1/edit
   def edit
     set_data_for_edit
   end
 
   # POST /warehouse_products
   def create
-    @purchased_product = PurchasedProduct.new(purchased_product_params)
+    @purchase_item = PurchaseItem.new(purchase_item_params)
 
-    if @purchased_product.save
-      redirect_to @purchased_product.warehouse,
-        notice: "Purchased product was successfully created."
+    if @purchase_item.save
+      redirect_to @purchase_item.warehouse,
+        notice: "Purchase item was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
   end
 
-  # PATCH/PUT /purchased_products/1
+  # PATCH/PUT /purchase_items/1
   def update
     if params[:deleted_img_ids].present?
       deleted_imgs = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
     end
 
-    if @purchased_product.update(
-      purchased_product_params.except(:redirect_to_product_sale)
+    if @purchase_item.update(
+      purchase_item_params.except(:redirect_to_sale_item)
     )
-      path = purchased_product_params[:redirect_to_product_sale] ?
-        @purchased_product.product_sale :
-        @purchased_product
+      path = purchase_item_params[:redirect_to_sale_item] ?
+        @purchase_item.sale_item :
+        @purchase_item
 
       deleted_imgs&.map(&:purge_later)
 
-      redirect_to path, notice: "Purchased product was successfully updated.", status: :see_other
+      redirect_to path, notice: "Purchase item was successfully updated.", status: :see_other
     else
       set_data_for_edit
       render :edit, status: :unprocessable_entity
     end
   end
 
-  # DELETE /purchased_products/1
+  # DELETE /purchase_items/1
   def destroy
-    warehouse = @purchased_product.warehouse
-    @purchased_product.destroy!
+    warehouse = @purchase_item.warehouse
+    @purchase_item.destroy!
 
     redirect_to warehouse,
-      notice: "Purchased product was successfully destroyed.",
+      notice: "Purchase item was successfully destroyed.",
       status: :see_other,
       turbolinks: false
   end
@@ -78,7 +78,7 @@ class PurchasedProductsController < ApplicationController
 
     moved_count = ProductMover.new(
       warehouse_id: destination_id,
-      purchased_products_ids: ids
+      purchase_items_ids: ids
     ).move
 
     return if moved_count.zero?
@@ -89,15 +89,15 @@ class PurchasedProductsController < ApplicationController
   end
 
   def unlink
-    purchased_product = PurchasedProduct.find(params[:id])
-    product_sale = purchased_product.product_sale
+    purchase_item = PurchaseItem.find(params[:id])
+    sale_item = purchase_item.sale_item
 
-    if purchased_product.update(product_sale: nil)
-      redirect_to (request.referer || product_sale),
-        notice: "Purchased product was successfully unlinked.",
+    if purchase_item.update(sale_item: nil)
+      redirect_to (request.referer || sale_item),
+        notice: "Purchase item was successfully unlinked.",
         status: :see_other
     else
-      redirect_to product_sale,
+      redirect_to sale_item,
         alert: "Something went wrong. Try again later or contact the administrators.",
         status: :see_other,
         turbolinks: false
@@ -109,32 +109,32 @@ class PurchasedProductsController < ApplicationController
   def redirect_to_appropriate_path
     if params[:purchase_id].present?
       redirect_to purchase_path(params[:purchase_id])
-    elsif params[:redirect_to_product_sale] && params[:selected_items_ids].present?
-      product_sale = PurchasedProduct
+    elsif params[:redirect_to_sale_item] && params[:selected_items_ids].present?
+      sale_item = PurchaseItem
         .find(params[:selected_items_ids].first)
-        .product_sale
-      redirect_to product_sale
+        .sale_item
+      redirect_to sale_item
     else
       redirect_to warehouse_path(params[:warehouse_id])
     end
   end
 
-  def set_purchased_product
-    @purchased_product = PurchasedProduct.with_attached_images.find(params[:id])
+  def set_purchase_item
+    @purchase_item = PurchaseItem.with_attached_images.find(params[:id])
   end
 
   def set_data_for_edit
-    all_product_sales = ProductSale.includes(
+    all_sale_items = SaleItem.includes(
       :product,
       sale: [:customer],
       edition: [:color, :size, :version]
     ).where(
       sales: {status: Sale.active_status_names + Sale.completed_status_names}
     )
-    @product_sales = all_product_sales.where(
-      product_id: @purchased_product.product
-    ) + all_product_sales.where.not(
-      product_id: @purchased_product.product
+    @sale_items = all_sale_items.where(
+      product_id: @purchase_item.product
+    ) + all_sale_items.where.not(
+      product_id: @purchase_item.product
     )
     @purchases = Purchase.includes(:product, :supplier).order(
       purchase_date: :desc,
@@ -144,8 +144,8 @@ class PurchasedProductsController < ApplicationController
   end
 
   # Only allow a list of trusted parameters through.
-  def purchased_product_params
-    params.require(:purchased_product).permit(
+  def purchase_item_params
+    params.require(:purchase_item).permit(
       :length,
       :width,
       :height,
@@ -155,8 +155,8 @@ class PurchasedProductsController < ApplicationController
       :tracking_number,
       :warehouse_id,
       :purchase_id,
-      :product_sale_id,
-      :redirect_to_product_sale,
+      :sale_item_id,
+      :redirect_to_sale_item,
       :shipping_company_id,
       deleted_img_ids: [],
       images: []

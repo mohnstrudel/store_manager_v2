@@ -1,15 +1,15 @@
 .table-cards-group
   .table-card data-controller="move-items"
     .table-hgroup.flex.justify-between
-      h3 Purchased Products
-      h3 = @total_purchased_products
+      h3 Items
+      h3 = @total_purchase_items
 
     .search-navigation.spacing-m
       = render partial: "_shared/search-form", locals: {path: warehouse_path}
-      = paginate @purchased_products
+      = paginate @purchase_items
 
-    - if @purchased_products.present?
-      = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(warehouse_id: @warehouse.id)
+    - if @purchase_items.present?
+      = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(warehouse_id: @warehouse.id)
 
       table role="grid" data-controller="table"
         thead
@@ -23,11 +23,11 @@
           th.right Shipping
           th.right Actions
         tbody
-          - @purchased_products.each do |pp|
+          - @purchase_items.each do |pp|
             tr(
               class="hoverable"
               data-action="click->table#goTo"
-              data-table-url-param=purchased_product_path(pp)
+              data-table-url-param=purchase_item_path(pp)
             )
               = render "_shared/move_to_warehouse/td", id: pp.id
               td.text-center
@@ -44,8 +44,8 @@
               td.mono.right = format_money pp.expenses
               td.mono.right = format_money pp.shipping_price
               td.actions
-                = render "_shared/action-destroy", route: purchased_product_path(pp)
-                = render "_shared/action-edit", route: edit_purchased_product_path(pp)
-      = paginate @purchased_products
+                = render "_shared/action-destroy", route: purchase_item_path(pp)
+                = render "_shared/action-edit", route: edit_purchase_item_path(pp)
+      = paginate @purchase_items
     - else
       = render "_shared/search-results-empty"    

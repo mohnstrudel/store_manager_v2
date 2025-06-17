@@ -29,15 +29,15 @@ describe "Debts can take purchases into account" do
       version: revealing
     )
 
-    create_list(:product_sale, 3, product: @malenia, edition: nil)
+    create_list(:sale_item, 3, product: @malenia, edition: nil)
     create_list(
-      :product_sale,
+      :sale_item,
       6,
       product: @malenia,
       edition: @malenia_regular
     )
     create_list(
-      :product_sale,
+      :sale_item,
       9,
       product: @malenia,
       edition: @malenia_revealing

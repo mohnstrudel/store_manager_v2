@@ -65,13 +65,13 @@ class Product < ApplicationRecord
   has_many :product_colors, dependent: :destroy
   has_many :colors, through: :product_colors
 
-  has_many :product_sales, dependent: :destroy
-  has_many :sales, through: :product_sales
+  has_many :sale_items, dependent: :destroy
+  has_many :sales, through: :sale_items
 
   has_many :editions, dependent: :destroy, autosave: true
 
   has_many :purchases, dependent: :destroy
-  has_many :purchased_products, through: :purchases
+  has_many :purchase_items, through: :purchases
 
   def self.generate_full_title(
     product,
@@ -144,27 +144,27 @@ class Product < ApplicationRecord
     editions.build(edition_attributes)
   end
 
-  def active_product_sales
-    product_sales
-      .includes(purchased_products: :warehouse)
+  def active_sale_items
+    sale_items
+      .includes(purchase_items: :warehouse)
       .includes_details
       .active
       .order(created_at: :asc)
   end
 
-  def completed_product_sales
-    product_sales.includes_details.completed.order(created_at: :asc)
+  def completed_sale_items
+    sale_items.includes_details.completed.order(created_at: :asc)
   end
 
-  def editions_product_sales_size
-    ProductSale
+  def editions_sale_items_size
+    SaleItem
       .active
       .where(edition: editions)
       .group(:edition_id)
       .sum(:qty)
   end
 
-  def editions_purchased_products_size
+  def editions_purchase_items_size
     Purchase
       .where(edition: editions)
       .group(:edition_id)

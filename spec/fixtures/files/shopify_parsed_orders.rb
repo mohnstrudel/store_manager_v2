@@ -23,7 +23,7 @@
       cancel_reason: nil,
       status: "pre-ordered"
     },
-    product_sales: [
+    sale_items: [
       {
         shopify_id: "gid://shopify/LineItem/16851717685577",
         qty: 1,
@@ -129,7 +129,7 @@
       cancel_reason: nil,
       status: "pre-ordered"
     },
-    product_sales: [
+    sale_items: [
       {
         shopify_id: "gid://shopify/LineItem/16848835543369",
         qty: 1,
@@ -225,7 +225,7 @@
       cancel_reason: nil,
       status: "pre-ordered"
     },
-    product_sales: [
+    sale_items: [
       {
         shopify_id: "gid://shopify/LineItem/16839346848073",
         qty: 1,

@@ -46,14 +46,14 @@
   = f.text_field :postcode
 
   h4.edit-header-pd Products 
-  div data-controller="product-sales"
+  div data-controller="sale-items"
     = f.collection_select(:_, Product.all, :id, :full_title,
         { prompt: "Select a product" },
-        { hidden: true, data: { "product-sales-target": "options" }})
-    - sale.product_sales.each do |product_sale|
-      = f.fields_for :product_sales, product_sale do |ps_f|
-        = render "product_fields", f: ps_f, product: product_sale.product
-    button.is-inverted(data-action="product-sales#addProduct" data-product-sales-target="btn") Add Product
+        { hidden: true, data: { "sale-items-target": "options" }})
+    - sale.sale_items.each do |sale_item|
+      = f.fields_for :sale_items, sale_item do |ps_f|
+        = render "product_fields", f: ps_f, product: sale_item.product
+    button.is-inverted(data-action="sale-items#addProduct" data-sale-items-target="btn") Add Product
 
   = render "_shared/notice-err", model: sale
 

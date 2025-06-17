@@ -2,13 +2,13 @@
 
 = render "_shared/nav-show", model: @warehouse
   li
-    a.btn href="#{url_for new_purchased_product_path(warehouse_id: @warehouse)}" 
+    a.btn href="#{url_for new_purchase_item_path(warehouse_id: @warehouse)}" 
       i.icn 📦
       | Add product
 
 main.wide.no-bd.flex.flex-col.gap
-  - if @warehouse.purchased_products.present?
-    = render "purchased_products"
+  - if @warehouse.purchase_items.present?
+    = render "purchase_items"
 
   .table-card.full-width
     h3 About Warehouse

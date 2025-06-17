@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: purchased_products
+# Table name: purchase_items
 #
 #  id                  :bigint           not null, primary key
 #  expenses            :decimal(8, 2)
@@ -12,12 +12,12 @@
 #  width               :integer
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
-#  product_sale_id     :bigint
+#  sale_item_id     :bigint
 #  purchase_id         :bigint
 #  shipping_company_id :bigint
 #  warehouse_id        :bigint           not null
 #
-class PurchasedProduct < ApplicationRecord
+class PurchaseItem < ApplicationRecord
   audited associated_with: :purchase
   include HasAuditNotifications
 
@@ -35,8 +35,8 @@ class PurchasedProduct < ApplicationRecord
   db_belongs_to :warehouse
   db_belongs_to :purchase
 
-  belongs_to :product_sale, optional: true, counter_cache: true
-  has_one :sale, through: :product_sale
+  belongs_to :sale_item, optional: true, counter_cache: true
+  has_one :sale, through: :sale_item
 
   has_one :product, through: :purchase
 
@@ -55,21 +55,21 @@ class PurchasedProduct < ApplicationRecord
   scope :with_notification_details, -> {
     includes(
       sale: :customer,
-      product_sale: [
+      sale_item: [
         :product,
         edition: [:size, :version, :color]
       ]
     )
   }
 
-  scope :without_product_sales, ->(product_id) {
-    where(product_sale_id: nil)
+  scope :without_sale_items, ->(product_id) {
+    where(sale_item_id: nil)
       .joins(:purchase)
       .where(purchase: {product_id:})
   }
 
   def self.linkable_for(product_id, limit:)
-    without_product_sales(product_id).limit(limit)
+    without_sale_items(product_id).limit(limit)
   end
 
   def name
@@ -84,7 +84,7 @@ class PurchasedProduct < ApplicationRecord
     update!(warehouse_id: destination_id)
   end
 
-  def link_with(product_sale_id)
-    update!(product_sale_id:)
+  def link_with(sale_item_id)
+    update!(sale_item_id:)
   end
 end

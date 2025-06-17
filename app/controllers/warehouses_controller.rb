@@ -4,19 +4,19 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images.includes(:purchased_products).order(:position)
+    @warehouses = Warehouse.all.with_attached_images.includes(:purchase_items).order(:position)
   end
 
   # GET /warehouses/1
   def show
-    @purchased_products = @warehouse
-      .purchased_products
+    @purchase_items = @warehouse
+      .purchase_items
       .with_attached_images
       .includes(:product, sale: :customer)
       .order(updated_at: :desc)
       .page(params[:page])
-    @total_purchased_products = @warehouse.purchased_products.size
-    @purchased_products = @purchased_products.search(params[:q]) if params[:q].present?
+    @total_purchase_items = @warehouse.purchase_items.size
+    @purchase_items = @purchase_items.search(params[:q]) if params[:q].present?
   end
 
   # GET /warehouses/new
@@ -93,7 +93,7 @@ class WarehousesController < ApplicationController
   def destroy
     warehouse_name = @warehouse.name
 
-    if @warehouse.purchased_products.any?
+    if @warehouse.purchase_items.any?
       flash[:error] = "Error. Please select and move out all purchased products before deleting the warehouse."
       redirect_to @warehouse
     else

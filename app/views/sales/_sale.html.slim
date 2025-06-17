@@ -1,16 +1,16 @@
 tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
   td.text-center
-    - sale.product_sales.each do |ps|
+    - sale.sale_items.each do |ps|
       = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
   td
     span.bold = sale.customer.full_name
     br
     = sale.customer.email
     ul.v-align.ml-s.list-none
-      - sale.product_sales.each do |ps|
+      - sale.sale_items.each do |ps|
         li
           - if sale.active? || sale.completed?
-            = format_purchased_sold_ratio(ps.purchased_products.size, ps.qty)
+            = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)
             | 
           = ps.title
   td = format_sale_status sale.status

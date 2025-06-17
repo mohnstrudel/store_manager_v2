@@ -1,10 +1,10 @@
 # == Schema Information
 #
-# Table name: product_sales
+# Table name: sale_items
 #
 #  id                       :bigint           not null, primary key
 #  price                    :decimal(8, 2)
-#  purchased_products_count :integer          default(0), not null
+#  purchase_items_count :integer          default(0), not null
 #  qty                      :integer
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
@@ -14,7 +14,7 @@
 #  shopify_id               :string
 #  woo_id                   :string
 #
-class ProductSale < ApplicationRecord
+class SaleItem < ApplicationRecord
   audited associated_with: :sale
   include HasAuditNotifications
 
@@ -24,7 +24,7 @@ class ProductSale < ApplicationRecord
   db_belongs_to :sale
   belongs_to :edition, optional: true
 
-  has_many :purchased_products, dependent: :nullify
+  has_many :purchase_items, dependent: :nullify
 
   scope :active, -> {
     joins(:sale).where(sales: {status: Sale.active_status_names})
@@ -35,7 +35,7 @@ class ProductSale < ApplicationRecord
   }
 
   scope :linkable, -> {
-    where("qty > purchased_products_count")
+    where("qty > purchase_items_count")
   }
 
   scope :includes_details, -> {

@@ -8,10 +8,10 @@ class ProductsController < ApplicationController
 
   # GET /products/1 or /products/1.json
   def show
-    @active_sales = @product.active_product_sales
-    @complete_sales = @product.completed_product_sales
-    @editions_sales_sums = @product.editions_product_sales_size
-    @editions_purchases_sums = @product.editions_purchased_products_size
+    @active_sales = @product.active_sale_items
+    @complete_sales = @product.completed_sale_items
+    @editions_sales_sums = @product.editions_sale_items_size
+    @editions_purchases_sums = @product.editions_purchase_items_size
   end
 
   # GET /products/new
@@ -93,12 +93,12 @@ class ProductsController < ApplicationController
   def set_product
     @product = Product.includes(
       purchases: [:product, :supplier, edition: [:version, :color, :size]],
-      purchased_products: [:warehouse, :purchase],
+      purchase_items: [:warehouse, :purchase],
       editions: [
         :version,
         :color,
         :size,
-        {product_sales: :sale},
+        {sale_items: :sale},
         {purchases: :supplier}
       ]
     )

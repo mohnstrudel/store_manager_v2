@@ -24,3 +24,6 @@ StrongMigrations.auto_analyze = true
 # Make some operations safe by default
 # See https://github.com/ankane/strong_migrations#safe-by-default
 # StrongMigrations.safe_by_default = true
+
+# Schema Sanity
+StrongMigrations.alphabetize_schema = true

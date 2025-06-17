@@ -22,8 +22,8 @@ class Warehouse < ApplicationRecord
   include HasAuditNotifications
   include HasPreviewImages
 
-  has_many :purchased_products, dependent: :destroy
-  has_many :purchases, through: :purchased_products
+  has_many :purchase_items, dependent: :destroy
+  has_many :purchases, through: :purchase_items
 
   validates :name, presence: true
   validates :external_name, presence: true

@@ -3,17 +3,17 @@ require "rails_helper"
 RSpec.describe NotifyCustomersAboutOrderLocationJob do
   let(:warehouse) { create(:warehouse) }
   let(:purchase) { create(:purchase) }
-  let!(:purchased_product_with_sale) do
-    create(:purchased_product,
+  let!(:purchase_item_with_sale) do
+    create(:purchase_item,
       warehouse:,
       purchase:,
-      product_sale: create(:product_sale, sale: create(:sale)))
+      sale_item: create(:sale_item, sale: create(:sale)))
   end
-  let!(:purchased_product_without_sale) do
-    create(:purchased_product,
+  let!(:purchase_item_without_sale) do
+    create(:purchase_item,
       warehouse:,
       purchase:,
-      product_sale: nil)
+      sale_item: nil)
   end
 
   let(:notifier) { instance_double(PurchasedNotifier, handle_product_purchase: true) }
@@ -27,7 +27,7 @@ RSpec.describe NotifyCustomersAboutOrderLocationJob do
       described_class.perform_now
 
       expect(PurchasedNotifier).to have_received(:new)
-        .with(purchased_product_ids: [purchased_product_with_sale.id])
+        .with(purchase_item_ids: [purchase_item_with_sale.id])
       expect(notifier).to have_received(:handle_product_purchase)
     end
 
@@ -35,7 +35,7 @@ RSpec.describe NotifyCustomersAboutOrderLocationJob do
       described_class.perform_now
 
       expect(PurchasedNotifier).not_to have_received(:new)
-        .with(purchased_product_ids: [purchased_product_without_sale.id])
+        .with(purchase_item_ids: [purchase_item_without_sale.id])
     end
   end
 end

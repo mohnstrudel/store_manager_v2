@@ -45,14 +45,14 @@
             td = ps.qty
             td
               = ps.sale.status.capitalize
-              - if ps.purchased_products.present?
+              - if ps.purchase_items.present?
                 br
                 ul.v-align.list-none.mg-0.pd-0
-                  - ps.purchased_products.each do |purchased_product|
+                  - ps.purchase_items.each do |purchase_item|
                     li
-                      a.no-events href=purchased_product_path(purchased_product)
+                      a.no-events href=purchase_item_path(purchase_item)
                         i.icn 📦
-                        | #{purchased_product.warehouse.name}
-                        - if purchased_product.expenses
+                        | #{purchase_item.warehouse.name}
+                        - if purchase_item.expenses
                           | — expenses: $
-                          .mono.inline = format_money purchased_product.expenses
+                          .mono.inline = format_money purchase_item.expenses
