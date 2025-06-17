@@ -23,6 +23,7 @@ class Product < ApplicationRecord
   include HasAuditNotifications
   include HasPreviewImages
   include Searchable
+  include Shopable
 
   #
   # == Extensions
@@ -135,14 +136,6 @@ class Product < ApplicationRecord
 
   def full_title_with_shop_id
     "#{full_title} | #{shop_id || "N/A"}"
-  end
-
-  def shop_id
-    woo_id.presence || shopify_id_short.presence
-  end
-
-  def shopify_id_short
-    shopify_id&.gsub("gid://shopify/Product/", "")
   end
 
   def shopify_store_link

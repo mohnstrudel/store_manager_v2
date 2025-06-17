@@ -41,6 +41,7 @@ class Sale < ApplicationRecord
   #
   include HasAuditNotifications
   include Searchable
+  include Shopable
 
   #
   # == Extensions
@@ -181,14 +182,6 @@ class Sale < ApplicationRecord
 
   def shop_updated_at
     shopify_updated_at || woo_updated_at
-  end
-
-  def shopify_id_short
-    shopify_id&.gsub("gid://shopify/Order/", "")
-  end
-
-  def shop_id
-    shopify_id_short || woo_id
   end
 
   def link_with_purchase_items

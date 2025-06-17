@@ -18,6 +18,7 @@ class Customer < ApplicationRecord
   #
   include HasAuditNotifications
   include Searchable
+  include Shopable
 
   #
   # == Extensions
@@ -74,14 +75,6 @@ class Customer < ApplicationRecord
 
   def title
     full_name
-  end
-
-  def shopify_id_short
-    shopify_id&.gsub("gid://shopify/Customer/", "")
-  end
-
-  def shop_id
-    shopify_id_short || woo_id
   end
 
   private
