@@ -153,6 +153,6 @@ class Shopify::SaleCreator
   end
 
   def notify_customers(linked_ids)
-    PurchasedNotifier.new(purchase_item_ids: linked_ids).handle_product_purchase
+    PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
   end
 end

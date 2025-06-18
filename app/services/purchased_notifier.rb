@@ -1,4 +1,12 @@
 class PurchasedNotifier
+  def self.handle_product_purchase(**kwargs)
+    new(**kwargs).handle_product_purchase
+  end
+
+  def self.handle_warehouse_change(**kwargs)
+    new(**kwargs).handle_warehouse_change
+  end
+
   def initialize(
     purchase_item_ids:,
     from_id: nil,

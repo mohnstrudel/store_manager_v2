@@ -9,12 +9,12 @@ RSpec.describe PurchaseLinker do
 
   describe "#initialize" do
     it "raises ArgumentError when purchase is blank" do
-      expect { described_class.new(nil) }.to raise_error(ArgumentError, "Missing purchase")
+      expect { described_class.link(nil) }.to raise_error(ArgumentError, "Missing purchase")
     end
 
     it "initializes with a valid purchase" do
       purchase = create(:purchase, product: product)
-      expect { described_class.new(purchase) }.not_to raise_error
+      expect { described_class.link(purchase) }.not_to raise_error
     end
   end
 
@@ -23,8 +23,8 @@ RSpec.describe PurchaseLinker do
       let(:purchase) { create(:purchase, product: product, amount: 3) }
 
       it "returns nil" do
-        linker = described_class.new(purchase)
-        expect(linker.link).to be_nil
+        result = described_class.link(purchase)
+        expect(result).to be_nil
       end
     end
 
@@ -39,8 +39,7 @@ RSpec.describe PurchaseLinker do
         let!(:sale_item) { create(:sale_item, product:, sale:, edition_id: nil, qty: 5) }
 
         it "links purchased items with sold products" do
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to match_array(purchase_items.pluck(:id))
           purchase_items.each do |pp|
@@ -50,8 +49,7 @@ RSpec.describe PurchaseLinker do
 
         it "respects the purchase amount limit" do
           purchase.update(amount: 2)
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
 
           expect(linked_ids.size).to eq(2)
           expect(purchase_items.count { |i| i.reload.sale_item_id.nil? }).to eq(1)
@@ -65,8 +63,7 @@ RSpec.describe PurchaseLinker do
         let!(:sale_item2) { create(:sale_item, product:, sale: sale2, qty: 4, edition_id: nil) }
 
         it "links purchased products to multiple product sales" do
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
           linked_sale_item_ids = purchase_items.map(&:reload).pluck(:sale_item_id)
 
           expect(linked_ids.size).to eq(3)
@@ -80,8 +77,7 @@ RSpec.describe PurchaseLinker do
         let!(:sale_item) { create(:sale_item, product: product, sale: sale, qty: 1, edition_id: nil) }
 
         it "links as many purchased products as possible" do
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
 
           expect(linked_ids.size).to eq(1)
           expect(purchase_items[0].reload.sale_item_id).to eq(sale_item.id)
@@ -95,8 +91,7 @@ RSpec.describe PurchaseLinker do
         let!(:sale_item) { create(:sale_item, product: product, sale: sale, qty: 5) }
 
         it "does not link to inactive sales" do
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to be_empty
           purchase_items.each do |pp|
@@ -110,8 +105,7 @@ RSpec.describe PurchaseLinker do
         let!(:sale_item) { create(:sale_item, product: product, sale: sale, qty: 3, purchase_items_count: 3) }
 
         it "does not link to fully linked sales" do
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to be_empty
           purchase_items.each do |pp|
@@ -132,8 +126,7 @@ RSpec.describe PurchaseLinker do
         let!(:sale_item) { create(:sale_item, product: product, edition: edition, sale: sale, qty: 5) }
 
         it "links purchased products to product sales with matching edition" do
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to match_array(purchase_items.map(&:id))
           purchase_items.each do |pp|
@@ -148,8 +141,7 @@ RSpec.describe PurchaseLinker do
         let!(:sale_item) { create(:sale_item, product: product, edition: other_edition, sale: sale, qty: 5) }
 
         it "does not link purchased products" do
-          linker = described_class.new(purchase)
-          linked_ids = linker.link
+          linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to be_empty
           purchase_items.each do |pp|
@@ -164,8 +156,8 @@ RSpec.describe PurchaseLinker do
       let!(:purchase_items) { [] }
 
       it "handles purchase with zero amount" do
-        linker = described_class.new(purchase)
-        expect(linker.link).to be_nil
+        result = described_class.link(purchase)
+        expect(result).to be_nil
       end
 
       it "handles product sale with zero quantity" do
@@ -174,8 +166,7 @@ RSpec.describe PurchaseLinker do
         sale = create(:sale, status: active_status)
         create(:sale_item, product:, sale:, qty: 0)
 
-        linker = described_class.new(purchase)
-        linked_ids = linker.link
+        linked_ids = described_class.link(purchase)
 
         expect(linked_ids).to be_empty
         purchase_items.each do |pp|
@@ -188,9 +179,7 @@ RSpec.describe PurchaseLinker do
         purchase_items = 3.times.map { create(:purchase_item, purchase:) }
         sale = create(:sale, status: active_status)
         create(:sale_item, product:, sale:, qty: 3, purchase_items_count: 3)
-
-        linker = described_class.new(purchase)
-        linked_ids = linker.link
+        linked_ids = described_class.link(purchase)
 
         expect(linked_ids).to be_empty
         purchase_items.each do |pp|
@@ -212,8 +201,7 @@ RSpec.describe PurchaseLinker do
         # Make product sale invalid by setting qty to nil
         allow_any_instance_of(SaleItem).to receive(:valid?).and_return(false)
 
-        linker = described_class.new(purchase)
-        linked_ids = linker.link
+        linked_ids = described_class.link(purchase)
 
         expect(linked_ids).to be_empty
         purchase_items.each do |pp|
@@ -228,8 +216,7 @@ RSpec.describe PurchaseLinker do
         # Make purchase invalid
         allow_any_instance_of(Purchase).to receive(:valid?).and_return(false)
 
-        linker = described_class.new(purchase)
-        linked_ids = linker.link
+        linked_ids = described_class.link(purchase)
 
         expect(linked_ids).to be_empty
         purchase_items.each do |pp|
@@ -256,8 +243,7 @@ RSpec.describe PurchaseLinker do
           original_method.call(*args)
         end
 
-        linker = described_class.new(purchase)
-        linked_ids = linker.link
+        linked_ids = described_class.link(purchase)
 
         expect(linked_ids).to be_empty
         purchase_items.each do |pp|

@@ -8,11 +8,11 @@ class Shopify::PullSaleJob < ApplicationJob
     response = api_client.pull_order(sale_id)
 
     parsed_sale = Shopify::SaleParser
-      .new(api_sale: response)
+      .new(api_item: response)
       .parse
 
     Shopify::SaleCreator
-      .new(parsed_sale: parsed_sale)
+      .new(parsed_item: parsed_sale)
       .update_or_create!
   end
 end

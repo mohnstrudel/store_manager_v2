@@ -58,7 +58,7 @@ class SalesController < ApplicationController
 
     if @sale.save
       linked_ids = @sale.link_with_purchase_items
-      PurchasedNotifier.new(purchase_item_ids: linked_ids).handle_product_purchase
+      PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
       redirect_to @sale, notice: "Sale was successfully created."
     else
       render :new, status: :unprocessable_entity
@@ -87,7 +87,7 @@ class SalesController < ApplicationController
   def link_purchase_items
     purchase_item_ids = @sale.link_with_purchase_items
 
-    PurchasedNotifier.new(purchase_item_ids:).handle_product_purchase
+    PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
 
     redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
   end

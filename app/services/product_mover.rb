@@ -1,6 +1,10 @@
 class ProductMover
   NOTHING_MOVED = 0
 
+  def self.move(**kwargs)
+    new(**kwargs).move
+  end
+
   def initialize(warehouse_id:, purchase: nil, purchase_items_ids: [])
     @destination = Warehouse.find(warehouse_id)
     @purchase = purchase
@@ -38,11 +42,11 @@ class ProductMover
 
   def notify_on_relocation
     @initial_products_grouped_by_origin.each do |origin_warehouse_id, items_ids|
-      PurchasedNotifier.new(
+      PurchasedNotifier.handle_warehouse_change(
         purchase_item_ids: items_ids,
         from_id: origin_warehouse_id,
         to_id: @destination.id
-      ).handle_warehouse_change
+      )
     end
   end
 
@@ -52,7 +56,7 @@ class ProductMover
 
   def notify_on_newly_located_items
     purchase_item_ids = @moved_products.pluck(:id)
-    PurchasedNotifier.new(purchase_item_ids:).handle_product_purchase
+    PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
   end
 
   def group_by_origin(purchase_items)

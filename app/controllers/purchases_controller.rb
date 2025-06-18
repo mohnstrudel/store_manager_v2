@@ -54,9 +54,9 @@ class PurchasesController < ApplicationController
         if warehouse.present?
           @purchase.create_purchase_items_in(warehouse)
 
-          purchase_item_ids = PurchaseLinker.new(@purchase).link
+          purchase_item_ids = PurchaseLinker.link(@purchase)
 
-          PurchasedNotifier.new(purchase_item_ids:).handle_product_purchase
+          PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
         end
 
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }
@@ -99,7 +99,7 @@ class PurchasesController < ApplicationController
     moved_count = Purchase.friendly
       .where(id: purchases_ids)
       .sum { |purchase|
-        ProductMover.new(warehouse_id: destination_id, purchase:).move
+        ProductMover.move(warehouse_id: destination_id, purchase:)
       }
 
     flash_movement_notice(moved_count, Warehouse.find(destination_id))

@@ -1,4 +1,8 @@
 class PurchaseLinker
+  def self.link(arg)
+    new(arg).link
+  end
+
   def initialize(purchase)
     raise ArgumentError, "Missing purchase" if purchase.blank?
 
