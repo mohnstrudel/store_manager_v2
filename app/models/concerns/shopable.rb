@@ -7,8 +7,8 @@ module Shopable
     end
 
     def shopify_id_short
-      class_name = self.class.class_name
-      shopify_id&.gsub("gid://shopify/#{external_name_for(class_name)}/", "")
+      shopify_api_category_name = external_name_for(self.class.name)
+      shopify_id&.gsub("gid://shopify/#{shopify_api_category_name}/", "")
     end
   end
 
