@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::Base
+  include Authentication
+
   if Rails.env.production?
     http_basic_authenticate_with(
       name: Rails.application.credentials.dig(:basic_auth, :log),

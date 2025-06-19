@@ -12,8 +12,8 @@
 #  width               :integer
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
-#  sale_item_id     :bigint
 #  purchase_id         :bigint
+#  sale_item_id        :bigint
 #  shipping_company_id :bigint
 #  warehouse_id        :bigint           not null
 #

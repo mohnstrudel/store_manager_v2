@@ -4,7 +4,7 @@
 #
 #  id                       :bigint           not null, primary key
 #  price                    :decimal(8, 2)
-#  purchase_items_count :integer          default(0), not null
+#  purchased_products_count :integer          default(0), not null
 #  qty                      :integer
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
