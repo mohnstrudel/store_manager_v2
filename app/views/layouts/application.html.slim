@@ -12,6 +12,7 @@ html
     = csrf_meta_tags
     = csp_meta_tag
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
+    = stylesheet_link_tag "tailwind", "data-turbo-track": "reload"
     = javascript_importmap_tags
     = turbo_refresh_method_tag :morph
     = turbo_refresh_scroll_tag :preserve
@@ -42,12 +43,15 @@ html
             ul.dropdown__content
               li = link_to "Customers", customers_path
               li = link_to "Suppliers", suppliers_path
+              .pb-1
               li = link_to "Brands", brands_path
               li = link_to "Franchises", franchises_path
-              hr
+              .pb-1
               li = link_to "Versions", versions_path
               li = link_to "Colors", colors_path
               li = link_to "Shapes", shapes_path
               li = link_to "Sizes", sizes_path
+              .pb-1
+              li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }
     main.main
       = yield

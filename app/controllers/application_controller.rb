@@ -1,13 +1,6 @@
 class ApplicationController < ActionController::Base
   include Authentication
-
-  if Rails.env.production?
-    http_basic_authenticate_with(
-      name: Rails.application.credentials.dig(:basic_auth, :log),
-      password: Rails.application.credentials.dig(:basic_auth, :pas),
-      except: "process_order"
-    )
-  end
+  layout :choose_layout
 
   if Rails.env.development?
     before_action do
@@ -22,5 +15,11 @@ class ApplicationController < ActionController::Base
     ensure
       Prosopite.finish
     end
+  end
+
+  private
+
+  def choose_layout
+    authenticated? ? "application" : "unauthenticated"
   end
 end

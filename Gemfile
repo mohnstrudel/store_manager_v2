@@ -77,6 +77,9 @@ gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
 
+gem "tailwindcss-ruby"
+gem "tailwindcss-rails"
+
 group :production, :staging do
   gem "thruster"
   gem "barnes"
@@ -123,6 +126,7 @@ group :development do
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
   gem "rubycritic", require: false
+  gem "letter_opener"
 end
 
 group :test do

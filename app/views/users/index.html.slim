@@ -1,0 +1,15 @@
+= render "_shared/notice"
+
+= render "_shared/nav-index", model: @users
+
+main.wide
+  table(role="grid")
+    thead
+      tr
+        th ID
+        th Title
+        th Created
+        th Updated
+        th Actions
+    tbody
+      = render @users

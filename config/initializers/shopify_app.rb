@@ -1,16 +1,20 @@
 ShopifyApp.configure do |config|
+  config.api_version = "2025-04"
+  # Consult this page for more scope options:
+  # https://help.shopify.com/en/api/getting-started/authentication/oauth/scopes
+  config.scope = "read_products, read_orders, read_order_edits, read_customers, read_inventory"
+
+  config.root_url = "/shopify_app"
+  config.login_callback_url = "/shopify_app/auth/shopify/callback"
+  config.login_url = "https://68d8f5-af.myshopify.com/"
+
   config.disable_webpacker = true
   config.application_name = "My Shopify App"
   config.old_secret = ""
-  config.scope = "read_products, read_orders, read_order_edits, read_customers, read_inventory" # Consult this page for more scope options:
-  # https://help.shopify.com/en/api/getting-started/authentication/oauth/scopes
   config.embedded_app = false
   config.new_embedded_auth_strategy = false
 
   config.after_authenticate_job = false
-  config.api_version = "2025-04"
-  # config.user_session_repository = ShopifyApp::InMemoryUserSessionStore
-  # config.shop_session_repository = ShopifyApp::InMemoryShopSessionStore
   config.shop_session_repository = "Shop"
   config.log_level = :info
   config.reauth_on_access_scope_changes = true
@@ -23,8 +27,6 @@ ShopifyApp.configure do |config|
 
   config.api_key = ENV.fetch("SHOPIFY_API_KEY", "").presence
   config.secret = ENV.fetch("SHOPIFY_API_SECRET", "").presence
-  config.login_url = "https://68d8f5-af.myshopify.com/"
-  config.login_callback_url = "http://localhost:3000/auth/shopify/callback"
 
   # You may want to charge merchants for using your app. Setting the billing configuration will cause the Authenticated
   # controller concern to check that the session is for a merchant that has an active one-time payment or subscription.

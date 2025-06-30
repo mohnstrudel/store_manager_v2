@@ -10,5 +10,5 @@
 #  user_id    :bigint           not null
 #
 class Session < ApplicationRecord
-  belongs_to :user
+  db_belongs_to :user
 end
