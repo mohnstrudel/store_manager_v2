@@ -1,10 +1,13 @@
 class UsersController < ApplicationController
   before_action :redirect_if_authenticated, only: :new
-  before_action :set_supplier, only: %i[edit update destroy]
+  before_action :set_user, only: %i[show edit update destroy]
   allow_unauthenticated_access
 
   def index
     @users = User.all
+  end
+
+  def show
   end
 
   def new
@@ -40,7 +43,7 @@ class UsersController < ApplicationController
   private
 
   def set_user
-    @user = User.friendly.find(params[:id])
+    @user = User.find(params[:id])
   end
 
   def user_params

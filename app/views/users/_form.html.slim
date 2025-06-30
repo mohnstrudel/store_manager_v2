@@ -1,5 +1,7 @@
 = form_with(model: user) do |form|
   = render "_shared/notice-err", model: user
+  = form.label :email_address
+  = form.text_field :email_address 
   = form.label :first_name
   = form.text_field :first_name 
   = form.label :last_name
