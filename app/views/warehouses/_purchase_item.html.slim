@@ -1,0 +1,22 @@
+tr(
+  class="hoverable"
+  data-action="click->table#goTo"
+  data-table-url-param=purchase_item_path(item)
+)
+  = render "_shared/move_to_warehouse/td", id: item.id
+  td.text-center
+    = render "_shared/preloadable_img", src: thumb_url(item), class_names: "zoomable", width: 100
+  td
+    = item.purchase.product.full_title
+    - if item.purchase.edition.present?
+      | → #{item.purchase.edition.title}
+  td
+    - if item.sale
+      = link_to item.sale.title, item.sale, class: "no-events"
+  td.mono = format_item_size(item)
+  td.mono.right = item.weight
+  td.mono.right = format_money item.expenses
+  td.mono.right = format_money item.shipping_price
+  td.actions
+    = render "_shared/action-destroy", route: purchase_item_path(item)
+    = render "_shared/action-edit", route: edit_purchase_item_path(item)
