@@ -44,6 +44,9 @@ class DashboardController < ApplicationController
     end
   end
 
+  def noop
+  end
+
   private
 
   def sale_debts

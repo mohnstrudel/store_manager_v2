@@ -1,0 +1,2 @@
+class ShapePolicy < ApplicationPolicy
+end

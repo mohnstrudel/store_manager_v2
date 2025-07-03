@@ -1,0 +1,2 @@
+class WarehousePolicy < ApplicationPolicy
+end

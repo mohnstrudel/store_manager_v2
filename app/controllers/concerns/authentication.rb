@@ -2,6 +2,7 @@ module Authentication
   extend ActiveSupport::Concern
 
   included do
+    layout :choose_layout
     before_action :require_authentication
     helper_method :authenticated?
     helper_method :current_user
@@ -60,5 +61,9 @@ module Authentication
 
   def redirect_if_authenticated
     redirect_to root_path if current_user
+  end
+
+  def choose_layout
+    authenticated? ? "application" : "unauthenticated"
   end
 end

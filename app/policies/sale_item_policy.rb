@@ -1,0 +1,2 @@
+class SaleItemPolicy < ApplicationPolicy
+end

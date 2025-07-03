@@ -90,8 +90,8 @@ GEM
       activerecord (>= 5.2, < 8.2)
       activesupport (>= 5.2, < 8.2)
     aws-eventstream (1.4.0)
-    aws-partitions (1.1122.0)
-    aws-sdk-core (3.226.1)
+    aws-partitions (1.1124.0)
+    aws-sdk-core (3.226.2)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
@@ -101,7 +101,7 @@ GEM
     aws-sdk-kms (1.106.0)
       aws-sdk-core (~> 3, >= 3.225.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-s3 (1.191.0)
+    aws-sdk-s3 (1.192.0)
       aws-sdk-core (~> 3, >= 3.225.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
@@ -194,7 +194,7 @@ GEM
     factory_bot_rails (6.5.0)
       factory_bot (~> 6.5)
       railties (>= 6.1.0)
-    faker (3.5.1)
+    faker (3.5.2)
       i18n (>= 1.8.11, < 2)
     ferrum (0.17.1)
       addressable (~> 2.5)
@@ -351,6 +351,8 @@ GEM
     public_suffix (6.0.2)
     puma (6.6.0)
       nio4r (~> 2.0)
+    pundit (2.5.0)
+      activesupport (>= 3.0.0)
     racc (1.8.1)
     rack (3.1.16)
     rack-session (2.1.1)
@@ -494,14 +496,14 @@ GEM
     scout_apm (5.6.4)
       parser
     securerandom (0.4.1)
-    sentry-rails (5.25.0)
+    sentry-rails (5.26.0)
       railties (>= 5.0)
-      sentry-ruby (~> 5.25.0)
-    sentry-ruby (5.25.0)
+      sentry-ruby (~> 5.26.0)
+    sentry-ruby (5.26.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
-    sentry-sidekiq (5.25.0)
-      sentry-ruby (~> 5.25.0)
+    sentry-sidekiq (5.26.0)
+      sentry-ruby (~> 5.26.0)
       sidekiq (>= 3.0)
     sexp_processor (4.17.3)
     shopify_api (14.10.0)
@@ -549,7 +551,7 @@ GEM
       temple
       thor
       tilt
-    solargraph (0.55.4)
+    solargraph (0.56.0)
       backport (~> 1.2)
       benchmark (~> 0.4)
       bundler (~> 2.0)
@@ -561,6 +563,7 @@ GEM
       observer (~> 0.1)
       ostruct (~> 0.6)
       parser (~> 3.0)
+      prism (~> 1.4)
       rbs (~> 3.3)
       reverse_markdown (~> 3.0)
       rubocop (~> 1.38)
@@ -568,10 +571,10 @@ GEM
       tilt (~> 2.0)
       yard (~> 0.9, >= 0.9.24)
       yard-solargraph (~> 0.1)
-    solargraph-rails (1.1.0)
+    solargraph-rails (1.2.0)
       activesupport
-      solargraph
-    sorbet-runtime (0.5.12210)
+      solargraph (= 0.56.0)
+    sorbet-runtime (0.5.12219)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
       logger
@@ -601,8 +604,8 @@ GEM
     tailwindcss-rails (4.2.3)
       railties (>= 7.0.0)
       tailwindcss-ruby (~> 4.0)
-    tailwindcss-ruby (4.1.10-arm64-darwin)
-    tailwindcss-ruby (4.1.10-x86_64-linux-gnu)
+    tailwindcss-ruby (4.1.11-arm64-darwin)
+    tailwindcss-ruby (4.1.11-x86_64-linux-gnu)
     temple (0.10.3)
     thor (1.3.2)
     thread_safe (0.3.6)
@@ -678,6 +681,7 @@ DEPENDENCIES
   prosopite
   pry (~> 0.14.2)
   puma (~> 6.0)
+  pundit
   rack-timeout
   rails (~> 8.x.x)
   rails_live_reload

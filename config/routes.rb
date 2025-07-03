@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   get "debts", to: "dashboard#debts"
   get "debts/:page", to: "dashboard#debts"
   get "pull-last-orders", to: "dashboard#pull_last_orders"
+  get "noop", to: "dashboard#noop", as: :noop
 
   resources :purchase_items do
     collection do

@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
   include Authentication
-  layout :choose_layout
+  include Authorization
 
   if Rails.env.development?
     before_action do
@@ -15,11 +15,5 @@ class ApplicationController < ActionController::Base
     ensure
       Prosopite.finish
     end
-  end
-
-  private
-
-  def choose_layout
-    authenticated? ? "application" : "unauthenticated"
   end
 end

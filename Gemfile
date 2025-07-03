@@ -80,6 +80,8 @@ gem "sentry-sidekiq"
 gem "tailwindcss-ruby"
 gem "tailwindcss-rails"
 
+gem "pundit"
+
 group :production, :staging do
   gem "thruster"
   gem "barnes"
