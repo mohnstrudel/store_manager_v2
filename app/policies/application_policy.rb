@@ -1,6 +1,6 @@
 class ApplicationPolicy
   attr_reader :user, :record
-  delegate :guest?, :admin?, :manager?, :support?, to: :user
+  delegate :guest?, :admin?, :manager?, :support?, to: :user, allow_nil: true
 
   def initialize(user, record)
     @user = user

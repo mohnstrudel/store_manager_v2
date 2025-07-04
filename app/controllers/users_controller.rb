@@ -1,7 +1,9 @@
 class UsersController < ApplicationController
   before_action :redirect_if_authenticated, only: :new
   before_action :set_user, only: %i[show edit update destroy]
-  allow_unauthenticated_access
+  allow_unauthenticated_access only: %i[new create]
+  skip_before_action :authorize_resourse, only: %i[new create]
+  skip_after_action :verify_authorized, only: %i[new create]
 
   def index
     @users = User.all

@@ -1,6 +1,8 @@
 class PasswordsController < ApplicationController
   allow_unauthenticated_access
   before_action :set_user_by_token, only: %i[edit update]
+  skip_before_action :authorize_resourse
+  skip_after_action :verify_authorized
 
   def new
   end
