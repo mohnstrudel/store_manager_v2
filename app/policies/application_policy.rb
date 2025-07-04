@@ -1,5 +1,6 @@
 class ApplicationPolicy
   attr_reader :user, :record
+  delegate :guest?, :admin?, :manager?, :support?, to: :user
 
   def initialize(user, record)
     @user = user
@@ -7,15 +8,15 @@ class ApplicationPolicy
   end
 
   def index?
-    false
+    admin? || manager?
   end
 
   def show?
-    false
+    admin? || manager?
   end
 
   def create?
-    false
+    admin?
   end
 
   def new?
@@ -23,7 +24,7 @@ class ApplicationPolicy
   end
 
   def update?
-    false
+    admin?
   end
 
   def edit?
@@ -31,7 +32,7 @@ class ApplicationPolicy
   end
 
   def destroy?
-    false
+    admin?
   end
 
   def noop?
@@ -39,13 +40,19 @@ class ApplicationPolicy
   end
 
   class Scope
+    delegate :guest?, :admin?, :manager?, :support?, to: :user
+
     def initialize(user, scope)
       @user = user
       @scope = scope
     end
 
     def resolve
-      raise NoMethodError, "You must define #resolve in #{self.class}"
+      if admin? || manager? || support?
+        scope.all
+      else
+        scope.none
+      end
     end
 
     private

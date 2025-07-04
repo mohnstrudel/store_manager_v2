@@ -7,10 +7,13 @@
 #  first_name      :string
 #  last_name       :string
 #  password_digest :string           not null
+#  role            :integer          default("guest"), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #
 class User < ApplicationRecord
+  enum :role, {guest: 0, admin: 1, manager: 2, support: 3}
+
   has_secure_password
   has_many :sessions, dependent: :destroy
 
