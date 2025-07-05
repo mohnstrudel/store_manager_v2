@@ -69,9 +69,11 @@ module Authentication
   end
 
   def set_sentry_user
-    Sentry.set_user(
-      id: current_user.id,
-      email: current_user.email_address
-    )
+    if current_user.present?
+      Sentry.set_user(
+        id: current_user.id,
+        email: current_user.email_address
+      )
+    end
   end
 end
