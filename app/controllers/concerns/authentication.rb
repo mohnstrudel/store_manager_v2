@@ -4,6 +4,7 @@ module Authentication
   included do
     layout :choose_layout
     before_action :require_authentication
+    before_action :set_sentry_user
     helper_method :authenticated?
     helper_method :current_user
   end
@@ -65,5 +66,12 @@ module Authentication
 
   def choose_layout
     authenticated? ? "application" : "unauthenticated"
+  end
+
+  def set_sentry_user
+    Sentry.set_user(
+      id: current_user.id,
+      email: current_user.email_address
+    )
   end
 end
