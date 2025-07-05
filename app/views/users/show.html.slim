@@ -10,15 +10,10 @@ main
         th Email
         th First Name
         th Last Name
+        th Role
         th Created
         th Updated
     tbody
-      tr id="#{dom_id @user}"
-        td = @user.id
-        td = @user.email_address
-        td = @user.first_name
-        td = @user.last_name
-        td = format_date @user.created_at
-        td = format_date @user.updated_at
+      = render @user
 
 = button_to "Destroy this user", user_path(@user), method: :delete, class: "btn-danger"

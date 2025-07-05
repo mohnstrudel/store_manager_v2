@@ -30,6 +30,7 @@ class UsersController < ApplicationController
   end
 
   def update
+    user_params.delete("role") if user_params["role"] == "admin"
     if @user.update(user_params)
       redirect_to user_url(@user), notice: "User account was successfully updated"
     else
@@ -55,7 +56,8 @@ class UsersController < ApplicationController
         :password,
         :password_confirmation,
         :first_name,
-        :last_name
+        :last_name,
+        :role
       ]
     )
   end
