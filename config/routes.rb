@@ -22,7 +22,7 @@ Rails.application.routes.draw do
   get "sign_up", to: "users#new", as: :new_sign_up
   post "sign_up", to: "users#create", as: :sign_up
 
-  resource :session, except: :new
+  resource :session, except: %i[new destroy]
   get "sign_in", to: "sessions#new", as: :sign_in
   post "log_out", to: "sessions#destroy", as: :log_out
 
