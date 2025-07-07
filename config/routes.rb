@@ -19,7 +19,7 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
 
   resources :users, except: %i[new create]
-  get "sign_up", to: "users#new", as: :new_signup
+  get "sign_up", to: "users#new", as: :new_sign_up
   post "sign_up", to: "users#create", as: :sign_up
 
   resource :session, except: :new
