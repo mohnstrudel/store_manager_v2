@@ -59,7 +59,7 @@ class PurchasesController < ApplicationController
           PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
         end
 
-        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }
+        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
         format.json { render :show, status: :created, location: @purchase }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -72,7 +72,7 @@ class PurchasesController < ApplicationController
   def update
     respond_to do |format|
       if @purchase.update(purchase_params.merge(slug: nil))
-        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated." }
+        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -86,7 +86,7 @@ class PurchasesController < ApplicationController
     @purchase.destroy
 
     respond_to do |format|
-      format.html { redirect_to purchases_url, notice: "Purchase was successfully destroyed." }
+      format.html { redirect_to purchases_url, notice: "Purchase was successfully destroyed" }
       format.json { head :no_content }
     end
   end

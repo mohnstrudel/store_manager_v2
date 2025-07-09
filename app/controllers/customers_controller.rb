@@ -27,7 +27,7 @@ class CustomersController < ApplicationController
     @customer = Customer.new(customer_params)
 
     if @customer.save
-      redirect_to @customer, notice: "Customer was successfully created."
+      redirect_to @customer, notice: "Customer was successfully created"
     else
       render :new, status: :unprocessable_entity
     end
@@ -36,7 +36,7 @@ class CustomersController < ApplicationController
   # PATCH/PUT /customers/1
   def update
     if @customer.update(customer_params)
-      redirect_to @customer, notice: "Customer was successfully updated.", status: :see_other
+      redirect_to @customer, notice: "Customer was successfully updated", status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -45,7 +45,7 @@ class CustomersController < ApplicationController
   # DELETE /customers/1
   def destroy
     @customer.destroy!
-    redirect_to customers_url, notice: "Customer was successfully destroyed.", status: :see_other
+    redirect_to customers_url, notice: "Customer was successfully destroyed", status: :see_other
   end
 
   private

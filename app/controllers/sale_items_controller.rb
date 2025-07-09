@@ -19,7 +19,7 @@ class SaleItemsController < ApplicationController
 
     if @sale_item.update(sale_item_params)
       attachments&.map(&:purge_later)
-      redirect_to @sale_item, notice: "Sale item was successfully updated.", status: :see_other
+      redirect_to @sale_item, notice: "Sale item was successfully updated", status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -30,7 +30,7 @@ class SaleItemsController < ApplicationController
     warehouse = @sale_item.warehouse
     @sale_item.destroy!
 
-    redirect_to warehouse, notice: "Sale item was successfully destroyed.", status: :see_other, turbolinks: false
+    redirect_to warehouse, notice: "Sale item was successfully destroyed", status: :see_other, turbolinks: false
   end
 
   private

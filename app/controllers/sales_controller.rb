@@ -59,7 +59,7 @@ class SalesController < ApplicationController
     if @sale.save
       linked_ids = @sale.link_with_purchase_items
       PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
-      redirect_to @sale, notice: "Sale was successfully created."
+      redirect_to @sale, notice: "Sale was successfully created"
     else
       render :new, status: :unprocessable_entity
     end
@@ -72,7 +72,7 @@ class SalesController < ApplicationController
       if changes[:status]
         Sale.update_order(woo_id: @sale.woo_id, status: changes[:status])
       end
-      redirect_to @sale, notice: "Sale was successfully updated."
+      redirect_to @sale, notice: "Sale was successfully updated"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -81,7 +81,7 @@ class SalesController < ApplicationController
   # DELETE /sales/1
   def destroy
     @sale.destroy
-    redirect_to sales_url, notice: "Sale was successfully destroyed.", status: :see_other
+    redirect_to sales_url, notice: "Sale was successfully destroyed", status: :see_other
   end
 
   def link_purchase_items
@@ -89,7 +89,7 @@ class SalesController < ApplicationController
 
     PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
 
-    redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
+    redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products"
   end
 
   def pull

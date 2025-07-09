@@ -33,7 +33,7 @@ class PurchaseItemsController < ApplicationController
 
     if @purchase_item.save
       redirect_to @purchase_item.warehouse,
-        notice: "Purchase item was successfully created."
+        notice: "Purchase item was successfully created"
     else
       render :new, status: :unprocessable_entity
     end
@@ -54,7 +54,7 @@ class PurchaseItemsController < ApplicationController
 
       deleted_imgs&.map(&:purge_later)
 
-      redirect_to path, notice: "Purchase item was successfully updated.", status: :see_other
+      redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
     else
       set_data_for_edit
       render :edit, status: :unprocessable_entity
@@ -67,7 +67,7 @@ class PurchaseItemsController < ApplicationController
     @purchase_item.destroy!
 
     redirect_to warehouse,
-      notice: "Purchase item was successfully destroyed.",
+      notice: "Purchase item was successfully destroyed",
       status: :see_other,
       turbolinks: false
   end
@@ -94,11 +94,11 @@ class PurchaseItemsController < ApplicationController
 
     if purchase_item.update(sale_item: nil)
       redirect_to (request.referer || sale_item),
-        notice: "Purchase item was successfully unlinked.",
+        notice: "Purchase item was successfully unlinked",
         status: :see_other
     else
       redirect_to sale_item,
-        alert: "Something went wrong. Try again later or contact the administrators.",
+        alert: "Something went wrong. Try again later or contact the administrators",
         status: :see_other,
         turbolinks: false
     end

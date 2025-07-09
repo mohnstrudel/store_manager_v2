@@ -25,7 +25,7 @@ class FranchisesController < ApplicationController
 
     respond_to do |format|
       if @franchise.save
-        format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully created." }
+        format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully created" }
         format.json { render :show, status: :created, location: @franchise }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -38,7 +38,7 @@ class FranchisesController < ApplicationController
   def update
     respond_to do |format|
       if @franchise.update(franchise_params)
-        format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully updated." }
+        format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully updated" }
         format.json { render :show, status: :ok, location: @franchise }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -52,7 +52,7 @@ class FranchisesController < ApplicationController
     @franchise.destroy
 
     respond_to do |format|
-      format.html { redirect_to franchises_url, notice: "Franchise was successfully destroyed." }
+      format.html { redirect_to franchises_url, notice: "Franchise was successfully destroyed" }
       format.json { head :no_content }
     end
   end
