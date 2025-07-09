@@ -1,6 +1,6 @@
 require "rails_helper"
 
-describe ProductPolicy do
+describe WarehousePolicy do
   subject { described_class.new(user, record) }
 
   let(:record) { instance_double(Product) }
