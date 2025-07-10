@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_04_085510) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_09_050626) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -258,7 +258,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_04_085510) do
     t.bigint "edition_id"
     t.decimal "price", precision: 8, scale: 2
     t.bigint "product_id", null: false
-    t.integer "purchased_products_count", default: 0, null: false
+    t.integer "purchase_items_count", default: 0, null: false
     t.integer "qty"
     t.bigint "sale_id", null: false
     t.string "shopify_id"
