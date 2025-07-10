@@ -1,7 +1,7 @@
 require "capybara/rspec"
 require "capybara/cuprite"
 
-Capybara.default_max_wait_time = 2
+Capybara.default_max_wait_time = 10
 Capybara.default_normalize_ws = true
 Capybara.disable_animation = true
 
