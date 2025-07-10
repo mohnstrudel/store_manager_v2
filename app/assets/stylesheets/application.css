@@ -12,6 +12,7 @@
  *
  *= require pico
  *= require slimselect
+ *= require tailwind
  *= require_tree .
  *= require_self
  */

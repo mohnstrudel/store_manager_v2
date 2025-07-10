@@ -77,7 +77,6 @@ gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
 
-gem "tailwindcss-ruby"
 gem "tailwindcss-rails"
 
 gem "pundit"
