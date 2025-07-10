@@ -1,6 +1,9 @@
 require "rails_helper"
 
 describe PurchaseItemsController do
+  before { sign_in_as_admin }
+  after { log_out }
+
   describe "DELETE #destroy" do
     it "destroys the purchase_item without destroying the associated purchase" do
       warehouse = create(:warehouse)
@@ -14,7 +17,7 @@ describe PurchaseItemsController do
       expect(PurchaseItem.exists?(purchase_item.id)).to be false
       expect(Purchase.exists?(purchase.id)).to be true
       expect(response).to redirect_to(warehouse_path(warehouse))
-      expect(flash[:notice]).to eq("Purchase item was successfully destroyed.")
+      expect(flash[:notice]).to eq("Purchase item was successfully destroyed")
     end
   end
 

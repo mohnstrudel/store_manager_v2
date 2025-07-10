@@ -1,6 +1,9 @@
 require "rails_helper"
 
 describe "Search works accross products, sales, purchases, and debts", js: "true" do
+  before { sign_in_as_admin }
+  after { log_out }
+
   # rubocop:disable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll
   before(:all) do
     create(:warehouse, is_default: true)

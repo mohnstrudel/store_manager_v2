@@ -90,7 +90,7 @@ GEM
       activerecord (>= 5.2, < 8.2)
       activesupport (>= 5.2, < 8.2)
     aws-eventstream (1.4.0)
-    aws-partitions (1.1125.0)
+    aws-partitions (1.1126.0)
     aws-sdk-core (3.226.2)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
@@ -579,7 +579,7 @@ GEM
     solargraph-rails (1.2.0)
       activesupport
       solargraph (= 0.56.0)
-    sorbet-runtime (0.5.12219)
+    sorbet-runtime (0.5.12221)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
       logger
@@ -616,7 +616,7 @@ GEM
     thread_safe (0.3.6)
     thruster (0.1.14-arm64-darwin)
     thruster (0.1.14-x86_64-linux)
-    tilt (2.6.0)
+    tilt (2.6.1)
     timeout (0.4.3)
     tty-which (0.5.0)
     turbo-rails (2.0.16)

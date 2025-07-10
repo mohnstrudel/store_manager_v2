@@ -1,6 +1,9 @@
 require "rails_helper"
 
 describe "Sale show page" do
+  before { sign_in_as_admin }
+  after { log_out }
+
   let(:sale) { create(:sale) }
   let(:link_label) { "🔗 Link with purchases" }
 

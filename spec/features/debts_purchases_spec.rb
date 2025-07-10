@@ -2,6 +2,8 @@ require "rails_helper"
 
 describe "Debts can take purchases into account" do
   before do
+    sign_in_as_admin
+
     elder_ring = create(:franchise, title: "Elder Ring")
 
     regular = create(:version, value: "Regular Armor")
@@ -43,6 +45,8 @@ describe "Debts can take purchases into account" do
       edition: @malenia_revealing
     )
   end
+
+  after { log_out }
 
   it "shows the correct amount of purchases" do
     visit debts_path

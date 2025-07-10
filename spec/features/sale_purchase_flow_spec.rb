@@ -1,6 +1,9 @@
 require "rails_helper"
 
 feature "Link sales with purchases flow" do
+  before { sign_in_as_admin }
+  after { log_out }
+
   let!(:product) { create(:product, title: "Test Product") }
   let!(:supplier) { create(:supplier) }
   let!(:customer) { create(:customer) }

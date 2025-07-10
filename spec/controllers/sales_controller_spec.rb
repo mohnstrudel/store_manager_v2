@@ -1,6 +1,9 @@
 require "rails_helper"
 
 RSpec.describe SalesController, type: :controller do
+  before { sign_in_as_admin }
+  after { log_out }
+
   describe "POST #link_purchase_items" do
     let(:sale) { create(:sale) }
     let(:purchase_item_ids) { [1, 2, 3] }
@@ -28,7 +31,7 @@ RSpec.describe SalesController, type: :controller do
     it "redirects to sale with success notice" do
       post :link_purchase_items, params: {id: sale.id}
       expect(response).to redirect_to(sale)
-      expect(flash[:notice]).to eq("Success! Sold products were interlinked with purchased products.")
+      expect(flash[:notice]).to eq("Success! Sold products were interlinked with purchased products")
     end
   end
 end

@@ -1,6 +1,9 @@
 require "rails_helper"
 
 describe "Moving purchased products between warehouses" do
+  before { sign_in_as_admin }
+  after { log_out }
+
   let(:warehouse_from) { create(:warehouse, name: "Warehouse From") }
   let!(:warehouse_to) { create(:warehouse, name: "Warehouse To") }
   let(:product) { create(:product) }
