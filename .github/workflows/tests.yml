@@ -14,6 +14,7 @@ jobs:
       PGPASSWORD: postgres
       RAILS_ENV: test
       REDIS_HOST: redis
+      CI: true
 
     services:
       postgres:
