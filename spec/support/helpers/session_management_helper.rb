@@ -36,6 +36,7 @@ module Helpers
 
     def sign_in_browser(user)
       visit sign_in_path
+      warn page.body
       fill_in "email_address", with: user.email_address
       fill_in "password", with: "password"
       click_on "Sign in"
