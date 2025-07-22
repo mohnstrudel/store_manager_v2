@@ -41,7 +41,6 @@ class Product < ApplicationRecord
   set_search_scope :search,
     against: [:full_title, :woo_id],
     associated_against: {
-      suppliers: [:title],
       sizes: [:value],
       versions: [:value],
       colors: [:value]
@@ -71,9 +70,6 @@ class Product < ApplicationRecord
 
   has_many :product_brands, dependent: :destroy
   has_many :brands, through: :product_brands
-
-  has_many :product_suppliers, dependent: :destroy
-  has_many :suppliers, through: :product_suppliers
 
   has_many :product_sizes, dependent: :destroy
   has_many :sizes, through: :product_sizes

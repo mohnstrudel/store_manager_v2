@@ -31,11 +31,6 @@ class Supplier < ApplicationRecord
   #
   validates :title, presence: true
 
-  #
-  # == Associations
-  #
-  has_many :product_suppliers, dependent: :destroy
-  has_many :products, through: :product_suppliers
   has_many :purchases, dependent: :destroy
 
   #

@@ -120,7 +120,6 @@ class ProductsController < ApplicationController
       brand_ids: [],
       color_ids: [],
       size_ids: [],
-      supplier_ids: [],
       version_ids: [],
       images: []
     )

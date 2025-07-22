@@ -22,8 +22,6 @@
     p = product.id
     .title SKU
     p = product.sku.presence || "-"
-    .title Supplier
-    p = format_relation(product.suppliers, "title")
     .title Created
     p = format_date product.created_at
     .title Updated
