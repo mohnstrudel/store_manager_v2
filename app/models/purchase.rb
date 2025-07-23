@@ -4,9 +4,9 @@
 #
 #  id              :bigint           not null, primary key
 #  amount          :integer
-#  draft           :boolean          default(TRUE), not null
 #  item_price      :decimal(8, 2)
 #  order_reference :string
+#  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
 #  slug            :string
 #  synced          :string
@@ -124,5 +124,9 @@ class Purchase < ApplicationRecord
     Array.new(amount) do
       warehouse.purchase_items.create(purchase_id: id)
     end
+  end
+
+  def unpaid?
+    payments_count.zero?
   end
 end

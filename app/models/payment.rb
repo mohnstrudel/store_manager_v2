@@ -33,7 +33,9 @@ class Payment < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :purchase, touch: true
+  # Touch is enabled so the purchase is updated when we pay
+  # Counter cache is enabled to track unpaid purchases
+  db_belongs_to :purchase, touch: true, counter_cache: true
 
   #
   # == Scopes
