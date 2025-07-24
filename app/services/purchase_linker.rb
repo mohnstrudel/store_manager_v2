@@ -17,7 +17,7 @@ class PurchaseLinker
 
     unlinked_purchase_items = @purchase.purchase_items.where(sale_item_id: nil).to_a
 
-    SaleItem.linkable_for(@purchase).each do |ps|
+    SaleItem.linkable_with(@purchase).each do |ps|
       break if unlinked_purchase_items.empty?
 
       remaining = [

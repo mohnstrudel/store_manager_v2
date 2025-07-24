@@ -90,7 +90,7 @@ class PurchaseItem < ApplicationRecord
   #
   # == Class Methods
   #
-  def self.linkable_for(product_id, limit:)
+  def self.linkable_with(product_id, limit:)
     without_sale_items(product_id).limit(limit)
   end
 

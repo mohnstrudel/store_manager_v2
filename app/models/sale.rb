@@ -193,7 +193,7 @@ class Sale < ApplicationRecord
 
       next if remaining_size <= 0
 
-      linkable_purchase_items = PurchaseItem.linkable_for(
+      linkable_purchase_items = PurchaseItem.linkable_with(
         sale_item.product_id,
         limit: remaining_size
       )

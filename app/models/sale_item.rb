@@ -69,7 +69,7 @@ class SaleItem < ApplicationRecord
   #
   # == Class Methods
   #
-  def self.linkable_for(purchase)
+  def self.linkable_with(purchase)
     active
       .linkable
       .where(
