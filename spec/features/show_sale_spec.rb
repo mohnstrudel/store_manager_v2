@@ -10,7 +10,7 @@ describe "Sale show page" do
   context "when the nav link should be hidden" do
     before do
       allow(sale).to receive_messages(active?: false, has_unlinked_sale_items?: false)
-      allow(PurchaseItem).to receive(:without_sale_items).and_return([])
+      allow(PurchaseItem).to receive(:without_sale_items_by_product).and_return([])
 
       product = create(:product)
       create(:sale_item, sale: sale, product: product, qty: 2)

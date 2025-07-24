@@ -81,18 +81,19 @@ class PurchaseItem < ApplicationRecord
     )
   }
 
-  scope :without_sale_items, ->(product_id) {
+  scope :without_sale_items_by_product, ->(product_id) {
+    paid_priority = Arel.sql(
+      "CASE WHEN purchases.payments_count > 0 THEN 0 ELSE 1 END ASC"
+    )
     where(sale_item_id: nil)
       .joins(:purchase)
-      .where(purchase: {product_id:})
+      .where(purchases: {product_id:})
+      .order(paid_priority, created_at: :asc)
   }
 
   #
   # == Class Methods
   #
-  def self.linkable_with(product_id, limit:)
-    without_sale_items(product_id).limit(limit)
-  end
 
   #
   # == Domain Methods

@@ -31,4 +31,31 @@ describe PurchaseItem do
       expect(described_class.auditing_enabled).to be true
     end
   end
+
+  describe ".without_sale_items_by_product" do
+    subject(:scope) { described_class.without_sale_items_by_product(product.id) }
+
+    let(:product) { create(:product) }
+    let(:sale_item) { create(:sale_item) }
+    let(:paid_purchase) { create(:purchase, product:, payments_count: 1) }
+    let(:unpaid_purchase) { create(:purchase, product:, payments_count: 0) }
+
+    let!(:paid_item) { create(:purchase_item, purchase: paid_purchase, sale_item_id: nil, created_at: 2.days.ago) }
+    let!(:unpaid_item) { create(:purchase_item, purchase: unpaid_purchase, sale_item_id: nil, created_at: 1.day.ago) }
+    let!(:older_paid_item) { create(:purchase_item, purchase: paid_purchase, sale_item_id: nil, created_at: 3.days.ago) }
+    let!(:linked_item) { create(:purchase_item, purchase: paid_purchase, sale_item: sale_item) }
+
+    it "returns unlinked items for given product_id" do
+      expect(scope).to match_array([paid_item, older_paid_item, unpaid_item])
+      expect(scope).not_to include(linked_item)
+    end
+
+    it "orders by paid status (paid first), then created_at asc" do
+      expect(scope.to_a).to eq([older_paid_item, paid_item, unpaid_item])
+    end
+
+    it "returns empty relation for non-existent product_id" do
+      expect(described_class.without_sale_items_by_product(999)).to be_empty
+    end
+  end
 end

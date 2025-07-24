@@ -173,7 +173,7 @@ class Sale < ApplicationRecord
 
     product_ids = sale_items.pluck(:product_id)
 
-    PurchaseItem.without_sale_items(product_ids).exists?
+    PurchaseItem.without_sale_items_by_product(product_ids).exists?
   end
 
   def shop_created_at
@@ -193,10 +193,9 @@ class Sale < ApplicationRecord
 
       next if remaining_size <= 0
 
-      linkable_purchase_items = PurchaseItem.linkable_with(
-        sale_item.product_id,
-        limit: remaining_size
-      )
+      linkable_purchase_items = PurchaseItem
+        .without_sale_items_by_product(sale_item.product_id)
+        .limit(remaining_size)
 
       linked_purchase_items_ids = linkable_purchase_items.pluck(:id)
 
