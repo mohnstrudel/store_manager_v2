@@ -232,10 +232,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_23_131117) do
     t.bigint "edition_id"
     t.decimal "item_price", precision: 8, scale: 2
     t.string "order_reference"
+    t.integer "payments_count", default: 0, null: false
     t.bigint "product_id"
     t.datetime "purchase_date"
     t.string "slug"
-    t.integer "payments_count", default: 0, null: false
+    t.bigint "supplier_id", null: false
+    t.string "synced"
+    t.datetime "updated_at", null: false
     t.index ["edition_id"], name: "index_purchases_on_edition_id"
     t.index ["payments_count"], name: "index_purchases_on_payments_count"
     t.index ["product_id"], name: "index_purchases_on_product_id"

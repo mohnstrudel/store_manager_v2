@@ -1,13 +1,9 @@
-class AddCounterCashOfPurchaseItemsToSaleItems < ActiveRecord::Migration[8.0]
+class AddCounterCashOfPurchasedProductsToProductSales < ActiveRecord::Migration[8.0]
   def up
-    add_column :sale_items, :purchase_items_count, :integer, default: 0, null: false
-
-    SaleItem.find_each do |ps|
-      SaleItem.reset_counters(ps.id, :purchase_items)
-    end
+    add_column :product_sales, :purchased_products_count, :integer, default: 0, null: false
   end
 
   def down
-    remove_column :sale_items, :purchase_items_count
+    remove_column :product_sales, :purchased_products_count
   end
 end
