@@ -23,7 +23,7 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
     if @user.save
       start_new_session_for @user
-      redirect_to root_path, notice: "Account for #{@user.email_address} was successfully created"
+      redirect_to noop_path, notice: "Account for #{@user.email_address} was successfully created"
     else
       render :new, status: :unprocessable_entity
     end

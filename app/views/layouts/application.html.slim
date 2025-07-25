@@ -6,7 +6,7 @@ html
     - if Rails.env.development?
       title 🐞 Development Mate 🐞
     - else
-      title 😸 Store Mate 😸
+      title StoreMate
     meta[name="robots" content="noindex"]
     meta[name="viewport" content="width=device-width,initial-scale=1"]
     = csrf_meta_tags
@@ -21,39 +21,41 @@ html
       nav role="navigation" aria-label="main navigation"
         ul 
          li
-          - if Rails.env.staging?
-            i.icn.logo.danger 🐶
-          - if Rails.env.development?
-            i.icn.logo.danger 🐞
+          - if Rails.env.staging? || Rails.env.development?
+            strong.danger StoreMate
           - if Rails.env.production?
-            i.icn.logo 😸
+            strong StoreMate
         ul
-          li = link_to "Dashboard", root_path
-          nav
-            li = link_to "Debts", debts_path
-            li = link_to "Sales", sales_path
-            li = link_to "Purchases", purchases_path
-          nav  
-            li = link_to "Warehouses", warehouses_path
-            li = link_to "Products", products_path
+          - if current_user.guest?
+            li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }
+          - else
+            li = link_to "Dashboard", root_path
+            nav
+              li = link_to "Debts", debts_path
+              li = link_to "Sales", sales_path
+              li = link_to "Purchases", purchases_path
+            nav  
+              li = link_to "Warehouses", warehouses_path
+              li = link_to "Products", products_path
 
-          nav.dropdown role="navigation" aria-label="dropdown navigation"
-            .dropdown__btn
-              i.icn 🍔
-            ul.dropdown__content
-              li = link_to "Customers", customers_path
-              li = link_to "Suppliers", suppliers_path
-              .pb-1
-              li = link_to "Brands", brands_path
-              li = link_to "Franchises", franchises_path
-              .pb-1
-              li = link_to "Versions", versions_path
-              li = link_to "Colors", colors_path
-              li = link_to "Shapes", shapes_path
-              li = link_to "Sizes", sizes_path
-              .pb-1
-              - if current_user.admin?
-                li = link_to "Users", users_path
-              li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }
+          - unless current_user.guest?
+            nav.dropdown role="navigation" aria-label="dropdown navigation"
+              .dropdown__btn
+                i.icn 🍔
+              ul.dropdown__content
+                li = link_to "Customers", customers_path
+                li = link_to "Suppliers", suppliers_path
+                .pb-1
+                li = link_to "Brands", brands_path
+                li = link_to "Franchises", franchises_path
+                .pb-1
+                li = link_to "Versions", versions_path
+                li = link_to "Colors", colors_path
+                li = link_to "Shapes", shapes_path
+                li = link_to "Sizes", sizes_path
+                .pb-1
+                - if current_user.admin?
+                  li = link_to "Users", users_path
+                li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }
     main.main
       = yield
