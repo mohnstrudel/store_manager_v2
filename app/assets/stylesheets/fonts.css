@@ -23,9 +23,27 @@
 
 @font-face {
   font-style: normal;
+  font-weight: 500;
+  font-stretch: 100%;
+  src: url("BricolageGrotesque-Medium.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  font-display: auto;
+}
+
+@font-face {
+  font-style: normal;
   font-weight: 700;
   font-stretch: 100%;
   src: url("BricolageGrotesque-Bold.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  font-display: auto;
+}
+
+@font-face {
+  font-style: normal;
+  font-weight: 900;
+  font-stretch: 100%;
+  src: url("BricolageGrotesque-ExtraBold.woff2") format("woff2");
   font-family: "Bricolage Grotesque";
   font-display: auto;
 }
