@@ -10,6 +10,7 @@
     --font-icn:
       "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
       "Noto Color Emoji";
+    --font-sans: "Bricolage Grotesque", sans-serif;
   }
 
   a {
