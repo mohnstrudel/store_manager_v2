@@ -21,25 +21,27 @@ html
       nav role="navigation-main"
         ul role="navigation-logo"
          li.text-gray-700
-          i.icn.text-2xl.not-italic.mr-2 😸
+          i.icn.text-2xl.mr-2 😸
           strong.align-text-bottom StoreMate
         ul.text-sm.-mr-2
           - if current_user.guest?
             li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }
           - else
             li = link_to "Dashboard", root_path
-            .ml-4
+            .ml-6
             li = link_to "Debts", debts_path
             li = link_to "Sales", sales_path
             li = link_to "Purchases", purchases_path
-            .ml-4
+            .ml-6
             li = link_to "Warehouses", warehouses_path
             li = link_to "Products", products_path
 
           - unless current_user.guest?
-            nav.ml-4 role="navigation-dropdown" 
-              button aria-expanded="false"
-                i.icn.text-xl.not-italic 🍔 
+            nav.ml-6 role="navigation-dropdown" 
+              button
+                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h14"/>
+                </svg>
               ul
                 li = link_to "Customers", customers_path
                 li = link_to "Suppliers", suppliers_path
