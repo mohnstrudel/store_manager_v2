@@ -1,0 +1,36 @@
+@layer base {
+  table {
+    @apply w-full border-collapse table-auto text-left border-b-1;
+  }
+
+  thead {
+    @apply border-b-4 border-gray-100;
+  }
+
+  th {
+    @apply text-gray-800 align-bottom;
+  }
+
+  th,
+  td {
+    @apply p-3;
+  }
+
+  tbody tr {
+    @apply hover:bg-gray-50 transition-colors duration-100 cursor-pointer;
+  }
+}
+
+@layer components {
+  .actions {
+    @apply text-center;
+  }
+
+  .actions a:not(:first-child) {
+    @apply ml-2;
+  }
+
+  .search {
+    @apply px-10 py-8 flex justify-between;
+  }
+}

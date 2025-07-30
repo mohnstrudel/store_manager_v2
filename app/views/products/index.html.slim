@@ -4,24 +4,24 @@
 = render "_shared/notice"
 = render "_shared/nav-index", model: @products, show_modal: true
 
-section.base-section-border.mt-4
+section.base-section-border.mt-4.-mx-8.mb-60.pb-8
   .search
     = render partial: "_shared/search-form", locals: {path: products_path}
-    = paginate @products
+    .pagination-top
+      = paginate @products
   - if @products.present? 
     table role="grid" data-controller="table"
       thead
         tr
-          th Image
+          th.text-center Image
           th
-            <span>Full name</span>
-            br
-            <span class="fw-400 pl-s">Editions</span>
+            <span>Full name</span> <span class="font-normal text-sm pl-4">+ Editions</span>
           th Woo ID
           th Shopify ID
-          th Actions
+          th.text-center Actions
       tbody
         = render @products
-    = paginate @products
+    .pagination-bottom
+      = paginate @products
   - else 
     = render "_shared/search-results-empty"

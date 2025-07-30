@@ -1,16 +1,16 @@
 - show_modal = false if local_assigns[:show_modal].nil?
 
-header.flex.justify-between.items-center.mt-6
+header.flex.justify-between.items-center
   h1 = model.model_name.plural.capitalize
   - if Rails.application.routes.url_helpers.respond_to?("new_#{model.name.downcase}_path")
     menu.flex.pt-2
       - if show_modal
         li data-controller="modal-trigger"
           = link_to "#sync",
-            data: { action: "click->modal-trigger#open" }
+            data: { action: "click->modal-trigger#open" }, class: "btn-action"
             i.icn 📥
-            | Show Synchronization Menu
+            | Show Synchronization Menu
       li.ml-3
         = link_to controller: "#{model.model_name.plural}", action: "new"
           i.icn 🐣
-          | Add New Record
+          | Add New Record

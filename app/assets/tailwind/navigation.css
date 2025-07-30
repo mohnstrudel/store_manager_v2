@@ -1,0 +1,42 @@
+@layer components {
+  nav[role="navigation-main"],
+  nav[role="navigation-main"] ul {
+    @apply flex items-center;
+  }
+
+  /* Align apart logo and menu */
+  nav[role="navigation-main"] {
+    @apply justify-between;
+  }
+
+  /* Style nav links as buttons on hover */
+  nav[role="navigation-main"] a {
+    @apply text-gray-600 hover:text-gray-900 border-0 bg-transparent hover:bg-gray-100;
+  }
+
+  nav[role="navigation-dropdown"] {
+    @apply relative;
+  }
+
+  /* Burger button */
+  nav[role="navigation-dropdown"] > button {
+    @apply p-2 rounded-sm hover:bg-gray-100 transition-all duration-200 cursor-pointer;
+  }
+
+  nav[role="navigation-dropdown"]:hover > button {
+    @apply bg-gray-100;
+  }
+
+  /* Dropdown container */
+  nav[role="navigation-dropdown"] ul {
+    @apply flex flex-col items-start absolute right-0 top-full w-40 pt-5 pr-4 pb-7 pl-4 bg-white border border-gray-200 rounded-sm shadow-md opacity-0 invisible transition-all duration-200;
+  }
+
+  nav[role="navigation-dropdown"]:hover ul {
+    @apply opacity-100 visible text-left;
+  }
+
+  nav[role="navigation-dropdown"] li a {
+    @apply w-full items-center justify-start;
+  }
+}

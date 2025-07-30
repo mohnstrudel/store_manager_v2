@@ -1,0 +1,29 @@
+@layer components {
+  .preloadable-img__container {
+    @apply flex justify-center items-center;
+  }
+
+  .preloadable-img__img {
+    @apply block rounded-md min-h-fit max-h-full object-contain object-center transition-transform;
+
+    &.loading {
+      @apply animate-pulse bg-gray-200 w-full h-full;
+    }
+
+    &.not-found {
+      @apply w-full h-full;
+    }
+
+    &.zoomable {
+      @apply duration-150 ease-out p-1;
+    }
+
+    &.zoomable:hover {
+      @apply scale-300 backdrop-blur-sm shadow-lg bg-white/45;
+    }
+
+    &.hidden {
+      @apply hidden;
+    }
+  }
+}
