@@ -52,7 +52,7 @@
                     li
                       a.no-events href=purchase_item_path(purchase_item)
                         i.icn 📦
-                        | #{purchase_item.warehouse.name}
+                        | #{purchase_item.warehouse.name}
                         - if purchase_item.expenses
-                          | — expenses: $
+                          | — expenses: $
                           .mono.inline = format_money purchase_item.expenses

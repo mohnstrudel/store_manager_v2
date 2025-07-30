@@ -25,7 +25,7 @@ nav
         = render "_shared/move_to_warehouse/form", form_url: move_purchases_path(purchase_id: @purchase.id)
         a.btn data-action="click->move-items#toggleFormVisibility"
           i.icn 📦
-          | Move all
+          | Move all
 
 
 main.wide.flex.flex-col.gap.no-bd
@@ -74,7 +74,7 @@ main.wide.flex.flex-col.gap.no-bd
                     - if pp.sale
                       = link_to unlink_purchase_items_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
                         i.icn ✂︎
-                        | Unlink
+                        | Unlink
                     = render "_shared/action-destroy", route: purchase_item_path(pp)
                     = render "_shared/action-edit", route: edit_purchase_item_path(pp)
 

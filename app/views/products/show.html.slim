@@ -13,13 +13,13 @@ nav
       li
         a.btn href="#{url_for pull_product_path(product: @product)}" 
           i.icn 📥
-          | Pull
+          | Pull
     li
       = render "_shared/action-edit", route: "#{url_for controller: "#{@product.model_name.plural}", action: "edit", id: @product}", btn: true
     li
       a.btn href="#{url_for new_purchase_path(product: @product)}" 
         i.icn 💰
-        | Purchase
+        | Purchase
 
 
 main.wide.flex.flex-col.gap.w-pd

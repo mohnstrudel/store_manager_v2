@@ -51,5 +51,5 @@ main.wide.flex.flex-col.gap.no-bd
                 td.actions
                   = link_to unlink_purchase_items_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
                     i.icn ✂︎
-                    | Unlink
+                    | Unlink
                   = render "_shared/action-edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)

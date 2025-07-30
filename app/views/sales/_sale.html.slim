@@ -11,7 +11,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
         li
           - if sale.active? || sale.completed?
             = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)
-            | 
+            | 
           = ps.title
   td = format_sale_status sale.status
   td.right.mono = format_money sale.total

@@ -3,9 +3,9 @@ ul.v-align.ml-s.list-none
     li
       a.no-events href=purchase_item_path(purchase_item)
         i.icn 📦
-        | #{purchase_item.warehouse.name}
+        | #{purchase_item.warehouse.name}
         - if purchase_item.expenses
-          | — expenses: $
+          | — expenses: $
           .mono.inline = format_money purchase_item.expenses
       br
       a.no-events href=purchase_path(purchase_item.purchase)
@@ -13,9 +13,9 @@ ul.v-align.ml-s.list-none
         |  #{purchase_item.purchase.supplier.title}
         | , #{format_date purchase_item.purchase.date}
         - if purchase_item.purchase.item_price
-          | — cost: $
+          | — cost: $
           .mono.inline = format_money purchase_item.purchase.item_price
       br
       = link_to unlink_purchase_items_path(id: purchase_item.id), class: "no-events danger no-bg-hover", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
         i.icn ✂︎
-        | Unlink
+        | Unlink
