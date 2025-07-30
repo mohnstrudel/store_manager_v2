@@ -4,8 +4,8 @@
 = render "_shared/notice"
 = render "_shared/nav-index", model: @products, show_modal: true
 
-main.wide
-  .search-navigation
+section.base-section-border.mt-4
+  .search
     = render partial: "_shared/search-form", locals: {path: products_path}
     = paginate @products
   - if @products.present? 
