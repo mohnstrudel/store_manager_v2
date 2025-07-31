@@ -4,7 +4,7 @@
   li
     a.btn href="#{url_for new_purchase_item_path(warehouse_id: @warehouse)}" 
       i.icn 📦
-      | Add product
+      | Add product
 
 main.wide.no-bd.flex.flex-col.gap
   - if @warehouse.purchase_items.present?
