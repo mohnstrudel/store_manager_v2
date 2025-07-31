@@ -11,30 +11,29 @@ html
     meta[name="viewport" content="width=device-width,initial-scale=1"]
     = csrf_meta_tags
     = csp_meta_tag
-    / = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = stylesheet_link_tag "tailwind", "data-turbo-track": "reload"
     = javascript_importmap_tags
     = turbo_refresh_method_tag :morph
     = turbo_refresh_scroll_tag :preserve
   body
-    header.container.mx-auto.pt-1
+    header.container.mx-auto.pt-2
       nav role="navigation-main"
         ul role="navigation-logo"
-         li.text-gray-700
+         li.text-gray-600
           i.icn.text-2xl.mr-2 😸
           strong.align-text-bottom StoreMate
-        ul.text-sm.-mr-2
+        ul.text-sm
           - if current_user.guest?
-            li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }
+            li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }, type: "button"
           - else
-            li = link_to "Dashboard", root_path
+            li = link_to "Dashboard", root_path, type: "button"
             .ml-6
-            li = link_to "Debts", debts_path
-            li = link_to "Sales", sales_path
-            li = link_to "Purchases", purchases_path
+            li = link_to "Debts", debts_path, type: "button"
+            li = link_to "Sales", sales_path, type: "button"
+            li = link_to "Purchases", purchases_path, type: "button"
             .ml-6
-            li = link_to "Warehouses", warehouses_path
-            li = link_to "Products", products_path
+            li = link_to "Warehouses", warehouses_path, type: "button"
+            li = link_to "Products", products_path, type: "button"
 
           - unless current_user.guest?
             nav.ml-6 role="navigation-dropdown" 
@@ -43,19 +42,22 @@ html
                   <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h14"/>
                 </svg>
               ul
-                li = link_to "Customers", customers_path
-                li = link_to "Suppliers", suppliers_path
+                li = link_to "Customers", customers_path, type: "button"
+                li = link_to "Suppliers", suppliers_path, type: "button"
                 .pb-3
-                li = link_to "Brands", brands_path
-                li = link_to "Franchises", franchises_path
+                li = link_to "Brands", brands_path, type: "button"
+                li = link_to "Franchises", franchises_path, type: "button"
                 .pb-3
-                li = link_to "Versions", versions_path
-                li = link_to "Colors", colors_path
-                li = link_to "Shapes", shapes_path
-                li = link_to "Sizes", sizes_path
+                li = link_to "Versions", versions_path, type: "button"
+                li = link_to "Colors", colors_path, type: "button"
+                li = link_to "Shapes", shapes_path, type: "button"
+                li = link_to "Sizes", sizes_path, type: "button"
                 .pb-3
                 - if current_user.admin?
-                  li = link_to "Users", users_path
-                li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }
-    main.container.mx-auto
+                  li = link_to "Users", users_path, type: "button"
+                li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }, type: "button"
+    main.container.mx-auto.mt-8
       = yield
+    footer.container.mx-auto.text-center.mb-8
+      a.hover:bg-transparent href="" onclick="window.scrollTo({top: 0}); return false;" class="link"
+        i.icn.text-3xl.text-gray-500 😸
