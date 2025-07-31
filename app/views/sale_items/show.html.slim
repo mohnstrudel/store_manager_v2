@@ -15,7 +15,7 @@ nav
             | , price: 
             .mono.inline $#{format_money @sale_item.price}
 
-main.wide.flex.flex-col.gap.no-bd
+.section-border-base.section-wide.flex.flex-col.gap.no-bd
   - if @sale_item.purchase_items.present?
     .table-cards-group
       .table-card data-controller="move-items"

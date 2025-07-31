@@ -71,7 +71,11 @@
 }
 
 @layer components {
-  .base-section-border {
+  .section-border-base {
     @apply border border-gray-100 rounded-xl;
+  }
+
+  .section-wide {
+    @apply mt-4 -mx-8 pb-8;
   }
 }

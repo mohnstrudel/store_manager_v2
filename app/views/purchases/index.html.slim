@@ -1,15 +1,12 @@
 = render "_shared/notice"
-
 = render "_shared/nav-index", model: @purchases
 
-main.wide data-controller="table move-items"
-  .search-navigation
+section.section-border-base.section-wide data-controller="table move-items"
+  .search
     = render partial: "_shared/search-form", locals: {path: purchases_path}
-    = paginate @purchases
-  
+    .pagination-top = paginate @purchases
   - if @purchases.present?
     = render "_shared/move_to_warehouse/form", form_url: move_purchases_path
-
     table(role="grid")
       thead
         tr
@@ -23,6 +20,6 @@ main.wide data-controller="table move-items"
           th Actions
       tbody
         = render @purchases, cache: true
-    = paginate @purchases
+    .pagination-bottom = paginate @purchases
   - else 
     = render "_shared/search-results-empty"

@@ -1,9 +1,8 @@
 = render "_shared/notice"
-
 = render "_shared/nav-index", model: @warehouses
 
-main.wide
-  table role="grid" data-controller="table"
+section.section-border-base.section-wide
+  table data-controller="table"
     thead
       tr
         th Position

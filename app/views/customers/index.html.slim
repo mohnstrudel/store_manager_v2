@@ -2,7 +2,7 @@
 
 = render "_shared/nav-index", model: @customers
 
-main.wide
+.section-border-base.section-wide
   .search-navigation
     = render partial: "_shared/search-form", locals: {path: customers_path}
     = paginate @customers

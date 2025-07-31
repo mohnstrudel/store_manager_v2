@@ -22,7 +22,7 @@ nav
           | Pull
     li = render "_shared/action-edit", route: url_for(controller: "#{@sale.model_name.plural}", action: "edit", id: @sale), btn: true
 
-main.wide.flex.flex-col.gap.w-pd.no-bd
+.section-border-base.section-wide.flex.flex-col.gap.w-pd.no-bd
   = render "order_items_list", sale: @sale
   = render "sale_attributes", sale: @sale
   = render "sale_address", sale: @sale
