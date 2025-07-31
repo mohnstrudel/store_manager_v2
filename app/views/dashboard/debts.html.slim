@@ -3,9 +3,9 @@ header.mt-6
 
 .section-border-base.section-wide.no-bd.flex.justify-between.flex-col.gap
   .table-card
-    .search-navigation
+    .search
       = render partial: "_shared/search-form", locals: {path: debts_path}
-      = paginate @debts
+      .pagination-top = paginate @debts
     - if @debts.present?  
       table role="grid" data-controller="table"
         thead
@@ -35,7 +35,7 @@ header.mt-6
                   td = product.editions_debt.to_i
                 - else
                   td = product.debt.to_i
-      = paginate @debts
+      .pagination-bottom = paginate @debts
     - else 
       = render "_shared/search-results-empty"
 

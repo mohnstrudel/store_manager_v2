@@ -1,12 +1,8 @@
 tr id="#{dom_id color}"
-  td
-    = color.id
-  td
-    = color.value
-  td
-    = color.created_at
-  td
-    = color.updated_at
+  td = color.id
+  td = color.value
+  td = color.created_at
+  td = color.updated_at
   - if action_name != "show" 
     td.actions
       = link_to color

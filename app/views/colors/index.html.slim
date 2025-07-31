@@ -3,18 +3,13 @@
 = render "_shared/nav-index", model: @colors
 
 .section-border-base.section-wide
-  table(role="grid")
+  table
     thead
       tr
-        th
-          | ID
-        th
-          | Value
-        th
-          | Created
-        th
-          | Updated
-        th
-          | Actions
+        th ID
+        th Value
+        th Created
+        th Updated
+        th Actions
     tbody
       = render @colors

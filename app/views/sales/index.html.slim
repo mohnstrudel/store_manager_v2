@@ -5,9 +5,9 @@
 = render "_shared/nav-index", model: @sales, show_modal: true
 
 .section-border-base.section-wide
-  .search-navigation
+  .search
     = render partial: "_shared/search-form", locals: {path: sales_path}
-    = paginate @sales
+    .pagination-top = paginate @sales
   - if @sales.present?
     table role="grid" data-controller="table"
       thead
@@ -31,6 +31,6 @@
           th.right Actions
       tbody
         = render @sales
-    = paginate @sales
+    .pagination-bottom = paginate @sales
   - else 
     = render "_shared/search-results-empty"

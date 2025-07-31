@@ -3,9 +3,9 @@
 = render "_shared/nav-index", model: @customers
 
 .section-border-base.section-wide
-  .search-navigation
+  .search
     = render partial: "_shared/search-form", locals: {path: customers_path}
-    = paginate @customers
+    .pagination-top = paginate @customers
   table data-controller="table"
     thead
       tr
@@ -16,4 +16,4 @@
         th Actions
     tbody
       = render @customers
-  = paginate @customers
+  .pagination-bottom = paginate @customers

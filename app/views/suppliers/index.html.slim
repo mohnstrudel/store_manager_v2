@@ -3,18 +3,13 @@
 = render "_shared/nav-index", model: @suppliers
 
 .section-border-base.section-wide
-  table(role="grid")
+  table
     thead
       tr
-        th
-          | ID
-        th
-          | Title
-        th
-          | Created
-        th
-          | Updated
-        th
-          | Actions
+        th ID
+        th Title
+        th Created
+        th Updated
+        th Actions
     tbody
       = render @suppliers

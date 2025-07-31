@@ -1,12 +1,8 @@
 tr id="#{dom_id franchise}"
-  td
-    = franchise.id
-  td
-    = franchise.title
-  td
-    = franchise.created_at
-  td
-    = franchise.updated_at
+  td = franchise.id
+  td = franchise.title
+  td = franchise.created_at
+  td = franchise.updated_at
   - if action_name != "show" 
     td.actions
       = link_to franchise
