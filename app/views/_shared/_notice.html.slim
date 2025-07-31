@@ -1,11 +1,11 @@
 - if notice.present?
-  article.notice.is-info
-    i.icn 😼
-    p = sanitize(notice)
-    i.icn 😼
+  article.w-5xl.h-24.mx-auto.bg-lime-100.rounded-xl.flex.justify-between.items-center.p-8.mb-8.text-lime-700
+    i.icn.text-3xl 🙏
+    p.text-lg.font-semibold = sanitize(notice)
+    i.icn.text-3xl 🙏
 
 - if alert.present?
-  article.notice.is-info.is-error
-    i.icn 😿
-    p = sanitize(alert)
-    i.icn 😿
+  article.w-5xl.h-24.mx-auto.bg-red-100.rounded-xl.flex.justify-between.items-center.p-8.mb-8.text-red-700
+    i.icn.text-3xl 🚨
+    p.text-lg.font-semibold = sanitize(alert)
+    i.icn.text-3xl 🚨

@@ -1,19 +1,18 @@
 - if model.errors.any?
-  article.notice.is-error
-    header
-      i.icn 🙀
-      | Fix errors and try again
-      i.icn 🙀
-    ul
+  article.w-5xl.h-fit.mx-auto.bg-red-100.rounded-xl.mb-8.text-red-700
+    header.p-8.h-24.flex.justify-between.items-center.border-b-4.border-red-800/5
+      i.icn.text-3xl 🚨
+      p.text-lg.font-semibold Fix errors and try again
+      i.icn.text-3xl 🚨
+    ol.list-decimal.h-fit.min-h-24.p-8.pl-16.text-lg
       - model.errors.each do |error|
-        li
-          strong = error.attribute.to_s.humanize
-          | : 
+        li.mt-1
+          span.font-semibold = error.attribute.to_s.humanize
+          span.font-semibold  : 
           = error.message
 
 - if flash[:error].present?
-  article.notice.is-error
-    .container
-      i.icn 🙀
-      p = sanitize(flash[:error])
-      i.icn 🙀
+  article.w-5xl.h-24.mx-auto.bg-red-100.rounded-xl.flex.justify-between.items-center.p-8.mb-8.text-red-700
+    i.icn.text-3xl 🚨
+    p.text-lg.font-semibold = sanitize(flash[:error])
+    i.icn.text-3xl 🚨
