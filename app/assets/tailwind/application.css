@@ -15,6 +15,7 @@
       "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
       "Noto Color Emoji";
     --font-sans: "Bricolage Grotesque", sans-serif;
+    --icon-chevron: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22currentColor%22%20class%3D%22size-6%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22m19.5%208.25-7.5%207.5-7.5-7.5%22%2F%3E%3C%2Fsvg%3E);
   }
 
   :focus-visible {
@@ -30,6 +31,15 @@
 
   a.link {
     @apply inline p-1 bg-transparent border-none;
+  }
+
+  select:not([multiple], [size]) {
+    @apply appearance-none w-fit pl-3 pr-10 py-2 cursor-pointer border-1 border-gray-200 hover:bg-gray-100 rounded-sm;
+
+    background-image: var(--icon-chevron);
+    background-position: center right 0.75rem;
+    background-size: 1rem auto;
+    background-repeat: no-repeat;
   }
 }
 
@@ -65,7 +75,7 @@
     @apply font-normal font-icn not-italic;
   }
 
-  .btn-action {
+  .btn-rounded {
     @apply rounded-full px-3 border-gray-200/60;
   }
 }
@@ -77,5 +87,19 @@
 
   .section-wide {
     @apply mt-4 -mx-8 pb-8;
+  }
+}
+
+@layer components {
+  .actions {
+    @apply text-center;
+  }
+
+  .actions a:not(:first-child) {
+    @apply ml-2;
+  }
+
+  .search {
+    @apply px-10 pt-8 mb-8 flex justify-between;
   }
 }

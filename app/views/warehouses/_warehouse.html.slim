@@ -1,5 +1,5 @@
-tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param=warehouse_path(warehouse) data-warehouse-id=warehouse.id
-  td.right = render "position_select", warehouse: warehouse, warehouses_count: warehouses_count
+tr id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param=warehouse_path(warehouse) data-warehouse-id=warehouse.id
+  td.text-right = render "position_select", warehouse: warehouse, warehouses_count: warehouses_count
   td
     strong = warehouse.name
     - if warehouse.is_default?
@@ -10,8 +10,8 @@ tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table
     = warehouse.external_name
   td.mono = warehouse.cbm
   td.mono = warehouse.container_tracking_number
-  - if warehouse.courier_tracking_url
-    td = link_to warehouse.courier_tracking_url, warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer"
+  - if warehouse.courier_tracking_url.present?
+    td = link_to warehouse.courier_tracking_url, warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer", class: "link no-events"
   - else
     td
   td.mono = warehouse.purchase_items.size  

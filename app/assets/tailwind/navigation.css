@@ -11,7 +11,7 @@
 
   /* Style nav links as buttons on hover */
   nav[role="navigation-main"] a {
-    @apply text-gray-600 hover:text-gray-900 border-0 bg-transparent hover:bg-gray-100;
+    @apply text-gray-500 hover:text-gray-900 border-0 bg-transparent hover:bg-gray-100;
   }
 
   nav[role="navigation-dropdown"] {
