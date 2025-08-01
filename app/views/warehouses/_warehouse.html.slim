@@ -5,7 +5,7 @@ tr id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param
     - if warehouse.is_default?
       span.group.relative
         span.text-2xl/2.text-yellow-600  *
-        span.hidden.absolute.top-0.left-0.opacity-0.rounded-lg.bg-yellow-100.border-1.border-yellow-800/10.pt-4.pr-5.pb-5.pl-3.w-64.text-yellow-800.text-sm.text-pretty.group-hover:flex.group-hover:opacity-100 This is the default warehouse for newly purchased products
+        span.hidden.absolute.top-0.left-0.opacity-0.rounded-lg.bg-yellow-100.border-1.border-yellow-800/10.pt-4.pr-5.pb-5.pl-3.w-64.text-yellow-800.text-sm.text-pretty.group-hover:flex.group-hover:opacity-100 New purchases go to this warehouse by default. Change it on the edit page
     br
     = warehouse.external_name
   td.mono = warehouse.cbm
