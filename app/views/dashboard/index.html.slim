@@ -1,25 +1,22 @@
-header.mt-6
-  h1 Dashboard 
-
 = render "_shared/notice"
 
 - if @config.sales_hook_disabled?
-  article#webhook-error.notice.is-error
-    header
-      i.icn 🪝
-      | Webhook for sales is deactivated.
-      i.icn 🪝
-    ol
-      li Go to <a href="https://store.handsomecake.com/wp-admin/admin.php?page=wc-settings&tab=advanced&section=webhooks&edit-webhook=3" target="_blank" class="underline">the Woo settings page</a> and change the webhook status to "Active".
-      li
-        | Press the button below:
-        br
-        br
-        = link_to "pull-last-orders", class: "btn xl is-danger my-16"
-          i.icn ⚡️
+  article#webhook-error.w-5xl.h-fit.mx-auto.bg-red-100.rounded-xl.mb-8.text-red-700
+    header.p-8.h-24.flex.justify-between.items-center.border-b-4.border-red-800/5
+      i.icn.text-3xl 🪝
+      p.text-lg.font-semibold The WooCommerce sales webhook is deactivated
+      i.icn.text-3xl 🪝
+    ol.list-decimal.h-fit.min-h-24.p-8.pl-16.text-lg
+      li.mt-1 Change the webhook status to "Active" at <a href="https://store.handsomecake.com/wp-admin/admin.php?page=wc-settings&tab=advanced&section=webhooks&edit-webhook=3" target="_blank" class="link">the Woo settings page</a>.
+      li.mt-2
+        | Then press this button:  
+        = link_to "pull-last-orders", class: "btn-rounded px-3 py-1 text-sm bg-transparent border-red-700"
           | Get missing sales from Woo
 
-.section-border-base.section-wide.no-bd.flex.justify-between.flex-col.gap
+header
+  h1 Dashboard 
+
+.section-border-base.section-wide
   .table-card
     h3.flex.justify-between
       span Sales Debt
