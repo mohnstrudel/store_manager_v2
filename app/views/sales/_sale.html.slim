@@ -23,7 +23,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
   td
     = sale.shopify_name
     br
-    .mute = sale.shopify_id_short
+    .text-gray-500 = sale.shopify_id_short
   - if action_name != "show" 
     td.actions
       = render "_shared/action-edit", route: edit_sale_path(sale)

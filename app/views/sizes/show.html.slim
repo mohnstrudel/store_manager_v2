@@ -22,7 +22,7 @@ main
     h3 Products
     table role="grid" data-controller="table"
         thead
-          th.mute ID
+          th.text-gray-500 ID
           th Full Title
         tbody
           - @size.products.each do |product|
@@ -30,7 +30,7 @@ main
               data-action="click->table#goTo"
               data-table-url-param=product_path(product)
             )
-              td.mute = product.id
+              td.text-gray-500 = product.id
               td = product.full_title 
 
 = button_to "Destroy this size", size_path(@size), method: :delete, class: "btn-danger"
