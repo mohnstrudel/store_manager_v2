@@ -48,10 +48,10 @@ nav
               th Warehouse
               th Sale
               th Length × Width × Height, cm
-              th.right Kg
-              th.right Expenses
-              th.right Shipping
-              th.right Actions
+              th.text-right Kg
+              th.text-right Expenses
+              th.text-right Shipping
+              th.text-right Actions
             tbody
               - @purchase_items.each do |pp|
                 tr(
@@ -66,10 +66,10 @@ nav
                     - if pp.sale&.woo_id
                       = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{pp.sale.woo_id}&action=edit", class: "link-icn td no-events"
                         = inline_svg "link-icn.svg" 
-                  td.mono = format_item_size(pp)
-                  td.mono.right = pp.weight
-                  td.mono.right = format_money pp.expenses
-                  td.mono.right = format_money pp.shipping_price
+                  td.font-mono = format_item_size(pp)
+                  td.font-mono.text-right = pp.weight
+                  td.font-mono.text-right = format_money pp.expenses
+                  td.font-mono.text-right = format_money pp.shipping_price
                   td.actions
                     - if pp.sale
                       = link_to unlink_purchase_items_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
@@ -90,14 +90,14 @@ nav
         .title Qty
         p = @purchase.amount
         .title Unit price, $
-        p.mono = format_money @purchase.item_price
+        p.font-mono = format_money @purchase.item_price
         .title Total price
-        p.mono = format_money @purchase.total_cost
+        p.font-mono = format_money @purchase.total_cost
       .column
         .title Paid
-        p.mono = format_money(@purchase.paid).rjust(2, '0')
+        p.font-mono = format_money(@purchase.paid).rjust(2, '0')
         .title Debt
-        p.mono
+        p.font-mono
           | -
           = format_money @purchase.debt
 
@@ -125,7 +125,7 @@ nav
       tbody#payments
         - @purchase.payments.each do |payment|
           tr.hoverable
-            td.mono = format_money payment.value
+            td.font-mono = format_money payment.value
             td = format_date payment.payment_date
 
     = form_with model: @purchase.payments.new, class: "payment", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|

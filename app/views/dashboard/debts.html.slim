@@ -46,7 +46,7 @@ header.mt-6
         thead
           th Purchased Ago
           th Supplier
-          th.right Cost
+          th.text-right Cost
           th Qty
         tbody
           - @unpaid_purchases.each do |unpaid|
@@ -56,5 +56,5 @@ header.mt-6
             )
               td.no-wrap = time_ago_in_words unpaid.created_at
               td = unpaid.supplier.title
-              td.mono.right = format_money unpaid.item_price
+              td.font-mono.text-right = format_money unpaid.item_price
               td = unpaid.amount

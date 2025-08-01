@@ -8,7 +8,7 @@
         th Supplier
         th Edition?
         th Time ago
-        th.right Item Price, $
+        th.text-right Item Price, $
         th Amount
         th Warehouse
       tbody
@@ -23,7 +23,7 @@
             - else
               td
             td = time_ago_in_words purchase.created_at
-            td.right.mono = format_money purchase.item_price
+            td.text-right.font-mono = format_money purchase.item_price
             td = purchase.amount
             td
               ul.list-none.mg-0.pd-0
@@ -34,4 +34,4 @@
                       | #{purchase_item.warehouse.name}
                       - if purchase_item.expenses
                         | — expenses: $
-                        .mono.inline = format_money purchase_item.expenses
+                        .font-mono.inline = format_money purchase_item.expenses

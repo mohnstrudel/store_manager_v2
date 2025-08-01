@@ -59,10 +59,10 @@ header.mt-6
     table role="grid" data-controller="table"
       thead
         th Supplier
-        th.right Total Cost
+        th.text-right Total Cost
         th Purchases Qty
-        th.right Paid
-        th.right Debt
+        th.text-right Paid
+        th.text-right Debt
       tbody
         - @suppliers_debts.each do |supplier_debt|
           - next if supplier_debt[:total_debt] == 0
@@ -71,7 +71,7 @@ header.mt-6
             data-table-url-param=supplier_path(supplier_debt[:supplier])
           )
             td = supplier_debt[:supplier].title
-            td.mono.right = format_money supplier_debt[:total_cost]
+            td.font-mono.text-right = format_money supplier_debt[:total_cost]
             td = supplier_debt[:total_size]
-            td.mono.right = format_money supplier_debt[:paid]
-            td.mono.right = format_money supplier_debt[:total_debt]
+            td.font-mono.text-right = format_money supplier_debt[:paid]
+            td.font-mono.text-right = format_money supplier_debt[:total_debt]

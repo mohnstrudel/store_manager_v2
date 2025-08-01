@@ -14,7 +14,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
             | 
           = ps.title
   td = format_sale_status sale.status
-  td.right.mono = format_money sale.total
+  td.text-right.font-mono = format_money sale.total
   td
     = format_date sale.shop_created_at.presence || sale.created_at
     br

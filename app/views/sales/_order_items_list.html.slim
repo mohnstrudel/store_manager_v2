@@ -9,8 +9,8 @@
         th.text-center Image
         th Product
         th Edition
-        th.right Price, $
-        th.right Purchased / Sold Amount
+        th.text-right Price, $
+        th.text-right Purchased / Sold Amount
       tbody
         - sale.sale_items.each_with_index do |ps, idx|
           tr.hoverable(
@@ -23,5 +23,5 @@
               - if ps.purchase_items.present?
                 = render "purchase_items", purchase_items: ps.purchase_items
             td = ps.edition.present? ? ps.edition.title : "-"
-            td.right.mono = format_money ps.price
-            td.right = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)
+            td.text-right.font-mono = format_money ps.price
+            td.text-right = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)

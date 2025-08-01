@@ -16,9 +16,9 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
           - purchase.purchase_items.group_by(&:warehouse).each do |warehouse, pp|
             li #{warehouse.name}: #{pp.count}
   td.break-words = purchase.supplier.title
-  td.right.mono = format_money purchase.item_price
-  td.right.mono = format_money purchase.total_cost
-  td.right.mono
+  td.text-right.font-mono = format_money purchase.item_price
+  td.text-right.font-mono = format_money purchase.total_cost
+  td.text-right.font-mono
     progress.in-td value=purchase.progress max=100 class="#{class_names(finished: purchase.debt == 0, new: purchase.paid == 0)}"
     | -
     - if purchase.debt > 0

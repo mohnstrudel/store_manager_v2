@@ -36,9 +36,9 @@ nav
 
     .card.grow
       .title Expenses
-      p.mono = format_money safe_blank_render @purchase_item.expenses
+      p.font-mono = format_money safe_blank_render @purchase_item.expenses
       .title Shipping
-      p.mono = format_money safe_blank_render @purchase_item.shipping_price
+      p.font-mono = format_money safe_blank_render @purchase_item.shipping_price
       .title Tracking Number
       p = safe_blank_render @purchase_item.tracking_number
       .title Shipping Company

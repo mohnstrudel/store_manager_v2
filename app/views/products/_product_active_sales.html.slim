@@ -15,7 +15,7 @@
         th Date
         - if product.editions.any?
           th Edition?
-        th.right Price, $
+        th.text-right Price, $
         th Amount
         th
           | Status
@@ -41,7 +41,7 @@
                 td = ps.edition.title
               - else
                 td -
-            td.right.mono = format_money ps.price
+            td.text-right.font-mono = format_money ps.price
             td = ps.qty
             td
               = ps.sale.status.capitalize
@@ -55,4 +55,4 @@
                         | #{purchase_item.warehouse.name}
                         - if purchase_item.expenses
                           | — expenses: $
-                          .mono.inline = format_money purchase_item.expenses
+                          .font-mono.inline = format_money purchase_item.expenses

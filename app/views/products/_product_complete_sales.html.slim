@@ -11,7 +11,7 @@
         th Date
         - if product.editions.any?
           th Edition?
-        th.right Price, $
+        th.text-right Price, $
         th Qty
       tbody
         - complete_sales.each_with_index do |ps, idx|
@@ -29,5 +29,5 @@
                 td = ps.edition.title
               - else
                 td -
-            td.right.mono = format_money ps.price
+            td.text-right.font-mono = format_money ps.price
             td = ps.qty
