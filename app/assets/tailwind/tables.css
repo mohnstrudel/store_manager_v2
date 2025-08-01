@@ -19,4 +19,8 @@
   tbody tr {
     @apply border-b-2 border-b-gray-50 hover:bg-gray-50 transition-colors duration-100 cursor-pointer;
   }
+
+  tbody tr:last-child {
+    @apply border-b-transparent;
+  }
 }

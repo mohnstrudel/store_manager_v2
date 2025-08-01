@@ -8,7 +8,7 @@
   }
 
   .pagination-bottom {
-    @apply flex justify-center items-center pt-8 w-full h-full;
+    @apply flex justify-center items-center py-8 w-full h-full;
   }
 
   .pagination a {
