@@ -1,13 +1,13 @@
-header.mt-6
+header
   h1 Debts 
 
-.section-border-base.section-wide.no-bd.flex.justify-between.flex-col.gap
+.section-border-base.section-wide
   .table-card
     .search
       = render partial: "_shared/search-form", locals: {path: debts_path}
       .pagination-top = paginate @debts
     - if @debts.present?  
-      table role="grid" data-controller="table"
+      table data-controller="table"
         thead
           th Title
           th Edition

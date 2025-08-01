@@ -17,43 +17,43 @@ header
   h1 Dashboard 
 
 .section-border-base.section-wide
-  .table-card
-    h3.flex.justify-between
-      span Sales Debt
-      span = @sale_debts.length
-    table role="grid" data-controller="table"
-      thead
-        th Title
-        th Edition
-        th Amount
-      tbody
-        - @sale_debts.first(5).each do |product|
-          - if product.sale_edition_id.present?
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product.slug)
-              data-table-id-param=product.sale_edition_id
-            )
-              td = product.full_title
-              td = product.edition_name
-              td = product.debt.to_i
-          - else
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product.slug)
-              data-table-id-param=product.id
-            )
-              td = product.full_title
-              td -
-              td = product.debt.to_i
-        tr
-          td colspan="3" = link_to "See More...", debts_path
+  h3.flex.justify-between.px-3.pt-4
+    span Sales Debt
+    span = @sale_debts.length
+  table data-controller="table"
+    thead
+      th Title
+      th Edition
+      th Amount
+    tbody
+      - @sale_debts.first(5).each do |product|
+        - if product.sale_edition_id.present?
+          tr.hoverable(
+            data-action="click->table#goTo"
+            data-table-url-param=product_path(product.slug)
+            data-table-id-param=product.sale_edition_id
+          )
+            td = product.full_title
+            td = product.edition_name
+            td = product.debt.to_i
+        - else
+          tr.hoverable(
+            data-action="click->table#goTo"
+            data-table-url-param=product_path(product.slug)
+            data-table-id-param=product.id
+          )
+            td = product.full_title
+            td -
+            td = product.debt.to_i
+      tr.hover:bg-transparent.hover:cursor-default
+        td colspan="3" = link_to "See More...", debts_path
 
-  .table-card
-    h3.flex.justify-between
+- if @suppliers_debts.present?
+  .section-border-base.section-wide
+    h3.flex.justify-between.px-3.pt-4
       span Suppliers Debt
       span = format_money @total_suppliers_debt, "$"
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         th Supplier
         th.text-right Total Cost
