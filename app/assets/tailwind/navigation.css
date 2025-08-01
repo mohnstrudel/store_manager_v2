@@ -20,7 +20,7 @@
 
   /* Burger button */
   nav[role="navigation-dropdown"] > button {
-    @apply p-2 rounded-sm hover:bg-gray-100 transition-all duration-200 cursor-pointer;
+    @apply p-2 rounded-sm hover:bg-gray-100 transition-all duration-150 cursor-pointer;
   }
 
   nav[role="navigation-dropdown"]:hover > button {
@@ -29,7 +29,7 @@
 
   /* Dropdown container */
   nav[role="navigation-dropdown"] ul {
-    @apply flex flex-col items-start absolute right-0 top-full w-40 pt-5 pr-4 pb-7 pl-4 bg-white border border-gray-200 rounded-lg opacity-0 invisible transition-all duration-200;
+    @apply flex flex-col items-start absolute right-0 top-full w-40 pt-5 pr-4 pb-7 pl-4 bg-white border border-gray-200 rounded-lg opacity-0 invisible transition-all duration-150;
   }
 
   nav[role="navigation-dropdown"]:hover ul {

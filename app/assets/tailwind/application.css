@@ -26,7 +26,7 @@
   input[type="submit"],
   input[type="button"],
   button {
-    @apply cursor-pointer font-medium no-underline inline-flex items-center justify-center gap-2 px-2 py-2 rounded-sm bg-gray-50 hover:bg-gray-100 border border-gray-200/50 transition-all duration-200;
+    @apply cursor-pointer font-medium no-underline inline-flex items-center justify-center gap-2 px-2 py-2 rounded-sm bg-gray-50 hover:bg-gray-100 border border-gray-200/50 transition-all duration-150;
   }
 
   a.link {
