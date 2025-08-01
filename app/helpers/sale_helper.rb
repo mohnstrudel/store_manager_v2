@@ -3,9 +3,9 @@ module SaleHelper
     status_title = status.titleize
 
     if Sale.active_status_names.include? status
-      "<span class='sale-status--active'>#{status_title}</span>".html_safe
+      "<span class='text-lime-700'>#{status_title}</span>".html_safe
     else
-      "<span class='sale-status--inactive'>#{status_title}</span>".html_safe
+      "<span class='text-red-900'>#{status_title}</span>".html_safe
     end
   end
 

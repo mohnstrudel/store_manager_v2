@@ -13,22 +13,19 @@
       thead
         tr
           th.text-center Image
-          th
-            <span>Customer</span>
-            br
-            <span class="fw-400 pl-s">Products</span>
+          th Customer <span class="font-normal text-sm pl-4">+ Products</span>
           th Status
-          th.right Price
+          th.text-right Price
           th
             | Created  ▾
             br
-            | Updated
+            <span class="font-normal text-gray-500">Updated</span>
           th Woo ID
           th
-            | Shopify name
+            | Shopify name
             br
-            <span class="fw-400 mute">Shopify ID</span>
-          th.right Actions
+            <span class="font-normal text-gray-500">Shopify ID</span>
+          th.text-right Actions
       tbody
         = render @sales
     .pagination-bottom = paginate @sales

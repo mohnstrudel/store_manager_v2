@@ -3,10 +3,10 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     - sale.sale_items.each do |ps|
       = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
   td
-    span.bold = sale.customer.full_name
+    span.font-bold = sale.customer.full_name
     br
     = sale.customer.email
-    ul.v-align.ml-s.list-none
+    ul.ml-4.mt-2
       - sale.sale_items.each do |ps|
         li
           - if sale.active? || sale.completed?
@@ -18,12 +18,12 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
   td
     = format_date sale.shop_created_at.presence || sale.created_at
     br
-    = format_date sale.shop_updated_at.presence || sale.updated_at
+    span.text-gray-500 = format_date sale.shop_updated_at.presence || sale.updated_at
   td = sale.woo_id
   td
     = sale.shopify_name
     br
-    .text-gray-500 = sale.shopify_id_short
+    span.text-gray-500 = sale.shopify_id_short
   - if action_name != "show" 
     td.actions
       = render "_shared/action-edit", route: edit_sale_path(sale)
