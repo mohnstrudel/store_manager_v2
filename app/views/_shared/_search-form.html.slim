@@ -1,5 +1,5 @@
 = form_with(url: path, method: :get, class: "flex items-center w-full") do |form|
-  = form.text_field :q, type: :search, placeholder: "Search...", value: params[:q], class: "w-full rounded-full px-4 py-2 border-gray-300 #{params[:q].present? ? "border-2 bg-gray-100" : "border"}"
+  = form.text_field :q, type: :search, placeholder: "Find what you need...", value: params[:q], class: "w-full rounded-full px-4 py-2 border-gray-300 #{params[:q].present? ? "border-2 bg-gray-100" : "border"}"
   = button_tag type: :submit, class: "ml-2 btn-rounded"
     i.icn 🔎
     | Search
