@@ -4,7 +4,7 @@ module ApplicationHelper
   end
 
   def format_date(date)
-    date&.strftime("%-d. %b ’%y")
+    date&.strftime("%-d. %b ’%y")
   end
 
   def format_money(amount, unit = "")
