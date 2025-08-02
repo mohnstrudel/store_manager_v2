@@ -7,22 +7,27 @@
   = form.label :title
   = form.text_field :title
 
+  = form.label :brand
+  = form.collection_select(:brand_ids, Brand.all, :id, :title, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
+
   = form.label :sku, "SKU"
   = form.text_field :sku
-
-  = form.label :size
-  = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})   
 
   = form.label :shape
   = form.collection_select(:shape_id, Shape.all, :id, :title)
 
-  = form.label :brand
-  = form.collection_select(:brand_ids, Brand.all, :id, :title, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
+  aside
+    strong Editions
 
-  = form.label :version
-  = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
+    p.mb-0.border-red-900 Pick any combination of attributes below to create an edition automatically
 
-  = form.label :color
-  = form.collection_select(:color_ids, Color.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select", show_search: false} })  
+    = form.label :size
+    = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})   
+
+    = form.label :version
+    = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
+
+    = form.label :color
+    = form.collection_select(:color_ids, Color.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select", show_search: false} })  
 
   = form.submit

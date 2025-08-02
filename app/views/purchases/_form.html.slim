@@ -1,9 +1,6 @@
 = form_with model: purchase do |form|
   = render "_shared/notice-err", model: purchase
 
-  = form.label :supplier
-  = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title
-
   .stimulus data-controller="purchase-edition"
     = form.label :product
     .stimulus#purchase-product-select
@@ -13,6 +10,9 @@
       - if purchase.product&.editions.present?
         = form.label :edition
         = form.collection_select :edition_id, purchase.product.editions_with_title, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
+
+  = form.label :supplier
+  = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title
 
   = form.label :order_reference
   = form.text_field :order_reference
