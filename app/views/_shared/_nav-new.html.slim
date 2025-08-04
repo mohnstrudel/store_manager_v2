@@ -1,9 +1,6 @@
-nav
-  ul
+header.flex.justify-between.items-center.mb-8
+  h1 New #{model.model_name.name.titleize.singularize}
+  menu.pt-2
     li
       - if defined?(custom_link) && custom_link.present?
         = custom_link
-      - else
-        = link_to "To index", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
-      h1 New #{model.model_name.name.titleize.singularize}
-      h4

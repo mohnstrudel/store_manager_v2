@@ -1,6 +1,4 @@
 = form_with model: purchase do |form|
-  = render "_shared/notice-err", model: purchase
-
   .stimulus data-controller="purchase-edition"
     = form.label :product_id
     .stimulus#purchase-product-select
@@ -11,25 +9,31 @@
         = form.label :edition_id
         = form.collection_select :edition_id, purchase.product.editions_with_title, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
 
-  = form.label :supplier_id
-  = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :supplier_id
+      = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title, class: "w-full"
+    .block.w-full
+      = form.label :order_reference
+      = form.text_field :order_reference
 
-  = form.label :order_reference
-  = form.text_field :order_reference
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :item_price
+      = form.text_field :item_price
+    .block.w-full
+      = form.label :amount
+      = form.text_field :amount
+    .block.w-full
+      - if action_name == "new"
+        = form.fields_for :payments do |payment_builder|
+          = payment_builder.label "What did you pay in total?"
+          = payment_builder.number_field :value, step: :any
 
-  = form.label :item_price
-  = form.text_field :item_price
+  - if Warehouse.any?
+    = form.label :warehouse_id, "Initial warehouse"
+    = form.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
 
-  = form.label :amount
-  = form.text_field :amount
-
-  - if action_name == "new"
-    = form.fields_for :payments do |payment_builder|
-      = payment_builder.label "What did you pay in total?"
-      = payment_builder.number_field :value, step: :any
-
-    - if Warehouse.any?
-      = form.label :warehouse_id, "Initial Warehouse"
-      = form.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
-
-  = form.submit
+  .flex.gap-4.items-center.justify-start.mt-14
+      = form.submit
+      = link_to "Cancel", "#{url_for controller: "#{purchase.model_name.plural}", action: "index"}", class: "w-fit h-fit"
