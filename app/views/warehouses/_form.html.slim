@@ -57,9 +57,9 @@
                 class: "form-select"
             td
               = link_to "Remove", "#",
-                class: "btn is-danger",
+                class: "btn-rounded btn-red",
                 data: { action: "click->edit-warehouse-transition#removeTransition" }
-        tr
+        tr.cursor-default.hover:bg-transparent
           td
             = link_to "Add Transition", "#", class: "btn", data: { action: "click->edit-warehouse-transition#addTransition" }
           td
@@ -71,9 +71,11 @@
             options_from_collection_for_select(Warehouse.where.not(id: warehouse.id), :id, :name),
             class: "form-select"
         td
-          = link_to "Remove", "#",
-            class: "btn is-danger",
+          = link_to "#",
+            class: "btn-rounded btn-red",
             data: { action: "click->edit-warehouse-transition#removeTransition" }
+              i.icn 🗑
+              | Remove
 
   .flex.gap-4.items-center.justify-start.mt-14
     = form.submit

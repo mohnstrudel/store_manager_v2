@@ -31,7 +31,7 @@
   }
 
   input[type="file"] {
-    @apply border-0 -ml-3 file:cursor-pointer file:bg-gray-100 file:text-black file:py-2 file:mr-4 file:font-semibold file:px-3 file:rounded-full file:hover:bg-gray-200;
+    @apply border-0 -ml-3 file:cursor-pointer file:bg-gray-100 file:text-black file:py-2 file:mr-4 file:font-medium file:px-3 file:rounded-full file:hover:bg-gray-200;
   }
 
   input[type="submit"] {
@@ -99,6 +99,10 @@
 
   .btn-rounded {
     @apply rounded-full px-3 border-gray-200;
+  }
+
+  .btn-red {
+    @apply text-red-700 bg-red-200/60 hover:bg-red-200;
   }
 
   a.link {
