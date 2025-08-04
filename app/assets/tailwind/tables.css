@@ -17,7 +17,7 @@
   }
 
   tbody tr {
-    @apply border-b-2 border-b-gray-50 hover:bg-gray-50 transition-colors duration-100 cursor-pointer;
+    @apply border-b-2 border-b-gray-100/60 hover:bg-gray-50 transition-colors duration-100 cursor-pointer;
   }
 
   tbody tr:last-child {

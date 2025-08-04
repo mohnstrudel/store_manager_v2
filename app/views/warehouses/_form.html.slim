@@ -1,24 +1,30 @@
 = form_with(model: warehouse) do |form|
-  = form.label :name
-  = form.text_field :name
+  fieldset.flex.justify-between.gap-4.-mt-6
+    .block.w-full
+      = form.label :name
+      = form.text_field :name
+    .block.w-full
+      = form.label :external_name
+      = form.text_field :external_name
 
-  = form.label :external_name
-  = form.text_field :external_name
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :cbm
+      = form.text_field :cbm
+    .block.w-full
+      = form.label :position
+      = form.select :position, options_for_select((1..positions_count).to_a, warehouse.position), {}, class: "form-select"
+    .block.w-full  
+      = form.label :is_default
+      = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
 
-  = form.label :cbm
-  = form.text_field :cbm
-
-  = form.label :container_tracking_number
-  = form.text_field :container_tracking_number
-
-  = form.label :courier_tracking_url
-  = form.text_field :courier_tracking_url
-
-  = form.label :position
-  = form.select :position, options_for_select((1..positions_count).to_a, warehouse.position), {}, class: "form-select"
-
-  = form.label :is_default
-  = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :container_tracking_number
+      = form.text_field :container_tracking_number
+    .block.w-full  
+      = form.label :courier_tracking_url
+      = form.text_field :courier_tracking_url
 
   - if warehouse.images.attached?
     br
@@ -36,7 +42,7 @@
   = form.file_field :images, multiple: true
 
   label Transition notifications
-  .table-card data-controller="edit-warehouse-transition"
+  .border.border-gray-200.rounded-lg data-controller="edit-warehouse-transition"
     table
       thead
         tr
@@ -69,6 +75,6 @@
             class: "btn is-danger",
             data: { action: "click->edit-warehouse-transition#removeTransition" }
 
-  = render "_shared/notice-err", model: warehouse
-
-  = form.submit
+  .flex.gap-4.items-center.justify-start.mt-14
+    = form.submit
+    = link_to "Cancel", "#{url_for controller: "#{warehouse.model_name.plural}", action: "index"}", class: "w-fit h-fit"
