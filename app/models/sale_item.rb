@@ -15,7 +15,6 @@
 #  woo_id               :string
 #
 class SaleItem < ApplicationRecord
-  # TODO: Remove after merging the Auth PR #141
   self.ignored_columns += ["purchased_products_count"]
   #
   # == Concerns

@@ -1,5 +1,5 @@
-class RenameWarehouseProductToPurchaseItem < ActiveRecord::Migration[7.1]
+class RenameWarehouseProductToPurchasedProduct < ActiveRecord::Migration[7.1]
   def change
-    rename_table :warehouse_products, :purchase_items
+    rename_table :warehouse_products, :purchased_products
   end
 end

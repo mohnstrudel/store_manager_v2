@@ -1,5 +1,5 @@
-class RemoveTrackingNumberFromPurchaseItems < ActiveRecord::Migration[7.1]
+class RemoveTrackingNumberFromPurchasedProducts < ActiveRecord::Migration[7.1]
   def change
-    remove_column :purchase_items, :tracking_number, :string
+    remove_column :purchased_products, :tracking_number, :string
   end
 end
