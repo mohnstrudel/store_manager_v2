@@ -6,14 +6,17 @@
   .search
     = render partial: "_shared/search-form", locals: {path: customers_path}
     .pagination-top = paginate @customers
-  table data-controller="table"
-    thead
-      tr
-        th Woo ID
-        th Full name
-        th Email
-        th Phone
-        th Actions
-    tbody
-      = render @customers
+  - if @customers.present?
+    table data-controller="table"
+      thead
+        tr
+          th Woo ID
+          th Full name
+          th Email
+          th Phone
+          th Actions
+      tbody
+        = render @customers
+  - else 
+    = render "_shared/search-results-empty"    
   .pagination-bottom = paginate @customers
