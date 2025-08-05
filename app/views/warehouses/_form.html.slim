@@ -81,6 +81,4 @@
               i.icn 🗑
               | Remove
 
-  .flex.gap-4.items-center.justify-start.mt-14
-    = form.submit
-    = link_to "Cancel", "#{url_for controller: "#{warehouse.model_name.plural}", action: "index"}", class: "w-fit h-fit"
+  = form_submit_for(warehouse, form)

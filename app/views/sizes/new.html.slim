@@ -1,4 +1,4 @@
-= link_to "To sizes", sizes_path
+= render "_shared/notice-err", model: @size
+
 h1 New size
-main
-  = render "form", size: @size
+= render "form", size: @size
