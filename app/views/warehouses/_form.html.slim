@@ -42,12 +42,16 @@
   = form.file_field :images, multiple: true
 
   label Transition notifications
+  p.text-gray-600.mb-6
+    | We will send 
+    = link_to "a notification", "http://localhost:3000/rails/mailers/notifications_mailer/warehouse_changed_email", class: "link"
+    |  when a product is moved from this warehouse to one of the warehouses listed below
   .border.border-gray-200.rounded-lg data-controller="edit-warehouse-transition"
     table
       thead
         tr
-          th To Warehouse
-          th Actions
+          th Destination Warehouse
+          th 
       tbody
         - WarehouseTransition.where(from_warehouse: warehouse).includes(:to_warehouse).each do |transition|
           tr.no-select-margin
@@ -61,7 +65,7 @@
                 data: { action: "click->edit-warehouse-transition#removeTransition" }
         tr.cursor-default.hover:bg-transparent
           td
-            = link_to "Add Transition", "#", class: "btn", data: { action: "click->edit-warehouse-transition#addTransition" }
+            = link_to "Add Transition", "#", class: "btn-rounded", data: { action: "click->edit-warehouse-transition#addTransition" }
           td
 
     template#transition-template
