@@ -1,5 +1,5 @@
 :root {
-  --ss-primary-color: var(--color-blue-600);
+  --ss-primary-color: var(--color-gray-400);
   --ss-bg-color: #ffffff;
   --ss-font-color: var(--text-current);
   --ss-font-placeholder-color: var(--color-gray-500);

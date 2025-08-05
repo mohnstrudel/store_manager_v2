@@ -52,4 +52,8 @@ module ApplicationHelper
       "<mark class='rounded-md py-0.5 px-1.5 text-yellow-800 bg-yellow-100 text-sm mr-1.5'>#{ratio}</mark>".html_safe
     end
   end
+
+  def form_submit_for(model, form)
+    render partial: "_shared/form-submit", locals: {model:, form:}
+  end
 end

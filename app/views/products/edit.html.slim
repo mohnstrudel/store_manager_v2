@@ -1,3 +1,5 @@
+= render "_shared/notice-err", model: @product
+
 nav
   ul
     li
@@ -11,5 +13,4 @@ nav
         i.icn 📄
         | Show
 
-main
-  = render "form", product: @product
+= render "form", product: @product

@@ -34,6 +34,4 @@
     = form.label :warehouse_id, "Initial warehouse"
     = form.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
 
-  .flex.gap-4.items-center.justify-start.mt-14
-      = form.submit
-      = link_to "Cancel", "#{url_for controller: "#{purchase.model_name.plural}", action: "index"}", class: "w-fit h-fit"
+  = form_submit_for(purchase, form)

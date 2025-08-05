@@ -1,60 +1,58 @@
-= form_with model: sale do |f|
+= form_with model: sale do |form|
   h4.edit-header-pd Status
   .radio-buttons
-    = f.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
+    = form.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
       = rdb.label(class: "radio-btn")
         = rdb.label class: "radio-btn--label"
         = rdb.radio_button
 
   h4.edit-header-pd Price
-  = f.label :total
-  = f.text_field :total
+  = form.label :total
+  = form.text_field :total
 
-  = f.label :discount_total
-  = f.text_field :discount_total
+  = form.label :discount_total
+  = form.text_field :discount_total
 
-  = f.label :shipping_total
-  = f.text_field :shipping_total  
+  = form.label :shipping_total
+  = form.text_field :shipping_total  
 
   h4.edit-header-pd Customer
-  = f.label :customer
-  = f.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
+  = form.label :customer
+  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
 
-  = f.label :note
-  = f.text_field :note
+  = form.label :note
+  = form.text_field :note
 
   h4.edit-header-pd Address
-  = f.label :company
-  = f.text_field :company
+  = form.label :company
+  = form.text_field :company
 
-  = f.label :country
-  = f.text_field :country
+  = form.label :country
+  = form.text_field :country
 
-  = f.label :state
-  = f.text_field :state
+  = form.label :state
+  = form.text_field :state
 
-  = f.label :city
-  = f.text_field :city
+  = form.label :city
+  = form.text_field :city
 
-  = f.label :address_1
-  = f.text_field :address_1
+  = form.label :address_1
+  = form.text_field :address_1
 
-  = f.label :address_2
-  = f.text_field :address_2
+  = form.label :address_2
+  = form.text_field :address_2
 
-  = f.label :postcode
-  = f.text_field :postcode
+  = form.label :postcode
+  = form.text_field :postcode
 
   h4.edit-header-pd Products 
   div data-controller="sale-items"
-    = f.collection_select(:_, Product.all, :id, :full_title,
+    = form.collection_select(:_, Product.all, :id, :full_title,
         { prompt: "Select a product" },
         { hidden: true, data: { "sale-items-target": "options" }})
     - sale.sale_items.each do |sale_item|
-      = f.fields_for :sale_items, sale_item do |ps_f|
+      = form.fields_for :sale_items, sale_item do |ps_f|
         = render "product_fields", f: ps_f, product: sale_item.product
     button.is-inverted(data-action="sale-items#addProduct" data-sale-items-target="btn") Add Product
 
-  = render "_shared/notice-err", model: sale
-
-  = f.submit
+  = form_submit_for(sale, form)

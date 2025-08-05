@@ -1,6 +1,4 @@
 = form_with(model: purchase_item) do |form|
-  = render "_shared/notice-err", model: purchase_item
-
   = form.label :warehouse
   = form.collection_select(:warehouse_id, Warehouse.order(:name), :id, :name, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
   
@@ -52,4 +50,4 @@
   - if params[:redirect_to_sale_item].present?
     = form.hidden_field :redirect_to_sale_item, value: true
 
-  = form.submit
+  = form_submit_for(purchase_item, form)

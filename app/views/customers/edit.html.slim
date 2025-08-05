@@ -1,3 +1,5 @@
+= render "_shared/notice-err", model: @customer
+
 nav
   ul
     li
@@ -9,5 +11,4 @@ nav
         i.icn 📄
         | Show
 
-main
-  = render "form", customer: @customer
+= render "form", customer: @customer
