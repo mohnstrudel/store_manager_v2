@@ -102,7 +102,7 @@
   }
 
   .btn-red {
-    @apply text-red-700 bg-red-200/60 hover:bg-red-200;
+    @apply text-red-700 bg-red-100/60 hover:bg-red-200/60;
   }
 
   a.link {
