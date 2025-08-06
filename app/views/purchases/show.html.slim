@@ -110,7 +110,8 @@ nav
       p = format_date @purchase.purchase_date || @purchase.created_at
       .title Progress
       p
-        progress.no-mg value=@purchase.progress max=100
+        .w-full.h-4.bg-gray-200.rounded-full.overflow-hidden
+          .h-full.bg-amber-600.rounded-full style="width: #{@purchase.progress}%" class="#{class_names("progress-end": @purchase.debt <= 0)}"
 
 
   .table-card

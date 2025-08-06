@@ -127,3 +127,9 @@
     @apply px-10 pt-8 mb-8 flex justify-between;
   }
 }
+
+@layer components {
+  .progress-end {
+    @apply bg-lime-600!;
+  }
+}

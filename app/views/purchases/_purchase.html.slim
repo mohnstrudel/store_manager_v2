@@ -19,7 +19,8 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
   td.text-right.font-mono = format_money purchase.item_price
   td.text-right.font-mono = format_money purchase.total_cost
   td.text-right.font-mono
-    progress.in-td value=purchase.progress max=100 class="#{class_names(finished: purchase.debt == 0, new: purchase.paid == 0)}"
+    .w-full.h-4.bg-gray-200.rounded-full.overflow-hidden
+      .h-full.bg-amber-600.rounded-full style="width: #{purchase.progress}%" class="#{class_names("progress-end": purchase.debt <= 0)}"
     | -
     - if purchase.debt > 0
       = format_money purchase.debt
