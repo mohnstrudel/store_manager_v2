@@ -39,7 +39,11 @@
   }
 
   label {
-    @apply block font-medium text-gray-900 mt-6 mb-2;
+    @apply block font-medium text-gray-900 mt-3 mb-2;
+  }
+
+  label + input {
+    @apply mb-3;
   }
 
   select,

@@ -1,58 +1,65 @@
 = form_with model: sale do |form|
-  h4.edit-header-pd Status
-  .radio-buttons
-    = form.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
-      = rdb.label(class: "radio-btn")
-        = rdb.label class: "radio-btn--label"
-        = rdb.radio_button
-
-  h4.edit-header-pd Price
-  = form.label :total
-  = form.text_field :total
-
-  = form.label :discount_total
-  = form.text_field :discount_total
-
-  = form.label :shipping_total
-  = form.text_field :shipping_total  
-
-  h4.edit-header-pd Customer
-  = form.label :customer
-  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
+  = form.label :customer_id
+  .mb-6
+    = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
 
   = form.label :note
   = form.text_field :note
 
-  h4.edit-header-pd Address
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :country
+      = form.text_field :country
+    .block.w-full
+      = form.label :state
+      = form.text_field :state
+    .block.w-full
+      = form.label :city
+      = form.text_field :city
+    .block.w-full
+      = form.label :postcode
+      = form.text_field :postcode  
+  
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :address_1
+      = form.text_field :address_1
+    .block.w-full
+      = form.label :address_2
+      = form.text_field :address_2    
+
   = form.label :company
   = form.text_field :company
 
-  = form.label :country
-  = form.text_field :country
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :total, "Total price"
+      = form.text_field :total
+    .block.w-full
+      = form.label :discount_total
+      = form.text_field :discount_total
+    .block.w-full
+      = form.label :shipping_total
+      = form.text_field :shipping_total  
 
-  = form.label :state
-  = form.text_field :state
+  label Status
+  .flex.flex-wrap.gap-4.p-4.border.border-gray-200.rounded-md
+    = form.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
+      .flex.items-center.mr-2
+        = rdb.label(class: "m-0 p-0 flex items-center relative cursor-pointer")
+          = rdb.radio_button class: "p-0 peer h-5 w-5 rounded-full border border-gray-300 checked:border-gray-400 transition-all"
+          span.absolute.bg-gray-800.w-3.h-3.rounded-full.opacity-0.peer-checked:opacity-100.transition-opacity.duration-200.top-1/2.left-1/2.transform.-translate-x-1/2.-translate-y-1/2
+        = rdb.label class: "m-0 p-0 pl-2 cursor-pointer text-sm"
 
-  = form.label :city
-  = form.text_field :city
-
-  = form.label :address_1
-  = form.text_field :address_1
-
-  = form.label :address_2
-  = form.text_field :address_2
-
-  = form.label :postcode
-  = form.text_field :postcode
-
-  h4.edit-header-pd Products 
+  h5.mt-8.mb-3 Products 
   div data-controller="sale-items"
+    / Look for the template in sale_items_controller.js
     = form.collection_select(:_, Product.all, :id, :full_title,
         { prompt: "Select a product" },
         { hidden: true, data: { "sale-items-target": "options" }})
     - sale.sale_items.each do |sale_item|
       = form.fields_for :sale_items, sale_item do |ps_f|
         = render "product_fields", f: ps_f, product: sale_item.product
-    button.is-inverted(data-action="sale-items#addProduct" data-sale-items-target="btn") Add Product
+    button.btn-rounded.mt-3(data-action="sale-items#addProduct" data-sale-items-target="btn") Add Product
 
   = form_submit_for(sale, form)

@@ -7,17 +7,20 @@ export default class extends Controller {
     let id =
       this.element.querySelectorAll(".sales-form__product_fields").length + 1;
     let template = `
-      <div class="sales-form__product_fields">
-        <nav>
+      <div class="sales-form__product_fields border border-gray-200 rounded-xl p-4 pb-8 my-6 max-w-2/3">
+        <div class="flex justify-between items-center">
           <h6>New product</h6>
-          <a class="danger" href="" data-action="sale-items#removeProduct">Remove</a>
-        </nav>
-        <input type="hidden" value="" name="sale[sale_items_attributes][${id}][product_id]" />
-        <select name="sale[sale_items_attributes][${id}][product_id]">
+          <a class="btn-rounded btn-red" href="" data-action="sale-items#removeProduct">Remove</a>
+        </div>
+        <label for="sale_${id}_product">Product</label>
+          <input type="hidden" value="" name="sale[sale_items_attributes][${id}][product_id]" />
+        <select id="sale_${id}_product" name="sale[sale_items_attributes][${id}][product_id]" class="mb-2">
           ${this.optionsTarget.innerHTML}
         </select>
-        <input type="number" value="" name="sale[sale_items_attributes][${id}][qty]" placeholder="Qty">
-        <input value="" step="any" type="number" name="sale[sale_items_attributes][${id}][price]" placeholder="Price">
+        <label for="sale_${id}_product_amount">Amount</label>
+        <input id="sale_${id}_product_amount" type="number" value="" name="sale[sale_items_attributes][${id}][qty]" placeholder="Amount">
+        <label for="sale_${id}_product_price">Price</label>
+        <input id="sale_${id}_product_price" value="" step="any" type="number" name="sale[sale_items_attributes][${id}][price]" placeholder="Price">
       </div>
     `;
     this.btnTarget.insertAdjacentHTML("beforebegin", template);
