@@ -39,11 +39,7 @@
   }
 
   label {
-    @apply block font-medium text-gray-900 mt-3 mb-2;
-  }
-
-  label + input {
-    @apply mb-3;
+    @apply block font-medium text-gray-900 mt-6 mb-2;
   }
 
   select,
@@ -69,29 +65,23 @@
   }
 }
 
-/* Typography */
 @layer base {
   h1,
   h2,
   h3,
-  h4,
-  h5,
-  h6 {
+  h4 {
     @apply font-extrabold text-gray-800;
   }
   h1 {
     @apply text-6xl text-gray-900;
   }
   h2 {
-    @apply text-3xl;
-  }
-  h3 {
     @apply text-2xl;
   }
-  h4 {
+  h3 {
     @apply text-xl;
   }
-  h5 {
+  h4 {
     @apply text-lg;
   }
 }
@@ -126,7 +116,7 @@
 
 @layer components {
   .actions {
-    @apply text-center;
+    @apply text-right;
   }
 
   .actions a:not(:first-child) {

@@ -1,7 +1,17 @@
 = form_with model: sale do |form|
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :id
+      = form.text_field :id, disabled: true, class: "bg-gray-200 text-gray-500 cursor-not-allowed"
+    .block.w-full
+      = form.label :shopify_id
+      = form.text_field :shopify_id
+    .block.w-full
+      = form.label :woo_id
+      = form.text_field :woo_id
+
   = form.label :customer_id
-  .mb-6
-    = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
+  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
 
   = form.label :note
   = form.text_field :note

@@ -14,7 +14,7 @@ export default class extends Controller {
         </div>
         <label for="sale_${id}_product">Product</label>
           <input type="hidden" value="" name="sale[sale_items_attributes][${id}][product_id]" />
-        <select id="sale_${id}_product" name="sale[sale_items_attributes][${id}][product_id]" class="mb-2">
+        <select id="sale_${id}_product" name="sale[sale_items_attributes][${id}][product_id]">
           ${this.optionsTarget.innerHTML}
         </select>
         <label for="sale_${id}_product_amount">Amount</label>

@@ -1,21 +1,10 @@
 - route = local_assigns[:model] if local_assigns[:route].nil?
 
-nav
-  ul
-    li
-      = link_to "Back", "javascript:history.back()"
-      - if model.respond_to?(:woo_id) || model.respond_to?(:shopify_id)
-        h1 Editing #{model.model_name.name.titleize}
-        - if model.respond_to?(:woo_id) && model.woo_id
-          h4 Woo ID: #{model.woo_id}
-        - if model.respond_to?(:shopify_id) && model.shopify_id
-          h4 Shopify ID: #{model.shopify_id}
-      - else
-        h1 Editing #{model.model_name.name.titleize}
-        h4 ID: #{model.id}
-
-  ul
+header.flex.justify-between.items-center.mb-8
+  h1 Edit #{model.model_name.name.titleize.singularize}
+  menu.flex.justify-end.gap-2.pt-2
+    li = link_to "Back", "javascript:history.back()"
     li
       = link_to route
         i.icn 📄
-        | Show
+        | Go to #{model.model_name.name.titleize.singularize} Page

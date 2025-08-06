@@ -1,16 +1,4 @@
 = render "_shared/notice-err", model: @product
-
-nav
-  ul
-    li
-      = link_to "Back", :back
-      hgroup
-        h1 Editing "#{@product.title}"
-        h2 = @product.full_title
-  ul
-    li
-      = link_to @product
-        i.icn 📄
-        | Show
+= render "_shared/nav-edit", model: @product
 
 = render "form", product: @product

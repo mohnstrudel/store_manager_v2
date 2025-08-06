@@ -3,14 +3,14 @@
 header.flex.justify-between.items-center
   h1 = model.model_name.plural.capitalize
   - if Rails.application.routes.url_helpers.respond_to?("new_#{model.name.downcase}_path")
-    menu.flex.pt-2
+    menu.flex.pt-2.gap-2
       - if show_modal
         li data-controller="modal-trigger"
           = link_to "#sync",
             data: { action: "click->modal-trigger#open" }, class: "btn-rounded"
             i.icn 📥
             | Show Synchronization Menu
-      li.ml-3
+      li
         = link_to controller: "#{model.model_name.plural}", action: "new"
           i.icn 🐣
           | Add New Record

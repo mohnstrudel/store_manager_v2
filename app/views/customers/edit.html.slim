@@ -1,14 +1,4 @@
 = render "_shared/notice-err", model: @customer
-
-nav
-  ul
-    li
-      = link_to "Back", :back
-      h1 Editing "#{@customer.full_name}"
-  ul
-    li   
-      = link_to @customer
-        i.icn 📄
-        | Show
+= render "_shared/nav-edit", model: @customer
 
 = render "form", customer: @customer
