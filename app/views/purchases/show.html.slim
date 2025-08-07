@@ -18,7 +18,7 @@ nav
             = @purchase.edition.type_name_and_value
   ul.gap
     li
-      = render "_shared/action-edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
+      = render "_shared/action_edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
 
     - if @purchase.purchase_items.none?
       li data-controller="move-items"
@@ -75,8 +75,8 @@ nav
                       = link_to unlink_purchase_items_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
                         i.icn ✂︎
                         | Unlink
-                    = render "_shared/action-destroy", route: purchase_item_path(pp)
-                    = render "_shared/action-edit", route: edit_purchase_item_path(pp)
+                    = render "_shared/action_destroy", route: purchase_item_path(pp)
+                    = render "_shared/action_edit", route: edit_purchase_item_path(pp)
 
 
   .cards

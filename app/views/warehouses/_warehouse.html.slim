@@ -18,4 +18,4 @@ tr id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param
   td.font-mono = warehouse.purchase_items.size  
   - if action_name != "show" 
     td.actions
-      = render "_shared/action-edit", route: edit_warehouse_path(warehouse)
+      = render "_shared/action_edit", route: edit_warehouse_path(warehouse)

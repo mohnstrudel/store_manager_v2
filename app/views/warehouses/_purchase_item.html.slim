@@ -18,5 +18,5 @@ tr(
   td.font-mono.text-right = format_money item.expenses
   td.font-mono.text-right = format_money item.shipping_price
   td.actions
-    = render "_shared/action-destroy", route: purchase_item_path(item)
-    = render "_shared/action-edit", route: edit_purchase_item_path(item)
+    = render "_shared/action_destroy", route: purchase_item_path(item)
+    = render "_shared/action_edit", route: edit_purchase_item_path(item)

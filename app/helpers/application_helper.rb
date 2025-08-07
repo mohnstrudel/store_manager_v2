@@ -58,10 +58,16 @@ module ApplicationHelper
   end
 
   def back_btn
-    render partial: "_shared/back_btn"
+    render partial: "_shared/action_go_back"
   end
 
   def edit_btn_for(record)
-    render "_shared/action-edit", route: edit_polymorphic_path(record)
+    render "_shared/action_edit", route: edit_polymorphic_path(record)
+  end
+
+  def pull_btn_for(record)
+    link_to polymorphic_path([:pull, record]), class: "btn-rounded" do
+      tag.i(class: "icn") { "📥" } + "Pull"
+    end
   end
 end

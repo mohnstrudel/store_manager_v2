@@ -20,7 +20,7 @@ nav
         a.btn href="#{url_for pull_sale_path(sale: @sale)}" 
           i.icn 📥
           | Pull
-    li = render "_shared/action-edit", route: url_for(controller: "#{@sale.model_name.plural}", action: "edit", id: @sale), btn: true
+    li = render "_shared/action_edit", route: url_for(controller: "#{@sale.model_name.plural}", action: "edit", id: @sale), btn: true
 
 .section-border-base.section-wide.flex.flex-col.gap.w-pd.no-bd
   = render "order_items_list", sale: @sale

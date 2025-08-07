@@ -10,7 +10,7 @@ tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-u
   td = product.woo_id
   td = product.shopify_id_short
   td.actions
-    = render "_shared/action-edit", route: edit_product_path(product)
+    = render "_shared/action_edit", route: edit_product_path(product)
     = link_to new_purchase_path(product:), {class: "no-events"}
       i.icn 💰
       | Purchase

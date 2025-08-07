@@ -8,6 +8,6 @@ nav
         h4 #{model.model_name.name} №#{model.id}
   ul.gap
     li
-      = render "_shared/action-edit", route: "#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}", btn: true
+      = render "_shared/action_edit", route: "#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}", btn: true
     = yield
 

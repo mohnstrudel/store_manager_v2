@@ -8,4 +8,4 @@ tr id="#{dom_id user}"
   td = format_date user.updated_at
   - if action_name != "show" 
     td.actions
-      = render "_shared/action-edit", route: edit_user_path(user)
+      = render "_shared/action_edit", route: edit_user_path(user)

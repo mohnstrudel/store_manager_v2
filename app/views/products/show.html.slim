@@ -1,21 +1,14 @@
 = render "_shared/notice"
 
-nav
-  ul
-    li
-      ul
-        li = link_to "All products", products_path
-      hgroup
-        h1 = @product.title
-        h2 = @product.full_title
-  ul.gap
+header.flex.justify-between.items-center.mb-8
+  hgroup
+    h1 = @product.title
+    h2 = @product.full_title
+  menu.flex.gap-2
+    li = back_btn
     - if @product.shopify_id
-      li
-        a.btn href="#{url_for pull_product_path(product: @product)}" 
-          i.icn 📥
-          | Pull
-    li
-      = render "_shared/action-edit", route: "#{url_for controller: "#{@product.model_name.plural}", action: "edit", id: @product}", btn: true
+      li = pull_btn_for @product
+    li = edit_btn_for @product
     li
       a.btn href="#{url_for new_purchase_path(product: @product)}" 
         i.icn 💰
