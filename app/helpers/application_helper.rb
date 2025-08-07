@@ -70,4 +70,12 @@ module ApplicationHelper
       tag.i(class: "icn") { "📥" } + "Pull"
     end
   end
+
+  def destroy_btn_for(record)
+    text = "Destroy this #{record.model_name.human.downcase}"
+    css_class = "btn-red w-full h-12 mt-16 btn-rounded"
+    confirm_message = "Are you sure?"
+
+    button_to text, polymorphic_path(record), method: :delete, class: css_class, data: {turbo_confirm: confirm_message}
+  end
 end

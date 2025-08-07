@@ -43,4 +43,4 @@ main
                 td = purchase.amount
                 td = purchase.debt > 0 ? format_money(purchase.debt) : ""
 
-= button_to "Destroy this supplier", supplier_path(@supplier), method: :delete, class: "btn-danger"  
+= destroy_btn_for @supplier

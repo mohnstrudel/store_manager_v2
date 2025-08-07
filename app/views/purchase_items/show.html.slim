@@ -48,4 +48,4 @@ nav
       .title Updated at
       p = format_date @purchase_item.updated_at
 
-= button_to "Destroy this purchased product", purchase_item_path(@purchase_item), method: :delete, class: "btn-danger"
+= destroy_btn_for @purchase_item

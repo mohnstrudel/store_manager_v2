@@ -16,4 +16,4 @@ main
     tbody
       = render @user
 
-= button_to "Destroy this user", user_path(@user), method: :delete, class: "btn-danger"
+= destroy_btn_for @user

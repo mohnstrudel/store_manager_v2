@@ -30,4 +30,4 @@ main
               td.text-gray-500 = product.id
               td = product.full_title 
 
-= button_to "Destroy this version", version_path(@version), method: :delete, class: "btn-danger"
+= destroy_btn_for @version

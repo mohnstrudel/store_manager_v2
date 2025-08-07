@@ -5,17 +5,15 @@ header.flex.justify-between.items-center.mb-8
     h1 = @product.title
     h2 = @product.full_title
   menu.flex.gap-2
-    li = back_btn
     - if @product.shopify_id
       li = pull_btn_for @product
+    li = link_to new_purchase_path(product: @product)
+      i.icn 💰
+      | Purchase
+    li = back_btn
     li = edit_btn_for @product
-    li
-      a.btn href="#{url_for new_purchase_path(product: @product)}" 
-        i.icn 💰
-        | Purchase
 
-
-.section-border-base.section-wide.flex.flex-col.gap.w-pd
+.section-border-base.section-wide.flex.flex-col.gap-8.p-8
   = render "product_attributes", product: @product
   = render "product_editions", product: @product
   = render "product_active_sales", product: @product,\
@@ -24,4 +22,4 @@ header.flex.justify-between.items-center.mb-8
     complete_sales: @complete_sales
   = render "product_purchases", product: @product
 
-= button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }
+= destroy_btn_for @product

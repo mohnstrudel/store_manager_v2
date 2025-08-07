@@ -33,4 +33,4 @@ main
               td.text-gray-500 = product.id
               td = product.full_title 
 
-= button_to "Destroy this franchise", franchise_path(@franchise), method: :delete, class: "btn-danger"  
+= destroy_btn_for @franchise  

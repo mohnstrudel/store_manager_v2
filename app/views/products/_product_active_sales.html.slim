@@ -3,24 +3,16 @@
     h3.flex.justify-between
       span Active Sales
       span = active_sales.size
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         th Shop ID
-        th
-          | Customer
-          br
-          <span class="fw-400">Email</span>
-          br
-          <span class="fw-400">Country</span>
+        th Customer <span class="font-normal text-sm pl-4">+ Email, Country</span>
         th Date
         - if product.editions.any?
           th Edition?
         th.text-right Price, $
         th Amount
-        th
-          | Status
-          br
-          <span class="fw-400">Purchase Status</span>
+        th Status <span class="font-normal text-sm pl-4">+ Warehouse</span>
       tbody
         - active_sales.each_with_index do |ps, idx|
           tr(
@@ -46,11 +38,10 @@
             td
               = ps.sale.status.capitalize
               - if ps.purchase_items.present?
-                br
-                ul.v-align.list-none.mg-0.pd-0
+                ul
                   - ps.purchase_items.each do |purchase_item|
                     li
-                      a.no-events href=purchase_item_path(purchase_item)
+                      a.no-events.mt-2 href=purchase_item_path(purchase_item)
                         i.icn 📦
                         | #{purchase_item.warehouse.name}
                         - if purchase_item.expenses

@@ -3,7 +3,7 @@
     h3.flex.justify-between
       span Purchases
       span = product.purchases.sum(:amount)
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         th Supplier
         th Edition?
@@ -26,12 +26,12 @@
             td.text-right.font-mono = format_money purchase.item_price
             td = purchase.amount
             td
-              ul.list-none.mg-0.pd-0
+              ul
                 - purchase.purchase_items.each do |purchase_item|
                   li
-                    a.no-events href=purchase_item_path(purchase_item)
+                    a.no-events.mt-2 href=purchase_item_path(purchase_item)
                       i.icn 📦
                       | #{purchase_item.warehouse.name}
                       - if purchase_item.expenses
-                        | — expenses: $
-                        .font-mono.inline = format_money purchase_item.expenses
+                        | , exp.:
+                        = format_money purchase_item.expenses

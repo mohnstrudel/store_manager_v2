@@ -23,4 +23,8 @@
   tbody tr:last-child {
     @apply border-b-transparent;
   }
+
+  tr.selected {
+    @apply bg-amber-100 hover:bg-amber-200/80;
+  }
 }
