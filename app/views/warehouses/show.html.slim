@@ -1,3 +1,4 @@
+= render "_shared/notice-err", model: @warehouse
 = render "_shared/notice"
 
 = render "_shared/nav-show", model: @warehouse
@@ -16,25 +17,23 @@
       = render "_shared/gallery", images: @warehouse.images
 
       .card.grow
-        .title Name
+        h5 Name
         p = @warehouse.name
-        .title External Name for Clients
+        h5 External Name for Clients
         p = safe_blank_render @warehouse.external_name
-        .title CBM
+        h5 CBM
         p = safe_blank_render @warehouse.cbm
-        .title Container Tracking Number
+        h5 Container Tracking Number
         p = safe_blank_render @warehouse.container_tracking_number
-        .title Courier Tracking URL
+        h5 Courier Tracking URL
         p
           - if @warehouse.courier_tracking_url.present?
             = link_to @warehouse.courier_tracking_url, @warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer"
           - else
             | -
-        .title Is Default?
+        h5 Is Default?
         p = @warehouse.is_default ? "Yes" : "No"
-        .title Created At
+        h5 Created At
         p = format_date @warehouse.created_at
-
-= render "_shared/notice-err", model: @warehouse
 
 = destroy_btn_for @warehouse

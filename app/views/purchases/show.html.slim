@@ -85,30 +85,30 @@ nav
 
     .card.flex.grow
       .column
-        .title ID
+        h5 ID
         p = @purchase.id
-        .title Qty
+        h5 Qty
         p = @purchase.amount
-        .title Unit price, $
+        h5 Unit price, $
         p.font-mono = format_money @purchase.item_price
-        .title Total price
+        h5 Total price
         p.font-mono = format_money @purchase.total_cost
       .column
-        .title Paid
+        h5 Paid
         p.font-mono = format_money(@purchase.paid).rjust(2, '0')
-        .title Debt
+        h5 Debt
         p.font-mono
           | -
           = format_money @purchase.debt
 
     .card
-      .title Supplier
+      h5 Supplier
       p = @purchase.supplier.title
-      .title Order reference
+      h5 Order reference
       p = @purchase.order_reference
-      .title Date
+      h5 Date
       p = format_date @purchase.purchase_date || @purchase.created_at
-      .title Progress
+      h5 Progress
       p
         .w-full.h-4.bg-gray-200.rounded-full.overflow-hidden
           .h-full.bg-amber-600.rounded-full style="width: #{@purchase.progress}%" class="#{class_names("progress-end": @purchase.debt <= 0)}"

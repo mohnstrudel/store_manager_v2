@@ -23,29 +23,29 @@ nav
     = render "_shared/gallery", images: @purchase_item.images
 
     .card.shrink-2
-      .title ID
+      h5 ID
       p = safe_blank_render @purchase_item.id
-      .title Length, cm
+      h5 Length, cm
       p = safe_blank_render @purchase_item.length
-      .title Width, cm
+      h5 Width, cm
       p = safe_blank_render @purchase_item.width
-      .title Height, cm
+      h5 Height, cm
       p = safe_blank_render @purchase_item.height
-      .title Weight, kg
+      h5 Weight, kg
       p = safe_blank_render @purchase_item.weight
 
     .card.grow
-      .title Expenses
+      h5 Expenses
       p.font-mono = format_money safe_blank_render @purchase_item.expenses
-      .title Shipping
+      h5 Shipping
       p.font-mono = format_money safe_blank_render @purchase_item.shipping_price
-      .title Tracking Number
+      h5 Tracking Number
       p = safe_blank_render @purchase_item.tracking_number
-      .title Shipping Company
+      h5 Shipping Company
       p = safe_blank_render @purchase_item.shipping_company&.name
-      .title Created at
+      h5 Created at
       p = format_date @purchase_item.created_at
-      .title Updated at
+      h5 Updated at
       p = format_date @purchase_item.updated_at
 
 = destroy_btn_for @purchase_item
