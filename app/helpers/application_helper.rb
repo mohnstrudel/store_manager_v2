@@ -56,4 +56,8 @@ module ApplicationHelper
   def form_submit_for(model, form)
     render partial: "_shared/form-submit", locals: {model:, form:}
   end
+
+  def back_btn
+    render partial: "_shared/back_btn"
+  end
 end
