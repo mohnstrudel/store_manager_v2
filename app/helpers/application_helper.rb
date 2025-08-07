@@ -60,4 +60,8 @@ module ApplicationHelper
   def back_btn
     render partial: "_shared/back_btn"
   end
+
+  def edit_btn_for(record)
+    render "_shared/action-edit", route: edit_polymorphic_path(record)
+  end
 end
