@@ -10,7 +10,7 @@
     p = safe_blank_render sale.note
     - if sale.customer.shop_id.present?
       h5 Customer Shop ID
-      p = link_to sale.customer.shop_id, customer_shop_link(sale.customer)
+      p = link_to sale.customer.shop_id, customer_shop_link(sale.customer), class: "link"
 
   .card
     h5 Total, $
@@ -29,4 +29,4 @@
     p = safe_blank_render format_date(sale.shop_updated_at)  
     - if sale.shop_id.present?
       h5 Order Shop ID
-      p = link_to sale.shop_id, sale_shop_link(sale)
+      p = link_to sale.shop_id, sale_shop_link(sale), class: "link"

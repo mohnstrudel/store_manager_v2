@@ -4,7 +4,7 @@
       h3 Sale Items List
       = render "link_btn", sale: sale
 
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         th.text-center Image
         th Product
@@ -18,7 +18,7 @@
             data-table-url-param=sale_item_path(ps)
           )
             td.text-center = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
-            td
+            td.text-sm
               = link_to ps.product.full_title, ps.product, class: "no-events"
               - if ps.purchase_items.present?
                 = render "purchase_items", purchase_items: ps.purchase_items
