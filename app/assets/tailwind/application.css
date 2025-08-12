@@ -41,11 +41,11 @@
 
   input[type="checkbox"],
   input[type="radio"] {
-    @apply cursor-pointer h-5 w-5 m-0 p-0 appearance-none bg-white transition-all border-2 border-gray-300 checked:border-blue-700;
+    @apply cursor-pointer h-5 w-5 m-0 p-0 appearance-none bg-white transition-all border-2 border-gray-300 checked:border-blue-600;
   }
 
   input[type="checkbox"] {
-    @apply rounded checked:bg-blue-700 mt-1;
+    @apply rounded checked:bg-blue-600 mt-1;
   }
 
   input[type="checkbox"]:checked {
