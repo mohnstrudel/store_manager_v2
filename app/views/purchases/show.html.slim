@@ -67,7 +67,7 @@ header.flex.justify-between.items-center.mb-8
       img.product src="#{@purchase.product.image}"
 
     .card.flex.grow
-      .column
+      .flex-1
         h5 ID
         p = @purchase.id
         h5 Qty
@@ -76,7 +76,7 @@ header.flex.justify-between.items-center.mb-8
         p.font-mono = format_money @purchase.item_price
         h5 Total price
         p.font-mono = format_money @purchase.total_cost
-      .column
+      .flex-1
         h5 Paid
         p.font-mono = format_money(@purchase.paid).rjust(2, '0')
         h5 Debt
@@ -98,9 +98,7 @@ header.flex.justify-between.items-center.mb-8
 
 
   .table-card
-
     h3 Payments
-
     table
       thead
         tr
@@ -112,14 +110,14 @@ header.flex.justify-between.items-center.mb-8
             td.font-mono = format_money payment.value
             td = format_date payment.payment_date
 
-    = form_with model: @purchase.payments.new, class: "payment", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
+    = form_with model: @purchase.payments.new, class: "p-3 pb-6", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
       - if form.object.errors.any?
         - form.object.errors.full_messages.each do |message|
           = message
       = form.hidden_field :purchase_id
-      = form.label :amount, "New:"
-      = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any
-      = form.submit "Add payment", role: "button"
+      = form.label :amount, "New Payment"
+      = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any, class: "w-1/3"
+      = form.submit "Add payment", role: "button", class: "ml-2"
 
 
 = destroy_btn_for @purchase

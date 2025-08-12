@@ -11,7 +11,7 @@
     - if @purchase_items.present?
       = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(warehouse_id: @warehouse.id)
 
-      table role="grid" data-controller="table"
+      table data-controller="table"
         thead
           = render "_shared/move_to_warehouse/th"
           th Photo
@@ -25,6 +25,6 @@
         tbody
           - @purchase_items.each do |item|
             = render "purchase_item", item:
-    .pagination-bottom = paginate @purchase_items
+      .pagination-bottom = paginate @purchase_items
     - else
       = render "_shared/search-results-empty"
