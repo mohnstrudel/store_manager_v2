@@ -1,55 +1,51 @@
 = render "_shared/notice"
 
-nav
-  ul
-    li
-      ul.with_separator
-        li = link_to "Sale", @sale_item.sale
-        li = link_to "Product", @sale_item.product
-      hgroup
-        h1 Sale Item №#{@sale_item.id}
-        h4 #{format_show_page_title(@sale_item)}
-        h4
-          | Amount: #{@sale_item.qty}
-          - if @sale_item.price
-            | , price: 
-            .font-mono.inline $#{format_money @sale_item.price}
+header.flex.justify-between.items-center.mb-8
+  hgroup
+    h1 Sale Item
+    h2 = format_show_page_title(@sale_item)
+    h4.text-gray-500.font-normal
+      | Amount: #{@sale_item.qty}
+      - if @sale_item.price
+        | , price: 
+        .font-mono.inline $#{format_money @sale_item.price}
+  menu.flex.gap-2
+    li = link_to "Product", @sale_item.product
+    li = link_to "Sale", @sale_item.sale
 
-.section-border-base.section-wide.flex.flex-col.gap.no-bd
+.section-wide.flex.flex-col.gap
   - if @sale_item.purchase_items.present?
-    .table-cards-group
-      .table-card data-controller="move-items"
-        .table-hgroup.flex.justify-between
-          h3.flex.justify-between.w-full
-            span Purchase Items
-            span = @sale_item.purchase_items.size
+    .table-card data-controller="move-items"
+      h3.flex.justify-between.px-3.pt-4
+        span Linked Purchased Items
+        span = @sale_item.purchase_items.size
 
-        = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
+      = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
 
-        table role="grid" data-controller="table"
-          thead
-            = render "_shared/move_to_warehouse/th"
-            th Warehouse
-            th Length × Width × Height, cm
-            th.text-right Kg
-            th.text-right Expenses
-            th.text-right Shipping
-            th.text-right Actions
-          tbody
-            - @sale_item.purchase_items.each do |pp|
-              tr(
-                class="hoverable"
-                data-action="click->table#goTo"
-                data-table-url-param=purchase_item_path(pp)
-              )
-                = render "_shared/move_to_warehouse/td", id: pp.id
-                td = pp.warehouse.name
-                td.font-mono = format_item_size(pp)
-                td.font-mono.text-right = pp.weight
-                td.font-mono.text-right = format_money pp.expenses
-                td.font-mono.text-right = format_money pp.shipping_price
-                td.actions
-                  = link_to unlink_purchase_items_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
-                    i.icn ✂︎
-                    | Unlink
-                  = render "_shared/action_edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)
+      table data-controller="table"
+        thead
+          = render "_shared/move_to_warehouse/th"
+          th Warehouse
+          th Length × Width × Height, cm
+          th.text-right Kg
+          th.text-right Expenses
+          th.text-right Shipping
+          th.text-right Actions
+        tbody
+          - @sale_item.purchase_items.each do |pp|
+            tr(
+              class="hoverable"
+              data-action="click->table#goTo"
+              data-table-url-param=purchase_item_path(pp)
+            )
+              = render "_shared/move_to_warehouse/td", id: pp.id
+              td = pp.warehouse.name
+              td.font-mono = format_item_size(pp)
+              td.font-mono.text-right = pp.weight
+              td.font-mono.text-right = format_money pp.expenses
+              td.font-mono.text-right = format_money pp.shipping_price
+              td.actions
+                = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                  i.icn ✂︎
+                  | Unlink
+                = render "_shared/action_edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)
