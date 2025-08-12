@@ -1,48 +1,31 @@
 = render "_shared/notice"
 
-nav
-  ul
-    li
-      ul
-        li = link_to "All purchases", purchases_path
-        li = link_to "Product", @purchase.product
-      hgroup
-        h1 Purchase №#{@purchase.id}
-        h4 = @purchase.product.full_title
-        - if @purchase.edition
-        h4
-          | Supplier 
-          = @purchase.supplier.title
-          - if @purchase.edition
-            | , 
-            = @purchase.edition.type_name_and_value
-  ul.gap
-    li
-      = render "_shared/action_edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
+header.flex.justify-between.items-center.mb-8
+  hgroup
+    h1 Purchase №#{@purchase.id}
+    h2 = @purchase.product.full_title
+    - if @purchase.edition
+      h4.text-gray-500.font-normal = @purchase.edition.type_name_and_value
+  menu.flex.gap-2
+    li = link_to @purchase.product
+      i.icn 🧸
+      | Product
+    li = back_btn
+    li = edit_btn_for @purchase
 
-    - if @purchase.purchase_items.none?
-      li data-controller="move-items"
-        = render "_shared/move_to_warehouse/form", form_url: move_purchases_path(purchase_id: @purchase.id)
-        a.btn data-action="click->move-items#toggleFormVisibility"
-          i.icn 📦
-          | Move all
-
-
-.section-border-base.section-wide.flex.flex-col.gap.no-bd
-
+.section-wide.flex.flex-col.gap-8
   - if @purchase_items.any?
       .table-cards-group data-controller="move-items"
         = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(purchase_id: @purchase.id)
 
         .table-card
-          .table-hgroup.flex.justify-between
-            h3.flex.justify-between.w-full
-              span Purchase Items
-              span = @purchase_items.size
+          h3.flex.justify-between.px-3.pt-4
+            span Purchase Items
+            span = @purchase_items.size
 
           = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
 
-          table role="grid" data-controller="table"
+          table data-controller="table"
             thead
               = render "_shared/move_to_warehouse/th"
               th Warehouse
@@ -64,19 +47,19 @@ nav
                   td
                     = pp.sale&.select_title
                     - if pp.sale&.woo_id
-                      = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{pp.sale.woo_id}&action=edit", class: "link-icn td no-events"
-                        = inline_svg "link-icn.svg" 
+                      .mt-2 #{shop_admin_link pp.sale, true}
                   td.font-mono = format_item_size(pp)
                   td.font-mono.text-right = pp.weight
                   td.font-mono.text-right = format_money pp.expenses
                   td.font-mono.text-right = format_money pp.shipping_price
                   td.actions
-                    - if pp.sale
-                      = link_to unlink_purchase_items_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
-                        i.icn ✂︎
-                        | Unlink
-                    = render "_shared/action_destroy", route: purchase_item_path(pp)
-                    = render "_shared/action_edit", route: edit_purchase_item_path(pp)
+                    .flex.justify-end
+                      - if pp.sale
+                        = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                          i.icn ✂︎
+                          | Unlink
+                      = render "_shared/action_destroy", route: purchase_item_path(pp)
+                      = render "_shared/action_edit", route: edit_purchase_item_path(pp)
 
 
   .cards
@@ -103,7 +86,7 @@ nav
 
     .card
       h5 Supplier
-      p = @purchase.supplier.title
+      p = link_to @purchase.supplier.title, supplier_path(@purchase.supplier), class: "link"
       h5 Order reference
       p = @purchase.order_reference
       h5 Date
@@ -118,7 +101,7 @@ nav
 
     h3 Payments
 
-    table role="grid"
+    table
       thead
         tr
           th Amount, $

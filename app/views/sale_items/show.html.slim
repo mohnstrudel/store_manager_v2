@@ -10,8 +10,12 @@ header.flex.justify-between.items-center.mb-8
         | , price: 
         .font-mono.inline $#{format_money @sale_item.price}
   menu.flex.gap-2
-    li = link_to "Product", @sale_item.product
-    li = link_to "Sale", @sale_item.sale
+    li = link_to @sale_item.product
+      i.icn 🧸
+      | Product
+    li = link_to @sale_item.sale
+      i.icn 🛒
+      | Sale
 
 .section-wide.flex.flex-col.gap
   - if @sale_item.purchase_items.present?
