@@ -34,8 +34,29 @@
     @apply border-0 -ml-3 file:cursor-pointer file:bg-gray-100 file:text-black file:py-2 file:mr-4 file:font-medium file:px-3 file:rounded-full file:hover:bg-gray-200;
   }
 
-  input[type="submit"] {
+  input[type="submit"],
+  .btn-submit {
     @apply bg-blue-600 hover:bg-blue-700 text-white rounded-full px-3 w-fit;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply cursor-pointer h-5 w-5 m-0 p-0 appearance-none bg-white transition-all border-2 border-gray-300 checked:border-blue-700;
+  }
+
+  input[type="checkbox"] {
+    @apply rounded checked:bg-blue-700 mt-1;
+  }
+
+  input[type="checkbox"]:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(255, 255, 255)' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4.5,12.75 10.5,18.75 19.5,5.25'%3E%3C/polyline%3E%3C/svg%3E");
+    background-position: center center;
+    background-size: 1.2em;
+    background-repeat: no-repeat;
+  }
+
+  input[type="radio"] {
+    @apply rounded-full checked:bg-white checked:border-6;
   }
 
   label {
@@ -100,7 +121,11 @@
   }
 
   a.link {
-    @apply inline font-normal underline p-0 bg-transparent hover:bg-transparent border-none hover:text-blue-600;
+    @apply inline underline p-0 bg-transparent hover:bg-transparent border-none hover:text-blue-600;
+  }
+
+  .undo {
+    @apply text-red-700 hover:text-red-700!;
   }
 }
 
