@@ -1,5 +1,5 @@
 - if images.present?
-  .flex.shrink-0.w-150.h-150.items-center.-ml-5 data-controller="gallery"
+  .flex.shrink-0.w-150.h-150.items-center data-controller="gallery" class="#{"-ml-5" if images.size > 1}"
     - if images.size > 1
       .gallery-nav.flex.flex-col.items-center.gap-4.w-30.h-70.p-4.overflow-y-scroll.overflow-x-hidden
         - images.each do |img|
