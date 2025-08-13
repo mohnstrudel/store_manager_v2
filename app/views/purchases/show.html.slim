@@ -1,12 +1,12 @@
 = render "_shared/notice"
 
-header.flex.justify-between.items-center.mb-8
+header.nav_header
   hgroup
     h1 Purchase №#{@purchase.id}
     h2 = @purchase.product.full_title
     - if @purchase.edition
       h4.text-gray-500.font-normal = @purchase.edition.type_name_and_value
-  menu.flex.gap-2.pt-2
+  menu.nav_menu
     li = link_to @purchase.product
       i.icn 🧸
       | Product

@@ -1,5 +1,5 @@
-header.flex.justify-between.items-center.mb-8
+header.nav_header
   h1 New #{model.model_name.name.titleize.singularize}
   - if defined?(custom_link) && custom_link.present?
-    menu.pt-2
+    menu.nav_menu
       li = custom_link

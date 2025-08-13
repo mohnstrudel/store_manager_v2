@@ -1,10 +1,10 @@
 = render "_shared/notice"
 
-header.flex.justify-between.items-center.mb-8
+header.nav_header
   hgroup
     h1 = @product.title
     h2 = @product.full_title
-  menu.flex.gap-2.pt-2
+  menu.nav_menu
     - if @product.shopify_id
       li = pull_btn_for @product
     li = link_to new_purchase_path(product: @product)

@@ -1,6 +1,6 @@
 = render "_shared/notice"
 
-header.flex.justify-between.items-center.mb-8
+header.nav_header
   hgroup
     h1 Sale Item
     h2 = format_show_page_title(@sale_item)
@@ -9,7 +9,7 @@ header.flex.justify-between.items-center.mb-8
       - if @sale_item.price
         | , price: 
         .font-mono.inline $#{format_money @sale_item.price}
-  menu.flex.gap-2.pt-2
+  menu.nav_menu
     li = link_to @sale_item.product
       i.icn 🧸
       | Product

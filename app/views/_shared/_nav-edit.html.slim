@@ -1,8 +1,8 @@
 - route = local_assigns[:model] if local_assigns[:route].nil?
 
-header.flex.justify-between.items-center.mb-8
+header.nav_header
   h1 Edit #{model.model_name.name.titleize.singularize}
-  menu.flex.justify-end.gap-2.pt-2
+  menu.nav_menu
     li = link_to "Back", "javascript:history.back()"
     li
       = link_to route

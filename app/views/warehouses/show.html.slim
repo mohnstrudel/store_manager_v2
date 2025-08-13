@@ -1,9 +1,9 @@
 = render "_shared/notice-err", model: @warehouse
 = render "_shared/notice"
 
-header.flex.justify-between.items-center.mb-8
+header.nav_header
   h1 = @warehouse.name
-  menu.flex.gap-2.pt-2
+  menu.nav_menu
     li = link_to new_purchase_item_path(warehouse_id: @warehouse)
       i.icn 📦
       | Add product

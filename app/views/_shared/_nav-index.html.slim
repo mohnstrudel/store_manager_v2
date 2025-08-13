@@ -1,9 +1,9 @@
 - show_modal = false if local_assigns[:show_modal].nil?
 
-header.flex.justify-between.items-center
+header.nav_header
   h1 = model.model_name.plural.capitalize
   - if Rails.application.routes.url_helpers.respond_to?("new_#{model.name.downcase}_path")
-    menu.flex.pt-2.gap-2
+    menu.nav_menu
       - if show_modal
         li data-controller="modal-trigger"
           = link_to "#sync",

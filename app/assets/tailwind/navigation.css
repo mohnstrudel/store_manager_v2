@@ -39,4 +39,12 @@
   nav[role="navigation-dropdown"] li a {
     @apply w-full items-center justify-start;
   }
+
+  .nav_header {
+    @apply flex justify-between items-center text-pretty;
+  }
+
+  .nav_menu {
+    @apply flex justify-end whitespace-nowrap gap-2 pt-2;
+  }
 }
