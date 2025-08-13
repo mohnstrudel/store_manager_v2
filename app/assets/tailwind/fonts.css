@@ -21,6 +21,7 @@
   font-display: auto;
 }
 
+/* Medium */
 @font-face {
   font-style: normal;
   font-weight: 500;
@@ -30,6 +31,7 @@
   font-display: auto;
 }
 
+/* Bold */
 @font-face {
   font-style: normal;
   font-weight: 700;
@@ -39,6 +41,7 @@
   font-display: auto;
 }
 
+/* Black */
 @font-face {
   font-style: normal;
   font-weight: 900;
