@@ -12,11 +12,7 @@ tr(
       | → #{item.purchase.edition.title}
   td
     - if item.sale
-      = link_to item.sale.title, item.sale, class: "no-events"
-  td.font-mono = format_item_size(item)
-  td.font-mono.text-right = item.weight
-  td.font-mono.text-right = format_money item.expenses
-  td.font-mono.text-right = format_money item.shipping_price
+      = link_to item.sale.title, item.sale, class: "no-events link"
   td.actions
     = render "_shared/action_destroy", route: purchase_item_path(item)
     = render "_shared/action_edit", route: edit_purchase_item_path(item)
