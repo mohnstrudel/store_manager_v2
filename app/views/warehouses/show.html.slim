@@ -1,11 +1,14 @@
 = render "_shared/notice-err", model: @warehouse
 = render "_shared/notice"
 
-= render "_shared/nav-show", model: @warehouse
-  li
-    a.btn href="#{url_for new_purchase_item_path(warehouse_id: @warehouse)}" 
+header.flex.justify-between.items-center.mb-8
+  h1 = @warehouse.name
+  menu.flex.gap-2.pt-2
+    li = link_to new_purchase_item_path(warehouse_id: @warehouse)
       i.icn 📦
       | Add product
+    li = back_btn
+    li = edit_btn_for @warehouse
 
 .section-border-base.section-wide.no-bd.flex.flex-col.gap
   - if @warehouse.purchase_items.present?
