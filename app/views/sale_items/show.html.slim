@@ -1,14 +1,16 @@
 = render "_shared/notice"
 
 header.nav_header
-  hgroup
-    h1 Sale Item
-    h2 = format_show_page_title(@sale_item)
-    h4.text-gray-500.font-normal
-      | Amount: #{@sale_item.qty}
-      - if @sale_item.price
-        | , price: 
-        .font-mono.inline $#{format_money @sale_item.price}
+  .flex.gap-4
+    = back_btn
+    hgroup
+      h1 Sale Item
+      h2 = format_show_page_title(@sale_item)
+      h4.text-gray-500.font-normal
+        | Amount: #{@sale_item.qty}
+        - if @sale_item.price
+          | , price: 
+          .font-mono.inline $#{format_money @sale_item.price}
   menu.nav_menu
     li = link_to @sale_item.product
       i.icn 🧸

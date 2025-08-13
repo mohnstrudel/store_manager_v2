@@ -1,16 +1,17 @@
 = render "_shared/notice"
 
 header.nav_header
-  hgroup
-    h1 = @product.title
-    h2 = @product.full_title
+  .flex.gap-4
+    = back_btn
+    hgroup
+      h1 = @product.title
+      h2 = @product.full_title
   menu.nav_menu
     - if @product.shopify_id
       li = pull_btn_for @product
     li = link_to new_purchase_path(product: @product)
       i.icn 💰
       | New Purchase
-    li = back_btn
     li = edit_btn_for @product
 
 .section-border-base.section-wide.flex.flex-col.gap-8.p-8

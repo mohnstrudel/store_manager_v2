@@ -1,14 +1,15 @@
 = render "_shared/notice"
 
 header.nav_header
-  hgroup
-    h1 = "Sale #{@sale.shopify_name.presence || ""}"
-    h2 = @sale.title
+  .flex.gap-4
+    = back_btn
+    hgroup
+      h1 = "Sale #{@sale.shopify_name.presence || ""}"
+      h2 = @sale.title
   menu.nav_menu
     - if @sale.shopify_id
       li = pull_btn_for @sale
     li = shop_admin_link @sale
-    li = back_btn
     li = edit_btn_for @sale
 
 .section-wide.flex.flex-col.gap-8

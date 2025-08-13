@@ -2,12 +2,13 @@
 = render "_shared/notice"
 
 header.nav_header
-  h1 = @warehouse.name
+  .flex.gap-4
+    = back_btn
+    h1 = @warehouse.name
   menu.nav_menu
     li = link_to new_purchase_item_path(warehouse_id: @warehouse)
       i.icn 📦
       | Add product
-    li = back_btn
     li = edit_btn_for @warehouse
 
 .section-wide.flex.flex-col.gap-8
