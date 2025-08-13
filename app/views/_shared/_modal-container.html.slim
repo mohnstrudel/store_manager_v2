@@ -3,10 +3,10 @@ dialog id="my-modal" data-controller="modal" data-modal-target="container"
     header.nav_header.border-b-2.border-gray-100.mb-6.pb-4
       - if defined? subheading
         hgroup
-          h4 = heading
-          h5 = subheading
+          h2 = heading
+          h4.font-medium = subheading
       - else
-        h4 = heading
+        h2 = heading
       button.btn.is-muted.is-inverted.small aria-label="Close" rel="prev" data-action="modal#close"
         i.icn ❌
     = render content_partial
