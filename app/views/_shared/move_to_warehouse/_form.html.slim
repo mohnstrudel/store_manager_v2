@@ -3,7 +3,7 @@
 .move_to_warehouse__form.hidden.fixed.bottom-8.inset-x-0.mx-auto.z-228.backdrop-blur-xl.shadow-xl.rounded-xl.border.border-gray-100.p-8.w-4/5
   = form_with url: form_url, method: :post, data: { move_items_target: "form" }, class: "flex items-center gap-4" do |form|
     = form.collection_select :destination_id, Warehouse.all, :id, :name, { prompt: "Select a warehouse" }, { class: "select h-11", data: { controller: "slim-select", move_items_target: "destination" } }
-    a.btn-rounded.btn-submit.h-11 href="#" data-action="click->move-items#move"
+    a.btn-rounded.btn-blue.h-11 href="#" data-action="click->move-items#move"
       i.icn 🚚
       | Move
       span.text-nowrap.-ml-1 data-move-items-target="count"

@@ -35,8 +35,12 @@
   }
 
   input[type="submit"],
-  .btn-submit {
-    @apply bg-blue-600 hover:bg-blue-700 text-white rounded-full px-3 w-fit;
+  .btn-blue {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-3 w-fit;
+  }
+
+  input[type="submit"] {
+    @apply rounded-full;
   }
 
   input[type="checkbox"],
@@ -195,5 +199,18 @@
   }
   .gallery-btn {
     @apply absolute top-1/2 -translate-y-1/2 z-10 border-none w-20 min-h-83 h-full text-3xl bg-transparent text-gray-300 transition-all duration-150 hover:bg-black/20 hover:text-white;
+  }
+}
+
+@layer components {
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+  dialog {
+    @apply flex fixed inset-0 justify-center items-center z-[999] backdrop-blur-sm border-0 bg-gray-300/50 p-2 w-full min-w-full h-full min-h-full;
+  }
+  dialog:not([open]),
+  dialog[open="false"] {
+    display: none;
   }
 }
