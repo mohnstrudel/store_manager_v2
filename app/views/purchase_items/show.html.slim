@@ -1,40 +1,30 @@
 = render "_shared/notice"
 
-nav
-  ul
-    li
-      ul.with_separator
-        li = link_to "Warehouse", @purchase_item.warehouse
-        li = link_to "Purchase", @purchase_item.purchase
-        li = link_to "Product", @purchase_item.purchase.product
-        - if @purchase_item.sale_item
-          li = link_to "Sale", @purchase_item.sale
-          li = link_to "Sale Item", @purchase_item.sale_item
-      hgroup
-        h1 Purchase Item №#{@purchase_item.id}
-        h4 #{format_show_page_title(@purchase_item)}
-        h4 Warehouse: #{@purchase_item.warehouse.name}  
-  ul
-    li
-      = render "_shared/action_edit", route: edit_purchase_item_path(@purchase_item), btn: true
+header.nav_header
+  .flex.gap-4
+    = back_btn
+    h1 Purchase Item №#{@purchase_item.id}
+  menu.nav_menu
+    li = link_to @purchase_item.purchase
+      i.icn 💰
+      | Purchase
+    - if @purchase_item.sale_item
+      li = link_to @purchase_item.sale
+        i.icn 🛒
+        | Sale
+      li = link_to "Sale Item", @purchase_item.sale_item
+    li = edit_btn_for @purchase_item
 
-.section-border-base.section-wide.w-pd.flex.flex-col.gap
-  .cards.items-center
+.section-wide
+  .cards
     = render "_shared/gallery", images: @purchase_item.images
-
-    .card.shrink-2
-      h5 ID
-      p = safe_blank_render @purchase_item.id
-      h5 Length, cm
-      p = safe_blank_render @purchase_item.length
-      h5 Width, cm
-      p = safe_blank_render @purchase_item.width
-      h5 Height, cm
-      p = safe_blank_render @purchase_item.height
-      h5 Weight, kg
-      p = safe_blank_render @purchase_item.weight
-
     .card.grow
+      h5 Supplier
+      p = link_to @purchase_item.purchase.supplier.title, supplier_path(@purchase_item.purchase.supplier), class: "link"
+      h5 Product
+      p = link_to @purchase_item.purchase.product.full_title, @purchase_item.purchase.product, class: "link"
+      h5 Warehouse
+      p = link_to @purchase_item.warehouse.name, @purchase_item.warehouse, class: "link"
       h5 Expenses
       p.font-mono = format_money safe_blank_render @purchase_item.expenses
       h5 Shipping
@@ -43,6 +33,15 @@ nav
       p = safe_blank_render @purchase_item.tracking_number
       h5 Shipping Company
       p = safe_blank_render @purchase_item.shipping_company&.name
+    .card
+      h5 Length, cm
+      p = safe_blank_render @purchase_item.length
+      h5 Width, cm
+      p = safe_blank_render @purchase_item.width
+      h5 Height, cm
+      p = safe_blank_render @purchase_item.height
+      h5 Weight, kg
+      p = safe_blank_render @purchase_item.weight
       h5 Created at
       p = format_date @purchase_item.created_at
       h5 Updated at
