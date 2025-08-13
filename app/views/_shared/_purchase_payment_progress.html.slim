@@ -1,0 +1,7 @@
+.w-full.h-6.bg-yellow-600/80.rounded-full.overflow-hidden.relative
+  .h-full.bg-lime-600.rounded-full style="width: #{purchase.progress}%"
+  p.text-center.font-bold.text-shadow-xs.text-gray-100.absolute.z-10.inset-0 #{purchase.progress.round}%
+.flex.justify-between.pt-1.text-sm.font-medium.px-2
+  span.text-lime-700 $#{format_money purchase.paid} paid
+  span.text-yellow-700/80 #{format_money purchase.debt} debt
+  span.text-gray-600 #{format_money purchase.item_price}/unit

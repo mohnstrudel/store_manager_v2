@@ -90,15 +90,16 @@ class Purchase < ApplicationRecord
   # == Domain Methods
   #
   def paid
-    payments.pluck(:value).sum
+    @paid ||= payments ? payments.pluck(:value).sum : 0
   end
 
   def debt
-    total_cost - paid
+    @total_cost ||= [total_cost - paid, 0].max
   end
 
   def progress
-    paid / (total_cost * BigDecimal("0.01"))
+    return 0 if total_cost.zero?
+    [paid * 100.0 / total_cost, 100].min
   end
 
   def total_cost

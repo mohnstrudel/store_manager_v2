@@ -16,14 +16,7 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
           - purchase.purchase_items.group_by(&:warehouse).each do |warehouse, pp|
             li #{warehouse.name}: #{pp.count}
   td.break-words = purchase.supplier.title
-  td.text-right.font-mono = format_money purchase.item_price
-  td.text-right.font-mono = format_money purchase.total_cost
-  td.text-right.font-mono
-    .w-full.h-4.bg-gray-200.rounded-full.overflow-hidden
-      .h-full.bg-amber-600.rounded-full style="width: #{purchase.progress}%" class="#{class_names("progress-end": purchase.debt <= 0)}"
-    | -
-    - if purchase.debt > 0
-      = format_money purchase.debt
+  td.w-80 = render "_shared/purchase_payment_progress", purchase: purchase
 
   - if action_name != "show"
     td.actions
