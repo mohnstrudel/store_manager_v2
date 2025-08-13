@@ -14,7 +14,7 @@ header.nav_header
       | New Purchase
     li = edit_btn_for @product
 
-.section-border-base.section-wide.flex.flex-col.gap-8.p-8
+.section-wide.flex.flex-col.gap-8.p-8
   = render "product_attributes", product: @product
   = render "product_editions", product: @product
   = render "product_active_sales", product: @product,\
