@@ -4,7 +4,7 @@ header.flex.justify-between.items-center.mb-8
   hgroup
     h1 = @product.title
     h2 = @product.full_title
-  menu.flex.gap-2
+  menu.flex.gap-2.pt-2
     - if @product.shopify_id
       li = pull_btn_for @product
     li = link_to new_purchase_path(product: @product)

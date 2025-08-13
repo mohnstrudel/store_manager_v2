@@ -6,7 +6,7 @@ header.flex.justify-between.items-center.mb-8
     h2 = @purchase.product.full_title
     - if @purchase.edition
       h4.text-gray-500.font-normal = @purchase.edition.type_name_and_value
-  menu.flex.gap-2
+  menu.flex.gap-2.pt-2
     li = link_to @purchase.product
       i.icn 🧸
       | Product

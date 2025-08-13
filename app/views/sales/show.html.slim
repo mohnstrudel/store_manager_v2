@@ -4,7 +4,7 @@ header.flex.justify-between.items-center.mb-8
   hgroup
     h1 = "Sale #{@sale.shopify_name.presence || ""}"
     h2 = @sale.title
-  menu.flex.gap-2
+  menu.flex.gap-2.pt-2
     - if @sale.shopify_id
       li = pull_btn_for @sale
     li = shop_admin_link @sale

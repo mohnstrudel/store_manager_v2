@@ -9,7 +9,7 @@ header.flex.justify-between.items-center.mb-8
       - if @sale_item.price
         | , price: 
         .font-mono.inline $#{format_money @sale_item.price}
-  menu.flex.gap-2
+  menu.flex.gap-2.pt-2
     li = link_to @sale_item.product
       i.icn 🧸
       | Product
