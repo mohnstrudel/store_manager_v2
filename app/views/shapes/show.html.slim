@@ -1,36 +1,36 @@
 = render "_shared/notice"
-
 = render "_shared/nav-show", model: @shape
 
-main
-  table.vertical(role="grid")
-    thead
-      tr
-        th
-          | ID
-        th
-          | Title
-        th
-          | Created
-        th
-          | Updated
-    tbody
-      = render @shape
+.section-wide.flex.flex-col.gap-8.mt-8
+  .table-card
+    table
+      thead
+        tr
+          th
+            | ID
+          th
+            | Title
+          th
+            | Created
+          th
+            | Updated
+      tbody
+        = render @shape
 
-  - if @shape.products.present?
-  .table-card.full-width.mg-t
-    h3 Products
-    table role="grid" data-controller="table"
-        thead
-          th.text-gray-500 ID
-          th Full Title
-        tbody
-          - @shape.products.each do |product|
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product)
-            )
-              td.text-gray-500 = product.id
-              td = product.full_title 
+  - if @shape.products.any?
+    .table-card
+      h3 Products
+      table data-controller="table"
+          thead
+            th.text-gray-500 ID
+            th Full Title
+          tbody
+            - @shape.products.each do |product|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=product_path(product)
+              )
+                td.text-gray-500 = product.id
+                td = product.full_title 
 
 = destroy_btn_for @shape 

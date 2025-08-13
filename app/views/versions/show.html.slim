@@ -2,9 +2,9 @@
 
 = render "_shared/nav-show", model: @version
 
-main
-  .table-card.full-width
-    table role="grid"
+.section-wide.flex.flex-col.gap-8.mt-8
+  .table-card
+    table
       thead
         tr
           th ID
@@ -14,20 +14,20 @@ main
       tbody
         = render @version
 
-  - if @version.products.present?
-  .table-card.full-width.mg-t
-    h3 Products
-    table role="grid" data-controller="table"
-        thead
-          th.text-gray-500 ID
-          th Full Title
-        tbody
-          - @version.products.each do |product|
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product)
-            )
-              td.text-gray-500 = product.id
-              td = product.full_title 
+  - if @version.products.any?
+    .table-card
+      h3 Products
+      table data-controller="table"
+          thead
+            th.text-gray-500 ID
+            th Full Title
+          tbody
+            - @version.products.each do |product|
+              tr.hoverable(
+                data-action="click->table#goTo"
+                data-table-url-param=product_path(product)
+              )
+                td.text-gray-500 = product.id
+                td = product.full_title 
 
 = destroy_btn_for @version

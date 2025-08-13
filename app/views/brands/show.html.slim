@@ -2,20 +2,21 @@
 
 = render "_shared/nav-show", model: @brand
 
-main
-  table.vertical(role="grid")
-    thead
-      tr
-        th
-          | ID
-        th
-          | Title
-        th
-          | Created
-        th
-          | Updated
-    tbody
-      = render @brand
+.section-wide.flex.flex-col.gap-8.mt-8
+  .table-card
+    table
+      thead
+        tr
+          th
+            | ID
+          th
+            | Title
+          th
+            | Created
+          th
+            | Updated
+      tbody
+        = render @brand
 
   - if @brand.products.present?
   .table-card.full-width.mg-t
