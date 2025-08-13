@@ -31,6 +31,16 @@
   font-display: auto;
 }
 
+/* SemiBold */
+@font-face {
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: 100%;
+  src: url("BricolageGrotesque-SemiBold.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  font-display: auto;
+}
+
 /* Bold */
 @font-face {
   font-style: normal;

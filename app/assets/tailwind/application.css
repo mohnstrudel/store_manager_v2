@@ -96,7 +96,7 @@
   h2,
   h3,
   h4 {
-    @apply font-extrabold text-gray-800;
+    @apply font-black text-gray-800;
   }
   h1 {
     @apply text-6xl text-gray-900;
