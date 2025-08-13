@@ -10,33 +10,29 @@ header.flex.justify-between.items-center.mb-8
     li = back_btn
     li = edit_btn_for @warehouse
 
-.section-border-base.section-wide.no-bd.flex.flex-col.gap
+.section-wide.flex.flex-col.gap-8
   - if @warehouse.purchase_items.present?
     = render "purchase_items"
-
-  .table-card.full-width
-    h3 About Warehouse
-    .cards.items-center.p
-      = render "_shared/gallery", images: @warehouse.images
-
-      .card.grow
-        h5 Name
-        p = @warehouse.name
-        h5 External Name for Clients
-        p = safe_blank_render @warehouse.external_name
-        h5 CBM
-        p = safe_blank_render @warehouse.cbm
-        h5 Container Tracking Number
-        p = safe_blank_render @warehouse.container_tracking_number
-        h5 Courier Tracking URL
-        p
-          - if @warehouse.courier_tracking_url.present?
-            = link_to @warehouse.courier_tracking_url, @warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer"
-          - else
-            | -
-        h5 Is Default?
-        p = @warehouse.is_default ? "Yes" : "No"
-        h5 Created At
-        p = format_date @warehouse.created_at
+  .cards
+    = render "_shared/gallery", images: @warehouse.images
+    .card.grow
+      h5 Name
+      p = @warehouse.name
+      h5 External Name for Clients
+      p = safe_blank_render @warehouse.external_name
+      h5 CBM
+      p = safe_blank_render @warehouse.cbm
+      h5 Container Tracking Number
+      p = safe_blank_render @warehouse.container_tracking_number
+      h5 Courier Tracking URL
+      p
+        - if @warehouse.courier_tracking_url.present?
+          = link_to @warehouse.courier_tracking_url, @warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer", class: "link"
+        - else
+          | -
+      h5 Is Default?
+      p = @warehouse.is_default ? "Yes" : "No"
+      h5 Created At
+      p = format_date @warehouse.created_at
 
 = destroy_btn_for @warehouse
