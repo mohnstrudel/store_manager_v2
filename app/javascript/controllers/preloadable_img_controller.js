@@ -35,16 +35,7 @@ export default class PreloadableImg extends Controller {
     let observer = new MutationObserver((mutations) => {
       const mutation = mutations[0];
       const newUrl = mutation.target.src;
-      const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
-      const isImage = imageExtensions.some(
-        (extension) => newUrl.indexOf(extension) !== -1,
-      );
       const isTransparent = newUrl.includes("data:image");
-
-      if (isImage && !isTransparent) {
-        this.displayImg();
-        return;
-      }
 
       if (isTransparent) {
         this.displayLoading();
@@ -121,7 +112,11 @@ export default class PreloadableImg extends Controller {
   }
 
   displayNothing() {
-    if (this.placeholder) this.placeholder.classList.remove("hidden");
+    if (this.placeholder) {
+      document
+        .querySelector("#preloader-img__placeholder")
+        .classList.remove("hidden");
+    }
     if (this.imgTarget.classList.contains("not-found")) return;
     this.imgTarget.classList.remove("loading");
     this.imgTarget.classList.add("not-found");
