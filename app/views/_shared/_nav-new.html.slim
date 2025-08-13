@@ -1,5 +1,7 @@
-header.nav_header
-  h1 New #{model.model_name.name.titleize.singularize}
+header.nav_header.mb-8
+  .flex.gap-4
+    = back_btn
+    h1 New #{model.model_name.name.titleize.singularize}
   - if defined?(custom_link) && custom_link.present?
     menu.nav_menu
       li = custom_link
