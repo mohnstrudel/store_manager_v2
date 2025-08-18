@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 import SlimSelect from "slim-select";
 
 export default class extends Controller {
-  static targets = ["size", "version", "color", "list"];
+  static targets = ["sizes", "versions", "colors", "list"];
 
   sizes = [];
   versions = [];
@@ -11,21 +11,21 @@ export default class extends Controller {
 
   connect() {
     const sizesSelect = new SlimSelect({
-      select: this.sizeTarget,
+      select: this.sizesTarget,
       events: {
         afterChange: this.setupAndRender("sizes"),
       },
     });
     this.initializeSelected(sizesSelect, this.setupAndRender("sizes"));
     const versionsSelect = new SlimSelect({
-      select: this.versionTarget,
+      select: this.versionsTarget,
       events: {
         afterChange: this.setupAndRender("versions"),
       },
     });
     this.initializeSelected(versionsSelect, this.setupAndRender("versions"));
     const colorsSelect = new SlimSelect({
-      select: this.colorTarget,
+      select: this.colorsTarget,
       events: {
         afterChange: this.setupAndRender("colors"),
       },
@@ -85,6 +85,7 @@ export default class extends Controller {
   }
 
   renderEditionsList() {
+    this.listTarget.classList.remove("hidden");
     this.listTarget.innerHTML = this.editions.reduce(
       (result, edition) =>
         result +
