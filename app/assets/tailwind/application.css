@@ -215,3 +215,12 @@
     display: none;
   }
 }
+
+@layer components {
+  .field_with_errors {
+    & label,
+    & input {
+      @apply text-red-700 border-red-700;
+    }
+  }
+}
