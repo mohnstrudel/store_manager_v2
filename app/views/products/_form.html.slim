@@ -18,19 +18,20 @@
       = form.label :shape
       = form.collection_select(:shape_id, Shape.all, :id, :title)
 
-  fieldset.mt-2
+  fieldset data-controller="product-editions"
     label Editions
-    p.text-gray-600 Select any combination of the attributes below to generate an edition automatically
+    p.text-gray-600 Select any combination of the attributes below to generate editions automatically
 
-    .flex.justify-between.gap-4
+    .flex.justify-between.gap-4.px-4.pb-2
       .block.w-full
         = form.label :size
-        = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})   
+        = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "size" }})   
       .block.w-full
         = form.label :version
-        = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
+        = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "version" }})
       .block.w-full
         = form.label :color
-        = form.collection_select(:color_ids, Color.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select", show_search: false} })  
+        = form.collection_select(:color_ids, Color.all, :id, :value, { class: "select" }, {multiple: true, data: { show_search: false, product_editions_target: "color"} })  
+    ul.px-4.my-4.flex.flex-wrap.gap-3 data-product-editions-target="list"
 
   = form_submit_for(product, form)
