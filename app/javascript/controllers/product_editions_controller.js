@@ -10,27 +10,36 @@ export default class extends Controller {
   editions = [];
 
   connect() {
-    const sizesSelect = new SlimSelect({
+    this.sizesSelect = new SlimSelect({
       select: this.sizesTarget,
       events: {
         afterChange: this.setupAndRender("sizes"),
       },
     });
-    this.initializeSelected(sizesSelect, this.setupAndRender("sizes"));
-    const versionsSelect = new SlimSelect({
+    this.initializeSelected(this.sizesSelect, this.setupAndRender("sizes"));
+    this.versionsSelect = new SlimSelect({
       select: this.versionsTarget,
       events: {
         afterChange: this.setupAndRender("versions"),
       },
     });
-    this.initializeSelected(versionsSelect, this.setupAndRender("versions"));
-    const colorsSelect = new SlimSelect({
+    this.initializeSelected(
+      this.versionsSelect,
+      this.setupAndRender("versions"),
+    );
+    this.colorsSelect = new SlimSelect({
       select: this.colorsTarget,
       events: {
         afterChange: this.setupAndRender("colors"),
       },
     });
-    this.initializeSelected(colorsSelect, this.setupAndRender("colors"));
+    this.initializeSelected(this.colorsSelect, this.setupAndRender("colors"));
+  }
+
+  disconnect() {
+    this.sizesSelect.destroy();
+    this.versionsSelect.destroy();
+    this.colorsSelect.destroy();
   }
 
   setupAndRender(target) {
