@@ -6,15 +6,18 @@ export default class extends Controller {
   turboRenderHandler = () => {
     this.init();
   };
+
   connect() {
     this.init();
     document.addEventListener("turbo:render", this.turboRenderHandler);
   }
+
   disconnect() {
     document.removeEventListener("turbo:render", this.turboRenderHandler);
     if (this.slimSelect) this.slimSelect.destroy();
     localStorage.removeItem(`slimSelect_${this.element.id}`);
   }
+
   init() {
     this.slimSelect = new SlimSelect({
       select: this.element,
@@ -24,6 +27,7 @@ export default class extends Controller {
     });
     this.restoreFromLocalStorage(this.element.id);
   }
+
   saveToLocalStorage(id) {
     return (slimSelectOptions) => {
       localStorage.setItem(
@@ -32,6 +36,7 @@ export default class extends Controller {
       );
     };
   }
+
   restoreFromLocalStorage(id) {
     const savedData = localStorage.getItem(`slimSelect_${id}`);
     if (savedData) {
