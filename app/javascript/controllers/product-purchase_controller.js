@@ -3,38 +3,63 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["form", "add", "remove"];
 
-  formBackup = null;
+  formContent = "";
+
+  restoreState = () => {
+    const savedFormContent = localStorage.getItem("savedFormContent");
+    if (savedFormContent) {
+      this.formContent = savedFormContent;
+      this.enableVisibleMode();
+    } else {
+      this.enableHiddenMode();
+    }
+  };
+
+  saveState = () => {
+    localStorage.setItem("savedFormContent", this.formTarget.innerHTML);
+  };
 
   connect() {
-    const restoreOpenState = window.localStorage.getItem(
-      "new-product_purchase-form",
-    );
-    if (restoreOpenState) {
-      this.addTarget.classList.add("hidden");
-      this.removeTarget.classList.remove("hidden");
-    } else {
-      this.formBackup = this.formTarget.outerHTML;
-      this.formTarget.remove();
-    }
+    console.log("connect");
+    this.formContent = this.formTarget.innerHTML;
+    this.enableHiddenMode();
+    document.addEventListener("turbo:submit-start", this.saveState);
+    document.addEventListener("turbo:submit-end", this.restoreState);
   }
 
   disconnect() {
-    window.localStorage.removeItem("new-product_purchase-form");
+    document.removeEventListener("turbo:submit-start", this.saveState);
+    document.removeEventListener("turbo:submit-end", this.restoreState);
+    localStorage.removeItem("savedFormContent");
+    this.formContent = "";
   }
 
   addForm(event) {
     event.preventDefault();
-    window.localStorage.setItem("new-product_purchase-form", true);
-    this.addTarget.classList.add("hidden");
-    this.removeTarget.classList.remove("hidden");
-    this.element.insertAdjacentHTML("beforeend", this.formBackup);
+    this.enableVisibleMode();
   }
 
   removeForm(event) {
     event.preventDefault();
-    window.localStorage.removeItem("new-product_purchase-form");
+    this.formContent = this.formTarget.innerHTML;
+    this.enableHiddenMode();
+  }
+
+  enableHiddenMode() {
+    // Hide form
+    this.formTarget.innerHTML = "";
+    // Show "add" button
     this.addTarget.classList.remove("hidden");
+    // Hide "cancel" button
     this.removeTarget.classList.add("hidden");
-    this.formTarget.remove();
+  }
+
+  enableVisibleMode() {
+    // Show form
+    this.formTarget.innerHTML = this.formContent;
+    // Show "cancel" button
+    this.removeTarget.classList.remove("hidden");
+    // Hide "add" button
+    this.addTarget.classList.add("hidden");
   }
 }
