@@ -8,7 +8,9 @@ export default class extends Controller {
   versions = [];
   colors = [];
   editions = [];
-  turboRenderHandler = () => this.initializeSlimSelects();
+  turboRenderHandler = () => {
+    this.initializeSlimSelects();
+  };
 
   connect() {
     this.initializeSlimSelects();
@@ -20,6 +22,9 @@ export default class extends Controller {
     if (this.sizesSelect) this.sizesSelect.destroy();
     if (this.versionsSelect) this.versionsSelect.destroy();
     if (this.colorsSelect) this.colorsSelect.destroy();
+    localStorage.removeItem("slimSelect_sizes");
+    localStorage.removeItem("slimSelect_versions");
+    localStorage.removeItem("slimSelect_colors");
   }
 
   initializeSlimSelects() {
@@ -30,6 +35,7 @@ export default class extends Controller {
           afterChange: this.setupAndRender("sizes"),
         },
       });
+      this.restoreFromLocalStorage(this.sizesSelect, "sizes");
       this.initializeSelected(this.sizesSelect, this.setupAndRender("sizes"));
     }
     if (this.hasVersionsTarget) {
@@ -39,6 +45,7 @@ export default class extends Controller {
           afterChange: this.setupAndRender("versions"),
         },
       });
+      this.restoreFromLocalStorage(this.versionsSelect, "versions");
       this.initializeSelected(
         this.versionsSelect,
         this.setupAndRender("versions"),
@@ -51,21 +58,34 @@ export default class extends Controller {
           afterChange: this.setupAndRender("colors"),
         },
       });
+      this.restoreFromLocalStorage(this.colorsSelect, "colors");
       this.initializeSelected(this.colorsSelect, this.setupAndRender("colors"));
     }
   }
 
   setupAndRender(target) {
-    return (options) => {
-      this[target] = this.mapOptions(options);
+    return (slimSelectOptions) => {
+      this[target] = slimSelectOptions;
+      localStorage.setItem(
+        `slimSelect_${target}`,
+        JSON.stringify(slimSelectOptions),
+      );
       this.editions = this.buildEditions();
       this.renderEditionsList();
     };
   }
 
+  restoreFromLocalStorage(slimSelector, target) {
+    const savedData = localStorage.getItem(`slimSelect_${target}`);
+    if (savedData) {
+      const values = JSON.parse(savedData);
+      this[target] = values;
+      slimSelector.setSelected(values.map((item) => item.value));
+    }
+  }
+
   initializeSelected(slimSelector, renderer) {
     const selectedItems = slimSelector.getSelected();
-
     if (selectedItems.length > 0) {
       const options = slimSelector.getData();
       const selectedOptions = options.filter((option) => {
@@ -75,28 +95,20 @@ export default class extends Controller {
     }
   }
 
-  mapOptions(options) {
-    return options.map((option) => ({
-      id: option.value,
-      value: option.text,
-    }));
-  }
-
   buildEditions() {
     let new_editions = [];
     const sizes = this.sizes.length > 0 ? this.sizes : [null];
     const versions = this.versions.length > 0 ? this.versions : [null];
     const colors = this.colors.length > 0 ? this.colors : [null];
-
     for (const size of sizes) {
       for (const version of versions) {
         for (const color of colors) {
           const attributes = {};
-          if (size?.id) attributes.size_id = size.id;
-          if (version?.id) attributes.version_id = version.id;
-          if (color?.id) attributes.color_id = color.id;
+          if (size?.value) attributes.size_id = size.value;
+          if (version?.value) attributes.version_id = version.value;
+          if (color?.value) attributes.color_id = color.value;
           if (Object.keys(attributes).length > 0) {
-            const title = [size?.value, version?.value, color?.value]
+            const title = [size?.text, version?.text, color?.text]
               .filter((el) => !!el)
               .join(" | ");
             new_editions.push({ attributes, title });
