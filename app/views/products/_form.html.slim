@@ -1,4 +1,4 @@
-= form_with model: product, data: {turbo: false} do |form|
+= form_with model: product do |form|
   fieldset.flex.justify-between.gap-4.-mt-6
     .block.w-full
       = form.label :franchise
@@ -8,7 +8,7 @@
       = form.text_field :title
     .block.w-full data-turbo="false"
       = form.label :brand
-      = form.collection_select(:brand_ids, Brand.all, :id, :title, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
+      = form.collection_select(:brand_ids, Brand.all, :id, :title, { class: "select" }, {multiple: true, data: { controller: "slim-select" }})
 
   fieldset.flex.justify-between.gap-4
     .block.w-full
@@ -41,14 +41,13 @@
       .px-4.pb-1 data-product-purchase-target="add"
         = link_to "", class: "btn-rounded mt-6", data: {action: "product-purchase#addForm"}
           i.icn 💰
-          | New Purchase
+          | Add Purchase
       .px-4.pb-1.hidden data-product-purchase-target="remove"
         = link_to "", class: "btn-rounded mt-6 btn-red", data: {action: "product-purchase#removeForm"}
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
-            | Cancel
-
+            | Remove Purchase
       .new-product_purchase-fields.px-4.pb-2 data-product-purchase-target="form"
         = form.fields_for :purchases, product.purchases do |purchase_fields|
           fieldset.flex.justify-between.gap-4
