@@ -4,6 +4,10 @@ import SlimSelect from "slim-select";
 export default class extends Controller {
   static targets = ["sizes", "versions", "colors", "list"];
 
+  turboRenderHandler = () => {
+    this.initializeSlimSelects();
+  };
+
   allSizes = [];
   allVersions = [];
   allColors = [];
@@ -13,13 +17,11 @@ export default class extends Controller {
 
   connect() {
     this.initializeSlimSelects();
-    document.addEventListener(
-      "turbo:render",
-      this.initializeSlimSelects.bind(this),
-    );
+    document.addEventListener("turbo:render", this.turboRenderHandler);
   }
 
   disconnect() {
+    document.removeEventListener("turbo:render", this.turboRenderHandler);
     [this.sizesSelect, this.versionsSelect, this.colorsSelect].forEach(
       (select) => {
         if (select) select.destroy();

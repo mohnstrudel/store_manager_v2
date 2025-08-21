@@ -15,33 +15,44 @@ export default class extends Controller {
   disconnect() {
     document.removeEventListener("turbo:render", this.turboRenderHandler);
     if (this.slimSelect) this.slimSelect.destroy();
-    localStorage.removeItem(`slimSelect_${this.element.id}`);
+    localStorage.removeItem(storageKey);
   }
 
+  /**
+   * Initializes SlimSelect instance, sets up event listeners, and restores saved state.
+   * Called on connect and turbo:render to ensure proper setup after page loads or Turbo navigations.
+   */
   init() {
+    // Ensure element has an ID, fallback to a default if not present
+    const elementId =
+      this.element.id || this.element.name || "default-slim-select";
+    this.storageKey = `slimSelect_${elementId}`;
+
     this.slimSelect = new SlimSelect({
       select: this.element,
       events: {
-        afterChange: this.saveToLocalStorage(this.element.id),
+        afterChange: () => {
+          localStorage.setItem(
+            this.storageKey,
+            JSON.stringify(this.slimSelect.getData()),
+          );
+        },
       },
     });
-    this.restoreFromLocalStorage(this.element.id);
+
+    this.restoreAndSetData();
   }
 
-  saveToLocalStorage(id) {
-    return (slimSelectOptions) => {
-      localStorage.setItem(
-        `slimSelect_${id}`,
-        JSON.stringify(slimSelectOptions),
-      );
-    };
-  }
-
-  restoreFromLocalStorage(id) {
-    const savedData = localStorage.getItem(`slimSelect_${id}`);
-    if (savedData) {
-      const values = JSON.parse(savedData);
-      this.slimSelect.setSelected(values.map((item) => item.value));
-    }
+  /**
+   * Restores saved options from localStorage and updates SlimSelect data.
+   * If no saved data exists, initializes with current options.
+   */
+  restoreAndSetData() {
+    const savedData = localStorage.getItem(this.storageKey);
+    const options = savedData
+      ? JSON.parse(savedData)
+      : this.slimSelect.getData();
+    this.slimSelect.setData(options);
+    localStorage.setItem(this.storageKey, JSON.stringify(options));
   }
 }
