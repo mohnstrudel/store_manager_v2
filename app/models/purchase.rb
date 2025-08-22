@@ -17,6 +17,8 @@
 #  supplier_id     :bigint           not null
 #
 class Purchase < ApplicationRecord
+  attribute :warehouse_id, :integer
+
   #
   # == Concerns
   #
@@ -53,6 +55,7 @@ class Purchase < ApplicationRecord
   #
   validates :amount, presence: true
   validates :item_price, presence: true
+  validates :supplier_id, presence: true
 
   #
   # == Associations
