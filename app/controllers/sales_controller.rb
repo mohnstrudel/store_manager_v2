@@ -4,7 +4,7 @@ class SalesController < ApplicationController
   # GET /sales
   def index
     @sales = Sale
-      .with_details
+      .with_index_details
       .except_cancelled_or_completed
       .ordered_by_shop_created_at
       .search_by(params[:q])
@@ -14,12 +14,7 @@ class SalesController < ApplicationController
   # GET /sales/1
   def show
     @sale = Sale
-      .includes(
-        sale_items: [
-          purchase_items: [:warehouse, purchase: :supplier],
-          product: [images_attachments: :blob]
-        ]
-      )
+      .with_show_details
       .friendly
       .find(params[:id])
   end

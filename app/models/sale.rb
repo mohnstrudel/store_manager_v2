@@ -81,6 +81,33 @@ class Sale < ApplicationRecord
   scope :except_cancelled_or_completed, -> {
     where.not(status: cancelled_status_names + completed_status_names)
   }
+  scope :ordered_by_shop_created_at, -> {
+    order(
+        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC")
+      )
+  }
+  scope :with_index_details, -> {
+    includes(
+      :customer,
+      sale_items: [
+        :purchase_items,
+        product: [images_attachments: :blob],
+        edition: [
+          :version,
+          :color,
+          :size
+        ]
+      ]
+    )
+  }
+  scope :with_show_details, -> {
+    includes(
+        sale_items: [
+          purchase_items: [:warehouse, purchase: :supplier],
+          product: [images_attachments: :blob]
+        ]
+      )
+  }
 
   #
   # == Class Methods
