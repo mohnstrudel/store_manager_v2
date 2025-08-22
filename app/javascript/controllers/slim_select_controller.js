@@ -15,7 +15,7 @@ export default class extends Controller {
   disconnect() {
     document.removeEventListener("turbo:render", this.turboRenderHandler);
     if (this.slimSelect) this.slimSelect.destroy();
-    localStorage.removeItem(storageKey);
+    localStorage.removeItem(this.storageKey);
   }
 
   /**
