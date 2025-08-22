@@ -11,7 +11,7 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
         - purchase.purchase_items.group_by(&:warehouse).each do |warehouse, pp|
           li #{warehouse.name}: #{pp.count}
       - else
-        li <mark class="rounded-md py-0.5 px-1.5 text-yellow-800 bg-yellow-100 text-sm mr-1.5">Warehouses: #{purchase.purchase_items.size} / Purchased: #{purchase.amount}</mark>
+        li <mark class="mr-1.5">Warehouses: #{purchase.purchase_items.size} / Purchased: #{purchase.amount}</mark>
         - if purchase.purchase_items.present?
           - purchase.purchase_items.group_by(&:warehouse).each do |warehouse, pp|
             li #{warehouse.name}: #{pp.count}

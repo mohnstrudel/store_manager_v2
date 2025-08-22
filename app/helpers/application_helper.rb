@@ -47,9 +47,9 @@ module ApplicationHelper
     ratio = "#{purchased} / #{sold}"
 
     if purchased >= sold
-      "<mark class='rounded-md py-0.5 px-1.5 text-gray-700 bg-gray-200 text-sm mr-1.5'>#{ratio}</mark>".html_safe
+      "<mark class='mark-gray mr-1.5'>#{ratio}</mark>".html_safe
     else
-      "<mark class='rounded-md py-0.5 px-1.5 text-yellow-800 bg-yellow-100 text-sm mr-1.5'>#{ratio}</mark>".html_safe
+      "<mark class='mr-1.5'>#{ratio}</mark>".html_safe
     end
   end
 

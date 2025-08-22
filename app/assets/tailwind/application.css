@@ -10,6 +10,7 @@
     "Noto Color Emoji";
   --font-sans: "Bricolage Grotesque", sans-serif;
   --icon-chevron: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22currentColor%22%20class%3D%22size-6%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22m19.5%208.25-7.5%207.5-7.5-7.5%22%2F%3E%3C%2Fsvg%3E);
+  --icon-chevron-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='oklch(70.7% .022 261.325)' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
 }
 
 /* === Base styles === */
@@ -19,7 +20,11 @@
     @apply antialiased scroll-smooth;
   }
   :focus-visible {
-    @apply outline-dashed outline-2 outline-offset-2 outline-gray-300;
+    @apply outline-dashed outline-2 outline-offset-2 outline-gray-300 dark:outline-gray-500;
+  }
+  body,
+  dialog {
+    @apply dark:bg-gray-900 dark:text-gray-200;
   }
 
   /* Typography */
@@ -27,10 +32,10 @@
   h2,
   h3,
   h4 {
-    @apply font-black text-gray-800;
+    @apply font-black text-gray-800 dark:text-gray-100;
   }
   h1 {
-    @apply text-6xl text-gray-900;
+    @apply text-6xl text-gray-900 dark:text-gray-50;
   }
   h2 {
     @apply text-2xl;
@@ -47,27 +52,33 @@
   input[type="submit"],
   input[type="button"],
   button {
-    @apply cursor-pointer font-medium no-underline inline-flex items-center justify-center gap-2 px-2 py-2 rounded-sm bg-gray-100 hover:bg-gray-200 transition-all duration-150;
+    @apply cursor-pointer font-medium no-underline inline-flex items-center justify-center gap-2 px-2 py-2 rounded-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-150;
   }
 
   a.link {
-    @apply inline underline p-0 bg-transparent hover:bg-transparent border-none hover:text-blue-600 font-[weight:inherit];
+    @apply inline underline p-0 bg-transparent hover:bg-transparent border-none hover:text-blue-600 dark:hover:text-blue-400 font-[weight:inherit];
   }
 
   /* Forms */
   label {
-    @apply block font-medium text-gray-900 mt-6 mb-2;
+    @apply block font-medium text-gray-900 dark:text-gray-100 mt-6 mb-2;
   }
 
   input,
   select,
   .ss-main {
-    @apply appearance-none w-full pl-3 pr-10 py-2 cursor-pointer border-1 border-gray-300/80 rounded-sm;
+    @apply appearance-none w-full pl-3 pr-10 py-2 cursor-pointer border-1 border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
+  }
+
+  *:disabled {
+    @apply bg-gray-950/10! dark:border-gray-800!;
   }
 
   select:not([multiple], [size]),
   .ss-main {
-    background-image: var(--icon-chevron);
+    @apply stroke-transparent;
+
+    background-image: var(--icon-chevron-dark);
     background-position: center right 0.75rem;
     background-size: 1rem auto;
     background-repeat: no-repeat;
@@ -78,35 +89,31 @@
   }
 
   input[type="file"] {
-    @apply border-0 -ml-3 file:cursor-pointer file:bg-gray-100 file:text-black file:py-2 file:mr-4 file:font-medium file:px-3 file:rounded-full file:hover:bg-gray-200;
+    @apply border-0 -ml-3 file:cursor-pointer bg-transparent file:bg-gray-100 file:text-black file:py-2 file:mr-4 file:font-medium file:px-3 file:rounded-full file:hover:bg-gray-200 dark:file:bg-gray-700 dark:file:text-gray-100 dark:file:hover:bg-gray-600;
   }
 
   input[type="submit"],
   .btn-blue {
-    @apply bg-blue-600 hover:bg-blue-700 text-white px-3 w-fit;
-  }
-
-  input[type="submit"] {
-    @apply rounded-full;
+    @apply bg-blue-600 hover:bg-blue-700 dark:bg-blue-900! dark:hover:bg-blue-800! text-white px-3 w-fit border-transparent!;
   }
 
   input[type="checkbox"],
   input[type="radio"] {
-    @apply cursor-pointer h-5 w-5 m-0 p-0 appearance-none bg-white transition-all border-2 border-gray-300 checked:border-blue-600;
+    @apply cursor-pointer h-5 w-5 m-0 p-0 appearance-none bg-white dark:bg-gray-800 transition-all border-2 border-gray-300 dark:border-gray-600 checked:border-blue-600 dark:checked:border-blue-500;
   }
 
   input[type="checkbox"] {
-    @apply rounded checked:bg-blue-600 mt-1;
+    @apply rounded hover:border-blue-600/60 checked:bg-blue-600 dark:checked:bg-blue-500 mt-1;
   }
   input[type="checkbox"]:checked {
-    background-image: url("data:image/svg+xml,...");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(255, 255, 255)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4.5,12.75 10.5,18.75 19.5,5.25'%3E%3C/polyline%3E%3C/svg%3E");
     background-position: center center;
     background-size: 1.2em;
     background-repeat: no-repeat;
   }
 
   input[type="radio"] {
-    @apply rounded-full checked:bg-white checked:border-6;
+    @apply rounded-full checked:bg-white dark:checked:bg-gray-800 checked:border-6;
   }
 
   /* Tables */
@@ -114,27 +121,27 @@
     @apply w-full border-collapse table-auto text-left border-b-1 mt-3;
   }
   thead {
-    @apply border-b-4 border-gray-100;
+    @apply border-b-4 border-gray-100 dark:border-gray-800;
   }
   th {
-    @apply text-gray-600 align-bottom font-semibold;
+    @apply text-gray-600 dark:text-gray-400 align-bottom font-semibold;
   }
   th,
   td {
     @apply p-3;
   }
   tbody tr {
-    @apply border-b-2 border-b-gray-100/60 hover:bg-gray-50 transition-colors duration-100 cursor-pointer;
+    @apply border-b-2 border-b-gray-100/60 dark:border-b-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-100 cursor-pointer;
   }
   tbody tr:last-child {
     @apply border-b-transparent;
   }
   tr.selected {
-    @apply bg-amber-100 hover:bg-amber-200/80;
+    @apply bg-amber-100 hover:bg-amber-200/80 border-b-amber-400/10 dark:bg-amber-900/50 dark:hover:bg-amber-900/70 dark:border-b-amber-900/20;
   }
 
   table select:not([multiple], [size]) {
-    @apply hover:bg-gray-100;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 }
 
@@ -149,21 +156,21 @@
     @apply justify-between;
   }
   nav[role="navigation-main"] a {
-    @apply text-gray-500 hover:text-gray-900 border-0 bg-transparent hover:bg-gray-100;
+    @apply text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border-0 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 
   nav[role="navigation-dropdown"] {
     @apply relative;
   }
   nav[role="navigation-dropdown"] > button {
-    @apply p-2 rounded-sm hover:bg-gray-100 transition-all duration-150 cursor-pointer;
+    @apply p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 cursor-pointer;
   }
   nav[role="navigation-dropdown"]:hover > button {
-    @apply bg-gray-100;
+    @apply bg-gray-100 dark:bg-gray-700;
   }
 
   nav[role="navigation-dropdown"] ul {
-    @apply flex flex-col items-start absolute right-0 top-full w-40 pt-5 pr-4 pb-7 pl-4 bg-white border border-gray-200 rounded-lg opacity-0 invisible transition-all duration-150 z-228;
+    @apply flex flex-col items-start absolute right-0 top-full w-40 pt-5 pr-4 pb-7 pl-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg opacity-0 invisible transition-all duration-150 z-228;
   }
   nav[role="navigation-dropdown"]:hover ul {
     @apply opacity-100 visible text-left;
@@ -181,13 +188,14 @@
 
   /* Buttons */
   .btn-rounded {
-    @apply rounded-full px-3 border-gray-200;
+    @apply rounded-full px-3 border-gray-200 dark:border-gray-600;
   }
-  .btn-red {
-    @apply text-red-700 bg-red-100/60 hover:bg-red-200/60;
+  .btn-red,
+  .undo {
+    @apply text-red-700 dark:text-red-300 bg-red-100/60 dark:bg-red-900/50 hover:bg-red-200/60 dark:hover:bg-red-900/70;
   }
   .undo {
-    @apply text-red-700 hover:text-red-700!;
+    @apply bg-transparent hover:bg-transparent hover:text-red-400!;
   }
   .icn {
     @apply font-normal font-icn not-italic;
@@ -219,7 +227,7 @@
     @apply w-full block ml-2;
   }
   .pagination a.is-current {
-    @apply bg-gray-200 text-gray-500 cursor-not-allowed;
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed;
   }
 
   /* Preloadable images */
@@ -230,7 +238,7 @@
     @apply block rounded-md min-h-fit max-h-full object-contain object-center transition-transform;
   }
   .preloadable-img__img.loading {
-    @apply animate-pulse bg-gray-200 w-200 h-100 mx-auto;
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700 w-200 h-100 mx-auto;
   }
   .preloadable-img__img.not-found {
     @apply w-full h-full;
@@ -239,7 +247,7 @@
     @apply duration-150 ease-out p-1;
   }
   .preloadable-img__img.zoomable:hover {
-    @apply scale-300 backdrop-blur-sm shadow-lg bg-white/45;
+    @apply scale-300 backdrop-blur-sm shadow-lg bg-white/45 dark:bg-gray-900/45;
   }
   .preloadable-img__img.hidden {
     @apply hidden;
@@ -247,7 +255,7 @@
 
   /* Sections & layout helpers */
   .section-border-base {
-    @apply border border-gray-200/80 rounded-xl;
+    @apply border border-gray-200/80 dark:border-gray-800 rounded-xl;
   }
   .section-wide {
     @apply mt-4 -mx-8;
@@ -262,7 +270,7 @@
     @apply px-10 pt-8 mb-8 flex justify-between;
   }
   .progress-end {
-    @apply bg-lime-600!;
+    @apply bg-lime-600! dark:bg-lime-500!;
   }
 
   /* Cards */
@@ -270,16 +278,16 @@
     @apply flex items-center gap-6;
   }
   .card {
-    @apply bg-gray-50 border border-gray-100 pl-4 pt-4 pr-10 pb-8 rounded-lg w-fit h-fit;
+    @apply bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 pl-4 pt-4 pr-10 pb-8 rounded-lg w-fit h-fit;
   }
   .card h5 {
-    @apply mt-4 mb-1 text-gray-500;
+    @apply mt-4 mb-1 text-gray-500 dark:text-gray-400;
   }
   .card p {
     @apply mb-2 text-lg;
   }
   .table-card {
-    @apply border border-gray-200/80 rounded-lg;
+    @apply border border-gray-200/80 dark:border-gray-700/80 rounded-lg;
   }
   .table-card h3 {
     @apply p-3 pt-4;
@@ -294,10 +302,10 @@
     cursor: pointer;
   }
   .gallery-nav img.active {
-    @apply outline-gray-500 outline-dashed outline-offset-3;
+    @apply outline-gray-500 dark:outline-gray-400 outline-dashed outline-offset-3;
   }
   .gallery-btn {
-    @apply absolute top-1/2 -translate-y-1/2 z-10 border-none w-20 min-h-83 h-full text-3xl bg-transparent text-gray-300 transition-all duration-150 hover:bg-black/20 hover:text-white;
+    @apply absolute top-1/2 -translate-y-1/2 z-10 border-none w-20 min-h-83 h-full text-3xl bg-transparent text-gray-300 dark:text-gray-500 transition-all duration-150 hover:bg-black/20 dark:hover:bg-gray-900/50 hover:text-white dark:hover:text-gray-100;
   }
 
   /* Dialogs */
@@ -305,16 +313,30 @@
     overflow: hidden;
   }
   dialog {
-    @apply flex fixed inset-0 justify-center items-center z-[999] backdrop-blur-sm border-0 bg-gray-300/50 p-2 w-full min-w-full h-full min-h-full;
+    @apply flex fixed inset-0 justify-center items-center z-[999] backdrop-blur-sm border-0 bg-gray-300/50 dark:bg-gray-800/50 p-2 w-full min-w-full h-full min-h-full;
   }
   dialog:not([open]),
   dialog[open="false"] {
     display: none;
   }
+  .dialog-content {
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-3xl p-4 pb-6 -translate-y-10;
+  }
 
   /* Forms: errors */
   .field_with_errors label,
   .field_with_errors input {
-    @apply text-red-700 border-red-700;
+    @apply text-red-700 dark:text-red-400 border-red-700 dark:border-red-400!;
+  }
+
+  .field_with_errors input {
+    @apply border;
+  }
+
+  mark {
+    @apply rounded-md py-0.5 px-1.5 text-yellow-800 bg-yellow-100 text-sm dark:text-yellow-500/85 dark:bg-yellow-900/50;
+  }
+  .mark-gray {
+    @apply text-gray-700 bg-gray-200 dark:text-gray-300/80 dark:bg-gray-600/80;
   }
 }

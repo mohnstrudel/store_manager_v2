@@ -7,7 +7,7 @@ export default class extends Controller {
     let id =
       this.element.querySelectorAll(".sales-form__product_fields").length + 1;
     let template = `
-      <div class="sales-form__product_fields border border-gray-200 rounded-xl p-4 pb-8 my-6 max-w-2/3">
+      <div class="sales-form__product_fields border border-gray-200 dark:border-gray-800 rounded-xl p-4 pb-8 my-6 max-w-2/3">
         <div class="flex justify-between items-center">
           <h6>New product</h6>
           <a class="btn-rounded btn-red" href="" data-action="sale-items#removeProduct">Remove</a>

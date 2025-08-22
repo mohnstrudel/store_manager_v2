@@ -169,7 +169,7 @@ export default class extends Controller {
     this.listTarget.innerHTML = editions.reduce(
       (result, edition) =>
         result +
-        `<li class="bg-blue-200/30 text-blue-950 px-3 py-1 rounded-lg">${edition.title}</li>`,
+        `<li class="bg-blue-200/30 text-blue-950 dark:bg-blue-300/30 dark:text-blue-200 px-3 py-1 rounded-lg">${edition.title}</li>`,
       "",
     );
   }
