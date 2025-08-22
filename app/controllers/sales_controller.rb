@@ -3,31 +3,12 @@ class SalesController < ApplicationController
 
   # GET /sales
   def index
-    sale_records = Sale
-      .includes(
-        :customer,
-        sale_items: [
-          :purchase_items,
-          product: [images_attachments: :blob],
-          edition: [
-            :version,
-            :color,
-            :size
-          ]
-        ]
-      )
+    @sales = Sale
+      .with_details
       .except_cancelled_or_completed
-      .order(
-        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC, CAST(woo_id AS int) DESC")
-      )
+      .ordered_by_shop_created_at
+      .search_by(params[:q])
       .page(params[:page])
-
-    @sales = if params[:q].present?
-      sale_records
-        .search(params[:q])
-    else
-      sale_records
-    end
   end
 
   # GET /sales/1
@@ -106,7 +87,7 @@ class SalesController < ApplicationController
     end
 
     statuses_link = view_context.link_to(
-      "jobs statuses dashboard", root_url + "jobs/statuses"
+      "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
     )
 
     flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
