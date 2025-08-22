@@ -1,8 +1,8 @@
 .table-cards-group
   .table-card data-controller="move-items"
-    .table-hgroup.flex.justify-between
-      h3 Items
-      h3 = @total_purchase_items
+    .flex.justify-between
+      h3 Items: #{@purchase_items.total_count}
+      .w-40.mt-5.mr-3.text-center = render "_shared/warehouse_payment_progress", progress: @warehouse.average_payment_progress, debt: @warehouse.total_debt
 
     .search.spacing-m
       = render partial: "_shared/search-form", locals: {path: warehouse_path}

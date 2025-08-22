@@ -20,9 +20,9 @@ header.nav_header
         = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(purchase_id: @purchase.id)
 
         .table-card
-          h3.flex.justify-between.px-3.pt-4
-            span Purchase Items
-            span = @purchase_items.size
+          .flex.justify-between
+            h3 Purchase Items: #{@purchase_items.size}
+            .mx-3.mt.w-80.mt-5.mr-3.text-center = render "_shared/purchase_payment_progress", purchase: @purchase
 
           = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
 
@@ -31,10 +31,10 @@ header.nav_header
               = render "_shared/move_to_warehouse/th"
               th Warehouse
               th Sale
-              th Length × Width × Height, cm
-              th.text-right Kg
-              th.text-right Expenses
-              th.text-right Shipping
+              / th Length × Width × Height, cm
+              / th.text-right Kg
+              / th.text-right Expenses
+              / th.text-right Shipping
               th.text-right Actions
             tbody
               - @purchase_items.each do |pp|
@@ -49,10 +49,10 @@ header.nav_header
                     = pp.sale&.select_title
                     - if pp.sale&.woo_id
                       .mt-2 #{shop_admin_link pp.sale, true}
-                  td.font-mono = format_item_size(pp)
-                  td.font-mono.text-right = pp.weight
-                  td.font-mono.text-right = format_money pp.expenses
-                  td.font-mono.text-right = format_money pp.shipping_price
+                  / td.font-mono = format_item_size(pp)
+                  / td.font-mono.text-right = pp.weight
+                  / td.font-mono.text-right = format_money pp.expenses
+                  / td.font-mono.text-right = format_money pp.shipping_price
                   td.actions
                     .flex.justify-end
                       - if pp.sale
@@ -92,10 +92,6 @@ header.nav_header
       p = @purchase.order_reference
       h5 Date
       p = format_date @purchase.purchase_date || @purchase.created_at
-      h5 Progress
-      p
-        .w-full.h-4.bg-gray-200.rounded-full.overflow-hidden
-          .h-full.bg-amber-600.rounded-full style="width: #{@purchase.progress}%" class="#{class_names("progress-end": @purchase.debt <= 0)}"
 
 
   .table-card

@@ -9,13 +9,12 @@ tr id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param
           | New purchases go to this warehouse by default. Change it on the edit page.
     br
     = warehouse.external_name
-  td.font-mono = warehouse.cbm
-  / td.font-mono = warehouse.container_tracking_number
-  / - if warehouse.courier_tracking_url.present?
-  /   td = link_to warehouse.courier_tracking_url, warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer", class: "link no-events"
-  / - else
-  /   td
-  td.font-mono = warehouse.purchase_items.size  
+  td = warehouse.cbm
+  td = warehouse.purchase_items.size  
+  - if warehouse.purchase_items.any?
+    td = render "_shared/warehouse_payment_progress", progress: warehouse.average_payment_progress, debt: warehouse.total_debt
+  - else
+    td   
   - if action_name != "show" 
     td.actions
       = render "_shared/action_edit", route: edit_warehouse_path(warehouse)
