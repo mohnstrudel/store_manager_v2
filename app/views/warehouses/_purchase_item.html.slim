@@ -8,11 +8,12 @@ tr(
     = item.purchase.product.full_title
     - if item.purchase.edition.present?
       | → #{item.purchase.edition.title}
+    - if item.sale
+      ul.ml-4.mt-2.text-sm
+        li
+          = link_to item.sale.title, item.sale, class: "no-events"  
   td = item.purchase.supplier.title
   td = render "_shared/purchase_payment_progress", purchase: item.purchase
-  td
-    - if item.sale
-      = link_to item.sale.title, item.sale, class: "no-events link"
   td.actions
     = render "_shared/action_destroy", route: purchase_item_path(item)
     = render "_shared/action_edit", route: edit_purchase_item_path(item)
