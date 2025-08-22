@@ -126,7 +126,7 @@
   }
 
   a.link {
-    @apply inline underline p-0 bg-transparent hover:bg-transparent border-none hover:text-blue-600;
+    @apply inline underline p-0 bg-transparent hover:bg-transparent border-none hover:text-blue-600 font-[weight:inherit];
   }
 
   .undo {

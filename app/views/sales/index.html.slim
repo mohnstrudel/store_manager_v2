@@ -9,7 +9,7 @@
     = render partial: "_shared/search-form", locals: {path: sales_path}
     .pagination-top = paginate @sales
   - if @sales.present?
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         tr
           th.text-center Image
