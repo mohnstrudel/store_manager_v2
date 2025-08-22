@@ -11,7 +11,7 @@ module ApplicationHelper
     if amount.presence
       number_to_currency(
         amount.to_f,
-        delimiter: ".",
+        delimiter: " ",
         separator: ",",
         format: "%n %u",
         precision: 0,

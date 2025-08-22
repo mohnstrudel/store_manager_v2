@@ -100,6 +100,10 @@ class Purchase < ApplicationRecord
     @total_cost ||= [total_cost - paid, 0].max
   end
 
+  def item_debt
+    debt / amount
+  end
+
   def progress
     return 0 if total_cost.zero?
     [paid * 100.0 / total_cost, 100].min
