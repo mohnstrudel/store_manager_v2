@@ -51,9 +51,6 @@
     cursor: pointer;
     box-sizing: border-box;
     outline: 0;
-    /* border: 1px solid var(--ss-border-color); */
-    /* border-radius: var(--ss-border-radius); */
-    /* background-color: var(--ss-bg-color); */
     padding: var(--ss-spacing-s);
     width: 100%;
     min-height: var(--ss-main-height);
