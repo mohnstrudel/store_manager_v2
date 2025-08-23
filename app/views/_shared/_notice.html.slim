@@ -1,11 +1,11 @@
 - if notice.present?
-  article.w-5xl.h-24.mx-auto.bg-lime-100.rounded-xl.flex.justify-between.items-center.p-8.mb-8.text-lime-700 class="dark:bg-lime-800/70 dark:text-lime-300/90"
+  article.h-24.mx-auto.bg-lime-100.rounded-xl.flex.justify-between.items-center.p-8.mb-8.text-lime-700 class="dark:bg-lime-800/70 dark:text-lime-300/90"
     i.icn.text-3xl 🙏
     p.text-lg.font-semibold = sanitize(notice)
     i.icn.text-3xl 🙏
 
 - if alert.present?
-  article.w-5xl.h-24.mx-auto.bg-red-100.rounded-xl.flex.justify-between.items-center.p-8.mb-8.text-red-700 class="dark:bg-red-800/60 dark:text-red-300"
+  article.h-24.mx-auto.bg-red-100.rounded-xl.flex.justify-between.items-center.p-8.mb-8.text-red-700 class="dark:bg-red-800/60 dark:text-red-300"
     i.icn.text-3xl 🚨
     p.text-lg.font-semibold = sanitize(alert)
     i.icn.text-3xl 🚨
