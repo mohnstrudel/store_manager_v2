@@ -1,12 +1,12 @@
-h1 Create new account
+h1.text-5xl Create new account
 
 = render "_shared/notice-err", model: @user
 
-= form_with model: @user, url: sign_up_path do |form|
+= form_with model: @user, url: sign_up_path, class: "flex flex-col gap-6 my-8" do |form|
   = form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter email address", value: params[:email_address]
   = form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter password", maxlength: 72
-  = form.submit "Sign up"
+  = form.submit "Sign up", class: "w-full"
 
-.flex.space-x-1.text-sm
-  = link_to "Already have an account?", sign_in_path
-  = link_to "Forgot password?", new_password_path
+.space-x-4
+  = link_to "Already have an account?", sign_in_path, class: "link"
+  = link_to "Forgot password?", new_password_path, class: "link"
