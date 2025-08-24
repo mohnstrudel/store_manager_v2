@@ -33,7 +33,7 @@ class Product < ApplicationRecord
   #
   # == Configuration
   #
-  friendly_id :get_slug, use: :slugged
+  friendly_id :find_slug_candidate, use: :slugged
   broadcasts_refreshes
   paginates_per 50
   audited associated_with: :franchise
@@ -127,19 +127,19 @@ class Product < ApplicationRecord
     save
   end
 
-  def get_slug
+  def find_slug_candidate
     sku.presence || full_title
   end
 
-  def full_title_with_shop_id
+  def build_full_title_with_shop_id
     "#{full_title} | #{shop_id || "N/A"}"
   end
 
-  def shopify_store_link
+  def build_shopify_url
     "https://handsomecake.com/products/#{store_link}"
   end
 
-  def active_sale_items
+  def fetch_active_sale_items
     sale_items
       .includes(purchase_items: :warehouse)
       .includes_details
@@ -147,11 +147,11 @@ class Product < ApplicationRecord
       .order(created_at: :asc)
   end
 
-  def completed_sale_items
+  def fetch_completed_sale_items
     sale_items.includes_details.completed.order(created_at: :asc)
   end
 
-  def editions_sale_items_size
+  def sum_editions_sale_items
     SaleItem
       .active
       .where(edition: editions)
@@ -159,7 +159,7 @@ class Product < ApplicationRecord
       .sum(:qty)
   end
 
-  def editions_purchase_items_size
+  def sum_editions_purchase_items
     Purchase
       .where(edition: editions)
       .group(:edition_id)
@@ -174,7 +174,7 @@ class Product < ApplicationRecord
     editions.build(edition_attributes)
   end
 
-  def editions_with_title
+  def fetch_editions_with_title
     editions.includes_details.select { |edition| edition.title.present? }
   end
 

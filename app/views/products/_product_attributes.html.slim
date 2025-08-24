@@ -31,4 +31,4 @@
       p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
     - if product.shopify_id.present?
       h5 Shopify ID
-      p = link_to product.shopify_id_short, product.shopify_store_link, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
+      p = link_to product.shopify_id_short, product.build_shopify_url, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
