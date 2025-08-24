@@ -50,7 +50,7 @@ class Edition < ApplicationRecord
   #
   # == Scopes
   #
-  scope :includes_details, -> { includes(:version, :color, :size) }
+  scope :with_details, -> { includes(:version, :color, :size) }
 
   #
   # == Class Methods

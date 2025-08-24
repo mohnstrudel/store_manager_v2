@@ -16,7 +16,7 @@
       tbody
         - active_sales.each_with_index do |ps, idx|
           tr(
-            class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.item.id)
+            class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.resolve_sold_item.id)
             data-action="click->table#goTo"
             data-table-url-param=sale_path(ps.sale)
           )

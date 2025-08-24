@@ -142,13 +142,13 @@ class Product < ApplicationRecord
   def fetch_active_sale_items
     sale_items
       .includes(purchase_items: :warehouse)
-      .includes_details
+      .with_details
       .active
       .order(created_at: :asc)
   end
 
   def fetch_completed_sale_items
-    sale_items.includes_details.completed.order(created_at: :asc)
+    sale_items.with_details.completed.order(created_at: :asc)
   end
 
   def sum_editions_sale_items
@@ -175,7 +175,7 @@ class Product < ApplicationRecord
   end
 
   def fetch_editions_with_title
-    editions.includes_details.select { |edition| edition.title.present? }
+    editions.with_details.select { |edition| edition.title.present? }
   end
 
   private

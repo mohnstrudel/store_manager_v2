@@ -62,7 +62,7 @@ class SaleItem < ApplicationRecord
     where("qty > purchase_items_count")
   }
 
-  scope :includes_details, -> {
+  scope :with_details, -> {
     includes(:product, sale: :customer, edition: [:version, :color, :size])
   }
 
@@ -82,7 +82,7 @@ class SaleItem < ApplicationRecord
   #
   # == Domain Methods
   #
-  def item
+  def resolve_sold_item
     edition.presence || product
   end
 
@@ -92,7 +92,7 @@ class SaleItem < ApplicationRecord
       product.full_title
   end
 
-  def title_for_select
+  def build_title_for_select
     status = sale.status&.titleize
     email = sale.customer.email
     pretty_sale_id = "Sale ID: #{sale_id}"
