@@ -51,7 +51,7 @@ class ProductMover
   end
 
   def create_items_at_destination
-    @moved_products = @purchase.create_purchase_items_in(@destination)
+    @moved_products = @purchase.add_items_to_warehouse(@destination.id)
   end
 
   def notify_on_newly_located_items

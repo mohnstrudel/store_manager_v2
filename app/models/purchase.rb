@@ -128,13 +128,27 @@ class Purchase < ApplicationRecord
     purchase_date || created_at
   end
 
-  def create_purchase_items_in(warehouse)
-    Array.new(amount) do
-      warehouse.purchase_items.create(purchase_id: id)
-    end
-  end
-
   def unpaid?
     payments_count.zero?
+  end
+
+  def add_items_to_warehouse(warehouse_id)
+    purchase_items_attributes = Array.new(amount) {
+      {
+        purchase_id: id,
+        warehouse_id:,
+        created_at: Time.current,
+        updated_at: Time.current
+      }
+    }
+    result = purchase_items.create!(purchase_items_attributes)
+    warn result.pretty_inspect
+  end
+
+  def link_with_sales
+    linked_purchase_item_ids = PurchaseLinker.link(self)
+    PurchasedNotifier.handle_product_purchase(
+      purchase_item_ids: linked_purchase_item_ids
+    )
   end
 end

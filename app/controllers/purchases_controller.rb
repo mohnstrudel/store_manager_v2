@@ -48,15 +48,9 @@ class PurchasesController < ApplicationController
 
     respond_to do |format|
       if @purchase.save
-        warehouse = Warehouse.find_by(id: warehouse_id) ||
-          Warehouse.find_by(is_default: true)
-
-        if warehouse.present?
-          @purchase.create_purchase_items_in(warehouse)
-
-          purchase_item_ids = PurchaseLinker.link(@purchase)
-
-          PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
+        if warehouse_id
+          @purchase.add_items_to_warehouse(warehouse_id:)
+          @purchase.link_with_sales
         end
 
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }

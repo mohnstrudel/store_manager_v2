@@ -8,15 +8,18 @@ class ProductsController < ApplicationController
 
   # GET /products/1 or /products/1.json
   def show
-    @active_sales = @product.active_sale_items
-    @complete_sales = @product.completed_sale_items
-    @editions_sales_sums = @product.editions_sale_items_size
-    @editions_purchases_sums = @product.editions_purchase_items_size
+    @active_sales = @product.fetch_active_sale_items
+    @complete_sales = @product.fetch_completed_sale_items
+    @editions_sales_sums = @product.sum_editions_sale_items
+    @editions_purchases_sums = @product.sum_editions_purchase_items
   end
 
   # GET /products/new
   def new
     @product = Product.new
+    @product.purchases.build do |purchase|
+      purchase.payments.build
+    end
   end
 
   # GET /products/1/edit
@@ -30,7 +33,9 @@ class ProductsController < ApplicationController
 
     respond_to do |format|
       if @product.save
-        format.html { redirect_to product_url(@product), notice: "Product was successfully created" }
+        handle_new_purchase if purchase_params.present?
+
+        format.html { redirect_to @product, notice: "Product was successfully created" }
         format.json { render :show, status: :created, location: @product }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -79,7 +84,7 @@ class ProductsController < ApplicationController
     end
 
     statuses_link = view_context.link_to(
-      "jobs statuses dashboard", root_url + "jobs/statuses"
+      "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
     )
 
     flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
@@ -109,7 +114,7 @@ class ProductsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def product_params
-    params.fetch(:product, {}).permit(
+    params.expect(product: [
       :title,
       :franchise_id,
       :shape_id,
@@ -121,7 +126,27 @@ class ProductsController < ApplicationController
       color_ids: [],
       size_ids: [],
       version_ids: [],
-      images: []
-    )
+      images: [],
+      purchases_attributes: [[
+        :item_price,
+        :amount,
+        :supplier_id,
+        :order_reference,
+        :warehouse_id,
+        payments_attributes: [:value]
+      ]]
+    ])
+  end
+
+  def purchase_params
+    params.dig(:product, :purchases_attributes, "0")
+  end
+
+  def handle_new_purchase
+    warehouse_id = purchase_params[:warehouse_id]
+    if warehouse_id
+      @product.purchases.last.add_items_to_warehouse(warehouse_id)
+      @product.purchases.last.link_with_sales
+    end
   end
 end
