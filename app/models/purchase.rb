@@ -141,8 +141,7 @@ class Purchase < ApplicationRecord
         updated_at: Time.current
       }
     }
-    result = purchase_items.create!(purchase_items_attributes)
-    warn result.pretty_inspect
+    purchase_items.create!(purchase_items_attributes)
   end
 
   def link_with_sales
