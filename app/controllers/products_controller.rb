@@ -144,9 +144,14 @@ class ProductsController < ApplicationController
 
   def handle_new_purchase
     warehouse_id = purchase_params[:warehouse_id]
-    if warehouse_id
+    payment_value = purchase_params[:payments_attributes]&.values&.first&.[](:value)
+    purchase = @product.purchases.last
+    if purchase && warehouse_id
       @product.purchases.last.add_items_to_warehouse(warehouse_id)
       @product.purchases.last.link_with_sales
+    end
+    if purchase && payment_value
+      purchase.payments.create(value: payment_value)
     end
   end
 end

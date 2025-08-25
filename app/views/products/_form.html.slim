@@ -65,7 +65,7 @@
               = purchase_fields.label :amount
               = purchase_fields.text_field :amount
             .block.w-full
-              = purchase_fields.fields_for :payments, purchase_fields.object.payments.build do |payment_builder|
+              = purchase_fields.fields_for :payments, purchase_fields.object.payments do |payment_builder|
                 = payment_builder.label "What did you pay in total?"
                 = payment_builder.number_field :value, step: :any
           - if Warehouse.any?
