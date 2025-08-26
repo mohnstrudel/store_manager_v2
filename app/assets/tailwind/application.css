@@ -342,4 +342,12 @@
   .mark-gray {
     @apply text-gray-700 bg-gray-200 dark:text-gray-300/80 dark:bg-gray-600/80;
   }
+
+  /* Progress Widget */
+  .progress-container {
+    @apply w-full h-4 rounded-full overflow-hidden relative;
+  }
+  .progress-amount {
+    @apply inline-flex justify-center items-center font-bold text-shadow-xs absolute z-10 inset-0 text-white;
+  }
 }

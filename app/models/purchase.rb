@@ -104,6 +104,10 @@ class Purchase < ApplicationRecord
     debt / amount
   end
 
+  def item_paid
+    paid / amount
+  end
+
   def progress
     return 0 if total_cost.zero?
     [paid * 100.0 / total_cost, 100].min
