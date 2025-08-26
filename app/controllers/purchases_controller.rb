@@ -49,7 +49,7 @@ class PurchasesController < ApplicationController
     respond_to do |format|
       if @purchase.save
         if warehouse_id
-          @purchase.add_items_to_warehouse(warehouse_id:)
+          @purchase.add_items_to_warehouse(warehouse_id)
           @purchase.link_with_sales
         end
 
