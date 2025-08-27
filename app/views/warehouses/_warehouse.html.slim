@@ -12,7 +12,7 @@ tr id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param
   td = warehouse.cbm
   td = warehouse.purchase_items.size  
   - if warehouse.purchase_items.any?
-    td = render "_shared/warehouse_payment_progress", progress: warehouse.average_payment_progress, debt: warehouse.total_debt
+    td.w-45 = render "_shared/purchase_payment_progress", progress: warehouse.average_payment_progress, debt: warehouse.total_debt, only_debt: true
   - else
     td   
   - if action_name != "show" 

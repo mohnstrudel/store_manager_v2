@@ -13,7 +13,7 @@ tr(
         li
           = link_to item.sale.title, item.sale, class: "no-events"  
   td = item.purchase.supplier.title
-  td = render "_shared/purchase_payment_progress", purchase: item.purchase
+  td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
   td.actions
     = render "_shared/action_destroy", route: purchase_item_path(item)
     = render "_shared/action_edit", route: edit_purchase_item_path(item)
