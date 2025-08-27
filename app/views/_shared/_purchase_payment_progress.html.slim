@@ -1,11 +1,9 @@
-.progress-container class="#{purchase.progress >= 100 ? '' : 'bg-slate-700/30'}"
-  - if purchase.progress == 0
-    p.progress-amount 0%
-  - elsif purchase.progress <= 100
+.progress-container class="#{purchase.progress >= 100 ? '' : 'bg-slate-200/50 dark:bg-slate-700/40'}"
+  - if purchase.progress > 0 && purchase.progress <= 100
     .rounded-full.h-full.bg-lime-700/80 style="width: #{purchase.progress}%"
       p.progress-amount #{purchase.progress.round}%
 - if purchase.progress >= 0 && purchase.progress != 100
-  .flex.justify-between.pt-1.text-sm.font-medium.px-2
-    span.text-lime-700/90 class="dark:text-lime-500/85" #{purchase.item_paid > 0 ? format_money(purchase.item_paid) : "-"}
-    span.text-slate-400 #{format_money purchase.item_price}
-    span.text-orange-800/70 class="dark:text-orange-400/80" #{format_money purchase.item_debt}
+  .flex.justify-between.pt-1.text-sm.font-semibold.px-2
+    span.text-lime-700/70 class="dark:text-lime-500/85" #{purchase.item_paid > 0 ? format_money(purchase.item_paid) : "n/p"}
+    span.text-gray-400/90 #{format_money purchase.item_price}
+    span.text-amber-700/60 class="dark:text-orange-400/80" #{format_money purchase.item_debt}

@@ -348,6 +348,6 @@
     @apply w-full h-4 rounded-full overflow-hidden relative;
   }
   .progress-amount {
-    @apply inline-flex justify-center items-center font-bold text-shadow-xs absolute z-10 inset-0 text-white;
+    @apply text-right leading-[1.1] px-1 font-black text-sm text-shadow-xs text-gray-100;
   }
 }
