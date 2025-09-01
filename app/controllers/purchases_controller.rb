@@ -23,7 +23,7 @@ class PurchasesController < ApplicationController
   def show
     @purchase_items = @purchase
       .purchase_items
-      .includes(:warehouse, :sale_item)
+      .includes(:warehouse, :sale_item, :payments)
       .order(updated_at: :desc)
   end
 

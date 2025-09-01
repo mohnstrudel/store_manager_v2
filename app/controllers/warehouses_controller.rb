@@ -1,18 +1,22 @@
 class WarehousesController < ApplicationController
-  before_action :set_warehouse, only: %i[show edit update destroy]
+  before_action :set_warehouse, only: %i[edit update destroy]
   before_action :validate_default_warehouse, only: %i[create update]
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images.includes(:purchase_items).order(:position)
+    @warehouses = Warehouse.all.with_attached_images.includes(:purchase_items, purchases: :payments).order(:position)
   end
 
   # GET /warehouses/1
   def show
+    @warehouse = Warehouse
+      .with_attached_images
+      .includes(purchases: :payments)
+      .find(params[:id])
     @purchase_items = @warehouse
       .purchase_items
       .with_attached_images
-      .includes(:product, sale: :customer)
+      .includes(:product, sale: :customer, purchase: :payments)
       .order(updated_at: :desc)
       .page(params[:page])
     @total_purchase_items = @warehouse.purchase_items.size
