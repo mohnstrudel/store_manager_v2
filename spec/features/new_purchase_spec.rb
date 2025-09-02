@@ -12,7 +12,7 @@ RSpec.describe "Creating a new purchase", type: :feature do
     visit new_purchase_path
 
     find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_item_id", visible: false).set(product.id)
+    find("#purchase_product_id", visible: false).set(product.id)
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
     find("#purchase_payments_attributes_0_value").set(10)
@@ -35,7 +35,7 @@ RSpec.describe "Creating a new purchase", type: :feature do
     visit new_purchase_path
 
     find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_item_id", visible: false).set(product.id)
+    find("#purchase_product_id", visible: false).set(product.id)
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
     find("#purchase_payments_attributes_0_value").set(10)
@@ -45,7 +45,7 @@ RSpec.describe "Creating a new purchase", type: :feature do
     purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))
 
-    expect(page).to have_text("Purchase Items 5")
+    expect(page).to have_text("Purchase Items: 5")
 
     visit product_path(product)
 

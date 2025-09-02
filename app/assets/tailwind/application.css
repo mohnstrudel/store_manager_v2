@@ -203,6 +203,9 @@
   .icn {
     @apply font-normal font-icn not-italic;
   }
+  .btn-lightblue {
+    @apply text-sky-700 bg-sky-100 hover:bg-sky-200/76 dark:text-sky-300 dark:bg-sky-900/50 dark:hover:bg-sky-900 px-3 w-fit border-transparent;
+  }
 
   /* Pagination */
   .pagination {

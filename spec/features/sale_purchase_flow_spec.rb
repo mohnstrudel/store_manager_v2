@@ -14,7 +14,7 @@ feature "Link sales with purchases flow" do
     # because we don't want it to be automatically linked to the sale
     visit purchases_path
 
-    click_on "🐣 New"
+    click_on "Add New Record"
 
     select supplier.title, from: "purchase[supplier_id]"
 
@@ -31,15 +31,17 @@ feature "Link sales with purchases flow" do
 
     visit sales_path
 
-    click_on "🐣 New"
+    click_on "Add New Record"
 
     # Set an active status so the sale will be visible in the list
     choose "Processing"
+
     fill_in "Total", with: 100
 
     # Add product to sale
     click_button "Add Product"
-    select product.title, from: "sale[sale_items_attributes][1][product_id]"
+    scroll_to "div[data-controller=sale-items]"
+    slim_select "Select a product", product.title
     fill_in "sale[sale_items_attributes][1][qty]", with: 1
     fill_in "sale[sale_items_attributes][1][price]", with: "100.00"
 
@@ -55,6 +57,6 @@ feature "Link sales with purchases flow" do
     expect(page).to have_content(warehouse.name)
 
     # Purchased/Sold ratio is correct
-    expect(page).to have_selector("mark.smaller.muted", text: "1 / 1", normalize_ws: true)
+    expect(page).to have_selector(".mark-gray", text: "1 / 1", normalize_ws: true)
   end
 end

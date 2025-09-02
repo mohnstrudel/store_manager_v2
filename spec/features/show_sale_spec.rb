@@ -5,7 +5,7 @@ describe "Sale show page" do
   after { log_out }
 
   let(:sale) { create(:sale) }
-  let(:link_label) { "🔗 Link with purchases" }
+  let(:link_label) { "Link with purchases" }
 
   context "when the nav link should be hidden" do
     before do
