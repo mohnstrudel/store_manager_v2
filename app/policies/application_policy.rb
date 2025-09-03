@@ -35,10 +35,6 @@ class ApplicationPolicy
     admin?
   end
 
-  def noop?
-    true
-  end
-
   class Scope
     delegate :guest?, :admin?, :manager?, :support?, to: :user
 

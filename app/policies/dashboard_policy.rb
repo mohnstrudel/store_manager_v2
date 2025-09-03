@@ -6,4 +6,8 @@ class DashboardPolicy < ApplicationPolicy
   def pull_last_orders?
     admin? || manager? || support?
   end
+
+  def noop?
+    true
+  end
 end
