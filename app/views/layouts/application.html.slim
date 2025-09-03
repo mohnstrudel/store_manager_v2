@@ -1,12 +1,7 @@
 doctype html
 html
   head
-    - if Rails.env.staging?
-      title 🐶 Staging Mate 🐶
-    - if Rails.env.development?
-      title 🐞 Development Mate 🐞
-    - else
-      title StoreMate
+    title Store Mate
     meta[name="robots" content="noindex"]
     meta[name="viewport" content="width=device-width,initial-scale=1"]
     = csrf_meta_tags
