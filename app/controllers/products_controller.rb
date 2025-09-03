@@ -1,48 +1,25 @@
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[show edit update destroy editions]
+  before_action :set_product, only: %i[show edit update destroy]
 
   # GET /products or /products.json
   def index
-    @products = Product
-      .includes(editions: [:version, :color, :size])
-      .with_attached_images
-      .order(created_at: :desc)
-      .page(params[:page])
-    @products = @products.search(params[:q]) if params[:q].present?
+    @products = Product.listed.search_by(params[:q]).page(params[:page])
   end
 
   # GET /products/1 or /products/1.json
   def show
-    sales = @product
-      .product_sales.includes(
-        :product,
-        sale: :customer,
-        edition: [:version, :color, :size]
-      )
-      .order(created_at: :asc)
-
-    @active_sales = sales.select { |product_sale|
-      product_sale.sale.status.in? Sale.active_status_names
-    }
-
-    @complete_sales = sales.select { |product_sale|
-      product_sale.sale.status.in? Sale.completed_status_names
-    }
-
-    @editions_sales_sums = ProductSale
-      .only_active
-      .where(edition: @product.editions)
-      .group(:edition_id)
-      .sum(:qty)
-    @editions_purchases_sums = Purchase
-      .where(edition: @product.editions)
-      .group(:edition_id)
-      .sum(:amount)
+    @active_sales = @product.fetch_active_sale_items
+    @complete_sales = @product.fetch_completed_sale_items
+    @editions_sales_sums = @product.sum_editions_sale_items
+    @editions_purchases_sums = @product.sum_editions_purchase_items
   end
 
   # GET /products/new
   def new
     @product = Product.new
+    @product.purchases.build do |purchase|
+      purchase.payments.build
+    end
   end
 
   # GET /products/1/edit
@@ -56,7 +33,9 @@ class ProductsController < ApplicationController
 
     respond_to do |format|
       if @product.save
-        format.html { redirect_to product_url(@product), notice: "Product was successfully created." }
+        handle_new_purchase if purchase_params.present?
+
+        format.html { redirect_to @product, notice: "Product was successfully created" }
         format.json { render :show, status: :created, location: @product }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -73,7 +52,7 @@ class ProductsController < ApplicationController
         @product.build_editions
         @product.save
 
-        format.html { redirect_to product_url(@product), notice: "Product was successfully updated." }
+        format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
         format.json { render :show, status: :ok, location: @product }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -87,23 +66,8 @@ class ProductsController < ApplicationController
     @product.destroy
 
     respond_to do |format|
-      format.html { redirect_to products_url, notice: "Product was successfully destroyed." }
+      format.html { redirect_to products_url, notice: "Product was successfully destroyed" }
       format.json { head :no_content }
-    end
-  end
-
-  # GET /products/:id/editions?target=${html-id}
-  def editions
-    @target = params[:target]
-    @editions = @product
-      .editions
-      .includes(:version, :color, :size)
-      .select { |i|
-        {id: i.id, title: i.title} if i.title.present?
-      }
-
-    respond_to do |format|
-      format.turbo_stream
     end
   end
 
@@ -120,7 +84,7 @@ class ProductsController < ApplicationController
     end
 
     statuses_link = view_context.link_to(
-      "jobs statuses dashboard", root_url + "jobs/statuses"
+      "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
     )
 
     flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
@@ -134,12 +98,12 @@ class ProductsController < ApplicationController
   def set_product
     @product = Product.includes(
       purchases: [:product, :supplier, edition: [:version, :color, :size]],
-      purchased_products: [:warehouse, :purchase],
+      purchase_items: [:warehouse, :purchase],
       editions: [
         :version,
         :color,
         :size,
-        {product_sales: :sale},
+        {sale_items: :sale},
         {purchases: :supplier}
       ]
     )
@@ -150,7 +114,7 @@ class ProductsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def product_params
-    params.fetch(:product, {}).permit(
+    params.expect(product: [
       :title,
       :franchise_id,
       :shape_id,
@@ -161,9 +125,33 @@ class ProductsController < ApplicationController
       brand_ids: [],
       color_ids: [],
       size_ids: [],
-      supplier_ids: [],
       version_ids: [],
-      images: []
-    )
+      images: [],
+      purchases_attributes: [[
+        :item_price,
+        :amount,
+        :supplier_id,
+        :order_reference,
+        :warehouse_id,
+        payments_attributes: [:value]
+      ]]
+    ])
+  end
+
+  def purchase_params
+    params.dig(:product, :purchases_attributes, "0")
+  end
+
+  def handle_new_purchase
+    warehouse_id = purchase_params[:warehouse_id]
+    payment_value = purchase_params[:payments_attributes]&.values&.first&.[](:value)
+    purchase = @product.purchases.last
+    if purchase && warehouse_id
+      @product.purchases.last.add_items_to_warehouse(warehouse_id)
+      @product.purchases.last.link_with_sales
+    end
+    if purchase && payment_value
+      purchase.payments.create(value: payment_value)
+    end
   end
 end

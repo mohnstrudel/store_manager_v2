@@ -9,9 +9,44 @@
 #  version_id :bigint
 #
 class ProductVersion < ApplicationRecord
-  audited
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited
+
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
   db_belongs_to :product
   db_belongs_to :version
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

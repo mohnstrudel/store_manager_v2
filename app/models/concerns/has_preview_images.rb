@@ -16,5 +16,13 @@ module HasPreviewImages
         resize_to_limit: [120, 120],
         preprocessed: true
     end
+
+    def prev_image_id(img_id)
+      (images.where(id: ...img_id).last || images.last).id
+    end
+
+    def next_image_id(img_id)
+      (images.where("id > ?", img_id).first || images.first).id
+    end
   end
 end

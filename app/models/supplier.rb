@@ -9,17 +9,42 @@
 #  updated_at :datetime         not null
 #
 class Supplier < ApplicationRecord
-  audited
-  has_associated_audits
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
   extend FriendlyId
+
+  #
+  # == Configuration
+  #
+  audited
+  has_associated_audits
   friendly_id :title, use: :slugged
 
+  #
+  # == Validations
+  #
   validates :title, presence: true
 
-  has_many :product_suppliers, dependent: :destroy
-  has_many :products, through: :product_suppliers
-
   has_many :purchases, dependent: :destroy
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

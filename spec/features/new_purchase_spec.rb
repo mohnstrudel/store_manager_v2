@@ -1,6 +1,9 @@
 require "rails_helper"
 
 RSpec.describe "Creating a new purchase", type: :feature do
+  before { sign_in_as_admin }
+  after { log_out }
+
   let!(:supplier) { create(:supplier) }
   let!(:product) { create(:product) }
   let!(:warehouse) { create(:warehouse, is_default: true) }
@@ -17,11 +20,11 @@ RSpec.describe "Creating a new purchase", type: :feature do
     expect {
       click_button "Create Purchase"
     }.to change(Purchase, :count).by(1)
-      .and change(PurchasedProduct, :count).by(5)
+      .and change(PurchaseItem, :count).by(5)
 
     purchase = Purchase.last
-    expect(purchase.purchased_products.count).to eq(5)
-    expect(purchase.purchased_products.all? { |pp| pp.warehouse == warehouse }).to be true
+    expect(purchase.purchase_items.count).to eq(5)
+    expect(purchase.purchase_items.all? { |pp| pp.warehouse == warehouse }).to be true
   end
 
   scenario "displays warehouse information on the purchase page after creation" do
@@ -42,7 +45,7 @@ RSpec.describe "Creating a new purchase", type: :feature do
     purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))
 
-    expect(page).to have_text("Purchased Products 5")
+    expect(page).to have_text("Purchase Items: 5")
 
     visit product_path(product)
 

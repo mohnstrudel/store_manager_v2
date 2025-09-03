@@ -1,35 +1,37 @@
 = form_with model: purchase do |form|
-  = render "_shared/notice-err", model: purchase
-
-  = form.label :supplier
-  = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title
-
   .stimulus data-controller="purchase-edition"
-    = form.label :product
+    = form.label :product_id
     .stimulus#purchase-product-select
-      = form.collection_select :product_id, Product.all, :id, :woo_id_full_title, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-edition#change" }
+      = form.collection_select :product_id, Product.all, :id, :build_full_title_with_shop_id, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-edition#change" }
 
     .stimulus#purchase-edition-select data-purchase-edition-target="select"
       - if purchase.product&.editions.present?
-        = form.label :edition
-        = form.collection_select :edition_id, purchase.product.editions.includes(:size, :color, :version), :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
+        = form.label :edition_id
+        = form.collection_select :edition_id, purchase.product.fetch_editions_with_title, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
 
-  = form.label :order_reference
-  = form.text_field :order_reference
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :supplier_id
+      = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title, class: "w-full"
+    .block.w-full
+      = form.label :order_reference
+      = form.text_field :order_reference
 
-  = form.label :item_price
-  = form.text_field :item_price
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :item_price
+      = form.text_field :item_price
+    .block.w-full
+      = form.label :amount
+      = form.text_field :amount
+    .block.w-full
+      - if purchase.new_record?
+        = form.fields_for :payments do |payment_builder|
+          = payment_builder.label "What did you pay in total?"
+          = payment_builder.number_field :value, step: :any
 
-  = form.label :amount
-  = form.text_field :amount
+  - if Warehouse.any?
+    = form.label :warehouse_id, "Initial warehouse"
+    = form.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
 
-  - if action_name == "new"
-    = form.fields_for :payments do |payment_builder|
-      = payment_builder.label "What did you pay in total?"
-      = payment_builder.number_field :value, step: :any
-
-    - if Warehouse.any?
-      = form.label :warehouse, "Initial Warehouse"
-      = form.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
-
-  = form.submit
+  = form_submit_for(purchase, form)

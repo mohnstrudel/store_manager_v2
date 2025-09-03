@@ -6,6 +6,7 @@
 #  amount          :integer
 #  item_price      :decimal(8, 2)
 #  order_reference :string
+#  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
 #  slug            :string
 #  synced          :string
@@ -16,15 +17,26 @@
 #  supplier_id     :bigint           not null
 #
 class Purchase < ApplicationRecord
+  attribute :warehouse_id, :integer
+
+  #
+  # == Concerns
+  #
+  include HasAuditNotifications
+  include Searchable
+
+  #
+  # == Extensions
+  #
+  extend FriendlyId
+
+  #
+  # == Configuration
+  #
   audited associated_with: :supplier
   has_associated_audits
-  include HasAuditNotifications
-
-  extend FriendlyId
   friendly_id :full_title, use: :slugged
-
-  include PgSearch::Model
-  pg_search_scope :search,
+  set_search_scope :search,
     against: [:order_reference],
     associated_against: {
       supplier: [:title],
@@ -36,12 +48,18 @@ class Purchase < ApplicationRecord
     using: {
       tsearch: {prefix: true}
     }
-
   paginates_per 50
 
+  #
+  # == Validations
+  #
   validates :amount, presence: true
   validates :item_price, presence: true
+  validates :supplier_id, presence: true
 
+  #
+  # == Associations
+  #
   db_belongs_to :supplier
   belongs_to :product, optional: true
   belongs_to :edition, optional: true
@@ -53,9 +71,12 @@ class Purchase < ApplicationRecord
   has_many :payments, dependent: :destroy
   accepts_nested_attributes_for :payments
 
-  has_many :purchased_products, dependent: :destroy
-  has_many :warehouses, through: :purchased_products
+  has_many :purchase_items, dependent: :destroy
+  has_many :warehouses, through: :purchase_items
 
+  #
+  # == Scopes
+  #
   scope :unpaid, -> {
     includes(:supplier)
       .where
@@ -63,16 +84,33 @@ class Purchase < ApplicationRecord
       .order(created_at: :asc)
   }
 
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
   def paid
-    payments.pluck(:value).sum
+    @paid ||= payments ? payments.pluck(:value).sum : 0
   end
 
   def debt
-    total_cost - paid
+    @total_cost ||= [total_cost - paid, 0].max
+  end
+
+  def item_debt
+    debt / amount
+  end
+
+  def item_paid
+    paid / amount
   end
 
   def progress
-    paid / (total_cost * BigDecimal("0.01"))
+    return 0 if total_cost.zero?
+    [paid * 100.0 / total_cost, 100].min
   end
 
   def total_cost
@@ -92,5 +130,28 @@ class Purchase < ApplicationRecord
 
   def date
     purchase_date || created_at
+  end
+
+  def unpaid?
+    payments_count.zero?
+  end
+
+  def add_items_to_warehouse(warehouse_id)
+    purchase_items_attributes = Array.new(amount) {
+      {
+        purchase_id: id,
+        warehouse_id:,
+        created_at: Time.current,
+        updated_at: Time.current
+      }
+    }
+    purchase_items.create!(purchase_items_attributes)
+  end
+
+  def link_with_sales
+    linked_purchase_item_ids = PurchaseLinker.link(self)
+    PurchasedNotifier.handle_product_purchase(
+      purchase_item_ids: linked_purchase_item_ids
+    )
   end
 end

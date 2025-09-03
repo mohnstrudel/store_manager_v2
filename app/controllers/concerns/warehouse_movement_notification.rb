@@ -8,7 +8,8 @@ module WarehouseMovementNotification
 
     destination_link = view_context.link_to(
       destination_warehouse.name,
-      warehouse_path(destination_warehouse)
+      warehouse_path(destination_warehouse),
+      class: "link"
     )
     products = "product".pluralize(moved_count)
 

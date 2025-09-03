@@ -1,12 +1,12 @@
 dialog id="my-modal" data-controller="modal" data-modal-target="container"
-  article
-    header.flex.justify-between.items-center.gap
+  .dialog-content.rounded-lg.shadow-lg.w-xl.p-4.pb-6.-translate-y-10
+    header.nav_header.mb-6.pb-4
       - if defined? subheading
         hgroup
-          h4 = heading
-          h5 = subheading
+          h2 = heading
+          h4.font-medium = subheading
       - else
-        h4 = heading
+        h2 = heading
       button.btn.is-muted.is-inverted.small aria-label="Close" rel="prev" data-action="modal#close"
         i.icn ❌
     = render content_partial

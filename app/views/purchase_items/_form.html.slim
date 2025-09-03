@@ -1,0 +1,53 @@
+= form_with(model: purchase_item) do |form|
+  = form.label :warehouse
+  = form.collection_select(:warehouse_id, Warehouse.order(:name), :id, :name, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+  
+  = form.label :purchase
+  = form.collection_select(:purchase_id, @purchases || [], :id, :full_title, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+  
+  = form.label :sale_item
+  = form.collection_select(:sale_item_id, @sale_items || [], :id, :build_title_for_select, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+
+  = form.label :length
+  = form.text_field :length
+
+  = form.label :width
+  = form.text_field :width
+
+  = form.label :height
+  = form.text_field :height
+
+  = form.label :weight
+  = form.text_field :weight
+
+  = form.label :expenses
+  = form.text_field :expenses
+
+  = form.label :shipping_price
+  = form.text_field :shipping_price
+
+  = form.label :tracking_number
+  = form.text_field :tracking_number
+
+  = form.label :shipping_company
+  = form.collection_select(:shipping_company_id, @shipping_companies || [], :id, :name, { class: "select", include_blank: true })
+
+  - if purchase_item.images.attached?
+    br
+    .card.flex.wrap.gap.even-pd.items-end
+      - purchase_item.images.each do |image|
+        .form__img-card
+          = form.hidden_field :images, multiple: true, value: image.signed_id
+          = render "_shared/preloadable_img", src: image.representation(:thumb).url
+          = label_tag nil, class: "pd-2 pointer"
+            = check_box_tag "deleted_img_ids[]", image.id, class: "inline checkbox-remove"
+            | Remove image
+    br
+
+  = form.label :images 
+  = form.file_field :images, multiple: true
+
+  - if params[:redirect_to_sale_item].present?
+    = form.hidden_field :redirect_to_sale_item, value: true
+
+  = form_submit_for(purchase_item, form)

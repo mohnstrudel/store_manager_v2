@@ -1,15 +1,11 @@
 tr id="#{dom_id shape}"
-  td
-    = shape.id
-  td
-    = shape.title
-  td
-    = shape.created_at
-  td
-    = shape.updated_at
+  td = shape.id
+  td = shape.title
+  td = shape.created_at
+  td = shape.updated_at
   - if action_name != "show" 
     td.actions
       = link_to shape
         i.icn 📄
-        | Show
-      = render "_shared/action-edit", route: edit_sale_path(sale)
+        | Show
+      = render "_shared/action_edit", route: edit_shape_path(shape)

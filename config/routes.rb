@@ -3,50 +3,78 @@ require "sidekiq-status/web"
 
 Rails.application.routes.draw do
   root "dashboard#index"
-  get "shopify", to: "home#index"
 
-  mount ShopifyApp::Engine, at: "/"
-  mount Sidekiq::Web => "/jobs"
-
+  # For monitoring db health
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"
   end
 
-  resources :purchased_products
-  resources :product_sales
+  # Shopify integration
+  mount ShopifyApp::Engine, at: "shopify_app"
+  mount Sidekiq::Web => "jobs"
 
-  post "purchased_products/move", to: "purchased_products#move", as: :move_purchased_products
+  # WooCommerce integration
+  post "update-order", to: "webhook#process_order"
 
-  post "purchased_products/unlink", to: "purchased_products#unlink", as: :unlink_purchased_product
+  resources :passwords, param: :token
 
-  post "move_purchases", to: "purchases#move"
+  resources :users, except: %i[new create]
+  get "sign_up", to: "users#new", as: :new_sign_up
+  post "sign_up", to: "users#create", as: :sign_up
 
-  resources :warehouses do
-    get "/page/:page", action: :show, on: :member
-    post :change_position, on: :member
-  end
+  resource :session, except: %i[new destroy]
+  get "sign_in", to: "sessions#new", as: :sign_in
+  post "log_out", to: "sessions#destroy", as: :log_out
 
-  resources :customers do
-    get "/page/:page", action: :index, on: :collection
-  end
+  get "debts", to: "dashboard#debts"
+  get "debts/:page", to: "dashboard#debts"
+  get "pull-last-orders", to: "dashboard#pull_last_orders"
+  get "noop", to: "dashboard#noop", as: :noop
 
-  resources :sales do
-    get "/page/:page", action: :index, on: :collection
-    get "pull", action: :pull, on: :collection
-    get "pull", action: :pull, on: :member
-    member do
-      get :link_purchased_products
+  resources :purchase_items do
+    collection do
+      post :move
+      post :unlink
     end
   end
 
+  resources :sale_items
+
   resources :products do
-    get "/page/:page", action: :index, on: :collection
-    get "editions", on: :member
-    get "pull", action: :pull, on: :collection
-    get "pull", action: :pull, on: :member
+    collection do
+      get "/page/:page", action: :index
+      get :pull
+    end
+    get :pull, on: :member
+  end
+
+  resources :sales do
+    collection do
+      get :pull
+      get "/page/:page", action: :index
+    end
+    member do
+      get :pull
+      get :link_purchase_items
+    end
   end
 
   resources :purchases do
+    collection do
+      get "/page/:page", action: :index
+      get :product_editions
+      post :move
+    end
+  end
+
+  resources :warehouses do
+    member do
+      get "/page/:page", action: :show
+      post :change_position
+    end
+  end
+
+  resources :customers do
     get "/page/:page", action: :index, on: :collection
   end
 
@@ -55,13 +83,4 @@ Rails.application.routes.draw do
   scope "/admin" do
     resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands
   end
-
-  post "update-order", to: "webhook#process_order"
-
-  get "dashboard/index"
-
-  get "debts", to: "dashboard#debts"
-  get "debts/:page", to: "dashboard#debts"
-
-  get "pull-last-orders", to: "dashboard#pull_last_orders"
 end

@@ -1,15 +1,21 @@
 require "capybara/rspec"
 require "capybara/cuprite"
 
-Capybara.default_max_wait_time = 2
+Capybara.default_max_wait_time = 10
 Capybara.default_normalize_ws = true
+Capybara.disable_animation = true
 
 Capybara.register_driver(:better_cuprite) do |app|
   Capybara::Cuprite::Driver.new(
     app,
-    window_size: [1400, 4000],
+    window_size: [1200, 768],
+    viewport_size: [1200, 5000],
     # See additional options for Dockerized environment in the respective section of this article
-    browser_options: {"no-sandbox": nil},
+    browser_options: {
+      :"no-sandbox" => nil,
+      "disable-smooth-scrolling" => true,
+      :"window-size" => "1200,768"
+    },
     # Increase Chrome startup wait time (required for stable CI builds)
     process_timeout: 20,
     # Enable debugging capabilities

@@ -1,15 +1,11 @@
 tr id="#{dom_id brand}"
-  td
-    = brand.id
-  td
-    = brand.title
-  td
-    = brand.created_at
-  td
-    = brand.updated_at
+  td = brand.id
+  td = brand.title
+  td = brand.created_at
+  td = brand.updated_at
   - if action_name != "show" 
     td.actions
       = link_to brand
         i.icn 📄
-        | Show
-      = render "_shared/action-edit", route: edit_brand_path(brand)
+        | Show
+      = render "_shared/action_edit", route: edit_brand_path(brand)

@@ -1,0 +1,17 @@
+= render "_shared/notice"
+= render "_shared/nav-index", model: @users
+
+.section-border-base.section-wide
+  table
+    thead
+      tr
+        th ID
+        th Email
+        th First Name
+        th Last Name
+        th Role
+        th Created
+        th Updated
+        th.text-right Actions
+    tbody
+      = render @users

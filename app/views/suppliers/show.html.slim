@@ -2,49 +2,46 @@
 
 = render "_shared/nav-show", model: @supplier
 
-main
-  table.vertical(role="grid")
-    thead
-      tr
-        th
-          | ID
-        th
-          | Title
-        th
-          | Created
-        th
-          | Updated
-    tbody
-      = render @supplier
+.section-wide.flex.flex-col.gap-8.mt-8
+  .table-card
+    table
+      thead
+        tr
+          th ID
+          th Title
+          th Created
+          th Updated
+      tbody
+        = render @supplier
 
-- if @purchases.present?
-    .table-cards-group
-      .table-card
-        h3 Purchases
-        table data-controller="table"
-          thead
-            th Title
-            th Edition
-            th Purchased ago
-            th.right Item Price, $
-            th Qty
-            th Debt
-          tbody
-            - @purchases.each_with_index do |purchase, idx|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=purchase_path(purchase)
-                class="#{purchase.debt > 0 ? 'has-debt' : 'paid'}"
-              )
-                - if purchase.edition.present?
-                  td = purchase.product.full_title
-                  td = purchase.edition.title
-                - else
-                  td = purchase.product.full_title
-                  td  
-                td.no-wrap = time_ago_in_words (purchase.purchase_date.presence || purchase.created_at)
-                td.right.mono = format_money purchase.item_price
-                td = purchase.amount
-                td = purchase.debt > 0 ? format_money(purchase.debt) : ""
+  - if @purchases.present?
+      .table-cards-group
+        .table-card
+          h3 Purchases
+          table data-controller="table"
+            thead
+              th Title
+              th Edition
+              th Purchased ago
+              th.text-right Item Price, $
+              th Qty
+              th Debt
+            tbody
+              - @purchases.each_with_index do |purchase, idx|
+                tr.hoverable(
+                  data-action="click->table#goTo"
+                  data-table-url-param=purchase_path(purchase)
+                  class="#{purchase.debt > 0 ? 'has-debt' : 'paid'}"
+                )
+                  - if purchase.edition.present?
+                    td = purchase.product.full_title
+                    td = purchase.edition.title
+                  - else
+                    td = purchase.product.full_title
+                    td  
+                  td.no-wrap = time_ago_in_words (purchase.purchase_date.presence || purchase.created_at)
+                  td.text-right.font-mono = format_money purchase.item_price
+                  td = purchase.amount
+                  td = purchase.debt > 0 ? format_money(purchase.debt) : ""
 
-= button_to "Destroy this supplier", supplier_path(@supplier), method: :delete, class: "btn-danger"  
+= destroy_btn_for @supplier

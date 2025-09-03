@@ -1,0 +1,19 @@
+tr(
+  class="hoverable"
+  data-action="click->table#goTo"
+  data-table-url-param=purchase_item_path(item)
+)
+  = render "_shared/move_to_warehouse/td", id: item.id
+  td
+    = item.purchase.product.full_title
+    - if item.purchase.edition.present?
+      | → #{item.purchase.edition.title}
+    - if item.sale
+      ul.ml-4.mt-2.text-sm
+        li
+          = link_to item.sale.title, item.sale, class: "no-events"  
+  td = item.purchase.supplier.title
+  td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
+  td.actions
+    = render "_shared/action_destroy", route: purchase_item_path(item)
+    = render "_shared/action_edit", route: edit_purchase_item_path(item)

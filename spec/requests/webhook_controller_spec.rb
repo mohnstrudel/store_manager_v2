@@ -15,8 +15,8 @@ RSpec.describe WebhookController do
       sale = create(:sale, woo_id: parsed_order[:sale][:woo_id], customer:)
       product = create(:product, woo_id: parsed_order[:products].first[:product_woo_id])
       edition = create(:edition, woo_id: parsed_order[:products].first[:edition][:woo_id], product:)
-      @product_sale = create(
-        :product_sale,
+      @sale_item = create(
+        :sale_item,
         sale:,
         product:,
         edition:,
@@ -32,20 +32,20 @@ RSpec.describe WebhookController do
 
     it "updates a product sale related to the parsed product" do
       parsed_product = parsed_order[:products].first
-      updated_product_sale = ProductSale.find(@product_sale.id)
+      updated_sale_item = SaleItem.find(@sale_item.id)
 
-      expect(updated_product_sale.qty).to eq(parsed_product[:qty])
-      expect(updated_product_sale.price).to eq(
+      expect(updated_sale_item.qty).to eq(parsed_product[:qty])
+      expect(updated_sale_item.price).to eq(
         BigDecimal(parsed_product[:price])
       )
-      expect(updated_product_sale.edition.title).to eq(
+      expect(updated_sale_item.edition.title).to eq(
         parsed_product[:edition][:display_value]
       )
     end
 
     it "creates a new sale when it doesn't exist" do
       parsed_product = parsed_order[:products].last
-      new_sale = ProductSale.last
+      new_sale = SaleItem.last
 
       expect(new_sale.qty).to eq(parsed_product[:qty])
       expect(new_sale.price).to eq(

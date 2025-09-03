@@ -1,12 +1,12 @@
 - if product.editions.any?
   .table-card
     h3 Editions
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         th ID
         th Name
         th Type
-        th.right Active Sales
+        th.text-right Active Sales
         th Purchases
         th Shop ID
       tbody
@@ -15,9 +15,9 @@
             td = edition.id
             td = edition.title
             td = edition.types_name
-            td.right = format_zero_values @editions_sales_sums[edition.id]
+            td.text-right = format_zero_values @editions_sales_sums[edition.id]
             td = format_zero_values @editions_purchases_sums[edition.id]
             - if edition.store_link.present?
-              td = link_to edition.shop_id, edition.store_link, :target => "_blank", "rel" => "noopener noreferrer"
+              td = link_to edition.shop_id, edition.store_link, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
             - else 
               td = edition.shop_id

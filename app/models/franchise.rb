@@ -8,14 +8,51 @@
 #  updated_at :datetime         not null
 #
 class Franchise < ApplicationRecord
-  audited
-  has_associated_audits
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited
+  has_associated_audits
+
+  #
+  # == Validations
+  #
   validates :title, presence: true
+
+  #
+  # == Associations
+  #
   has_many :products, dependent: :destroy
 
+  #
+  # == Callbacks
+  #
   after_save :update_products
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 
   private
 

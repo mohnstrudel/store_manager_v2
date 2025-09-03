@@ -1,44 +1,20 @@
 class SalesController < ApplicationController
-  before_action :set_sale, only: %i[edit update destroy link_purchased_products]
+  before_action :set_sale, only: %i[edit update destroy link_purchase_items]
 
   # GET /sales
   def index
-    sale_records = Sale
-      .includes(
-        :customer,
-        product_sales: [
-          :purchased_products,
-          product: [images_attachments: :blob],
-          edition: [
-            :version,
-            :color,
-            :size
-          ]
-        ]
-      )
+    @sales = Sale
+      .with_index_details
       .except_cancelled_or_completed
-      .order(
-        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC, CAST(woo_id AS int) DESC")
-      )
+      .ordered_by_shop_created_at
+      .search_by(params[:q])
       .page(params[:page])
-
-    @sales = if params[:q].present?
-      sale_records
-        .search(params[:q])
-    else
-      sale_records
-    end
   end
 
   # GET /sales/1
   def show
     @sale = Sale
-      .includes(
-        product_sales: [
-          purchased_products: [:warehouse, purchase: :supplier],
-          product: [images_attachments: :blob]
-        ]
-      )
+      .with_show_details
       .friendly
       .find(params[:id])
   end
@@ -57,9 +33,9 @@ class SalesController < ApplicationController
     @sale = Sale.new(sale_params)
 
     if @sale.save
-      linked_ids = SaleLinker.new(@sale).link
-      PurchasedNotifier.new(purchased_product_ids: linked_ids).handle_product_purchase
-      redirect_to @sale, notice: "Sale was successfully created."
+      linked_ids = @sale.link_with_purchase_items
+      PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
+      redirect_to @sale, notice: "Sale was successfully created"
     else
       render :new, status: :unprocessable_entity
     end
@@ -72,7 +48,7 @@ class SalesController < ApplicationController
       if changes[:status]
         Sale.update_order(woo_id: @sale.woo_id, status: changes[:status])
       end
-      redirect_to @sale, notice: "Sale was successfully updated."
+      redirect_to @sale, notice: "Sale was successfully updated"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -81,15 +57,15 @@ class SalesController < ApplicationController
   # DELETE /sales/1
   def destroy
     @sale.destroy
-    redirect_to sales_url, notice: "Sale was successfully destroyed.", status: :see_other
+    redirect_to sales_url, notice: "Sale was successfully destroyed", status: :see_other
   end
 
-  def link_purchased_products
-    purchased_product_ids = SaleLinker.new(@sale).link
+  def link_purchase_items
+    purchase_item_ids = @sale.link_with_purchase_items
 
-    PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
+    PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
 
-    redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products."
+    redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products"
   end
 
   def pull
@@ -106,7 +82,7 @@ class SalesController < ApplicationController
     end
 
     statuses_link = view_context.link_to(
-      "jobs statuses dashboard", root_url + "jobs/statuses"
+      "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
     )
 
     flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
@@ -139,7 +115,7 @@ class SalesController < ApplicationController
       :woo_id,
       :customer_id,
       product_ids: [],
-      product_sales_attributes: [
+      sale_items_attributes: [
         :id,
         :product_id,
         :qty,

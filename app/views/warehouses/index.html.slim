@@ -1,20 +1,15 @@
 = render "_shared/notice"
-
 = render "_shared/nav-index", model: @warehouses
 
-main.wide
-  table role="grid" data-controller="table"
+section.section-border-base.section-wide
+  table data-controller="table"
     thead
       tr
         th Position
-        th
-          | Name
-          br
-          <span class="fw-400">External Name for Clients</span>
+        th Name <span class="font-normal text-sm pl-4">+ External Name for Clients</span>
         th CBM
-        th Container Tracking Number
-        th Courier Tracking URL
         th Products
-        th.right Actions
+        th Payment Progress
+        th.text-right Actions
     tbody
       = render @warehouses, warehouses_count: @warehouses.size

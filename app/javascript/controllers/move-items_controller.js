@@ -86,7 +86,7 @@ export default class extends Controller {
   toggleMassSelect(event) {
     event.preventDefault();
     const link = this.toggleAllLinkTarget;
-    const isSelecting = link.textContent === "Select";
+    const isSelecting = link.textContent === "Move";
 
     this.toggleCheckboxes(isSelecting);
 
@@ -94,7 +94,7 @@ export default class extends Controller {
       link.textContent = "Undo";
       link.classList.toggle("undo");
     } else {
-      link.textContent = "Select";
+      link.textContent = "Move";
       link.classList.toggle("undo");
     }
 

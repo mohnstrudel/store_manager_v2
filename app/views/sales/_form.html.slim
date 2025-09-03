@@ -1,60 +1,74 @@
-= form_with model: sale do |f|
-  h4.edit-header-pd Status
-  .radio-buttons
-    = f.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
-      = rdb.label(class: "radio-btn")
-        = rdb.label class: "radio-btn--label"
-        = rdb.radio_button
+= form_with model: sale do |form|
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :id
+      = form.text_field :id, disabled: true, class: "bg-gray-200 text-gray-500 cursor-not-allowed"
+    .block.w-full
+      = form.label :shopify_id
+      = form.text_field :shopify_id
+    .block.w-full
+      = form.label :woo_id
+      = form.text_field :woo_id
 
-  h4.edit-header-pd Price
-  = f.label :total
-  = f.text_field :total
+  = form.label :customer_id
+  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
 
-  = f.label :discount_total
-  = f.text_field :discount_total
+  = form.label :note
+  = form.text_field :note
 
-  = f.label :shipping_total
-  = f.text_field :shipping_total  
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :country
+      = form.text_field :country
+    .block.w-full
+      = form.label :state
+      = form.text_field :state
+    .block.w-full
+      = form.label :city
+      = form.text_field :city
+    .block.w-full
+      = form.label :postcode
+      = form.text_field :postcode  
+  
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :address_1
+      = form.text_field :address_1
+    .block.w-full
+      = form.label :address_2
+      = form.text_field :address_2    
 
-  h4.edit-header-pd Customer
-  = f.label :customer
-  = f.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
+  = form.label :company
+  = form.text_field :company
 
-  = f.label :note
-  = f.text_field :note
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :total, "Total price"
+      = form.text_field :total
+    .block.w-full
+      = form.label :discount_total
+      = form.text_field :discount_total
+    .block.w-full
+      = form.label :shipping_total
+      = form.text_field :shipping_total  
 
-  h4.edit-header-pd Address
-  = f.label :company
-  = f.text_field :company
+  label Status
+  .flex.flex-wrap.gap-4.p-4.border.border-gray-200.rounded-md class="dark:border-gray-800"
+    = form.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
+      .flex.items-center.mr-2
+        = rdb.label(class: "m-0 p-0 flex items-center relative cursor-pointer")
+          = rdb.radio_button class: "p-0"
+        = rdb.label class: "m-0 p-0 pl-2 cursor-pointer text-sm"
 
-  = f.label :country
-  = f.text_field :country
-
-  = f.label :state
-  = f.text_field :state
-
-  = f.label :city
-  = f.text_field :city
-
-  = f.label :address_1
-  = f.text_field :address_1
-
-  = f.label :address_2
-  = f.text_field :address_2
-
-  = f.label :postcode
-  = f.text_field :postcode
-
-  h4.edit-header-pd Products 
-  div data-controller="product-sales"
-    = f.collection_select(:_, Product.all, :id, :full_title,
+  h5.mt-8.mb-3 Products 
+  div data-controller="sale-items"
+    / Look for the template in sale_items_controller.js
+    = form.collection_select(:_, Product.all, :id, :full_title,
         { prompt: "Select a product" },
-        { hidden: true, data: { "product-sales-target": "options" }})
-    - sale.product_sales.each do |product_sale|
-      = f.fields_for :product_sales, product_sale do |ps_f|
-        = render "product_fields", f: ps_f, product: product_sale.product
-    button.is-inverted(data-action="product-sales#addProduct" data-product-sales-target="btn") Add Product
+        { hidden: true, data: { "sale-items-target": "options" }})
+    - sale.sale_items.each do |sale_item|
+      = form.fields_for :sale_items, sale_item do |ps_f|
+        = render "product_fields", f: ps_f, product: sale_item.product
+    button.btn-rounded.mt-3(data-action="sale-items#addProduct" data-sale-items-target="btn") Add Product
 
-  = render "_shared/notice-err", model: sale
-
-  = f.submit
+  = form_submit_for(sale, form)

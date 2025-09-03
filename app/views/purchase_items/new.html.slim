@@ -1,0 +1,4 @@
+= render "_shared/notice-err", model: @purchase_item
+= render "_shared/nav-new", model: @purchase_item, custom_link: link_to("To warehouse", warehouse_path(@warehouse))
+
+= render "form", purchase_item: @purchase_item, warehouse: @warehouse

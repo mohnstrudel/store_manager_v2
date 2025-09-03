@@ -17,23 +17,30 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
-  audited associated_with: :franchise
-  has_associated_audits
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
-
   include HasPreviewImages
-  include PgSearch::Model
+  include Searchable
+  include Shopable
 
+  #
+  # == Extensions
+  #
+  extend FriendlyId
+
+  #
+  # == Configuration
+  #
+  friendly_id :find_slug_candidate, use: :slugged
   broadcasts_refreshes
   paginates_per 50
-
-  extend FriendlyId
-  friendly_id :get_slug, use: :slugged
-
-  pg_search_scope :search,
+  audited associated_with: :franchise
+  has_associated_audits
+  set_search_scope :search,
     against: [:full_title, :woo_id],
     associated_against: {
-      suppliers: [:title],
       sizes: [:value],
       versions: [:value],
       colors: [:value]
@@ -42,19 +49,27 @@ class Product < ApplicationRecord
       tsearch: {prefix: true}
     }
 
+  #
+  # == Callbacks
+  #
   after_create :update_full_title
 
+  #
+  # == Validations
+  #
   validates :title, presence: true
   validates_db_uniqueness_of :sku
 
+  #
+  # == Associations
+  #
   db_belongs_to :franchise
   db_belongs_to :shape
 
+  has_many :editions, dependent: :destroy, autosave: true
+
   has_many :product_brands, dependent: :destroy
   has_many :brands, through: :product_brands
-
-  has_many :product_suppliers, dependent: :destroy
-  has_many :suppliers, through: :product_suppliers
 
   has_many :product_sizes, dependent: :destroy
   has_many :sizes, through: :product_sizes
@@ -65,14 +80,25 @@ class Product < ApplicationRecord
   has_many :product_colors, dependent: :destroy
   has_many :colors, through: :product_colors
 
-  has_many :product_sales, dependent: :destroy
-  has_many :sales, through: :product_sales
-
-  has_many :editions, dependent: :destroy, autosave: true
+  has_many :sale_items, dependent: :destroy
+  has_many :sales, through: :sale_items
 
   has_many :purchases, dependent: :destroy
-  has_many :purchased_products, through: :purchases
+  has_many :purchase_items, through: :purchases
+  accepts_nested_attributes_for :purchases
 
+  #
+  # == Scopes
+  #
+  scope :listed, -> {
+    includes(editions: [:version, :color, :size])
+      .with_attached_images
+      .order(created_at: :desc)
+  }
+
+  #
+  # == Class Methods
+  #
   def self.generate_full_title(
     product,
     brand = nil
@@ -93,34 +119,51 @@ class Product < ApplicationRecord
     ].compact.join(" | ")
   end
 
+  #
+  # == Domain Methods
+  #
   def update_full_title
     self.full_title = Product.generate_full_title(self)
     save
   end
 
-  def prev_image_id(img_id)
-    (images.where(id: ...img_id).last || images.last).id
-  end
-
-  def next_image_id(img_id)
-    (images.where("id > ?", img_id).first || images.first).id
-  end
-
-  def get_slug
+  def find_slug_candidate
     sku.presence || full_title
   end
 
-  def woo_id_full_title
-    woo_id = self.woo_id.presence || "N/A"
-    "#{woo_id} | #{full_title}"
+  def build_full_title_with_shop_id
+    "#{full_title} | #{shop_id || "N/A"}"
   end
 
-  def shopify_store_link
+  def build_shopify_url
     "https://handsomecake.com/products/#{store_link}"
   end
 
-  def shopify_id_short
-    shopify_id&.gsub("gid://shopify/Product/", "")
+  def fetch_active_sale_items
+    sale_items
+      .includes(purchase_items: :warehouse)
+      .with_details
+      .active
+      .order(created_at: :asc)
+  end
+
+  def fetch_completed_sale_items
+    sale_items.with_details.completed.order(created_at: :asc)
+  end
+
+  def sum_editions_sale_items
+    SaleItem
+      .active
+      .where(edition: editions)
+      .group(:edition_id)
+      .sum(:qty)
+  end
+
+  def sum_editions_purchase_items
+    Purchase
+      .where(edition: editions)
+      .group(:edition_id)
+      .sum(:amount)
   end
 
   def build_editions
@@ -129,6 +172,10 @@ class Product < ApplicationRecord
     mark_absent_editions_for_destruction
 
     editions.build(edition_attributes)
+  end
+
+  def fetch_editions_with_title
+    editions.with_details.select { |edition| edition.title.present? }
   end
 
   private

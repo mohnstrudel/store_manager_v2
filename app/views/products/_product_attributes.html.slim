@@ -1,36 +1,34 @@
-.cards.items-center
+.cards
   = render "_shared/gallery", images: product.images
 
-  .card.grow.shrink-4
-    .title Title
+  .card.grow
+    h5 Title
     p = product.title
-    .title Franchise
+    h5 Franchise
     p = product.franchise.title
-    .title Version
+    h5 Version
     p = format_relation(product.versions, "value")
-    .title Brand
+    h5 Brand
     p = format_relation(product.brands, "title")
-    .title Size
+    h5 Size
     p = format_relation(product.sizes, "value")
-    .title Shape
+    h5 Shape
     p = product.shape.title
-    .title Color
+    h5 Color
     p = format_relation(product.colors, "value")
 
-  .card.shrink-2
-    .title ID
+  .card
+    h5 ID
     p = product.id
-    .title SKU
+    h5 SKU
     p = product.sku.presence || "-"
-    .title Supplier
-    p = format_relation(product.suppliers, "title")
-    .title Created
+    h5 Created
     p = format_date product.created_at
-    .title Updated
+    h5 Updated
     p = format_date product.updated_at
     - if product.woo_id.present?
-      .title Woo ID
-      p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer"
+      h5 Woo ID
+      p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
     - if product.shopify_id.present?
-      .title Shopify ID
-      p = link_to product.shopify_id_short, product.shopify_store_link, :target => "_blank", "rel" => "noopener noreferrer"
+      h5 Shopify ID
+      p = link_to product.shopify_id_short, product.build_shopify_url, :target => "_blank", "rel" => "noopener noreferrer", class: "link"

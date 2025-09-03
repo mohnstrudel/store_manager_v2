@@ -1,0 +1,2 @@
+class ShippingCompanyPolicy < ApplicationPolicy
+end

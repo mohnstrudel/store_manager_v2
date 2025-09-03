@@ -14,6 +14,7 @@ jobs:
       PGPASSWORD: postgres
       RAILS_ENV: test
       REDIS_HOST: redis
+      CI: true
 
     services:
       postgres:
@@ -52,5 +53,9 @@ jobs:
         run: |
           bundle exec rails db:setup
           bundle exec rails db:test:prepare
+
+      - name: Prepare assets (Tailwind)
+        run: |
+          bundle exec rails assets:precompile
 
       - run: bundle exec rspec

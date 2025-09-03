@@ -1,0 +1,11 @@
+tr id="#{dom_id user}"
+  td = user.id
+  td = user.email_address
+  td = user.first_name.presence || "-"
+  td = user.last_name.presence || "-"
+  td = user.role.humanize
+  td = format_date user.created_at
+  td = format_date user.updated_at
+  - if action_name != "show" 
+    td.actions
+      = render "_shared/action_edit", route: edit_user_path(user)

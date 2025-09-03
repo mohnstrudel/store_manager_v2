@@ -1,8 +1,0 @@
-ul.list-none li {
-  list-style: none;
-}
-
-ul.v-align {
-  margin-bottom: calc(var(--spacing) / 2.5);
-  padding-top: calc(var(--spacing) / 2);
-}

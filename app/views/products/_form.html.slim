@@ -1,37 +1,75 @@
-= form_with(model: product) do |form|
-  = render "_shared/notice-err", model: product
+= form_with model: product do |form|
+  fieldset.flex.justify-between.gap-4.-mt-6
+    .block.w-full
+      = form.label :franchise
+      = form.collection_select(:franchise_id, Franchise.all, :id, :title, { class: "select" }, data: { controller: "slim-select" })
+    .block.w-full
+      = form.label :title
+      = form.text_field :title
+    .block.w-full data-turbo="false"
+      = form.label :brand
+      = form.collection_select(:brand_ids, Brand.all, :id, :title, { class: "select" }, {multiple: true, data: { controller: "slim-select" }})
 
-  = form.label :woo_id, "Woo ID"
-  = form.text_field :woo_id
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :sku, "SKU"
+      = form.text_field :sku
+    .block.w-full
+      = form.label :shape
+      = form.collection_select(:shape_id, Shape.all, :id, :title)
 
-  = form.label :shopify_id, "Shopify ID"
-  = form.text_field :shopify_id
+  fieldset data-controller="product-editions"
+    label Editions
+    p.text-gray-600.dark:text-gray-500 Select any combination of the attributes below to generate editions automatically
 
-  = form.label :supplier
-  = form.collection_select(:supplier_ids, Supplier.all, :id, :title, { class: "select", include_blank: true }, {multiple: true, data: { controller: "slim-multi-select" }})
+    .flex.justify-between.gap-4.px-4
+      .block.w-full
+        = form.label :size
+        = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "sizes" }})   
+      .block.w-full
+        = form.label :version
+        = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "versions" }})
+      .block.w-full
+        = form.label :color
+        = form.collection_select(:color_ids, Color.all, :id, :value, { class: "select" }, {multiple: true, data: { show_search: false, product_editions_target: "colors"} })  
+    ul.px-4.mt-4.mb-2.flex.flex-wrap.gap-3.hidden data-product-editions-target="list"
 
-  = form.label :franchise
-  = form.collection_select(:franchise_id, Franchise.all, :id, :title, { class: "select" }, data: { controller: "slim-select" })
+  - if form.object.new_record?
+    fieldset data-controller="product-purchase"
+      label Purchase
+      p.text-gray-600.dark:text-gray-500 You can create a purchase alongside with new product
+      .px-4.pb-1 data-product-purchase-target="add"
+        = link_to "", class: "btn-rounded mt-6", data: {action: "product-purchase#addForm"}
+          i.icn 💰
+          | Add Purchase
+      .px-4.pb-1.hidden data-product-purchase-target="remove"
+        = link_to "", class: "btn-rounded mt-6 btn-red", data: {action: "product-purchase#removeForm"}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            | Remove Purchase
+      .new-product_purchase-fields.px-4.pb-2 data-product-purchase-target="form"
+        = form.fields_for :purchases, product.purchases do |purchase_fields|
+          fieldset.flex.justify-between.gap-4
+            .block.w-full
+              = purchase_fields.label :supplier_id
+              = purchase_fields.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title, class: "w-full"
+            .block.w-full
+              = purchase_fields.label :order_reference
+              = purchase_fields.text_field :order_reference
+          fieldset.flex.justify-between.gap-4
+            .block.w-full
+              = purchase_fields.label :item_price
+              = purchase_fields.text_field :item_price
+            .block.w-full
+              = purchase_fields.label :amount
+              = purchase_fields.text_field :amount
+            .block.w-full
+              = purchase_fields.fields_for :payments, purchase_fields.object.payments do |payment_builder|
+                = payment_builder.label "What did you pay in total?"
+                = payment_builder.number_field :value, step: :any
+          - if Warehouse.any?
+            = purchase_fields.label :warehouse_id, "Initial warehouse"
+            = purchase_fields.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}  
 
-  = form.label :title
-  = form.text_field :title
-
-  = form.label :sku, "SKU"
-  = form.text_field :sku
-
-  = form.label :size
-  = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})   
-
-  = form.label :shape
-  = form.collection_select(:shape_id, Shape.all, :id, :title)
-
-  = form.label :brand
-  = form.collection_select(:brand_ids, Brand.all, :id, :title, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
-
-  = form.label :version
-  = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select" }})
-
-  = form.label :color
-  = form.collection_select(:color_ids, Color.all, :id, :value, { class: "select" }, {multiple: true, data: { controller: "slim-multi-select", show_search: false} })  
-
-  = form.submit
+  = form_submit_for(product, form)

@@ -1,0 +1,2 @@
+class BrandPolicy < ApplicationPolicy
+end

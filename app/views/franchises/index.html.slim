@@ -2,19 +2,14 @@
 
 = render "_shared/nav-index", model: @franchises
 
-main.wide
+.section-border-base.section-wide
   table(role="grid")
     thead
       tr
-        th
-          | ID
-        th
-          | Title
-        th
-          | Created
-        th
-          | Updated
-        th
-          | Actions
+        th ID
+        th Title
+        th Created
+        th Updated
+        th.text-right Actions
     tbody
       = render @franchises

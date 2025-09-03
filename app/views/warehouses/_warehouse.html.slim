@@ -1,20 +1,20 @@
-tr.hoverable id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param=warehouse_path(warehouse) data-warehouse-id=warehouse.id
-  td.right = render "position_select", warehouse: warehouse, warehouses_count: warehouses_count
+tr id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param=warehouse_path(warehouse) data-warehouse-id=warehouse.id
+  td.text-right.w-6 = render "position_select", warehouse: warehouse, warehouses_count: warehouses_count
   td
     strong = warehouse.name
     - if warehouse.is_default?
-      span.has-memo.danger
-        | *
-        span.memo-notice This is the default warehouse for newly purchased products
+      span.group.relative
+        span.text-2xl/2.text-yellow-600.ml-2 *
+        span.absolute.top-0.left-0.opacity-0.pointer-events-none.transition-opacity.duration-150.flex.group-hover:opacity-100.group-hover:pointer-events-auto.rounded-lg.bg-yellow-100.dark:bg-yellow-800.border.border-yellow-800/10.pt-4.pr-5.pb-5.pl-3.w-64.text-yellow-800.dark:text-yellow-100.text-sm.text-pretty
+          | New purchases go to this warehouse by default. Change it on the edit page.
     br
     = warehouse.external_name
-  td.mono = warehouse.cbm
-  td.mono = warehouse.container_tracking_number
-  - if warehouse.courier_tracking_url
-    td = link_to warehouse.courier_tracking_url, warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer"
+  td = warehouse.cbm
+  td = warehouse.purchase_items.size  
+  - if warehouse.purchase_items.any?
+    td.w-45 = render "_shared/purchase_payment_progress", progress: warehouse.average_payment_progress, debt: warehouse.total_debt, only_debt: true
   - else
-    td
-  td.mono = warehouse.purchased_products.size  
+    td   
   - if action_name != "show" 
     td.actions
-      = render "_shared/action-edit", route: edit_warehouse_path(warehouse)
+      = render "_shared/action_edit", route: edit_warehouse_path(warehouse)

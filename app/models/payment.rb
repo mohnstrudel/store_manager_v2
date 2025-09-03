@@ -10,10 +10,45 @@
 #  purchase_id  :bigint           not null
 #
 class Payment < ApplicationRecord
-  audited associated_with: :purchase
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited associated_with: :purchase
+
+  #
+  # == Validations
+  #
   validates :value, presence: true
 
-  db_belongs_to :purchase, touch: true
+  #
+  # == Associations
+  #
+  # Touch is enabled so the purchase is updated when we pay
+  # Counter cache is enabled to track unpaid purchases
+  db_belongs_to :purchase, touch: true, counter_cache: true
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

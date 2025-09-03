@@ -1,3 +1,4 @@
-p = link_to "Pull Last 50 Products", pull_products_path(limit: 50), class: "btn is-primary xl fw"
-p = link_to "Pull Everything", pull_products_path, class: "btn xl fw"
-p = link_to "Track Jobs Progress", "/jobs/statuses", class: "btn xl fw"
+menu.flex.flex-col.gap-4.justify-between.pb-4
+  li = link_to "Pull Last 50 Products", pull_products_path(limit: 50), class: "w-full h-15 btn-blue btn-rounded"
+  li = link_to "Pull Everything", pull_products_path, class: "w-full h-15 btn-rounded"
+  li = link_to "Track Jobs Progress", "/jobs/statuses", class: "w-full h-15"

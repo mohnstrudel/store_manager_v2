@@ -4,33 +4,30 @@
 = render "_shared/modal-container", heading: "Sales Synchronization", subheading:, content_partial: "modal_sync_menu"
 = render "_shared/nav-index", model: @sales, show_modal: true
 
-main.wide
-  .search-navigation
+.section-border-base.section-wide
+  .search
     = render partial: "_shared/search-form", locals: {path: sales_path}
-    = paginate @sales
+    .pagination-top = paginate @sales
   - if @sales.present?
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         tr
           th.text-center Image
-          th
-            <span>Customer</span>
-            br
-            <span class="fw-400 pl-s">Products</span>
+          th Customer <span class="font-normal text-sm pl-4">+ Products</span>
           th Status
-          th.right Price
+          th.text-right Price
           th
             | Created  ▾
             br
-            | Updated
+            <span class="font-normal text-gray-500">Updated</span>
           th Woo ID
           th
-            | Shopify name
+            | Shopify name
             br
-            <span class="fw-400 mute">Shopify ID</span>
-          th.right Actions
+            <span class="font-normal text-gray-500">Shopify ID</span>
+          th.text-right Actions
       tbody
         = render @sales
-    = paginate @sales
+    .pagination-bottom = paginate @sales
   - else 
     = render "_shared/search-results-empty"

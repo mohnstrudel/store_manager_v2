@@ -1,0 +1,4 @@
+= render "_shared/notice-err", model: @purchase_item
+= render "_shared/nav-edit", model: @purchase_item, route: purchase_item_path(@purchase_item)
+
+= render "form", purchase_item: @purchase_item

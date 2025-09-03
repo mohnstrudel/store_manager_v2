@@ -1,70 +1,65 @@
-nav
-  ul
-    li
-      h1.classic Dashboard 
-
 = render "_shared/notice"
 
 - if @config.sales_hook_disabled?
-  article#webhook-error.notice.is-error
-    header
-      i.icn 🪝
-      | Webhook for sales is deactivated.
-      i.icn 🪝
-    ol
-      li Go to <a href="https://store.handsomecake.com/wp-admin/admin.php?page=wc-settings&tab=advanced&section=webhooks&edit-webhook=3" target="_blank" class="underline">the Woo settings page</a> and change the webhook status to "Active".
-      li
-        | Press the button below:
-        br
-        br
-        = link_to "pull-last-orders", class: "btn xl is-danger my-16"
-          i.icn ⚡️
-          | Get missing sales from Woo
+  article#webhook-error.w-5xl.h-fit.mx-auto.bg-red-100.rounded-xl.mb-8.text-red-700
+    header.p-8.h-24.flex.justify-between.items-center.border-b-4.border-red-800/5
+      i.icn.text-3xl 🪝
+      p.text-lg.font-semibold The WooCommerce sales webhook is deactivated
+      i.icn.text-3xl 🪝
+    ol.list-decimal.h-fit.min-h-24.p-8.pl-16.text-lg
+      li.mt-1 Change the webhook status to "Active" at <a href="https://store.handsomecake.com/wp-admin/admin.php?page=wc-settings&tab=advanced&section=webhooks&edit-webhook=3" target="_blank" class="link">the Woo settings page</a>.
+      li.mt-2
+        | Then press this button:  
+        = link_to "pull-last-orders", class: "btn-rounded px-3 py-1 text-sm bg-transparent border-red-700"
+          | Get missing sales from Woo
 
-main.wide.no-bd.flex.justify-between.flex-col.gap
-  .table-card
-    h3.flex.justify-between
-      span Sales Debt
-      span = @sale_debts.length
-    table role="grid" data-controller="table"
-      thead
-        th Title
-        th Edition
-        th Amount
-      tbody
-        - @sale_debts.first(5).each do |product|
-          - if product.sale_edition_id.present?
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product.slug)
-              data-table-id-param=product.sale_edition_id
-            )
-              td = product.full_title
-              td = product.edition_name
-              td = product.debt.to_i
-          - else
-            tr.hoverable(
-              data-action="click->table#goTo"
-              data-table-url-param=product_path(product.slug)
-              data-table-id-param=product.id
-            )
-              td = product.full_title
-              td -
-              td = product.debt.to_i
-        tr
-          td colspan="3" = link_to "See More...", debts_path
+header
+  h1 Dashboard 
 
-  .table-card
-    h3.flex.justify-between
+.section-border-base.section-wide
+  h3.flex.justify-between.px-3.pt-4
+    span Sales Debt
+    span = @sale_debts.length
+  table data-controller="table"
+    thead
+      th Title
+      th Edition
+      th Amount
+    tbody
+      - @sale_debts.first(5).each do |product|
+        - if product.sale_edition_id.present?
+          tr.hoverable(
+            data-action="click->table#goTo"
+            data-table-url-param=product_path(product.slug)
+            data-table-id-param=product.sale_edition_id
+          )
+            td = product.full_title
+            td = product.edition_name
+            td = product.debt.to_i
+        - else
+          tr.hoverable(
+            data-action="click->table#goTo"
+            data-table-url-param=product_path(product.slug)
+            data-table-id-param=product.id
+          )
+            td = product.full_title
+            td -
+            td = product.debt.to_i
+      tr.hover:bg-transparent.hover:cursor-default
+        td colspan="3" = link_to "See More...", debts_path
+
+- if @suppliers_debts.present?
+  .section-border-base.section-wide
+    h3.flex.justify-between.px-3.pt-4
       span Suppliers Debt
       span = format_money @total_suppliers_debt, "$"
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         th Supplier
-        th.right Total Cost
+        th.text-right Total Cost
         th Purchases Qty
-        th.right Paid
-        th.right Debt
+        th.text-right Paid
+        th.text-right Debt
       tbody
         - @suppliers_debts.each do |supplier_debt|
           - next if supplier_debt[:total_debt] == 0
@@ -73,7 +68,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
             data-table-url-param=supplier_path(supplier_debt[:supplier])
           )
             td = supplier_debt[:supplier].title
-            td.mono.right = format_money supplier_debt[:total_cost]
+            td.font-mono.text-right = format_money supplier_debt[:total_cost]
             td = supplier_debt[:total_size]
-            td.mono.right = format_money supplier_debt[:paid]
-            td.mono.right = format_money supplier_debt[:total_debt]
+            td.font-mono.text-right = format_money supplier_debt[:paid]
+            td.font-mono.text-right = format_money supplier_debt[:total_debt]

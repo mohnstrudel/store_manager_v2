@@ -1,5 +1,4 @@
 = form_with(model: color) do |form|
-  = render "_shared/notice-err", model: color
   = form.label :value
   = form.text_field :value 
-  = form.submit
+  = form_submit_for(color, form)

@@ -1,0 +1,12 @@
+h1.text-5xl.mb-6 Sign in with your email
+
+= render "_shared/notice"
+
+= form_with url: session_path, class: "flex flex-col gap-6 my-8" do |form|
+  = form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter email address", value: params[:email_address]
+  = form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter password", maxlength: 72
+  = form.submit "Sign in", class: "w-full"
+
+.space-x-4
+  = link_to "Create new account", sign_up_path, class: "link"
+  = link_to "Forgot password?", new_password_path, class: "link"

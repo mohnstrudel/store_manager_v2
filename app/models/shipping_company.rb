@@ -9,11 +9,44 @@
 #  updated_at   :datetime         not null
 #
 class ShippingCompany < ApplicationRecord
-  audited
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
 
-  has_many :purchased_products, dependent: :nullify
+  #
+  # == Extensions
+  #
+  # (none)
 
+  #
+  # == Configuration
+  #
+  audited
+
+  #
+  # == Validations
+  #
   validates_db_uniqueness_of :name
   validates :tracking_url, presence: true
+
+  #
+  # == Associations
+  #
+  has_many :purchase_items, dependent: :nullify
+
+  #
+  # == Scopes
+  #
+  # (none)
+
+  #
+  # == Class Methods
+  #
+  # (none)
+
+  #
+  # == Domain Methods
+  #
+  # (none)
 end

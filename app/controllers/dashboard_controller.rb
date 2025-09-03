@@ -44,6 +44,9 @@ class DashboardController < ApplicationController
     end
   end
 
+  def noop
+  end
+
   private
 
   def sale_debts
@@ -91,7 +94,7 @@ class DashboardController < ApplicationController
   end
 
   def sold
-    ProductSale
+    SaleItem
       .select(<<-SQL.squish)
         product_id,
         edition_id,

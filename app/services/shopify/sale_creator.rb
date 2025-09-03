@@ -11,8 +11,8 @@ class Shopify::SaleCreator
     ActiveRecord::Base.transaction do
       prepare_customer
       prepare_sale
-      update_or_create_product_sales!
-      linked_ids = SaleLinker.new(@sale).link
+      update_or_create_sale_items!
+      linked_ids = @sale.link_with_purchase_items
       notify_customers(linked_ids)
     end
   rescue ActiveRecord::RecordInvalid => e
@@ -29,7 +29,7 @@ class Shopify::SaleCreator
     raise ArgumentError, "parsed_item cannot be blank" if parsed_item.blank?
     raise ArgumentError, "parsed_item[:sale] cannot be blank" if parsed_item[:sale].blank?
     raise ArgumentError, "parsed_item[:customer] cannot be blank" if parsed_item[:customer].blank?
-    raise ArgumentError, "parsed_item[:product_sales] cannot be blank" if parsed_item[:product_sales].blank?
+    raise ArgumentError, "parsed_item[:sale_items] cannot be blank" if parsed_item[:sale_items].blank?
   end
 
   def prepare_customer
@@ -62,8 +62,8 @@ class Shopify::SaleCreator
     end
   end
 
-  def update_or_create_product_sales!
-    @parsed_order[:product_sales].each do |parsed_ps|
+  def update_or_create_sale_items!
+    @parsed_order[:sale_items].each do |parsed_ps|
       if having_only_product_title?(**parsed_ps)
         product = create_product_with(parsed_ps[:full_title])
         edition = find_or_create_edition_with(
@@ -82,11 +82,11 @@ class Shopify::SaleCreator
         )
       end
 
-      product_sale = ProductSale.find_or_initialize_by(
+      sale_item = SaleItem.find_or_initialize_by(
         shopify_id: parsed_ps[:shopify_id]
       )
 
-      product_sale.assign_attributes(
+      sale_item.assign_attributes(
         price: parsed_ps[:price],
         qty: parsed_ps[:qty],
         product:,
@@ -94,7 +94,7 @@ class Shopify::SaleCreator
         sale: @sale
       )
 
-      product_sale.save!
+      sale_item.save!
     end
   end
 
@@ -153,6 +153,6 @@ class Shopify::SaleCreator
   end
 
   def notify_customers(linked_ids)
-    PurchasedNotifier.new(purchased_product_ids: linked_ids).handle_product_purchase
+    PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
   end
 end

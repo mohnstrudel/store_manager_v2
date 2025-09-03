@@ -1,32 +1,32 @@
 .cards
   .card.grow
-    .title Status
+    h5 Status
     p = sale.status&.titleize
-    .title Customer
+    h5 Customer
     p = "#{sale.customer.first_name} #{sale.customer.last_name}"
-    .title Email
+    h5 Email
     p = safe_blank_render sale.customer.email
-    .title Note
+    h5 Note
     p = safe_blank_render sale.note
     - if sale.customer.shop_id.present?
-      .title Customer Shop ID
-      p = link_to sale.customer.shop_id, customer_shop_link(sale.customer)
+      h5 Customer Shop ID
+      p = link_to sale.customer.shop_id, customer_shop_link(sale.customer), class: "link"
 
   .card
-    .title Total, $
-    p.right.fit.mono = format_money sale.total
-    .title Discount
-    p.right.fit.mono = format_money sale.discount_total
-    .title Shipping
-    p.right.fit.mono = format_money sale.shipping_total
+    h5 Total, $
+    p.text-right.fit.font-mono = format_money sale.total
+    h5 Discount
+    p.text-right.fit.font-mono = format_money sale.discount_total
+    h5 Shipping
+    p.text-right.fit.font-mono = format_money sale.shipping_total
 
   .card
-    .title ID
+    h5 ID
     p = sale.id
-    .title Shop Created
+    h5 Shop Created
     p = safe_blank_render format_date(sale.shop_created_at)
-    .title Shop Updated
+    h5 Shop Updated
     p = safe_blank_render format_date(sale.shop_updated_at)  
     - if sale.shop_id.present?
-      .title Order Shop ID
-      p = link_to sale.shop_id, sale_shop_link(sale)
+      h5 Order Shop ID
+      p = link_to sale.shop_id, sale_shop_link(sale), class: "link"

@@ -4,7 +4,8 @@ require "active_support/core_ext/integer/time"
 # We can use this service for webhooks intergration
 Rails.application.config.hosts << /.*\.ngrok-free\.app/
 
-# Rails.application.routes.default_url_options[:host] = "localhost:3000"
+# Allow links to work in email previews
+Rails.application.routes.default_url_options[:host] = "localhost:3000"
 
 Rails.application.configure do
   # Allow ngrok tunnels for secure Shopify OAuth redirects
@@ -97,11 +98,18 @@ Rails.application.configure do
 
   config.log_file_size = 100.megabytes
 
-  config.action_mailer.perform_deliveries = true
-  config.action_mailer.delivery_method = :mailtrap
-  config.action_mailer.mailtrap_settings = {
-    api_key: Rails.application.credentials.dig(:mailtrap, :api_key),
-    sandbox: true,
-    inbox_id: 3265246
+  # Mail
+  config.action_mailer.default_url_options = {
+    host: "localhost:3000",
+    protocol: "http"
   }
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.delivery_method = :letter_opener
+  # For testing with Maitrap web interface
+  # config.action_mailer.delivery_method = :mailtrap
+  # config.action_mailer.mailtrap_settings = {
+  #   api_key: Rails.application.credentials.dig(:mailtrap, :api_key),
+  #   sandbox: true,
+  #   inbox_id: 3265246
+  # }
 end

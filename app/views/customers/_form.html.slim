@@ -1,20 +1,18 @@
-= form_with model: customer do |f|
-  = render "_shared/notice-err", model: customer  
+= form_with model: customer do |form|
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :first_name
+      = form.text_field :first_name
+    .block.w-full
+      = form.label :last_name
+      = form.text_field :last_name
 
-  article
-    = f.label :woo_id, "Woo ID"
-    = f.text_field :woo_id
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :email
+      = form.text_field :email
+    .block.w-full
+      = form.label :phone
+      = form.text_field :phone
 
-    = f.label :first_name
-    = f.text_field :first_name
-
-    = f.label :last_name
-    = f.text_field :last_name
-
-    = f.label :email
-    = f.text_field :email
-
-    = f.label :phone
-    = f.text_field :phone
-
-  = f.submit
+  = form_submit_for(customer, form)

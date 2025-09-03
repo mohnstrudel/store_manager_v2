@@ -4,14 +4,14 @@ module ApplicationHelper
   end
 
   def format_date(date)
-    date&.strftime("%-d. %B %Y")
+    date&.strftime("%-d. %b ’%y")
   end
 
   def format_money(amount, unit = "")
     if amount.presence
       number_to_currency(
         amount.to_f,
-        delimiter: ".",
+        delimiter: " ",
         separator: ",",
         format: "%n %u",
         precision: 0,
@@ -47,9 +47,35 @@ module ApplicationHelper
     ratio = "#{purchased} / #{sold}"
 
     if purchased >= sold
-      "<mark class='smaller muted'>#{ratio}</mark>".html_safe
+      "<mark class='mark-gray mr-1.5'>#{ratio}</mark>".html_safe
     else
-      "<mark class='smaller'>#{ratio}</mark>".html_safe
+      "<mark class='mr-1.5'>#{ratio}</mark>".html_safe
     end
+  end
+
+  def form_submit_for(model, form)
+    render partial: "_shared/form-submit", locals: {model:, form:}
+  end
+
+  def back_btn
+    render partial: "_shared/action_go_back"
+  end
+
+  def edit_btn_for(record)
+    render "_shared/action_edit", route: edit_polymorphic_path(record)
+  end
+
+  def pull_btn_for(record)
+    link_to polymorphic_path([:pull, record]), class: "btn-rounded", data: {"turbo-prefetch": "false"} do
+      tag.i(class: "icn") { "📥" } + "Pull"
+    end
+  end
+
+  def destroy_btn_for(record)
+    text = "Destroy this #{record.model_name.human.downcase}"
+    css_class = "btn-red w-full h-12 mt-16 btn-rounded"
+    confirm_message = "Are you sure?"
+
+    button_to text, polymorphic_path(record), method: :delete, class: css_class, data: {turbo_confirm: confirm_message}
   end
 end

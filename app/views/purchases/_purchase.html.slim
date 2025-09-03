@@ -5,25 +5,19 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
   td
     = purchase.product.full_title
     - if purchase.edition.present?
-      | → #{purchase.edition.title}
-    ul.v-align.ml-s.list-none
-      - if purchase.purchased_products.size == purchase.amount
-        - purchase.purchased_products.group_by(&:warehouse).each do |warehouse, pp|
+      | → #{purchase.edition.title}
+    ul.ml-4.mt-2
+      - if purchase.purchase_items.size == purchase.amount
+        - purchase.purchase_items.group_by(&:warehouse).each do |warehouse, pp|
           li #{warehouse.name}: #{pp.count}
       - else
-        li <mark class="smaller">Warehouses: #{purchase.purchased_products.size} / Purchased: #{purchase.amount}</mark>
-        - if purchase.purchased_products.present?
-          - purchase.purchased_products.group_by(&:warehouse).each do |warehouse, pp|
+        li <mark class="mr-1.5">Warehouses: #{purchase.purchase_items.size} / Purchased: #{purchase.amount}</mark>
+        - if purchase.purchase_items.present?
+          - purchase.purchase_items.group_by(&:warehouse).each do |warehouse, pp|
             li #{warehouse.name}: #{pp.count}
   td.break-words = purchase.supplier.title
-  td.right.mono = format_money purchase.item_price
-  td.right.mono = format_money purchase.total_cost
-  td.right.mono
-    progress.in-td value=purchase.progress max=100 class="#{class_names(finished: purchase.debt == 0, new: purchase.paid == 0)}"
-    | -
-    - if purchase.debt > 0
-      = format_money purchase.debt
+  td.w-45 = render "_shared/purchase_payment_progress", progress: purchase.progress, paid: purchase.item_paid, price: purchase.item_price, debt: purchase.item_debt
 
   - if action_name != "show"
     td.actions
-      = render "_shared/action-edit", route: edit_purchase_path(purchase)
+      = render "_shared/action_edit", route: edit_purchase_path(purchase)

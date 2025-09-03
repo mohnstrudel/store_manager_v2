@@ -2,8 +2,8 @@
 
 = render "_shared/nav-show", model: @customer
 
-main
-  table.vertical(role="grid")
+.section-wide.section-border-base
+  table
     thead
       tr
         th ID
@@ -25,4 +25,4 @@ main
         td = format_date @customer.created_at
         td = format_date @customer.updated_at
 
-= button_to "Destroy this customer", customer_path(@customer), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }
+= destroy_btn_for @customer

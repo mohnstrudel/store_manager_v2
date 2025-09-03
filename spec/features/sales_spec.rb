@@ -6,6 +6,9 @@ CANCELLED_STATUS = Sale.cancelled_status_names.map(&:titleize)
 COMPLETED_STATUS = Sale.completed_status_names.map(&:titleize)
 
 describe "GET /sales" do
+  before { sign_in_as_admin }
+  after { log_out }
+
   context "when we have different time and status" do
     before do
       Sale.status_names.each_with_index do |status, idx|

@@ -1,13 +1,11 @@
-nav
-  ul
+header.nav_header
+  .flex.gap-4
+    = back_btn
+    hgroup
+      h1 #{format_show_page_title(model)}
+      h4 #{model.model_name.name} №#{model.id}
+  menu.nav_menu
     li
-      ul
-        li = link_to "All #{model.model_name.plural}", "#{url_for controller: "#{model.model_name.plural}", action: "index"}"
-      hgroup
-        h1 #{format_show_page_title(model)}
-        h4 #{model.model_name.name} №#{model.id}
-  ul.gap
-    li
-      = render "_shared/action-edit", route: "#{url_for controller: "#{model.model_name.plural}", action: "edit", id: model}", btn: true
-    = yield
+      = edit_btn_for model
+      = yield
 

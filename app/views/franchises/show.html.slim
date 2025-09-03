@@ -2,27 +2,28 @@
 
 = render "_shared/nav-show", model: @franchise
 
-main
-  table.vertical(role="grid")
-    thead
-      tr
-        th
-          | ID
-        th
-          | Title
-        th
-          | Created
-        th
-          | Updated
-    tbody
-      = render @franchise
+.section-wide.flex.flex-col.gap-8.mt-8
+  .table-card
+    table
+      thead
+        tr
+          th
+            | ID
+          th
+            | Title
+          th
+            | Created
+          th
+            | Updated
+      tbody
+        = render @franchise
 
   - if @franchise.products.present?
-  .table-card.full-width.mg-t
+  .table-card
     h3 Products
     table role="grid" data-controller="table"
         thead
-          th.mute ID
+          th.text-gray-500 ID
           th Full Title
         tbody
           - @franchise.products.each do |product|
@@ -30,7 +31,7 @@ main
               data-action="click->table#goTo"
               data-table-url-param=product_path(product)
             )
-              td.mute = product.id
+              td.text-gray-500 = product.id
               td = product.full_title 
 
-= button_to "Destroy this franchise", franchise_path(@franchise), method: :delete, class: "btn-danger"  
+= destroy_btn_for @franchise  

@@ -1,5 +1,7 @@
 class WebhookController < ApplicationController
   skip_before_action :verify_authenticity_token
+  skip_before_action :require_authentication
+  skip_before_action :set_sentry_user
 
   SYNC_ORDERS_JOB = SyncWooOrdersJob.new
 

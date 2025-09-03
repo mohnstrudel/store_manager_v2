@@ -11,14 +11,14 @@ describe PurchasedNotifier do
   let(:sale) { create(:sale, customer: customer, woo_id: "123") }
   let(:warehouse) { create(:warehouse, name: "Test WH", external_name: "Public WH") }
   let(:to_warehouse) { create(:warehouse, name: "New WH") }
-  let(:product_sale) { create(:product_sale) }
-  let(:purchased_product) { create(:purchased_product, sale: sale, warehouse: warehouse, product_sale: product_sale) }
+  let(:sale_item) { create(:sale_item) }
+  let(:purchase_item) { create(:purchase_item, sale: sale, warehouse: warehouse, sale_item: sale_item) }
   let(:notification) { create(:notification, event_type: :warehouse_changed, status: :active) }
 
   describe "#handle_product_purchase" do
     it "sends product purchased email" do
       expect {
-        described_class.new(purchased_product_ids: Array(purchased_product.id))
+        described_class.new(purchase_item_ids: Array(purchase_item.id))
           .handle_product_purchase
       }.to have_enqueued_mail(NotificationsMailer, :product_purchased_email)
     end
@@ -35,7 +35,7 @@ describe PurchasedNotifier do
     it "sends warehouse changed email" do
       expect {
         described_class.new(
-          purchased_product_ids: Array(purchased_product.id),
+          purchase_item_ids: Array(purchase_item.id),
           from_id: warehouse.id,
           to_id: to_warehouse.id
         ).handle_warehouse_change
@@ -45,7 +45,7 @@ describe PurchasedNotifier do
     it "does not send email when warehouses are the same" do
       expect {
         described_class.new(
-          purchased_product_ids: Array(purchased_product.id),
+          purchase_item_ids: Array(purchase_item.id),
           from_id: warehouse.id,
           to_id: warehouse.id
         ).handle_warehouse_change

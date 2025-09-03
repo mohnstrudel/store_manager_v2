@@ -1,0 +1,57 @@
+= render "_shared/notice"
+
+header.nav_header
+  .flex.gap-4
+    = back_btn
+    hgroup
+      h1 Sale Item
+      h2 = format_show_page_title(@sale_item)
+      h4.text-gray-500.font-normal
+        | Amount: #{@sale_item.qty}
+        - if @sale_item.price
+          | , price: 
+          .font-mono.inline $#{format_money @sale_item.price}
+  menu.nav_menu
+    li = link_to @sale_item.product
+      i.icn 🧸
+      | Product
+    li = link_to @sale_item.sale
+      i.icn 🛒
+      | Sale
+
+.section-wide.flex.flex-col.gap-8
+  - if @sale_item.purchase_items.present?
+    .table-card data-controller="move-items"
+      h3.flex.justify-between.px-3.pt-4
+        span Linked Purchased Items
+        span = @sale_item.purchase_items.size
+
+      = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
+
+      table data-controller="table"
+        thead
+          = render "_shared/move_to_warehouse/th"
+          th Warehouse
+          th Length × Width × Height, cm
+          th.text-right Kg
+          th.text-right Expenses
+          th.text-right Shipping
+          th.text-right Actions
+        tbody
+          - @sale_item.purchase_items.each do |pp|
+            tr(
+              class="hoverable"
+              data-action="click->table#goTo"
+              data-table-url-param=purchase_item_path(pp)
+            )
+              = render "_shared/move_to_warehouse/td", id: pp.id
+              td = pp.warehouse.name
+              td.font-mono = format_item_size(pp)
+              td.font-mono.text-right = pp.weight
+              td.font-mono.text-right = format_money pp.expenses
+              td.font-mono.text-right = format_money pp.shipping_price
+              td.actions
+                = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                  i.icn ✂︎
+                  | Unlink
+                = render "_shared/action_edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)

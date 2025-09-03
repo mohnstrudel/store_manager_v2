@@ -1,0 +1,27 @@
+- if sale.sale_items.present?
+  .table-card.full-width
+    .sales_show__order-list.flex.justify-between.items-center
+      h3 Sale Items List
+      = render "link_btn", sale: sale
+
+    table data-controller="table"
+      thead
+        th.text-center Image
+        th Product
+        th Edition
+        th.text-right Price, $
+        th.text-right Purchased / Sold Amount
+      tbody
+        - sale.sale_items.each_with_index do |ps, idx|
+          tr.hoverable(
+            data-action="click->table#goTo"
+            data-table-url-param=sale_item_path(ps)
+          )
+            td.text-center = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
+            td.text-sm
+              = link_to ps.product.full_title, ps.product, class: "no-events"
+              - if ps.purchase_items.present?
+                = render "purchase_items", purchase_items: ps.purchase_items
+            td = ps.edition.present? ? ps.edition.title : "-"
+            td.text-right.font-mono = format_money ps.price
+            td.text-right = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)

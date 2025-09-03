@@ -10,7 +10,7 @@ class PurchasesController < ApplicationController
       .includes(
         :supplier,
         :payments,
-        purchased_products: [:warehouse],
+        purchase_items: [:warehouse],
         product: [images_attachments: :blob],
         edition: [:color, :size, :version]
       )
@@ -21,9 +21,9 @@ class PurchasesController < ApplicationController
 
   # GET /purchases/1 or /purchases/1.json
   def show
-    @purchased_products = @purchase
-      .purchased_products
-      .includes(:warehouse, :product_sale)
+    @purchase_items = @purchase
+      .purchase_items
+      .includes(:warehouse, :sale_item, purchase: :payments)
       .order(updated_at: :desc)
   end
 
@@ -48,20 +48,12 @@ class PurchasesController < ApplicationController
 
     respond_to do |format|
       if @purchase.save
-        warehouse = Warehouse.find_by(id: warehouse_id) ||
-          Warehouse.find_by(is_default: true)
-
-        if warehouse.present?
-          Array.new(@purchase.amount) do
-            warehouse.purchased_products.create(purchase_id: @purchase.id)
-          end
-
-          purchased_product_ids = PurchaseLinker.new(@purchase).link
-
-          PurchasedNotifier.new(purchased_product_ids:).handle_product_purchase
+        if warehouse_id
+          @purchase.add_items_to_warehouse(warehouse_id)
+          @purchase.link_with_sales
         end
 
-        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created." }
+        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
         format.json { render :show, status: :created, location: @purchase }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -74,7 +66,7 @@ class PurchasesController < ApplicationController
   def update
     respond_to do |format|
       if @purchase.update(purchase_params.merge(slug: nil))
-        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated." }
+        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -88,7 +80,7 @@ class PurchasesController < ApplicationController
     @purchase.destroy
 
     respond_to do |format|
-      format.html { redirect_to purchases_url, notice: "Purchase was successfully destroyed." }
+      format.html { redirect_to purchases_url, notice: "Purchase was successfully destroyed" }
       format.json { head :no_content }
     end
   end
@@ -101,7 +93,7 @@ class PurchasesController < ApplicationController
     moved_count = Purchase.friendly
       .where(id: purchases_ids)
       .sum { |purchase|
-        ProductMover.new(warehouse_id: destination_id, purchase:).move
+        ProductMover.move(warehouse_id: destination_id, purchase:)
       }
 
     flash_movement_notice(moved_count, Warehouse.find(destination_id))
@@ -110,6 +102,21 @@ class PurchasesController < ApplicationController
       redirect_to purchase_path(Purchase.friendly.find(purchase_id))
     else
       redirect_to purchases_path
+    end
+  end
+
+  # Used for Turbo in:
+  #  - purchase-edition_controller.js
+  #  - app/views/purchases/editions.turbo_stream.slim
+  #  - app/views/purchases/_form.html.slim
+  # Shows edition select when we choose a product with editions
+  def product_editions
+    @target = params[:target]
+    @product = Product.find(params[:product_id])
+    @editions = @product.fetch_editions_with_title
+
+    respond_to do |format|
+      format.turbo_stream
     end
   end
 

@@ -66,6 +66,10 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
+  config.action_mailer.default_url_options = {
+    host: "store-manager.herokuapp.com",
+    protocol: "https"
+  }
   config.action_mailer.perform_deliveries = true
   config.action_mailer.delivery_method = :mailtrap
   config.action_mailer.mailtrap_settings = {

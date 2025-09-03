@@ -1,4 +1,8 @@
 class PurchaseLinker
+  def self.link(arg)
+    new(arg).link
+  end
+
   def initialize(purchase)
     raise ArgumentError, "Missing purchase" if purchase.blank?
 
@@ -9,46 +13,25 @@ class PurchaseLinker
   end
 
   def link
-    return if @purchase.purchased_products.blank?
+    return if @purchase.purchase_items.blank?
 
-    unlinked_purchased_products = @purchase.purchased_products.where(product_sale_id: nil).to_a
+    unlinked_purchase_items = @purchase.purchase_items.where(sale_item_id: nil).to_a
 
-    linkable_product_sales.each do |ps|
-      break if unlinked_purchased_products.empty?
+    SaleItem.linkable_with(@purchase).each do |ps|
+      break if unlinked_purchase_items.empty?
 
       remaining = [
         ps.qty,
         @purchase.amount,
-        unlinked_purchased_products.size
+        unlinked_purchase_items.size
       ].min
 
-      unlinked_purchased_products.shift(remaining).each do |pp|
-        link_purchased_with_sold(pp, ps.id)
-        save_linked_id(pp.id)
+      unlinked_purchase_items.shift(remaining).each do |pp|
+        pp.link_with(ps.id)
+        @linked_ids << pp.id
       end
     end
 
     @linked_ids
-  end
-
-  private
-
-  def linkable_product_sales
-    ProductSale
-      .only_active
-      .linkable
-      .where(
-        @edition_id.present? ?
-          {edition_id: @edition_id} :
-          {product_id: @product_id, edition_id: nil}
-      )
-  end
-
-  def link_purchased_with_sold(purchased_product, product_sale_id)
-    purchased_product.update(product_sale_id:)
-  end
-
-  def save_linked_id(purchased_product_id)
-    @linked_ids.push(purchased_product_id)
   end
 end

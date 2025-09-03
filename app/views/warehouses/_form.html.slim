@@ -1,24 +1,30 @@
 = form_with(model: warehouse) do |form|
-  = form.label :name
-  = form.text_field :name
+  fieldset.flex.justify-between.gap-4.-mt-6
+    .block.w-full
+      = form.label :name
+      = form.text_field :name
+    .block.w-full
+      = form.label :external_name
+      = form.text_field :external_name
 
-  = form.label :external_name
-  = form.text_field :external_name
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :cbm
+      = form.text_field :cbm
+    .block.w-full
+      = form.label :position
+      = form.select :position, options_for_select((1..positions_count).to_a, warehouse.position), {}, class: "form-select"
+    .block.w-full  
+      = form.label :is_default
+      = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
 
-  = form.label :cbm
-  = form.text_field :cbm
-
-  = form.label :container_tracking_number
-  = form.text_field :container_tracking_number
-
-  = form.label :courier_tracking_url
-  = form.text_field :courier_tracking_url
-
-  = form.label :position
-  = form.select :position, options_for_select((1..positions_count).to_a, warehouse.position), {}, class: "form-select"
-
-  = form.label :is_default
-  = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :container_tracking_number
+      = form.text_field :container_tracking_number
+    .block.w-full  
+      = form.label :courier_tracking_url
+      = form.text_field :courier_tracking_url
 
   - if warehouse.images.attached?
     br
@@ -36,12 +42,16 @@
   = form.file_field :images, multiple: true
 
   label Transition notifications
-  .table-card data-controller="edit-warehouse-transition"
+  p.text-gray-600.dark:text-gray-500.mb-6
+    | We will send 
+    = link_to "a notification", "http://localhost:3000/rails/mailers/notifications_mailer/warehouse_changed_email", class: "link"
+    |  when a product is moved from this warehouse to one of the warehouses listed below
+  .border.border-gray-200.rounded-lg class="dark:border-gray-800" data-controller="edit-warehouse-transition"
     table
       thead
         tr
-          th To Warehouse
-          th Actions
+          th Destination Warehouse
+          th 
       tbody
         - WarehouseTransition.where(from_warehouse: warehouse).includes(:to_warehouse).each do |transition|
           tr.no-select-margin
@@ -51,11 +61,11 @@
                 class: "form-select"
             td
               = link_to "Remove", "#",
-                class: "btn is-danger",
+                class: "btn-rounded btn-red",
                 data: { action: "click->edit-warehouse-transition#removeTransition" }
-        tr
+        tr.cursor-default.hover:bg-transparent
           td
-            = link_to "Add Transition", "#", class: "btn", data: { action: "click->edit-warehouse-transition#addTransition" }
+            = link_to "Add Transition", "#", class: "btn-rounded", data: { action: "click->edit-warehouse-transition#addTransition" }
           td
 
     template#transition-template
@@ -65,10 +75,10 @@
             options_from_collection_for_select(Warehouse.where.not(id: warehouse.id), :id, :name),
             class: "form-select"
         td
-          = link_to "Remove", "#",
-            class: "btn is-danger",
+          = link_to "#",
+            class: "btn-rounded btn-red",
             data: { action: "click->edit-warehouse-transition#removeTransition" }
+              i.icn 🗑
+              | Remove
 
-  = render "_shared/notice-err", model: warehouse
-
-  = form.submit
+  = form_submit_for(warehouse, form)

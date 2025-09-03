@@ -3,7 +3,7 @@
     h3.flex.justify-between
       span Completed Sales
       span = complete_sales.size
-    table role="grid" data-controller="table"
+    table data-controller="table"
       thead
         th Customer
         th Email
@@ -11,12 +11,12 @@
         th Date
         - if product.editions.any?
           th Edition?
-        th.right Price, $
+        th.text-right Price, $
         th Qty
       tbody
         - complete_sales.each_with_index do |ps, idx|
           tr(
-            class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.item.id)
+            class=class_names(hoverable: true, selected: request.params[:selected].to_i == ps.resolve_sold_item.id)
             data-action="click->table#goTo"
             data-table-url-param=sale_path(ps.sale)
           )
@@ -29,5 +29,5 @@
                 td = ps.edition.title
               - else
                 td -
-            td.right.mono = format_money ps.price
+            td.text-right.font-mono = format_money ps.price
             td = ps.qty

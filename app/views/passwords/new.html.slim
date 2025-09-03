@@ -1,0 +1,11 @@
+h1.text-5xl.mb-6 Forgot your password?
+
+= render "_shared/notice"
+
+= form_with url: passwords_path, class: "flex flex-col gap-6 my-8" do |form|
+  = form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address]
+  = form.submit "Email reset instructions", class: "w-full"
+
+.space-x-4
+  = link_to "Create new account", sign_up_path, class: "link"
+  = link_to "Already have an account?", sign_in_path, class: "link"

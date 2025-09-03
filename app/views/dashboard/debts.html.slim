@@ -1,15 +1,13 @@
-nav
-  ul
-    li
-      h1.classic Debts 
+header
+  h1 Debts 
 
-main.wide.no-bd.flex.justify-between.flex-col.gap
+.section-wide
   .table-card
-    .search-navigation
+    .search
       = render partial: "_shared/search-form", locals: {path: debts_path}
-      = paginate @debts
+      .pagination-top = paginate @debts
     - if @debts.present?  
-      table role="grid" data-controller="table"
+      table data-controller="table"
         thead
           th Title
           th Edition
@@ -37,7 +35,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
                   td = product.editions_debt.to_i
                 - else
                   td = product.debt.to_i
-      = paginate @debts
+      .pagination-bottom = paginate @debts
     - else 
       = render "_shared/search-results-empty"
 
@@ -48,7 +46,7 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
         thead
           th Purchased Ago
           th Supplier
-          th.right Cost
+          th.text-right Cost
           th Qty
         tbody
           - @unpaid_purchases.each do |unpaid|
@@ -58,5 +56,5 @@ main.wide.no-bd.flex.justify-between.flex-col.gap
             )
               td.no-wrap = time_ago_in_words unpaid.created_at
               td = unpaid.supplier.title
-              td.mono.right = format_money unpaid.item_price
+              td.font-mono.text-right = format_money unpaid.item_price
               td = unpaid.amount

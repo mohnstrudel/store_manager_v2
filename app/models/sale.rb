@@ -36,15 +36,26 @@
 #  woo_id             :string
 #
 class Sale < ApplicationRecord
+  #
+  # == Concerns
+  #
+  include HasAuditNotifications
+  include Searchable
+  include Shopable
+
+  #
+  # == Extensions
+  #
+  extend FriendlyId
+
+  #
+  # == Configuration
+  #
+  friendly_id :full_title, use: :slugged
+  paginates_per 50
   audited associated_with: :customer
   has_associated_audits
-  include HasAuditNotifications
-
-  extend FriendlyId
-  friendly_id :full_title, use: :slugged
-
-  include PgSearch::Model
-  pg_search_scope :search,
+  set_search_scope :search,
     against: [:woo_id, :shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
     associated_against: {
       customer: [:email, :first_name, :last_name, :phone, :woo_id],
@@ -54,19 +65,53 @@ class Sale < ApplicationRecord
       tsearch: {prefix: true}
     }
 
-  paginates_per 50
-
+  #
+  # == Associations
+  #
   db_belongs_to :customer
 
-  has_many :product_sales, dependent: :destroy
-  has_many :products, through: :product_sales
+  has_many :sale_items, dependent: :destroy
+  has_many :products, through: :sale_items
 
-  accepts_nested_attributes_for :product_sales, allow_destroy: true
+  accepts_nested_attributes_for :sale_items, allow_destroy: true
 
+  #
+  # == Scopes
+  #
   scope :except_cancelled_or_completed, -> {
     where.not(status: cancelled_status_names + completed_status_names)
   }
+  scope :ordered_by_shop_created_at, -> {
+    order(
+        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC")
+      )
+  }
+  scope :with_index_details, -> {
+    includes(
+      :customer,
+      sale_items: [
+        :purchase_items,
+        product: [images_attachments: :blob],
+        edition: [
+          :version,
+          :color,
+          :size
+        ]
+      ]
+    )
+  }
+  scope :with_show_details, -> {
+    includes(
+        sale_items: [
+          purchase_items: [:warehouse, purchase: :supplier],
+          product: [images_attachments: :blob]
+        ]
+      )
+  }
 
+  #
+  # == Class Methods
+  #
   def self.active_status_names
     [
       "partially-paid",
@@ -115,6 +160,9 @@ class Sale < ApplicationRecord
     UpdateWooOrderJob.perform_later(sale)
   end
 
+  #
+  # == Domain Methods
+  #
   def title
     email = customer.email.presence || ""
     [status&.titleize, email].compact.join(" | ")
@@ -144,15 +192,15 @@ class Sale < ApplicationRecord
     self.class.completed_status_names.include?(status)
   end
 
-  def has_unlinked_product_sales?
-    total_sold = product_sales.sum(:qty)
-    total_purchased = product_sales.sum { |ps| ps.purchased_products.size }
+  def has_unlinked_sale_items?
+    total_sold = sale_items.sum(:qty)
+    total_purchased = sale_items.sum { |ps| ps.purchase_items.size }
 
     return if total_sold == total_purchased
 
-    product_ids = product_sales.pluck(:product_id)
+    product_ids = sale_items.pluck(:product_id)
 
-    PurchasedProduct.without_product_sales(product_ids).exists?
+    PurchaseItem.without_sale_items_by_product(product_ids).exists?
   end
 
   def shop_created_at
@@ -163,11 +211,24 @@ class Sale < ApplicationRecord
     shopify_updated_at || woo_updated_at
   end
 
-  def shopify_id_short
-    shopify_id&.gsub("gid://shopify/Order/", "")
-  end
+  def link_with_purchase_items
+    return unless active? || completed?
 
-  def shop_id
-    shopify_id_short || woo_id
+    sale_items.linkable.map do |sale_item|
+      already_linked_size = sale_item.purchase_items.count
+      remaining_size = sale_item.qty - already_linked_size
+
+      next if remaining_size <= 0
+
+      linkable_purchase_items = PurchaseItem
+        .without_sale_items_by_product(sale_item.product_id)
+        .limit(remaining_size)
+
+      linked_purchase_items_ids = linkable_purchase_items.pluck(:id)
+
+      linkable_purchase_items.each { it.link_with(sale_item.id) }
+
+      linked_purchase_items_ids
+    end.compact.flatten
   end
 end

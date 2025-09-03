@@ -1,82 +1,66 @@
 = render "_shared/notice"
 
-nav
-  ul
-    li
-      ul
-        li = link_to "All purchases", purchases_path
-        li = link_to "Product", @purchase.product
-      hgroup
-        h1 Purchase №#{@purchase.id}
-        h4 = @purchase.product.full_title
-        - if @purchase.edition
-        h4
-          | Supplier 
-          = @purchase.supplier.title
-          - if @purchase.edition
-            | , 
-            = @purchase.edition.type_name_and_value
-  ul.gap
-    li
-      = render "_shared/action-edit", route: url_for(controller: "#{@purchase.model_name.plural}", action: "edit", id: @purchase), btn: true
+header.nav_header
+  .flex.gap-4
+    = back_btn
+    hgroup
+      h1 Purchase №#{@purchase.id}
+      h2 = @purchase.product.full_title
+      - if @purchase.edition
+        h4.text-gray-500.font-normal = @purchase.edition.type_name_and_value
+  menu.nav_menu
+    li = link_to @purchase.product
+      i.icn 🧸
+      | Product
+    li = edit_btn_for @purchase
 
-    - if @purchase.purchased_products.none?
-      li data-controller="move-items"
-        = render "_shared/move_to_warehouse/form", form_url: move_purchases_path(purchase_id: @purchase.id)
-        a.btn data-action="click->move-items#toggleFormVisibility"
-          i.icn 📦
-          | Move all
-
-
-main.wide.flex.flex-col.gap.no-bd
-
-  - if @purchased_products.any?
+.section-wide.flex.flex-col.gap-8
+  - if @purchase_items.any?
       .table-cards-group data-controller="move-items"
-        = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path(purchase_id: @purchase.id)
+        = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(purchase_id: @purchase.id)
 
         .table-card
-          .table-hgroup.flex.justify-between
-            h3.flex.justify-between.w-full
-              span Purchased Products
-              span = @purchased_products.size
+          .flex.justify-between
+            h3 Purchase Items: #{@purchase_items.size}
+            .mx-3.mt.w-45.mt-5.mr-3.text-center = render "_shared/purchase_payment_progress", progress: @purchase.progress, paid: @purchase.item_paid, price: @purchase.item_price, debt: @purchase.item_debt
 
-          = render "_shared/move_to_warehouse/form", form_url: move_purchased_products_path, options: {redirect_to_product_sale: true}
+          = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
 
-          table role="grid" data-controller="table"
+          table data-controller="table"
             thead
               = render "_shared/move_to_warehouse/th"
               th Warehouse
               th Sale
-              th Length × Width × Height, cm
-              th.right Kg
-              th.right Expenses
-              th.right Shipping
-              th.right Actions
+              / th Length × Width × Height, cm
+              / th.text-right Kg
+              / th.text-right Expenses
+              / th.text-right Shipping
+              th.text-right Actions
             tbody
-              - @purchased_products.each do |pp|
+              - @purchase_items.each do |pp|
                 tr(
                   class="hoverable"
                   data-action="click->table#goTo"
-                  data-table-url-param=purchased_product_path(pp)
+                  data-table-url-param=purchase_item_path(pp)
                 )
                   = render "_shared/move_to_warehouse/td", id: pp.id
                   td = pp.warehouse.name
                   td
                     = pp.sale&.select_title
                     - if pp.sale&.woo_id
-                      = link_to "https://store.handsomecake.com/wp-admin/post.php?post=#{pp.sale.woo_id}&action=edit", class: "link-icn td no-events"
-                        = inline_svg "link-icn.svg" 
-                  td.mono = format_item_size(pp)
-                  td.mono.right = pp.weight
-                  td.mono.right = format_money pp.expenses
-                  td.mono.right = format_money pp.shipping_price
+                      .mt-2 #{shop_admin_link pp.sale, true}
+                  / td.font-mono = format_item_size(pp)
+                  / td.font-mono.text-right = pp.weight
+                  / td.font-mono.text-right = format_money pp.expenses
+                  / td.font-mono.text-right = format_money pp.shipping_price
                   td.actions
-                    - if pp.sale
-                      = link_to unlink_purchased_product_path(id: pp.id), class: "no-events danger", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
-                        i.icn ✂︎
-                        | Unlink
-                    = render "_shared/action-destroy", route: purchased_product_path(pp)
-                    = render "_shared/action-edit", route: edit_purchased_product_path(pp)
+                    .flex.justify-end
+                      - if pp.sale
+                        = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                          i.icn ✂︎
+                          | Unlink
+                      = render "_shared/action_destroy", route: purchase_item_path(pp)
+                      = render "_shared/action_edit", route: edit_purchase_item_path(pp)
 
 
   .cards
@@ -84,40 +68,35 @@ main.wide.flex.flex-col.gap.no-bd
       img.product src="#{@purchase.product.image}"
 
     .card.flex.grow
-      .column
-        .title ID
+      .flex-1
+        h5 ID
         p = @purchase.id
-        .title Qty
+        h5 Qty
         p = @purchase.amount
-        .title Unit price, $
-        p.mono = format_money @purchase.item_price
-        .title Total price
-        p.mono = format_money @purchase.total_cost
-      .column
-        .title Paid
-        p.mono = format_money(@purchase.paid).rjust(2, '0')
-        .title Debt
-        p.mono
+        h5 Unit price, $
+        p.font-mono = format_money @purchase.item_price
+        h5 Total price
+        p.font-mono = format_money @purchase.total_cost
+      .flex-1
+        h5 Paid
+        p.font-mono = format_money(@purchase.paid).rjust(2, '0')
+        h5 Debt
+        p.font-mono
           | -
           = format_money @purchase.debt
 
     .card
-      .title Supplier
-      p = @purchase.supplier.title
-      .title Order reference
+      h5 Supplier
+      p = link_to @purchase.supplier.title, supplier_path(@purchase.supplier), class: "link"
+      h5 Order reference
       p = @purchase.order_reference
-      .title Date
+      h5 Date
       p = format_date @purchase.purchase_date || @purchase.created_at
-      .title Progress
-      p
-        progress.no-mg value=@purchase.progress max=100
 
 
   .table-card
-
     h3 Payments
-
-    table role="grid"
+    table
       thead
         tr
           th Amount, $
@@ -125,17 +104,17 @@ main.wide.flex.flex-col.gap.no-bd
       tbody#payments
         - @purchase.payments.each do |payment|
           tr.hoverable
-            td.mono = format_money payment.value
+            td.font-mono = format_money payment.value
             td = format_date payment.payment_date
 
-    = form_with model: @purchase.payments.new, class: "payment", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
+    = form_with model: @purchase.payments.new, class: "p-3 pb-6", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
       - if form.object.errors.any?
         - form.object.errors.full_messages.each do |message|
           = message
       = form.hidden_field :purchase_id
-      = form.label :amount, "New:"
-      = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any
-      = form.submit "Add payment", role: "button"
+      = form.label :amount, "New Payment"
+      = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any, class: "w-1/3"
+      = form.submit "Add payment", role: "button", class: "ml-2"
 
 
-= button_to "Destroy this purchase", purchase_path(@purchase), method: :delete, class: "btn-danger"
+= destroy_btn_for @purchase

@@ -1,6 +1,9 @@
 require "rails_helper"
 
 describe "Changing default warehouse" do
+  before { sign_in_as_admin }
+  after { log_out }
+
   let!(:existing_default_warehouse) { create(:warehouse, :default, name: "Default Warehouse") }
   let!(:non_default_warehouse) { create(:warehouse, name: "Non-Default Warehouse") }
 

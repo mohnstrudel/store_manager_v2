@@ -15,17 +15,46 @@
 #  woo_id     :string
 #
 class Edition < ApplicationRecord
-  audited associated_with: :product
+  #
+  # == Concerns
+  #
   include HasAuditNotifications
+  include Shopable
 
+  #
+  # == Extensions
+  #
+  # (none)
+
+  #
+  # == Configuration
+  #
+  audited associated_with: :product
+
+  #
+  # == Validations
+  #
+  # (none)
+
+  #
+  # == Associations
+  #
   belongs_to :size, optional: true
   belongs_to :version, optional: true
   belongs_to :color, optional: true
   db_belongs_to :product
 
-  has_many :product_sales, dependent: :destroy
+  has_many :sale_items, dependent: :destroy
   has_many :purchases, dependent: :destroy
 
+  #
+  # == Scopes
+  #
+  scope :with_details, -> { includes(:version, :color, :size) }
+
+  #
+  # == Class Methods
+  #
   def self.types
     # Values should follow this rule: [English, German]
     {
@@ -36,6 +65,9 @@ class Edition < ApplicationRecord
     }.freeze
   end
 
+  #
+  # == Domain Methods
+  #
   def title
     [size&.value, version&.value, color&.value].compact.join(" | ")
   end
@@ -56,13 +88,5 @@ class Edition < ApplicationRecord
 
   def type_name_and_value
     [size, version, color].compact.map { |i| "#{i.model_name.name}: #{i.value}" }.join(", ")
-  end
-
-  def shopify_id_short
-    shopify_id&.gsub("gid://shopify/ProductVariant/", "")
-  end
-
-  def shop_id
-    shopify_id_short || woo_id
   end
 end

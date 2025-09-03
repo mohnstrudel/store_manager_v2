@@ -1,6 +1,9 @@
 require "rails_helper"
 
 describe "Search works accross products, sales, purchases, and debts", js: "true" do
+  before { sign_in_as_admin }
+  after { log_out }
+
   # rubocop:disable RSpec/MultipleExpectations, RSpec/InstanceVariable, RSpec/ExampleLength, RSpec/BeforeAfterAll
   before(:all) do
     create(:warehouse, is_default: true)
@@ -28,25 +31,25 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     @sale_palmer = create(:sale, customer: @laura_palmer)
 
     @ps_cooper_1 = create(
-      :product_sale,
+      :sale_item,
       sale: @sale_cooper,
       product: @asuka,
       edition: nil
     )
     @ps_cooper_2 = create(
-      :product_sale,
+      :sale_item,
       sale: @sale_cooper,
       product: @batman,
       edition: nil
     )
     @ps_cooper_3 = create(
-      :product_sale,
+      :sale_item,
       sale: @sale_cooper,
       product: @guts,
       edition: nil
     )
     @ps_palmer = create(
-      :product_sale,
+      :sale_item,
       sale: @sale_palmer,
       product: @batman,
       edition: nil
@@ -72,7 +75,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
     Product.find_each(&:destroy)
     Customer.find_each(&:destroy)
     Sale.find_each(&:destroy)
-    ProductSale.find_each(&:destroy)
+    SaleItem.find_each(&:destroy)
     Purchase.find_each(&:destroy)
     Brand.find_each(&:destroy)
     Franchise.find_each(&:destroy)
@@ -132,7 +135,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
   it "finds debts when we change products" do
     4.times do
       create(
-        :product_sale,
+        :sale_item,
         sale: @sale_cooper,
         product: @batman,
         edition: nil
@@ -193,7 +196,7 @@ describe "Search works accross products, sales, purchases, and debts", js: "true
 
     # Click on the products dropdown select
     # and select a different product
-    slim_select(@batman.woo_id_full_title, @asuka.woo_id_full_title)
+    slim_select(@batman.build_full_title_with_shop_id, @asuka.build_full_title_with_shop_id)
 
     scroll_to("label[for='purchase_edition'] ~ div")
 

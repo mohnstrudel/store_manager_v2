@@ -1,11 +1,6 @@
 class ApplicationController < ActionController::Base
-  if Rails.env.production?
-    http_basic_authenticate_with(
-      name: Rails.application.credentials.dig(:basic_auth, :log),
-      password: Rails.application.credentials.dig(:basic_auth, :pas),
-      except: "process_order"
-    )
-  end
+  include Authentication
+  include Authorization
 
   if Rails.env.development?
     before_action do

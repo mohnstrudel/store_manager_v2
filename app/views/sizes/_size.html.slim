@@ -1,15 +1,11 @@
 tr id="#{dom_id size}"
-  td
-    = size.id
-  td
-    = size.value
-  td
-    = size.created_at
-  td
-    = size.updated_at
+  td = size.id
+  td = size.value
+  td = size.created_at
+  td = size.updated_at
   - if action_name != "show" 
     td.actions
       = link_to size
         i.icn 📄
-        | Show
-      = render "_shared/action-edit", route: edit_size_path(size)
+        | Show
+      = render "_shared/action_edit", route: edit_size_path(size)

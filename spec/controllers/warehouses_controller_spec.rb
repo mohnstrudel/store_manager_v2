@@ -1,6 +1,9 @@
 require "rails_helper"
 
 describe WarehousesController do
+  before { sign_in_as_admin }
+  after { log_out }
+
   describe "PATCH #update" do
     let(:warehouse) { create(:warehouse) }
     let(:to_warehouse) { create(:warehouse) }

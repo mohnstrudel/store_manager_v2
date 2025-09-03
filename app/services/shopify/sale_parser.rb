@@ -8,7 +8,7 @@ class Shopify::SaleParser
   def parse
     {
       sale: parse_sale,
-      product_sales: parse_product_sales,
+      sale_items: parse_sale_items,
       customer: parse_customer
     }
   end
@@ -62,7 +62,7 @@ class Shopify::SaleParser
     @order.dig("customer", "phone") || @order["phone"] || @order.dig("shippingAddress", "phone")
   end
 
-  def parse_product_sales
+  def parse_sale_items
     return [] unless @order.dig("lineItems", "nodes").present?
 
     @order["lineItems"]["nodes"].map do |line_item|

@@ -1,0 +1,16 @@
+doctype html
+html
+  head
+    title Store Mate
+    meta[name="robots" content="noindex"]
+    meta[name="viewport" content="width=device-width,initial-scale=1"]
+    = csrf_meta_tags
+    = csp_meta_tag
+    = stylesheet_link_tag "tailwind", "data-turbo-track": "reload"
+    = javascript_importmap_tags
+    = turbo_refresh_method_tag :morph
+    = turbo_refresh_scroll_tag :preserve
+  body.flex.flex-col.items-center.justify-center.min-h-screen.wbg
+    .section-border-base.max-w-3xl.min-h-96.px-12.py-14.backdrop-blur-xl
+      = yield
+    .text-md.font-bold.text-gray-400.mt-6 StoreMate

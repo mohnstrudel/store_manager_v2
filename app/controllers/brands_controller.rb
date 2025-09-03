@@ -25,7 +25,7 @@ class BrandsController < ApplicationController
 
     respond_to do |format|
       if @brand.save
-        format.html { redirect_to brand_url(@brand), notice: "Brand was successfully created." }
+        format.html { redirect_to brand_url(@brand), notice: "Brand was successfully created" }
         format.json { render :show, status: :created, location: @brand }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -38,7 +38,7 @@ class BrandsController < ApplicationController
   def update
     respond_to do |format|
       if @brand.update(brand_params)
-        format.html { redirect_to brand_url(@brand), notice: "Brand was successfully updated." }
+        format.html { redirect_to brand_url(@brand), notice: "Brand was successfully updated" }
         format.json { render :show, status: :ok, location: @brand }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -52,7 +52,7 @@ class BrandsController < ApplicationController
     @brand.destroy
 
     respond_to do |format|
-      format.html { redirect_to brands_url, notice: "Brand was successfully destroyed." }
+      format.html { redirect_to brands_url, notice: "Brand was successfully destroyed" }
       format.json { head :no_content }
     end
   end

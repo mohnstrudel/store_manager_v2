@@ -1,53 +1,58 @@
 doctype html
 html
   head
-    - if Rails.env.staging?
-      title 🐶 Staging Mate 🐶
-    - if Rails.env.development?
-      title 🐞 Development Mate 🐞
-    - else
-      title 😸 Store Mate 😸
+    title Store Mate
     meta[name="robots" content="noindex"]
     meta[name="viewport" content="width=device-width,initial-scale=1"]
     = csrf_meta_tags
     = csp_meta_tag
-    = stylesheet_link_tag "application", "data-turbo-track": "reload"
+    = stylesheet_link_tag "tailwind", "data-turbo-track": "reload"
     = javascript_importmap_tags
     = turbo_refresh_method_tag :morph
     = turbo_refresh_scroll_tag :preserve
-  body
-    header
-      nav role="navigation" aria-label="main navigation"
-        ul 
-         li
-          - if Rails.env.staging?
-            i.icn.logo.danger 🐶
-          - if Rails.env.development?
-            i.icn.logo.danger 🐞
-          - if Rails.env.production?
-            i.icn.logo 😸
-        ul
-          li = link_to "Dashboard", root_path
-          nav
-            li = link_to "Debts", debts_path
-            li = link_to "Sales", sales_path
-            li = link_to "Purchases", purchases_path
-          nav  
-            li = link_to "Warehouses", warehouses_path
-            li = link_to "Products", products_path
+  body.flex.flex-col.min-h-screen
+    header.container.mx-auto.pt-2
+      nav role="navigation-main"
+        ul role="navigation-logo"
+         li.text-gray-700.dark:text-gray-500
+          i.icn.text-2xl.mr-2 😸
+          strong.align-text-bottom StoreMate
+        ul.text-sm
+          - if current_user.guest?
+            li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }, type: "button"
+          - else
+            li = link_to "Dashboard", root_path, type: "button"
+            .ml-6
+            li = link_to "Debts", debts_path, type: "button"
+            li = link_to "Sales", sales_path, type: "button"
+            li = link_to "Purchases", purchases_path, type: "button"
+            .ml-6
+            li = link_to "Warehouses", warehouses_path, type: "button"
+            li = link_to "Products", products_path, type: "button"
 
-          nav.dropdown role="navigation" aria-label="dropdown navigation"
-            .dropdown__btn
-              i.icn 🍔
-            ul.dropdown__content
-              li = link_to "Customers", customers_path
-              li = link_to "Suppliers", suppliers_path
-              li = link_to "Brands", brands_path
-              li = link_to "Franchises", franchises_path
-              hr
-              li = link_to "Versions", versions_path
-              li = link_to "Colors", colors_path
-              li = link_to "Shapes", shapes_path
-              li = link_to "Sizes", sizes_path
-    main.main
+          - unless current_user.guest?
+            nav.ml-6 role="navigation-dropdown" 
+              button
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+                </svg>
+              ul
+                li = link_to "Customers", customers_path, type: "button"
+                li = link_to "Suppliers", suppliers_path, type: "button"
+                .pb-3
+                li = link_to "Brands", brands_path, type: "button"
+                li = link_to "Franchises", franchises_path, type: "button"
+                .pb-3
+                li = link_to "Versions", versions_path, type: "button"
+                li = link_to "Colors", colors_path, type: "button"
+                li = link_to "Shapes", shapes_path, type: "button"
+                li = link_to "Sizes", sizes_path, type: "button"
+                .pb-3
+                - if current_user.admin?
+                  li = link_to "Users", users_path, type: "button"
+                li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }, type: "button"
+    main.container.mx-auto.mt-8.mb-60
       = yield
+    footer.container.mx-auto.text-center.mb-8
+      a.no-underline.hover:bg-transparent href="" onclick="window.scrollTo({top: 0}); return false;" class="link"
+        i.icn.text-3xl.text-gray-500 😸

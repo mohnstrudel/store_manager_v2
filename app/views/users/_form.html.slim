@@ -1,0 +1,11 @@
+= form_with(model: user) do |form|
+  = form.label :email_address
+  = form.text_field :email_address 
+  = form.label :first_name
+  = form.text_field :first_name 
+  = form.label :last_name
+  = form.text_field :last_name 
+  - if !user.admin?
+    = form.label :role
+    = form.select :role, User.role_options_for_select, { prompt: "Select role" }
+  = form_submit_for(user, form)

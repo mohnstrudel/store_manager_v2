@@ -1,0 +1,19 @@
+= render "_shared/notice"
+
+= render "_shared/nav-show", model: @user
+
+main
+  table.vertical(role="grid")
+    thead
+      tr
+        th ID
+        th Email
+        th First Name
+        th Last Name
+        th Role
+        th Created
+        th Updated
+    tbody
+      = render @user
+
+= destroy_btn_for @user

@@ -1,15 +1,4 @@
-nav
-  ul
-    li
-      = link_to "Back", :back
-      hgroup
-        h1 Editing "#{@product.title}"
-        h2 = @product.full_title
-  ul
-    li
-      = link_to @product
-        i.icn 📄
-        | Show
+= render "_shared/notice-err", model: @product
+= render "_shared/nav-edit", model: @product
 
-main
-  = render "form", product: @product
+= render "form", product: @product

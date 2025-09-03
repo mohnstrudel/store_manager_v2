@@ -1,28 +1,20 @@
 = render "_shared/notice"
 
-nav
-  ul
-    li
-      ul
-        li = link_to "All products", products_path
-      hgroup
-        h1 = @product.title
-        h2 = @product.full_title
-  ul.gap
+header.nav_header
+  .flex.gap-4
+    = back_btn
+    hgroup
+      h1 = @product.title
+      h2 = @product.full_title
+  menu.nav_menu
     - if @product.shopify_id
-      li
-        a.btn href="#{url_for pull_product_path(product: @product)}" 
-          i.icn 📥
-          | Pull
-    li
-      = render "_shared/action-edit", route: "#{url_for controller: "#{@product.model_name.plural}", action: "edit", id: @product}", btn: true
-    li
-      a.btn href="#{url_for new_purchase_path(product: @product)}" 
-        i.icn 💰
-        | Purchase
+      li = pull_btn_for @product
+    li = link_to new_purchase_path(product: @product)
+      i.icn 💰
+      | New Purchase
+    li = edit_btn_for @product
 
-
-main.wide.flex.flex-col.gap.w-pd
+.section-wide.flex.flex-col.gap-8.p-8
   = render "product_attributes", product: @product
   = render "product_editions", product: @product
   = render "product_active_sales", product: @product,\
@@ -31,4 +23,4 @@ main.wide.flex.flex-col.gap.w-pd
     complete_sales: @complete_sales
   = render "product_purchases", product: @product
 
-= button_to "Destroy this product", product_path(@product), method: :delete, class: "btn-danger", data: { turbo_confirm: 'Are you sure?' }
+= destroy_btn_for @product
