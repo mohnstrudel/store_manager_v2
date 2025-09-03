@@ -39,7 +39,7 @@ module Helpers
       fill_in "email_address", with: user.email_address
       fill_in "password", with: "password"
       click_on "Sign in"
-      expect(page).to have_current_path(root_path)
+      expect(page).to have_current_path(noop_path)
     end
 
     def set_session_cookie_in_request(id)

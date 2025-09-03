@@ -17,7 +17,6 @@ describe ApplicationPolicy do
     it { is_expected.to permit_action(:update) }
     it { is_expected.to permit_action(:edit) }
     it { is_expected.to permit_action(:destroy) }
-    it { is_expected.to permit_action(:noop) }
   end
 
   context "when user is manager" do
@@ -30,7 +29,6 @@ describe ApplicationPolicy do
     it { is_expected.to forbid_action(:update) }
     it { is_expected.to forbid_action(:edit) }
     it { is_expected.to forbid_action(:destroy) }
-    it { is_expected.to permit_action(:noop) }
   end
 
   context "when user is support" do
@@ -43,7 +41,6 @@ describe ApplicationPolicy do
     it { is_expected.to forbid_action(:update) }
     it { is_expected.to forbid_action(:edit) }
     it { is_expected.to forbid_action(:destroy) }
-    it { is_expected.to permit_action(:noop) }
   end
 
   context "when user is nil (guest)" do
@@ -56,7 +53,6 @@ describe ApplicationPolicy do
     it { is_expected.to forbid_action(:update) }
     it { is_expected.to forbid_action(:edit) }
     it { is_expected.to forbid_action(:destroy) }
-    it { is_expected.to permit_action(:noop) } # Since noop? is true for all
   end
 
   describe "Scope" do

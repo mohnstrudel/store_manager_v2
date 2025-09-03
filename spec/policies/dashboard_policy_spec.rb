@@ -11,6 +11,7 @@ describe DashboardPolicy do
 
     it { is_expected.to permit_action(:debts) }
     it { is_expected.to permit_action(:pull_last_orders) }
+    it { is_expected.to permit_action(:noop) }
   end
 
   context "when user is manager" do
@@ -18,6 +19,7 @@ describe DashboardPolicy do
 
     it { is_expected.to permit_action(:debts) }
     it { is_expected.to permit_action(:pull_last_orders) }
+    it { is_expected.to permit_action(:noop) }
   end
 
   context "when user is support" do
@@ -25,6 +27,7 @@ describe DashboardPolicy do
 
     it { is_expected.to forbid_action(:debts) }
     it { is_expected.to permit_action(:pull_last_orders) }
+    it { is_expected.to permit_action(:noop) }
   end
 
   context "when user is guest" do
@@ -32,5 +35,6 @@ describe DashboardPolicy do
 
     it { is_expected.to forbid_action(:debts) }
     it { is_expected.to forbid_action(:pull_last_orders) }
+    it { is_expected.to permit_action(:noop) }
   end
 end
