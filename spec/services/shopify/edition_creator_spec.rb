@@ -25,12 +25,22 @@ RSpec.describe Shopify::EditionCreator do
         expect(edition.color.value).to eq("Red")
         expect(edition.size.value).to eq("Large")
         expect(edition.version.value).to eq("Deluxe")
+
+        product.reload
+        expect(product.colors).to include(edition.color)
+        expect(product.sizes).to include(edition.size)
+        expect(product.versions).to include(edition.version)
       end
 
       it "creates associated attribute records if they don't exist" do
         expect { creator.update_or_create! }.to change(Color, :count).by(1)
           .and change(Size, :count).by(1)
           .and change(Version, :count).by(1)
+
+        product.reload
+        expect(product.colors.count).to eq(1)
+        expect(product.sizes.count).to eq(1)
+        expect(product.versions.count).to eq(1)
       end
 
       it "reuses existing attribute records" do
@@ -42,6 +52,9 @@ RSpec.describe Shopify::EditionCreator do
 
         edition = Edition.last
         expect(edition.color).to eq(existing_color)
+
+        product.reload
+        expect(product.colors).to include(existing_color)
       end
     end
 
@@ -59,6 +72,11 @@ RSpec.describe Shopify::EditionCreator do
         expect(existing_edition.color.value).to eq("Red")
         expect(existing_edition.size.value).to eq("Large")
         expect(existing_edition.version.value).to eq("Deluxe")
+
+        product.reload
+        expect(product.colors.map(&:value)).to include("Red")
+        expect(product.sizes.map(&:value)).to include("Large")
+        expect(product.versions.map(&:value)).to include("Deluxe")
       end
     end
 
