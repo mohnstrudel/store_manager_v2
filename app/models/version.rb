@@ -33,6 +33,7 @@ class Version < ApplicationRecord
   #
   has_many :product_versions, dependent: :destroy
   has_many :products, through: :product_versions
+  has_many :editions, dependent: :destroy
 
   #
   # == Scopes
