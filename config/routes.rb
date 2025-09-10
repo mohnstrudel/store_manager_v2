@@ -16,6 +16,9 @@ Rails.application.routes.draw do
   # WooCommerce integration
   post "update-order", to: "webhook#process_order"
 
+  # Shopify sale status webhook
+  post "sale-status", to: "webhook#sale_status"
+
   resources :passwords, param: :token
 
   resources :users, except: %i[new create]

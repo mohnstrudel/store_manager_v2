@@ -6,6 +6,7 @@
 #  cbm                       :string
 #  container_tracking_number :string
 #  courier_tracking_url      :string
+#  external_desc             :string
 #  external_name             :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string

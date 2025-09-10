@@ -21,6 +21,8 @@ header.nav_header
       p = @warehouse.name
       h5 External Name for Clients
       p = safe_blank_render @warehouse.external_name
+      h5 External Description
+      p = safe_blank_render @warehouse.external_desc
       h5 CBM
       p = safe_blank_render @warehouse.cbm
       h5 Container Tracking Number

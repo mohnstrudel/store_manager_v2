@@ -1,11 +1,15 @@
 = form_with(model: warehouse) do |form|
-  fieldset.flex.justify-between.gap-4.-mt-6
-    .block.w-full
-      = form.label :name
-      = form.text_field :name
+  .block.w-full
+    = form.label :name
+    = form.text_field :name
+
+  fieldset.flex.justify-between.gap-4
     .block.w-full
       = form.label :external_name
       = form.text_field :external_name
+    .block.w-full
+      = form.label :external_desc
+      = form.text_field :external_desc
 
   fieldset.flex.justify-between.gap-4
     .block.w-full

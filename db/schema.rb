@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_23_131117) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_10_122038) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -382,6 +382,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_23_131117) do
     t.string "container_tracking_number"
     t.string "courier_tracking_url"
     t.datetime "created_at", null: false
+    t.string "external_desc"
     t.string "external_name"
     t.boolean "is_default", default: false, null: false
     t.string "name"

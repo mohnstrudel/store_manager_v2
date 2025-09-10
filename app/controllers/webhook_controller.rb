@@ -16,6 +16,39 @@ class WebhookController < ApplicationController
     head(:no_content)
   end
 
+  def sale_status
+    request_payload = JSON.parse(request.body.read, symbolize_names: true)
+    shopify_name = request_payload[:orderNumber]
+
+    return head(:bad_request) if shopify_name.blank?
+
+    sale = Sale.find_by(shopify_name:)
+
+    return head(:not_found) if sale.blank?
+
+    response = sale.sale_items.with_purchase_details.map do |sale_item|
+      # Sale items have the 'qty' field, but we assume it's one for simplicity
+      purchase_item = sale_item.purchase_items.first
+
+      status = "Not available"
+      description = "No description available"
+
+      if purchase_item&.warehouse.present?
+        status = purchase_item.warehouse.external_name || status
+        description = purchase_item.warehouse.external_desc || description
+      end
+
+      {
+        productName: sale_item.title,
+        status:,
+        description:
+      }
+    end
+
+    final_response = response.one? ? response.first : response
+    render json: final_response
+  end
+
   private
 
   # "x-wc-webhook-signature" is a HMAC:

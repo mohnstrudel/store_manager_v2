@@ -10,29 +10,34 @@ describe WebhookPolicy do
     let(:user) { User.new(role: "admin") }
 
     it { is_expected.to permit_action(:process_order) }
+    it { is_expected.to permit_action(:sale_status) }
   end
 
   context "when user is manager" do
     let(:user) { User.new(role: "manager") }
 
     it { is_expected.to permit_action(:process_order) }
+    it { is_expected.to permit_action(:sale_status) }
   end
 
   context "when user is support" do
     let(:user) { User.new(role: "support") }
 
     it { is_expected.to permit_action(:process_order) }
+    it { is_expected.to permit_action(:sale_status) }
   end
 
   context "when user is guest" do
     let(:user) { User.new(role: "guest") }
 
     it { is_expected.to permit_action(:process_order) }
+    it { is_expected.to permit_action(:sale_status) }
   end
 
   context "when user is nil" do
     let(:user) { User.new(role: nil) }
 
     it { is_expected.to permit_action(:process_order) }
+    it { is_expected.to permit_action(:sale_status) }
   end
 end

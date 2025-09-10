@@ -142,6 +142,7 @@ class WarehousesController < ApplicationController
       :container_tracking_number,
       :courier_tracking_url,
       :external_name,
+      :external_desc,
       :name,
       :is_default,
       :position,
