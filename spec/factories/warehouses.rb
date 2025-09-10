@@ -6,7 +6,8 @@
 #  cbm                       :string
 #  container_tracking_number :string
 #  courier_tracking_url      :string
-#  external_desc             :string
+#  desc_de                   :string
+#  desc_en                   :string
 #  external_name             :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
@@ -19,11 +20,12 @@ FactoryBot.define do
     sequence(:name) { |n| "Warehouse #{n}" }
     sequence(:external_name) { |n| "External Name #{n}" }
     sequence(:position) { |n| n }
+    desc_en { "English Description" }
+    desc_de { "German Description" }
     is_default { false }
-    
+
     trait :default do
       is_default { true }
     end
   end
 end
-

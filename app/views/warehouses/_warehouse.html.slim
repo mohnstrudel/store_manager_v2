@@ -8,7 +8,14 @@ tr id="#{dom_id warehouse}" data-action="click->table#goTo" data-table-url-param
         span.absolute.top-0.left-0.opacity-0.pointer-events-none.transition-opacity.duration-150.flex.group-hover:opacity-100.group-hover:pointer-events-auto.rounded-lg.bg-yellow-100.dark:bg-yellow-800.border.border-yellow-800/10.pt-4.pr-5.pb-5.pl-3.w-64.text-yellow-800.dark:text-yellow-100.text-sm.text-pretty
           | New purchases go to this warehouse by default. Change it on the edit page.
     p = warehouse.external_name
-    p.text-sm.opacity-70 = warehouse.external_desc
+    - if warehouse.desc_en.present? || warehouse.desc_de.present?
+      p.text-sm.opacity-70
+        - if warehouse.desc_en.present?
+          | EN: #{warehouse.desc_en}
+        - if warehouse.desc_en.present? && warehouse.desc_de.present?
+          br
+        - if warehouse.desc_de.present?
+          | DE: #{warehouse.desc_de}
   td = warehouse.cbm
   td = warehouse.purchase_items.size  
   - if warehouse.purchase_items.any?

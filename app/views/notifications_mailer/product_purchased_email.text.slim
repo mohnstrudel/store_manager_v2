@@ -5,6 +5,10 @@
 = "\r\n"
 = "\r\n"
 | Aktueller Status: #{@warehouse_name}
+- if @warehouse_desc_de.present?
+  = "\r\n"
+  | Beschreibung: #{@warehouse_desc_de}
+= "\r\n"
 = "\r\n"
 | Artikel: #{@item_name}
 = "\r\n"
@@ -32,6 +36,10 @@
 = "\r\n"
 = "\r\n"
 | Current Status: #{@warehouse_name}
+- if @warehouse_desc_en.present?
+  = "\r\n"
+| Description: #{@warehouse_desc_en}
+= "\r\n"
 = "\r\n"
 | Sale Item: #{@item_name}
 = "\r\n"

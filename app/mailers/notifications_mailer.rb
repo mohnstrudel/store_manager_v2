@@ -4,12 +4,16 @@ class NotificationsMailer < ApplicationMailer
     email:,
     item_name:,
     order_number:,
-    warehouse_name:
+    warehouse_name:,
+    warehouse_desc_en: nil,
+    warehouse_desc_de: nil
   )
     @customer_name = customer_name
     @item_name = item_name
     @order_number = order_number
     @warehouse_name = warehouse_name
+    @warehouse_desc_en = warehouse_desc_en
+    @warehouse_desc_de = warehouse_desc_de
 
     mail(
       subject: "HandsomeCake Goodies. We updated your order, new status: \"#{warehouse_name}\"",
@@ -27,7 +31,11 @@ class NotificationsMailer < ApplicationMailer
     order_number:,
     to_warehouse:,
     tracking_number: nil,
-    tracking_url: nil
+    tracking_url: nil,
+    previous_status_desc_en: nil,
+    previous_status_desc_de: nil,
+    new_status_desc_en: nil,
+    new_status_desc_de: nil
   )
     @customer_name = customer_name
     @item_name = item_name
@@ -36,6 +44,10 @@ class NotificationsMailer < ApplicationMailer
     @previous_status = from_warehouse
     @tracking_number = tracking_number
     @tracking_url = tracking_url
+    @previous_status_desc_en = previous_status_desc_en
+    @previous_status_desc_de = previous_status_desc_de
+    @new_status_desc_en = new_status_desc_en
+    @new_status_desc_de = new_status_desc_de
 
     mail(
       subject: "HandsomeCake Goodies. We updated your order, new status: \"#{to_warehouse}\", previous status: \"#{from_warehouse}\"",

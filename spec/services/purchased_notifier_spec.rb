@@ -9,8 +9,8 @@ describe PurchasedNotifier do
 
   let(:customer) { create(:customer, email: "test@example.com", first_name: "John", last_name: "Doe") }
   let(:sale) { create(:sale, customer: customer, woo_id: "123") }
-  let(:warehouse) { create(:warehouse, name: "Test WH", external_name: "Public WH") }
-  let(:to_warehouse) { create(:warehouse, name: "New WH") }
+  let(:warehouse) { create(:warehouse, name: "Test WH", external_name: "Public WH", desc_en: "English description for Test WH", desc_de: "German description for Test WH") }
+  let(:to_warehouse) { create(:warehouse, name: "New WH", desc_en: "English description for New WH", desc_de: "German description for New WH") }
   let(:sale_item) { create(:sale_item) }
   let(:purchase_item) { create(:purchase_item, sale: sale, warehouse: warehouse, sale_item: sale_item) }
   let(:notification) { create(:notification, event_type: :warehouse_changed, status: :active) }

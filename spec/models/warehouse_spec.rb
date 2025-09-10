@@ -6,7 +6,8 @@
 #  cbm                       :string
 #  container_tracking_number :string
 #  courier_tracking_url      :string
-#  external_desc             :string
+#  desc_de                   :string
+#  desc_en                   :string
 #  external_name             :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
@@ -26,6 +27,14 @@ RSpec.describe Warehouse, type: :model do
     it "validates presence of external name" do
       warehouse = described_class.new(name: "Name", external_name: nil)
       expect(warehouse).not_to be_valid
+    end
+  end
+
+  describe "attributes" do
+    it "has English and German descriptions" do
+      warehouse = build(:warehouse)
+      expect(warehouse.desc_en).to eq("English Description")
+      expect(warehouse.desc_de).to eq("German Description")
     end
   end
 

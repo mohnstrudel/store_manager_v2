@@ -72,7 +72,9 @@ class PurchasedNotifier
 
       NotificationsMailer.product_purchased_email(
         **data,
-        warehouse_name: format_warehouse_name(purchase_item.warehouse)
+        warehouse_name: format_warehouse_name(purchase_item.warehouse),
+        warehouse_desc_en: purchase_item.warehouse.desc_en,
+        warehouse_desc_de: purchase_item.warehouse.desc_de
       ).deliver_later
     end
   end
@@ -106,7 +108,11 @@ class PurchasedNotifier
         from_warehouse: format_warehouse_name(transition.from_warehouse),
         to_warehouse: format_warehouse_name(transition.to_warehouse),
         tracking_number: transition.to_warehouse&.container_tracking_number,
-        tracking_url: transition.to_warehouse&.courier_tracking_url
+        tracking_url: transition.to_warehouse&.courier_tracking_url,
+        previous_status_desc_en: transition.from_warehouse.desc_en,
+        previous_status_desc_de: transition.from_warehouse.desc_de,
+        new_status_desc_en: transition.to_warehouse.desc_en,
+        new_status_desc_de: transition.to_warehouse.desc_de
       ).deliver_later
     end
   end
