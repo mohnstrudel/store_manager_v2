@@ -15,6 +15,7 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
         - if purchase.purchase_items.present?
           - purchase.purchase_items.group_by(&:warehouse).each do |warehouse, pp|
             li #{warehouse.name}: #{pp.count}
+  td.font-mono.text-sm = purchase.order_reference
   td.break-words = purchase.supplier.title
   td.w-45 = render "_shared/purchase_payment_progress", progress: purchase.progress, paid: purchase.item_paid, price: purchase.item_price, debt: purchase.item_debt
 
