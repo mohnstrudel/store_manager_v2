@@ -18,11 +18,12 @@ class WebhookController < ApplicationController
 
   def sale_status
     request_payload = JSON.parse(request.body.read, symbolize_names: true)
-    shopify_name = request_payload[:orderNumber]
+    order = request_payload[:orderIdentifier]
+    customer = request_payload[:customerIdentifier]
 
-    return head(:bad_request) if shopify_name.blank?
+    return head(:bad_request) if order.blank?
 
-    sale = Sale.find_by(shopify_name:)
+    sale = SaleFinder.find(order, customer)
 
     return head(:not_found) if sale.blank?
 
