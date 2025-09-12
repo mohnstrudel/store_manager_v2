@@ -32,8 +32,8 @@ class WebhookController < ApplicationController
 
       if purchase_item&.warehouse.present?
         warehouse = purchase_item.warehouse
-        status = warehouse.external_name_de || warehouse.external_name_en || "No status available"
-        description = warehouse.desc_de || warehouse.desc_en || "No description available"
+        status = warehouse.external_name_de.presence || warehouse.external_name_en.presence || "No status available"
+        description = warehouse.desc_de.presence || warehouse.desc_en.presence || "No description available"
       end
 
       {
