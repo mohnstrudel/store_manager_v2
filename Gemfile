@@ -128,6 +128,7 @@ group :development do
   gem "standard", require: false
   gem "rubycritic", require: false
   gem "letter_opener"
+  gem "rails-mcp-server"
 end
 
 group :test do
