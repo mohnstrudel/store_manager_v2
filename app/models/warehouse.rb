@@ -17,6 +17,9 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
+  # TODO: Remove after merging the Auth PR #149
+  self.ignored_columns += ["external_name"]
+
   #
   # == Concerns
   #
