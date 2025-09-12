@@ -69,8 +69,13 @@
 
   input,
   select,
-  .ss-main {
+  .ss-main,
+  textarea {
     @apply appearance-none w-full pl-3 pr-10 py-2 cursor-pointer border-1 border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
+  }
+
+  textarea {
+    @apply min-h-24;
   }
 
   *:disabled {
@@ -331,11 +336,13 @@
 
   /* Forms: errors */
   .field_with_errors label,
+  .field_with_errors textarea,
   .field_with_errors input {
     @apply text-red-700 dark:text-red-400 border-red-700 dark:border-red-400!;
   }
 
-  .field_with_errors input {
+  .field_with_errors input,
+  .field_with_errors textarea {
     @apply border;
   }
 

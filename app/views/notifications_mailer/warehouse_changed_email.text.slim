@@ -4,9 +4,17 @@
 | Tolle Neuigkeiten! Der Status Deiner Bestellung #{@order_number} wurde aktualisiert.
 = "\r\n"
 = "\r\n"
-| Vorheriger Status: #{@previous_status}
+| Vorheriger Status: #{@from_warehouse_name_de.presence || @previous_status}
+- if @previous_status_desc_de.present?
+  = "\r\n"
+  | Beschreibung: #{@previous_status_desc_de}
 = "\r\n"
-| Neuer Status: #{@new_status}
+= "\r\n"
+| Neuer Status: #{@to_warehouse_name_de.presence || @new_status}
+- if @new_status_desc_de.present?
+  = "\r\n"
+  | Beschreibung: #{@new_status_desc_de}
+= "\r\n"
 = "\r\n"
 | Artikel: #{@item_name}
 = "\r\n"
@@ -33,9 +41,16 @@
 | Good news! The status of your order #{@order_number} has been updated.
 = "\r\n"
 = "\r\n"
-| Previous Status: #{@previous_status}
+| Previous Status: #{@from_warehouse_name_en.presence || @previous_status}
+- if @previous_status_desc_en.present?
+  = "\r\n"
+  | Description: #{@previous_status_desc_en}
 = "\r\n"
-| New Status: #{@new_status}
+= "\r\n"
+| New Status: #{@to_warehouse_name_en.presence || @new_status}
+- if @new_status_desc_en.present?
+  = "\r\n"
+  | Description: #{@new_status_desc_en}
 = "\r\n"
 = "\r\n"
 | Sale Item: #{@item_name}

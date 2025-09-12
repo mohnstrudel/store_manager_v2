@@ -66,6 +66,10 @@ class SaleItem < ApplicationRecord
     includes(:product, sale: :customer, edition: [:version, :color, :size])
   }
 
+  scope :with_purchase_details, -> {
+    includes(:product, edition: [:version, :color, :size], purchase_items: :warehouse)
+  }
+
   #
   # == Class Methods
   #

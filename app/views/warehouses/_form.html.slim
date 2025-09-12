@@ -1,11 +1,23 @@
 = form_with(model: warehouse) do |form|
-  fieldset.flex.justify-between.gap-4.-mt-6
+  .block.w-full
+    = form.label :name
+    = form.text_field :name
+  
+  fieldset.flex.justify-between.gap-4
     .block.w-full
-      = form.label :name
-      = form.text_field :name
+      = form.label :external_name_en, "External Name in English"
+      = form.text_field :external_name_en
     .block.w-full
-      = form.label :external_name
-      = form.text_field :external_name
+      = form.label :external_name_de, "External Name in German"
+      = form.text_field :external_name_de
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :desc_en, "English Description"
+      = form.text_area :desc_en
+    .block.w-full
+      = form.label :desc_de, "German Description"
+      = form.text_area :desc_de
 
   fieldset.flex.justify-between.gap-4
     .block.w-full

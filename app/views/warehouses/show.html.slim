@@ -19,8 +19,15 @@ header.nav_header
     .card.grow
       h5 Name
       p = @warehouse.name
-      h5 External Name for Clients
-      p = safe_blank_render @warehouse.external_name
+      h5 English External Name (for Clients)
+      p = safe_blank_render @warehouse.external_name_en
+      h5 English Description (for Clients)
+      p = safe_blank_render @warehouse.desc_en
+      h5 German External Name (for Clients)
+      p = safe_blank_render @warehouse.external_name_de
+      h5 German Description (for Clients)
+      p = safe_blank_render @warehouse.desc_de
+    .card.grow
       h5 CBM
       p = safe_blank_render @warehouse.cbm
       h5 Container Tracking Number

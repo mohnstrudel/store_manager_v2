@@ -6,6 +6,7 @@
     table data-controller="table"
       thead
         th Supplier
+        th Ref
         th Edition?
         th Time ago
         th.text-right Item Price, $
@@ -18,6 +19,7 @@
             data-table-url-param=purchase_path(purchase)
           )
             td = purchase.supplier.title
+            td.font-mono.text-sm = purchase.order_reference
             - if purchase.edition.present?
               td = purchase.edition.title
             - else

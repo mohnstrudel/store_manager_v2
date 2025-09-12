@@ -6,7 +6,10 @@
 #  cbm                       :string
 #  container_tracking_number :string
 #  courier_tracking_url      :string
-#  external_name             :string
+#  desc_de                   :string
+#  desc_en                   :string
+#  external_name_de          :string
+#  external_name_en          :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
 #  position                  :integer          default(1), not null
@@ -14,6 +17,9 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
+  # TODO: Remove after merging the Auth PR #149
+  self.ignored_columns += ["external_name"]
+
   #
   # == Concerns
   #
@@ -36,7 +42,6 @@ class Warehouse < ApplicationRecord
   # == Validations
   #
   validates :name, presence: true
-  validates :external_name, presence: true
 
   #
   # == Associations
@@ -65,6 +70,7 @@ class Warehouse < ApplicationRecord
   #
   def average_payment_progress
     return 0 if purchases.empty?
+
     progresses = purchases.map(&:progress)
     (progresses.sum / progresses.size).round
   end

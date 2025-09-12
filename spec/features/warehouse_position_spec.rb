@@ -4,9 +4,9 @@ describe "Warehouse Position Management" do
   before do
     sign_in_as_admin
     # Create test warehouses with specific positions
-    @warehouse1 = create(:warehouse, name: "Warehouse 1", external_name: "External 1", position: 1)
-    @warehouse2 = create(:warehouse, name: "Warehouse 2", external_name: "External 2", position: 2)
-    @warehouse3 = create(:warehouse, name: "Warehouse 3", external_name: "External 3", position: 3)
+    @warehouse1 = create(:warehouse, name: "Warehouse 1", external_name_en: "External 1", position: 1)
+    @warehouse2 = create(:warehouse, name: "Warehouse 2", external_name_en: "External 2", position: 2)
+    @warehouse3 = create(:warehouse, name: "Warehouse 3", external_name_en: "External 3", position: 3)
   end
 
   after { log_out }
