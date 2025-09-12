@@ -11,12 +11,18 @@
 ### Rails Conventions
 
 - Follow RESTful patterns and Rails idioms
-- Use `bulk: true` for multiple table operations in migrations
 - Prefer Rails conventions over custom solutions when appropriate
 - Keep controllers thin and delegate to services/models
 
 ### Code Quality
 
-- **Standard** for formatting + **RuboCop** for Rails-specific rules
+- Always use **RuboCop** to check code style, e.g. `rubocop path/to/file`
 - Use **Strong Migrations** with `safety_assured` blocks for complex operations
+- Use `bulk: true` for multiple table operations in migrations, e.g. to combine alter queries.
 - Write tests that describe behavior, not implementation
+
+### Git Workflow
+
+- When creating commits, use descriptive commit messages that explain the "why" not just "what"
+- When asked to create a commit message, just provide the message for currently staged files
+- Include a brief summary line followed by bullet points for significant changes
