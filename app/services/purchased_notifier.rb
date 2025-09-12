@@ -32,10 +32,6 @@ class PurchasedNotifier
 
   private
 
-  def format_warehouse_name(warehouse)
-    warehouse.external_name.presence || warehouse.name
-  end
-
   def extract_common_data(purchase_item)
     sale = purchase_item.sale
 
@@ -72,7 +68,9 @@ class PurchasedNotifier
 
       NotificationsMailer.product_purchased_email(
         **data,
-        warehouse_name: format_warehouse_name(purchase_item.warehouse),
+        warehouse_name: purchase_item.warehouse.name,
+        warehouse_name_en: purchase_item.warehouse.external_name_en,
+        warehouse_name_de: purchase_item.warehouse.external_name_de,
         warehouse_desc_en: purchase_item.warehouse.desc_en,
         warehouse_desc_de: purchase_item.warehouse.desc_de
       ).deliver_later
@@ -105,8 +103,12 @@ class PurchasedNotifier
 
       NotificationsMailer.warehouse_changed_email(
         **data,
-        from_warehouse: format_warehouse_name(transition.from_warehouse),
-        to_warehouse: format_warehouse_name(transition.to_warehouse),
+        from_warehouse: transition.from_warehouse.name,
+        to_warehouse: transition.to_warehouse.name,
+        from_warehouse_name_en: transition.from_warehouse.external_name_en,
+        from_warehouse_name_de: transition.from_warehouse.external_name_de,
+        to_warehouse_name_en: transition.to_warehouse.external_name_en,
+        to_warehouse_name_de: transition.to_warehouse.external_name_de,
         tracking_number: transition.to_warehouse&.container_tracking_number,
         tracking_url: transition.to_warehouse&.courier_tracking_url,
         previous_status_desc_en: transition.from_warehouse.desc_en,

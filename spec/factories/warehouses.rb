@@ -8,7 +8,8 @@
 #  courier_tracking_url      :string
 #  desc_de                   :string
 #  desc_en                   :string
-#  external_name             :string
+#  external_name_de          :string
+#  external_name_en          :string
 #  is_default                :boolean          default(FALSE), not null
 #  name                      :string
 #  position                  :integer          default(1), not null
@@ -18,7 +19,8 @@
 FactoryBot.define do
   factory :warehouse do
     sequence(:name) { |n| "Warehouse #{n}" }
-    sequence(:external_name) { |n| "External Name #{n}" }
+    sequence(:external_name_de) { |n| "Externer Name #{n}" }
+    sequence(:external_name_en) { |n| "External Name #{n}" }
     sequence(:position) { |n| n }
     desc_en { "English Description" }
     desc_de { "German Description" }

@@ -19,8 +19,10 @@ header.nav_header
     .card.grow
       h5 Name
       p = @warehouse.name
-      h5 External Name for Clients
-      p = safe_blank_render @warehouse.external_name
+      h5 External Name for Clients (German)
+      p = safe_blank_render @warehouse.external_name_de
+      h5 External Name for Clients (English)
+      p = safe_blank_render @warehouse.external_name_en
       h5 English Description
       p = safe_blank_render @warehouse.desc_en
       h5 German Description

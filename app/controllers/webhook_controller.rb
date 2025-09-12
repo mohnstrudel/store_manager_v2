@@ -30,14 +30,10 @@ class WebhookController < ApplicationController
       # Sale items have the 'qty' field, but we assume it's one for simplicity
       purchase_item = sale_item.purchase_items.first
 
-      status = "Not available"
-      description = "No description available"
-
       if purchase_item&.warehouse.present?
-        status = purchase_item.warehouse.external_name || status
-        description = purchase_item.warehouse.desc_de ||
-          purchase_item.warehouse.desc_en ||
-          description
+        warehouse = purchase_item.warehouse
+        status = warehouse.external_name_de || warehouse.external_name_en || "No status available"
+        description = warehouse.desc_de || warehouse.desc_en || "No description available"
       end
 
       {

@@ -4,7 +4,7 @@
 | Tolle Neuigkeiten! Der Status Deiner Bestellung #{@order_number} wurde aktualisiert.
 = "\r\n"
 = "\r\n"
-| Aktueller Status: #{@warehouse_name}
+| Aktueller Status: #{@warehouse_name_de.presence || @warehouse_name}
 - if @warehouse_desc_de.present?
   = "\r\n"
   | Beschreibung: #{@warehouse_desc_de}
@@ -35,7 +35,7 @@
 | Good news! The status of your order #{@order_number} has been updated.
 = "\r\n"
 = "\r\n"
-| Current Status: #{@warehouse_name}
+| Current Status: #{@warehouse_name_en.presence || @warehouse_name}
 - if @warehouse_desc_en.present?
   = "\r\n"
 | Description: #{@warehouse_desc_en}
