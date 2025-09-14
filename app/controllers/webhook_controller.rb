@@ -20,7 +20,7 @@ class WebhookController < ApplicationController
     request_payload = JSON.parse(request.body.read, symbolize_names: true)
     order_id = request_payload[:orderIdentifier]
 
-    return head(:bad_request) if order.blank?
+    return head(:bad_request) if order_id.blank?
 
     sale = Sale.find_recent_by_order_id(order_id)
 
