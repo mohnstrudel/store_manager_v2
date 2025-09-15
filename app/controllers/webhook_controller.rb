@@ -20,11 +20,11 @@ class WebhookController < ApplicationController
     request_payload = JSON.parse(request.body.read, symbolize_names: true)
     order_id = request_payload[:orderIdentifier]
 
-    return head(:bad_request) if order_id.blank?
+    return render json: {error: "Order identifier is required"}, status: :bad_request if order_id.blank?
 
     sale = Sale.find_recent_by_order_id(order_id)
 
-    return head(:not_found) if sale.blank?
+    return render json: {error: "Order '#{order_id}' not found"}, status: :not_found if sale.blank?
 
     response = sale.sale_items.with_purchase_details.map do |sale_item|
       # Sale items have the 'qty' field, but we assume it's one for simplicity
