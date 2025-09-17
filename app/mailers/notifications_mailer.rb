@@ -4,23 +4,21 @@ class NotificationsMailer < ApplicationMailer
     email:,
     item_name:,
     order_number:,
-    warehouse_name:,
-    warehouse_name_en: nil,
-    warehouse_name_de: nil,
+    warehouse_name_en:,
+    warehouse_name_de:,
     warehouse_desc_en: nil,
     warehouse_desc_de: nil
   )
     @customer_name = customer_name
     @item_name = item_name
     @order_number = order_number
-    @warehouse_name = warehouse_name
     @warehouse_name_en = warehouse_name_en
     @warehouse_name_de = warehouse_name_de
     @warehouse_desc_en = warehouse_desc_en
     @warehouse_desc_de = warehouse_desc_de
 
     mail(
-      subject: "HandsomeCake Goodies. We updated your order, new status: \"#{warehouse_name}\"",
+      subject: "HandsomeCake Goodies. We updated your order, new status: \"#{warehouse_name_en}\"",
       to: email
     ) do |format|
       format.text
@@ -30,39 +28,31 @@ class NotificationsMailer < ApplicationMailer
   def warehouse_changed_email(
     customer_name:,
     email:,
-    from_warehouse:,
     item_name:,
     order_number:,
-    to_warehouse:,
-    from_warehouse_name_en: nil,
-    from_warehouse_name_de: nil,
-    to_warehouse_name_en: nil,
-    to_warehouse_name_de: nil,
+    from_warehouse_name_en:,
+    from_warehouse_name_de:,
+    to_warehouse_name_en:,
+    to_warehouse_name_de:,
     tracking_number: nil,
     tracking_url: nil,
-    previous_status_desc_en: nil,
-    previous_status_desc_de: nil,
     new_status_desc_en: nil,
     new_status_desc_de: nil
   )
     @customer_name = customer_name
     @item_name = item_name
-    @new_status = to_warehouse
     @order_number = order_number
-    @previous_status = from_warehouse
     @from_warehouse_name_en = from_warehouse_name_en
     @from_warehouse_name_de = from_warehouse_name_de
     @to_warehouse_name_en = to_warehouse_name_en
     @to_warehouse_name_de = to_warehouse_name_de
     @tracking_number = tracking_number
     @tracking_url = tracking_url
-    @previous_status_desc_en = previous_status_desc_en
-    @previous_status_desc_de = previous_status_desc_de
     @new_status_desc_en = new_status_desc_en
     @new_status_desc_de = new_status_desc_de
 
     mail(
-      subject: "HandsomeCake Goodies. We updated your order, new status: \"#{to_warehouse}\", previous status: \"#{from_warehouse}\"",
+      subject: "HandsomeCake Goodies. We updated your order, new status: \"#{to_warehouse_name_en}\", previous status: \"#{from_warehouse_name_en}\"",
       to: email
     ) do |format|
       format.text
