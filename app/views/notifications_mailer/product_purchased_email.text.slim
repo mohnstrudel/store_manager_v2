@@ -4,10 +4,13 @@
 | Tolle Neuigkeiten! Der Status Deiner Bestellung #{@order_number} wurde aktualisiert.
 = "\r\n"
 = "\r\n"
-| Aktueller Status: #{@warehouse_name_de.presence || @warehouse_name}
+| Aktueller Status: #{@warehouse_name_de}
 - if @warehouse_desc_de.present?
   = "\r\n"
-  | Beschreibung: #{@warehouse_desc_de}
+  = "\r\n"
+  | Was bedeutet dieser Status?
+  = "\r\n"
+  = @warehouse_desc_de
 = "\r\n"
 = "\r\n"
 | Artikel: #{@item_name}
@@ -35,10 +38,13 @@
 | Good news! The status of your order #{@order_number} has been updated.
 = "\r\n"
 = "\r\n"
-| Current Status: #{@warehouse_name_en.presence || @warehouse_name}
+| Current Status: #{@warehouse_name_en}
 - if @warehouse_desc_en.present?
   = "\r\n"
-| Description: #{@warehouse_desc_en}
+  = "\r\n"
+  | What does this status mean?
+  = "\r\n"
+  = @warehouse_desc_en
 = "\r\n"
 = "\r\n"
 | Sale Item: #{@item_name}

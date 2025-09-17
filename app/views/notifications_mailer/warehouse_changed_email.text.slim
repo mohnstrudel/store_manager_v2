@@ -4,16 +4,16 @@
 | Tolle Neuigkeiten! Der Status Deiner Bestellung #{@order_number} wurde aktualisiert.
 = "\r\n"
 = "\r\n"
-| Vorheriger Status: #{@from_warehouse_name_de.presence || @previous_status}
-- if @previous_status_desc_de.present?
-  = "\r\n"
-  | Beschreibung: #{@previous_status_desc_de}
+| Vorheriger Status: #{@from_warehouse_name_de}
 = "\r\n"
 = "\r\n"
-| Neuer Status: #{@to_warehouse_name_de.presence || @new_status}
+| Neuer Status: #{@to_warehouse_name_de}
 - if @new_status_desc_de.present?
   = "\r\n"
-  | Beschreibung: #{@new_status_desc_de}
+  = "\r\n"
+  | Was bedeutet dieser Status?
+  = "\r\n"
+  = @new_status_desc_de
 = "\r\n"
 = "\r\n"
 | Artikel: #{@item_name}
@@ -41,16 +41,17 @@
 | Good news! The status of your order #{@order_number} has been updated.
 = "\r\n"
 = "\r\n"
-| Previous Status: #{@from_warehouse_name_en.presence || @previous_status}
-- if @previous_status_desc_en.present?
-  = "\r\n"
-  | Description: #{@previous_status_desc_en}
+| Previous Status: #{@from_warehouse_name_en}
 = "\r\n"
 = "\r\n"
-| New Status: #{@to_warehouse_name_en.presence || @new_status}
+| New Status: #{@to_warehouse_name_en}
 - if @new_status_desc_en.present?
   = "\r\n"
-  | Description: #{@new_status_desc_en}
+  = "\r\n"
+  | What does new status mean?
+  = "\r\n"
+  = @new_status_desc_en
+
 = "\r\n"
 = "\r\n"
 | Sale Item: #{@item_name}
