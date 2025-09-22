@@ -9,7 +9,9 @@ class NotificationsMailerPreview < ActionMailer::Preview
       warehouse_name_de: "Verarbeitungszentrum",
       warehouse_desc_en: "Your order is being processed at our main facility",
       warehouse_desc_de: "Ihre Bestellung wird in unserer Hauptanlage bearbeitet",
-      item_name: "Product A"
+      item_name: "Product A",
+      tracking_number: "TRK123456789",
+      tracking_url: "https://example.com/tracking/TRK123456789"
     )
   end
 
