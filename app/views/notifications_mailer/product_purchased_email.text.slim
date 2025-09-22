@@ -16,6 +16,10 @@
 | Artikel: #{@item_name}
 = "\r\n"
 = "\r\n"
+- if @tracking_number.present?
+  | Du kannst Deine Bestellung unter folgendem Link: #{@tracking_url} mit der folgenden Trackingnummer: #{@tracking_number} nachverfolgen.
+  = "\r\n"
+  = "\r\n"
 | Wenn Du Fragen zu Deiner Bestellung hast, zögere bitte nicht, uns unter support@handsomecake.com zu kontaktieren.
 = "\r\n"
 = "\r\n"
@@ -50,6 +54,10 @@
 | Sale Item: #{@item_name}
 = "\r\n"
 = "\r\n"
+- if @tracking_number.present?
+  | You can track your order on this page: #{@tracking_url} using the following tracking code #{@tracking_number}.
+  = "\r\n"
+  = "\r\n"
 | If you have any questions or need to make changes, feel free to contact us at support@handsomecake.com
 = "\r\n"
 = "\r\n"

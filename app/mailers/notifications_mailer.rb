@@ -7,7 +7,9 @@ class NotificationsMailer < ApplicationMailer
     warehouse_name_en:,
     warehouse_name_de:,
     warehouse_desc_en: nil,
-    warehouse_desc_de: nil
+    warehouse_desc_de: nil,
+    tracking_number: nil,
+    tracking_url: nil
   )
     @customer_name = customer_name
     @item_name = item_name
@@ -16,6 +18,8 @@ class NotificationsMailer < ApplicationMailer
     @warehouse_name_de = warehouse_name_de
     @warehouse_desc_en = warehouse_desc_en
     @warehouse_desc_de = warehouse_desc_de
+    @tracking_number = tracking_number
+    @tracking_url = tracking_url
 
     mail(
       subject: "HandsomeCake Goodies. We updated your order, new status: \"#{warehouse_name_en}\"",

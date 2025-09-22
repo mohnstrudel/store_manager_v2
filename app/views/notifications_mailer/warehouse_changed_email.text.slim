@@ -19,6 +19,10 @@
 | Artikel: #{@item_name}
 = "\r\n"
 = "\r\n"
+- if @tracking_number.present?
+  | Du kannst Deine Bestellung unter folgendem Link: #{@tracking_url} mit der folgenden Trackingnummer: #{@tracking_number} nachverfolgen.
+  = "\r\n"
+  = "\r\n"
 | Wenn Du Fragen zu Deiner Bestellung hast, zögere bitte nicht, uns unter support@handsomecake.com zu kontaktieren.
 = "\r\n"
 = "\r\n"
