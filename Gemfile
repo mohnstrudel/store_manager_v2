@@ -136,4 +136,5 @@ group :test do
   gem "capybara"
   gem "cuprite"
   gem "pundit-matchers", "~> 4.0"
+  gem "shoulda-matchers", "~> 5.0"
 end
