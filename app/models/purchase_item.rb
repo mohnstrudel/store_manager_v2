@@ -103,7 +103,7 @@ class PurchaseItem < ApplicationRecord
   end
 
   def cost
-    (price || 0) + (purchase.item_price || 0)
+    price.to_f + purchase.item_price.to_f + shipping_price.to_f
   end
 
   def relocate_to(destination_id)

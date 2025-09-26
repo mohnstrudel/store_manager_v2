@@ -34,7 +34,7 @@ header.nav_header
               / th Length × Width × Height, cm
               / th.text-right Kg
               / th.text-right Expenses
-              / th.text-right Shipping
+              th.text-right Shipping
               th.text-right Actions
             tbody
               - @purchase_items.each do |pp|
@@ -52,7 +52,7 @@ header.nav_header
                   / td.font-mono = format_item_size(pp)
                   / td.font-mono.text-right = pp.weight
                   / td.font-mono.text-right = format_money pp.expenses
-                  / td.font-mono.text-right = format_money pp.shipping_price
+                  td.font-mono.text-right = format_money pp.shipping_price
                   td.actions
                     .flex.justify-end
                       - if pp.sale
@@ -77,6 +77,8 @@ header.nav_header
         p.font-mono = format_money @purchase.item_price
         h5 Total price
         p.font-mono = format_money @purchase.total_cost
+        h5 Shipping
+        p.font-mono = format_money @purchase.total_shipping
       .flex-1
         h5 Paid
         p.font-mono = format_money(@purchase.paid).rjust(2, '0')

@@ -114,7 +114,11 @@ class Purchase < ApplicationRecord
   end
 
   def total_cost
-    item_price * amount
+    item_price * amount + total_shipping
+  end
+
+  def total_shipping
+    purchase_items.sum { it.shipping_price.to_f }
   end
 
   def full_title
