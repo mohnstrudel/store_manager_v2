@@ -41,3 +41,6 @@
 /node_modules
 .zed
 .env
+.kilocode
+.kilocodemodes
+.claude
