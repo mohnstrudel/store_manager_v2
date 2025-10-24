@@ -444,6 +444,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
   add_foreign_key "sale_items", "sales"
   add_foreign_key "sales", "customers"
   add_foreign_key "sessions", "users"
+  add_foreign_key "store_infos", "products"
   add_foreign_key "warehouse_transitions", "notifications"
   add_foreign_key "warehouse_transitions", "warehouses", column: "from_warehouse_id"
   add_foreign_key "warehouse_transitions", "warehouses", column: "to_warehouse_id"

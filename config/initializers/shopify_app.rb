@@ -2,7 +2,7 @@ ShopifyApp.configure do |config|
   config.api_version = "2025-04"
   # Consult this page for more scope options:
   # https://help.shopify.com/en/api/getting-started/authentication/oauth/scopes
-  config.scope = "read_products, read_orders, read_order_edits, read_customers, read_inventory"
+  config.scope = "read_products, write_products, read_orders, read_order_edits, read_customers, read_inventory"
 
   config.root_url = "/shopify_app"
   config.login_callback_url = "/shopify_app/auth/shopify/callback"
