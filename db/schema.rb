@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_16_180342) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -340,6 +340,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.index ["value"], name: "index_sizes_on_value", unique: true
   end
 
+  create_table "store_infos", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "name", default: 0, null: false
+    t.string "page_url"
+    t.bigint "product_id", null: false
+    t.integer "pull_status", default: 0
+    t.datetime "pull_time", precision: nil
+    t.integer "push_status", default: 0
+    t.datetime "push_time", precision: nil
+    t.string "store_product_id"
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_store_infos_on_product_id"
+  end
+
   create_table "suppliers", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "slug"
@@ -424,6 +438,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
   add_foreign_key "sale_items", "sales"
   add_foreign_key "sales", "customers"
   add_foreign_key "sessions", "users"
+  add_foreign_key "store_infos", "products"
   add_foreign_key "warehouse_transitions", "notifications"
   add_foreign_key "warehouse_transitions", "warehouses", column: "from_warehouse_id"
   add_foreign_key "warehouse_transitions", "warehouses", column: "to_warehouse_id"

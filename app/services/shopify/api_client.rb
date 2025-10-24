@@ -1,3 +1,5 @@
+class ShopifyApiError < StandardError; end
+
 class Shopify::ApiClient
   PRODUCT_FIELDS = <<~GQL
     id
@@ -131,6 +133,30 @@ class Shopify::ApiClient
     }
   end
 
+  def create_product(serialized_product)
+    query = <<~GQL
+      mutation {
+        productCreate(product: #{serialized_product}) {
+          product {
+            id
+            title
+            handle
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    GQL
+
+    response = @client.query(query:)
+
+    handle_shopify_mutation_errors(query, response, "productCreate")
+
+    response.body.dig("data", "productCreate", "product")
+  end
+
   def gql_query(name)
     case name
     when "product"
@@ -212,5 +238,33 @@ class Shopify::ApiClient
         }
       }
     GQL
+  end
+
+  def handle_shopify_mutation_errors(query, response, operation_name)
+    api_errors = response.body.dig("errors")
+    user_errors = response.body.dig("data", operation_name, "userErrors")
+
+    if api_errors || user_errors.any?
+      error_messages = if api_errors
+        api_errors.pluck("message").join(", ")
+      else
+        user_errors.pluck("message").join(", ")
+      end
+
+      Sentry.capture_message(
+        "Shopify #{operation_name} failed: #{error_messages}",
+        level: :error,
+        tags: {
+          api: "shopify",
+          operation: operation_name
+        },
+        extra: {
+          query:,
+          shopify_errors: api_errors
+        }
+      )
+
+      raise ShopifyApiError, "Failed to call the #{operation_name} API mutation: #{error_messages}"
+    end
   end
 end

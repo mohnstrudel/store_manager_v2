@@ -87,6 +87,8 @@ class Product < ApplicationRecord
   has_many :purchase_items, through: :purchases
   accepts_nested_attributes_for :purchases
 
+  has_many :store_infos, dependent: :destroy
+
   #
   # == Scopes
   #
