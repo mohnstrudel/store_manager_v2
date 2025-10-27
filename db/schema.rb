@@ -343,12 +343,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_180342) do
   create_table "store_infos", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "name", default: 0, null: false
-    t.string "page_url"
     t.bigint "product_id", null: false
-    t.integer "pull_status", default: 0
     t.datetime "pull_time", precision: nil
-    t.integer "push_status", default: 0
     t.datetime "push_time", precision: nil
+    t.string "slug"
     t.string "store_product_id"
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_store_infos_on_product_id"
