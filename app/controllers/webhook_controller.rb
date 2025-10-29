@@ -3,15 +3,14 @@ class WebhookController < ApplicationController
   skip_before_action :require_authentication
   skip_before_action :set_sentry_user
 
-  SYNC_ORDERS_JOB = SyncWooOrdersJob.new
-
   def process_order
     verified = verify_webhook(Rails.application.credentials.dig(:hooks, :order))
     return head(:unauthorized) unless verified
 
     request_payload = JSON.parse(request.body.read, symbolize_names: true)
-    parsed_order = SYNC_ORDERS_JOB.parse(request_payload)
-    SYNC_ORDERS_JOB.create_sales([parsed_order])
+    job = SyncWooOrdersJob.new
+    parsed_order = job.parse(request_payload)
+    job.create_sales([parsed_order])
 
     head(:no_content)
   end
