@@ -21,7 +21,7 @@ class SaleItemsController < ApplicationController
       attachments&.map(&:purge_later)
       redirect_to @sale_item, notice: "Sale item was successfully updated", status: :see_other
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

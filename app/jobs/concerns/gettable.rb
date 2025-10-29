@@ -8,7 +8,7 @@ module Gettable
   included do
     def api_get_all(url, total_records, pages = nil, status = nil)
       total_records = total_records.to_i
-      pages ||= (total_records < PER_PAGE) ? 1 : (total_records / PER_PAGE).ceil
+      pages ||= (total_records <= PER_PAGE) ? 1 : total_records.fdiv(PER_PAGE).ceil
 
       result = []
 
@@ -18,6 +18,10 @@ module Gettable
       end
 
       result.flatten.compact_blank
+    end
+
+    def api_get_order(id)
+      api_get("https://store.handsomecake.com/wp-json/wc/v3/orders/#{id}")
     end
 
     def api_get_latest_orders
@@ -48,9 +52,11 @@ module Gettable
           retry
         else
           Rails.logger.error "Gettable. Error: #{e.message}"
-          nil
+          return nil
         end
       end
+
+      return nil if response.nil?
       JSON.parse(response.body, symbolize_names: true)
     end
   end

@@ -137,4 +137,5 @@ group :test do
   gem "cuprite"
   gem "pundit-matchers", "~> 4.0"
   gem "shoulda-matchers", "~> 5.0"
+  gem "rails-controller-testing"
 end

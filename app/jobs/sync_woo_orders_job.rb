@@ -5,12 +5,17 @@ class SyncWooOrdersJob < ApplicationJob
   include Sanitizable
 
   URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
-  ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2300
+  ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2700
   EDITION_TYPES = Edition.types.values
   SYNC_EDITIONS_JOB = SyncWooEditionsJob.new
 
-  def perform(pages = nil)
-    woo_orders = api_get_all(URL, ORDERS_SIZE, pages)
+  def perform(limit: nil, pages: nil, id: nil)
+    woo_orders = if id.present?
+      [api_get_order(id)]
+    else
+      limit ||= ORDERS_SIZE
+      api_get_all(URL, limit, pages)
+    end
     parsed_orders = parse_all(woo_orders)
     create_sales(parsed_orders)
     nil

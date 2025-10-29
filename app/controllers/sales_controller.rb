@@ -37,7 +37,7 @@ class SalesController < ApplicationController
       PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
       redirect_to @sale, notice: "Sale was successfully created"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -50,7 +50,7 @@ class SalesController < ApplicationController
       end
       redirect_to @sale, notice: "Sale was successfully updated"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -75,10 +75,12 @@ class SalesController < ApplicationController
 
     if sale_id.present?
       sale = Sale.friendly.find(sale_id)
-      Shopify::PullSaleJob.perform_later(sale.shopify_id)
+      Shopify::PullSaleJob.perform_later(sale.shopify_id) if sale.shopify_id.present?
+      SyncWooOrdersJob.perform_later(id: sale.woo_id) if sale.woo_id.present?
     else
-      Shopify::PullSalesJob.perform_later(limit:)
       Config.update_shopify_sales_sync_time
+      Shopify::PullSalesJob.perform_later(limit:)
+      SyncWooOrdersJob.perform_later(limit:)
     end
 
     statuses_link = view_context.link_to(
