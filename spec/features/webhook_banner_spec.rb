@@ -16,6 +16,6 @@ describe "Webhook banner at Dashboard", js: "true" do
     visit root_path
 
     expect(page).to have_selector("#webhook-error")
-    expect(page).to have_link("Get missing sales from Woo", href: "pull-last-orders")
+    expect(page).to have_link("Confirm Woo Webhook Active", href: "pull-last-orders")
   end
 end
