@@ -28,8 +28,8 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully created" }
         format.json { render :show, status: :created, location: @version }
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @version.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
   end
@@ -41,8 +41,8 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully updated" }
         format.json { render :show, status: :ok, location: @version }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @version.errors, status: :unprocessable_entity }
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
   end

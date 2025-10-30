@@ -45,7 +45,7 @@ class WarehousesController < ApplicationController
 
       redirect_to @warehouse, notice: "Warehouse was successfully created"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -88,7 +88,7 @@ class WarehousesController < ApplicationController
 
         redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
       else
-        render :edit, status: :unprocessable_entity
+        render :edit, status: :unprocessable_content
       end
     end
   end
@@ -122,8 +122,8 @@ class WarehousesController < ApplicationController
       end
     else
       respond_to do |format|
-        format.html { redirect_to warehouses_url, alert: "Failed to update position", status: :unprocessable_entity }
-        format.json { head :unprocessable_entity }
+        format.html { redirect_to warehouses_url, alert: "Failed to update position", status: :unprocessable_content }
+        format.json { head :unprocessable_content }
       end
     end
   end
@@ -162,7 +162,7 @@ class WarehousesController < ApplicationController
 
         @warehouse.errors.add(:is_default, error_message)
         @positions_count = Warehouse.count
-        render :edit, status: :unprocessable_entity
+        render :edit, status: :unprocessable_content
       end
     end
   end

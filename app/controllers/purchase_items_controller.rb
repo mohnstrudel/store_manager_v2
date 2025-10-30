@@ -35,7 +35,7 @@ class PurchaseItemsController < ApplicationController
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -57,7 +57,7 @@ class PurchaseItemsController < ApplicationController
       redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
     else
       set_data_for_edit
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

@@ -25,7 +25,7 @@ class UsersController < ApplicationController
       start_new_session_for @user
       redirect_to noop_path, notice: "Account for #{@user.email_address} was successfully created"
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -34,7 +34,7 @@ class UsersController < ApplicationController
     if @user.update(user_params)
       redirect_to user_url(@user), notice: "User account was successfully updated"
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
