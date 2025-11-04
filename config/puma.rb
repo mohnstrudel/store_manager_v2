@@ -1,11 +1,3 @@
-# Use Barnes for Ruby runtime metrics
-# https://devcenter.heroku.com/articles/language-runtime-metrics-ruby#add-the-barnes-gem-to-your-application
-require "barnes"
-
-before_fork do
-  Barnes.start
-end
-
 # Puma can serve each request in a thread from an internal thread pool.
 # The `threads` method setting takes two numbers: a minimum and maximum.
 # Any libraries that use thread pools should be configured to match
@@ -59,3 +51,7 @@ preload_app!
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
+
+# Router keepalive idle timeout + 5 seconds
+# https://devcenter.heroku.com/articles/http-routing#keepalives
+persistent_timeout 95
