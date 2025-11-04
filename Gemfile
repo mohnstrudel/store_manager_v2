@@ -82,8 +82,6 @@ gem "tailwindcss-rails"
 gem "pundit"
 
 group :production, :staging do
-  gem "thruster"
-  gem "barnes"
   # Prevents webserver from spending time working on a request
   # that has been in-flight for longer than 30 seconds
   gem "rack-timeout"
