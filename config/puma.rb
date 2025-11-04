@@ -47,7 +47,8 @@ pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 # export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 # source ~/.zshrc
 #
-workers Integer(ENV.fetch("WEB_CONCURRENCY") { 2 })
+# workers Integer(ENV.fetch("WEB_CONCURRENCY") { 2 })
+workers 0
 
 # Use the `preload_app!` method when specifying a `workers` number.
 # This directive tells Puma to first boot the application and load code
