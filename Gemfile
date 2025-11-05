@@ -10,7 +10,7 @@ gem "rails", "~> 8.x.x"
 gem "sprockets-rails"
 
 # Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
+gem "pg", "~> 1.6"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 7.1.x"
@@ -52,7 +52,7 @@ gem "database_validations"
 gem "pg_search"
 gem "aws-sdk-s3", require: false
 gem "ruby-progressbar"
-gem "sidekiq", "~> 7.2"
+gem "sidekiq", "~> 8.0"
 gem "sidekiq-status"
 
 # Add to postgresql.conf this two lines:
@@ -97,7 +97,7 @@ group :development, :test do
   gem "faker", "~> 3.2"
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
-  gem "rspec-rails", "~> 7.x.x"
+  gem "rspec-rails"
   gem "factory_bot_rails"
   gem "dotenv"
 end
@@ -115,8 +115,8 @@ group :development do
   gem "annotaterb"
   gem "solargraph"
   gem "solargraph-rails"
-  gem "rubocop-slim", "~> 0.2.2"
-  gem "pry", "~> 0.14.2"
+  gem "rubocop-slim"
+  gem "pry"
   # A performance dashboard for Postgres,
   # access at /pghero
   gem "pghero"
@@ -133,7 +133,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "cuprite"
-  gem "pundit-matchers", "~> 4.0"
-  gem "shoulda-matchers", "~> 5.0"
+  gem "pundit-matchers"
+  gem "shoulda-matchers"
   gem "rails-controller-testing"
 end
