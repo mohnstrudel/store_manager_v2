@@ -17,6 +17,7 @@ class Shopify::ApiClient
         node {
           id
           title
+          price
           selectedOptions {
             value
             name
@@ -155,6 +156,57 @@ class Shopify::ApiClient
     handle_shopify_mutation_errors(query, response, "productCreate")
 
     response.body.dig("data", "productCreate", "product")
+  end
+
+  def create_product_options(shopify_product_id, serialized_options)
+    query = <<~GQL
+      mutation createOptions($productId: ID!, $options: [OptionCreateInput!]!, $variantStrategy: ProductOptionCreateVariantStrategy) {
+        productOptionsCreate(productId: $productId, options: $options, variantStrategy: $variantStrategy) {
+          userErrors {
+            field
+            message
+            code
+          }
+          product {
+            id
+            variants(first: 10) {
+              nodes {
+                id
+                title
+                selectedOptions {
+                  name
+                  value
+                }
+              }
+            }
+            options {
+              id
+              name
+              values
+              position
+              optionValues {
+                id
+                name
+                hasVariants
+              }
+            }
+          }
+        }
+      }
+    GQL
+
+    response = @client.query(
+      query:,
+      variables: {
+        productId: shopify_product_id,
+        options: serialized_options,
+        variantStrategy: "CREATE"
+      }
+    )
+
+    handle_shopify_mutation_errors(query, response, "productOptionsCreate")
+
+    response.body.dig("data", "productOptionsCreate", "product")
   end
 
   def gql_query(name)
