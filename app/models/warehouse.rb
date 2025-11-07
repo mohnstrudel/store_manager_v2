@@ -75,11 +75,11 @@ class Warehouse < ApplicationRecord
   def average_payment_progress
     return 0 if purchases.empty?
 
-    progresses = purchases.map(&:progress)
+    progresses = purchases.includes(:payments).map(&:progress)
     (progresses.sum / progresses.size).round
   end
 
   def total_debt
-    purchases.sum(&:debt).round
+    purchases.includes(:payments).sum(&:debt).round
   end
 end
