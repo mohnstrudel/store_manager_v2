@@ -1,7 +1,7 @@
 class DashboardController < ApplicationController
   def index
     @suppliers_debts = Supplier
-      .includes(purchases: :payments)
+      .includes(purchases: [:payments, :purchase_items])
       .map { |supplier|
         {
           supplier:,
@@ -20,7 +20,7 @@ class DashboardController < ApplicationController
   end
 
   def debts
-    @unpaid_purchases = Purchase.unpaid
+    @unpaid_purchases = Purchase.unpaid.includes(:supplier)
     @debts = if params[:q].present?
       search_query = params[:q].downcase
       sale_debts.select do |product|

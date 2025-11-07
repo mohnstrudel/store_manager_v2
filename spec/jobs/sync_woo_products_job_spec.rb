@@ -35,7 +35,7 @@ RSpec.describe SyncWooProductsJob do
         expect(Product.all.size).to eq(parsed_products.size)
       end
 
-      it "creates products with all parsed data" do
+      it "creates products with all parsed data" do # rubocop:todo RSpec/MultipleExpectations
         first_created = Product.first
         first_parsed = parsed_products.first
         expect(first_created.title).to eq(first_parsed[:title])

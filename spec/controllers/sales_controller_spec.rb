@@ -254,13 +254,13 @@ RSpec.describe SalesController, type: :controller do
       expect(sale).to have_received(:link_with_purchase_items)
     end
 
-    it "calls PurchasedNotifier with correct purchase_item_ids" do
+    it "calls PurchasedNotifier with correct purchase_item_ids" do # rubocop:todo RSpec/MultipleExpectations
       post :link_purchase_items, params: {id: sale.id}
       expect(PurchasedNotifier).to have_received(:new).with(purchase_item_ids:)
       expect(PurchasedNotifier.new(purchase_item_ids:)).to have_received(:handle_product_purchase)
     end
 
-    it "redirects to sale with success notice" do
+    it "redirects to sale with success notice" do # rubocop:todo RSpec/MultipleExpectations
       post :link_purchase_items, params: {id: sale.id}
       expect(response).to redirect_to(sale)
       expect(flash[:notice]).to eq("Success! Sold products were interlinked with purchased products")

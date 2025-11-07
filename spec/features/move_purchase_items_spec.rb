@@ -8,12 +8,12 @@ describe "Moving purchased products between warehouses" do
   let!(:warehouse_to) { create(:warehouse, name: "Warehouse To") }
   let(:product) { create(:product) }
   let(:purchase) { create(:purchase, product: product) }
-  let!(:purchase_items) do
+  let!(:purchase_items) do # rubocop:todo RSpec/LetSetup
     create_list(:purchase_item, 3, warehouse: warehouse_from, purchase: purchase)
   end
 
   context "when we visit warehouses index page" do
-    scenario "select purchased products and move to another warehouse", :js do
+    scenario "select purchased products and move to another warehouse", :js do # rubocop:todo RSpec/MultipleExpectations
       visit warehouse_path(warehouse_from)
 
       # Select 2 out of 3 purchased products
@@ -37,7 +37,7 @@ describe "Moving purchased products between warehouses" do
   end
 
   context "when we visit purchases index page" do
-    scenario "select purchases and move to another warehouse", :js do
+    scenario "select purchases and move to another warehouse", :js do # rubocop:todo RSpec/MultipleExpectations
       visit purchases_path
 
       # Verify that we have purchased products in the original warehouse
@@ -66,7 +66,7 @@ describe "Moving purchased products between warehouses" do
   end
 
   context "when we visit purchases show page" do
-    scenario "select purchased products and move to another warehouse", :js do
+    scenario "select purchased products and move to another warehouse", :js do # rubocop:todo RSpec/MultipleExpectations
       visit purchase_path(purchase)
 
       # Verify that we have purchased products in the original warehouse

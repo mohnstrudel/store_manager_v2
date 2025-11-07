@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
+ActiveRecord::Schema[8.1].define(version: 2025_10_16_180342) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -36,7 +36,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", force: :cascade do |t|
+  create_table "active_storage_variant_records", force: :cascade do |t| # rubocop:todo Rails/CreateTableWithTimestamps
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
@@ -270,10 +270,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.string "cancel_reason"
     t.datetime "cancelled_at"
     t.string "city"
-    t.boolean "closed", default: false
+    t.boolean "closed", default: false # rubocop:todo Rails/ThreeStateBooleanColumn
     t.datetime "closed_at"
     t.string "company"
-    t.boolean "confirmed", default: false
+    t.boolean "confirmed", default: false # rubocop:todo Rails/ThreeStateBooleanColumn
     t.string "country"
     t.datetime "created_at", null: false
     t.bigint "customer_id", null: false
@@ -338,6 +338,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.datetime "updated_at", null: false
     t.string "value"
     t.index ["value"], name: "index_sizes_on_value", unique: true
+  end
+
+  create_table "store_infos", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.decimal "price", precision: 8, scale: 2, default: "0.0", null: false
+    t.datetime "pull_time", precision: nil
+    t.datetime "push_time", precision: nil
+    t.string "slug"
+    t.bigint "storable_id", null: false
+    t.string "storable_type", null: false
+    t.string "store_id"
+    t.integer "store_name", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["storable_type", "storable_id"], name: "index_store_infos_on_storable"
+    t.index ["store_name", "storable_type", "storable_id"], name: "index_store_infos_on_unique_store_per_storable", unique: true
   end
 
   create_table "suppliers", force: :cascade do |t|

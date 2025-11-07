@@ -71,6 +71,7 @@ RSpec.describe Shopify::BasePullJob do
 
   describe "#perform" do
     subject(:perform_job) { job.perform(**job_params) }
+
     let(:job_params) { {} }
 
     it "uses the configured batch size" do
@@ -82,7 +83,7 @@ RSpec.describe Shopify::BasePullJob do
       )
     end
 
-    it "processes each item through parser and creator" do
+    it "processes each item through parser and creator" do # rubocop:todo RSpec/MultipleExpectations
       perform_job
       expect(parser_class).to have_received(:new).exactly(2).times
       expect(creator_class).to have_received(:new).exactly(2).times
@@ -129,7 +130,7 @@ RSpec.describe Shopify::BasePullJob do
         allow(api_client).to receive(:pull).and_raise(rate_limit_error)
       end
 
-      it "retries with exponential backoff" do
+      it "retries with exponential backoff" do # rubocop:todo RSpec/MultipleExpectations
         perform_job
         expect(job_class).to have_received(:set).with(wait: 15.seconds)
         expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: nil, limit: nil)
@@ -161,7 +162,7 @@ RSpec.describe Shopify::BasePullJob do
         allow(api_client).to receive(:pull).and_return(modified_api_response)
       end
 
-      it "schedules next job when there are more pages" do
+      it "schedules next job when there are more pages" do # rubocop:todo RSpec/MultipleExpectations
         perform_job
         expect(job_class).to have_received(:set).with(wait: 1.second)
         expect(job_setter).to have_received(:perform_later)

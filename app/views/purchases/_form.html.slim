@@ -7,7 +7,7 @@
     .stimulus#purchase-edition-select data-purchase-edition-target="select"
       - if purchase.product&.editions.present?
         = form.label :edition_id
-        = form.collection_select :edition_id, purchase.product.fetch_editions_with_title, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
+        = form.collection_select :edition_id, purchase.product.fetch_editions_with_title, :id, :title, {class: "select", include_blank: true}, data: {controller: "slim-select"}
 
   fieldset.flex.justify-between.gap-4
     .block.w-full
@@ -32,6 +32,6 @@
 
   - if Warehouse.any?
     = form.label :warehouse_id, "Initial warehouse"
-    = form.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
+    = form.collection_select :warehouse_id, Warehouse.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
 
   = form_submit_for(purchase, form)

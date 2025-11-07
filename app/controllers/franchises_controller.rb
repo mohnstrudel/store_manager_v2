@@ -8,6 +8,7 @@ class FranchisesController < ApplicationController
 
   # GET /franchises/1 or /franchises/1.json
   def show
+    @franchise = Franchise.includes(:products).find(params[:id])
   end
 
   # GET /franchises/new

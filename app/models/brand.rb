@@ -58,6 +58,6 @@ class Brand < ApplicationRecord
   private
 
   def update_products
-    products.each(&:update_full_title)
+    products.includes(:franchise, :brands).find_each(&:update_full_title)
   end
 end

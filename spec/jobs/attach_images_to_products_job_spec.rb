@@ -14,7 +14,7 @@ RSpec.describe AttachImagesToProductsJob do
   end
 
   describe "#perform" do
-    it "attaches images to products" do
+    it "attaches images to products" do # rubocop:todo RSpec/MultipleExpectations
       allow(SyncWooProductsJob).to receive(:new).and_return(sync_woo_products_job)
       allow(sync_woo_products_job).to receive(:get_woo_products)
       allow(sync_woo_products_job).to receive(:parse_all).and_return([parsed_product])
@@ -30,7 +30,7 @@ RSpec.describe AttachImagesToProductsJob do
 
   describe "#attach_images" do
     it "attaches an image to a product if the image is not already attached" do
-      allow_any_instance_of(URI::HTTP).to receive(:open)
+      allow_any_instance_of(URI::HTTP).to receive(:open) # rubocop:todo RSpec/AnyInstance
         .and_return(StringIO.new("image data"))
 
       expect { described_class.new.attach_images(product, img_url) }

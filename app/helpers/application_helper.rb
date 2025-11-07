@@ -47,9 +47,9 @@ module ApplicationHelper
     ratio = "#{purchased} / #{sold}"
 
     if purchased >= sold
-      "<mark class='mark-gray mr-1.5'>#{ratio}</mark>".html_safe
+      content_tag(:mark, ratio, class: "mark-gray mr-1.5")
     else
-      "<mark class='mr-1.5'>#{ratio}</mark>".html_safe
+      content_tag(:mark, ratio, class: "mr-1.5")
     end
   end
 
