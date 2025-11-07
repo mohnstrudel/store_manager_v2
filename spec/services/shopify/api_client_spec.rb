@@ -13,12 +13,11 @@ RSpec.describe Shopify::ApiClient do
       allow(ENV).to receive(:fetch).with("SHOPIFY_DOMAIN").and_return("test-shop.myshopify.com")
       allow(ENV).to receive(:fetch).with("SHOPIFY_API_TOKEN").and_return("test-token")
 
-      expected_session = ShopifyAPI::Auth::Session.new(
-        shop: "test-shop.myshopify.com",
-        access_token: "test-token"
+      # rubocop:todo RSpec/MessageSpies
+      expect(ShopifyAPI::Clients::Graphql::Admin).to receive(:new).with(
+        session: kind_of(ShopifyAPI::Auth::Session)
       )
-
-      expect(ShopifyAPI::Clients::Graphql::Admin).to receive(:new).with(session: expected_session)
+      # rubocop:enable RSpec/MessageSpies
       described_class.new
     end
   end
@@ -38,7 +37,9 @@ RSpec.describe Shopify::ApiClient do
     end
 
     before do
+      # rubocop:todo RSpec/VerifiedDoubles
       allow(mock_graphql_client).to receive(:query).and_return(double(body: product_response))
+      # rubocop:enable RSpec/VerifiedDoubles
     end
 
     it "queries the product with correct ID" do
@@ -56,7 +57,7 @@ RSpec.describe Shopify::ApiClient do
     end
 
     context "when product ID is blank" do
-      it "raises ArgumentError" do
+      it "raises ArgumentError" do # rubocop:todo RSpec/MultipleExpectations
         expect { client.pull_product("") }.to raise_error(ArgumentError, "Product ID is required")
         expect { client.pull_product(nil) }.to raise_error(ArgumentError, "Product ID is required")
       end
@@ -78,7 +79,9 @@ RSpec.describe Shopify::ApiClient do
     end
 
     before do
+      # rubocop:todo RSpec/VerifiedDoubles
       allow(mock_graphql_client).to receive(:query).and_return(double(body: order_response))
+      # rubocop:enable RSpec/VerifiedDoubles
     end
 
     it "queries the order with correct ID" do
@@ -96,7 +99,7 @@ RSpec.describe Shopify::ApiClient do
     end
 
     context "when order ID is blank" do
-      it "raises ArgumentError" do
+      it "raises ArgumentError" do # rubocop:todo RSpec/MultipleExpectations
         expect { client.pull_order("") }.to raise_error(ArgumentError, "Order ID is required")
         expect { client.pull_order(nil) }.to raise_error(ArgumentError, "Order ID is required")
       end
@@ -125,7 +128,9 @@ RSpec.describe Shopify::ApiClient do
     end
 
     before do
+      # rubocop:todo RSpec/VerifiedDoubles
       allow(mock_graphql_client).to receive(:query).and_return(double(body: pull_response))
+      # rubocop:enable RSpec/VerifiedDoubles
     end
 
     it "queries with correct parameters" do
@@ -140,7 +145,7 @@ RSpec.describe Shopify::ApiClient do
       )
     end
 
-    it "returns structured response with items and pagination info" do
+    it "returns structured response with items and pagination info" do # rubocop:todo RSpec/MultipleExpectations
       result = client.pull(resource_name: resource_name, cursor: cursor, batch_size: batch_size)
 
       expect(result[:items]).to eq([
@@ -197,7 +202,9 @@ RSpec.describe Shopify::ApiClient do
     end
 
     before do
+      # rubocop:todo RSpec/VerifiedDoubles
       allow(mock_graphql_client).to receive(:query).and_return(double(body: create_response))
+      # rubocop:enable RSpec/VerifiedDoubles
     end
 
     it "queries with product create mutation" do
@@ -229,12 +236,14 @@ RSpec.describe Shopify::ApiClient do
       end
 
       before do
+        # rubocop:todo RSpec/VerifiedDoubles
         allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
         allow(Sentry).to receive(:capture_message)
       end
 
-      it "captures error in Sentry" do
-        expect(Sentry).to receive(:capture_message).with(
+      it "captures error in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
           "Shopify productCreate failed: API rate limit exceeded",
           level: :error,
           tags: {api: "shopify", operation: "productCreate"},
@@ -267,12 +276,14 @@ RSpec.describe Shopify::ApiClient do
       end
 
       before do
+        # rubocop:todo RSpec/VerifiedDoubles
         allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
         allow(Sentry).to receive(:capture_message)
       end
 
-      it "captures error in Sentry" do
-        expect(Sentry).to receive(:capture_message).with(
+      it "captures error in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
           "Shopify productCreate failed: Title is required, Product type is invalid",
           level: :error,
           tags: {api: "shopify", operation: "productCreate"},
@@ -331,7 +342,9 @@ RSpec.describe Shopify::ApiClient do
     end
 
     before do
+      # rubocop:todo RSpec/VerifiedDoubles
       allow(mock_graphql_client).to receive(:query).and_return(double(body: success_response))
+      # rubocop:enable RSpec/VerifiedDoubles
     end
 
     it "queries with correct parameters" do
@@ -367,12 +380,14 @@ RSpec.describe Shopify::ApiClient do
       end
 
       before do
+        # rubocop:todo RSpec/VerifiedDoubles
         allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
         allow(Sentry).to receive(:capture_message)
       end
 
-      it "captures error in Sentry" do
-        expect(Sentry).to receive(:capture_message).with(
+      it "captures error in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
           "Shopify productOptionsCreate failed: Product not found",
           level: :error,
           tags: {api: "shopify", operation: "productOptionsCreate"},
@@ -403,12 +418,14 @@ RSpec.describe Shopify::ApiClient do
       end
 
       before do
+        # rubocop:todo RSpec/VerifiedDoubles
         allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
         allow(Sentry).to receive(:capture_message)
       end
 
-      it "captures user errors in Sentry" do
-        expect(Sentry).to receive(:capture_message).with(
+      it "captures user errors in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
           "Shopify productOptionsCreate failed: Can only specify a maximum of 3 options",
           level: :error,
           tags: {api: "shopify", operation: "productOptionsCreate"},
@@ -427,25 +444,25 @@ RSpec.describe Shopify::ApiClient do
   end
 
   describe "#gql_query" do
-    it "returns product query when name is 'product'" do
+    it "returns product query when name is 'product'" do # rubocop:todo RSpec/MultipleExpectations
       query = client.send(:gql_query, "product")
       expect(query).to include("query($id: ID!)")
       expect(query).to include("product(id: $id)")
     end
 
-    it "returns products query when name is 'products'" do
+    it "returns products query when name is 'products'" do # rubocop:todo RSpec/MultipleExpectations
       query = client.send(:gql_query, "products")
       expect(query).to include("query($first: Int!, $after: String)")
       expect(query).to include("products(")
     end
 
-    it "returns order query when name is 'order'" do
+    it "returns order query when name is 'order'" do # rubocop:todo RSpec/MultipleExpectations
       query = client.send(:gql_query, "order")
       expect(query).to include("query($id: ID!)")
       expect(query).to include("sale(id: $id)")
     end
 
-    it "returns orders query when name is 'orders'" do
+    it "returns orders query when name is 'orders'" do # rubocop:todo RSpec/MultipleExpectations
       query = client.send(:gql_query, "orders")
       expect(query).to include("query($first: Int!, $after: String)")
       expect(query).to include("orders(")

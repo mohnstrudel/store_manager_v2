@@ -26,8 +26,8 @@
     {"src" =>
       "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/b98c0eefe8ddb937e5f993cf2dfa35ba__67461.jpg?v=1741362361"}],
   editions: [{id: "gid://shopify/ProductVariant/51858971590985",
-                title: "Default Title",
-                options: [{"value" => "Default Title", "name" => "Title"}]}]},
+              title: "Default Title",
+              options: [{"value" => "Default Title", "name" => "Title"}]}]},
   {shopify_id: "gid://shopify/Product/9575524073801",
    store_link: "one-piece-kaido-vs-luffy-1-6-resin-statue-by-ventus-studio",
    shape: "Statue",
@@ -56,8 +56,8 @@
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/d9006914a8a7c3bb.webp?v=1741357030"}],
    editions: [{id: "gid://shopify/ProductVariant/51858210095433",
-                 title: "A",
-                 options: [{"value" => "A", "name" => "Edition"}]},
+               title: "A",
+               options: [{"value" => "A", "name" => "Edition"}]},
      {id: "gid://shopify/ProductVariant/51858210128201",
       title: "B",
       options: [{"value" => "B", "name" => "Edition"}]},
@@ -88,8 +88,8 @@
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/d6bfed2e-ad0c-5606-a9e3-cd7a37c2a125.jpg?v=1741354519"}],
    editions: [{id: "gid://shopify/ProductVariant/51857799283017",
-                 title: "Default Title",
-                 options: [{"value" => "Default Title", "name" => "Title"}]}]},
+               title: "Default Title",
+               options: [{"value" => "Default Title", "name" => "Title"}]}]},
   {shopify_id: "gid://shopify/Product/9575334445385",
    store_link: "naruto-uchiha-sasuke-1-6-resin-statue-by-nirvana-studio",
    shape: "Statue",
@@ -118,8 +118,8 @@
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/2025-03-06_13.webp?v=1741352793"}],
    editions: [{id: "gid://shopify/ProductVariant/51857360585033",
-                 title: "A",
-                 options: [{"value" => "A", "name" => "Edition"}]},
+               title: "A",
+               options: [{"value" => "A", "name" => "Edition"}]},
      {id: "gid://shopify/ProductVariant/51857360617801",
       title: "B",
       options: [{"value" => "B", "name" => "Edition"}]}]},
@@ -151,5 +151,5 @@
      {"src" =>
        "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/1cd66e3e-c673-5567-8c98-2c9faf6863c0.jpg?v=1741352391"}],
    editions: [{id: "gid://shopify/ProductVariant/51857274798409",
-                 title: "Default Title",
-                 options: [{"value" => "Default Title", "name" => "Title"}]}]}]
+               title: "Default Title",
+               options: [{"value" => "Default Title", "name" => "Title"}]}]}]

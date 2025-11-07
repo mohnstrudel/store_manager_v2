@@ -16,7 +16,7 @@ RSpec.describe Shopify::EditionCreator do
 
   describe "#update_or_create!" do
     context "with valid data" do
-      it "creates a new edition with correct attributes" do
+      it "creates a new edition with correct attributes" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.to change(Edition, :count).by(1)
 
         edition = Edition.last
@@ -32,7 +32,7 @@ RSpec.describe Shopify::EditionCreator do
         expect(product.versions).to include(edition.version)
       end
 
-      it "creates associated attribute records if they don't exist" do
+      it "creates associated attribute records if they don't exist" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.to change(Color, :count).by(1)
           .and change(Size, :count).by(1)
           .and change(Version, :count).by(1)
@@ -43,10 +43,10 @@ RSpec.describe Shopify::EditionCreator do
         expect(product.versions.count).to eq(1)
       end
 
-      it "reuses existing attribute records" do
+      it "reuses existing attribute records" do # rubocop:todo RSpec/MultipleExpectations
         existing_color = create(:color, value: "Red")
 
-        expect { creator.update_or_create! }.to change(Color, :count).by(0)
+        expect { creator.update_or_create! }.to change(Color, :count).by(0) # rubocop:todo RSpec/ChangeByZero
           .and change(Size, :count).by(1)
           .and change(Version, :count).by(1)
 
@@ -65,7 +65,7 @@ RSpec.describe Shopify::EditionCreator do
           shopify_id: "gid://shopify/ProductVariant/12345")
       end
 
-      it "updates the existing edition" do
+      it "updates the existing edition" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.not_to change(Edition, :count)
 
         existing_edition.reload
@@ -85,7 +85,7 @@ RSpec.describe Shopify::EditionCreator do
         expect { described_class.new(nil, parsed_variant) }.to raise_error(ArgumentError, "Expected a Product")
       end
 
-      it "returns nil and does not create an edition" do
+      it "returns nil and does not create an edition" do # rubocop:todo RSpec/MultipleExpectations
         creator = described_class.new(product, {options: []})
         expect { creator.update_or_create! }.not_to change(Edition, :count)
         expect(creator.update_or_create!).to be_nil
@@ -93,7 +93,7 @@ RSpec.describe Shopify::EditionCreator do
     end
 
     context "when edition_attrs is blank" do
-      it "returns nil and does not create an edition" do
+      it "returns nil and does not create an edition" do # rubocop:todo RSpec/MultipleExpectations
         # Simulate options that do not match any known attribute names
         parsed_variant = {
           id: "gid://shopify/ProductVariant/99999",

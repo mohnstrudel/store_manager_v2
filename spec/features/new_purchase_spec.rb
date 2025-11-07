@@ -8,7 +8,7 @@ RSpec.describe "Creating a new purchase", type: :feature do
   let!(:product) { create(:product) }
   let!(:warehouse) { create(:warehouse, is_default: true) }
 
-  scenario "creates purchased products in the default warehouse" do
+  scenario "creates purchased products in the default warehouse" do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
     find("#purchase_supplier_id").set(supplier.id)
@@ -27,7 +27,9 @@ RSpec.describe "Creating a new purchase", type: :feature do
     expect(purchase.purchase_items.all? { |pp| pp.warehouse == warehouse }).to be true
   end
 
+  # rubocop:todo RSpec/MultipleExpectations
   scenario "displays warehouse information on the purchase page after creation" do
+    # rubocop:enable RSpec/MultipleExpectations
     visit product_path(product)
 
     expect(page).not_to have_selector("h3", text: "Purchases")

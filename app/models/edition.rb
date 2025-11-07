@@ -87,6 +87,6 @@ class Edition < ApplicationRecord
   end
 
   def price
-    store_infos.find_by(name: :shopify)&.price || 0.0
+    store_infos.find_by(store_name: :shopify)&.price || 0.0
   end
 end

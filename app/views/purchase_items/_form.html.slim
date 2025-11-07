@@ -30,7 +30,7 @@
   = form.text_field :tracking_number
 
   = form.label :shipping_company
-  = form.collection_select(:shipping_company_id, @shipping_companies || [], :id, :name, { class: "select", include_blank: true })
+  = form.collection_select(:shipping_company_id, @shipping_companies || [], :id, :name, {class: "select", include_blank: true})
 
   - if purchase_item.images.attached?
     br

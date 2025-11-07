@@ -6,13 +6,15 @@ RSpec.describe Shopify::ProductFromTitleCreator do
     let(:creator) { described_class.new(api_title: api_title) }
 
     before do
+      # rubocop:todo RSpec/AnyInstance
       allow_any_instance_of(Shopify::ProductParser).to receive(:parse_product_title).and_return(
+        # rubocop:enable RSpec/AnyInstance
         ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
       )
     end
 
     context "when product doesn't exist" do
-      it "creates a new product with correct attributes" do
+      it "creates a new product with correct attributes" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.call }.to change(Product, :count).by(1)
           .and change(Franchise, :count).by(1)
           .and change(Shape, :count).by(1)
@@ -36,12 +38,12 @@ RSpec.describe Shopify::ProductFromTitleCreator do
           shape: create(:shape, title: "Statue"))
       end
 
-      it "finds the existing product" do
+      it "finds the existing product" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.call }.not_to change(Product, :count)
         expect(creator.call).to eq(existing_product)
       end
 
-      it "adds new relations if they don't exist" do
+      it "adds new relations if they don't exist" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.call }.to change(Brand, :count).by(1)
           .and change(Size, :count).by(1)
 
@@ -55,7 +57,7 @@ RSpec.describe Shopify::ProductFromTitleCreator do
       let(:creator) { described_class.new(api_title: "") }
 
       it "raises an error" do
-        allow_any_instance_of(Shopify::ProductParser).to receive(:parse_product_title)
+        allow_any_instance_of(Shopify::ProductParser).to receive(:parse_product_title) # rubocop:todo RSpec/AnyInstance
           .and_raise(ArgumentError, "Title cannot be blank")
 
         expect { creator.call }.to raise_error(ArgumentError, "Title cannot be blank")
@@ -64,17 +66,19 @@ RSpec.describe Shopify::ProductFromTitleCreator do
 
     context "with missing relations" do
       before do
+        # rubocop:todo RSpec/AnyInstance
         allow_any_instance_of(Shopify::ProductParser).to receive(:parse_product_title).and_return(
+          # rubocop:enable RSpec/AnyInstance
           ["Eve", "Stellar Blade", nil, "Statue", nil]
         )
       end
 
-      it "creates product without optional relations" do
+      it "creates product without optional relations" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.call }.to change(Product, :count).by(1)
           .and change(Franchise, :count).by(1)
           .and change(Shape, :count).by(1)
-          .and change(Brand, :count).by(0)
-          .and change(Size, :count).by(0)
+          .and change(Brand, :count).by(0) # rubocop:todo RSpec/ChangeByZero
+          .and change(Size, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
         product = Product.last
         expect(product.title).to eq("Eve")
@@ -89,10 +93,10 @@ RSpec.describe Shopify::ProductFromTitleCreator do
       let!(:existing_brand) { create(:brand, title: "Light and Dust Studio") }
       let!(:existing_size) { create(:size, value: "1:4") }
 
-      it "uses existing relations instead of creating new ones" do
+      it "uses existing relations instead of creating new ones" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.call }.to change(Product, :count).by(1)
-          .and change(Brand, :count).by(0)
-          .and change(Size, :count).by(0)
+          .and change(Brand, :count).by(0) # rubocop:todo RSpec/ChangeByZero
+          .and change(Size, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
         product = Product.last
         expect(product.brands).to include(existing_brand)

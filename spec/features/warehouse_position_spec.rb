@@ -11,7 +11,7 @@ describe "Warehouse Position Management" do
 
   after { log_out }
 
-  scenario "User changes warehouse position using dropdown", js: true do
+  scenario "User changes warehouse position using dropdown", :js do # rubocop:todo RSpec/MultipleExpectations
     visit warehouses_path
 
     # Verify initial positions

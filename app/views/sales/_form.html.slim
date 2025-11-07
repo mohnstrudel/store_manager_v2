@@ -64,8 +64,8 @@
   div data-controller="sale-items"
     / Look for the template in sale_items_controller.js
     = form.collection_select(:_, Product.all, :id, :full_title,
-        { prompt: "Select a product" },
-        { hidden: true, data: { "sale-items-target": "options" }})
+        {prompt: "Select a product"},
+        {hidden: true, data: {"sale-items-target": "options"}})
     - sale.sale_items.each do |sale_item|
       = form.fields_for :sale_items, sale_item do |ps_f|
         = render "product_fields", f: ps_f, product: sale_item.product

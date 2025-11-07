@@ -109,7 +109,7 @@ RSpec.describe "Shopify Job Integration" do
           .and_return(options_response)
       end
 
-      it "successfully creates complete product with options and variants" do
+      it "successfully creates complete product with options and variants" do # rubocop:todo RSpec/MultipleExpectations
         # Run the first job
         expect {
           Shopify::CreateProductJob.perform_now(product.id)
@@ -165,7 +165,7 @@ RSpec.describe "Shopify Job Integration" do
         allow(api_client).to receive(:create_product).and_raise(ShopifyApiError, "API Error")
       end
 
-      it "does not create any store infos" do
+      it "does not create any store infos" do # rubocop:todo RSpec/MultipleExpectations
         initial_store_info_count = StoreInfo.count
 
         expect {
@@ -175,7 +175,7 @@ RSpec.describe "Shopify Job Integration" do
         expect(StoreInfo.count).to eq(initial_store_info_count)
       end
 
-      it "does not execute second job" do
+      it "does not execute second job" do # rubocop:todo RSpec/MultipleExpectations
         # Enqueue the first job
         allow(Shopify::CreateOptionsAndVariantsJob).to receive(:perform_later)
 
@@ -200,7 +200,7 @@ RSpec.describe "Shopify Job Integration" do
         allow(api_client).to receive(:create_product_options).and_raise(ShopifyApiError, "Options API Error")
       end
 
-      it "leaves product store info intact but no option store infos" do
+      it "leaves product store info intact but no option store infos" do # rubocop:todo RSpec/MultipleExpectations
         # Run first job (succeeds)
         Shopify::CreateProductJob.perform_now(product.id)
 
@@ -241,7 +241,7 @@ RSpec.describe "Shopify Job Integration" do
           .and_return(product_response)
       end
 
-      it "only creates product without enqueuing options job" do
+      it "only creates product without enqueuing options job" do # rubocop:todo RSpec/MultipleExpectations
         allow(Shopify::CreateOptionsAndVariantsJob).to receive(:perform_later)
 
         Shopify::CreateProductJob.perform_now(product_without_options.id)
@@ -292,7 +292,7 @@ RSpec.describe "Shopify Job Integration" do
         ActiveJob::Base.queue_adapter = :test
       end
 
-      it "executes both jobs in sequence when using perform_later" do
+      it "executes both jobs in sequence when using perform_later" do # rubocop:todo RSpec/MultipleExpectations
         expect {
           Shopify::CreateProductJob.perform_later(product.id)
         }.not_to raise_error
@@ -340,7 +340,7 @@ RSpec.describe "Shopify Job Integration" do
           .and_return(options_response)
       end
 
-      it "can safely run both jobs multiple times" do
+      it "can safely run both jobs multiple times" do # rubocop:todo RSpec/MultipleExpectations
         # First run
         Shopify::CreateProductJob.perform_now(product.id)
         Shopify::CreateOptionsAndVariantsJob.perform_now(product.id, "gid://shopify/Product/12345")

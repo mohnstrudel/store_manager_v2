@@ -22,7 +22,7 @@ RSpec.describe StoreInfo, type: :model do
   end
 
   describe "enums" do
-    it { is_expected.to define_enum_for(:name).with_values(not_assigned: 0, shopify: 1, woo: 2) }
+    it { is_expected.to define_enum_for(:store_name).with_values(not_assigned: 0, shopify: 1, woo: 2) }
   end
 
   describe "page_url_for" do
@@ -40,31 +40,31 @@ RSpec.describe StoreInfo, type: :model do
   describe "factory traits" do
     let(:product) { create(:product) }
 
-    it "creates shopify store info" do
+    it "creates shopify store info" do # rubocop:todo RSpec/MultipleExpectations
       store_info = create(:store_info, :shopify, storable: product)
-      expect(store_info.name).to eq("shopify")
+      expect(store_info.store_name).to eq("shopify")
       expect(store_info.storable).to eq(product)
     end
 
-    it "creates woo store info" do
+    it "creates woo store info" do # rubocop:todo RSpec/MultipleExpectations
       store_info = create(:store_info, :woo, storable: product)
-      expect(store_info.name).to eq("woo")
+      expect(store_info.store_name).to eq("woo")
       expect(store_info.storable).to eq(product)
     end
 
-    it "creates with store product id" do
-      store_info = create(:store_info, :with_store_product_id, storable: product)
-      expect(store_info.store_product_id).to eq("gid://shopify/Product/12345")
+    it "creates with store product id" do # rubocop:todo RSpec/MultipleExpectations
+      store_info = create(:store_info, :with_store_id, storable: product)
+      expect(store_info.store_id).to eq("gid://shopify/Product/12345")
       expect(store_info.storable).to eq(product)
     end
 
-    it "creates with slug" do
+    it "creates with slug" do # rubocop:todo RSpec/MultipleExpectations
       store_info = create(:store_info, :with_slug, storable: product)
       expect(store_info.slug).to eq("test-product")
       expect(store_info.storable).to eq(product)
     end
 
-    it "creates with push time" do
+    it "creates with push time" do # rubocop:todo RSpec/MultipleExpectations
       store_info = create(:store_info, :with_push_time, storable: product)
       expect(store_info.push_time).to be_within(1.second).of(Time.current)
       expect(store_info.storable).to eq(product)

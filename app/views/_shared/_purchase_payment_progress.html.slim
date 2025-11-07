@@ -11,6 +11,6 @@
 - else
   - if progress >= 0 && progress != 100
     .flex.justify-between.pt-1.text-sm.font-semibold.px-2
-      span.text-lime-700/70 class="dark:text-lime-500/85" #{paid > 0 ? format_money(paid) : "n/p"}
+      span.text-lime-700/70 class="dark:text-lime-500/85" #{(paid > 0) ? format_money(paid) : "n/p"}
       span.text-gray-400/90 #{format_money price}
       span.text-amber-700/60 class="dark:text-orange-400/80" #{format_money debt}

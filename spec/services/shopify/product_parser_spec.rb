@@ -31,7 +31,7 @@ RSpec.describe Shopify::ProductParser do
 
     let(:parser) { described_class.new(api_item: api_item) }
 
-    it "parses product data correctly" do
+    it "parses product data correctly" do # rubocop:todo RSpec/MultipleExpectations
       allow(parser).to receive(:parse_product_title).and_return(
         ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
       )
@@ -57,7 +57,6 @@ RSpec.describe Shopify::ProductParser do
         {
           id: "gid://shopify/ProductVariant/67890",
           title: "Regular",
-          price: nil,
           options: [
             {"name" => "Version", "value" => "Regular"}
           ]
@@ -101,7 +100,7 @@ RSpec.describe Shopify::ProductParser do
   end
 
   describe "#parse_product_title" do
-    it "parses a standard product title format" do
+    it "parses a standard product title format" do # rubocop:todo RSpec/MultipleExpectations
       parser = described_class.new(title: "Stellar Blade - Eve | 1:4 Resin Statue | von Light and Dust Studio")
 
       title, franchise, size, shape, brand = parser.parse_product_title
@@ -113,7 +112,7 @@ RSpec.describe Shopify::ProductParser do
       expect(brand).to eq("Light And Dust Studio")
     end
 
-    it "handles titles without size or brand" do
+    it "handles titles without size or brand" do # rubocop:todo RSpec/MultipleExpectations
       parser = described_class.new(title: "Elden Ring - Malenia | Resin Statue")
 
       title, franchise, size, shape, brand = parser.parse_product_title
@@ -125,7 +124,7 @@ RSpec.describe Shopify::ProductParser do
       expect(brand).to be_nil
     end
 
-    it "handles titles with only franchise" do
+    it "handles titles with only franchise" do # rubocop:todo RSpec/MultipleExpectations
       parser = described_class.new(title: "Elden Ring")
 
       title, franchise, size, shape, brand = parser.parse_product_title
@@ -137,7 +136,7 @@ RSpec.describe Shopify::ProductParser do
       expect(brand).to be_nil
     end
 
-    it "handles titles with bust shape" do
+    it "handles titles with bust shape" do # rubocop:todo RSpec/MultipleExpectations
       parser = described_class.new(title: "Elden Ring - Malenia | 1:4 Resin Bust")
 
       title, franchise, size, shape, brand = parser.parse_product_title
@@ -149,7 +148,7 @@ RSpec.describe Shopify::ProductParser do
       expect(brand).to be_nil
     end
 
-    it "handles titles with special characters" do
+    it "handles titles with special characters" do # rubocop:todo RSpec/MultipleExpectations
       parser = described_class.new(title: "Elden Ring - Malenia, Blade of Miquella | 1:4 Resin Statue")
 
       title, franchise, size, shape, brand = parser.parse_product_title
@@ -161,7 +160,7 @@ RSpec.describe Shopify::ProductParser do
       expect(brand).to be_nil
     end
 
-    it "handles titles with multiple brands" do
+    it "handles titles with multiple brands" do # rubocop:todo RSpec/MultipleExpectations
       parser = described_class.new(title: "Elden Ring - Malenia | 1:4 Resin Statue | Prime 1 Studio & Gecco")
 
       title, franchise, size, shape, brand = parser.parse_product_title
