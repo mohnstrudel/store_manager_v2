@@ -100,6 +100,7 @@ group :development, :test do
   gem "rspec-rails"
   gem "rubocop-rspec_rails", require: false
   gem "rubocop-factory_bot", require: false
+  gem "factory_bot_rails"
   gem "dotenv"
 end
 
