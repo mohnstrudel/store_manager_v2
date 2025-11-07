@@ -57,6 +57,7 @@ RSpec.describe Shopify::ProductParser do
         {
           id: "gid://shopify/ProductVariant/67890",
           title: "Regular",
+          price: nil,
           options: [
             {"name" => "Version", "value" => "Regular"}
           ]
