@@ -5,10 +5,10 @@
         - images.each do |img|
           = render "_shared/preloadable_img", src: url_for(img.representation(:nano)), width: 70, \
             data: { \
-              id: images.index(img),\
+              id: images.index(img), \
               preview: url_for(img.representation(:preview)), \
               "gallery-target": "slide", \
-              "action": "click->gallery#select" \
+              action: "click->gallery#select" \
             }
     .gallery-viewbox.flex.relative.w-full.h-fit.max-h-full.wrap.items-center.overflow-hidden.rounded-lg.hover:overflow-visible
       - if images.size > 1

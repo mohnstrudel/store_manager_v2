@@ -1,6 +1,6 @@
 class AddShopifyFields < ActiveRecord::Migration[8.0]
   def change
-    add_column :sales, :shopify_id, :string
+    add_column :sales, :shopify_id, :string # rubocop:todo Rails/BulkChangeTable
     add_column :sales, :shopify_created_at, :datetime
     add_column :sales, :shopify_updated_at, :datetime
 

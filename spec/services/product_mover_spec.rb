@@ -10,7 +10,7 @@ describe ProductMover do
 
   describe "#move" do
     context "when moving existing purchased products" do
-      it "moves all products to the destination warehouse" do
+      it "moves all products to the destination warehouse" do # rubocop:todo RSpec/MultipleExpectations
         moved_count = described_class.new(
           warehouse_id: to_warehouse.id,
           purchase_items_ids: purchase_items.map(&:id)
@@ -23,7 +23,7 @@ describe ProductMover do
         end
       end
 
-      it "moves products from multiple warehouses" do
+      it "moves products from multiple warehouses" do # rubocop:todo RSpec/MultipleExpectations
         another_warehouse = create(:warehouse)
         products_from_another = create_list(:purchase_item, 2, warehouse: another_warehouse, purchase:)
         all_products = purchase_items + products_from_another
@@ -39,7 +39,9 @@ describe ProductMover do
         end
       end
 
+      # rubocop:todo RSpec/MultipleExpectations
       it "handles moving products that are already in the destination warehouse" do
+        # rubocop:enable RSpec/MultipleExpectations
         products_already_there = create_list(:purchase_item, 2, warehouse: to_warehouse, purchase:)
         all_products = purchase_items + products_already_there
 
@@ -54,7 +56,7 @@ describe ProductMover do
         end
       end
 
-      it "calls notification for warehouse relocation" do
+      it "calls notification for warehouse relocation" do # rubocop:todo RSpec/MultipleExpectations
         notifier_double = instance_double(PurchasedNotifier)
         allow(PurchasedNotifier).to receive(:new).and_return(notifier_double)
         allow(notifier_double).to receive(:handle_warehouse_change)
@@ -76,7 +78,7 @@ describe ProductMover do
     context "when creating new purchased products from a purchase" do
       let(:purchase_without_products) { create(:purchase, amount: 3) }
 
-      it "creates new purchased products in the destination warehouse" do
+      it "creates new purchased products in the destination warehouse" do # rubocop:todo RSpec/MultipleExpectations
         moved_count = described_class.new(
           warehouse_id: to_warehouse.id,
           purchase: purchase_without_products
@@ -86,7 +88,7 @@ describe ProductMover do
         expect(to_warehouse.purchase_items.where(purchase: purchase_without_products).count).to eq(3)
       end
 
-      it "calls notification for newly located items" do
+      it "calls notification for newly located items" do # rubocop:todo RSpec/MultipleExpectations
         notifier_double = instance_double(PurchasedNotifier)
         allow(PurchasedNotifier).to receive(:new).and_return(notifier_double)
         allow(notifier_double).to receive(:handle_product_purchase)
@@ -104,7 +106,7 @@ describe ProductMover do
         expect(notifier_double).to have_received(:handle_product_purchase)
       end
 
-      it "handles purchase with zero amount" do
+      it "handles purchase with zero amount" do # rubocop:todo RSpec/MultipleExpectations
         zero_purchase = create(:purchase, amount: 0)
 
         moved_count = described_class.new(
@@ -148,7 +150,7 @@ describe ProductMover do
     end
 
     context "when purchase_items_ids contains non-existent IDs" do
-      it "only moves existing products" do
+      it "only moves existing products" do # rubocop:todo RSpec/MultipleExpectations
         non_existent_ids = [99999, 88888]
         all_ids = purchase_items.map(&:id) + non_existent_ids
 
@@ -165,7 +167,7 @@ describe ProductMover do
     end
 
     context "when purchase has existing purchase_items" do
-      it "uses purchase's purchase_items when no specific IDs are provided" do
+      it "uses purchase's purchase_items when no specific IDs are provided" do # rubocop:todo RSpec/MultipleExpectations
         # Ensure we're working with the purchase that has the products
         purchase_items # This creates the products and associates them with the purchase
 
@@ -180,7 +182,7 @@ describe ProductMover do
         end
       end
 
-      it "prioritizes purchase_items_ids over purchase's products" do
+      it "prioritizes purchase_items_ids over purchase's products" do # rubocop:todo RSpec/MultipleExpectations
         # Create a separate purchase with its own products
         separate_purchase = create(:purchase, amount: 2)
         other_products = create_list(:purchase_item, 2, warehouse: from_warehouse, purchase: separate_purchase)
@@ -206,7 +208,7 @@ describe ProductMover do
       end
     end
 
-    context "error handling" do
+    context "error handling" do # rubocop:todo RSpec/ContextWording
       it "raises error when warehouse doesn't exist" do
         expect {
           described_class.new(

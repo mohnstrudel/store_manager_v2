@@ -1,4 +1,4 @@
-class AppUninstalledJob < ActiveJob::Base
+class AppUninstalledJob < ApplicationJob
   extend ShopifyAPI::Webhooks::Handler
 
   class << self

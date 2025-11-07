@@ -58,10 +58,12 @@ class Warehouse < ApplicationRecord
   # == Class Methods
   #
   def self.ensure_only_one_default(id)
+    # rubocop:disable Rails/SkipsModelValidations
     Warehouse
       .where(is_default: true)
       .where.not(id:)
       .update_all(is_default: false)
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   #

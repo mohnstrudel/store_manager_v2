@@ -131,7 +131,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
           ))
       end
 
-      it "creates store info for sizes" do
+      it "creates store info for sizes" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         product_size.reload
@@ -140,7 +140,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         expect(size_store_info.store_id).to eq("gid://shopify/ProductOptionValue/1")
       end
 
-      it "creates store info for versions" do
+      it "creates store info for versions" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         product_version.reload
@@ -149,7 +149,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         expect(version_store_info.store_id).to eq("gid://shopify/ProductOptionValue/2")
       end
 
-      it "creates store info for colors" do
+      it "creates store info for colors" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         product_color.reload
@@ -158,7 +158,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         expect(color_store_info.store_id).to eq("gid://shopify/ProductOptionValue/3")
       end
 
-      it "creates store info for edition variants" do
+      it "creates store info for edition variants" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         edition.reload
@@ -218,7 +218,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
           .with(shopify_product_id, expected_size_only_options)
       end
 
-      it "creates store info only for size" do
+      it "creates store info only for size" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         product_size.reload
@@ -365,7 +365,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
           .and_return(size_only_response)
       end
 
-      it "updates existing store info" do
+      it "updates existing store info" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         existing_size_store_info.reload
@@ -390,7 +390,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
           .and_return(options_response)
       end
 
-      it "updates existing edition store info" do
+      it "updates existing edition store info" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         existing_edition_store_info.reload
@@ -422,7 +422,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         allow(api_client).to receive(:create_product_options).and_return(empty_variants_response)
       end
 
-      it "creates store info for options but no editions" do
+      it "creates store info for options but no editions" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         product_size.reload

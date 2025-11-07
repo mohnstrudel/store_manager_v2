@@ -5,7 +5,9 @@ describe PurchaseItemsController do
   after { log_out }
 
   describe "DELETE #destroy" do
+    # rubocop:todo RSpec/MultipleExpectations
     it "destroys the purchase_item without destroying the associated purchase" do
+      # rubocop:enable RSpec/MultipleExpectations
       warehouse = create(:warehouse)
       purchase = create(:purchase)
       purchase_item = create_list(:purchase_item, 5, warehouse: warehouse, purchase: purchase).first
@@ -48,7 +50,7 @@ describe PurchaseItemsController do
       end
     end
 
-    it "notifies about warehouse change" do
+    it "notifies about warehouse change" do # rubocop:todo RSpec/MultipleExpectations
       post :move, params: valid_params
 
       expect(PurchasedNotifier).to have_received(:new).with(

@@ -18,7 +18,7 @@ RSpec.describe Shopify::PullEditionsJob do
   end
 
   describe "#perform" do
-    it "processes each edition using EditionCreator" do
+    it "processes each edition using EditionCreator" do # rubocop:todo RSpec/MultipleExpectations
       edition_creator_class_double = class_double(Shopify::EditionCreator)
       edition_creator_instance_double = instance_double(Shopify::EditionCreator)
 

@@ -6,6 +6,7 @@ describe HasAuditNotifications do
     stub_const("DummyModel", Class.new(ApplicationRecord) do
       self.table_name = "customers" # Use an existing table for simplicity
       include HasAuditNotifications
+
       # Simulate auditing enabled
       def self.auditing_enabled
         true

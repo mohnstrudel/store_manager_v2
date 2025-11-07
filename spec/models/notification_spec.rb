@@ -29,7 +29,7 @@ RSpec.describe Notification do
   end
 
   describe "associations" do
-    it "has many warehouse transitions" do
+    it "has many warehouse transitions" do # rubocop:todo RSpec/MultipleExpectations
       association = described_class.reflect_on_association(:warehouse_transitions)
       expect(association.macro).to eq(:has_many)
       expect(association.options[:dependent]).to eq(:nullify)

@@ -1,7 +1,7 @@
 class RenameExternalDescToDescEnAndAddDescDeToWarehouses < ActiveRecord::Migration[8.0]
   def change
     # Step 1: Add new column desc_en
-    add_column :warehouses, :desc_en, :string
+    add_column :warehouses, :desc_en, :string # rubocop:todo Rails/BulkChangeTable
 
     # Step 2: Add new column desc_de
     add_column :warehouses, :desc_de, :string

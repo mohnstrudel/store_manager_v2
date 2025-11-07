@@ -4,6 +4,6 @@ class RemoveEmailTemplateFromNotifications < ActiveRecord::Migration[8.0]
   end
 
   def down
-    add_reference :notifications, :email_template, null: false, foreign_key: true
+    add_reference :notifications, :email_template, null: false, foreign_key: true # rubocop:todo Rails/NotNullColumn
   end
 end

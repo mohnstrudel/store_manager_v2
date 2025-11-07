@@ -16,6 +16,6 @@ menu
           | , $
           = format_money purchase_item.purchase.item_price
       br
-      = link_to unlink_purchase_items_path(id: purchase_item.id), class: "no-events mt-2 btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+      = link_to unlink_purchase_items_path(id: purchase_item.id), class: "no-events mt-2 btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :post}
         i.icn ✂︎
         | Unlink

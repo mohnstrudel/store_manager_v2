@@ -1,4 +1,6 @@
 class WarehousesController < ApplicationController
+  include ActionView::Helpers::OutputSafetyHelper
+
   before_action :set_warehouse, only: %i[edit update destroy]
   before_action :validate_default_warehouse, only: %i[create update]
 
@@ -158,7 +160,11 @@ class WarehousesController < ApplicationController
       current_default = Warehouse.find_by(is_default: true)
 
       if current_default && current_default != @warehouse
-        error_message = "change the current default warehouse \"#{view_context.link_to(current_default.name, warehouse_path(current_default), class: "link")}\" before setting a new one".html_safe
+        error_message = safe_join([
+          "change the current default warehouse \"",
+          view_context.link_to(current_default.name, warehouse_path(current_default), class: "link"),
+          "\" before setting a new one"
+        ])
 
         @warehouse.errors.add(:is_default, error_message)
         @positions_count = Warehouse.count

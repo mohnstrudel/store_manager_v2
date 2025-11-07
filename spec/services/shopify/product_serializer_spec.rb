@@ -32,25 +32,27 @@ RSpec.describe Shopify::ProductSerializer do
       expect(result[:title]).to eq("Studio Ghibli - Spirited Away | Resin Statue | by Zuoban Studio")
     end
 
-    it "serializes product without options" do
+    it "returns only title in serialized output" do
       serializer = described_class.new(product)
       result = serializer.serialize
 
-      expect(result[:productOptions]).to eq([])
+      expect(result.keys).to eq([:title])
     end
 
-    it "serializes product with options" do
-      size = create(:size, value: "1:4")
-      product.sizes << size
+    it "returns title as a string" do
+      serializer = described_class.new(product)
+      result = serializer.serialize
+
+      expect(result[:title]).to be_a(String)
+    end
+
+    it "handles multiple brands" do
+      second_brand = create(:brand, title: "Another Studio")
+      product.brands << second_brand
 
       result = described_class.serialize(product)
 
-      expect(result[:productOptions]).to include(
-        {
-          name: "Size",
-          values: [{name: "1:4"}]
-        }
-      )
+      expect(result[:title]).to include("by Zuoban Studio, Another Studio")
     end
   end
 end

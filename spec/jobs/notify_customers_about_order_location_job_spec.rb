@@ -23,7 +23,7 @@ RSpec.describe NotifyCustomersAboutOrderLocationJob do
   end
 
   describe "#perform" do
-    it "creates notifications for purchased products with sales" do
+    it "creates notifications for purchased products with sales" do # rubocop:todo RSpec/MultipleExpectations
       described_class.perform_now
 
       expect(PurchasedNotifier).to have_received(:new)

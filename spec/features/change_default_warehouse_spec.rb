@@ -7,7 +7,7 @@ describe "Changing default warehouse" do
   let!(:existing_default_warehouse) { create(:warehouse, :default, name: "Default Warehouse") }
   let!(:non_default_warehouse) { create(:warehouse, name: "Non-Default Warehouse") }
 
-  scenario "cannot change default warehouse when another default exists" do
+  scenario "cannot change default warehouse when another default exists" do # rubocop:todo RSpec/MultipleExpectations
     visit edit_warehouse_path(non_default_warehouse)
 
     select "Yes", from: "Is default"
@@ -18,7 +18,7 @@ describe "Changing default warehouse" do
     expect(existing_default_warehouse.reload.is_default).to be true
   end
 
-  scenario "can change default warehouse when no other default exists" do
+  scenario "can change default warehouse when no other default exists" do # rubocop:todo RSpec/MultipleExpectations
     existing_default_warehouse.update(is_default: false)
 
     visit edit_warehouse_path(non_default_warehouse)

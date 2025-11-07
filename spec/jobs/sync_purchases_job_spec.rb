@@ -60,7 +60,9 @@ RSpec.describe SyncPurchasesJob do
   end
 
   describe "#validate_keys" do
+    # rubocop:todo RSpec/MultipleExpectations
     it "returns no errors and a false boolean indicating there are no validation errors" do
+      # rubocop:enable RSpec/MultipleExpectations
       parsed_purchase = {
         amount: 100,
         supplier: "Supplier Name",
@@ -77,7 +79,9 @@ RSpec.describe SyncPurchasesJob do
       expect(has_errors).to be(false)
     end
 
+    # rubocop:todo RSpec/MultipleExpectations
     it "returns errors and a true boolean indicating there are validation errors" do
+      # rubocop:enable RSpec/MultipleExpectations
       parsed_purchase = {
         amount: nil,
         supplier: "Supplier Name",
@@ -119,18 +123,19 @@ RSpec.describe SyncPurchasesJob do
       @expected_size = create(:size, value: "1:1")
       @expected_version = create(:version, value: "Deluxe")
     }
+
     let(:parsed_color_version) { "Black" }
     let(:parsed_size_version) { "1:1" }
     let(:parsed_version_version) { "Deluxe" }
 
-    it "returns color, size, and version" do
+    it "returns color, size, and version" do # rubocop:todo RSpec/MultipleExpectations
       color, _, _ = job.parse_versions(parsed_color_version)
       _, size, _ = job.parse_versions(parsed_size_version)
       _, _, version = job.parse_versions(parsed_version_version)
 
-      expect(color).to eq(@expected_color)
-      expect(size).to eq(@expected_size)
-      expect(version).to eq(@expected_version)
+      expect(color).to eq(@expected_color) # rubocop:todo RSpec/InstanceVariable
+      expect(size).to eq(@expected_size) # rubocop:todo RSpec/InstanceVariable
+      expect(version).to eq(@expected_version) # rubocop:todo RSpec/InstanceVariable
     end
 
     it "handles unknown color" do

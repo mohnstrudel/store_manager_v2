@@ -50,7 +50,7 @@ html
                 .pb-3
                 - if current_user.admin?
                   li = link_to "Users", users_path, type: "button"
-                li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }, type: "button"
+                li = link_to "Log Out", log_out_path, method: :post, data: {confirm: "Are you sure you want to log out?", turbo_method: :post}, type: "button"
     main.container.mx-auto.mt-8.mb-60
       = yield
     footer.container.mx-auto.text-center.mb-8

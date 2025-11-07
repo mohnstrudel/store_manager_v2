@@ -23,10 +23,7 @@ class StoreInfo < ApplicationRecord
 
   belongs_to :storable, polymorphic: true
 
-  validates :store_name, uniqueness: {
-    scope: [:storable_type, :storable_id],
-    message: "Store name must be unique"
-  }
+  validates_db_uniqueness_of :store_name, scope: [:storable_type, :storable_id]
 
   def page_url_for(store_name)
     case store_name

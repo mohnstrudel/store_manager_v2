@@ -118,7 +118,7 @@ RSpec.describe Shopify::CreateProductJob do
         expect(existing_store_info.slug).to eq("test-product")
       end
 
-      it "updates existing store info push time" do
+      it "updates existing store info push time" do # rubocop:todo RSpec/MultipleExpectations
         original_push_time = existing_store_info.push_time
         before_time = Time.current
         described_class.perform_now(product_id)

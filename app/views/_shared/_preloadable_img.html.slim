@@ -4,7 +4,7 @@
 
 .preloadable-img__container.justify-self-center.w-fit.h-fit data-controller="preloadable-img" data-preloadable-img-src-value=src data-turbo-permanent="true"
   - if src != nil
-    = image_tag "", class: "preloadable-img__img loading #{class_names}", data: {"preloadable-img-target":"img", **data}, style:
+    = image_tag "", class: "preloadable-img__img loading #{class_names}", data: {"preloadable-img-target": "img", **data}, style:
   - else
-      = image_tag "", class: "preloadable-img__img hidden #{class_names}", data: {"preloadable-img-target":"img", **data}, src: "", style:
+      = image_tag "", class: "preloadable-img__img hidden #{class_names}", data: {"preloadable-img-target": "img", **data}, src: "", style:
       i#preloader-img__placeholder.icn 👻

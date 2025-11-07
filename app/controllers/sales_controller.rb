@@ -1,4 +1,6 @@
 class SalesController < ApplicationController
+  include ActionView::Helpers::OutputSafetyHelper
+
   before_action :set_sale, only: %i[edit update destroy link_purchase_items]
 
   # GET /sales
@@ -87,7 +89,11 @@ class SalesController < ApplicationController
       "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
     )
 
-    flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
+    flash[:notice] = safe_join([
+      "Success! Visit ",
+      statuses_link,
+      " to track synchronization progress"
+    ])
 
     redirect_back(fallback_location: sales_path)
   end

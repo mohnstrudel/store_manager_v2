@@ -45,8 +45,8 @@ describe PurchaseItem do
     let!(:older_paid_item) { create(:purchase_item, purchase: paid_purchase, sale_item_id: nil, created_at: 3.days.ago) }
     let!(:linked_item) { create(:purchase_item, purchase: paid_purchase, sale_item: sale_item) }
 
-    it "returns unlinked items for given product_id" do
-      expect(scope).to match_array([paid_item, older_paid_item, unpaid_item])
+    it "returns unlinked items for given product_id" do # rubocop:todo RSpec/MultipleExpectations
+      expect(scope).to contain_exactly(paid_item, older_paid_item, unpaid_item)
       expect(scope).not_to include(linked_item)
     end
 

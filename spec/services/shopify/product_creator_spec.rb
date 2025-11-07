@@ -19,7 +19,7 @@ RSpec.describe Shopify::ProductCreator do
     let(:creator) { described_class.new(parsed_item: parsed_product) }
 
     context "when product doesn't exist" do
-      it "creates a new product with correct attributes" do
+      it "creates a new product with correct attributes" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.to change(Product, :count).by(1)
           .and change(Franchise, :count).by(1)
           .and change(Shape, :count).by(1)
@@ -36,7 +36,7 @@ RSpec.describe Shopify::ProductCreator do
         expect(product.sizes.first.value).to eq("1:4")
       end
 
-      it "enqueues sync jobs for editions and images" do
+      it "enqueues sync jobs for editions and images" do # rubocop:todo RSpec/MultipleExpectations
         allow(Shopify::PullEditionsJob).to receive(:perform_later)
         allow(Shopify::PullImagesJob).to receive(:perform_later)
 
@@ -60,7 +60,7 @@ RSpec.describe Shopify::ProductCreator do
           title: "Old Title")
       end
 
-      it "updates the existing product" do
+      it "updates the existing product" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.not_to change(Product, :count)
 
         existing_product.reload
@@ -100,7 +100,9 @@ RSpec.describe Shopify::ProductCreator do
     let(:creator_by_title) { described_class.new(parsed_title: "Stellar Blade - Eve | 1:4 Resin Statue | Light and Dust Studio") }
 
     before do
+      # rubocop:todo RSpec/AnyInstance
       allow_any_instance_of(Shopify::ProductParser).to receive(:parse_product_title).and_return(
+        # rubocop:enable RSpec/AnyInstance
         ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
       )
     end

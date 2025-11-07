@@ -31,7 +31,7 @@
         = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "versions" }})
       .block.w-full
         = form.label :color
-        = form.collection_select(:color_ids, Color.all, :id, :value, { class: "select" }, {multiple: true, data: { show_search: false, product_editions_target: "colors"} })  
+        = form.collection_select(:color_ids, Color.all, :id, :value, {class: "select"}, {multiple: true, data: {show_search: false, product_editions_target: "colors"}})  
     ul.px-4.mt-4.mb-2.flex.flex-wrap.gap-3.hidden data-product-editions-target="list"
 
   - if form.object.new_record?

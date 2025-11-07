@@ -109,7 +109,7 @@ header.nav_header
             td.font-mono = format_money payment.value
             td = format_date payment.payment_date
 
-    = form_with model: @purchase.payments.new, class: "p-3 pb-6", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
+    = form_with model: @purchase.payments.new, class: "p-3 pb-6", data: {controller: "payment", action: "turbo:submit-end->payment#clear"} do |form|
       - if form.object.errors.any?
         - form.object.errors.full_messages.each do |message|
           = message
