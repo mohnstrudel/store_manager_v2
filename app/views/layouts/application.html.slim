@@ -19,7 +19,7 @@ html
           strong.align-text-bottom StoreMate
         ul.text-sm
           - if current_user.guest?
-            li = link_to "Log Out", log_out_path, method: :post, data: { confirm: "Are you sure you want to log out?", turbo_method: :post }, type: "button"
+            li = link_to "Log Out", log_out_path, method: :post, data: {confirm: "Are you sure you want to log out?", turbo_method: :post}, type: "button"
           - else
             li = link_to "Dashboard", root_path, type: "button"
             .ml-6
