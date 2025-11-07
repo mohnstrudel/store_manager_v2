@@ -11,6 +11,6 @@ header.nav_header
             i.icn 📥
             | Show Synchronization Menu
       li
-        = link_to controller: "#{model.model_name.plural}", action: "new"
+        = link_to controller: model.model_name.plural.to_s, action: "new"
           i.icn 🐣
           | Add New Record

@@ -8,6 +8,7 @@ plugins:
   - rubocop-rspec
   - rubocop-rspec_rails
   - rubocop-slim
+  - rubocop-factory_bot
 
 inherit_gem:
   standard: config/base.yml

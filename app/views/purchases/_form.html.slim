@@ -32,6 +32,6 @@
 
   - if Warehouse.any?
     = form.label :warehouse_id, "Initial warehouse"
-    = form.collection_select :warehouse_id, Warehouse.all.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
+    = form.collection_select :warehouse_id, Warehouse.order(name: :asc), :id, :name, {selected: @default_warehouse_id}
 
   = form_submit_for(purchase, form)

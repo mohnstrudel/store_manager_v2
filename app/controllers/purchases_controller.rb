@@ -133,17 +133,17 @@ class PurchasesController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def purchase_params
-    params.require(:purchase).permit(
-      :supplier_id,
-      :product_id,
-      :edition_id,
-      :order_reference,
-      :item_price,
-      :amount,
-      :purchase_id,
-      :selected_items_ids,
-      :warehouse_id,
-      payments_attributes: [:id, :value, :purchase_id]
+    params.expect(
+      purchase: [:supplier_id,
+        :product_id,
+        :edition_id,
+        :order_reference,
+        :item_price,
+        :amount,
+        :purchase_id,
+        :selected_items_ids,
+        :warehouse_id,
+        payments_attributes: [:id, :value, :purchase_id]]
     )
   end
 end

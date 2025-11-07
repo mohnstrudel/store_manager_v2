@@ -11,7 +11,7 @@
       = form.text_field :woo_id
 
   = form.label :customer_id
-  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
+  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, {class: "select"}, data: {controller: "slim-select"})
 
   = form.label :note
   = form.text_field :note

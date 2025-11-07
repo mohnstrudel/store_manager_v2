@@ -139,19 +139,19 @@ class WarehousesController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def warehouse_params
-    params.require(:warehouse).permit(
-      :cbm,
-      :container_tracking_number,
-      :courier_tracking_url,
-      :external_name_en,
-      :external_name_de,
-      :desc_en,
-      :desc_de,
-      :name,
-      :is_default,
-      :position,
-      deleted_img_ids: [],
-      images: []
+    params.expect(
+      warehouse: [:cbm,
+        :container_tracking_number,
+        :courier_tracking_url,
+        :external_name_en,
+        :external_name_de,
+        :desc_en,
+        :desc_de,
+        :name,
+        :is_default,
+        :position,
+        deleted_img_ids: [],
+        images: []]
     )
   end
 

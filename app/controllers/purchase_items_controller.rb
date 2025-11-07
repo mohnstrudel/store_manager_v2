@@ -145,21 +145,21 @@ class PurchaseItemsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def purchase_item_params
-    params.require(:purchase_item).permit(
-      :length,
-      :width,
-      :height,
-      :weight,
-      :expenses,
-      :shipping_price,
-      :tracking_number,
-      :warehouse_id,
-      :purchase_id,
-      :sale_item_id,
-      :redirect_to_sale_item,
-      :shipping_company_id,
-      deleted_img_ids: [],
-      images: []
+    params.expect(
+      purchase_item: [:length,
+        :width,
+        :height,
+        :weight,
+        :expenses,
+        :shipping_price,
+        :tracking_number,
+        :warehouse_id,
+        :purchase_id,
+        :sale_item_id,
+        :redirect_to_sale_item,
+        :shipping_company_id,
+        deleted_img_ids: [],
+        images: []]
     )
   end
 end

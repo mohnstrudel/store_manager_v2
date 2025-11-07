@@ -81,7 +81,7 @@ header.nav_header
         p.font-mono = format_money @purchase.total_shipping
       .flex-1
         h5 Paid
-        p.font-mono = format_money(@purchase.paid).rjust(2, '0')
+        p.font-mono = format_money(@purchase.paid).rjust(2, "0")
         h5 Debt
         p.font-mono
           | -

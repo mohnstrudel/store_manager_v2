@@ -99,7 +99,7 @@ group :development, :test do
   gem "rubocop-rspec", require: false
   gem "rspec-rails"
   gem "rubocop-rspec_rails", require: false
-  gem "factory_bot_rails"
+  gem "rubocop-factory_bot", require: false
   gem "dotenv"
 end
 

@@ -63,7 +63,7 @@ class Shopify::SaleParser
   end
 
   def parse_sale_items
-    return [] unless @order.dig("lineItems", "nodes").present?
+    return [] if @order.dig("lineItems", "nodes").blank?
 
     @order["lineItems"]["nodes"].map do |line_item|
       parsed_product = if line_item["product"]
