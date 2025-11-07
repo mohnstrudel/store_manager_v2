@@ -58,35 +58,18 @@ class WarehousesController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
-      if @warehouse.update(warehouse_params)
+      # Handle warehouse transitions separately if that's the only parameter being updated
+      if params[:warehouse].present? && params[:warehouse].keys.map(&:to_sym) == [:to_warehouse_ids]
+        handle_warehouse_transitions
+        redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
+      elsif @warehouse.update(warehouse_params)
         attachments&.map(&:purge_later)
 
         if @warehouse.is_default?
           Warehouse.ensure_only_one_default(@warehouse.id)
         end
 
-        if params[:warehouse][:to_warehouse_ids].present?
-          WarehouseTransition
-            .where(from_warehouse: @warehouse)
-            .where.not(to_warehouse_id: params[:warehouse][:to_warehouse_ids])
-            .destroy_all
-
-          params[:warehouse][:to_warehouse_ids].each do |to_id|
-            next if to_id.blank?
-
-            notification = Notification.find_or_create_by!(
-              name: "Warehouse transition",
-              event_type: Notification.event_types[:warehouse_changed],
-              status: :active
-            )
-
-            WarehouseTransition.find_or_create_by!(
-              from_warehouse: @warehouse,
-              to_warehouse_id: to_id,
-              notification: notification
-            )
-          end
-        end
+        handle_warehouse_transitions
 
         redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
       else
@@ -150,13 +133,40 @@ class WarehousesController < ApplicationController
         :name,
         :is_default,
         :position,
+        :to_warehouse_ids,
         deleted_img_ids: [],
         images: []]
     )
   end
 
+  def handle_warehouse_transitions
+    return if params[:warehouse][:to_warehouse_ids].blank?
+
+    WarehouseTransition
+      .where(from_warehouse: @warehouse)
+      .where.not(to_warehouse_id: params[:warehouse][:to_warehouse_ids])
+      .destroy_all
+
+    params[:warehouse][:to_warehouse_ids].each do |to_id|
+      next if to_id.blank?
+
+      notification = Notification.find_or_create_by!(
+        name: "Warehouse transition",
+        event_type: Notification.event_types[:warehouse_changed],
+        status: :active
+      )
+
+      WarehouseTransition.find_or_create_by!(
+        from_warehouse: @warehouse,
+        to_warehouse_id: to_id,
+        notification: notification
+      )
+    end
+  end
+
   def validate_default_warehouse
-    if warehouse_params[:is_default] == "1"
+    # Only validate if is_default is present in the params
+    if params.dig(:warehouse, :is_default) == "1"
       current_default = Warehouse.find_by(is_default: true)
 
       if current_default && current_default != @warehouse
