@@ -34,6 +34,7 @@ class ProductVersion < ApplicationRecord
   #
   db_belongs_to :product
   db_belongs_to :version
+  has_many :store_infos, as: :storable, dependent: :destroy
 
   #
   # == Scopes

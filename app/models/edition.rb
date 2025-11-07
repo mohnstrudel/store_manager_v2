@@ -32,11 +32,6 @@ class Edition < ApplicationRecord
   audited associated_with: :product
 
   #
-  # == Validations
-  #
-  # (none)
-
-  #
   # == Associations
   #
   belongs_to :size, optional: true
@@ -46,6 +41,7 @@ class Edition < ApplicationRecord
 
   has_many :sale_items, dependent: :destroy
   has_many :purchases, dependent: :destroy
+  has_many :store_infos, as: :storable, dependent: :destroy
 
   #
   # == Scopes
@@ -88,5 +84,9 @@ class Edition < ApplicationRecord
 
   def type_name_and_value
     [size, version, color].compact.map { |i| "#{i.model_name.name}: #{i.value}" }.join(", ")
+  end
+
+  def price
+    store_infos.find_by(name: :shopify)&.price || 0.0
   end
 end
