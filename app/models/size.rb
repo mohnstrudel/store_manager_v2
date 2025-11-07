@@ -67,7 +67,7 @@ class Size < ApplicationRecord
   def self.numeric_size_match
     # 1:2, 1:3, 1:4, 1:5, 1:6, 1:3.5, 1:1, 1:7, 1:10
     # and 1/2, 1/3, etc.
-    /(1[\/:](?:[23456789]|3\.5|10?))/
+    /(1[\/:](?:[2-9]|3\.5|10?))/
   end
 
   #
