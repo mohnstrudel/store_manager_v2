@@ -8,6 +8,7 @@ class ColorsController < ApplicationController
 
   # GET /colors/1 or /colors/1.json
   def show
+    @color = Color.includes(:products).find(params[:id])
   end
 
   # GET /colors/new

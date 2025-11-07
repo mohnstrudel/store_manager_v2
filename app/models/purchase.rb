@@ -118,7 +118,11 @@ class Purchase < ApplicationRecord
   end
 
   def total_shipping
-    purchase_items.sum { it.shipping_price.to_f }
+    if purchase_items.loaded?
+      purchase_items.sum { |item| item.shipping_price.to_f }
+    else
+      purchase_items.sum(:shipping_price).to_f
+    end
   end
 
   def full_title

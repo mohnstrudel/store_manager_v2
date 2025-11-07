@@ -20,7 +20,7 @@ class DashboardController < ApplicationController
   end
 
   def debts
-    @unpaid_purchases = Purchase.unpaid
+    @unpaid_purchases = Purchase.unpaid.includes(:supplier)
     @debts = if params[:q].present?
       search_query = params[:q].downcase
       sale_debts.select do |product|
