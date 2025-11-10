@@ -31,41 +31,50 @@ class SyncWooOrdersJob < ApplicationJob
     )
 
     parsed_orders.each do |order|
-      customer_id = get_customer_id(order[:customer])
-      sale = get_sale(order[:sale].merge(customer_id:))
+      ActiveRecord::Base.transaction do
+        customer_id = get_customer_id(order[:customer])
+        sale = get_sale(order[:sale].merge(customer_id:))
 
-      order[:products].each do |order_product|
-        product = if parsed_orders.size > 1
-          products.find { |p|
-            p.woo_id == order_product[:product_woo_id].to_s
-          }
-        else
-          Product.find_by(woo_id: order_product[:product_woo_id])
+        order[:products].each do |order_product|
+          product = if parsed_orders.size > 1
+            products.find { |p|
+              p.woo_id == order_product[:product_woo_id].to_s
+            }
+          else
+            Product.find_by(woo_id: order_product[:product_woo_id])
+          end
+
+          if product.blank?
+            product = get_product_from_woo(order_product[:product_woo_id])
+          end
+
+          next if product.blank?
+
+          product.with_lock do
+            edition = get_edition(order_product[:edition], product)
+
+            sale_item = SaleItem.find_or_initialize_by(
+              woo_id: order_product[:order_woo_id]
+            )
+
+            sale_item.assign_attributes({
+              price: order_product[:price],
+              product:,
+              qty: order_product[:qty],
+              sale:,
+              edition:
+            }.compact)
+
+            sale_item.save
+          end
         end
-
-        if product.blank?
-          product = get_product_from_woo(order_product[:product_woo_id])
-        end
-
-        next if product.blank?
-
-        edition = get_edition(order_product[:edition], product)
-
-        sale_item = SaleItem.find_or_initialize_by(
-          woo_id: order_product[:order_woo_id]
-        )
-
-        sale_item.assign_attributes({
-          price: order_product[:price],
-          product:,
-          qty: order_product[:qty],
-          sale:,
-          edition:
-        }.compact)
-
-        sale_item.save
       end
     end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "Failed to create sale: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+  rescue ActiveRecord::RecordNotUnique => e
+    Rails.logger.warn "Duplicate record detected: #{e.message}"
   end
 
   def parse_all(orders)

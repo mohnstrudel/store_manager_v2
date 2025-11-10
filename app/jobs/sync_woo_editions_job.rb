@@ -87,18 +87,27 @@ class SyncWooEditionsJob < ApplicationJob
     mapped_edition_types = edition_types.map do |edition_type|
       type_name = TYPES.find { |type|
         type.include? edition_type[:type]
-      }.first.downcase
+      }&.first&.downcase
 
       if type_name == "Size"
         edition_type[:value] = Size.sanitize_size(edition_type[:value])
       end
 
+      next if type_name.blank?
+
       type_instance = type_name.capitalize.constantize.find_or_create_by({
         value: edition_type[:value]
       })
 
-      product.send(:"product_#{type_name.pluralize}")
-        .find_or_create_by({type_name => type_instance})
+      begin
+        # type_name == "size", "version" or "color"
+        # e.g. product.send(:product_sizes).find_or_create_by!({size: #<Size id: 5, value: "1:43">})
+        product.send(:"product_#{type_name.pluralize}")
+          .find_or_create_by!({type_name => type_instance})
+      rescue ActiveRecord::RecordNotUnique
+        product.send(:"product_#{type_name.pluralize}")
+          .find_by!({type_name => type_instance})
+      end
 
       {type_name => type_instance}
     end

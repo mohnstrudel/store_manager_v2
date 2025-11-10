@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -107,12 +107,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.datetime "updated_at", null: false
     t.bigint "version_id"
     t.string "woo_id"
+    t.index "product_id, COALESCE(size_id, ('-1'::integer)::bigint), COALESCE(version_id, ('-1'::integer)::bigint), COALESCE(color_id, ('-1'::integer)::bigint)", name: "index_editions_on_product_attributes_unique", unique: true
     t.index ["color_id"], name: "index_editions_on_color_id"
     t.index ["product_id"], name: "index_editions_on_product_id"
-    t.index ["shopify_id"], name: "index_editions_on_shopify_id"
+    t.index ["shopify_id"], name: "index_editions_on_shopify_id", unique: true, where: "(shopify_id IS NOT NULL)"
     t.index ["size_id"], name: "index_editions_on_size_id"
     t.index ["sku"], name: "index_editions_on_sku", unique: true
     t.index ["version_id"], name: "index_editions_on_version_id"
+    t.index ["woo_id"], name: "index_editions_on_woo_id", unique: true, where: "(woo_id IS NOT NULL)"
   end
 
   create_table "franchises", force: :cascade do |t|
@@ -165,6 +167,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.bigint "product_id"
     t.datetime "updated_at", null: false
     t.index ["color_id"], name: "index_product_colors_on_color_id"
+    t.index ["product_id", "color_id"], name: "index_product_colors_on_product_id_and_color_id", unique: true
     t.index ["product_id"], name: "index_product_colors_on_product_id"
   end
 
@@ -173,6 +176,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.bigint "product_id"
     t.bigint "size_id"
     t.datetime "updated_at", null: false
+    t.index ["product_id", "size_id"], name: "index_product_sizes_on_product_id_and_size_id", unique: true
     t.index ["product_id"], name: "index_product_sizes_on_product_id"
     t.index ["size_id"], name: "index_product_sizes_on_size_id"
   end
@@ -182,6 +186,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.bigint "product_id"
     t.datetime "updated_at", null: false
     t.bigint "version_id"
+    t.index ["product_id", "version_id"], name: "index_product_versions_on_product_id_and_version_id", unique: true
     t.index ["product_id"], name: "index_product_versions_on_product_id"
     t.index ["version_id"], name: "index_product_versions_on_version_id"
   end
@@ -338,6 +343,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_12_112553) do
     t.datetime "updated_at", null: false
     t.string "value"
     t.index ["value"], name: "index_sizes_on_value", unique: true
+  end
+
+  create_table "store_infos", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.decimal "price", precision: 8, scale: 2, default: "0.0", null: false
+    t.datetime "pull_time", precision: nil
+    t.datetime "push_time", precision: nil
+    t.string "slug"
+    t.bigint "storable_id", null: false
+    t.string "storable_type", null: false
+    t.string "store_id"
+    t.integer "store_name", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["storable_type", "storable_id"], name: "index_store_infos_on_storable"
+    t.index ["store_name", "storable_type", "storable_id"], name: "index_store_infos_on_unique_store_per_storable", unique: true
   end
 
   create_table "suppliers", force: :cascade do |t|
