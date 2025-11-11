@@ -124,7 +124,7 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def parse_edition(line_item)
-    Woo::Edition.deserialize_from_order_responce(line_item)
+    Woo::Edition.deserialize_from_order_response(line_item)
   end
 
   def get_customer_id(parsed_customer)

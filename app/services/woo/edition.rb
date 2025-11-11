@@ -14,7 +14,7 @@ class Woo::Edition
       }
     end
 
-    def deserialize_from_order_responce(edition_api_response)
+    def deserialize_from_order_response(edition_api_response)
       possible_option_names = ["farbe", "color", "maßstab", "scale", "size", "version", "edition", "variante", "variants"]
       attributes = edition_api_response[:meta_data]
         .select { |el| el[:display_key].downcase.in? possible_option_names }
