@@ -51,7 +51,19 @@ class SyncWooOrdersJob < ApplicationJob
           next if product.blank?
 
           product.with_lock do
-            edition = get_edition(order_product[:edition], product)
+            edition = if order_product[:edition].present?
+              begin
+                get_edition(order_product[:edition], product)
+              rescue ActiveRecord::RecordNotUnique
+                edition = Edition.find_by(woo_id: order_product[:edition][:woo_id])
+
+                if edition.nil?
+                  version_value = order_product[:edition][:display_value] || order_product[:edition][:value]
+                  version = Version.find_by(value: version_value)
+                  Edition.find_by(product: product, version: version)
+                end
+              end
+            end
 
             sale_item = SaleItem.find_or_initialize_by(
               woo_id: order_product[:order_woo_id]
@@ -65,7 +77,9 @@ class SyncWooOrdersJob < ApplicationJob
               edition:
             }.compact)
 
-            sale_item.save
+            unless sale_item.save!
+              Rails.logger.error "Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
+            end
           end
         end
       end
