@@ -142,8 +142,7 @@ RSpec.describe SyncWooOrdersJob do
       edition = job.parse_edition(line_item)
 
       expect(edition).to be_present
-      expect(edition[:type]).to be_present
-      expect(edition[:value]).to be_present
+      expect(edition[:options]).to be_present
     end
 
     it "returns nil when no edition found in meta_data" do
@@ -153,9 +152,9 @@ RSpec.describe SyncWooOrdersJob do
       expect(edition).to be_nil
     end
 
-    it "includes woo_id when edition_id is present" do
-      line_item_with_edition_id = line_item.merge(edition_id: 123)
-      edition = job.parse_edition(line_item_with_edition_id)
+    it "includes woo_id when variation_id is present" do
+      line_item_with_variation_id = line_item.merge(variation_id: 123)
+      edition = job.parse_edition(line_item_with_variation_id)
 
       expect(edition[:woo_id]).to eq(123)
     end

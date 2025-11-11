@@ -51,22 +51,10 @@ class SyncWooOrdersJob < ApplicationJob
           next if product.blank?
 
           product.with_lock do
-            edition = if order_product[:edition].present?
-              begin
-                get_edition(order_product[:edition], product)
-              rescue ActiveRecord::RecordNotUnique
-                edition = Edition.find_by(woo_id: order_product[:edition][:woo_id])
-
-                if edition.nil?
-                  version_value = order_product[:edition][:display_value] || order_product[:edition][:value]
-                  version = Version.find_by(value: version_value)
-                  Edition.find_by(product: product, version: version)
-                end
-              end
-            end
+            edition = Woo::Edition.import(order_product[:edition])
 
             sale_item = SaleItem.find_or_initialize_by(
-              woo_id: order_product[:order_woo_id]
+              woo_id: order_product[:sale_item_woo_id]
             )
 
             sale_item.assign_attributes({
@@ -84,11 +72,8 @@ class SyncWooOrdersJob < ApplicationJob
         end
       end
     end
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "Failed to create sale: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-  rescue ActiveRecord::RecordNotUnique => e
-    Rails.logger.warn "Duplicate record detected: #{e.message}"
+  rescue => e
+    puts "!!! Unexpected error: #{e.message}"
   end
 
   def parse_all(orders)
@@ -128,7 +113,7 @@ class SyncWooOrdersJob < ApplicationJob
       },
       products: order[:line_items].map { |line_item|
         {
-          order_woo_id: line_item[:id],
+          sale_item_woo_id: line_item[:id],
           price: line_item[:price].to_i + line_item[:total_tax].to_i,
           product_woo_id: line_item[:product_id],
           qty: line_item[:quantity],
@@ -139,28 +124,7 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def parse_edition(line_item)
-    edition = line_item[:meta_data]
-      .find { |el| el[:display_key].in? EDITION_TYPES.flatten }
-
-    return if edition.nil?
-
-    edition = edition.slice(:display_key, :display_value)
-      .transform_keys({
-        display_key: :type,
-        display_value: :value
-      })
-
-    edition[:type] = EDITION_TYPES.find { |type|
-      type.include? edition[:type]
-    }.first.downcase
-
-    woo_id = if line_item[:edition_id].to_i.positive?
-      line_item[:edition_id]
-    end
-
-    edition
-      .transform_values { |v| smart_titleize(sanitize(v)) }
-      .merge(woo_id:)
+    Woo::Edition.deserialize_from_order_responce(line_item)
   end
 
   def get_customer_id(parsed_customer)
@@ -174,14 +138,14 @@ class SyncWooOrdersJob < ApplicationJob
       )
     end
     customer.assign_attributes(parsed_customer)
-    customer.save
+    customer.save!
     customer.id
   end
 
   def get_sale(parsed_sale)
     sale = Sale.find_or_initialize_by(woo_id: parsed_sale[:woo_id])
     sale.assign_attributes(parsed_sale)
-    sale.save
+    sale.save!
 
     sale
   end
