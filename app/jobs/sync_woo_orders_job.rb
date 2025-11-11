@@ -22,27 +22,13 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def create_sales(parsed_orders)
-    parsed_products_woo_ids = parsed_orders
-      .pluck(:products)
-      .flatten
-      .pluck(:product_woo_id)
-    products = Product.where(
-      woo_id: parsed_products_woo_ids
-    )
-
     parsed_orders.each do |order|
       ActiveRecord::Base.transaction do
         customer_id = get_customer_id(order[:customer])
         sale = get_sale(order[:sale].merge(customer_id:))
 
         order[:products].each do |order_product|
-          product = if parsed_orders.size > 1
-            products.find { |p|
-              p.woo_id == order_product[:product_woo_id].to_s
-            }
-          else
-            Product.find_by(woo_id: order_product[:product_woo_id])
-          end
+          product = Product.find_by(woo_id: order_product[:product_woo_id])
 
           if product.blank?
             product = get_product_from_woo(order_product[:product_woo_id])
