@@ -55,8 +55,7 @@ class Woo::Edition
       edition = Edition.find_by(woo_id: parsed_edition[:woo_id])
 
       if edition.blank?
-        create_options = prepared_options.merge(woo_id: parsed_edition[:woo_id])
-        edition = product.editions.find_or_create_by(create_options)
+        edition = product.editions.find_or_create_by(prepared_options)
       end
 
       if parsed_edition[:woo_id].present? && edition.woo_id != parsed_edition[:woo_id]
