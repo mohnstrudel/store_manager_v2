@@ -4,7 +4,8 @@ FactoryBot.define do
     shape
     store_link { nil }
     title { "Spirited Away" }
-    woo_id { "26626" }
+    woo_id { SecureRandom.alphanumeric(10) }
+    shopify_id { SecureRandom.alphanumeric(10) }
 
     trait :with_brand do
       brand

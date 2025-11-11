@@ -2,8 +2,8 @@ FactoryBot.define do
   factory(:edition) do
     product
     store_link { "https://store.handsomecake.com/link-id?edition=666" }
-    woo_id { "666" }
-    shopify_id { "999666" }
+    woo_id { SecureRandom.alphanumeric(10) }
+    shopify_id { SecureRandom.alphanumeric(10) }
     version
 
     trait(:with_size) do
