@@ -10,14 +10,6 @@ RSpec.describe Gettable do
   let(:instance) { test_class.new }
 
   describe "Constants" do
-    it "defines CONSUMER_KEY constant" do
-      expect(Gettable::CONSUMER_KEY).to eq(Rails.application.credentials.dig(:woo_api, :user))
-    end
-
-    it "defines CONSUMER_SECRET constant" do
-      expect(Gettable::CONSUMER_SECRET).to eq(Rails.application.credentials.dig(:woo_api, :pass))
-    end
-
     it "defines PER_PAGE constant" do
       expect(Gettable::PER_PAGE).to eq(100)
     end

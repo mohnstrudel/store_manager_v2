@@ -72,10 +72,12 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def parse_all(orders)
-    orders.map { |order| parse(order) }
+    orders.map { |order| parse(order) }.compact
   end
 
   def parse(order)
+    return if order.blank?
+
     shipping = {}
     [order[:shipping], order[:billing]].compact.each do |address|
       address&.each { |k, v| shipping[k] = v.presence || "" }
