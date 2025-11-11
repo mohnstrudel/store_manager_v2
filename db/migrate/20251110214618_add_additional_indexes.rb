@@ -14,7 +14,7 @@ class AddAdditionalIndexes < ActiveRecord::Migration[8.1]
     # Product attributes unique index with COALESCE for NULL handling
     remove_index_if_exists :editions, name: "index_editions_on_product_attributes_unique"
     add_index :editions,
-      "product_id, COALESCE(size_id, -1), COALESCE(version_id, -1), COALESCE(color_id, -1)",
+      "(product_id, COALESCE(size_id, -1), COALESCE(version_id, -1), COALESCE(color_id, -1))",
       unique: true,
       algorithm: :concurrently,
       name: "index_editions_on_product_attributes_unique"
