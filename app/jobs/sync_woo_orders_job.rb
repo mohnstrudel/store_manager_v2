@@ -76,9 +76,9 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def parse(order)
-    shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
-      el.each { |k, v| memo[k] = v unless v.empty? }
-      memo
+    shipping = {}
+    [order[:billing], order[:shipping]].compact.each do |address|
+      address&.each { |k, v| shipping[k] = v if v.present? }
     end
 
     {
