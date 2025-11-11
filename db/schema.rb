@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_10_214002) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -107,11 +107,14 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214002) do
     t.datetime "updated_at", null: false
     t.bigint "version_id"
     t.string "woo_id"
+    t.index "product_id, COALESCE(size_id, ('-1'::integer)::bigint), COALESCE(version_id, ('-1'::integer)::bigint), COALESCE(color_id, ('-1'::integer)::bigint)", name: "index_editions_on_product_attributes_unique", unique: true
     t.index ["color_id"], name: "index_editions_on_color_id"
     t.index ["product_id"], name: "index_editions_on_product_id"
+    t.index ["shopify_id"], name: "index_editions_on_shopify_id", unique: true, where: "(shopify_id IS NOT NULL)"
     t.index ["size_id"], name: "index_editions_on_size_id"
     t.index ["sku"], name: "index_editions_on_sku", unique: true
     t.index ["version_id"], name: "index_editions_on_version_id"
+    t.index ["woo_id"], name: "index_editions_on_woo_id", unique: true, where: "(woo_id IS NOT NULL)"
   end
 
   create_table "franchises", force: :cascade do |t|
@@ -164,6 +167,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214002) do
     t.bigint "product_id"
     t.datetime "updated_at", null: false
     t.index ["color_id"], name: "index_product_colors_on_color_id"
+    t.index ["product_id", "color_id"], name: "index_product_colors_on_product_id_and_color_id", unique: true
     t.index ["product_id"], name: "index_product_colors_on_product_id"
   end
 
@@ -172,6 +176,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214002) do
     t.bigint "product_id"
     t.bigint "size_id"
     t.datetime "updated_at", null: false
+    t.index ["product_id", "size_id"], name: "index_product_sizes_on_product_id_and_size_id", unique: true
     t.index ["product_id"], name: "index_product_sizes_on_product_id"
     t.index ["size_id"], name: "index_product_sizes_on_size_id"
   end
@@ -181,6 +186,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214002) do
     t.bigint "product_id"
     t.datetime "updated_at", null: false
     t.bigint "version_id"
+    t.index ["product_id", "version_id"], name: "index_product_versions_on_product_id_and_version_id", unique: true
     t.index ["product_id"], name: "index_product_versions_on_product_id"
     t.index ["version_id"], name: "index_product_versions_on_version_id"
   end
