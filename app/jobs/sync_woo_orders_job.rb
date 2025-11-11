@@ -52,14 +52,23 @@ class SyncWooOrdersJob < ApplicationJob
             }.compact)
 
             unless sale_item.save!
-              Rails.logger.error "Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
+              Rails.logger.error "!!! Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
             end
           end
         end
       end
     end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "!!! Validation error for order #{order.dig(:sale, :woo_id)}: #{e.message}"
+    Rails.logger.error "!!! Failed record: #{e.record&.attributes}"
+    raise
+  rescue ActiveRecord::StatementInvalid => e
+    Rails.logger.error "!!! Database error for order #{order.dig(:sale, :woo_id)}: #{e.message}"
+    raise
   rescue => e
-    puts "!!! Unexpected error: #{e.message}"
+    Rails.logger.error "!!! Unexpected error for order #{order.dig(:sale, :woo_id)}: #{e.class} - #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    raise
   end
 
   def parse_all(orders)
