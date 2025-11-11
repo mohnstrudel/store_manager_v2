@@ -277,7 +277,7 @@ RSpec.describe SalesController, type: :controller do
 
         post :pull, params: {id: sale.to_param}
 
-        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 60.seconds)
+        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
       end
 
       it "triggers Shopify::PullSaleJob for sale with shopify_id" do
@@ -311,7 +311,7 @@ RSpec.describe SalesController, type: :controller do
 
         expect(Config).to have_received(:update_shopify_sales_sync_time)
         expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: nil)
-        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 60.seconds)
+        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
       end
 
       it "passes limit parameter to jobs" do
@@ -323,7 +323,7 @@ RSpec.describe SalesController, type: :controller do
         post :pull, params: {limit: limit}
 
         expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: limit.to_s)
-        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 60.seconds)
+        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
       end
     end
 

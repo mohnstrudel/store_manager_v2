@@ -76,11 +76,11 @@ class SalesController < ApplicationController
     if sale_id.present?
       sale = Sale.friendly.find(sale_id)
       Shopify::PullSaleJob.perform_later(sale.shopify_id) if sale.shopify_id.present?
-      SyncWooOrdersJob.set(wait: 60.seconds).perform_later(id: sale.woo_id) if sale.woo_id.present?
+      SyncWooOrdersJob.set(wait: 90.seconds).perform_later(id: sale.woo_id) if sale.woo_id.present?
     else
       Config.update_shopify_sales_sync_time
       Shopify::PullSalesJob.perform_later(limit:)
-      SyncWooOrdersJob.set(wait: 60.seconds).perform_later(limit:)
+      SyncWooOrdersJob.set(wait: 90.seconds).perform_later(limit:)
     end
 
     statuses_link = view_context.link_to(
