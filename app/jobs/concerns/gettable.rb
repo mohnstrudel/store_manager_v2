@@ -56,7 +56,7 @@ module Gettable
         end
       end
 
-      return nil if response.nil?
+      return nil if response.body.blank?
       JSON.parse(response.body, symbolize_names: true)
     end
   end
