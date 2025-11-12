@@ -1,8 +1,8 @@
 module Gettable
   extend ActiveSupport::Concern
 
-  CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user)
-  CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass)
+  CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user) || ENV.fetch("WOO_API_USER", "")
+  CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass) || ENV.fetch("WOO_API_PASS", "")
   PER_PAGE = 100
 
   included do
@@ -56,7 +56,7 @@ module Gettable
         end
       end
 
-      return nil if response.nil?
+      return nil if response.body.blank?
       JSON.parse(response.body, symbolize_names: true)
     end
   end

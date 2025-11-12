@@ -22,60 +22,65 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def create_sales(parsed_orders)
-    parsed_products_woo_ids = parsed_orders
-      .pluck(:products)
-      .flatten
-      .pluck(:product_woo_id)
-    products = Product.where(
-      woo_id: parsed_products_woo_ids
-    )
-
     parsed_orders.each do |order|
-      customer_id = get_customer_id(order[:customer])
-      sale = get_sale(order[:sale].merge(customer_id:))
+      ActiveRecord::Base.transaction do
+        customer_id = get_customer_id(order[:customer])
+        sale = get_sale(order[:sale].merge(customer_id:))
 
-      order[:products].each do |order_product|
-        product = if parsed_orders.size > 1
-          products.find { |p|
-            p.woo_id == order_product[:product_woo_id].to_s
-          }
-        else
-          Product.find_by(woo_id: order_product[:product_woo_id])
+        order[:products].each do |order_product|
+          product = Product.find_by(woo_id: order_product[:product_woo_id])
+
+          if product.blank?
+            product = get_product_from_woo(order_product[:product_woo_id])
+          end
+
+          next if product.blank?
+
+          product.with_lock do
+            edition = Woo::Edition.import(order_product[:edition])
+
+            sale_item = SaleItem.find_or_initialize_by(
+              woo_id: order_product[:sale_item_woo_id]
+            )
+
+            sale_item.assign_attributes({
+              price: order_product[:price],
+              product:,
+              qty: order_product[:qty],
+              sale:,
+              edition:
+            }.compact)
+
+            unless sale_item.save!
+              Rails.logger.error "!!! Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
+            end
+          end
         end
-
-        if product.blank?
-          product = get_product_from_woo(order_product[:product_woo_id])
-        end
-
-        next if product.blank?
-
-        edition = get_edition(order_product[:edition], product)
-
-        sale_item = SaleItem.find_or_initialize_by(
-          woo_id: order_product[:order_woo_id]
-        )
-
-        sale_item.assign_attributes({
-          price: order_product[:price],
-          product:,
-          qty: order_product[:qty],
-          sale:,
-          edition:
-        }.compact)
-
-        sale_item.save
       end
     end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "!!! Validation error for order #{order.dig(:sale, :woo_id)}: #{e.message}"
+    Rails.logger.error "!!! Failed record: #{e.record&.attributes}"
+    raise
+  rescue ActiveRecord::StatementInvalid => e
+    Rails.logger.error "!!! Database error for order #{order.dig(:sale, :woo_id)}: #{e.message}"
+    raise
+  rescue => e
+    Rails.logger.error "!!! Unexpected error for order #{order.dig(:sale, :woo_id)}: #{e.class} - #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    raise
   end
 
   def parse_all(orders)
-    orders.map { |order| parse(order) }
+    orders.map { |order| parse(order) }.compact
   end
 
   def parse(order)
-    shipping = [order[:billing], order[:shipping]].reduce do |memo, el|
-      el.each { |k, v| memo[k] = v unless v.empty? }
-      memo
+    return if order.blank?
+
+    shipping = {}
+    [order[:shipping], order[:billing]].compact.each do |address|
+      address&.each { |k, v| shipping[k] = v.presence || "" }
     end
 
     {
@@ -105,7 +110,7 @@ class SyncWooOrdersJob < ApplicationJob
       },
       products: order[:line_items].map { |line_item|
         {
-          order_woo_id: line_item[:id],
+          sale_item_woo_id: line_item[:id],
           price: line_item[:price].to_i + line_item[:total_tax].to_i,
           product_woo_id: line_item[:product_id],
           qty: line_item[:quantity],
@@ -116,28 +121,7 @@ class SyncWooOrdersJob < ApplicationJob
   end
 
   def parse_edition(line_item)
-    edition = line_item[:meta_data]
-      .find { |el| el[:display_key].in? EDITION_TYPES.flatten }
-
-    return if edition.nil?
-
-    edition = edition.slice(:display_key, :display_value)
-      .transform_keys({
-        display_key: :type,
-        display_value: :value
-      })
-
-    edition[:type] = EDITION_TYPES.find { |type|
-      type.include? edition[:type]
-    }.first.downcase
-
-    woo_id = if line_item[:edition_id].to_i.positive?
-      line_item[:edition_id]
-    end
-
-    edition
-      .transform_values { |v| smart_titleize(sanitize(v)) }
-      .merge(woo_id:)
+    Woo::Edition.deserialize_from_order_response(line_item)
   end
 
   def get_customer_id(parsed_customer)
@@ -151,14 +135,14 @@ class SyncWooOrdersJob < ApplicationJob
       )
     end
     customer.assign_attributes(parsed_customer)
-    customer.save
+    customer.save!
     customer.id
   end
 
   def get_sale(parsed_sale)
     sale = Sale.find_or_initialize_by(woo_id: parsed_sale[:woo_id])
     sale.assign_attributes(parsed_sale)
-    sale.save
+    sale.save!
 
     sale
   end

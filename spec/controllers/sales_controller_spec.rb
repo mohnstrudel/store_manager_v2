@@ -271,13 +271,13 @@ RSpec.describe SalesController, type: :controller do
     context "with sale_id parameter" do
       let(:sale) { create(:sale, woo_id: "123") }
 
-      it "triggers SyncWooOrdersJob for specific sale" do
-        allow(SyncWooOrdersJob).to receive(:perform_later).with(id: sale.woo_id)
+      it "triggers SyncWooOrdersJob for sale with woo_id" do
+        allow(SyncWooOrdersJob).to receive_message_chain(:set, :perform_later).with(id: sale.woo_id)
         allow(Shopify::PullSaleJob).to receive(:perform_later)
 
         post :pull, params: {id: sale.to_param}
 
-        expect(SyncWooOrdersJob).to have_received(:perform_later).with(id: sale.woo_id)
+        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
       end
 
       it "triggers Shopify::PullSaleJob for sale with shopify_id" do
@@ -305,25 +305,25 @@ RSpec.describe SalesController, type: :controller do
       it "triggers bulk sync jobs" do
         allow(Config).to receive(:update_shopify_sales_sync_time)
         allow(Shopify::PullSalesJob).to receive(:perform_later).with(limit: nil)
-        allow(SyncWooOrdersJob).to receive(:perform_later).with(limit: nil)
+        allow(SyncWooOrdersJob).to receive_message_chain(:set, :perform_later).with(limit: nil)
 
         post :pull
 
         expect(Config).to have_received(:update_shopify_sales_sync_time)
         expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: nil)
-        expect(SyncWooOrdersJob).to have_received(:perform_later).with(limit: nil)
+        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
       end
 
       it "passes limit parameter to jobs" do
         limit = 100
         allow(Config).to receive(:update_shopify_sales_sync_time)
         allow(Shopify::PullSalesJob).to receive(:perform_later).with(limit: limit.to_s)
-        allow(SyncWooOrdersJob).to receive(:perform_later).with(limit: limit.to_s)
+        allow(SyncWooOrdersJob).to receive_message_chain(:set, :perform_later).with(limit: limit.to_s)
 
         post :pull, params: {limit: limit}
 
         expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: limit.to_s)
-        expect(SyncWooOrdersJob).to have_received(:perform_later).with(limit: limit.to_s)
+        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
       end
     end
 

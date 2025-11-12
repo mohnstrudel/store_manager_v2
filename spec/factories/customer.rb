@@ -4,6 +4,6 @@ FactoryBot.define do
     first_name { "Michele" }
     last_name { "Pomarico" }
     phone { "+491729364665" }
-    woo_id { "589" }
+    woo_id { SecureRandom.alphanumeric(10) }
   end
 end
