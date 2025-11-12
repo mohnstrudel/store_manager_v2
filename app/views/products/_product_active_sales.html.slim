@@ -20,7 +20,10 @@
             data-action="click->table#goTo"
             data-table-url-param=sale_path(ps.sale)
           )
-            td = ps.sale.shop_id
+            - if ps.sale.shopify_id.present?
+              td.text-lime-800.dark:text-lime-600 = ps.sale.shopify_id_short
+            - if ps.sale.woo_id.present?
+              td.text-violet-800.dark:text-violet-600 = ps.sale.woo_id
             td
               strong = ps.sale.customer.full_name
               br
