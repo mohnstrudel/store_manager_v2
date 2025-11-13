@@ -179,5 +179,17 @@ RSpec.describe Shopify::ProductParser do
     it "raises error when title is blank" do
       expect { described_class.new(title: "").parse_product_title }.to raise_error(ArgumentError, "Product title cannot be blank")
     end
+
+    it "handles titles with 'Bunny Girl' character type" do # rubocop:todo RSpec/MultipleExpectations
+      parser = described_class.new(title: "My Dress-Up Darling - Bunny Girl Kitagawa Marin | 1:6 Resin Statue | by BGA Studio")
+
+      title, franchise, size, shape, brand = parser.parse_product_title
+
+      expect(title).to eq("Bunny Girl Kitagawa Marin")
+      expect(franchise).to eq("My Dress-Up Darling")
+      expect(size).to eq("1:6")
+      expect(shape).to eq("Statue")
+      expect(brand).to eq("BGA Studio")
+    end
   end
 end
