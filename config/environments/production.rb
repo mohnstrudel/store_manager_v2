@@ -42,6 +42,7 @@ Rails.application.configure do
 
   # Store uploaded files on the R2
   config.active_storage.service = :cloudflare
+  config.active_storage.service_urls_expire_in = 90.minutes
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
