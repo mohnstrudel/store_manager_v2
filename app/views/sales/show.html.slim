@@ -4,7 +4,10 @@ header.nav_header
   .flex.gap-4
     = back_btn
     hgroup
-      h1 = "Sale #{@sale.shopify_name.presence || ""}"
+      - if @sale.shopify_id.present?
+        h1.text-lime-800.dark:text-lime-600 Sale #{@sale.shopify_name.presence}
+      - if @sale.woo_id.present?
+        h1.text-violet-800.dark:text-violet-600  Sale #{@sale.woo_id.presence}
       h2 = @sale.title
   menu.nav_menu
     - if @sale.shopify_id

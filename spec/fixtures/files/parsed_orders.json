@@ -29,11 +29,16 @@
         "product_woo_id": 11,
         "qty": 1,
         "price": 235,
-        "order_woo_id": 7449,
+        "sale_item_woo_id": 7449,
         "edition": {
-          "woo_id": 1111,
-          "type": "Version",
-          "value": "Deluxe Version"
+          "options": [
+            {
+              "name": "version",
+              "value": "Deluxe Version"
+            }
+          ],
+          "product_woo_id": 11,
+          "woo_id": 1111
         }
       }
     ]
@@ -68,7 +73,7 @@
         "product_woo_id": 22,
         "qty": 1,
         "price": 235,
-        "order_woo_id": 7449
+        "sale_item_woo_id": 7449
       }
     ]
   }

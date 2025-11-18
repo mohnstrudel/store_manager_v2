@@ -26,9 +26,18 @@
     p = format_date product.created_at
     h5 Updated
     p = format_date product.updated_at
+    h5 Woo ID
     - if product.woo_id.present?
-      h5 Woo ID
-      p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer", :class => "link"
+      p = link_to product.woo_id, product.store_link, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
+    - else
+      p -
+    h5 Shopify ID
     - if product.shopify_id.present?
-      h5 Shopify ID
-      p = link_to product.shopify_id_short, product.build_shopify_url, :target => "_blank", "rel" => "noopener noreferrer", :class => "link"
+      p
+        = link_to product.shopify_id_short, product.build_shopify_url, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
+        span.group.relative
+          span.text-2xl/2.text-yellow-600.ml-2 *
+          span.break-all.absolute.z-10.top-0.right-0.opacity-0.pointer-events-none.transition-opacity.duration-150.flex.group-hover:opacity-100.group-hover:pointer-events-auto.rounded-lg.bg-yellow-100.dark:bg-yellow-800.border.border-yellow-800/10.pt-4.pr-5.pb-5.pl-3.w-64.text-yellow-800.dark:text-yellow-100.text-sm.text-pretty
+            = product.shopify_id
+    - else
+      p -
