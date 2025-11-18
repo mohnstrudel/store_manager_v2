@@ -165,7 +165,6 @@ class Shopify::ApiClient
           userErrors {
             field
             message
-            code
           }
           product {
             id
@@ -207,6 +206,34 @@ class Shopify::ApiClient
     handle_shopify_mutation_errors(query, response, "productOptionsCreate")
 
     response.body.dig("data", "productOptionsCreate", "product")
+  end
+
+  def add_images(shopify_product_id, blob_url)
+    query = <<~GQL
+      mutation {
+        productUpdate(
+          product: {
+            id: "#{shopify_product_id}"
+          },
+          media: [{
+            originalSource: "#{blob_url}",
+            mediaContentType: "IMAGE"
+          }]
+        ) {
+          product {
+            id
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    GQL
+
+    response = client.query(query:)
+
+    handle_shopify_mutation_errors(query, response, "adding images using productUpdate")
   end
 
   def gql_query(name)
