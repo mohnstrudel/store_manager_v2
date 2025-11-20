@@ -1,10 +1,10 @@
 = form_with model: product do |form|
   fieldset.-mt-6
     - if form.object.images.attached?
-      .block.w-full.my-4
+      .block.w-full
         label Current images
         p.text-gray-600.dark:text-gray-500 Select any image you'd like to remove
-        .flex.flex-wrap.gap-2.mt-6
+        .flex.flex-wrap.gap-2
           - form.object.images.each do |image|
             .form-image-preview.text-center data-controller="form-image-removable"
               = form.hidden_field :images, multiple: true, value: image.signed_id, data: {form_image_removable_target: "hiddenInput"}
@@ -12,9 +12,14 @@
               button.btn-red.btn-rounded.text-xs.my-2 data-form-image-removable-target="button" data-action="click->form-image-removable#remove" title="Remove"
                 = heroicon "minus-circle", variant: "micro"
                 | Remove
-    .block.w-full
+    .block.w-full data-controller="form-image-preview"
       = form.label :images, "New Images"
-      = form.file_field :images, multiple: true, direct_upload: true
+      = form.file_field :images, multiple: true, direct_upload: true, data: { action: "change->form-image-preview#generate", form_image_preview_target: "input" }
+      .form-image-previews.flex.items-start.flex-wrap.gap-2 data-form-image-preview-target="container"
+        button.hidden.btn-red.btn-rounded.text-xs.mt-2 data-form-image-preview-target="button" title="Unchoose"
+          = heroicon "arrow-uturn-left", variant: "micro"
+          | Unchoose
+
 
   fieldset.flex.justify-between.gap-4
     .block.w-full
@@ -40,13 +45,13 @@
     p.text-gray-600.dark:text-gray-500 Select any combination of the attributes below to generate editions automatically
 
     .flex.justify-between.gap-4.px-4
-      .block.w-full
+      .block.w-full.-mt-3
         = form.label :size
         = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "sizes" }})
-      .block.w-full
+      .block.w-full.-mt-3
         = form.label :version
         = form.collection_select(:version_ids, Version.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "versions" }})
-      .block.w-full
+      .block.w-full.-mt-3
         = form.label :color
         = form.collection_select(:color_ids, Color.all, :id, :value, {class: "select"}, {multiple: true, data: {show_search: false, product_editions_target: "colors"}})
     ul.px-4.mt-4.mb-2.flex.flex-wrap.gap-3.hidden data-product-editions-target="list"
