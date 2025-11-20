@@ -8,6 +8,7 @@ class ShapesController < ApplicationController
 
   # GET /shapes/1 or /shapes/1.json
   def show
+    @shape = Shape.includes(:products).find(params[:id])
   end
 
   # GET /shapes/new

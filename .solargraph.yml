@@ -1,8 +1,12 @@
 ---
 include:
-  - "**/*.rb"
+  - app/**/*.rb
+  - db/migrate/**/*.rb
+  - db/seeds/**/*.rb
+  - config/**/*.rb
+  - lib/**/*.rb
+  - spec/**/*.rb
 exclude:
-  - spec/**/*
   - test/**/*
   - vendor/**/*
   - ".bundle/**/*"

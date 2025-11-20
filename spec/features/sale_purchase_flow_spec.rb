@@ -6,10 +6,12 @@ feature "Link sales with purchases flow" do
 
   let!(:product) { create(:product, title: "Test Product") }
   let!(:supplier) { create(:supplier) }
-  let!(:customer) { create(:customer) }
+  let!(:customer) { create(:customer) } # rubocop:todo RSpec/LetSetup
   let!(:warehouse) { create(:warehouse, is_default: true) }
 
-  scenario "creates a sale, links it with a purchase and verifies order items", js: true do
+  # rubocop:todo RSpec/MultipleExpectations
+  scenario "creates a sale, links it with a purchase and verifies order items", :js do
+    # rubocop:enable RSpec/MultipleExpectations
     # Start with creating a purchase
     # because we don't want it to be automatically linked to the sale
     visit purchases_path

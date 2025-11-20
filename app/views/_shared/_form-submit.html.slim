@@ -1,3 +1,3 @@
 .flex.gap-4.items-center.justify-start.mt-14
   = form.submit
-  = link_to "Cancel", "#{url_for controller: "#{model.model_name.plural}", action: "index"}", class: "w-fit h-fit"
+  = link_to "Cancel", url_for(controller: model.model_name.plural.to_s, action: "index").to_s, class: "w-fit h-fit"

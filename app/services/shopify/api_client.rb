@@ -1,3 +1,5 @@
+class ShopifyApiError < StandardError; end
+
 class Shopify::ApiClient
   PRODUCT_FIELDS = <<~GQL
     id
@@ -15,6 +17,7 @@ class Shopify::ApiClient
         node {
           id
           title
+          price
           selectedOptions {
             value
             name
@@ -131,6 +134,108 @@ class Shopify::ApiClient
     }
   end
 
+  def create_product(serialized_product)
+    query = <<~GQL
+      mutation {
+        productCreate(product: #{serialized_product}) {
+          product {
+            id
+            title
+            handle
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    GQL
+
+    response = @client.query(query:)
+
+    handle_shopify_mutation_errors(query, response, "productCreate")
+
+    response.body.dig("data", "productCreate", "product")
+  end
+
+  def create_product_options(shopify_product_id, serialized_options)
+    query = <<~GQL
+      mutation createOptions($productId: ID!, $options: [OptionCreateInput!]!, $variantStrategy: ProductOptionCreateVariantStrategy) {
+        productOptionsCreate(productId: $productId, options: $options, variantStrategy: $variantStrategy) {
+          userErrors {
+            field
+            message
+          }
+          product {
+            id
+            variants(first: 10) {
+              nodes {
+                id
+                title
+                selectedOptions {
+                  name
+                  value
+                }
+              }
+            }
+            options {
+              id
+              name
+              values
+              position
+              optionValues {
+                id
+                name
+                hasVariants
+              }
+            }
+          }
+        }
+      }
+    GQL
+
+    response = @client.query(
+      query:,
+      variables: {
+        productId: shopify_product_id,
+        options: serialized_options,
+        variantStrategy: "CREATE"
+      }
+    )
+
+    handle_shopify_mutation_errors(query, response, "productOptionsCreate")
+
+    response.body.dig("data", "productOptionsCreate", "product")
+  end
+
+  def add_images(shopify_product_id, blob_url)
+    query = <<~GQL
+      mutation {
+        productUpdate(
+          product: {
+            id: "#{shopify_product_id}"
+          },
+          media: [{
+            originalSource: "#{blob_url}",
+            mediaContentType: "IMAGE"
+          }]
+        ) {
+          product {
+            id
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    GQL
+
+    response = client.query(query:)
+
+    handle_shopify_mutation_errors(query, response, "adding images using productUpdate")
+  end
+
   def gql_query(name)
     case name
     when "product"
@@ -212,5 +317,33 @@ class Shopify::ApiClient
         }
       }
     GQL
+  end
+
+  def handle_shopify_mutation_errors(query, response, operation_name)
+    api_errors = response.body.dig("errors")
+    user_errors = response.body.dig("data", operation_name, "userErrors")
+
+    if api_errors || user_errors.any?
+      error_messages = if api_errors
+        api_errors.pluck("message").join(", ")
+      else
+        user_errors.pluck("message").join(", ")
+      end
+
+      Sentry.capture_message(
+        "Shopify #{operation_name} failed: #{error_messages}",
+        level: :error,
+        tags: {
+          api: "shopify",
+          operation: operation_name
+        },
+        extra: {
+          query:,
+          shopify_errors: api_errors
+        }
+      )
+
+      raise ShopifyApiError, "Failed to call the #{operation_name} API mutation: #{error_messages}"
+    end
   end
 end

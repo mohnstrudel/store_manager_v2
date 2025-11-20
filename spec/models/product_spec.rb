@@ -35,14 +35,14 @@ RSpec.describe Product do
 
   describe "#build_editions" do
     let(:product) { create(:product) }
-    let(:size1) { create(:size, value: "S") }
-    let(:size2) { create(:size, value: "M") }
-    let(:version1) { create(:version, value: "Regular") }
-    let(:version2) { create(:version, value: "Limited") }
-    let(:version3) { create(:version, value: "Pro") }
-    let(:color1) { create(:color, value: "Red") }
-    let(:color2) { create(:color, value: "Blue") }
-    let(:color3) { create(:color, value: "Green") }
+    let(:size1) { create(:size, value: "S") } # rubocop:todo RSpec/IndexedLet
+    let(:size2) { create(:size, value: "M") } # rubocop:todo RSpec/IndexedLet
+    let(:version1) { create(:version, value: "Regular") } # rubocop:todo RSpec/IndexedLet
+    let(:version2) { create(:version, value: "Limited") } # rubocop:todo RSpec/IndexedLet
+    let(:version3) { create(:version, value: "Pro") } # rubocop:todo RSpec/IndexedLet
+    let(:color1) { create(:color, value: "Red") } # rubocop:todo RSpec/IndexedLet
+    let(:color2) { create(:color, value: "Blue") } # rubocop:todo RSpec/IndexedLet
+    let(:color3) { create(:color, value: "Green") } # rubocop:todo RSpec/IndexedLet
 
     context "when product has no attributes" do
       it "builds no editions" do

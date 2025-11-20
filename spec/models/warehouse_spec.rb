@@ -32,32 +32,32 @@ RSpec.describe Warehouse, type: :model do
   end
 
   describe "attributes" do
-    it "has English and German descriptions" do
+    it "has English and German descriptions" do # rubocop:todo RSpec/MultipleExpectations
       warehouse = build(:warehouse)
       expect(warehouse.desc_en).to eq("English Description")
       expect(warehouse.desc_de).to eq("German Description")
     end
 
-    it "has English and German external names" do
+    it "has English and German external names" do # rubocop:todo RSpec/MultipleExpectations
       warehouse = build(:warehouse)
       expect(warehouse.external_name_en).to match(/External Name \d+/)
       expect(warehouse.external_name_de).to match(/Externer Name \d+/)
     end
 
     describe "external name display" do
-      it "has both German and English external names" do
+      it "has both German and English external names" do # rubocop:todo RSpec/MultipleExpectations
         warehouse = build(:warehouse, external_name_de: "Deutscher Name", external_name_en: "English Name")
         expect(warehouse.external_name_de).to eq("Deutscher Name")
         expect(warehouse.external_name_en).to eq("English Name")
       end
 
-      it "can have only German external name" do
+      it "can have only German external name" do # rubocop:todo RSpec/MultipleExpectations
         warehouse = build(:warehouse, external_name_de: "Deutscher Name", external_name_en: nil)
         expect(warehouse.external_name_de).to eq("Deutscher Name")
         expect(warehouse.external_name_en).to be_nil
       end
 
-      it "can have only English external name" do
+      it "can have only English external name" do # rubocop:todo RSpec/MultipleExpectations
         warehouse = build(:warehouse, external_name_de: nil, external_name_en: "English Name")
         expect(warehouse.external_name_de).to be_nil
         expect(warehouse.external_name_en).to eq("English Name")
