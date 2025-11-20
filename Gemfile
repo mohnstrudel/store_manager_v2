@@ -81,6 +81,8 @@ gem "tailwindcss-rails"
 
 gem "pundit"
 
+gem "rails_heroicon"
+
 group :production, :staging do
   # Prevents webserver from spending time working on a request
   # that has been in-flight for longer than 30 seconds
