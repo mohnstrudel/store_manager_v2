@@ -105,7 +105,7 @@
   }
 
   input[type="file"] {
-    @apply border-0 -ml-3 file:cursor-pointer bg-transparent file:bg-gray-100 file:text-black file:py-2 file:mr-4 file:font-medium file:px-3 file:rounded-full file:hover:bg-gray-200 dark:file:bg-gray-700 dark:file:text-gray-100 dark:file:hover:bg-gray-600;
+    @apply transition-all border-2 border-dashed py-5 file:cursor-pointer bg-transparent hover:bg-blue-400/10 dark:hover:bg-blue-800/10 file:bg-blue-600 dark:file:bg-blue-900 file:hover:bg-blue-700 dark:file:hover:bg-blue-800 dark:file:text-gray-100 file:text-white file:py-2 file:px-4 file:mr-4 file:font-medium file:px-3 file:rounded-full;
   }
 
   input[type="submit"],
