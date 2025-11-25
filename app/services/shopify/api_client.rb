@@ -217,7 +217,7 @@ class Shopify::ApiClient
           },
           media: [{
             originalSource: "#{blob_url}",
-            mediaContentType: "IMAGE"
+            mediaContentType: IMAGE
           }]
         ) {
           product {
@@ -231,7 +231,7 @@ class Shopify::ApiClient
       }
     GQL
 
-    response = client.query(query:)
+    response = @client.query(query:)
 
     handle_shopify_mutation_errors(query, response, "adding images using productUpdate")
   end
@@ -323,7 +323,7 @@ class Shopify::ApiClient
     api_errors = response.body.dig("errors")
     user_errors = response.body.dig("data", operation_name, "userErrors")
 
-    if api_errors || user_errors.any?
+    if api_errors || user_errors&.any?
       error_messages = if api_errors
         api_errors.pluck("message").join(", ")
       else

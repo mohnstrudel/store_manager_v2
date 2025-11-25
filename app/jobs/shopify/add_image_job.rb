@@ -6,7 +6,7 @@ class Shopify::AddImageJob < ApplicationJob
     wait_until_file_is_available(blob)
 
     api_client = Shopify::ApiClient.new
-    api_client.productUpdate(shopify_product_id, blob.url)
+    api_client.add_images(shopify_product_id, blob.url)
   end
 
   def wait_until_file_is_available(blob, timeout: 300)

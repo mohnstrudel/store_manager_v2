@@ -18,6 +18,12 @@ class Shopify::CreateProductJob < ApplicationJob
       )
       product_shopify_info.save!
 
+      if product.images.any?
+        product.images.each do |image|
+          Shopify::AddImageJob.perform_later(shopify_product_id, image.blob.id)
+        end
+      end
+
       if product.sizes.any? || product.versions.any? || product.colors.any?
         Shopify::CreateOptionsAndVariantsJob.perform_later(product.id, shopify_product_id)
       end
