@@ -72,18 +72,18 @@
 
   /* Forms */
   label {
-    @apply block font-medium text-gray-900 dark:text-gray-100 mt-6 mb-3;
+    @apply block font-medium text-gray-900 dark:text-gray-100 mt-6 mb-2;
   }
 
   label + p {
-    @apply -mt-3 mb-3;
+    @apply -mt-2 mb-4;
   }
 
   input,
   select,
   .ss-main,
   textarea {
-    @apply appearance-none w-full pl-3 pr-10 py-2 cursor-pointer border-1 border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
+    @apply appearance-none w-full pl-3 pr-10 py-2 cursor-pointer border border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
   }
 
   textarea {
@@ -109,7 +109,7 @@
   }
 
   input[type="file"] {
-    @apply transition-all border-2 border-dashed py-5 file:cursor-pointer bg-transparent hover:bg-blue-400/10 dark:hover:bg-blue-800/10 file:bg-blue-600 dark:file:bg-blue-900 file:hover:bg-blue-700 dark:file:hover:bg-blue-800 dark:file:text-gray-100 file:text-white file:py-2 file:px-4 file:mr-4 file:font-medium file:px-3 file:rounded-full;
+    @apply transition-all py-4 file:cursor-pointer file:bg-blue-600 dark:file:bg-blue-900 file:hover:bg-blue-700 dark:file:hover:bg-blue-800 dark:file:text-gray-100 file:text-white file:py-2 file:mr-4 file:font-medium file:px-3 file:rounded-full;
   }
 
   input[type="submit"],
@@ -143,7 +143,7 @@
 
   /* Tables */
   table {
-    @apply w-full border-collapse table-auto text-left border-b-1 mt-3;
+    @apply w-full border-collapse table-auto text-left border-b mt-3;
   }
 
   thead {
@@ -387,7 +387,7 @@
   }
 
   dialog {
-    @apply flex fixed inset-0 justify-center items-center z-[999] backdrop-blur-sm border-0 bg-gray-300/50 dark:bg-gray-800/50 p-2 w-full min-w-full h-full min-h-full;
+    @apply flex fixed inset-0 justify-center items-center z-999 backdrop-blur-sm border-0 bg-gray-300/50 dark:bg-gray-800/50 p-2 w-full min-w-full h-full min-h-full;
   }
 
   dialog:not([open]),
