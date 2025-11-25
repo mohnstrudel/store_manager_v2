@@ -10,7 +10,7 @@ describe WarehousesController do
     let(:unused_warehouse) { create(:warehouse) }
     let!(:notification) { create(:notification, name: "Warehouse transition") }
 
-    it "creates warehouse transitions for selected destinations" do
+    it "creates warehouse transitions for selected destinations" do # rubocop:todo RSpec/MultipleExpectations
       patch :update, params: {
         id: warehouse.id,
         warehouse: {

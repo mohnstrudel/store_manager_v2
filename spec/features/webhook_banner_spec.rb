@@ -11,7 +11,7 @@ describe "Webhook banner at Dashboard", js: "true" do
     expect(page).to have_no_selector("#webhook-error")
   end
 
-  it "shows the webhook error banner when the webhook is disabled" do
+  it "shows the webhook error banner when the webhook is disabled" do # rubocop:todo RSpec/MultipleExpectations
     allow(Config).to receive(:sales_hook_disabled?).and_return(true)
     visit root_path
 

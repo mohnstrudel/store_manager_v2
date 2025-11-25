@@ -9,6 +9,7 @@ module Searchable
 
   included do
     include PgSearch::Model
+
     scope :search_by, ->(query) { query.present? ? search(query) : all }
   end
 end

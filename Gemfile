@@ -81,6 +81,8 @@ gem "tailwindcss-rails"
 
 gem "pundit"
 
+gem "rails_heroicon"
+
 group :production, :staging do
   # Prevents webserver from spending time working on a request
   # that has been in-flight for longer than 30 seconds
@@ -98,6 +100,8 @@ group :development, :test do
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
   gem "rspec-rails"
+  gem "rubocop-rspec_rails", require: false
+  gem "rubocop-factory_bot", require: false
   gem "factory_bot_rails"
   gem "dotenv"
 end

@@ -1,12 +1,14 @@
 require:
   - standard
-  - rubocop-slim
   - database_validations/rubocop/cops
 
 plugins:
   - rubocop-performance
   - rubocop-rails
   - rubocop-rspec
+  - rubocop-rspec_rails
+  - rubocop-slim
+  - rubocop-factory_bot
 
 inherit_gem:
   standard: config/base.yml

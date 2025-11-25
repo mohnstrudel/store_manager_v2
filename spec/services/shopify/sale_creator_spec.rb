@@ -55,13 +55,13 @@ RSpec.describe Shopify::SaleCreator do
         creator.update_or_create!
       end
 
-      it "updates existing records instead of creating new ones" do
+      it "updates existing records instead of creating new ones" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.not_to change(Sale, :count)
         expect { creator.update_or_create! }.not_to change(Customer, :count)
         expect { creator.update_or_create! }.not_to change(SaleItem, :count)
       end
 
-      it "updates existing sale with new data" do
+      it "updates existing sale with new data" do # rubocop:todo RSpec/MultipleExpectations
         # Modify the parsed order data
         modified_order = valid_parsed_order.deep_dup
         modified_order[:sale][:status] = "completed"
@@ -84,7 +84,7 @@ RSpec.describe Shopify::SaleCreator do
       let(:parsed_order) { valid_parsed_order }
       let!(:existing_edition) { create(:edition, shopify_id: parsed_order[:sale_items].first[:shopify_edition_id]) }
 
-      it "uses existing edition" do
+      it "uses existing edition" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.not_to change(Edition, :count)
         expect(SaleItem.last.edition).to eq(existing_edition)
       end
@@ -104,7 +104,7 @@ RSpec.describe Shopify::SaleCreator do
         expect { creator_corrupted.update_or_create! }.not_to change(Edition, :count)
       end
 
-      it "still creates the product sale without a edition" do
+      it "still creates the product sale without a edition" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator_corrupted.update_or_create! }.to change(SaleItem, :count).by(1)
         expect(SaleItem.last.edition).to be_nil
       end
@@ -124,7 +124,7 @@ RSpec.describe Shopify::SaleCreator do
       end
       let(:creator_with_new_edition) { described_class.new(parsed_item: parsed_order_with_new_edition) }
 
-      it "creates new edition with correct title" do
+      it "creates new edition with correct title" do # rubocop:todo RSpec/MultipleExpectations
         product = create(:product)
         product_creator = instance_double(Shopify::ProductFromTitleCreator)
         allow(Shopify::ProductFromTitleCreator).to receive(:new).and_return(product_creator)
@@ -150,7 +150,7 @@ RSpec.describe Shopify::SaleCreator do
       end
       let(:creator_with_complex_edition) { described_class.new(parsed_item: parsed_order_with_complex_edition) }
 
-      it "creates new edition with multiple attributes" do
+      it "creates new edition with multiple attributes" do # rubocop:todo RSpec/MultipleExpectations
         product = create(:product)
         product_creator = instance_double(Shopify::ProductFromTitleCreator)
         allow(Shopify::ProductFromTitleCreator).to receive(:new).and_return(product_creator)
@@ -181,7 +181,7 @@ RSpec.describe Shopify::SaleCreator do
       end
       let(:creator_with_invalid_edition) { described_class.new(parsed_item: parsed_order_with_invalid_edition) }
 
-      it "rolls back all changes when edition creation fails" do
+      it "rolls back all changes when edition creation fails" do # rubocop:todo RSpec/MultipleExpectations
         product = create(:product)
         product_creator = instance_double(Shopify::ProductCreator)
         allow(Shopify::ProductCreator).to receive(:new).and_return(product_creator)
@@ -199,10 +199,12 @@ RSpec.describe Shopify::SaleCreator do
 
     context "when there are errors" do
       before do
+        # rubocop:todo RSpec/AnyInstance
         allow_any_instance_of(Sale).to receive(:save!).and_raise(ActiveRecord::RecordInvalid.new(Sale.new))
+        # rubocop:enable RSpec/AnyInstance
       end
 
-      it "rolls back all changes" do
+      it "rolls back all changes" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.to raise_error(Shopify::SaleCreator::OrderProcessingError)
         expect(Sale.count).to eq(0)
         expect(Customer.count).to eq(0)
@@ -220,7 +222,7 @@ RSpec.describe Shopify::SaleCreator do
           phone: "1234567890")
       end
 
-      it "updates existing customer with new data" do
+      it "updates existing customer with new data" do # rubocop:todo RSpec/MultipleExpectations
         expect {
           creator.update_or_create!
         }.not_to change(Customer, :count)
@@ -234,7 +236,7 @@ RSpec.describe Shopify::SaleCreator do
     end
 
     context "when product already exists" do
-      let!(:existing_product) do
+      let!(:existing_product) do # rubocop:todo RSpec/LetSetup
         create(:product,
           shopify_id: valid_parsed_order[:sale_items].first[:shopify_product_id],
           title: "Old Product Title")
@@ -255,7 +257,7 @@ RSpec.describe Shopify::SaleCreator do
           edition: existing_edition)
       end
 
-      it "updates existing sale_item with new data" do
+      it "updates existing sale_item with new data" do # rubocop:todo RSpec/MultipleExpectations
         # Modify the parsed order data
         modified_order = valid_parsed_order.deep_dup
         modified_order[:sale_items].first[:price] = "600.00"
@@ -278,7 +280,7 @@ RSpec.describe Shopify::SaleCreator do
       let(:product) { create(:product) }
       let(:purchase) { create(:purchase, product: product, amount: 3) }
       let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase) }
-      let!(:sale_item) { create(:sale_item, sale: sale, product: product, qty: 2) }
+      let!(:sale_item) { create(:sale_item, sale: sale, product: product, qty: 2) } # rubocop:todo RSpec/LetSetup
 
       it "links purchased products to the sale" do
         allow(Sale).to receive(:find_by).and_return(sale)
@@ -289,13 +291,17 @@ RSpec.describe Shopify::SaleCreator do
         expect(sale).to have_received(:link_with_purchase_items)
       end
 
-      it "notifies customers about linked products" do
+      it "notifies customers about linked products" do # rubocop:todo RSpec/MultipleExpectations
         allow(Sale).to receive(:find_by).and_return(sale)
         allow(sale).to receive(:link_with_purchase_items).and_return(purchase_items.map(&:id))
 
         notifier = instance_double(PurchasedNotifier)
+        # rubocop:todo RSpec/StubbedMock
+        # rubocop:todo RSpec/MessageSpies
         expect(PurchasedNotifier).to receive(:new).with(purchase_item_ids: purchase_items.map(&:id)).and_return(notifier)
-        expect(notifier).to receive(:handle_product_purchase)
+        # rubocop:enable RSpec/MessageSpies
+        # rubocop:enable RSpec/StubbedMock
+        expect(notifier).to receive(:handle_product_purchase) # rubocop:todo RSpec/MessageSpies
 
         creator.update_or_create!
       end

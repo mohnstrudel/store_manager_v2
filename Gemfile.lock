@@ -93,8 +93,8 @@ GEM
       activerecord (>= 5.2, < 8.2)
       activesupport (>= 5.2, < 8.2)
     aws-eventstream (1.4.0)
-    aws-partitions (1.1180.0)
-    aws-sdk-core (3.236.0)
+    aws-partitions (1.1186.0)
+    aws-sdk-core (3.239.0)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
@@ -102,10 +102,10 @@ GEM
       bigdecimal
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-kms (1.116.0)
+    aws-sdk-kms (1.117.0)
       aws-sdk-core (~> 3, >= 3.234.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-s3 (1.202.0)
+    aws-sdk-s3 (1.205.0)
       aws-sdk-core (~> 3, >= 3.234.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
@@ -121,7 +121,7 @@ GEM
     benchmark (0.5.0)
     bigdecimal (3.3.1)
     bindex (0.8.1)
-    bootsnap (1.18.6)
+    bootsnap (1.19.0)
       msgpack (~> 1.2)
     builder (3.3.0)
     capybara (3.40.0)
@@ -188,7 +188,7 @@ GEM
       dry-inflector (~> 1.0)
       dry-logic (~> 1.4)
       zeitwerk (~> 2.6)
-    erb (5.1.3)
+    erb (6.0.0)
     erubi (1.13.1)
     factory_bot (6.5.6)
       activesupport (>= 6.1.0)
@@ -225,10 +225,10 @@ GEM
       activerecord (>= 4.0.0)
     globalid (1.3.0)
       activesupport (>= 6.1)
-    google-protobuf (4.33.0-arm64-darwin)
+    google-protobuf (4.33.1-arm64-darwin)
       bigdecimal
       rake (>= 13)
-    google-protobuf (4.33.0-x86_64-linux-gnu)
+    google-protobuf (4.33.1-x86_64-linux-gnu)
       bigdecimal
       rake (>= 13)
     hash_diff (1.1.1)
@@ -256,7 +256,7 @@ GEM
       reline (>= 0.4.2)
     jaro_winkler (1.6.1)
     jmespath (1.6.2)
-    json (2.15.2)
+    json (2.16.0)
     jwt (3.1.2)
       base64
     kaminari (1.2.2)
@@ -296,7 +296,7 @@ GEM
       net-imap
       net-pop
       net-smtp
-    mailtrap (2.4.2)
+    mailtrap (2.5.0)
       base64
     marcel (1.1.0)
     matrix (0.4.3)
@@ -308,7 +308,7 @@ GEM
     mini_magick (5.3.1)
       logger
     mini_mime (1.1.5)
-    minitest (5.26.0)
+    minitest (5.26.2)
     msgpack (1.8.0)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
@@ -411,6 +411,9 @@ GEM
       logger
       puma
       rack
+    rails_heroicon (2.3.0)
+      actionview
+      railties
     rails_live_reload (0.5.0)
       listen
       nio4r
@@ -449,7 +452,7 @@ GEM
       rainbow (>= 2.0, < 4.0)
       rexml (~> 3.1)
     regexp_parser (2.11.3)
-    reline (0.6.2)
+    reline (0.6.3)
       io-console (~> 0.5)
     requestjs-rails (0.0.13)
       railties (>= 7.1.0)
@@ -473,7 +476,7 @@ GEM
       rspec-mocks (~> 3.13)
       rspec-support (~> 3.13)
     rspec-support (3.13.6)
-    rubocop (1.80.2)
+    rubocop (1.81.7)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -481,25 +484,32 @@ GEM
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.46.0, < 2.0)
+      rubocop-ast (>= 1.47.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
-    rubocop-ast (1.47.1)
+    rubocop-ast (1.48.0)
       parser (>= 3.3.7.2)
       prism (~> 1.4)
+    rubocop-factory_bot (2.28.0)
+      lint_roller (~> 1.1)
+      rubocop (~> 1.72, >= 1.72.1)
     rubocop-performance (1.25.0)
       lint_roller (~> 1.1)
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.38.0, < 2.0)
-    rubocop-rails (2.33.4)
+    rubocop-rails (2.34.0)
       activesupport (>= 4.2.0)
       lint_roller (~> 1.1)
       rack (>= 1.1)
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.44.0, < 2.0)
-    rubocop-rspec (3.7.0)
+    rubocop-rspec (3.8.0)
+      lint_roller (~> 1.1)
+      rubocop (~> 1.81)
+    rubocop-rspec_rails (2.32.0)
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
+      rubocop-rspec (~> 3.5)
     rubocop-slim (0.3.1)
       lint_roller (>= 1.1)
       rubocop (>= 1.72.1)
@@ -526,14 +536,14 @@ GEM
     scout_apm (5.8.0)
       parser
     securerandom (0.4.1)
-    sentry-rails (6.1.0)
+    sentry-rails (6.1.1)
       railties (>= 5.2.0)
-      sentry-ruby (~> 6.1.0)
-    sentry-ruby (6.1.0)
+      sentry-ruby (~> 6.1.1)
+    sentry-ruby (6.1.1)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
-    sentry-sidekiq (6.1.0)
-      sentry-ruby (~> 6.1.0)
+    sentry-sidekiq (6.1.1)
+      sentry-ruby (~> 6.1.1)
       sidekiq (>= 5.0)
     sexp_processor (4.17.4)
     shopify_api (14.11.1)
@@ -609,7 +619,7 @@ GEM
     solargraph-rails (1.2.4)
       activesupport
       solargraph (>= 0.48.0, <= 0.57)
-    sorbet-runtime (0.6.12706)
+    sorbet-runtime (0.6.12783)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
       logger
@@ -618,10 +628,10 @@ GEM
       actionpack (>= 6.1)
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
-    standard (1.51.1)
+    standard (1.52.0)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
-      rubocop (~> 1.80.2)
+      rubocop (~> 1.81.7)
       standard-custom (~> 1.0.0)
       standard-performance (~> 1.8)
     standard-custom (1.0.2)
@@ -632,7 +642,7 @@ GEM
       rubocop-performance (~> 1.25.0)
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
-    stringio (3.1.7)
+    stringio (3.1.8)
     strong_migrations (2.5.1)
       activerecord (>= 7.1)
     tailwindcss-rails (4.4.0)
@@ -721,12 +731,15 @@ DEPENDENCIES
   rails (~> 8.x.x)
   rails-controller-testing
   rails-mcp-server
+  rails_heroicon
   rails_live_reload
   redis
   requestjs-rails
   rspec-rails
+  rubocop-factory_bot
   rubocop-rails
   rubocop-rspec
+  rubocop-rspec_rails
   rubocop-slim
   ruby-progressbar
   rubycritic

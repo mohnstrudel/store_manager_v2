@@ -64,14 +64,14 @@ RSpec.describe Shopify::SaleParser do
     let(:parser) { described_class.new(api_item: api_order) }
 
     before do
-      allow_any_instance_of(Shopify::ProductParser).to receive(:parse).and_return({
+      allow_any_instance_of(Shopify::ProductParser).to receive(:parse).and_return({ # rubocop:todo RSpec/AnyInstance
         shopify_id: "gid://shopify/Product/333",
         title: "Eve",
         franchise: "Stellar Blade"
       })
     end
 
-    it "parses order data correctly" do
+    it "parses order data correctly" do # rubocop:todo RSpec/MultipleExpectations
       result = parser.parse
 
       expect(result[:sale]).to include(
@@ -120,7 +120,7 @@ RSpec.describe Shopify::SaleParser do
       expect { described_class.new(api_item: nil) }.to raise_error(ArgumentError, "api_item must be a Hash")
     end
 
-    it "handles cancelled orders" do
+    it "handles cancelled orders" do # rubocop:todo RSpec/MultipleExpectations
       cancelled_order = api_order.deep_dup
       cancelled_order["cancelledAt"] = "2023-01-03T12:00:00Z"
       cancelled_order["cancelReason"] = "CUSTOMER"
@@ -265,7 +265,7 @@ RSpec.describe Shopify::SaleParser do
       expect(result[:sale_items]).to be_empty
     end
 
-    it "handles missing dates" do
+    it "handles missing dates" do # rubocop:todo RSpec/MultipleExpectations
       order_without_dates = api_order.deep_dup
       order_without_dates["createdAt"] = nil
       order_without_dates["updatedAt"] = nil

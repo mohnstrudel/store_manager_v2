@@ -1,4 +1,6 @@
 class ProductsController < ApplicationController
+  include ActionView::Helpers::OutputSafetyHelper
+
   before_action :set_product, only: %i[show edit update destroy]
 
   # GET /products or /products.json
@@ -46,11 +48,18 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
+    params_to_update = product_params.to_h
+    if params_to_update[:sku].blank?
+      params_to_update[:sku] = params_to_update[:title].parameterize
+    end
+
     respond_to do |format|
-      if @product.update(product_params.merge(slug: nil))
-        @product.update_full_title
-        @product.build_editions
-        @product.save
+      if @product.update(params_to_update.merge(slug: nil))
+        ActiveRecord::Base.transaction do
+          @product.assign_attributes(full_title: Product.generate_full_title(@product))
+          @product.build_editions
+          @product.save
+        end
 
         format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
         format.json { render :show, status: :ok, location: @product }
@@ -87,9 +96,13 @@ class ProductsController < ApplicationController
       "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
     )
 
-    flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
+    flash[:notice] = safe_join([
+      "Success! Visit ",
+      statuses_link,
+      " to track synchronization progress"
+    ])
 
-    redirect_back(fallback_location: products_path)
+    redirect_back_or_to(products_path)
   end
 
   private

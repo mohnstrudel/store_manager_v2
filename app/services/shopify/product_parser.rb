@@ -40,10 +40,13 @@ class Shopify::ProductParser
     shopify_name = smart_titleize(sanitize(@title))
 
     parts = shopify_name.split("|").map(&:strip)
-    franchise_product = parts[0].split("-").map(&:strip)
 
-    franchise = franchise_product[0]
-    title = franchise_product[1] || franchise_product[0]
+    if parts[0].include?(" - ")
+      franchise, title = parts[0].split(" - ")
+    else
+      franchise = parts[0]
+      title = parts[0]
+    end
 
     size = Size.parse_size(parts[1]) if parts[1]
     shape = parts[1]&.match(/Resin\s+(Statue|Bust)/i)&.[](1) || "Statue"

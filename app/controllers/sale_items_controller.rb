@@ -41,12 +41,12 @@ class SaleItemsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def sale_item_params
-    params.require(:sale_item).permit(
-      :price,
-      :qty,
-      :sale_id,
-      :edition_id,
-      :woo_id
+    params.expect(
+      sale_item: [:price,
+        :qty,
+        :sale_id,
+        :edition_id,
+        :woo_id]
     )
   end
 end

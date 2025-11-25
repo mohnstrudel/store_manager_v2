@@ -48,6 +48,8 @@ class Warehouse < ApplicationRecord
   #
   has_many :purchase_items, dependent: :destroy
   has_many :purchases, through: :purchase_items
+  has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
+  has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse
 
   #
   # == Scopes
@@ -58,10 +60,12 @@ class Warehouse < ApplicationRecord
   # == Class Methods
   #
   def self.ensure_only_one_default(id)
+    # rubocop:disable Rails/SkipsModelValidations
     Warehouse
       .where(is_default: true)
       .where.not(id:)
       .update_all(is_default: false)
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   #
@@ -71,11 +75,11 @@ class Warehouse < ApplicationRecord
   def average_payment_progress
     return 0 if purchases.empty?
 
-    progresses = purchases.map(&:progress)
+    progresses = purchases.includes(:payments).map(&:progress)
     (progresses.sum / progresses.size).round
   end
 
   def total_debt
-    purchases.sum(&:debt).round
+    purchases.includes(:payments).sum(&:debt).round
   end
 end

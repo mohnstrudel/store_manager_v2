@@ -16,13 +16,13 @@ RSpec.describe NotificationsMailer do
         )
       }
 
-      it "renders headers" do
+      it "renders headers" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.subject).to include("Test Warehouse EN")
         expect(mail.to).to eq(["john@example.com"])
         expect(mail.from).to eq(["store@handsomecake.com"])
       end
 
-      it "renders body" do
+      it "renders body" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).to match("Hello John Doe")
         expect(mail.body.encoded).to match("Test Warehouse EN")
         expect(mail.body.encoded).to match("Test Lager DE")
@@ -31,12 +31,12 @@ RSpec.describe NotificationsMailer do
         expect(mail.body.encoded).to match("German description for Test Warehouse")
       end
 
-      it "does not contain tracking information" do
+      it "does not contain tracking information" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/tracking/i)
         expect(mail.body.encoded).not_to match(/nachverfolgen/i)
       end
 
-      it "does not contain internal warehouse name" do
+      it "does not contain internal warehouse name" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/warehouse_name/i)
         expect(mail.subject).not_to match(/warehouse_name/i)
       end
@@ -58,13 +58,13 @@ RSpec.describe NotificationsMailer do
         )
       }
 
-      it "renders headers" do
+      it "renders headers" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.subject).to include("Test Warehouse EN")
         expect(mail.to).to eq(["jane@example.com"])
         expect(mail.from).to eq(["store@handsomecake.com"])
       end
 
-      it "renders body with tracking information" do
+      it "renders body with tracking information" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).to match("Hello Jane Doe")
         expect(mail.body.encoded).to match("Test Warehouse EN")
         expect(mail.body.encoded).to match("Test Lager DE")
@@ -77,7 +77,7 @@ RSpec.describe NotificationsMailer do
         expect(mail.body.encoded).to match(/track your order/)
       end
 
-      it "does not contain internal warehouse name" do
+      it "does not contain internal warehouse name" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/warehouse_name/i)
         expect(mail.subject).not_to match(/warehouse_name/i)
       end
@@ -101,14 +101,14 @@ RSpec.describe NotificationsMailer do
         )
       }
 
-      it "renders headers" do
+      it "renders headers" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.subject).to include("Old Warehouse EN")
         expect(mail.subject).to include("New Warehouse EN")
         expect(mail.to).to eq(["john@example.com"])
         expect(mail.from).to eq(["store@handsomecake.com"])
       end
 
-      it "renders body" do
+      it "renders body" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).to match("Hello John Doe")
         expect(mail.body.encoded).to match("Old Warehouse EN")
         expect(mail.body.encoded).to match("Altes Lager DE")
@@ -119,17 +119,17 @@ RSpec.describe NotificationsMailer do
         expect(mail.body.encoded).to match("German description for New Warehouse")
       end
 
-      it "does not contain tracking information" do
+      it "does not contain tracking information" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/tracking/i)
         expect(mail.body.encoded).not_to match(/nachverfolgen/i)
       end
 
-      it "does not contain previous status descriptions" do
+      it "does not contain previous status descriptions" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/previous.*description|old.*description|from.*description/i)
         expect(mail.subject).not_to match(/previous.*description|old.*description|from.*description/i)
       end
 
-      it "does not contain internal warehouse name" do
+      it "does not contain internal warehouse name" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/from_warehouse|to_warehouse|new_status/i)
         expect(mail.subject).not_to match(/from_warehouse|to_warehouse|new_status/i)
       end
@@ -153,14 +153,14 @@ RSpec.describe NotificationsMailer do
         )
       }
 
-      it "renders headers" do
+      it "renders headers" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.subject).to include("Old Warehouse EN")
         expect(mail.subject).to include("New Warehouse EN")
         expect(mail.to).to eq(["jane@example.com"])
         expect(mail.from).to eq(["store@handsomecake.com"])
       end
 
-      it "renders body with tracking information" do
+      it "renders body with tracking information" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).to match("Hello Jane Doe")
         expect(mail.body.encoded).to match("Old Warehouse EN")
         expect(mail.body.encoded).to match("Altes Lager DE")
@@ -175,12 +175,12 @@ RSpec.describe NotificationsMailer do
         expect(mail.body.encoded).to match(/track your order/)
       end
 
-      it "does not contain previous status descriptions" do
+      it "does not contain previous status descriptions" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/previous.*description|old.*description|from.*description/i)
         expect(mail.subject).not_to match(/previous.*description|old.*description|from.*description/i)
       end
 
-      it "does not contain internal warehouse name" do
+      it "does not contain internal warehouse name" do # rubocop:todo RSpec/MultipleExpectations
         expect(mail.body.encoded).not_to match(/from_warehouse|to_warehouse|new_status/i)
         expect(mail.subject).not_to match(/from_warehouse|to_warehouse|new_status/i)
       end

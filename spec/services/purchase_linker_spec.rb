@@ -34,11 +34,11 @@ RSpec.describe PurchaseLinker do
         3.times.map { create(:purchase_item, purchase:) }
       end
 
-      context "with an active status" do
+      context "with an active status" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: active_status) }
         let!(:sale_item) { create(:sale_item, product:, sale:, edition_id: nil, qty: 5) }
 
-        it "links purchased items with sold products" do
+        it "links purchased items with sold products" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to match_array(purchase_items.pluck(:id))
@@ -47,7 +47,7 @@ RSpec.describe PurchaseLinker do
           end
         end
 
-        it "respects the purchase amount limit" do
+        it "respects the purchase amount limit" do # rubocop:todo RSpec/MultipleExpectations
           purchase.update(amount: 2)
           linked_ids = described_class.link(purchase)
 
@@ -56,13 +56,17 @@ RSpec.describe PurchaseLinker do
         end
       end
 
-      context "when there are multiple product sales" do
-        let!(:sale1) { create(:sale, status: active_status) }
-        let!(:sale2) { create(:sale, status: active_status) }
+      context "when there are multiple product sales" do # rubocop:todo RSpec/NestedGroups
+        let!(:sale1) { create(:sale, status: active_status) } # rubocop:todo RSpec/IndexedLet
+        let!(:sale2) { create(:sale, status: active_status) } # rubocop:todo RSpec/IndexedLet
+        # rubocop:todo RSpec/IndexedLet
         let!(:sale_item1) { create(:sale_item, product:, sale: sale1, qty: 1, edition_id: nil) }
+        # rubocop:enable RSpec/IndexedLet
+        # rubocop:todo RSpec/IndexedLet
         let!(:sale_item2) { create(:sale_item, product:, sale: sale2, qty: 4, edition_id: nil) }
+        # rubocop:enable RSpec/IndexedLet
 
-        it "links purchased products to multiple product sales" do
+        it "links purchased products to multiple product sales" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = described_class.link(purchase)
           linked_sale_item_ids = purchase_items.map(&:reload).pluck(:sale_item_id)
 
@@ -72,11 +76,11 @@ RSpec.describe PurchaseLinker do
         end
       end
 
-      context "when there are not enough product sales" do
+      context "when there are not enough product sales" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: active_status) }
         let!(:sale_item) { create(:sale_item, product: product, sale: sale, qty: 1, edition_id: nil) }
 
-        it "links as many purchased products as possible" do
+        it "links as many purchased products as possible" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = described_class.link(purchase)
 
           expect(linked_ids.size).to eq(1)
@@ -86,11 +90,11 @@ RSpec.describe PurchaseLinker do
         end
       end
 
-      context "when product sales are not active" do
+      context "when product sales are not active" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: completed_status) }
-        let!(:sale_item) { create(:sale_item, product: product, sale: sale, qty: 5) }
+        let!(:sale_item) { create(:sale_item, product: product, sale: sale, qty: 5) } # rubocop:todo RSpec/LetSetup
 
-        it "does not link to inactive sales" do
+        it "does not link to inactive sales" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to be_empty
@@ -100,11 +104,13 @@ RSpec.describe PurchaseLinker do
         end
       end
 
-      context "when product sales are not linkable" do
+      context "when product sales are not linkable" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: active_status) }
+        # rubocop:todo RSpec/LetSetup
         let!(:sale_item) { create(:sale_item, product: product, sale: sale, qty: 3, purchase_items_count: 3) }
+        # rubocop:enable RSpec/LetSetup
 
-        it "does not link to fully linked sales" do
+        it "does not link to fully linked sales" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to be_empty
@@ -121,11 +127,13 @@ RSpec.describe PurchaseLinker do
         3.times.map { create(:purchase_item, purchase: purchase) }
       end
 
-      context "when there are available product sales for the edition" do
+      context "when there are available product sales for the edition" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: active_status) }
         let!(:sale_item) { create(:sale_item, product: product, edition: edition, sale: sale, qty: 5) }
 
+        # rubocop:todo RSpec/MultipleExpectations
         it "links purchased products to product sales with matching edition" do
+          # rubocop:enable RSpec/MultipleExpectations
           linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to match_array(purchase_items.map(&:id))
@@ -135,12 +143,14 @@ RSpec.describe PurchaseLinker do
         end
       end
 
-      context "when there are no product sales for the edition" do
+      context "when there are no product sales for the edition" do # rubocop:todo RSpec/NestedGroups
         let!(:other_edition) { create(:edition, product: product) }
         let!(:sale) { create(:sale, status: active_status) }
+        # rubocop:todo RSpec/LetSetup
         let!(:sale_item) { create(:sale_item, product: product, edition: other_edition, sale: sale, qty: 5) }
+        # rubocop:enable RSpec/LetSetup
 
-        it "does not link purchased products" do
+        it "does not link purchased products" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = described_class.link(purchase)
 
           expect(linked_ids).to be_empty
@@ -151,16 +161,16 @@ RSpec.describe PurchaseLinker do
       end
     end
 
-    context "edge cases" do
+    context "edge cases" do # rubocop:todo RSpec/ContextWording
       let(:purchase) { create(:purchase, product: product, amount: 0) }
-      let!(:purchase_items) { [] }
+      let!(:purchase_items) { [] } # rubocop:todo RSpec/LetSetup
 
       it "handles purchase with zero amount" do
         result = described_class.link(purchase)
         expect(result).to be_nil
       end
 
-      it "handles product sale with zero quantity" do
+      it "handles product sale with zero quantity" do # rubocop:todo RSpec/MultipleExpectations
         purchase.update(amount: 3)
         purchase_items = 3.times.map { create(:purchase_item, purchase:) }
         sale = create(:sale, status: active_status)
@@ -174,7 +184,7 @@ RSpec.describe PurchaseLinker do
         end
       end
 
-      it "handles all product sales being fully linked" do
+      it "handles all product sales being fully linked" do # rubocop:todo RSpec/MultipleExpectations
         purchase.update(amount: 3)
         purchase_items = 3.times.map { create(:purchase_item, purchase:) }
         sale = create(:sale, status: active_status)
@@ -188,18 +198,18 @@ RSpec.describe PurchaseLinker do
       end
     end
 
-    context "error handling" do
+    context "error handling" do # rubocop:todo RSpec/ContextWording
       let(:purchase) { create(:purchase, product: product, amount: 3) }
       let!(:purchase_items) do
         3.times.map { create(:purchase_item, purchase:) }
       end
 
-      it "handles invalid product sale during linking" do
+      it "handles invalid product sale during linking" do # rubocop:todo RSpec/MultipleExpectations
         sale = create(:sale, status: active_status)
         create(:sale_item, product:, sale:, qty: 3)
 
         # Make product sale invalid by setting qty to nil
-        allow_any_instance_of(SaleItem).to receive(:valid?).and_return(false)
+        allow_any_instance_of(SaleItem).to receive(:valid?).and_return(false) # rubocop:todo RSpec/AnyInstance
 
         linked_ids = described_class.link(purchase)
 
@@ -209,12 +219,12 @@ RSpec.describe PurchaseLinker do
         end
       end
 
-      it "handles invalid purchase during linking" do
+      it "handles invalid purchase during linking" do # rubocop:todo RSpec/MultipleExpectations
         sale = create(:sale, status: active_status)
         create(:sale_item, product:, sale:, qty: 3)
 
         # Make purchase invalid
-        allow_any_instance_of(Purchase).to receive(:valid?).and_return(false)
+        allow_any_instance_of(Purchase).to receive(:valid?).and_return(false) # rubocop:todo RSpec/AnyInstance
 
         linked_ids = described_class.link(purchase)
 
@@ -225,18 +235,20 @@ RSpec.describe PurchaseLinker do
       end
     end
 
-    context "transaction safety" do
+    context "transaction safety" do # rubocop:todo RSpec/ContextWording
       let(:purchase) { create(:purchase, product: product, amount: 3) }
       let!(:purchase_items) do
         3.times.map { create(:purchase_item, purchase:) }
       end
 
-      it "ensures atomic linking (all or nothing)" do
+      it "ensures atomic linking (all or nothing)" do # rubocop:todo RSpec/MultipleExpectations
         sale = create(:sale, status: active_status)
         sale_item = create(:sale_item, product:, sale:, qty: 3)
 
         # Simulate an error during the second link
+        # rubocop:todo RSpec/AnyInstance
         allow_any_instance_of(PurchaseItem).to receive(:update).and_wrap_original do |original_method, *args|
+          # rubocop:enable RSpec/AnyInstance
           if args.first[:sale_item_id] == sale_item.id && original_method.receiver == purchase_items[1]
             raise ActiveRecord::RecordInvalid.new(original_method.receiver)
           end

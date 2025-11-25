@@ -6,7 +6,7 @@
   = form.collection_select(:purchase_id, @purchases || [], :id, :full_title, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
   
   = form.label :sale_item
-  = form.collection_select(:sale_item_id, @sale_items || [], :id, :build_title_for_select, { class: "select", include_blank: true  }, data: { controller: "slim-select" })
+  = form.collection_select(:sale_item_id, @sale_items || [], :id, :build_title_for_select, {class: "select", include_blank: true}, data: {controller: "slim-select"})
 
   = form.label :length
   = form.text_field :length
@@ -30,7 +30,7 @@
   = form.text_field :tracking_number
 
   = form.label :shipping_company
-  = form.collection_select(:shipping_company_id, @shipping_companies || [], :id, :name, { class: "select", include_blank: true })
+  = form.collection_select(:shipping_company_id, @shipping_companies || [], :id, :name, {class: "select", include_blank: true})
 
   - if purchase_item.images.attached?
     br

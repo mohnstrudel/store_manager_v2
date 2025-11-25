@@ -39,9 +39,9 @@
                   - else
                     td = purchase.product.full_title
                     td  
-                  td.no-wrap = time_ago_in_words (purchase.purchase_date.presence || purchase.created_at)
+                  td.no-wrap = time_ago_in_words(purchase.purchase_date.presence || purchase.created_at)
                   td.text-right.font-mono = format_money purchase.item_price
                   td = purchase.amount
-                  td = purchase.debt > 0 ? format_money(purchase.debt) : ""
+                  td = (purchase.debt > 0) ? format_money(purchase.debt) : ""
 
 = destroy_btn_for @supplier

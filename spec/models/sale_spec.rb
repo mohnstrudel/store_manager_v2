@@ -61,7 +61,7 @@ RSpec.describe Sale, type: :model do
         }.to change { PurchaseItem.where(sale_item_id: sale_item.id).count }.from(0).to(2)
       end
 
-      it "returns the ids of linked purchased products" do
+      it "returns the ids of linked purchased products" do # rubocop:todo RSpec/MultipleExpectations
         linked_ids = sale.link_with_purchase_items
         expect(linked_ids.size).to eq(2)
         expect(PurchaseItem.where(id: linked_ids, sale_item_id: sale_item.id).count).to eq(2)
@@ -96,7 +96,7 @@ RSpec.describe Sale, type: :model do
         create(:purchase_item, purchase:, warehouse:)
       end
 
-      it "does not link any purchased products" do
+      it "does not link any purchased products" do # rubocop:todo RSpec/MultipleExpectations
         expect(sale.link_with_purchase_items).to be_nil
         expect(PurchaseItem.where(sale_item_id: sale_item.id).count).to eq(0)
       end
@@ -114,15 +114,19 @@ RSpec.describe Sale, type: :model do
       let!(:purchase_b) { create(:purchase, product:, edition: edition_b, amount: 1) }
       let!(:purchase_none) { create(:purchase, product:, edition: nil, amount: 1) }
 
+      # rubocop:todo RSpec/IndexedLet
       let!(:purchase_item_a1) { create(:purchase_item, purchase: purchase_a, warehouse:) }
+      # rubocop:enable RSpec/IndexedLet
+      # rubocop:todo RSpec/IndexedLet
       let!(:purchase_item_a2) { create(:purchase_item, purchase: purchase_a, warehouse:) }
+      # rubocop:enable RSpec/IndexedLet
       let!(:purchase_item_b1) { create(:purchase_item, purchase: purchase_b, warehouse:) }
       let!(:purchase_item_none) { create(:purchase_item, purchase: purchase_none, warehouse:) }
       let!(:purchase_item_wrong_edition) { create(:purchase_item, purchase:, warehouse:) }
 
       before { sale.link_with_purchase_items }
 
-      it "links only purchased products with matching edition to sale_item" do
+      it "links only purchased products with matching edition to sale_item" do # rubocop:todo RSpec/MultipleExpectations
         expect(purchase_item_a1.reload.sale_item_id).to eq(sale_item_a.id)
         expect(purchase_item_a2.reload.sale_item_id).to eq(sale_item_a.id)
         expect(purchase_item_b1.reload.sale_item_id).to eq(sale_item_b.id)
@@ -133,7 +137,7 @@ RSpec.describe Sale, type: :model do
         expect(purchase_item_wrong_edition.reload.sale_item_id).to be_nil
       end
 
-      it "does not link more purchased products than sale_item qty" do
+      it "does not link more purchased products than sale_item qty" do # rubocop:todo RSpec/MultipleExpectations
         extra = create(:purchase_item, purchase: purchase_a, warehouse:)
         sale.link_with_purchase_items
         expect([purchase_item_a1, purchase_item_a2, extra].count { |pp| pp.reload.sale_item_id == sale_item_a.id }).to eq(2)

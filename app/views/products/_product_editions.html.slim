@@ -18,6 +18,6 @@
             td.text-right = format_zero_values @editions_sales_sums[edition.id]
             td = format_zero_values @editions_purchases_sums[edition.id]
             - if edition.store_link.present?
-              td = link_to edition.shop_id, edition.store_link, :target => "_blank", "rel" => "noopener noreferrer", class: "link"
+              td = link_to edition.shop_id, edition.store_link, :target => "_blank", "rel" => "noopener noreferrer", :class => "link"
             - else 
               td = edition.shop_id
