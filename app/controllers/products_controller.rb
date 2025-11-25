@@ -35,6 +35,7 @@ class ProductsController < ApplicationController
 
     respond_to do |format|
       if @product.save
+        Shopify::CreateProductJob.perform_later(@product.id)
         handle_new_purchase if purchase_params.present?
 
         format.html { redirect_to @product, notice: "Product was successfully created" }
