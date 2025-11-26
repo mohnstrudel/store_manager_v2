@@ -158,6 +158,34 @@ class Shopify::ApiClient
     response.body.dig("data", "productCreate", "product")
   end
 
+  def product_update(shopify_product_id, serialized_product)
+    query = <<~GQL
+      mutation productUpdate($product: ProductUpdateInput!) {
+        productUpdate(product: $product) {
+          product {
+            id
+            title
+            handle
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    GQL
+
+    variables = {
+      product: serialized_product.merge(id: shopify_product_id)
+    }
+
+    response = @client.query(query:, variables:)
+
+    handle_shopify_mutation_errors(query, response, "productUpdate")
+
+    response.body.dig("data", "productUpdate", "product")
+  end
+
   def create_product_options(shopify_product_id, serialized_options)
     query = <<~GQL
       mutation createOptions($productId: ID!, $options: [OptionCreateInput!]!, $variantStrategy: ProductOptionCreateVariantStrategy) {
