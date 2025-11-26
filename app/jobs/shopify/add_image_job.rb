@@ -1,12 +1,21 @@
 class Shopify::AddImageJob < ApplicationJob
-  def perform(shopify_product_id, blob_id)
-    blob = ActiveStorage::Blob.find(blob_id)
-    return unless blob
+  def perform(shopify_product_id, product_id)
+    product = Product.find(product_id)
+    return unless product || product.images.any?
 
-    wait_until_file_is_available(blob)
+    blobs = product.images.map(&:blob)
+    blobs.each { wait_until_file_is_available(it) }
+
+    images_input = blobs.map {
+      {
+        originalSource: it.url,
+        alt: it.key,
+        mediaContentType: "IMAGE"
+      }
+    }
 
     api_client = Shopify::ApiClient.new
-    api_client.add_images(shopify_product_id, blob.url)
+    api_client.add_images(shopify_product_id, images_input)
   end
 
   def wait_until_file_is_available(blob, timeout: 300)

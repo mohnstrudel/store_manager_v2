@@ -208,18 +208,12 @@ class Shopify::ApiClient
     response.body.dig("data", "productOptionsCreate", "product")
   end
 
-  def add_images(shopify_product_id, blob_url)
+  def add_images(shopify_product_id, images_input)
+    return if images_input.blank?
+
     query = <<~GQL
-      mutation {
-        productUpdate(
-          product: {
-            id: "#{shopify_product_id}"
-          },
-          media: [{
-            originalSource: "#{blob_url}",
-            mediaContentType: IMAGE
-          }]
-        ) {
+      mutation($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
+        productUpdate(product: $product, media: $media) {
           product {
             id
           }
@@ -231,7 +225,12 @@ class Shopify::ApiClient
       }
     GQL
 
-    response = @client.query(query:)
+    variables = {
+      product: {id: shopify_product_id},
+      media: images_input
+    }
+
+    response = @client.query(query:, variables:)
 
     handle_shopify_mutation_errors(query, response, "adding images using productUpdate")
   end
