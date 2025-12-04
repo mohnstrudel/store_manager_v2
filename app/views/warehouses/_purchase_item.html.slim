@@ -23,10 +23,14 @@ tr(
           .inline-flex.gap-2
             = copy_to_clipboard text: item.sale.summary_for_warehouse, css: "text-xs btn-xs mb-3 self-start"
             = item.sale.summary_for_warehouse
+            = tooltip "Customer's note: \"#{item.sale.note}\"" if item.sale.note.present?
         li.mt-2
           .inline-flex.items-center.gap-2
             = copy_to_clipboard text: item.sale.customer.email, css: "text-xs btn-xs"
             = item.sale.customer.email
+  td.text-sm.font-mono
+    - if item.tracking_number.present?
+      = item.tracking_number
   td = item.purchase.supplier.title
   td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
   td.actions

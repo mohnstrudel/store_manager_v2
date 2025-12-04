@@ -247,6 +247,6 @@ class Sale < ApplicationRecord
   end
 
   def summary_for_warehouse
-    [customer.full_name, address_1, address_2, note, postcode, city, country, customer.phone].compact_blank.join(", ")
+    [customer.full_name, address_1, address_2, postcode, city, country, customer.phone].compact_blank.join(", ")
   end
 end
