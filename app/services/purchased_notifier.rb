@@ -100,14 +100,17 @@ class PurchasedNotifier
         next
       end
 
+      tracking_number = purchase_item.tracking_number.presence || transition.to_warehouse&.container_tracking_number
+      tracking_url = purchase_item.shipping_company.tracking_url.presence || transition.to_warehouse&.courier_tracking_url
+
       NotificationsMailer.warehouse_changed_email(
         **data,
         from_warehouse_name_en: transition.from_warehouse.external_name_en,
         from_warehouse_name_de: transition.from_warehouse.external_name_de,
         to_warehouse_name_en: transition.to_warehouse.external_name_en,
         to_warehouse_name_de: transition.to_warehouse.external_name_de,
-        tracking_number: transition.to_warehouse&.container_tracking_number,
-        tracking_url: transition.to_warehouse&.courier_tracking_url,
+        tracking_number:,
+        tracking_url:,
         new_status_desc_en: transition.to_warehouse.desc_en,
         new_status_desc_de: transition.to_warehouse.desc_de
       ).deliver_later
