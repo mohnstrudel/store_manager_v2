@@ -174,7 +174,11 @@ class Sale < ApplicationRecord
   # == Domain Methods
   #
   def title
-    shop_id = shopify_id.presence || woo_id.presence
+    shop_id = if shopify_id.present?
+      shopify_id.gsub("gid://shopify/Order/", "")
+    else
+      woo_id
+    end
     [status&.titleize, shop_id].compact.join(" | ")
   end
 
