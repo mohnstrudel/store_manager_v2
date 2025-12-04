@@ -143,7 +143,7 @@
     @apply p-3;
   }
   tbody tr {
-    @apply border-b-2 border-b-gray-100/60 dark:border-b-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-100 cursor-pointer;
+    @apply border-b-2 border-b-gray-100/60 dark:border-b-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors duration-100 cursor-pointer;
   }
   tbody tr:last-child {
     @apply border-b-transparent;
@@ -216,6 +216,9 @@
   }
 
   /* Buttons */
+  .btn-xs {
+    @apply px-1.5! py-1! gap-0.5!;
+  }
   .btn-rounded {
     @apply rounded-full px-3 border-gray-200 dark:border-gray-600;
   }

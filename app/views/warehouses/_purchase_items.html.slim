@@ -1,7 +1,7 @@
 .table-cards-group
   .table-card data-controller="move-items"
     .flex.justify-between
-      h3 Items: #{@purchase_items.total_count}
+      h3 Number of Items: #{@purchase_items.total_count}
       .w-45.mt-5.mr-3.text-center = render "_shared/purchase_payment_progress", progress: @warehouse.average_payment_progress, debt: @warehouse.total_debt, only_debt: true
 
     .search.spacing-m
@@ -15,6 +15,7 @@
         thead
           = render "_shared/move_to_warehouse/th"
           th Title
+          th Customer
           th Supplier
           th
             | Payment Progress

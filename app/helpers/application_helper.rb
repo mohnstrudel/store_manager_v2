@@ -78,4 +78,8 @@ module ApplicationHelper
 
     button_to text, polymorphic_path(record), method: :delete, class: css_class, data: {turbo_confirm: confirm_message}
   end
+
+  def copy_to_clipboard(text:, css: nil)
+    render partial: "_shared/copy_to_clipboard", locals: {text:, css:}
+  end
 end

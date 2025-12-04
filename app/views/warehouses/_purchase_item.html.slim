@@ -4,21 +4,32 @@ tr(
   data-table-url-param=purchase_item_path(item)
 )
   = render "_shared/move_to_warehouse/td", id: item.id
-  td
+  td.max-w-sm
     = item.purchase.product.full_title
+    .font-mono.text-sm.text-gray-500.dark:text-gray-400 = item.purchase.product.sku || "123fsdfghds"
     - if item.purchase.edition.present?
       | → #{item.purchase.edition.title}
     - if item.sale
-      ul.ml-4.mt-2.text-sm
+      = link_to item.sale, title: "Open sales page", class: "no-events text-sm mt-3"
+        - if item.sale.shopify_id.present?
+          .icon-shopify.w-4.h-4
+        - if item.sale.woo_id.present?
+          .icon-woo.w-5.h-5
+        = item.sale.title  
+  td.max-w-xs
+    - if item.sale.present?
+      ul.text-sm
         li
-          = link_to item.sale, class: "no-events"
-            - if item.sale.shopify_id.present?
-              .icon-shopify.w-4.h-4
-            - if item.sale.woo_id.present?
-              .icon-woo.w-5.h-5
-            = item.sale.title  
+          .inline-flex.gap-2
+            = copy_to_clipboard text: item.sale.summary_for_warehouse, css: "text-xs btn-xs mb-3 self-start"
+            = item.sale.summary_for_warehouse
+        li.mt-2
+          .inline-flex.items-center.gap-2
+            = copy_to_clipboard text: item.sale.customer.email, css: "text-xs btn-xs"
+            = item.sale.customer.email
   td = item.purchase.supplier.title
   td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
   td.actions
-    = render "_shared/action_destroy", route: purchase_item_path(item)
-    = render "_shared/action_edit", route: edit_purchase_item_path(item)
+    .inline-flex
+      = render "_shared/action_destroy", route: purchase_item_path(item)
+      = render "_shared/action_edit", route: edit_purchase_item_path(item)
