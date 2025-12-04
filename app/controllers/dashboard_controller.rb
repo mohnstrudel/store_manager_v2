@@ -1,7 +1,7 @@
 class DashboardController < ApplicationController
   def index
     @suppliers_debts = Supplier
-      .includes(purchases: :payments)
+      .includes(purchases: [:payments, :purchase_items])
       .map { |supplier|
         {
           supplier:,
