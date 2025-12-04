@@ -11,7 +11,12 @@ tr(
     - if item.sale
       ul.ml-4.mt-2.text-sm
         li
-          = link_to item.sale.title, item.sale, class: "no-events"  
+          = link_to item.sale, class: "no-events"
+            - if item.sale.shopify_id.present?
+              .icon-shopify.w-4.h-4
+            - if item.sale.woo_id.present?
+              .icon-woo.w-5.h-5
+            = item.sale.title  
   td = item.purchase.supplier.title
   td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
   td.actions

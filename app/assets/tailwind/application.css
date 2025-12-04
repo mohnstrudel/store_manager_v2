@@ -157,6 +157,23 @@
   }
 }
 
+/* === Icon Classes === */
+@layer utilities {
+  .icon-shopify {
+    background-image: url("shopify-icon.svg");
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+
+  .icon-woo {
+    background-image: url("woo-icon.svg");
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+}
+
 /* === Components === */
 @layer components {
   /* Navigation */
