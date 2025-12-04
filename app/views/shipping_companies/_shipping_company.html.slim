@@ -1,0 +1,12 @@
+tr id="#{dom_id shipping_company}"
+  td = shipping_company.id
+  td = shipping_company.name
+  td = link_to_if(shipping_company.tracking_url.present?, shipping_company.tracking_url, shipping_company.tracking_url, target: "_blank", rel: "noopener", class: "link")
+  td = shipping_company.created_at
+  td = shipping_company.updated_at
+  - if action_name != "show" 
+    td.actions
+      = link_to shipping_company
+        i.icn 📄
+        | Show
+      = render "_shared/action_edit", route: edit_shipping_company_path(shipping_company)

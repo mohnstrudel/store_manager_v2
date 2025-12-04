@@ -1,0 +1,8 @@
+= form_with(model: shipping_company) do |form|
+  = form.label :name
+  = form.text_field :name, class: "w-full"
+
+  = form.label :tracking_url
+  = form.text_field :tracking_url, class: "w-full"
+
+  = form_submit_for(shipping_company, form)

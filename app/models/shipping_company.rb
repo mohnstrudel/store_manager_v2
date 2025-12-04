@@ -34,19 +34,4 @@ class ShippingCompany < ApplicationRecord
   # == Associations
   #
   has_many :purchase_items, dependent: :nullify
-
-  #
-  # == Scopes
-  #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
 end

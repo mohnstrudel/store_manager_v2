@@ -1,0 +1,16 @@
+= render "_shared/notice"
+
+= render "_shared/nav-index", model: @shipping_companies
+
+.section-border-base.section-wide
+  table
+    thead
+      tr
+        th ID
+        th Name
+        th Tracking URL
+        th Created
+        th Updated
+        th.text-right Actions
+    tbody
+      = render @shipping_companies

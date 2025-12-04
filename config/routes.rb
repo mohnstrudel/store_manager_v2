@@ -83,7 +83,5 @@ Rails.application.routes.draw do
 
   resources :payments, only: [:create]
 
-  scope "/admin" do
-    resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands
-  end
+  resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands, :shipping_companies
 end
