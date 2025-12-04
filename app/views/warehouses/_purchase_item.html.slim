@@ -8,7 +8,7 @@ tr(
     = item.purchase.product.full_title
     - if item.purchase.edition.present?
       | → #{item.purchase.edition.title}
-    .font-mono.text-sm.text-gray-500.dark:text-gray-400 = item.purchase.product.sku
+    .no-events.font-mono.text-sm.text-gray-500.dark:text-gray-400 = item.purchase.product.sku
     - if item.sale
       = link_to item.sale, title: "Open sales page", class: "no-events text-sm mt-3"
         - if item.sale.shopify_id.present?
