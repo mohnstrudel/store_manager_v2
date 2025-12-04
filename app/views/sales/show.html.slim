@@ -5,9 +5,13 @@ header.nav_header
     = back_btn
     hgroup
       - if @sale.shopify_id.present?
-        h1.text-lime-800.dark:text-lime-600 Sale #{@sale.shopify_name.presence}
+        h1
+          .inline-block.icon-shopify.w-13.h-13.mr-3.-mb-1
+          | Sale #{@sale.shopify_name.presence}
       - if @sale.woo_id.present?
-        h1.text-violet-800.dark:text-violet-600  Sale #{@sale.woo_id.presence}
+        h1
+          .inline-block.icon-woo.w-17.h-17.mr-4.-mb-4
+          | Sale #{@sale.woo_id.presence}
       h2 = @sale.title
   menu.nav_menu
     - if @sale.shopify_id
