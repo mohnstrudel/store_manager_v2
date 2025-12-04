@@ -33,7 +33,5 @@ tr(
       = item.tracking_number
   td = item.purchase.supplier.title
   td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
-  td.actions
-    .inline-flex
-      = render "_shared/action_destroy", route: purchase_item_path(item)
-      = render "_shared/action_edit", route: edit_purchase_item_path(item)
+  td.actions.text-sm
+    = render "_shared/action_edit", route: edit_purchase_item_path(item)
