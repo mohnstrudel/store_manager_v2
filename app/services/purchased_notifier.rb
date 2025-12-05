@@ -101,7 +101,7 @@ class PurchasedNotifier
       end
 
       tracking_number = purchase_item.tracking_number.presence || transition.to_warehouse&.container_tracking_number
-      tracking_url = purchase_item.shipping_company.tracking_url.presence || transition.to_warehouse&.courier_tracking_url
+      tracking_url = purchase_item.shipping_company&.tracking_url.presence || transition.to_warehouse&.courier_tracking_url
 
       NotificationsMailer.warehouse_changed_email(
         **data,

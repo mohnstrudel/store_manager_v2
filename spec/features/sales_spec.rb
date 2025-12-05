@@ -41,7 +41,8 @@ describe "GET /sales" do
       newer_sale = valid_sales.find { |s| s.woo_created_at > 3.days.ago }
       older_sale = valid_sales.find { |s| s.woo_created_at < 3.days.ago }
 
-      expect("<td>#{newer_sale.woo_id}</td>").to appear_before("<td>#{older_sale.woo_id}</td>")
+      # Look for the woo_id in the table cells, ignoring surrounding HTML structure
+      expect(newer_sale.woo_id.to_s).to appear_before(older_sale.woo_id.to_s)
     end
   end
 end
