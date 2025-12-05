@@ -175,7 +175,7 @@ class Sale < ApplicationRecord
   #
   def title
     shop_id = if shopify_id.present?
-      shopify_id.gsub("gid://shopify/Order/", "")
+      shopify_name
     else
       woo_id
     end
