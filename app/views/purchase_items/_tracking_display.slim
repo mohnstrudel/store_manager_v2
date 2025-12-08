@@ -1,0 +1,7 @@
+- onclick_js = local_assigns[:inline] ? "this.closest('turbo-frame')" : "document.getElementById('tracking_number_#{purchase_item.id}')"
+
+.tracking-display.no-events.flex-col.flex.items-center.gap-2
+  span.text-sm.font-mono.cursor-text = purchase_item.tracking_number
+  button.btn-rounded.text-xs.btn-xs onclick="#{onclick_js}.src='#{edit_tracking_number_purchase_item_path(purchase_item)}'" id="tracking_display_#{purchase_item.id}" title="Edit tracking number" type="button"
+    i.icn ✏
+    | Edit

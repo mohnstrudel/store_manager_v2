@@ -39,6 +39,11 @@ Rails.application.routes.draw do
       post :move
       post :unlink
     end
+    member do
+      get :edit_tracking_number
+      get :cancel_tracking_number
+      patch :update_tracking_number
+    end
   end
 
   resources :sale_items
