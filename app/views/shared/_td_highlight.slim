@@ -1,11 +1,11 @@
 - cell_id = local_assigns[:cell_id]
 - highlight_class = local_assigns[:highlight_class] || "bg-green"
-- duration = local_assigns[:duration] || 2000
+- duration = local_assigns[:duration] || 400
 
 javascript:
   var cell = document.getElementById("#{cell_id}").closest('td');
   if (cell) {
-    cell.classList.add("#{highlight_class}");
+    cell.classList.add("#{highlight_class}", "transition-colors", "ease-in-out");
     setTimeout(function() {
       cell.classList.remove("#{highlight_class}");
     }, #{duration});
