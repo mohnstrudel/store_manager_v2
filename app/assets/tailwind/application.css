@@ -16,6 +16,9 @@
 /* === Base styles === */
 @layer base {
   /* Global */
+  * {
+    @apply text-pretty;
+  }
   html {
     @apply antialiased scroll-smooth;
   }
@@ -175,7 +178,7 @@
 }
 
 .bg-green {
-  @apply  bg-lime-200/50 dark:bg-lime-900/50;
+  @apply bg-lime-200/50 dark:bg-lime-900/50;
 }
 
 /* === Components === */
@@ -213,7 +216,7 @@
   }
 
   .nav_header {
-    @apply flex justify-between items-center text-pretty mb-5;
+    @apply flex justify-between items-center mb-5;
   }
   .nav_menu {
     @apply flex justify-end whitespace-nowrap gap-2 pt-2;
@@ -221,7 +224,7 @@
 
   /* Buttons */
   .btn-xs {
-    @apply px-1.5! py-1! gap-0.5!;
+    @apply w-fit text-xs px-1.5! py-1! gap-0.5!;
   }
   .btn-rounded {
     @apply rounded-full px-3 border-gray-200 dark:border-gray-600;

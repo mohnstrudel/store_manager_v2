@@ -26,11 +26,6 @@ class PurchaseItem < ApplicationRecord
   include Searchable
 
   #
-  # == Extensions
-  #
-  # (none)
-
-  #
   # == Configuration
   #
   audited associated_with: :purchase
@@ -45,10 +40,6 @@ class PurchaseItem < ApplicationRecord
   #
   # == Validations
   #
-  validates :tracking_number,
-    presence: true,
-    if: -> { shipping_company_id.present? }
-
   validates :shipping_company_id,
     presence: true,
     if: -> { tracking_number.present? }

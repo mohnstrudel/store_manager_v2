@@ -17,14 +17,13 @@
           th Title
           th Customer
           th Tracking
-          th Supplier
+          th Shipping
           th
             | Payment Progress
             .flex.justify-between.text-xs.font-medium.opacity-80
               span.text-lime-700/90 class="dark:text-lime-500/85" paid
               span.text-slate-400 item
               span.text-orange-800/70 class="dark:text-orange-400/80" debt
-          th.text-right Actions
         tbody
           - @purchase_items.each do |item|
             = render "purchase_item", item:

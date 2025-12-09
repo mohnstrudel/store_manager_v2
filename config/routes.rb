@@ -43,6 +43,9 @@ Rails.application.routes.draw do
       get :edit_tracking_number
       get :cancel_tracking_number
       patch :update_tracking_number
+      get :edit_shipping_company
+      get :cancel_edit_shipping_company
+      patch :update_shipping_company
     end
   end
 

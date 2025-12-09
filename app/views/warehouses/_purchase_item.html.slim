@@ -32,7 +32,5 @@ tr(
     div id="tracking-highlight-#{item.id}"
     = turbo_frame_tag "tracking_number_#{item.id}" do
       = render "purchase_items/tracking_display", purchase_item: item, inline: true
-  td = item.purchase.supplier.title
+  td = render "purchase_items/inline_shipping_company_show", purchase_item: item
   td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
-  td.actions.text-sm
-    = render "_shared/action_edit", route: edit_purchase_item_path(item)

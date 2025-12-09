@@ -1,0 +1,25 @@
+= turbo_frame_tag purchase_item, :shipping_company
+  = form_with model: purchase_item,
+      class: "flex flex-col w-full gap-2 no-events",
+      url: update_shipping_company_purchase_item_path(purchase_item),
+      method: :patch do |form|
+
+    = form.select :shipping_company_id,
+      options_from_collection_for_select(ShippingCompany.ordered, :id, :name, purchase_item.shipping_company_id),
+      { prompt: "Select a shipping company" },
+      { class: "border rounded px-2 py-1 text-sm w-full min-w-35", autofocus: true }
+
+    - if purchase_item.errors.any?
+      p.text-error.text-xs.no-events
+        = purchase_item.errors.full_messages.join(", ")
+
+    .flex.gap-1.justify-center
+      button.btn-rounded.btn-xs.btn-green type="submit" title="Save"
+        i.icn ✅
+        | Save
+      = link_to cancel_edit_shipping_company_purchase_item_path(purchase_item),
+          class: "btn-red btn-xs btn-rounded",
+          title: "Cancel",
+          data: { turbo_stream: true } do
+        i.icn ❎
+        | Exit

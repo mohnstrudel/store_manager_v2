@@ -18,4 +18,16 @@ class PurchaseItemPolicy < ApplicationPolicy
   def update_tracking_number?
     admin?
   end
+
+  def edit_shipping_company?
+    admin?
+  end
+
+  def cancel_edit_shipping_company?
+    admin?
+  end
+
+  def update_shipping_company?
+    admin?
+  end
 end

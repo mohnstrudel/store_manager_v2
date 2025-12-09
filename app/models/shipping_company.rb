@@ -15,11 +15,6 @@ class ShippingCompany < ApplicationRecord
   include HasAuditNotifications
 
   #
-  # == Extensions
-  #
-  # (none)
-
-  #
   # == Configuration
   #
   audited
@@ -34,4 +29,9 @@ class ShippingCompany < ApplicationRecord
   # == Associations
   #
   has_many :purchase_items, dependent: :nullify
+
+  #
+  # == Scopes
+  #
+  scope :ordered, -> { order(:name) }
 end

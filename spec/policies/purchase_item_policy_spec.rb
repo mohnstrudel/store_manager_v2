@@ -11,6 +11,12 @@ describe PurchaseItemPolicy do
 
     it { is_expected.to permit_action(:move) }
     it { is_expected.to permit_action(:unlink) }
+    it { is_expected.to permit_action(:edit_tracking_number) }
+    it { is_expected.to permit_action(:cancel_tracking_number) }
+    it { is_expected.to permit_action(:update_tracking_number) }
+    it { is_expected.to permit_action(:edit_shipping_company) }
+    it { is_expected.to permit_action(:cancel_edit_shipping_company) }
+    it { is_expected.to permit_action(:update_shipping_company) }
   end
 
   context "when user is manager" do
@@ -18,6 +24,12 @@ describe PurchaseItemPolicy do
 
     it { is_expected.to forbid_action(:move) }
     it { is_expected.to forbid_action(:unlink) }
+    it { is_expected.to forbid_action(:edit_tracking_number) }
+    it { is_expected.to forbid_action(:cancel_tracking_number) }
+    it { is_expected.to forbid_action(:update_tracking_number) }
+    it { is_expected.to forbid_action(:edit_shipping_company) }
+    it { is_expected.to forbid_action(:cancel_edit_shipping_company) }
+    it { is_expected.to forbid_action(:update_shipping_company) }
   end
 
   context "when user is support" do
@@ -25,6 +37,12 @@ describe PurchaseItemPolicy do
 
     it { is_expected.to forbid_action(:move) }
     it { is_expected.to forbid_action(:unlink) }
+    it { is_expected.to forbid_action(:edit_tracking_number) }
+    it { is_expected.to forbid_action(:cancel_tracking_number) }
+    it { is_expected.to forbid_action(:update_tracking_number) }
+    it { is_expected.to forbid_action(:edit_shipping_company) }
+    it { is_expected.to forbid_action(:cancel_edit_shipping_company) }
+    it { is_expected.to forbid_action(:update_shipping_company) }
   end
 
   context "when user is guest" do
@@ -32,5 +50,11 @@ describe PurchaseItemPolicy do
 
     it { is_expected.to forbid_action(:move) }
     it { is_expected.to forbid_action(:unlink) }
+    it { is_expected.to forbid_action(:edit_tracking_number) }
+    it { is_expected.to forbid_action(:cancel_tracking_number) }
+    it { is_expected.to forbid_action(:update_tracking_number) }
+    it { is_expected.to forbid_action(:edit_shipping_company) }
+    it { is_expected.to forbid_action(:cancel_edit_shipping_company) }
+    it { is_expected.to forbid_action(:update_shipping_company) }
   end
 end
