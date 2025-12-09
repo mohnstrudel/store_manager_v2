@@ -41,8 +41,8 @@ describe "GET /sales" do
       newer_sale = valid_sales.find { |s| s.woo_created_at > 3.days.ago }
       older_sale = valid_sales.find { |s| s.woo_created_at < 3.days.ago }
 
-      # Look for the woo_id in the table cells, ignoring surrounding HTML structure
-      expect(newer_sale.woo_id.to_s).to appear_before(older_sale.woo_id.to_s)
+      # Check that newer sales appear before older ones in the page
+      expect(page.body).to match(/#{newer_sale.woo_id}.*#{older_sale.woo_id}/m)
     end
   end
 end
