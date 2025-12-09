@@ -63,13 +63,29 @@ class PurchaseItemsController < ApplicationController
 
   # GET /purchase_items/1/edit_tracking_number
   def edit_tracking_number
+    respond_to do |format|
+      format.html { head :no_content }
+      format.turbo_stream {
+        render turbo_stream: turbo_stream.replace(
+          helpers.dom_id(@purchase_item, :tracking_number),
+          partial: "inline_tracking_edit",
+          locals: {purchase_item: @purchase_item}
+        )
+      }
+    end
   end
 
   # GET /purchase_items/1/cancel_tracking_number
   def cancel_tracking_number
     respond_to do |format|
       format.html { head :no_content }
-      format.turbo_stream { render turbo_stream: turbo_stream.replace("tracking_number_#{@purchase_item.id}", partial: "purchase_items/update_tracking_number", locals: {purchase_item: @purchase_item}) }
+      format.turbo_stream {
+        render turbo_stream: turbo_stream.replace(
+          helpers.dom_id(@purchase_item, :tracking_number),
+          partial: "inline_tracking_show",
+          locals: {purchase_item: @purchase_item}
+        )
+      }
     end
   end
 
@@ -77,19 +93,23 @@ class PurchaseItemsController < ApplicationController
   def update_tracking_number
     if @purchase_item.update(tracking_number: params[:purchase_item][:tracking_number])
       render turbo_stream: [
-        turbo_stream.replace("tracking_number_#{@purchase_item.id}", partial: "purchase_items/update_tracking_number", locals: {purchase_item: @purchase_item}),
-        turbo_stream.update("tracking-highlight-#{@purchase_item.id}", "<script>
-          var cell = document.getElementById('tracking-cell-#{@purchase_item.id}');
-          if (cell) {
-            cell.classList.add('bg-green');
-            setTimeout(function() {
-              cell.classList.remove('bg-green');
-            }, 2000);
-          }
-        </script>")
+        turbo_stream.replace(
+          helpers.dom_id(@purchase_item, :tracking_number),
+          partial: "inline_tracking_show",
+          locals: {purchase_item: @purchase_item}
+        ),
+        turbo_stream.update(
+          helpers.dom_id(@purchase_item, :highlight_tracking_number),
+          partial: "shared/td_highlight",
+          locals: {cell_id: helpers.dom_id(@purchase_item, :highlight_tracking_number)}
+        )
       ]
     else
-      render turbo_stream: turbo_stream.replace("tracking_number_#{@purchase_item.id}", partial: "purchase_items/tracking_form", locals: {purchase_item: @purchase_item})
+      render turbo_stream: turbo_stream.replace(
+        helpers.dom_id(@purchase_item, :tracking_number),
+        partial: "inline_tracking_edit",
+        locals: {purchase_item: @purchase_item}
+      )
     end
   end
 
@@ -167,11 +187,18 @@ class PurchaseItemsController < ApplicationController
   # PATCH/PUT /purchase_items/1/update_shipping_company
   def update_shipping_company
     if @purchase_item.update(shipping_company_id: params[:purchase_item][:shipping_company_id])
-      render turbo_stream: turbo_stream.replace(
-        helpers.dom_id(@purchase_item, :shipping_company),
-        partial: "inline_shipping_company_show",
-        locals: {purchase_item: @purchase_item}
-      )
+      render turbo_stream: [
+        turbo_stream.replace(
+          helpers.dom_id(@purchase_item, :shipping_company),
+          partial: "inline_shipping_company_show",
+          locals: {purchase_item: @purchase_item}
+        ),
+        turbo_stream.update(
+          helpers.dom_id(@purchase_item, :highlight_shipping_company),
+          partial: "shared/td_highlight",
+          locals: {cell_id: helpers.dom_id(@purchase_item, :highlight_shipping_company)}
+        )
+      ]
     else
       render turbo_stream: turbo_stream.replace(
         helpers.dom_id(@purchase_item, :shipping_company),
