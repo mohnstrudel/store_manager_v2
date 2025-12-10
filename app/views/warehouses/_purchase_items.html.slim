@@ -1,12 +1,13 @@
 .table-cards-group
   .table-card data-controller="move-items"
-    .flex.justify-between
+    .flex.justify-between.align-center
       h3 Number of Items: #{@purchase_items.total_count}
-      .w-45.mt-5.mr-3.text-center = render "_shared/purchase_payment_progress", progress: @warehouse.average_payment_progress, debt: @warehouse.total_debt, only_debt: true
+      .w-45.px-3.mt-4.text-center = render "_shared/purchase_payment_progress", progress: @warehouse.average_payment_progress, debt: @warehouse.total_debt, only_debt: true
 
-    .search.spacing-m
+    .search.-mt-2
       = render partial: "_shared/search-form", locals: {path: warehouse_path}
-      .pagination-top = paginate @purchase_items
+      - if @purchase_items.total_pages > 1
+        .pagination-top = paginate @purchase_items
 
     - if @purchase_items.present?
       = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(warehouse_id: @warehouse.id)

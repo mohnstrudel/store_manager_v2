@@ -315,7 +315,7 @@
     @apply ml-2;
   }
   .search {
-    @apply px-10 pt-8 mb-8 flex justify-between;
+    @apply px-8 pt-7 mb-6 flex justify-between;
   }
   .progress-end {
     @apply bg-lime-600! dark:bg-lime-500!;

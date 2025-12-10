@@ -20,9 +20,9 @@ header.nav_header
         = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(purchase_id: @purchase.id)
 
         .table-card
-          .flex.justify-between
+          .flex.justify-between.align-center
             h3 Purchase Items: #{@purchase_items.size}
-            .mx-3.mt.w-45.mt-5.mr-3.text-center = render "_shared/purchase_payment_progress", progress: @purchase.progress, paid: @purchase.item_paid, price: @purchase.item_price, debt: @purchase.item_debt
+            .w-45.px-3.mt-4.text-center = render "_shared/purchase_payment_progress", progress: @purchase.progress, paid: @purchase.item_paid, price: @purchase.item_price, debt: @purchase.item_debt
 
           = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
 
