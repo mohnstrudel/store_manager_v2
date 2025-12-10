@@ -16,7 +16,7 @@ class WarehousesController < ApplicationController
     @purchase_items = @warehouse
       .purchase_items
       .with_attached_images
-      .includes(:product, sale: :customer, purchase: [:payments, :purchase_items])
+      .includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
       .order(updated_at: :desc)
       .page(params[:page])
     @total_purchase_items = @warehouse.purchase_items.size
