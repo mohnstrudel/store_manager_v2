@@ -16,9 +16,6 @@
 /* === Base styles === */
 @layer base {
   /* Global */
-  * {
-    @apply text-pretty;
-  }
   html {
     @apply antialiased scroll-smooth;
   }
@@ -133,10 +130,13 @@
 
   /* Tables */
   table {
-    @apply w-full border-collapse table-auto text-left border-b-1 mt-3;
+    @apply w-full border-collapse table-auto text-left border-b mt-3;
   }
   thead {
-    @apply border-b-4 border-gray-100 dark:border-gray-800;
+    @apply shadow-[0_4px_0_0] shadow-gray-100 dark:shadow-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-20;
+  }
+  tbody tr:first-child td {
+    @apply pt-4;
   }
   th {
     @apply text-gray-600 dark:text-gray-400 align-bottom font-semibold;
@@ -216,7 +216,7 @@
   }
 
   .nav_header {
-    @apply flex justify-between items-center mb-5;
+    @apply flex justify-between items-center text-pretty mb-5;
   }
   .nav_menu {
     @apply flex justify-end whitespace-nowrap gap-2 pt-2;
