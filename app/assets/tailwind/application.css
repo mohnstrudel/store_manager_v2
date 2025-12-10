@@ -239,6 +239,9 @@
   .btn-green {
     @apply text-lime-700 dark:text-lime-300 bg-lime-200/50 dark:bg-lime-900/50 hover:bg-lime-200/90 dark:hover:bg-lime-900/80;
   }
+  .btn-amber {
+    @apply text-amber-700 dark:text-amber-300 bg-amber-200/50 dark:bg-amber-900/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/70;
+  }
   .icn {
     @apply font-normal font-icn not-italic;
   }
