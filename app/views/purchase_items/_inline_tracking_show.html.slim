@@ -1,9 +1,9 @@
 = turbo_frame_tag purchase_item, :tracking_number
   .flex.flex-col.items-center.gap-2.text-center
     - if purchase_item.tracking_number.present?
-      span.text-sm.font-mono = purchase_item.tracking_number
+      span.text-sm.font-mono.cursor-text = purchase_item.tracking_number
       = link_to edit_tracking_number_purchase_item_path(purchase_item),
-          class: "btn-xs btn-rounded no-events",
+          class: "btn-xs btn-rounded",
           title: "Edit tracking number",
           data: { turbo_stream: true } do
         i.icn ✏
@@ -11,6 +11,6 @@
     - else
       = link_to "Add",
           edit_tracking_number_purchase_item_path(purchase_item),
-          class: "btn-xs btn-rounded no-events",
+          class: "btn-xs btn-rounded",
           title: "Edit tracking number",
           data: { turbo_stream: true }

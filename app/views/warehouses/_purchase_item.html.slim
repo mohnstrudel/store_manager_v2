@@ -28,10 +28,8 @@ tr(
           .inline-flex.items-center.gap-2
             = copy_to_clipboard text: item.sale.customer.email, css: "text-xs btn-xs"
             = item.sale.customer.email
-  td.max-w-3xs
-    .hidden id=dom_id(item, :highlight_tracking_number)
+  td.max-w-3xs.no-events.cursor-text
     = render "purchase_items/inline_tracking_show", purchase_item: item
   td
-    .hidden id=dom_id(item, :highlight_shipping_company)
     = render "purchase_items/inline_shipping_company_show", purchase_item: item
   td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt

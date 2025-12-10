@@ -8,7 +8,8 @@
         value: purchase_item.tracking_number,
         class: "border rounded px-2 py-1 text-sm w-full",
         placeholder: "Enter tracking number",
-        autofocus: true
+        autofocus: true,
+        autocomplete: "off"
 
     - if purchase_item.errors.any?
       p.text-error.text-xs.no-events
