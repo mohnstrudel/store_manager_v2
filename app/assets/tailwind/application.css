@@ -302,7 +302,8 @@
   }
 
   /* Sections & layout helpers */
-  .section-border-base {
+  .section-border-base,
+  .table-card {
     @apply border border-gray-200/80 dark:border-gray-800 rounded-xl;
   }
   .section-wide {
@@ -333,9 +334,6 @@
   }
   .card p {
     @apply mb-2 text-lg;
-  }
-  .table-card {
-    @apply border border-gray-200/80 dark:border-gray-700/80 rounded-lg;
   }
   .table-card h3 {
     @apply p-3 pt-4;
