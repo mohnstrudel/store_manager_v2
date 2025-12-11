@@ -174,8 +174,12 @@ class Sale < ApplicationRecord
   # == Domain Methods
   #
   def title
-    email = customer.email.presence || ""
-    [status&.titleize, email].compact.join(" | ")
+    shop_id = if shopify_id.present?
+      shopify_name
+    else
+      woo_id
+    end
+    [status&.titleize, shop_id].compact.join(" | ")
   end
 
   def select_title
@@ -240,5 +244,9 @@ class Sale < ApplicationRecord
 
       linked_purchase_items_ids
     end.compact.flatten
+  end
+
+  def summary_for_warehouse
+    [customer.full_name, address_1, address_2, postcode, city, country, customer.phone].compact_blank.join(", ")
   end
 end

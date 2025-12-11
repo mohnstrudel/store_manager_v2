@@ -1,0 +1,16 @@
+= turbo_frame_tag purchase_item, :shipping_company
+  .flex.flex-col.items-center.gap-2.text-center
+    - if purchase_item.shipping_company
+      div = purchase_item.shipping_company.name
+      = link_to edit_shipping_company_purchase_item_path(purchase_item),
+          class: "btn-xs btn-rounded no-events",
+          title: "Edit shipping company",
+          data: { turbo_stream: true }
+        i.icn ✏
+        | Edit
+    - else
+      = link_to "Add",
+          edit_shipping_company_purchase_item_path(purchase_item),
+          class: "btn-xs btn-rounded no-events",
+          title: "Edit shipping company",
+          data: { turbo_stream: true }

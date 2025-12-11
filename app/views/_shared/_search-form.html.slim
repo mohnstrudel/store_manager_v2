@@ -1,9 +1,9 @@
-= form_with(url: path, method: :get, class: "flex items-center w-full") do |form|
+= form_with(url: path, method: :get, class: "flex items-center w-full max-w-2/3") do |form|
   = form.text_field :q, type: :search, placeholder: "Find what you need...", value: params[:q], class: "#{params[:q].present? ? "border-2" : "border"}"
   = button_tag type: :submit, class: "ml-2 btn-rounded"
     i.icn 🔎
     | Search
   - if params[:q]
-    = link_to path, class: "ml-2 btn-rounded"
-      i.icn 🧹
-      | Clear
+    = link_to path, class: "ml-2 btn-rounded btn-red"
+      i.icn ❎
+      | Exit

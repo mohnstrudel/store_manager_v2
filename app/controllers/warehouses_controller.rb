@@ -4,19 +4,19 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images.includes(:purchase_items, purchases: :payments).order(:position)
+    @warehouses = Warehouse.all.with_attached_images.includes(:purchase_items, purchases: [:payments, :purchase_items]).order(:position)
   end
 
   # GET /warehouses/1
   def show
     @warehouse = Warehouse
       .with_attached_images
-      .includes(purchases: :payments)
+      .includes(purchases: [:payments, :purchase_items])
       .find(params[:id])
     @purchase_items = @warehouse
       .purchase_items
       .with_attached_images
-      .includes(:product, sale: :customer, purchase: :payments)
+      .includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
       .order(updated_at: :desc)
       .page(params[:page])
     @total_purchase_items = @warehouse.purchase_items.size

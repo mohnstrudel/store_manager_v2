@@ -1,0 +1,27 @@
+= turbo_frame_tag purchase_item, :tracking_number
+  = form_with model: purchase_item,
+      class: "flex flex-col w-full gap-2 no-events",
+      url: update_tracking_number_purchase_item_path(purchase_item),
+      method: :patch do |form|
+
+    = form.text_field :tracking_number,
+        value: purchase_item.tracking_number,
+        class: "border rounded px-2 py-1 text-sm w-full",
+        placeholder: "Enter tracking number",
+        autofocus: true,
+        autocomplete: "off"
+
+    - if purchase_item.errors.any?
+      p.text-error.text-xs.no-events
+        = purchase_item.errors.full_messages.join(", ")
+
+    .flex.gap-1.justify-center
+      button.btn-rounded.btn-xs.btn-green type="submit" title="Save"
+        i.icn ✅
+        | Save
+      = link_to cancel_tracking_number_purchase_item_path(purchase_item),
+          class: "btn-red btn-xs btn-rounded",
+          title: "Cancel",
+          data: { turbo_stream: true } do
+        i.icn ❎
+        | Exit

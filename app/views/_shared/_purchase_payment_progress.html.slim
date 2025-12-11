@@ -1,6 +1,6 @@
 - only_debt = false if local_assigns[:only_debt].nil?
 
-.progress-container class="#{progress >= 100 ? '' : 'bg-slate-200/50 dark:bg-slate-700/40'}"
+.progress-container.relative.z-10 class="#{progress >= 100 ? '' : 'bg-slate-200/50 dark:bg-slate-700/40'}"
   - if progress > 0 && progress <= 100
     .rounded-full.h-full.bg-lime-700/80 style="width: #{progress}%"
       p.progress-amount #{progress.round}%

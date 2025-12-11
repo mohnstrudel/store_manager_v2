@@ -1,0 +1,10 @@
+button.btn-rounded.no-events.cursor-pointer.transition-all.ease-out(
+  type="button"
+  data-controller="copy-to-clipboard"
+  data-copy-to-clipboard-text-value=text
+  data-action="click->copy-to-clipboard#copy"
+  class=css
+  title="Copy to clipboard"
+)
+  span.icn data-copy-to-clipboard-target="icon"
+  span data-copy-to-clipboard-target="text"

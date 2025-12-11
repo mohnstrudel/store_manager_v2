@@ -1,7 +1,7 @@
 class PurchaseItemsController < ApplicationController
   include WarehouseMovementNotification
 
-  before_action :set_purchase_item, only: %i[show edit update destroy]
+  before_action :set_purchase_item, only: %i[show edit update destroy edit_tracking_number cancel_tracking_number update_tracking_number edit_shipping_company cancel_edit_shipping_company update_shipping_company]
 
   # GET /warehouse_products
   def index
@@ -101,6 +101,91 @@ class PurchaseItemsController < ApplicationController
         alert: "Something went wrong. Try again later or contact the administrators",
         status: :see_other,
         turbolinks: false
+    end
+  end
+
+  # GET /purchase_items/1/edit_tracking_number
+  def edit_tracking_number
+    if @purchase_item.shipping_company.present?
+      render turbo_stream: turbo_stream.replace(
+        helpers.dom_id(@purchase_item, :tracking_number),
+        partial: "inline_tracking_edit",
+        locals: {purchase_item: @purchase_item}
+      )
+    else
+      render turbo_stream: [
+        turbo_stream.replace(
+          helpers.dom_id(@purchase_item, :tracking_number),
+          partial: "inline_tracking_edit",
+          locals: {purchase_item: @purchase_item}
+        ),
+        turbo_stream.replace(
+          helpers.dom_id(@purchase_item, :shipping_company),
+          partial: "inline_shipping_company_edit",
+          locals: {purchase_item: @purchase_item}
+        )
+      ]
+    end
+  end
+
+  # GET /purchase_items/1/cancel_tracking_number
+  def cancel_tracking_number
+    render turbo_stream: turbo_stream.replace(
+      helpers.dom_id(@purchase_item, :tracking_number),
+      partial: "inline_tracking_show",
+      locals: {purchase_item: @purchase_item}
+    )
+  end
+
+  # PATCH/PUT /purchase_items/1/update_tracking_number
+  def update_tracking_number
+    if @purchase_item.update(tracking_number: params[:purchase_item][:tracking_number])
+      render turbo_stream: turbo_stream.replace(
+        helpers.dom_id(@purchase_item, :tracking_number),
+        partial: "inline_tracking_show",
+        locals: {purchase_item: @purchase_item}
+      )
+    else
+      render turbo_stream: turbo_stream.replace(
+        helpers.dom_id(@purchase_item, :tracking_number),
+        partial: "inline_tracking_edit",
+        locals: {purchase_item: @purchase_item}
+      )
+    end
+  end
+
+  # GET /purchase_items/1/edit_shipping_company
+  def edit_shipping_company
+    render turbo_stream: turbo_stream.replace(
+      helpers.dom_id(@purchase_item, :shipping_company),
+      partial: "inline_shipping_company_edit",
+      locals: {purchase_item: @purchase_item}
+    )
+  end
+
+  # GET /purchase_items/1/cancel_edit_shipping_company
+  def cancel_edit_shipping_company
+    render turbo_stream: turbo_stream.replace(
+      helpers.dom_id(@purchase_item, :shipping_company),
+      partial: "inline_shipping_company_show",
+      locals: {purchase_item: @purchase_item}
+    )
+  end
+
+  # PATCH/PUT /purchase_items/1/update_shipping_company
+  def update_shipping_company
+    if @purchase_item.update(shipping_company_id: params[:purchase_item][:shipping_company_id])
+      render turbo_stream: turbo_stream.replace(
+        helpers.dom_id(@purchase_item, :shipping_company),
+        partial: "inline_shipping_company_show",
+        locals: {purchase_item: @purchase_item}
+      )
+    else
+      render turbo_stream: turbo_stream.replace(
+        helpers.dom_id(@purchase_item, :shipping_company),
+        partial: "inline_shipping_company_edit",
+        locals: {purchase_item: @purchase_item}
+      )
     end
   end
 

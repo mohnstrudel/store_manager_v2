@@ -39,6 +39,14 @@ Rails.application.routes.draw do
       post :move
       post :unlink
     end
+    member do
+      get :edit_tracking_number
+      get :cancel_tracking_number
+      patch :update_tracking_number
+      get :edit_shipping_company
+      get :cancel_edit_shipping_company
+      patch :update_shipping_company
+    end
   end
 
   resources :sale_items
@@ -83,7 +91,5 @@ Rails.application.routes.draw do
 
   resources :payments, only: [:create]
 
-  scope "/admin" do
-    resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands
-  end
+  resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands, :shipping_companies
 end

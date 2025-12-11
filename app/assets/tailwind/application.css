@@ -16,6 +16,9 @@
 /* === Base styles === */
 @layer base {
   /* Global */
+  * {
+    font-optical-sizing: auto;
+  }
   html {
     @apply antialiased scroll-smooth;
   }
@@ -55,7 +58,9 @@
   input[type="submit"],
   input[type="button"],
   button {
-    @apply cursor-pointer font-medium no-underline inline-flex items-center justify-center gap-2 px-2 py-2 rounded-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-150;
+    font-weight: 480;
+    font-stretch: 98%;
+    @apply cursor-pointer no-underline inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-150;
   }
 
   a.link {
@@ -71,7 +76,7 @@
   select,
   .ss-main,
   textarea {
-    @apply appearance-none w-full pl-3 pr-10 py-2 cursor-pointer border-1 border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
+    @apply appearance-none w-full pl-3 pr-10 py-1.5 cursor-pointer border border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
   }
 
   textarea {
@@ -125,15 +130,18 @@
   }
 
   input[type="search"] {
-    @apply w-full rounded-full px-4 py-2 border-gray-300 dark:border-gray-600;
+    @apply w-full rounded-full px-4 py-1.5 border-gray-300 dark:border-gray-600;
   }
 
   /* Tables */
   table {
-    @apply w-full border-collapse table-auto text-left border-b-1 mt-3;
+    @apply w-full border-collapse table-auto text-left border-b mt-3;
   }
   thead {
-    @apply border-b-4 border-gray-100 dark:border-gray-800;
+    @apply shadow-[0_4px_0_0] shadow-gray-100 dark:shadow-gray-800 sticky top-0 backdrop-blur-md bg-white/70 dark:bg-gray-900/70 z-20;
+  }
+  tbody tr:first-child td {
+    @apply pt-4;
   }
   th {
     @apply text-gray-600 dark:text-gray-400 align-bottom font-semibold;
@@ -143,7 +151,7 @@
     @apply p-3;
   }
   tbody tr {
-    @apply border-b-2 border-b-gray-100/60 dark:border-b-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-100 cursor-pointer;
+    @apply border-b-2 border-b-gray-100/60 dark:border-b-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors duration-100 cursor-pointer;
   }
   tbody tr:last-child {
     @apply border-b-transparent;
@@ -155,6 +163,27 @@
   table select:not([multiple], [size]) {
     @apply hover:bg-gray-100 dark:hover:bg-gray-700;
   }
+}
+
+/* === Icon Classes === */
+@layer utilities {
+  .icon-shopify {
+    background-image: url("shopify-icon.svg");
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+
+  .icon-woo {
+    background-image: url("woo-icon.svg");
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+}
+
+.bg-green {
+  @apply bg-lime-200/50 dark:bg-lime-900/50;
 }
 
 /* === Components === */
@@ -199,8 +228,11 @@
   }
 
   /* Buttons */
+  .btn-xs {
+    @apply w-fit text-xs px-1.5! py-1! gap-0.5!;
+  }
   .btn-rounded {
-    @apply rounded-full px-3 border-gray-200 dark:border-gray-600;
+    @apply rounded-full px-2.5 border-gray-200 dark:border-gray-600;
   }
   .btn-red,
   .undo {
@@ -208,6 +240,12 @@
   }
   .undo {
     @apply bg-transparent hover:bg-transparent hover:text-red-400!;
+  }
+  .btn-green {
+    @apply text-lime-700 dark:text-lime-300 bg-lime-200/50 dark:bg-lime-900/50 hover:bg-lime-200/90 dark:hover:bg-lime-900/80;
+  }
+  .btn-amber {
+    @apply text-amber-700 dark:text-amber-300 bg-amber-200/50 dark:bg-amber-900/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/70;
   }
   .icn {
     @apply font-normal font-icn not-italic;
@@ -269,7 +307,8 @@
   }
 
   /* Sections & layout helpers */
-  .section-border-base {
+  .section-border-base,
+  .table-card {
     @apply border border-gray-200/80 dark:border-gray-800 rounded-xl;
   }
   .section-wide {
@@ -282,7 +321,7 @@
     @apply ml-2;
   }
   .search {
-    @apply px-10 pt-8 mb-8 flex justify-between;
+    @apply px-8 pt-7 mb-6 flex justify-between;
   }
   .progress-end {
     @apply bg-lime-600! dark:bg-lime-500!;
@@ -300,9 +339,6 @@
   }
   .card p {
     @apply mb-2 text-lg;
-  }
-  .table-card {
-    @apply border border-gray-200/80 dark:border-gray-700/80 rounded-lg;
   }
   .table-card h3 {
     @apply p-3 pt-4;
@@ -339,6 +375,7 @@
   }
 
   /* Forms: errors */
+  .text-error,
   .field_with_errors label,
   .field_with_errors textarea,
   .field_with_errors input {

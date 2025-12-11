@@ -1,0 +1,37 @@
+= render "_shared/notice"
+
+= render "_shared/nav-show", model: @shipping_company
+
+.section-wide.flex.flex-col.gap-8.mt-8
+  .table-card
+    table
+      thead
+        tr
+          th ID
+          th Name
+          th Tracking URL
+          th Created
+          th Updated
+      tbody
+        = render @shipping_company
+
+  - if @shipping_company.purchase_items.present?
+      .table-cards-group
+        .table-card
+          h3 Purchase Items
+          table data-controller="table"
+            thead
+              th Product
+              th Tracking Number
+              th Purchase Date
+            tbody
+              - @shipping_company.purchase_items.each_with_index do |purchase_item, idx|
+                tr.hoverable(
+                  data-action="click->table#goTo"
+                  data-table-url-param=purchase_item_path(purchase_item)
+                )
+                  td = purchase_item.product.full_title
+                  td = purchase_item.tracking_number
+                  td.no-wrap = time_ago_in_words (purchase_item.purchase&.purchase_date.presence || purchase_item.created_at)
+
+= destroy_btn_for @shipping_company

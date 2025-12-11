@@ -78,4 +78,15 @@ module ApplicationHelper
 
     button_to text, polymorphic_path(record), method: :delete, class: css_class, data: {turbo_confirm: confirm_message}
   end
+
+  def copy_to_clipboard(text:, css: nil)
+    render partial: "_shared/copy_to_clipboard", locals: {text:, css:}
+  end
+
+  def tooltip(text, star_class: nil)
+    content_tag(:span, class: "group relative") do
+      content_tag(:span, "*", class: "text-yellow-600 ml-2 text-2xl/2 #{star_class}") +
+        content_tag(:span, text, class: "cursor-text no-events absolute z-10 top-0 left-0 opacity-0 pointer-events-none transition-opacity duration-150 flex group-hover:opacity-100 group-hover:pointer-events-auto rounded-lg bg-yellow-100 dark:bg-yellow-800 border border-yellow-800/10 pt-4 pr-5 pb-5 pl-3 w-64 text-yellow-800 dark:text-yellow-100 text-sm text-pretty")
+    end
+  end
 end

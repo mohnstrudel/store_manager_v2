@@ -15,11 +15,6 @@ class ShippingCompany < ApplicationRecord
   include HasAuditNotifications
 
   #
-  # == Extensions
-  #
-  # (none)
-
-  #
   # == Configuration
   #
   audited
@@ -38,15 +33,5 @@ class ShippingCompany < ApplicationRecord
   #
   # == Scopes
   #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
+  scope :ordered, -> { order(:name) }
 end
