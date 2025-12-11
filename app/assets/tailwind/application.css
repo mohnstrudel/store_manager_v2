@@ -16,6 +16,9 @@
 /* === Base styles === */
 @layer base {
   /* Global */
+  * {
+    font-optical-sizing: auto;
+  }
   html {
     @apply antialiased scroll-smooth;
   }
@@ -55,7 +58,9 @@
   input[type="submit"],
   input[type="button"],
   button {
-    @apply cursor-pointer font-medium no-underline inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-150;
+    font-weight: 480;
+    font-stretch: 98%;
+    @apply cursor-pointer no-underline inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-150;
   }
 
   a.link {
