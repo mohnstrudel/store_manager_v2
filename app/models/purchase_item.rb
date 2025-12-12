@@ -30,8 +30,13 @@ class PurchaseItem < ApplicationRecord
   #
   audited associated_with: :purchase
   set_search_scope :search,
+    against: [:tracking_number],
     associated_against: {
-      product: [:full_title]
+      product: [:full_title],
+      purchase: [:order_reference],
+      sale: [:shopify_name, :woo_id],
+      customer: [:email, :first_name, :last_name],
+      shipping_company: [:name]
     },
     using: {
       tsearch: {prefix: true}
@@ -52,6 +57,7 @@ class PurchaseItem < ApplicationRecord
 
   belongs_to :sale_item, optional: true, counter_cache: true
   has_one :sale, through: :sale_item
+  has_one :customer, through: :sale
 
   has_one :product, through: :purchase
 
