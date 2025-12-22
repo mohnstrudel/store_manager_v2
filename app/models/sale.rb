@@ -90,8 +90,8 @@ class Sale < ApplicationRecord
     includes(
       :customer,
       sale_items: [
+        {product: {media: {image_attachment: :blob}}},
         :purchase_items,
-        product: [images_attachments: :blob],
         edition: [
           :version,
           :color,
@@ -103,8 +103,8 @@ class Sale < ApplicationRecord
   scope :with_show_details, -> {
     includes(
         sale_items: [
-          purchase_items: [:warehouse, purchase: :supplier],
-          product: [images_attachments: :blob]
+          {product: {media: {image_attachment: :blob}}},
+          purchase_items: [:warehouse, purchase: :supplier]
         ]
       )
   }

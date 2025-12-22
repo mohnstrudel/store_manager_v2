@@ -3,7 +3,6 @@
 # Table name: store_infos
 #
 #  id            :bigint           not null, primary key
-#  price         :decimal(8, 2)    default(0.0), not null
 #  pull_time     :datetime
 #  push_time     :datetime
 #  slug          :string

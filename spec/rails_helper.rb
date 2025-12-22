@@ -64,4 +64,7 @@ RSpec.configure do |config|
   config.include Helpers::SessionManagement, type: :controller
   config.include Helpers::SessionManagement, type: :request
   config.include Helpers::SessionManagement, type: :feature
+
+  # Custom helper for file uploads in feature specs
+  config.include Helpers::FileUpload, type: :feature
 end

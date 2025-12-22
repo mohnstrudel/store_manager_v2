@@ -1,5 +1,6 @@
 class ProductsController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
+  include HandlesMedia
 
   before_action :set_product, only: %i[show edit update destroy]
 
@@ -30,13 +31,14 @@ class ProductsController < ApplicationController
 
   # POST /products or /products.json
   def create
-    @product = Product.new(product_params)
+    @product = Product.new(product_params.except(:new_images))
     @product.build_editions
 
     respond_to do |format|
       if @product.save
-        Shopify::CreateProductJob.perform_later(@product.id)
+        handle_new_images_for(@product)
         handle_new_purchase if purchase_params.present?
+        Shopify::CreateProductJob.perform_later(@product.id)
 
         format.html { redirect_to @product, notice: "Product was successfully created" }
         format.json { render :show, status: :created, location: @product }
@@ -55,7 +57,9 @@ class ProductsController < ApplicationController
     end
 
     respond_to do |format|
-      if @product.update(params_to_update.merge(slug: nil))
+      if @product.update(params_to_update.except(:new_images).merge(slug: nil))
+        handle_new_images_for(@product)
+
         ActiveRecord::Base.transaction do
           @product.assign_attributes(full_title: Product.generate_full_title(@product))
           @product.build_editions
@@ -111,6 +115,7 @@ class ProductsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_product
     @product = Product.includes(
+      media: {image_attachment: :blob},
       purchases: [:product, :supplier, edition: [:version, :color, :size]],
       purchase_items: [:warehouse, :purchase],
       editions: [
@@ -121,7 +126,6 @@ class ProductsController < ApplicationController
         {purchases: :supplier}
       ]
     )
-      .with_attached_images
       .friendly
       .find(params[:id])
   end
@@ -136,11 +140,18 @@ class ProductsController < ApplicationController
       :sku,
       :woo_id,
       :shopify_id,
+      new_images: [],
       brand_ids: [],
       color_ids: [],
       size_ids: [],
       version_ids: [],
-      images: [],
+      media_attributes: [[
+        :id,
+        :alt,
+        :position,
+        :_destroy,
+        :image
+      ]],
       purchases_attributes: [[
         :item_price,
         :amount,

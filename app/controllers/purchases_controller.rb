@@ -10,8 +10,8 @@ class PurchasesController < ApplicationController
       .includes(
         :supplier,
         :payments,
+        {product: {media: {image_attachment: :blob}}},
         purchase_items: [:warehouse],
-        product: [images_attachments: :blob],
         edition: [:color, :size, :version]
       )
       .order(id: :desc)
