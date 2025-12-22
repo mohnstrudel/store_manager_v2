@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_27_115020) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -132,6 +132,28 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.index ["slug", "sluggable_type", "scope"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type_and_scope", unique: true
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
+  end
+
+  create_table "images", force: :cascade do |t|
+    t.string "alt"
+    t.datetime "created_at", null: false
+    t.integer "imageable_id", null: false
+    t.string "imageable_type", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["imageable_type", "imageable_id"], name: "index_images_on_imageable_type_and_imageable_id"
+    t.index ["position"], name: "index_images_on_position"
+  end
+
+  create_table "media", force: :cascade do |t|
+    t.string "alt", default: "", null: false
+    t.datetime "created_at", null: false
+    t.bigint "mediaable_id", null: false
+    t.string "mediaable_type", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["mediaable_type", "mediaable_id"], name: "index_media_on_mediaable_type_and_mediaable_id"
+    t.index ["position"], name: "index_media_on_position"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -347,7 +369,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
 
   create_table "store_infos", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.decimal "price", precision: 8, scale: 2, default: "0.0", null: false
     t.datetime "pull_time", precision: nil
     t.datetime "push_time", precision: nil
     t.string "slug"

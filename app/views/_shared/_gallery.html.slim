@@ -1,17 +1,17 @@
-- if images.present?
-  .flex.shrink-0.w-150.h-150.items-center data-controller="gallery" class="#{"-ml-5" if images.size > 1}"
-    - if images.size > 1
+- attached_media = media.select { |m| m.image.attached? }
+- if attached_media.any?
+  .flex.shrink-0.w-150.h-150.items-center data-controller="gallery" class="#{"-ml-5" if attached_media.size > 1}"
+    - if attached_media.size > 1
       .gallery-nav.flex.flex-col.items-center.gap-4.w-30.h-70.p-4.overflow-y-scroll.overflow-x-hidden
-        - images.each do |img|
-          = render "_shared/preloadable_img", src: url_for(img.representation(:nano)), width: 70, \
-            data: { \
-              id: images.index(img), \
-              preview: url_for(img.representation(:preview)), \
-              "gallery-target": "slide", \
-              action: "click->gallery#select" \
-            }
+        - attached_media.each do |m|
+          - nano_representation = m.image.representation(:nano)
+          - preview_representation = m.image.representation(:preview)
+          = render "_shared/preloadable_img", src: url_for(nano_representation), width: 70,
+              data: {id: attached_media.index(m), preview: url_for(preview_representation), gallery_target: "slide", action: "click->gallery#select"}
     .gallery-viewbox.flex.relative.w-full.h-fit.max-h-full.wrap.items-center.overflow-hidden.rounded-lg.hover:overflow-visible
-      - if images.size > 1
+      - if attached_media.size > 1
         button.gallery-btn.left-0 data-action="gallery#prev" ←
         button.gallery-btn.right-0 data-action="gallery#next" →
-      = render "_shared/preloadable_img", src: images.first.representation(:preview).url, data: {"gallery-target": "main"}
+      - first_media = attached_media.first
+      - main_representation = first_media.image.representation(:preview)
+      = render "_shared/preloadable_img", src: url_for(main_representation), data: {"gallery-target": "main"}

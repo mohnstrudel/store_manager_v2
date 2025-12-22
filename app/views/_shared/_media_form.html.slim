@@ -1,0 +1,28 @@
+fieldset
+  label.mb-2 Images
+
+  - if form.object.media.present?
+    h3.text-sm.font-medium.mb-2 Existing images
+    fieldset.grid.grid-cols-6.gap-4.mb-4
+      = form.fields_for :media, form.object.media.ordered do |media_form|
+        - next if media_form.object.image.blank?
+        div data-controller="form-image image-zoom"
+          .h-64.overflow-hidden.rounded class="bg-gray-400 dark:bg-gray-600 cursor-zoom-in border border-gray-200 dark:border-gray-700" data-action="mouseenter->image-zoom#enableZoom mouseleave->image-zoom#disableZoom mousemove->image-zoom#onMouseMove" data-image-zoom-target="container" data-form-image-target="container"
+            = image_tag media_form.object.image.representation(:preview),
+              class: "shadow-md shadow-gray-500 dark:shadow-gray-700 w-full h-full object-cover object-center transition-all ease-out",
+              data: { image_zoom_target: "image", form_image_target: "image" }
+          = media_form.number_field :position, placeholder: "Position (optional)", class: "mt-3"
+          = media_form.hidden_field :_destroy, value: "0", data: {form_image_target: "hiddenInput"}
+          .grid.grid-cols-2.gap-2.mt-3
+            button.btn-red.btn-rounded.text-xs data-form-image-target="removeButton" data-action="click->form-image#remove" title="Remove"
+              = heroicon "x-circle", variant: "micro"
+              | Remove
+            button.btn-rounded.text-xs data-form-image-target="replaceButton" data-action="click->form-image#replace" title="Replace"
+              = heroicon "arrows-right-left", variant: "micro"
+              span data-form-image-target="replaceLabel" Replace
+          = media_form.file_field :image, accept: "image/*", class: "mt-3 hidden", data: { form_image_target: "fileField" }
+
+  h3.text-sm.font-medium.mb-2 Add new Images
+  .mb-4
+    = form.file_field :new_images, accept: "image/*", multiple: true, class: "file-input", data: { direct_upload: true }
+    p.text-xs.text-gray-500.mt-1 You can select multiple images to upload at once

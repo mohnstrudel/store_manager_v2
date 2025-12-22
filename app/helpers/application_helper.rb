@@ -38,9 +38,12 @@ module ApplicationHelper
   end
 
   def thumb_url(model)
-    if model.images.present?
-      url_for(model.images.first.representation(:thumb))
-    end
+    return if model.media.blank?
+
+    first_media = model.media.min_by(&:position)
+    return unless first_media&.image&.attached?
+
+    url_for(first_media.image.representation(:thumb))
   end
 
   def format_purchased_sold_ratio(purchased, sold)

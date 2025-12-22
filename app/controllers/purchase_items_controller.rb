@@ -1,5 +1,6 @@
 class PurchaseItemsController < ApplicationController
   include WarehouseMovementNotification
+  include HandlesMedia
 
   before_action :set_purchase_item, only: %i[show edit update destroy]
 
@@ -29,9 +30,11 @@ class PurchaseItemsController < ApplicationController
 
   # POST /warehouse_products
   def create
-    @purchase_item = PurchaseItem.new(purchase_item_params)
+    @purchase_item = PurchaseItem.new(purchase_item_params.except(:new_images))
 
     if @purchase_item.save
+      handle_new_images_for(@purchase_item)
+
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
     else
@@ -41,18 +44,14 @@ class PurchaseItemsController < ApplicationController
 
   # PATCH/PUT /purchase_items/1
   def update
-    if params[:deleted_img_ids].present?
-      deleted_imgs = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
-    end
-
     if @purchase_item.update(
-      purchase_item_params.except(:redirect_to_sale_item)
+      purchase_item_params.except(:redirect_to_sale_item, :new_images)
     )
+      handle_new_images_for(@purchase_item)
+
       path = purchase_item_params[:redirect_to_sale_item] ?
         @purchase_item.sale_item :
         @purchase_item
-
-      deleted_imgs&.map(&:purge_later)
 
       redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
     else
@@ -120,7 +119,7 @@ class PurchaseItemsController < ApplicationController
   end
 
   def set_purchase_item
-    @purchase_item = PurchaseItem.with_attached_images.find(params[:id])
+    @purchase_item = PurchaseItem.includes(media: {image_attachment: :blob}).find(params[:id])
   end
 
   def set_data_for_edit
@@ -158,8 +157,14 @@ class PurchaseItemsController < ApplicationController
         :sale_item_id,
         :redirect_to_sale_item,
         :shipping_company_id,
-        deleted_img_ids: [],
-        images: []]
+        new_images: [],
+        media_attributes: [[
+          :id,
+          :alt,
+          :position,
+          :_destroy,
+          :image
+        ]]]
     )
   end
 end

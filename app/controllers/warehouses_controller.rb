@@ -1,23 +1,22 @@
 class WarehousesController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
+  include HandlesMedia
 
   before_action :set_warehouse, only: %i[edit update destroy]
   before_action :validate_default_warehouse, only: %i[create update]
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.all.with_attached_images.includes(:purchase_items, purchases: :payments).order(:position)
+    @warehouses = Warehouse.includes(:purchase_items, purchases: :payments).order(:position)
   end
 
   # GET /warehouses/1
   def show
     @warehouse = Warehouse
-      .with_attached_images
-      .includes(purchases: :payments)
+      .includes(purchases: :payments, media: {image_attachment: :blob})
       .find(params[:id])
     @purchase_items = @warehouse
       .purchase_items
-      .with_attached_images
       .includes(:product, sale: :customer, purchase: :payments)
       .order(updated_at: :desc)
       .page(params[:page])
@@ -38,9 +37,11 @@ class WarehousesController < ApplicationController
 
   # POST /warehouses
   def create
-    @warehouse = Warehouse.new(warehouse_params)
+    @warehouse = Warehouse.new(warehouse_params.except(:new_images))
 
     if @warehouse.save
+      handle_new_images_for(@warehouse)
+
       if @warehouse.is_default?
         Warehouse.ensure_only_one_default(@warehouse.id)
       end
@@ -53,17 +54,13 @@ class WarehousesController < ApplicationController
 
   # PATCH/PUT /warehouses/1
   def update
-    if params[:deleted_img_ids].present?
-      attachments = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
-    end
-
     ActiveRecord::Base.transaction do
       # Handle warehouse transitions separately if that's the only parameter being updated
       if params[:warehouse].present? && params[:warehouse].keys.map(&:to_sym) == [:to_warehouse_ids]
         handle_warehouse_transitions
         redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
-      elsif @warehouse.update(warehouse_params)
-        attachments&.map(&:purge_later)
+      elsif @warehouse.update(warehouse_params.except(:new_images))
+        handle_new_images_for(@warehouse)
 
         if @warehouse.is_default?
           Warehouse.ensure_only_one_default(@warehouse.id)
@@ -117,7 +114,7 @@ class WarehousesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_warehouse
-    @warehouse = Warehouse.with_attached_images.find(params[:id])
+    @warehouse = Warehouse.find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.
@@ -134,8 +131,14 @@ class WarehousesController < ApplicationController
         :is_default,
         :position,
         :to_warehouse_ids,
-        deleted_img_ids: [],
-        images: []]
+        new_images: [],
+        media_attributes: [[
+          :id,
+          :alt,
+          :position,
+          :_destroy,
+          :image
+        ]]]
     )
   end
 

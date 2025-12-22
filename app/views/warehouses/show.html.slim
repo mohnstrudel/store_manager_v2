@@ -15,7 +15,7 @@ header.nav_header
   - if @warehouse.purchase_items.present?
     = render "purchase_items"
   .cards
-    = render "_shared/gallery", images: @warehouse.images
+    = render "_shared/gallery", media: @warehouse.media
     .card.grow
       h5 Name
       p = @warehouse.name

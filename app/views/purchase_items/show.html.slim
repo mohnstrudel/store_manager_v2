@@ -17,7 +17,7 @@ header.nav_header
 
 .section-wide
   .cards
-    = render "_shared/gallery", images: @purchase_item.images
+    = render "_shared/gallery", media: @purchase_item.media
     .card.grow
       h5 Supplier
       p = link_to @purchase_item.purchase.supplier.title, supplier_path(@purchase_item.purchase.supplier), class: "link"

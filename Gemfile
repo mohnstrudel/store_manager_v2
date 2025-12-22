@@ -66,7 +66,7 @@ gem "friendly_id"
 gem "inline_svg"
 gem "mailtrap"
 
-gem "shopify_app"
+gem "shopify_app", "~> 22.x"
 
 gem "audited"
 gem "positioning"

@@ -94,7 +94,7 @@ class Product < ApplicationRecord
   #
   scope :listed, -> {
     includes(editions: [:version, :color, :size])
-      .with_attached_images
+      .with_thumb_media
       .order(created_at: :desc)
   }
 

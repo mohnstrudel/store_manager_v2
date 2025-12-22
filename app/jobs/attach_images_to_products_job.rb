@@ -37,7 +37,7 @@ class AttachImagesToProductsJob < ApplicationJob
 
     filename = File.basename(uri.path)
 
-    return if product.images.any? { |i| i.filename == filename }
+    return if product.media.any? { |i| i.filename == filename }
 
     io = begin
       uri.open
@@ -54,6 +54,7 @@ class AttachImagesToProductsJob < ApplicationJob
 
     return unless io
 
-    product.images.attach(io:, filename:)
+    media = product.media.create
+    media.image.attach(io:, filename:)
   end
 end

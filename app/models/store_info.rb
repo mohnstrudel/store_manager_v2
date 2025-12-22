@@ -3,7 +3,6 @@
 # Table name: store_infos
 #
 #  id            :bigint           not null, primary key
-#  price         :decimal(8, 2)    default(0.0), not null
 #  pull_time     :datetime
 #  push_time     :datetime
 #  slug          :string
@@ -15,6 +14,9 @@
 #  store_id      :string
 #
 class StoreInfo < ApplicationRecord
+  # TODO: Remove after deploy
+  self.ignored_columns += ["price"]
+
   enum :store_name, {
     not_assigned: 0,
     shopify: 1,
