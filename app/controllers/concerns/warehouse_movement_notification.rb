@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module WarehouseMovementNotification
   extend ActiveSupport::Concern
   include ActionView::Helpers::OutputSafetyHelper

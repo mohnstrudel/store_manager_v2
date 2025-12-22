@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::SaleParser
   def initialize(api_item: {})
     @order = api_item

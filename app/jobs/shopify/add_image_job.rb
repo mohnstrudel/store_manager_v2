@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::AddImageJob < ApplicationJob
   def perform(shopify_product_id, product_id)
     product = Product.find(product_id)

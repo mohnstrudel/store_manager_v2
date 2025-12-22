@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::ProductFromTitleCreator
   def initialize(api_title: "")
     @api_title = api_title

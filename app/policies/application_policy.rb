@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class ApplicationPolicy
   attr_reader :user, :record
   delegate :guest?, :admin?, :manager?, :support?, to: :user, allow_nil: true

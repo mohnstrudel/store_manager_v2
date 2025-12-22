@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class FranchisesController < ApplicationController
   before_action :set_franchise, only: %i[show edit update destroy]
 

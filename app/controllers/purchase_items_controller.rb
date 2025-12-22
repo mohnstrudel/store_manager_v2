@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class PurchaseItemsController < ApplicationController
   include WarehouseMovementNotification
   include HandlesMedia

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class ShopifyApiError < StandardError; end
 
 class Shopify::ApiClient

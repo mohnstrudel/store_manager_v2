@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SaleHelper
   def format_sale_status(status)
     status_title = status.titleize

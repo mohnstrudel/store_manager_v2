@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class SaleItemsController < ApplicationController
   before_action :set_sale_item, only: %i[show edit update destroy]
 

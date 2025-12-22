@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class NotificationsMailer < ApplicationMailer
   def product_purchased_email(
     customer_name:,

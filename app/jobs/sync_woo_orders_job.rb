@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class SyncWooOrdersJob < ApplicationJob
   queue_as :default
 
