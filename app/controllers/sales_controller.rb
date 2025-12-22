@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class SalesController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
 

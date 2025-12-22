@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class WarehousesController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
   include HandlesMedia

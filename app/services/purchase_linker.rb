@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class PurchaseLinker
   def self.link(arg)
     new(arg).link

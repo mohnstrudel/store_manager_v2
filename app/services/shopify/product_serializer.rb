@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::ProductSerializer
   def self.serialize(*args)
     new(*args).serialize

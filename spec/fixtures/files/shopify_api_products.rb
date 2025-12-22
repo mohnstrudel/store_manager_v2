@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 [{"id" => "gid://shopify/Product/9575629390153",
   "title" =>
    "Stellar Blade - EVE | 1:4 Resin Statue | von Light and Dust Studio",

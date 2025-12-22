@@ -68,3 +68,7 @@ RSpec/ExampleLength:
   Enabled: false
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we will have duplicated gems when dual booting
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always

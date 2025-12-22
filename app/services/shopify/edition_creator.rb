@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::EditionCreator
   def initialize(product, parsed_edition)
     raise ArgumentError, "Expected a Product" unless product.is_a?(Product)

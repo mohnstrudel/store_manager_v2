@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class PaymentsController < ApplicationController
   def create
     @payment = Payment.create(payment_params)

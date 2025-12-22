@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::ProductCreator
   def initialize(parsed_item: {})
     raise ArgumentError, "parsed_item must be a Hash" unless parsed_item.is_a?(Hash)

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rails_helper"
 
 describe "Warehouse Position Management" do

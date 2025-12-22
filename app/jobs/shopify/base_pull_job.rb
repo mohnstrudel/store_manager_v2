@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::BasePullJob < ApplicationJob
   queue_as :default
   include Sanitizable

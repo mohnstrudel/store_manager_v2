@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class SessionsController < ApplicationController
   before_action :redirect_if_authenticated, only: :new
   allow_unauthenticated_access only: %i[new create]

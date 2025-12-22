@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Helpers
   module SlimSelect
     def slim_select(label, option)

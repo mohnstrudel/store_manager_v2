@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 FactoryBot.define do
   factory(:store_info) do
     association :storable, factory: :product

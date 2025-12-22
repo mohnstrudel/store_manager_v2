@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Shopify::PullImagesJob < ApplicationJob
   queue_as :default
   require "open-uri"
