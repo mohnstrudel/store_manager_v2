@@ -711,7 +711,7 @@ DEPENDENCIES
   dotenv
   factory_bot_rails
   faker (~> 3.2)
-  friendly_id (~> 5.5)
+  friendly_id
   httparty
   image_processing (~> 1.2)
   importmap-rails
