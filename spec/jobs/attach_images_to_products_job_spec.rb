@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe AttachImagesToProductsJob do
@@ -35,16 +36,19 @@ RSpec.describe AttachImagesToProductsJob do
         .and_return(StringIO.new("image data"))
 
       expect { described_class.new.attach_images(product, img_url) }
-        .to change(product.images, :count).by(1)
+        .to change(product.media, :count).by(1)
     end
 
     it "does not attach an image if it is already present" do
-      product.images.attach(io: StringIO.new("image data"), filename: File.basename(URI.parse(img_url).path))
+      product.media.create(image: io_for(img_url))
 
       expect { described_class.new.attach_images(product, img_url) }
-        .not_to change(product.images, :count)
+        .not_to change(product.media, :count)
     end
+  end
 
-    # Add more tests to cover error handling cases
+  def io_for(url)
+    filename = File.basename(URI.parse(url).path)
+    {io: StringIO.new("image data"), filename:}
   end
 end
