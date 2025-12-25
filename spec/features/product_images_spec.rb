@@ -47,7 +47,7 @@ RSpec.describe "Product Image Management" do
 
     # Change position of first image to 2
     within("fieldset", text: "Existing images") do
-      first_input = all("input[name^='product[media_attributes]'][type='number']").first
+      first_input = all("input[name^='product[media]'][type='number']").first
       first_input.set(2)
     end
 
@@ -86,7 +86,7 @@ RSpec.describe "Product Image Management" do
     # Click Replace button and attach new file
     within("fieldset", text: "Existing images") do
       click_button "Replace"
-      attach_file("product[media_attributes][0][image]", replacement_image_path, visible: false)
+      attach_file("product[media][0][image]", replacement_image_path, visible: false)
     end
 
     click_button "Update Product"
@@ -116,12 +116,12 @@ RSpec.describe "Product Image Management" do
     # Replace second image
     within("fieldset", text: "Existing images") do
       all("button[data-form-image-target='replaceButton']").first.click
-      attach_file("product[media_attributes][1][image]", replacement_image_path, visible: false)
+      attach_file("product[media][1][image]", replacement_image_path, visible: false)
     end
 
     # Change position of remaining image
     within("fieldset", text: "Existing images") do
-      first("input[name^='product[media_attributes]'][type='number']").set(5)
+      first("input[name^='product[media]'][type='number']").set(5)
     end
 
     click_button "Update Product"

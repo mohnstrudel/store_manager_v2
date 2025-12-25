@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class WarehousesController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
   include HandlesMedia
@@ -38,7 +39,7 @@ class WarehousesController < ApplicationController
 
   # POST /warehouses
   def create
-    @warehouse = Warehouse.new(warehouse_params.except(:new_images))
+    @warehouse = Warehouse.new(warehouse_params)
 
     if @warehouse.save
       handle_new_images_for(@warehouse)
@@ -60,7 +61,8 @@ class WarehousesController < ApplicationController
       if params[:warehouse].present? && params[:warehouse].keys.map(&:to_sym) == [:to_warehouse_ids]
         handle_warehouse_transitions
         redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
-      elsif @warehouse.update(warehouse_params.except(:new_images))
+      elsif @warehouse.update(warehouse_params)
+        handle_media_for(@warehouse)
         handle_new_images_for(@warehouse)
 
         if @warehouse.is_default?
@@ -71,9 +73,11 @@ class WarehousesController < ApplicationController
 
         redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
       else
-        render :edit, status: :unprocessable_content
+        raise ActiveRecord::RecordInvalid
       end
     end
+  rescue ActiveRecord::RecordInvalid
+    render :edit, status: :unprocessable_content
   end
 
   # DELETE /warehouses/1
@@ -131,15 +135,7 @@ class WarehousesController < ApplicationController
         :name,
         :is_default,
         :position,
-        :to_warehouse_ids,
-        new_images: [],
-        media_attributes: [[
-          :id,
-          :alt,
-          :position,
-          :_destroy,
-          :image
-        ]]]
+        :to_warehouse_ids]
     )
   end
 

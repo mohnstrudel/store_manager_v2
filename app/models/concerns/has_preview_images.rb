@@ -1,10 +1,10 @@
 # frozen_string_literal: true
+
 module HasPreviewImages
   extend ActiveSupport::Concern
 
   included do
     has_many :media, as: :mediaable, dependent: :destroy, inverse_of: :mediaable, class_name: "Media"
-    accepts_nested_attributes_for :media, allow_destroy: true, reject_if: :all_blank
 
     def prev_image_id(img_id)
       (media.where(id: ...img_id).ordered.last || media.ordered.last).id

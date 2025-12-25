@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class PurchaseItemsController < ApplicationController
   include WarehouseMovementNotification
   include HandlesMedia
@@ -31,7 +32,7 @@ class PurchaseItemsController < ApplicationController
 
   # POST /warehouse_products
   def create
-    @purchase_item = PurchaseItem.new(purchase_item_params.except(:new_images))
+    @purchase_item = PurchaseItem.new(purchase_item_params)
 
     if @purchase_item.save
       handle_new_images_for(@purchase_item)
@@ -46,8 +47,9 @@ class PurchaseItemsController < ApplicationController
   # PATCH/PUT /purchase_items/1
   def update
     if @purchase_item.update(
-      purchase_item_params.except(:redirect_to_sale_item, :new_images)
+      purchase_item_params.except(:redirect_to_sale_item)
     )
+      handle_media_for(@purchase_item)
       handle_new_images_for(@purchase_item)
 
       path = purchase_item_params[:redirect_to_sale_item] ?
@@ -242,15 +244,7 @@ class PurchaseItemsController < ApplicationController
         :purchase_id,
         :sale_item_id,
         :redirect_to_sale_item,
-        :shipping_company_id,
-        new_images: [],
-        media_attributes: [[
-          :id,
-          :alt,
-          :position,
-          :_destroy,
-          :image
-        ]]]
+        :shipping_company_id]
     )
   end
 end

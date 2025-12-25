@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class ProductsController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
   include HandlesMedia
@@ -32,47 +33,46 @@ class ProductsController < ApplicationController
 
   # POST /products or /products.json
   def create
-    @product = Product.new(product_params.except(:new_images))
+    @product = Product.new(product_params)
     @product.build_editions
 
     respond_to do |format|
-      if @product.save
+      ActiveRecord::Base.transaction do
+        @product.save!
         handle_new_images_for(@product)
         handle_new_purchase if purchase_params.present?
         Shopify::CreateProductJob.perform_later(@product.id)
-
-        format.html { redirect_to @product, notice: "Product was successfully created" }
-        format.json { render :show, status: :created, location: @product }
-      else
-        format.html { render :new, status: :unprocessable_content }
-        format.json { render json: @product.errors, status: :unprocessable_content }
       end
+
+      format.html { redirect_to @product, notice: "Product was successfully created" }
+      format.json { render :show, status: :created, location: @product }
+    rescue ActiveRecord::RecordInvalid
+      format.html { render :new, status: :unprocessable_content }
+      format.json { render json: @product.errors, status: :unprocessable_content }
     end
   end
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
     params_to_update = product_params.to_h
-    if params_to_update[:sku].blank?
-      params_to_update[:sku] = params_to_update[:title].parameterize
-    end
+    params_to_update[:sku] ||= params_to_update[:title].parameterize
 
     respond_to do |format|
-      if @product.update(params_to_update.except(:new_images).merge(slug: nil))
+      ActiveRecord::Base.transaction do
+        @product.update(params_to_update.merge(slug: nil))
+        handle_media_for(@product)
         handle_new_images_for(@product)
 
-        ActiveRecord::Base.transaction do
-          @product.assign_attributes(full_title: Product.generate_full_title(@product))
-          @product.build_editions
-          @product.save
-        end
-
-        format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
-        format.json { render :show, status: :ok, location: @product }
-      else
-        format.html { render :edit, status: :unprocessable_content }
-        format.json { render json: @product.errors, status: :unprocessable_content }
+        @product.assign_attributes(full_title: Product.generate_full_title(@product))
+        @product.build_editions
+        @product.save
       end
+
+      format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
+      format.json { render :show, status: :ok, location: @product }
+    rescue ActiveRecord::RecordInvalid
+      format.html { render :edit, status: :unprocessable_content }
+      format.json { render json: @product.errors, status: :unprocessable_content }
     end
   end
 
@@ -141,18 +141,10 @@ class ProductsController < ApplicationController
       :sku,
       :woo_id,
       :shopify_id,
-      new_images: [],
       brand_ids: [],
       color_ids: [],
       size_ids: [],
       version_ids: [],
-      media_attributes: [[
-        :id,
-        :alt,
-        :position,
-        :_destroy,
-        :image
-      ]],
       purchases_attributes: [[
         :item_price,
         :amount,
