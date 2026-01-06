@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: store_infos
@@ -15,7 +16,7 @@
 #  store_id      :string
 #
 class StoreInfo < ApplicationRecord
-  # TODO: Remove after deploy
+  # TODO: Remove after deploy 99
   self.ignored_columns += ["price"]
 
   enum :store_name, {
@@ -28,12 +29,41 @@ class StoreInfo < ApplicationRecord
 
   validates_db_uniqueness_of :store_name, scope: [:storable_type, :storable_id]
 
+  def shopify?
+    store_name == :shopify
+  end
+
+  def woo?
+    store_name == :woo
+  end
+
   def page_url_for(store_name)
     case store_name
     when :shopify
       "https://handsomecake.com/products/#{slug}"
     when :woo
       "https://store.handsomecake.com/product/#{slug}"
+    end
+  end
+
+  # Get store ID in short format (without GID prefix)
+  def id_short
+    return if store_id.blank?
+
+    shopify_api_category_name = external_name_for(storable_type)
+    store_id.gsub("gid://shopify/#{shopify_api_category_name}/", "")
+  end
+
+  private
+
+  def external_name_for(our_name)
+    case our_name
+    when "Sale"
+      "Order"
+    when "Edition"
+      "ProductVariant"
+    else
+      our_name
     end
   end
 end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::SaleCreator
   class OrderProcessingError < StandardError; end
 
@@ -44,14 +45,23 @@ class Shopify::SaleCreator
   def update_or_create_with!(class_name)
     record = record_for(class_name)
     record.update!(parsed_data_for(class_name))
+    update_store_info!(record, class_name)
     record
   end
 
   def record_for(class_name)
     klass = class_name.camelize.constantize
-    klass.find_by(
-      shopify_id: @parsed_order[class_name.to_sym][:shopify_id]
+    klass.find_by_shopify_id(
+      @parsed_order[class_name.to_sym][:shopify_id]
     ) || klass.new
+  end
+
+  def update_store_info!(record, class_name)
+    shopify_id = @parsed_order[class_name.to_sym][:shopify_id]
+    return if shopify_id.blank?
+
+    store_info = record.shopify_info
+    store_info.update!(store_id: shopify_id)
   end
 
   def parsed_data_for(class_name)
@@ -83,16 +93,15 @@ class Shopify::SaleCreator
         )
       end
 
-      sale_item = SaleItem.find_or_initialize_by(
-        shopify_id: parsed_ps[:shopify_id]
-      )
+      sale_item = SaleItem.find_by(shopify_id: parsed_ps[:shopify_id]) || SaleItem.new
 
       sale_item.assign_attributes(
         price: parsed_ps[:price],
         qty: parsed_ps[:qty],
         product:,
         edition:,
-        sale: @sale
+        sale: @sale,
+        shopify_id: parsed_ps[:shopify_id]
       )
 
       sale_item.save!
@@ -118,7 +127,7 @@ class Shopify::SaleCreator
   end
 
   def find_or_create_product!(shopify_product_id, parsed_product)
-    Product.find_by(shopify_id: shopify_product_id) ||
+    Product.find_by_shopify_id(shopify_product_id) ||
       Shopify::ProductCreator
         .new(parsed_item: parsed_product)
         .update_or_create!
@@ -140,16 +149,14 @@ class Shopify::SaleCreator
   end
 
   def find_or_create_edition!(shopify_edition_id, parsed_editions, product)
-    existing_edition = Edition.find_by(
-      shopify_id: shopify_edition_id
-    )
+    existing_edition = Edition.find_by_shopify_id(shopify_edition_id)
     return existing_edition if existing_edition
 
     if parsed_editions
       editions = parsed_editions.map do |parsed_edition|
         Shopify::EditionCreator.new(product, parsed_edition).update_or_create!
       end
-      editions.compact_blank.find { |edition| edition.shopify_id == shopify_edition_id }
+      editions.compact_blank.find { |edition| edition.shopify_info.store_id == shopify_edition_id }
     end
   end
 

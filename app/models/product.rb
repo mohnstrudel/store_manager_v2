@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: products
@@ -87,8 +88,6 @@ class Product < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :purchase_items, through: :purchases
   accepts_nested_attributes_for :purchases
-
-  has_many :store_infos, as: :storable, dependent: :destroy
 
   #
   # == Scopes

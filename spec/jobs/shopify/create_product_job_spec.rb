@@ -103,7 +103,7 @@ RSpec.describe Shopify::CreateProductJob do
     end
 
     context "when store info already exists" do
-      let!(:existing_store_info) { create(:store_info, :shopify, storable: product) }
+      let!(:existing_store_info) { product.shopify_info }
 
       it "updates existing store info with product ID" do
         described_class.perform_now(product_id)

@@ -215,12 +215,13 @@ RSpec.describe Shopify::SaleCreator do
 
     context "when customer already exists" do
       let!(:existing_customer) do
-        create(:customer,
-          shopify_id: valid_parsed_order[:customer][:shopify_id],
+        customer = create(:customer,
           email: "old_email@example.com",
           first_name: "OldFirstName",
           last_name: "OldLastName",
           phone: "1234567890")
+        customer.shopify_info.update(store_id: valid_parsed_order[:customer][:shopify_id])
+        customer
       end
 
       it "updates existing customer with new data" do # rubocop:todo RSpec/MultipleExpectations
@@ -277,29 +278,29 @@ RSpec.describe Shopify::SaleCreator do
     end
 
     context "when linking purchased products" do
-      let(:sale) { create(:sale) }
       let(:product) { create(:product) }
       let(:purchase) { create(:purchase, product: product, amount: 3) }
       let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase) }
-      let!(:sale_item) { create(:sale_item, sale: sale, product: product, qty: 2) } # rubocop:todo RSpec/LetSetup
+      let!(:existing_sale) do
+        sale = create(:sale, shopify_id: valid_parsed_order[:sale][:shopify_id])
+        sale.shopify_info.update(store_id: valid_parsed_order[:sale][:shopify_id])
+        sale
+      end
+      let!(:sale_item) { create(:sale_item, sale: existing_sale, product: product, qty: 2) } # rubocop:todo RSpec/LetSetup
 
-      it "links purchased products to the sale" do
-        allow(Sale).to receive(:find_by).and_return(sale)
-        allow(sale).to receive(:link_with_purchase_items).and_return(purchase_items.map(&:id))
+      it "links purchased products to the sale" do # rubocop:todo RSpec/MultipleExpectations
+        expect { creator.update_or_create! }.not_to change(Sale, :count)
 
-        creator.update_or_create!
-
-        expect(sale).to have_received(:link_with_purchase_items)
+        # Reload the sale and check that purchase_items were linked
+        existing_sale.reload
+        expect(existing_sale.sale_items.first.purchase_items.count).to eq(2)
       end
 
       it "notifies customers about linked products" do # rubocop:todo RSpec/MultipleExpectations
-        allow(Sale).to receive(:find_by).and_return(sale)
-        allow(sale).to receive(:link_with_purchase_items).and_return(purchase_items.map(&:id))
-
         notifier = instance_double(PurchasedNotifier)
         # rubocop:todo RSpec/StubbedMock
         # rubocop:todo RSpec/MessageSpies
-        expect(PurchasedNotifier).to receive(:new).with(purchase_item_ids: purchase_items.map(&:id)).and_return(notifier)
+        expect(PurchasedNotifier).to receive(:new).with(purchase_item_ids: purchase_items.first(2).map(&:id)).and_return(notifier)
         # rubocop:enable RSpec/MessageSpies
         # rubocop:enable RSpec/StubbedMock
         expect(notifier).to receive(:handle_product_purchase) # rubocop:todo RSpec/MessageSpies

@@ -2,6 +2,8 @@ require "sidekiq/web"
 require "sidekiq-status/web"
 
 Rails.application.routes.draw do
+  get "up", to: "rails/health#show", as: :rails_health_chec
+
   root "dashboard#index"
 
   # For monitoring db health

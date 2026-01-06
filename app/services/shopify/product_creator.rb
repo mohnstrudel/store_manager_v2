@@ -20,7 +20,7 @@ class Shopify::ProductCreator
     )
     Shopify::PullMediaJob.perform_later(
       @product,
-      @parsed_product[:images]
+      @parsed_product[:media]
     )
 
     @product

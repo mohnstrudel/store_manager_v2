@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: editions
@@ -42,7 +43,6 @@ class Edition < ApplicationRecord
 
   has_many :sale_items, dependent: :destroy
   has_many :purchases, dependent: :destroy
-  has_many :store_infos, as: :storable, dependent: :destroy
 
   #
   # == Scopes
@@ -87,7 +87,9 @@ class Edition < ApplicationRecord
     [size, version, color].compact.map { |i| "#{i.model_name.name}: #{i.value}" }.join(", ")
   end
 
+  # Price tracking has been removed from StoreInfo
+  # This method returns 0.0 for backwards compatibility
   def price
-    store_infos.find_by(store_name: :shopify)&.price || 0.0
+    0.0
   end
 end

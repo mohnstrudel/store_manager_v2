@@ -270,7 +270,7 @@ RSpec.describe SalesController, type: :controller do
 
   describe "POST #pull" do
     context "with sale_id parameter" do
-      let(:sale) { create(:sale, woo_id: "123") }
+      let(:sale) { create(:sale) }
 
       it "triggers SyncWooOrdersJob for sale with woo_id" do
         allow(SyncWooOrdersJob).to receive_message_chain(:set, :perform_later).with(id: sale.woo_id)
@@ -282,7 +282,6 @@ RSpec.describe SalesController, type: :controller do
       end
 
       it "triggers Shopify::PullSaleJob for sale with shopify_id" do
-        sale.update!(shopify_id: "456")
         allow(SyncWooOrdersJob).to receive(:perform_later)
         allow(Shopify::PullSaleJob).to receive(:perform_later).with(sale.shopify_id)
 

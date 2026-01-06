@@ -1,26 +1,41 @@
 # frozen_string_literal: true
+
 module Shopable
   extend ActiveSupport::Concern
 
   included do
-    def shop_id
-      woo_id.presence || shopify_id_short.presence
+    has_many :store_infos, as: :storable, dependent: :destroy
+  end
+
+  class_methods do
+    def find_by_shopify_id(store_id)
+      find_by_store_info(:shopify, store_id)
     end
 
-    def shopify_id_short
-      shopify_api_category_name = external_name_for(self.class.name)
-      shopify_id&.gsub("gid://shopify/#{shopify_api_category_name}/", "")
+    def find_by_woo_id(store_id)
+      find_by_store_info(:woo, store_id)
+    end
+
+    private
+
+    def find_by_store_info(store_name, store_id)
+      return if store_id.blank?
+
+      store_info = StoreInfo.find_by(store_name: store_name, store_id: store_id, storable_type: name)
+
+      store_info&.storable
     end
   end
 
-  def external_name_for(our_name)
-    case our_name
-    when "Sale"
-      "Order"
-    when "Edition"
-      "ProductVariant"
-    else
-      our_name
-    end
+  def shopify_info
+    store_infos.find_or_create_by(store_name: :shopify)
+  end
+
+  def woo_info
+    store_infos.find_or_create_by(store_name: :woo)
+  end
+
+  def shop_id
+    shopify_info.store_id.presence || woo_info.store_id.presence
   end
 end

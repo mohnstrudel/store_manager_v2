@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class SuperviseSalesWebhookJob < ApplicationJob
   queue_as :default
 
@@ -12,7 +13,7 @@ class SuperviseSalesWebhookJob < ApplicationJob
     end
     woo_id = latest_order[:id]
 
-    if Sale.find_by(woo_id:).blank?
+    if Sale.find_by_woo_id(woo_id).blank?
       Config.disable_sales_hook
     end
   end

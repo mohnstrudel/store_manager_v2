@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_27_115020) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_06_102832) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -377,8 +377,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_27_115020) do
     t.string "store_id"
     t.integer "store_name", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.index ["storable_type", "storable_id", "store_name"], name: "index_store_infos_on_storable_and_store_name", unique: true
     t.index ["storable_type", "storable_id"], name: "index_store_infos_on_storable"
     t.index ["store_name", "storable_type", "storable_id"], name: "index_store_infos_on_unique_store_per_storable", unique: true
+    t.index ["store_name", "store_id"], name: "index_store_infos_on_store_name_and_store_id"
   end
 
   create_table "suppliers", force: :cascade do |t|

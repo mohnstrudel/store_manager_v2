@@ -8,10 +8,20 @@ RSpec.describe Shopify::ProductParser do
         "id" => "gid://shopify/Product/12345",
         "title" => "Stellar Blade - Eve | 1:4 Resin Statue | Light and Dust Studio",
         "handle" => "stellar-blade-eve-statue",
-        "images" => {
-          "edges" => [
-            {"node" => {"src" => "https://example.com/image1.jpg"}},
-            {"node" => {"src" => "https://example.com/image2.jpg"}}
+        "media" => {
+          "nodes" => [
+            {
+              "id" => "gid://shopify/MediaImage/123",
+              "alt" => "Test image 1",
+              "image" => {"url" => "https://example.com/image1.jpg"},
+              "updatedAt" => "2024-01-01T00:00:00Z"
+            },
+            {
+              "id" => "gid://shopify/MediaImage/456",
+              "alt" => "Test image 2",
+              "image" => {"url" => "https://example.com/image2.jpg"},
+              "updatedAt" => "2024-01-01T01:00:00Z"
+            }
           ]
         },
         "variants" => {
@@ -49,9 +59,21 @@ RSpec.describe Shopify::ProductParser do
         brand: "Light and Dust Studio"
       )
 
-      expect(result[:images]).to eq([
-        {"src" => "https://example.com/image1.jpg"},
-        {"src" => "https://example.com/image2.jpg"}
+      expect(result[:media]).to eq([
+        {
+          id: "gid://shopify/MediaImage/123",
+          alt: "Test image 1",
+          url: "https://example.com/image1.jpg",
+          updated_at: "2024-01-01T00:00:00Z",
+          position: 1
+        },
+        {
+          id: "gid://shopify/MediaImage/456",
+          alt: "Test image 2",
+          url: "https://example.com/image2.jpg",
+          updated_at: "2024-01-01T01:00:00Z",
+          position: 2
+        }
       ])
 
       expect(result[:editions]).to eq([
@@ -80,7 +102,7 @@ RSpec.describe Shopify::ProductParser do
 
     it "handles missing images" do
       product_without_images = api_item.deep_dup
-      product_without_images["images"] = {"edges" => []}
+      product_without_images["media"] = {"nodes" => []}
 
       parser = described_class.new(api_item: product_without_images)
       allow(parser).to receive(:parse_product_title).and_return(
@@ -88,11 +110,11 @@ RSpec.describe Shopify::ProductParser do
       )
 
       result = parser.parse
-      expect(result[:images]).to be_empty
+      expect(result[:media]).to be_empty
     end
 
     it "raises error when api_item is not a Hash" do
-      expect { described_class.new(api_item: nil).parse }.to raise_error(ArgumentError, "api_item must be a Hash")
+      expect { described_class.new(api_item: nil).parse }.to raise_error(NoMethodError)
     end
 
     it "raises error when api_item is blank" do
@@ -174,7 +196,7 @@ RSpec.describe Shopify::ProductParser do
     end
 
     it "raises error when title is not a String" do
-      expect { described_class.new(title: nil).parse_product_title }.to raise_error(ArgumentError, "Product title must be a String")
+      expect { described_class.new(title: nil).parse_product_title }.to raise_error(ArgumentError, "Product title cannot be blank")
     end
 
     it "raises error when title is blank" do

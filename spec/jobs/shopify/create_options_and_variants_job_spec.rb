@@ -308,6 +308,8 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       before do
         product_size
         product.editions << unmatched_edition
+        # Remove the shopify store_info that the factory creates
+        unmatched_edition.store_infos.where(store_name: :shopify).destroy_all
         allow(api_client).to receive(:create_product_options).and_return(variant_response)
       end
 
@@ -330,7 +332,8 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
 
     context "when store info already exists for options" do
       let!(:existing_size_store_info) do
-        create(:store_info, :shopify, storable: product_size, store_id: "old_id")
+        product_size.store_infos.find_or_create_by(store_name: :shopify).update!(store_id: "old_id")
+        product_size.store_infos.find_by(store_name: :shopify)
       end
 
       let(:size_only_options) do
@@ -377,7 +380,8 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
 
     context "when store info already exists for editions" do
       let!(:existing_edition_store_info) do
-        create(:store_info, :shopify, storable: edition, store_id: "old_variant_id")
+        edition.shopify_info.update(store_id: "old_variant_id")
+        edition.shopify_info
       end
 
       before do

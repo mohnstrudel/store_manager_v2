@@ -190,6 +190,12 @@ RSpec.describe "Shopify Job Integration" do
 
     context "when first job succeeds but second job fails" do
       before do
+        # Remove factory-created shopify store_infos for options and edition
+        product_size.store_infos.where(store_name: :shopify).destroy_all
+        product_version.store_infos.where(store_name: :shopify).destroy_all
+        product_color.store_infos.where(store_name: :shopify).destroy_all
+        edition.store_infos.where(store_name: :shopify).destroy_all
+
         # Setup first job to succeed
         api_client = instance_spy(Shopify::ApiClient)
         allow(Shopify::ApiClient).to receive(:new).and_return(api_client)

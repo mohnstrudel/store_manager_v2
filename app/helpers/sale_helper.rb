@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module SaleHelper
   def format_sale_status(status)
     status_title = status.titleize
@@ -11,23 +12,23 @@ module SaleHelper
   end
 
   def sale_shop_link(sale)
-    if sale.shopify_id.present?
-      "https://admin.shopify.com/store/68d8f5-af/orders/#{sale.shopify_id_short}"
+    if sale.shopify_info.store_id.present?
+      "https://admin.shopify.com/store/68d8f5-af/orders/#{sale.shopify_info.id_short}"
     else
-      "https://store.handsomecake.com/wp-admin/post.php?post=#{sale.woo_id}&action=edit"
+      "https://store.handsomecake.com/wp-admin/post.php?post=#{sale.woo_info.store_id}&action=edit"
     end
   end
 
   def customer_shop_link(customer)
-    if customer.shopify_id.present?
-      "https://admin.shopify.com/store/68d8f5-af/customers/#{customer.shopify_id_short}"
+    if customer.shopify_info.store_id.present?
+      "https://admin.shopify.com/store/68d8f5-af/customers/#{customer.shopify_info.id_short}"
     else
-      "https://store.handsomecake.com/wp-admin/user-edit.php?user_id=#{customer.woo_id}"
+      "https://store.handsomecake.com/wp-admin/user-edit.php?user_id=#{customer.woo_info.store_id}"
     end
   end
 
   def shop_admin_link(sale, small = false)
-    platform = sale.shopify_id.present? ? "Shopify" : "WooCommerce"
+    platform = sale.shopify_info.store_id.present? ? "Shopify" : "WooCommerce"
     link_to sale_shop_link(sale), class: small ? "text-sm p-1 px-2 no-events" : "no-events", target: "_blank", rel: "noopener noreferrer" do
       concat tag.svg(
         xmlns: "http://www.w3.org/2000/svg",

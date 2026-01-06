@@ -6,7 +6,7 @@ RSpec.describe SuperviseSalesWebhookJob do
     described_class.new
   }
   let(:sale) {
-    create(:sale, woo_id: 123, status: Sale.active_status_names.first)
+    create(:sale, woo_id: "123", status: Sale.active_status_names.first)
   }
 
   it "does nothing if the webhook is disabled" do

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: editions
@@ -63,27 +64,9 @@ RSpec.describe Edition do
   end
 
   describe "price" do
-    it "returns the price from Shopify StoreInfo" do
-      edition = create(:edition)
-      create(:store_info, :shopify, storable: edition, price: 19.99)
-      expect(edition.price).to eq(19.99)
-    end
-
-    it "returns 0.0 when no Shopify StoreInfo exists" do
+    it "returns 0.0 since price tracking was removed from StoreInfo" do
       edition = create(:edition)
       expect(edition.price).to eq(0.0)
-    end
-
-    it "handles integer prices" do
-      edition = create(:edition)
-      create(:store_info, :shopify, storable: edition, price: 25)
-      expect(edition.price).to eq(25.0)
-    end
-
-    it "handles decimal precision correctly" do
-      edition = create(:edition)
-      create(:store_info, :shopify, storable: edition, price: 123.456)
-      expect(edition.price).to eq(123.46)
     end
   end
 

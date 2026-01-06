@@ -47,7 +47,9 @@ RSpec.describe SyncWooEditionsJob do
         job.create(parsed_editions)
 
         pre_parsed_editions.each do |edition|
-          expect(Edition.find_by(woo_id: edition[:woo_id]).types_size).to eq(edition[:options].size)
+          found_edition = Edition.find_by_woo_id(edition[:woo_id])
+          expect(found_edition).not_to be_nil
+          expect(found_edition.types_size).to eq(edition[:options].size)
         end
       end
 
@@ -55,7 +57,9 @@ RSpec.describe SyncWooEditionsJob do
         job.create(parsed_editions)
 
         pre_parsed_editions.each do |edition|
-          expect(Edition.find_by(woo_id: edition[:woo_id]).title).to eq(edition[:options].flatten.pluck(:value).sort.join(" | "))
+          found_edition = Edition.find_by_woo_id(edition[:woo_id])
+          expect(found_edition).not_to be_nil
+          expect(found_edition.title).to eq(edition[:options].flatten.pluck(:value).sort.join(" | "))
         end
       end
     end

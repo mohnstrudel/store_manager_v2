@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class SyncPurchasesJob < ApplicationJob
   queue_as :default
 
@@ -128,7 +129,7 @@ class SyncPurchasesJob < ApplicationJob
     woo_product_id = nil if woo_product_id.to_s != parsed_woo_product_id.to_s
 
     product = if woo_product_id
-      Product.find_by(woo_id: woo_product_id).presence ||
+      Product.find_by_woo_id(woo_product_id).presence ||
         PRODUCTS_JOB.get_and_create_product(woo_product_id)
     else
       brand_title = Brand.parse_brand(product_name)
@@ -176,9 +177,9 @@ class SyncPurchasesJob < ApplicationJob
     parsed_version
   )
     if woo_edition_id
-      Edition.find_by(woo_id: woo_edition_id).presence ||
+      Edition.find_by_woo_id(woo_edition_id).presence ||
         (SyncWooEditionsJob.perform_now([woo_product_id]) &&
-          Edition.find_by(woo_id: woo_edition_id))
+          Edition.find_by_woo_id(woo_edition_id))
     else
       return if parsed_version.blank?
 

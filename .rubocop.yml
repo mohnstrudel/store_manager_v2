@@ -32,6 +32,10 @@ Rails/UnknownEnv:
     - test
     - production
     - staging
+Rails/DynamicFindBy:
+  Whitelist:
+    - find_by_shopify_id
+    - find_by_woo_id
 Layout/ClassStructure:
   Enabled: true
   ExpectedOrder:

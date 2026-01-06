@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class SyncWooEditionsJob < ApplicationJob
   queue_as :default
 
@@ -82,7 +83,7 @@ class SyncWooEditionsJob < ApplicationJob
       {type_name => type_instance}
     end
 
-    edition = Edition.find_or_initialize_by(woo_id: edition_woo_id)
+    edition = Edition.find_by_woo_id(edition_woo_id) || Edition.new
 
     edition.assign_attributes({
       product:,

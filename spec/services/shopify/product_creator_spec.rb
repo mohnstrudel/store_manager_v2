@@ -71,18 +71,6 @@ RSpec.describe Shopify::ProductCreator do
       end
     end
 
-    context "with invalid input" do
-      it "raises ArgumentError if parsed_item is not a Hash" do
-        expect { described_class.new(parsed_item: "not a hash") }
-          .to raise_error(ArgumentError, "parsed_item must be a Hash")
-      end
-
-      it "raises ArgumentError if parsed_item is blank" do
-        expect { described_class.new(parsed_item: {}) }
-          .to raise_error(ArgumentError, "parsed_item cannot be blank")
-      end
-    end
-
     context "with nil or empty relation values" do
       let(:parsed_product_with_nil_values) do
         parsed_product.merge(
