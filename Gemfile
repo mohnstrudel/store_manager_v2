@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
@@ -66,7 +68,7 @@ gem "friendly_id"
 gem "inline_svg"
 gem "mailtrap"
 
-gem "shopify_app", "~> 22.x"
+gem "shopify_app"
 
 gem "audited"
 gem "positioning"
@@ -140,4 +142,6 @@ group :test do
   gem "pundit-matchers"
   gem "shoulda-matchers"
   gem "rails-controller-testing"
+  gem "vcr"
+  gem "simplecov", require: false
 end
