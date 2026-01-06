@@ -1,10 +1,9 @@
 # frozen_string_literal: true
+
 class Shopify::ProductParser
   include Sanitizable
 
   def initialize(api_item: {}, title: "")
-    raise ArgumentError, "api_item must be a Hash" unless api_item.is_a?(Hash)
-    raise ArgumentError, "Product title must be a String" unless title.is_a?(String)
     @product = api_item
     @title = title.presence || @product["title"]
   end
@@ -22,6 +21,16 @@ class Shopify::ProductParser
       }
     end
 
+    media = @product["media"]["nodes"].map.with_index do |node, index|
+      {
+        id: node["id"],
+        alt: node["alt"],
+        url: node["image"]["url"],
+        updated_at: node["updatedAt"],
+        position: index + 1
+      }
+    end
+
     {
       shopify_id: @product["id"],
       store_link: @product["handle"],
@@ -30,7 +39,7 @@ class Shopify::ProductParser
       franchise:,
       size:,
       brand:,
-      images: @product["images"]["edges"].pluck("node"),
+      media:,
       editions:
     }
   end

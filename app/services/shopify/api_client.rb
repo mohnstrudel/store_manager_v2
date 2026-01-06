@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class ShopifyApiError < StandardError; end
 
 class Shopify::ApiClient
@@ -6,10 +7,15 @@ class Shopify::ApiClient
     id
     title
     handle
-    images(first: 10) {
-      edges {
-        node {
-          src
+    media(first: 20) {
+      nodes {
+        ... on MediaImage {
+          id
+          alt
+          updatedAt
+          image {
+            url
+          }
         }
       }
     }
