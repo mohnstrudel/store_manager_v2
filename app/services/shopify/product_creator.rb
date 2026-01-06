@@ -1,9 +1,7 @@
 # frozen_string_literal: true
+
 class Shopify::ProductCreator
   def initialize(parsed_item: {})
-    raise ArgumentError, "parsed_item must be a Hash" unless parsed_item.is_a?(Hash)
-    raise ArgumentError, "parsed_item cannot be blank" if parsed_item.blank?
-
     @parsed_product = parsed_item
   end
 
@@ -20,7 +18,7 @@ class Shopify::ProductCreator
       @product,
       @parsed_product[:editions]
     )
-    Shopify::PullImagesJob.perform_later(
+    Shopify::PullMediaJob.perform_later(
       @product,
       @parsed_product[:images]
     )

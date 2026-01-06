@@ -243,8 +243,8 @@ class Shopify::ApiClient
     response.body.dig("data", "productOptionsCreate", "product")
   end
 
-  def add_images(shopify_product_id, images_input)
-    return if images_input.blank?
+  def push_media(shopify_product_id, media_input)
+    return [] if media_input.blank?
 
     query = <<~GQL
       mutation($productId: ID!, $media: [CreateMediaInput!]) {
@@ -270,12 +270,44 @@ class Shopify::ApiClient
 
     variables = {
       productId: shopify_product_id,
-      media: images_input
+      media: media_input
     }
 
     response = @client.query(query:, variables:)
 
     handle_shopify_mutation_errors(query, response, "productCreateMedia")
+
+    response.body.dig("data", "productCreateMedia", "media")
+  end
+
+  def reorder_media(shopify_product_id, moves)
+    return if moves.blank?
+
+    query = <<~GQL
+      mutation($id: ID!, $moves: [MoveInput!]!) {
+        productReorderMedia(id: $id, moves: $moves) {
+          job {
+            id
+            done
+          }
+          mediaUserErrors {
+            field
+            message
+          }
+        }
+      }
+    GQL
+
+    variables = {
+      id: shopify_product_id,
+      moves: moves
+    }
+
+    response = @client.query(query:, variables:)
+
+    handle_shopify_mutation_errors(query, response, "productReorderMedia")
+
+    response.body.dig("data", "productReorderMedia", "job")
   end
 
   def gql_query(name)

@@ -445,9 +445,9 @@ RSpec.describe Shopify::ApiClient do
     end
   end
 
-  describe "#add_images" do
+  describe "#push_media" do
     let(:shopify_product_id) { "gid://shopify/Product/123" }
-    let(:images_input) do
+    let(:media_input) do
       [
         {
           mediaContentType: "IMAGE",
@@ -496,27 +496,35 @@ RSpec.describe Shopify::ApiClient do
     end
 
     it "queries with correct parameters" do
-      client.add_images(shopify_product_id, images_input)
+      client.push_media(shopify_product_id, media_input)
 
       expect(mock_graphql_client).to have_received(:query).with(
         query: kind_of(String),
         variables: {
           productId: shopify_product_id,
-          media: images_input
+          media: media_input
         }
       )
     end
 
-    it "returns nil on success" do
-      result = client.add_images(shopify_product_id, images_input)
-      expect(result).to be_nil
+    it "returns array of created media on success" do # rubocop:todo RSpec/MultipleExpectations
+      result = client.push_media(shopify_product_id, media_input)
+
+      expect(result).to be_an(Array)
+      expect(result.size).to eq(2)
+      expect(result.first).to eq({
+        "alt" => "Product view",
+        "mediaContentType" => "IMAGE",
+        "status" => "UPLOADED",
+        "id" => "gid://shopify/MediaImage/456"
+      })
     end
 
-    it "returns early when images_input is blank" do # rubocop:todo RSpec/MultipleExpectations
+    it "returns empty array when media_input is blank" do # rubocop:todo RSpec/MultipleExpectations
       expect(mock_graphql_client).not_to receive(:query) # rubocop:todo RSpec/MessageSpies
 
-      expect(client.add_images(shopify_product_id, nil)).to be_nil
-      expect(client.add_images(shopify_product_id, [])).to be_nil
+      expect(client.push_media(shopify_product_id, nil)).to eq([])
+      expect(client.push_media(shopify_product_id, [])).to eq([])
     end
 
     context "when API errors occur" do
@@ -549,12 +557,12 @@ RSpec.describe Shopify::ApiClient do
           extra: hash_including(:query, :shopify_errors)
         )
 
-        expect { client.add_images(shopify_product_id, images_input) }.to raise_error(ShopifyApiError)
+        expect { client.push_media(shopify_product_id, media_input) }.to raise_error(ShopifyApiError)
       end
 
       it "raises ShopifyApiError" do
         expect {
-          client.add_images(shopify_product_id, images_input)
+          client.push_media(shopify_product_id, media_input)
         }.to raise_error(ShopifyApiError, "Failed to call the productCreateMedia API mutation: Invalid image URL")
       end
     end
@@ -589,13 +597,151 @@ RSpec.describe Shopify::ApiClient do
           extra: hash_including(:query)
         )
 
-        expect { client.add_images(shopify_product_id, images_input) }.to raise_error(ShopifyApiError)
+        expect { client.push_media(shopify_product_id, media_input) }.to raise_error(ShopifyApiError)
       end
 
       it "raises ShopifyApiError with media user error messages" do
         expect {
-          client.add_images(shopify_product_id, images_input)
+          client.push_media(shopify_product_id, media_input)
         }.to raise_error(ShopifyApiError, "Failed to call the productCreateMedia API mutation: URL is not valid, Image could not be downloaded")
+      end
+    end
+  end
+
+  describe "#reorder_media" do
+    let(:shopify_product_id) { "gid://shopify/Product/123" }
+    let(:moves) do
+      [
+        {id: "gid://shopify/MediaImage/456", newPosition: 0},
+        {id: "gid://shopify/MediaImage/457", newPosition: 1}
+      ]
+    end
+
+    let(:success_response) do
+      {
+        "data" => {
+          "productReorderMedia" => {
+            "job" => {
+              "id" => "gid://shopify/Job/789",
+              "done" => true
+            },
+            "mediaUserErrors" => []
+          }
+        }
+      }
+    end
+
+    before do
+      # rubocop:todo RSpec/VerifiedDoubles
+      allow(mock_graphql_client).to receive(:query).and_return(double(body: success_response))
+      # rubocop:enable RSpec/VerifiedDoubles
+    end
+
+    it "queries with correct parameters" do
+      client.reorder_media(shopify_product_id, moves)
+
+      expect(mock_graphql_client).to have_received(:query).with(
+        query: kind_of(String),
+        variables: {
+          id: shopify_product_id,
+          moves: moves
+        }
+      )
+    end
+
+    it "returns job info on success" do # rubocop:todo RSpec/MultipleExpectations
+      result = client.reorder_media(shopify_product_id, moves)
+
+      expect(result).to eq({
+        "id" => "gid://shopify/Job/789",
+        "done" => true
+      })
+    end
+
+    it "returns early when moves is blank" do # rubocop:todo RSpec/MultipleExpectations
+      expect(mock_graphql_client).not_to receive(:query) # rubocop:todo RSpec/MessageSpies
+
+      expect(client.reorder_media(shopify_product_id, nil)).to be_nil
+      expect(client.reorder_media(shopify_product_id, [])).to be_nil
+    end
+
+    context "when API errors occur" do
+      let(:error_response) do
+        {
+          "data" => {
+            "productReorderMedia" => {
+              "job" => nil,
+              "mediaUserErrors" => []
+            }
+          },
+          "errors" => [
+            {"message" => "Product not found"}
+          ]
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "captures error in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
+          "Shopify productReorderMedia failed: Product not found",
+          level: :error,
+          tags: {api: "shopify", operation: "productReorderMedia"},
+          extra: hash_including(:query, :shopify_errors)
+        )
+
+        expect { client.reorder_media(shopify_product_id, moves) }.to raise_error(ShopifyApiError)
+      end
+
+      it "raises ShopifyApiError" do
+        expect {
+          client.reorder_media(shopify_product_id, moves)
+        }.to raise_error(ShopifyApiError, "Failed to call the productReorderMedia API mutation: Product not found")
+      end
+    end
+
+    context "when media user errors occur" do
+      let(:error_response) do
+        {
+          "data" => {
+            "productReorderMedia" => {
+              "job" => nil,
+              "mediaUserErrors" => [
+                {"field" => ["moves", 0, "id"], "message" => "Media not found"},
+                {"field" => ["moves", 1, "id"], "message" => "Invalid media ID"}
+              ]
+            }
+          }
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "captures media user errors in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
+          "Shopify productReorderMedia failed: Media not found, Invalid media ID",
+          level: :error,
+          tags: {api: "shopify", operation: "productReorderMedia"},
+          extra: hash_including(:query)
+        )
+
+        expect { client.reorder_media(shopify_product_id, moves) }.to raise_error(ShopifyApiError)
+      end
+
+      it "raises ShopifyApiError with media user error messages" do
+        expect {
+          client.reorder_media(shopify_product_id, moves)
+        }.to raise_error(ShopifyApiError, "Failed to call the productReorderMedia API mutation: Media not found, Invalid media ID")
       end
     end
   end

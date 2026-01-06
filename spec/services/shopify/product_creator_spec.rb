@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::ProductCreator do
@@ -39,12 +40,12 @@ RSpec.describe Shopify::ProductCreator do
 
       it "enqueues sync jobs for editions and images" do # rubocop:todo RSpec/MultipleExpectations
         allow(Shopify::PullEditionsJob).to receive(:perform_later)
-        allow(Shopify::PullImagesJob).to receive(:perform_later)
+        allow(Shopify::PullMediaJob).to receive(:perform_later)
 
         creator.update_or_create!
 
         expect(Shopify::PullEditionsJob).to have_received(:perform_later)
-        expect(Shopify::PullImagesJob).to have_received(:perform_later)
+        expect(Shopify::PullMediaJob).to have_received(:perform_later)
       end
 
       it "generates correct full title" do

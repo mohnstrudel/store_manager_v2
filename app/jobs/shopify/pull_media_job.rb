@@ -2,7 +2,7 @@
 
 require "open-uri"
 
-class Shopify::PullImagesJob < ApplicationJob
+class Shopify::PullMediaJob < ApplicationJob
   queue_as :default
 
   def perform(product, parsed_media)
@@ -98,7 +98,7 @@ class Shopify::PullImagesJob < ApplicationJob
         sleep 5
         retry
       else
-        Rails.logger.error "ShopifyPullImagesJob. Failed to download an image #{img_url}: #{e.message}"
+        Rails.logger.error "ShopifyPullMediaJob. Failed to download an image #{img_url}: #{e.message}"
         nil
       end
     end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::UpdateProductJob < ApplicationJob
   def perform(product_id)
     product = Product.find(product_id)
@@ -20,7 +21,7 @@ class Shopify::UpdateProductJob < ApplicationJob
       product_shopify_info.save!
 
       if product.images.any?
-        Shopify::AddImageJob.perform_later(product_shopify_info.store_id, product.id)
+        Shopify::PushMediaJob.perform_later(product_shopify_info.store_id, product.id)
       end
 
       if product.sizes.any? || product.versions.any? || product.colors.any?
