@@ -247,27 +247,35 @@ class Shopify::ApiClient
     return if images_input.blank?
 
     query = <<~GQL
-      mutation($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
-        productUpdate(product: $product, media: $media) {
-          product {
-            id
+      mutation($productId: ID!, $media: [CreateMediaInput!]) {
+        productCreateMedia(productId: $productId, media: $media) {
+          media {
+            alt
+            mediaContentType
+            status
+            ... on MediaImage {
+              id
+            }
           }
-          userErrors {
+          mediaUserErrors {
             field
             message
+          }
+          product {
+            id
           }
         }
       }
     GQL
 
     variables = {
-      product: {id: shopify_product_id},
+      productId: shopify_product_id,
       media: images_input
     }
 
     response = @client.query(query:, variables:)
 
-    handle_shopify_mutation_errors(query, response, "adding images using productUpdate")
+    handle_shopify_mutation_errors(query, response, "productCreateMedia")
   end
 
   def gql_query(name)
@@ -356,12 +364,14 @@ class Shopify::ApiClient
   def handle_shopify_mutation_errors(query, response, operation_name)
     api_errors = response.body.dig("errors")
     user_errors = response.body.dig("data", operation_name, "userErrors")
+    media_user_errors = response.body.dig("data", operation_name, "mediaUserErrors")
+    errors = user_errors || media_user_errors
 
-    if api_errors || user_errors&.any?
+    if api_errors || errors&.any?
       error_messages = if api_errors
         api_errors.pluck("message").join(", ")
       else
-        user_errors.pluck("message").join(", ")
+        errors.pluck("message").join(", ")
       end
 
       Sentry.capture_message(

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::ApiClient do
@@ -440,6 +441,161 @@ RSpec.describe Shopify::ApiClient do
         expect {
           client.create_product_options(shopify_product_id, options_data)
         }.to raise_error(ShopifyApiError, "Failed to call the productOptionsCreate API mutation: Can only specify a maximum of 3 options")
+      end
+    end
+  end
+
+  describe "#add_images" do
+    let(:shopify_product_id) { "gid://shopify/Product/123" }
+    let(:images_input) do
+      [
+        {
+          mediaContentType: "IMAGE",
+          alt: "Product view",
+          originalSource: "https://example.com/image1.jpg"
+        },
+        {
+          mediaContentType: "IMAGE",
+          alt: "Product detail",
+          originalSource: "https://example.com/image2.jpg"
+        }
+      ]
+    end
+
+    let(:success_response) do
+      {
+        "data" => {
+          "productCreateMedia" => {
+            "media" => [
+              {
+                "alt" => "Product view",
+                "mediaContentType" => "IMAGE",
+                "status" => "UPLOADED",
+                "id" => "gid://shopify/MediaImage/456"
+              },
+              {
+                "alt" => "Product detail",
+                "mediaContentType" => "IMAGE",
+                "status" => "UPLOADED",
+                "id" => "gid://shopify/MediaImage/457"
+              }
+            ],
+            "mediaUserErrors" => [],
+            "product" => {
+              "id" => "gid://shopify/Product/123"
+            }
+          }
+        }
+      }
+    end
+
+    before do
+      # rubocop:todo RSpec/VerifiedDoubles
+      allow(mock_graphql_client).to receive(:query).and_return(double(body: success_response))
+      # rubocop:enable RSpec/VerifiedDoubles
+    end
+
+    it "queries with correct parameters" do
+      client.add_images(shopify_product_id, images_input)
+
+      expect(mock_graphql_client).to have_received(:query).with(
+        query: kind_of(String),
+        variables: {
+          productId: shopify_product_id,
+          media: images_input
+        }
+      )
+    end
+
+    it "returns nil on success" do
+      result = client.add_images(shopify_product_id, images_input)
+      expect(result).to be_nil
+    end
+
+    it "returns early when images_input is blank" do # rubocop:todo RSpec/MultipleExpectations
+      expect(mock_graphql_client).not_to receive(:query) # rubocop:todo RSpec/MessageSpies
+
+      expect(client.add_images(shopify_product_id, nil)).to be_nil
+      expect(client.add_images(shopify_product_id, [])).to be_nil
+    end
+
+    context "when API errors occur" do
+      let(:error_response) do
+        {
+          "data" => {
+            "productCreateMedia" => {
+              "media" => [],
+              "mediaUserErrors" => []
+            }
+          },
+          "errors" => [
+            {"message" => "Invalid image URL"}
+          ]
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "captures error in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
+          "Shopify productCreateMedia failed: Invalid image URL",
+          level: :error,
+          tags: {api: "shopify", operation: "productCreateMedia"},
+          extra: hash_including(:query, :shopify_errors)
+        )
+
+        expect { client.add_images(shopify_product_id, images_input) }.to raise_error(ShopifyApiError)
+      end
+
+      it "raises ShopifyApiError" do
+        expect {
+          client.add_images(shopify_product_id, images_input)
+        }.to raise_error(ShopifyApiError, "Failed to call the productCreateMedia API mutation: Invalid image URL")
+      end
+    end
+
+    context "when media user errors occur" do
+      let(:error_response) do
+        {
+          "data" => {
+            "productCreateMedia" => {
+              "media" => [],
+              "mediaUserErrors" => [
+                {"field" => ["media", 0, "originalSource"], "message" => "URL is not valid"},
+                {"field" => ["media", 1, "originalSource"], "message" => "Image could not be downloaded"}
+              ]
+            }
+          }
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "captures media user errors in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
+          "Shopify productCreateMedia failed: URL is not valid, Image could not be downloaded",
+          level: :error,
+          tags: {api: "shopify", operation: "productCreateMedia"},
+          extra: hash_including(:query)
+        )
+
+        expect { client.add_images(shopify_product_id, images_input) }.to raise_error(ShopifyApiError)
+      end
+
+      it "raises ShopifyApiError with media user error messages" do
+        expect {
+          client.add_images(shopify_product_id, images_input)
+        }.to raise_error(ShopifyApiError, "Failed to call the productCreateMedia API mutation: URL is not valid, Image could not be downloaded")
       end
     end
   end
