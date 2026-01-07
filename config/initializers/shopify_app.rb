@@ -1,5 +1,5 @@
 ShopifyApp.configure do |config|
-  config.api_version = "2026-01"
+  config.api_version = "2025-10"
   # Consult this page for more scope options:
   # https://help.shopify.com/en/api/getting-started/authentication/oauth/scopes
   config.scope = "read_products, write_products, read_orders, read_order_edits, read_customers, read_inventory, write_images"

@@ -1,17 +1,21 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: shops
 #
-#  id             :bigint           not null, primary key
-#  access_scopes  :string
-#  shopify_domain :string           not null
-#  shopify_token  :string           not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
+#  id                       :bigint           not null, primary key
+#  access_scopes            :string
+#  expires_at               :datetime
+#  refresh_token            :string
+#  refresh_token_expires_at :datetime
+#  shopify_domain           :string           not null
+#  shopify_token            :string           not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
 #
 class Shop < ApplicationRecord
-  include ShopifyApp::ShopSessionStorageWithScopes
+  include ShopifyApp::ShopSessionStorage
 
   def api_version
     ShopifyApp.configuration.api_version
