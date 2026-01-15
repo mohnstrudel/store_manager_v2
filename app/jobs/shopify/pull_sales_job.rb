@@ -1,21 +1,23 @@
 # frozen_string_literal: true
 
-class Shopify::PullSalesJob < Shopify::BasePullJob
-  private
+module Shopify
+  class PullSalesJob < Shopify::BasePullJob
+    private
 
-  def resource_name
-    "orders"
-  end
+    def resource_name
+      "orders"
+    end
 
-  def parser_class
-    Shopify::SaleParser
-  end
+    def parser_class
+      Shopify::SaleParser
+    end
 
-  def creator_class
-    Shopify::SaleCreator
-  end
+    def creator_class
+      Shopify::SaleCreator
+    end
 
-  def batch_size
-    250
+    def batch_size
+      250
+    end
   end
 end

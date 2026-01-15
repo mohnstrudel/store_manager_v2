@@ -1,20 +1,22 @@
 # frozen_string_literal: true
 
-class Shopify::PullProductJob < ApplicationJob
-  queue_as :default
+module Shopify
+  class PullProductJob < ApplicationJob
+    queue_as :default
 
-  def perform(product_id)
-    raise ArgumentError, "Shopify product ID is required" if product_id.blank?
+    def perform(product_id)
+      raise ArgumentError, "Shopify product ID is required" if product_id.blank?
 
-    api_client = Shopify::ApiClient.new
-    response = api_client.pull_product(product_id)
+      api_client = Shopify::ApiClient.new
+      response = api_client.pull_product(product_id)
 
-    parsed_product = Shopify::ProductParser
-      .new(api_item: response)
-      .parse
+      parsed_product = Shopify::ProductParser
+        .new(api_item: response)
+        .parse
 
-    Shopify::ProductCreator
-      .new(parsed_item: parsed_product)
-      .update_or_create!
+      Shopify::ProductCreator
+        .new(parsed_item: parsed_product)
+        .update_or_create!
+    end
   end
 end
