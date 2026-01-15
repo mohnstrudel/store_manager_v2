@@ -37,7 +37,7 @@ class DashboardController < ApplicationController
   end
 
   def pull_last_orders
-    SyncWooOrdersJob.perform_later(pages: 2)
+    Woo::PullSalesJob.perform_later(pages: 2)
     Config.enable_sales_hook
 
     respond_to do |format|

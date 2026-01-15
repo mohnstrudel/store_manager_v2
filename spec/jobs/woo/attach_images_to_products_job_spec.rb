@@ -2,11 +2,11 @@
 
 require "rails_helper"
 
-RSpec.describe AttachImagesToProductsJob do
+RSpec.describe Woo::AttachImagesToProductsJob do
   include ActiveJob::TestHelper
 
   let(:subject_job) { described_class.new }
-  let(:sync_woo_products_job) { instance_double(SyncWooProductsJob) }
+  let(:sync_woo_products_job) { instance_double(Woo::PullProductsJob) }
   let(:product) { create(:product, woo_id: "123") }
   let(:img_url) { "http://example.com/image.jpg" }
   let(:parsed_product) { {woo_id: "123", images: [img_url]} }
@@ -17,7 +17,7 @@ RSpec.describe AttachImagesToProductsJob do
 
   describe "#perform" do
     it "attaches images to products" do # rubocop:todo RSpec/MultipleExpectations
-      allow(SyncWooProductsJob).to receive(:new).and_return(sync_woo_products_job)
+      allow(Woo::PullProductsJob).to receive(:new).and_return(sync_woo_products_job)
       allow(sync_woo_products_job).to receive(:get_woo_products)
       allow(sync_woo_products_job).to receive(:parse_all).and_return([parsed_product])
       allow(Product).to receive(:where).with(woo_id: ["123"]).and_return([product])

@@ -159,7 +159,7 @@ class Sale < ApplicationRecord
   end
 
   def self.update_order(sale)
-    UpdateWooOrderJob.perform_later(sale)
+    Woo::PushSaleJob.perform_later(sale)
   end
 
   def self.find_recent_by_order_id(shop_order_id)

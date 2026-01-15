@@ -1,7 +1,8 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
-RSpec.describe SyncWooProductsJob do
+RSpec.describe Woo::PullProductsJob do
   let(:job) {
     described_class.new
   }

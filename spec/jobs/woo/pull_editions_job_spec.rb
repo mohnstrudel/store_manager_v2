@@ -1,7 +1,8 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
-RSpec.describe SyncWooEditionsJob do
+RSpec.describe Woo::PullEditionsJob do
   let(:job) {
     described_class.new
   }
@@ -25,7 +26,7 @@ RSpec.describe SyncWooEditionsJob do
   }
 
   describe "#perform" do
-    context "when we receive an array of variants from SyncWooProductsJob" do
+    context "when we receive an array of variants from Woo::PullProductsJob" do
       let(:parsed_editions) { job.parse(api_editions) }
 
       before do

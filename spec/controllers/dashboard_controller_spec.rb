@@ -104,8 +104,8 @@ describe DashboardController do
       request.env["HTTP_REFERER"] = "/dashboard"
     end
 
-    it "triggers the SyncWooOrdersJob" do
-      expect(SyncWooOrdersJob).to receive(:perform_later).with(pages: 2)
+    it "triggers the Woo::PullSalesJob" do
+      expect(Woo::PullSalesJob).to receive(:perform_later).with(pages: 2)
       expect(Config).to receive(:enable_sales_hook)
 
       post :pull_last_orders

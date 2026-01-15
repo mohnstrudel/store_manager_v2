@@ -1,7 +1,8 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
-RSpec.describe SyncWooOrdersJob do
+RSpec.describe Woo::PullSalesJob do
   let(:job) { described_class.new }
   let(:woo_orders) {
     JSON.parse(file_fixture("api_orders.json").read, symbolize_names: true)
@@ -93,25 +94,25 @@ RSpec.describe SyncWooOrdersJob do
 
     context "without id parameter" do
       it "fetches all orders and creates sales" do
-        allow(job).to receive(:api_get_all).with(SyncWooOrdersJob::URL, 2700, nil).and_return(woo_orders)
+        allow(job).to receive(:api_get_all).with(Woo::PullSalesJob::URL, 2700, nil).and_return(woo_orders)
         allow(job).to receive(:parse_all).and_return(parsed_woo_orders)
         allow(job).to receive(:create_sales)
 
         job.perform
 
-        expect(job).to have_received(:api_get_all).with(SyncWooOrdersJob::URL, 2700, nil)
+        expect(job).to have_received(:api_get_all).with(Woo::PullSalesJob::URL, 2700, nil)
         expect(job).to have_received(:parse_all).with(woo_orders)
         expect(job).to have_received(:create_sales).with(parsed_woo_orders)
       end
 
       it "uses custom limit and pages when provided" do
-        allow(job).to receive(:api_get_all).with(SyncWooOrdersJob::URL, 100, 5).and_return(woo_orders)
+        allow(job).to receive(:api_get_all).with(Woo::PullSalesJob::URL, 100, 5).and_return(woo_orders)
         allow(job).to receive(:parse_all).and_return(parsed_woo_orders)
         allow(job).to receive(:create_sales)
 
         job.perform(limit: 100, pages: 5)
 
-        expect(job).to have_received(:api_get_all).with(SyncWooOrdersJob::URL, 100, 5)
+        expect(job).to have_received(:api_get_all).with(Woo::PullSalesJob::URL, 100, 5)
       end
     end
   end
@@ -189,8 +190,8 @@ RSpec.describe SyncWooOrdersJob do
       woo_id = "123"
       product = create(:product, woo_id: woo_id)
 
-      sync_job = instance_double(SyncWooProductsJob)
-      allow(SyncWooProductsJob).to receive(:new).and_return(sync_job)
+      sync_job = instance_double(Woo::PullProductsJob)
+      allow(Woo::PullProductsJob).to receive(:new).and_return(sync_job)
       allow(sync_job).to receive(:get_and_create_product).with(woo_id)
 
       result = job.get_product_from_woo(woo_id)
@@ -202,8 +203,8 @@ RSpec.describe SyncWooOrdersJob do
     it "returns nil when product not found" do
       woo_id = "999"
 
-      sync_job = instance_double(SyncWooProductsJob)
-      allow(SyncWooProductsJob).to receive(:new).and_return(sync_job)
+      sync_job = instance_double(Woo::PullProductsJob)
+      allow(Woo::PullProductsJob).to receive(:new).and_return(sync_job)
       allow(sync_job).to receive(:get_and_create_product).with(woo_id)
 
       result = job.get_product_from_woo(woo_id)
@@ -216,10 +217,10 @@ RSpec.describe SyncWooOrdersJob do
     let(:parsed_edition) { sample_parsed_order[:products].first[:edition] }
     let(:product) { create(:product) }
 
-    it "creates edition through SyncWooEditionsJob" do
-      sync_editions_job = instance_double(SyncWooEditionsJob)
+    it "creates edition through Woo::PullEditionsJob" do
+      sync_editions_job = instance_double(Woo::PullEditionsJob)
       allow(sync_editions_job).to receive(:create_edition)
-      stub_const("SyncWooOrdersJob::SYNC_EDITIONS_JOB", sync_editions_job)
+      stub_const("Woo::PullSalesJob::SYNC_EDITIONS_JOB", sync_editions_job)
 
       job.get_edition(parsed_edition, product)
 
@@ -296,13 +297,13 @@ RSpec.describe SyncWooOrdersJob do
         Product.where(woo_id: product_woo_id).destroy_all
 
         # Don't stub - let the actual method run, but mock the dependency
-        sync_job = instance_double(SyncWooProductsJob)
-        allow(SyncWooProductsJob).to receive(:new).and_return(sync_job)
+        sync_job = instance_double(Woo::PullProductsJob)
+        allow(Woo::PullProductsJob).to receive(:new).and_return(sync_job)
         allow(sync_job).to receive(:get_and_create_product).with(product_woo_id)
         allow(job).to receive(:get_edition).and_return(nil)
 
         job.create_sales([parsed_order_with_missing_product])
-        expect(SyncWooProductsJob).to have_received(:new)
+        expect(Woo::PullProductsJob).to have_received(:new)
         expect(sync_job).to have_received(:get_and_create_product).with(product_woo_id)
       end
 

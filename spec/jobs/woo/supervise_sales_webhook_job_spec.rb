@@ -1,7 +1,8 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
-RSpec.describe SuperviseSalesWebhookJob do
+RSpec.describe Woo::SuperviseSalesWebhookJob do
   let(:job) {
     described_class.new
   }
