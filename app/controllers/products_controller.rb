@@ -4,7 +4,7 @@ class ProductsController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
   include HandlesMedia
 
-  before_action :set_product, only: %i[show edit update destroy]
+  before_action :set_product, only: %i[show edit update destroy publish_to_shopify push_to_shopify pull_from_shopify]
 
   # GET /products or /products.json
   def index
@@ -55,17 +55,16 @@ class ProductsController < ApplicationController
   # PATCH/PUT /products/1 or /products/1.json
   def update
     params_to_update = product_params.to_h
-    params_to_update[:sku] ||= params_to_update[:title].parameterize
 
     respond_to do |format|
       ActiveRecord::Base.transaction do
-        @product.update(params_to_update.merge(slug: nil))
+        @product.update!(params_to_update.merge(slug: nil))
         handle_media_for(@product)
         handle_new_images_for(@product)
 
         @product.assign_attributes(full_title: Product.generate_full_title(@product))
         @product.build_editions
-        @product.save
+        @product.save!
       end
 
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
@@ -86,17 +85,43 @@ class ProductsController < ApplicationController
     end
   end
 
-  def pull
-    limit = params[:limit]
-    product_id = params[:id]
+  def publish_to_shopify
+    Shopify::CreateProductJob.perform_later(@product.id)
 
-    if product_id.present?
-      product = Product.friendly.find(product_id)
-      Shopify::PullProductJob.perform_later(product.shopify_id)
-    else
-      Shopify::PullProductsJob.perform_later(limit:)
-      Config.update_shopify_products_sync_time
+    respond_to do |format|
+      format.turbo_stream { flash.now[:notice] = "Product is being published to Shopify" }
+      format.html { redirect_to products_path, notice: "Product is being published to Shopify" }
     end
+  end
+
+  def push_to_shopify
+    Shopify::UpdateProductJob.perform_later(@product.id)
+
+    respond_to do |format|
+      format.turbo_stream { flash.now[:notice] = "Product updates are being pushed to Shopify" }
+      format.html { redirect_to products_path, notice: "Product updates are being pushed to Shopify" }
+    end
+  end
+
+  def pull_from_shopify
+    notice = if @product.shopify_info.store_id.present?
+      Shopify::PullProductJob.perform_later(@product.shopify_info.store_id)
+      "Product is being pulled from Shopify"
+    else
+      "Product has not been published to Shopify yet"
+    end
+
+    respond_to do |format|
+      format.turbo_stream { flash.now[:notice] = notice }
+      format.html { redirect_to products_path, notice: }
+    end
+  end
+
+  def pull
+    limit = params[:limit]&.to_i
+
+    Shopify::PullProductsJob.perform_later(limit:)
+    Config.update_shopify_products_sync_time
 
     statuses_link = view_context.link_to(
       "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"

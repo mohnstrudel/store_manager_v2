@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::PullEditionsJob < ApplicationJob
   queue_as :default
 

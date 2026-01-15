@@ -30,11 +30,11 @@ class StoreInfo < ApplicationRecord
   validates_db_uniqueness_of :store_name, scope: [:storable_type, :storable_id]
 
   def shopify?
-    store_name == :shopify
+    store_name == "shopify" || store_name == :shopify
   end
 
   def woo?
-    store_name == :woo
+    store_name == "woo" || store_name == :woo
   end
 
   def page_url_for(store_name)
@@ -46,7 +46,7 @@ class StoreInfo < ApplicationRecord
     end
   end
 
-  # Get store ID in short format (without GID prefix)
+  # Store ID without GID prefix
   def id_short
     return if store_id.blank?
 

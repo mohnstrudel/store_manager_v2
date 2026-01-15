@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "sidekiq/web"
 require "sidekiq-status/web"
 
@@ -58,7 +60,11 @@ Rails.application.routes.draw do
       get "/page/:page", action: :index
       get :pull
     end
-    get :pull, on: :member
+    member do
+      post :publish_to_shopify
+      post :push_to_shopify
+      post :pull_from_shopify
+    end
   end
 
   resources :sales do

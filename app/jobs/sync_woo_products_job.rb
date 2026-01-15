@@ -39,8 +39,7 @@ class SyncWooProductsJob < ApplicationJob
       title: parsed_product[:title],
       woo_id: parsed_product[:woo_id],
       franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
-      shape: Shape.find_or_create_by(title: parsed_product[:shape]),
-      store_link: parsed_product[:store_link]
+      shape: Shape.find_or_create_by(title: parsed_product[:shape])
     })
 
     parsed_product[:brands]&.each do |i|
@@ -67,7 +66,18 @@ class SyncWooProductsJob < ApplicationJob
       end
     end
 
-    product.save
+    # Generate SKU if missing
+    if product.sku.blank?
+      title_for_sku = product.full_title.presence || "#{product.franchise.title} #{product.title}"
+      base_sku = title_for_sku.parameterize[0..50]
+      product.sku = "#{base_sku}-#{SecureRandom.uuid[0..7]}"
+    end
+
+    product.save!
+
+    if parsed_product[:store_link].present?
+      product.woo_info.update(slug: parsed_product[:store_link])
+    end
 
     product
   end

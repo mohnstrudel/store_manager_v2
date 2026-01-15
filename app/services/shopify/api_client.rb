@@ -25,6 +25,7 @@ class Shopify::ApiClient
           id
           title
           price
+          sku
           selectedOptions {
             value
             name
@@ -124,14 +125,21 @@ class Shopify::ApiClient
   def pull(resource_name:, cursor:, batch_size:)
     raise ArgumentError, "Name is required" if resource_name.blank?
 
-    response_body = @client.query(
+    response = @client.query(
       query: gql_query(resource_name),
       variables: {
-        first: batch_size,
+        first: Integer(batch_size),
         after: cursor
       }
-    ).body["data"]
+    )
 
+    errors = response.body["errors"]
+    if errors
+      error_messages = errors.pluck("message").join(", ")
+      raise ShopifyApiError, "Failed to fetch #{resource_name}: #{error_messages}"
+    end
+
+    response_body = response.body["data"]
     response_data = response_body[resource_name] || response_body
 
     {
@@ -339,7 +347,7 @@ class Shopify::ApiClient
 
   def products_query
     <<~GQL
-      query($first: Int!, $after: String) {
+      query FetchProducts($first: Int!, $after: String) {
         products(
           first: $first,
           after: $after,

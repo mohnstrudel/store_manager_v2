@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::EditionCreator do
@@ -21,7 +22,7 @@ RSpec.describe Shopify::EditionCreator do
         expect { creator.update_or_create! }.to change(Edition, :count).by(1)
 
         edition = Edition.last
-        expect(edition.shopify_id).to eq("gid://shopify/ProductVariant/12345")
+        expect(edition.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
         expect(edition.product).to eq(product)
         expect(edition.color.value).to eq("Red")
         expect(edition.size.value).to eq("Large")
@@ -31,6 +32,14 @@ RSpec.describe Shopify::EditionCreator do
         expect(product.colors).to include(edition.color)
         expect(product.sizes).to include(edition.size)
         expect(product.versions).to include(edition.version)
+      end
+
+      it "saves Shopify ID to StoreInfo" do
+        creator.update_or_create!
+        edition = Edition.last
+        expect(edition.shopify_info).to be_present
+        expect(edition.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
+        expect(edition.shopify_info.shopify?).to be true
       end
 
       it "creates associated attribute records if they don't exist" do # rubocop:todo RSpec/MultipleExpectations
@@ -61,9 +70,9 @@ RSpec.describe Shopify::EditionCreator do
 
     context "when edition already exists" do
       let!(:existing_edition) do
-        create(:edition,
-          product: product,
-          shopify_id: "gid://shopify/ProductVariant/12345")
+        create(:edition, product: product).tap do |ed|
+          ed.shopify_info.update!(store_id: "gid://shopify/ProductVariant/12345")
+        end
       end
 
       it "updates the existing edition" do # rubocop:todo RSpec/MultipleExpectations

@@ -184,6 +184,64 @@ RSpec.describe Shopify::ApiClient do
         }.to raise_error(ArgumentError, "Name is required")
       end
     end
+
+    context "when Shopify API returns errors" do
+      let(:error_response) do
+        {
+          "errors" => [
+            {"message" => "Authentication error"},
+            {"message" => "Invalid API token"}
+          ]
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+      end
+
+      it "raises ShopifyApiError with resource name and error messages" do
+        expect {
+          client.pull(resource_name: "products", cursor: nil, batch_size: 10)
+        }.to raise_error(ShopifyApiError, "Failed to fetch products: Authentication error, Invalid API token")
+      end
+
+      it "includes all error messages from Shopify" do
+        error_message = "Failed to fetch products: Authentication error, Invalid API token"
+        expect {
+          client.pull(resource_name: "products", cursor: nil, batch_size: 10)
+        }.to raise_error(ShopifyApiError, error_message)
+      end
+
+      it "specifies the resource name in the error message" do
+        expect {
+          client.pull(resource_name: "orders", cursor: nil, batch_size: 10)
+        }.to raise_error(ShopifyApiError, "Failed to fetch orders: Authentication error, Invalid API token")
+      end
+    end
+
+    context "when Shopify API returns a single error" do
+      let(:error_response) do
+        {
+          "errors" => [
+            {"message" => "Access denied for this shop"}
+          ]
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+      end
+
+      it "raises ShopifyApiError with single error message" do
+        expect {
+          client.pull(resource_name: "products", cursor: nil, batch_size: 10)
+        }.to raise_error(ShopifyApiError, "Failed to fetch products: Access denied for this shop")
+      end
+    end
   end
 
   describe "#create_product" do
@@ -755,8 +813,9 @@ RSpec.describe Shopify::ApiClient do
 
     it "returns products query when name is 'products'" do # rubocop:todo RSpec/MultipleExpectations
       query = client.send(:gql_query, "products")
-      expect(query).to include("query($first: Int!, $after: String)")
+      expect(query).to include("query FetchProducts($first: Int!, $after: String)")
       expect(query).to include("products(")
+      expect(query).to include("sku")
     end
 
     it "returns order query when name is 'order'" do # rubocop:todo RSpec/MultipleExpectations

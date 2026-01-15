@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_07_095531) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_15_134728) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -103,7 +103,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_095531) do
     t.string "shopify_id"
     t.bigint "size_id"
     t.string "sku"
-    t.string "store_link"
     t.datetime "updated_at", null: false
     t.bigint "version_id"
     t.string "woo_id"
@@ -222,7 +221,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_095531) do
     t.string "shopify_id"
     t.string "sku"
     t.string "slug"
-    t.string "store_link"
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "woo_id"

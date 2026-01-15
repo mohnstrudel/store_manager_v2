@@ -1,10 +1,15 @@
 # frozen_string_literal: true
+
 FactoryBot.define do
+  sequence :unique_sku do |n|
+    "sku-#{n}"
+  end
+
   factory(:product) do
     franchise
     shape
-    store_link { nil }
     title { "Spirited Away" }
+    sku { generate(:unique_sku) }
     woo_id { SecureRandom.alphanumeric(10) }
     shopify_id { SecureRandom.alphanumeric(10) }
 

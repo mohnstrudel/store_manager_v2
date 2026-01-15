@@ -86,11 +86,15 @@ class SyncWooEditionsJob < ApplicationJob
     edition = Edition.find_by_woo_id(edition_woo_id) || Edition.new
 
     edition.assign_attributes({
-      product:,
-      store_link:
+      product:
     }.merge(*mapped_edition_types).compact)
 
     edition.save
+
+    # Update Woo StoreInfo with permalink
+    if store_link.present?
+      edition.woo_info.update(slug: store_link)
+    end
 
     edition
   end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::ProductFromTitleCreator
   def initialize(api_title: "")
     @api_title = api_title
@@ -18,16 +19,41 @@ class Shopify::ProductFromTitleCreator
   private
 
   def find_or_create_product(product_title, franchise_title, shape_title)
-    attrs = {
+    franchise = Franchise.find_or_create_by(title: franchise_title)
+    shape = Shape.find_or_create_by(title: shape_title)
+
+    @product = Product.find_or_initialize_by(
       title: product_title,
-      franchise: Franchise.find_or_create_by(
-        title: franchise_title
-      ),
-      shape: Shape.find_or_create_by(
-        title: shape_title
-      )
-    }
-    @product = Product.find_or_create_by(attrs)
+      franchise:,
+      shape:
+    )
+
+    generate_sku if @product.new_record?
+    @product.save! if @product.new_record?
+  end
+
+  def generate_sku
+    return if @product.sku.present?
+
+    full_title = build_full_title_for_sku
+    sku = full_title.parameterize
+
+    counter = 1
+    while Product.where.not(id: @product.id).exists?(sku:)
+      sku = "#{base_sku}-#{counter}"
+      counter += 1
+    end
+
+    @product.sku = sku
+  end
+
+  def build_full_title_for_sku
+    # We don't have brand info yet, so just use franchise and title
+    if @product.title == @product.franchise.title
+      @product.title
+    else
+      "#{@product.franchise.title} — #{@product.title}"
+    end
   end
 
   def assign_relation(relation_name, parsed_value)

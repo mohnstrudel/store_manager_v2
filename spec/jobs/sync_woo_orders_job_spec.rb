@@ -252,9 +252,10 @@ RSpec.describe SyncWooOrdersJob do
         )
         create(
           :edition,
-          woo_id: parsed_woo_orders.first[:products].first[:edition][:woo_id],
-          store_link: weird_link
-        )
+          woo_id: parsed_woo_orders.first[:products].first[:edition][:woo_id]
+        ).tap do |e|
+          e.woo_info.update(slug: weird_link)
+        end
         parsed_woo_orders.pluck(:products).flatten.each do |p|
           create(:product, woo_id: p[:product_woo_id])
         end
@@ -278,7 +279,7 @@ RSpec.describe SyncWooOrdersJob do
 
       it "reuses existing editions" do
         existing_edition = Edition.find_by(woo_id: parsed_woo_orders.first[:products].first[:edition][:woo_id])
-        expect(existing_edition.store_link).to eq(weird_link)
+        expect(existing_edition.woo_info.slug).to eq(weird_link)
       end
     end
 

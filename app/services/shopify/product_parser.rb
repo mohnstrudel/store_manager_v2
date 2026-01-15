@@ -17,6 +17,7 @@ class Shopify::ProductParser
       {
         id: edge["node"]["id"],
         title: edge["node"]["title"],
+        sku: edge["node"]["sku"],
         options: edge["node"]["selectedOptions"]
       }
     end
@@ -31,6 +32,9 @@ class Shopify::ProductParser
       }
     end
 
+    # Use the first variant's SKU as the product SKU
+    sku = @product.dig("variants", "edges", 0, "node", "sku")
+
     {
       shopify_id: @product["id"],
       store_link: @product["handle"],
@@ -39,6 +43,7 @@ class Shopify::ProductParser
       franchise:,
       size:,
       brand:,
+      sku:,
       media:,
       editions:
     }

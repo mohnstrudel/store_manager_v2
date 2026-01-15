@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::EditionCreator
   def initialize(product, parsed_edition)
     raise ArgumentError, "Expected a Product" unless product.is_a?(Product)
@@ -15,11 +16,9 @@ class Shopify::EditionCreator
 
     ActiveRecord::Base.transaction do
       @edition = find_or_initialize(edition_attrs)
-      @edition.assign_attributes(
-        shopify_id: @parsed_edition[:id],
-        **edition_attrs
-      )
+      @edition.assign_attributes(**edition_attrs)
       @edition.save!
+      update_shopify_store_info!
     end
 
     @edition
@@ -48,16 +47,21 @@ class Shopify::EditionCreator
   end
 
   def find_or_initialize(attrs)
-    Edition
-      .where(
-        product_id: @product.id,
-        shopify_id: @parsed_edition[:id]
-      )
-      .or(Edition.where(
-        product_id: @product.id,
-        shopify_id: nil,
-        **attrs
-      ))
-      .first_or_initialize
+    existing_edition = Edition.find_by_shopify_id(@parsed_edition[:id])
+    return existing_edition if existing_edition && existing_edition.product_id == @product.id
+
+    @product.editions.where(attrs).first_or_initialize
+  end
+
+  def update_shopify_store_info!
+    shopify_id = @parsed_edition[:id]
+    return if shopify_id.blank?
+
+    store_info = @edition.shopify_info
+
+    # Only update if store_id is different to avoid unnecessary queries
+    return if store_info.store_id == shopify_id
+
+    store_info.update_column(:store_id, shopify_id)
   end
 end

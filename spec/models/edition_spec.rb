@@ -6,7 +6,6 @@
 #
 #  id         :bigint           not null, primary key
 #  sku        :string
-#  store_link :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #  color_id   :bigint

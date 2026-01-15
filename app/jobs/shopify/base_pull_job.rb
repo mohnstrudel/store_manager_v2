@@ -16,6 +16,7 @@ class Shopify::BasePullJob < ApplicationJob
 
   def fetch_shopify_data(cursor:, limit:)
     limit ||= batch_size
+    limit = Integer(limit) if limit.is_a?(String)
     api_client = Shopify::ApiClient.new
     @api_payload = api_client.pull(
       resource_name: resource_name,
@@ -27,7 +28,15 @@ class Shopify::BasePullJob < ApplicationJob
   def merge_new_items
     @api_payload[:items].each do |api_item|
       parsed_item = parser_class.new(api_item:).parse
-      creator_class.new(parsed_item:).update_or_create!
+      begin
+        creator_class.new(parsed_item:).update_or_create!
+      rescue => e
+        if e.message.to_s.downcase.include?("sku")
+          Rails.logger.warn("Skipping item due to SKU collision: #{e.message}")
+          next
+        end
+        raise
+      end
     end
   end
 

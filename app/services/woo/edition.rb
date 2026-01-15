@@ -60,9 +60,12 @@ class Woo::Edition
         edition = product.editions.find_or_create_by(prepared_options)
       end
 
-      if parsed_edition[:woo_id].present? && edition.woo_info.store_id != parsed_edition[:woo_id]
-        edition.woo_info.update(store_id: parsed_edition[:woo_id])
-      end
+      woo_info = edition.woo_info
+      updates = {}
+      updates[:store_id] = parsed_edition[:woo_id] if parsed_edition[:woo_id].present? && woo_info.store_id != parsed_edition[:woo_id]
+      updates[:slug] = parsed_edition[:store_link] if parsed_edition[:store_link].present? && woo_info.slug != parsed_edition[:store_link]
+
+      woo_info.update(updates) if updates.any?
 
       edition
     end

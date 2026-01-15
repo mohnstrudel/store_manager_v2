@@ -80,11 +80,30 @@ RSpec.describe Shopify::ProductParser do
         {
           id: "gid://shopify/ProductVariant/67890",
           title: "Regular",
+          sku: nil,
           options: [
             {"name" => "Version", "value" => "Regular"}
           ]
         }
       ])
+    end
+
+    it "includes SKU from Shopify when available" do
+      api_item_with_sku = api_item.deep_dup
+      api_item_with_sku["variants"]["edges"][0]["node"]["sku"] = "test-sku-123"
+
+      parser = described_class.new(api_item: api_item_with_sku)
+      allow(parser).to receive(:parse_product_title).and_return(
+        ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
+      )
+
+      result = parser.parse
+      expect(result[:sku]).to eq("test-sku-123")
+    end
+
+    it "returns nil SKU when Shopify variant has no SKU" do
+      result = parser.parse
+      expect(result[:sku]).to be_nil
     end
 
     it "handles missing variants" do

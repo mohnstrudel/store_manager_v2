@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::BasePullJob do
@@ -30,8 +31,8 @@ RSpec.describe Shopify::BasePullJob do
 
       def creator_class
         @creator_class ||= Class.new do
-          def initialize(item)
-            @item = item
+          def initialize(parsed_item:)
+            @parsed_item = parsed_item
           end
 
           def update_or_create!
@@ -65,8 +66,7 @@ RSpec.describe Shopify::BasePullJob do
     allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
     allow(api_client).to receive(:pull).and_return(api_response)
 
-    allow(job).to receive(:parser_class).and_return(parser_class)
-    allow(job).to receive(:creator_class).and_return(creator_class)
+    allow(job).to receive_messages(parser_class: parser_class, creator_class: creator_class)
     allow(job_class).to receive(:set).and_return(job_setter)
   end
 
@@ -99,6 +99,15 @@ RSpec.describe Shopify::BasePullJob do
           resource_name: "test",
           cursor: nil,
           batch_size: 5
+        )
+      end
+
+      it "converts string limit to integer" do
+        job.perform(limit: "10")
+        expect(api_client).to have_received(:pull).with(
+          resource_name: "test",
+          cursor: nil,
+          batch_size: 10
         )
       end
 
@@ -174,6 +183,23 @@ RSpec.describe Shopify::BasePullJob do
         allow(api_client).to receive(:pull).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
+      end
+    end
+
+    context "when handling SKU collisions" do
+      before do
+        # Make creator raise an error that looks like SKU collision
+        allow(creator).to receive(:update_or_create!).and_raise(
+          "Validation failed: Sku mogu-studio-tifa has already been taken"
+        )
+      end
+
+      it "logs warning and continues processing remaining items" do # rubocop:todo RSpec/MultipleExpectations
+        allow(Rails.logger).to receive(:warn)
+        perform_job
+        expect(Rails.logger).to have_received(:warn).with(/Skipping item due to SKU collision/).twice
+        # Both items are still processed
+        expect(creator_class).to have_received(:new).exactly(2).times
       end
     end
   end

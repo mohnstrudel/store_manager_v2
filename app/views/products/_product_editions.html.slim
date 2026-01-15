@@ -17,7 +17,11 @@
             td = edition.types_name
             td.text-right = format_zero_values @editions_sales_sums[edition.id]
             td = format_zero_values @editions_purchases_sums[edition.id]
-            - if edition.store_link.present?
-              td = link_to edition.shop_id, edition.store_link, :target => "_blank", "rel" => "noopener noreferrer", :class => "link"
-            - else 
-              td = edition.shop_id
+            - if edition.shop_id.present?
+              - edition_url = edition.woo_info&.page_url_for(:woo)
+              - if edition_url.present?
+                td = link_to edition.shop_id, edition_url, :target => "_blank", "rel" => "noopener noreferrer", :class => "link"
+              - else
+                td = edition.shop_id
+            - else
+              td -

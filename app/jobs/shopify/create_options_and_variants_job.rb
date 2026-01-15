@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::CreateOptionsAndVariantsJob < ApplicationJob
   def perform(product_id, shopify_product_id)
     product = Product.find(product_id)

@@ -9,7 +9,6 @@
 #  image        :string
 #  sku          :string
 #  slug         :string
-#  store_link   :string
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
@@ -60,6 +59,7 @@ class Product < ApplicationRecord
   # == Validations
   #
   validates :title, presence: true
+  validates :sku, presence: true
   validates_db_uniqueness_of :sku
 
   #
@@ -101,10 +101,7 @@ class Product < ApplicationRecord
   #
   # == Class Methods
   #
-  def self.generate_full_title(
-    product,
-    brand = nil
-  )
+  def self.generate_full_title(product)
     title_part = if product.title == product.franchise.title
       product.title
     else
@@ -117,8 +114,8 @@ class Product < ApplicationRecord
 
     [
       title_part,
-      brand&.title || brands.presence
-    ].compact.join(" | ")
+      brands
+    ].compact_blank.join(" | ")
   end
 
   #
@@ -138,7 +135,9 @@ class Product < ApplicationRecord
   end
 
   def build_shopify_url
-    "https://handsomecake.com/products/#{store_link}"
+    return "https://handsomecake.com/" if shopify_info.slug.blank?
+
+    "https://handsomecake.com/products/#{shopify_info.slug}"
   end
 
   def fetch_active_sale_items
@@ -178,6 +177,10 @@ class Product < ApplicationRecord
 
   def fetch_editions_with_title
     editions.with_details.select { |edition| edition.title.present? }
+  end
+
+  def shopify_published?
+    shopify_info.store_id.present?
   end
 
   private
