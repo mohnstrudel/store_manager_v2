@@ -1,8 +1,6 @@
 - shopify_info = @product.shopify_info
 - push_time = shopify_info.push_time
 - pull_time = shopify_info.pull_time
-- updated_at = @product.updated_at
-- push_outdated = push_time && (pull_time && push_time < pull_time || updated_at && push_time < updated_at)
 
 dialog id="product-sync-modal" data-controller="modal" data-modal-target="container"
   .dialog-content.rounded-lg.shadow-lg.w-xl.p-4.pb-6.-translate-y-10
@@ -11,8 +9,7 @@ dialog id="product-sync-modal" data-controller="modal" data-modal-target="contai
         h2 Store Synchronization
         .flex.flex-col.gap-1
           - if push_time
-            h4.font-medium class=("text-red-600" if push_outdated)
-              = "Pushed: #{format_date(push_time)}"
+            h4.font-medium = "Pushed: #{format_date(push_time)}"
           - else
             h4.font-medium.text-gray-500 Not yet pushed
           - if pull_time
