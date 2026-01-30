@@ -21,6 +21,7 @@ AllCops:
     - node_modules/**/*
     - public/**/*
     - vendor/**/*
+    - bin/bundle
 
 Rails:
   Enabled: true # enable rubocop-rails cops
