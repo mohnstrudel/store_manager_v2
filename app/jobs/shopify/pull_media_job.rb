@@ -1,107 +1,158 @@
 # frozen_string_literal: true
 
-require "open-uri"
-
 module Shopify
   class PullMediaJob < ApplicationJob
-    queue_as :default
+    attr_reader :product
+    private :product
 
-    def perform(product, parsed_media)
-      return if product.blank? || parsed_media.blank?
+    SHOPIFY_STORE_NAME = "shopify"
+    MAX_FILE_SIZE = 20 * 1024 * 1024 # 20MB
 
-      parsed_media.each do |pm|
-        media_store_info = StoreInfo.find_by(store_id: pm[:id])
+    DownloadedImage = Data.define(:file, :filename, :checksum)
 
-        if media_store_info.present?
-          update_existing_media(pm, media_store_info)
-        else
-          create_or_link_media(pm, product)
-        end
+    def perform(product_id, parsed_media)
+      return if product_id.blank?
+
+      @product = Product
+        .includes(
+          media: [
+            :image_attachment,
+            :image_blob,
+            :shopify_info
+          ]
+        )
+        .find(product_id)
+
+      return if product.blank?
+
+      if parsed_media.blank?
+        product.media.destroy_all
+        return
       end
+
+      downloaded = download_all_media(parsed_media)
+      remove_obsolete_media(downloaded.values.map(&:checksum))
+
+      media_syncer = MediaSyncer.new(product, existing_media_by_checksum)
+
+      parsed_media.each do |parsed_item|
+        downloaded_file = downloaded[parsed_item]
+        next unless downloaded_file
+
+        media_syncer.sync(parsed_item, downloaded_file)
+      end
+    ensure
+      cleanup_downloaded_files(downloaded) if defined?(downloaded)
     end
 
-    def update_existing_media(parsed_media, store_info)
-      ActiveRecord::Base.transaction do
-        media = store_info.storable
-        media.update!(alt: parsed_media[:alt], position: parsed_media[:position])
+    private
 
-        pull_time = Time.zone.parse(parsed_media[:updated_at])
-        next if store_info.pull_time.blank? || pull_time == store_info.pull_time
-
-        attach_image(media, parsed_media[:url])
-        store_info.update!(pull_time:)
-      end
+    def download_all_media(parsed_media)
+      parsed_media.index_with do |item|
+        download_image(item[:url]) if item[:url].present?
+      end.compact
     end
 
-    def create_or_link_media(parsed_media, product)
-      ActiveRecord::Base.transaction do
-        uploaded_file = uploaded_file_data(parsed_media[:url])
-        return unless uploaded_file
+    def download_image(url)
+      file = Down.download(
+        url,
+        max_size: MAX_FILE_SIZE,
+        open_timeout: 5,
+        read_timeout: 15
+      )
 
-        io, filename = uploaded_file
-        checksum = Digest::MD5.file(io).base64digest
+      checksum = Digest::MD5.file(file.path).base64digest
+      filename = File.basename(file.original_filename || url)
 
-        media = product.media
-          .joins(image_attachment: :blob)
-          .find_by(active_storage_blobs: {checksum:})
+      DownloadedImage.new(file:, filename:, checksum:)
+    rescue Down::Error => e
+      Rails.logger.error "[PullMediaJob] Download failed #{url} – #{e.class}: #{e.message}"
+      nil
+    end
 
-        if media
-          media.update!(alt: parsed_media[:alt], position: parsed_media[:position])
+    def remove_obsolete_media(downloaded_checksums)
+      return if downloaded_checksums.blank?
+
+      product.media
+        .joins(image_attachment: :blob)
+        .where.not(active_storage_blobs: {checksum: downloaded_checksums})
+        .destroy_all
+    end
+
+    def existing_media_by_checksum
+      product.media
+        .joins(image_attachment: :blob)
+        .index_by { |media| media.image.blob.checksum }
+    end
+
+    def cleanup_downloaded_files(downloaded)
+      downloaded&.each_value { |downloaded| downloaded.file.close }
+    end
+
+    class MediaSyncer
+      attr_reader :product, :existing_by_checksum, :parsed_item, :downloaded_file
+      private :product, :existing_by_checksum, :parsed_item, :downloaded_file
+
+      def initialize(product, existing_by_checksum)
+        @product = product
+        @existing_by_checksum = existing_by_checksum
+      end
+
+      def sync(parsed_item, downloaded_file)
+        @parsed_item = parsed_item
+        @downloaded_file = downloaded_file
+
+        media = find_or_build_media
+
+        update_media_attributes(media)
+        update_or_create_shopify_info(media)
+        attach_image(media) unless media.image.attached?
+      end
+
+      private
+
+      def find_or_build_media
+        if (existing = existing_by_checksum[downloaded_file.checksum])
+          existing
         else
-          media = product.media.create!(alt: parsed_media[:alt], position: parsed_media[:position])
-          media.image.attach(io:, filename:)
+          product.media.build
         end
+      end
 
-        media.store_infos.create!(
-          store_id: parsed_media[:id],
-          store_name: :shopify,
-          pull_time: Time.zone.parse(parsed_media[:updated_at])
+      def update_media_attributes(media)
+        media.update!(
+          alt: parsed_item[:alt],
+          position: parsed_item[:position]
         )
       end
-    end
 
-    def attach_image(media, img_url)
-      uploaded_file = uploaded_file_data(img_url)
-      return unless uploaded_file
-
-      io, filename = uploaded_file
-      media.image.attach(io:, filename:)
-    end
-
-    def uploaded_file_data(img_url)
-      uri = parse_uri(img_url)
-      return unless uri
-
-      io = download_with_retry(uri, img_url)
-      return unless io
-
-      [io, File.basename(uri.path)]
-    end
-
-    def parse_uri(img_url)
-      URI.parse(img_url)
-    rescue URI::InvalidURIError
-      begin
-        URI.parse(URI::DEFAULT_PARSER.escape(img_url))
-      rescue URI::InvalidURIError
-        nil
+      def attach_image(media)
+        media.image.attach(
+          io: downloaded_file.file,
+          filename: downloaded_file.filename
+        )
       end
-    end
 
-    def download_with_retry(uri, img_url)
-      retries = 0
+      def update_or_create_shopify_info(media)
+        attrs = shopify_info_attributes(media)
 
-      begin
-        uri.open
-      rescue OpenURI::HTTPError => e
-        retries += 1
-        if retries < 3
-          sleep 5
-          retry
+        if media.shopify_info&.persisted?
+          media.shopify_info.update!(attrs)
         else
-          Rails.logger.error "ShopifyPullMediaJob. Failed to download an image #{img_url}: #{e.message}"
-          nil
+          media.store_infos.create!(attrs)
         end
+      end
+
+      def shopify_info_attributes(media)
+        {
+          storable: media,
+          store_name: SHOPIFY_STORE_NAME,
+          store_id: parsed_item[:id],
+          checksum: downloaded_file.checksum,
+          pull_time: Time.zone.now,
+          ext_created_at: Time.zone.parse(parsed_item.dig(:store_info, :ext_created_at)),
+          ext_updated_at: Time.zone.parse(parsed_item.dig(:store_info, :ext_updated_at))
+        }
       end
     end
   end
