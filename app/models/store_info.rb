@@ -4,16 +4,20 @@
 #
 # Table name: store_infos
 #
-#  id            :bigint           not null, primary key
-#  pull_time     :datetime
-#  push_time     :datetime
-#  slug          :string
-#  storable_type :string           not null
-#  store_name    :integer          default("not_assigned"), not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  storable_id   :bigint           not null
-#  store_id      :string
+#  id             :bigint           not null, primary key
+#  alt_text       :string
+#  checksum       :string
+#  ext_created_at :datetime
+#  ext_updated_at :datetime
+#  pull_time      :datetime
+#  push_time      :datetime
+#  slug           :string
+#  storable_type  :string           not null
+#  store_name     :integer          default("not_assigned"), not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  storable_id    :bigint           not null
+#  store_id       :string
 #
 class StoreInfo < ApplicationRecord
   # TODO: Remove after deploy 99
@@ -27,22 +31,18 @@ class StoreInfo < ApplicationRecord
 
   belongs_to :storable, polymorphic: true
 
+  scope :shopify, -> { where(store_name: "shopify") }
+  scope :woo, -> { where(store_name: "woo") }
+
   validates_db_uniqueness_of :store_name, scope: [:storable_type, :storable_id]
 
-  def shopify?
-    store_name == "shopify" || store_name == :shopify
-  end
-
-  def woo?
-    store_name == "woo" || store_name == :woo
-  end
-
-  def page_url_for(store_name)
+  def product_url(handle = nil)
+    handle ||= slug
     case store_name
-    when :shopify
-      "https://handsomecake.com/products/#{slug}"
-    when :woo
-      "https://store.handsomecake.com/product/#{slug}"
+    when "shopify"
+      "https://handsomecake.com/products/#{handle}"
+    when "woo"
+      "https://store.handsomecake.com/product/#{handle}"
     end
   end
 
@@ -52,6 +52,10 @@ class StoreInfo < ApplicationRecord
 
     shopify_api_category_name = external_name_for(storable_type)
     store_id.gsub("gid://shopify/#{shopify_api_category_name}/", "")
+  end
+
+  def update_pull_time
+    update(pull_time: Time.zone.now)
   end
 
   private

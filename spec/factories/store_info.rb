@@ -36,5 +36,18 @@ FactoryBot.define do
       with_store_id
       association :storable, factory: :product
     end
+
+    trait :with_checksum do
+      checksum { "abc123checksum" }
+    end
+
+    trait :with_alt_text do
+      alt_text { "Sample alt text" }
+    end
+
+    trait :with_timestamps do
+      ext_created_at { 1.day.ago }
+      ext_updated_at { 1.hour.ago }
+    end
   end
 end

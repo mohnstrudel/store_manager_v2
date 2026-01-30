@@ -47,6 +47,9 @@ gem "bootsnap", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# Safe file downloading
+gem "down", "~> 5.0"
+
 gem "slim-rails"
 gem "httparty"
 gem "kaminari"
@@ -133,6 +136,7 @@ group :development do
   gem "rubycritic", require: false
   gem "letter_opener"
   gem "rails-mcp-server"
+  gem "ruby-lsp"
 end
 
 group :test do
