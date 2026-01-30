@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 class CustomersRedactJob < ApplicationJob
-  extend ShopifyAPI::Webhooks::Handler
+  extend ShopifyAPI::Webhooks::WebhookHandler
 
   class << self
-    def handle(topic:, shop:, body:)
-      perform_later(topic: topic, shop_domain: shop, webhook: body)
+    def handle(data:)
+      perform_later(topic: data.topic, shop_domain: data.shop, webhook: data.body)
     end
   end
 
