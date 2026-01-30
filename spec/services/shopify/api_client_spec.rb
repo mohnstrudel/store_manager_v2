@@ -503,7 +503,7 @@ RSpec.describe Shopify::ApiClient do
     end
   end
 
-  describe "#push_media" do
+  describe "#attach_media" do
     let(:shopify_product_id) { "gid://shopify/Product/123" }
     let(:media_input) do
       [
@@ -523,25 +523,31 @@ RSpec.describe Shopify::ApiClient do
     let(:success_response) do
       {
         "data" => {
-          "productCreateMedia" => {
-            "media" => [
-              {
-                "alt" => "Product view",
-                "mediaContentType" => "IMAGE",
-                "status" => "UPLOADED",
-                "id" => "gid://shopify/MediaImage/456"
-              },
-              {
-                "alt" => "Product detail",
-                "mediaContentType" => "IMAGE",
-                "status" => "UPLOADED",
-                "id" => "gid://shopify/MediaImage/457"
-              }
-            ],
-            "mediaUserErrors" => [],
+          "productUpdate" => {
             "product" => {
-              "id" => "gid://shopify/Product/123"
-            }
+              "id" => "gid://shopify/Product/123",
+              "media" => {
+                "nodes" => [
+                  {
+                    "id" => "gid://shopify/MediaImage/456",
+                    "alt" => "Product view",
+                    "status" => "UPLOADED",
+                    "fileStatus" => "READY",
+                    "createdAt" => "2024-01-01T00:00:00Z",
+                    "updatedAt" => "2024-01-01T00:00:00Z"
+                  },
+                  {
+                    "id" => "gid://shopify/MediaImage/457",
+                    "alt" => "Product detail",
+                    "status" => "UPLOADED",
+                    "fileStatus" => "READY",
+                    "createdAt" => "2024-01-01T00:00:00Z",
+                    "updatedAt" => "2024-01-01T00:00:00Z"
+                  }
+                ]
+              }
+            },
+            "userErrors" => []
           }
         }
       }
@@ -554,44 +560,46 @@ RSpec.describe Shopify::ApiClient do
     end
 
     it "queries with correct parameters" do
-      client.push_media(shopify_product_id, media_input)
+      client.attach_media(shopify_product_id, media_input)
 
       expect(mock_graphql_client).to have_received(:query).with(
         query: kind_of(String),
         variables: {
-          productId: shopify_product_id,
+          product: {id: shopify_product_id},
           media: media_input
         }
       )
     end
 
-    it "returns array of created media on success" do # rubocop:todo RSpec/MultipleExpectations
-      result = client.push_media(shopify_product_id, media_input)
+    it "returns array of media nodes on success" do # rubocop:todo RSpec/MultipleExpectations
+      result = client.attach_media(shopify_product_id, media_input)
 
       expect(result).to be_an(Array)
       expect(result.size).to eq(2)
       expect(result.first).to eq({
+        "id" => "gid://shopify/MediaImage/456",
         "alt" => "Product view",
-        "mediaContentType" => "IMAGE",
         "status" => "UPLOADED",
-        "id" => "gid://shopify/MediaImage/456"
+        "fileStatus" => "READY",
+        "createdAt" => "2024-01-01T00:00:00Z",
+        "updatedAt" => "2024-01-01T00:00:00Z"
       })
     end
 
     it "returns empty array when media_input is blank" do # rubocop:todo RSpec/MultipleExpectations
       expect(mock_graphql_client).not_to receive(:query) # rubocop:todo RSpec/MessageSpies
 
-      expect(client.push_media(shopify_product_id, nil)).to eq([])
-      expect(client.push_media(shopify_product_id, [])).to eq([])
+      expect(client.attach_media(shopify_product_id, nil)).to eq([])
+      expect(client.attach_media(shopify_product_id, [])).to eq([])
     end
 
     context "when API errors occur" do
       let(:error_response) do
         {
           "data" => {
-            "productCreateMedia" => {
-              "media" => [],
-              "mediaUserErrors" => []
+            "productUpdate" => {
+              "product" => nil,
+              "userErrors" => []
             }
           },
           "errors" => [
@@ -609,29 +617,29 @@ RSpec.describe Shopify::ApiClient do
 
       it "captures error in Sentry" do # rubocop:todo RSpec/MultipleExpectations
         expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
-          "Shopify productCreateMedia failed: Invalid image URL",
+          "Shopify productUpdate failed: Invalid image URL",
           level: :error,
-          tags: {api: "shopify", operation: "productCreateMedia"},
+          tags: {api: "shopify", operation: "productUpdate"},
           extra: hash_including(:query, :shopify_errors)
         )
 
-        expect { client.push_media(shopify_product_id, media_input) }.to raise_error(ShopifyApiError)
+        expect { client.attach_media(shopify_product_id, media_input) }.to raise_error(ShopifyApiError)
       end
 
       it "raises ShopifyApiError" do
         expect {
-          client.push_media(shopify_product_id, media_input)
-        }.to raise_error(ShopifyApiError, "Failed to call the productCreateMedia API mutation: Invalid image URL")
+          client.attach_media(shopify_product_id, media_input)
+        }.to raise_error(ShopifyApiError, "Failed to call the productUpdate API mutation: Invalid image URL")
       end
     end
 
-    context "when media user errors occur" do
+    context "when user errors occur" do
       let(:error_response) do
         {
           "data" => {
-            "productCreateMedia" => {
-              "media" => [],
-              "mediaUserErrors" => [
+            "productUpdate" => {
+              "product" => nil,
+              "userErrors" => [
                 {"field" => ["media", 0, "originalSource"], "message" => "URL is not valid"},
                 {"field" => ["media", 1, "originalSource"], "message" => "Image could not be downloaded"}
               ]
@@ -647,21 +655,181 @@ RSpec.describe Shopify::ApiClient do
         allow(Sentry).to receive(:capture_message)
       end
 
-      it "captures media user errors in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+      it "captures user errors in Sentry" do # rubocop:todo RSpec/MultipleExpectations
         expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
-          "Shopify productCreateMedia failed: URL is not valid, Image could not be downloaded",
+          "Shopify productUpdate failed: URL is not valid, Image could not be downloaded",
           level: :error,
-          tags: {api: "shopify", operation: "productCreateMedia"},
+          tags: {api: "shopify", operation: "productUpdate"},
           extra: hash_including(:query)
         )
 
-        expect { client.push_media(shopify_product_id, media_input) }.to raise_error(ShopifyApiError)
+        expect { client.attach_media(shopify_product_id, media_input) }.to raise_error(ShopifyApiError)
       end
 
-      it "raises ShopifyApiError with media user error messages" do
+      it "raises ShopifyApiError with user error messages" do
         expect {
-          client.push_media(shopify_product_id, media_input)
-        }.to raise_error(ShopifyApiError, "Failed to call the productCreateMedia API mutation: URL is not valid, Image could not be downloaded")
+          client.attach_media(shopify_product_id, media_input)
+        }.to raise_error(ShopifyApiError, "Failed to call the productUpdate API mutation: URL is not valid, Image could not be downloaded")
+      end
+    end
+  end
+
+  describe "#update_media" do
+    let(:file_updates) do
+      [
+        {
+          id: "gid://shopify/MediaImage/456",
+          originalSource: "https://example.com/image1.jpg",
+          alt: "Updated product view"
+        },
+        {
+          id: "gid://shopify/MediaImage/457",
+          originalSource: "https://example.com/image2.jpg",
+          alt: "Updated product detail"
+        }
+      ]
+    end
+
+    let(:success_response) do
+      {
+        "data" => {
+          "fileUpdate" => {
+            "files" => [
+              {
+                "id" => "gid://shopify/MediaImage/456",
+                "alt" => "Updated product view",
+                "createdAt" => "2024-01-15T10:00:00Z",
+                "updatedAt" => "2024-01-15T11:00:00Z",
+                "image" => {"url" => "https://example.com/image1.jpg"}
+              },
+              {
+                "id" => "gid://shopify/MediaImage/457",
+                "alt" => "Updated product detail",
+                "createdAt" => "2024-01-15T10:01:00Z",
+                "updatedAt" => "2024-01-15T11:01:00Z",
+                "image" => {"url" => "https://example.com/image2.jpg"}
+              }
+            ],
+            "userErrors" => []
+          }
+        }
+      }
+    end
+
+    before do
+      # rubocop:todo RSpec/VerifiedDoubles
+      allow(mock_graphql_client).to receive(:query).and_return(double(body: success_response))
+      # rubocop:enable RSpec/VerifiedDoubles
+    end
+
+    it "queries with correct parameters" do
+      client.update_media(file_updates)
+
+      expect(mock_graphql_client).to have_received(:query).with(
+        query: kind_of(String),
+        variables: {
+          files: file_updates
+        }
+      )
+    end
+
+    it "returns array of updated files with timestamps on success" do # rubocop:todo RSpec/MultipleExpectations
+      result = client.update_media(file_updates)
+
+      expect(result).to be_an(Array)
+      expect(result.size).to eq(2)
+      expect(result.first).to include(
+        "id" => "gid://shopify/MediaImage/456",
+        "alt" => "Updated product view",
+        "createdAt" => kind_of(String),
+        "updatedAt" => kind_of(String)
+      )
+    end
+
+    it "returns empty array when file_updates is blank" do # rubocop:todo RSpec/MultipleExpectations
+      expect(mock_graphql_client).not_to receive(:query) # rubocop:todo RSpec/MessageSpies
+
+      expect(client.update_media(nil)).to eq([])
+      expect(client.update_media([])).to eq([])
+    end
+
+    context "when API errors occur" do
+      let(:error_response) do
+        {
+          "data" => {
+            "fileUpdate" => {
+              "files" => [],
+              "userErrors" => []
+            }
+          },
+          "errors" => [
+            {"message" => "Invalid file ID"}
+          ]
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "captures error in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
+          "Shopify fileUpdate failed: Invalid file ID",
+          level: :error,
+          tags: {api: "shopify", operation: "fileUpdate"},
+          extra: hash_including(:query, :shopify_errors)
+        )
+
+        expect { client.update_media(file_updates) }.to raise_error(ShopifyApiError)
+      end
+
+      it "raises ShopifyApiError" do
+        expect {
+          client.update_media(file_updates)
+        }.to raise_error(ShopifyApiError, "Failed to call the fileUpdate API mutation: Invalid file ID")
+      end
+    end
+
+    context "when user errors occur" do
+      let(:error_response) do
+        {
+          "data" => {
+            "fileUpdate" => {
+              "files" => [],
+              "userErrors" => [
+                {"field" => ["files", 0, "originalSource"], "message" => "URL is not valid"},
+                {"field" => ["files", 1, "originalSource"], "message" => "Image could not be downloaded"}
+              ]
+            }
+          }
+        }
+      end
+
+      before do
+        # rubocop:todo RSpec/VerifiedDoubles
+        allow(mock_graphql_client).to receive(:query).and_return(double(body: error_response))
+        # rubocop:enable RSpec/VerifiedDoubles
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "captures user errors in Sentry" do # rubocop:todo RSpec/MultipleExpectations
+        expect(Sentry).to receive(:capture_message).with( # rubocop:todo RSpec/MessageSpies
+          "Shopify fileUpdate failed: URL is not valid, Image could not be downloaded",
+          level: :error,
+          tags: {api: "shopify", operation: "fileUpdate"},
+          extra: hash_including(:query)
+        )
+
+        expect { client.update_media(file_updates) }.to raise_error(ShopifyApiError)
+      end
+
+      it "raises ShopifyApiError with user error messages" do
+        expect {
+          client.update_media(file_updates)
+        }.to raise_error(ShopifyApiError, "Failed to call the fileUpdate API mutation: URL is not valid, Image could not be downloaded")
       end
     end
   end
@@ -807,7 +975,7 @@ RSpec.describe Shopify::ApiClient do
   describe "#gql_query" do
     it "returns product query when name is 'product'" do # rubocop:todo RSpec/MultipleExpectations
       query = client.send(:gql_query, "product")
-      expect(query).to include("query($id: ID!)")
+      expect(query).to include("query ProductById($id: ID!)")
       expect(query).to include("product(id: $id)")
     end
 

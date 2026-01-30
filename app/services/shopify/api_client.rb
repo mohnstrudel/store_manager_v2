@@ -7,11 +7,16 @@ class Shopify::ApiClient
     id
     title
     handle
+    createdAt
+    updatedAt
     media(first: 20) {
       nodes {
         ... on MediaImage {
           id
           alt
+          status
+          fileStatus
+          createdAt
           updatedAt
           image {
             url
@@ -26,6 +31,8 @@ class Shopify::ApiClient
           title
           price
           sku
+          createdAt
+          updatedAt
           selectedOptions {
             value
             name
@@ -63,6 +70,8 @@ class Shopify::ApiClient
       email
       firstName
       phone
+      createdAt
+      updatedAt
     }
     shippingAddress {
       address1
@@ -181,6 +190,11 @@ class Shopify::ApiClient
             id
             title
             handle
+            media(first: 20) {
+              nodes {
+                id
+              }
+            }
           }
           userErrors {
             field
@@ -251,41 +265,122 @@ class Shopify::ApiClient
     response.body.dig("data", "productOptionsCreate", "product")
   end
 
-  def push_media(shopify_product_id, media_input)
+  def attach_media(shopify_product_id, media_input)
     return [] if media_input.blank?
 
     query = <<~GQL
-      mutation($productId: ID!, $media: [CreateMediaInput!]) {
-        productCreateMedia(productId: $productId, media: $media) {
-          media {
-            alt
-            mediaContentType
-            status
-            ... on MediaImage {
-              id
-            }
-          }
-          mediaUserErrors {
-            field
-            message
-          }
+      mutation($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
+        productUpdate(product: $product, media: $media) {
           product {
             id
+            media(first: 20) {
+              nodes {
+                ... on MediaImage {
+                  id
+                  alt
+                  status
+                  fileStatus
+                  createdAt
+                  updatedAt
+                }
+              }
+            }
+          }
+          userErrors {
+            field
+            message
           }
         }
       }
     GQL
 
     variables = {
-      productId: shopify_product_id,
+      product: {id: shopify_product_id},
       media: media_input
     }
 
     response = @client.query(query:, variables:)
 
-    handle_shopify_mutation_errors(query, response, "productCreateMedia")
+    handle_shopify_mutation_errors(query, response, "productUpdate")
 
-    response.body.dig("data", "productCreateMedia", "media")
+    media_nodes = response.body.dig("data", "productUpdate", "product", "media", "nodes")
+    wait_for_media_ready(media_nodes)
+    media_nodes
+  end
+
+  def wait_for_media_ready(media_nodes, timeout: 300, interval: 2)
+    deadline = Time.zone.now + timeout
+
+    media_nodes.each do |media_node|
+      loop do
+        status = media_node["status"]
+        file_status = media_node["fileStatus"]
+
+        break if status == "READY" || file_status == "READY"
+
+        remaining = deadline - Time.zone.now
+        raise "Media #{media_node["id"]} failed to become ready within #{timeout} seconds" if remaining <= 0
+
+        sleep [interval, remaining].min
+
+        # Refresh the media status
+        updated_status = query_media_status(media_node["id"])
+        media_node.merge!(updated_status) if updated_status
+      end
+    end
+  end
+
+  def query_media_status(media_id)
+    query = <<~GQL
+      query($id: ID!) {
+        node(id: $id) {
+          ... on MediaImage {
+            id
+            status
+            fileStatus
+          }
+        }
+      }
+    GQL
+
+    response = @client.query(query:, variables: {id: media_id})
+    response.body.dig("data", "node")
+  end
+
+  def update_media(file_updates)
+    return [] if file_updates.blank?
+
+    query = <<~GQL
+      mutation($files: [FileUpdateInput!]!) {
+        fileUpdate(files: $files) {
+          files {
+            ... on MediaImage {
+              id
+              alt
+              createdAt
+              updatedAt
+              image {
+                url
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    GQL
+
+    variables = {
+      files: file_updates
+    }
+
+    response = @client.query(query:, variables:)
+
+    handle_shopify_mutation_errors(query, response, "fileUpdate")
+
+    response.body.dig("data", "fileUpdate", "files")
   end
 
   def reorder_media(shopify_product_id, moves)
@@ -337,7 +432,7 @@ class Shopify::ApiClient
 
   def product_query
     <<~GQL
-      query($id: ID!) {
+      query ProductById($id: ID!) {
         product(id: $id) {
           #{PRODUCT_FIELDS}
         }
