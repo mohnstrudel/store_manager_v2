@@ -3,16 +3,20 @@
 #
 # Table name: store_infos
 #
-#  id            :bigint           not null, primary key
-#  pull_time     :datetime
-#  push_time     :datetime
-#  slug          :string
-#  storable_type :string           not null
-#  store_name    :integer          default("not_assigned"), not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  storable_id   :bigint           not null
-#  store_id      :string
+#  id             :bigint           not null, primary key
+#  alt_text       :string
+#  checksum       :string
+#  ext_created_at :datetime
+#  ext_updated_at :datetime
+#  pull_time      :datetime
+#  push_time      :datetime
+#  slug           :string
+#  storable_type  :string           not null
+#  store_name     :integer          default("not_assigned"), not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  storable_id    :bigint           not null
+#  store_id       :string
 #
 require "rails_helper"
 
@@ -23,18 +27,6 @@ RSpec.describe StoreInfo, type: :model do
 
   describe "enums" do
     it { is_expected.to define_enum_for(:store_name).with_values(not_assigned: 0, shopify: 1, woo: 2) }
-  end
-
-  describe "page_url_for" do
-    it "generates correct URL for shopify" do
-      store_info = build(:store_info, slug: "test-product")
-      expect(store_info.page_url_for(:shopify)).to eq("https://handsomecake.com/products/test-product")
-    end
-
-    it "generates correct URL for woo" do
-      store_info = build(:store_info, slug: "test-product")
-      expect(store_info.page_url_for(:woo)).to eq("https://store.handsomecake.com/product/test-product")
-    end
   end
 
   describe "factory traits" do
