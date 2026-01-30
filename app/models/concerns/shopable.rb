@@ -4,7 +4,12 @@ module Shopable
   extend ActiveSupport::Concern
 
   included do
-    has_many :store_infos, as: :storable, dependent: :destroy
+    has_many :store_infos, as: :storable, dependent: :destroy, inverse_of: :storable
+
+    has_one :shopify_info, -> { shopify }, class_name: "StoreInfo", as: :storable,
+      dependent: :destroy, inverse_of: :storable
+    has_one :woo_info, -> { woo }, class_name: "StoreInfo", as: :storable,
+      dependent: :destroy, inverse_of: :storable
   end
 
   class_methods do
@@ -25,17 +30,5 @@ module Shopable
 
       store_info&.storable
     end
-  end
-
-  def shopify_info
-    store_infos.find_or_create_by(store_name: :shopify)
-  end
-
-  def woo_info
-    store_infos.find_or_create_by(store_name: :woo)
-  end
-
-  def shop_id
-    shopify_info.store_id.presence || woo_info.store_id.presence
   end
 end

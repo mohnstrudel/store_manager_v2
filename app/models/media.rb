@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: media
@@ -12,6 +13,11 @@
 #  mediaable_id   :bigint           not null
 #
 class Media < ApplicationRecord
+  #
+  # == Concerns
+  #
+  include Shopable
+
   #
   # == Callbacks
   #
@@ -36,8 +42,6 @@ class Media < ApplicationRecord
       resize_to_limit: [120, 120],
       preprocessed: true
   end
-
-  has_many :store_infos, as: :storable, dependent: :destroy
 
   #
   # == Delegates
