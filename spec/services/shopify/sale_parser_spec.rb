@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::SaleParser do
@@ -33,7 +34,9 @@ RSpec.describe Shopify::SaleParser do
           "id" => "gid://shopify/Customer/67890",
           "firstName" => "John",
           "lastName" => "Doe",
-          "phone" => "555-1234"
+          "phone" => "555-1234",
+          "createdAt" => "2023-01-01T11:00:00Z",
+          "updatedAt" => "2023-01-02T11:00:00Z"
         },
         "lineItems" => {
           "nodes" => [
@@ -90,8 +93,12 @@ RSpec.describe Shopify::SaleParser do
         fulfillment_status: "UNFULFILLED",
         note: "Customer note",
         status: "pre-ordered",
-        shopify_created_at: DateTime.parse("2023-01-01T12:00:00Z"),
-        shopify_updated_at: DateTime.parse("2023-01-02T12:00:00Z")
+        shopify_created_at: DateTime.parse("2023-01-01T12:00:00Z")
+      )
+
+      expect(result[:store_info]).to include(
+        ext_created_at: DateTime.parse("2023-01-01T12:00:00Z"),
+        ext_updated_at: DateTime.parse("2023-01-02T12:00:00Z")
       )
 
       expect(result[:customer]).to include(
@@ -100,6 +107,11 @@ RSpec.describe Shopify::SaleParser do
         first_name: "John",
         last_name: "Doe",
         phone: "555-1234"
+      )
+
+      expect(result[:customer_store_info]).to include(
+        ext_created_at: DateTime.parse("2023-01-01T11:00:00Z"),
+        ext_updated_at: DateTime.parse("2023-01-02T11:00:00Z")
       )
 
       expect(result[:sale_items].first).to include(
@@ -275,7 +287,20 @@ RSpec.describe Shopify::SaleParser do
       result = parser.parse
 
       expect(result[:sale][:shopify_created_at]).to be_nil
-      expect(result[:sale][:shopify_updated_at]).to be_nil
+      expect(result[:store_info][:ext_created_at]).to be_nil
+      expect(result[:store_info][:ext_updated_at]).to be_nil
+    end
+
+    it "handles missing customer timestamps" do
+      order_without_customer_dates = api_order.deep_dup
+      order_without_customer_dates["customer"]["createdAt"] = nil
+      order_without_customer_dates["customer"]["updatedAt"] = nil
+
+      parser = described_class.new(api_item: order_without_customer_dates)
+      result = parser.parse
+
+      expect(result[:customer_store_info][:ext_created_at]).to be_nil
+      expect(result[:customer_store_info][:ext_updated_at]).to be_nil
     end
   end
 end

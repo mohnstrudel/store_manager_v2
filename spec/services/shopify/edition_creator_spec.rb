@@ -42,6 +42,48 @@ RSpec.describe Shopify::EditionCreator do
         expect(edition.shopify_info.shopify?).to be true
       end
 
+      context "with ext_created_at and ext_updated_at" do
+        let(:parsed_variant_with_timestamps) do
+          {
+            id: "gid://shopify/ProductVariant/12345",
+            options: [
+              {name: "Color", value: "Red"}
+            ],
+            store_info: {
+              ext_created_at: 1.day.ago.iso8601,
+              ext_updated_at: 1.hour.ago.iso8601
+            }
+          }
+        end
+        let(:creator_with_timestamps) { described_class.new(product, parsed_variant_with_timestamps) }
+
+        it "saves ext_created_at and ext_updated_at to StoreInfo" do
+          creator_with_timestamps.update_or_create!
+          edition = Edition.last
+          expect(edition.shopify_info.ext_created_at).to be_within(1.second).of(1.day.ago)
+          expect(edition.shopify_info.ext_updated_at).to be_within(1.second).of(1.hour.ago)
+        end
+      end
+
+      context "without store_info" do
+        let(:parsed_variant_without_store_info) do
+          {
+            id: "gid://shopify/ProductVariant/12345",
+            options: [
+              {name: "Color", value: "Red"}
+            ]
+          }
+        end
+        let(:creator_without_store_info) { described_class.new(product, parsed_variant_without_store_info) }
+
+        it "does not set ext_created_at and ext_updated_at" do
+          creator_without_store_info.update_or_create!
+          edition = Edition.last
+          expect(edition.shopify_info.ext_created_at).to be_nil
+          expect(edition.shopify_info.ext_updated_at).to be_nil
+        end
+      end
+
       it "creates associated attribute records if they don't exist" do # rubocop:todo RSpec/MultipleExpectations
         expect { creator.update_or_create! }.to change(Color, :count).by(1)
           .and change(Size, :count).by(1)
@@ -87,6 +129,35 @@ RSpec.describe Shopify::EditionCreator do
         expect(product.colors.map(&:value)).to include("Red")
         expect(product.sizes.map(&:value)).to include("Large")
         expect(product.versions.map(&:value)).to include("Deluxe")
+      end
+
+      context "with updated store_info timestamps" do
+        let(:parsed_variant_with_new_timestamps) do
+          {
+            id: "gid://shopify/ProductVariant/12345",
+            options: [
+              {name: "Color", value: "Red"}
+            ],
+            store_info: {
+              ext_created_at: 2.days.ago.iso8601,
+              ext_updated_at: 30.minutes.ago.iso8601
+            }
+          }
+        end
+        let(:creator_with_new_timestamps) { described_class.new(product, parsed_variant_with_new_timestamps) }
+
+        it "updates ext_created_at and ext_updated_at" do
+          original_created_at = existing_edition.shopify_info.ext_created_at
+          original_updated_at = existing_edition.shopify_info.ext_updated_at
+
+          creator_with_new_timestamps.update_or_create!
+
+          existing_edition.shopify_info.reload
+          expect(existing_edition.shopify_info.ext_created_at).not_to eq(original_created_at)
+          expect(existing_edition.shopify_info.ext_updated_at).not_to eq(original_updated_at)
+          expect(existing_edition.shopify_info.ext_created_at).to be_within(1.second).of(2.days.ago)
+          expect(existing_edition.shopify_info.ext_updated_at).to be_within(1.second).of(30.minutes.ago)
+        end
       end
     end
 

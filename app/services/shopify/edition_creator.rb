@@ -57,11 +57,26 @@ class Shopify::EditionCreator
     shopify_id = @parsed_edition[:id]
     return if shopify_id.blank?
 
-    store_info = @edition.shopify_info
+    store_info = @edition.shopify_info || @edition.store_infos.shopify.new
 
-    # Only update if store_id is different to avoid unnecessary queries
-    return if store_info.store_id == shopify_id
+    updates = {}
+    updates[:store_id] = shopify_id if store_info.store_id != shopify_id
+    updates[:pull_time] = Time.zone.now
 
-    store_info.update_column(:store_id, shopify_id)
+    if @parsed_edition[:store_info]
+      updates[:ext_created_at] = @parsed_edition[:store_info][:ext_created_at]
+      updates[:ext_updated_at] = @parsed_edition[:store_info][:ext_updated_at]
+    end
+
+    return if updates.empty?
+
+    if store_info.persisted?
+      # rubocop:disable Rails/SkipsModelValidations
+      store_info.update_columns(updates)
+      # rubocop:enable Rails/SkipsModelValidations
+    else
+      store_info.assign_attributes(updates)
+      store_info.save!
+    end
   end
 end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
+
 require "rails_helper"
+require "support/contracts/media_contract"
 
 RSpec.describe Shopify::ProductParser do
   describe "#parse" do
@@ -14,12 +16,14 @@ RSpec.describe Shopify::ProductParser do
               "id" => "gid://shopify/MediaImage/123",
               "alt" => "Test image 1",
               "image" => {"url" => "https://example.com/image1.jpg"},
+              "createdAt" => "2023-12-01T00:00:00Z",
               "updatedAt" => "2024-01-01T00:00:00Z"
             },
             {
               "id" => "gid://shopify/MediaImage/456",
               "alt" => "Test image 2",
               "image" => {"url" => "https://example.com/image2.jpg"},
+              "createdAt" => "2023-12-02T00:00:00Z",
               "updatedAt" => "2024-01-01T01:00:00Z"
             }
           ]
@@ -64,15 +68,21 @@ RSpec.describe Shopify::ProductParser do
           id: "gid://shopify/MediaImage/123",
           alt: "Test image 1",
           url: "https://example.com/image1.jpg",
-          updated_at: "2024-01-01T00:00:00Z",
-          position: 1
+          position: 1,
+          store_info: {
+            ext_created_at: "2023-12-01T00:00:00Z",
+            ext_updated_at: "2024-01-01T00:00:00Z"
+          }
         },
         {
           id: "gid://shopify/MediaImage/456",
           alt: "Test image 2",
           url: "https://example.com/image2.jpg",
-          updated_at: "2024-01-01T01:00:00Z",
-          position: 2
+          position: 2,
+          store_info: {
+            ext_created_at: "2023-12-02T00:00:00Z",
+            ext_updated_at: "2024-01-01T01:00:00Z"
+          }
         }
       ])
 
@@ -104,6 +114,21 @@ RSpec.describe Shopify::ProductParser do
     it "returns nil SKU when Shopify variant has no SKU" do
       result = parser.parse
       expect(result[:sku]).to be_nil
+    end
+
+    # Contract test: verify parser output matches what PullMediaJob expects
+    describe "media contract" do
+      let(:parser) { described_class.new(api_item: api_item) }
+
+      before do
+        allow(parser).to receive(:parse_product_title).and_return(
+          ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
+        )
+      end
+
+      let(:parsed_media) { parser.parse[:media] }
+
+      it_behaves_like "valid media contract"
     end
 
     it "handles missing variants" do

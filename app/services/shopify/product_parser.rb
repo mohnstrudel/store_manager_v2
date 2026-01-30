@@ -27,8 +27,11 @@ class Shopify::ProductParser
         id: node["id"],
         alt: node["alt"],
         url: node["image"]["url"],
-        updated_at: node["updatedAt"],
-        position: index + 1
+        position: index + 1,
+        store_info: {
+          ext_created_at: node["createdAt"],
+          ext_updated_at: node["updatedAt"]
+        }
       }
     end
 

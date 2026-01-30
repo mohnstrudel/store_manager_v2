@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::SaleParser
   def initialize(api_item: {})
     @order = api_item
@@ -9,8 +10,10 @@ class Shopify::SaleParser
   def parse
     {
       sale: parse_sale,
+      store_info: parse_store_info,
       sale_items: parse_sale_items,
-      customer: parse_customer
+      customer: parse_customer,
+      customer_store_info: parse_customer_store_info
     }
   end
 
@@ -37,10 +40,16 @@ class Shopify::SaleParser
       return_status: @order["returnStatus"],
       shipping_total: @order["totalShippingPrice"],
       shopify_created_at: parse_datetime(@order["createdAt"]),
-      shopify_updated_at: parse_datetime(@order["updatedAt"]),
       status: parse_shopify_status,
       shopify_id: @order["id"],
       total: @order["totalPrice"]
+    }
+  end
+
+  def parse_store_info
+    {
+      ext_created_at: parse_datetime(@order["createdAt"]),
+      ext_updated_at: parse_datetime(@order["updatedAt"])
     }
   end
 
@@ -61,6 +70,13 @@ class Shopify::SaleParser
 
   def find_customer_phone
     @order.dig("customer", "phone") || @order["phone"] || @order.dig("shippingAddress", "phone")
+  end
+
+  def parse_customer_store_info
+    {
+      ext_created_at: parse_datetime(@order.dig("customer", "createdAt")),
+      ext_updated_at: parse_datetime(@order.dig("customer", "updatedAt"))
+    }
   end
 
   def parse_sale_items

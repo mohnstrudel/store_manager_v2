@@ -49,6 +49,32 @@ RSpec.describe Shopify::SaleCreator do
         creator.update_or_create!
         expect(Sale.last.customer).to eq(Customer.last)
       end
+
+      it "sets ext_created_at and ext_updated_at on sale shopify_info" do
+        creator.update_or_create!
+        sale = Sale.last
+        expect(sale.shopify_info.ext_created_at).to be_within(1.second).of(Time.zone.parse("2025-05-01T06:27:45+00:00"))
+        expect(sale.shopify_info.ext_updated_at).to be_within(1.second).of(Time.zone.parse("2025-05-01T06:29:19+00:00"))
+      end
+
+      it "sets ext_created_at and ext_updated_at on customer shopify_info" do
+        creator.update_or_create!
+        customer = Customer.last
+        expect(customer.shopify_info.ext_created_at).to be_within(1.second).of(Time.zone.parse("2025-04-15T10:30:00+00:00"))
+        expect(customer.shopify_info.ext_updated_at).to be_within(1.second).of(Time.zone.parse("2025-05-01T06:27:45+00:00"))
+      end
+
+      it "sets store_id to each entity's own shopify_id" do
+        creator.update_or_create!
+        sale = Sale.last
+        customer = Customer.last
+
+        expect(sale.shopify_info.store_id).to eq(valid_parsed_order[:sale][:shopify_id])
+        expect(customer.shopify_info.store_id).to eq(valid_parsed_order[:customer][:shopify_id])
+
+        # Verify they are different IDs (not accidentally using one for the other)
+        expect(sale.shopify_info.store_id).not_to eq(customer.shopify_info.store_id)
+      end
     end
 
     context "when sale already exists" do
@@ -78,6 +104,29 @@ RSpec.describe Shopify::SaleCreator do
         sale = Sale.find_by(shopify_id: valid_parsed_order[:sale][:shopify_id])
         expect(sale.status).to eq("completed")
         expect(sale.closed).to be true
+      end
+
+      context "with updated store_info timestamps" do
+        let(:modified_order_with_new_timestamps) do
+          valid_parsed_order.deep_dup.tap do |order|
+            order[:store_info][:ext_created_at] = 2.days.ago.iso8601
+            order[:store_info][:ext_updated_at] = 30.minutes.ago.iso8601
+          end
+        end
+        let(:creator_with_new_timestamps) { described_class.new(parsed_item: modified_order_with_new_timestamps) }
+
+        it "updates ext_created_at and ext_updated_at" do
+          original_created_at = Sale.last.shopify_info.ext_created_at
+          original_updated_at = Sale.last.shopify_info.ext_updated_at
+
+          creator_with_new_timestamps.update_or_create!
+
+          sale = Sale.last
+          expect(sale.shopify_info.ext_created_at).not_to eq(original_created_at)
+          expect(sale.shopify_info.ext_updated_at).not_to eq(original_updated_at)
+          expect(sale.shopify_info.ext_created_at).to be_within(1.second).of(2.days.ago)
+          expect(sale.shopify_info.ext_updated_at).to be_within(1.second).of(30.minutes.ago)
+        end
       end
     end
 
@@ -220,7 +269,7 @@ RSpec.describe Shopify::SaleCreator do
           first_name: "OldFirstName",
           last_name: "OldLastName",
           phone: "1234567890")
-        customer.shopify_info.update(store_id: valid_parsed_order[:customer][:shopify_id])
+        customer.store_infos.create(store_name: :shopify, store_id: valid_parsed_order[:customer][:shopify_id])
         customer
       end
 

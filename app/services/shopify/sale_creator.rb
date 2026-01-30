@@ -60,8 +60,30 @@ class Shopify::SaleCreator
     shopify_id = @parsed_order[class_name.to_sym][:shopify_id]
     return if shopify_id.blank?
 
-    store_info = record.shopify_info
-    store_info.update!(store_id: shopify_id)
+    store_info = record.shopify_info || record.store_infos.shopify.new
+
+    updates = {}
+    updates[:store_id] = shopify_id if store_info.store_id != shopify_id
+    updates[:pull_time] = Time.zone.now
+
+    if class_name == "sale"
+      updates[:ext_created_at] = @parsed_order[:store_info][:ext_created_at]
+      updates[:ext_updated_at] = @parsed_order[:store_info][:ext_updated_at]
+    elsif class_name == "customer"
+      updates[:ext_created_at] = @parsed_order[:customer_store_info][:ext_created_at]
+      updates[:ext_updated_at] = @parsed_order[:customer_store_info][:ext_updated_at]
+    end
+
+    return if updates.empty?
+
+    if store_info.persisted?
+      # rubocop:disable Rails/SkipsModelValidations -- Intentional for sync operation
+      store_info.update_columns(updates)
+      # rubocop:enable Rails/SkipsModelValidations
+    else
+      store_info.assign_attributes(updates)
+      store_info.save!
+    end
   end
 
   def parsed_data_for(class_name)
@@ -156,7 +178,7 @@ class Shopify::SaleCreator
       editions = parsed_editions.map do |parsed_edition|
         Shopify::EditionCreator.new(product, parsed_edition).update_or_create!
       end
-      editions.compact_blank.find { |edition| edition.shopify_info.store_id == shopify_edition_id }
+      editions.compact_blank.find { |edition| edition.shopify_info&.store_id == shopify_edition_id }
     end
   end
 

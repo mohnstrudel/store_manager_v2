@@ -92,9 +92,14 @@ module Woo
 
       edition.save
 
-      # Update Woo StoreInfo with permalink
       if store_link.present?
-        edition.woo_info.update(slug: store_link)
+        woo_info = edition.woo_info || edition.store_infos.woo.new
+        if woo_info.persisted?
+          woo_info.update(slug: store_link)
+        else
+          woo_info.slug = store_link
+          woo_info.save!
+        end
       end
 
       edition

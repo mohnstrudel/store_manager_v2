@@ -25,7 +25,7 @@ class Shopify::ProductCreator
       @parsed_product[:editions]
     )
     Shopify::PullMediaJob.perform_later(
-      @product,
+      @product.id,
       @parsed_product[:media]
     )
 
@@ -98,18 +98,30 @@ class Shopify::ProductCreator
   def update_shopify_store_info!
     shopify_id = @parsed_product[:shopify_id]
     store_link = @parsed_product[:store_link]
+
     return if shopify_id.blank? && store_link.blank?
 
-    store_info = @product.shopify_info
+    store_info = @product.shopify_info || @product.store_infos.shopify.new
 
     updates = {}
     updates[:store_id] = shopify_id if shopify_id.present? && store_info.store_id != shopify_id
     updates[:slug] = store_link if store_link.present? && store_info.slug != store_link
+    updates[:pull_time] = Time.zone.now
+
+    if @parsed_product[:store_info]
+      updates[:ext_created_at] = @parsed_product[:store_info][:ext_created_at]
+      updates[:ext_updated_at] = @parsed_product[:store_info][:ext_updated_at]
+    end
 
     return if updates.empty?
 
-    # rubocop:disable Rails/SkipsModelValidations -- Intentional for sync operation
-    store_info.update_columns(updates) if updates.keys.any?
-    # rubocop:enable Rails/SkipsModelValidations
+    if store_info.persisted?
+      # rubocop:disable Rails/SkipsModelValidations -- Intentional for sync operation
+      store_info.update_columns(updates)
+      # rubocop:enable Rails/SkipsModelValidations
+    else
+      store_info.assign_attributes(updates)
+      store_info.save!
+    end
   end
 end

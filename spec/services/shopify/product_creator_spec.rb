@@ -68,6 +68,39 @@ RSpec.describe Shopify::ProductCreator do
         expect(product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
         expect(product.shopify_info.shopify?).to be true
       end
+
+      context "with ext_created_at and ext_updated_at" do
+        let(:parsed_product_with_timestamps) do
+          parsed_product.merge(
+            store_info: {
+              ext_created_at: 1.day.ago.iso8601,
+              ext_updated_at: 1.hour.ago.iso8601
+            }
+          )
+        end
+        let(:creator_with_timestamps) { described_class.new(parsed_item: parsed_product_with_timestamps) }
+
+        it "saves ext_created_at and ext_updated_at to StoreInfo" do
+          creator_with_timestamps.update_or_create!
+          product = Product.last
+          expect(product.shopify_info.ext_created_at).to be_within(2.seconds).of(1.day.ago)
+          expect(product.shopify_info.ext_updated_at).to be_within(2.seconds).of(1.hour.ago)
+        end
+      end
+
+      context "without store_info" do
+        let(:parsed_product_without_store_info) do
+          parsed_product.except(:store_info)
+        end
+        let(:creator_without_store_info) { described_class.new(parsed_item: parsed_product_without_store_info) }
+
+        it "does not set ext_created_at and ext_updated_at" do
+          creator_without_store_info.update_or_create!
+          product = Product.last
+          expect(product.shopify_info.ext_created_at).to be_nil
+          expect(product.shopify_info.ext_updated_at).to be_nil
+        end
+      end
     end
 
     context "when product already exists" do
@@ -83,6 +116,31 @@ RSpec.describe Shopify::ProductCreator do
         existing_product.reload
         expect(existing_product.title).to eq("Eve")
         expect(existing_product.shopify_info.slug).to eq("stellar-blade-eve-statue")
+      end
+
+      context "with updated store_info timestamps" do
+        let(:parsed_product_with_new_timestamps) do
+          parsed_product.merge(
+            store_info: {
+              ext_created_at: 2.days.ago.iso8601,
+              ext_updated_at: 30.minutes.ago.iso8601
+            }
+          )
+        end
+        let(:creator_with_new_timestamps) { described_class.new(parsed_item: parsed_product_with_new_timestamps) }
+
+        it "updates ext_created_at and ext_updated_at" do
+          original_created_at = existing_product.shopify_info.ext_created_at
+          original_updated_at = existing_product.shopify_info.ext_updated_at
+
+          creator_with_new_timestamps.update_or_create!
+
+          existing_product.shopify_info.reload
+          expect(existing_product.shopify_info.ext_created_at).not_to eq(original_created_at)
+          expect(existing_product.shopify_info.ext_updated_at).not_to eq(original_updated_at)
+          expect(existing_product.shopify_info.ext_created_at).to be_within(1.second).of(2.days.ago)
+          expect(existing_product.shopify_info.ext_updated_at).to be_within(1.second).of(30.minutes.ago)
+        end
       end
 
       it "preserves existing SKU" do

@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Shopify::BasePullJob do
+  include ActiveJob::TestHelper
+
   let(:job_class) do
     Class.new(described_class) do
       def self.name
@@ -36,7 +38,9 @@ RSpec.describe Shopify::BasePullJob do
           end
 
           def update_or_create!
-            true
+            @mock_record ||= Struct.new(:shopify_info).new(
+              Struct.new(:update_column).new { true }
+            )
           end
         end
       end
@@ -57,7 +61,9 @@ RSpec.describe Shopify::BasePullJob do
   end
 
   let(:parser) { instance_double("Parser", parse: {}) }
-  let(:creator) { instance_double("Creator", update_or_create!: true) }
+  let(:shopify_info) { instance_double("StoreInfo", update_column: true) }
+  let(:record) { instance_double("Record", shopify_info: shopify_info) }
+  let(:creator) { instance_double("Creator", update_or_create!: record) }
   let(:parser_class) { class_double("ParserClass", new: parser) }
   let(:creator_class) { class_double("CreatorClass", new: creator) }
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }
@@ -70,7 +76,29 @@ RSpec.describe Shopify::BasePullJob do
     allow(job_class).to receive(:set).and_return(job_setter)
   end
 
-  describe "#perform" do
+  describe ".queue_as" do
+    it "enqueues on the default queue" do
+      expect {
+        job_class.perform_later
+      }.to have_enqueued_job(job_class).on_queue("default")
+    end
+  end
+
+  describe ".perform_later" do
+    it "enqueues the job" do
+      expect {
+        job_class.perform_later
+      }.to have_enqueued_job(job_class)
+    end
+
+    it "enqueues the job with custom arguments" do
+      expect {
+        job_class.perform_later(attempts: 1, cursor: "abc", limit: 5)
+      }.to have_enqueued_job(job_class)
+    end
+  end
+
+  describe "#perform_now" do
     subject(:perform_job) { job.perform(**job_params) }
 
     let(:job_params) { {} }
@@ -84,7 +112,7 @@ RSpec.describe Shopify::BasePullJob do
       )
     end
 
-    it "processes each item through parser and creator" do # rubocop:todo RSpec/MultipleExpectations
+    it "processes each item through parser and creator" do
       perform_job
       expect(parser_class).to have_received(:new).exactly(2).times
       expect(creator_class).to have_received(:new).exactly(2).times
@@ -140,7 +168,7 @@ RSpec.describe Shopify::BasePullJob do
         allow(api_client).to receive(:pull).and_raise(rate_limit_error)
       end
 
-      it "retries with exponential backoff" do # rubocop:todo RSpec/MultipleExpectations
+      it "retries with exponential backoff" do
         perform_job
         expect(job_class).to have_received(:set).with(wait: 15.seconds)
         expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: nil, limit: nil)
@@ -172,7 +200,7 @@ RSpec.describe Shopify::BasePullJob do
         allow(api_client).to receive(:pull).and_return(modified_api_response)
       end
 
-      it "schedules next job when there are more pages" do # rubocop:todo RSpec/MultipleExpectations
+      it "schedules next job when there are more pages" do
         perform_job
         expect(job_class).to have_received(:set).with(wait: 1.second)
         expect(job_setter).to have_received(:perform_later)
@@ -194,7 +222,7 @@ RSpec.describe Shopify::BasePullJob do
         )
       end
 
-      it "logs warning and continues processing remaining items" do # rubocop:todo RSpec/MultipleExpectations
+      it "logs warning and continues processing remaining items" do
         allow(Rails.logger).to receive(:warn)
         perform_job
         expect(Rails.logger).to have_received(:warn).with(/Skipping item due to SKU collision/).twice

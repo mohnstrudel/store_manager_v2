@@ -77,7 +77,13 @@ module Woo
       product.save!
 
       if parsed_product[:store_link].present?
-        product.woo_info.update(slug: parsed_product[:store_link])
+        woo_info = product.woo_info || product.store_infos.woo.new
+        if woo_info.persisted?
+          woo_info.update(slug: parsed_product[:store_link])
+        else
+          woo_info.slug = parsed_product[:store_link]
+          woo_info.save!
+        end
       end
 
       product

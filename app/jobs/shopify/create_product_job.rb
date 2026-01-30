@@ -21,7 +21,7 @@ module Shopify
         )
         product_shopify_info.save!
 
-        if product.images.any?
+        if product.media.any?
           Shopify::PushMediaJob.perform_later(shopify_product_id, product.id)
         end
 

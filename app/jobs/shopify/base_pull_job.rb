@@ -8,7 +8,7 @@ module Shopify
     def perform(attempts: 0, cursor: nil, limit: nil)
       fetch_shopify_data(cursor:, limit:)
       merge_new_items
-      schedule_next_page(limit)
+      schedule_next_page if limit.blank?
     rescue ShopifyAPI::Errors::HttpResponseError => e
       handle_api_error(e, attempts, cursor, limit)
     end
@@ -41,8 +41,8 @@ module Shopify
       end
     end
 
-    def schedule_next_page(has_limit)
-      if @api_payload[:has_next_page] && !has_limit
+    def schedule_next_page
+      if @api_payload[:has_next_page]
         self.class
           .set(wait: 1.second)
           .perform_later(cursor: @api_payload[:end_cursor])
