@@ -1,6 +1,6 @@
 - shopify_info = @product.shopify_info
-- push_time = shopify_info.push_time
-- pull_time = shopify_info.pull_time
+- push_time = shopify_info&.push_time
+- pull_time = shopify_info&.pull_time
 
 dialog id="product-sync-modal" data-controller="modal" data-modal-target="container"
   .dialog-content.rounded-lg.shadow-lg.w-xl.p-4.pb-6.-translate-y-10
@@ -20,9 +20,9 @@ dialog id="product-sync-modal" data-controller="modal" data-modal-target="contai
     menu.flex.flex-col.gap-4
       - unless @product.shopify_published?
         li
-          = button_to "Publish to Shopify", publish_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false"}
+          = button_to "Publish to Shopify", publish_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}
       - else
         li
-          = button_to "Push updates to Shopify", push_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false"}
+          = button_to "Push updates to Shopify", push_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}
         li
-          = button_to "Pull updates from Shopify", pull_from_shopify_product_path(@product), class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false"}
+          = button_to "Pull updates from Shopify", pull_from_shopify_product_path(@product), class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}

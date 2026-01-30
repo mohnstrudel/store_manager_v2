@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ApplicationHelper
   def safe_blank_render(value)
     value.presence || "-"

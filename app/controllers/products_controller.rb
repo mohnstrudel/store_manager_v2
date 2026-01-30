@@ -104,7 +104,7 @@ class ProductsController < ApplicationController
   end
 
   def pull_from_shopify
-    notice = if @product.shopify_info.store_id.present?
+    notice = if @product.shopify_info&.store_id&.present?
       Shopify::PullProductJob.perform_later(@product.shopify_info.store_id)
       "Product is being pulled from Shopify"
     else

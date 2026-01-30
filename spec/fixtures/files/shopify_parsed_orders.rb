@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 [
   {
     sale: {
@@ -13,7 +14,6 @@
       total: "234.63",
       shopify_id: "gid://shopify/Order/6622947180873",
       shopify_created_at: "2025-05-01T06:27:45+00:00",
-      shopify_updated_at: "2025-05-01T06:29:19+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
       return_status: "NO_RETURN",
@@ -23,6 +23,10 @@
       cancelled_at: nil,
       cancel_reason: nil,
       status: "pre-ordered"
+    },
+    store_info: {
+      ext_created_at: "2025-05-01T06:27:45+00:00",
+      ext_updated_at: "2025-05-01T06:29:19+00:00"
     },
     sale_items: [
       {
@@ -104,6 +108,10 @@
       last_name: "Hawkins",
       phone: "+18649238413",
       shopify_id: "gid://shopify/Customer/8715258036553"
+    },
+    customer_store_info: {
+      ext_created_at: "2025-04-15T10:30:00+00:00",
+      ext_updated_at: "2025-05-01T06:27:45+00:00"
     }
   },
   {
@@ -119,7 +127,6 @@
       total: "99.80",
       shopify_id: "gid://shopify/Order/6621569450313",
       shopify_created_at: "2025-04-30T06:12:36+00:00",
-      shopify_updated_at: "2025-04-30T06:13:04+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
       return_status: "NO_RETURN",
@@ -129,6 +136,10 @@
       cancelled_at: nil,
       cancel_reason: nil,
       status: "pre-ordered"
+    },
+    store_info: {
+      ext_created_at: "2025-04-30T06:12:36+00:00",
+      ext_updated_at: "2025-04-30T06:13:04+00:00"
     },
     sale_items: [
       {
@@ -200,6 +211,10 @@
       last_name: "Pisanenko",
       phone: nil,
       shopify_id: "gid://shopify/Customer/8735512789321"
+    },
+    customer_store_info: {
+      ext_created_at: "2025-04-10T08:00:00+00:00",
+      ext_updated_at: "2025-04-30T06:12:36+00:00"
     }
   },
   {
@@ -215,7 +230,6 @@
       total: "700.00",
       shopify_id: "gid://shopify/Order/6617092260169",
       shopify_created_at: "2025-04-26T12:58:13+00:00",
-      shopify_updated_at: "2025-04-26T12:58:16+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
       return_status: "NO_RETURN",
@@ -225,6 +239,10 @@
       cancelled_at: nil,
       cancel_reason: nil,
       status: "pre-ordered"
+    },
+    store_info: {
+      ext_created_at: "2025-04-26T12:58:13+00:00",
+      ext_updated_at: "2025-04-26T12:58:16+00:00"
     },
     sale_items: [
       {
@@ -296,6 +314,10 @@
       last_name: "Buchmann",
       phone: nil,
       shopify_id: "gid://shopify/Customer/8843207246153"
+    },
+    customer_store_info: {
+      ext_created_at: "2025-04-05T14:20:00+00:00",
+      ext_updated_at: "2025-04-26T12:58:13+00:00"
     }
   }
 ]

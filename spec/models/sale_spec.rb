@@ -160,4 +160,78 @@ RSpec.describe Sale, type: :model do
       end
     end
   end
+
+  describe "#has_unlinked_sale_items?" do
+    let(:sale) { create(:sale, status: active_status) }
+    let!(:sale_item) { create(:sale_item, sale:, product:, qty: 2) }
+
+    context "when all sale_items are linked" do
+      before do
+        create_list(:purchase_item, 2, sale_item:, purchase:, warehouse:)
+      end
+
+      it "returns nil" do
+        expect(sale.has_unlinked_sale_items?).to be_nil
+      end
+    end
+
+    context "when some sale_items are not fully linked" do
+      before do
+        create(:purchase_item, sale_item:, purchase:, warehouse:)
+      end
+
+      it "returns true if there are available purchase items" do
+        create(:purchase_item, purchase:, warehouse:)
+        expect(sale.has_unlinked_sale_items?).to be true
+      end
+
+      it "returns false if no purchase items available" do
+        expect(sale.has_unlinked_sale_items?).to be false
+      end
+    end
+
+    context "when no sale_items exist" do
+      let(:sale) { create(:sale, status: active_status) }
+
+      it "returns false" do
+        expect(sale.has_unlinked_sale_items?).to be false
+      end
+    end
+  end
+
+  describe "#shop_updated_at" do
+    context "when sale has shopify_info with ext_updated_at" do
+      let(:sale) { create(:sale) }
+
+      it "returns ext_updated_at from shopify_info" do
+        sale.shopify_info.update!(ext_updated_at: 1.day.ago)
+        expect(sale.shop_updated_at).to be_within(1.second).of(1.day.ago)
+      end
+
+      it "returns nil when ext_updated_at is nil and woo_updated_at is nil" do
+        sale.shopify_info.update!(ext_updated_at: nil)
+        sale.update!(woo_updated_at: nil)
+        expect(sale.shop_updated_at).to be_nil
+      end
+    end
+
+    context "when sale has woo_updated_at" do
+      let(:sale) { create(:sale, shopify_id: nil) }
+
+      it "returns woo_updated_at" do
+        sale.update!(woo_updated_at: 2.days.ago)
+        expect(sale.shop_updated_at).to be_within(1.second).of(2.days.ago)
+      end
+    end
+
+    context "when sale has both shopify_info and woo_updated_at" do
+      let(:sale) { create(:sale) }
+
+      it "prioritizes shopify_info.ext_updated_at over woo_updated_at" do
+        sale.shopify_info.update!(ext_updated_at: 1.day.ago)
+        sale.update!(woo_updated_at: 2.days.ago)
+        expect(sale.shop_updated_at).to be_within(1.second).of(1.day.ago)
+      end
+    end
+  end
 end

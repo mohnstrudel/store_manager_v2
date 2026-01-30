@@ -2,7 +2,7 @@
   .stimulus data-controller="purchase-edition"
     = form.label :product_id
     .stimulus#purchase-product-select
-      = form.collection_select :product_id, Product.all, :id, :build_full_title_with_shop_id, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-edition#change" }
+      = form.collection_select :product_id, Product.includes(:shopify_info, :woo_info), :id, :build_full_title_with_shop_id, { class: "select" }, data: { controller: "slim-select", action: "change->purchase-edition#change" }
 
     .stimulus#purchase-edition-select data-purchase-edition-target="select"
       - if purchase.product&.editions.present?

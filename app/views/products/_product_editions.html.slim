@@ -8,7 +8,7 @@
         th Type
         th.text-right Active Sales
         th Purchases
-        th Shop ID
+        th Store ID
       tbody
         - product.editions.each do |edition|
           tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == edition.id)
@@ -17,11 +17,12 @@
             td = edition.types_name
             td.text-right = format_zero_values @editions_sales_sums[edition.id]
             td = format_zero_values @editions_purchases_sums[edition.id]
-            - if edition.shop_id.present?
-              - edition_url = edition.woo_info&.page_url_for(:woo)
-              - if edition_url.present?
-                td = link_to edition.shop_id, edition_url, :target => "_blank", "rel" => "noopener noreferrer", :class => "link"
+            td
+              - if edition.shopify_info.present?
+                - esi = edition.shopify_info
+                - edition_url = esi.product_url("#{product.shopify_info&.slug}?variant=#{esi.id_short}")
+                = link_to esi.id_short, edition_url, :target => "_blank", "rel" => "noopener noreferrer", :class => "link"
+              - elsif edition.woo_info.present?
+                = edition.woo_info.store_id
               - else
-                td = edition.shop_id
-            - else
-              td -
+                | -

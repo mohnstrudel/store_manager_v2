@@ -224,7 +224,7 @@ class Sale < ApplicationRecord
   end
 
   def shop_updated_at
-    shopify_updated_at || woo_updated_at
+    shopify_info&.ext_updated_at || woo_updated_at
   end
 
   def link_with_purchase_items

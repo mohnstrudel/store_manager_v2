@@ -131,11 +131,12 @@ class Product < ApplicationRecord
   end
 
   def build_full_title_with_shop_id
-    "#{full_title} | #{shop_id || "N/A"}"
+    shop_ids = [shopify_info&.id_short&.presence, woo_info&.store_id&.presence].compact.join(" | ")
+    "#{full_title} | #{shop_ids || "N/A"}"
   end
 
   def build_shopify_url
-    return "https://handsomecake.com/" if shopify_info.slug.blank?
+    return "https://handsomecake.com/" unless shopify_info&.slug
 
     "https://handsomecake.com/products/#{shopify_info.slug}"
   end
@@ -180,7 +181,7 @@ class Product < ApplicationRecord
   end
 
   def shopify_published?
-    shopify_info.store_id.present?
+    shopify_info&.store_id.present?
   end
 
   private

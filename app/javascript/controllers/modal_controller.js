@@ -22,7 +22,13 @@ export default class extends Controller {
   }
 
   close(e) {
+    e?.preventDefault();
+    this.containerTarget.close();
+  }
+
+  closeAndSubmit(e) {
     e.preventDefault();
     this.containerTarget.close();
+    e.target.form.requestSubmit();
   }
 }

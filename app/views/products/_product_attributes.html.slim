@@ -1,5 +1,5 @@
 .cards
-  = render "_shared/gallery", media: product.media
+  = render "_shared/gallery", media: product.media.ordered
 
   .card.grow
     h5 Title
@@ -27,14 +27,14 @@
     h5 Updated
     p = format_date product.updated_at
     h5 Woo ID
-    - if product.woo_info.store_id.present?
-      - woo_url = product.woo_info.page_url_for(:woo)
+    - if product.woo_info.present? && product.woo_info.store_id.present?
+      - woo_url = product.woo_info.product_url
       p
         = link_to product.woo_info.store_id, woo_url, target: "_blank", rel: "noopener noreferrer", class: "link" if woo_url.present?
     - else
       p -
     h5 Shopify ID
-    - if product.shopify_info.store_id.present?
+    - if product.shopify_info.present? && product.shopify_info.id_short.present?
       p
         = link_to product.shopify_info.id_short, product.build_shopify_url, target: "_blank", rel: "noopener noreferrer", class: "link"
         span.group.relative
