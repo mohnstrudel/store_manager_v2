@@ -7,14 +7,13 @@ RSpec.describe Shopify::ApiClient do
   let(:mock_graphql_client) { instance_double(ShopifyAPI::Clients::Graphql::Admin) }
 
   before do
+    allow(ENV).to receive(:fetch).with("SHOPIFY_DOMAIN").and_return("test-shop.myshopify.com")
+    allow(ENV).to receive(:fetch).with("SHOPIFY_API_TOKEN").and_return("test-token")
     allow(ShopifyAPI::Clients::Graphql::Admin).to receive(:new).and_return(mock_graphql_client)
   end
 
   describe "#initialize" do
     it "creates a GraphQL client with Shopify credentials" do
-      allow(ENV).to receive(:fetch).with("SHOPIFY_DOMAIN").and_return("test-shop.myshopify.com")
-      allow(ENV).to receive(:fetch).with("SHOPIFY_API_TOKEN").and_return("test-token")
-
       # rubocop:todo RSpec/MessageSpies
       expect(ShopifyAPI::Clients::Graphql::Admin).to receive(:new).with(
         session: kind_of(ShopifyAPI::Auth::Session)
