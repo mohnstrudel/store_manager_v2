@@ -20,10 +20,10 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     br
     span.text-gray-500 = format_date sale.shop_updated_at.presence || sale.updated_at
   td
-    - if sale.woo_info.store_id.present?
+    - if sale.woo_info&.store_id&.present?
       .inline-block.icon-woo.w-8.h-8.mr-1.-mb-3
       = sale.woo_info.store_id
-    - if sale.shopify_info.store_id.present?
+    - if sale.shopify_info&.store_id&.present?
       .inline-block.icon-shopify.w-5.h-5.mr-1.-mb-1
       = sale.shopify_name
       br
