@@ -38,14 +38,6 @@ class MigrateImagesToMediaJob < ApplicationJob
       media = record.media.build
       media.image.attach(img.blob)
       media.save!
-
-      %i[preview thumb nano].each { |v|
-        begin
-          media.image.variant(v).processed
-        rescue
-          nil
-        end
-      }
     end
   end
 end
