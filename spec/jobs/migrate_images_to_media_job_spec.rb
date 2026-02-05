@@ -174,31 +174,90 @@ RSpec.describe MigrateImagesToMediaJob do
       end
     end
 
-    context "when media records already exist for a record" do
+    context "when all images are already migrated" do
       let(:product) { create(:product) }
-      let(:image_blob) do
+      let(:first_image_blob) do
         ActiveStorage::Blob.create_and_upload!(
           io: StringIO.new("test image content"),
-          filename: "test.jpg",
+          filename: "test1.jpg",
+          content_type: "image/jpeg"
+        )
+      end
+      let(:second_image_blob) do
+        ActiveStorage::Blob.create_and_upload!(
+          io: StringIO.new("second image"),
+          filename: "test2.jpg",
           content_type: "image/jpeg"
         )
       end
 
       before do
-        create(:media, mediaable: product)
+        product.images.attach(first_image_blob, second_image_blob)
+        # Manually create media for both images (simulating previous migration)
+        media1 = create(:media, mediaable: product)
+        media1.image.attach(first_image_blob)
+        media2 = create(:media, mediaable: product)
+        media2.image.attach(second_image_blob)
         product.reload
-        product.images.attach(image_blob)
       end
 
-      it "creates additional media records without affecting existing ones" do
+      it "does not create duplicate media records" do
+        expect { perform_job }.not_to change { product.reload.media.count }
+      end
+
+      it "is idempotent - running multiple times has no effect" do
+        perform_job
+        expect { perform_job }.not_to change { product.reload.media.count }
+      end
+    end
+
+    context "when only some images are migrated (partial migration)" do
+      let(:product) { create(:product) }
+      let(:first_image_blob) do
+        ActiveStorage::Blob.create_and_upload!(
+          io: StringIO.new("test image content"),
+          filename: "test1.jpg",
+          content_type: "image/jpeg"
+        )
+      end
+      let(:second_image_blob) do
+        ActiveStorage::Blob.create_and_upload!(
+          io: StringIO.new("second image"),
+          filename: "test2.jpg",
+          content_type: "image/jpeg"
+        )
+      end
+
+      before do
+        product.images.attach(first_image_blob, second_image_blob)
+        # Only migrate the first image
+        media1 = create(:media, mediaable: product)
+        media1.image.attach(first_image_blob)
+        product.reload
+      end
+
+      it "creates media only for the non-migrated image" do
         expect { perform_job }.to change { product.reload.media.count }.by(1)
       end
 
-      it "preserves the blob reference for the new media" do
+      it "points the new media to the correct blob", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
         perform_job
 
-        new_media = product.media.find { |m| m.image.blob_id == image_blob.id }
-        expect(new_media.image.blob_id).to eq(image_blob.id)
+        # Should have 2 media total now
+        expect(product.media.count).to eq(2)
+
+        # Find the media for blob2 (the newly migrated one)
+        new_media = product.media.find { |m| m.image.blob_id == second_image_blob.id }
+        expect(new_media).to be_present
+        expect(new_media.image.blob_id).to eq(second_image_blob.id)
+      end
+
+      it "does not create duplicate media for already-migrated images" do
+        perform_job
+
+        # first_image_blob should still only have one media record
+        blob1_media_count = product.media.count { |m| m.image.blob_id == first_image_blob.id }
+        expect(blob1_media_count).to eq(1)
       end
     end
 

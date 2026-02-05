@@ -14,7 +14,7 @@ class MigrateImagesToMediaJob < ApplicationJob
         .distinct
         .in_batches(of: BATCH_SIZE) do |batch_relation|
           batch_relation
-            .preload(images_attachments: :blob)
+            .preload(:media, images_attachments: :blob)
             .find_each do |record|
               process_record(record)
             end
@@ -27,8 +27,13 @@ class MigrateImagesToMediaJob < ApplicationJob
   def process_record(record)
     return if record.images.none?
 
+    existing_blob_ids = record.media
+      .select { |m| m.image.attached? }
+      .map { |m| m.image.blob_id }
+
     record.images.each do |img|
       next if img.blob.blank?
+      next if existing_blob_ids.include?(img.blob.id)
 
       media = record.media.build
       media.image.attach(img.blob)
