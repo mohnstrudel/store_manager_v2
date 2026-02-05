@@ -35,7 +35,7 @@ class PurchaseItemsController < ApplicationController
     @purchase_item = PurchaseItem.new(purchase_item_params)
 
     if @purchase_item.save
-      handle_new_images_for(@purchase_item)
+      add_new_media(@purchase_item)
 
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
@@ -49,8 +49,8 @@ class PurchaseItemsController < ApplicationController
     if @purchase_item.update(
       purchase_item_params.except(:redirect_to_sale_item)
     )
-      handle_media_for(@purchase_item)
-      handle_new_images_for(@purchase_item)
+      update_media(@purchase_item)
+      add_new_media(@purchase_item)
 
       path = purchase_item_params[:redirect_to_sale_item] ?
         @purchase_item.sale_item :

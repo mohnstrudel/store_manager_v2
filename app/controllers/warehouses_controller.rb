@@ -42,7 +42,7 @@ class WarehousesController < ApplicationController
     @warehouse = Warehouse.new(warehouse_params)
 
     if @warehouse.save
-      handle_new_images_for(@warehouse)
+      add_new_media(@warehouse)
 
       if @warehouse.is_default?
         Warehouse.ensure_only_one_default(@warehouse.id)
@@ -62,8 +62,8 @@ class WarehousesController < ApplicationController
         handle_warehouse_transitions
         redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
       elsif @warehouse.update(warehouse_params)
-        handle_media_for(@warehouse)
-        handle_new_images_for(@warehouse)
+        update_media(@warehouse)
+        add_new_media(@warehouse)
 
         if @warehouse.is_default?
           Warehouse.ensure_only_one_default(@warehouse.id)

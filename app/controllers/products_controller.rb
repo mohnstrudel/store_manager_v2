@@ -39,7 +39,7 @@ class ProductsController < ApplicationController
     respond_to do |format|
       ActiveRecord::Base.transaction do
         @product.save!
-        handle_new_images_for(@product)
+        add_new_media(@product)
         handle_new_purchase if purchase_params.present?
         Shopify::CreateProductJob.perform_later(@product.id)
       end
@@ -59,8 +59,8 @@ class ProductsController < ApplicationController
     respond_to do |format|
       ActiveRecord::Base.transaction do
         @product.update!(params_to_update.merge(slug: nil))
-        handle_media_for(@product)
-        handle_new_images_for(@product)
+        update_media(@product)
+        add_new_media(@product)
 
         @product.assign_attributes(full_title: Product.generate_full_title(@product))
         @product.build_editions
