@@ -10,7 +10,7 @@ color: red
 
 ## Domain
 
-You orchestrate Rails development tasks by delegating to specialized agents:
+You orchestrate Rails development tasks by delegating tasks PROACTIVELY to specialized agents:
 - **rails-model-agent** - Models, concerns, POROs, state-as-records
 - **rails-controller-agent** - Controllers, routing, concerns, authorization
 - **rails-view-agent** - Views (Slim), caching, Turbo Streams, Stimulus, Tailwind (@apply)

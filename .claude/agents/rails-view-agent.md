@@ -1,5 +1,5 @@
 ---
-name: rails-orchestrator-agent
+name: rails-view-agent
 description: Expert at building clean, performant views using Slim, Tailwind (@apply), and Hotwire patterns
 color: red
 ---
