@@ -1,20 +1,20 @@
-= form_with model: product, html: { multipart: true } do |form|
+= form_with model: product, html: {multipart: true} do |form|
   fieldset.flex.justify-between.gap-4
     .block.w-full
       = form.label :franchise
-      = form.collection_select(:franchise_id, Franchise.all, :id, :title, { class: "select" }, data: { controller: "slim-select" })
+      = form.collection_select(:franchise_id, Franchise.all, :id, :title, {class: "select"}, data: {controller: "slim-select"})
     .block.w-full
       = form.label :title
       = form.text_field :title
     .block.w-full data-turbo="false"
       = form.label :brand
-      = form.collection_select(:brand_ids, Brand.all, :id, :title, { class: "select" }, {multiple: true, data: { controller: "slim-select" }})
+      = form.collection_select(:brand_ids, Brand.all, :id, :title, {class: "select"}, {multiple: true, data: {controller: "slim-select"}})
 
   fieldset
     .block.w-full
       = form.label :description
-      p.text-gray-600.dark:text-gray-500 HTML tags are supported
-      = form.text_area :description
+      p.text-gray-600.dark:text-gray-500 Rich text formatting supported
+      = form.rich_text_area :description, class: "w-full"
 
   fieldset.flex.justify-between.gap-4
     .block.w-full
@@ -31,7 +31,7 @@
     .flex.justify-between.gap-4.px-4
       .block.w-full.-mt-6
         = form.label :size
-        = form.collection_select(:size_ids, Size.all, :id, :value, { class: "select" }, {multiple: true, data: { product_editions_target: "sizes" }})
+        = form.collection_select(:size_ids, Size.all, :id, :value, {class: "select"}, {multiple: true, data: {product_editions_target: "sizes"}})
       .block.w-full.-mt-6
         = form.label :version
         = form.collection_select(:version_ids, Version.all, :id, :value, {class: "select"}, {multiple: true, data: {product_editions_target: "versions"}})
@@ -61,7 +61,7 @@
           fieldset.flex.justify-between.gap-4
             .block.w-full
               = purchase_fields.label :supplier_id
-              = purchase_fields.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title, class: "w-full"
+              = purchase_fields.collection_select :supplier_id, Supplier.order(title: :asc), :id, :title, class: "w-full"
             .block.w-full
               = purchase_fields.label :order_reference
               = purchase_fields.text_field :order_reference

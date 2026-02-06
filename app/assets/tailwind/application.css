@@ -87,7 +87,8 @@
   input,
   select,
   .ss-main,
-  textarea {
+  textarea,
+  trix-editor {
     @apply appearance-none w-full pl-3 pr-10 py-1.5 cursor-pointer border border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
   }
 
@@ -483,5 +484,18 @@
 
   .rectangle-with-x::after {
     @apply -rotate-45;
+  }
+
+  trix-toolbar .trix-button:not(:first-child) {
+    @apply border-l! border-gray-300/80! dark:border-gray-600/60!;
+  }
+
+  trix-toolbar .trix-button-group {
+    @apply border border-gray-300/80! dark:border-gray-600/60!;
+  }
+
+  trix-toolbar .trix-button.trix-active,
+  trix-editor .trix-button.trix-active {
+    @apply bg-sky-100! dark:bg-sky-800!;
   }
 }

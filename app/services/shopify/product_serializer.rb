@@ -19,7 +19,7 @@ class Shopify::ProductSerializer
       title: "#{franchise} - #{product} | Resin #{shape} | by #{brand}"
     }
 
-    serialized[:descriptionHtml] = @product.description if @product.description.present?
+    serialized[:descriptionHtml] = @product.description.body.to_html.strip if @product.description.body.present?
 
     serialized
   end

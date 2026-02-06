@@ -5,7 +5,6 @@
 # Table name: products
 #
 #  id           :bigint           not null, primary key
-#  description  :text
 #  full_title   :string
 #  image        :string
 #  sku          :string
@@ -227,14 +226,14 @@ RSpec.describe Product do
         html_description = "<p>This is a <strong>great</strong> product with <em>features</em>.</p>"
         product = create(:product, description: html_description)
 
-        expect(product.description).to eq(html_description)
+        expect(product.description.body.to_html.strip).to eq(html_description)
       end
 
       it "allows updating description" do
         product = create(:product, description: "<p>Original description</p>")
         product.update(description: "<p>Updated <strong>description</strong></p>")
 
-        expect(product.reload.description).to eq("<p>Updated <strong>description</strong></p>")
+        expect(product.reload.description.body.to_html.strip).to eq("<p>Updated <strong>description</strong></p>")
       end
     end
 
@@ -242,13 +241,13 @@ RSpec.describe Product do
       it "allows creating product without description" do
         product = create(:product, description: nil)
 
-        expect(product.description).to be_nil
+        expect(product.description.body).to be_blank
       end
 
       it "allows empty string description" do
         product = create(:product, description: "")
 
-        expect(product.description).to eq("")
+        expect(product.description.body).to be_blank
       end
     end
   end

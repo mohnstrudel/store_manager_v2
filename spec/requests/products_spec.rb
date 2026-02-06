@@ -16,7 +16,7 @@ RSpec.describe "Products API" do
       html_description = "<p>This is a <strong>premium</strong> collectible figure.</p>"
       product = create(:product, franchise:, shape:, description: html_description)
 
-      expect(product.description).to eq(html_description)
+      expect(product.description.body.to_html.strip).to eq(html_description)
     end
 
     it "allows updating description with HTML" do
@@ -25,13 +25,13 @@ RSpec.describe "Products API" do
 
       product.update(description: html_description)
 
-      expect(product.reload.description).to eq(html_description)
+      expect(product.reload.description.body.to_html.strip).to eq(html_description)
     end
 
     it "allows products without descriptions" do
       product = create(:product, franchise:, shape:, description: nil)
 
-      expect(product.description).to be_nil
+      expect(product.description.body).to be_blank
     end
   end
 end

@@ -9,3 +9,5 @@ pin "slim-select" # @2.12.1
 pin "stimulus-use" # @0.52.3
 pin "stimulus" # @3.2.2
 pin "activestorage" # @5.2.8
+pin "trix"
+pin "@rails/actiontext", to: "actiontext.esm.js"

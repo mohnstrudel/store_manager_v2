@@ -5,7 +5,6 @@
 # Table name: products
 #
 #  id           :bigint           not null, primary key
-#  description  :text
 #  full_title   :string
 #  image        :string
 #  sku          :string
@@ -66,6 +65,7 @@ class Product < ApplicationRecord
   #
   # == Associations
   #
+  has_rich_text :description
   db_belongs_to :franchise
   db_belongs_to :shape
 
