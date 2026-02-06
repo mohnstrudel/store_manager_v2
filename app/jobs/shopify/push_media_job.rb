@@ -126,33 +126,34 @@ module Shopify
     end
 
     def reorder_media_on_shopify
-      all_media = product.media.ordered
+      media = product.media.ordered.preload(:store_infos)
       api_product_response = api_client.pull_product(shopify_product_id)
 
-      shopify_media_positions = {}
-      api_product_response["media"]["nodes"].each_with_index do |node, index|
-        shopify_media_positions[node["id"]] = index
-      end
+      shopify_positions = api_product_response["media"]["nodes"]
+        .each_with_index
+        .to_h { |node, index| [node["id"], index] }
 
-      # Only send moves for media that changed position
-      moves = []
-      all_media.each_with_index do |media, local_position|
-        shopify_info = media.store_infos.shopify.first
-        next unless shopify_info
-
-        shopify_media_id = shopify_info.store_id
-        shopify_position = shopify_media_positions[shopify_media_id]
-        next if shopify_position == local_position
-
-        moves << {
-          id: shopify_media_id,
-          newPosition: local_position.to_s
-        }
-      end
-
+      # We only need changed positions
+      moves = position_changes(shopify_positions, media)
       return if moves.blank?
 
       api_client.reorder_media(shopify_product_id, moves)
+    end
+
+    def position_changes(shopify_positions, media)
+      media.each_with_index.filter_map do |media_item, our_position|
+        next unless (shopify_info = media_item.shopify_info)
+
+        store_id = shopify_info.store_id
+        shopify_position = shopify_positions[store_id]
+
+        next if shopify_position == our_position
+
+        {
+          id: store_id,
+          newPosition: our_position.to_s
+        }
+      end
     end
 
     def handle_shopify_error(error)
