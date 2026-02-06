@@ -160,9 +160,9 @@ class ProductsController < ApplicationController
   def product_params
     params.expect(product: [
       :title,
+      :description,
       :franchise_id,
       :shape_id,
-      :target,
       :sku,
       :woo_id,
       :shopify_id,

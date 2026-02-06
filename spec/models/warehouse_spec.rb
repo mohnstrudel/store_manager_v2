@@ -9,6 +9,7 @@
 #  courier_tracking_url      :string
 #  desc_de                   :string
 #  desc_en                   :string
+#  external_name             :string
 #  external_name_de          :string
 #  external_name_en          :string
 #  is_default                :boolean          default(FALSE), not null

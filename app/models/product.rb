@@ -5,6 +5,7 @@
 # Table name: products
 #
 #  id           :bigint           not null, primary key
+#  description  :text
 #  full_title   :string
 #  image        :string
 #  sku          :string

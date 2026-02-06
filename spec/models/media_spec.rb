@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: media
+#
+#  id             :bigint           not null, primary key
+#  alt            :string           default(""), not null
+#  mediaable_type :string           not null
+#  position       :integer          default(0), not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  mediaable_id   :bigint           not null
+#
 require "rails_helper"
 
 RSpec.describe Media, type: :model do

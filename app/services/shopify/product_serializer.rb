@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Shopify::ProductSerializer
   def self.serialize(*args)
     new(*args).serialize
@@ -14,8 +15,12 @@ class Shopify::ProductSerializer
     shape = @product.shape.title
     brand = @product.brands.pluck(:title).join(", ")
 
-    {
+    serialized = {
       title: "#{franchise} - #{product} | Resin #{shape} | by #{brand}"
     }
+
+    serialized[:descriptionHtml] = @product.description if @product.description.present?
+
+    serialized
   end
 end

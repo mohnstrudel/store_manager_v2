@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::ProductSerializer do
@@ -33,11 +34,35 @@ RSpec.describe Shopify::ProductSerializer do
       expect(result[:title]).to eq("Studio Ghibli - Spirited Away | Resin Statue | by Zuoban Studio")
     end
 
-    it "returns only title in serialized output" do
+    it "returns only title in serialized output when description is blank" do
       serializer = described_class.new(product)
       result = serializer.serialize
 
       expect(result.keys).to eq([:title])
+    end
+
+    it "includes descriptionHtml when product has description", :aggregate_failures do
+      html_description = "<p>This is a <strong>premium</strong> collectible figure.</p>"
+      product.update(description: html_description)
+
+      result = described_class.serialize(product)
+
+      expect(result.keys).to eq([:title, :descriptionHtml])
+      expect(result[:descriptionHtml]).to eq(html_description)
+    end
+
+    it "does not include descriptionHtml when description is nil" do
+      result = described_class.serialize(product)
+
+      expect(result.key?(:descriptionHtml)).to be false
+    end
+
+    it "does not include descriptionHtml when description is empty string" do
+      product.update(description: "")
+
+      result = described_class.serialize(product)
+
+      expect(result.key?(:descriptionHtml)).to be false
     end
 
     it "returns title as a string" do

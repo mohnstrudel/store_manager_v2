@@ -5,6 +5,7 @@
 # Table name: products
 #
 #  id           :bigint           not null, primary key
+#  description  :text
 #  full_title   :string
 #  image        :string
 #  sku          :string
@@ -216,6 +217,38 @@ RSpec.describe Product do
         product = create(:product)
 
         expect(product.shopify_published?).to be true
+      end
+    end
+  end
+
+  describe "description field" do
+    context "when product has a description" do
+      it "stores HTML content" do
+        html_description = "<p>This is a <strong>great</strong> product with <em>features</em>.</p>"
+        product = create(:product, description: html_description)
+
+        expect(product.description).to eq(html_description)
+      end
+
+      it "allows updating description" do
+        product = create(:product, description: "<p>Original description</p>")
+        product.update(description: "<p>Updated <strong>description</strong></p>")
+
+        expect(product.reload.description).to eq("<p>Updated <strong>description</strong></p>")
+      end
+    end
+
+    context "when product has no description" do
+      it "allows creating product without description" do
+        product = create(:product, description: nil)
+
+        expect(product.description).to be_nil
+      end
+
+      it "allows empty string description" do
+        product = create(:product, description: "")
+
+        expect(product.description).to eq("")
       end
     end
   end
