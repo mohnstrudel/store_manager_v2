@@ -68,7 +68,7 @@ RSpec.describe Shopify::ProductParser do
           id: "gid://shopify/MediaImage/123",
           alt: "Test image 1",
           url: "https://example.com/image1.jpg",
-          position: 1,
+          position: 0,
           store_info: {
             ext_created_at: "2023-12-01T00:00:00Z",
             ext_updated_at: "2024-01-01T00:00:00Z"
@@ -78,7 +78,7 @@ RSpec.describe Shopify::ProductParser do
           id: "gid://shopify/MediaImage/456",
           alt: "Test image 2",
           url: "https://example.com/image2.jpg",
-          position: 2,
+          position: 1,
           store_info: {
             ext_created_at: "2023-12-02T00:00:00Z",
             ext_updated_at: "2024-01-01T01:00:00Z"
@@ -119,14 +119,13 @@ RSpec.describe Shopify::ProductParser do
     # Contract test: verify parser output matches what PullMediaJob expects
     describe "media contract" do
       let(:parser) { described_class.new(api_item: api_item) }
+      let(:parsed_media) { parser.parse[:media] }
 
       before do
         allow(parser).to receive(:parse_product_title).and_return(
           ["Eve", "Stellar Blade", "1:4", "Statue", "Light and Dust Studio"]
         )
       end
-
-      let(:parsed_media) { parser.parse[:media] }
 
       it_behaves_like "valid media contract"
     end

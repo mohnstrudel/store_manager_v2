@@ -9,7 +9,7 @@ module HandlesMedia
     new_images = media_params_for(record)[:new_images]
     return if new_images.blank?
 
-    base_position = record.media.maximum(:position)&.next || 1
+    base_position = record.media.maximum(:position)&.next || 0
 
     new_images.each_with_index do |image, index|
       next unless image_like?(image)

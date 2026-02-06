@@ -46,10 +46,8 @@ RSpec.describe "Product Image Management" do
     visit edit_product_path(product)
 
     # Change position of first image to 2
-    within("fieldset", text: "Existing images") do
-      first_input = all("input[name^='product[media]'][type='number']").first
-      first_input.set(2)
-    end
+    first_input = all("input[name^='product[media]'][type='number']").first
+    first_input.set(2)
 
     click_button "Update Product"
 
@@ -67,9 +65,7 @@ RSpec.describe "Product Image Management" do
     visit edit_product_path(product)
 
     # Click the Remove button on the first image
-    within("fieldset", text: "Existing images") do
-      first("button[data-form-image-target='removeButton']").click
-    end
+    first("button[data-form-image-target='removeButton']").click
 
     click_button "Update Product"
 
@@ -84,10 +80,8 @@ RSpec.describe "Product Image Management" do
     visit edit_product_path(product)
 
     # Click Replace button and attach new file
-    within("fieldset", text: "Existing images") do
-      click_button "Replace"
-      attach_file("product[media][0][image]", replacement_image_path, visible: false)
-    end
+    all("button[data-form-image-target='replaceButton']").first.click
+    attach_file("product[media][0][image]", replacement_image_path, visible: false)
 
     click_button "Update Product"
 
@@ -109,20 +103,14 @@ RSpec.describe "Product Image Management" do
     attach_file("product[new_images][]", first_image_path, visible: false)
 
     # Remove first existing image
-    within("fieldset", text: "Existing images") do
-      first("button[data-form-image-target='removeButton']").click
-    end
+    first("button[data-form-image-target='removeButton']").click
 
     # Replace second image
-    within("fieldset", text: "Existing images") do
-      all("button[data-form-image-target='replaceButton']").first.click
-      attach_file("product[media][1][image]", replacement_image_path, visible: false)
-    end
+    all("button[data-form-image-target='replaceButton']").first.click
+    attach_file("product[media][1][image]", replacement_image_path, visible: false)
 
     # Change position of remaining image
-    within("fieldset", text: "Existing images") do
-      first("input[name^='product[media]'][type='number']").set(5)
-    end
+    all("input[name^='product[media]'][type='number']").first.set(5)
 
     click_button "Update Product"
 

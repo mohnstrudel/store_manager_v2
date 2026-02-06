@@ -44,7 +44,7 @@ RSpec.describe HandlesMedia do
         expect(Warehouse.last.media.count).to eq(2)
       end
 
-      it "positions new images starting at 1 when no existing media" do
+      it "positions new images starting at 0 when no existing media" do
         post :create, params: {
           warehouse: {
             name: "Test Warehouse",
@@ -54,10 +54,10 @@ RSpec.describe HandlesMedia do
         }
 
         warehouse = Warehouse.last
-        expect(warehouse.media.first.position).to eq(1)
+        expect(warehouse.media.first.position).to eq(0)
       end
 
-      it "positions second image at position 2" do
+      it "positions second image at position 1" do
         post :create, params: {
           warehouse: {
             name: "Test Warehouse",
@@ -67,7 +67,7 @@ RSpec.describe HandlesMedia do
         }
 
         warehouse = Warehouse.last
-        expect(warehouse.media.second.position).to eq(2)
+        expect(warehouse.media.second.position).to eq(1)
       end
 
       it "skips non-image values when adding new media" do
@@ -98,8 +98,8 @@ RSpec.describe HandlesMedia do
 
     describe "PATCH #update with media changes" do
       let!(:warehouse) { create(:warehouse) }
-      let!(:first_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 1, alt: "Original 1") }
-      let!(:second_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 2, alt: "Original 2") }
+      let!(:first_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 0, alt: "Original 0") }
+      let!(:second_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 1, alt: "Original 1") }
 
       it "updates first media position" do
         patch :update, params: {
@@ -264,7 +264,7 @@ RSpec.describe HandlesMedia do
           }
         }
 
-        expect(warehouse.media.ordered.last.position).to eq(3)
+        expect(warehouse.media.ordered.last.position).to eq(2)
       end
 
       it "skips media with blank ids" do
@@ -302,8 +302,8 @@ RSpec.describe HandlesMedia do
 
     describe "complex media workflows" do
       let!(:warehouse) { create(:warehouse) }
-      let!(:first_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 1, alt: "First") }
-      let!(:third_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 3, alt: "Third") }
+      let!(:first_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 0, alt: "First") }
+      let!(:third_media) { create(:media, :for_warehouse, mediaable: warehouse, position: 2, alt: "Third") }
 
       it "handles update, destroy, and create in a single request" do
         expect {
@@ -476,7 +476,7 @@ RSpec.describe HandlesMedia do
         expect(new_product).not_to be_nil
       end
 
-      it "positions new product image at position 1" do
+      it "positions new product image at position 0" do
         existing_product = create(:product)
         create(:media, :for_product, mediaable: existing_product, position: 3)
 
@@ -491,7 +491,7 @@ RSpec.describe HandlesMedia do
         }
 
         new_product = Product.find_by(title: "Another Product")
-        expect(new_product.media.first.position).to eq(1)
+        expect(new_product.media.first.position).to eq(0)
       end
 
       it "keeps existing product media unchanged" do
@@ -531,7 +531,7 @@ RSpec.describe HandlesMedia do
 
     describe "PATCH #update with media changes" do
       let!(:product) { create(:product) }
-      let!(:first_media) { create(:media, :for_product, mediaable: product, position: 1, alt: "Original") }
+      let!(:first_media) { create(:media, :for_product, mediaable: product, position: 0, alt: "Original") }
 
       it "updates media alt text" do
         patch :update, params: {
