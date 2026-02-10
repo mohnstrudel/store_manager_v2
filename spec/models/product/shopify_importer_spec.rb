@@ -289,7 +289,7 @@ RSpec.describe Product::ShopifyImporter do
     end
   end
 
-  describe "#import_or_update!" do
+  describe "#update_or_create!" do
     let(:parsed_product) do
       {
         shopify_id: "gid://shopify/Product/12345",
@@ -304,11 +304,11 @@ RSpec.describe Product::ShopifyImporter do
     let(:importer) { described_class.new(parsed_product) }
 
     it "creates a new product" do
-      expect { importer.import_or_update! }.to change(Product, :count).by(1)
+      expect { importer.update_or_create! }.to change(Product, :count).by(1)
     end
 
     it "returns the product" do
-      result = importer.import_or_update!
+      result = importer.update_or_create!
       expect(result).to be_a(Product)
     end
 
@@ -320,7 +320,7 @@ RSpec.describe Product::ShopifyImporter do
       end
 
       it "raises the error" do
-        expect { importer.import_or_update! }.to raise_error(ActiveRecord::RecordInvalid)
+        expect { importer.update_or_create! }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
   end

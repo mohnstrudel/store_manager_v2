@@ -4,7 +4,7 @@ module Shopify
   class PullEditionsJob < ApplicationJob
     def perform(product, parsed_editions)
       parsed_editions.each do |parsed_edition|
-        Edition::ShopifyImporter.import!(product, parsed_editio)
+        Edition::ShopifyImporter.import!(product, parsed_edition)
       end
     end
   end
