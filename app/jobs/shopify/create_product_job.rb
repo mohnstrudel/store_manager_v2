@@ -4,14 +4,14 @@ module Shopify
   class CreateProductJob < ApplicationJob
     def perform(product_id)
       product = Product.find(product_id)
-      serialized_product = Shopify::ProductSerializer.serialize(product)
+      serialized_product = Product::ShopifySerializer.for_export(product)
 
       if serialized_product.present?
-        api_client = Shopify::ApiClient.new
+        client = Shopify::Api::Client.new
 
         product_shopify_info = product.store_infos.find_or_initialize_by(store_name: :shopify)
 
-        product_response = api_client.create_product(serialized_product)
+        product_response = client.create_product(serialized_product)
         shopify_product_id = product_response["id"]
 
         product_shopify_info.assign_attributes(
@@ -22,7 +22,7 @@ module Shopify
         product_shopify_info.save!
 
         if product.media.any?
-          Shopify::PushMediaJob.perform_later(shopify_product_id, product.id)
+          Shopify::PushMediaJob.perform_later(product.id, shopify_product_id)
         end
 
         if product.sizes.any? || product.versions.any? || product.colors.any?

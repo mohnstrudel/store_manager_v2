@@ -10,16 +10,69 @@ RSpec.describe Shopify::PullProductJob do
   let(:api_response) do
     {
       "id" => product_id,
-      "title" => "Test Product",
-      "handle" => "test-product"
+      "title" => "Elden Ring - Malenia | 1:4 | Resin Statue | by Prime 1 Studio",
+      "handle" => "test-product",
+      "createdAt" => "2024-01-01T00:00:00Z",
+      "updatedAt" => "2024-01-01T00:00:00Z",
+      "variants" => {
+        "edges" => [
+          {
+            "node" => {
+              "id" => "gid://shopify/ProductVariant/1",
+              "title" => "Regular",
+              "sku" => "TEST-SKU-001",
+              "selectedOptions" => []
+            }
+          }
+        ]
+      },
+      "media" => {
+        "nodes" => [
+          {
+            "id" => "gid://shopify/MediaImage/1",
+            "alt" => "Test Image",
+            "image" => {"url" => "https://example.com/image.jpg"},
+            "createdAt" => "2024-01-01T00:00:00Z",
+            "updatedAt" => "2024-01-01T00:00:00Z"
+          }
+        ]
+      }
     }
   end
   let(:parsed_product) do
     {
       shopify_id: product_id,
-      title: "Test Product",
-      franchise: "Test Franchise",
-      shape: "Statue"
+      title: "Malenia",
+      franchise: "Elden Ring",
+      shape: "Statue",
+      brand: "Prime 1 Studio",
+      size: "1:4",
+      sku: "TEST-SKU-001",
+      store_link: "test-product",
+      store_info: {
+        ext_created_at: "2024-01-01T00:00:00Z",
+        ext_updated_at: "2024-01-01T00:00:00Z"
+      },
+      editions: [
+        {
+          id: "gid://shopify/ProductVariant/1",
+          title: "Regular",
+          sku: "TEST-SKU-001",
+          options: []
+        }
+      ],
+      media: [
+        {
+          id: "gid://shopify/MediaImage/1",
+          alt: "Test Image",
+          url: "https://example.com/image.jpg",
+          position: 0,
+          store_info: {
+            ext_created_at: "2024-01-01T00:00:00Z",
+            ext_updated_at: "2024-01-01T00:00:00Z"
+          }
+        }
+      ]
     }
   end
 
@@ -40,38 +93,34 @@ RSpec.describe Shopify::PullProductJob do
   end
 
   describe "#perform" do
-    let(:api_client) { instance_double(Shopify::ApiClient) }
-    let(:parser) { instance_double(Shopify::ProductParser, parse: parsed_product) }
-    let(:creator) { instance_double(Shopify::ProductCreator, update_or_create!: nil) }
+    let(:api_client) { instance_double(Shopify::Api::Client) }
 
     before do
-      allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
-      allow(api_client).to receive(:pull_product).with(product_id).and_return(api_response)
-      allow(Shopify::ProductParser).to receive(:new).with(api_item: api_response).and_return(parser)
-      allow(Shopify::ProductCreator).to receive(:new).with(parsed_item: parsed_product).and_return(creator)
+      allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
+      allow(api_client).to receive(:fetch_product).with(product_id).and_return(api_response)
+      allow(Product::ShopifyParser).to receive(:parse).with(api_response).and_return(parsed_product)
+      allow(Product::ShopifyImporter).to receive(:import!).with(parsed_product).and_return(instance_double(Product))
     end
 
     context "with valid product_id and valid response" do
       it "creates API client" do
         job.perform(product_id)
-        expect(Shopify::ApiClient).to have_received(:new)
+        expect(Shopify::Api::Client).to have_received(:new)
       end
 
       it "pulls product from Shopify" do
         job.perform(product_id)
-        expect(api_client).to have_received(:pull_product).with(product_id)
+        expect(api_client).to have_received(:fetch_product).with(product_id)
       end
 
       it "parses the response" do
         job.perform(product_id)
-        expect(Shopify::ProductParser).to have_received(:new).with(api_item: api_response)
-        expect(parser).to have_received(:parse)
+        expect(Product::ShopifyParser).to have_received(:parse).with(api_response)
       end
 
       it "creates or updates product" do
         job.perform(product_id)
-        expect(Shopify::ProductCreator).to have_received(:new).with(parsed_item: parsed_product)
-        expect(creator).to have_received(:update_or_create!)
+        expect(Product::ShopifyImporter).to have_received(:import!).with(parsed_product)
       end
     end
 
@@ -90,7 +139,7 @@ RSpec.describe Shopify::PullProductJob do
       end
 
       before do
-        allow(api_client).to receive(:pull_product).and_raise(api_error)
+        allow(api_client).to receive(:fetch_product).and_raise(api_error)
       end
 
       it "propagates the error" do
@@ -100,9 +149,9 @@ RSpec.describe Shopify::PullProductJob do
       end
     end
 
-    context "when product creator fails" do
+    context "when importer fails" do
       before do
-        allow(creator).to receive(:update_or_create!).and_raise(
+        allow(Product::ShopifyImporter).to receive(:import!).and_raise(
           ActiveRecord::RecordInvalid.new(Product.new)
         )
       end
@@ -118,51 +167,51 @@ RSpec.describe Shopify::PullProductJob do
       let(:product) { create(:product) }
 
       before do
-        allow(api_client).to receive(:pull_product).with(product_id).and_return(nil)
+        allow(api_client).to receive(:fetch_product).with(product_id).and_return(nil)
       end
 
-      it "returns early without calling parser or creator" do
+      it "returns early without calling parser or importer" do # rubocop:todo RSpec/MultipleExpectations
         job.perform(product_id)
-        expect(Shopify::ProductParser).not_to have_received(:new)
-        expect(Shopify::ProductCreator).not_to have_received(:new)
+        expect(Product::ShopifyParser).not_to have_received(:parse)
+        expect(Product::ShopifyImporter).not_to have_received(:import!)
       end
 
-      context "when store_info exists for the product_id" do
+      context "when store_info exists for the product_id" do # rubocop:todo RSpec/NestedGroups
         let!(:store_info) do
           product.store_infos.find_by(store_name: "shopify").tap do |si|
             si.update!(store_id: product_id)
           end
         end
 
-        let(:media1) { create(:media, :for_product, mediaable: product) }
-        let(:media2) { create(:media, :for_product, mediaable: product) }
-        let!(:media1_shopify_info) { create(:store_info, storable: media1, store_name: "shopify") }
-        let!(:media2_shopify_info) { create(:store_info, storable: media2, store_name: "shopify") }
-        let!(:media2_woo_info) { create(:store_info, :woo, storable: media2) }
+        let(:first_media) { create(:media, :for_product, mediaable: product) }
+        let(:second_media) { create(:media, :for_product, mediaable: product) }
+        let!(:first_media_shopify_info) { create(:store_info, storable: first_media, store_name: "shopify") } # rubocop:todo RSpec/LetSetup
+        let!(:second_media_shopify_info) { create(:store_info, storable: second_media, store_name: "shopify") } # rubocop:todo RSpec/LetSetup
+        let!(:second_media_woo_info) { create(:store_info, :woo, storable: second_media) } # rubocop:todo RSpec/LetSetup
 
-        it "finds and destroys the product's shopify store_info" do
+        it "finds and destroys the product's shopify store_info" do # rubocop:todo RSpec/MultipleExpectations
           expect {
             job.perform(product_id)
-          }.to change(StoreInfo, :count).by(-3) # product shopify + media1 shopify + media2 shopify
+          }.to change(StoreInfo, :count).by(-3) # product shopify + first_media shopify + second_media shopify
 
           expect(StoreInfo.find_by(id: store_info.id)).to be_nil
         end
 
-        it "removes shopify store_infos from all associated media" do
+        it "removes shopify store_infos from all associated media" do # rubocop:todo RSpec/MultipleExpectations
           job.perform(product_id)
 
-          expect(media1.store_infos.where(store_name: "shopify")).to be_empty
-          expect(media2.store_infos.where(store_name: "shopify")).to be_empty
+          expect(first_media.store_infos.where(store_name: "shopify")).to be_empty
+          expect(second_media.store_infos.where(store_name: "shopify")).to be_empty
         end
 
         it "preserves woo store_infos on media" do
           job.perform(product_id)
 
-          expect(media2.store_infos.where(store_name: "woo")).to exist
+          expect(second_media.store_infos.where(store_name: "woo")).to exist
         end
       end
 
-      context "when no store_info exists for the product_id" do
+      context "when no store_info exists for the product_id" do # rubocop:todo RSpec/NestedGroups
         before do
           product.store_infos.where(store_name: "shopify").destroy_all
         end
@@ -186,11 +235,11 @@ RSpec.describe Shopify::PullProductJob do
         end
       end
 
-      let(:media1) { create(:media, :for_product, mediaable: product) }
-      let(:media2) { create(:media, :for_product, mediaable: product) }
-      let!(:media1_shopify_info) { create(:store_info, storable: media1, store_name: "shopify") }
-      let!(:media2_shopify_info) { create(:store_info, storable: media2, store_name: "shopify") }
-      let!(:media2_woo_info) { create(:store_info, :woo, storable: media2) }
+      let(:first_media) { create(:media, :for_product, mediaable: product) }
+      let(:second_media) { create(:media, :for_product, mediaable: product) }
+      let!(:first_media_shopify_info) { create(:store_info, storable: first_media, store_name: "shopify") } # rubocop:todo RSpec/LetSetup
+      let!(:second_media_shopify_info) { create(:store_info, storable: second_media, store_name: "shopify") } # rubocop:todo RSpec/LetSetup
+      let!(:second_media_woo_info) { create(:store_info, :woo, storable: second_media) } # rubocop:todo RSpec/LetSetup
 
       it "finds the store_info by shopify store_name and store_id" do
         job.send(:handle_product_not_found, product_id)
@@ -203,17 +252,17 @@ RSpec.describe Shopify::PullProductJob do
         }.to change(StoreInfo, :count).by(-3)
       end
 
-      it "removes shopify store_infos from all associated media" do
+      it "removes shopify store_infos from all associated media" do # rubocop:todo RSpec/MultipleExpectations
         job.send(:handle_product_not_found, product_id)
 
-        expect(media1.store_infos.where(store_name: "shopify")).to be_empty
-        expect(media2.store_infos.where(store_name: "shopify")).to be_empty
+        expect(first_media.store_infos.where(store_name: "shopify")).to be_empty
+        expect(second_media.store_infos.where(store_name: "shopify")).to be_empty
       end
 
       it "preserves woo store_infos on media" do
         job.send(:handle_product_not_found, product_id)
 
-        expect(media2.store_infos.where(store_name: "woo")).to exist
+        expect(second_media.store_infos.where(store_name: "woo")).to exist
       end
     end
 

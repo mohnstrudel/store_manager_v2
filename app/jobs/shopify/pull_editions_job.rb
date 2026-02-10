@@ -2,13 +2,9 @@
 
 module Shopify
   class PullEditionsJob < ApplicationJob
-    queue_as :default
-
-    include Sanitizable
-
     def perform(product, parsed_editions)
-      parsed_editions.each do |pe|
-        Shopify::EditionCreator.new(product, pe).update_or_create!
+      parsed_editions.each do |parsed_edition|
+        Edition::ShopifyImporter.import!(product, parsed_editio)
       end
     end
   end

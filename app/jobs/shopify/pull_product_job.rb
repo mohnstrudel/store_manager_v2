@@ -5,19 +5,16 @@ module Shopify
     queue_as :default
 
     def perform(shopify_product_id)
-      api_client = Shopify::ApiClient.new
-      response = api_client.pull_product(shopify_product_id)
+      client = Shopify::Api::Client.new
+      payload = client.fetch_product(shopify_product_id)
 
-      if response.blank?
+      if payload.blank?
         handle_product_not_found(shopify_product_id)
         return
       end
 
-      parsed_product = Shopify::ProductParser
-        .new(api_item: response)
-        .parse
-
-      Shopify::ProductCreator.new(parsed_item: parsed_product).update_or_create!
+      parsed_payload = Product::ShopifyParser.parse(payload)
+      Product::ShopifyImporter.import!(parsed_payload)
     end
 
     private

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::CreateOptionsAndVariantsJob do
@@ -6,7 +7,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
     let(:product) { create(:product_with_brands) }
     let(:product_id) { product.id }
     let(:shopify_product_id) { "gid://shopify/Product/12345" }
-    let(:api_client) { instance_spy(Shopify::ApiClient) }
+    let(:api_client) { instance_spy(Shopify::Api::Client) }
 
     # Test data for options
     let(:size) { create(:size, value: "Large") }
@@ -79,7 +80,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
     end
 
     before do
-      allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+      allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
     end
 
     it "finds the product by ID" do
@@ -90,7 +91,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
 
     it "creates API client" do
       described_class.perform_now(product_id, shopify_product_id)
-      expect(Shopify::ApiClient).to have_received(:new)
+      expect(Shopify::Api::Client).to have_received(:new)
     end
 
     it "calls create_product_options with correct parameters" do

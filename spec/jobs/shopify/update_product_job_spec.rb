@@ -23,13 +23,13 @@ RSpec.describe Shopify::UpdateProductJob do
     }
   end
   let(:shopify_media_nodes) { [] }
-  let(:api_client) { instance_spy(Shopify::ApiClient) }
+  let(:api_client) { instance_spy(Shopify::Api::Client) }
 
   before do
     product.shopify_info.update!(store_id: shopify_product_id, slug: "test-product")
-    allow(Shopify::ProductSerializer).to receive(:serialize).and_return(serialized_product)
-    allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
-    allow(api_client).to receive(:product_update).with(shopify_product_id, serialized_product).and_return(product_response)
+    allow(Product::ShopifySerializer).to receive(:for_export).with(product).and_return(serialized_product)
+    allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
+    allow(api_client).to receive(:update_product).with(shopify_product_id, serialized_product).and_return(product_response)
   end
 
   describe ".perform_later" do
@@ -49,17 +49,17 @@ RSpec.describe Shopify::UpdateProductJob do
 
     it "serializes the product" do
       described_class.perform_now(product_id)
-      expect(Shopify::ProductSerializer).to have_received(:serialize).with(product)
+      expect(Product::ShopifySerializer).to have_received(:for_export).with(product)
     end
 
     it "creates API client" do
       described_class.perform_now(product_id)
-      expect(Shopify::ApiClient).to have_received(:new)
+      expect(Shopify::Api::Client).to have_received(:new)
     end
 
-    it "calls product_update with serialized data and shopify_id" do
+    it "calls update_product with serialized data and shopify_id" do
       described_class.perform_now(product_id)
-      expect(api_client).to have_received(:product_update).with(shopify_product_id, serialized_product)
+      expect(api_client).to have_received(:update_product).with(shopify_product_id, serialized_product)
     end
 
     it "returns true on success" do
@@ -178,7 +178,7 @@ RSpec.describe Shopify::UpdateProductJob do
       let(:api_error) { ShopifyApiError.new("API Error") }
 
       before do
-        allow(api_client).to receive(:product_update).and_raise(api_error)
+        allow(api_client).to receive(:update_product).and_raise(api_error)
       end
 
       it "propagates the error" do
@@ -242,7 +242,7 @@ RSpec.describe Shopify::UpdateProductJob do
       end
 
       before do
-        allow(api_client).to receive(:product_update).and_raise(api_error)
+        allow(api_client).to receive(:update_product).and_raise(api_error)
       end
 
       it "destroys the Shopify store_info" do
@@ -260,7 +260,7 @@ RSpec.describe Shopify::UpdateProductJob do
       let!(:media_with_shopify_only) { create(:media, mediaable: product) }
 
       before do
-        allow(api_client).to receive(:product_update).and_raise(api_error)
+        allow(api_client).to receive(:update_product).and_raise(api_error)
         media_with_shopify_and_woo.store_infos.create!(store_name: :shopify, store_id: "shopify-media-1")
         media_with_shopify_and_woo.store_infos.create!(store_name: :woo, store_id: "woo-media-1")
         media_with_shopify_only.store_infos.create!(store_name: :shopify, store_id: "shopify-media-2")
@@ -289,7 +289,7 @@ RSpec.describe Shopify::UpdateProductJob do
       end
 
       before do
-        allow(api_client).to receive(:product_update).and_raise(api_error)
+        allow(api_client).to receive(:update_product).and_raise(api_error)
       end
 
       it "handles gracefully without error" do
@@ -305,7 +305,7 @@ RSpec.describe Shopify::UpdateProductJob do
       end
 
       before do
-        allow(api_client).to receive(:product_update).and_raise(api_error)
+        allow(api_client).to receive(:update_product).and_raise(api_error)
       end
 
       it "only removes Shopify store_info", :aggregate_failures do
@@ -338,7 +338,7 @@ RSpec.describe Shopify::UpdateProductJob do
       let(:api_error) { ShopifyApiError.new("Some other API error") }
 
       before do
-        allow(api_client).to receive(:product_update).and_raise(api_error)
+        allow(api_client).to receive(:update_product).and_raise(api_error)
       end
 
       it "does not call handle_product_not_found_error" do

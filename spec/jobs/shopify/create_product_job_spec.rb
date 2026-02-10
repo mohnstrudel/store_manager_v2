@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::CreateProductJob do
@@ -10,7 +11,7 @@ RSpec.describe Shopify::CreateProductJob do
         "title" => "Test Franchise - Test Product | Resin Test Shape | by Test Brand"
       }
     end
-    let(:api_client) { instance_spy(Shopify::ApiClient) }
+    let(:api_client) { instance_spy(Shopify::Api::Client) }
     let(:product_response) do
       {
         "id" => "gid://shopify/Product/12345",
@@ -19,8 +20,8 @@ RSpec.describe Shopify::CreateProductJob do
     end
 
     before do
-      allow(Shopify::ProductSerializer).to receive(:serialize).with(product).and_return(serialized_product)
-      allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+      allow(Product::ShopifySerializer).to receive(:for_export).with(product).and_return(serialized_product)
+      allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:create_product).with(serialized_product).and_return(product_response)
     end
 
@@ -32,12 +33,12 @@ RSpec.describe Shopify::CreateProductJob do
 
     it "serializes the product" do
       described_class.perform_now(product_id)
-      expect(Shopify::ProductSerializer).to have_received(:serialize).with(product)
+      expect(Product::ShopifySerializer).to have_received(:for_export).with(product)
     end
 
     it "creates API client" do
       described_class.perform_now(product_id)
-      expect(Shopify::ApiClient).to have_received(:new)
+      expect(Shopify::Api::Client).to have_received(:new)
     end
 
     it "calls create_product with serialized data" do
@@ -81,12 +82,12 @@ RSpec.describe Shopify::CreateProductJob do
 
     context "when serialized product is blank" do
       before do
-        allow(Shopify::ProductSerializer).to receive(:serialize).with(product).and_return(nil)
+        allow(Product::ShopifySerializer).to receive(:for_export).with(product).and_return(nil)
       end
 
       it "does not create API client or call create_product" do
         described_class.perform_now(product_id)
-        expect(Shopify::ApiClient).not_to have_received(:new)
+        expect(Shopify::Api::Client).not_to have_received(:new)
       end
 
       it "does not update store info" do
@@ -178,12 +179,12 @@ RSpec.describe Shopify::CreateProductJob do
 
     context "when serialized product is empty string" do
       before do
-        allow(Shopify::ProductSerializer).to receive(:serialize).with(product).and_return("")
+        allow(Product::ShopifySerializer).to receive(:for_export).with(product).and_return("")
       end
 
       it "does not create API client or call create_product" do
         described_class.perform_now(product_id)
-        expect(Shopify::ApiClient).not_to have_received(:new)
+        expect(Shopify::Api::Client).not_to have_received(:new)
       end
 
       it "does not update store info" do

@@ -3,13 +3,20 @@
 module Shopify
   class CreateOptionsAndVariantsJob < ApplicationJob
     def perform(product_id, shopify_product_id)
-      product = Product.find(product_id)
-      api_client = Shopify::ApiClient.new
+      product = Product
+        .includes(
+          editions: [:color, :size, :version],
+          product_colors: [:color],
+          product_sizes: [:size],
+          product_versions: [:version]
+        )
+        .find(product_id)
+      client = Shopify::Api::Client.new
 
       serialized_options = serialize_options(product)
 
       if serialized_options.any?
-        options_response = api_client.create_product_options(shopify_product_id, serialized_options)
+        options_response = client.create_product_options(shopify_product_id, serialized_options)
 
         update_options_shopify_info(product, options_response["options"])
         update_editions_shopify_info(product, options_response["variants"]["nodes"])
@@ -84,9 +91,7 @@ module Shopify
     end
 
     def find_edition_by_variant_options(product, shopify_options)
-      editions = product.editions.includes(:color, :size, :version)
-
-      editions.find do |edition|
+      product.editions.find do |edition|
         shopify_options.all? do |option|
           case option["name"]
           when "Color"
