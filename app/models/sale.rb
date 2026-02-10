@@ -172,6 +172,38 @@ class Sale < ApplicationRecord
     end
   end
 
+  # Derive local status from Shopify fulfillment and financial statuses
+  #
+  # @param fulfillment_status [String] Shopify fulfillment status (FULFILLED, UNFULFILLED)
+  # @param financial_status [String] Shopify financial status (PAID, PENDING, PARTIALLY_PAID, REFUNDED)
+  #
+  # @return [String] The local status name
+  #
+  # @note Maps Shopify statuses to local domain statuses
+  # @note Defaults to "processing" for unknown combinations
+  #
+  # @example
+  #   Sale.derive_status_from_shopify("FULFILLED", "PAID") # => "completed"
+  #   Sale.derive_status_from_shopify("UNFULFILLED", "PAID") # => "pre-ordered"
+  def self.derive_status_from_shopify(fulfillment_status, financial_status)
+    case [fulfillment_status, financial_status]
+    when ["FULFILLED", "PAID"]
+      "completed"
+    when ["UNFULFILLED", "PAID"]
+      "pre-ordered"
+    when ["UNFULFILLED", "PENDING"]
+      "processing"
+    when ["UNFULFILLED", "PARTIALLY_PAID"]
+      "partially-paid"
+    when ["FULFILLED", "REFUNDED"]
+      "refunded"
+    when ["UNFULFILLED", "REFUNDED"]
+      "cancelled"
+    else
+      "processing"
+    end
+  end
+
   #
   # == Domain Methods
   #

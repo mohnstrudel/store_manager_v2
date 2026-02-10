@@ -181,10 +181,6 @@ class Product < ApplicationRecord
     editions.with_details.select { |edition| edition.title.present? }
   end
 
-  def shopify_published?
-    shopify_info&.store_id.present?
-  end
-
   private
 
   def mark_absent_editions_for_destruction

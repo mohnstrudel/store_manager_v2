@@ -18,7 +18,7 @@ module Shopify
     def fetch_shopify_data(cursor:, limit:)
       limit ||= batch_size
       limit = Integer(limit) if limit.is_a?(String)
-      api_client = Shopify::ApiClient.new
+      api_client = Shopify::Api::Client.new
       @api_payload = api_client.pull(
         resource_name: resource_name,
         cursor:,
@@ -28,9 +28,9 @@ module Shopify
 
     def merge_new_items
       @api_payload[:items].each do |api_item|
-        parsed_item = parser_class.new(api_item:).parse
+        parsed_item = parser_class.parse(api_item)
         begin
-          creator_class.new(parsed_item:).update_or_create!
+          creator_class.import!(parsed_item)
         rescue => e
           if e.message.to_s.downcase.include?("sku")
             Rails.logger.warn("Skipping item due to SKU collision: #{e.message}")

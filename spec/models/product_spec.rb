@@ -251,4 +251,216 @@ RSpec.describe Product do
       end
     end
   end
+
+  describe ".parse_shopify_title" do
+    context "with full Shopify title format" do
+      it "parses title with franchise, product, size, shape, and brand" do
+        title = "Elden Ring - Malenia | 1:4 | Resin Statue | Prime 1 Studio"
+        product_title, franchise, size, shape, brand = described_class.parse_shopify_title(title)
+
+        expect(product_title).to eq("Malenia")
+        expect(franchise).to eq("Elden Ring")
+        expect(size).to eq("1:4")
+        expect(shape).to eq("Statue")
+        expect(brand).to eq("Prime 1 Studio")
+      end
+    end
+
+    context "with title without explicit brand" do
+      it "parses title with franchise, product, size, and shape only" do
+        title = "Berserk - Guts | 1:3 | Resin Bust"
+        product_title, franchise, size, shape, brand = described_class.parse_shopify_title(title)
+
+        expect(product_title).to eq("Guts")
+        expect(franchise).to eq("Berserk")
+        expect(size).to eq("1:3")
+        expect(shape).to eq("Bust")
+        expect(brand).to be_nil
+      end
+    end
+
+    context "with title when franchise equals product" do
+      it "parses title correctly" do
+        title = "Elden Ring - Elden Ring | 1:6 | Resin Statue | Iron Studios"
+        product_title, franchise, size, shape, brand = described_class.parse_shopify_title(title)
+
+        expect(product_title).to eq("Elden Ring")
+        expect(franchise).to eq("Elden Ring")
+        expect(size).to eq("1:6")
+        expect(shape).to eq("Statue")
+        expect(brand).to eq("Iron Studios")
+      end
+    end
+
+    context "with title using 'von' brand identifier" do
+      it "extracts brand name after 'von'" do
+        title = "Game - Character | 1:4 | Resin Statue von Coolbear Studio"
+        _product_title, _franchise, _size, _shape, brand = described_class.parse_shopify_title(title)
+
+        # The brand is parsed by Brand.parse_brand which extracts "Coolbear Studio"
+        expect(brand).to eq("Coolbear Studio")
+      end
+    end
+
+    context "with blank title" do
+      it "raises ArgumentError" do
+        expect {
+          described_class.parse_shopify_title("")
+        }.to raise_error(ArgumentError, "Product title cannot be blank")
+      end
+    end
+  end
+
+  describe "#assign_brand" do
+    let(:product) { create(:product) }
+
+    context "with valid brand title" do
+      it "creates and assigns a new brand" do
+        brand = product.assign_brand("Prime 1 Studio")
+
+        expect(product.brands).to include(brand)
+        expect(brand.title).to eq("Prime 1 Studio")
+      end
+
+      it "finds and assigns existing brand" do
+        existing_brand = create(:brand, title: "Iron Studios")
+        brand = product.assign_brand("Iron Studios")
+
+        expect(product.brands).to include(existing_brand)
+        expect(brand).to eq(existing_brand)
+      end
+
+      it "updates full_title after assigning brand" do
+        expect {
+          product.assign_brand("Test Brand")
+        }.to change { product.full_title }
+      end
+    end
+
+    context "with nil brand title" do
+      it "returns nil and does not assign brand" do
+        result = product.assign_brand(nil)
+
+        expect(result).to be_nil
+        expect(product.brands).to be_empty
+      end
+    end
+
+    context "with empty string brand title" do
+      it "returns nil and does not assign brand" do
+        result = product.assign_brand("")
+
+        expect(result).to be_nil
+        expect(product.brands).to be_empty
+      end
+    end
+  end
+
+  describe "#assign_size" do
+    let(:product) { create(:product) }
+
+    context "with single size value" do
+      it "creates and assigns a new size" do
+        size = product.assign_size("1:4")
+
+        expect(product.sizes).to include(size)
+        expect(size.value).to eq("1:4")
+      end
+
+      it "finds and assigns existing size" do
+        existing_size = create(:size, value: "1:6")
+        size = product.assign_size("1:6")
+
+        expect(product.sizes).to include(existing_size)
+        expect(size).to eq(existing_size)
+      end
+    end
+
+    context "with array of size values" do
+      it "creates and assigns multiple sizes" do
+        sizes = product.assign_size(["1:4", "1:6"])
+
+        expect(sizes).to be_a(Size) # Returns first size
+        expect(product.sizes.count).to eq(2)
+        expect(product.sizes.pluck(:value)).to contain_exactly("1:4", "1:6")
+      end
+    end
+
+    context "with nil size value" do
+      it "returns nil and does not assign size" do
+        result = product.assign_size(nil)
+
+        expect(result).to be_nil
+        expect(product.sizes).to be_empty
+      end
+    end
+
+    context "with empty string size value" do
+      it "returns nil and does not assign size" do
+        result = product.assign_size("")
+
+        expect(result).to be_nil
+        expect(product.sizes).to be_empty
+      end
+    end
+  end
+
+  describe "#generate_sku_from_shopify" do
+    let(:product) { create(:product) }
+
+    context "with valid shopify SKU" do
+      it "assigns the shopify SKU" do
+        sku = product.generate_sku_from_shopify("HS-ELDEN-001")
+
+        expect(product.sku).to eq("HS-ELDEN-001")
+      end
+    end
+
+    context "with nil shopify SKU" do
+      it "generates SKU from full_title with random suffix" do
+        sku = product.generate_sku_from_shopify(nil)
+
+        # Parameterize converts special characters to hyphens and truncates to 50 chars
+        # plus 8-char hex suffix = max ~58 chars
+        expect(sku).to be_a(String)
+        expect(sku.length).to be > 30 # Minimum length check
+        expect(sku).to match(/^[a-z0-9-]+-[a-f0-9]{8}$/) # Ends with 8-char hex
+      end
+
+      it "assigns generated SKU to product" do
+        product.generate_sku_from_shopify(nil)
+
+        expect(product.sku).to be_present
+      end
+    end
+
+    context "with empty string shopify SKU" do
+      it "generates SKU from full_title with random suffix" do
+        sku = product.generate_sku_from_shopify("")
+
+        expect(sku).to be_a(String)
+        expect(sku).to match(/^[a-z0-9-]+-[a-f0-9]{8}$/) # Ends with 8-char hex
+      end
+    end
+  end
+
+  describe ".recently_synced" do
+    let(:old_sync_product) { create(:product) }
+    let(:new_sync_product) { create(:product) }
+
+    before do
+      old_sync_product.shopify_info.update_column(:pull_time, 1.day.ago)
+      new_sync_product.shopify_info.update_column(:pull_time, 1.hour.ago)
+    end
+
+    it "orders products by most recent pull_time" do
+      expect(described_class.recently_synced).to eq([new_sync_product, old_sync_product])
+    end
+
+    it "only includes products synced with Shopify" do
+      unsynced_product = create(:product, shopify_id: nil)
+
+      expect(described_class.recently_synced).not_to include(unsynced_product)
+    end
+  end
 end
