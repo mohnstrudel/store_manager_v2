@@ -38,11 +38,6 @@ class Customer < ApplicationRecord
   paginates_per 50
 
   #
-  # == Validations
-  #
-  # (none)
-
-  #
   # == Associations
   #
   has_many :sales, dependent: :destroy
@@ -51,11 +46,6 @@ class Customer < ApplicationRecord
   # == Callbacks
   #
   before_save :downcase_email
-
-  #
-  # == Scopes
-  #
-  # (none)
 
   #
   # == Class Methods

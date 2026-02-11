@@ -19,15 +19,13 @@ class Sale
       parse_sale_attributes
       parse_store_info
       parse_customer
-      parse_customer_store_info
       parse_sale_items
 
       {
         sale: @sale,
         store_info: @store_info,
         sale_items: @sale_items,
-        customer: @customer,
-        customer_store_info: @customer_store_info
+        customer: @customer
       }
     end
 
@@ -67,14 +65,19 @@ class Sale
       }
     end
 
+    # Customers may be guests without Shopify ID
     def parse_customer
       @customer = {
         email: find_customer_email,
+        phone: find_customer_phone,
         first_name: @order.dig("customer", "firstName"),
         last_name: @order.dig("customer", "lastName"),
-        phone: find_customer_phone,
-        shopify_id: @order.dig("customer", "id")
-      }
+        store_info: {
+          store_id: @order.dig("customer", "id"),
+          ext_created_at: parse_datetime(@order.dig("customer", "createdAt")),
+          ext_updated_at: parse_datetime(@order.dig("customer", "updatedAt"))
+        }
+      }.compact_blank
     end
 
     def find_customer_email
@@ -84,13 +87,6 @@ class Sale
 
     def find_customer_phone
       @order.dig("customer", "phone") || @order["phone"] || @order.dig("shippingAddress", "phone")
-    end
-
-    def parse_customer_store_info
-      @customer_store_info = {
-        ext_created_at: parse_datetime(@order.dig("customer", "createdAt")),
-        ext_updated_at: parse_datetime(@order.dig("customer", "updatedAt"))
-      }
     end
 
     def parse_sale_items
