@@ -6,7 +6,7 @@ RSpec.describe Edition::ShopifyImporter do
   let(:product) { create(:product) }
   let(:parsed_variant) do
     {
-      shopify_id: "gid://shopify/ProductVariant/12345",
+      store_id: "gid://shopify/ProductVariant/12345",
       options: [
         {name: "Color", value: "Red"},
         {name: "Size", value: "Large"},
@@ -49,7 +49,7 @@ RSpec.describe Edition::ShopifyImporter do
     context "with ext_created_at and ext_updated_at" do
       let(:parsed_variant_with_timestamps) do
         {
-          shopify_id: "gid://shopify/ProductVariant/12345",
+          store_id: "gid://shopify/ProductVariant/12345",
           options: [
             {name: "Color", value: "Red"}
           ],
@@ -71,7 +71,7 @@ RSpec.describe Edition::ShopifyImporter do
     context "without store_info" do
       let(:parsed_variant_without_store_info) do
         {
-          shopify_id: "gid://shopify/ProductVariant/12345",
+          store_id: "gid://shopify/ProductVariant/12345",
           options: [
             {name: "Color", value: "Red"}
           ]
@@ -135,7 +135,7 @@ RSpec.describe Edition::ShopifyImporter do
       context "with updated store_info timestamps" do
         let(:parsed_variant_with_new_timestamps) do
           {
-            shopify_id: "gid://shopify/ProductVariant/12345",
+            store_id: "gid://shopify/ProductVariant/12345",
             options: [
               {name: "Color", value: "Red"}
             ],
@@ -191,7 +191,7 @@ RSpec.describe Edition::ShopifyImporter do
     context "with Scale option" do
       let(:parsed_variant_with_scale) do
         {
-          shopify_id: "gid://shopify/ProductVariant/12345",
+          store_id: "gid://shopify/ProductVariant/12345",
           options: [
             {name: "Scale", value: "1:4"}
           ]
@@ -209,7 +209,7 @@ RSpec.describe Edition::ShopifyImporter do
     context "with Edition option" do
       let(:parsed_variant_with_edition) do
         {
-          shopify_id: "gid://shopify/ProductVariant/12345",
+          store_id: "gid://shopify/ProductVariant/12345",
           options: [
             {name: "Edition", value: "Limited"}
           ]
@@ -227,7 +227,7 @@ RSpec.describe Edition::ShopifyImporter do
     context "with Variante option (German)" do
       let(:parsed_variant_with_variante) do
         {
-          shopify_id: "gid://shopify/ProductVariant/12345",
+          store_id: "gid://shopify/ProductVariant/12345",
           options: [
             {name: "Variante", value: "Deutsch"}
           ]
@@ -245,7 +245,7 @@ RSpec.describe Edition::ShopifyImporter do
     context "with Variants option (English plural)" do
       let(:parsed_variant_with_variants) do
         {
-          shopify_id: "gid://shopify/ProductVariant/12345",
+          store_id: "gid://shopify/ProductVariant/12345",
           options: [
             {name: "Variants", value: "Standard"}
           ]
@@ -263,7 +263,7 @@ RSpec.describe Edition::ShopifyImporter do
     context "with multiple options of same type" do
       let(:parsed_variant_multiple_colors) do
         {
-          shopify_id: "gid://shopify/ProductVariant/12345",
+          store_id: "gid://shopify/ProductVariant/12345",
           options: [
             {name: "Color", value: "Red"},
             {name: "Color", value: "Blue"}

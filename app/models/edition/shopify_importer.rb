@@ -7,7 +7,7 @@ class Edition
 
     def self.import!(product, parsed_payload)
       raise ArgumentError, "Product cannot be blank" if product.blank?
-      raise ArgumentError, "Payload cannot be blank" if payload.blank?
+      raise ArgumentError, "Payload cannot be blank" if parsed_payload.blank?
 
       new(product, parsed_payload).update_or_create!
     end
@@ -18,31 +18,43 @@ class Edition
     end
 
     def update_or_create!
+      return nil if parsed[:options].blank?
+
+      find_or_initialize_edition
+
       update_or_create_edition!
-      update_shopify_store_info! if parsed[:shopify_id]
+      update_shopify_store_info! if parsed[:store_id]
 
       edition
+    rescue ActiveRecord::RecordInvalid => e
+      handle_record_invalid(e)
     end
 
     private
 
     def update_or_create_edition!
       ActiveRecord::Base.transaction do
-        find_or_initialize_edition
-        edition.assign_attributes(**edition_attrs)
+        edition.assign_attributes(edition_attrs)
         edition.save!
       end
     end
 
     def find_or_initialize_edition
-      if parsed[:shopify_id]
-        @edition = Edition.find_by_shopify_id(parsed[:shopify_id])
-        return
+      if parsed[:store_id]
+        @edition = Edition.find_by_shopify_id(parsed[:store_id])
       end
 
-      if @edition.nil? || @edition&.product_id != product.id
-        @edition = product.editions.where(edition_attrs).first_or_initialize
+      if edition.nil? || belongs_to_different_product?
+        @edition = if edition_attrs.present?
+          product.editions.where(edition_attrs).first_or_initialize
+        else
+          product.editions.new
+        end
       end
+    end
+
+    def belongs_to_different_product?
+      edition&.product_id != product.id
     end
 
     def edition_attrs
@@ -73,13 +85,20 @@ class Edition
       store_info = edition.shopify_info || edition.store_infos.shopify.new
 
       store_info.assign_attributes(
-        store_id: parsed[:shopify_id],
+        store_id: parsed[:store_id],
         pull_time: Time.zone.now,
         ext_created_at: parsed.dig(:store_info, :ext_created_at),
         ext_updated_at: parsed.dig(:store_info, :ext_updated_at)
       )
 
       store_info.save!
+    end
+
+    def handle_record_invalid(e)
+      model_name = e.record.class.name
+      detailed_errors = e.record.errors.full_messages.join(", ")
+      store_id_details = "store_id: #{parsed[:store_id]}"
+      raise EditionShopifyImporterError, "Failed to process #{model_name}: #{detailed_errors}\n#{store_id_details}"
     end
   end
 end
