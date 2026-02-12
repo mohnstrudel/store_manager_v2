@@ -103,7 +103,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
 
         described_class.import!(modified_order)
 
-        sale = Sale.find_by(shopify_id: valid_parsed_order[:sale][:shopify_id])
+        sale = Sale.find_by(store_id: valid_parsed_order[:sale][:shopify_id])
         expect(sale.status).to eq("completed")
       end
     end
@@ -130,7 +130,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
 
     context "when edition already exists" do
       let!(:existing_edition) do
-        create(:edition, shopify_id: valid_parsed_order[:sale_items].first[:shopify_edition_id])
+        create(:edition, shopify_id: valid_parsed_order[:sale_items].first[:edition_store_id])
       end
 
       it "uses existing edition" do
@@ -141,8 +141,8 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
     context "when product sale is corrupted (no product info at all)" do
       let(:parsed_order_corrupted) do
         order = valid_parsed_order.deep_dup
-        order[:sale_items].first[:shopify_edition_id] = nil
-        order[:sale_items].first[:shopify_product_id] = nil
+        order[:sale_items].first[:edition_store_id] = nil
+        order[:sale_items].first[:product_store_id] = nil
         order[:sale_items].first[:edition_title] = nil
         order[:sale_items].first[:full_title] = nil
         order[:sale_items].first[:product] = nil
@@ -164,8 +164,8 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
           edition_title: "Limited Edition",
-          shopify_edition_id: nil,
-          shopify_product_id: nil,
+          edition_store_id: nil,
+          product_store_id: nil,
           product: nil,
           full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
         )
@@ -198,11 +198,11 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         # Use existing product with custom edition title (not in product's editions)
         order[:sale_items].first.merge!(
           edition_title: "New Edition",
-          shopify_edition_id: nil,  # No shopify_id, should use create_custom_edition path
-          shopify_product_id: "gid://shopify/Product/999999",
+          edition_store_id: nil,  # No shopify_id, should use create_custom_edition path
+          product_store_id: "gid://shopify/Product/999999",
           edition_title_from_product: "Regular",
           product: {
-            shopify_id: "gid://shopify/Product/999999",
+            store_id: "gid://shopify/Product/999999",
             title: "Test Product",
             franchise: "Test Franchise",
             shape: "Statue",
@@ -236,11 +236,11 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         # Use existing product with custom edition title (not in product's editions)
         order[:sale_items].first.merge!(
           edition_title: "1:4 | New Edition | Red",
-          shopify_edition_id: nil,  # No shopify_id, should use create_custom_edition path
-          shopify_product_id: "gid://shopify/Product/888888",
+          edition_store_id: nil,  # No shopify_id, should use create_custom_edition path
+          product_store_id: "gid://shopify/Product/888888",
           edition_title_from_product: "Regular",
           product: {
-            shopify_id: "gid://shopify/Product/888888",
+            store_id: "gid://shopify/Product/888888",
             title: "Test Product",
             franchise: "Test Franchise",
             shape: "Statue",
@@ -273,8 +273,8 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
           edition_title: "Invalid Edition",
-          shopify_edition_id: "gid://shopify/ProductVariant/12345",
-          shopify_product_id: "gid://shopify/Product/67890",
+          edition_store_id: "gid://shopify/ProductVariant/12345",
+          product_store_id: "gid://shopify/Product/67890",
           product: {
             title: "Test Product",
             editions: [{
@@ -350,7 +350,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
     context "when product already exists" do
       let(:existing_product) do
         create(:product,
-          shopify_id: valid_parsed_order[:sale_items].first[:shopify_product_id],
+          store_id: valid_parsed_order[:sale_items].first[:shopify_product_id],
           title: "Old Product Title")
       end
 
@@ -361,13 +361,13 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
     end
 
     context "when sale_item already exists" do
-      let!(:existing_sale) { create(:sale, shopify_id: valid_parsed_order[:sale][:shopify_id]) }
+      let!(:existing_sale) { create(:sale, shopify_id: valid_parsed_order[:sale][:store_id]) }
       let!(:existing_sale_item) do
-        product = create(:product, shopify_id: valid_parsed_order[:sale_items].first[:shopify_product_id])
-        edition = create(:edition, shopify_id: valid_parsed_order[:sale_items].first[:shopify_edition_id])
+        product = create(:product, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id])
+        edition = create(:edition, shopify_id: valid_parsed_order[:sale_items].first[:edition_store_id])
 
         create(:sale_item,
-          shopify_id: valid_parsed_order[:sale_items].first[:shopify_id],
+          shopify_id: valid_parsed_order[:sale_items].first[:store_id],
           price: "500.00",
           qty: 1,
           sale: existing_sale,
@@ -391,7 +391,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase) }
       let!(:existing_sale) do
         sale = create(:sale, status: "pre-ordered")
-        sale.update!(shopify_id: valid_parsed_order[:store_info][:store_id])
+        sale.update!(shopify_id: valid_parsed_order[:sale][:store_id])
         sale.shopify_info.update(store_id: valid_parsed_order[:store_info][:store_id])
         sale
       end
@@ -400,7 +400,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
 
       before do
         existing_sale
-        sale_item.update(shopify_id: sale_item_shopify_id)
+        sale_item.update(store_id: sale_item_shopify_id)
 
         # Reset purchase_items_count to 0 so the linkable scope works
         sale_item.update(purchase_items_count: 0)

@@ -6,7 +6,7 @@ class Sale
 
     def self.parse(payload)
       raise ArgumentError, "Payload cannot be blank" if payload.blank?
-      return payload if payload.key?(:shopify_id)
+      return payload if payload.key?(:store_id)
 
       new(payload).parse
     end
@@ -53,7 +53,7 @@ class Sale
         shipping_total: @order["totalShippingPrice"],
         shopify_created_at: parse_datetime(@order["createdAt"]),
         status: derive_status,
-        shopify_id: @order["id"],
+        store_id: @order["id"],
         total: @order["totalPrice"]
       }
     end
@@ -99,10 +99,10 @@ class Sale
           {
             price: line_item["originalTotal"],
             qty: line_item["quantity"],
-            shopify_id: line_item["id"],
+            store_id: line_item["id"],
             edition_title: line_item["variantTitle"],
-            shopify_edition_id: line_item.dig("variant", "id"),
-            shopify_product_id: line_item.dig("variant", "product", "id"),
+            edition_store_id: line_item.dig("variant", "id"),
+            product_store_id: line_item.dig("variant", "product", "id"),
             full_title: line_item["title"],
             product: parsed_product
           }

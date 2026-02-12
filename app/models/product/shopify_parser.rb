@@ -9,7 +9,7 @@ class Product
 
     def self.parse(payload)
       raise ArgumentError, "Payload cannot be blank" if payload.blank?
-      return payload if payload.key?(:shopify_id)
+      return payload if payload.key?(:store_id)
 
       new(payload).parse
     end
@@ -30,7 +30,7 @@ class Product
         franchise: parsed_title[:franchise],
         media: parsed_media,
         shape: parsed_title[:shape],
-        shopify_id: payload["id"],
+        store_id: payload["id"],
         size: parsed_title[:size],
         sku: parsed_sku,
         store_info: {

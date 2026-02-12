@@ -2,13 +2,11 @@
 
 module Shopify
   class PullSaleJob < ApplicationJob
-    queue_as :default
-
-    def perform(sale_id)
-      raise ArgumentError, "Shopify order ID is required" if sale_id.blank?
+    def perform(sale_store_id)
+      raise ArgumentError, "Sale store_id is required" if sale_store_id.blank?
 
       client = Shopify::Api::Client.new
-      response = client.pull_order(sale_id)
+      response = client.fetch_order(sale_store_id)
 
       parsed = Sale::ShopifyParser.parse(response)
       Sale::ShopifyImporter.import!(parsed)

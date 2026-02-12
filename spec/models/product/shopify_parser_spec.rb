@@ -4,10 +4,10 @@ require "rails_helper"
 
 RSpec.describe Product::ShopifyParser do
   describe ".parse" do
-    context "when payload is already parsed (has shopify_id key)" do
+    context "when payload is already parsed (has store_id key)" do
       let(:already_parsed) do
         {
-          shopify_id: "gid://shopify/Product/12345",
+          store_id: "gid://shopify/Product/12345",
           title: "Test"
         }
       end
@@ -75,7 +75,7 @@ RSpec.describe Product::ShopifyParser do
         result = described_class.parse(api_payload)
 
         expect(result).to include(
-          shopify_id: "gid://shopify/Product/12345",
+          store_id: "gid://shopify/Product/12345",
           store_link: "stellar-blade-eve-statue",
           title: "Eve",
           franchise: "Stellar Blade",
@@ -162,7 +162,7 @@ RSpec.describe Product::ShopifyParser do
       it "handles missing data gracefully" do # rubocop:todo RSpec/MultipleExpectations
         result = described_class.parse(minimal_payload)
 
-        expect(result[:shopify_id]).to eq("gid://shopify/Product/12345")
+        expect(result[:store_id]).to eq("gid://shopify/Product/12345")
         expect(result[:title]).to eq("Simple Figure")
         expect(result[:franchise]).to eq("Simple Figure")
         expect(result[:media] || []).to eq([])

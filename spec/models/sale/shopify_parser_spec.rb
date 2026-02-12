@@ -72,7 +72,7 @@ RSpec.describe Sale::ShopifyParser do
       hash_including("id" => "gid://shopify/Product/333")
     ).and_return(
       {
-        shopify_id: "gid://shopify/Product/333",
+        store_id: "gid://shopify/Product/333",
         title: "Eve",
         franchise: "Stellar Blade",
         editions: []
@@ -81,10 +81,10 @@ RSpec.describe Sale::ShopifyParser do
   end
 
   describe ".parse" do
-    context "when payload is already parsed (has shopify_id key)" do
+    context "when payload is already parsed (has store_id key)" do
       let(:already_parsed) do
         {
-          shopify_id: "gid://shopify/Order/12345",
+          store_id: "gid://shopify/Order/12345",
           status: "pre-ordered"
         }
       end
@@ -100,7 +100,7 @@ RSpec.describe Sale::ShopifyParser do
         result = described_class.parse(api_order)
 
         expect(result[:sale]).to include(
-          shopify_id: "gid://shopify/Order/12345",
+          store_id: "gid://shopify/Order/12345",
           address_1: "123 Main St",
           address_2: "Apt 4B",
           city: "New York",
@@ -136,12 +136,12 @@ RSpec.describe Sale::ShopifyParser do
         )
 
         expect(result[:sale_items].first).to include(
-          shopify_id: "gid://shopify/LineItem/111",
+          store_id: "gid://shopify/LineItem/111",
           price: "95.00",
           qty: 1,
           edition_title: "Regular",
-          shopify_edition_id: "gid://shopify/ProductVariant/222",
-          shopify_product_id: "gid://shopify/Product/333",
+          edition_store_id: "gid://shopify/ProductVariant/222",
+          product_store_id: "gid://shopify/Product/333",
           full_title: "Stellar Blade - Eve | 1:4 Resin Statue"
         )
       end
@@ -224,8 +224,8 @@ RSpec.describe Sale::ShopifyParser do
         result = described_class.parse(order_without_variant)
 
         expect(result[:sale_items].first).to include(
-          shopify_edition_id: nil,
-          shopify_product_id: nil
+          edition_store_id: nil,
+          product_store_id: nil
         )
       end
 
@@ -241,7 +241,7 @@ RSpec.describe Sale::ShopifyParser do
       it "parses product data correctly" do
         allow(Product::ShopifyParser).to receive(:parse).and_return(
           {
-            shopify_id: "gid://shopify/Product/333",
+            store_id: "gid://shopify/Product/333",
             title: "Eve",
             franchise: "Stellar Blade",
             editions: [{
@@ -254,7 +254,7 @@ RSpec.describe Sale::ShopifyParser do
         result = described_class.parse(api_order)
 
         expect(result[:sale_items].first[:product]).to include(
-          shopify_id: "gid://shopify/Product/333",
+          store_id: "gid://shopify/Product/333",
           title: "Eve",
           franchise: "Stellar Blade"
         )

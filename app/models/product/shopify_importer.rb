@@ -18,7 +18,7 @@ class Product
     def update_or_create!
       update_or_create_product!
 
-      if parsed[:shopify_id]
+      if parsed[:store_id]
         update_shopify_store_info!
       end
 
@@ -52,8 +52,8 @@ class Product
     end
 
     def find_or_initialize_product
-      if parsed[:shopify_id]
-        @product = Product.find_by_shopify_id(parsed[:shopify_id])
+      if parsed[:store_id]
+        @product = Product.find_by_shopify_id(parsed[:store_id])
       end
 
       if product.nil? && parsed[:store_link].present?
@@ -87,7 +87,7 @@ class Product
       store_info = product.shopify_info || product.store_infos.shopify.new
 
       store_info.assign_attributes(
-        store_id: parsed[:shopify_id],
+        store_id: parsed[:store_id],
         slug: parsed[:store_link],
         pull_time: Time.zone.now,
         ext_created_at: parsed.dig(:store_info, :ext_created_at),

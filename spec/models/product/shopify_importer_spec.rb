@@ -6,7 +6,7 @@ RSpec.describe Product::ShopifyImporter do
   describe ".import!" do
     let(:parsed_product) do
       {
-        shopify_id: "gid://shopify/Product/12345",
+        store_id: "gid://shopify/Product/12345",
         store_link: "stellar-blade-eve-statue",
         title: "Eve",
         franchise: "Stellar Blade",
@@ -281,7 +281,7 @@ RSpec.describe Product::ShopifyImporter do
   end
 
   describe "#initialize" do
-    let(:parsed_payload) { {shopify_id: "123", title: "Test"} }
+    let(:parsed_payload) { {store_id: "123", title: "Test"} }
 
     it "stores the parsed payload" do
       importer = described_class.new(parsed_payload)
@@ -292,7 +292,7 @@ RSpec.describe Product::ShopifyImporter do
   describe "#update_or_create!" do
     let(:parsed_product) do
       {
-        shopify_id: "gid://shopify/Product/12345",
+        store_id: "gid://shopify/Product/12345",
         store_link: "test-product",
         title: "Test Product",
         franchise: "Test Franchise",
