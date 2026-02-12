@@ -123,14 +123,14 @@ RSpec.describe Sale::ShopifyParser do
         )
 
         expect(result[:customer]).to include(
-          shopify_id: "gid://shopify/Customer/67890",
           email: "customer@example.com",
           first_name: "John",
           last_name: "Doe",
           phone: "555-1234"
         )
 
-        expect(result[:customer_store_info]).to include(
+        expect(result[:customer][:store_info]).to include(
+          store_id: "gid://shopify/Customer/67890",
           ext_created_at: DateTime.parse("2023-01-01T11:00:00Z"),
           ext_updated_at: DateTime.parse("2023-01-02T11:00:00Z")
         )
@@ -268,12 +268,10 @@ RSpec.describe Sale::ShopifyParser do
         result = described_class.parse(order_without_customer)
 
         expect(result[:customer]).to include(
-          shopify_id: nil,
-          email: "customer@example.com",
-          first_name: nil,
-          last_name: nil,
-          phone: nil
+          email: "customer@example.com"
         )
+
+        expect(result[:customer][:store_info]).to be_nil
       end
 
       it "handles missing line items" do
@@ -304,8 +302,8 @@ RSpec.describe Sale::ShopifyParser do
 
         result = described_class.parse(order_without_customer_dates)
 
-        expect(result[:customer_store_info][:ext_created_at]).to be_nil
-        expect(result[:customer_store_info][:ext_updated_at]).to be_nil
+        expect(result[:customer][:store_info][:ext_created_at]).to be_nil
+        expect(result[:customer][:store_info][:ext_updated_at]).to be_nil
       end
 
       it "raises error for invalid datetime format" do

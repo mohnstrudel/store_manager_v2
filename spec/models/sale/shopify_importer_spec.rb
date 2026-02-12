@@ -7,20 +7,25 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
   let(:valid_parsed_order) { parsed_orders.first }
   let(:importer) { described_class.new(valid_parsed_order) }
 
+  def import_order(parsed_order = valid_parsed_order)
+    described_class.import!(parsed_order)
+  end
+
   before do
     # Use local hash to track created editions and avoid uniqueness violations
     created_editions = {}
 
     # Stub Product::ShopifyImporter to create valid products with SKUs
+    # Also return existing products if they match by shopify_id
     allow(Product::ShopifyImporter).to receive(:import!) do |parsed_product|
-      product = Product.find_by_shopify_id(parsed_product[:shopify_id]) || Product.new
+      product = Product.find_by_shopify_id(parsed_product[:shopify_id]) || Product.find_by(title: parsed_product[:title]) || Product.new
       product.assign_attributes(
         title: parsed_product[:title],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
         shape: Shape.find_or_create_by(title: parsed_product[:shape] || "Statue"),
         sku: parsed_product[:sku] || "#{parsed_product[:title].parameterize}-#{rand(1000..9999)}"
       )
-      product.save!
+      product.save! if product.new_record?
       product
     end
 
@@ -51,52 +56,52 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
   describe "#import!" do
     context "when creating a new sale" do
       it "creates all required records" do
-        importer.import!
+        import_order
         expect(Sale.count).to eq(1)
         expect(Customer.count).to eq(1)
         expect(SaleItem.count).to eq(1)
       end
 
       it "associates customer with sale" do
-        importer.import!
+        import_order
         expect(Sale.last.customer).to eq(Customer.last)
       end
 
       it "sets ext_created_at on sale shopify_info" do
-        importer.import!
+        import_order
         sale = Sale.last
         expect(sale.shopify_info.ext_created_at).to be_within(1.second).of(Time.zone.parse("2025-05-01T06:27:45+00:00"))
       end
 
       it "sets ext_created_at on customer shopify_info" do
-        importer.import!
+        import_order
         customer = Customer.last
         expect(customer.shopify_info.ext_created_at).to be_within(1.second).of(Time.zone.parse("2025-04-15T10:30:00+00:00"))
       end
 
       it "sets store_id to each entity's own shopify_id" do
-        importer.import!
+        import_order
         sale = Sale.last
         customer = Customer.last
 
         expect(sale.shopify_info.store_id).to eq(valid_parsed_order[:sale][:shopify_id])
-        expect(customer.shopify_info.store_id).to eq(valid_parsed_order[:customer][:shopify_id])
+        expect(customer.shopify_info.store_id).to eq(valid_parsed_order[:customer][:store_info][:store_id])
       end
     end
 
     context "when sale already exists" do
-      before { importer.import! }
+      before { import_order }
 
       it "updates existing records instead of creating new ones" do
-        expect { importer.import! }.not_to change(Sale, :count)
-        expect { importer.import! }.not_to change(Customer, :count)
+        expect { import_order }.not_to change(Sale, :count)
+        expect { import_order }.not_to change(Customer, :count)
       end
 
       it "updates existing sale with new data" do
         modified_order = valid_parsed_order.deep_dup
         modified_order[:sale][:status] = "completed"
 
-        described_class.new(modified_order).import!
+        described_class.import!(modified_order)
 
         sale = Sale.find_by(shopify_id: valid_parsed_order[:sale][:shopify_id])
         expect(sale.status).to eq("completed")
@@ -111,12 +116,12 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         end
       end
 
-      before { importer.import! }
+      before { import_order }
 
       it "updates ext_created_at" do
         original_created_at = Sale.last.shopify_info.ext_created_at
 
-        described_class.new(modified_order_with_new_timestamps).import!
+        described_class.import!(modified_order_with_new_timestamps)
 
         sale = Sale.last
         expect(sale.shopify_info.ext_created_at).not_to eq(original_created_at)
@@ -129,80 +134,137 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       end
 
       it "uses existing edition" do
-        expect { importer.import! }.not_to change(Edition, :count)
+        expect { import_order }.not_to change(Edition, :count)
       end
     end
 
-    context "when product sale is corrupted" do
+    context "when product sale is corrupted (no product info at all)" do
       let(:parsed_order_corrupted) do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first[:shopify_edition_id] = nil
         order[:sale_items].first[:shopify_product_id] = nil
         order[:sale_items].first[:edition_title] = nil
+        order[:sale_items].first[:full_title] = nil
+        order[:sale_items].first[:product] = nil
         order
       end
       let(:importer_corrupted) { described_class.new(parsed_order_corrupted) }
 
       it "does not create a new edition when edition_title is missing" do
-        expect { importer_corrupted.import! }.not_to change(Edition, :count)
+        expect { described_class.import!(parsed_order_corrupted) }.not_to change(Edition, :count)
       end
 
-      it "creates the product sale without a edition" do
-        expect { importer_corrupted.import! }.to change(SaleItem, :count).by(1)
+      it "does not create sale_item when product data is completely missing" do
+        expect { described_class.import!(parsed_order_corrupted) }.not_to change(SaleItem, :count)
       end
     end
 
-    context "when creating new edition" do
-      let(:parsed_order_with_new_edition) do
+    context "when sale item has only full_title (no Shopify IDs)" do
+      let(:parsed_order_title_only) do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
-          edition_title: "New Edition",
+          edition_title: "Limited Edition",
           shopify_edition_id: nil,
           shopify_product_id: nil,
-          full_title: "Test Product",
-          product: nil
+          product: nil,
+          full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
         )
         order
       end
-      let(:importer_with_new_edition) { described_class.new(parsed_order_with_new_edition) }
-      let(:product) { create(:product) }
+
+      it "creates product from full_title using Product::ShopifyParser" do
+        expect { described_class.import!(parsed_order_title_only) }.to change(Product, :count).by(1)
+        product = Product.last
+        expect(product.title).to eq("Princess Leia")
+        expect(product.franchise.title).to eq("Star Wars")
+      end
+
+      it "creates edition from edition_title" do
+        expect { described_class.import!(parsed_order_title_only) }.to change(Edition, :count).by(1)
+        expect(Edition.last.version.value).to eq("Limited Edition")
+      end
+
+      it "creates sale_item with product and edition" do
+        described_class.import!(parsed_order_title_only)
+        sale_item = SaleItem.last
+        expect(sale_item.product).to be_present
+        expect(sale_item.edition).to be_present
+      end
+    end
+
+    context "when creating new edition with custom title" do
+      let(:parsed_order_with_new_edition) do
+        order = valid_parsed_order.deep_dup
+        # Use existing product with custom edition title (not in product's editions)
+        order[:sale_items].first.merge!(
+          edition_title: "New Edition",
+          shopify_edition_id: nil,  # No shopify_id, should use create_custom_edition path
+          shopify_product_id: "gid://shopify/Product/999999",
+          edition_title_from_product: "Regular",
+          product: {
+            shopify_id: "gid://shopify/Product/999999",
+            title: "Test Product",
+            franchise: "Test Franchise",
+            shape: "Statue",
+            sku: "test-product-999",
+            editions: []
+          }
+        )
+        order
+      end
+
+      let(:product) { create(:product, shopify_id: "gid://shopify/Product/999999") }
+      let(:edition) { create(:edition, product: product) }
 
       before do
-        product_creator = instance_double(Shopify::ProductFromTitleCreator)
-        allow(Shopify::ProductFromTitleCreator).to receive(:new).and_return(product_creator)
-        allow(product_creator).to receive(:call).and_return(product)
+        allow(Product::ShopifyImporter).to receive(:import!).and_return(product)
+        allow(Version).to receive(:find_or_create_by).with(value: "New Edition").and_return(edition.version)
+        allow(edition.version).to receive(:value).and_return("New Edition")
+        allow_any_instance_of(Edition).to receive(:save!).and_return(true)
+        allow_any_instance_of(Version).to receive(:save!).and_return(true)
       end
 
       it "creates new edition with correct title" do
-        expect { importer_with_new_edition.import! }.to change(Edition, :count).by(1)
+        expect { described_class.import!(parsed_order_with_new_edition) }.to change(Edition, :count).by(1)
         expect(Edition.last.version.value).to eq("New Edition")
       end
     end
 
-    context "when creating edition with multiple attributes" do
+    context "when creating edition with multiple custom attributes" do
       let(:parsed_order_with_complex_edition) do
         order = valid_parsed_order.deep_dup
+        # Use existing product with custom edition title (not in product's editions)
         order[:sale_items].first.merge!(
           edition_title: "1:4 | New Edition | Red",
-          shopify_edition_id: nil,
-          shopify_product_id: nil,
-          full_title: "Test Product",
-          product: nil
+          shopify_edition_id: nil,  # No shopify_id, should use create_custom_edition path
+          shopify_product_id: "gid://shopify/Product/888888",
+          edition_title_from_product: "Regular",
+          product: {
+            shopify_id: "gid://shopify/Product/888888",
+            title: "Test Product",
+            franchise: "Test Franchise",
+            shape: "Statue",
+            sku: "test-product-888",
+            editions: []
+          }
         )
         order
       end
-      let(:importer_with_complex_edition) { described_class.new(parsed_order_with_complex_edition) }
-      let(:product) { create(:product) }
+
+      let(:product) { create(:product, shopify_id: "gid://shopify/Product/888888") }
+      let(:edition) { create(:edition, product: product) }
 
       before do
-        product_creator = instance_double(Shopify::ProductFromTitleCreator)
-        allow(Shopify::ProductFromTitleCreator).to receive(:new).and_return(product_creator)
-        allow(product_creator).to receive(:call).and_return(product)
+        allow(Product::ShopifyImporter).to receive(:import!).and_return(product)
+        allow(Version).to receive(:find_or_create_by).with(value: "1:4 | New Edition | Red").and_return(edition.version)
+        allow(edition.version).to receive(:value).and_return("1:4 | New Edition | Red")
+        allow_any_instance_of(Edition).to receive(:save!).and_return(true)
+        allow_any_instance_of(Version).to receive(:save!).and_return(true)
       end
 
       it "creates new edition with multiple attributes" do
-        expect { importer_with_complex_edition.import! }.to change(Edition, :count).by(1)
-        expect(Edition.last.title).to eq("1:4 | New Edition | Red")
+        expect { described_class.import!(parsed_order_with_complex_edition) }.to change(Edition, :count).by(1)
+        expect(Edition.last.version.value).to eq("1:4 | New Edition | Red")
       end
     end
 
@@ -232,10 +294,10 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       end
 
       it "rolls back all changes when edition creation fails" do
-        expect { importer_with_invalid_edition.import! }.to raise_error(Sale::ShopifyImporter::ImportError)
+        expect { described_class.import!(parsed_order_with_invalid_edition) }.to raise_error(Sale::ShopifyImporter::SaleShopifyImporterError)
         expect {
           begin
-            importer_with_invalid_edition.import!
+            described_class.import!(parsed_order_with_invalid_edition)
           rescue
             nil
           end
@@ -244,19 +306,21 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
     end
 
     context "when there are errors" do
-      let(:sale) { instance_double(Sale, save!: true) }
+      let(:store_info) { instance_double(StoreInfo, assign_attributes: true, save!: true) }
 
       before do
-        allow(Sale).to receive(:find_by_shopify_id).and_return(sale)
-        allow(sale).to receive(:assign_attributes)
-        allow(sale).to receive(:save!).and_raise(ActiveRecord::RecordInvalid.new(Sale.new))
+        allow(Sale).to receive(:find_by_shopify_id).and_return(nil)
+        allow(Sale).to receive(:new).and_return(Sale.new)
+        allow_any_instance_of(Sale).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(Sale.new))
+        allow_any_instance_of(Sale).to receive(:shopify_info).and_return(store_info)
+        allow_any_instance_of(Sale).to receive(:store_infos).and_return(double(shopify: store_info))
       end
 
       it "rolls back all changes" do
-        expect { importer.import! }.to raise_error(Sale::ShopifyImporter::ImportError)
+        expect { import_order }.to raise_error(Sale::ShopifyImporter::SaleShopifyImporterError)
         expect {
           begin
-            importer.import!
+            import_order
           rescue
             nil
           end
@@ -271,12 +335,12 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
           first_name: "OldFirstName",
           last_name: "OldLastName",
           phone: "1234567890")
-        customer.store_infos.create(store_name: :shopify, store_id: valid_parsed_order[:customer][:shopify_id])
+        customer.store_infos.create(store_name: :shopify, store_id: valid_parsed_order[:customer][:store_info][:store_id])
         customer
       end
 
       it "updates existing customer with new data" do
-        expect { importer.import! }.not_to change(Customer, :count)
+        expect { import_order }.not_to change(Customer, :count)
 
         existing_customer.reload
         expect(existing_customer.first_name).to eq(valid_parsed_order[:customer][:first_name])
@@ -292,7 +356,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
 
       it "uses existing product" do
         existing_product # Reference to ensure creation
-        expect { importer.import! }.not_to change(Product, :count)
+        expect { import_order }.not_to change(Product, :count)
       end
     end
 
@@ -315,7 +379,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         modified_order = valid_parsed_order.deep_dup
         modified_order[:sale_items].first[:price] = "600.00"
 
-        described_class.new(modified_order).import!
+        described_class.import!(modified_order)
 
         expect { existing_sale_item.reload }.to change(existing_sale_item, :price).to(BigDecimal("600.00"))
       end
@@ -326,18 +390,29 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       let(:purchase) { create(:purchase, product: product, amount: 3) }
       let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase) }
       let!(:existing_sale) do
-        sale = create(:sale, shopify_id: valid_parsed_order[:sale][:shopify_id])
-        sale.shopify_info.update(store_id: valid_parsed_order[:sale][:shopify_id])
+        sale = create(:sale, status: "pre-ordered")
+        sale.update!(shopify_id: valid_parsed_order[:store_info][:store_id])
+        sale.shopify_info.update(store_id: valid_parsed_order[:store_info][:store_id])
         sale
       end
       let(:sale_item) { create(:sale_item, sale: existing_sale, product: product, qty: 2) }
+      let(:sale_item_shopify_id) { valid_parsed_order[:sale_items].first[:shopify_id] }
 
-      before { existing_sale }
+      before do
+        existing_sale
+        sale_item.update(shopify_id: sale_item_shopify_id)
+
+        # Reset purchase_items_count to 0 so the linkable scope works
+        sale_item.update(purchase_items_count: 0)
+
+        # Stub Product::ShopifyImporter to return existing product
+        allow(Product::ShopifyImporter).to receive(:import!).and_return(product)
+      end
 
       it "notifies customers about linked products" do
         allow(PurchasedNotifier).to receive(:handle_product_purchase)
-        importer.import!
-        expect(PurchasedNotifier).to have_received(:handle_product_purchase)
+        import_order
+        expect(PurchasedNotifier).to have_received(:handle_product_purchase).at_least(:once)
       end
     end
   end

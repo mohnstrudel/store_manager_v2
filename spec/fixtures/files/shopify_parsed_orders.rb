@@ -25,6 +25,7 @@
       status: "pre-ordered"
     },
     store_info: {
+      store_id: "gid://shopify/Order/6622947180873",
       ext_created_at: "2025-05-01T06:27:45+00:00",
       ext_updated_at: "2025-05-01T06:29:19+00:00"
     },
@@ -107,11 +108,11 @@
       first_name: "Jimmy",
       last_name: "Hawkins",
       phone: "+18649238413",
-      shopify_id: "gid://shopify/Customer/8715258036553"
-    },
-    customer_store_info: {
-      ext_created_at: "2025-04-15T10:30:00+00:00",
-      ext_updated_at: "2025-05-01T06:27:45+00:00"
+      store_info: {
+        store_id: "gid://shopify/Customer/8715258036553",
+        ext_created_at: "2025-04-15T10:30:00+00:00",
+        ext_updated_at: "2025-05-01T06:27:45+00:00"
+      }
     }
   },
   {
@@ -138,6 +139,7 @@
       status: "pre-ordered"
     },
     store_info: {
+      store_id: "gid://shopify/Order/6621569450313",
       ext_created_at: "2025-04-30T06:12:36+00:00",
       ext_updated_at: "2025-04-30T06:13:04+00:00"
     },
@@ -210,11 +212,11 @@
       first_name: "Yevgen",
       last_name: "Pisanenko",
       phone: nil,
-      shopify_id: "gid://shopify/Customer/8735512789321"
-    },
-    customer_store_info: {
-      ext_created_at: "2025-04-10T08:00:00+00:00",
-      ext_updated_at: "2025-04-30T06:12:36+00:00"
+      store_info: {
+        store_id: "gid://shopify/Customer/8735512789321",
+        ext_created_at: "2025-04-10T08:00:00+00:00",
+        ext_updated_at: "2025-04-30T06:12:36+00:00"
+      }
     }
   },
   {
@@ -241,6 +243,7 @@
       status: "pre-ordered"
     },
     store_info: {
+      store_id: "gid://shopify/Order/6617092260169",
       ext_created_at: "2025-04-26T12:58:13+00:00",
       ext_updated_at: "2025-04-26T12:58:16+00:00"
     },
@@ -313,11 +316,11 @@
       first_name: "Mirko",
       last_name: "Buchmann",
       phone: nil,
-      shopify_id: "gid://shopify/Customer/8843207246153"
-    },
-    customer_store_info: {
-      ext_created_at: "2025-04-05T14:20:00+00:00",
-      ext_updated_at: "2025-04-26T12:58:13+00:00"
+      store_info: {
+        store_id: "gid://shopify/Customer/8843207246153",
+        ext_created_at: "2025-04-05T14:20:00+00:00",
+        ext_updated_at: "2025-04-26T12:58:13+00:00"
+      }
     }
   }
 ]

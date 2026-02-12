@@ -76,7 +76,7 @@ class Sale
           store_id: @order.dig("customer", "id"),
           ext_created_at: parse_datetime(@order.dig("customer", "createdAt")),
           ext_updated_at: parse_datetime(@order.dig("customer", "updatedAt"))
-        }
+        }.compact
       }.compact_blank
     end
 
