@@ -64,13 +64,18 @@ RSpec.describe Shopify::BasePullJob do
   let(:shopify_info) { instance_double("StoreInfo", update_column: true) }
   let(:record) { instance_double("Record", shopify_info: shopify_info) }
   let(:creator) { instance_double("Creator", update_or_create!: record) }
-  let(:parser_class) { class_double("ParserClass", new: parser) }
-  let(:creator_class) { class_double("CreatorClass", new: creator) }
+  # Mock parser_class and creator_class as class method calls
+  let(:parser_class) { class_double("ParserClass").as_stubbed_const }
+  let(:creator_class) { class_double("CreatorClass").as_stubbed_const }
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }
 
   before do
     allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
     allow(api_client).to receive(:fetch_test_data).and_return(api_response)
+
+    # Mock the class method calls that the actual code uses
+    allow(parser_class).to receive(:parse).and_return({})
+    allow(creator_class).to receive(:import!).and_return(record)
 
     allow(job).to receive_messages(parser_class: parser_class, creator_class: creator_class)
     allow(job_class).to receive(:set).and_return(job_setter)
@@ -113,8 +118,8 @@ RSpec.describe Shopify::BasePullJob do
 
     it "processes each item through parser and creator" do
       perform_job
-      expect(parser_class).to have_received(:new).exactly(2).times
-      expect(creator_class).to have_received(:new).exactly(2).times
+      expect(parser_class).to have_received(:parse).exactly(2).times
+      expect(creator_class).to have_received(:import!).exactly(2).times
     end
 
     context "when processing with a limit" do
@@ -211,7 +216,7 @@ RSpec.describe Shopify::BasePullJob do
     context "when handling SKU collisions" do
       before do
         # Make creator raise an error that looks like SKU collision
-        allow(creator).to receive(:update_or_create!).and_raise(
+        allow(creator_class).to receive(:import!).and_raise(
           "Validation failed: Sku mogu-studio-tifa has already been taken"
         )
       end
@@ -221,7 +226,7 @@ RSpec.describe Shopify::BasePullJob do
         perform_job
         expect(Rails.logger).to have_received(:warn).with(/Skipping item due to SKU collision/).twice
         # Both items are still processed
-        expect(creator_class).to have_received(:new).exactly(2).times
+        expect(creator_class).to have_received(:import!).exactly(2).times
       end
     end
   end

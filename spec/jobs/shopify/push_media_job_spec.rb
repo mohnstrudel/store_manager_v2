@@ -166,7 +166,7 @@ RSpec.describe Shopify::PushMediaJob do
 
         # Override the parent stub to raise an error (must match the with() clause to override)
         allow(api_client).to receive(:attach_media).with(shopify_product_id, kind_of(Array))
-          .and_raise(ShopifyApiError, "Failed to call the productUpdate API mutation: Product does not exist")
+          .and_raise(Shopify::Api::Client::ApiError, "Failed to call the productUpdate API mutation: Product does not exist")
       end
 
       it "removes product's Shopify store_info" do

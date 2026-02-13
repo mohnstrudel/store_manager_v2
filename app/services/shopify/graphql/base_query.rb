@@ -24,7 +24,7 @@ module Shopify
       # @param query [String] The GraphQL query string (for logging)
       # @param response [Object] The response object
       # @param operation_name [String] Name of the operation (e.g., "productCreate")
-      # @raise [ShopifyApiError] If errors are present in the response
+      # @raise [Shopify::Api::Client::ApiError] If errors are present in the response
       def self.handle_mutation_errors(query, response, operation_name)
         api_errors = response.body.dig("errors")
         user_errors = response.body.dig("data", operation_name, "userErrors")
@@ -51,7 +51,7 @@ module Shopify
             }
           )
 
-          raise ShopifyApiError, "Failed to call the #{operation_name} API mutation: #{error_messages}"
+          raise Shopify::Api::Client::ApiError, "Failed to call the #{operation_name} API mutation: #{error_messages}"
         end
       end
     end

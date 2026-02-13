@@ -350,7 +350,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
     context "when product already exists" do
       let(:existing_product) do
         create(:product,
-          store_id: valid_parsed_order[:sale_items].first[:shopify_product_id],
+          shopify_id: valid_parsed_order[:sale_items].first[:product_store_id],
           title: "Old Product Title")
       end
 
@@ -396,11 +396,12 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         sale
       end
       let(:sale_item) { create(:sale_item, sale: existing_sale, product: product, qty: 2) }
-      let(:sale_item_shopify_id) { valid_parsed_order[:sale_items].first[:shopify_id] }
+      # Note: fixture uses :store_id key, importer maps it to shopify_id column
+      let(:sale_item_store_id_from_fixture) { valid_parsed_order[:sale_items].first[:store_id] }
 
       before do
         existing_sale
-        sale_item.update(store_id: sale_item_shopify_id)
+        sale_item.update(shopify_id: sale_item_store_id_from_fixture)
 
         # Reset purchase_items_count to 0 so the linkable scope works
         sale_item.update(purchase_items_count: 0)

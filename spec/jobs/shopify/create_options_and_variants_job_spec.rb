@@ -84,9 +84,11 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
     end
 
     it "finds the product by ID" do
-      allow(Product).to receive(:find).with(product_id).and_return(product)
+      product_relation = instance_double(ActiveRecord::Relation)
+      allow(product_relation).to receive(:find).with(product_id).and_return(product)
+      allow(Product).to receive(:includes).and_return(product_relation)
       described_class.perform_now(product_id, shopify_product_id)
-      expect(Product).to have_received(:find).with(product_id)
+      expect(product_relation).to have_received(:find).with(product_id)
     end
 
     it "creates API client" do
@@ -243,7 +245,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
     end
 
     context "when API client raises an error" do
-      let(:api_error) { ShopifyApiError.new("Options creation failed") }
+      let(:api_error) { Shopify::Api::Client::ApiError.new("Options creation failed") }
 
       before do
         product_size
@@ -253,7 +255,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       it "propagates the error" do
         expect {
           described_class.perform_now(product_id, shopify_product_id)
-        }.to raise_error(ShopifyApiError, "Options creation failed")
+        }.to raise_error(Shopify::Api::Client::ApiError, "Options creation failed")
       end
 
       it "does not create any store infos on error" do
@@ -261,7 +263,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
 
         begin
           described_class.perform_now(product_id, shopify_product_id)
-        rescue ShopifyApiError
+        rescue Shopify::Api::Client::ApiError
           # Expected error
         end
 

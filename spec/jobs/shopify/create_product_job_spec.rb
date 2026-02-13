@@ -132,7 +132,7 @@ RSpec.describe Shopify::CreateProductJob do
     end
 
     context "when API client raises an error" do
-      let(:api_error) { ShopifyApiError.new("API Error") }
+      let(:api_error) { Shopify::Api::Client::ApiError.new("API Error") }
 
       before do
         allow(api_client).to receive(:create_product).and_raise(api_error)
@@ -141,7 +141,7 @@ RSpec.describe Shopify::CreateProductJob do
       it "propagates the error" do
         expect {
           described_class.perform_now(product_id)
-        }.to raise_error(ShopifyApiError, "API Error")
+        }.to raise_error(Shopify::Api::Client::ApiError, "API Error")
       end
 
       it "does not create or update store info on error" do
@@ -149,7 +149,7 @@ RSpec.describe Shopify::CreateProductJob do
 
         begin
           described_class.perform_now(product_id)
-        rescue ShopifyApiError
+        rescue Shopify::Api::Client::ApiError
           # Expected error
         end
 
@@ -161,7 +161,7 @@ RSpec.describe Shopify::CreateProductJob do
 
         begin
           described_class.perform_now(product_id)
-        rescue ShopifyApiError
+        rescue Shopify::Api::Client::ApiError
           # Expected error
         end
 

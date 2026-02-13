@@ -67,8 +67,11 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       expect(described_class::SALE_FIELDS).to include("variantTitle")
     end
 
-    it "references ProductQuery PRODUCT_FIELDS" do
-      expect(described_class::SALE_FIELDS).to include("ProductQuery::PRODUCT_FIELDS")
+    it "includes product fields from ProductQuery" do
+      expect(described_class::SALE_FIELDS).to include("id")
+      expect(described_class::SALE_FIELDS).to include("title")
+      expect(described_class::SALE_FIELDS).to include("handle")
+      expect(described_class::SALE_FIELDS).to include("createdAt")
     end
   end
 end

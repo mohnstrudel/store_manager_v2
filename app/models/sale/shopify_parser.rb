@@ -53,13 +53,13 @@ class Sale
         shipping_total: @order["totalShippingPrice"],
         shopify_created_at: parse_datetime(@order["createdAt"]),
         status: derive_status,
-        store_id: @order["id"],
         total: @order["totalPrice"]
       }
     end
 
     def parse_store_info
       @store_info = {
+        store_id: @order["id"],
         ext_created_at: parse_datetime(@order["createdAt"]),
         ext_updated_at: parse_datetime(@order["updatedAt"])
       }

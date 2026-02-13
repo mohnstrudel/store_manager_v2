@@ -175,7 +175,7 @@ RSpec.describe Shopify::UpdateProductJob do
     end
 
     context "when API client raises an error" do
-      let(:api_error) { ShopifyApiError.new("API Error") }
+      let(:api_error) { Shopify::Api::Client::ApiError.new("API Error") }
 
       before do
         allow(api_client).to receive(:update_product).and_raise(api_error)
@@ -184,7 +184,7 @@ RSpec.describe Shopify::UpdateProductJob do
       it "propagates the error" do
         expect {
           described_class.perform_now(product_id)
-        }.to raise_error(ShopifyApiError, "API Error")
+        }.to raise_error(Shopify::Api::Client::ApiError, "API Error")
       end
 
       it "does not update store info on error" do
@@ -193,7 +193,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
         begin
           described_class.perform_now(product_id)
-        rescue ShopifyApiError
+        rescue Shopify::Api::Client::ApiError
           # Expected error
         end
 
@@ -208,7 +208,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
         begin
           described_class.perform_now(product_id)
-        rescue ShopifyApiError
+        rescue Shopify::Api::Client::ApiError
           # Expected error
         end
 
@@ -220,7 +220,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
         begin
           described_class.perform_now(product_id)
-        rescue ShopifyApiError
+        rescue Shopify::Api::Client::ApiError
           # Expected error
         end
 
@@ -238,7 +238,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
     context "when product does not exist on Shopify" do
       let(:api_error) do
-        ShopifyApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
+        Shopify::Api::Client::ApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
       end
 
       before do
@@ -254,7 +254,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
     context "when product does not exist on Shopify and has media with store_infos" do
       let(:api_error) do
-        ShopifyApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
+        Shopify::Api::Client::ApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
       end
       let!(:media_with_shopify_and_woo) { create(:media, mediaable: product) }
       let!(:media_with_shopify_only) { create(:media, mediaable: product) }
@@ -285,7 +285,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
     context "when product does not exist on Shopify and has no media" do
       let(:api_error) do
-        ShopifyApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
+        Shopify::Api::Client::ApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
       end
 
       before do
@@ -301,7 +301,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
     context "when product does not exist on Shopify and has other store_infos" do
       let(:api_error) do
-        ShopifyApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
+        Shopify::Api::Client::ApiError.new("Failed to call the productUpdate API mutation: Product does not exist")
       end
 
       before do
@@ -335,7 +335,7 @@ RSpec.describe Shopify::UpdateProductJob do
     end
 
     context "when error message is not product not found" do
-      let(:api_error) { ShopifyApiError.new("Some other API error") }
+      let(:api_error) { Shopify::Api::Client::ApiError.new("Some other API error") }
 
       before do
         allow(api_client).to receive(:update_product).and_raise(api_error)
@@ -346,7 +346,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
         begin
           described_class.perform_now(product_id)
-        rescue ShopifyApiError
+        rescue Shopify::Api::Client::ApiError
           # Expected error
         end
 

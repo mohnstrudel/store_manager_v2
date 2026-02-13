@@ -76,7 +76,7 @@ RSpec.describe "Shopify Job Integration" do
       product.editions << edition
 
       # Mock the serializer
-      allow(Shopify::ProductSerializer).to receive(:serialize).with(product).and_return(serialized_product)
+      allow(Product::ShopifySerializer).to receive(:for_export).with(product).and_return(serialized_product)
     end
 
     context "when both jobs execute successfully" do
@@ -163,7 +163,7 @@ RSpec.describe "Shopify Job Integration" do
       before do
         api_client = instance_spy(Shopify::Api::Client)
         allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
-        allow(api_client).to receive(:create_product).and_raise(ShopifyApiError, "API Error")
+        allow(api_client).to receive(:create_product).and_raise(Shopify::Api::Client::ApiError, "API Error")
       end
 
       it "does not create any store infos" do # rubocop:todo RSpec/MultipleExpectations
@@ -171,7 +171,7 @@ RSpec.describe "Shopify Job Integration" do
 
         expect {
           Shopify::CreateProductJob.perform_now(product.id)
-        }.to raise_error(ShopifyApiError, "API Error")
+        }.to raise_error(Shopify::Api::Client::ApiError, "API Error")
 
         expect(StoreInfo.count).to eq(initial_store_info_count)
       end
@@ -182,7 +182,7 @@ RSpec.describe "Shopify Job Integration" do
 
         expect {
           Shopify::CreateProductJob.perform_now(product.id)
-        }.to raise_error(ShopifyApiError, "API Error")
+        }.to raise_error(Shopify::Api::Client::ApiError, "API Error")
 
         expect(Shopify::CreateOptionsAndVariantsJob).not_to have_received(:perform_later)
       end
@@ -204,7 +204,7 @@ RSpec.describe "Shopify Job Integration" do
           .and_return(product_response)
 
         # Setup second job to fail
-        allow(api_client).to receive(:create_product_options).and_raise(ShopifyApiError, "Options API Error")
+        allow(api_client).to receive(:create_product_options).and_raise(Shopify::Api::Client::ApiError, "Options API Error")
       end
 
       it "leaves product store info intact but no option store infos" do # rubocop:todo RSpec/MultipleExpectations
@@ -220,7 +220,7 @@ RSpec.describe "Shopify Job Integration" do
             product.id,
             "gid://shopify/Product/12345"
           )
-        }.to raise_error(ShopifyApiError, "Options API Error")
+        }.to raise_error(Shopify::Api::Client::ApiError, "Options API Error")
 
         # Verify no option store infos were created
         expect(product_size.store_infos.where(store_name: :shopify)).to be_none
@@ -239,7 +239,7 @@ RSpec.describe "Shopify Job Integration" do
       end
 
       before do
-        allow(Shopify::ProductSerializer).to receive(:serialize).with(product_without_options).and_return(serialized_simple_product)
+        allow(Product::ShopifySerializer).to receive(:for_export).with(product_without_options).and_return(serialized_simple_product)
 
         api_client = instance_spy(Shopify::Api::Client)
         allow(Shopify::Api::Client).to receive(:new).and_return(api_client)

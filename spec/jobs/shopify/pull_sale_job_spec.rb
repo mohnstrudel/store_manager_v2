@@ -37,11 +37,11 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
     end
 
     it "raises ArgumentError when sale_id is nil" do
-      expect { job.perform(nil) }.to raise_error(ArgumentError, "Shopify order ID is required")
+      expect { job.perform(nil) }.to raise_error(ArgumentError, "Sale store_id is required")
     end
 
     it "raises ArgumentError when sale_id is empty" do
-      expect { job.perform("") }.to raise_error(ArgumentError, "Shopify order ID is required")
+      expect { job.perform("") }.to raise_error(ArgumentError, "Sale store_id is required")
     end
 
     context "when sale already exists" do

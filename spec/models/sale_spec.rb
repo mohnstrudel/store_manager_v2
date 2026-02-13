@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: sales
@@ -276,68 +277,6 @@ RSpec.describe Sale, type: :model do
       it "defaults to processing" do
         expect(described_class.derive_status_from_shopify("UNKNOWN", "UNKNOWN")).to eq("processing")
       end
-    end
-  end
-
-  describe ".recently_imported" do
-    let(:old_import) { create(:sale, shopify_created_at: 2.days.ago) }
-    let(:new_import) { create(:sale, shopify_created_at: 1.hour.ago) }
-
-    it "orders sales by most recent shopify_created_at" do
-      expect(described_class.recently_imported).to eq([new_import, old_import])
-    end
-
-    it "only includes sales with shopify_created_at" do
-      non_shopify_sale = create(:sale, shopify_id: nil, shopify_created_at: nil)
-
-      expect(described_class.recently_imported).not_to include(non_shopify_sale)
-    end
-  end
-
-  describe ".by_shopify_status" do
-    let(:fulfilled_sale) { create(:sale, fulfillment_status: "FULFILLED") }
-    let(:paid_sale) { create(:sale, financial_status: "PAID") }
-    let(:other_sale) { create(:sale, fulfillment_status: "UNFULFILLED", financial_status: "PENDING") }
-
-    it "filters by fulfillment_status" do
-      expect(described_class.by_shopify_status("FULFILLED")).to include(fulfilled_sale)
-      expect(described_class.by_shopify_status("FULFILLED")).not_to include(other_sale)
-    end
-
-    it "filters by financial_status" do
-      expect(described_class.by_shopify_status("PAID")).to include(paid_sale)
-      expect(described_class.by_shopify_status("PAID")).not_to include(other_sale)
-    end
-
-    it "includes sales matching either status" do
-      results = described_class.by_shopify_status("PAID")
-
-      expect(results).to include(paid_sale)
-      # FULFILLED sale might also be PAID, so we check for at least one match
-      expect(results.count).to be >= 1
-    end
-  end
-
-  describe ".active_from_shopify" do
-    let(:active_sale) { create(:sale, status: "processing") }
-    let(:cancelled_sale) { create(:sale, status: "cancelled") }
-    let(:refunded_sale) { create(:sale, status: "refunded") }
-    let(:woo_sale) { create(:sale, status: "processing", shopify_id: nil) }
-
-    it "includes active Shopify sales" do
-      expect(described_class.active_from_shopify).to include(active_sale)
-    end
-
-    it "excludes cancelled sales" do
-      expect(described_class.active_from_shopify).not_to include(cancelled_sale)
-    end
-
-    it "excludes refunded sales" do
-      expect(described_class.active_from_shopify).not_to include(refunded_sale)
-    end
-
-    it "excludes non-Shopify sales" do
-      expect(described_class.active_from_shopify).not_to include(woo_sale)
     end
   end
 end

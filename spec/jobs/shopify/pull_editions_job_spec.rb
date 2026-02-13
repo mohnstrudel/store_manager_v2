@@ -11,12 +11,12 @@ RSpec.describe Shopify::PullEditionsJob do
   let(:parsed_editions) do
     [
       {
-        "id" => "gid://shopify/ProductVariant/12345",
-        "title" => "Red / Large / Deluxe",
-        "options" => [
-          {"value" => "Red", "name" => "Color"},
-          {"value" => "Large", "name" => "Size"},
-          {"value" => "Deluxe", "name" => "Edition"}
+        store_id: "gid://shopify/ProductVariant/12345",
+        title: "Red / Large / Deluxe",
+        options: [
+          {value: "Red", name: "Color"},
+          {value: "Large", name: "Size"},
+          {value: "Deluxe", name: "Edition"}
         ]
       }
     ]
@@ -60,7 +60,7 @@ RSpec.describe Shopify::PullEditionsJob do
     end
 
     it "updates the pull_time on shopify_info" do
-      shopify_id = parsed_editions.first["id"]
+      shopify_id = parsed_editions.first[:store_id]
       edition = create(:edition, product:)
       # Edition factory auto-creates store_infos, just update the shopify one
       edition.store_infos.shopify.first.update(store_id: shopify_id)

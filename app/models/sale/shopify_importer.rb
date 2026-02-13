@@ -26,9 +26,8 @@ class Sale
         update_or_create_sale_items!
       end
 
-      sale.reload
-
       handle_post_import_actions
+
       sale
     rescue ActiveRecord::RecordInvalid => e
       handle_record_invalid(e)

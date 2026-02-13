@@ -2,10 +2,10 @@
 
 module Shopify
   class PushMediaJob < ApplicationJob
-    attr_reader :product, :shopify_product_id, :api_client, :new_media, :existing_media
-    private :product, :shopify_product_id, :api_client, :new_media, :existing_media
+    attr_reader :product, :product_store_id, :api_client, :new_media, :existing_media
+    private :product, :product_store_id, :api_client, :new_media, :existing_media
 
-    def perform(shopify_product_id, product_id)
+    def perform(product_id, product_store_id)
       @product = Product
         .includes(
           media: [
@@ -15,8 +15,8 @@ module Shopify
           ]
         )
         .find(product_id)
-      @shopify_product_id = shopify_product_id
-      @api_client = Shopify::ApiClient.new
+      @product_store_id = product_store_id
+      @api_client = Shopify::Api::Client.new
       @new_media, @existing_media = product.media.partition { |m| m.shopify_info.nil? }
 
       return unless new_media.any? || existing_media.any?
@@ -25,7 +25,7 @@ module Shopify
       update_existing_media if existing_media.any?
 
       reorder_media_on_shopify
-    rescue ShopifyApiError => e
+    rescue Shopify::Api::Client::ApiError => e
       handle_shopify_error(e)
     end
 
@@ -41,7 +41,7 @@ module Shopify
         }
       end
 
-      created_media = api_client.attach_media(shopify_product_id, api_input)
+      created_media = api_client.attach_media(product_store_id, api_input)
       save_shopify_media_ids(new_media, created_media)
     end
 
@@ -127,7 +127,7 @@ module Shopify
 
     def reorder_media_on_shopify
       media = product.media.ordered.preload(:store_infos)
-      api_product_response = api_client.pull_product(shopify_product_id)
+      api_product_response = api_client.fetch_product(product_store_id)
 
       shopify_positions = api_product_response["media"]["nodes"]
         .each_with_index
@@ -137,7 +137,7 @@ module Shopify
       moves = position_changes(shopify_positions, media)
       return if moves.blank?
 
-      api_client.reorder_media(shopify_product_id, moves)
+      api_client.reorder_media(product_store_id, moves)
     end
 
     def position_changes(shopify_positions, media)

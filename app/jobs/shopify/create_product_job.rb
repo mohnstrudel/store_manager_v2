@@ -12,21 +12,21 @@ module Shopify
         product_shopify_info = product.store_infos.find_or_initialize_by(store_name: :shopify)
 
         product_response = client.create_product(serialized_product)
-        shopify_product_id = product_response["id"]
+        product_store_id = product_response["id"]
 
         product_shopify_info.assign_attributes(
           push_time: Time.current,
-          store_id: shopify_product_id,
+          store_id: product_store_id,
           slug: product_response["handle"]
         )
         product_shopify_info.save!
 
         if product.media.any?
-          Shopify::PushMediaJob.perform_later(product.id, shopify_product_id)
+          Shopify::PushMediaJob.perform_later(product.id, product_store_id)
         end
 
         if product.sizes.any? || product.versions.any? || product.colors.any?
-          Shopify::CreateOptionsAndVariantsJob.perform_later(product.id, shopify_product_id)
+          Shopify::CreateOptionsAndVariantsJob.perform_later(product.id, product_store_id)
         end
 
         true

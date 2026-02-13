@@ -5,29 +5,29 @@ module Shopify
     def perform(product_id)
       client = Shopify::Api::Client.new
       product = Product.find(product_id)
-      product_shopify_info = product.shopify_info
+      shopify_info = product.shopify_info
 
       serialized_product = Product::ShopifySerializer.for_export(product)
-      product_payload = client.update_product(product_shopify_info.store_id, serialized_product)
+      product_payload = client.update_product(shopify_info.store_id, serialized_product)
 
-      product_shopify_info.assign_attributes(
+      shopify_info.assign_attributes(
         push_time: Time.current,
         slug: product_payload["handle"]
       )
-      product_shopify_info.save!
+      shopify_info.save!
 
       remove_outdated_media(product, product_payload)
 
       if product.media.any?
-        Shopify::PushMediaJob.perform_later(product.id, product_shopify_info.store_id)
+        Shopify::PushMediaJob.perform_later(product.id, shopify_info.store_id)
       end
 
       if product.sizes.any? || product.versions.any? || product.colors.any?
-        Shopify::CreateOptionsAndVariantsJob.perform_later(product.id, product_shopify_info.store_id)
+        Shopify::CreateOptionsAndVariantsJob.perform_later(product.id, shopify_info.store_id)
       end
 
       true
-    rescue ShopifyApiError => e
+    rescue Shopify::Api::Client::ApiError => e
       if e.message.include?("Product does not exist")
         handle_product_not_found_error(product)
       else

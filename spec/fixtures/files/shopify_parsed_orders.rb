@@ -12,7 +12,6 @@
       note: "Would prefer to have a blue saber if possible. Also want to be sure to get the movie accurate princess Leia I do not want the animated version",
       shipping_total: "75.22",
       total: "234.63",
-      store_id: "gid://shopify/Order/6622947180873",
       shopify_created_at: "2025-05-01T06:27:45+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
@@ -25,7 +24,6 @@
       status: "pre-ordered"
     },
     store_info: {
-      store_id: "gid://shopify/Order/6622947180873",
       ext_created_at: "2025-05-01T06:27:45+00:00",
       ext_updated_at: "2025-05-01T06:29:19+00:00"
     },
@@ -126,7 +124,6 @@
       note: nil,
       shipping_total: "20.00",
       total: "99.80",
-      store_id: "gid://shopify/Order/6621569450313",
       shopify_created_at: "2025-04-30T06:12:36+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
@@ -230,7 +227,6 @@
       note: nil,
       shipping_total: "20.00",
       total: "700.00",
-      store_id: "gid://shopify/Order/6617092260169",
       shopify_created_at: "2025-04-26T12:58:13+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
