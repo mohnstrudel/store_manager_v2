@@ -47,16 +47,8 @@ gem "bootsnap", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
-# Safe file downloading
-gem "down", "~> 5.0"
+gem "pundit"
 
-gem "slim-rails"
-gem "httparty"
-gem "kaminari"
-gem "database_validations"
-gem "pg_search"
-gem "aws-sdk-s3", require: false
-gem "ruby-progressbar"
 gem "sidekiq", "~> 8.0"
 gem "sidekiq-status"
 
@@ -64,29 +56,32 @@ gem "sidekiq-status"
 # shared_preload_libraries = 'pg_stat_statements'
 # pg_stat_statements.track = all
 gem "pg_query", ">= 2"
-
-gem "requestjs-rails"
-gem "friendly_id"
-
-gem "inline_svg"
-gem "mailtrap"
-
-gem "shopify_app"
-
+gem "pg_search"
 gem "audited"
 gem "positioning"
-
+gem "database_validations"
 gem "strong_migrations"
+gem "acts-as-taggable-on"
+gem "kaminari"
+gem "friendly_id"
+
+gem "slim-rails"
+gem "requestjs-rails"
+gem "tailwindcss-rails"
+gem "inline_svg"
+gem "rails_heroicon"
+
+gem "aws-sdk-s3", require: false
+gem "mailtrap"
+gem "shopify_app"
 
 gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
 
-gem "tailwindcss-rails"
-
-gem "pundit"
-
-gem "rails_heroicon"
+gem "ruby-progressbar"
+gem "down", "~> 5.0"
+gem "httparty"
 
 group :production, :staging do
   # Prevents webserver from spending time working on a request
