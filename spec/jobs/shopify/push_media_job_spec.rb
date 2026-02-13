@@ -21,7 +21,7 @@ RSpec.describe Shopify::PushMediaJob do
     let(:shopify_product_id) { "gid://shopify/Product/123" }
     let(:product) { create(:product_with_brands) }
     let(:product_id) { product.id }
-    let(:api_client) { instance_spy(Shopify::ApiClient) }
+    let(:api_client) { instance_spy(Shopify::Api::Client) }
 
     let(:first_media) { create(:media, :for_product, alt: "Image 1", position: 0) }
     let(:second_media) { create(:media, :for_product, alt: "Image 2", position: 1) }
@@ -60,11 +60,11 @@ RSpec.describe Shopify::PushMediaJob do
       ActiveStorage::Current.url_options = {host: "example.com"}
 
       product.media << [first_media, second_media, third_media]
-      allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+      allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:attach_media).with(shopify_product_id, kind_of(Array)).and_return(created_shopify_media)
       allow(api_client).to receive(:update_media).with(kind_of(Array)).and_return(updated_shopify_media)
       allow(api_client).to receive(:reorder_media).with(shopify_product_id, kind_of(Array))
-      allow(api_client).to receive(:pull_product).with(shopify_product_id).and_return(shopify_product_response)
+      allow(api_client).to receive(:fetch_product).with(shopify_product_id).and_return(shopify_product_response)
 
       # Stub file availability check - files are immediately available
       allow(first_media.image.blob.service).to receive(:exist?).with(first_media.image.blob.key).and_return(true)
@@ -80,7 +80,7 @@ RSpec.describe Shopify::PushMediaJob do
 
     it "creates API client" do
       described_class.perform_now(shopify_product_id, product_id)
-      expect(Shopify::ApiClient).to have_received(:new)
+      expect(Shopify::Api::Client).to have_received(:new)
     end
 
     it "returns early if product has no media" do
@@ -107,8 +107,8 @@ RSpec.describe Shopify::PushMediaJob do
 
       described_class.perform_now(shopify_product_id, product_id)
 
-      # Verify that pull_product was called as part of the reordering check
-      expect(api_client).to have_received(:pull_product).with(shopify_product_id)
+      # Verify that fetch_product was called as part of the reordering check
+      expect(api_client).to have_received(:fetch_product).with(shopify_product_id)
     end
 
     it "returns early if all media is already synced and unchanged" do
@@ -259,7 +259,7 @@ RSpec.describe Shopify::PushMediaJob do
     let(:product) { create(:product_with_brands) }
     let(:first_media) { create(:media, :for_product, alt: "Image 1") }
     let(:second_media) { create(:media, :for_product, alt: "Image 2") }
-    let(:api_client) { instance_spy(Shopify::ApiClient) }
+    let(:api_client) { instance_spy(Shopify::Api::Client) }
 
     let(:created_shopify_media) do
       [
@@ -328,7 +328,7 @@ RSpec.describe Shopify::PushMediaJob do
   describe "#update_existing_media" do
     let(:product) { create(:product_with_brands) }
     let(:media) { create(:media, :for_product, alt: "Updated Alt") }
-    let(:api_client) { instance_spy(Shopify::ApiClient) }
+    let(:api_client) { instance_spy(Shopify::Api::Client) }
 
     let(:updated_shopify_files) do
       [
@@ -520,7 +520,7 @@ RSpec.describe Shopify::PushMediaJob do
   describe "#reorder_media_on_shopify" do
     let(:shopify_product_id) { "gid://shopify/Product/123" }
     let(:product) { create(:product_with_brands) }
-    let(:api_client) { instance_spy(Shopify::ApiClient) }
+    let(:api_client) { instance_spy(Shopify::Api::Client) }
     let(:first_media) { create(:media, :for_product, alt: "Image 1", position: 0) }
     let(:second_media) { create(:media, :for_product, alt: "Image 2", position: 1) }
     let(:third_media) { create(:media, :for_product, alt: "Image 3", position: 2) }
@@ -541,7 +541,7 @@ RSpec.describe Shopify::PushMediaJob do
 
     before do
       product.media << [first_media, second_media, third_media]
-      allow(api_client).to receive(:pull_product).with(shopify_product_id).and_return(shopify_product_response)
+      allow(api_client).to receive(:fetch_product).with(shopify_product_id).and_return(shopify_product_response)
     end
 
     it "fetches Shopify product to compare positions" do
@@ -553,7 +553,7 @@ RSpec.describe Shopify::PushMediaJob do
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 
-      expect(api_client).to have_received(:pull_product).with(shopify_product_id)
+      expect(api_client).to have_received(:fetch_product).with(shopify_product_id)
     end
 
     it "only sends moves for media whose positions have changed" do

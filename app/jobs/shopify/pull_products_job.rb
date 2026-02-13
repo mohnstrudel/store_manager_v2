@@ -4,8 +4,8 @@ module Shopify
   class PullProductsJob < Shopify::BasePullJob
     private
 
-    def resource_name
-      "products"
+    def fetch_from_api(api_client, cursor:, batch_size:)
+      api_client.fetch_products(cursor: cursor, batch_size: batch_size)
     end
 
     def parser_class

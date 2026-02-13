@@ -19,11 +19,7 @@ module Shopify
       limit ||= batch_size
       limit = Integer(limit) if limit.is_a?(String)
       api_client = Shopify::Api::Client.new
-      @api_payload = api_client.pull(
-        resource_name: resource_name,
-        cursor:,
-        batch_size: limit
-      )
+      @api_payload = fetch_from_api(api_client, cursor: cursor, batch_size: limit)
     end
 
     def merge_new_items
@@ -60,10 +56,6 @@ module Shopify
       end
     end
 
-    def resource_name
-      raise NotImplementedError, "#{self.class} must implement #resource_name"
-    end
-
     def parser_class
       raise NotImplementedError, "#{self.class} must implement #parser_class"
     end
@@ -74,6 +66,10 @@ module Shopify
 
     def batch_size
       raise NotImplementedError, "#{self.class} must implement #batch_size"
+    end
+
+    def fetch_from_api(api_client, cursor:, batch_size:)
+      raise NotImplementedError, "#{self.class} must implement #fetch_from_api"
     end
   end
 end

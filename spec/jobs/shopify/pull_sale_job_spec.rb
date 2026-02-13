@@ -26,7 +26,7 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
       # rubocop:disable RSpec/VerifiedDoubles
       mock_client = spy("Shopify::Api::Client")
       # rubocop:enable RSpec/VerifiedDoubles
-      allow(mock_client).to receive(:pull_order).and_return(order_response)
+      allow(mock_client).to receive(:fetch_order).and_return(order_response)
       allow(Shopify::Api::Client).to receive(:new).and_return(mock_client)
     end
 

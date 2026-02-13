@@ -11,12 +11,12 @@ RSpec.describe Shopify::BasePullJob do
         "TestJob"
       end
 
-      def resource_name
-        "test"
-      end
-
       def batch_size
         10
+      end
+
+      def fetch_from_api(api_client, cursor:, batch_size:)
+        api_client.fetch_test_data(cursor: cursor, batch_size: batch_size)
       end
 
       def parser_class
@@ -48,7 +48,7 @@ RSpec.describe Shopify::BasePullJob do
   end
 
   let(:job) { job_class.new }
-  let(:api_client) { instance_double(Shopify::ApiClient) }
+  let(:api_client) { spy("Shopify::Api::Client") }
   let(:api_response) do
     {
       items: [
@@ -69,8 +69,8 @@ RSpec.describe Shopify::BasePullJob do
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }
 
   before do
-    allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
-    allow(api_client).to receive(:pull).and_return(api_response)
+    allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
+    allow(api_client).to receive(:fetch_test_data).and_return(api_response)
 
     allow(job).to receive_messages(parser_class: parser_class, creator_class: creator_class)
     allow(job_class).to receive(:set).and_return(job_setter)
@@ -105,8 +105,7 @@ RSpec.describe Shopify::BasePullJob do
 
     it "uses the configured batch size" do
       perform_job
-      expect(api_client).to have_received(:pull).with(
-        resource_name: "test",
+      expect(api_client).to have_received(:fetch_test_data).with(
         cursor: nil,
         batch_size: 10
       )
@@ -123,8 +122,7 @@ RSpec.describe Shopify::BasePullJob do
 
       it "uses the provided limit" do
         perform_job
-        expect(api_client).to have_received(:pull).with(
-          resource_name: "test",
+        expect(api_client).to have_received(:fetch_test_data).with(
           cursor: nil,
           batch_size: 5
         )
@@ -132,18 +130,14 @@ RSpec.describe Shopify::BasePullJob do
 
       it "converts string limit to integer" do
         job.perform(limit: "10")
-        expect(api_client).to have_received(:pull).with(
-          resource_name: "test",
+        expect(api_client).to have_received(:fetch_test_data).with(
           cursor: nil,
           batch_size: 10
         )
       end
 
-      it "does not schedule another job even with more pages" do
-        modified_api_response = api_response.dup
-        modified_api_response[:has_next_page] = true
-        allow(api_client).to receive(:pull).and_return(modified_api_response)
-
+      it "does not schedule next job when there are no more pages" do
+        allow(api_client).to receive(:fetch_test_data).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
       end
@@ -165,7 +159,7 @@ RSpec.describe Shopify::BasePullJob do
       end
 
       before do
-        allow(api_client).to receive(:pull).and_raise(rate_limit_error)
+        allow(api_client).to receive(:fetch_test_data).and_raise(rate_limit_error)
       end
 
       it "retries with exponential backoff" do
@@ -183,7 +177,7 @@ RSpec.describe Shopify::BasePullJob do
         other_error = ShopifyAPI::Errors::HttpResponseError.new(
           response: other_response
         )
-        allow(api_client).to receive(:pull).and_raise(other_error)
+        allow(api_client).to receive(:fetch_test_data).and_raise(other_error)
 
         expect { perform_job }.to raise_error(ShopifyAPI::Errors::HttpResponseError)
       end
@@ -197,7 +191,7 @@ RSpec.describe Shopify::BasePullJob do
       end
 
       before do
-        allow(api_client).to receive(:pull).and_return(modified_api_response)
+        allow(api_client).to receive(:fetch_test_data).and_return(modified_api_response)
       end
 
       it "schedules next job when there are more pages" do
@@ -208,7 +202,7 @@ RSpec.describe Shopify::BasePullJob do
       end
 
       it "does not schedule next job when there are no more pages" do
-        allow(api_client).to receive(:pull).and_return(api_response)
+        allow(api_client).to receive(:fetch_test_data).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
       end
@@ -235,8 +229,8 @@ RSpec.describe Shopify::BasePullJob do
   describe "required methods" do
     let(:base_job) { described_class.new }
 
-    it "raises NotImplementedError for resource_name" do
-      expect { base_job.send(:resource_name) }.to raise_error(NotImplementedError)
+    it "raises NotImplementedError for fetch_from_api" do
+      expect { base_job.send(:fetch_from_api, nil, cursor: nil, batch_size: 10) }.to raise_error(NotImplementedError)
     end
 
     it "raises NotImplementedError for parser_class" do

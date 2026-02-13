@@ -18,7 +18,8 @@ class Product
     def serialize
       {
         title: build_title,
-        descriptionHtml: build_description_html
+        descriptionHtml: build_description_html,
+        tags: ["smm"]
       }.compact
     end
 

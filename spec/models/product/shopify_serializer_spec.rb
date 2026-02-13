@@ -28,6 +28,11 @@ RSpec.describe Product::ShopifySerializer do
       result = described_class.for_export(product)
 
       expect(result).to be_a(Hash)
+    end
+
+    it "returns title as a string" do
+      result = described_class.for_export(product)
+
       expect(result[:title]).to be_a(String)
     end
   end
@@ -58,20 +63,28 @@ RSpec.describe Product::ShopifySerializer do
       expect(result[:title]).to eq("Studio Ghibli - Spirited Away | Resin Statue | by Zuoban Studio")
     end
 
-    it "returns only title in serialized output when description is blank" do
+    it "returns title and tags in serialized output when description is blank" do
       serializer = described_class.new(product)
       result = serializer.serialize
 
-      expect(result.keys).to eq([:title])
+      expect(result.keys).to eq([:title, :tags])
     end
 
-    it "includes descriptionHtml when product has description" do # rubocop:todo RSpec/MultipleExpectations
+    it "includes descriptionHtml and tags when product has description" do
       html_description = "<p>This is a <strong>premium</strong> collectible figure.</p>"
       product.update(description: html_description)
 
       result = described_class.for_export(product)
 
-      expect(result.keys).to eq([:title, :descriptionHtml])
+      expect(result.keys).to eq([:title, :descriptionHtml, :tags])
+    end
+
+    it "includes descriptionHtml content when product has description" do
+      html_description = "<p>This is a <strong>premium</strong> collectible figure.</p>"
+      product.update(description: html_description)
+
+      result = described_class.for_export(product)
+
       expect(result[:descriptionHtml]).to eq(html_description)
     end
 
@@ -87,13 +100,6 @@ RSpec.describe Product::ShopifySerializer do
       result = described_class.for_export(product)
 
       expect(result.key?(:descriptionHtml)).to be false
-    end
-
-    it "returns title as a string" do
-      serializer = described_class.new(product)
-      result = serializer.serialize
-
-      expect(result[:title]).to be_a(String)
     end
 
     it "handles multiple brands" do
@@ -126,6 +132,12 @@ RSpec.describe Product::ShopifySerializer do
       result = described_class.for_export(product)
 
       expect(result.keys).to all(be_a(Symbol))
+    end
+
+    it "includes smm tag in all serialized products" do
+      result = described_class.for_export(product)
+
+      expect(result[:tags]).to eq(["smm"])
     end
   end
 end

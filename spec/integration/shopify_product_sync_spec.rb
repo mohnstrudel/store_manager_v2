@@ -82,8 +82,8 @@ RSpec.describe "Shopify Job Integration" do
     context "when both jobs execute successfully" do
       before do
         # Mock API client for both jobs
-        api_client = instance_spy(Shopify::ApiClient)
-        allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+        api_client = instance_spy(Shopify::Api::Client)
+        allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
 
         # Mock create_product call
         allow(api_client).to receive(:create_product)
@@ -161,8 +161,8 @@ RSpec.describe "Shopify Job Integration" do
 
     context "when first job fails" do
       before do
-        api_client = instance_spy(Shopify::ApiClient)
-        allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+        api_client = instance_spy(Shopify::Api::Client)
+        allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
         allow(api_client).to receive(:create_product).and_raise(ShopifyApiError, "API Error")
       end
 
@@ -197,8 +197,8 @@ RSpec.describe "Shopify Job Integration" do
         edition.store_infos.where(store_name: :shopify).destroy_all
 
         # Setup first job to succeed
-        api_client = instance_spy(Shopify::ApiClient)
-        allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+        api_client = instance_spy(Shopify::Api::Client)
+        allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
         allow(api_client).to receive(:create_product)
           .with(serialized_product)
           .and_return(product_response)
@@ -241,8 +241,8 @@ RSpec.describe "Shopify Job Integration" do
       before do
         allow(Shopify::ProductSerializer).to receive(:serialize).with(product_without_options).and_return(serialized_simple_product)
 
-        api_client = instance_spy(Shopify::ApiClient)
-        allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+        api_client = instance_spy(Shopify::Api::Client)
+        allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
         allow(api_client).to receive(:create_product)
           .with(serialized_simple_product)
           .and_return(product_response)
@@ -265,8 +265,8 @@ RSpec.describe "Shopify Job Integration" do
     context "when using ActiveJob for job chaining" do
       before do
         # Mock API client for both jobs
-        api_client = instance_spy(Shopify::ApiClient)
-        allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+        api_client = instance_spy(Shopify::Api::Client)
+        allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
 
         allow(api_client).to receive(:create_product)
           .with(serialized_product)
@@ -321,8 +321,8 @@ RSpec.describe "Shopify Job Integration" do
     context "when testing idempotency" do
       before do
         # Mock API client
-        api_client = instance_spy(Shopify::ApiClient)
-        allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
+        api_client = instance_spy(Shopify::Api::Client)
+        allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
 
         allow(api_client).to receive(:create_product)
           .with(serialized_product)
