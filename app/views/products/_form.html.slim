@@ -41,13 +41,13 @@
     p.text-gray-600.dark:text-gray-500 Select any combination of the attributes below to generate editions automatically
 
     .flex.justify-between.gap-4.px-4
-      .block.w-full.-mt-6
+      .block.w-full.-mt-8
         = form.label :size
         = form.collection_select(:size_ids, Size.all, :id, :value, {class: "select"}, {multiple: true, data: {product_editions_target: "sizes"}})
-      .block.w-full.-mt-6
+      .block.w-full.-mt-8
         = form.label :version
         = form.collection_select(:version_ids, Version.all, :id, :value, {class: "select"}, {multiple: true, data: {product_editions_target: "versions"}})
-      .block.w-full.-mt-6
+      .block.w-full.-mt-8
         = form.label :color
         = form.collection_select(:color_ids, Color.all, :id, :value, {class: "select"}, {multiple: true, data: {show_search: false, product_editions_target: "colors"}})
     ul.px-4.mt-4.mb-2.flex.flex-wrap.gap-3.hidden data-product-editions-target="list"

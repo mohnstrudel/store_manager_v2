@@ -2,8 +2,8 @@ fieldset
   label.mb-2 Images
 
   - if form.object.media.present?
-    p.text-gray-600.dark:text-gray-500.mb-2 Start positions from 0 for better Shopify support
-    fieldset.grid.grid-cols-6.gap-4.mb-4
+    p.text-gray-600.dark:text-gray-500.mb-6 Start positions from 0 for better Shopify support
+    fieldset.grid.grid-cols-6.gap-4.mb-8.px-4
       - param_name = form.object.class.model_name.param_key
       - form.object.media.ordered.each_with_index do |media, index|
         - next if media.image.blank?
@@ -15,7 +15,7 @@ fieldset
           = hidden_field_tag "#{param_name}[media][#{index}][id]", media.id
           = number_field_tag "#{param_name}[media][#{index}][position]", media.position, placeholder: "Position (0-based)", title: "Position (starts from 0)", class: "mt-3"
           = hidden_field_tag "#{param_name}[media][#{index}][_destroy]", "0", data: {form_image_target: "hiddenInput"}
-          .grid.grid-cols-2.gap-2.mt-3
+          .grid.grid-cols-2.gap-2.mt-3.mb-4
             button.btn-red.btn-rounded.text-xs data-form-image-target="removeButton" data-action="click->form-image#remove" title="Remove"
               = heroicon "x-circle", variant: "micro"
               | Remove
