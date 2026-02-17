@@ -58,11 +58,12 @@ class Customer < ApplicationRecord
   # == Domain Methods
   #
   def name_and_email
-    [full_name, email].compact.join(" — ")
+    parts = [full_name.strip, email].compact_blank
+    parts.join(" — ")
   end
 
   def full_name
-    "#{first_name} #{last_name}"
+    "#{first_name} #{last_name}".strip
   end
 
   def title

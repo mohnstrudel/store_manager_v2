@@ -96,7 +96,7 @@ RSpec.describe Shopify::UpdateProductJob do
         allow(Shopify::PushMediaJob).to receive(:perform_later)
         described_class.perform_now(product_id)
         expect(Shopify::PushMediaJob).to have_received(:perform_later)
-          .with(shopify_product_id, product.id)
+          .with(product.id, shopify_product_id)
       end
     end
 
@@ -168,7 +168,7 @@ RSpec.describe Shopify::UpdateProductJob do
         allow(Shopify::CreateOptionsAndVariantsJob).to receive(:perform_later)
         described_class.perform_now(product_id)
         expect(Shopify::PushMediaJob).to have_received(:perform_later)
-          .with(shopify_product_id, product.id)
+          .with(product.id, shopify_product_id)
         expect(Shopify::CreateOptionsAndVariantsJob).to have_received(:perform_later)
           .with(product_id, shopify_product_id)
       end

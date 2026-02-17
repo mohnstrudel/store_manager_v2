@@ -44,14 +44,19 @@ class Customer
     def update_or_create_store_info!
       return unless parsed[:store_info]
 
-      store_info = customer.shopify_info || customer.store_infos.shopify.new
-
-      store_info.assign_attributes(
+      store_info_attrs = {
         **parsed[:store_info],
+        store_name: :shopify,
         pull_time: Time.zone.now
-      )
+      }
 
-      store_info.save!
+      store_info = customer.store_infos.find_by(store_name: :shopify)
+
+      if store_info
+        store_info.update!(store_info_attrs)
+      else
+        customer.store_infos.create!(store_info_attrs)
+      end
     end
 
     def handle_record_invalid(e)

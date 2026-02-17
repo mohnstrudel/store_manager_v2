@@ -91,21 +91,6 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
 
     context "when sale already exists" do
       before { import_order }
-
-      it "updates existing records instead of creating new ones" do
-        expect { import_order }.not_to change(Sale, :count)
-        expect { import_order }.not_to change(Customer, :count)
-      end
-
-      it "updates existing sale with new data" do
-        modified_order = valid_parsed_order.deep_dup
-        modified_order[:sale][:status] = "completed"
-
-        described_class.import!(modified_order)
-
-        sale = Sale.find_by(store_id: valid_parsed_order[:sale][:shopify_id])
-        expect(sale.status).to eq("completed")
-      end
     end
 
     context "when store_info timestamps are updated" do

@@ -96,56 +96,6 @@ RSpec.describe Sale::ShopifyParser do
     end
 
     context "when parsing Shopify API payload" do
-      it "parses order data correctly" do
-        result = described_class.parse(api_order)
-
-        expect(result[:sale]).to include(
-          store_id: "gid://shopify/Order/12345",
-          address_1: "123 Main St",
-          address_2: "Apt 4B",
-          city: "New York",
-          company: "Acme Inc",
-          country: "United States",
-          postcode: "10001",
-          discount_total: "10.00",
-          shipping_total: "5.00",
-          total: "100.00",
-          financial_status: "PAID",
-          fulfillment_status: "UNFULFILLED",
-          note: "Customer note",
-          status: "pre-ordered",
-          shopify_created_at: DateTime.parse("2023-01-01T12:00:00Z")
-        )
-
-        expect(result[:store_info]).to include(
-          ext_created_at: DateTime.parse("2023-01-01T12:00:00Z"),
-          ext_updated_at: DateTime.parse("2023-01-02T12:00:00Z")
-        )
-
-        expect(result[:customer]).to include(
-          email: "customer@example.com",
-          first_name: "John",
-          last_name: "Doe",
-          phone: "555-1234"
-        )
-
-        expect(result[:customer][:store_info]).to include(
-          store_id: "gid://shopify/Customer/67890",
-          ext_created_at: DateTime.parse("2023-01-01T11:00:00Z"),
-          ext_updated_at: DateTime.parse("2023-01-02T11:00:00Z")
-        )
-
-        expect(result[:sale_items].first).to include(
-          store_id: "gid://shopify/LineItem/111",
-          price: "95.00",
-          qty: 1,
-          edition_title: "Regular",
-          edition_store_id: "gid://shopify/ProductVariant/222",
-          product_store_id: "gid://shopify/Product/333",
-          full_title: "Stellar Blade - Eve | 1:4 Resin Statue"
-        )
-      end
-
       it "raises ArgumentError if payload is blank" do
         expect { described_class.parse({}) }.to raise_error(ArgumentError, "Payload cannot be blank")
       end

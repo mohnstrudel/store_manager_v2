@@ -74,12 +74,12 @@ RSpec.describe Shopify::PushMediaJob do
 
     it "finds the product by ID with includes" do
       allow(Product).to receive_message_chain(:includes, :find).and_return(product)
-      described_class.perform_now(shopify_product_id, product_id)
+      described_class.perform_now(product_id, shopify_product_id)
       expect(Product).to have_received(:includes)
     end
 
     it "creates API client" do
-      described_class.perform_now(shopify_product_id, product_id)
+      described_class.perform_now(product_id, shopify_product_id)
       expect(Shopify::Api::Client).to have_received(:new)
     end
 
@@ -87,14 +87,14 @@ RSpec.describe Shopify::PushMediaJob do
       product_with_no_media = create(:product_with_brands)
       allow(Product).to receive(:find).and_return(product_with_no_media)
 
-      described_class.perform_now(shopify_product_id, product_with_no_media.id)
+      described_class.perform_now(product_with_no_media.id, shopify_product_id)
 
       expect(api_client).not_to have_received(:attach_media)
       expect(api_client).not_to have_received(:update_media)
     end
 
     it "attaches new media to Shopify" do
-      described_class.perform_now(shopify_product_id, product_id)
+      described_class.perform_now(product_id, shopify_product_id)
 
       expect(api_client).to have_received(:attach_media).with(shopify_product_id, kind_of(Array))
     end
@@ -105,7 +105,7 @@ RSpec.describe Shopify::PushMediaJob do
       second_media.store_infos.create!(store_name: :shopify, store_id: "gid://shopify/MediaImage/457", checksum: second_media.image.blob.checksum, alt_text: second_media.alt)
       third_media.store_infos.create!(store_name: :shopify, store_id: "gid://shopify/MediaImage/458", checksum: third_media.image.blob.checksum, alt_text: third_media.alt)
 
-      described_class.perform_now(shopify_product_id, product_id)
+      described_class.perform_now(product_id, shopify_product_id)
 
       # Verify that fetch_product was called as part of the reordering check
       expect(api_client).to have_received(:fetch_product).with(shopify_product_id)
@@ -116,7 +116,7 @@ RSpec.describe Shopify::PushMediaJob do
       second_media.store_infos.create!(store_name: :shopify, store_id: "gid://shopify/MediaImage/457", checksum: second_media.image.blob.checksum, alt_text: second_media.alt)
       third_media.store_infos.create!(store_name: :shopify, store_id: "gid://shopify/MediaImage/458", checksum: third_media.image.blob.checksum, alt_text: third_media.alt)
 
-      described_class.perform_now(shopify_product_id, product_id)
+      described_class.perform_now(product_id, shopify_product_id)
 
       expect(api_client).not_to have_received(:attach_media)
       expect(api_client).not_to have_received(:update_media)
@@ -132,7 +132,7 @@ RSpec.describe Shopify::PushMediaJob do
 
       it "waits until file is available" do
         expect {
-          described_class.perform_now(shopify_product_id, product_id)
+          described_class.perform_now(product_id, shopify_product_id)
         }.not_to raise_error
 
         expect(first_media.image.blob.service).to have_received(:exist?).with(first_media.image.blob.key).at_least(2).times
@@ -152,7 +152,7 @@ RSpec.describe Shopify::PushMediaJob do
         )
 
         expect {
-          described_class.perform_now(shopify_product_id, product_id)
+          described_class.perform_now(product_id, shopify_product_id)
         }.to raise_error(RuntimeError, /File was not uploaded to R2/)
       end
     end
@@ -171,19 +171,19 @@ RSpec.describe Shopify::PushMediaJob do
 
       it "removes product's Shopify store_info" do
         expect {
-          described_class.perform_now(shopify_product_id, product_id)
+          described_class.perform_now(product_id, shopify_product_id)
         }.to change { product.store_infos.where(store_name: :shopify).count }.from(1).to(0)
       end
 
       it "removes all media's Shopify store_infos" do
         expect {
-          described_class.perform_now(shopify_product_id, product_id)
+          described_class.perform_now(product_id, shopify_product_id)
         }.to change { first_media.store_infos.where(store_name: :shopify).count }.from(1).to(0)
           .and change { second_media.store_infos.where(store_name: :shopify).count }.from(1).to(0)
       end
 
       it "does not raise error after cleanup" do
-        expect { described_class.perform_now(shopify_product_id, product_id) }.not_to raise_error
+        expect { described_class.perform_now(product_id, shopify_product_id) }.not_to raise_error
       end
     end
 
@@ -206,7 +206,7 @@ RSpec.describe Shopify::PushMediaJob do
       end
 
       it "updates existing media with changes" do
-        described_class.perform_now(shopify_product_id, product_id)
+        described_class.perform_now(product_id, shopify_product_id)
 
         expect(api_client).to have_received(:update_media).with(kind_of(Array)) do |file_updates|
           expect(file_updates.size).to eq(1)
@@ -216,7 +216,7 @@ RSpec.describe Shopify::PushMediaJob do
       end
 
       it "attaches new media" do
-        described_class.perform_now(shopify_product_id, product_id)
+        described_class.perform_now(product_id, shopify_product_id)
 
         expect(api_client).to have_received(:attach_media).with(shopify_product_id, kind_of(Array)) do |_id, media_input|
           expect(media_input.size).to eq(1)
@@ -278,7 +278,7 @@ RSpec.describe Shopify::PushMediaJob do
     it "builds correct media input array" do
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.instance_variable_set(:@new_media, [first_media, second_media])
       job.send(:attach_new_media)
@@ -297,7 +297,7 @@ RSpec.describe Shopify::PushMediaJob do
       expect {
         job = described_class.new
         job.instance_variable_set(:@product, product)
-        job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+        job.instance_variable_set(:@product_store_id, shopify_product_id)
         job.instance_variable_set(:@api_client, api_client)
         job.instance_variable_set(:@new_media, [first_media, second_media])
         job.send(:attach_new_media)
@@ -311,7 +311,7 @@ RSpec.describe Shopify::PushMediaJob do
     it "saves checksum, alt_text, and timestamps to StoreInfo" do
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.instance_variable_set(:@new_media, [first_media])
       job.send(:attach_new_media)
@@ -549,7 +549,7 @@ RSpec.describe Shopify::PushMediaJob do
 
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 
@@ -567,7 +567,7 @@ RSpec.describe Shopify::PushMediaJob do
 
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 
@@ -586,7 +586,7 @@ RSpec.describe Shopify::PushMediaJob do
 
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 
@@ -601,7 +601,7 @@ RSpec.describe Shopify::PushMediaJob do
     it "returns early if no media has Shopify IDs" do
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 
@@ -615,7 +615,7 @@ RSpec.describe Shopify::PushMediaJob do
 
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 
@@ -631,7 +631,7 @@ RSpec.describe Shopify::PushMediaJob do
 
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 
@@ -651,7 +651,7 @@ RSpec.describe Shopify::PushMediaJob do
 
       job = described_class.new
       job.instance_variable_set(:@product, product)
-      job.instance_variable_set(:@shopify_product_id, shopify_product_id)
+      job.instance_variable_set(:@product_store_id, shopify_product_id)
       job.instance_variable_set(:@api_client, api_client)
       job.send(:reorder_media_on_shopify)
 

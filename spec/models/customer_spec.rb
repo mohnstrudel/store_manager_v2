@@ -33,7 +33,7 @@ RSpec.describe Customer do
     end
 
     context "when customer has only email" do
-      let(:customer) { build(:customer, email: "john@example.com") }
+      let(:customer) { build(:customer, first_name: nil, last_name: nil, email: "john@example.com") }
 
       it "returns only the email" do
         expect(customer.name_and_email).to eq("john@example.com")
@@ -41,7 +41,7 @@ RSpec.describe Customer do
     end
 
     context "when customer has only name" do
-      let(:customer) { build(:customer, first_name: "John", last_name: "Doe") }
+      let(:customer) { build(:customer, first_name: "John", last_name: "Doe", email: nil) }
 
       it "returns only the full name" do
         expect(customer.name_and_email).to eq("John Doe")
@@ -49,7 +49,7 @@ RSpec.describe Customer do
     end
 
     context "when customer has neither name nor email" do
-      let(:customer) { build(:customer, first_name: nil, last_name: nil, email: nil) }
+      let(:customer) { build_stubbed(:customer, first_name: nil, last_name: nil, email: nil) }
 
       it "returns an empty string" do
         expect(customer.name_and_email).to eq("")
@@ -69,16 +69,16 @@ RSpec.describe Customer do
     context "when customer has only first name" do
       let(:customer) { build(:customer, first_name: "John", last_name: nil) }
 
-      it "returns first name with space" do
-        expect(customer.full_name).to eq("John ")
+      it "returns first name without space" do
+        expect(customer.full_name).to eq("John")
       end
     end
 
     context "when customer has only last name" do
       let(:customer) { build(:customer, first_name: nil, last_name: "Doe") }
 
-      it "returns space with last name" do
-        expect(customer.full_name).to eq(" Doe")
+      it "returns last name without space" do
+        expect(customer.full_name).to eq("Doe")
       end
     end
   end

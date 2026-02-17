@@ -121,4 +121,159 @@ RSpec.describe "Product Store Info Management" do
     expect(product_with_one_store.woo_info).to be_present
     expect(product_with_one_store.woo_info.tag_list.to_s).to eq("woo-exclusive, special-offer")
   end
+
+  scenario "deletes existing store_info using the destroy checkbox", :js do # rubocop:todo RSpec/MultipleExpectations
+    visit edit_product_path(product)
+
+    # Verify both store_infos are displayed
+    expect(page).to have_content("Shopify")
+    expect(page).to have_content("Woo")
+
+    # Find the Woo store_info section and check the destroy checkbox
+    woo_section = find(".store-info-fields", text: "Woo")
+    within woo_section do
+      check "Destroy connection?"
+    end
+
+    # Submit the form
+    click_button "Update Product"
+
+    # Verify success message
+    expect(page).to have_content("Product was successfully updated")
+
+    # Verify Woo store_info was deleted but Shopify remains
+    product.reload
+    expect(product.store_infos.count).to eq(1)
+    expect(product.shopify_info).to be_present
+    expect(product.woo_info).to be_nil
+  end
+
+  scenario "prevents adding duplicate store_name for the same product", :js do # rubocop:todo RSpec/MultipleExpectations
+    visit edit_product_path(product_with_one_store)
+
+    # Verify only Shopify store_info exists
+    expect(product_with_one_store.store_infos.count).to eq(1)
+    expect(page).to have_content("Shopify")
+
+    # Click Add Store Info button
+    click_button "Add Store Info"
+
+    # Find the newly added store info fields
+    new_store_section = find(".store-info-fields", text: "New Store Info")
+
+    # Verify the dropdown only shows available (non-duplicate) store names
+    store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
+    options = store_select.all("option", visible: :all).map(&:value)
+
+    # Shopify should NOT be in the options (it's already used)
+    # Woo should be available
+    expect(options).not_to include("shopify")
+    expect(options).to include("woo")
+
+    # Verify that attempting to add Woo (the only available option) works
+    page.execute_script("arguments[0].value = 'woo'", store_select)
+    new_store_section.fill_in "Tags", with: "new-woo-tags"
+
+    click_button "Update Product"
+
+    # Verify success and only the allowed store was added
+    expect(page).to have_content("Product was successfully updated")
+    product_with_one_store.reload
+    expect(product_with_one_store.store_infos.count).to eq(2)
+  end
+
+  scenario "clears all tags from store_info", :js do # rubocop:todo RSpec/MultipleExpectations
+    # Set initial tags on store_infos
+    product.shopify_info.tag_list.add("featured", "new")
+    product.shopify_info.save
+
+    visit edit_product_path(product)
+
+    # Verify tags are displayed
+    shopify_section = find(".store-info-fields", text: "Shopify")
+    shopify_tags_field = shopify_section.find_field("Tags")
+    expect(shopify_tags_field.value).to eq("featured, new")
+
+    # Clear the tags field
+    shopify_tags_field.fill_in with: ""
+
+    # Submit the form
+    click_button "Update Product"
+
+    # Verify success message
+    expect(page).to have_content("Product was successfully updated")
+
+    # Verify tags were cleared
+    product.reload
+    expect(product.shopify_info.tag_list.to_s).to eq("")
+    expect(product.shopify_info.tag_list).to be_empty
+  end
+
+  scenario "handles multiple operations simultaneously - edit, delete, and add", :js do # rubocop:todo RSpec/MultipleExpectations
+    # Set initial tags
+    product.shopify_info.tag_list.add("old-tag")
+    product.shopify_info.save
+
+    visit edit_product_path(product_with_one_store)
+
+    # Verify initial state
+    expect(product_with_one_store.store_infos.count).to eq(1)
+    expect(page).to have_content("Shopify")
+
+    # Edit: Update Shopify tags
+    shopify_section = find(".store-info-fields", text: "Shopify")
+    shopify_tags_field = shopify_section.find_field("Tags")
+    shopify_tags_field.fill_in with: "updated-shopify-tag"
+
+    # Add: Add a new Woo store_info
+    click_button "Add Store Info"
+    new_store_section = find(".store-info-fields", text: "New Store Info")
+    store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
+    page.execute_script("arguments[0].value = 'woo'", store_select)
+    new_store_section.fill_in "Tags", with: "new-woo-tag"
+
+    # Submit the form
+    click_button "Update Product"
+
+    # Verify success message
+    expect(page).to have_content("Product was successfully updated")
+
+    # Verify all operations succeeded
+    product_with_one_store.reload
+    expect(product_with_one_store.store_infos.count).to eq(2)
+    expect(product_with_one_store.shopify_info.tag_list.to_s).to eq("updated-shopify-tag")
+    expect(product_with_one_store.woo_info.tag_list.to_s).to eq("new-woo-tag")
+  end
+
+  scenario "adds new store_info without any tags", :js do # rubocop:todo RSpec/MultipleExpectations
+    visit edit_product_path(product_with_one_store)
+
+    # Verify only Shopify exists
+    expect(page).to have_content("Shopify")
+
+    # Click Add Store Info button
+    click_button "Add Store Info"
+
+    # Find the newly added store info fields
+    new_store_section = find(".store-info-fields", text: "New Store Info")
+
+    # Select Woo from the dropdown but leave tags empty
+    store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
+    page.execute_script("arguments[0].value = 'woo'", store_select)
+
+    # Don't fill in tags - leave them empty
+
+    # Submit the form
+    click_button "Update Product"
+
+    # Verify success message
+    expect(page).to have_content("Product was successfully updated")
+
+    # Verify new store_info was created with empty tag_list
+    product_with_one_store.reload
+    expect(product_with_one_store.store_infos.count).to eq(2)
+    expect(product_with_one_store.woo_info).to be_present
+    expect(product_with_one_store.woo_info.tag_list.to_s).to eq("")
+    expect(product_with_one_store.woo_info.tag_list).to be_empty
+  end
 end

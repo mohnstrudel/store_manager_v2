@@ -49,18 +49,16 @@ module HandlesMedia
 
   def media_params_for(record)
     param_key = record.class.model_name.param_key.to_sym
-    permitted = params.expect(
-      param_key => [
-        media: [[
-          :id,
-          :alt,
-          :position,
-          :_destroy,
-          :image
-        ]],
-        new_images: []
-      ]
-    )
+    permitted = params.dig(param_key)&.permit(
+      media: [[
+        :id,
+        :alt,
+        :position,
+        :_destroy,
+        :image
+      ]],
+      new_images: []
+    ) || ActionController::Parameters.new
     permitted.slice(:media, :new_images)
   end
 
