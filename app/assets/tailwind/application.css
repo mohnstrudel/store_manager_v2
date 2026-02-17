@@ -77,7 +77,7 @@
 
   /* Forms */
   label {
-    @apply block font-medium text-gray-900 dark:text-gray-100 mt-6 mb-2;
+    @apply block font-medium text-gray-900 dark:text-gray-100 mt-8 mb-2;
   }
 
   label + p {
@@ -130,6 +130,10 @@
 
   input[type="checkbox"] {
     @apply rounded hover:border-blue-600/60 checked:bg-blue-600 dark:checked:bg-blue-500 mt-1;
+  }
+
+  input[type="checkbox"].red {
+    @apply checked:border-red-600 dark:checked:border-red-800 checked:bg-red-600 dark:checked:bg-red-800 hover:border-red-600 dark:hover:border-red-800;
   }
 
   input[type="checkbox"]:checked {

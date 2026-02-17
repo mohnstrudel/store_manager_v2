@@ -43,3 +43,6 @@
             = product.shopify_info.store_id
     - else
       p -
+    - if product.shopify_info && product.shopify_info.tag_list.present?
+      h5 Tags
+      p = product.shopify_info.tag_list.join(", ")

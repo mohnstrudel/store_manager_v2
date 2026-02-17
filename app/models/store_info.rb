@@ -23,6 +23,8 @@ class StoreInfo < ApplicationRecord
   # TODO: Remove after deploy 99
   self.ignored_columns += ["price"]
 
+  acts_as_taggable_on :tags
+
   enum :store_name, {
     not_assigned: 0,
     shopify: 1,

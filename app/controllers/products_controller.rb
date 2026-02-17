@@ -46,7 +46,7 @@ class ProductsController < ApplicationController
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
-    rescue ActiveRecord::RecordInvalid
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
       format.html { render :new, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -54,22 +54,20 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
-    params_to_update = product_params.to_h
-
     respond_to do |format|
       ActiveRecord::Base.transaction do
-        @product.update!(params_to_update.merge(slug: nil))
-        update_media(@product)
-        add_new_media(@product)
-
+        @product.update!(product_params.to_h.merge(slug: nil))
         @product.assign_attributes(full_title: Product.generate_full_title(@product))
         @product.build_editions
+        create_or_update_store_infos!
+        update_media(@product)
+        add_new_media(@product)
         @product.save!
       end
 
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
       format.json { render :show, status: :ok, location: @product }
-    rescue ActiveRecord::RecordInvalid
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -150,13 +148,13 @@ class ProductsController < ApplicationController
         :size,
         {sale_items: :sale},
         {purchases: :supplier}
-      ]
+      ],
+      store_infos: [:tags]
     )
       .friendly
       .find(params[:id])
   end
 
-  # Only allow a list of trusted parameters through.
   def product_params
     params.expect(product: [
       :title,
@@ -181,6 +179,17 @@ class ProductsController < ApplicationController
     ])
   end
 
+  def store_infos_params
+    return ActionController::Parameters.new if params[:store_infos].blank?
+
+    params.expect(store_infos: [[
+      :id,
+      :tag_list,
+      :store_name,
+      :_destroy
+    ]])
+  end
+
   def purchase_params
     params.dig(:product, :purchases_attributes, "0")
   end
@@ -195,6 +204,29 @@ class ProductsController < ApplicationController
     end
     if purchase && payment_value
       purchase.payments.create(value: payment_value)
+    end
+  end
+
+  def create_or_update_store_infos!
+    return if store_infos_params.blank?
+
+    store_infos_params.to_h.values.each do |attrs|
+      id = attrs.delete("id")
+      should_destroy = attrs.delete("_destroy") == "1"
+
+      if id.blank?
+        @product.store_infos.create!(attrs)
+        next
+      end
+
+      if should_destroy
+        @product.store_infos.find(id).destroy
+        next
+      end
+
+      store_info = @product.store_infos.find(id)
+      store_info.assign_attributes(attrs)
+      store_info.save!
     end
   end
 end

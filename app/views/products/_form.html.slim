@@ -24,6 +24,18 @@
       = form.label :shape
       = form.collection_select(:shape_id, Shape.all, :id, :title)
 
+  - if product.persisted?
+    fieldset
+      label Store Information
+      p.text-gray-600.dark:text-gray-500 Manage store information for this product
+
+      .px-4 data-controller="store-info"
+        - form.object.store_infos.each_with_index do |store_info, index|
+          = fields_for "store_infos[#{index}]", store_info do |store_info_fields|
+            = render "store_info_fields", f: store_info_fields, store_info: store_info
+
+        button.btn-rounded.mt-3 data-action="store-info#addStoreInfo" data-store-info-target="btn" Add Store Info
+
   fieldset data-controller="product-editions"
     label Editions
     p.text-gray-600.dark:text-gray-500 Select any combination of the attributes below to generate editions automatically
