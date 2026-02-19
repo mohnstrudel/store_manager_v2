@@ -48,7 +48,7 @@ RSpec.describe Shopify::Api::Client do
       client.fetch_product(product_id)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {id: product_id}
       )
     end
@@ -128,7 +128,7 @@ RSpec.describe Shopify::Api::Client do
       client.fetch_products(cursor: cursor, batch_size: batch_size)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {
           first: batch_size,
           after: cursor
@@ -195,7 +195,7 @@ RSpec.describe Shopify::Api::Client do
       client.fetch_order(order_id)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {id: order_id}
       )
     end
@@ -254,7 +254,7 @@ RSpec.describe Shopify::Api::Client do
       client.fetch_orders(cursor: cursor, batch_size: batch_size)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {
           first: batch_size,
           after: cursor
@@ -319,7 +319,7 @@ RSpec.describe Shopify::Api::Client do
       client.create_product(serialized_product)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {}
       )
     end
@@ -437,7 +437,7 @@ RSpec.describe Shopify::Api::Client do
       client.update_product(product_id, serialized_product)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {product: serialized_product.merge(id: product_id)}
       )
     end
@@ -533,7 +533,7 @@ RSpec.describe Shopify::Api::Client do
       client.create_product_options(product_id, options)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {
           productId: product_id,
           options: options,
@@ -656,7 +656,7 @@ RSpec.describe Shopify::Api::Client do
       client.attach_media(product_id, media_input)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {
           product: {id: product_id},
           media: media_input
@@ -786,7 +786,7 @@ RSpec.describe Shopify::Api::Client do
       client.update_media(file_updates)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {
           files: file_updates
         }
@@ -861,7 +861,7 @@ RSpec.describe Shopify::Api::Client do
       client.reorder_media(product_id, moves)
 
       expect(mock_graphql_client).to have_received(:query).with(
-        kind_of(String),
+        query: kind_of(String),
         variables: {
           id: product_id,
           moves: moves

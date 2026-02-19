@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "rails_helper"
+
 RSpec.describe Shopify::Graphql::ProductQuery do
   describe ".by_id" do
     it "returns a valid GraphQL query string" do
@@ -45,6 +47,7 @@ RSpec.describe Shopify::Graphql::ProductQuery do
       expect(described_class::PRODUCT_FIELDS).to include("id")
       expect(described_class::PRODUCT_FIELDS).to include("title")
       expect(described_class::PRODUCT_FIELDS).to include("handle")
+      expect(described_class::PRODUCT_FIELDS).to include("tags")
       expect(described_class::PRODUCT_FIELDS).to include("createdAt")
       expect(described_class::PRODUCT_FIELDS).to include("updatedAt")
     end

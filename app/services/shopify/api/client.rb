@@ -38,7 +38,7 @@ module Shopify
         raise ArgumentError, "Product Shopify ID (store_id) is required" if product_store_id.blank?
 
         response = graphql_client.query(
-          Shopify::Graphql::ProductQuery.by_id,
+          query: Shopify::Graphql::ProductQuery.by_id,
           variables: {id: product_store_id}
         )
         handle_query_errors(response, resource_name: "product")
@@ -52,7 +52,7 @@ module Shopify
       # @return [Hash] Hash with :items, :has_next_page, and :end_cursor keys
       def fetch_products(cursor:, batch_size:)
         response = graphql_client.query(
-          Shopify::Graphql::ProductQuery.list,
+          query: Shopify::Graphql::ProductQuery.list,
           variables: {
             first: Integer(batch_size),
             after: cursor
@@ -70,7 +70,7 @@ module Shopify
       def create_product(serialized_product)
         query = Shopify::Graphql::ProductMutation.create(serialized_product)
 
-        response = graphql_client.query(query, variables: {})
+        response = graphql_client.query(query: query, variables: {})
         handle_mutation_errors(response, "productCreate", query: query)
 
         response.body.dig("data", "productCreate", "product")
@@ -88,7 +88,7 @@ module Shopify
           product: serialized_product.merge(id: product_store_id)
         }
 
-        response = graphql_client.query(query, variables:)
+        response = graphql_client.query(query: query, variables:)
         handle_mutation_errors(response, "productUpdate", query: query)
 
         response.body.dig("data", "productUpdate", "product")
@@ -108,7 +108,7 @@ module Shopify
           variantStrategy: "CREATE"
         }
 
-        response = graphql_client.query(query, variables:)
+        response = graphql_client.query(query: query, variables:)
         handle_mutation_errors(response, "productOptionsCreate", query: query)
 
         response.body.dig("data", "productOptionsCreate", "product")
@@ -123,7 +123,7 @@ module Shopify
         raise ArgumentError, "Order ID (sale's store_id) is required" if order_id.blank?
 
         response = graphql_client.query(
-          Shopify::Graphql::OrderQuery.by_id,
+          query: Shopify::Graphql::OrderQuery.by_id,
           variables: {id: order_id}
         )
         handle_query_errors(response, resource_name: "order")
@@ -137,7 +137,7 @@ module Shopify
       # @return [Hash] Hash with :items, :has_next_page, and :end_cursor keys
       def fetch_orders(cursor:, batch_size:)
         response = graphql_client.query(
-          Shopify::Graphql::OrderQuery.list,
+          query: Shopify::Graphql::OrderQuery.list,
           variables: {
             first: Integer(batch_size),
             after: cursor
@@ -163,7 +163,7 @@ module Shopify
           media: media_input
         }
 
-        response = graphql_client.query(query, variables:)
+        response = graphql_client.query(query: query, variables:)
         handle_mutation_errors(response, "productUpdate", query: query)
 
         media_nodes = response.body.dig("data", "productUpdate", "product", "media", "nodes")
@@ -184,7 +184,7 @@ module Shopify
           files: file_updates
         }
 
-        response = graphql_client.query(query, variables:)
+        response = graphql_client.query(query: query, variables:)
         handle_mutation_errors(response, "fileUpdate", query: query)
 
         response.body.dig("data", "fileUpdate", "files")
@@ -205,7 +205,7 @@ module Shopify
           moves: moves
         }
 
-        response = graphql_client.query(query, variables:)
+        response = graphql_client.query(query: query, variables:)
         handle_mutation_errors(response, "productReorderMedia", query: query)
 
         response.body.dig("data", "productReorderMedia", "job")
@@ -310,7 +310,7 @@ module Shopify
       def query_media_status(media_id)
         query = Shopify::Graphql::MediaMutation.status_query
 
-        response = graphql_client.query(query, variables: {id: media_id})
+        response = graphql_client.query(query: query, variables: {id: media_id})
         response.body.dig("data", "node")
       end
     end

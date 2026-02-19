@@ -13,6 +13,7 @@ module Shopify
         id
         title
         handle
+        tags
         createdAt
         updatedAt
         media(first: 20) {
