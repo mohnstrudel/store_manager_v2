@@ -8,7 +8,7 @@ class ProductsController < ApplicationController
 
   # GET /products or /products.json
   def index
-    @products = Product.listed.search_by(params[:q]).page(params[:page])
+    @products = Product.includes(:shopify_info, :woo_info).listed.search_by(params[:q]).page(params[:page])
   end
 
   # GET /products/1 or /products/1.json
