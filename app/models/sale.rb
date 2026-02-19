@@ -88,9 +88,11 @@ class Sale < ApplicationRecord
         Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC")
       )
   }
-  scope :with_index_details, -> {
+  scope :includes_index_associations, -> {
     includes(
       :customer,
+      :shopify_info,
+      :woo_info,
       sale_items: [
         {product: {media: {image_attachment: :blob}}},
         :purchase_items,
@@ -102,7 +104,7 @@ class Sale < ApplicationRecord
       ]
     )
   }
-  scope :with_show_details, -> {
+  scope :includes_show_associations, -> {
     includes(
         sale_items: [
           {product: {media: {image_attachment: :blob}}},

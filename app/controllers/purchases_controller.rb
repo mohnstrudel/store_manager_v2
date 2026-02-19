@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class PurchasesController < ApplicationController
   include WarehouseMovementNotification
 
@@ -8,13 +9,7 @@ class PurchasesController < ApplicationController
   # GET /purchases or /purchases.json
   def index
     @purchases = Purchase
-      .includes(
-        :supplier,
-        :payments,
-        {product: {media: {image_attachment: :blob}}},
-        purchase_items: [:warehouse],
-        edition: [:color, :size, :version]
-      )
+      .includes_index_associations
       .order(id: :desc)
       .page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
@@ -24,7 +19,7 @@ class PurchasesController < ApplicationController
   def show
     @purchase_items = @purchase
       .purchase_items
-      .includes(:warehouse, :sale_item, purchase: :payments)
+      .includes_purchase_show_associations
       .order(updated_at: :desc)
   end
 

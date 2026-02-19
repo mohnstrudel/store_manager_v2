@@ -1,8 +1,9 @@
 # frozen_string_literal: true
+
 class DashboardController < ApplicationController
   def index
     @suppliers_debts = Supplier
-      .includes(purchases: [:payments, :purchase_items])
+      .includes_dashboard_associations
       .map { |supplier|
         {
           supplier:,

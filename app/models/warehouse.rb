@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: warehouses
@@ -53,7 +54,13 @@ class Warehouse < ApplicationRecord
   #
   # == Scopes
   #
-  # (none)
+  scope :includes_index_associations, -> {
+    includes(:purchase_items, purchases: [:payments, :purchase_items])
+  }
+
+  scope :includes_show_associations, -> {
+    includes(purchases: [:payments, :purchase_items], media: {image_attachment: :blob})
+  }
 
   #
   # == Class Methods
@@ -72,7 +79,7 @@ class Warehouse < ApplicationRecord
   #
   #
   def average_payment_progress
-    return 0 if purchases.empty?
+    return 0 if purchases.none?
 
     progresses = purchases.includes(:payments).map(&:progress)
     (progresses.sum / progresses.size).round

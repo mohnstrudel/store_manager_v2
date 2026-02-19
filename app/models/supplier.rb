@@ -37,7 +37,9 @@ class Supplier < ApplicationRecord
   #
   # == Scopes
   #
-  # (none)
+  scope :includes_dashboard_associations, -> {
+    includes(purchases: [:payments, :purchase_items])
+  }
 
   #
   # == Class Methods

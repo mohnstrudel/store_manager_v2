@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: purchases
@@ -85,6 +86,26 @@ class Purchase < ApplicationRecord
       .order(created_at: :asc)
   }
 
+  scope :includes_index_associations, -> {
+    includes(
+      :supplier,
+      :payments,
+      {product: {media: {image_attachment: :blob}}},
+      purchase_items: [:warehouse],
+      edition: [:color, :size, :version]
+    )
+  }
+
+  scope :includes_show_associations, -> {
+    includes(:warehouse, :sale_item, purchase: :payments)
+  }
+
+  scope :includes_form_associations, -> { includes(:product, :supplier) }
+
+  scope :includes_supplier_show_associations, -> {
+    includes(:product, :payments, edition: [:color, :size, :version])
+  }
+
   #
   # == Class Methods
   #
@@ -94,11 +115,12 @@ class Purchase < ApplicationRecord
   # == Domain Methods
   #
   def paid
+    # Make an extra query to fetch payments values
     @paid ||= payments ? payments.pluck(:value).sum : 0
   end
 
   def debt
-    @total_cost ||= [total_cost - paid, 0].max
+    @debt ||= [total_cost - paid, 0].max
   end
 
   def item_debt

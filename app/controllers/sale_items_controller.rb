@@ -1,15 +1,16 @@
 # frozen_string_literal: true
+
 class SaleItemsController < ApplicationController
   before_action :set_sale_item, only: %i[show edit update destroy]
 
   # GET /sale_items/1
   def show
-    @sale_item = SaleItem.includes(purchase_items: :warehouse).find(params[:id])
+    @sale_item = SaleItem.includes_show_associations.find(params[:id])
   end
 
   # GET /sale_items/1/edit
   def edit
-    @purchases = Purchase.includes(:product, :supplier).order(purchase_date: :desc, created_at: :desc)
+    @purchases = Purchase.includes_form_associations.order(purchase_date: :desc, created_at: :desc)
   end
 
   # PATCH/PUT /sale_items/1

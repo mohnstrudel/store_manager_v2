@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: brands
@@ -36,6 +37,11 @@ class Brand < ApplicationRecord
   #
   has_many :product_brands, dependent: :destroy
   has_many :products, through: :product_brands
+
+  #
+  # == Scopes
+  #
+  scope :includes_show_associations, -> { includes(:products) }
 
   #
   # == Callbacks

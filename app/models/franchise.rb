@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: franchises
@@ -34,6 +35,11 @@ class Franchise < ApplicationRecord
   # == Associations
   #
   has_many :products, dependent: :destroy
+
+  #
+  # == Scopes
+  #
+  scope :includes_show_associations, -> { includes(:products) }
 
   #
   # == Callbacks

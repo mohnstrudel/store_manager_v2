@@ -9,17 +9,15 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.includes(:purchase_items, purchases: [:payments, :purchase_items]).order(:position)
+    @warehouses = Warehouse.includes_index_associations.order(:position)
   end
 
   # GET /warehouses/1
   def show
-    @warehouse = Warehouse
-      .includes(purchases: [:payments, :purchase_items], media: {image_attachment: :blob})
-      .find(params[:id])
+    @warehouse = Warehouse.includes_show_associations.find(params[:id])
     @purchase_items = @warehouse
       .purchase_items
-      .includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
+      .includes_warehouse_show_associations
       .order(updated_at: :desc)
       .page(params[:page])
     @total_purchase_items = @warehouse.purchase_items.size

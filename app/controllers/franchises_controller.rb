@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class FranchisesController < ApplicationController
   before_action :set_franchise, only: %i[show edit update destroy]
 
@@ -9,7 +10,7 @@ class FranchisesController < ApplicationController
 
   # GET /franchises/1 or /franchises/1.json
   def show
-    @franchise = Franchise.includes(:products).find(params[:id])
+    @franchise = Franchise.includes_show_associations.find(params[:id])
   end
 
   # GET /franchises/new

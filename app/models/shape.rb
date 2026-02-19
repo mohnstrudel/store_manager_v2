@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: shapes
@@ -37,7 +38,7 @@ class Shape < ApplicationRecord
   #
   # == Scopes
   #
-  # (none)
+  scope :includes_show_associations, -> { includes(:products) }
 
   #
   # == Class Methods

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: purchase_items
@@ -87,6 +88,20 @@ class PurchaseItem < ApplicationRecord
       .joins(:purchase)
       .where(purchases: {product_id:})
       .order(paid_priority, created_at: :asc)
+  }
+
+  scope :includes_show_associations, -> { includes(media: {image_attachment: :blob}) }
+
+  scope :includes_purchase_show_associations, -> {
+    includes(:warehouse, :sale_item, purchase: :payments)
+  }
+
+  scope :includes_warehouse_show_associations, -> {
+    includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
+  }
+
+  scope :includes_shipping_company_show_associations, -> {
+    includes(:product, :purchase, edition: [:color, :size, :version])
   }
 
   #

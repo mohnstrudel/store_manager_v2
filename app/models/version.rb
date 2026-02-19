@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: versions
@@ -39,7 +40,7 @@ class Version < ApplicationRecord
   #
   # == Scopes
   #
-  # (none)
+  scope :includes_show_associations, -> { includes(:products) }
 
   #
   # == Class Methods

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class SizesController < ApplicationController
   before_action :set_size, only: %i[show edit update destroy]
 
@@ -9,7 +10,7 @@ class SizesController < ApplicationController
 
   # GET /sizes/1 or /sizes/1.json
   def show
-    @size = Size.includes(:products).find(params[:id])
+    @size = Size.includes_show_associations.find(params[:id])
   end
 
   # GET /sizes/new

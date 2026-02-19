@@ -20,7 +20,7 @@ class PurchaseItemsController < ApplicationController
     @warehouse = Warehouse.find(params[:warehouse_id])
     @purchase_item = PurchaseItem.new(warehouse: @warehouse)
     @purchases = Purchase
-      .includes(:product, :supplier)
+      .includes_form_associations
       .order(purchase_date: :desc, created_at: :desc)
     @shipping_companies = ShippingCompany.all
   end
@@ -207,15 +207,11 @@ class PurchaseItemsController < ApplicationController
   end
 
   def set_purchase_item
-    @purchase_item = PurchaseItem.includes(media: {image_attachment: :blob}).find(params[:id])
+    @purchase_item = PurchaseItem.includes_show_associations.find(params[:id])
   end
 
   def set_data_for_edit
-    all_sale_items = SaleItem.includes(
-      :product,
-      sale: [:customer],
-      edition: [:color, :size, :version]
-    ).where(
+    all_sale_items = SaleItem.includes_edit_associations.where(
       sales: {status: Sale.active_status_names + Sale.completed_status_names}
     )
     @sale_items = all_sale_items.where(
@@ -223,7 +219,7 @@ class PurchaseItemsController < ApplicationController
     ) + all_sale_items.where.not(
       product_id: @purchase_item.product
     )
-    @purchases = Purchase.includes(:product, :supplier).order(
+    @purchases = Purchase.includes_form_associations.order(
       purchase_date: :desc,
       created_at: :desc
     )

@@ -8,7 +8,7 @@ class ProductsController < ApplicationController
 
   # GET /products or /products.json
   def index
-    @products = Product.includes(:shopify_info, :woo_info).listed.search_by(params[:q]).page(params[:page])
+    @products = Product.includes_index_associations.listed.search_by(params[:q]).page(params[:page])
   end
 
   # GET /products/1 or /products/1.json
@@ -138,21 +138,7 @@ class ProductsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_product
-    @product = Product.includes(
-      media: {image_attachment: :blob},
-      purchases: [:product, :supplier, edition: [:version, :color, :size]],
-      purchase_items: [:warehouse, :purchase],
-      editions: [
-        :version,
-        :color,
-        :size,
-        {sale_items: :sale},
-        {purchases: :supplier}
-      ],
-      store_infos: [:tags]
-    )
-      .friendly
-      .find(params[:id])
+    @product = Product.includes_show_associations.friendly.find(params[:id])
   end
 
   def product_params

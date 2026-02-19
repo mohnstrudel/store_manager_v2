@@ -99,6 +99,24 @@ class Product < ApplicationRecord
       .order(created_at: :desc)
   }
 
+  scope :includes_index_associations, -> { includes(:shopify_info, :woo_info) }
+
+  scope :includes_show_associations, -> {
+    includes(
+      media: {image_attachment: :blob},
+      purchases: [:product, :supplier, edition: [:version, :color, :size]],
+      purchase_items: [:warehouse, :purchase],
+      editions: [
+        :version,
+        :color,
+        :size,
+        {sale_items: :sale},
+        {purchases: :supplier}
+      ],
+      store_infos: [:tags]
+    )
+  }
+
   #
   # == Class Methods
   #

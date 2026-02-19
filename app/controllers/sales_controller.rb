@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class SalesController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
 
@@ -7,7 +8,7 @@ class SalesController < ApplicationController
   # GET /sales
   def index
     @sales = Sale
-      .with_index_details
+      .includes_index_associations
       .except_cancelled_or_completed
       .ordered_by_shop_created_at
       .search_by(params[:q])
@@ -17,7 +18,7 @@ class SalesController < ApplicationController
   # GET /sales/1
   def show
     @sale = Sale
-      .with_show_details
+      .includes_show_associations
       .friendly
       .find(params[:id])
   end
@@ -96,7 +97,7 @@ class SalesController < ApplicationController
       " to track synchronization progress"
     ])
 
-    redirect_back(fallback_location: sales_path)
+    redirect_back_or_to(sales_path)
   end
 
   private

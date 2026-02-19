@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class ColorsController < ApplicationController
   before_action :set_color, only: %i[show edit update destroy]
 
@@ -9,7 +10,7 @@ class ColorsController < ApplicationController
 
   # GET /colors/1 or /colors/1.json
   def show
-    @color = Color.includes(:products).find(params[:id])
+    @color = Color.includes_show_associations.find(params[:id])
   end
 
   # GET /colors/new
