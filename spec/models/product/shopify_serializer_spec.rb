@@ -11,6 +11,7 @@ RSpec.describe Product::ShopifySerializer do
 
     before do
       product.brands << brand
+      product.shopify_info.update(tag_list: ["statue", "premium"])
     end
 
     it "calls serialize on the instance" do
@@ -134,10 +135,31 @@ RSpec.describe Product::ShopifySerializer do
       expect(result.keys).to all(be_a(Symbol))
     end
 
-    it "includes smm tag in all serialized products" do
+    it "includes tags from Shopify StoreInfo" do
+      product.shopify_info.tag_list = "statue, premium"
+      product.shopify_info.save!
+      product.shopify_info.reload
+
       result = described_class.for_export(product)
 
-      expect(result[:tags]).to eq(["smm"])
+      expect(result[:tags].to_a).to eq(["statue", "premium"])
+    end
+
+    it "returns empty array for tags when product has no Shopify StoreInfo" do
+      product_without_store_info = create(:product, title: "No Store Info", franchise: franchise, shape: shape)
+      product_without_store_info.brands << brand
+
+      result = described_class.for_export(product_without_store_info)
+
+      expect(result[:tags]).to eq([])
+    end
+
+    it "returns empty array for tags when Shopify StoreInfo has no tags" do
+      product.shopify_info.update(tag_list: [])
+
+      result = described_class.for_export(product)
+
+      expect(result[:tags]).to eq([])
     end
   end
 end

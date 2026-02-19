@@ -7,6 +7,7 @@ RSpec.describe Edition::ShopifyImporter do
   let(:parsed_variant) do
     {
       store_id: "gid://shopify/ProductVariant/12345",
+      sku: "TEST-SKU-001",
       options: [
         {name: "Color", value: "Red"},
         {name: "Size", value: "Large"},
@@ -22,6 +23,7 @@ RSpec.describe Edition::ShopifyImporter do
       edition = Edition.last
       expect(edition.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
       expect(edition.product).to eq(product)
+      expect(edition.sku).to eq("TEST-SKU-001")
       expect(edition.color.value).to eq("Red")
       expect(edition.size.value).to eq("Large")
       expect(edition.version.value).to eq("Deluxe")
@@ -276,6 +278,65 @@ RSpec.describe Edition::ShopifyImporter do
 
         product.reload
         expect(product.colors.map(&:value)).to include("Red", "Blue")
+      end
+    end
+
+    context "with single-variant product (Title option only with is_single_variant flag)" do
+      let(:parsed_single_variant) do
+        {
+          store_id: "gid://shopify/ProductVariant/12345",
+          options: [
+            {name: "Title", value: "Default Title"}
+          ],
+          is_single_variant: true
+        }
+      end
+
+      it "creates an edition with Base Model version" do # rubocop:todo RSpec/MultipleExpectations
+        result = described_class.import!(product, parsed_single_variant)
+        expect(result).not_to be_nil
+        expect(Edition.count).to eq(1)
+        expect(Edition.last.version.value).to eq("Base Model")
+      end
+    end
+
+    context "with Title option only (multi-variant product)" do
+      let(:parsed_variant_with_title) do
+        {
+          store_id: "gid://shopify/ProductVariant/12345",
+          options: [
+            {name: "Title", value: "Default Title"}
+          ],
+          is_single_variant: false
+        }
+      end
+
+      it "creates an edition with no attributes" do # rubocop:todo RSpec/MultipleExpectations
+        result = described_class.import!(product, parsed_variant_with_title)
+        expect(result).not_to be_nil
+        expect(Edition.count).to eq(1)
+        expect(Edition.last.color).to be_nil
+        expect(Edition.last.size).to be_nil
+        expect(Edition.last.version).to be_nil
+      end
+    end
+
+    context "with Title option and other options" do
+      let(:parsed_variant_with_title_and_color) do
+        {
+          store_id: "gid://shopify/ProductVariant/12345",
+          options: [
+            {name: "Title", value: "Default Title"},
+            {name: "Color", value: "Red"}
+          ]
+        }
+      end
+
+      it "skips Title and processes other options" do
+        described_class.import!(product, parsed_variant_with_title_and_color)
+
+        edition = Edition.last
+        expect(edition.color.value).to eq("Red")
       end
     end
   end

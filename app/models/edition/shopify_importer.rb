@@ -45,8 +45,8 @@ class Edition
       end
 
       if edition.nil? || belongs_to_different_product?
-        @edition = if edition_attrs.present?
-          product.editions.where(edition_attrs).first_or_initialize
+        @edition = if lookup_attrs.present?
+          product.editions.where(lookup_attrs).first_or_initialize
         else
           product.editions.new
         end
@@ -61,8 +61,20 @@ class Edition
       @edition_attrs ||= build_edition_attrs
     end
 
+    def lookup_attrs
+      @lookup_attrs ||= edition_attrs.except(:sku)
+    end
+
     def build_edition_attrs
       attributes = {}
+
+      attributes[:sku] = parsed[:sku] if parsed[:sku].present?
+
+      if parsed[:is_single_variant]
+        attributes[:version] = Version.find_or_create_by(value: "Base Model")
+        product.versions |= [attributes[:version]]
+        return attributes
+      end
 
       parsed[:options].each do |option|
         case option[:name]

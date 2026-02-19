@@ -19,7 +19,7 @@ class Product
       {
         title: build_title,
         descriptionHtml: build_description_html,
-        tags: ["smm"]
+        tags: product.shopify_info&.tag_list || []
       }.compact
     end
 

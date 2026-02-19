@@ -24,6 +24,7 @@ RSpec.describe Product::ShopifyParser do
           "id" => "gid://shopify/Product/12345",
           "title" => "Stellar Blade - Eve | 1:4 Resin Statue | by Prime 1 Studio",
           "handle" => "stellar-blade-eve-statue",
+          "tags" => ["statue", "premium", "exclusive"],
           "createdAt" => "2024-01-01T00:00:00Z",
           "updatedAt" => "2024-01-15T00:00:00Z",
           "variants" => {
@@ -120,13 +121,13 @@ RSpec.describe Product::ShopifyParser do
             id: "gid://shopify/ProductVariant/67890",
             title: "Regular",
             sku: "SB-EVE-001",
-            options: [{"name" => "Version", "value" => "Regular"}]
+            options: [{name: "Version", value: "Regular"}]
           },
           {
             id: "gid://shopify/ProductVariant/67891",
             title: "Exclusive",
             sku: "SB-EVE-001-EX",
-            options: [{"name" => "Version", "value" => "Exclusive"}]
+            options: [{name: "Version", value: "Exclusive"}]
           }
         ])
       end
@@ -145,6 +146,12 @@ RSpec.describe Product::ShopifyParser do
       it "extracts SKU from first variant" do
         result = described_class.parse(api_payload)
         expect(result[:sku]).to eq("SB-EVE-001")
+      end
+
+      it "parses tags from the payload" do
+        result = described_class.parse(api_payload)
+
+        expect(result[:tags]).to eq(["statue", "premium", "exclusive"])
       end
     end
 
@@ -174,6 +181,11 @@ RSpec.describe Product::ShopifyParser do
       it "generates a SKU when none exists in variants" do
         result = described_class.parse(minimal_payload)
         expect(result[:sku]).to match(/^simple-figure-[a-zA-Z0-9]{4}$/)
+      end
+
+      it "excludes tags key when not provided (removed by compact_blank)" do
+        result = described_class.parse(minimal_payload)
+        expect(result.key?(:tags)).to be false
       end
     end
 
@@ -264,6 +276,16 @@ RSpec.describe Product::ShopifyParser do
                     {"name" => "Size", "value" => "Large"}
                   ]
                 }
+              },
+              {
+                "node" => {
+                  "id" => "gid://shopify/ProductVariant/2",
+                  "title" => "Deluxe",
+                  "sku" => "TEST-002",
+                  "selectedOptions" => [
+                    {"name" => "Color", "value" => "Blue"}
+                  ]
+                }
               }
             ]
           },
@@ -274,9 +296,39 @@ RSpec.describe Product::ShopifyParser do
       it "parses variant options correctly" do
         result = described_class.parse(options_payload)
         expect(result[:editions].first[:options]).to eq([
-          {"name" => "Color", "value" => "Red"},
-          {"name" => "Size", "value" => "Large"}
+          {name: "Color", value: "Red"},
+          {name: "Size", value: "Large"}
         ])
+      end
+    end
+
+    context "with single variant product" do
+      let(:single_variant_payload) do
+        {
+          "id" => "gid://shopify/Product/12345",
+          "title" => "Test Product",
+          "handle" => "test-product",
+          "variants" => {
+            "edges" => [
+              {
+                "node" => {
+                  "id" => "gid://shopify/ProductVariant/1",
+                  "title" => "Default Title",
+                  "sku" => "TEST-001",
+                  "selectedOptions" => [
+                    {"name" => "Title", "value" => "Default Title"}
+                  ]
+                }
+              }
+            ]
+          },
+          "media" => nil
+        }
+      end
+
+      it "sets is_single_variant flag to true" do
+        result = described_class.parse(single_variant_payload)
+        expect(result[:editions].first[:is_single_variant]).to be(true)
       end
     end
   end

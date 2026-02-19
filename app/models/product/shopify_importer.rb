@@ -91,7 +91,8 @@ class Product
         slug: parsed[:store_link],
         pull_time: Time.zone.now,
         ext_created_at: parsed.dig(:store_info, :ext_created_at),
-        ext_updated_at: parsed.dig(:store_info, :ext_updated_at)
+        ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
+        tag_list: parsed[:tags]
       )
 
       store_info.save!

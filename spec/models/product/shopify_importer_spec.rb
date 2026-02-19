@@ -14,6 +14,7 @@ RSpec.describe Product::ShopifyImporter do
         shape: "Statue",
         brand: "Light and Dust Studio",
         sku: "TEST-SKU-001",
+        tags: [],
         store_info: {
           ext_created_at: 1.day.ago.iso8601,
           ext_updated_at: 1.hour.ago.iso8601
@@ -79,6 +80,22 @@ RSpec.describe Product::ShopifyImporter do
       product = described_class.import!(parsed_product)
       product.reload
       expect(product.shopify_info.pull_time).to be_within(1.second).of(Time.zone.now)
+    end
+
+    it "saves tags to StoreInfo" do
+      parsed_with_tags = parsed_product.merge(tags: ["statue", "premium", "exclusive"])
+      product = described_class.import!(parsed_with_tags)
+      product.reload
+
+      expect(product.shopify_info.tag_list).to eq(["statue", "premium", "exclusive"])
+    end
+
+    it "saves empty tag list when no tags are provided" do
+      parsed_with_no_tags = parsed_product.merge(tags: [])
+      product = described_class.import!(parsed_with_no_tags)
+      product.reload
+
+      expect(product.shopify_info.tag_list).to eq([])
     end
 
     it "returns the product" do # rubocop:todo RSpec/MultipleExpectations
@@ -297,7 +314,8 @@ RSpec.describe Product::ShopifyImporter do
         title: "Test Product",
         franchise: "Test Franchise",
         shape: "Statue",
-        sku: "test-sku-123"
+        sku: "test-sku-123",
+        tags: []
       }
     end
 

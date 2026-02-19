@@ -30,14 +30,15 @@ class Product
         franchise: parsed_title[:franchise],
         media: parsed_media,
         shape: parsed_title[:shape],
-        store_id: payload["id"],
         size: parsed_title[:size],
         sku: parsed_sku,
+        store_id: payload["id"],
         store_info: {
           ext_created_at: payload["createdAt"],
           ext_updated_at: payload["updatedAt"]
         },
         store_link: payload["handle"],
+        tags: payload["tags"] || [],
         title: parsed_title[:title]
       }.compact_blank
     end
@@ -102,12 +103,35 @@ class Product
     end
 
     def parse_editions
-      @parsed_editions = payload.dig("variants", "edges")&.map do |edge|
+      # Shopify producs always have variants but we keep this [] guard for
+      # broken products we have when a product have only a title.
+      # This might be a Woo legacy, needs investigation
+      variants = payload.dig("variants", "edges") || []
+
+      if (is_single_variant = variants.size == 1)
+        @parsed_editions = [{
+          id: variants.first["node"]["id"],
+          sku: variants.first["node"]["sku"],
+          is_single_variant:
+        }]
+        return
+      end
+
+      @parsed_editions = variants.map do |edge|
         {
           id: edge["node"]["id"],
           title: edge["node"]["title"],
           sku: edge["node"]["sku"],
-          options: edge["node"]["selectedOptions"]
+          options: parse_options(edge["node"]["selectedOptions"])
+        }
+      end
+    end
+
+    def parse_options(options)
+      options&.map do |option|
+        {
+          name: option["name"],
+          value: option["value"]
         }
       end || []
     end
