@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_145635) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_092856) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -179,7 +179,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_145635) do
     t.datetime "payment_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.bigint "purchase_id", null: false
     t.datetime "updated_at", null: false
-    t.decimal "value", precision: 8, scale: 2
+    t.decimal "value", precision: 8, scale: 2, default: "0.0"
     t.index ["purchase_id"], name: "index_payments_on_purchase_id"
   end
 
@@ -267,6 +267,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_145635) do
     t.bigint "edition_id"
     t.decimal "item_price", precision: 8, scale: 2
     t.string "order_reference"
+    t.decimal "paid", precision: 8, scale: 2, default: "0.0", null: false
     t.integer "payments_count", default: 0, null: false
     t.bigint "product_id"
     t.datetime "purchase_date"

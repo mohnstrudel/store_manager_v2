@@ -8,6 +8,7 @@
 #  amount          :integer
 #  item_price      :decimal(8, 2)
 #  order_reference :string
+#  paid            :decimal(8, 2)    default(0.0), not null
 #  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
 #  slug            :string
@@ -114,11 +115,6 @@ class Purchase < ApplicationRecord
   #
   # == Domain Methods
   #
-  def paid
-    # Make an extra query to fetch payments values
-    @paid ||= payments ? payments.pluck(:value).sum : 0
-  end
-
   def debt
     @debt ||= [total_cost - paid, 0].max
   end

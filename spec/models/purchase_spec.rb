@@ -7,6 +7,7 @@
 #  amount          :integer
 #  item_price      :decimal(8, 2)
 #  order_reference :string
+#  paid            :decimal(8, 2)    default(0.0), not null
 #  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
 #  slug            :string
@@ -124,19 +125,26 @@ RSpec.describe Purchase do
     # rubocop:enable RSpec/LetSetup
 
     describe "#paid" do
-      it "calculates total paid amount from payments" do
+      it "returns the paid column value from database" do
         expect(purchase.paid).to eq(500.0)
       end
 
-      it "returns 0 when there are no payments" do
-        purchase.payments.destroy_all
-        expect(purchase.paid).to eq(0)
+      it "returns default value 0 for new purchases" do
+        new_purchase = create(:purchase, amount: 5, item_price: 50.0)
+        expect(new_purchase.paid).to eq(0)
       end
 
-      it "memoizes the result" do # rubocop:todo RSpec/MultipleExpectations
-        expect(purchase.payments).to receive(:pluck).once.and_return([200.0, 300.0]) # rubocop:todo RSpec/MessageSpies
-        expect(purchase.paid).to eq(500.0)
-        expect(purchase.paid).to eq(500.0) # Should not call pluck again
+      it "is updated when a payment is created" do
+        purchase.update!(paid: 0)
+        create(:payment, purchase:, value: 150.0)
+        expect(purchase.reload.paid).to eq(150.0)
+      end
+
+      it "accumulates when multiple payments are created" do
+        purchase.update!(paid: 0)
+        create(:payment, purchase:, value: 100.0)
+        create(:payment, purchase:, value: 200.0)
+        expect(purchase.reload.paid).to eq(300.0)
       end
     end
 
@@ -447,11 +455,10 @@ RSpec.describe Purchase do
       end
     end
 
-    describe "nil payments in paid method" do
+    describe "paid column default value" do
       let(:purchase) { create(:purchase) }
 
-      it "returns 0 when payments association is nil" do
-        allow(purchase).to receive(:payments).and_return(nil)
+      it "returns 0 by default for new purchases" do
         expect(purchase.paid).to eq(0)
       end
     end
