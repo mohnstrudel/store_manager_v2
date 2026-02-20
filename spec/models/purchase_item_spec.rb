@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: purchase_items
@@ -7,7 +8,7 @@
 #  expenses            :decimal(8, 2)
 #  height              :integer
 #  length              :integer
-#  shipping_price      :decimal(8, 2)
+#  shipping_cost       :decimal(8, 2)    default(0.0), not null
 #  tracking_number     :string
 #  weight              :integer
 #  width               :integer

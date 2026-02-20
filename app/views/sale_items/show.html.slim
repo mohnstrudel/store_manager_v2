@@ -49,7 +49,7 @@ header.nav_header
               td.font-mono = format_item_size(pp)
               td.font-mono.text-right = pp.weight
               td.font-mono.text-right = format_money pp.expenses
-              td.font-mono.text-right = format_money pp.shipping_price
+              td.font-mono.text-right = format_money pp.shipping_cost
               td.actions
                 = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :post}
                   i.icn ✂︎

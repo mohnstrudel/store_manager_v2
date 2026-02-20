@@ -124,7 +124,7 @@ describe DashboardController do
 
   describe "Purchase model optimizations" do
     let!(:purchase) { create(:purchase) }
-    let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase, shipping_price: 5.0) }
+    let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase, shipping_cost: 5.0) }
 
     it "calculates total_shipping correctly" do
       purchase_with_items = Purchase.includes(:purchase_items).find(purchase.id)

@@ -28,7 +28,7 @@ header.nav_header
       h5 Expenses
       p.font-mono = format_money safe_blank_render @purchase_item.expenses
       h5 Shipping
-      p.font-mono = format_money safe_blank_render @purchase_item.shipping_price
+      p.font-mono = format_money safe_blank_render @purchase_item.shipping_cost
       h5 Tracking Number
       p = safe_blank_render @purchase_item.tracking_number
       h5 Shipping Company

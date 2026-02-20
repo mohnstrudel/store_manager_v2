@@ -8,6 +8,6 @@ FactoryBot.define do
     width { 1 }
     height { 1 }
     expenses { "9.99" }
-    shipping_price { "9.99" }
+    shipping_cost { "9.99" }
   end
 end

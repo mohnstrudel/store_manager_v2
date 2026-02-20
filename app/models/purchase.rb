@@ -138,9 +138,9 @@ class Purchase < ApplicationRecord
 
   def total_shipping
     if purchase_items.loaded?
-      purchase_items.sum { |item| item.shipping_price.to_f }
+      purchase_items.sum { |item| item.shipping_cost.to_f }
     else
-      purchase_items.sum(:shipping_price).to_f
+      purchase_items.sum(:shipping_cost).to_f
     end
   end
 

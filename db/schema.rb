@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_092856) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_174110) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -249,7 +249,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_092856) do
     t.bigint "purchase_id"
     t.bigint "sale_item_id"
     t.bigint "shipping_company_id"
-    t.decimal "shipping_price", precision: 8, scale: 2
+    t.decimal "shipping_cost", precision: 8, scale: 2, default: "0.0", null: false
     t.string "tracking_number"
     t.datetime "updated_at", null: false
     t.bigint "warehouse_id", null: false

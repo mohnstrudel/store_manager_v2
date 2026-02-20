@@ -234,7 +234,7 @@ class PurchaseItemsController < ApplicationController
         :height,
         :weight,
         :expenses,
-        :shipping_price,
+        :shipping_cost,
         :tracking_number,
         :warehouse_id,
         :purchase_id,

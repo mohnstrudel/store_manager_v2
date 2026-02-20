@@ -229,10 +229,10 @@ RSpec.describe Purchase do
     end
 
     describe "#total_shipping" do
-      let!(:purchase_item1) { create(:purchase_item, purchase:, shipping_price: 10.0) } # rubocop:todo RSpec/IndexedLet
+      let!(:purchase_item1) { create(:purchase_item, purchase:, shipping_cost: 10.0) } # rubocop:todo RSpec/IndexedLet
       # rubocop:todo RSpec/LetSetup
       # rubocop:todo Lint/CopDirectiveSyntax
-      let!(:purchase_item2) { create(:purchase_item, purchase:, shipping_price: 15.0) } # rubocop:todo RSpec/IndexedLet # rubocop:todo RSpec/LetSetup
+      let!(:purchase_item2) { create(:purchase_item, purchase:, shipping_cost: 15.0) } # rubocop:todo RSpec/IndexedLet # rubocop:todo RSpec/LetSetup
       # rubocop:enable Lint/CopDirectiveSyntax
       # rubocop:enable RSpec/LetSetup
 
@@ -245,8 +245,8 @@ RSpec.describe Purchase do
         expect(purchase.total_shipping).to eq(0)
       end
 
-      it "handles nil shipping_price values" do
-        purchase_item1.update!(shipping_price: nil)
+      it "handles nil shipping_cost values" do
+        purchase_item1.update!(shipping_cost: nil)
         expect(purchase.total_shipping).to eq(15.0)
       end
     end

@@ -8,7 +8,7 @@
 #  expenses            :decimal(8, 2)
 #  height              :integer
 #  length              :integer
-#  shipping_price      :decimal(8, 2)
+#  shipping_cost       :decimal(8, 2)    default(0.0), not null
 #  tracking_number     :string
 #  weight              :integer
 #  width               :integer
@@ -116,7 +116,7 @@ class PurchaseItem < ApplicationRecord
   end
 
   def cost
-    price.to_f + purchase.item_price.to_f + shipping_price.to_f
+    price.to_f + purchase.item_price.to_f + shipping_cost.to_f
   end
 
   def relocate_to(destination_id)
