@@ -8,7 +8,7 @@ class DashboardController < ApplicationController
         {
           supplier:,
           total_size: supplier.purchases.size,
-          total_cost: supplier.purchases.sum(&:total_cost),
+          total_cost: supplier.purchases.sum(&:cost_total),
           paid: supplier.purchases.sum(&:paid),
           total_debt: supplier.purchases.reduce(0) do |memo, purchase|
             memo + purchase.debt
@@ -52,11 +52,11 @@ class DashboardController < ApplicationController
   private
 
   def sale_debts
-    edition_debt_query = <<-SQL.squish
+    edition_debt_query = <<~SQL.squish
       SUM(COALESCE(sold.total_qty, 0)) - SUM(COALESCE(purchased_editions.amount, 0))
     SQL
 
-    debt_query = <<-SQL.squish
+    debt_query = <<~SQL.squish
       CASE
         WHEN sold.edition_id > 0 THEN #{edition_debt_query}
         ELSE
@@ -65,7 +65,7 @@ class DashboardController < ApplicationController
     SQL
 
     Product
-      .select(<<-SQL.squish)
+      .select(<<~SQL.squish)
         products.*,
         SUM(sold.total_qty) AS sold_amount,
         SUM(purchased.amount) AS purchased_amount,
@@ -75,7 +75,7 @@ class DashboardController < ApplicationController
         sold.edition_id AS sale_edition_id,
         editions.edition_name AS edition_name
       SQL
-      .joins(<<-SQL.squish)
+      .joins(<<~SQL.squish)
         LEFT JOIN (#{sold.to_sql}) sold
           ON sold.product_id = products.id
         LEFT JOIN (#{purchased.to_sql}) purchased
@@ -85,7 +85,7 @@ class DashboardController < ApplicationController
         LEFT JOIN (#{editions.to_sql}) editions
           ON editions.edition_id = sold.edition_id
       SQL
-      .group(<<-SQL.squish)
+      .group(<<~SQL.squish)
         products.id,
         products.full_title,
         sold.edition_id,
@@ -97,7 +97,7 @@ class DashboardController < ApplicationController
 
   def sold
     SaleItem
-      .select(<<-SQL.squish)
+      .select(<<~SQL.squish)
         product_id,
         edition_id,
         SUM(qty) AS total_qty
@@ -109,7 +109,7 @@ class DashboardController < ApplicationController
 
   def purchased
     Purchase
-      .select(<<-SQL.squish)
+      .select(<<~SQL.squish)
         product_id,
         edition_id,
         SUM(amount) AS amount
@@ -120,7 +120,7 @@ class DashboardController < ApplicationController
 
   def purchased_editions
     Purchase
-      .select(<<-SQL.squish)
+      .select(<<~SQL.squish)
         edition_id,
         SUM(amount) AS amount
       SQL
@@ -130,11 +130,11 @@ class DashboardController < ApplicationController
 
   def editions
     Edition
-      .select(<<-SQL.squish)
+      .select(<<~SQL.squish)
         editions.id AS edition_id,
         COALESCE(versions.value, colors.value, sizes.value) AS edition_name
       SQL
-      .joins(<<-SQL.squish)
+      .joins(<<~SQL.squish)
         LEFT JOIN versions ON versions.id = editions.version_id
         LEFT JOIN colors ON colors.id = editions.version_id
         LEFT JOIN sizes ON sizes.id = editions.version_id

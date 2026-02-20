@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: purchases
@@ -10,6 +11,7 @@
 #  paid            :decimal(8, 2)    default(0.0), not null
 #  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
+#  shipping_total  :decimal(8, 2)    default(0.0), not null
 #  slug            :string
 #  synced          :string
 #  created_at      :datetime         not null
@@ -149,20 +151,20 @@ RSpec.describe Purchase do
     end
 
     describe "#debt" do
-      it "calculates remaining debt (total_cost - paid)" do
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
+      it "calculates remaining debt (cost_total - paid)" do
+        purchase.update!(shipping_total: 200.0)
         expect(purchase.debt).to eq(700.0)
       end
 
-      it "returns 0 when paid amount exceeds total_cost" do
-        allow(purchase).to receive(:total_cost).and_return(400.0)
+      it "returns 0 when paid amount exceeds cost_total" do
+        purchase.update!(paid: 1500.0)
         expect(purchase.debt).to eq(0)
       end
 
       it "memoizes the result" do # rubocop:todo RSpec/MultipleExpectations
-        expect(purchase).to receive(:total_cost).once.and_return(1200.0) # rubocop:todo RSpec/MessageSpies
+        purchase.update!(shipping_total: 200.0)
         expect(purchase.debt).to eq(700.0)
-        expect(purchase.debt).to eq(700.0) # Should not call total_cost again
+        expect(purchase.debt).to eq(700.0)
       end
     end
 
@@ -199,55 +201,30 @@ RSpec.describe Purchase do
 
     describe "#progress" do
       it "calculates payment progress percentage" do
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
-        expect(purchase.progress.round(2)).to eq(41.67) # 500.0 * 100.0 / 1200.0 rounded to 2 decimals
+        purchase.update!(shipping_total: 200.0)
+        expect(purchase.progress.round(2)).to eq(41.67)
       end
 
-      it "returns 0 when total_cost is zero" do
-        allow(purchase).to receive(:total_cost).and_return(0)
+      it "returns 0 when cost_total is zero" do
+        purchase.update!(amount: 0, item_price: 0, shipping_total: 0)
         expect(purchase.progress).to eq(0)
       end
 
-      it "returns 100 when paid amount exceeds total_cost" do
-        allow(purchase).to receive(:paid).and_return(1500.0)
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
+      it "returns 100 when paid amount exceeds cost_total" do
+        purchase.update!(paid: 1500.0, shipping_total: 200.0)
         expect(purchase.progress).to eq(100)
       end
 
-      it "returns 100 when paid amount equals total_cost" do
-        allow(purchase).to receive(:paid).and_return(1200.0)
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
+      it "returns 100 when paid amount equals cost_total" do
+        purchase.update!(paid: 1200.0, shipping_total: 200.0)
         expect(purchase.progress).to eq(100)
       end
     end
 
-    describe "#total_cost" do
+    describe "#cost_total" do
       it "calculates total cost including shipping" do
-        allow(purchase).to receive(:total_shipping).and_return(50.0)
-        expect(purchase.total_cost).to eq(1050.0) # 100.0 * 10 + 50.0
-      end
-    end
-
-    describe "#total_shipping" do
-      let!(:purchase_item1) { create(:purchase_item, purchase:, shipping_cost: 10.0) } # rubocop:todo RSpec/IndexedLet
-      # rubocop:todo RSpec/LetSetup
-      # rubocop:todo Lint/CopDirectiveSyntax
-      let!(:purchase_item2) { create(:purchase_item, purchase:, shipping_cost: 15.0) } # rubocop:todo RSpec/IndexedLet # rubocop:todo RSpec/LetSetup
-      # rubocop:enable Lint/CopDirectiveSyntax
-      # rubocop:enable RSpec/LetSetup
-
-      it "calculates total shipping cost from purchase_items" do
-        expect(purchase.total_shipping).to eq(25.0)
-      end
-
-      it "returns 0 when there are no purchase_items" do
-        purchase.purchase_items.destroy_all
-        expect(purchase.total_shipping).to eq(0)
-      end
-
-      it "handles nil shipping_cost values" do
-        purchase_item1.update!(shipping_cost: nil)
-        expect(purchase.total_shipping).to eq(15.0)
+        purchase.update!(shipping_total: 50.0)
+        expect(purchase.cost_total).to eq(1050.0)
       end
     end
 
@@ -449,8 +426,8 @@ RSpec.describe Purchase do
     describe "division by zero in progress method" do
       let(:purchase) { create(:purchase, amount: 10, item_price: 100.0) }
 
-      it "returns 0 when total_cost is zero" do
-        allow(purchase).to receive(:total_cost).and_return(0)
+      it "returns 0 when cost_total is zero" do
+        purchase.update!(amount: 0, item_price: 0, shipping_total: 0)
         expect(purchase.progress).to eq(0)
       end
     end

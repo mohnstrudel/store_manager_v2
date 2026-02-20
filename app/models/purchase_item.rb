@@ -20,6 +20,8 @@
 #  warehouse_id        :bigint           not null
 #
 class PurchaseItem < ApplicationRecord
+  after_commit :update_purchase_shipping_total, if: :should_update_purchase_shipping?
+
   #
   # == Concerns
   #
@@ -116,7 +118,7 @@ class PurchaseItem < ApplicationRecord
   end
 
   def cost
-    price.to_f + purchase.item_price.to_f + shipping_cost.to_f
+    purchase.item_price.to_f + shipping_cost.to_f
   end
 
   def relocate_to(destination_id)
@@ -125,5 +127,29 @@ class PurchaseItem < ApplicationRecord
 
   def link_with(sale_item_id)
     update!(sale_item_id:)
+  end
+
+  private
+
+  def should_update_purchase_shipping?
+    previously_new_record? || destroyed? || saved_change_to_shipping_cost?
+  end
+
+  def update_purchase_shipping_total
+    delta =
+      if previously_new_record?
+        shipping_cost
+      elsif destroyed?
+        -shipping_cost
+      else
+        saved_change_to_shipping_cost.last - saved_change_to_shipping_cost.first
+      end
+
+    return if delta.zero?
+
+    purchase.with_lock do
+      purchase.shipping_total += delta
+      purchase.save!
+    end
   end
 end

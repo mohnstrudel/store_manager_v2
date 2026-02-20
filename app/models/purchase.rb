@@ -11,6 +11,7 @@
 #  paid            :decimal(8, 2)    default(0.0), not null
 #  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
+#  shipping_total  :decimal(8, 2)    default(0.0), not null
 #  slug            :string
 #  synced          :string
 #  created_at      :datetime         not null
@@ -116,7 +117,7 @@ class Purchase < ApplicationRecord
   # == Domain Methods
   #
   def debt
-    @debt ||= [total_cost - paid, 0].max
+    @debt ||= [cost_total - paid, 0].max
   end
 
   def item_debt
@@ -128,20 +129,12 @@ class Purchase < ApplicationRecord
   end
 
   def progress
-    return 0 if total_cost.zero?
-    [paid * 100.0 / total_cost, 100].min
+    return 0 if cost_total.zero?
+    [paid * 100.0 / cost_total, 100].min
   end
 
-  def total_cost
-    item_price * amount + total_shipping
-  end
-
-  def total_shipping
-    if purchase_items.loaded?
-      purchase_items.sum { |item| item.shipping_cost.to_f }
-    else
-      purchase_items.sum(:shipping_cost).to_f
-    end
+  def cost_total
+    item_price * amount + shipping_total
   end
 
   def full_title

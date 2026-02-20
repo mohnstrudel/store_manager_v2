@@ -76,9 +76,9 @@ header.nav_header
         h5 Unit price, $
         p.font-mono = format_money @purchase.item_price
         h5 Total price
-        p.font-mono = format_money @purchase.total_cost
+        p.font-mono = format_money @purchase.cost_total
         h5 Shipping
-        p.font-mono = format_money @purchase.total_shipping
+        p.font-mono = format_money @purchase.shipping_total
       .flex-1
         h5 Paid
         p.font-mono = format_money(@purchase.paid).rjust(2, "0")

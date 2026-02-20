@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 describe DashboardController do
@@ -126,18 +127,13 @@ describe DashboardController do
     let!(:purchase) { create(:purchase) }
     let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase, shipping_cost: 5.0) }
 
-    it "calculates total_shipping correctly" do
-      purchase_with_items = Purchase.includes(:purchase_items).find(purchase.id)
-      expect(purchase_with_items.total_shipping).to eq(15.0) # 3 items * $5 each
+    it "calculates shipping_total correctly" do
+      purchase.reload
+      expect(purchase.shipping_total).to eq(15.0)
     end
 
-    it "uses preloaded associations when available" do
-      # Preload the association
-      purchase_with_items = Purchase.includes(:purchase_items).find(purchase.id)
-
-      # This should work without triggering additional queries
-      # (we can't easily test query count without the matcher, but we can verify functionality)
-      expect(purchase_with_items.total_shipping).to eq(15.0)
+    it "shipping_total is updated via callback" do
+      expect(purchase.shipping_total).to eq(15.0)
     end
   end
 
