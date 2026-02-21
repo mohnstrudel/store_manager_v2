@@ -110,7 +110,7 @@ class Product
 
       if (is_single_variant = variants.size == 1)
         @parsed_editions = [{
-          id: variants.first["node"]["id"],
+          store_id: variants.first["node"]["id"],
           sku: variants.first["node"]["sku"],
           is_single_variant:
         }]
@@ -119,7 +119,7 @@ class Product
 
       @parsed_editions = variants.map do |edge|
         {
-          id: edge["node"]["id"],
+          store_id: edge["node"]["id"],
           title: edge["node"]["title"],
           sku: edge["node"]["sku"],
           options: parse_options(edge["node"]["selectedOptions"])

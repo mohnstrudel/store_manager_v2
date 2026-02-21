@@ -118,13 +118,13 @@ RSpec.describe Product::ShopifyParser do
 
         expect(result[:editions]).to eq([
           {
-            id: "gid://shopify/ProductVariant/67890",
+            store_id: "gid://shopify/ProductVariant/67890",
             title: "Regular",
             sku: "SB-EVE-001",
             options: [{name: "Version", value: "Regular"}]
           },
           {
-            id: "gid://shopify/ProductVariant/67891",
+            store_id: "gid://shopify/ProductVariant/67891",
             title: "Exclusive",
             sku: "SB-EVE-001-EX",
             options: [{name: "Version", value: "Exclusive"}]
