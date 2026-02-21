@@ -28,6 +28,8 @@ module SaleHelper
   end
 
   def shop_admin_link(sale, small = false)
+    return if sale.blank?
+
     platform = sale.shopify_info&.store_id&.present? ? "Shopify" : "WooCommerce"
     link_to sale_shop_link(sale), class: small ? "text-sm p-1 px-2 no-events" : "no-events", target: "_blank", rel: "noopener noreferrer" do
       concat tag.svg(

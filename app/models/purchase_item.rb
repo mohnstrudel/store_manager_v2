@@ -95,7 +95,7 @@ class PurchaseItem < ApplicationRecord
   scope :includes_show_associations, -> { includes(media: {image_attachment: :blob}) }
 
   scope :includes_purchase_show_associations, -> {
-    includes(:warehouse, :sale_item, purchase: :payments)
+    includes(:warehouse, :sale_item, purchase: :payments, sale: [:customer, :shopify_info, :woo_info])
   }
 
   scope :includes_warehouse_show_associations, -> {
