@@ -292,11 +292,14 @@ RSpec.describe Edition::ShopifyImporter do
         }
       end
 
-      it "creates an edition with Base Model version" do # rubocop:todo RSpec/MultipleExpectations
+      it "creates an edition with no options (Base Model)" do # rubocop:todo RSpec/MultipleExpectations
         result = described_class.import!(product, parsed_single_variant)
         expect(result).not_to be_nil
         expect(Edition.count).to eq(1)
-        expect(Edition.last.version.value).to eq("Base Model")
+        expect(Edition.last.version).to be_nil
+        expect(Edition.last.size).to be_nil
+        expect(Edition.last.color).to be_nil
+        expect(Edition.last.title).to eq("Base Model")
       end
     end
 

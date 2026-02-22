@@ -70,11 +70,7 @@ class Edition
 
       attributes[:sku] = parsed[:sku] if parsed[:sku].present?
 
-      if parsed[:is_single_variant]
-        attributes[:version] = Version.find_or_create_by(value: "Base Model")
-        product.versions |= [attributes[:version]]
-        return attributes
-      end
+      return attributes if parsed[:is_single_variant]
 
       parsed[:options].each do |option|
         case option[:name]

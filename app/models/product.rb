@@ -188,6 +188,7 @@ class Product < ApplicationRecord
   end
 
   def build_editions
+    return create_base_model_edition if base_model_case?
     return unless sizes.any? || versions.any? || colors.any?
 
     mark_absent_editions_for_destruction
@@ -197,6 +198,15 @@ class Product < ApplicationRecord
 
   def fetch_editions_with_title
     editions.with_details.select { |edition| edition.title.present? }
+  end
+
+  # We display the "Base Model" edition only if we sold at least one
+  def visible_editions
+    return editions if editions.count <= 1
+
+    editions.reject do |edition|
+      edition.base_model? && !edition.store_infos.any?
+    end
   end
 
   private
@@ -210,8 +220,33 @@ class Product < ApplicationRecord
     end
   end
 
+  # Single size editions aren't real editions by our agreement
+  def base_model_case?
+    sizes.count == 1 && colors.empty? && versions.empty?
+  end
+
+  def create_base_model_edition
+    attributes = {product_id: id}
+
+    return if editions.exists?(attributes)
+
+    editions.build(attributes)
+  end
+
   def edition_attributes
-    size_items = sizes.any? ? sizes : [nil]
+    # Single size logic: don't use size if there's only 1
+    # AND there are other attributes (versions or colors)
+    # Base model case is handled separately in build_editions
+    skip_single_size = sizes.count == 1 && (versions.any? || colors.any?)
+
+    size_items = if skip_single_size
+      [nil]
+    elsif sizes.any?
+      sizes
+    else
+      [nil]
+    end
+
     version_items = versions.any? ? versions : [nil]
     color_items = colors.any? ? colors : [nil]
 

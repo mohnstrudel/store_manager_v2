@@ -60,6 +60,62 @@ RSpec.describe Edition do
         expect(edition_two.title).to include(colors.last)
       end
     end
+
+    context "when edition has no options (Base Model)" do
+      let(:edition) { create(:edition, version: nil) }
+
+      it "returns 'Base Model'" do
+        expect(edition.title).to eq("Base Model")
+      end
+    end
+
+    context "when edition has multiple options" do
+      let(:size) { create(:size, value: "1:4") }
+      let(:version) { create(:version, value: "Regular") }
+      let(:color) { create(:color, value: "Red") }
+      let(:edition) { create(:edition, size:, version:, color:) }
+
+      it "joins all options with ' | '" do
+        expect(edition.title).to eq("1:4 | Regular | Red")
+      end
+    end
+  end
+
+  describe "#base_model?" do
+    context "when edition has no options" do
+      let(:edition) { create(:edition, version: nil) }
+
+      it "returns true" do
+        expect(edition.base_model?).to be true
+      end
+    end
+
+    context "when edition has a size" do
+      let(:size) { create(:size, value: "1:4") }
+      let(:edition) { create(:edition, size:, version: nil) }
+
+      it "returns false" do
+        expect(edition.base_model?).to be false
+      end
+    end
+
+    context "when edition has a version" do
+      let(:version) { create(:version, value: "Regular") }
+      let(:edition) { create(:edition, version:) }
+
+      it "returns false" do
+        expect(edition.base_model?).to be false
+      end
+    end
+
+    context "when edition has a color" do
+      let(:color) { create(:color, value: "Red") }
+      let(:edition) { create(:edition, color:, version: nil) }
+
+      it "returns false" do
+        expect(edition.base_model?).to be false
+      end
+    end
   end
 
   describe "price" do
