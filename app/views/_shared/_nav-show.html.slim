@@ -1,6 +1,5 @@
 header.nav_header
   .flex.gap-4
-    = back_btn
     hgroup
       h1 #{format_show_page_title(model)}
       h4 #{model.model_name.name} №#{model.id}
@@ -8,4 +7,3 @@ header.nav_header
     li
       = edit_btn_for model
       = yield
-

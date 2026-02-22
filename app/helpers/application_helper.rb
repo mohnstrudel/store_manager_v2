@@ -62,10 +62,6 @@ module ApplicationHelper
     render partial: "_shared/form-submit", locals: {model:, form:}
   end
 
-  def back_btn
-    render partial: "_shared/action_go_back"
-  end
-
   def edit_btn_for(record)
     render "_shared/action_edit", route: edit_polymorphic_path(record)
   end
