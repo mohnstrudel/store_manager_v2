@@ -502,4 +502,29 @@
   trix-editor .trix-button.trix-active {
     @apply bg-sky-100! dark:bg-sky-800!;
   }
+
+  /* Breadcrumbs */
+  .breadcrumbs {
+    @apply flex items-center gap-3 text-sm flex-wrap;
+  }
+
+  .breadcrumbs li {
+    @apply list-none;
+  }
+
+  .breadcrumbs a {
+    @apply text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border-0 bg-transparent hover:bg-transparent p-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-100 block;
+  }
+
+  .breadcrumbs a:hover {
+    @apply underline;
+  }
+
+  .breadcrumb-current {
+    @apply text-gray-700 dark:text-gray-300 font-medium;
+  }
+
+  .breadcrumb-separator {
+    @apply text-gray-400 dark:text-gray-500 select-none;
+  }
 }

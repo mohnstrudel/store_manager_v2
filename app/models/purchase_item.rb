@@ -117,6 +117,10 @@ class PurchaseItem < ApplicationRecord
     purchase.full_title
   end
 
+  def title
+    "Purchase Item №#{id}"
+  end
+
   def cost
     purchase.item_price.to_f + shipping_cost.to_f
   end

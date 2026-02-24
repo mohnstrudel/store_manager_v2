@@ -10,6 +10,7 @@ html
     = javascript_importmap_tags
     = turbo_refresh_method_tag :morph
     = turbo_refresh_scroll_tag :preserve
+    = breadcrumb_meta_tag
   body.flex.flex-col.min-h-screen
     header.container.mx-auto.pt-2
       nav role="navigation-main"
@@ -53,6 +54,7 @@ html
                   li = link_to "Users", users_path, type: "button"
                 li = link_to "Log Out", log_out_path, method: :post, data: {confirm: "Are you sure you want to log out?", turbo_method: :post}, type: "button"
     main.container.mx-auto.mt-8.mb-60
+      = breadcrumbs
       = yield
     footer.container.mx-auto.text-center.mb-8
       a.no-underline.hover:bg-transparent href="" onclick="window.scrollTo({top: 0}); return false;" class="link"

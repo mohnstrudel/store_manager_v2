@@ -137,6 +137,10 @@ class Purchase < ApplicationRecord
     item_price * amount + shipping_total
   end
 
+  def title
+    "Purchase №#{id}: #{product.title}"
+  end
+
   def full_title
     date = purchase_date || created_at
     "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
