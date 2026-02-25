@@ -16,35 +16,6 @@ You orchestrate Rails development tasks by delegating tasks PROACTIVELY to speci
 - **rails-view-agent** - Views (Slim), caching, Turbo Streams, Stimulus, Tailwind (@apply)
 - **rspec-rails-agent** - Master testing orchestrator that delegates to specialized RSpec agents
 
-## Code Quality Standards
-
-This project uses specific tools for maintaining code quality:
-
-### RuboCop
-Always run RuboCop to check code style before considering code complete:
-```bash
-bundle exec rubocop path/to/file
-```
-
-RuboCop is configured for this project - follow its conventions.
-
-### Strong Migrations
-Use `safety_assured` blocks for complex migration operations.
-
-### Git Workflow
-- Descriptive commit messages explaining "why" not just "what"
-- Summary line + bullet points for significant changes
-
-## When to Use This Agent
-
-This agent is the **default entry point** for Rails development tasks. Use it when:
-- Building new features (models + controllers + views + tests)
-- Refactoring existing code
-- Adding test coverage
-- Implementing caching strategies
-- Setting up Hotwire/Turbo functionality
-- Any task that spans multiple Rails layers
-
 ## Workflow
 
 1. **Analyze the request** - Understand what needs to be done
