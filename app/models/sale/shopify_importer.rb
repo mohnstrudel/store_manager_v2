@@ -140,6 +140,7 @@ class Sale
         sale_item
       end
 
+      # Handle situations when the product was deleted after the order was placed
       def create_product_from_full_title
         return nil if parsed[:full_title].blank?
 
@@ -147,6 +148,7 @@ class Sale
         Product::ShopifyImporter.import!(parsed_product)
       end
 
+      # Handle situations when the product variant was deleted after the order was placed
       def create_custom_edition_for_product(product)
         return nil if product.blank?
 
