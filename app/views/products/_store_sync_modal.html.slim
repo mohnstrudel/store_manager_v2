@@ -18,11 +18,13 @@ dialog id="product-sync-modal" data-controller="modal" data-modal-target="contai
         i.icn ❌
 
     menu.flex.flex-col.gap-4
-      - unless @product.shopify_published?
-        li
-          = button_to "Publish to Shopify", publish_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}
-      - else
-        li
-          = button_to "Push updates to Shopify", push_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}
+      / DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
+      / - unless @product.shopify_published?
+      /   li
+      /     = button_to "Publish to Shopify", publish_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}
+      / - else
+      /   li
+      /     = button_to "Push updates to Shopify", push_to_shopify_product_path(@product), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}
+      - if @product.shopify_published?
         li
           = button_to "Pull updates from Shopify", pull_from_shopify_product_path(@product), class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}

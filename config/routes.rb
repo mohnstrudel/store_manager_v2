@@ -61,8 +61,9 @@ Rails.application.routes.draw do
       get :pull
     end
     member do
-      post :publish_to_shopify
-      post :push_to_shopify
+      # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
+      # post :publish_to_shopify
+      # post :push_to_shopify
       post :pull_from_shopify
     end
   end

@@ -4,7 +4,7 @@ class ProductsController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
   include HandlesMedia
 
-  before_action :set_product, only: %i[show edit update destroy publish_to_shopify push_to_shopify pull_from_shopify]
+  before_action :set_product, only: %i[show edit update destroy pull_from_shopify] # DISABLED: publish_to_shopify, push_to_shopify
 
   # GET /products or /products.json
   def index
@@ -41,7 +41,8 @@ class ProductsController < ApplicationController
         add_new_media(@product)
         handle_new_purchase if purchase_params.present?
         create_or_update_product_editions!
-        Shopify::CreateProductJob.perform_later(@product.id)
+        # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
+        # Shopify::CreateProductJob.perform_later(@product.id)
       end
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
@@ -86,23 +87,24 @@ class ProductsController < ApplicationController
     end
   end
 
-  def publish_to_shopify
-    Shopify::CreateProductJob.perform_later(@product.id)
-
-    respond_to do |format|
-      format.turbo_stream { flash.now[:notice] = "Product is being published to Shopify" }
-      format.html { redirect_to products_path, notice: "Product is being published to Shopify" }
-    end
-  end
-
-  def push_to_shopify
-    Shopify::UpdateProductJob.perform_later(@product.id)
-
-    respond_to do |format|
-      format.turbo_stream { flash.now[:notice] = "Product updates are being pushed to Shopify" }
-      format.html { redirect_to products_path, notice: "Product updates are being pushed to Shopify" }
-    end
-  end
+  # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
+  # def publish_to_shopify
+  #   Shopify::CreateProductJob.perform_later(@product.id)
+  #
+  #   respond_to do |format|
+  #     format.turbo_stream { flash.now[:notice] = "Product is being published to Shopify" }
+  #     format.html { redirect_to products_path, notice: "Product is being published to Shopify" }
+  #   end
+  # end
+  #
+  # def push_to_shopify
+  #   Shopify::UpdateProductJob.perform_later(@product.id)
+  #
+  #   respond_to do |format|
+  #     format.turbo_stream { flash.now[:notice] = "Product updates are being pushed to Shopify" }
+  #     format.html { redirect_to products_path, notice: "Product updates are being pushed to Shopify" }
+  #   end
+  # end
 
   def pull_from_shopify
     notice = if @product.shopify_info&.store_id&.present?
