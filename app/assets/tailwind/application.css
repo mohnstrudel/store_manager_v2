@@ -92,7 +92,8 @@
     @apply appearance-none w-full pl-3 pr-10 py-1.5 cursor-pointer border border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
   }
 
-  textarea {
+  textarea,
+  trix-editor {
     @apply min-h-24;
   }
 
@@ -445,12 +446,14 @@
   .text-error,
   .field_with_errors label,
   .field_with_errors textarea,
+  .field_with_errors trix-editor,
   .field_with_errors input {
     @apply text-red-700 dark:text-red-400 border-red-700 dark:border-red-400!;
   }
 
   .field_with_errors input,
-  .field_with_errors textarea {
+  .field_with_errors textarea,
+  .field_with_errors trix-editor {
     @apply border;
   }
 
