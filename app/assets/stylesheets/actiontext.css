@@ -7,7 +7,117 @@ trix-editor * {
 }
 
 trix-editor {
-  min-height: 10em; }
+  min-height: 10em;
+  font-family: sans-serif;
+  line-height: 1.75;
+  font-size: 1rem;
+  color: inherit;
+}
+trix-editor h1 {
+  font-size: 2.25em;
+  font-weight: 800;
+  line-height: 1.1111111;
+  margin-top: 0;
+  margin-bottom: 0.8888889em;
+}
+trix-editor h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  line-height: 1.3333333;
+}
+trix-editor h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.6;
+}
+trix-editor h4, trix-editor h5, trix-editor h6 {
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.5;
+}
+trix-editor > p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+trix-editor a {
+  color: #3b82f6;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+trix-editor a:hover {
+  color: #2563eb;
+}
+trix-editor strong {
+  font-weight: 600;
+}
+trix-editor em {
+  font-style: italic;
+}
+trix-editor blockquote {
+  border-left: 4px solid #e5e7eb;
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+  padding-left: 1em;
+  font-style: italic;
+  color: #6b7280;
+}
+trix-editor ul, trix-editor ol {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 2.625em;
+}
+trix-editor li {
+  margin-bottom: 0.5em;
+}
+trix-editor ul {
+  list-style-type: disc;
+}
+trix-editor ol {
+  list-style-type: decimal;
+}
+trix-editor hr {
+  border-color: #e5e7eb;
+  border-top-width: 1px;
+  margin-top: 3em;
+  margin-bottom: 3em;
+}
+trix-editor pre {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em;
+  line-height: 1.7142857;
+  margin-top: 1.7142857em;
+  margin-bottom: 1.7142857em;
+  padding: 0.8571429em 1.1428571em;
+  background-color: #f3f4f6;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+trix-editor code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em;
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+}
+trix-editor pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+trix-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
 
 trix-toolbar * {
   box-sizing: border-box; }
@@ -337,44 +447,152 @@ trix-editor .attachment__metadata {
     white-space: nowrap; }
 
 .trix-content {
-  line-height: 1.5;
+  font-family: sans-serif;
+  line-height: 1.75;
   overflow-wrap: break-word;
-  word-break: break-word; }
+  word-break: break-word;
+  font-size: 1rem;
+  color: inherit;
+}
   .trix-content * {
     box-sizing: border-box;
     margin: 0;
-    padding: 0; }
+    padding: 0;
+  }
   .trix-content h1 {
-    font-size: 1.2em;
-    line-height: 1.2; }
+    font-size: 2.25em;
+    font-weight: 800;
+    line-height: 1.1111111;
+    margin-top: 0;
+    margin-bottom: 0.8888889em;
+  }
+  .trix-content h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    line-height: 1.3333333;
+  }
+  .trix-content h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+    line-height: 1.6;
+  }
+  .trix-content h4, .trix-content h5, .trix-content h6 {
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    line-height: 1.5;
+  }
+  .trix-content > p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+  }
+  .trix-content a {
+    color: #3b82f6;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .trix-content a:hover {
+    color: #2563eb;
+  }
+  .trix-content strong {
+    font-weight: 600;
+  }
+  .trix-content em {
+    font-style: italic;
+  }
   .trix-content blockquote {
-    border: 0 solid #ccc;
-    border-left-width: 0.3em;
-    margin-left: 0.3em;
-    padding-left: 0.6em; }
-  .trix-content [dir=rtl] blockquote,
-  .trix-content blockquote[dir=rtl] {
-    border-width: 0;
-    border-right-width: 0.3em;
-    margin-right: 0.3em;
-    padding-right: 0.6em; }
+    border-left: 4px solid #e5e7eb;
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding-left: 1em;
+    font-style: italic;
+    color: #6b7280;
+  }
+  .trix-content ul, .trix-content ol {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 2.625em;
+  }
   .trix-content li {
-    margin-left: 1em; }
+    margin-bottom: 0.5em;
+  }
+  .trix-content ul {
+    list-style-type: disc;
+  }
+  .trix-content ol {
+    list-style-type: decimal;
+  }
   .trix-content [dir=rtl] li {
-    margin-right: 1em; }
+    margin-right: 1em;
+  }
+  .trix-content hr {
+    border-color: #e5e7eb;
+    border-top-width: 1px;
+    margin-top: 3em;
+    margin-bottom: 3em;
+  }
   .trix-content pre {
-    display: inline-block;
-    width: 100%;
-    vertical-align: top;
-    font-family: monospace;
-    font-size: 0.9em;
-    padding: 0.5em;
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+    margin-top: 1.7142857em;
+    margin-bottom: 1.7142857em;
+    padding: 0.8571429em 1.1428571em;
+    background-color: #f3f4f6;
+    border-radius: 0.375rem;
+    overflow-x: auto;
     white-space: pre;
-    background-color: #eee;
-    overflow-x: auto; }
+  }
+  .trix-content code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875em;
+    background-color: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+  }
+  .trix-content pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
   .trix-content img {
     max-width: 100%;
-    height: auto; }
+    height: auto;
+    border-radius: 0.5rem;
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  .trix-content table {
+    width: 100%;
+    table-layout: auto;
+    text-align: left;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+  }
+  .trix-content thead {
+    border-bottom-width: 1px;
+    border-bottom-color: #e5e7eb;
+  }
+  .trix-content thead th {
+    font-weight: 600;
+    padding: 0.5714286em;
+    vertical-align: bottom;
+  }
+  .trix-content tbody tr {
+    border-bottom-width: 1px;
+    border-bottom-color: #e5e7eb;
+  }
+  .trix-content tbody td {
+    padding: 0.5714286em;
+    vertical-align: top;
+  }
   .trix-content .attachment {
     display: inline-block;
     position: relative;
@@ -441,6 +659,52 @@ trix-editor .attachment__metadata {
 @media (prefers-color-scheme: dark) {
   .trix-button--icon::before {
     filter: invert(1);
+  }
+
+  trix-editor a {
+    color: #60a5fa;
+  }
+  trix-editor a:hover {
+    color: #93c5fd;
+  }
+  trix-editor blockquote {
+    border-left-color: #4b5563;
+    color: #9ca3af;
+  }
+  trix-editor pre {
+    background-color: #1f2937;
+  }
+  trix-editor code {
+    background-color: #1f2937;
+  }
+  trix-editor hr {
+    border-color: #374151;
+  }
+
+  .trix-content a {
+    color: #60a5fa;
+  }
+  .trix-content a:hover {
+    color: #93c5fd;
+  }
+  .trix-content blockquote {
+    border-left-color: #4b5563;
+    color: #9ca3af;
+  }
+  .trix-content pre {
+    background-color: #1f2937;
+  }
+  .trix-content code {
+    background-color: #1f2937;
+  }
+  .trix-content hr {
+    border-color: #374151;
+  }
+  .trix-content table thead {
+    border-bottom-color: #4b5563;
+  }
+  .trix-content table tbody tr {
+    border-bottom-color: #374151;
   }
 }
 

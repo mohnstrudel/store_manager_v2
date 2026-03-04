@@ -8,6 +8,9 @@ RSpec.describe Edition::ShopifyImporter do
     {
       store_id: "gid://shopify/ProductVariant/12345",
       sku: "TEST-SKU-001",
+      selling_price: "299.99",
+      purchase_cost: "150.00",
+      weight: 2.5,
       options: [
         {name: "Color", value: "Red"},
         {name: "Size", value: "Large"},
@@ -24,6 +27,9 @@ RSpec.describe Edition::ShopifyImporter do
       expect(edition.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
       expect(edition.product).to eq(product)
       expect(edition.sku).to eq("TEST-SKU-001")
+      expect(edition.selling_price).to eq(BigDecimal("299.99"))
+      expect(edition.purchase_cost).to eq(BigDecimal("150.00"))
+      expect(edition.weight).to eq(BigDecimal("2.5"))
       expect(edition.color.value).to eq("Red")
       expect(edition.size.value).to eq("Large")
       expect(edition.version.value).to eq("Deluxe")
@@ -340,6 +346,47 @@ RSpec.describe Edition::ShopifyImporter do
 
         edition = Edition.last
         expect(edition.color.value).to eq("Red")
+      end
+    end
+
+    context "with missing price, cost, and weight" do
+      let(:parsed_variant_without_pricing) do
+        {
+          store_id: "gid://shopify/ProductVariant/12345",
+          options: [
+            {name: "Color", value: "Red"}
+          ]
+        }
+      end
+
+      it "creates an edition with default price/cost/weight values" do
+        described_class.import!(product, parsed_variant_without_pricing)
+
+        edition = Edition.last
+        expect(edition.selling_price).to eq(0.0)
+        expect(edition.purchase_cost).to eq(0.0)
+        expect(edition.weight).to eq(0.0)
+      end
+    end
+
+    context "with partial pricing data (only selling_price)" do
+      let(:parsed_variant_partial_pricing) do
+        {
+          store_id: "gid://shopify/ProductVariant/12345",
+          selling_price: "199.99",
+          options: [
+            {name: "Color", value: "Blue"}
+          ]
+        }
+      end
+
+      it "stores selling_price and leaves other fields as defaults" do
+        described_class.import!(product, parsed_variant_partial_pricing)
+
+        edition = Edition.last
+        expect(edition.selling_price.to_s).to eq("199.99")
+        expect(edition.purchase_cost).to eq(0.0)
+        expect(edition.weight).to eq(0.0)
       end
     end
   end

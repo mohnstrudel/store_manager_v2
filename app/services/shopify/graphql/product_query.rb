@@ -13,6 +13,7 @@ module Shopify
         id
         title
         handle
+        descriptionHtml
         tags
         createdAt
         updatedAt
@@ -36,8 +37,20 @@ module Shopify
             node {
               id
               title
-              price
               sku
+              price
+              inventoryItem {
+                id
+                unitCost {
+                  amount
+                  currencyCode
+                }
+                measurement {
+                  weight {
+                    value
+                  }
+                }
+              }
               createdAt
               updatedAt
               selectedOptions {

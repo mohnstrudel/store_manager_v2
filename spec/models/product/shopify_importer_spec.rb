@@ -104,6 +104,79 @@ RSpec.describe Product::ShopifyImporter do
       expect(result).to be_persisted
     end
 
+    context "with description" do
+      let(:parsed_product_with_description) do
+        parsed_product.merge(
+          description: "<p>This is a <strong>premium</strong> collectible statue.</p>"
+        )
+      end
+
+      it "saves description to product" do
+        product = described_class.import!(parsed_product_with_description)
+        product.reload
+
+        expect(product.description.body.to_html.strip).to eq("<p>This is a <strong>premium</strong> collectible statue.</p>")
+      end
+    end
+
+    context "with description containing nested p tags inside li" do
+      let(:parsed_product_with_list) do
+        parsed_product.merge(
+          description: "<ul><li><p>Item 1</p></li><li><p>Item 2</p></li></ul>"
+        )
+      end
+
+      it "normalizes HTML by unwrapping p tags inside li" do
+        product = described_class.import!(parsed_product_with_list)
+        product.reload
+
+        html = product.description.body.to_html
+        expect(html).to include("<li>Item 1</li>")
+        expect(html).to include("<li>Item 2</li>")
+        expect(html).not_to include("<li><p>")
+      end
+    end
+
+    context "with description containing nested div tags inside li" do
+      let(:parsed_product_with_div_list) do
+        parsed_product.merge(
+          description: "<ul><li><div>Item A</div></li><li><div>Item B</div></li></ul>"
+        )
+      end
+
+      it "normalizes HTML by unwrapping div tags inside li" do
+        product = described_class.import!(parsed_product_with_div_list)
+        product.reload
+
+        html = product.description.body.to_html
+        expect(html).to include("<li>Item A</li>")
+        expect(html).to include("<li>Item B</li>")
+        expect(html).not_to include("<li><div>")
+      end
+    end
+
+    context "with nil description" do
+      let(:parsed_product_nil_description) { parsed_product.merge(description: nil) }
+
+      it "handles nil description gracefully" do
+        product = described_class.import!(parsed_product_nil_description)
+        product.reload
+
+        expect(product.description.body).to be_blank
+      end
+    end
+
+    context "without description" do
+      let(:parsed_product_no_description) { parsed_product.except(:description) }
+
+      it "leaves description blank" do
+        product = described_class.import!(parsed_product_no_description)
+        product.reload
+
+        expect(product.description.body).to be_blank
+      end
+    end
+
     context "when product already exists" do
       let!(:existing_product) do
         create(:product,

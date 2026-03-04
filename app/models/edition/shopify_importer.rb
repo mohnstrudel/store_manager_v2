@@ -62,13 +62,16 @@ class Edition
     end
 
     def lookup_attrs
-      @lookup_attrs ||= edition_attrs.except(:sku)
+      @lookup_attrs ||= edition_attrs.except(:sku, :selling_price, :purchase_cost, :weight)
     end
 
     def build_edition_attrs
       attributes = {}
 
       attributes[:sku] = parsed[:sku] if parsed[:sku].present?
+      attributes[:selling_price] = parsed[:selling_price] if parsed[:selling_price].present?
+      attributes[:purchase_cost] = parsed[:purchase_cost] if parsed[:purchase_cost].present?
+      attributes[:weight] = parsed[:weight] if parsed[:weight].present?
 
       return attributes if parsed[:is_single_variant]
 

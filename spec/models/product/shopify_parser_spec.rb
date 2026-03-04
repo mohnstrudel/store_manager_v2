@@ -24,6 +24,7 @@ RSpec.describe Product::ShopifyParser do
           "id" => "gid://shopify/Product/12345",
           "title" => "Stellar Blade - Eve | 1:4 Resin Statue | by Prime 1 Studio",
           "handle" => "stellar-blade-eve-statue",
+          "descriptionHtml" => "<p>This is a <strong>premium</strong> collectible statue.</p>",
           "tags" => ["statue", "premium", "exclusive"],
           "createdAt" => "2024-01-01T00:00:00Z",
           "updatedAt" => "2024-01-15T00:00:00Z",
@@ -34,6 +35,21 @@ RSpec.describe Product::ShopifyParser do
                   "id" => "gid://shopify/ProductVariant/67890",
                   "title" => "Regular",
                   "sku" => "SB-EVE-001",
+                  "price" => "299.99",
+                  "inventoryItem" => {
+                    "id" => "gid://shopify/InventoryItem/111",
+                    "unitCost" => {
+                      "amount" => "150.00",
+                      "currencyCode" => "EUR"
+                    },
+                    "measurement" => {
+                      "weight" => {
+                        "value" => 2.5
+                      }
+                    }
+                  },
+                  "createdAt" => "2024-01-01T00:00:00Z",
+                  "updatedAt" => "2024-01-02T00:00:00Z",
                   "selectedOptions" => [
                     {"name" => "Version", "value" => "Regular"}
                   ]
@@ -44,6 +60,21 @@ RSpec.describe Product::ShopifyParser do
                   "id" => "gid://shopify/ProductVariant/67891",
                   "title" => "Exclusive",
                   "sku" => "SB-EVE-001-EX",
+                  "price" => "399.99",
+                  "inventoryItem" => {
+                    "id" => "gid://shopify/InventoryItem/222",
+                    "unitCost" => {
+                      "amount" => "200.00",
+                      "currencyCode" => "EUR"
+                    },
+                    "measurement" => {
+                      "weight" => {
+                        "value" => 3.0
+                      }
+                    }
+                  },
+                  "createdAt" => "2024-01-01T00:00:00Z",
+                  "updatedAt" => "2024-01-03T00:00:00Z",
                   "selectedOptions" => [
                     {"name" => "Version", "value" => "Exclusive"}
                   ]
@@ -82,8 +113,14 @@ RSpec.describe Product::ShopifyParser do
           franchise: "Stellar Blade",
           size: "1:4",
           shape: "Statue",
-          brand: "Prime 1 Studio"
+          brand: "Prime 1 Studio",
+          description: "<p>This is a <strong>premium</strong> collectible statue.</p>"
         )
+      end
+
+      it "parses descriptionHtml as description" do
+        result = described_class.parse(api_payload)
+        expect(result[:description]).to eq("<p>This is a <strong>premium</strong> collectible statue.</p>")
       end
 
       it "parses media with positions and timestamps" do
@@ -121,13 +158,29 @@ RSpec.describe Product::ShopifyParser do
             store_id: "gid://shopify/ProductVariant/67890",
             title: "Regular",
             sku: "SB-EVE-001",
-            options: [{name: "Version", value: "Regular"}]
+            selling_price: "299.99",
+            purchase_cost: "150.00",
+            weight: 2.5,
+            options: [{name: "Version", value: "Regular"}],
+            is_single_variant: false,
+            store_info: {
+              ext_created_at: "2024-01-01T00:00:00Z",
+              ext_updated_at: "2024-01-02T00:00:00Z"
+            }
           },
           {
             store_id: "gid://shopify/ProductVariant/67891",
             title: "Exclusive",
             sku: "SB-EVE-001-EX",
-            options: [{name: "Version", value: "Exclusive"}]
+            selling_price: "399.99",
+            purchase_cost: "200.00",
+            weight: 3.0,
+            options: [{name: "Version", value: "Exclusive"}],
+            is_single_variant: false,
+            store_info: {
+              ext_created_at: "2024-01-01T00:00:00Z",
+              ext_updated_at: "2024-01-03T00:00:00Z"
+            }
           }
         ])
       end
@@ -186,6 +239,29 @@ RSpec.describe Product::ShopifyParser do
       it "excludes tags key when not provided (removed by compact_blank)" do
         result = described_class.parse(minimal_payload)
         expect(result.key?(:tags)).to be false
+      end
+
+      it "excludes description key when descriptionHtml is not provided" do
+        result = described_class.parse(minimal_payload)
+        expect(result.key?(:description)).to be false
+      end
+    end
+
+    context "with empty descriptionHtml" do
+      let(:empty_description_payload) do
+        {
+          "id" => "gid://shopify/Product/12345",
+          "title" => "Test Product",
+          "handle" => "test-product",
+          "descriptionHtml" => "",
+          "variants" => {"edges" => [{"node" => {"id" => "1", "sku" => "SKU-001", "title" => "Default", "selectedOptions" => []}}]},
+          "media" => nil
+        }
+      end
+
+      it "excludes description key when descriptionHtml is empty" do
+        result = described_class.parse(empty_description_payload)
+        expect(result.key?(:description)).to be false
       end
     end
 
@@ -315,6 +391,21 @@ RSpec.describe Product::ShopifyParser do
                   "id" => "gid://shopify/ProductVariant/1",
                   "title" => "Default Title",
                   "sku" => "TEST-001",
+                  "price" => "199.99",
+                  "inventoryItem" => {
+                    "id" => "gid://shopify/InventoryItem/1",
+                    "unitCost" => {
+                      "amount" => "80.00",
+                      "currencyCode" => "EUR"
+                    },
+                    "measurement" => {
+                      "weight" => {
+                        "value" => 1.5
+                      }
+                    }
+                  },
+                  "createdAt" => "2024-01-01T00:00:00Z",
+                  "updatedAt" => "2024-01-02T00:00:00Z",
                   "selectedOptions" => [
                     {"name" => "Title", "value" => "Default Title"}
                   ]
@@ -329,6 +420,60 @@ RSpec.describe Product::ShopifyParser do
       it "sets is_single_variant flag to true" do
         result = described_class.parse(single_variant_payload)
         expect(result[:editions].first[:is_single_variant]).to be(true)
+      end
+
+      it "parses price, cost, and weight from inventory item" do
+        result = described_class.parse(single_variant_payload)
+        edition = result[:editions].first
+
+        expect(edition[:selling_price]).to eq("199.99")
+        expect(edition[:purchase_cost]).to eq("80.00")
+        expect(edition[:weight]).to eq(1.5)
+      end
+
+      it "parses store_info timestamps from variant" do
+        result = described_class.parse(single_variant_payload)
+        edition = result[:editions].first
+
+        expect(edition[:store_info]).to eq({
+          ext_created_at: "2024-01-01T00:00:00Z",
+          ext_updated_at: "2024-01-02T00:00:00Z"
+        })
+      end
+    end
+
+    context "with variant missing inventory item data" do
+      let(:variant_without_inventory_payload) do
+        {
+          "id" => "gid://shopify/Product/12345",
+          "title" => "Test Product",
+          "handle" => "test-product",
+          "variants" => {
+            "edges" => [
+              {
+                "node" => {
+                  "id" => "gid://shopify/ProductVariant/1",
+                  "title" => "Regular",
+                  "sku" => "TEST-001",
+                  "price" => "99.99",
+                  "selectedOptions" => [
+                    {"name" => "Version", "value" => "Regular"}
+                  ]
+                }
+              }
+            ]
+          },
+          "media" => nil
+        }
+      end
+
+      it "parses selling_price but omits missing purchase_cost and weight" do
+        result = described_class.parse(variant_without_inventory_payload)
+        edition = result[:editions].first
+
+        expect(edition[:selling_price]).to eq("99.99")
+        expect(edition.key?(:purchase_cost)).to be false
+        expect(edition.key?(:weight)).to be false
       end
     end
   end

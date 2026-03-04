@@ -26,6 +26,7 @@ class Product
 
       {
         brand: parsed_title[:brand],
+        description: payload["descriptionHtml"].presence,
         editions: parsed_editions,
         franchise: parsed_title[:franchise],
         media: parsed_media,
@@ -103,28 +104,35 @@ class Product
     end
 
     def parse_editions
-      # Shopify producs always have variants but we keep this [] guard for
-      # broken products we have when a product have only a title.
-      # This might be a Woo legacy, needs investigation
       variants = payload.dig("variants", "edges") || []
 
       if (is_single_variant = variants.size == 1)
-        @parsed_editions = [{
-          store_id: variants.first["node"]["id"],
-          sku: variants.first["node"]["sku"],
-          is_single_variant:
-        }]
+        @parsed_editions = [build_edition_data(variants.first["node"], is_single_variant:)]
         return
       end
 
       @parsed_editions = variants.map do |edge|
-        {
-          store_id: edge["node"]["id"],
-          title: edge["node"]["title"],
-          sku: edge["node"]["sku"],
-          options: parse_options(edge["node"]["selectedOptions"])
-        }
+        build_edition_data(edge["node"])
       end
+    end
+
+    def build_edition_data(variant, is_single_variant: false)
+      inventory_item = variant["inventoryItem"] || {}
+
+      {
+        store_id: variant["id"],
+        title: variant["title"],
+        sku: variant["sku"],
+        selling_price: variant["price"],
+        purchase_cost: inventory_item.dig("unitCost", "amount"),
+        weight: inventory_item.dig("measurement", "weight", "value"),
+        options: parse_options(variant["selectedOptions"]),
+        is_single_variant:,
+        store_info: {
+          ext_created_at: variant["createdAt"],
+          ext_updated_at: variant["updatedAt"]
+        }.compact
+      }.compact
     end
 
     def parse_options(options)

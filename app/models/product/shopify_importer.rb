@@ -42,7 +42,8 @@ class Product
           title: parsed[:title],
           franchise: Franchise.find_or_create_by(title: parsed[:franchise]),
           shape: Shape.find_or_create_by(title: parsed[:shape]),
-          sku: parsed[:sku]
+          sku: parsed[:sku],
+          description: parsed[:description]
         )
         assign_brand
         assign_size
