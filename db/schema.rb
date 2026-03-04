@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_183140) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_02_183628) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -109,15 +109,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_183140) do
   create_table "editions", force: :cascade do |t|
     t.bigint "color_id"
     t.datetime "created_at", null: false
+    t.datetime "deactivated_at"
     t.bigint "product_id", null: false
+    t.decimal "purchase_cost", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "selling_price", precision: 10, scale: 2, default: "0.0", null: false
     t.string "shopify_id"
     t.bigint "size_id"
     t.string "sku"
     t.datetime "updated_at", null: false
     t.bigint "version_id"
+    t.decimal "weight", precision: 10, scale: 2, default: "0.0", null: false
     t.string "woo_id"
     t.index "product_id, COALESCE(size_id, ('-1'::integer)::bigint), COALESCE(version_id, ('-1'::integer)::bigint), COALESCE(color_id, ('-1'::integer)::bigint)", name: "index_editions_on_product_attributes_unique", unique: true
     t.index ["color_id"], name: "index_editions_on_color_id"
+    t.index ["deactivated_at"], name: "index_editions_on_deactivated_at"
     t.index ["product_id"], name: "index_editions_on_product_id"
     t.index ["shopify_id"], name: "index_editions_on_shopify_id", unique: true, where: "(shopify_id IS NOT NULL)"
     t.index ["size_id"], name: "index_editions_on_size_id"
