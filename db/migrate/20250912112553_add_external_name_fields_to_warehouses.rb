@@ -8,7 +8,7 @@ class AddExternalNameFieldsToWarehouses < ActiveRecord::Migration[8.0]
 
       reversible do |dir|
         dir.up do
-          execute <<-SQL.squish
+          execute <<~SQL.squish
             UPDATE warehouses 
             SET external_name_en = external_name 
             WHERE external_name IS NOT NULL

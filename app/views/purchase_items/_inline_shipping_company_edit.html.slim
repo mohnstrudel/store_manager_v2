@@ -6,8 +6,8 @@
 
     = form.select :shipping_company_id,
       options_from_collection_for_select(ShippingCompany.ordered, :id, :name, purchase_item.shipping_company_id),
-      { prompt: "Select a shipping company" },
-      { class: "border rounded px-2 py-1 text-sm w-full min-w-35", autofocus: true }
+      {prompt: "Select a shipping company"},
+      {class: "border rounded px-2 py-1 text-sm w-full min-w-35", autofocus: true}
 
     - if purchase_item.errors.any?
       p.text-error.text-xs.no-events
@@ -20,6 +20,6 @@
       = link_to cancel_edit_shipping_company_purchase_item_path(purchase_item),
           class: "btn-red btn-xs btn-rounded",
           title: "Cancel",
-          data: { turbo_stream: true } do
+          data: {turbo_stream: true} do
         i.icn ❎
         | Exit

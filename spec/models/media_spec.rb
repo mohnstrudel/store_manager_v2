@@ -16,8 +16,8 @@ require "rails_helper"
 
 RSpec.describe Media, type: :model do
   describe "associations" do
-    it { should belong_to(:mediaable).inverse_of(:media) }
-    it { should have_many(:store_infos).dependent(:destroy) }
+    it { is_expected.to belong_to(:mediaable).inverse_of(:media) }
+    it { is_expected.to have_many(:store_infos).dependent(:destroy) }
 
     it "has_one_attached image with dependent: :purge_later" do
       media = create(:media, :for_product)

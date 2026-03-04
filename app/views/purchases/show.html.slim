@@ -55,7 +55,7 @@ header.nav_header
                   td.actions
                     .flex.justify-end
                       - if p_item.sale
-                      = link_to unlink_purchase_items_path(id: p_item.id), class: "no-events btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                      = link_to unlink_purchase_items_path(id: p_item.id), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :post}
                           i.icn ✂︎
                           | Unlink
                       = render "_shared/action_destroy", route: purchase_item_path(p_item)

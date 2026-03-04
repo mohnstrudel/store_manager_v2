@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class ProductMover
   NOTHING_MOVED = 0
 

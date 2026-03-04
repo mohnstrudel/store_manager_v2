@@ -19,7 +19,7 @@ class BackfillStoreInfoSlugFromProductsStoreLink < ActiveRecord::Migration[8.1]
   def backfill_slug_from_products
     say "Backfilling StoreInfo.slug from products.store_link for Shopify products..."
 
-    execute <<-SQL.squish
+    execute <<~SQL.squish
       UPDATE store_infos
       SET slug = products.store_link,
           updated_at = NOW()
@@ -32,7 +32,7 @@ class BackfillStoreInfoSlugFromProductsStoreLink < ActiveRecord::Migration[8.1]
         AND (store_infos.slug IS NULL OR store_infos.slug = '')
     SQL
 
-    count = execute <<-SQL.squish
+    count = execute <<~SQL.squish
       SELECT COUNT(*)
       FROM store_infos si
       JOIN products p ON si.storable_type = 'Product' AND si.storable_id = p.id
@@ -48,7 +48,7 @@ class BackfillStoreInfoSlugFromProductsStoreLink < ActiveRecord::Migration[8.1]
   def backfill_slug_from_editions
     say "Backfilling StoreInfo.slug from editions.store_link for WooCommerce editions..."
 
-    execute <<-SQL.squish
+    execute <<~SQL.squish
       UPDATE store_infos
       SET slug = editions.store_link,
           updated_at = NOW()
@@ -61,7 +61,7 @@ class BackfillStoreInfoSlugFromProductsStoreLink < ActiveRecord::Migration[8.1]
         AND (store_infos.slug IS NULL OR store_infos.slug = '')
     SQL
 
-    count = execute <<-SQL.squish
+    count = execute <<~SQL.squish
       SELECT COUNT(*)
       FROM store_infos si
       JOIN editions e ON si.storable_type = 'Edition' AND si.storable_id = e.id
@@ -76,7 +76,7 @@ class BackfillStoreInfoSlugFromProductsStoreLink < ActiveRecord::Migration[8.1]
 
   def clear_backfilled_slugs
     say "Clearing backfilled slug values from StoreInfo..."
-    execute <<-SQL.squish
+    execute <<~SQL.squish
       UPDATE store_infos
       SET slug = NULL,
           updated_at = NOW()

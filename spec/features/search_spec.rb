@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "rails_helper"
 
 describe "Search works accross products, sales, purchases, and debts", js: "true" do

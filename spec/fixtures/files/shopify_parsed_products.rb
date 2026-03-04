@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 [{shopify_id: "gid://shopify/Product/9575629390153",
   store_link: "stellar-blade-eve-1-4-resin-statue-von-light-and-dust-studio",
   shape: "Statue",

@@ -31,7 +31,7 @@
                 tr.hoverable(
                   data-action="click->table#goTo"
                   data-table-url-param=purchase_path(purchase)
-                  class="#{purchase.debt > 0 ? 'has-debt' : 'paid'}"
+                  class="#{(purchase.debt > 0) ? "has-debt" : "paid"}"
                 )
                   - if purchase.edition.present?
                     td = purchase.product.full_title
