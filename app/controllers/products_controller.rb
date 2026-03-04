@@ -34,13 +34,13 @@ class ProductsController < ApplicationController
   # POST /products or /products.json
   def create
     @product = Product.new(product_params)
-    @product.build_editions
 
     respond_to do |format|
       ActiveRecord::Base.transaction do
         @product.save!
         add_new_media(@product)
         handle_new_purchase if purchase_params.present?
+        create_or_update_product_editions!
         Shopify::CreateProductJob.perform_later(@product.id)
       end
 
@@ -54,20 +54,23 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
+    @product.assign_attributes(product_params.to_h.merge(slug: nil))
+    @product.assign_attributes(full_title: Product.generate_full_title(@product))
+
     respond_to do |format|
       ActiveRecord::Base.transaction do
-        @product.update!(product_params.to_h.merge(slug: nil))
-        @product.assign_attributes(full_title: Product.generate_full_title(@product))
-        @product.build_editions
-        create_or_update_store_infos!
+        create_or_update_product_editions!
+        @product.save!
+        create_or_update_product_store_infos!
         update_media(@product)
         add_new_media(@product)
-        @product.save!
       end
 
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
       format.json { render :show, status: :ok, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+      reload_product_with_preserved_errors!
+      reassign_edition_attributes!
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -176,24 +179,41 @@ class ProductsController < ApplicationController
     ]])
   end
 
+  def editions_params
+    return ActionController::Parameters.new if params[:editions].blank?
+
+    params.expect(editions: [[
+      :id,
+      :sku,
+      :size_id,
+      :version_id,
+      :color_id,
+      :purchase_cost,
+      :selling_price,
+      :weight,
+      :_destroy
+    ]])
+  end
+
   def purchase_params
     params.dig(:product, :purchases_attributes, "0")
   end
 
   def handle_new_purchase
+    return unless (purchase = @product.purchases.last)
+
     warehouse_id = purchase_params[:warehouse_id]
     payment_value = purchase_params[:payments_attributes]&.values&.first&.[](:value)
-    purchase = @product.purchases.last
-    if purchase && warehouse_id
-      @product.purchases.last.add_items_to_warehouse(warehouse_id)
-      @product.purchases.last.link_with_sales
+
+    if warehouse_id
+      purchase.add_items_to_warehouse(warehouse_id)
+      purchase.link_with_sales
     end
-    if purchase && payment_value
-      purchase.payments.create(value: payment_value)
-    end
+
+    purchase.payments.create(value: payment_value) if payment_value
   end
 
-  def create_or_update_store_infos!
+  def create_or_update_product_store_infos!
     return if store_infos_params.blank?
 
     store_infos_params.to_h.values.each do |attrs|
@@ -213,6 +233,98 @@ class ProductsController < ApplicationController
       store_info = @product.store_infos.find(id)
       store_info.assign_attributes(attrs)
       store_info.save!
+    end
+  end
+
+  def create_or_update_product_editions!
+    return if editions_params.blank?
+
+    new_editions, existing_editions =
+      editions_params.to_h.values.partition do |edt_params|
+        edt_params["id"].blank?
+      end
+
+    new_editions.each do |attrs|
+      validate_edition_combination!(attrs)
+      @product.editions.create!(attrs)
+    end
+
+    existing_editions.each do |attrs|
+      id = attrs.delete("id")
+      should_destroy = attrs.delete("_destroy") == "1"
+      edition = @product.editions.find(id)
+
+      if should_destroy
+        handle_edition_destruction(edition)
+      else
+        # Assign attributes first so sku_changed? works correctly
+        edition.assign_attributes(attrs)
+        validate_edition_sku_uniqueness!(edition)
+        edition.save!
+      end
+    end
+  end
+
+  def validate_edition_sku_uniqueness!(edition)
+    return unless edition.sku_changed?
+
+    existing_edition = Edition.where.not(id: edition.id).find_by(sku: edition.sku)
+
+    if existing_edition
+      @product.errors.add(:editions, "#{edition.title} sku: has already been taken")
+      raise ActiveRecord::RecordInvalid.new(@product)
+    end
+  end
+
+  def validate_edition_combination!(attrs)
+    combination = {
+      size_id: attrs["size_id"],
+      version_id: attrs["version_id"],
+      color_id: attrs["color_id"]
+    }.compact_blank
+
+    duplicate = @product.editions.find_by(combination)
+    return unless duplicate
+
+    @product.errors.add(:editions, "Combination #{duplicate.title} already exists")
+    raise ActiveRecord::RecordInvalid.new(@product)
+  end
+
+  def handle_edition_destruction(edition)
+    if edition.has_sales_or_purchases?
+      edition.update!(deactivated_at: Time.current)
+    else
+      edition.destroy!
+    end
+  end
+
+  # When the transaction fails, @product's associations are stale and may be in an
+  # inconsistent state. We need to reload from the database to get fresh data, but
+  # we can't lose the validation errors that caused the failure—otherwise the user
+  # won't see what went wrong.
+  def reload_product_with_preserved_errors!
+    errors = @product.errors.dup
+    @product = Product.includes_show_associations.friendly.find(params[:id])
+    @product.errors.copy!(errors)
+  end
+
+  # After reloading, all the user's unsaved form input would be lost, showing the
+  # original database values instead. We manually reassign the submitted params so
+  # the form displays what the user actually typed. For new editions that failed to
+  # save, we build temporary objects so they still appear in the form for correction.
+  def reassign_edition_attributes!
+    return if editions_params.blank?
+
+    editions_params.to_h.values.each_with_index do |attrs, index|
+      id = attrs["id"]
+
+      if id.present?
+        edition = @product.editions.to_a.find { |e| e.id.to_s == id.to_s }
+        edition&.assign_attributes(attrs.except("_destroy"))
+      else
+        temp_edition = @product.editions.build(attrs.except("_destroy"))
+        temp_edition.instance_variable_set(:@_new_edition_index, index)
+      end
     end
   end
 end

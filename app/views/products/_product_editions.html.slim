@@ -6,15 +6,25 @@
         th ID
         th Name
         th Type
+        th.text-right Weight
+        th.text-right Purchase Cost
+        th.text-right Selling Price
         th.text-right Active Sales
         th Purchases
         th Store ID
       tbody
         - product.visible_editions.each do |edition|
-          tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == edition.id)
+          tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == edition.id, "opacity-50": edition.deactivated?)
             td = edition.id
-            td = edition.title
+            td
+              = edition.title
+              - if edition.deactivated?
+                span.text-sm.text-gray-500.dark:text-gray-400.ml-2
+                  | (Deactivated)
             td = edition.types_name
+            td.text-right = edition.weight.zero? ? "-" : "#{edition.weight} kg"
+            td.text-right = edition.purchase_cost.zero? ? "-" : number_to_currency(edition.purchase_cost)
+            td.text-right = edition.selling_price.zero? ? "-" : number_to_currency(edition.selling_price)
             td.text-right = format_zero_values @editions_sales_sums[edition.id]
             td = format_zero_values @editions_purchases_sums[edition.id]
             td

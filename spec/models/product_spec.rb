@@ -58,7 +58,7 @@ RSpec.describe Product do
     end
   end
 
-  describe "#build_editions" do
+  describe "#build_new_editions" do
     let(:product) { create(:product) }
     let(:size1) { create(:size, value: "S") } # rubocop:todo RSpec/IndexedLet
     let(:size2) { create(:size, value: "M") } # rubocop:todo RSpec/IndexedLet
@@ -71,7 +71,7 @@ RSpec.describe Product do
 
     context "when product has no attributes" do
       it "builds no editions" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions).to be_empty
       end
     end
@@ -82,7 +82,7 @@ RSpec.describe Product do
       end
 
       it "builds editions for each size" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(2)
       end
     end
@@ -93,7 +93,7 @@ RSpec.describe Product do
       end
 
       it "builds editions for each size" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(1)
       end
     end
@@ -104,7 +104,7 @@ RSpec.describe Product do
       end
 
       it "builds editions for each size" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(2)
       end
     end
@@ -116,7 +116,7 @@ RSpec.describe Product do
       end
 
       it "builds editions for each size-version combination" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(4) # 2 sizes × 2 versions
       end
     end
@@ -129,7 +129,7 @@ RSpec.describe Product do
       end
 
       it "builds editions for each size-version-color combination" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(18)
       end
     end
@@ -141,7 +141,7 @@ RSpec.describe Product do
       end
 
       it "builds editions for each version-color combination" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(6) # 2 versions × 3 colors
       end
     end
@@ -153,12 +153,12 @@ RSpec.describe Product do
       end
 
       it "builds editions for each color without size (single size is skipped)" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(3) # 3 colors, no size
       end
 
       it "does not include size in edition attributes" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.map(&:size_id)).to all be_nil
       end
     end
@@ -169,7 +169,7 @@ RSpec.describe Product do
       end
 
       it "builds one edition with the color" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(1)
         expect(product.editions.first.color_id).to eq(color1.id)
       end
@@ -181,7 +181,7 @@ RSpec.describe Product do
       end
 
       it "builds one edition with the version" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(1)
         expect(product.editions.first.version_id).to eq(version1.id)
       end
@@ -193,12 +193,12 @@ RSpec.describe Product do
       end
 
       it "builds one edition with no options" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(1)
       end
 
       it "edition has no size, version, or color" do
-        product.build_editions
+        product.build_new_editions
         edition = product.editions.first
         expect(edition.size_id).to be_nil
         expect(edition.version_id).to be_nil
@@ -213,12 +213,12 @@ RSpec.describe Product do
       end
 
       it "builds editions without size (single size is skipped)" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.size).to eq(1) # 1 version, no size
       end
 
       it "does not include size in edition attributes" do
-        product.build_editions
+        product.build_new_editions
         expect(product.editions.first.size_id).to be_nil
         expect(product.editions.first.version_id).to eq(version1.id)
       end
@@ -229,33 +229,33 @@ RSpec.describe Product do
         product.sizes << [size1, size2]
         product.versions << [version1, version2]
         product.colors << [color1, color2]
-        product.build_editions
+        product.build_new_editions
         product.save
       end
 
-      it "removes editions when size is removed" do
+      it "does not remove editions when size is removed (editions coexist with selectors)" do
         product.sizes.delete(size1)
-        product.build_editions
-        expect(product.editions.count(&:marked_for_destruction?)).to eq(4)
+        product.build_new_editions
+        expect(product.editions.count(&:marked_for_destruction?)).to eq(0)
       end
 
-      it "removes editions when version is removed" do
+      it "does not remove editions when version is removed (editions coexist with selectors)" do
         product.versions.delete(version1)
-        product.build_editions
-        expect(product.editions.count(&:marked_for_destruction?)).to eq(4)
+        product.build_new_editions
+        expect(product.editions.count(&:marked_for_destruction?)).to eq(0)
       end
 
-      it "removes editions when color is removed" do
+      it "does not remove editions when color is removed (editions coexist with selectors)" do
         product.colors.delete(color1)
-        product.build_editions
-        expect(product.editions.count(&:marked_for_destruction?)).to eq(4)
+        product.build_new_editions
+        expect(product.editions.count(&:marked_for_destruction?)).to eq(0)
       end
 
-      it "keeps valid editions when removing attributes" do
+      it "keeps all existing editions when removing attributes" do
         initial_editions_count = product.editions.count
         product.colors.delete(color1)
-        product.build_editions
-        expect(product.editions.count { |element| !element.marked_for_destruction? }).to eq(initial_editions_count / 2)
+        product.build_new_editions
+        expect(product.editions.count).to eq(initial_editions_count)
       end
     end
   end
@@ -268,7 +268,7 @@ RSpec.describe Product do
     context "when product has only one edition" do
       before do
         product.colors << [color1]
-        product.build_editions
+        product.build_new_editions
         product.save
       end
 
@@ -280,10 +280,9 @@ RSpec.describe Product do
     context "when product has multiple editions and base model has no store_infos" do
       before do
         product.colors << [color1, color2]
-        product.build_editions
+        product.build_new_editions
         product.save
-        # Create a base model edition without store_infos
-        create(:edition, product: product, version: nil)
+        Edition.create!(product: product)
       end
 
       it "hides the base model edition" do
@@ -297,7 +296,7 @@ RSpec.describe Product do
 
       before do
         product.colors << [color1, color2]
-        product.build_editions
+        product.build_new_editions
         product.save
       end
 

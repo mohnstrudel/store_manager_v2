@@ -1,11 +1,11 @@
 fieldset
-  label.mb-2 Images
+  h2.mt-8.label Images
 
   - if form.object.media.present?
     p.text-gray-600.dark:text-gray-500.mb-6 Start positions from 0 for better Shopify support
-    fieldset.grid.grid-cols-6.gap-4.mb-8.px-4
+    fieldset.grid.grid-cols-6.gap-4.mb-8
       - param_name = form.object.class.model_name.param_key
-      - form.object.media.ordered.each_with_index do |media, index|
+      - form.object.media.each_with_index do |media, index|
         - next if media.image.blank?
         div data-controller="form-image image-zoom"
           .h-64.overflow-hidden.rounded class="bg-gray-400 dark:bg-gray-600 cursor-zoom-in border border-gray-200 dark:border-gray-700" data-action="mouseenter->image-zoom#enableZoom mouseleave->image-zoom#disableZoom mousemove->image-zoom#onMouseMove" data-image-zoom-target="container" data-form-image-target="container"

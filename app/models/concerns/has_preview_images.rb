@@ -4,7 +4,7 @@ module HasPreviewImages
   extend ActiveSupport::Concern
 
   included do
-    has_many :media, as: :mediaable, dependent: :destroy, inverse_of: :mediaable, class_name: "Media"
+    has_many :media, -> { ordered }, as: :mediaable, dependent: :destroy, inverse_of: :mediaable, class_name: "Media"
 
     def prev_image_id(img_id)
       (media.where(id: ...img_id).ordered.last || media.ordered.last).id

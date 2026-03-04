@@ -110,6 +110,8 @@ class Product < ApplicationRecord
         :version,
         :color,
         :size,
+        :shopify_info,
+        :woo_info,
         {sale_items: :sale},
         {purchases: :supplier}
       ],
@@ -187,11 +189,9 @@ class Product < ApplicationRecord
       .sum(:amount)
   end
 
-  def build_editions
+  def build_new_editions
     return create_base_model_edition if base_model_case?
     return unless sizes.any? || versions.any? || colors.any?
-
-    mark_absent_editions_for_destruction
 
     editions.build(edition_attributes)
   end
@@ -211,15 +211,6 @@ class Product < ApplicationRecord
 
   private
 
-  def mark_absent_editions_for_destruction
-    editions.each do |edition|
-      should_delete = (edition.size && sizes.exclude?(edition.size)) ||
-        (edition.version && versions.exclude?(edition.version)) ||
-        (edition.color && colors.exclude?(edition.color))
-      edition.mark_for_destruction if should_delete
-    end
-  end
-
   # Single size editions aren't real editions by our agreement
   def base_model_case?
     sizes.count == 1 && colors.empty? && versions.empty?
@@ -236,7 +227,7 @@ class Product < ApplicationRecord
   def edition_attributes
     # Single size logic: don't use size if there's only 1
     # AND there are other attributes (versions or colors)
-    # Base model case is handled separately in build_editions
+    # Base model case is handled separately in build_new_editions
     skip_single_size = sizes.count == 1 && (versions.any? || colors.any?)
 
     size_items = if skip_single_size

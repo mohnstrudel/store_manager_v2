@@ -338,4 +338,87 @@ RSpec.describe "Products API" do
       expect(shopify_info.tag_list).to eq(original_tags)
     end
   end
+
+  describe "PATCH/PUT /products/:id with editions" do
+    let(:product) { create(:product) }
+    let(:color) { create(:color, value: "Red") }
+
+    before do
+      product.colors << color
+      product.build_new_editions
+      product.save
+    end
+
+    context "when updating edition SKU" do
+      it "updates edition SKU" do
+        edition = product.editions.first
+        update_params = {
+          title: product.title,
+          sku: product.sku,
+          franchise_id: product.franchise_id,
+          shape_id: product.shape_id
+        }
+        editions_params = {
+          "0" => {
+            id: edition.id,
+            sku: "NEW-SKU-123"
+          }
+        }
+
+        patch product_path(product), params: {product: update_params, editions: editions_params}
+
+        edition.reload
+        expect(edition.sku).to eq("NEW-SKU-123")
+      end
+    end
+
+    context "when destroying edition without sales or purchases" do
+      it "destroys the edition" do
+        edition = product.editions.first
+        update_params = {
+          title: product.title,
+          sku: product.sku,
+          franchise_id: product.franchise_id,
+          shape_id: product.shape_id
+        }
+        editions_params = {
+          "0" => {
+            id: edition.id,
+            _destroy: "1"
+          }
+        }
+
+        expect {
+          patch product_path(product), params: {product: update_params, editions: editions_params}
+        }.to change { product.editions.count }.by(-1)
+      end
+    end
+
+    context "when destroying edition with sale_items" do
+      let(:sale) { create(:sale) }
+      let!(:sale_item) { SaleItem.create!(product: product, edition: product.editions.first, sale: sale, qty: 1) }
+
+      it "soft deletes the edition by setting deactivated_at" do
+        edition = product.editions.first
+        update_params = {
+          title: product.title,
+          sku: product.sku,
+          franchise_id: product.franchise_id,
+          shape_id: product.shape_id
+        }
+        editions_params = {
+          "0" => {
+            id: edition.id,
+            _destroy: "1"
+          }
+        }
+
+        patch product_path(product), params: {product: update_params, editions: editions_params}
+
+        edition.reload
+        expect(edition.deactivated_at).to be_present
+        expect(Edition.exists?(edition.id)).to be true
+      end
+    end
+  end
 end
