@@ -43,7 +43,7 @@ class Product
           franchise: Franchise.find_or_create_by(title: parsed[:franchise]),
           shape: Shape.find_or_create_by(title: parsed[:shape]),
           sku: parsed[:sku],
-          description: parsed[:description]
+          description: normalize_description_html(parsed[:description])
         )
         assign_brand
         assign_size
@@ -111,6 +111,17 @@ class Product
 
       size = Size.find_or_create_by(value: parsed[:size])
       product.sizes << size unless product.sizes.exists?(size.id)
+    end
+
+    def normalize_description_html(html)
+      return html if html.blank?
+
+      doc = Nokogiri::HTML::DocumentFragment.parse(html)
+      doc.css("li > p, li > div").each do |node|
+        node.add_next_sibling(node.children)
+        node.remove
+      end
+      doc.to_html
     end
   end
 end
