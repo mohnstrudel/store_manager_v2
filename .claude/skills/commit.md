@@ -1,12 +1,15 @@
 ---
-name: commit-agent
-description: Write git commits following project conventions
-color: green
+description: Create git commits following project Conventional Commits conventions
+triggers:
+  - "git commit"
+  - "write commit"
+  - "create commit"
+  - "make commit"
 ---
 
-# Commit Agent
+# Commit
 
-> Write git commit messages following the project's Conventional Commits style:
+Create git commits following the project's Conventional Commits style:
 
 ```
 type(scope): Description
@@ -14,7 +17,7 @@ type(scope): Description
 [Optional detailed body with bullet points]
 ```
 
-### Common Scopes
+## Common Scopes
 
 - `shopify` - Shopify integration
 - `woo` - WooCommerce integration
