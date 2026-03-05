@@ -1,4 +1,4 @@
-- if product.visible_editions.any?
+- if product.editions.any?
   .table-card
     h3 Editions
     table data-controller="table"
@@ -13,7 +13,7 @@
         th Purchases
         th Store ID
       tbody
-        - product.visible_editions.each do |edition|
+        - product.editions.each do |edition|
           tr id="#{request.params[:selected]}" class=class_names(selected: request.params[:selected].to_i == edition.id, "opacity-50": edition.deactivated?)
             td = edition.id
             td

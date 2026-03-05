@@ -260,53 +260,6 @@ RSpec.describe Product do
     end
   end
 
-  describe "#visible_editions" do
-    let(:product) { create(:product) }
-    let(:color1) { create(:color, value: "Red") }
-    let(:color2) { create(:color, value: "Blue") }
-
-    context "when product has only one edition" do
-      before do
-        product.colors << [color1]
-        product.build_new_editions
-        product.save
-      end
-
-      it "returns all editions" do
-        expect(product.visible_editions.count).to eq(1)
-      end
-    end
-
-    context "when product has multiple editions and base model has no store_infos" do
-      before do
-        product.colors << [color1, color2]
-        product.build_new_editions
-        product.save
-        Edition.create!(product: product)
-      end
-
-      it "hides the base model edition" do
-        expect(product.editions.count).to eq(3)
-        expect(product.visible_editions.count).to eq(2)
-      end
-    end
-
-    context "when product has multiple editions and base model has store_infos" do
-      let!(:base_edition) { create(:edition, product: product, version: nil) }
-
-      before do
-        product.colors << [color1, color2]
-        product.build_new_editions
-        product.save
-      end
-
-      it "shows the base model edition" do
-        expect(product.editions.count).to eq(3)
-        expect(product.visible_editions.count).to eq(3)
-      end
-    end
-  end
-
   describe "auditing" do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true

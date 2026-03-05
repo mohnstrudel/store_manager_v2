@@ -200,15 +200,6 @@ class Product < ApplicationRecord
     editions.with_details.select { |edition| edition.title.present? }
   end
 
-  # We display the "Base Model" edition only if we sold at least one
-  def visible_editions
-    return editions if editions.count <= 1
-
-    editions.reject do |edition|
-      edition.base_model? && !edition.store_infos.any?
-    end
-  end
-
   private
 
   # Single size editions aren't real editions by our agreement
