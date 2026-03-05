@@ -17,9 +17,8 @@ header.nav_header
 .section-wide.flex.flex-col.gap-8.p-8
   = render "product_attributes", product: @product
   - if @product.description.present?
-    .card.w-full
-      h5 Description
-      .prose == @product.description
+    .card.w-full.pt-8.pr-12.pb-12.pl-6
+      == @product.description
   = render "product_editions", product: @product
   = render "product_active_sales", product: @product,
     active_sales: @active_sales
