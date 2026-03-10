@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ShapesController < ApplicationController
   before_action :set_shape, only: %i[show edit update destroy]
 
@@ -8,6 +10,7 @@ class ShapesController < ApplicationController
 
   # GET /shapes/1 or /shapes/1.json
   def show
+    @shape = Shape.includes_show_associations.find(params[:id])
   end
 
   # GET /shapes/new

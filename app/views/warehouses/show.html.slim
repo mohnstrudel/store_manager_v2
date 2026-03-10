@@ -3,7 +3,6 @@
 
 header.nav_header
   .flex.gap-4
-    = back_btn
     h1.text-5xl = @warehouse.name
   menu.nav_menu
     li = link_to new_purchase_item_path(warehouse_id: @warehouse)
@@ -16,7 +15,7 @@ header.nav_header
     = render "purchase_items"
 
   .cards
-    = render "_shared/gallery", images: @warehouse.images
+    = render "_shared/gallery", media: @warehouse.media
     .card.grow
       h5 Name
       p = @warehouse.name

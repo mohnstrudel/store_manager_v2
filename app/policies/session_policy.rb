@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SessionPolicy < ApplicationPolicy
   # We allow everyone to sign in
   def new?

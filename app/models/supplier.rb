@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: suppliers
@@ -36,7 +38,9 @@ class Supplier < ApplicationRecord
   #
   # == Scopes
   #
-  # (none)
+  scope :includes_dashboard_associations, -> {
+    includes(purchases: [:payments, :purchase_items])
+  }
 
   #
   # == Class Methods

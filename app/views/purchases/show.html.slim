@@ -2,7 +2,6 @@
 
 header.nav_header
   .flex.gap-4
-    = back_btn
     hgroup
       h1 Purchase №#{@purchase.id}
       h2 = @purchase.product.full_title
@@ -37,30 +36,30 @@ header.nav_header
               th.text-right Shipping
               th.text-right Actions
             tbody
-              - @purchase_items.each do |pp|
+              - @purchase_items.each do |p_item|
                 tr(
                   class="hoverable"
                   data-action="click->table#goTo"
-                  data-table-url-param=purchase_item_path(pp)
+                  data-table-url-param=purchase_item_path(p_item)
                 )
-                  = render "_shared/move_to_warehouse/td", id: pp.id
-                  td = pp.warehouse.name
+                  = render "_shared/move_to_warehouse/td", id: p_item.id
+                  td = p_item.warehouse.name
                   td
-                    = pp.sale&.select_title
-                    - if pp.sale&.woo_id
-                      .mt-2 #{shop_admin_link pp.sale, true}
-                  / td.font-mono = format_item_size(pp)
-                  / td.font-mono.text-right = pp.weight
-                  / td.font-mono.text-right = format_money pp.expenses
-                  td.font-mono.text-right = format_money pp.shipping_price
+                    = p_item.sale&.select_title
+                    - if p_item.sale&.woo_id
+                    .mt-2 #{shop_admin_link p_item.sale, true}
+                    / td.font-mono = format_item_size(p_item)
+                    / td.font-mono.text-right = p_item.weight
+                    / td.font-mono.text-right = format_money p_item.expenses
+                    td.font-mono.text-right = format_money p_item.shipping_cost
                   td.actions
                     .flex.justify-end
-                      - if pp.sale
-                        = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
-                          i.icn ✂︎
-                          | Unlink
-                      = render "_shared/action_destroy", route: purchase_item_path(pp)
-                      = render "_shared/action_edit", route: edit_purchase_item_path(pp)
+                      - if p_item.sale
+                        = link_to unlink_purchase_items_path(id: p_item.id), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :post}
+                            i.icn ✂︎
+                            | Unlink
+                      = render "_shared/action_destroy", route: purchase_item_path(p_item)
+                      = render "_shared/action_edit", route: edit_purchase_item_path(p_item)
 
 
   .cards
@@ -76,12 +75,12 @@ header.nav_header
         h5 Unit price, $
         p.font-mono = format_money @purchase.item_price
         h5 Total price
-        p.font-mono = format_money @purchase.total_cost
+        p.font-mono = format_money @purchase.cost_total
         h5 Shipping
-        p.font-mono = format_money @purchase.total_shipping
+        p.font-mono = format_money @purchase.shipping_total
       .flex-1
         h5 Paid
-        p.font-mono = format_money(@purchase.paid).rjust(2, '0')
+        p.font-mono = format_money(@purchase.paid).rjust(2, "0")
         h5 Debt
         p.font-mono
           | -
@@ -109,7 +108,7 @@ header.nav_header
             td.font-mono = format_money payment.value
             td = format_date payment.payment_date
 
-    = form_with model: @purchase.payments.new, class: "p-3 pb-6", data: { controller: "payment", action: "turbo:submit-end->payment#clear" } do |form|
+    = form_with model: @purchase.payments.new, class: "p-3 pb-6", data: {controller: "payment", action: "turbo:submit-end->payment#clear"} do |form|
       - if form.object.errors.any?
         - form.object.errors.full_messages.each do |message|
           = message

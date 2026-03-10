@@ -2,13 +2,13 @@
 
 header.nav_header
   .flex.gap-4
-    = back_btn
     hgroup
       h1 = @product.title
       h2 = @product.full_title
   menu.nav_menu
-    - if @product.shopify_id
-      li = pull_btn_for @product
+    li = link_to "#", data: {controller: "modal-trigger", action: "click->modal-trigger#open"}, class: "btn-rounded"
+      = heroicon "arrow-path", variant: "mini"
+      | Store Sync
     li = link_to new_purchase_path(product: @product)
       i.icn 💰
       | New Purchase
@@ -16,11 +16,16 @@ header.nav_header
 
 .section-wide.flex.flex-col.gap-8.p-8
   = render "product_attributes", product: @product
+  - if @product.description.present?
+    .card.w-full.pt-8.pr-12.pb-12.pl-6
+      == @product.description
   = render "product_editions", product: @product
-  = render "product_active_sales", product: @product,\
+  = render "product_active_sales", product: @product,
     active_sales: @active_sales
-  = render "product_complete_sales", product: @product,\
+  = render "product_complete_sales", product: @product,
     complete_sales: @complete_sales
   = render "product_purchases", product: @product
 
 = destroy_btn_for @product
+
+= render "products/store_sync_modal", product: @product

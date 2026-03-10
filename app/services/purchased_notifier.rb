@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PurchasedNotifier
   def self.handle_product_purchase(**kwargs)
     new(**kwargs).handle_product_purchase

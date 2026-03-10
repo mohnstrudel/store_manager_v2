@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Sanitizable
   extend ActiveSupport::Concern
 
@@ -6,7 +8,12 @@ module Sanitizable
 
     def smart_titleize(sentence)
       sentence.split.map do |word|
-        (word == word.upcase) ? word : word.downcase.capitalize
+        if word == word.upcase
+          word
+        else
+          # Handle hyphenated words by capitalizing each part
+          word.downcase.split("-").map(&:capitalize).join("-")
+        end
       end.join(" ")
     end
 
@@ -27,7 +34,12 @@ module Sanitizable
 
     def smart_titleize(sentence)
       sentence.split.map do |word|
-        (word == word.upcase) ? word : word.downcase.capitalize
+        if word == word.upcase
+          word
+        else
+          # Handle hyphenated words by capitalizing each part
+          word.downcase.split("-").map(&:capitalize).join("-")
+        end
       end.join(" ")
     end
 

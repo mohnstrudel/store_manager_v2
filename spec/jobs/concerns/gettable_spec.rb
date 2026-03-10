@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Gettable do
@@ -26,7 +28,7 @@ RSpec.describe Gettable do
       end
 
       it "calculates correct number of pages" do
-        result = instance.api_get_all(base_url, total_records)
+        instance.api_get_all(base_url, total_records)
         expect(instance).to have_received(:api_get).exactly(expected_pages).times
       end
 

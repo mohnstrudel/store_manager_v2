@@ -1,18 +1,15 @@
-class Shopify::PullSaleJob < ApplicationJob
-  queue_as :default
+# frozen_string_literal: true
 
-  def perform(sale_id)
-    raise ArgumentError, "Shopify order ID is required" if sale_id.blank?
+module Shopify
+  class PullSaleJob < ApplicationJob
+    def perform(sale_store_id)
+      raise ArgumentError, "Sale store_id is required" if sale_store_id.blank?
 
-    api_client = Shopify::ApiClient.new
-    response = api_client.pull_order(sale_id)
+      client = Shopify::Api::Client.new
+      response = client.fetch_order(sale_store_id)
 
-    parsed_sale = Shopify::SaleParser
-      .new(api_item: response)
-      .parse
-
-    Shopify::SaleCreator
-      .new(parsed_item: parsed_sale)
-      .update_or_create!
+      parsed = Sale::ShopifyParser.parse(response)
+      Sale::ShopifyImporter.import!(parsed)
+    end
   end
 end

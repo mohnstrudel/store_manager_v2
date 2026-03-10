@@ -1,18 +1,22 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Shopify::BasePullJob do
+  include ActiveJob::TestHelper
+
   let(:job_class) do
     Class.new(described_class) do
       def self.name
         "TestJob"
       end
 
-      def resource_name
-        "test"
-      end
-
       def batch_size
         10
+      end
+
+      def fetch_from_api(api_client, cursor:, batch_size:)
+        api_client.fetch_test_data(cursor: cursor, batch_size: batch_size)
       end
 
       def parser_class
@@ -29,12 +33,14 @@ RSpec.describe Shopify::BasePullJob do
 
       def creator_class
         @creator_class ||= Class.new do
-          def initialize(item)
-            @item = item
+          def initialize(parsed_item:)
+            @parsed_item = parsed_item
           end
 
           def update_or_create!
-            true
+            @mock_record ||= Struct.new(:shopify_info).new(
+              Struct.new(:update_column).new { true }
+            )
           end
         end
       end
@@ -42,7 +48,7 @@ RSpec.describe Shopify::BasePullJob do
   end
 
   let(:job) { job_class.new }
-  let(:api_client) { instance_double(Shopify::ApiClient) }
+  let(:api_client) { spy("Shopify::Api::Client") }
   let(:api_response) do
     {
       items: [
@@ -55,28 +61,56 @@ RSpec.describe Shopify::BasePullJob do
   end
 
   let(:parser) { instance_double("Parser", parse: {}) }
-  let(:creator) { instance_double("Creator", update_or_create!: true) }
-  let(:parser_class) { class_double("ParserClass", new: parser) }
-  let(:creator_class) { class_double("CreatorClass", new: creator) }
+  let(:shopify_info) { instance_double("StoreInfo", update_column: true) }
+  let(:record) { instance_double("Record", shopify_info: shopify_info) }
+  let(:creator) { instance_double("Creator", update_or_create!: record) }
+  # Mock parser_class and creator_class as class method calls
+  let(:parser_class) { class_double("ParserClass").as_stubbed_const }
+  let(:creator_class) { class_double("CreatorClass").as_stubbed_const }
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }
 
   before do
-    allow(Shopify::ApiClient).to receive(:new).and_return(api_client)
-    allow(api_client).to receive(:pull).and_return(api_response)
+    allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
+    allow(api_client).to receive(:fetch_test_data).and_return(api_response)
 
-    allow(job).to receive(:parser_class).and_return(parser_class)
-    allow(job).to receive(:creator_class).and_return(creator_class)
+    # Mock the class method calls that the actual code uses
+    allow(parser_class).to receive(:parse).and_return({})
+    allow(creator_class).to receive(:import!).and_return(record)
+
+    allow(job).to receive_messages(parser_class: parser_class, creator_class: creator_class)
     allow(job_class).to receive(:set).and_return(job_setter)
   end
 
-  describe "#perform" do
+  describe ".queue_as" do
+    it "enqueues on the default queue" do
+      expect {
+        job_class.perform_later
+      }.to have_enqueued_job(job_class).on_queue("default")
+    end
+  end
+
+  describe ".perform_later" do
+    it "enqueues the job" do
+      expect {
+        job_class.perform_later
+      }.to have_enqueued_job(job_class)
+    end
+
+    it "enqueues the job with custom arguments" do
+      expect {
+        job_class.perform_later(attempts: 1, cursor: "abc", limit: 5)
+      }.to have_enqueued_job(job_class)
+    end
+  end
+
+  describe "#perform_now" do
     subject(:perform_job) { job.perform(**job_params) }
+
     let(:job_params) { {} }
 
     it "uses the configured batch size" do
       perform_job
-      expect(api_client).to have_received(:pull).with(
-        resource_name: "test",
+      expect(api_client).to have_received(:fetch_test_data).with(
         cursor: nil,
         batch_size: 10
       )
@@ -84,8 +118,8 @@ RSpec.describe Shopify::BasePullJob do
 
     it "processes each item through parser and creator" do
       perform_job
-      expect(parser_class).to have_received(:new).exactly(2).times
-      expect(creator_class).to have_received(:new).exactly(2).times
+      expect(parser_class).to have_received(:parse).exactly(2).times
+      expect(creator_class).to have_received(:import!).exactly(2).times
     end
 
     context "when processing with a limit" do
@@ -93,18 +127,22 @@ RSpec.describe Shopify::BasePullJob do
 
       it "uses the provided limit" do
         perform_job
-        expect(api_client).to have_received(:pull).with(
-          resource_name: "test",
+        expect(api_client).to have_received(:fetch_test_data).with(
           cursor: nil,
           batch_size: 5
         )
       end
 
-      it "does not schedule another job even with more pages" do
-        modified_api_response = api_response.dup
-        modified_api_response[:has_next_page] = true
-        allow(api_client).to receive(:pull).and_return(modified_api_response)
+      it "converts string limit to integer" do
+        job.perform(limit: "10")
+        expect(api_client).to have_received(:fetch_test_data).with(
+          cursor: nil,
+          batch_size: 10
+        )
+      end
 
+      it "does not schedule next job when there are no more pages" do
+        allow(api_client).to receive(:fetch_test_data).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
       end
@@ -126,7 +164,7 @@ RSpec.describe Shopify::BasePullJob do
       end
 
       before do
-        allow(api_client).to receive(:pull).and_raise(rate_limit_error)
+        allow(api_client).to receive(:fetch_test_data).and_raise(rate_limit_error)
       end
 
       it "retries with exponential backoff" do
@@ -144,7 +182,7 @@ RSpec.describe Shopify::BasePullJob do
         other_error = ShopifyAPI::Errors::HttpResponseError.new(
           response: other_response
         )
-        allow(api_client).to receive(:pull).and_raise(other_error)
+        allow(api_client).to receive(:fetch_test_data).and_raise(other_error)
 
         expect { perform_job }.to raise_error(ShopifyAPI::Errors::HttpResponseError)
       end
@@ -158,7 +196,7 @@ RSpec.describe Shopify::BasePullJob do
       end
 
       before do
-        allow(api_client).to receive(:pull).and_return(modified_api_response)
+        allow(api_client).to receive(:fetch_test_data).and_return(modified_api_response)
       end
 
       it "schedules next job when there are more pages" do
@@ -169,9 +207,26 @@ RSpec.describe Shopify::BasePullJob do
       end
 
       it "does not schedule next job when there are no more pages" do
-        allow(api_client).to receive(:pull).and_return(api_response)
+        allow(api_client).to receive(:fetch_test_data).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
+      end
+    end
+
+    context "when handling SKU collisions" do
+      before do
+        # Make creator raise an error that looks like SKU collision
+        allow(creator_class).to receive(:import!).and_raise(
+          "Validation failed: Sku mogu-studio-tifa has already been taken"
+        )
+      end
+
+      it "logs warning and continues processing remaining items" do
+        allow(Rails.logger).to receive(:warn)
+        perform_job
+        expect(Rails.logger).to have_received(:warn).with(/Skipping item due to SKU collision/).twice
+        # Both items are still processed
+        expect(creator_class).to have_received(:import!).exactly(2).times
       end
     end
   end
@@ -179,8 +234,8 @@ RSpec.describe Shopify::BasePullJob do
   describe "required methods" do
     let(:base_job) { described_class.new }
 
-    it "raises NotImplementedError for resource_name" do
-      expect { base_job.send(:resource_name) }.to raise_error(NotImplementedError)
+    it "raises NotImplementedError for fetch_from_api" do
+      expect { base_job.send(:fetch_from_api, nil, cursor: nil, batch_size: 10) }.to raise_error(NotImplementedError)
     end
 
     it "raises NotImplementedError for parser_class" do

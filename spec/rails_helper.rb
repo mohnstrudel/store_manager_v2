@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
@@ -26,7 +28,7 @@ end
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_paths = ["#{::Rails.root}/spec/fixtures"]
+  config.fixture_paths = ["#{Rails.root.join("spec/fixtures")}"]
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -64,4 +66,7 @@ RSpec.configure do |config|
   config.include Helpers::SessionManagement, type: :controller
   config.include Helpers::SessionManagement, type: :request
   config.include Helpers::SessionManagement, type: :feature
+
+  # Custom helper for file uploads in feature specs
+  config.include Helpers::FileUpload, type: :feature
 end

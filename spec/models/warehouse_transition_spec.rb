@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: warehouse_transitions
@@ -18,13 +20,13 @@ RSpec.describe WarehouseTransition do
       expect(association.macro).to eq(:belongs_to)
     end
 
-    it "belongs to from_warehouse" do
+    it "belongs to from_warehouse" do # rubocop:todo RSpec/MultipleExpectations
       association = described_class.reflect_on_association(:from_warehouse)
       expect(association.macro).to eq(:belongs_to)
       expect(association.options[:class_name]).to eq("Warehouse")
     end
 
-    it "belongs to to_warehouse" do
+    it "belongs to to_warehouse" do # rubocop:todo RSpec/MultipleExpectations
       association = described_class.reflect_on_association(:to_warehouse)
       expect(association.macro).to eq(:belongs_to)
       expect(association.options[:class_name]).to eq("Warehouse")

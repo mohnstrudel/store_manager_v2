@@ -3,8 +3,8 @@
 - style = "height: #{local_assigns[:width] * 1.2}px; min-width: #{local_assigns[:width]}px; max-width: #{local_assigns[:width]}px;" if local_assigns[:width].present?
 
 .preloadable-img__container.justify-self-center.w-fit.h-fit data-controller="preloadable-img" data-preloadable-img-src-value=src data-turbo-permanent="true"
-  - if src != nil
-    = image_tag "", class: "preloadable-img__img loading #{class_names}", data: {"preloadable-img-target":"img", **data}, style:
+  - if !src.nil?
+    = image_tag "", class: "preloadable-img__img loading #{class_names}", data: {"preloadable-img-target": "img", **data}, style:
   - else
-      = image_tag "", class: "preloadable-img__img hidden #{class_names}", data: {"preloadable-img-target":"img", **data}, src: "", style:
+      = image_tag "", class: "preloadable-img__img hidden #{class_names}", data: {"preloadable-img-target": "img", **data}, src: "", style:
       i#preloader-img__placeholder.icn 👻

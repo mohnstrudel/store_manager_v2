@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 require "sidekiq/web"
 require "sidekiq-status/web"
 
 Rails.application.routes.draw do
+  get "up", to: "rails/health#show", as: :rails_health_chec
+
   root "dashboard#index"
 
   # For monitoring db health
@@ -56,7 +60,12 @@ Rails.application.routes.draw do
       get "/page/:page", action: :index
       get :pull
     end
-    get :pull, on: :member
+    member do
+      # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
+      # post :publish_to_shopify
+      # post :push_to_shopify
+      post :pull_from_shopify
+    end
   end
 
   resources :sales do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ShippingCompaniesController < ApplicationController
   before_action :set_shipping_company, only: %i[show edit update destroy]
 
@@ -8,7 +10,7 @@ class ShippingCompaniesController < ApplicationController
 
   # GET /shipping_companies/1 or /shipping_companies/1.json
   def show
-    @purchase_items = @shipping_company.purchase_items.includes(:product, :purchase, edition: [:color, :size, :version])
+    @purchase_items = @shipping_company.purchase_items.includes_shipping_company_show_associations
   end
 
   # GET /shipping_companies/new

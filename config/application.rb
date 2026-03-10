@@ -22,8 +22,10 @@ module StoreManagerV2
     config.autoload_paths << jobs_concers_path
     config.eager_load_paths << jobs_concers_path
 
+    # Add app/services to autoload paths for Shopify services
     services_path = Rails.root.join("app/services")
     config.autoload_paths << services_path
+    config.eager_load_paths << services_path
 
     config.active_job.queue_adapter = :sidekiq
 

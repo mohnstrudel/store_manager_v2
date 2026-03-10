@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WebhookController < ApplicationController
   skip_before_action :verify_authenticity_token
   skip_before_action :require_authentication
@@ -8,7 +10,7 @@ class WebhookController < ApplicationController
     return head(:unauthorized) unless verified
 
     request_payload = JSON.parse(request.body.read, symbolize_names: true)
-    job = SyncWooOrdersJob.new
+    job = Woo::PullSalesJob.new
     parsed_order = job.parse(request_payload)
     job.create_sales([parsed_order])
 

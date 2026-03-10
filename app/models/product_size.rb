@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: product_sizes
@@ -34,6 +36,7 @@ class ProductSize < ApplicationRecord
   #
   db_belongs_to :product
   db_belongs_to :size
+  has_many :store_infos, as: :storable, dependent: :destroy
 
   #
   # == Scopes

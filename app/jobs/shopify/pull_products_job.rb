@@ -1,19 +1,23 @@
-class Shopify::PullProductsJob < Shopify::BasePullJob
-  private
+# frozen_string_literal: true
 
-  def resource_name
-    "products"
-  end
+module Shopify
+  class PullProductsJob < Shopify::BasePullJob
+    private
 
-  def parser_class
-    Shopify::ProductParser
-  end
+    def fetch_from_api(api_client, cursor:, batch_size:)
+      api_client.fetch_products(cursor: cursor, batch_size: batch_size)
+    end
 
-  def creator_class
-    Shopify::ProductCreator
-  end
+    def parser_class
+      Product::ShopifyParser
+    end
 
-  def batch_size
-    250
+    def creator_class
+      Product::ShopifyImporter
+    end
+
+    def batch_size
+      250
+    end
   end
 end

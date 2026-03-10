@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PurchaseItemPolicy < ApplicationPolicy
   def move?
     admin?

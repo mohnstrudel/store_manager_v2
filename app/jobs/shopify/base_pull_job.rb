@@ -1,66 +1,75 @@
-class Shopify::BasePullJob < ApplicationJob
-  queue_as :default
-  include Sanitizable
+# frozen_string_literal: true
 
-  def perform(attempts: 0, cursor: nil, limit: nil)
-    fetch_shopify_data(cursor:, limit:)
-    merge_new_items
-    schedule_next_page(limit)
-  rescue ShopifyAPI::Errors::HttpResponseError => e
-    handle_api_error(e, attempts, cursor, limit)
-  end
+module Shopify
+  class BasePullJob < ApplicationJob
+    queue_as :default
+    include Sanitizable
 
-  private
-
-  def fetch_shopify_data(cursor:, limit:)
-    limit ||= batch_size
-    api_client = Shopify::ApiClient.new
-    @api_payload = api_client.pull(
-      resource_name: resource_name,
-      cursor:,
-      batch_size: limit
-    )
-  end
-
-  def merge_new_items
-    @api_payload[:items].each do |api_item|
-      parsed_item = parser_class.new(api_item:).parse
-      creator_class.new(parsed_item:).update_or_create!
+    def perform(attempts: 0, cursor: nil, limit: nil)
+      fetch_shopify_data(cursor:, limit:)
+      merge_new_items
+      schedule_next_page if limit.blank?
+    rescue ShopifyAPI::Errors::HttpResponseError => e
+      handle_api_error(e, attempts, cursor, limit)
     end
-  end
 
-  def schedule_next_page(has_limit)
-    if @api_payload[:has_next_page] && !has_limit
-      self.class
-        .set(wait: 1.second)
-        .perform_later(cursor: @api_payload[:end_cursor])
+    private
+
+    def fetch_shopify_data(cursor:, limit:)
+      limit ||= batch_size
+      limit = Integer(limit) if limit.is_a?(String)
+      api_client = Shopify::Api::Client.new
+      @api_payload = fetch_from_api(api_client, cursor: cursor, batch_size: limit)
     end
-  end
 
-  def handle_api_error(error, attempts, cursor, limit)
-    if error.response.code == 429 # Rate limit error
-      retry_delay = attempts * 5 + 5
-      self.class
-        .set(wait: retry_delay.seconds)
-        .perform_later(attempts: attempts + 1, cursor:, limit:)
-    else
-      raise error
+    def merge_new_items
+      @api_payload[:items].each do |api_item|
+        parsed_item = parser_class.parse(api_item)
+        begin
+          creator_class.import!(parsed_item)
+        rescue => e
+          if e.message.to_s.downcase.include?("sku")
+            Rails.logger.warn("Skipping item due to SKU collision: #{e.message}")
+            next
+          end
+          raise
+        end
+      end
     end
-  end
 
-  def resource_name
-    raise NotImplementedError, "#{self.class} must implement #resource_name"
-  end
+    def schedule_next_page
+      if @api_payload[:has_next_page]
+        self.class
+          .set(wait: 1.second)
+          .perform_later(cursor: @api_payload[:end_cursor])
+      end
+    end
 
-  def parser_class
-    raise NotImplementedError, "#{self.class} must implement #parser_class"
-  end
+    def handle_api_error(error, attempts, cursor, limit)
+      if error.response.code == 429 # Rate limit error
+        retry_delay = attempts * 5 + 5
+        self.class
+          .set(wait: retry_delay.seconds)
+          .perform_later(attempts: attempts + 1, cursor:, limit:)
+      else
+        raise error
+      end
+    end
 
-  def creator_class
-    raise NotImplementedError, "#{self.class} must implement #creator_class"
-  end
+    def parser_class
+      raise NotImplementedError, "#{self.class} must implement #parser_class"
+    end
 
-  def batch_size
-    raise NotImplementedError, "#{self.class} must implement #batch_size"
+    def creator_class
+      raise NotImplementedError, "#{self.class} must implement #creator_class"
+    end
+
+    def batch_size
+      raise NotImplementedError, "#{self.class} must implement #batch_size"
+    end
+
+    def fetch_from_api(api_client, cursor:, batch_size:)
+      raise NotImplementedError, "#{self.class} must implement #fetch_from_api"
+    end
   end
 end

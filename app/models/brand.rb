@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: brands
@@ -37,6 +39,11 @@ class Brand < ApplicationRecord
   has_many :products, through: :product_brands
 
   #
+  # == Scopes
+  #
+  scope :includes_show_associations, -> { includes(:products) }
+
+  #
   # == Callbacks
   #
   after_save :update_products
@@ -58,6 +65,6 @@ class Brand < ApplicationRecord
   private
 
   def update_products
-    products.each(&:update_full_title)
+    products.includes(:franchise, :brands).find_each(&:update_full_title)
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: purchases
@@ -6,8 +8,10 @@
 #  amount          :integer
 #  item_price      :decimal(8, 2)
 #  order_reference :string
+#  paid            :decimal(8, 2)    default(0.0), not null
 #  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
+#  shipping_total  :decimal(8, 2)    default(0.0), not null
 #  slug            :string
 #  synced          :string
 #  created_at      :datetime         not null
@@ -84,6 +88,26 @@ class Purchase < ApplicationRecord
       .order(created_at: :asc)
   }
 
+  scope :includes_index_associations, -> {
+    includes(
+      :supplier,
+      :payments,
+      {product: {media: {image_attachment: :blob}}},
+      purchase_items: [:warehouse],
+      edition: [:color, :size, :version]
+    )
+  }
+
+  scope :includes_show_associations, -> {
+    includes(:warehouse, :sale_item, purchase: :payments)
+  }
+
+  scope :includes_form_associations, -> { includes(:product, :supplier) }
+
+  scope :includes_supplier_show_associations, -> {
+    includes(:product, :payments, edition: [:color, :size, :version])
+  }
+
   #
   # == Class Methods
   #
@@ -92,12 +116,8 @@ class Purchase < ApplicationRecord
   #
   # == Domain Methods
   #
-  def paid
-    @paid ||= payments ? payments.pluck(:value).sum : 0
-  end
-
   def debt
-    @total_cost ||= [total_cost - paid, 0].max
+    @debt ||= [cost_total - paid, 0].max
   end
 
   def item_debt
@@ -109,16 +129,16 @@ class Purchase < ApplicationRecord
   end
 
   def progress
-    return 0 if total_cost.zero?
-    [paid * 100.0 / total_cost, 100].min
+    return 0 if cost_total.zero?
+    [paid * 100.0 / cost_total, 100].min
   end
 
-  def total_cost
-    item_price * amount + total_shipping
+  def cost_total
+    item_price * amount + shipping_total
   end
 
-  def total_shipping
-    purchase_items.sum { it.shipping_price.to_f }
+  def title
+    "Purchase №#{id}: #{product.title}"
   end
 
   def full_title

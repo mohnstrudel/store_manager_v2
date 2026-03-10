@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_02_183628) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "action_text_rich_texts", force: :cascade do |t|
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
+  end
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -99,16 +109,20 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
   create_table "editions", force: :cascade do |t|
     t.bigint "color_id"
     t.datetime "created_at", null: false
+    t.datetime "deactivated_at"
     t.bigint "product_id", null: false
+    t.decimal "purchase_cost", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "selling_price", precision: 10, scale: 2, default: "0.0", null: false
     t.string "shopify_id"
     t.bigint "size_id"
     t.string "sku"
-    t.string "store_link"
     t.datetime "updated_at", null: false
     t.bigint "version_id"
+    t.decimal "weight", precision: 10, scale: 2, default: "0.0", null: false
     t.string "woo_id"
     t.index "product_id, COALESCE(size_id, ('-1'::integer)::bigint), COALESCE(version_id, ('-1'::integer)::bigint), COALESCE(color_id, ('-1'::integer)::bigint)", name: "index_editions_on_product_attributes_unique", unique: true
     t.index ["color_id"], name: "index_editions_on_color_id"
+    t.index ["deactivated_at"], name: "index_editions_on_deactivated_at"
     t.index ["product_id"], name: "index_editions_on_product_id"
     t.index ["shopify_id"], name: "index_editions_on_shopify_id", unique: true, where: "(shopify_id IS NOT NULL)"
     t.index ["size_id"], name: "index_editions_on_size_id"
@@ -134,6 +148,28 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
   end
 
+  create_table "images", force: :cascade do |t|
+    t.string "alt"
+    t.datetime "created_at", null: false
+    t.integer "imageable_id", null: false
+    t.string "imageable_type", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["imageable_type", "imageable_id"], name: "index_images_on_imageable_type_and_imageable_id"
+    t.index ["position"], name: "index_images_on_position"
+  end
+
+  create_table "media", force: :cascade do |t|
+    t.string "alt", default: "", null: false
+    t.datetime "created_at", null: false
+    t.bigint "mediaable_id", null: false
+    t.string "mediaable_type", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["mediaable_type", "mediaable_id"], name: "index_media_on_mediaable_type_and_mediaable_id"
+    t.index ["position"], name: "index_media_on_position"
+  end
+
   create_table "notifications", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "event_type", default: 0, null: false
@@ -148,7 +184,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.datetime "payment_date", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.bigint "purchase_id", null: false
     t.datetime "updated_at", null: false
-    t.decimal "value", precision: 8, scale: 2
+    t.decimal "value", precision: 8, scale: 2, default: "0.0"
     t.index ["purchase_id"], name: "index_payments_on_purchase_id"
   end
 
@@ -200,7 +236,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.string "shopify_id"
     t.string "sku"
     t.string "slug"
-    t.string "store_link"
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "woo_id"
@@ -219,7 +254,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.bigint "purchase_id"
     t.bigint "sale_item_id"
     t.bigint "shipping_company_id"
-    t.decimal "shipping_price", precision: 8, scale: 2
+    t.decimal "shipping_cost", precision: 8, scale: 2, default: "0.0", null: false
     t.string "tracking_number"
     t.datetime "updated_at", null: false
     t.bigint "warehouse_id", null: false
@@ -237,9 +272,11 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.bigint "edition_id"
     t.decimal "item_price", precision: 8, scale: 2
     t.string "order_reference"
+    t.decimal "paid", precision: 8, scale: 2, default: "0.0", null: false
     t.integer "payments_count", default: 0, null: false
     t.bigint "product_id"
     t.datetime "purchase_date"
+    t.decimal "shipping_total", precision: 8, scale: 2, default: "0.0", null: false
     t.string "slug"
     t.bigint "supplier_id", null: false
     t.string "synced"
@@ -332,6 +369,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
   create_table "shops", force: :cascade do |t|
     t.string "access_scopes"
     t.datetime "created_at", null: false
+    t.datetime "expires_at"
+    t.string "refresh_token"
+    t.datetime "refresh_token_expires_at"
     t.string "shopify_domain", null: false
     t.string "shopify_token", null: false
     t.datetime "updated_at", null: false
@@ -346,8 +386,11 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
   end
 
   create_table "store_infos", force: :cascade do |t|
+    t.string "alt_text"
+    t.string "checksum"
     t.datetime "created_at", null: false
-    t.decimal "price", precision: 8, scale: 2, default: "0.0", null: false
+    t.datetime "ext_created_at"
+    t.datetime "ext_updated_at"
     t.datetime "pull_time", precision: nil
     t.datetime "push_time", precision: nil
     t.string "slug"
@@ -356,8 +399,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.string "store_id"
     t.integer "store_name", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.index ["storable_type", "storable_id", "store_name"], name: "index_store_infos_on_storable_and_store_name", unique: true
     t.index ["storable_type", "storable_id"], name: "index_store_infos_on_storable"
     t.index ["store_name", "storable_type", "storable_id"], name: "index_store_infos_on_unique_store_per_storable", unique: true
+    t.index ["store_name", "store_id"], name: "index_store_infos_on_store_name_and_store_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -366,6 +411,37 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_suppliers_on_slug", unique: true
+  end
+
+  create_table "taggings", force: :cascade do |t|
+    t.string "context", limit: 128
+    t.datetime "created_at", precision: nil
+    t.bigint "tag_id"
+    t.bigint "taggable_id"
+    t.string "taggable_type"
+    t.bigint "tagger_id"
+    t.string "tagger_type"
+    t.string "tenant", limit: 128
+    t.index ["context"], name: "index_taggings_on_context"
+    t.index ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], name: "taggings_idx", unique: true
+    t.index ["tag_id"], name: "index_taggings_on_tag_id"
+    t.index ["taggable_id", "taggable_type", "context"], name: "taggings_taggable_context_idx"
+    t.index ["taggable_id", "taggable_type", "tagger_id", "context"], name: "taggings_idy"
+    t.index ["taggable_id"], name: "index_taggings_on_taggable_id"
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable_type_and_taggable_id"
+    t.index ["taggable_type"], name: "index_taggings_on_taggable_type"
+    t.index ["tagger_id", "tagger_type"], name: "index_taggings_on_tagger_id_and_tagger_type"
+    t.index ["tagger_id"], name: "index_taggings_on_tagger_id"
+    t.index ["tagger_type", "tagger_id"], name: "index_taggings_on_tagger_type_and_tagger_id"
+    t.index ["tenant"], name: "index_taggings_on_tenant"
+  end
+
+  create_table "tags", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.integer "taggings_count", default: 0
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -444,6 +520,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_10_214618) do
   add_foreign_key "sale_items", "sales"
   add_foreign_key "sales", "customers"
   add_foreign_key "sessions", "users"
+  add_foreign_key "taggings", "tags"
   add_foreign_key "warehouse_transitions", "notifications"
   add_foreign_key "warehouse_transitions", "warehouses", column: "from_warehouse_id"
   add_foreign_key "warehouse_transitions", "warehouses", column: "to_warehouse_id"

@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class PurchaseItemsController < ApplicationController
   include WarehouseMovementNotification
+  include HandlesMedia
 
   before_action :set_purchase_item, only: %i[show edit update destroy edit_tracking_number cancel_tracking_number update_tracking_number edit_shipping_company cancel_edit_shipping_company update_shipping_company]
 
@@ -17,7 +20,7 @@ class PurchaseItemsController < ApplicationController
     @warehouse = Warehouse.find(params[:warehouse_id])
     @purchase_item = PurchaseItem.new(warehouse: @warehouse)
     @purchases = Purchase
-      .includes(:product, :supplier)
+      .includes_form_associations
       .order(purchase_date: :desc, created_at: :desc)
     @shipping_companies = ShippingCompany.all
   end
@@ -32,6 +35,8 @@ class PurchaseItemsController < ApplicationController
     @purchase_item = PurchaseItem.new(purchase_item_params)
 
     if @purchase_item.save
+      add_new_media(@purchase_item)
+
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
     else
@@ -41,18 +46,15 @@ class PurchaseItemsController < ApplicationController
 
   # PATCH/PUT /purchase_items/1
   def update
-    if params[:deleted_img_ids].present?
-      deleted_imgs = ActiveStorage::Attachment.where(id: params[:deleted_img_ids])
-    end
-
     if @purchase_item.update(
       purchase_item_params.except(:redirect_to_sale_item)
     )
+      update_media(@purchase_item)
+      add_new_media(@purchase_item)
+
       path = purchase_item_params[:redirect_to_sale_item] ?
         @purchase_item.sale_item :
         @purchase_item
-
-      deleted_imgs&.map(&:purge_later)
 
       redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
     else
@@ -205,15 +207,11 @@ class PurchaseItemsController < ApplicationController
   end
 
   def set_purchase_item
-    @purchase_item = PurchaseItem.with_attached_images.find(params[:id])
+    @purchase_item = PurchaseItem.includes_show_associations.find(params[:id])
   end
 
   def set_data_for_edit
-    all_sale_items = SaleItem.includes(
-      :product,
-      sale: [:customer],
-      edition: [:color, :size, :version]
-    ).where(
+    all_sale_items = SaleItem.includes_edit_associations.where(
       sales: {status: Sale.active_status_names + Sale.completed_status_names}
     )
     @sale_items = all_sale_items.where(
@@ -221,7 +219,7 @@ class PurchaseItemsController < ApplicationController
     ) + all_sale_items.where.not(
       product_id: @purchase_item.product
     )
-    @purchases = Purchase.includes(:product, :supplier).order(
+    @purchases = Purchase.includes_form_associations.order(
       purchase_date: :desc,
       created_at: :desc
     )
@@ -230,21 +228,19 @@ class PurchaseItemsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def purchase_item_params
-    params.require(:purchase_item).permit(
-      :length,
-      :width,
-      :height,
-      :weight,
-      :expenses,
-      :shipping_price,
-      :tracking_number,
-      :warehouse_id,
-      :purchase_id,
-      :sale_item_id,
-      :redirect_to_sale_item,
-      :shipping_company_id,
-      deleted_img_ids: [],
-      images: []
+    params.expect(
+      purchase_item: [:length,
+        :width,
+        :height,
+        :weight,
+        :expenses,
+        :shipping_cost,
+        :tracking_number,
+        :warehouse_id,
+        :purchase_id,
+        :sale_item_id,
+        :redirect_to_sale_item,
+        :shipping_company_id]
     )
   end
 end

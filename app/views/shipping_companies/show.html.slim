@@ -32,6 +32,6 @@
                 )
                   td = purchase_item.product.full_title
                   td = purchase_item.tracking_number
-                  td.no-wrap = time_ago_in_words (purchase_item.purchase&.purchase_date.presence || purchase_item.created_at)
+                  td.no-wrap = time_ago_in_words(purchase_item.purchase&.purchase_date.presence || purchase_item.created_at)
 
 = destroy_btn_for @shipping_company

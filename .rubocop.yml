@@ -1,12 +1,14 @@
 require:
   - standard
-  - rubocop-slim
   - database_validations/rubocop/cops
 
 plugins:
   - rubocop-performance
   - rubocop-rails
   - rubocop-rspec
+  - rubocop-rspec_rails
+  - rubocop-slim
+  - rubocop-factory_bot
 
 inherit_gem:
   standard: config/base.yml
@@ -19,6 +21,8 @@ AllCops:
     - node_modules/**/*
     - public/**/*
     - vendor/**/*
+    - bin/bundle
+    - app/javascript/**/*
 
 Rails:
   Enabled: true # enable rubocop-rails cops
@@ -30,6 +34,10 @@ Rails/UnknownEnv:
     - test
     - production
     - staging
+Rails/DynamicFindBy:
+  Whitelist:
+    - find_by_shopify_id
+    - find_by_woo_id
 Layout/ClassStructure:
   Enabled: true
   ExpectedOrder:
@@ -66,3 +74,7 @@ RSpec/ExampleLength:
   Enabled: false
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we will have duplicated gems when dual booting
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always

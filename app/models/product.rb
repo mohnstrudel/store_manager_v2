@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: products
@@ -7,7 +9,6 @@
 #  image        :string
 #  sku          :string
 #  slug         :string
-#  store_link   :string
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
@@ -58,11 +59,13 @@ class Product < ApplicationRecord
   # == Validations
   #
   validates :title, presence: true
+  validates :sku, presence: true
   validates_db_uniqueness_of :sku
 
   #
   # == Associations
   #
+  has_rich_text :description
   db_belongs_to :franchise
   db_belongs_to :shape
 
@@ -92,17 +95,34 @@ class Product < ApplicationRecord
   #
   scope :listed, -> {
     includes(editions: [:version, :color, :size])
-      .with_attached_images
+      .with_thumb_media
       .order(created_at: :desc)
+  }
+
+  scope :includes_index_associations, -> { includes(:shopify_info, :woo_info) }
+
+  scope :includes_show_associations, -> {
+    includes(
+      media: {image_attachment: :blob},
+      purchases: [:product, :supplier, edition: [:version, :color, :size]],
+      purchase_items: [:warehouse, :purchase],
+      editions: [
+        :version,
+        :color,
+        :size,
+        :shopify_info,
+        :woo_info,
+        {sale_items: :sale},
+        {purchases: :supplier}
+      ],
+      store_infos: [:tags]
+    )
   }
 
   #
   # == Class Methods
   #
-  def self.generate_full_title(
-    product,
-    brand = nil
-  )
+  def self.generate_full_title(product)
     title_part = if product.title == product.franchise.title
       product.title
     else
@@ -115,8 +135,8 @@ class Product < ApplicationRecord
 
     [
       title_part,
-      brand&.title || brands.presence
-    ].compact.join(" | ")
+      brands
+    ].compact_blank.join(" | ")
   end
 
   #
@@ -132,11 +152,14 @@ class Product < ApplicationRecord
   end
 
   def build_full_title_with_shop_id
-    "#{full_title} | #{shop_id || "N/A"}"
+    shop_ids = [shopify_info&.id_short&.presence, woo_info&.store_id&.presence].compact.join(" | ")
+    "#{full_title} | #{shop_ids || "N/A"}"
   end
 
   def build_shopify_url
-    "https://handsomecake.com/products/#{store_link}"
+    return "https://handsomecake.com/" unless shopify_info&.slug
+
+    "https://handsomecake.com/products/#{shopify_info.slug}"
   end
 
   def fetch_active_sale_items
@@ -166,10 +189,9 @@ class Product < ApplicationRecord
       .sum(:amount)
   end
 
-  def build_editions
+  def build_new_editions
+    return create_base_model_edition if base_model_case?
     return unless sizes.any? || versions.any? || colors.any?
-
-    mark_absent_editions_for_destruction
 
     editions.build(edition_attributes)
   end
@@ -180,17 +202,33 @@ class Product < ApplicationRecord
 
   private
 
-  def mark_absent_editions_for_destruction
-    editions.each do |edition|
-      should_delete = (edition.size && sizes.exclude?(edition.size)) ||
-        (edition.version && versions.exclude?(edition.version)) ||
-        (edition.color && colors.exclude?(edition.color))
-      edition.mark_for_destruction if should_delete
-    end
+  # Single size editions aren't real editions by our agreement
+  def base_model_case?
+    sizes.count == 1 && colors.empty? && versions.empty?
+  end
+
+  def create_base_model_edition
+    attributes = {product_id: id}
+
+    return if editions.exists?(attributes)
+
+    editions.build(attributes)
   end
 
   def edition_attributes
-    size_items = sizes.any? ? sizes : [nil]
+    # Single size logic: don't use size if there's only 1
+    # AND there are other attributes (versions or colors)
+    # Base model case is handled separately in build_new_editions
+    skip_single_size = sizes.count == 1 && (versions.any? || colors.any?)
+
+    size_items = if skip_single_size
+      [nil]
+    elsif sizes.any?
+      sizes
+    else
+      [nil]
+    end
+
     version_items = versions.any? ? versions : [nil]
     color_items = colors.any? ? colors : [nil]
 

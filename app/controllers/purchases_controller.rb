@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PurchasesController < ApplicationController
   include WarehouseMovementNotification
 
@@ -7,13 +9,7 @@ class PurchasesController < ApplicationController
   # GET /purchases or /purchases.json
   def index
     @purchases = Purchase
-      .includes(
-        :supplier,
-        :payments,
-        purchase_items: [:warehouse],
-        product: [images_attachments: :blob],
-        edition: [:color, :size, :version]
-      )
+      .includes_index_associations
       .order(id: :desc)
       .page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
@@ -23,7 +19,7 @@ class PurchasesController < ApplicationController
   def show
     @purchase_items = @purchase
       .purchase_items
-      .includes(:warehouse, :sale_item, purchase: :payments)
+      .includes_purchase_show_associations
       .order(updated_at: :desc)
   end
 
@@ -133,17 +129,17 @@ class PurchasesController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def purchase_params
-    params.require(:purchase).permit(
-      :supplier_id,
-      :product_id,
-      :edition_id,
-      :order_reference,
-      :item_price,
-      :amount,
-      :purchase_id,
-      :selected_items_ids,
-      :warehouse_id,
-      payments_attributes: [:id, :value, :purchase_id]
+    params.expect(
+      purchase: [:supplier_id,
+        :product_id,
+        :edition_id,
+        :order_reference,
+        :item_price,
+        :amount,
+        :purchase_id,
+        :selected_items_ids,
+        :warehouse_id,
+        payments_attributes: [:id, :value, :purchase_id]]
     )
   end
 end

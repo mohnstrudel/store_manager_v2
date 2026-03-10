@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: purchase_items
@@ -6,18 +8,20 @@
 #  expenses            :decimal(8, 2)
 #  height              :integer
 #  length              :integer
-#  shipping_price      :decimal(8, 2)
+#  shipping_cost       :decimal(8, 2)    default(0.0), not null
 #  tracking_number     :string
 #  weight              :integer
 #  width               :integer
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
-#  sale_item_id        :bigint
 #  purchase_id         :bigint
+#  sale_item_id        :bigint
 #  shipping_company_id :bigint
 #  warehouse_id        :bigint           not null
 #
 class PurchaseItem < ApplicationRecord
+  after_commit :update_purchase_shipping_total, if: :should_update_purchase_shipping?
+
   #
   # == Concerns
   #
@@ -88,6 +92,20 @@ class PurchaseItem < ApplicationRecord
       .order(paid_priority, created_at: :asc)
   }
 
+  scope :includes_show_associations, -> { includes(media: {image_attachment: :blob}) }
+
+  scope :includes_purchase_show_associations, -> {
+    includes(:warehouse, :sale_item, purchase: :payments, sale: [:customer, :shopify_info, :woo_info])
+  }
+
+  scope :includes_warehouse_show_associations, -> {
+    includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
+  }
+
+  scope :includes_shipping_company_show_associations, -> {
+    includes(:product, :purchase, edition: [:color, :size, :version])
+  }
+
   #
   # == Class Methods
   #
@@ -99,8 +117,12 @@ class PurchaseItem < ApplicationRecord
     purchase.full_title
   end
 
+  def title
+    "Purchase Item №#{id}"
+  end
+
   def cost
-    price.to_f + purchase.item_price.to_f + shipping_price.to_f
+    purchase.item_price.to_f + shipping_cost.to_f
   end
 
   def relocate_to(destination_id)
@@ -109,5 +131,29 @@ class PurchaseItem < ApplicationRecord
 
   def link_with(sale_item_id)
     update!(sale_item_id:)
+  end
+
+  private
+
+  def should_update_purchase_shipping?
+    previously_new_record? || destroyed? || saved_change_to_shipping_cost?
+  end
+
+  def update_purchase_shipping_total
+    delta =
+      if previously_new_record?
+        shipping_cost
+      elsif destroyed?
+        -shipping_cost
+      else
+        saved_change_to_shipping_cost.last - saved_change_to_shipping_cost.first
+      end
+
+    return if delta.zero?
+
+    purchase.with_lock do
+      purchase.shipping_total += delta
+      purchase.save!
+    end
   end
 end

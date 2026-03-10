@@ -1,8 +1,8 @@
 ShopifyApp.configure do |config|
-  config.api_version = "2025-04"
+  config.api_version = "2025-10"
   # Consult this page for more scope options:
   # https://help.shopify.com/en/api/getting-started/authentication/oauth/scopes
-  config.scope = "read_products, read_orders, read_order_edits, read_customers, read_inventory"
+  config.scope = "read_products, write_products, read_orders, read_order_edits, read_customers, read_inventory, write_images, read_files, write_files"
 
   config.root_url = "/shopify_app"
   config.login_callback_url = "/shopify_app/auth/shopify/callback"
@@ -18,12 +18,9 @@ ShopifyApp.configure do |config|
   config.shop_session_repository = "Shop"
   config.log_level = :info
   config.reauth_on_access_scope_changes = true
-  config.webhooks = [
-    {topic: "app/uninstalled", address: "webhooks/app_uninstalled"},
-    {topic: "customers/data_request", address: "webhooks/customers_data_request"},
-    {topic: "customers/redact", address: "webhooks/customers_redact"},
-    {topic: "shop/redact", address: "webhooks/shop_redact"}
-  ]
+
+  config.webhook_jobs_namespace = "shopify/webhooks"
+  config.webhooks = []
 
   config.api_key = ENV.fetch("SHOPIFY_API_KEY", "").presence
   config.secret = ENV.fetch("SHOPIFY_API_SECRET", "").presence

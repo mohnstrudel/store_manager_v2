@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: sales
@@ -86,12 +88,14 @@ class Sale < ApplicationRecord
         Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC")
       )
   }
-  scope :with_index_details, -> {
+  scope :includes_index_associations, -> {
     includes(
       :customer,
+      :shopify_info,
+      :woo_info,
       sale_items: [
+        {product: {media: {image_attachment: :blob}}},
         :purchase_items,
-        product: [images_attachments: :blob],
         edition: [
           :version,
           :color,
@@ -100,11 +104,11 @@ class Sale < ApplicationRecord
       ]
     )
   }
-  scope :with_show_details, -> {
+  scope :includes_show_associations, -> {
     includes(
         sale_items: [
-          purchase_items: [:warehouse, purchase: :supplier],
-          product: [images_attachments: :blob]
+          {product: {media: {image_attachment: :blob}}},
+          purchase_items: [:warehouse, purchase: :supplier]
         ]
       )
   }
@@ -157,7 +161,7 @@ class Sale < ApplicationRecord
   end
 
   def self.update_order(sale)
-    UpdateWooOrderJob.perform_later(sale)
+    Woo::PushSaleJob.perform_later(sale)
   end
 
   def self.find_recent_by_order_id(shop_order_id)
@@ -167,6 +171,38 @@ class Sale < ApplicationRecord
       Sale.where(
         "shopify_name LIKE ? OR woo_id = ?", "%#{shop_order_id}", shop_order_id
       ).max_by(&:shop_created_at)
+    end
+  end
+
+  # Derive local status from Shopify fulfillment and financial statuses
+  #
+  # @param fulfillment_status [String] Shopify fulfillment status (FULFILLED, UNFULFILLED)
+  # @param financial_status [String] Shopify financial status (PAID, PENDING, PARTIALLY_PAID, REFUNDED)
+  #
+  # @return [String] The local status name
+  #
+  # @note Maps Shopify statuses to local domain statuses
+  # @note Defaults to "processing" for unknown combinations
+  #
+  # @example
+  #   Sale.derive_status_from_shopify("FULFILLED", "PAID") # => "completed"
+  #   Sale.derive_status_from_shopify("UNFULFILLED", "PAID") # => "pre-ordered"
+  def self.derive_status_from_shopify(fulfillment_status, financial_status)
+    case [fulfillment_status, financial_status]
+    when ["FULFILLED", "PAID"]
+      "completed"
+    when ["UNFULFILLED", "PAID"]
+      "pre-ordered"
+    when ["UNFULFILLED", "PENDING"]
+      "processing"
+    when ["UNFULFILLED", "PARTIALLY_PAID"]
+      "partially-paid"
+    when ["FULFILLED", "REFUNDED"]
+      "refunded"
+    when ["UNFULFILLED", "REFUNDED"]
+      "cancelled"
+    else
+      "processing"
     end
   end
 
@@ -222,7 +258,7 @@ class Sale < ApplicationRecord
   end
 
   def shop_updated_at
-    shopify_updated_at || woo_updated_at
+    shopify_info&.ext_updated_at || woo_updated_at
   end
 
   def link_with_purchase_items

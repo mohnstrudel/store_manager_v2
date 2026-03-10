@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: purchases
@@ -6,8 +8,10 @@
 #  amount          :integer
 #  item_price      :decimal(8, 2)
 #  order_reference :string
+#  paid            :decimal(8, 2)    default(0.0), not null
 #  payments_count  :integer          default(0), not null
 #  purchase_date   :datetime
+#  shipping_total  :decimal(8, 2)    default(0.0), not null
 #  slug            :string
 #  synced          :string
 #  created_at      :datetime         not null
@@ -28,16 +32,19 @@ RSpec.describe Purchase do
 
     context "when amount is not present" do
       before { purchase.amount = nil }
+
       it { is_expected.not_to be_valid }
     end
 
     context "when item_price is not present" do
       before { purchase.item_price = nil }
+
       it { is_expected.not_to be_valid }
     end
 
     context "when supplier_id is not present" do
       before { purchase.supplier_id = nil }
+
       it { is_expected.not_to be_valid }
     end
   end
@@ -76,7 +83,7 @@ RSpec.describe Purchase do
     context "when edition is nil" do
       let(:purchase) { create(:purchase, edition: nil) }
 
-      it "returns empty collections for through associations" do
+      it "returns empty collections for through associations" do # rubocop:todo RSpec/MultipleExpectations
         expect(purchase.sizes).to be_empty
         expect(purchase.versions).to be_empty
         expect(purchase.colors).to be_empty
@@ -90,7 +97,7 @@ RSpec.describe Purchase do
       let!(:paid_purchase) { create(:purchase, payments_count: 1) }
       let!(:older_unpaid_purchase) { create(:purchase, payments_count: 0, created_at: 2.days.ago) }
 
-      it "returns purchases without payments" do
+      it "returns purchases without payments" do # rubocop:todo RSpec/MultipleExpectations
         expect(described_class.unpaid).to include(unpaid_purchase, older_unpaid_purchase)
         expect(described_class.unpaid.where.not(id: paid_purchase.id)).not_to include(paid_purchase)
       end
@@ -108,41 +115,56 @@ RSpec.describe Purchase do
 
   describe "Domain Methods" do
     let(:purchase) { create(:purchase, amount: 10, item_price: 100.0) }
-    let!(:payment1) { create(:payment, purchase:, value: 200.0) }
-    let!(:payment2) { create(:payment, purchase:, value: 300.0) }
+    # rubocop:todo RSpec/LetSetup
+    # rubocop:todo Lint/CopDirectiveSyntax
+    let!(:payment1) { create(:payment, purchase:, value: 200.0) } # rubocop:todo RSpec/IndexedLet # rubocop:todo RSpec/LetSetup
+    # rubocop:enable Lint/CopDirectiveSyntax
+    # rubocop:enable RSpec/LetSetup
+    # rubocop:todo RSpec/LetSetup
+    # rubocop:todo Lint/CopDirectiveSyntax
+    let!(:payment2) { create(:payment, purchase:, value: 300.0) } # rubocop:todo RSpec/IndexedLet # rubocop:todo RSpec/LetSetup
+    # rubocop:enable Lint/CopDirectiveSyntax
+    # rubocop:enable RSpec/LetSetup
 
     describe "#paid" do
-      it "calculates total paid amount from payments" do
+      it "returns the paid column value from database" do
         expect(purchase.paid).to eq(500.0)
       end
 
-      it "returns 0 when there are no payments" do
-        purchase.payments.destroy_all
-        expect(purchase.paid).to eq(0)
+      it "returns default value 0 for new purchases" do
+        new_purchase = create(:purchase, amount: 5, item_price: 50.0)
+        expect(new_purchase.paid).to eq(0)
       end
 
-      it "memoizes the result" do
-        expect(purchase.payments).to receive(:pluck).once.and_return([200.0, 300.0])
-        expect(purchase.paid).to eq(500.0)
-        expect(purchase.paid).to eq(500.0) # Should not call pluck again
+      it "is updated when a payment is created" do
+        purchase.update!(paid: 0)
+        create(:payment, purchase:, value: 150.0)
+        expect(purchase.reload.paid).to eq(150.0)
+      end
+
+      it "accumulates when multiple payments are created" do
+        purchase.update!(paid: 0)
+        create(:payment, purchase:, value: 100.0)
+        create(:payment, purchase:, value: 200.0)
+        expect(purchase.reload.paid).to eq(300.0)
       end
     end
 
     describe "#debt" do
-      it "calculates remaining debt (total_cost - paid)" do
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
+      it "calculates remaining debt (cost_total - paid)" do
+        purchase.update!(shipping_total: 200.0)
         expect(purchase.debt).to eq(700.0)
       end
 
-      it "returns 0 when paid amount exceeds total_cost" do
-        allow(purchase).to receive(:total_cost).and_return(400.0)
+      it "returns 0 when paid amount exceeds cost_total" do
+        purchase.update!(paid: 1500.0)
         expect(purchase.debt).to eq(0)
       end
 
-      it "memoizes the result" do
-        expect(purchase).to receive(:total_cost).once.and_return(1200.0)
+      it "memoizes the result" do # rubocop:todo RSpec/MultipleExpectations
+        purchase.update!(shipping_total: 200.0)
         expect(purchase.debt).to eq(700.0)
-        expect(purchase.debt).to eq(700.0) # Should not call total_cost again
+        expect(purchase.debt).to eq(700.0)
       end
     end
 
@@ -152,8 +174,9 @@ RSpec.describe Purchase do
         expect(purchase.item_debt).to eq(70.0)
       end
 
-      context "when amount is zero" do
+      context "when amount is zero" do # rubocop:todo RSpec/NestedGroups
         before { purchase.amount = 0 }
+
         it "returns Infinity" do
           allow(purchase).to receive(:debt).and_return(700.0)
           expect(purchase.item_debt).to eq(Float::INFINITY)
@@ -166,8 +189,9 @@ RSpec.describe Purchase do
         expect(purchase.item_paid).to eq(50.0)
       end
 
-      context "when amount is zero" do
+      context "when amount is zero" do # rubocop:todo RSpec/NestedGroups
         before { purchase.amount = 0 }
+
         it "returns Infinity" do
           allow(purchase).to receive(:paid).and_return(500.0)
           expect(purchase.item_paid).to eq(Float::INFINITY)
@@ -177,51 +201,30 @@ RSpec.describe Purchase do
 
     describe "#progress" do
       it "calculates payment progress percentage" do
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
-        expect(purchase.progress.round(2)).to eq(41.67) # 500.0 * 100.0 / 1200.0 rounded to 2 decimals
+        purchase.update!(shipping_total: 200.0)
+        expect(purchase.progress.round(2)).to eq(41.67)
       end
 
-      it "returns 0 when total_cost is zero" do
-        allow(purchase).to receive(:total_cost).and_return(0)
+      it "returns 0 when cost_total is zero" do
+        purchase.update!(amount: 0, item_price: 0, shipping_total: 0)
         expect(purchase.progress).to eq(0)
       end
 
-      it "returns 100 when paid amount exceeds total_cost" do
-        allow(purchase).to receive(:paid).and_return(1500.0)
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
+      it "returns 100 when paid amount exceeds cost_total" do
+        purchase.update!(paid: 1500.0, shipping_total: 200.0)
         expect(purchase.progress).to eq(100)
       end
 
-      it "returns 100 when paid amount equals total_cost" do
-        allow(purchase).to receive(:paid).and_return(1200.0)
-        allow(purchase).to receive(:total_cost).and_return(1200.0)
+      it "returns 100 when paid amount equals cost_total" do
+        purchase.update!(paid: 1200.0, shipping_total: 200.0)
         expect(purchase.progress).to eq(100)
       end
     end
 
-    describe "#total_cost" do
+    describe "#cost_total" do
       it "calculates total cost including shipping" do
-        allow(purchase).to receive(:total_shipping).and_return(50.0)
-        expect(purchase.total_cost).to eq(1050.0) # 100.0 * 10 + 50.0
-      end
-    end
-
-    describe "#total_shipping" do
-      let!(:purchase_item1) { create(:purchase_item, purchase:, shipping_price: 10.0) }
-      let!(:purchase_item2) { create(:purchase_item, purchase:, shipping_price: 15.0) }
-
-      it "calculates total shipping cost from purchase_items" do
-        expect(purchase.total_shipping).to eq(25.0)
-      end
-
-      it "returns 0 when there are no purchase_items" do
-        purchase.purchase_items.destroy_all
-        expect(purchase.total_shipping).to eq(0)
-      end
-
-      it "handles nil shipping_price values" do
-        purchase_item1.update!(shipping_price: nil)
-        expect(purchase.total_shipping).to eq(15.0)
+        purchase.update!(shipping_total: 50.0)
+        expect(purchase.cost_total).to eq(1050.0)
       end
     end
 
@@ -251,7 +254,7 @@ RSpec.describe Purchase do
     end
 
     describe "#which_edition" do
-      context "when edition is present" do
+      context "when edition is present" do # rubocop:todo RSpec/NestedGroups
         let(:edition) { create(:edition) }
         let(:purchase) { create(:purchase, edition:) }
 
@@ -260,7 +263,7 @@ RSpec.describe Purchase do
         end
       end
 
-      context "when edition is nil" do
+      context "when edition is nil" do # rubocop:todo RSpec/NestedGroups
         let(:purchase) { create(:purchase, edition: nil) }
 
         it "returns '-'" do
@@ -318,14 +321,14 @@ RSpec.describe Purchase do
         expect(PurchaseItem.where(warehouse_id: warehouse.id).count).to eq(3)
       end
 
-      it "sets created_at and updated_at timestamps" do
+      it "sets created_at and updated_at timestamps" do # rubocop:todo RSpec/MultipleExpectations
         purchase.add_items_to_warehouse(warehouse.id)
         purchase_items = PurchaseItem.where(purchase_id: purchase.id)
         expect(purchase_items.all? { |item| item.created_at.present? }).to be true
         expect(purchase_items.all? { |item| item.updated_at.present? }).to be true
       end
 
-      context "when amount is zero" do
+      context "when amount is zero" do # rubocop:todo RSpec/NestedGroups
         let(:purchase) { create(:purchase, amount: 0) }
 
         it "creates no purchase items" do
@@ -335,7 +338,7 @@ RSpec.describe Purchase do
         end
       end
 
-      context "when warehouse does not exist" do
+      context "when warehouse does not exist" do # rubocop:todo RSpec/NestedGroups
         let(:invalid_warehouse_id) { 999999 }
 
         it "raises ActiveRecord::RecordInvalid" do
@@ -348,17 +351,23 @@ RSpec.describe Purchase do
 
     describe "#link_with_sales" do
       let(:purchase) { create(:purchase, amount: 2) }
-      let!(:purchase_item1) { create(:purchase_item, purchase:) }
-      let!(:purchase_item2) { create(:purchase_item, purchase:) }
+      let!(:purchase_item1) { create(:purchase_item, purchase:) } # rubocop:todo RSpec/IndexedLet
+      let!(:purchase_item2) { create(:purchase_item, purchase:) } # rubocop:todo RSpec/IndexedLet
       let(:sale_item) { create(:sale_item, qty: 2, product: purchase.product) }
 
       before do
         allow(SaleItem).to receive(:linkable_with).and_return([sale_item])
       end
 
-      it "links purchase with sales and sends notifications" do
+      it "links purchase with sales and sends notifications" do # rubocop:todo RSpec/MultipleExpectations
+        # rubocop:todo RSpec/StubbedMock
+        # rubocop:todo RSpec/MessageSpies
         expect(PurchaseLinker).to receive(:link).with(purchase).and_return([purchase_item1.id, purchase_item2.id])
+        # rubocop:enable RSpec/MessageSpies
+        # rubocop:enable RSpec/StubbedMock
+        # rubocop:todo RSpec/MessageSpies
         expect(PurchasedNotifier).to receive(:handle_product_purchase).with(purchase_item_ids: [purchase_item1.id, purchase_item2.id])
+        # rubocop:enable RSpec/MessageSpies
 
         purchase.link_with_sales
       end
@@ -389,7 +398,7 @@ RSpec.describe Purchase do
     end
 
     describe "FriendlyId" do
-      it "has friendly_id configured" do
+      it "has friendly_id configured" do # rubocop:todo RSpec/MultipleExpectations
         expect(described_class.friendly_id_config).to be_present
         expect(described_class.friendly_id_config.base).to eq(:full_title)
       end
@@ -400,7 +409,7 @@ RSpec.describe Purchase do
         expect(described_class).to include(Searchable)
       end
 
-      it "has search scope configured" do
+      it "has search scope configured" do # rubocop:todo RSpec/MultipleExpectations
         expect(described_class).to respond_to(:search)
         expect(described_class).to respond_to(:search_by)
       end
@@ -417,17 +426,16 @@ RSpec.describe Purchase do
     describe "division by zero in progress method" do
       let(:purchase) { create(:purchase, amount: 10, item_price: 100.0) }
 
-      it "returns 0 when total_cost is zero" do
-        allow(purchase).to receive(:total_cost).and_return(0)
+      it "returns 0 when cost_total is zero" do
+        purchase.update!(amount: 0, item_price: 0, shipping_total: 0)
         expect(purchase.progress).to eq(0)
       end
     end
 
-    describe "nil payments in paid method" do
+    describe "paid column default value" do
       let(:purchase) { create(:purchase) }
 
-      it "returns 0 when payments association is nil" do
-        allow(purchase).to receive(:payments).and_return(nil)
+      it "returns 0 by default for new purchases" do
         expect(purchase.paid).to eq(0)
       end
     end

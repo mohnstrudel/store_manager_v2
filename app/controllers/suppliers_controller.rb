@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SuppliersController < ApplicationController
   before_action :set_supplier, only: %i[show edit update destroy]
 
@@ -8,7 +10,7 @@ class SuppliersController < ApplicationController
 
   # GET /suppliers/1 or /suppliers/1.json
   def show
-    @purchases = @supplier.purchases.includes(:product, :payments, edition: [:color, :size, :version])
+    @purchases = @supplier.purchases.includes_supplier_show_associations
   end
 
   # GET /suppliers/new

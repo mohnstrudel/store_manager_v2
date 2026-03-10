@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory(:sale) do
     customer
@@ -15,8 +17,14 @@ FactoryBot.define do
     status { "processing" }
     total { BigDecimal("1060.0") }
     woo_created_at { "2023-11-20T08:38 UTC" }
+    woo_updated_at { "2023-11-20T08:38 UTC" }
+
     woo_id { SecureRandom.alphanumeric(10) }
     shopify_id { SecureRandom.alphanumeric(10) }
-    woo_updated_at { "2023-11-20T08:38 UTC" }
+
+    after(:create) do |sale|
+      create(:store_info, :woo, storable: sale, store_id: sale.woo_id)
+      create(:store_info, :shopify, storable: sale, store_id: sale.shopify_id)
+    end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: sale_items
@@ -68,6 +70,16 @@ class SaleItem < ApplicationRecord
 
   scope :with_purchase_details, -> {
     includes(:product, edition: [:version, :color, :size], purchase_items: :warehouse)
+  }
+
+  scope :includes_show_associations, -> { includes(purchase_items: :warehouse) }
+
+  scope :includes_edit_associations, -> {
+    includes(
+      :product,
+      sale: [:customer],
+      edition: [:color, :size, :version]
+    )
   }
 
   #

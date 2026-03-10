@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 module WarehouseMovementNotification
   extend ActiveSupport::Concern
+  include ActionView::Helpers::OutputSafetyHelper
 
   private
 
@@ -13,6 +16,9 @@ module WarehouseMovementNotification
     )
     products = "product".pluralize(moved_count)
 
-    flash[:notice] = "Success! #{moved_count} purchased #{products} moved to: #{destination_link}".html_safe
+    flash[:notice] = safe_join([
+      "Success! #{moved_count} purchased #{products} moved to: ",
+      destination_link
+    ])
   end
 end

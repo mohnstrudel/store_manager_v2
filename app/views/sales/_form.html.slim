@@ -11,7 +11,7 @@
       = form.text_field :woo_id
 
   = form.label :customer_id
-  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, { class: "select" }, data: { controller: "slim-select" })
+  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, {class: "select"}, data: {controller: "slim-select"})
 
   = form.label :note
   = form.text_field :note
@@ -28,15 +28,15 @@
       = form.text_field :city
     .block.w-full
       = form.label :postcode
-      = form.text_field :postcode  
-  
+      = form.text_field :postcode
+
   fieldset.flex.justify-between.gap-4
     .block.w-full
       = form.label :address_1
       = form.text_field :address_1
     .block.w-full
       = form.label :address_2
-      = form.text_field :address_2    
+      = form.text_field :address_2
 
   = form.label :company
   = form.text_field :company
@@ -50,7 +50,7 @@
       = form.text_field :discount_total
     .block.w-full
       = form.label :shipping_total
-      = form.text_field :shipping_total  
+      = form.text_field :shipping_total
 
   label Status
   .flex.flex-wrap.gap-4.p-4.border.border-gray-200.rounded-md class="dark:border-gray-800"
@@ -60,12 +60,12 @@
           = rdb.radio_button class: "p-0"
         = rdb.label class: "m-0 p-0 pl-2 cursor-pointer text-sm"
 
-  h5.mt-8.mb-3 Products 
+  h5.mt-8.mb-3 Products
   div data-controller="sale-items"
     / Look for the template in sale_items_controller.js
     = form.collection_select(:_, Product.all, :id, :full_title,
-        { prompt: "Select a product" },
-        { hidden: true, data: { "sale-items-target": "options" }})
+        {prompt: "Select a product"},
+        {hidden: true, data: {"sale-items-target": "options"}})
     - sale.sale_items.each do |sale_item|
       = form.fields_for :sale_items, sale_item do |ps_f|
         = render "product_fields", f: ps_f, product: sale_item.product

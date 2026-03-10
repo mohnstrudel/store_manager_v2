@@ -3,12 +3,13 @@ tr.hoverable id="#{dom_id product}" data-action="click->table#goTo" data-table-u
     = render "_shared/preloadable_img", src: thumb_url(product), class_names: "zoomable", width: 100
   td
     = product.full_title
-    - if product.editions.present?
+    - if product.editions.any?
       ul.ml-4.mt-2
         - product.editions.each do |edition|
+          - next if edition.base_model?
           li.mt-1 = edition.title
-  td = product.woo_id
-  td = product.shopify_id_short
+  td = product&.woo_info&.store_id
+  td = product&.shopify_info&.id_short
   td.actions
     = render "_shared/action_edit", route: edit_product_path(product)
     = link_to new_purchase_path(product:), {class: "no-events"}

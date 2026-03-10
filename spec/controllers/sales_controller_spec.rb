@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe SalesController, type: :controller do
@@ -254,13 +256,13 @@ RSpec.describe SalesController, type: :controller do
       expect(sale).to have_received(:link_with_purchase_items)
     end
 
-    it "calls PurchasedNotifier with correct purchase_item_ids" do
+    it "calls PurchasedNotifier with correct purchase_item_ids" do # rubocop:todo RSpec/MultipleExpectations
       post :link_purchase_items, params: {id: sale.id}
       expect(PurchasedNotifier).to have_received(:new).with(purchase_item_ids:)
       expect(PurchasedNotifier.new(purchase_item_ids:)).to have_received(:handle_product_purchase)
     end
 
-    it "redirects to sale with success notice" do
+    it "redirects to sale with success notice" do # rubocop:todo RSpec/MultipleExpectations
       post :link_purchase_items, params: {id: sale.id}
       expect(response).to redirect_to(sale)
       expect(flash[:notice]).to eq("Success! Sold products were interlinked with purchased products")
@@ -269,20 +271,19 @@ RSpec.describe SalesController, type: :controller do
 
   describe "POST #pull" do
     context "with sale_id parameter" do
-      let(:sale) { create(:sale, woo_id: "123") }
+      let(:sale) { create(:sale) }
 
-      it "triggers SyncWooOrdersJob for sale with woo_id" do
-        allow(SyncWooOrdersJob).to receive_message_chain(:set, :perform_later).with(id: sale.woo_id)
+      it "triggers Woo::PullSalesJob for sale with woo_id" do
+        allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(id: sale.woo_id)
         allow(Shopify::PullSaleJob).to receive(:perform_later)
 
         post :pull, params: {id: sale.to_param}
 
-        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
+        expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
       end
 
       it "triggers Shopify::PullSaleJob for sale with shopify_id" do
-        sale.update!(shopify_id: "456")
-        allow(SyncWooOrdersJob).to receive(:perform_later)
+        allow(Woo::PullSalesJob).to receive(:perform_later)
         allow(Shopify::PullSaleJob).to receive(:perform_later).with(sale.shopify_id)
 
         post :pull, params: {id: sale.to_param}
@@ -292,7 +293,7 @@ RSpec.describe SalesController, type: :controller do
 
       it "updates Shopify sync time" do
         allow(Config).to receive(:update_shopify_sales_sync_time)
-        allow(SyncWooOrdersJob).to receive(:perform_later)
+        allow(Woo::PullSalesJob).to receive(:perform_later)
         allow(Shopify::PullSaleJob).to receive(:perform_later)
 
         post :pull, params: {id: sale.to_param}
@@ -305,30 +306,30 @@ RSpec.describe SalesController, type: :controller do
       it "triggers bulk sync jobs" do
         allow(Config).to receive(:update_shopify_sales_sync_time)
         allow(Shopify::PullSalesJob).to receive(:perform_later).with(limit: nil)
-        allow(SyncWooOrdersJob).to receive_message_chain(:set, :perform_later).with(limit: nil)
+        allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(limit: nil)
 
         post :pull
 
         expect(Config).to have_received(:update_shopify_sales_sync_time)
         expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: nil)
-        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
+        expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
       end
 
       it "passes limit parameter to jobs" do
         limit = 100
         allow(Config).to receive(:update_shopify_sales_sync_time)
         allow(Shopify::PullSalesJob).to receive(:perform_later).with(limit: limit.to_s)
-        allow(SyncWooOrdersJob).to receive_message_chain(:set, :perform_later).with(limit: limit.to_s)
+        allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(limit: limit.to_s)
 
         post :pull, params: {limit: limit}
 
         expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: limit.to_s)
-        expect(SyncWooOrdersJob).to have_received(:set).with(wait: 90.seconds)
+        expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
       end
     end
 
     it "sets flash notice with jobs dashboard link" do
-      allow(SyncWooOrdersJob).to receive(:perform_later)
+      allow(Woo::PullSalesJob).to receive(:perform_later)
       allow(Shopify::PullSalesJob).to receive(:perform_later)
 
       post :pull
@@ -340,7 +341,7 @@ RSpec.describe SalesController, type: :controller do
 
     it "redirects back to sales" do
       allow(request).to receive(:referer).and_return(sales_url)
-      allow(SyncWooOrdersJob).to receive(:perform_later)
+      allow(Woo::PullSalesJob).to receive(:perform_later)
       allow(Shopify::PullSalesJob).to receive(:perform_later)
 
       post :pull

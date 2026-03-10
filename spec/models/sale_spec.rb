@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: sales
@@ -61,7 +63,7 @@ RSpec.describe Sale, type: :model do
         }.to change { PurchaseItem.where(sale_item_id: sale_item.id).count }.from(0).to(2)
       end
 
-      it "returns the ids of linked purchased products" do
+      it "returns the ids of linked purchased products" do # rubocop:todo RSpec/MultipleExpectations
         linked_ids = sale.link_with_purchase_items
         expect(linked_ids.size).to eq(2)
         expect(PurchaseItem.where(id: linked_ids, sale_item_id: sale_item.id).count).to eq(2)
@@ -96,7 +98,7 @@ RSpec.describe Sale, type: :model do
         create(:purchase_item, purchase:, warehouse:)
       end
 
-      it "does not link any purchased products" do
+      it "does not link any purchased products" do # rubocop:todo RSpec/MultipleExpectations
         expect(sale.link_with_purchase_items).to be_nil
         expect(PurchaseItem.where(sale_item_id: sale_item.id).count).to eq(0)
       end
@@ -114,15 +116,19 @@ RSpec.describe Sale, type: :model do
       let!(:purchase_b) { create(:purchase, product:, edition: edition_b, amount: 1) }
       let!(:purchase_none) { create(:purchase, product:, edition: nil, amount: 1) }
 
+      # rubocop:todo RSpec/IndexedLet
       let!(:purchase_item_a1) { create(:purchase_item, purchase: purchase_a, warehouse:) }
+      # rubocop:enable RSpec/IndexedLet
+      # rubocop:todo RSpec/IndexedLet
       let!(:purchase_item_a2) { create(:purchase_item, purchase: purchase_a, warehouse:) }
+      # rubocop:enable RSpec/IndexedLet
       let!(:purchase_item_b1) { create(:purchase_item, purchase: purchase_b, warehouse:) }
       let!(:purchase_item_none) { create(:purchase_item, purchase: purchase_none, warehouse:) }
       let!(:purchase_item_wrong_edition) { create(:purchase_item, purchase:, warehouse:) }
 
       before { sale.link_with_purchase_items }
 
-      it "links only purchased products with matching edition to sale_item" do
+      it "links only purchased products with matching edition to sale_item" do # rubocop:todo RSpec/MultipleExpectations
         expect(purchase_item_a1.reload.sale_item_id).to eq(sale_item_a.id)
         expect(purchase_item_a2.reload.sale_item_id).to eq(sale_item_a.id)
         expect(purchase_item_b1.reload.sale_item_id).to eq(sale_item_b.id)
@@ -133,7 +139,7 @@ RSpec.describe Sale, type: :model do
         expect(purchase_item_wrong_edition.reload.sale_item_id).to be_nil
       end
 
-      it "does not link more purchased products than sale_item qty" do
+      it "does not link more purchased products than sale_item qty" do # rubocop:todo RSpec/MultipleExpectations
         extra = create(:purchase_item, purchase: purchase_a, warehouse:)
         sale.link_with_purchase_items
         expect([purchase_item_a1, purchase_item_a2, extra].count { |pp| pp.reload.sale_item_id == sale_item_a.id }).to eq(2)
@@ -152,6 +158,124 @@ RSpec.describe Sale, type: :model do
 
       it "returns an empty array" do
         expect(sale.link_with_purchase_items).to eq([])
+      end
+    end
+  end
+
+  describe "#has_unlinked_sale_items?" do
+    let(:sale) { create(:sale, status: active_status) }
+    let!(:sale_item) { create(:sale_item, sale:, product:, qty: 2) }
+
+    context "when all sale_items are linked" do
+      before do
+        create_list(:purchase_item, 2, sale_item:, purchase:, warehouse:)
+      end
+
+      it "returns nil" do
+        expect(sale.has_unlinked_sale_items?).to be_nil
+      end
+    end
+
+    context "when some sale_items are not fully linked" do
+      before do
+        create(:purchase_item, sale_item:, purchase:, warehouse:)
+      end
+
+      it "returns true if there are available purchase items" do
+        create(:purchase_item, purchase:, warehouse:)
+        expect(sale.has_unlinked_sale_items?).to be true
+      end
+
+      it "returns false if no purchase items available" do
+        expect(sale.has_unlinked_sale_items?).to be false
+      end
+    end
+
+    context "when no sale_items exist" do
+      let(:sale) { create(:sale, status: active_status) }
+
+      it "returns false" do
+        expect(sale.has_unlinked_sale_items?).to be false
+      end
+    end
+  end
+
+  describe "#shop_updated_at" do
+    context "when sale has shopify_info with ext_updated_at" do
+      let(:sale) { create(:sale) }
+
+      it "returns ext_updated_at from shopify_info" do
+        sale.shopify_info.update!(ext_updated_at: 1.day.ago)
+        expect(sale.shop_updated_at).to be_within(1.second).of(1.day.ago)
+      end
+
+      it "returns nil when ext_updated_at is nil and woo_updated_at is nil" do
+        sale.shopify_info.update!(ext_updated_at: nil)
+        sale.update!(woo_updated_at: nil)
+        expect(sale.shop_updated_at).to be_nil
+      end
+    end
+
+    context "when sale has woo_updated_at" do
+      let(:sale) { create(:sale, shopify_id: nil) }
+
+      it "returns woo_updated_at" do
+        sale.update!(woo_updated_at: 2.days.ago)
+        expect(sale.shop_updated_at).to be_within(1.second).of(2.days.ago)
+      end
+    end
+
+    context "when sale has both shopify_info and woo_updated_at" do
+      let(:sale) { create(:sale) }
+
+      it "prioritizes shopify_info.ext_updated_at over woo_updated_at" do
+        sale.shopify_info.update!(ext_updated_at: 1.day.ago)
+        sale.update!(woo_updated_at: 2.days.ago)
+        expect(sale.shop_updated_at).to be_within(1.second).of(1.day.ago)
+      end
+    end
+  end
+
+  describe ".derive_status_from_shopify" do
+    context "with fulfilled and paid" do
+      it "returns completed" do
+        expect(described_class.derive_status_from_shopify("FULFILLED", "PAID")).to eq("completed")
+      end
+    end
+
+    context "with unfulfilled and paid" do
+      it "returns pre-ordered" do
+        expect(described_class.derive_status_from_shopify("UNFULFILLED", "PAID")).to eq("pre-ordered")
+      end
+    end
+
+    context "with unfulfilled and pending" do
+      it "returns processing" do
+        expect(described_class.derive_status_from_shopify("UNFULFILLED", "PENDING")).to eq("processing")
+      end
+    end
+
+    context "with unfulfilled and partially paid" do
+      it "returns partially-paid" do
+        expect(described_class.derive_status_from_shopify("UNFULFILLED", "PARTIALLY_PAID")).to eq("partially-paid")
+      end
+    end
+
+    context "with fulfilled and refunded" do
+      it "returns refunded" do
+        expect(described_class.derive_status_from_shopify("FULFILLED", "REFUNDED")).to eq("refunded")
+      end
+    end
+
+    context "with unfulfilled and refunded" do
+      it "returns cancelled" do
+        expect(described_class.derive_status_from_shopify("UNFULFILLED", "REFUNDED")).to eq("cancelled")
+      end
+    end
+
+    context "with unknown status combination" do
+      it "defaults to processing" do
+        expect(described_class.derive_status_from_shopify("UNKNOWN", "UNKNOWN")).to eq("processing")
       end
     end
   end

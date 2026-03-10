@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: customers
@@ -36,11 +38,6 @@ class Customer < ApplicationRecord
   paginates_per 50
 
   #
-  # == Validations
-  #
-  # (none)
-
-  #
   # == Associations
   #
   has_many :sales, dependent: :destroy
@@ -49,11 +46,6 @@ class Customer < ApplicationRecord
   # == Callbacks
   #
   before_save :downcase_email
-
-  #
-  # == Scopes
-  #
-  # (none)
 
   #
   # == Class Methods
@@ -66,11 +58,12 @@ class Customer < ApplicationRecord
   # == Domain Methods
   #
   def name_and_email
-    [full_name, email].compact.join(" — ")
+    parts = [full_name.strip, email].compact_blank
+    parts.join(" — ")
   end
 
   def full_name
-    "#{first_name} #{last_name}"
+    "#{first_name} #{last_name}".strip
   end
 
   def title

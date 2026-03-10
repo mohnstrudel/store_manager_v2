@@ -21,3 +21,21 @@
   font-display: auto;
   font-optical-sizing: auto;
 }
+
+@font-face {
+  font-style: normal;
+  font-weight: 200 900;
+  src: url("nunito-v.woff2") format("woff2");
+  font-family: "Nunito";
+  font-display: auto;
+  font-optical-sizing: auto;
+}
+
+@font-face {
+  font-style: italic;
+  font-weight: 200 900;
+  src: url("nunito-iv.woff2") format("woff2");
+  font-family: "Nunito";
+  font-display: auto;
+  font-optical-sizing: auto;
+}

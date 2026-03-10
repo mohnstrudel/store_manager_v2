@@ -1,10 +1,16 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory(:edition) do
     product
-    store_link { "https://store.handsomecake.com/link-id?edition=666" }
+    version
     woo_id { SecureRandom.alphanumeric(10) }
     shopify_id { SecureRandom.alphanumeric(10) }
-    version
+
+    after(:create) do |edition|
+      create(:store_info, :woo, storable: edition, store_id: edition.woo_id)
+      create(:store_info, :shopify, storable: edition, store_id: edition.shopify_id)
+    end
 
     trait(:with_size) do
       transient do

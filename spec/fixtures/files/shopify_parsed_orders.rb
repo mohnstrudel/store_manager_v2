@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 [
   {
     sale: {
@@ -10,9 +12,7 @@
       note: "Would prefer to have a blue saber if possible. Also want to be sure to get the movie accurate princess Leia I do not want the animated version",
       shipping_total: "75.22",
       total: "234.63",
-      shopify_id: "gid://shopify/Order/6622947180873",
       shopify_created_at: "2025-05-01T06:27:45+00:00",
-      shopify_updated_at: "2025-05-01T06:29:19+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
       return_status: "NO_RETURN",
@@ -23,17 +23,21 @@
       cancel_reason: nil,
       status: "pre-ordered"
     },
+    store_info: {
+      ext_created_at: "2025-05-01T06:27:45+00:00",
+      ext_updated_at: "2025-05-01T06:29:19+00:00"
+    },
     sale_items: [
       {
-        shopify_id: "gid://shopify/LineItem/16851717685577",
+        store_id: "gid://shopify/LineItem/16851717685577",
         qty: 1,
         price: "159.41",
         edition_title: "mit großer Brust + weißen Stiefeln",
-        shopify_edition_id: "gid://shopify/ProductVariant/50195649364297",
-        shopify_product_id: "gid://shopify/Product/9118444224841",
+        edition_store_id: "gid://shopify/ProductVariant/50195649364297",
+        product_store_id: "gid://shopify/Product/9118444224841",
         full_title: "Star Wars - Princess Leia | 1:4 Resin Statue | von xionart",
         product: {
-          shopify_id: "gid://shopify/Product/9118444224841",
+          store_id: "gid://shopify/Product/9118444224841",
           store_link: "star-wars-princess-leia-1-4-resin-statue-von-xionart",
           shape: "Statue",
           title: "Princess Leia",
@@ -102,7 +106,11 @@
       first_name: "Jimmy",
       last_name: "Hawkins",
       phone: "+18649238413",
-      shopify_id: "gid://shopify/Customer/8715258036553"
+      store_info: {
+        store_id: "gid://shopify/Customer/8715258036553",
+        ext_created_at: "2025-04-15T10:30:00+00:00",
+        ext_updated_at: "2025-05-01T06:27:45+00:00"
+      }
     }
   },
   {
@@ -116,9 +124,7 @@
       note: nil,
       shipping_total: "20.00",
       total: "99.80",
-      shopify_id: "gid://shopify/Order/6621569450313",
       shopify_created_at: "2025-04-30T06:12:36+00:00",
-      shopify_updated_at: "2025-04-30T06:13:04+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
       return_status: "NO_RETURN",
@@ -129,17 +135,22 @@
       cancel_reason: nil,
       status: "pre-ordered"
     },
+    store_info: {
+      store_id: "gid://shopify/Order/6621569450313",
+      ext_created_at: "2025-04-30T06:12:36+00:00",
+      ext_updated_at: "2025-04-30T06:13:04+00:00"
+    },
     sale_items: [
       {
-        shopify_id: "gid://shopify/LineItem/16848835543369",
+        store_id: "gid://shopify/LineItem/16848835543369",
         qty: 1,
         price: "79.80",
         edition_title: nil,
-        shopify_edition_id: "gid://shopify/ProductVariant/51994739376457",
-        shopify_product_id: "gid://shopify/Product/9602169995593",
+        edition_store_id: "gid://shopify/ProductVariant/51994739376457",
+        product_store_id: "gid://shopify/Product/9602169995593",
         full_title: "Naruto - Naruto | Resin Statue | by Iron Curtain Studio",
         product: {
-          shopify_id: "gid://shopify/Product/9602169995593",
+          store_id: "gid://shopify/Product/9602169995593",
           store_link: "naruto-naruto-resin-statue-by-iron-curtain-studio",
           shape: "Statue",
           title: "Naruto",
@@ -198,7 +209,11 @@
       first_name: "Yevgen",
       last_name: "Pisanenko",
       phone: nil,
-      shopify_id: "gid://shopify/Customer/8735512789321"
+      store_info: {
+        store_id: "gid://shopify/Customer/8735512789321",
+        ext_created_at: "2025-04-10T08:00:00+00:00",
+        ext_updated_at: "2025-04-30T06:12:36+00:00"
+      }
     }
   },
   {
@@ -212,9 +227,7 @@
       note: nil,
       shipping_total: "20.00",
       total: "700.00",
-      shopify_id: "gid://shopify/Order/6617092260169",
       shopify_created_at: "2025-04-26T12:58:13+00:00",
-      shopify_updated_at: "2025-04-26T12:58:16+00:00",
       fulfillment_status: "UNFULFILLED",
       financial_status: "PAID",
       return_status: "NO_RETURN",
@@ -225,17 +238,22 @@
       cancel_reason: nil,
       status: "pre-ordered"
     },
+    store_info: {
+      store_id: "gid://shopify/Order/6617092260169",
+      ext_created_at: "2025-04-26T12:58:13+00:00",
+      ext_updated_at: "2025-04-26T12:58:16+00:00"
+    },
     sale_items: [
       {
-        shopify_id: "gid://shopify/LineItem/16839346848073",
+        store_id: "gid://shopify/LineItem/16839346848073",
         qty: 1,
         price: "680.00",
         edition_title: nil,
-        shopify_edition_id: "gid://shopify/ProductVariant/50195633537353",
-        shopify_product_id: "gid://shopify/Product/9118438064457",
+        edition_store_id: "gid://shopify/ProductVariant/50195633537353",
+        product_store_id: "gid://shopify/Product/9118438064457",
         full_title: "Stellar Blade - EVE | 1:4 Resin Statue | von CP Studio",
         product: {
-          shopify_id: "gid://shopify/Product/9118438064457",
+          store_id: "gid://shopify/Product/9118438064457",
           store_link: "stellar-blade-eve-1-4-resin-statue-von-cp-studio",
           shape: "Statue",
           title: "EVE",
@@ -294,7 +312,11 @@
       first_name: "Mirko",
       last_name: "Buchmann",
       phone: nil,
-      shopify_id: "gid://shopify/Customer/8843207246153"
+      store_info: {
+        store_id: "gid://shopify/Customer/8843207246153",
+        ext_created_at: "2025-04-05T14:20:00+00:00",
+        ext_updated_at: "2025-04-26T12:58:13+00:00"
+      }
     }
   }
 ]

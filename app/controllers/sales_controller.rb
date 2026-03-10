@@ -1,10 +1,14 @@
+# frozen_string_literal: true
+
 class SalesController < ApplicationController
+  include ActionView::Helpers::OutputSafetyHelper
+
   before_action :set_sale, only: %i[edit update destroy link_purchase_items]
 
   # GET /sales
   def index
     @sales = Sale
-      .with_index_details
+      .includes_index_associations
       .except_cancelled_or_completed
       .ordered_by_shop_created_at
       .search_by(params[:q])
@@ -14,7 +18,7 @@ class SalesController < ApplicationController
   # GET /sales/1
   def show
     @sale = Sale
-      .with_show_details
+      .includes_show_associations
       .friendly
       .find(params[:id])
   end
@@ -76,20 +80,24 @@ class SalesController < ApplicationController
     if sale_id.present?
       sale = Sale.friendly.find(sale_id)
       Shopify::PullSaleJob.perform_later(sale.shopify_id) if sale.shopify_id.present?
-      SyncWooOrdersJob.set(wait: 90.seconds).perform_later(id: sale.woo_id) if sale.woo_id.present?
+      Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: sale.woo_id) if sale.woo_id.present?
     else
       Config.update_shopify_sales_sync_time
       Shopify::PullSalesJob.perform_later(limit:)
-      SyncWooOrdersJob.set(wait: 90.seconds).perform_later(limit:)
+      Woo::PullSalesJob.set(wait: 90.seconds).perform_later(limit:)
     end
 
     statuses_link = view_context.link_to(
       "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
     )
 
-    flash[:notice] = "Success! Visit #{statuses_link} to track synchronization progress".html_safe
+    flash[:notice] = safe_join([
+      "Success! Visit ",
+      statuses_link,
+      " to track synchronization progress"
+    ])
 
-    redirect_back(fallback_location: sales_path)
+    redirect_back_or_to(sales_path)
   end
 
   private

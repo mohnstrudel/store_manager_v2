@@ -1,7 +1,20 @@
+# frozen_string_literal: true
+
 module HasPreviewImages
   extend ActiveSupport::Concern
 
   included do
+    has_many :media, -> { ordered }, as: :mediaable, dependent: :destroy, inverse_of: :mediaable, class_name: "Media"
+
+    def prev_image_id(img_id)
+      (media.where(id: ...img_id).ordered.last || media.ordered.last).id
+    end
+
+    def next_image_id(img_id)
+      (media.where("id > ?", img_id).ordered.first || media.ordered.first).id
+    end
+
+    # TODO: Remove after #99
     has_many_attached :images, dependent: :purge_later do |attachable|
       attachable.variant :preview,
         format: :webp,
@@ -16,13 +29,11 @@ module HasPreviewImages
         resize_to_limit: [120, 120],
         preprocessed: true
     end
+  end
 
-    def prev_image_id(img_id)
-      (images.where(id: ...img_id).last || images.last).id
-    end
-
-    def next_image_id(img_id)
-      (images.where("id > ?", img_id).first || images.first).id
+  class_methods do
+    def with_thumb_media
+      includes(media: {image_attachment: :blob})
     end
   end
 end

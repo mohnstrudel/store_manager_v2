@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: warehouses
@@ -8,6 +10,7 @@
 #  courier_tracking_url      :string
 #  desc_de                   :string
 #  desc_en                   :string
+#  external_name             :string
 #  external_name_de          :string
 #  external_name_en          :string
 #  is_default                :boolean          default(FALSE), not null
@@ -45,20 +48,30 @@ class Warehouse < ApplicationRecord
   #
   has_many :purchase_items, dependent: :destroy
   has_many :purchases, through: :purchase_items
+  has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
+  has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse
 
   #
   # == Scopes
   #
-  # (none)
+  scope :includes_index_associations, -> {
+    includes(:purchase_items, purchases: [:payments, :purchase_items])
+  }
+
+  scope :includes_show_associations, -> {
+    includes(purchases: [:payments, :purchase_items], media: {image_attachment: :blob})
+  }
 
   #
   # == Class Methods
   #
   def self.ensure_only_one_default(id)
+    # rubocop:disable Rails/SkipsModelValidations
     Warehouse
       .where(is_default: true)
       .where.not(id:)
       .update_all(is_default: false)
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   #
@@ -66,7 +79,7 @@ class Warehouse < ApplicationRecord
   #
   #
   def average_payment_progress
-    return 0 if purchases.empty?
+    return 0 if purchases.none?
 
     progresses = purchases.map(&:progress)
     (progresses.sum / progresses.size).round

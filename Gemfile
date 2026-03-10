@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.4.7"
+ruby "4.0.1"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.x.x"
@@ -45,13 +47,8 @@ gem "bootsnap", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
-gem "slim-rails"
-gem "httparty"
-gem "kaminari"
-gem "database_validations"
-gem "pg_search"
-gem "aws-sdk-s3", require: false
-gem "ruby-progressbar"
+gem "pundit"
+
 gem "sidekiq", "~> 8.0"
 gem "sidekiq-status"
 
@@ -59,27 +56,33 @@ gem "sidekiq-status"
 # shared_preload_libraries = 'pg_stat_statements'
 # pg_stat_statements.track = all
 gem "pg_query", ">= 2"
-
-gem "requestjs-rails"
-gem "friendly_id"
-
-gem "inline_svg"
-gem "mailtrap"
-
-gem "shopify_app"
-
+gem "pg_search"
 gem "audited"
 gem "positioning"
+gem "database_validations"
+# Disable strong_migrations untill we have enough users to care about locking db reads
+# gem "strong_migrations"
+gem "acts-as-taggable-on"
+gem "kaminari"
+gem "friendly_id"
 
-gem "strong_migrations"
+gem "slim-rails"
+gem "requestjs-rails"
+gem "tailwindcss-rails"
+gem "inline_svg"
+gem "rails_heroicon"
+
+gem "aws-sdk-s3", require: false
+gem "mailtrap"
+gem "shopify_app"
 
 gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
 
-gem "tailwindcss-rails"
-
-gem "pundit"
+gem "ruby-progressbar"
+gem "down", "~> 5.0"
+gem "httparty"
 
 group :production, :staging do
   # Prevents webserver from spending time working on a request
@@ -98,6 +101,8 @@ group :development, :test do
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
   gem "rspec-rails"
+  gem "rubocop-rspec_rails", require: false
+  gem "rubocop-factory_bot", require: false
   gem "factory_bot_rails"
   gem "dotenv"
 end
@@ -127,6 +132,7 @@ group :development do
   gem "rubycritic", require: false
   gem "letter_opener"
   gem "rails-mcp-server"
+  gem "ruby-lsp"
 end
 
 group :test do
@@ -136,4 +142,6 @@ group :test do
   gem "pundit-matchers"
   gem "shoulda-matchers"
   gem "rails-controller-testing"
+  gem "vcr"
+  gem "simplecov", require: false
 end

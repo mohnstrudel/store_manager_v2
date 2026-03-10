@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Woo::Edition
   include Sanitizable
 
@@ -42,7 +44,7 @@ class Woo::Edition
     def import(parsed_edition)
       return if parsed_edition.blank?
 
-      product = Product.find_by(woo_id: parsed_edition[:product_woo_id])
+      product = Product.find_by_woo_id(parsed_edition[:product_woo_id])
       return if product.blank?
 
       # We need to find or create parsed options on the parent product first
@@ -52,14 +54,24 @@ class Woo::Edition
         acc.merge({parsed_option[:name] => value})
       end
 
-      edition = Edition.find_by(woo_id: parsed_edition[:woo_id])
+      edition = Edition.find_by_woo_id(parsed_edition[:woo_id])
 
       if edition.blank?
         edition = product.editions.find_or_create_by(prepared_options)
       end
 
-      if parsed_edition[:woo_id].present? && edition.woo_id != parsed_edition[:woo_id]
-        edition.update(woo_id: parsed_edition[:woo_id])
+      woo_info = edition.woo_info || edition.store_infos.woo.new
+      updates = {}
+      updates[:store_id] = parsed_edition[:woo_id] if parsed_edition[:woo_id].present? && woo_info.store_id != parsed_edition[:woo_id]
+      updates[:slug] = parsed_edition[:store_link] if parsed_edition[:store_link].present? && woo_info.slug != parsed_edition[:store_link]
+
+      if updates.any?
+        if woo_info.persisted?
+          woo_info.update(updates)
+        else
+          woo_info.assign_attributes(updates)
+          woo_info.save!
+        end
       end
 
       edition

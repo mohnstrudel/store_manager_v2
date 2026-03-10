@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bin/rails g migration:*)",
+      "Bash(bundle exec rails generate migration:*)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(bundle exec rubocop:*)",
+      "Bash(brew info:*)",
+      "Bash(brew list:*)",
+      "Bash(brew search:*)",
+      "Bash(brew update:*)",
+      "Bash(cat:*)",
+      "Bash(docker pull:*)",
+      "Bash(docker run:*)",
+      "Bash(find:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(ollama list:*)",
+      "Bash(ollama pull:*)",
+      "Bash(open:*)",
+      "Bash(rails c:*)",
+      "Bash(rails g migration:*)",
+      "Bash(rubocop:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
+    ],
+    "ask": [
+      "Bash(curl:*)",
+      "Bash(mv:*)"
+    ]
+  }
+}

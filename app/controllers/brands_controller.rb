@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BrandsController < ApplicationController
   before_action :set_brand, only: %i[show edit update destroy]
 
@@ -8,6 +10,7 @@ class BrandsController < ApplicationController
 
   # GET /brands/1 or /brands/1.json
   def show
+    @brand = Brand.includes_show_associations.find(params[:id])
   end
 
   # GET /brands/new

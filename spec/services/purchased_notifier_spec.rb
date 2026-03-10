@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 describe PurchasedNotifier do
@@ -25,7 +27,7 @@ describe PurchasedNotifier do
   end
 
   describe "#handle_warehouse_change" do
-    let!(:transition) do
+    let!(:transition) do # rubocop:todo RSpec/LetSetup
       create(:warehouse_transition,
         notification: notification,
         from_warehouse: warehouse,

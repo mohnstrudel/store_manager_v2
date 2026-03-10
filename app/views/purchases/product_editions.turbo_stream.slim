@@ -1,4 +1,4 @@
 = turbo_stream.update @target
   - if @editions.present?
     = label :purchase, :edition
-    = collection_select :purchase, :edition_id, @editions, :id, :title, { class: "select", include_blank: true }, data: { controller: "slim-select" }
+    = collection_select :purchase, :edition_id, @editions, :id, :title, {class: "select", include_blank: true}, data: {controller: "slim-select"}

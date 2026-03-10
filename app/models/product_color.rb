@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: product_colors
@@ -34,6 +36,7 @@ class ProductColor < ApplicationRecord
   #
   db_belongs_to :product
   db_belongs_to :color
+  has_many :store_infos, as: :storable, dependent: :destroy
 
   #
   # == Scopes

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :purchase_item do
     warehouse
@@ -7,6 +9,6 @@ FactoryBot.define do
     width { 1 }
     height { 1 }
     expenses { "9.99" }
-    shipping_price { "9.99" }
+    shipping_cost { "9.99" }
   end
 end

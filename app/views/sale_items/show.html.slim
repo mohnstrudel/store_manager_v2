@@ -2,7 +2,6 @@
 
 header.nav_header
   .flex.gap-4
-    = back_btn
     hgroup
       h1 Sale Item
       h2 = format_show_page_title(@sale_item)
@@ -49,9 +48,9 @@ header.nav_header
               td.font-mono = format_item_size(pp)
               td.font-mono.text-right = pp.weight
               td.font-mono.text-right = format_money pp.expenses
-              td.font-mono.text-right = format_money pp.shipping_price
+              td.font-mono.text-right = format_money pp.shipping_cost
               td.actions
-                = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: { turbo_confirm: "Are you sure?", turbo_method: :post }
+                = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :post}
                   i.icn ✂︎
                   | Unlink
                 = render "_shared/action_edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)

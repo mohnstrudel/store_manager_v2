@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe WebhookController do
@@ -16,12 +18,12 @@ RSpec.describe WebhookController do
     end
 
     it "returns true when the signature is valid" do
-      expect(subject.send(:verify_webhook, secret)).to be_truthy
+      expect(subject.send(:verify_webhook, secret)).to be_truthy # rubocop:todo RSpec/NamedSubject
     end
 
     it "returns false when the signature is invalid" do
       request.headers["x-wc-webhook-signature"] = invalid_signature
-      expect(subject.send(:verify_webhook, secret)).to be_falsy
+      expect(subject.send(:verify_webhook, secret)).to be_falsy # rubocop:todo RSpec/NamedSubject
     end
   end
   # rubocop:enable RSpec/MultipleMemoizedHelpers

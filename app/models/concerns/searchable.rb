@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Searchable
   extend ActiveSupport::Concern
 
@@ -9,6 +11,7 @@ module Searchable
 
   included do
     include PgSearch::Model
+
     scope :search_by, ->(query) { query.present? ? search(query) : all }
   end
 end

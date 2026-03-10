@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApplicationHelper
   def safe_blank_render(value)
     value.presence || "-"
@@ -38,27 +40,26 @@ module ApplicationHelper
   end
 
   def thumb_url(model)
-    if model.images.present?
-      url_for(model.images.first.representation(:thumb))
-    end
+    return if model.media.blank?
+
+    first_media = model.media.min_by(&:position)
+    return unless first_media&.image&.attached?
+
+    url_for(first_media.image.representation(:thumb))
   end
 
   def format_purchased_sold_ratio(purchased, sold)
     ratio = "#{purchased} / #{sold}"
 
     if purchased >= sold
-      "<mark class='mark-gray mr-1.5'>#{ratio}</mark>".html_safe
+      content_tag(:mark, ratio, class: "mark-gray mr-1.5")
     else
-      "<mark class='mr-1.5'>#{ratio}</mark>".html_safe
+      content_tag(:mark, ratio, class: "mr-1.5")
     end
   end
 
   def form_submit_for(model, form)
     render partial: "_shared/form-submit", locals: {model:, form:}
-  end
-
-  def back_btn
-    render partial: "_shared/action_go_back"
   end
 
   def edit_btn_for(record)

@@ -1,0 +1,76 @@
+# frozen_string_literal: true
+
+module BreadcrumbsHelper
+  # Renders meta tag with breadcrumb data for the current page
+  # Used by the Stimulus breadcrumbs controller to update the trail
+  #
+  # The meta tag serves as a bridge between server-side and client-side:
+  # - Server determines the breadcrumb name (e.g., @product.title)
+  # - Client (Stimulus) reads this meta tag to update the trail in sessionStorage
+  #
+  # Example output:
+  #   <meta name="breadcrumb" content="Test Product" data-url="/products/123">
+  #
+  def breadcrumb_meta_tag
+    breadcrumb_title = determine_breadcrumb_title
+    return if breadcrumb_title.blank?
+
+    tag.meta(
+      name: "breadcrumb",
+      content: breadcrumb_title,
+      data: {url: request.path}
+    )
+  end
+
+  def breadcrumbs
+    render "shared/breadcrumbs"
+  end
+
+  private
+
+  def determine_breadcrumb_title
+    return special_route if special_route
+
+    case action_name
+    when "show"
+      record_name || controller_name_singular
+    when "edit"
+      "Edit #{record_name}"
+    when "new"
+      "New #{controller_name_singular}"
+    else
+      controller_name.titleize
+    end
+  end
+
+  def special_route
+    @special_route_title ||= case "#{controller_path}##{action_name}"
+    when "dashboard#debts"
+      "Debts"
+    when "dashboard#index"
+      "Dashboard"
+    when "dashboard#noop"
+      "Dashboard"
+    end
+  end
+
+  def record_name
+    return unless record
+
+    if record.respond_to?(:title)
+      record.title
+    elsif record.respond_to?(:name)
+      record.name
+    elsif record.respond_to?(:value)
+      record.value
+    end
+  end
+
+  def record
+    @record ||= instance_variable_get("@#{controller_name.singularize}")
+  end
+
+  def controller_name_singular
+    controller_name.titleize.singularize
+  end
+end

@@ -1,18 +1,23 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: editions
 #
-#  id         :bigint           not null, primary key
-#  sku        :string
-#  store_link :string
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  color_id   :bigint
-#  product_id :bigint           not null
-#  shopify_id :string
-#  size_id    :bigint
-#  version_id :bigint
-#  woo_id     :string
+#  id             :bigint           not null, primary key
+#  deactivated_at :datetime
+#  purchase_cost  :decimal(10, 2)   default(0.0), not null
+#  selling_price  :decimal(10, 2)   default(0.0), not null
+#  sku            :string
+#  weight         :decimal(10, 2)   default(0.0), not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  color_id       :bigint
+#  product_id     :bigint           not null
+#  shopify_id     :string
+#  size_id        :bigint
+#  version_id     :bigint
+#  woo_id         :string
 #
 class Edition < ApplicationRecord
   #
@@ -32,11 +37,6 @@ class Edition < ApplicationRecord
   audited associated_with: :product
 
   #
-  # == Validations
-  #
-  # (none)
-
-  #
   # == Associations
   #
   belongs_to :size, optional: true
@@ -44,12 +44,14 @@ class Edition < ApplicationRecord
   belongs_to :color, optional: true
   db_belongs_to :product
 
-  has_many :sale_items, dependent: :destroy
-  has_many :purchases, dependent: :destroy
+  has_many :sale_items, dependent: :nullify
+  has_many :purchases, dependent: :nullify
 
   #
   # == Scopes
   #
+  scope :active, -> { where(deactivated_at: nil) }
+  scope :deactivated, -> { where.not(deactivated_at: nil) }
   scope :with_details, -> { includes(:version, :color, :size) }
 
   #
@@ -69,7 +71,20 @@ class Edition < ApplicationRecord
   # == Domain Methods
   #
   def title
-    [size&.value, version&.value, color&.value].compact.join(" | ")
+    values = [size&.value, version&.value, color&.value].compact
+    values.blank? ? "Base Model" : values.join(" | ")
+  end
+
+  def base_model?
+    size_id.nil? && version_id.nil? && color_id.nil?
+  end
+
+  def deactivated?
+    deactivated_at?
+  end
+
+  def has_sales_or_purchases?
+    sale_items.exists? || purchases.exists?
   end
 
   def types_name
@@ -88,5 +103,11 @@ class Edition < ApplicationRecord
 
   def type_name_and_value
     [size, version, color].compact.map { |i| "#{i.model_name.name}: #{i.value}" }.join(", ")
+  end
+
+  # Price tracking has been removed from StoreInfo
+  # This method returns 0.0 for backwards compatibility
+  def price
+    0.0
   end
 end
