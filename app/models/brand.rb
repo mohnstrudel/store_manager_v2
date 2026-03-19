@@ -35,7 +35,7 @@ class Brand < ApplicationRecord
   #
   # == Associations
   #
-  has_many :product_brands, dependent: :destroy
+  has_many :product_brands, dependent: :destroy, inverse_of: :brand
   has_many :products, through: :product_brands
 
   #

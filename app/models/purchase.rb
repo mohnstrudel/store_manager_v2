@@ -64,18 +64,18 @@ class Purchase < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :supplier
-  belongs_to :product, optional: true
-  belongs_to :edition, optional: true
+  db_belongs_to :supplier, inverse_of: :purchases
+  belongs_to :product, optional: true, inverse_of: :purchases
+  belongs_to :edition, optional: true, inverse_of: :purchases
 
   has_many :sizes, through: :edition
   has_many :versions, through: :edition
   has_many :colors, through: :edition
 
-  has_many :payments, dependent: :destroy
+  has_many :payments, dependent: :destroy, inverse_of: :purchase
   accepts_nested_attributes_for :payments
 
-  has_many :purchase_items, dependent: :destroy
+  has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
   has_many :warehouses, through: :purchase_items
 
   #

@@ -45,7 +45,7 @@ class Notification < ApplicationRecord
   #
   # == Associations
   #
-  has_many :warehouse_transitions, dependent: :nullify
+  has_many :warehouse_transitions, dependent: :nullify, inverse_of: :notification
 
   #
   # == Scopes

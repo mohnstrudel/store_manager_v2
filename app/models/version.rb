@@ -33,9 +33,9 @@ class Version < ApplicationRecord
   #
   # == Associations
   #
-  has_many :product_versions, dependent: :destroy
+  has_many :product_versions, dependent: :destroy, inverse_of: :version
   has_many :products, through: :product_versions
-  has_many :editions, dependent: :destroy
+  has_many :editions, dependent: :destroy, inverse_of: :version
 
   #
   # == Scopes

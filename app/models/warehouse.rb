@@ -46,7 +46,7 @@ class Warehouse < ApplicationRecord
   #
   # == Associations
   #
-  has_many :purchase_items, dependent: :destroy
+  has_many :purchase_items, dependent: :destroy, inverse_of: :warehouse
   has_many :purchases, through: :purchase_items
   has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
   has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse

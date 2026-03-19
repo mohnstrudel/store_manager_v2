@@ -40,7 +40,7 @@ class Customer < ApplicationRecord
   #
   # == Associations
   #
-  has_many :sales, dependent: :destroy
+  has_many :sales, dependent: :destroy, inverse_of: :customer
 
   #
   # == Callbacks

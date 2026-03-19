@@ -56,16 +56,16 @@ class PurchaseItem < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :warehouse
-  db_belongs_to :purchase
+  db_belongs_to :warehouse, inverse_of: :purchase_items
+  db_belongs_to :purchase, inverse_of: :purchase_items
 
-  belongs_to :sale_item, optional: true, counter_cache: true
+  belongs_to :sale_item, optional: true, counter_cache: true, inverse_of: :purchase_items
   has_one :sale, through: :sale_item
   has_one :customer, through: :sale
 
   has_one :product, through: :purchase
 
-  belongs_to :shipping_company, optional: true
+  belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
 
   #
   # == Scopes

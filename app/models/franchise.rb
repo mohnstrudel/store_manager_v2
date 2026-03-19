@@ -34,7 +34,7 @@ class Franchise < ApplicationRecord
   #
   # == Associations
   #
-  has_many :products, dependent: :destroy
+  has_many :products, dependent: :destroy, inverse_of: :franchise
 
   #
   # == Scopes

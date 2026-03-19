@@ -34,8 +34,8 @@ class ProductBrand < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :product
-  db_belongs_to :brand
+  db_belongs_to :product, inverse_of: :product_brands
+  db_belongs_to :brand, inverse_of: :product_brands
 
   #
   # == Callbacks

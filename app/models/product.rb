@@ -66,27 +66,27 @@ class Product < ApplicationRecord
   # == Associations
   #
   has_rich_text :description
-  db_belongs_to :franchise
-  db_belongs_to :shape
+  db_belongs_to :franchise, inverse_of: :products
+  db_belongs_to :shape, inverse_of: :products
 
-  has_many :editions, dependent: :destroy, autosave: true
+  has_many :editions, dependent: :destroy, autosave: true, inverse_of: :product
 
-  has_many :product_brands, dependent: :destroy
+  has_many :product_brands, dependent: :destroy, inverse_of: :product
   has_many :brands, through: :product_brands
 
-  has_many :product_sizes, dependent: :destroy
+  has_many :product_sizes, dependent: :destroy, inverse_of: :product
   has_many :sizes, through: :product_sizes
 
-  has_many :product_versions, dependent: :destroy
+  has_many :product_versions, dependent: :destroy, inverse_of: :product
   has_many :versions, through: :product_versions
 
-  has_many :product_colors, dependent: :destroy
+  has_many :product_colors, dependent: :destroy, inverse_of: :product
   has_many :colors, through: :product_colors
 
-  has_many :sale_items, dependent: :destroy
+  has_many :sale_items, dependent: :destroy, inverse_of: :product
   has_many :sales, through: :sale_items
 
-  has_many :purchases, dependent: :destroy
+  has_many :purchases, dependent: :destroy, inverse_of: :product
   has_many :purchase_items, through: :purchases
   accepts_nested_attributes_for :purchases
 
@@ -129,7 +129,7 @@ class Product < ApplicationRecord
       "#{product.franchise.title} — #{product.title}"
     end
 
-    brands = if product.brands.size >= 1
+    brands = if product.brands.exists?
       product.brands.pluck(:title).join(", ")
     end
 

@@ -34,9 +34,9 @@ class ProductVersion < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :product
-  db_belongs_to :version
-  has_many :store_infos, as: :storable, dependent: :destroy
+  db_belongs_to :product, inverse_of: :product_versions
+  db_belongs_to :version, inverse_of: :product_versions
+  has_many :store_infos, as: :storable, dependent: :destroy, inverse_of: :storable
 
   #
   # == Scopes

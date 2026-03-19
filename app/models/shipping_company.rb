@@ -30,7 +30,7 @@ class ShippingCompany < ApplicationRecord
   #
   # == Associations
   #
-  has_many :purchase_items, dependent: :nullify
+  has_many :purchase_items, dependent: :nullify, inverse_of: :shipping_company
 
   #
   # == Scopes

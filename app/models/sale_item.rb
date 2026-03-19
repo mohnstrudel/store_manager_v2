@@ -43,11 +43,11 @@ class SaleItem < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :product
-  db_belongs_to :sale
-  belongs_to :edition, optional: true
+  db_belongs_to :product, inverse_of: :sale_items
+  db_belongs_to :sale, inverse_of: :sale_items
+  belongs_to :edition, optional: true, inverse_of: :sale_items
 
-  has_many :purchase_items, dependent: :nullify
+  has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
 
   #
   # == Scopes

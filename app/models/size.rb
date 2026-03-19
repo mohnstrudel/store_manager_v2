@@ -34,9 +34,9 @@ class Size < ApplicationRecord
   #
   # == Associations
   #
-  has_many :product_sizes, dependent: :destroy
+  has_many :product_sizes, dependent: :destroy, inverse_of: :size
   has_many :products, through: :product_sizes
-  has_many :editions, dependent: :destroy
+  has_many :editions, dependent: :destroy, inverse_of: :size
 
   #
   # == Scopes

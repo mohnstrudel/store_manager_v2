@@ -39,13 +39,13 @@ class Edition < ApplicationRecord
   #
   # == Associations
   #
-  belongs_to :size, optional: true
-  belongs_to :version, optional: true
-  belongs_to :color, optional: true
-  db_belongs_to :product
+  belongs_to :size, optional: true, inverse_of: :editions
+  belongs_to :version, optional: true, inverse_of: :editions
+  belongs_to :color, optional: true, inverse_of: :editions
+  db_belongs_to :product, inverse_of: :editions
 
-  has_many :sale_items, dependent: :nullify
-  has_many :purchases, dependent: :nullify
+  has_many :sale_items, dependent: :nullify, inverse_of: :edition
+  has_many :purchases, dependent: :nullify, inverse_of: :edition
 
   #
   # == Scopes

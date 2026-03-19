@@ -34,9 +34,9 @@ class ProductColor < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :product
-  db_belongs_to :color
-  has_many :store_infos, as: :storable, dependent: :destroy
+  db_belongs_to :product, inverse_of: :product_colors
+  db_belongs_to :color, inverse_of: :product_colors
+  has_many :store_infos, as: :storable, dependent: :destroy, inverse_of: :storable
 
   #
   # == Scopes

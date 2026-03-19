@@ -108,7 +108,7 @@ class PurchaseItemsController < ApplicationController
 
   # GET /purchase_items/1/edit_tracking_number
   def edit_tracking_number
-    if @purchase_item.shipping_company.present?
+    if @purchase_item.shipping_company_id.present?
       render turbo_stream: turbo_stream.replace(
         helpers.dom_id(@purchase_item, :tracking_number),
         partial: "inline_tracking_edit",

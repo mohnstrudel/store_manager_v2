@@ -33,7 +33,7 @@ class Supplier < ApplicationRecord
   #
   validates :title, presence: true
 
-  has_many :purchases, dependent: :destroy
+  has_many :purchases, dependent: :destroy, inverse_of: :supplier
 
   #
   # == Scopes
