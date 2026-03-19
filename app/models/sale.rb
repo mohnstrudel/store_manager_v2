@@ -70,9 +70,9 @@ class Sale < ApplicationRecord
   #
   # == Associations
   #
-  db_belongs_to :customer
+  db_belongs_to :customer, inverse_of: :sales
 
-  has_many :sale_items, dependent: :destroy
+  has_many :sale_items, dependent: :destroy, inverse_of: :sale
   has_many :products, through: :sale_items
 
   accepts_nested_attributes_for :sale_items, allow_destroy: true
@@ -82,6 +82,12 @@ class Sale < ApplicationRecord
   #
   scope :except_cancelled_or_completed, -> {
     where.not(status: cancelled_status_names + completed_status_names)
+  }
+  scope :active, -> {
+    where(status: active_status_names)
+  }
+  scope :completed, -> {
+    where(status: completed_status_names)
   }
   scope :ordered_by_shop_created_at, -> {
     order(
@@ -106,11 +112,13 @@ class Sale < ApplicationRecord
   }
   scope :includes_show_associations, -> {
     includes(
-        sale_items: [
-          {product: {media: {image_attachment: :blob}}},
-          purchase_items: [:warehouse, purchase: :supplier]
-        ]
-      )
+      :shopify_info,
+      :woo_info,
+      sale_items: [
+        {product: {media: {image_attachment: :blob}}},
+        purchase_items: [:warehouse, purchase: :supplier]
+      ]
+    )
   }
 
   #
