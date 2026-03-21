@@ -44,7 +44,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
         .and change(Customer, :count).by(1)
     end
 
-    it "logs warnings when SKU collision errors occur" do
+    it "re-raises SKU collision errors" do
       # Create a product that will cause SKU collision
       create(:product, sku: "test-001")
       create(:sale, shopify_id: "gid://shopify/Order/123")
@@ -54,8 +54,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
         StandardError.new("SKU has already been taken")
       )
 
-      expect { job.perform }.not_to raise_error
-      expect(Sale.count).to eq(1) # No new sale created
+      expect { job.perform }.to raise_error(StandardError, "SKU has already been taken")
     end
 
     it "re-raises non-SKU errors" do

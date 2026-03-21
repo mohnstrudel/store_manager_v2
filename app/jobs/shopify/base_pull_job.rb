@@ -7,7 +7,7 @@ module Shopify
 
     def perform(attempts: 0, cursor: nil, limit: nil)
       fetch_shopify_data(cursor:, limit:)
-      merge_new_items
+      process_items
       schedule_next_page if limit.blank?
     rescue ShopifyAPI::Errors::HttpResponseError => e
       handle_api_error(e, attempts, cursor, limit)
@@ -22,19 +22,15 @@ module Shopify
       @api_payload = fetch_from_api(api_client, cursor: cursor, batch_size: limit)
     end
 
-    def merge_new_items
+    def process_items
       @api_payload[:items].each do |api_item|
-        parsed_item = parser_class.parse(api_item)
-        begin
-          creator_class.import!(parsed_item)
-        rescue => e
-          if e.message.to_s.downcase.include?("sku")
-            Rails.logger.warn("Skipping item due to SKU collision: #{e.message}")
-            next
-          end
-          raise
-        end
+        process_item(api_item)
       end
+    end
+
+    def process_item(api_item)
+      parsed_item = parser_class.parse(api_item)
+      creator_class.import!(parsed_item)
     end
 
     def schedule_next_page
