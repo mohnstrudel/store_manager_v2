@@ -15,6 +15,7 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 - Read `references/controllers-and-request-refactors.md` when refactoring fat controllers or unclear request boundaries.
 - Read `references/views-and-edge-refactors.md` when presentation logic is scattered across models, controllers, helpers, JSON builders, or JavaScript.
 - Read `references/presentation-methods-without-presenters.md` when models contain many string-building or summary methods and you need to sort them without introducing presenters.
+- Read `references/model-file-style.md` when you are cleaning up model file order, grouping, or cosmetics and want a consistent Fizzy-style layout.
 - Read `references/jobs-refactors.md` when legacy jobs or scheduler code hide domain ownership.
 - Read `references/testing-refactors.md` when tests need to move with new ownership seams after a refactor.
 - Read `references/testing-architecture.md` when the task is about test strategy, test placement, fixtures, system vs integration coverage, or preserving architecture during refactors.
