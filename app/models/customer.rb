@@ -22,6 +22,7 @@ class Customer < ApplicationRecord
 
   audited
   has_associated_audits
+
   set_search_scope :search,
     against: [:woo_id, :email, :first_name, :last_name, :phone],
     associated_against: {sales: :woo_id}

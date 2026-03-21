@@ -10,15 +10,18 @@
 #  updated_at :datetime         not null
 #
 class Brand < ApplicationRecord
-  include Sanitizable
   include HasAuditNotifications
   include Parsing
+  include Sanitizable
 
   audited
   has_associated_audits
+
   validates :title, presence: true
+
   has_many :product_brands, dependent: :destroy, inverse_of: :brand
   has_many :products, through: :product_brands
+
   after_save :update_products
 
   private

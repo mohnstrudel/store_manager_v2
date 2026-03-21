@@ -22,6 +22,7 @@
 class StoreInfo < ApplicationRecord
   # TODO: Remove after deploy 99
   self.ignored_columns += ["price"]
+
   include References
 
   acts_as_taggable_on :tags
@@ -31,12 +32,13 @@ class StoreInfo < ApplicationRecord
     shopify: 1,
     woo: 2
   }, default: :not_assigned
+
   belongs_to :storable, polymorphic: true
+
+  validates_db_uniqueness_of :store_name, scope: [:storable_type, :storable_id]
 
   scope :shopify, -> { where(store_name: "shopify") }
   scope :woo, -> { where(store_name: "woo") }
-
-  validates_db_uniqueness_of :store_name, scope: [:storable_type, :storable_id]
 
   def update_pull_time
     update(pull_time: Time.zone.now)

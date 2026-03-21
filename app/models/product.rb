@@ -18,23 +18,25 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
+  include Editions
   include HasAuditNotifications
   include HasPreviewImages
-  include Titling
-  include Editions
   include Listing
-  include Searchable
   include SalesHistory
+  include Searchable
   include Shopable
   include StoreReferences
+  include Titling
 
   extend FriendlyId
 
-  friendly_id :find_slug_candidate, use: :slugged
-  broadcasts_refreshes
-  paginates_per 50
   audited associated_with: :franchise
   has_associated_audits
+
+  broadcasts_refreshes
+  friendly_id :find_slug_candidate, use: :slugged
+  paginates_per 50
+
   set_search_scope :search,
     against: [:full_title, :woo_id],
     associated_against: {
@@ -46,13 +48,10 @@ class Product < ApplicationRecord
       tsearch: {prefix: true}
     }
 
-  after_create :update_full_title
-
   validates :title, presence: true
   validates :sku, presence: true
   validates_db_uniqueness_of :sku
 
-  has_rich_text :description
   db_belongs_to :franchise, inverse_of: :products
   db_belongs_to :shape, inverse_of: :products
 
@@ -63,7 +62,6 @@ class Product < ApplicationRecord
 
   has_many :product_sizes, dependent: :destroy, inverse_of: :product
   has_many :sizes, through: :product_sizes
-
   has_many :product_versions, dependent: :destroy, inverse_of: :product
   has_many :versions, through: :product_versions
 
@@ -75,5 +73,9 @@ class Product < ApplicationRecord
 
   has_many :purchases, dependent: :destroy, inverse_of: :product
   has_many :purchase_items, through: :purchases
+
+  has_rich_text :description
   accepts_nested_attributes_for :purchases
+
+  after_create :update_full_title
 end

@@ -39,8 +39,8 @@
 #
 class Sale < ApplicationRecord
   include HasAuditNotifications
-  include Listing
   include Linking
+  include Listing
   include Searchable
   include ShopSync
   include Shopable
@@ -49,10 +49,12 @@ class Sale < ApplicationRecord
 
   extend FriendlyId
 
-  friendly_id :full_title, use: :slugged
-  paginates_per 50
   audited associated_with: :customer
   has_associated_audits
+
+  friendly_id :full_title, use: :slugged
+  paginates_per 50
+
   set_search_scope :search,
     against: [:woo_id, :shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
     associated_against: {

@@ -15,6 +15,8 @@ class Franchise < ApplicationRecord
 
   audited
   has_associated_audits
+
   validates :title, presence: true
+
   has_many :products, dependent: :destroy, inverse_of: :franchise
 end

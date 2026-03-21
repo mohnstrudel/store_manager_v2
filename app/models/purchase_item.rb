@@ -22,14 +22,15 @@
 class PurchaseItem < ApplicationRecord
   include HasAuditNotifications
   include HasPreviewImages
-  include Listing
   include Linking
+  include Listing
+  include Relocatable
   include Searchable
   include Shipping
   include Titling
-  include Relocatable
 
   audited associated_with: :purchase
+
   set_search_scope :search,
     against: [:tracking_number],
     associated_against: {
@@ -51,12 +52,11 @@ class PurchaseItem < ApplicationRecord
   db_belongs_to :purchase, inverse_of: :purchase_items
 
   belongs_to :sale_item, optional: true, counter_cache: true, inverse_of: :purchase_items
+  has_one :product, through: :purchase
+  belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
+
   has_one :sale, through: :sale_item
   has_one :customer, through: :sale
-
-  has_one :product, through: :purchase
-
-  belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
 
   def cost
     purchase.item_price.to_f + shipping_cost.to_f

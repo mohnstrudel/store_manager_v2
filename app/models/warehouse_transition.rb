@@ -16,10 +16,11 @@ class WarehouseTransition < ApplicationRecord
   include Lookup
 
   audited associated_with: :notification
-  validates_db_presence_of :from_warehouse, :to_warehouse
-  validates_db_uniqueness_of :from_warehouse_id,
-    scope: [:to_warehouse_id, :notification_id]
   db_belongs_to :notification, inverse_of: :warehouse_transitions
   db_belongs_to :from_warehouse, class_name: "Warehouse", inverse_of: :from_transitions
   db_belongs_to :to_warehouse, class_name: "Warehouse", inverse_of: :to_transitions
+
+  validates_db_presence_of :from_warehouse, :to_warehouse
+  validates_db_uniqueness_of :from_warehouse_id,
+    scope: [:to_warehouse_id, :notification_id]
 end

@@ -21,15 +21,15 @@
 #
 class Edition < ApplicationRecord
   include HasAuditNotifications
-  include Shopable
   include Options
+  include Shopable
 
   audited associated_with: :product
 
+  db_belongs_to :product, inverse_of: :editions
+  belongs_to :color, optional: true, inverse_of: :editions
   belongs_to :size, optional: true, inverse_of: :editions
   belongs_to :version, optional: true, inverse_of: :editions
-  belongs_to :color, optional: true, inverse_of: :editions
-  db_belongs_to :product, inverse_of: :editions
 
   has_many :sale_items, dependent: :nullify, inverse_of: :edition
   has_many :purchases, dependent: :nullify, inverse_of: :edition

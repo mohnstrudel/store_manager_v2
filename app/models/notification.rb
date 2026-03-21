@@ -25,5 +25,6 @@ class Notification < ApplicationRecord
     product_purchased: 0,
     warehouse_changed: 1
   }, default: :product_purchased
+
   has_many :warehouse_transitions, dependent: :nullify, inverse_of: :notification
 end

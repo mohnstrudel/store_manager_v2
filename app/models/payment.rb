@@ -16,7 +16,9 @@ class Payment < ApplicationRecord
   include PurchasePaidSync
 
   audited associated_with: :purchase
+
   validates :value, presence: true
+
   # Touch is enabled so the purchase is updated when we pay
   # Counter cache is enabled to track unpaid purchases
   db_belongs_to :purchase, touch: true, counter_cache: true, inverse_of: :payments

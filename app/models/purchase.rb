@@ -34,7 +34,10 @@ class Purchase < ApplicationRecord
 
   audited associated_with: :supplier
   has_associated_audits
+
   friendly_id :full_title, use: :slugged
+  paginates_per 50
+
   set_search_scope :search,
     against: [:order_reference],
     associated_against: {
@@ -47,7 +50,6 @@ class Purchase < ApplicationRecord
     using: {
       tsearch: {prefix: true}
     }
-  paginates_per 50
 
   validates :amount, presence: true
   validates :item_price, presence: true
@@ -57,15 +59,16 @@ class Purchase < ApplicationRecord
   belongs_to :product, optional: true, inverse_of: :purchases
   belongs_to :edition, optional: true, inverse_of: :purchases
 
-  has_many :sizes, through: :edition
-  has_many :versions, through: :edition
-  has_many :colors, through: :edition
-
   has_many :payments, dependent: :destroy, inverse_of: :purchase
   accepts_nested_attributes_for :payments
 
   has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
   has_many :warehouses, through: :purchase_items
+
+  has_many :sizes, through: :edition
+  has_many :versions, through: :edition
+  has_many :colors, through: :edition
+
   scope :unpaid, -> {
     includes(:supplier)
       .where

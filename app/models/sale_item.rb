@@ -19,6 +19,7 @@
 class SaleItem < ApplicationRecord
   # TODO: Remove after merging the Auth PR #141
   self.ignored_columns += ["purchased_products_count"]
+
   include HasAuditNotifications
   include Linkability
   include Listing
@@ -29,13 +30,10 @@ class SaleItem < ApplicationRecord
   db_belongs_to :product, inverse_of: :sale_items
   db_belongs_to :sale, inverse_of: :sale_items
   belongs_to :edition, optional: true, inverse_of: :sale_items
-
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
 
   def title
-    edition_id.present? ?
-      "#{product.full_title} → #{edition.title}" :
-      product.full_title
+    edition_id.present? ? "#{product.full_title} → #{edition.title}" : product.full_title
   end
 
   def build_title_for_select
