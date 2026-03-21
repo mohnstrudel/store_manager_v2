@@ -78,14 +78,9 @@ class PurchasedNotifier
   end
 
   def dispatch_warehouse_changed_message
-    transition = WarehouseTransition
-      .includes(:notification, :from_warehouse, :to_warehouse)
-      .find_by(
-        from_warehouse_id: @from_id,
-        to_warehouse_id: @to_id
-      )
+    transition = WarehouseTransition.active_for_notification(from_id: @from_id, to_id: @to_id)
 
-    unless transition&.notification&.active?
+    unless transition
       return warn_about(:no_transitions)
     end
 

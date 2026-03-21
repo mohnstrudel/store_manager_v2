@@ -21,8 +21,8 @@ tr(
       ul.text-sm
         li
           .inline-flex.gap-2
-            = copy_to_clipboard text: item.sale.summary_for_warehouse, css: "text-xs btn-xs mb-3 self-start"
-            = item.sale.summary_for_warehouse
+            = copy_to_clipboard text: sale_summary_for_warehouse(item.sale), css: "text-xs btn-xs mb-3 self-start"
+            = sale_summary_for_warehouse(item.sale)
             = tooltip "Customer's note: \"#{item.sale.note}\"" if item.sale.note.present?
         li.mt-2
           .inline-flex.items-center.gap-2

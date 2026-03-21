@@ -11,44 +11,19 @@
 #  updated_at :datetime         not null
 #
 class Supplier < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
 
-  #
-  # == Extensions
-  #
   extend FriendlyId
 
-  #
-  # == Configuration
-  #
   audited
   has_associated_audits
   friendly_id :title, use: :slugged
 
-  #
-  # == Validations
-  #
   validates :title, presence: true
 
   has_many :purchases, dependent: :destroy, inverse_of: :supplier
 
-  #
-  # == Scopes
-  #
   scope :includes_dashboard_associations, -> {
     includes(purchases: [:payments, :purchase_items])
   }
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
 end

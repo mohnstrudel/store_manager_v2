@@ -23,23 +23,15 @@
 class Purchase < ApplicationRecord
   attribute :warehouse_id, :integer
 
-  #
-  # == Concerns
-  #
   include Financials
   include HasAuditNotifications
   include Listing
   include Searchable
   include Warehousing
+  include Titling
 
-  #
-  # == Extensions
-  #
   extend FriendlyId
 
-  #
-  # == Configuration
-  #
   audited associated_with: :supplier
   has_associated_audits
   friendly_id :full_title, use: :slugged
@@ -57,16 +49,10 @@ class Purchase < ApplicationRecord
     }
   paginates_per 50
 
-  #
-  # == Validations
-  #
   validates :amount, presence: true
   validates :item_price, presence: true
   validates :supplier_id, presence: true
 
-  #
-  # == Associations
-  #
   db_belongs_to :supplier, inverse_of: :purchases
   belongs_to :product, optional: true, inverse_of: :purchases
   belongs_to :edition, optional: true, inverse_of: :purchases
@@ -80,37 +66,10 @@ class Purchase < ApplicationRecord
 
   has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
   has_many :warehouses, through: :purchase_items
-
-  #
-  # == Scopes
-  #
   scope :unpaid, -> {
     includes(:supplier)
       .where
       .missing(:payments)
       .order(created_at: :asc)
   }
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  def title
-    "Purchase №#{id}: #{product.title}"
-  end
-
-  def full_title
-    date = purchase_date || created_at
-    "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
-  end
-
-  def which_edition
-    edition ?
-      edition.title :
-      "-"
-  end
 end

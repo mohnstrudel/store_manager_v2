@@ -57,7 +57,7 @@ class WarehousesController < ApplicationController
     ActiveRecord::Base.transaction do
       # Handle warehouse transitions separately if that's the only parameter being updated
       if params[:warehouse].present? && params[:warehouse].keys.map(&:to_sym) == [:to_warehouse_ids]
-        handle_warehouse_transitions
+        @warehouse.sync_transitions!(params.dig(:warehouse, :to_warehouse_ids))
         redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
       elsif @warehouse.update(warehouse_params)
         update_media(@warehouse)
@@ -67,7 +67,7 @@ class WarehousesController < ApplicationController
           Warehouse.ensure_only_one_default(@warehouse.id)
         end
 
-        handle_warehouse_transitions
+        @warehouse.sync_transitions!(params.dig(:warehouse, :to_warehouse_ids))
 
         redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
       else
@@ -135,31 +135,6 @@ class WarehousesController < ApplicationController
         :position,
         :to_warehouse_ids]
     )
-  end
-
-  def handle_warehouse_transitions
-    return if params[:warehouse][:to_warehouse_ids].blank?
-
-    WarehouseTransition
-      .where(from_warehouse: @warehouse)
-      .where.not(to_warehouse_id: params[:warehouse][:to_warehouse_ids])
-      .destroy_all
-
-    params[:warehouse][:to_warehouse_ids].each do |to_id|
-      next if to_id.blank?
-
-      notification = Notification.find_or_create_by!(
-        name: "Warehouse transition",
-        event_type: Notification.event_types[:warehouse_changed],
-        status: :active
-      )
-
-      WarehouseTransition.find_or_create_by!(
-        from_warehouse: @warehouse,
-        to_warehouse_id: to_id,
-        notification: notification
-      )
-    end
   end
 
   def validate_default_warehouse

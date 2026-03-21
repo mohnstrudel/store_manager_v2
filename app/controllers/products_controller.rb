@@ -56,7 +56,7 @@ class ProductsController < ApplicationController
   # PATCH/PUT /products/1 or /products/1.json
   def update
     @product.assign_attributes(product_params.to_h.merge(slug: nil))
-    @product.assign_attributes(full_title: Product.generate_full_title(@product))
+    @product.assign_attributes(full_title: @product.generate_full_title)
 
     respond_to do |format|
       ActiveRecord::Base.transaction do

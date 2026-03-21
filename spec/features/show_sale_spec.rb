@@ -12,7 +12,7 @@ describe "Sale show page" do
   context "when the nav link should be hidden" do
     before do
       allow(sale).to receive_messages(active?: false, has_unlinked_sale_items?: false)
-      allow(PurchaseItem).to receive(:without_sale_items_by_product).and_return([])
+      allow(PurchaseItem).to receive(:available_for_product_linking).and_return([])
 
       product = create(:product)
       create(:sale_item, sale: sale, product: product, qty: 2)
@@ -43,18 +43,15 @@ describe "Sale show page" do
   end
 
   context "when the nav link should be visible" do
-    before do
-      product = create(:product)
-      create(:sale_item, sale: sale, product: product, qty: 2)
-      create(:purchase_item, product: product)
-      # Mock on any Sale instance since controller reloads from DB
-      allow_any_instance_of(Sale).to receive_messages(active?: true, has_unlinked_sale_items?: true)
-    end
-
     it "shows the link when all conditions are true" do
-      visit sale_path(sale)
+      active_sale = create(:sale, status: Sale.active_status_names.first)
+      product = create(:product)
+      create(:sale_item, sale: active_sale, product:, qty: 2)
+      create(:purchase_item, product:)
 
-      expect(page).to have_link(link_label, href: link_purchase_items_sale_path(sale.friendly_id))
+      visit sale_path(active_sale)
+
+      expect(page).to have_link(link_label, href: link_purchase_items_sale_path(active_sale.friendly_id))
     end
   end
 end

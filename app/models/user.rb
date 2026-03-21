@@ -14,6 +14,8 @@
 #  updated_at      :datetime         not null
 #
 class User < ApplicationRecord
+  include Roles
+
   enum :role, {guest: 0, admin: 1, manager: 2, support: 3}
 
   has_secure_password
@@ -23,8 +25,4 @@ class User < ApplicationRecord
   validates :email_address, format: {with: URI::MailTo::EMAIL_REGEXP}
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
-
-  def self.role_options_for_select
-    roles.keys.map { (it == "admin") ? next : [it.humanize, it] }.compact
-  end
 end

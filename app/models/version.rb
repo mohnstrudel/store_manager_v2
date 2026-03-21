@@ -10,40 +10,13 @@
 #  updated_at :datetime         not null
 #
 class Version < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
 
-  #
-  # == Validations
-  #
   validates :value, presence: true
 
-  #
-  # == Associations
-  #
   has_many :product_versions, dependent: :destroy, inverse_of: :version
   has_many :products, through: :product_versions
   has_many :editions, dependent: :destroy, inverse_of: :version
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
 end

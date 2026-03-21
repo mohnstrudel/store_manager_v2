@@ -20,44 +20,21 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
   include HasPreviewImages
   include Listing
+  include Transitions
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
   has_associated_audits
   positioned
 
-  #
-  # == Validations
-  #
   validates :name, presence: true
-
-  #
-  # == Associations
-  #
   has_many :purchase_items, dependent: :destroy, inverse_of: :warehouse
   has_many :purchases, through: :purchase_items
   has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
   has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse
 
-  #
-  # == Scopes
-  #
-  #
-  # == Class Methods
-  #
   def self.ensure_only_one_default(id)
     # rubocop:disable Rails/SkipsModelValidations
     Warehouse
@@ -67,10 +44,6 @@ class Warehouse < ApplicationRecord
     # rubocop:enable Rails/SkipsModelValidations
   end
 
-  #
-  # == Domain Methods
-  #
-  #
   def average_payment_progress
     return 0 if purchases.none?
 
