@@ -17,5 +17,6 @@ class ProductSize < ApplicationRecord
 
   db_belongs_to :product, inverse_of: :product_sizes
   db_belongs_to :size, inverse_of: :product_sizes
+
   has_many :store_infos, as: :storable, dependent: :destroy, inverse_of: :storable
 end

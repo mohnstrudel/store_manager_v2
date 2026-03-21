@@ -20,6 +20,7 @@ class Supplier < ApplicationRecord
   friendly_id :title, use: :slugged
 
   validates :title, presence: true
+
   has_many :purchases, dependent: :destroy, inverse_of: :supplier
 
   scope :includes_dashboard_associations, -> {

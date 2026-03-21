@@ -15,6 +15,7 @@ class ProductBrand < ApplicationRecord
   include ProductTitling
 
   audited
+
   db_belongs_to :product, inverse_of: :product_brands
   db_belongs_to :brand, inverse_of: :product_brands
 end

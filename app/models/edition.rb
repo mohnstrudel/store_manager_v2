@@ -22,6 +22,7 @@
 class Edition < ApplicationRecord
   include HasAuditNotifications
   include Options
+  include Titling
   include Shopable
 
   audited associated_with: :product

@@ -3,6 +3,15 @@
 module Purchase::Financials
   extend ActiveSupport::Concern
 
+  included do
+    scope :unpaid, -> {
+      includes(:supplier)
+        .where
+        .missing(:payments)
+        .order(created_at: :asc)
+    }
+  end
+
   def debt
     @debt ||= [cost_total - paid, 0].max
   end

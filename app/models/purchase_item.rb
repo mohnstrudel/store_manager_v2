@@ -24,6 +24,7 @@ class PurchaseItem < ApplicationRecord
   include HasPreviewImages
   include Linking
   include Listing
+  include Financials
   include Relocatable
   include Searchable
   include Shipping
@@ -50,15 +51,10 @@ class PurchaseItem < ApplicationRecord
 
   db_belongs_to :warehouse, inverse_of: :purchase_items
   db_belongs_to :purchase, inverse_of: :purchase_items
-
   belongs_to :sale_item, optional: true, counter_cache: true, inverse_of: :purchase_items
-  has_one :product, through: :purchase
   belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
 
-  has_one :sale, through: :sale_item
   has_one :customer, through: :sale
-
-  def cost
-    purchase.item_price.to_f + shipping_cost.to_f
-  end
+  has_one :product, through: :purchase
+  has_one :sale, through: :sale_item
 end

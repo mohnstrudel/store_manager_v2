@@ -15,11 +15,6 @@ module Edition::Options
     end
   end
 
-  def title
-    values = [size&.value, version&.value, color&.value].compact
-    values.blank? ? "Base Model" : values.join(" | ")
-  end
-
   def base_model?
     size_id.nil? && version_id.nil? && color_id.nil?
   end

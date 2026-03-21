@@ -22,6 +22,7 @@
 class Warehouse < ApplicationRecord
   include HasAuditNotifications
   include HasPreviewImages
+  include Financials
   include Listing
   include Transitions
 
@@ -42,16 +43,5 @@ class Warehouse < ApplicationRecord
       .where.not(id:)
       .update_all(is_default: false)
     # rubocop:enable Rails/SkipsModelValidations
-  end
-
-  def average_payment_progress
-    return 0 if purchases.none?
-
-    progresses = purchases.map(&:progress)
-    (progresses.sum / progresses.size).round
-  end
-
-  def total_debt
-    purchases.sum(&:debt).round
   end
 end

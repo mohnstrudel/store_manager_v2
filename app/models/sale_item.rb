@@ -23,6 +23,7 @@ class SaleItem < ApplicationRecord
   include HasAuditNotifications
   include Linkability
   include Listing
+  include Titling
 
   audited associated_with: :sale
   validates_db_uniqueness_of :woo_id, allow_nil: true
@@ -30,18 +31,6 @@ class SaleItem < ApplicationRecord
   db_belongs_to :product, inverse_of: :sale_items
   db_belongs_to :sale, inverse_of: :sale_items
   belongs_to :edition, optional: true, inverse_of: :sale_items
+
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
-
-  def title
-    edition_id.present? ? "#{product.full_title} → #{edition.title}" : product.full_title
-  end
-
-  def build_title_for_select
-    status = sale.status&.titleize
-    email = sale.customer.email
-    pretty_sale_id = "Sale ID: #{sale_id}"
-    pretty_woo_id = woo_id && "Woo ID: #{woo_id}"
-
-    [id, status, title, email, pretty_sale_id, pretty_woo_id].compact.join(" | ")
-  end
 end

@@ -17,5 +17,6 @@ class ProductVersion < ApplicationRecord
 
   db_belongs_to :product, inverse_of: :product_versions
   db_belongs_to :version, inverse_of: :product_versions
+
   has_many :store_infos, as: :storable, dependent: :destroy, inverse_of: :storable
 end

@@ -56,6 +56,7 @@ class Purchase < ApplicationRecord
   validates :supplier_id, presence: true
 
   db_belongs_to :supplier, inverse_of: :purchases
+
   belongs_to :product, optional: true, inverse_of: :purchases
   belongs_to :edition, optional: true, inverse_of: :purchases
 
@@ -68,11 +69,4 @@ class Purchase < ApplicationRecord
   has_many :sizes, through: :edition
   has_many :versions, through: :edition
   has_many :colors, through: :edition
-
-  scope :unpaid, -> {
-    includes(:supplier)
-      .where
-      .missing(:payments)
-      .order(created_at: :asc)
-  }
 end

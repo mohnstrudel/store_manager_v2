@@ -16,6 +16,7 @@ class WarehouseTransition < ApplicationRecord
   include Lookup
 
   audited associated_with: :notification
+
   db_belongs_to :notification, inverse_of: :warehouse_transitions
   db_belongs_to :from_warehouse, class_name: "Warehouse", inverse_of: :from_transitions
   db_belongs_to :to_warehouse, class_name: "Warehouse", inverse_of: :to_transitions
