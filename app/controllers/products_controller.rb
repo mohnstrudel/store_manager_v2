@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class ProductsController < ApplicationController
-  include ActionView::Helpers::OutputSafetyHelper
   include HandlesMedia
+  include JobsStatusNotice
 
   before_action :set_product, only: %i[show edit update destroy pull_from_shopify] # DISABLED: publish_to_shopify, push_to_shopify
 
@@ -121,21 +121,9 @@ class ProductsController < ApplicationController
   end
 
   def pull
-    limit = params[:limit]&.to_i
-
-    Shopify::PullProductsJob.perform_later(limit:)
+    Shopify::PullProductsJob.perform_later(limit: params[:limit]&.to_i)
     Config.update_shopify_products_sync_time
-
-    statuses_link = view_context.link_to(
-      "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
-    )
-
-    flash[:notice] = safe_join([
-      "Success! Visit ",
-      statuses_link,
-      " to track synchronization progress"
-    ])
-
+    set_jobs_status_notice!
     redirect_back_or_to(products_path)
   end
 

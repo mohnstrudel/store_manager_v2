@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class SalesController < ApplicationController
-  include ActionView::Helpers::OutputSafetyHelper
+  include JobsStatusNotice
 
+  before_action :set_sale_for_show, only: :show
   before_action :set_sale, only: %i[edit update destroy link_purchase_items]
   before_action :load_form_collections, only: %i[new edit]
 
@@ -18,10 +19,6 @@ class SalesController < ApplicationController
 
   # GET /sales/1
   def show
-    @sale = Sale
-      .for_details
-      .friendly
-      .find(params[:id])
   end
 
   # GET /sales/new
@@ -76,36 +73,24 @@ class SalesController < ApplicationController
   end
 
   def pull
-    limit = params[:limit]
-
-    sale_id = params[:id]
-
-    if sale_id.present?
-      sale = Sale.friendly.find(sale_id)
-      Shopify::PullSaleJob.perform_later(sale.shopify_id) if sale.shopify_id.present?
-      Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: sale.woo_id) if sale.woo_id.present?
+    if params[:id].present?
+      enqueue_single_sale_pull_jobs
     else
       Config.update_shopify_sales_sync_time
-      Shopify::PullSalesJob.perform_later(limit:)
-      Woo::PullSalesJob.set(wait: 90.seconds).perform_later(limit:)
+      enqueue_bulk_sale_pull_jobs
     end
 
-    statuses_link = view_context.link_to(
-      "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
-    )
-
-    flash[:notice] = safe_join([
-      "Success! Visit ",
-      statuses_link,
-      " to track synchronization progress"
-    ])
-
+    set_jobs_status_notice!
     redirect_back_or_to(sales_path)
   end
 
   private
 
   # Use callbacks to share common setup or constraints between actions.
+  def set_sale_for_show
+    @sale = Sale.for_details.friendly.find(params[:id])
+  end
+
   def set_sale
     @sale = Sale.friendly.find(params[:id])
   end
@@ -143,5 +128,17 @@ class SalesController < ApplicationController
     @customer_options = Customer.order(:email)
     @product_options = Product.order(:full_title)
     @product_shop_options = Product.with_store_references
+  end
+
+  def enqueue_single_sale_pull_jobs
+    sale = Sale.friendly.find(params[:id])
+    Shopify::PullSaleJob.perform_later(sale.shopify_id) if sale.shopify_id.present?
+    Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: sale.woo_id) if sale.woo_id.present?
+  end
+
+  def enqueue_bulk_sale_pull_jobs
+    limit = params[:limit]
+    Shopify::PullSalesJob.perform_later(limit:)
+    Woo::PullSalesJob.set(wait: 90.seconds).perform_later(limit:)
   end
 end

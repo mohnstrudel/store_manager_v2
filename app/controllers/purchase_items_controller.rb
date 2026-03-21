@@ -107,101 +107,72 @@ class PurchaseItemsController < ApplicationController
   # GET /purchase_items/1/edit_tracking_number
   def edit_tracking_number
     if @purchase_item.shipping_company_id.present?
-      render turbo_stream: turbo_stream.replace(
-        helpers.dom_id(@purchase_item, :tracking_number),
-        partial: "inline_tracking_edit",
-        locals: {purchase_item: @purchase_item}
-      )
+      render_tracking_number_edit
     else
       render turbo_stream: [
-        turbo_stream.replace(
-          helpers.dom_id(@purchase_item, :tracking_number),
-          partial: "inline_tracking_edit",
-          locals: {purchase_item: @purchase_item}
-        ),
-        turbo_stream.replace(
-          helpers.dom_id(@purchase_item, :shipping_company),
-          partial: "inline_shipping_company_edit",
-          locals: {purchase_item: @purchase_item}
-        )
+        turbo_replace_purchase_item(:tracking_number, "inline_tracking_edit"),
+        turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
       ]
     end
   end
 
   # GET /purchase_items/1/cancel_tracking_number
   def cancel_tracking_number
-    render turbo_stream: turbo_stream.replace(
-      helpers.dom_id(@purchase_item, :tracking_number),
-      partial: "inline_tracking_show",
-      locals: {purchase_item: @purchase_item}
-    )
+    render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_show")
   end
 
   # PATCH/PUT /purchase_items/1/update_tracking_number
   def update_tracking_number
     if @purchase_item.update(tracking_number: params[:purchase_item][:tracking_number])
-      render turbo_stream: turbo_stream.replace(
-        helpers.dom_id(@purchase_item, :tracking_number),
-        partial: "inline_tracking_show",
-        locals: {purchase_item: @purchase_item}
-      )
+      render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_show")
     else
-      render turbo_stream: turbo_stream.replace(
-        helpers.dom_id(@purchase_item, :tracking_number),
-        partial: "inline_tracking_edit",
-        locals: {purchase_item: @purchase_item}
-      )
+      render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_edit")
     end
   end
 
   # GET /purchase_items/1/edit_shipping_company
   def edit_shipping_company
-    render turbo_stream: turbo_stream.replace(
-      helpers.dom_id(@purchase_item, :shipping_company),
-      partial: "inline_shipping_company_edit",
-      locals: {purchase_item: @purchase_item}
-    )
+    render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
   end
 
   # GET /purchase_items/1/cancel_edit_shipping_company
   def cancel_edit_shipping_company
-    render turbo_stream: turbo_stream.replace(
-      helpers.dom_id(@purchase_item, :shipping_company),
-      partial: "inline_shipping_company_show",
-      locals: {purchase_item: @purchase_item}
-    )
+    render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_show")
   end
 
   # PATCH/PUT /purchase_items/1/update_shipping_company
   def update_shipping_company
     if @purchase_item.update(shipping_company_id: params[:purchase_item][:shipping_company_id])
-      render turbo_stream: turbo_stream.replace(
-        helpers.dom_id(@purchase_item, :shipping_company),
-        partial: "inline_shipping_company_show",
-        locals: {purchase_item: @purchase_item}
-      )
+      render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_show")
     else
-      render turbo_stream: turbo_stream.replace(
-        helpers.dom_id(@purchase_item, :shipping_company),
-        partial: "inline_shipping_company_edit",
-        locals: {purchase_item: @purchase_item}
-      )
+      render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
     end
   end
 
   private
 
   def redirect_to_appropriate_path
-    if params[:purchase_id].present?
-      redirect_to purchase_path(params[:purchase_id])
-    elsif params[:redirect_to_sale_item] && params[:selected_items_ids].present?
-      sale_item = PurchaseItem
-        .find(params[:selected_items_ids].first)
-        .sale_item
-      redirect_to sale_item
-    else
-      redirect_to warehouse_path(params[:warehouse_id])
-    end
+    redirect_to redirect_target
+  end
+
+  def redirect_target
+    return purchase_path(params[:purchase_id]) if params[:purchase_id].present?
+    return selected_sale_item if redirect_to_sale_item?
+
+    warehouse_path(params[:warehouse_id])
+  end
+
+  def redirect_to_sale_item?
+    params[:redirect_to_sale_item].present? && selected_item_ids.any?
+  end
+
+  def selected_item_ids
+    Array(params[:selected_items_ids]).compact_blank
+  end
+
+  def selected_sale_item
+    purchase_item = PurchaseItem.find_by(id: selected_item_ids.first)
+    purchase_item&.sale_item || warehouse_path(params[:warehouse_id])
   end
 
   def set_purchase_item
@@ -209,20 +180,25 @@ class PurchaseItemsController < ApplicationController
   end
 
   def set_data_for_edit
-    all_sale_items = SaleItem.for_linking.where(
-      sales: {status: Sale.active_status_names + Sale.completed_status_names}
-    )
-    @sale_items = all_sale_items.where(
-      product_id: @purchase_item.product
-    ) + all_sale_items.where.not(
-      product_id: @purchase_item.product
-    )
+    @sale_items = SaleItem.for_edit_linking(@purchase_item)
     load_form_collections
   end
 
   def load_form_collections
     @purchases = Purchase.for_form_select
     @shipping_companies = ShippingCompany.all
+  end
+
+  def render_tracking_number_edit
+    render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_edit")
+  end
+
+  def turbo_replace_purchase_item(field, partial)
+    turbo_stream.replace(
+      helpers.dom_id(@purchase_item, field),
+      partial:,
+      locals: {purchase_item: @purchase_item}
+    )
   end
 
   # Only allow a list of trusted parameters through.

@@ -28,6 +28,16 @@ module SaleItem::Linkability
         )
     end
 
+    def for_edit_linking(purchase_item)
+      statuses = Sale.active_status_names + Sale.completed_status_names
+      purchase_product_id = purchase_item.purchase&.product_id
+
+      for_linking
+        .joins(:sale)
+        .where(sales: {status: statuses})
+        .in_order_of(:product_id, [purchase_product_id], filter: false)
+        .order(:id)
+    end
   end
 
   def resolve_sold_item

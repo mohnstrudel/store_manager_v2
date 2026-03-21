@@ -4,15 +4,8 @@ module Sanitizable
   extend ActiveSupport::Concern
 
   included do
+    delegate :smart_titleize, :sanitize, to: :class
     private :smart_titleize, :sanitize
-  end
-
-  def smart_titleize(sentence)
-    Sanitizable.smart_titleize(sentence)
-  end
-
-  def sanitize(string)
-    Sanitizable.sanitize(string)
   end
 
   class_methods do

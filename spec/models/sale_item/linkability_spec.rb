@@ -62,6 +62,24 @@ RSpec.describe SaleItem::Linkability do
 
   end
 
+  describe ".for_edit_linking" do
+    let(:product) { create(:product) }
+    let(:other_product) { create(:product) }
+    let(:purchase_item) { create(:purchase_item, purchase: create(:purchase, product:)) }
+    let!(:same_product_active) { create(:sale_item, product:, sale: create(:sale, status: Sale.active_status_names.first)) }
+    let!(:same_product_completed) { create(:sale_item, product:, sale: create(:sale, status: Sale.completed_status_names.first)) }
+    let!(:other_product_active) { create(:sale_item, product: other_product, sale: create(:sale, status: Sale.active_status_names.first)) }
+    let!(:cancelled_item) { create(:sale_item, product:, sale: create(:sale, status: Sale.cancelled_status_names.first)) }
+
+    it "prioritizes sale items with the same product" do
+      result = SaleItem.for_edit_linking(purchase_item)
+
+      expect(result.first(2)).to include(same_product_active, same_product_completed)
+      expect(result).to include(other_product_active)
+      expect(result).not_to include(cancelled_item)
+    end
+  end
+
   describe "#resolve_sold_item" do
     let(:product) { create(:product) }
 

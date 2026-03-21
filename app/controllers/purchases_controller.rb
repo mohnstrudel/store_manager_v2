@@ -37,15 +37,13 @@ class PurchasesController < ApplicationController
 
   # POST /purchases or /purchases.json
   def create
-    warehouse_id = purchase_params.delete(:warehouse_id)
-    @purchase = Purchase.new(purchase_params.except(:warehouse_id))
+    attrs = purchase_params.to_h
+    warehouse_id = attrs.delete("warehouse_id")
+    @purchase = Purchase.new(attrs)
 
     respond_to do |format|
       if @purchase.save
-        if warehouse_id
-          @purchase.add_items_to_warehouse(warehouse_id)
-          @purchase.link_with_sales
-        end
+        handle_warehouse_assignment_for(@purchase, warehouse_id)
 
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
         format.json { render :show, status: :created, location: @purchase }
@@ -82,23 +80,14 @@ class PurchasesController < ApplicationController
   end
 
   def move
-    purchase_id = params[:purchase_id]
-    purchases_ids = params[:selected_items_ids].presence || purchase_id
-    destination_id = params[:destination_id]
-
     moved_count = Purchase.friendly
-      .where(id: purchases_ids)
+      .where(id: purchase_ids_for_movement)
       .sum { |purchase|
-        Warehouse::Relocation.move(warehouse_id: destination_id, purchase:)
+        Warehouse::Relocation.move(warehouse_id: params[:destination_id], purchase:)
       }
 
-    flash_movement_notice(moved_count, Warehouse.find(destination_id))
-
-    if purchase_id
-      redirect_to purchase_path(Purchase.friendly.find(purchase_id))
-    else
-      redirect_to purchases_path
-    end
+    flash_movement_notice(moved_count, Warehouse.find(params[:destination_id]))
+    redirect_after_purchase_move
   end
 
   # Used for Turbo in:
@@ -146,5 +135,24 @@ class PurchasesController < ApplicationController
   def load_form_collections
     @product_options = Product.with_store_references
     @suppliers = Supplier.order(title: :asc)
+  end
+
+  def handle_warehouse_assignment_for(purchase, warehouse_id)
+    return if warehouse_id.blank?
+
+    purchase.add_items_to_warehouse(warehouse_id)
+    purchase.link_with_sales
+  end
+
+  def purchase_ids_for_movement
+    params[:selected_items_ids].presence || params[:purchase_id]
+  end
+
+  def redirect_after_purchase_move
+    if params[:purchase_id].present?
+      redirect_to purchase_path(Purchase.friendly.find(params[:purchase_id]))
+    else
+      redirect_to purchases_path
+    end
   end
 end
