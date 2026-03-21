@@ -135,7 +135,7 @@ RSpec.describe Sale do
     end
   end
 
-  describe "#has_unlinked_sale_items?" do
+  describe "#unlinked_sale_items?" do
     let(:sale) { create(:sale, status: active_status) }
     let!(:sale_item) { create(:sale_item, sale:, product:, qty: 2) }
 
@@ -145,7 +145,7 @@ RSpec.describe Sale do
       end
 
       it "returns nil" do
-        expect(sale.has_unlinked_sale_items?).to be_nil
+        expect(sale.unlinked_sale_items?).to be_nil
       end
     end
 
@@ -156,11 +156,11 @@ RSpec.describe Sale do
 
       it "returns true if there are available purchase items" do
         create(:purchase_item, purchase:, warehouse:)
-        expect(sale.has_unlinked_sale_items?).to be true
+        expect(sale.unlinked_sale_items?).to be true
       end
 
       it "returns false if no purchase items available" do
-        expect(sale.has_unlinked_sale_items?).to be false
+        expect(sale.unlinked_sale_items?).to be false
       end
     end
 
@@ -168,7 +168,7 @@ RSpec.describe Sale do
       let(:sale) { create(:sale, status: active_status) }
 
       it "returns false" do
-        expect(sale.has_unlinked_sale_items?).to be false
+        expect(sale.unlinked_sale_items?).to be false
       end
     end
   end

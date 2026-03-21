@@ -28,9 +28,6 @@ module SaleItem::Linkability
         )
     end
 
-    def linkable_with(purchase)
-      linkable_for(purchase)
-    end
   end
 
   def resolve_sold_item

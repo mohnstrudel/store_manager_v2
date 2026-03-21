@@ -12,7 +12,7 @@ module Purchase::Titling
     "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
   end
 
-  def which_edition
+  def edition_title
     edition ? edition.title : "-"
   end
 end

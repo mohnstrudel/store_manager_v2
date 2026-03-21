@@ -45,7 +45,7 @@ class Sale < ApplicationRecord
   include ShopSync
   include Shopable
   include Statuses
-  include Summaries
+  include Titling
 
   extend FriendlyId
 
@@ -69,4 +69,8 @@ class Sale < ApplicationRecord
   has_many :products, through: :sale_items
 
   accepts_nested_attributes_for :sale_items, allow_destroy: true
+
+  def created_at_for_display
+    woo_created_at || created_at
+  end
 end

@@ -15,7 +15,7 @@ module PurchaseItem::Linking
     }
   end
 
-  def link_with(sale_item_id)
+  def link_to_sale_item!(sale_item_id)
     update!(sale_item_id:)
   end
 end

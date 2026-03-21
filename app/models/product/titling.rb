@@ -16,12 +16,6 @@ module Product::Titling
     sku.presence || full_title
   end
 
-  class_methods do
-    def generate_full_title(product)
-      product.generate_full_title
-    end
-  end
-
   private
 
   def base_title_part

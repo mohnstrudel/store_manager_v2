@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Edition::ShopifyImporter do
+RSpec.describe Edition::Shopify::Importer do
   let(:product) { create(:product) }
   let(:parsed_variant) do
     {

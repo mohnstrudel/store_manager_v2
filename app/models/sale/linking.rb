@@ -3,7 +3,7 @@
 module Sale::Linking
   extend ActiveSupport::Concern
 
-  def has_unlinked_sale_items?
+  def unlinked_sale_items?
     total_sold = sale_items.sum(:qty)
     total_purchased = sale_items.sum { |sale_item| sale_item.purchase_items.size }
 
@@ -29,7 +29,7 @@ module Sale::Linking
 
       linked_purchase_items_ids = linkable_purchase_items.pluck(:id)
 
-      linkable_purchase_items.each { it.link_with(sale_item.id) }
+      linkable_purchase_items.each { it.link_to_sale_item!(sale_item.id) }
 
       linked_purchase_items_ids
     end.compact.flatten

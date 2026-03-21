@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Customer::ShopifyImporter do
+RSpec.describe Customer::Shopify::Importer do
   describe ".import!" do
     let(:parsed_payload) do
       {

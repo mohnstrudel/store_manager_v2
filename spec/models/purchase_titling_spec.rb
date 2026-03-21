@@ -42,13 +42,13 @@ RSpec.describe Purchase do
     end
   end
 
-  describe "#which_edition" do
+  describe "#edition_title" do
     context "when edition is present" do
       let(:edition) { create(:edition) }
       let(:purchase) { create(:purchase, edition:) }
 
       it "returns edition title" do
-        expect(purchase.which_edition).to eq(edition.title)
+        expect(purchase.edition_title).to eq(edition.title)
       end
     end
 
@@ -56,7 +56,7 @@ RSpec.describe Purchase do
       let(:purchase) { create(:purchase, edition: nil) }
 
       it "returns '-'" do
-        expect(purchase.which_edition).to eq("-")
+        expect(purchase.edition_title).to eq("-")
       end
     end
   end

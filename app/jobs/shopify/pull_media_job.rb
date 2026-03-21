@@ -13,7 +13,7 @@ module Shopify
     def perform(product_id, parsed_media)
       return if product_id.blank?
 
-      @product = Shopify::ProductsQuery.for_media_sync.find(product_id)
+      @product = Product.for_media_sync.find(product_id)
 
       return if product.blank?
 

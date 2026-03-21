@@ -60,9 +60,6 @@ RSpec.describe SaleItem::Linkability do
       expect(SaleItem.linkable_for(purchase_without_edition)).not_to include(matching_edition_item, wrong_edition_item)
     end
 
-    it "keeps compatibility through linkable_with alias" do
-      expect(SaleItem.linkable_with(purchase_with_edition).to_sql).to eq(SaleItem.linkable_for(purchase_with_edition).to_sql)
-    end
   end
 
   describe "#resolve_sold_item" do

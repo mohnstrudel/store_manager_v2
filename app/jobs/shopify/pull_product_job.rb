@@ -13,8 +13,8 @@ module Shopify
         return
       end
 
-      parsed_payload = Product::ShopifyParser.parse(payload)
-      Product::ShopifyImporter.import!(parsed_payload)
+      parsed_payload = Product::Shopify::Parser.parse(payload)
+      Product::Shopify::Importer.import!(parsed_payload)
     end
 
     private

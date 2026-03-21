@@ -50,7 +50,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       create(:sale, shopify_id: "gid://shopify/Order/123")
 
       # Stub to raise SKU collision error
-      allow(Sale::ShopifyImporter).to receive(:import!).and_raise(
+      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
         StandardError.new("SKU has already been taken")
       )
 
@@ -59,7 +59,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
 
     it "re-raises non-SKU errors" do
-      allow(Sale::ShopifyImporter).to receive(:import!).and_raise(
+      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
         StandardError.new("API rate limit exceeded")
       )
 

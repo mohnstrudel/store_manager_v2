@@ -10,10 +10,10 @@ module Shopable
       dependent: :destroy, inverse_of: :storable
     has_one :woo_info, -> { woo }, class_name: "StoreInfo", as: :storable,
       dependent: :destroy, inverse_of: :storable
+  end
 
-    def shopify_published?
-      shopify_info&.store_id.present?
-    end
+  def shopify_published?
+    shopify_info&.store_id.present?
   end
 
   class_methods do

@@ -59,36 +59,36 @@ RSpec.describe Purchase do
     let(:sale_item) { create(:sale_item, qty: 2, product: purchase.product) }
 
     before do
-      allow(SaleItem).to receive(:linkable_with).and_return([sale_item])
+      allow(SaleItem).to receive(:linkable_for).with(purchase).and_return([sale_item])
     end
 
     it "links purchase with sales" do
       # rubocop:todo RSpec/StubbedMock
       # rubocop:todo RSpec/MessageSpies
-      expect(PurchaseLinker).to receive(:link).with(purchase).and_return([purchase_item1.id, purchase_item2.id])
+      expect(Purchase::Linker).to receive(:link).with(purchase).and_return([purchase_item1.id, purchase_item2.id])
       # rubocop:enable RSpec/MessageSpies
       # rubocop:enable RSpec/StubbedMock
-      allow(PurchasedNotifier).to receive(:handle_product_purchase)
+      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
 
       purchase.link_with_sales
     end
 
     it "sends notifications for linked purchase items" do
-      allow(PurchaseLinker).to receive(:link).and_return([purchase_item1.id, purchase_item2.id])
-      allow(PurchasedNotifier).to receive(:handle_product_purchase)
+      allow(Purchase::Linker).to receive(:link).and_return([purchase_item1.id, purchase_item2.id])
+      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
       purchase.link_with_sales
 
-      expect(PurchasedNotifier).to have_received(:handle_product_purchase).with(purchase_item_ids: [purchase_item1.id, purchase_item2.id])
+      expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(purchase_item_ids: [purchase_item1.id, purchase_item2.id])
     end
 
     it "does nothing when purchase has no purchase_items" do
       purchase.purchase_items.destroy_all
-      allow(PurchaseLinker).to receive(:link).and_return([])
-      allow(PurchasedNotifier).to receive(:handle_product_purchase)
+      allow(Purchase::Linker).to receive(:link).and_return([])
+      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
 
       purchase.link_with_sales
 
-      expect(PurchasedNotifier).to have_received(:handle_product_purchase).with(purchase_item_ids: [])
+      expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(purchase_item_ids: [])
     end
   end
 end

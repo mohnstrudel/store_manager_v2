@@ -27,7 +27,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
   before do
     product.shopify_info.update!(store_id: shopify_product_id, slug: "test-product")
-    allow(Product::ShopifySerializer).to receive(:for_export).with(product).and_return(serialized_product)
+    allow(Product::Shopify::Payload).to receive(:for_export).with(product).and_return(serialized_product)
     allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
     allow(api_client).to receive(:update_product).with(shopify_product_id, serialized_product).and_return(product_response)
   end
@@ -49,7 +49,7 @@ RSpec.describe Shopify::UpdateProductJob do
 
     it "serializes the product" do
       described_class.perform_now(product_id)
-      expect(Product::ShopifySerializer).to have_received(:for_export).with(product)
+      expect(Product::Shopify::Payload).to have_received(:for_export).with(product)
     end
 
     it "creates API client" do

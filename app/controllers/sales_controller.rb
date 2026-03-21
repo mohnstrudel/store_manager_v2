@@ -39,7 +39,7 @@ class SalesController < ApplicationController
 
     if @sale.save
       linked_ids = @sale.link_with_purchase_items
-      PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
+      PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids: linked_ids)
       redirect_to @sale, notice: "Sale was successfully created"
     else
       load_form_collections
@@ -70,7 +70,7 @@ class SalesController < ApplicationController
   def link_purchase_items
     purchase_item_ids = @sale.link_with_purchase_items
 
-    PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
+    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids:)
 
     redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products"
   end

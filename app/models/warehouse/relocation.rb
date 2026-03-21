@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ProductMover
+class Warehouse::Relocation
   NOTHING_MOVED = 0
 
   def self.move(**kwargs)
@@ -10,13 +10,12 @@ class ProductMover
   def initialize(warehouse_id:, purchase: nil, purchase_items_ids: [])
     @destination = Warehouse.find(warehouse_id)
     @purchase = purchase
-    @initial_products = PurchaseItem.where(
-      id: purchase_items_ids
-    ).presence || purchase&.purchase_items || []
+    @initial_products = PurchaseItem.where(id: purchase_items_ids).presence || purchase&.purchase_items || []
   end
 
   def move
     return NOTHING_MOVED if nothing_to_move?
+
     if relocation?
       relocate_items
       notify_on_relocation
@@ -24,6 +23,7 @@ class ProductMover
       create_items_at_destination
       notify_on_newly_located_items
     end
+
     @moved_products.size
   end
 
@@ -39,12 +39,12 @@ class ProductMover
 
   def relocate_items
     @initial_products_grouped_by_origin = group_by_origin(@initial_products)
-    @moved_products = @initial_products.map { |pp| pp.relocate_to(@destination.id) }
+    @moved_products = @initial_products.map { |purchase_item| purchase_item.relocate_to!(@destination.id) }
   end
 
   def notify_on_relocation
     @initial_products_grouped_by_origin.each do |origin_warehouse_id, items_ids|
-      PurchasedNotifier.handle_warehouse_change(
+      PurchaseItem::Notifier.handle_warehouse_change(
         purchase_item_ids: items_ids,
         from_id: origin_warehouse_id,
         to_id: @destination.id
@@ -58,14 +58,10 @@ class ProductMover
 
   def notify_on_newly_located_items
     purchase_item_ids = @moved_products.pluck(:id)
-    PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
+    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids:)
   end
 
   def group_by_origin(purchase_items)
-    purchase_items
-      .group_by(&:warehouse_id)
-      .transform_values do |purchase_items|
-        purchase_items.pluck(:id)
-      end
+    purchase_items.group_by(&:warehouse_id).transform_values { |items| items.pluck(:id) }
   end
 end

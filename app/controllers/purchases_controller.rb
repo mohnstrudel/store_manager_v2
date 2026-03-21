@@ -89,7 +89,7 @@ class PurchasesController < ApplicationController
     moved_count = Purchase.friendly
       .where(id: purchases_ids)
       .sum { |purchase|
-        ProductMover.move(warehouse_id: destination_id, purchase:)
+        Warehouse::Relocation.move(warehouse_id: destination_id, purchase:)
       }
 
     flash_movement_notice(moved_count, Warehouse.find(destination_id))

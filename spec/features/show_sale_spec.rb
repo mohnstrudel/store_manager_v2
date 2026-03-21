@@ -11,7 +11,7 @@ describe "Sale show page" do
 
   context "when the nav link should be hidden" do
     before do
-      allow(sale).to receive_messages(active?: false, has_unlinked_sale_items?: false)
+      allow(sale).to receive_messages(active?: false, unlinked_sale_items?: false)
       allow(PurchaseItem).to receive(:available_for_product_linking).and_return([])
 
       product = create(:product)
@@ -33,8 +33,8 @@ describe "Sale show page" do
       expect(page).not_to have_link(link_label)
     end
 
-    it "does not show the link when only #has_unlinked_sale_items? is true" do
-      allow(sale).to receive(:has_unlinked_sale_items?).and_return(true)
+    it "does not show the link when only #unlinked_sale_items? is true" do
+      allow(sale).to receive(:unlinked_sale_items?).and_return(true)
 
       visit sale_path(sale)
 

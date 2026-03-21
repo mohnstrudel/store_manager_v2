@@ -8,6 +8,6 @@ class NotifyCustomersAboutOrderLocationJob < ApplicationJob
       .includes(:sale_item)
       .where.not(sale_item: nil)
       .pluck(:id)
-    PurchasedNotifier.handle_product_purchase(purchase_item_ids:)
+    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids:)
   end
 end

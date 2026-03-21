@@ -30,12 +30,12 @@ describe PurchaseItem do
     end
   end
 
-  describe "#link_with" do
+  describe "#link_to_sale_item!" do
     it "links the purchase item to a sale item" do
       purchase_item = create(:purchase_item)
       sale_item = create(:sale_item)
 
-      purchase_item.link_with(sale_item.id)
+      purchase_item.link_to_sale_item!(sale_item.id)
 
       expect(purchase_item.reload.sale_item_id).to eq(sale_item.id)
     end

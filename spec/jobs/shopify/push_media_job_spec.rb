@@ -73,9 +73,15 @@ RSpec.describe Shopify::PushMediaJob do
     end
 
     it "finds the product by ID with includes" do
-      allow(Product).to receive_message_chain(:includes, :find).and_return(product)
+      scope = instance_spy(ActiveRecord::Relation)
+
+      allow(Product).to receive(:for_media_sync).and_return(scope)
+      allow(scope).to receive(:includes).with(media: [:image_attachment, :image_blob, :shopify_info]).and_return(scope)
+      allow(scope).to receive(:find).with(product_id).and_return(product)
+
       described_class.perform_now(product_id, shopify_product_id)
-      expect(Product).to have_received(:includes)
+
+      expect(Product).to have_received(:for_media_sync)
     end
 
     it "creates API client" do

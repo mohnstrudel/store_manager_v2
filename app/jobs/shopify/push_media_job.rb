@@ -6,7 +6,7 @@ module Shopify
     private :product, :product_store_id, :api_client, :new_media, :existing_media
 
     def perform(product_id, product_store_id)
-      @product = Shopify::ProductsQuery.for_media_sync.find(product_id)
+      @product = Product.for_media_sync.find(product_id)
       @product_store_id = product_store_id
       @api_client = Shopify::Api::Client.new
       @new_media, @existing_media = product.media.partition { |m| m.shopify_info.nil? }

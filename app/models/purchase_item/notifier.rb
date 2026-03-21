@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class PurchasedNotifier
+class PurchaseItem::Notifier
   def self.handle_product_purchase(**kwargs)
     new(**kwargs).handle_product_purchase
   end
@@ -9,11 +9,7 @@ class PurchasedNotifier
     new(**kwargs).handle_warehouse_change
   end
 
-  def initialize(
-    purchase_item_ids:,
-    from_id: nil,
-    to_id: nil
-  )
+  def initialize(purchase_item_ids:, from_id: nil, to_id: nil)
     @purchase_item_ids = purchase_item_ids
     @from_id = from_id.to_i
     @to_id = to_id.to_i
@@ -50,9 +46,7 @@ class PurchasedNotifier
   end
 
   def dispatch_product_purchased_message
-    purchase_items = PurchaseItem
-      .for_notifications
-      .where(id: @purchase_item_ids)
+    purchase_items = PurchaseItem.for_notifications.where(id: @purchase_item_ids)
 
     purchase_items.each do |purchase_item|
       if purchase_item&.sale.blank?
@@ -79,14 +73,9 @@ class PurchasedNotifier
 
   def dispatch_warehouse_changed_message
     transition = WarehouseTransition.active_for_notification(from_id: @from_id, to_id: @to_id)
+    return warn_about(:no_transitions) unless transition
 
-    unless transition
-      return warn_about(:no_transitions)
-    end
-
-    purchase_items = PurchaseItem
-      .for_notifications
-      .where(id: @purchase_item_ids)
+    purchase_items = PurchaseItem.for_notifications.where(id: @purchase_item_ids)
 
     purchase_items.each do |purchase_item|
       data = extract_common_data(purchase_item)
@@ -113,17 +102,13 @@ class PurchasedNotifier
     end
   end
 
-  def warn_about(subj, id = nil)
+  def warn_about(subject, id = nil)
     prefix = "  ↳ Skipping notifications. %s"
-    case subj
-    when :same_destination
-      warn prefix % "Destination is the same as the original location"
-    when :no_transitions
-      warn prefix % "No active transitions found for warehouses: #{@from_id} -> #{@to_id}"
-    when :no_sale
-      warn prefix % "Missing sale for purchased product ID: #{id}"
-    when :no_email
-      warn prefix % "Missing email for purchased product ID: #{id}"
+    case subject
+    when :same_destination then warn(prefix % "Destination is the same as the original location")
+    when :no_transitions then warn(prefix % "No active transitions found for warehouses: #{@from_id} -> #{@to_id}")
+    when :no_sale then warn(prefix % "Missing sale for purchased product ID: #{id}")
+    when :no_email then warn(prefix % "Missing email for purchased product ID: #{id}")
     end
   end
 end

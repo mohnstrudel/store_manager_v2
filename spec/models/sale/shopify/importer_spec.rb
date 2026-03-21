@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
+RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
   let(:parsed_orders) { instance_eval(file_fixture("shopify_parsed_orders.rb").read) }
   let(:valid_parsed_order) { parsed_orders.first }
   let(:importer) { described_class.new(valid_parsed_order) }
@@ -15,9 +15,9 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
     # Use local hash to track created editions and avoid uniqueness violations
     created_editions = {}
 
-    # Stub Product::ShopifyImporter to create valid products with SKUs
+    # Stub Product::Shopify::Importer to create valid products with SKUs
     # Also return existing products if they match by shopify_id
-    allow(Product::ShopifyImporter).to receive(:import!) do |parsed_product|
+    allow(Product::Shopify::Importer).to receive(:import!) do |parsed_product|
       product = Product.find_by_shopify_id(parsed_product[:shopify_id]) || Product.find_by(title: parsed_product[:title]) || Product.new
       product.assign_attributes(
         title: parsed_product[:title],
@@ -29,8 +29,8 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       product
     end
 
-    # Stub Edition::ShopifyImporter to return unique editions
-    allow(Edition::ShopifyImporter).to receive(:import!) do |product, parsed_edition|
+    # Stub Edition::Shopify::Importer to return unique editions
+    allow(Edition::Shopify::Importer).to receive(:import!) do |product, parsed_edition|
       edition_key = "#{product.id}-#{parsed_edition[:id]}"
       created_editions[edition_key] ||= begin
         edition = Edition.find_by_shopify_id(parsed_edition[:id]) || Edition.new(product: product)
@@ -157,7 +157,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         order
       end
 
-      it "creates product from full_title using Product::ShopifyParser" do
+      it "creates product from full_title using Product::Shopify::Parser" do
         expect { described_class.import!(parsed_order_title_only) }.to change(Product, :count).by(1)
         product = Product.last
         expect(product.title).to eq("Princess Leia")
@@ -202,7 +202,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       let(:edition) { create(:edition, product: product) }
 
       before do
-        allow(Product::ShopifyImporter).to receive(:import!).and_return(product)
+        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
         allow(Version).to receive(:find_or_create_by).with(value: "New Edition").and_return(edition.version)
         allow(edition.version).to receive(:value).and_return("New Edition")
         allow_any_instance_of(Edition).to receive(:save!).and_return(true)
@@ -240,7 +240,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       let(:edition) { create(:edition, product: product) }
 
       before do
-        allow(Product::ShopifyImporter).to receive(:import!).and_return(product)
+        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
         allow(Version).to receive(:find_or_create_by).with(value: "1:4 | New Edition | Red").and_return(edition.version)
         allow(edition.version).to receive(:value).and_return("1:4 | New Edition | Red")
         allow_any_instance_of(Edition).to receive(:save!).and_return(true)
@@ -274,12 +274,12 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       let(:product) { create(:product) }
 
       before do
-        allow(Product::ShopifyImporter).to receive(:import!).and_return(product)
-        allow(Edition::ShopifyImporter).to receive(:import!).and_raise(ActiveRecord::RecordInvalid.new(Edition.new))
+        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
+        allow(Edition::Shopify::Importer).to receive(:import!).and_raise(ActiveRecord::RecordInvalid.new(Edition.new))
       end
 
       it "rolls back all changes when edition creation fails" do
-        expect { described_class.import!(parsed_order_with_invalid_edition) }.to raise_error(Sale::ShopifyImporter::SaleShopifyImporterError)
+        expect { described_class.import!(parsed_order_with_invalid_edition) }.to raise_error(Sale::Shopify::Importer::Error)
         expect {
           begin
             described_class.import!(parsed_order_with_invalid_edition)
@@ -302,7 +302,7 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
       end
 
       it "rolls back all changes" do
-        expect { import_order }.to raise_error(Sale::ShopifyImporter::SaleShopifyImporterError)
+        expect { import_order }.to raise_error(Sale::Shopify::Importer::Error)
         expect {
           begin
             import_order
@@ -391,14 +391,14 @@ RSpec.describe Sale::ShopifyImporter, :aggregate_failures do
         # Reset purchase_items_count to 0 so the linkable scope works
         sale_item.update(purchase_items_count: 0)
 
-        # Stub Product::ShopifyImporter to return existing product
-        allow(Product::ShopifyImporter).to receive(:import!).and_return(product)
+        # Stub Product::Shopify::Importer to return existing product
+        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
       end
 
       it "notifies customers about linked products" do
-        allow(PurchasedNotifier).to receive(:handle_product_purchase)
+        allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
         import_order
-        expect(PurchasedNotifier).to have_received(:handle_product_purchase).at_least(:once)
+        expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).at_least(:once)
       end
     end
   end

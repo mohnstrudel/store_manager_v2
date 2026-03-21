@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Sale::ShopifyParser do
+RSpec.describe Sale::Shopify::Parser do
   let(:api_order) do
     {
       "id" => "gid://shopify/Order/12345",
@@ -65,10 +65,10 @@ RSpec.describe Sale::ShopifyParser do
   end
 
   before do
-    # Stub Product::ShopifyParser to return a hash with shopify_id key
+    # Stub Product::Shopify::Parser to return a hash with shopify_id key
     # This prevents recursive parsing
-    allow(Product::ShopifyParser).to receive(:parse).and_call_original
-    allow(Product::ShopifyParser).to receive(:parse).with(
+    allow(Product::Shopify::Parser).to receive(:parse).and_call_original
+    allow(Product::Shopify::Parser).to receive(:parse).with(
       hash_including("id" => "gid://shopify/Product/333")
     ).and_return(
       {
@@ -189,7 +189,7 @@ RSpec.describe Sale::ShopifyParser do
       end
 
       it "parses product data correctly" do
-        allow(Product::ShopifyParser).to receive(:parse).and_return(
+        allow(Product::Shopify::Parser).to receive(:parse).and_return(
           {
             store_id: "gid://shopify/Product/333",
             title: "Eve",

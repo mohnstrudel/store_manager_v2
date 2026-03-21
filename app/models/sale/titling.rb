@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Sale::Summaries
+module Sale::Titling
   extend ActiveSupport::Concern
 
   def title
@@ -18,10 +18,6 @@ module Sale::Summaries
     woo = woo_id.presence
     total = total.presence || 0
     [name, email, status&.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
-  end
-
-  def created
-    woo_created_at || created_at
   end
 
   def full_title

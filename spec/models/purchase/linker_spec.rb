@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe PurchaseLinker do
+RSpec.describe Purchase::Linker do
   let(:supplier) { create(:supplier) }
   let(:product) { create(:product) }
   let(:edition) { create(:edition, product:) }

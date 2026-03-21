@@ -8,8 +8,8 @@ module Shopify
       client = Shopify::Api::Client.new
       response = client.fetch_order(sale_store_id)
 
-      parsed = Sale::ShopifyParser.parse(response)
-      Sale::ShopifyImporter.import!(parsed)
+      parsed = Sale::Shopify::Parser.parse(response)
+      Sale::Shopify::Importer.import!(parsed)
     end
   end
 end

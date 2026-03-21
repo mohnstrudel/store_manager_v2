@@ -156,12 +156,12 @@ RSpec.describe SalesController, type: :controller do
       end
 
       it "links with purchase items and sends notifications" do
-        allow(PurchasedNotifier).to receive(:handle_product_purchase)
+        allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
 
         post :create, params: {sale: valid_params}
 
         sale = assigns(:sale)
-        expect(PurchasedNotifier).to have_received(:handle_product_purchase).with(
+        expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(
           purchase_item_ids: sale.link_with_purchase_items
         )
       end
@@ -246,8 +246,8 @@ RSpec.describe SalesController, type: :controller do
 
       allow(sale).to receive(:link_with_purchase_items).and_return(purchase_item_ids)
 
-      notifier_instance = instance_double(PurchasedNotifier)
-      allow(PurchasedNotifier).to receive(:new).and_return(notifier_instance)
+      notifier_instance = instance_double(PurchaseItem::Notifier)
+      allow(PurchaseItem::Notifier).to receive(:new).and_return(notifier_instance)
       allow(notifier_instance).to receive(:handle_product_purchase)
     end
 
@@ -256,10 +256,10 @@ RSpec.describe SalesController, type: :controller do
       expect(sale).to have_received(:link_with_purchase_items)
     end
 
-    it "calls PurchasedNotifier with correct purchase_item_ids" do # rubocop:todo RSpec/MultipleExpectations
+    it "calls PurchaseItem::Notifier with correct purchase_item_ids" do # rubocop:todo RSpec/MultipleExpectations
       post :link_purchase_items, params: {id: sale.id}
-      expect(PurchasedNotifier).to have_received(:new).with(purchase_item_ids:)
-      expect(PurchasedNotifier.new(purchase_item_ids:)).to have_received(:handle_product_purchase)
+      expect(PurchaseItem::Notifier).to have_received(:new).with(purchase_item_ids:)
+      expect(PurchaseItem::Notifier.new(purchase_item_ids:)).to have_received(:handle_product_purchase)
     end
 
     it "redirects to sale with success notice" do # rubocop:todo RSpec/MultipleExpectations

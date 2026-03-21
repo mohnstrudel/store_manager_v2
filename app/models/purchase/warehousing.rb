@@ -16,8 +16,8 @@ module Purchase::Warehousing
   end
 
   def link_with_sales
-    linked_purchase_item_ids = PurchaseLinker.link(self)
-    PurchasedNotifier.handle_product_purchase(
+    linked_purchase_item_ids = Purchase::Linker.link(self)
+    PurchaseItem::Notifier.handle_product_purchase(
       purchase_item_ids: linked_purchase_item_ids
     )
   end

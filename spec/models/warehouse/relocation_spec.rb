@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-describe ProductMover do
+describe Warehouse::Relocation do
   let(:purchase) { create(:purchase, amount: 3) }
   let(:from_warehouse) { create(:warehouse) }
   let(:to_warehouse) { create(:warehouse) }
@@ -59,8 +59,8 @@ describe ProductMover do
       end
 
       it "calls notification for warehouse relocation" do # rubocop:todo RSpec/MultipleExpectations
-        notifier_double = instance_double(PurchasedNotifier)
-        allow(PurchasedNotifier).to receive(:new).and_return(notifier_double)
+        notifier_double = instance_double(PurchaseItem::Notifier)
+        allow(PurchaseItem::Notifier).to receive(:new).and_return(notifier_double)
         allow(notifier_double).to receive(:handle_warehouse_change)
 
         described_class.new(
@@ -68,7 +68,7 @@ describe ProductMover do
           purchase_items_ids: purchase_items.map(&:id)
         ).move
 
-        expect(PurchasedNotifier).to have_received(:new).with(
+        expect(PurchaseItem::Notifier).to have_received(:new).with(
           purchase_item_ids: purchase_items.map(&:id),
           from_id: from_warehouse.id,
           to_id: to_warehouse.id
@@ -91,8 +91,8 @@ describe ProductMover do
       end
 
       it "calls notification for newly located items" do # rubocop:todo RSpec/MultipleExpectations
-        notifier_double = instance_double(PurchasedNotifier)
-        allow(PurchasedNotifier).to receive(:new).and_return(notifier_double)
+        notifier_double = instance_double(PurchaseItem::Notifier)
+        allow(PurchaseItem::Notifier).to receive(:new).and_return(notifier_double)
         allow(notifier_double).to receive(:handle_product_purchase)
 
         described_class.new(
@@ -100,7 +100,7 @@ describe ProductMover do
           purchase: purchase_without_products
         ).move
 
-        expect(PurchasedNotifier).to have_received(:new).with(
+        expect(PurchaseItem::Notifier).to have_received(:new).with(
           purchase_item_ids: match_array(
             to_warehouse.purchase_items.where(purchase: purchase_without_products).pluck(:id)
           )
@@ -140,14 +140,14 @@ describe ProductMover do
       end
 
       it "doesn't call any notifications when nothing is moved" do
-        allow(PurchasedNotifier).to receive(:new)
+        allow(PurchaseItem::Notifier).to receive(:new)
 
         described_class.new(
           warehouse_id: to_warehouse.id,
           purchase_items_ids: []
         ).move
 
-        expect(PurchasedNotifier).not_to have_received(:new)
+        expect(PurchaseItem::Notifier).not_to have_received(:new)
       end
     end
 

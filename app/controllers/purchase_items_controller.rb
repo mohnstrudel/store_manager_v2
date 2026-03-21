@@ -76,7 +76,7 @@ class PurchaseItemsController < ApplicationController
     ids = params[:selected_items_ids]
     destination_id = params[:destination_id]
 
-    moved_count = ProductMover.move(
+    moved_count = Warehouse::Relocation.move(
       warehouse_id: destination_id,
       purchase_items_ids: ids
     )

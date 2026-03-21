@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Product::ShopifyParser do
+RSpec.describe Product::Shopify::Parser do
   describe ".parse" do
     context "when payload is already parsed (has store_id key)" do
       let(:already_parsed) do

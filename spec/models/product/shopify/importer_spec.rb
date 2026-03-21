@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Product::ShopifyImporter do
+RSpec.describe Product::Shopify::Importer do
   describe ".import!" do
     let(:parsed_product) do
       {
@@ -72,8 +72,8 @@ RSpec.describe Product::ShopifyImporter do
     it "saves ext_created_at and ext_updated_at to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
       product = described_class.import!(parsed_product)
       product.reload
-      expect(product.shopify_info.ext_created_at).to be_within(2.seconds).of(1.day.ago)
-      expect(product.shopify_info.ext_updated_at).to be_within(2.seconds).of(1.hour.ago)
+      expect(product.shopify_info.ext_created_at).to eq(Time.zone.parse(parsed_product[:store_info][:ext_created_at]))
+      expect(product.shopify_info.ext_updated_at).to eq(Time.zone.parse(parsed_product[:store_info][:ext_updated_at]))
     end
 
     it "sets pull_time on StoreInfo" do
@@ -201,8 +201,8 @@ RSpec.describe Product::ShopifyImporter do
         existing_product.shopify_info.reload
         expect(existing_product.shopify_info.ext_created_at).not_to eq(original_created_at)
         expect(existing_product.shopify_info.ext_updated_at).not_to eq(original_updated_at)
-        expect(existing_product.shopify_info.ext_created_at).to be_within(1.second).of(1.day.ago)
-        expect(existing_product.shopify_info.ext_updated_at).to be_within(1.second).of(1.hour.ago)
+        expect(existing_product.shopify_info.ext_created_at).to eq(Time.zone.parse(parsed_product[:store_info][:ext_created_at]))
+        expect(existing_product.shopify_info.ext_updated_at).to eq(Time.zone.parse(parsed_product[:store_info][:ext_updated_at]))
       end
 
       it "returns the existing product" do

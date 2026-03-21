@@ -30,5 +30,9 @@ module Product::Listing
         store_infos: [:tags]
       )
     }
+
+    scope :for_media_sync, -> {
+      includes(media: [:image_attachment, :image_blob, :shopify_info])
+    }
   end
 end
