@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rails Domain Architecture"
+  short_description: "Model-centric Rails architecture and testing guide"
+  default_prompt: "Use $rails-domain-architecture to design or refactor this Rails codebase across routes, controllers, models, views, jobs, tests, and edge rendering with clear domain, scope, concern, query, service, and ownership boundaries."
