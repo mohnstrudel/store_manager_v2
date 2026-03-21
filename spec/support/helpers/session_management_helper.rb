@@ -14,7 +14,7 @@ module Helpers
     def log_out
       Current.session&.destroy!
       if feature_test?
-        page.driver.clear_cookies
+        Capybara.reset_sessions!
       else
         cookies.delete(:session_id)
       end

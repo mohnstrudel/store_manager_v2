@@ -310,7 +310,7 @@ RSpec.describe "Product Editions Management" do
 
   # === SECTION 4: Add/Remove Edition Forms ===
   context "Adding and removing edition forms" do
-    scenario "clicking Add Edition button creates new form", :rubocop_todo do
+    scenario "clicking Add Edition button creates new form", :js, :rubocop_todo do
       visit edit_product_path(product)
 
       initial_count = all(".edition-fields").count
@@ -362,7 +362,7 @@ RSpec.describe "Product Editions Management" do
       expect(all(".edition-fields").count).to eq(initial_count + 3)
     end
 
-    scenario "can remove multiple edition forms independently", :rubocop_todo do
+    scenario "can remove multiple edition forms independently", :js, :rubocop_todo do
       visit edit_product_path(product)
 
       # Add two new editions
@@ -403,7 +403,7 @@ RSpec.describe "Product Editions Management" do
       end
     end
 
-    scenario "title updates to show selected attributes", :rubocop_todo do
+    scenario "title updates to show selected attributes", :js, :rubocop_todo do
       new_size = create(:size, value: "Large")
       new_version = create(:version, value: "Premium")
       new_color = create(:color, value: "Blue")
@@ -448,7 +448,7 @@ RSpec.describe "Product Editions Management" do
       end
     end
 
-    scenario "changing existing edition shows arrow notation", :rubocop_todo do
+    scenario "changing existing edition shows arrow notation", :js, :rubocop_todo do
       new_size = create(:size, value: "Large")
       product.sizes << new_size
       product.save
@@ -467,7 +467,7 @@ RSpec.describe "Product Editions Management" do
       end
     end
 
-    scenario "title clears arrow notation when changed back to original", :rubocop_todo do
+    scenario "title clears arrow notation when changed back to original", :js, :rubocop_todo do
       new_size = create(:size, value: "Large")
       product.sizes << new_size
       product.save

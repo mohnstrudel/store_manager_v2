@@ -212,7 +212,10 @@ bundle install
 bin/rails db:create db:migrate
 
 # Run tests
-bundle exec rspec
+bin/rspec
+
+# Run tests in parallel
+PARALLEL_TEST_PROCESSORS=6 bin/rspec
 
 # Start server
 bin/dev  # Runs web + worker + tailwind watch

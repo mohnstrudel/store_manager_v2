@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+ENV["DISABLE_SIMPLECOV"] = "1"
+ENV["PARALLEL_TEST_PROCESSORS"] ||= "6"
+
+bundle = File.expand_path("../bin/bundle", __dir__)
+setup_command = [bundle, "exec", "rake", "parallel:create", "parallel:prepare"]
+
+success = system(ENV, *setup_command)
+unless success
+  system(ENV, bundle, "exec", "rake", "parallel:drop")
+  success = system(ENV, *setup_command)
+end
+
+abort("Command failed: bin/bundle exec rake parallel:create parallel:prepare") unless success
+
+require_relative "../config/boot"
+load Gem.bin_path("parallel_tests", "parallel_rspec")

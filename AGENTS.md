@@ -10,6 +10,7 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - Tailwind styles are centralized under [app/assets/tailwind/application.css](/Users/geny/Developer/store_manager_v2/app/assets/tailwind/application.css) and related files. Prefer extending those over long inline utility strings.
 - RSpec already mixes fixtures and `FactoryBot` in [spec/rails_helper.rb](/Users/geny/Developer/store_manager_v2/spec/rails_helper.rb). Reuse the nearest pattern and avoid churn in spec helpers.
 - Route Shopify Admin GraphQL work through [app/services/shopify/api/client.rb](/Users/geny/Developer/store_manager_v2/app/services/shopify/api/client.rb) and the query/mutation objects under [app/services/shopify/graphql](/Users/geny/Developer/store_manager_v2/app/services/shopify/graphql).
+- Use `mise exec --` for Ruby, Bundler, and RSpec commands in this repo so the active runtime always comes from `mise` instead of the ambient shell PATH.
 
 
 ## Refactor Rules
