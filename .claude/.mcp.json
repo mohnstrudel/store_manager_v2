@@ -1,9 +1,0 @@
-{
-  "shopify-dev-mcp": {
-    "command": "pnpm",
-    "args": [
-      "dlx",
-      "@shopify/dev-mcp@latest"
-    ]
-  }
-}
