@@ -39,11 +39,6 @@ class Size < ApplicationRecord
   has_many :editions, dependent: :destroy, inverse_of: :size
 
   #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
   # == Class Methods
   #
   def self.parse_size(product_title)

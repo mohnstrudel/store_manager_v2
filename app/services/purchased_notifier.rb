@@ -51,8 +51,7 @@ class PurchasedNotifier
 
   def dispatch_product_purchased_message
     purchase_items = PurchaseItem
-      .with_notification_details
-      .includes(:warehouse)
+      .for_notifications
       .where(id: @purchase_item_ids)
 
     purchase_items.each do |purchase_item|
@@ -91,7 +90,7 @@ class PurchasedNotifier
     end
 
     purchase_items = PurchaseItem
-      .with_notification_details
+      .for_notifications
       .where(id: @purchase_item_ids)
 
     purchase_items.each do |purchase_item|

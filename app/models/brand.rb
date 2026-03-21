@@ -39,11 +39,6 @@ class Brand < ApplicationRecord
   has_many :products, through: :product_brands
 
   #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
   # == Callbacks
   #
   after_save :update_products

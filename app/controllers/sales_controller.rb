@@ -4,11 +4,12 @@ class SalesController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
 
   before_action :set_sale, only: %i[edit update destroy link_purchase_items]
+  before_action :load_form_collections, only: %i[new edit]
 
   # GET /sales
   def index
     @sales = Sale
-      .includes_index_associations
+      .for_listing
       .except_cancelled_or_completed
       .ordered_by_shop_created_at
       .search_by(params[:q])
@@ -18,7 +19,7 @@ class SalesController < ApplicationController
   # GET /sales/1
   def show
     @sale = Sale
-      .includes_show_associations
+      .for_details
       .friendly
       .find(params[:id])
   end
@@ -41,6 +42,7 @@ class SalesController < ApplicationController
       PurchasedNotifier.handle_product_purchase(purchase_item_ids: linked_ids)
       redirect_to @sale, notice: "Sale was successfully created"
     else
+      load_form_collections
       render :new, status: :unprocessable_content
     end
   end
@@ -54,6 +56,7 @@ class SalesController < ApplicationController
       end
       redirect_to @sale, notice: "Sale was successfully updated"
     else
+      load_form_collections
       render :edit, status: :unprocessable_content
     end
   end
@@ -134,5 +137,11 @@ class SalesController < ApplicationController
         :_destroy
       ]
     )
+  end
+
+  def load_form_collections
+    @customer_options = Customer.order(:email)
+    @product_options = Product.order(:full_title)
+    @product_shop_options = Product.with_store_references
   end
 end

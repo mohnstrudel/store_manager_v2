@@ -25,6 +25,7 @@ class Warehouse < ApplicationRecord
   #
   include HasAuditNotifications
   include HasPreviewImages
+  include Listing
 
   #
   # == Extensions
@@ -54,14 +55,6 @@ class Warehouse < ApplicationRecord
   #
   # == Scopes
   #
-  scope :includes_index_associations, -> {
-    includes(:purchase_items, purchases: [:payments, :purchase_items])
-  }
-
-  scope :includes_show_associations, -> {
-    includes(purchases: [:payments, :purchase_items], media: {image_attachment: :blob})
-  }
-
   #
   # == Class Methods
   #

@@ -13,14 +13,8 @@ class CustomersController < ApplicationController
 
   # GET /customers/1
   def show
-    @active_sales = @customer.sales
-      .active
-      .includes_show_associations
-      .ordered_by_shop_created_at
-    @completed_sales = @customer.sales
-      .completed
-      .includes_show_associations
-      .ordered_by_shop_created_at
+    @active_sales = @customer.sales.active.for_details.ordered_by_shop_created_at
+    @completed_sales = @customer.sales.completed.for_details.ordered_by_shop_created_at
   end
 
   # GET /customers/new

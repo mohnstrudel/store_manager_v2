@@ -9,15 +9,15 @@ class WarehousesController < ApplicationController
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.includes_index_associations.order(:position)
+    @warehouses = Warehouse.for_listing.order(:position)
   end
 
   # GET /warehouses/1
   def show
-    @warehouse = Warehouse.includes_show_associations.find(params[:id])
+    @warehouse = Warehouse.for_details.find(params[:id])
     @purchase_items = @warehouse
       .purchase_items
-      .includes_warehouse_show_associations
+      .for_warehouse_details
       .order(updated_at: :desc)
       .page(params[:page])
     @total_purchase_items = @warehouse.purchase_items.size

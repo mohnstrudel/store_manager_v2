@@ -2,7 +2,7 @@
   .stimulus data-controller="purchase-edition"
     = form.label :product_id
     .stimulus#purchase-product-select
-      = form.collection_select :product_id, Product.includes(:shopify_info, :woo_info), :id, :build_full_title_with_shop_id, {class: "select"}, data: {controller: "slim-select", action: "change->purchase-edition#change"}
+      = form.collection_select :product_id, @product_options || [], :id, :build_full_title_with_shop_id, {class: "select"}, data: {controller: "slim-select", action: "change->purchase-edition#change"}
 
     .stimulus#purchase-edition-select data-purchase-edition-target="select"
       - if purchase.product&.editions.present?
@@ -12,7 +12,7 @@
   fieldset.flex.justify-between.gap-4
     .block.w-full
       = form.label :supplier_id
-      = form.collection_select :supplier_id, Supplier.all.order(title: :asc), :id, :title, class: "w-full"
+      = form.collection_select :supplier_id, @suppliers || [], :id, :title, class: "w-full"
     .block.w-full
       = form.label :order_reference
       = form.text_field :order_reference

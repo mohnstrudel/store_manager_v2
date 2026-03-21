@@ -23,8 +23,11 @@ class Product < ApplicationRecord
   #
   include HasAuditNotifications
   include HasPreviewImages
+  include Listing
   include Searchable
+  include SalesHistory
   include Shopable
+  include StoreReferences
 
   #
   # == Extensions
@@ -91,35 +94,6 @@ class Product < ApplicationRecord
   accepts_nested_attributes_for :purchases
 
   #
-  # == Scopes
-  #
-  scope :listed, -> {
-    includes(editions: [:version, :color, :size])
-      .with_thumb_media
-      .order(created_at: :desc)
-  }
-
-  scope :includes_index_associations, -> { includes(:shopify_info, :woo_info) }
-
-  scope :includes_show_associations, -> {
-    includes(
-      media: {image_attachment: :blob},
-      purchases: [:product, :supplier, edition: [:version, :color, :size]],
-      purchase_items: [:warehouse, :purchase],
-      editions: [
-        :version,
-        :color,
-        :size,
-        :shopify_info,
-        :woo_info,
-        {sale_items: :sale},
-        {purchases: :supplier}
-      ],
-      store_infos: [:tags]
-    )
-  }
-
-  #
   # == Class Methods
   #
   def self.generate_full_title(product)
@@ -151,44 +125,6 @@ class Product < ApplicationRecord
     sku.presence || full_title
   end
 
-  def build_full_title_with_shop_id
-    shop_ids = [shopify_info&.id_short&.presence, woo_info&.store_id&.presence].compact.join(" | ")
-    "#{full_title} | #{shop_ids || "N/A"}"
-  end
-
-  def build_shopify_url
-    return "https://handsomecake.com/" unless shopify_info&.slug
-
-    "https://handsomecake.com/products/#{shopify_info.slug}"
-  end
-
-  def fetch_active_sale_items
-    sale_items
-      .includes(purchase_items: :warehouse)
-      .with_details
-      .active
-      .order(created_at: :asc)
-  end
-
-  def fetch_completed_sale_items
-    sale_items.with_details.completed.order(created_at: :asc)
-  end
-
-  def sum_editions_sale_items
-    SaleItem
-      .active
-      .where(edition: editions)
-      .group(:edition_id)
-      .sum(:qty)
-  end
-
-  def sum_editions_purchase_items
-    Purchase
-      .where(edition: editions)
-      .group(:edition_id)
-      .sum(:amount)
-  end
-
   def build_new_editions
     return create_base_model_edition if base_model_case?
     return unless sizes.any? || versions.any? || colors.any?
@@ -197,7 +133,7 @@ class Product < ApplicationRecord
   end
 
   def fetch_editions_with_title
-    editions.with_details.select { |edition| edition.title.present? }
+    editions.includes(:version, :color, :size).select { |edition| edition.title.present? }
   end
 
   private

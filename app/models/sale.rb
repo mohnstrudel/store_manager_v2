@@ -42,8 +42,12 @@ class Sale < ApplicationRecord
   # == Concerns
   #
   include HasAuditNotifications
+  include Listing
   include Searchable
+  include ShopSync
   include Shopable
+  include Statuses
+  include Summaries
 
   #
   # == Extensions
@@ -76,179 +80,6 @@ class Sale < ApplicationRecord
   has_many :products, through: :sale_items
 
   accepts_nested_attributes_for :sale_items, allow_destroy: true
-
-  #
-  # == Scopes
-  #
-  scope :except_cancelled_or_completed, -> {
-    where.not(status: cancelled_status_names + completed_status_names)
-  }
-  scope :active, -> {
-    where(status: active_status_names)
-  }
-  scope :completed, -> {
-    where(status: completed_status_names)
-  }
-  scope :ordered_by_shop_created_at, -> {
-    order(
-        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC")
-      )
-  }
-  scope :includes_index_associations, -> {
-    includes(
-      :customer,
-      :shopify_info,
-      :woo_info,
-      sale_items: [
-        {product: {media: {image_attachment: :blob}}},
-        :purchase_items,
-        edition: [
-          :version,
-          :color,
-          :size
-        ]
-      ]
-    )
-  }
-  scope :includes_show_associations, -> {
-    includes(
-      :shopify_info,
-      :woo_info,
-      sale_items: [
-        {product: {media: {image_attachment: :blob}}},
-        purchase_items: [:warehouse, purchase: :supplier]
-      ]
-    )
-  }
-
-  #
-  # == Class Methods
-  #
-  def self.active_status_names
-    [
-      "partially-paid",
-      "po_fully_paid",
-      "pre-ordered",
-      "processing",
-      "ready-to-fullfill",
-      "im-zulauf",
-      "container-shipped"
-    ].freeze
-  end
-
-  def self.completed_status_names
-    ["completed", "updated-tracking"].freeze
-  end
-
-  def self.cancelled_status_names
-    ["cancelled", "failed"].freeze
-  end
-
-  def self.status_names
-    # https://woocommerce.com/document/managing-orders/
-    [
-      "cancelled",
-      "completed",
-      "container-shipped",
-      "failed",
-      "im-zulauf",
-      "on-hold",
-      "partial-shipped",
-      "partially-paid",
-      "po_fully_paid",
-      "pre-ordered",
-      "processing",
-      "ready-to-fullfill",
-      "refunded",
-      "updated-tracking"
-    ].freeze
-  end
-
-  def self.inactive_status_names
-    status_names - active_status_names - completed_status_names
-  end
-
-  def self.update_order(sale)
-    Woo::PushSaleJob.perform_later(sale)
-  end
-
-  def self.find_recent_by_order_id(shop_order_id)
-    if shop_order_id.upcase.include?("HSCM#")
-      Sale.find_by(shopify_name: shop_order_id)
-    else
-      Sale.where(
-        "shopify_name LIKE ? OR woo_id = ?", "%#{shop_order_id}", shop_order_id
-      ).max_by(&:shop_created_at)
-    end
-  end
-
-  # Derive local status from Shopify fulfillment and financial statuses
-  #
-  # @param fulfillment_status [String] Shopify fulfillment status (FULFILLED, UNFULFILLED)
-  # @param financial_status [String] Shopify financial status (PAID, PENDING, PARTIALLY_PAID, REFUNDED)
-  #
-  # @return [String] The local status name
-  #
-  # @note Maps Shopify statuses to local domain statuses
-  # @note Defaults to "processing" for unknown combinations
-  #
-  # @example
-  #   Sale.derive_status_from_shopify("FULFILLED", "PAID") # => "completed"
-  #   Sale.derive_status_from_shopify("UNFULFILLED", "PAID") # => "pre-ordered"
-  def self.derive_status_from_shopify(fulfillment_status, financial_status)
-    case [fulfillment_status, financial_status]
-    when ["FULFILLED", "PAID"]
-      "completed"
-    when ["UNFULFILLED", "PAID"]
-      "pre-ordered"
-    when ["UNFULFILLED", "PENDING"]
-      "processing"
-    when ["UNFULFILLED", "PARTIALLY_PAID"]
-      "partially-paid"
-    when ["FULFILLED", "REFUNDED"]
-      "refunded"
-    when ["UNFULFILLED", "REFUNDED"]
-      "cancelled"
-    else
-      "processing"
-    end
-  end
-
-  #
-  # == Domain Methods
-  #
-  def title
-    shop_id = if shopify_id.present?
-      shopify_name
-    else
-      woo_id
-    end
-    [status&.titleize, shop_id].compact.join(" | ")
-  end
-
-  def select_title
-    name = customer.full_name.presence
-    email = customer.email.presence
-    woo = woo_id.presence
-    total = total.presence || 0
-    [name, email, status&.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
-  end
-
-  def created
-    woo_created_at || created_at
-  end
-
-  def full_title
-    [customer.name_and_email, woo_id.presence].compact.join(" | ")
-  end
-
-  def active?
-    self.class.active_status_names.include?(status)
-  end
-
-  def completed?
-    self.class.completed_status_names.include?(status)
-  end
 
   def has_unlinked_sale_items?
     total_sold = sale_items.sum(:qty)

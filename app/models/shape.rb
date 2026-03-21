@@ -36,11 +36,6 @@ class Shape < ApplicationRecord
   has_many :products, dependent: :destroy, inverse_of: :shape
 
   #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
   # == Class Methods
   #
   # (none)

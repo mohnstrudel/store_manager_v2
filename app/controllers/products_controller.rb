@@ -8,7 +8,7 @@ class ProductsController < ApplicationController
 
   # GET /products or /products.json
   def index
-    @products = Product.includes_index_associations.listed.search_by(params[:q]).page(params[:page])
+    @products = Product.listed.search_by(params[:q]).page(params[:page])
   end
 
   # GET /products/1 or /products/1.json
@@ -143,7 +143,7 @@ class ProductsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_product
-    @product = Product.includes_show_associations.friendly.find(params[:id])
+    @product = Product.for_details.friendly.find(params[:id])
   end
 
   def product_params
@@ -306,7 +306,7 @@ class ProductsController < ApplicationController
   # won't see what went wrong.
   def reload_product_with_preserved_errors!
     errors = @product.errors.dup
-    @product = Product.includes_show_associations.friendly.find(params[:id])
+    @product = Product.for_details.friendly.find(params[:id])
     @product.errors.copy!(errors)
   end
 

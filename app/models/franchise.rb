@@ -37,11 +37,6 @@ class Franchise < ApplicationRecord
   has_many :products, dependent: :destroy, inverse_of: :franchise
 
   #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
   # == Callbacks
   #
   after_save :update_products

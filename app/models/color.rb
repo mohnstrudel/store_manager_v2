@@ -38,11 +38,6 @@ class Color < ApplicationRecord
   has_many :editions, dependent: :destroy, inverse_of: :color
 
   #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
   # == Class Methods
   #
   # (none)

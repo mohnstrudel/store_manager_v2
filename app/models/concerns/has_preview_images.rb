@@ -30,10 +30,4 @@ module HasPreviewImages
         preprocessed: true
     end
   end
-
-  class_methods do
-    def with_thumb_media
-      includes(media: {image_attachment: :blob})
-    end
-  end
 end

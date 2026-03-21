@@ -38,11 +38,6 @@ class Version < ApplicationRecord
   has_many :editions, dependent: :destroy, inverse_of: :version
 
   #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
   # == Class Methods
   #
   # (none)

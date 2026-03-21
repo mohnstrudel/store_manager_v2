@@ -5,13 +5,11 @@ class PurchasesController < ApplicationController
 
   before_action :set_default_warehouse_id, only: %i[new edit]
   before_action :set_purchase, only: %i[show edit update destroy]
+  before_action :load_form_collections, only: %i[new edit]
 
   # GET /purchases or /purchases.json
   def index
-    @purchases = Purchase
-      .includes_index_associations
-      .order(id: :desc)
-      .page(params[:page])
+    @purchases = Purchase.for_listing.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
   end
 
@@ -19,7 +17,7 @@ class PurchasesController < ApplicationController
   def show
     @purchase_items = @purchase
       .purchase_items
-      .includes_purchase_show_associations
+      .for_purchase_details
       .order(updated_at: :desc)
   end
 
@@ -52,6 +50,7 @@ class PurchasesController < ApplicationController
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
         format.json { render :show, status: :created, location: @purchase }
       else
+        load_form_collections
         format.html { render :new, status: :unprocessable_content }
         format.json { render json: @purchase.errors, status: :unprocessable_content }
       end
@@ -65,6 +64,7 @@ class PurchasesController < ApplicationController
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
+        load_form_collections
         format.html { render :edit, status: :unprocessable_content }
         format.json { render json: @purchase.errors, status: :unprocessable_content }
       end
@@ -141,5 +141,10 @@ class PurchasesController < ApplicationController
         :warehouse_id,
         payments_attributes: [:id, :value, :purchase_id]]
     )
+  end
+
+  def load_form_collections
+    @product_options = Product.with_store_references
+    @suppliers = Supplier.order(title: :asc)
   end
 end

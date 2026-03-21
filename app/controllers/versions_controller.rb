@@ -10,7 +10,7 @@ class VersionsController < ApplicationController
 
   # GET /versions/1 or /versions/1.json
   def show
-    @version = Version.includes_show_associations.find(params[:id])
+    @version = Version.includes(:products).find(params[:id])
   end
 
   # GET /versions/new

@@ -19,10 +19,7 @@ class PurchaseItemsController < ApplicationController
   def new
     @warehouse = Warehouse.find(params[:warehouse_id])
     @purchase_item = PurchaseItem.new(warehouse: @warehouse)
-    @purchases = Purchase
-      .includes_form_associations
-      .order(purchase_date: :desc, created_at: :desc)
-    @shipping_companies = ShippingCompany.all
+    load_form_collections
   end
 
   # GET /purchase_items/1/edit
@@ -40,6 +37,7 @@ class PurchaseItemsController < ApplicationController
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
     else
+      load_form_collections
       render :new, status: :unprocessable_content
     end
   end
@@ -207,11 +205,11 @@ class PurchaseItemsController < ApplicationController
   end
 
   def set_purchase_item
-    @purchase_item = PurchaseItem.includes_show_associations.find(params[:id])
+    @purchase_item = PurchaseItem.with_media.find(params[:id])
   end
 
   def set_data_for_edit
-    all_sale_items = SaleItem.includes_edit_associations.where(
+    all_sale_items = SaleItem.for_linking.where(
       sales: {status: Sale.active_status_names + Sale.completed_status_names}
     )
     @sale_items = all_sale_items.where(
@@ -219,10 +217,11 @@ class PurchaseItemsController < ApplicationController
     ) + all_sale_items.where.not(
       product_id: @purchase_item.product
     )
-    @purchases = Purchase.includes_form_associations.order(
-      purchase_date: :desc,
-      created_at: :desc
-    )
+    load_form_collections
+  end
+
+  def load_form_collections
+    @purchases = Purchase.for_form_select
     @shipping_companies = ShippingCompany.all
   end
 

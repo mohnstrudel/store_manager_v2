@@ -27,7 +27,7 @@ class WebhookController < ApplicationController
 
     return render json: {error: "Order '#{order_id}' not found"}, status: :not_found if sale.blank?
 
-    response = sale.sale_items.with_purchase_details.map do |sale_item|
+    response = sale.sale_items.for_tracking_status.map do |sale_item|
       # Sale items have the 'qty' field, but we assume it's one for simplicity
       purchase_item = sale_item.purchase_items.first
 

@@ -27,6 +27,7 @@ class PurchaseItem < ApplicationRecord
   #
   include HasAuditNotifications
   include HasPreviewImages
+  include Listing
   include Searchable
 
   #
@@ -70,18 +71,6 @@ class PurchaseItem < ApplicationRecord
   #
   # == Scopes
   #
-  scope :ordered_by_updated_date, -> { order(updated_at: :desc) }
-
-  scope :with_notification_details, -> {
-    includes(
-      sale: :customer,
-      sale_item: [
-        :product,
-        edition: [:size, :version, :color]
-      ]
-    )
-  }
-
   scope :without_sale_items_by_product, ->(product_id) {
     paid_priority = Arel.sql(
       "CASE WHEN purchases.payments_count > 0 THEN 0 ELSE 1 END ASC"
@@ -90,20 +79,6 @@ class PurchaseItem < ApplicationRecord
       .joins(:purchase)
       .where(purchases: {product_id:})
       .order(paid_priority, created_at: :asc)
-  }
-
-  scope :includes_show_associations, -> { includes(media: {image_attachment: :blob}) }
-
-  scope :includes_purchase_show_associations, -> {
-    includes(:warehouse, :sale_item, purchase: :payments, sale: [:customer, :shopify_info, :woo_info])
-  }
-
-  scope :includes_warehouse_show_associations, -> {
-    includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
-  }
-
-  scope :includes_shipping_company_show_associations, -> {
-    includes(:product, :purchase, edition: [:color, :size, :version])
   }
 
   #

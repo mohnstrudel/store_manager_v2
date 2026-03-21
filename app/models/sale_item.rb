@@ -23,6 +23,7 @@ class SaleItem < ApplicationRecord
   # == Concerns
   #
   include HasAuditNotifications
+  include Listing
 
   #
   # == Extensions
@@ -62,24 +63,6 @@ class SaleItem < ApplicationRecord
 
   scope :linkable, -> {
     where("qty > purchase_items_count")
-  }
-
-  scope :with_details, -> {
-    includes(:product, sale: :customer, edition: [:version, :color, :size])
-  }
-
-  scope :with_purchase_details, -> {
-    includes(:product, edition: [:version, :color, :size], purchase_items: :warehouse)
-  }
-
-  scope :includes_show_associations, -> { includes(purchase_items: :warehouse) }
-
-  scope :includes_edit_associations, -> {
-    includes(
-      :product,
-      sale: [:customer],
-      edition: [:color, :size, :version]
-    )
   }
 
   #

@@ -10,7 +10,7 @@ class FranchisesController < ApplicationController
 
   # GET /franchises/1 or /franchises/1.json
   def show
-    @franchise = Franchise.includes_show_associations.find(params[:id])
+    @franchise = Franchise.includes(:products).find(params[:id])
   end
 
   # GET /franchises/new

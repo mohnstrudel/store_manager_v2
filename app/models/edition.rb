@@ -52,7 +52,6 @@ class Edition < ApplicationRecord
   #
   scope :active, -> { where(deactivated_at: nil) }
   scope :deactivated, -> { where.not(deactivated_at: nil) }
-  scope :with_details, -> { includes(:version, :color, :size) }
 
   #
   # == Class Methods
