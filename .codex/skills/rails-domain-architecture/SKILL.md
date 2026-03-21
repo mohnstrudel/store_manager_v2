@@ -11,7 +11,6 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 - Read `references/advanced-model-patterns.md` when the codebase relies on rich concerns, callbacks, event fan-out, association proxy APIs, or model-owned representations.
 - Read `references/full-stack-architecture.md` when the task spans routes, controllers, views, helpers, jobs, mailers, channels, or request context.
 - Read `references/jobs-architecture.md` when the task is about Active Job, recurring work, queue design, retries, or moving logic into or out of background jobs.
-- Read `references/catalog-and-order-refactors.md` when the app has legacy `Product`, `Sale` or `Order`, `Purchase`, inventory, or warehouse models with mixed model/service/controller ownership.
 - Read `references/controllers-and-request-refactors.md` when refactoring fat controllers or unclear request boundaries.
 - Read `references/views-and-edge-refactors.md` when presentation logic is scattered across models, controllers, helpers, JSON builders, or JavaScript.
 - Read `references/presentation-methods-without-presenters.md` when models contain many string-building or summary methods and you need to sort them without introducing presenters.
@@ -67,7 +66,6 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 - Read `references/advanced-model-patterns.md` for non-obvious model-centric patterns that generic Rails guidance often misses.
 - Read `references/full-stack-architecture.md` for request flow, routing, controllers, views, jobs, and edge-layer design.
 - Read `references/jobs-architecture.md` for queue, retry, resumability, scheduling, and thin-job design guidance.
-- Read `references/catalog-and-order-refactors.md` for concrete patterns when splitting legacy catalog, order, purchase, and warehouse models into capability modules and model-area workflow objects.
 - Read `references/controllers-and-request-refactors.md` for explicit destination rules when moving controller logic back to request boundaries, model workflows, and named scopes.
 - Read `references/views-and-edge-refactors.md` for explicit destination rules when moving screen logic to partials, helpers, Jbuilder, and Turbo templates.
 - Read `references/presentation-methods-without-presenters.md` for rules that distinguish screen-only model methods from true domain representations without defaulting to presenters.
