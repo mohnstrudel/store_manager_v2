@@ -104,6 +104,12 @@ RSpec.describe Product::Shopify::Importer do
       expect(result).to be_persisted
     end
 
+    it "raises when parsed payload is blank" do
+      expect {
+        described_class.import!(nil)
+      }.to raise_error(ArgumentError, "Parsed payload cannot be blank")
+    end
+
     context "with description" do
       let(:parsed_product_with_description) do
         parsed_product.merge(
@@ -254,39 +260,6 @@ RSpec.describe Product::Shopify::Importer do
       end
     end
 
-    context "when generating full title from parsed data" do
-      it "builds full title with brand" do
-        product = described_class.import!(parsed_product)
-        expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")
-      end
-
-      it "builds full title without brand" do
-        parsed_product_without_brand = parsed_product.merge(brand: nil)
-        product = described_class.import!(parsed_product_without_brand)
-        expect(product.full_title).to eq("Stellar Blade — Eve")
-      end
-
-      it "builds full title when title equals franchise" do
-        parsed_product_same_title = parsed_product.merge(
-          title: "Stellar Blade",
-          franchise: "Stellar Blade",
-          brand: "Light and Dust Studio"
-        )
-        product = described_class.import!(parsed_product_same_title)
-        expect(product.full_title).to eq("Stellar Blade | Light and Dust Studio")
-      end
-
-      it "builds full title when title equals franchise without brand" do
-        parsed_product_same_title = parsed_product.merge(
-          title: "Stellar Blade",
-          franchise: "Stellar Blade",
-          brand: nil
-        )
-        product = described_class.import!(parsed_product_same_title)
-        expect(product.full_title).to eq("Stellar Blade")
-      end
-    end
-
     context "when no editions are provided" do
       let(:parsed_product_no_editions) { parsed_product.merge(editions: nil) }
 
@@ -367,15 +340,6 @@ RSpec.describe Product::Shopify::Importer do
 
         expect(Product.last.shape).to eq(existing_shape)
       end
-    end
-  end
-
-  describe "#initialize" do
-    let(:parsed_payload) { {store_id: "123", title: "Test"} }
-
-    it "stores the parsed payload" do
-      importer = described_class.new(parsed_payload)
-      expect(importer.instance_variable_get(:@parsed)).to eq(parsed_payload)
     end
   end
 

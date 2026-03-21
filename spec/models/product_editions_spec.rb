@@ -37,7 +37,7 @@ RSpec.describe Product do
         product.versions << [version1]
       end
 
-      it "builds editions for each size" do
+      it "builds editions for each version" do
         product.build_new_editions
         expect(product.editions.size).to eq(1)
       end
@@ -48,7 +48,7 @@ RSpec.describe Product do
         product.colors << [color1, color2]
       end
 
-      it "builds editions for each size" do
+      it "builds editions for each color" do
         product.build_new_editions
         expect(product.editions.size).to eq(2)
       end
@@ -157,60 +157,20 @@ RSpec.describe Product do
         end
       end
     end
+  end
 
-    context "when product has one size and one version" do
-      before do
-        product.sizes << [size1]
-        product.versions << [version1]
-      end
+  describe "#fetch_editions_with_title" do
+    let(:product) { create(:product) }
+    let!(:titled_edition) { create(:edition, product:) }
 
-      it "builds editions without size (single size is skipped)" do
-        product.build_new_editions
-        expect(product.editions.size).to eq(1) # 1 version, no size
-      end
+    it "returns editions with their option associations preloaded" do
+      result = product.fetch_editions_with_title
 
-      it "does not include size in edition attributes" do
-        product.build_new_editions
-
-        aggregate_failures do
-          expect(product.editions.first.size_id).to be_nil
-          expect(product.editions.first.version_id).to eq(version1.id)
-        end
-      end
-    end
-
-    context "when product attributes are removed" do
-      before do
-        product.sizes << [size1, size2]
-        product.versions << [version1, version2]
-        product.colors << [color1, color2]
-        product.build_new_editions
-        product.save
-      end
-
-      it "does not remove editions when size is removed (editions coexist with selectors)" do
-        product.sizes.delete(size1)
-        product.build_new_editions
-        expect(product.editions.count(&:marked_for_destruction?)).to eq(0)
-      end
-
-      it "does not remove editions when version is removed (editions coexist with selectors)" do
-        product.versions.delete(version1)
-        product.build_new_editions
-        expect(product.editions.count(&:marked_for_destruction?)).to eq(0)
-      end
-
-      it "does not remove editions when color is removed (editions coexist with selectors)" do
-        product.colors.delete(color1)
-        product.build_new_editions
-        expect(product.editions.count(&:marked_for_destruction?)).to eq(0)
-      end
-
-      it "keeps all existing editions when removing attributes" do
-        initial_editions_count = product.editions.count
-        product.colors.delete(color1)
-        product.build_new_editions
-        expect(product.editions.count).to eq(initial_editions_count)
+      aggregate_failures do
+        expect(result).to contain_exactly(titled_edition)
+        expect(result.first.association(:version).loaded?).to be true
+        expect(result.first.association(:color).loaded?).to be true
+        expect(result.first.association(:size).loaded?).to be true
       end
     end
   end

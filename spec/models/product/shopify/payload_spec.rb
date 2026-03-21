@@ -36,14 +36,11 @@ RSpec.describe Product::Shopify::Payload do
 
       expect(result[:title]).to be_a(String)
     end
-  end
 
-  describe "#initialize" do
-    let(:product) { build(:product) }
-
-    it "stores the product" do
-      payload = described_class.new(product)
-      expect(payload.instance_variable_get(:@product)).to eq(product)
+    it "raises when product is blank" do
+      expect {
+        described_class.for_export(nil)
+      }.to raise_error(ArgumentError, "Product cannot be blank")
     end
   end
 

@@ -19,7 +19,7 @@ RSpec.describe Product do
       it "handles multiple brands" do
         product = create(:product, title: "Malenia", franchise:)
         product.brands << [brand, brand2]
-        product.send(:update_full_title)
+        product.update_full_title
 
         expected_title = "#{franchise.title} — #{product.title} | #{brand.title}, #{brand2.title}"
         expect(product.full_title).to eq(expected_title)

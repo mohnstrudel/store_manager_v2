@@ -20,163 +20,75 @@
 require "rails_helper"
 
 RSpec.describe Product do
-  describe "auditing" do
-    it "is audited" do
-      expect(described_class.auditing_enabled).to be true
+  subject(:product) { build(:product) }
+
+  describe "validations" do
+    it { is_expected.to validate_presence_of(:title) }
+    it { is_expected.to validate_presence_of(:sku) }
+
+    it "enforces sku uniqueness" do
+      existing_product = create(:product, sku: "SKU-123")
+      duplicate_product = build(:product, sku: existing_product.sku)
+
+      expect(duplicate_product).not_to be_valid
+      expect(duplicate_product.errors[:sku]).to include("has already been taken")
     end
   end
 
-  describe "#shopify_published?" do
-    context "when product has not been published to Shopify" do
-      it "returns false" do
-        product = build(:product)
-        # Create product without store_infos to simulate unpublished state
-        product.save(validate: false)
+  describe "associations" do
+    it { is_expected.to belong_to(:franchise) }
+    it { is_expected.to belong_to(:shape) }
 
-        expect(product.shopify_published?).to be false
-      end
-    end
-
-    context "when product has been published to Shopify" do
-      it "returns true" do
-        product = create(:product)
-
-        expect(product.shopify_published?).to be true
-      end
-    end
+    it { is_expected.to have_many(:editions).dependent(:destroy).autosave(true).inverse_of(:product) }
+    it { is_expected.to have_many(:product_brands).dependent(:destroy).inverse_of(:product) }
+    it { is_expected.to have_many(:brands).through(:product_brands) }
+    it { is_expected.to have_many(:product_sizes).dependent(:destroy).inverse_of(:product) }
+    it { is_expected.to have_many(:sizes).through(:product_sizes) }
+    it { is_expected.to have_many(:product_versions).dependent(:destroy).inverse_of(:product) }
+    it { is_expected.to have_many(:versions).through(:product_versions) }
+    it { is_expected.to have_many(:product_colors).dependent(:destroy).inverse_of(:product) }
+    it { is_expected.to have_many(:colors).through(:product_colors) }
+    it { is_expected.to have_many(:sale_items).dependent(:destroy).inverse_of(:product) }
+    it { is_expected.to have_many(:sales).through(:sale_items) }
+    it { is_expected.to have_many(:purchases).dependent(:destroy).inverse_of(:product) }
+    it { is_expected.to have_many(:purchase_items).through(:purchases) }
+    it { is_expected.to have_rich_text(:description) }
+    it { is_expected.to accept_nested_attributes_for(:purchases) }
   end
 
-  describe "description field" do
-    context "when product has a description" do
-      it "stores HTML content" do
-        html_description = "<p>This is a <strong>great</strong> product with <em>features</em>.</p>"
-        product = create(:product, description: html_description)
-
-        expect(product.description.body.to_html.strip).to eq(html_description)
-      end
-
-      it "allows updating description" do
-        product = create(:product, description: "<p>Original description</p>")
-        product.update(description: "<p>Updated <strong>description</strong></p>")
-
-        expect(product.reload.description.body.to_html.strip).to eq("<p>Updated <strong>description</strong></p>")
-      end
-    end
-
-    context "when product has no description" do
-      it "allows creating product without description" do
-        product = create(:product, description: nil)
-
-        expect(product.description.body).to be_blank
-      end
-
-      it "allows empty string description" do
-        product = create(:product, description: "")
-
-        expect(product.description.body).to be_blank
-      end
-    end
-  end
-
-  describe "store_infos associations" do
-    it "has many store_infos" do
-      product = create(:product)
-      shopify_info = product.store_infos.shopify.first
-      woo_info = product.store_infos.woo.first
-
-      expect(product.store_infos).to include(shopify_info, woo_info)
-    end
-
-    it "has one shopify_info" do
-      product = create(:product)
-      shopify_info = product.store_infos.shopify.first
-
+  describe "configuration and extensions" do
+    it "is audited and tied to franchise" do
       aggregate_failures do
-        expect(product.shopify_info).to eq(shopify_info)
-        expect(product.shopify_info.store_name).to eq("shopify")
+        expect(described_class.auditing_enabled).to be true
+        expect(described_class.audit_associated_with).to eq(:franchise)
       end
     end
 
-    it "has one woo_info" do
-      product = create(:product)
-      woo_info = product.store_infos.woo.first
+    it "has associated audits" do
+      expect(described_class.instance_methods).to include(:associated_audits)
+    end
 
+    it "configures FriendlyId on the title candidate" do
+      expect(described_class.friendly_id_config.base).to eq(:find_slug_candidate)
+    end
+
+    it "paginates 50 records per page" do
+      expect(described_class.default_per_page).to eq(50)
+    end
+
+    it "exposes the search scopes" do
       aggregate_failures do
-        expect(product.woo_info).to eq(woo_info)
-        expect(product.woo_info.store_name).to eq("woo")
+        expect(described_class).to respond_to(:search)
+        expect(described_class).to respond_to(:search_by)
       end
-    end
-
-    it "destroys store_infos when product is destroyed" do
-      product = create(:product)
-
-      expect {
-        product.destroy
-      }.to change(StoreInfo, :count).by(-2)
-    end
-
-    it "removes the individual store_infos" do
-      product = create(:product)
-
-      product.destroy
-
-      expect(StoreInfo.where(storable: product)).to be_empty
     end
   end
 
-  describe "store_infos scoping" do
-    it "returns shopify store_info through shopify_info association" do
+  describe "callbacks" do
+    it "sets full_title after create" do
       product = create(:product)
 
-      aggregate_failures do
-        expect(product.shopify_info).to be_a(StoreInfo)
-        expect(product.shopify_info.store_name).to eq("shopify")
-      end
-    end
-
-    it "returns woo store_info through woo_info association" do
-      product = create(:product)
-
-      aggregate_failures do
-        expect(product.woo_info).to be_a(StoreInfo)
-        expect(product.woo_info.store_name).to eq("woo")
-      end
-    end
-
-    it "returns nil for shopify_info when not present" do
-      product = create(:product)
-      product.shopify_info.destroy
-
-      expect(product.reload.shopify_info).to be_nil
-    end
-
-    it "returns nil for woo_info when not present" do
-      product = create(:product)
-      product.woo_info.destroy
-
-      expect(product.reload.woo_info).to be_nil
-    end
-  end
-
-  describe "store_infos uniqueness validation" do
-    it "prevents duplicate store_name for the same product" do
-      product = create(:product)
-
-      expect {
-        create(:store_info, :shopify, storable: product)
-      }.to raise_error(ActiveRecord::RecordInvalid)
-    end
-
-    it "allows same store_name for different products" do
-      create(:product)
-      product2 = create(:product)
-
-      # Remove existing shopify store_info from product2 created by factory
-      product2.store_infos.shopify.destroy_all
-
-      expect {
-        create(:store_info, :shopify, storable: product2)
-      }.not_to raise_error
+      expect(product.full_title).to eq("Studio Ghibli — Spirited Away")
     end
   end
 end

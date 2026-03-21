@@ -11,7 +11,7 @@ module Product::StoreReferences
 
   def build_full_title_with_shop_id
     shop_ids = [shopify_info&.id_short&.presence, woo_info&.store_id&.presence].compact.join(" | ")
-    "#{full_title} | #{shop_ids || "N/A"}"
+    "#{full_title} | #{shop_ids.presence || "N/A"}"
   end
 
   def build_shopify_url
