@@ -9,17 +9,15 @@ module Shopify
       payload = client.fetch_product(shopify_product_id)
 
       if payload.blank?
-        handle_product_not_found(shopify_product_id)
-        return
+        remove_product_store_info(shopify_product_id)
+      else
+        import_product_from_shopify(payload)
       end
-
-      parsed_payload = Product::ShopifyParser.parse(payload)
-      Product::ShopifyImporter.import!(parsed_payload)
     end
 
     private
 
-    def handle_product_not_found(shopify_product_id)
+    def remove_product_store_info(shopify_product_id)
       store_info = StoreInfo.find_by(store_name: "shopify", store_id: shopify_product_id)
 
       return unless store_info
@@ -33,6 +31,11 @@ module Shopify
         .delete_all
 
       store_info.destroy!
+    end
+
+    def import_product_from_shopify(payload)
+      parsed_payload = Product::Shopify::Parser.parse(payload)
+      Product::Shopify::Importer.import!(parsed_payload)
     end
   end
 end

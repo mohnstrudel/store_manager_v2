@@ -213,20 +213,15 @@ RSpec.describe Shopify::BasePullJob do
       end
     end
 
-    context "when handling SKU collisions" do
+    context "when item processing fails" do
       before do
-        # Make creator raise an error that looks like SKU collision
         allow(creator_class).to receive(:import!).and_raise(
           "Validation failed: Sku mogu-studio-tifa has already been taken"
         )
       end
 
-      it "logs warning and continues processing remaining items" do
-        allow(Rails.logger).to receive(:warn)
-        perform_job
-        expect(Rails.logger).to have_received(:warn).with(/Skipping item due to SKU collision/).twice
-        # Both items are still processed
-        expect(creator_class).to have_received(:import!).exactly(2).times
+      it "re-raises the error" do
+        expect { perform_job }.to raise_error(RuntimeError, /already been taken/)
       end
     end
   end

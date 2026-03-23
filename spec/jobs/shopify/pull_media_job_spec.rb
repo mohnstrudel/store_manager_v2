@@ -80,6 +80,14 @@ RSpec.describe Shopify::PullMediaJob do
   end
 
   describe "#perform" do
+    it "delegates to Product::Shopify::Media::Pull" do
+      allow(Product::Shopify::Media::Pull).to receive(:call)
+
+      job.perform(product.id, parsed_media)
+
+      expect(Product::Shopify::Media::Pull).to have_received(:call).with(product_id: product.id, parsed_media:)
+    end
+
     context "when product is missing" do
       it "returns early without any action" do
         expect { job.perform(nil, parsed_media) }
@@ -173,20 +181,25 @@ RSpec.describe Shopify::PullMediaJob do
         parsed_media[0][:store_info][:ext_updated_at] = new_ext_updated_at
       end
 
-      it "updates position and timestamp without redownloading image" do
+      # rubocop:disable RSpec/MultipleExpectations
+      it "updates position without redownloading image" do
         original_checksum = media.image.blob.checksum
 
         job.perform(product.id, parsed_media)
 
-        # Position should be updated
         expect(media.reload.position).to eq(5)
-
-        # Timestamp should be updated
-        expect(store_info.reload.ext_updated_at).to eq(Time.zone.parse(new_ext_updated_at))
-
-        # Image should not be redownloaded (checksum unchanged)
         expect(media.image.blob.checksum).to eq(original_checksum)
       end
+
+      it "updates timestamp without redownloading image" do
+        original_checksum = media.image.blob.checksum
+
+        job.perform(product.id, parsed_media)
+
+        expect(store_info.reload.ext_updated_at).to eq(Time.zone.parse(new_ext_updated_at))
+        expect(media.image.blob.checksum).to eq(original_checksum)
+      end
+      # rubocop:enable RSpec/MultipleExpectations
     end
 
     context "when media exists with changed content" do
@@ -242,13 +255,16 @@ RSpec.describe Shopify::PullMediaJob do
       end
 
       # rubocop:disable RSpec/MultipleExpectations
-      it "processes successful images and removes missing ones" do
-        old_media = create(:media, mediaable: product)
+      it "processes successful images and preserves failed remote media" do
+        failed_remote_media = create(:media, mediaable: product)
+        create(:store_info, :shopify,
+          storable: failed_remote_media,
+          store_id: "gid://shopify/ProductImage/999")
 
         job.perform(product.id, parsed_media)
 
-        expect(Media.where(id: old_media.id)).not_to exist
-        expect(product.media.count).to eq 1
+        expect(Media.where(id: failed_remote_media.id)).to exist
+        expect(product.media.count).to eq 2
 
         new_media = product.media.ordered.last
         expect(new_media.alt).to eq alt_text

@@ -11,29 +11,14 @@
 #  updated_at   :datetime         not null
 #
 class ShippingCompany < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
 
-  #
-  # == Configuration
-  #
   audited
 
-  #
-  # == Validations
-  #
   validates_db_uniqueness_of :name
   validates :tracking_url, presence: true
 
-  #
-  # == Associations
-  #
-  has_many :purchase_items, dependent: :nullify
+  has_many :purchase_items, dependent: :nullify, inverse_of: :shipping_company
 
-  #
-  # == Scopes
-  #
   scope :ordered, -> { order(:name) }
 end

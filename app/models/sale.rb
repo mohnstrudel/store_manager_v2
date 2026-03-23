@@ -38,25 +38,23 @@
 #  woo_id             :string
 #
 class Sale < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
+  include Linking
+  include Listing
   include Searchable
+  include ShopSync
   include Shopable
+  include Statuses
+  include Titling
 
-  #
-  # == Extensions
-  #
   extend FriendlyId
 
-  #
-  # == Configuration
-  #
-  friendly_id :full_title, use: :slugged
-  paginates_per 50
   audited associated_with: :customer
   has_associated_audits
+
+  friendly_id :full_title, use: :slugged
+  paginates_per 50
+
   set_search_scope :search,
     against: [:woo_id, :shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
     associated_against: {
@@ -67,222 +65,14 @@ class Sale < ApplicationRecord
       tsearch: {prefix: true}
     }
 
-  #
-  # == Associations
-  #
-  db_belongs_to :customer
+  db_belongs_to :customer, inverse_of: :sales
 
-  has_many :sale_items, dependent: :destroy
+  has_many :sale_items, dependent: :destroy, inverse_of: :sale
   has_many :products, through: :sale_items
 
   accepts_nested_attributes_for :sale_items, allow_destroy: true
 
-  #
-  # == Scopes
-  #
-  scope :except_cancelled_or_completed, -> {
-    where.not(status: cancelled_status_names + completed_status_names)
-  }
-  scope :ordered_by_shop_created_at, -> {
-    order(
-        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC")
-      )
-  }
-  scope :includes_index_associations, -> {
-    includes(
-      :customer,
-      :shopify_info,
-      :woo_info,
-      sale_items: [
-        {product: {media: {image_attachment: :blob}}},
-        :purchase_items,
-        edition: [
-          :version,
-          :color,
-          :size
-        ]
-      ]
-    )
-  }
-  scope :includes_show_associations, -> {
-    includes(
-        sale_items: [
-          {product: {media: {image_attachment: :blob}}},
-          purchase_items: [:warehouse, purchase: :supplier]
-        ]
-      )
-  }
-
-  #
-  # == Class Methods
-  #
-  def self.active_status_names
-    [
-      "partially-paid",
-      "po_fully_paid",
-      "pre-ordered",
-      "processing",
-      "ready-to-fullfill",
-      "im-zulauf",
-      "container-shipped"
-    ].freeze
-  end
-
-  def self.completed_status_names
-    ["completed", "updated-tracking"].freeze
-  end
-
-  def self.cancelled_status_names
-    ["cancelled", "failed"].freeze
-  end
-
-  def self.status_names
-    # https://woocommerce.com/document/managing-orders/
-    [
-      "cancelled",
-      "completed",
-      "container-shipped",
-      "failed",
-      "im-zulauf",
-      "on-hold",
-      "partial-shipped",
-      "partially-paid",
-      "po_fully_paid",
-      "pre-ordered",
-      "processing",
-      "ready-to-fullfill",
-      "refunded",
-      "updated-tracking"
-    ].freeze
-  end
-
-  def self.inactive_status_names
-    status_names - active_status_names - completed_status_names
-  end
-
-  def self.update_order(sale)
-    Woo::PushSaleJob.perform_later(sale)
-  end
-
-  def self.find_recent_by_order_id(shop_order_id)
-    if shop_order_id.upcase.include?("HSCM#")
-      Sale.find_by(shopify_name: shop_order_id)
-    else
-      Sale.where(
-        "shopify_name LIKE ? OR woo_id = ?", "%#{shop_order_id}", shop_order_id
-      ).max_by(&:shop_created_at)
-    end
-  end
-
-  # Derive local status from Shopify fulfillment and financial statuses
-  #
-  # @param fulfillment_status [String] Shopify fulfillment status (FULFILLED, UNFULFILLED)
-  # @param financial_status [String] Shopify financial status (PAID, PENDING, PARTIALLY_PAID, REFUNDED)
-  #
-  # @return [String] The local status name
-  #
-  # @note Maps Shopify statuses to local domain statuses
-  # @note Defaults to "processing" for unknown combinations
-  #
-  # @example
-  #   Sale.derive_status_from_shopify("FULFILLED", "PAID") # => "completed"
-  #   Sale.derive_status_from_shopify("UNFULFILLED", "PAID") # => "pre-ordered"
-  def self.derive_status_from_shopify(fulfillment_status, financial_status)
-    case [fulfillment_status, financial_status]
-    when ["FULFILLED", "PAID"]
-      "completed"
-    when ["UNFULFILLED", "PAID"]
-      "pre-ordered"
-    when ["UNFULFILLED", "PENDING"]
-      "processing"
-    when ["UNFULFILLED", "PARTIALLY_PAID"]
-      "partially-paid"
-    when ["FULFILLED", "REFUNDED"]
-      "refunded"
-    when ["UNFULFILLED", "REFUNDED"]
-      "cancelled"
-    else
-      "processing"
-    end
-  end
-
-  #
-  # == Domain Methods
-  #
-  def title
-    shop_id = if shopify_id.present?
-      shopify_name
-    else
-      woo_id
-    end
-    [status&.titleize, shop_id].compact.join(" | ")
-  end
-
-  def select_title
-    name = customer.full_name.presence
-    email = customer.email.presence
-    woo = woo_id.presence
-    total = total.presence || 0
-    [name, email, status&.titleize, "$#{"%.2f" % total}", woo].compact.join(" | ")
-  end
-
-  def created
+  def created_at_for_display
     woo_created_at || created_at
-  end
-
-  def full_title
-    [customer.name_and_email, woo_id.presence].compact.join(" | ")
-  end
-
-  def active?
-    self.class.active_status_names.include?(status)
-  end
-
-  def completed?
-    self.class.completed_status_names.include?(status)
-  end
-
-  def has_unlinked_sale_items?
-    total_sold = sale_items.sum(:qty)
-    total_purchased = sale_items.sum { |ps| ps.purchase_items.size }
-
-    return if total_sold == total_purchased
-
-    product_ids = sale_items.pluck(:product_id)
-
-    PurchaseItem.without_sale_items_by_product(product_ids).exists?
-  end
-
-  def shop_created_at
-    shopify_created_at || woo_created_at
-  end
-
-  def shop_updated_at
-    shopify_info&.ext_updated_at || woo_updated_at
-  end
-
-  def link_with_purchase_items
-    return unless active? || completed?
-
-    sale_items.linkable.map do |sale_item|
-      already_linked_size = sale_item.purchase_items.count
-      remaining_size = sale_item.qty - already_linked_size
-
-      next if remaining_size <= 0
-
-      linkable_purchase_items = PurchaseItem
-        .without_sale_items_by_product(sale_item.product_id)
-        .limit(remaining_size)
-
-      linked_purchase_items_ids = linkable_purchase_items.pluck(:id)
-
-      linkable_purchase_items.each { it.link_with(sale_item.id) }
-
-      linked_purchase_items_ids
-    end.compact.flatten
-  end
-
-  def summary_for_warehouse
-    [customer.full_name, address_1, address_2, postcode, city, country, customer.phone].compact_blank.join(", ")
   end
 end

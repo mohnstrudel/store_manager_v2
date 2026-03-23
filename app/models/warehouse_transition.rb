@@ -12,47 +12,16 @@
 #  to_warehouse_id   :bigint
 #
 class WarehouseTransition < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
+  include Lookup
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited associated_with: :notification
 
-  #
-  # == Validations
-  #
+  db_belongs_to :notification, inverse_of: :warehouse_transitions
+  db_belongs_to :from_warehouse, class_name: "Warehouse", inverse_of: :from_transitions
+  db_belongs_to :to_warehouse, class_name: "Warehouse", inverse_of: :to_transitions
+
   validates_db_presence_of :from_warehouse, :to_warehouse
   validates_db_uniqueness_of :from_warehouse_id,
     scope: [:to_warehouse_id, :notification_id]
-
-  #
-  # == Associations
-  #
-  db_belongs_to :notification
-  db_belongs_to :from_warehouse, class_name: "Warehouse"
-  db_belongs_to :to_warehouse, class_name: "Warehouse"
-
-  #
-  # == Scopes
-  #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
 end

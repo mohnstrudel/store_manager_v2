@@ -5,19 +5,19 @@ class WarehousesController < ApplicationController
   include HandlesMedia
 
   before_action :set_warehouse, only: %i[edit update destroy]
-  before_action :validate_default_warehouse, only: %i[create update]
+  before_action :validate_default_warehouse, only: %i[update]
 
   # GET /warehouses
   def index
-    @warehouses = Warehouse.includes_index_associations.order(:position)
+    @warehouses = Warehouse.for_listing.order(:position)
   end
 
   # GET /warehouses/1
   def show
-    @warehouse = Warehouse.includes_show_associations.find(params[:id])
+    @warehouse = Warehouse.for_details.find(params[:id])
     @purchase_items = @warehouse
       .purchase_items
-      .includes_warehouse_show_associations
+      .for_warehouse_details
       .order(updated_at: :desc)
       .page(params[:page])
     @total_purchase_items = @warehouse.purchase_items.size
@@ -38,13 +38,11 @@ class WarehousesController < ApplicationController
   # POST /warehouses
   def create
     @warehouse = Warehouse.new(warehouse_params)
+    return render_default_warehouse_conflict! if default_warehouse_conflict?(@warehouse)
 
     if @warehouse.save
       add_new_media(@warehouse)
-
-      if @warehouse.is_default?
-        Warehouse.ensure_only_one_default(@warehouse.id)
-      end
+      Warehouse.ensure_only_one_default(@warehouse.id) if @warehouse.is_default?
 
       redirect_to @warehouse, notice: "Warehouse was successfully created"
     else
@@ -54,25 +52,20 @@ class WarehousesController < ApplicationController
 
   # PATCH/PUT /warehouses/1
   def update
-    ActiveRecord::Base.transaction do
-      # Handle warehouse transitions separately if that's the only parameter being updated
-      if params[:warehouse].present? && params[:warehouse].keys.map(&:to_sym) == [:to_warehouse_ids]
-        handle_warehouse_transitions
-        redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
-      elsif @warehouse.update(warehouse_params)
+    result = Warehouse::UpdateWorkflow.call(
+      warehouse: @warehouse,
+      attributes: warehouse_update_attributes,
+      transition_ids: params.dig(:warehouse, :to_warehouse_ids),
+      after_update: -> {
         update_media(@warehouse)
         add_new_media(@warehouse)
+      }
+    )
 
-        if @warehouse.is_default?
-          Warehouse.ensure_only_one_default(@warehouse.id)
-        end
-
-        handle_warehouse_transitions
-
-        redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
-      else
-        raise ActiveRecord::RecordInvalid
-      end
+    if result == Warehouse::UpdateWorkflow::TRANSITIONS_UPDATED
+      redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
+    else
+      redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
     end
   rescue ActiveRecord::RecordInvalid
     render :edit, status: :unprocessable_content
@@ -137,47 +130,48 @@ class WarehousesController < ApplicationController
     )
   end
 
-  def handle_warehouse_transitions
-    return if params[:warehouse][:to_warehouse_ids].blank?
+  def warehouse_update_attributes
+    return {"to_warehouse_ids" => params.dig(:warehouse, :to_warehouse_ids)} if transition_only_update?
 
-    WarehouseTransition
-      .where(from_warehouse: @warehouse)
-      .where.not(to_warehouse_id: params[:warehouse][:to_warehouse_ids])
-      .destroy_all
+    warehouse_params.to_h
+  end
 
-    params[:warehouse][:to_warehouse_ids].each do |to_id|
-      next if to_id.blank?
-
-      notification = Notification.find_or_create_by!(
-        name: "Warehouse transition",
-        event_type: Notification.event_types[:warehouse_changed],
-        status: :active
-      )
-
-      WarehouseTransition.find_or_create_by!(
-        from_warehouse: @warehouse,
-        to_warehouse_id: to_id,
-        notification: notification
-      )
-    end
+  def transition_only_update?
+    params[:warehouse].present? && params[:warehouse].keys.map(&:to_sym) == [:to_warehouse_ids]
   end
 
   def validate_default_warehouse
-    # Only validate if is_default is present in the params
-    if params.dig(:warehouse, :is_default) == "1"
-      current_default = Warehouse.find_by(is_default: true)
+    return unless default_warehouse_conflict?(@warehouse)
 
-      if current_default && current_default != @warehouse
-        error_message = safe_join([
-          "change the current default warehouse \"",
-          view_context.link_to(current_default.name, warehouse_path(current_default), class: "link"),
-          "\" before setting a new one"
-        ])
+    render_default_warehouse_conflict!
+  end
 
-        @warehouse.errors.add(:is_default, error_message)
-        @positions_count = Warehouse.count
-        render :edit, status: :unprocessable_content
-      end
-    end
+  def default_warehouse_conflict?(warehouse)
+    return false unless params.dig(:warehouse, :is_default) == "1"
+
+    current_default = current_default_warehouse
+    current_default.present? && current_default != warehouse
+  end
+
+  def render_default_warehouse_conflict!
+    current_default = current_default_warehouse
+    return false unless current_default
+
+    @warehouse.errors.add(:is_default, default_warehouse_error_message(current_default))
+    @positions_count = Warehouse.count
+    render((action_name == "create" ? :new : :edit), status: :unprocessable_content)
+    true
+  end
+
+  def current_default_warehouse
+    Warehouse.find_by(is_default: true)
+  end
+
+  def default_warehouse_error_message(current_default)
+    safe_join([
+      "change the current default warehouse \"",
+      view_context.link_to(current_default.name, warehouse_path(current_default), class: "link"),
+      "\" before setting a new one"
+    ])
   end
 end

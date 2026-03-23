@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 class ProductsController < ApplicationController
-  include ActionView::Helpers::OutputSafetyHelper
   include HandlesMedia
+  include JobsStatusNotice
 
   before_action :set_product, only: %i[show edit update destroy pull_from_shopify] # DISABLED: publish_to_shopify, push_to_shopify
 
   # GET /products or /products.json
   def index
-    @products = Product.includes_index_associations.listed.search_by(params[:q]).page(params[:page])
+    @products = Product.listed.search_by(params[:q]).page(params[:page])
   end
 
   # GET /products/1 or /products/1.json
@@ -56,7 +56,7 @@ class ProductsController < ApplicationController
   # PATCH/PUT /products/1 or /products/1.json
   def update
     @product.assign_attributes(product_params.to_h.merge(slug: nil))
-    @product.assign_attributes(full_title: Product.generate_full_title(@product))
+    @product.assign_attributes(full_title: @product.generate_full_title)
 
     respond_to do |format|
       ActiveRecord::Base.transaction do
@@ -121,21 +121,9 @@ class ProductsController < ApplicationController
   end
 
   def pull
-    limit = params[:limit]&.to_i
-
-    Shopify::PullProductsJob.perform_later(limit:)
+    Shopify::PullProductsJob.perform_later(limit: params[:limit]&.to_i)
     Config.update_shopify_products_sync_time
-
-    statuses_link = view_context.link_to(
-      "jobs statuses dashboard", root_url + "jobs/statuses", class: "link"
-    )
-
-    flash[:notice] = safe_join([
-      "Success! Visit ",
-      statuses_link,
-      " to track synchronization progress"
-    ])
-
+    set_jobs_status_notice!
     redirect_back_or_to(products_path)
   end
 
@@ -143,7 +131,7 @@ class ProductsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_product
-    @product = Product.includes_show_associations.friendly.find(params[:id])
+    @product = Product.for_details.friendly.find(params[:id])
   end
 
   def product_params
@@ -306,7 +294,7 @@ class ProductsController < ApplicationController
   # won't see what went wrong.
   def reload_product_with_preserved_errors!
     errors = @product.errors.dup
-    @product = Product.includes_show_associations.friendly.find(params[:id])
+    @product = Product.for_details.friendly.find(params[:id])
     @product.errors.copy!(errors)
   end
 

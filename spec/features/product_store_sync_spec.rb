@@ -25,29 +25,16 @@ RSpec.describe "Product Store Sync" do
     expect(page).to have_content("Store Synchronization")
   end
 
-  # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
-  # scenario "shows publish button when product is not published to Shopify", :js do # rubocop:todo RSpec/MultipleExpectations
-  #   product = build(:product)
-  #   product.save(validate: false)
-  #
-  #   visit product_path(product)
-  #   click_link "Store Sync"
-  #
-  #   expect(page).to have_button("Publish to Shopify")
-  #   expect(page).not_to have_button("Push updates to Shopify")
-  #   expect(page).not_to have_button("Pull updates from Shopify")
-  # end
-  #
-  # scenario "shows push and pull buttons when product is published to Shopify", :js do # rubocop:todo RSpec/MultipleExpectations
-  #   product = create(:product)
-  #
-  #   visit product_path(product)
-  #   click_link "Store Sync"
-  #
-  #   expect(page).to have_button("Push updates to Shopify")
-  #   expect(page).to have_button("Pull updates from Shopify")
-  #   expect(page).not_to have_button("Publish to Shopify")
-  # end
+  scenario "hides pull button when product is not published to Shopify", :js do
+    product = create(:product)
+    product.shopify_info.update!(store_id: nil, push_time: nil)
+
+    visit product_path(product)
+    click_link "Store Sync"
+
+    expect(page).to have_content("Not yet pushed")
+    expect(page).to have_no_button("Pull updates from Shopify")
+  end
 
   scenario "displays push and pull times when available", :js do # rubocop:todo RSpec/MultipleExpectations
     product = create(:product)
@@ -102,56 +89,6 @@ RSpec.describe "Product Store Sync" do
 
     expect(page).not_to have_css("dialog#product-sync-modal[open]")
   end
-
-  # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
-  # scenario "closes modal after push action and can be reopened", :js do # rubocop:todo RSpec/MultipleExpectations
-  #   product = create(:product)
-  #   allow(Shopify::UpdateProductJob).to receive(:perform_later)
-  #
-  #   visit product_path(product)
-  #
-  #   # Open the modal
-  #   click_link "Store Sync"
-  #   expect(page).to have_content("Store Synchronization")
-  #
-  #   # Click push action
-  #   click_button "Push updates to Shopify"
-  #
-  #   # Modal should close (content no longer visible)
-  #   expect(page).not_to have_content("Store Synchronization")
-  #
-  #   # Notice should be displayed
-  #   expect(page).to have_content("Product updates are being pushed to Shopify")
-  #
-  #   # Modal should be able to be opened again without errors
-  #   click_link "Store Sync"
-  #   expect(page).to have_content("Store Synchronization")
-  # end
-  #
-  # scenario "closes modal after publish action and can be reopened", :js do # rubocop:todo RSpec/MultipleExpectations
-  #   product = build(:product)
-  #   product.save(validate: false)
-  #   allow(Shopify::CreateProductJob).to receive(:perform_later)
-  #
-  #   visit product_path(product)
-  #
-  #   # Open the modal
-  #   click_link "Store Sync"
-  #   expect(page).to have_content("Store Synchronization")
-  #
-  #   # Click publish action
-  #   click_button "Publish to Shopify"
-  #
-  #   # Modal should close (content no longer visible)
-  #   expect(page).not_to have_content("Store Synchronization")
-  #
-  #   # Notice should be displayed
-  #   expect(page).to have_content("Product is being published to Shopify")
-  #
-  #   # Modal should be able to be opened again without errors
-  #   click_link "Store Sync"
-  #   expect(page).to have_content("Store Synchronization")
-  # end
 
   scenario "closes modal after pull action and can be reopened", :js do # rubocop:todo RSpec/MultipleExpectations
     product = create(:product)

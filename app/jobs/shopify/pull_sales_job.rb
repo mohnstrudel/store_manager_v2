@@ -9,11 +9,11 @@ module Shopify
     end
 
     def parser_class
-      Sale::ShopifyParser
+      Sale::Shopify::Parser
     end
 
     def creator_class
-      Sale::ShopifyImporter
+      Sale::Shopify::Importer
     end
 
     def batch_size

@@ -2,15 +2,15 @@
 
 class SaleItemsController < ApplicationController
   before_action :set_sale_item, only: %i[show edit update destroy]
+  before_action :load_form_collections, only: %i[edit]
 
   # GET /sale_items/1
   def show
-    @sale_item = SaleItem.includes_show_associations.find(params[:id])
+    @sale_item = SaleItem.for_details.find(params[:id])
   end
 
   # GET /sale_items/1/edit
   def edit
-    @purchases = Purchase.includes_form_associations.order(purchase_date: :desc, created_at: :desc)
   end
 
   # PATCH/PUT /sale_items/1
@@ -23,6 +23,7 @@ class SaleItemsController < ApplicationController
       attachments&.map(&:purge_later)
       redirect_to @sale_item, notice: "Sale item was successfully updated", status: :see_other
     else
+      load_form_collections
       render :edit, status: :unprocessable_content
     end
   end
@@ -50,5 +51,9 @@ class SaleItemsController < ApplicationController
         :edition_id,
         :woo_id]
     )
+  end
+
+  def load_form_collections
+    @purchases = Purchase.for_form_select
   end
 end

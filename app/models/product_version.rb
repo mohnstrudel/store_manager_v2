@@ -11,45 +11,12 @@
 #  version_id :bigint
 #
 class ProductVersion < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
 
-  #
-  # == Validations
-  #
-  # (none)
+  db_belongs_to :product, inverse_of: :product_versions
+  db_belongs_to :version, inverse_of: :product_versions
 
-  #
-  # == Associations
-  #
-  db_belongs_to :product
-  db_belongs_to :version
-  has_many :store_infos, as: :storable, dependent: :destroy
-
-  #
-  # == Scopes
-  #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
+  has_many :store_infos, as: :storable, dependent: :destroy, inverse_of: :storable
 end

@@ -6,14 +6,6 @@ module HasPreviewImages
   included do
     has_many :media, -> { ordered }, as: :mediaable, dependent: :destroy, inverse_of: :mediaable, class_name: "Media"
 
-    def prev_image_id(img_id)
-      (media.where(id: ...img_id).ordered.last || media.ordered.last).id
-    end
-
-    def next_image_id(img_id)
-      (media.where("id > ?", img_id).ordered.first || media.ordered.first).id
-    end
-
     # TODO: Remove after #99
     has_many_attached :images, dependent: :purge_later do |attachable|
       attachable.variant :preview,
@@ -31,9 +23,11 @@ module HasPreviewImages
     end
   end
 
-  class_methods do
-    def with_thumb_media
-      includes(media: {image_attachment: :blob})
-    end
+  def prev_image_id(img_id)
+    (media.where(id: ...img_id).ordered.last || media.ordered.last).id
+  end
+
+  def next_image_id(img_id)
+    (media.where("id > ?", img_id).ordered.first || media.ordered.first).id
   end
 end

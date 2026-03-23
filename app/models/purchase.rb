@@ -23,23 +23,21 @@
 class Purchase < ApplicationRecord
   attribute :warehouse_id, :integer
 
-  #
-  # == Concerns
-  #
+  include Financials
   include HasAuditNotifications
+  include Listing
   include Searchable
+  include Warehousing
+  include Titling
 
-  #
-  # == Extensions
-  #
   extend FriendlyId
 
-  #
-  # == Configuration
-  #
   audited associated_with: :supplier
   has_associated_audits
+
   friendly_id :full_title, use: :slugged
+  paginates_per 50
+
   set_search_scope :search,
     against: [:order_reference],
     associated_against: {
@@ -52,130 +50,23 @@ class Purchase < ApplicationRecord
     using: {
       tsearch: {prefix: true}
     }
-  paginates_per 50
 
-  #
-  # == Validations
-  #
   validates :amount, presence: true
   validates :item_price, presence: true
   validates :supplier_id, presence: true
 
-  #
-  # == Associations
-  #
-  db_belongs_to :supplier
-  belongs_to :product, optional: true
-  belongs_to :edition, optional: true
+  db_belongs_to :supplier, inverse_of: :purchases
+
+  belongs_to :product, optional: true, inverse_of: :purchases
+  belongs_to :edition, optional: true, inverse_of: :purchases
+
+  has_many :payments, dependent: :destroy, inverse_of: :purchase
+  accepts_nested_attributes_for :payments
+
+  has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
+  has_many :warehouses, through: :purchase_items
 
   has_many :sizes, through: :edition
   has_many :versions, through: :edition
   has_many :colors, through: :edition
-
-  has_many :payments, dependent: :destroy
-  accepts_nested_attributes_for :payments
-
-  has_many :purchase_items, dependent: :destroy
-  has_many :warehouses, through: :purchase_items
-
-  #
-  # == Scopes
-  #
-  scope :unpaid, -> {
-    includes(:supplier)
-      .where
-      .missing(:payments)
-      .order(created_at: :asc)
-  }
-
-  scope :includes_index_associations, -> {
-    includes(
-      :supplier,
-      :payments,
-      {product: {media: {image_attachment: :blob}}},
-      purchase_items: [:warehouse],
-      edition: [:color, :size, :version]
-    )
-  }
-
-  scope :includes_show_associations, -> {
-    includes(:warehouse, :sale_item, purchase: :payments)
-  }
-
-  scope :includes_form_associations, -> { includes(:product, :supplier) }
-
-  scope :includes_supplier_show_associations, -> {
-    includes(:product, :payments, edition: [:color, :size, :version])
-  }
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  def debt
-    @debt ||= [cost_total - paid, 0].max
-  end
-
-  def item_debt
-    debt / amount
-  end
-
-  def item_paid
-    paid / amount
-  end
-
-  def progress
-    return 0 if cost_total.zero?
-    [paid * 100.0 / cost_total, 100].min
-  end
-
-  def cost_total
-    item_price * amount + shipping_total
-  end
-
-  def title
-    "Purchase №#{id}: #{product.title}"
-  end
-
-  def full_title
-    date = purchase_date || created_at
-    "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
-  end
-
-  def which_edition
-    edition ?
-      edition.title :
-      "-"
-  end
-
-  def date
-    purchase_date || created_at
-  end
-
-  def unpaid?
-    payments_count.zero?
-  end
-
-  def add_items_to_warehouse(warehouse_id)
-    purchase_items_attributes = Array.new(amount) {
-      {
-        purchase_id: id,
-        warehouse_id:,
-        created_at: Time.current,
-        updated_at: Time.current
-      }
-    }
-    purchase_items.create!(purchase_items_attributes)
-  end
-
-  def link_with_sales
-    linked_purchase_item_ids = PurchaseLinker.link(self)
-    PurchasedNotifier.handle_product_purchase(
-      purchase_item_ids: linked_purchase_item_ids
-    )
-  end
 end

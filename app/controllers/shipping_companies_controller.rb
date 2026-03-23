@@ -10,7 +10,7 @@ class ShippingCompaniesController < ApplicationController
 
   # GET /shipping_companies/1 or /shipping_companies/1.json
   def show
-    @purchase_items = @shipping_company.purchase_items.includes_shipping_company_show_associations
+    @purchase_items = @shipping_company.purchase_items.for_shipping_details
   end
 
   # GET /shipping_companies/new

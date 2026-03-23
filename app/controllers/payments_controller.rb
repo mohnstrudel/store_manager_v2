@@ -2,13 +2,15 @@
 
 class PaymentsController < ApplicationController
   def create
-    @payment = Payment.create(payment_params)
+    @payment = Payment.new(payment_params)
 
     respond_to do |format|
       if @payment.save
         format.turbo_stream do
           render turbo_stream: turbo_stream.append(:payments, partial: "payment/payment")
         end
+      else
+        format.turbo_stream { head :unprocessable_content }
       end
     end
   end

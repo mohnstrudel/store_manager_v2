@@ -11,7 +11,7 @@ header.nav_header
     li = edit_btn_for @warehouse
 
 .section-wide.flex.flex-col.gap-8
-  - if @warehouse.purchase_items.present?
+  - if @total_purchase_items.positive?
     = render "purchase_items"
 
   .cards

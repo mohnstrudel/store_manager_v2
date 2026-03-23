@@ -210,6 +210,28 @@ RSpec.describe "Products API" do
     end
   end
 
+  describe "GET /products/:id" do
+    it "renders the product show page sections for sales and purchases" do
+      product = create(:product)
+      edition = create(:edition, product:)
+      active_sale = create(:sale, status: "processing")
+      completed_sale = create(:sale, status: "completed")
+
+      create(:sale_item, product:, edition:, sale: active_sale, qty: 1)
+      create(:sale_item, product:, edition:, sale: completed_sale, qty: 2)
+      create(:purchase, product:, edition:, amount: 3, item_price: 12.5)
+
+      get product_path(product)
+
+      aggregate_failures do
+        expect(response).to be_successful
+        expect(response.body).to include("Active Sales")
+        expect(response.body).to include("Completed Sales")
+        expect(response.body).to include("Purchases")
+      end
+    end
+  end
+
   describe "tags on store_infos" do
     let(:product) { create(:product) }
 

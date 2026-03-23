@@ -7,7 +7,7 @@ module Shopify
       product = Product.find(product_id)
       shopify_info = product.shopify_info
 
-      serialized_product = Product::ShopifySerializer.for_export(product)
+      serialized_product = Product::Shopify::Payload.for_export(product)
       product_payload = client.update_product(shopify_info.store_id, serialized_product)
 
       shopify_info.assign_attributes(

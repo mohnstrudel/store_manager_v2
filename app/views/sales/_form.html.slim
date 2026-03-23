@@ -11,7 +11,7 @@
       = form.text_field :woo_id
 
   = form.label :customer_id
-  = form.collection_select(:customer_id, Customer.all, :id, :name_and_email, {class: "select"}, data: {controller: "slim-select"})
+  = form.collection_select(:customer_id, @customer_options || [], :id, :name_and_email, {class: "select"}, data: {controller: "slim-select"})
 
   = form.label :note
   = form.text_field :note
@@ -63,7 +63,7 @@
   h5.mt-8.mb-3 Products
   div data-controller="sale-items"
     / Look for the template in sale_items_controller.js
-    = form.collection_select(:_, Product.all, :id, :full_title,
+    = form.collection_select(:_, @product_options || [], :id, :full_title,
         {prompt: "Select a product"},
         {hidden: true, data: {"sale-items-target": "options"}})
     - sale.sale_items.each do |sale_item|

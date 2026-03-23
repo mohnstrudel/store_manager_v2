@@ -12,5 +12,5 @@
 #  user_id    :bigint           not null
 #
 class Session < ApplicationRecord
-  db_belongs_to :user
+  db_belongs_to :user, inverse_of: :sessions
 end

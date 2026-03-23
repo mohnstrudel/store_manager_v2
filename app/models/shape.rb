@@ -10,43 +10,11 @@
 #  updated_at :datetime         not null
 #
 class Shape < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
 
-  #
-  # == Validations
-  #
   validates :title, presence: true
 
-  #
-  # == Associations
-  #
-  has_many :products, dependent: :destroy
-
-  #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
+  has_many :products, dependent: :destroy, inverse_of: :shape
 end

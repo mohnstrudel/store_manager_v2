@@ -10,60 +10,13 @@
 #  updated_at :datetime         not null
 #
 class Franchise < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
+  include ProductTitling
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
   has_associated_audits
 
-  #
-  # == Validations
-  #
   validates :title, presence: true
 
-  #
-  # == Associations
-  #
-  has_many :products, dependent: :destroy
-
-  #
-  # == Scopes
-  #
-  scope :includes_show_associations, -> { includes(:products) }
-
-  #
-  # == Callbacks
-  #
-  after_save :update_products
-
-  #
-  # == Scopes
-  #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
-
-  private
-
-  def update_products
-    products.each(&:update_full_title)
-  end
+  has_many :products, dependent: :destroy, inverse_of: :franchise
 end

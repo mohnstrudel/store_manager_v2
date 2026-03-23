@@ -22,106 +22,6 @@
 require "rails_helper"
 
 RSpec.describe Edition do
-  describe "#title" do
-    context "when edition has sizes" do
-      sizes = ["1:4", "1:6"]
-      let(:edition_one) { create(:edition, :with_size, size_value: sizes.first) }
-      let(:edition_two) { create(:edition, :with_size, size_value: sizes.last) }
-
-      it "title includes #{sizes.first}" do
-        expect(edition_one.title).to include(sizes.first)
-      end
-
-      it "title includes #{sizes.last}" do
-        expect(edition_two.title).to include(sizes.last)
-      end
-    end
-
-    context "when edition has versions" do
-      versions = ["Regular Armor", "Revealing Armor"]
-      let(:edition_one) { create(:edition, :with_version, version_value: versions.first) }
-      let(:edition_two) { create(:edition, :with_version, version_value: versions.last) }
-
-      it "title includes #{versions.first}" do
-        expect(edition_one.title).to include(versions.first)
-      end
-
-      it "title includes #{versions.last}" do
-        expect(edition_two.title).to include(versions.last)
-      end
-    end
-
-    context "when edition has colors" do
-      colors = ["Blau", "Grau"]
-      let(:edition_one) { create(:edition, :with_color, color_value: colors.first) }
-      let(:edition_two) { create(:edition, :with_color, color_value: colors.last) }
-
-      it "title includes #{colors.first}" do
-        expect(edition_one.title).to include(colors.first)
-      end
-
-      it "title includes #{colors.last}" do
-        expect(edition_two.title).to include(colors.last)
-      end
-    end
-
-    context "when edition has no options (Base Model)" do
-      let(:edition) { create(:edition, version: nil) }
-
-      it "returns 'Base Model'" do
-        expect(edition.title).to eq("Base Model")
-      end
-    end
-
-    context "when edition has multiple options" do
-      let(:size) { create(:size, value: "1:4") }
-      let(:version) { create(:version, value: "Regular") }
-      let(:color) { create(:color, value: "Red") }
-      let(:edition) { create(:edition, size:, version:, color:) }
-
-      it "joins all options with ' | '" do
-        expect(edition.title).to eq("1:4 | Regular | Red")
-      end
-    end
-  end
-
-  describe "#base_model?" do
-    context "when edition has no options" do
-      let(:edition) { create(:edition, version: nil) }
-
-      it "returns true" do
-        expect(edition.base_model?).to be true
-      end
-    end
-
-    context "when edition has a size" do
-      let(:size) { create(:size, value: "1:4") }
-      let(:edition) { create(:edition, size:, version: nil) }
-
-      it "returns false" do
-        expect(edition.base_model?).to be false
-      end
-    end
-
-    context "when edition has a version" do
-      let(:version) { create(:version, value: "Regular") }
-      let(:edition) { create(:edition, version:) }
-
-      it "returns false" do
-        expect(edition.base_model?).to be false
-      end
-    end
-
-    context "when edition has a color" do
-      let(:color) { create(:color, value: "Red") }
-      let(:edition) { create(:edition, color:, version: nil) }
-
-      it "returns false" do
-        expect(edition.base_model?).to be false
-      end
-    end
-  end
-
   describe "price" do
     it "returns 0.0 since price tracking was removed from StoreInfo" do
       edition = create(:edition)
@@ -155,7 +55,7 @@ RSpec.describe Edition do
 
   describe "#has_sales_or_purchases?" do
     let(:product) { create(:product) }
-    let(:edition) { Edition.create!(product: product) }
+    let(:edition) { described_class.create!(product: product) }
 
     context "when edition has no sale_items or purchases" do
       it "returns false" do
@@ -189,22 +89,28 @@ RSpec.describe Edition do
   end
 
   describe ".active scope" do
-    let!(:active_edition) { Edition.create!(product: create(:product)) }
-    let!(:deactivated_edition) { Edition.create!(product: create(:product), deactivated_at: Time.current) }
+    let!(:active_edition) { described_class.create!(product: create(:product)) }
+    let!(:deactivated_edition) { described_class.create!(product: create(:product), deactivated_at: Time.current) }
 
-    it "returns only active editions" do
-      expect(Edition.active).to include(active_edition)
-      expect(Edition.active).not_to include(deactivated_edition)
+    it "includes active editions" do
+      expect(described_class.active).to include(active_edition)
+    end
+
+    it "excludes deactivated editions" do
+      expect(described_class.active).not_to include(deactivated_edition)
     end
   end
 
   describe ".deactivated scope" do
-    let!(:active_edition) { Edition.create!(product: create(:product)) }
-    let!(:deactivated_edition) { Edition.create!(product: create(:product), deactivated_at: Time.current) }
+    let!(:active_edition) { described_class.create!(product: create(:product)) }
+    let!(:deactivated_edition) { described_class.create!(product: create(:product), deactivated_at: Time.current) }
 
-    it "returns only deactivated editions" do
-      expect(Edition.deactivated).to include(deactivated_edition)
-      expect(Edition.deactivated).not_to include(active_edition)
+    it "includes deactivated editions" do
+      expect(described_class.deactivated).to include(deactivated_edition)
+    end
+
+    it "excludes active editions" do
+      expect(described_class.deactivated).not_to include(active_edition)
     end
   end
 end

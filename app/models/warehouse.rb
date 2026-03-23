@@ -20,51 +20,22 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
   include HasPreviewImages
+  include Financials
+  include Listing
+  include Transitions
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
   has_associated_audits
   positioned
 
-  #
-  # == Validations
-  #
   validates :name, presence: true
-
-  #
-  # == Associations
-  #
-  has_many :purchase_items, dependent: :destroy
+  has_many :purchase_items, dependent: :destroy, inverse_of: :warehouse
   has_many :purchases, through: :purchase_items
   has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
   has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse
 
-  #
-  # == Scopes
-  #
-  scope :includes_index_associations, -> {
-    includes(:purchase_items, purchases: [:payments, :purchase_items])
-  }
-
-  scope :includes_show_associations, -> {
-    includes(purchases: [:payments, :purchase_items], media: {image_attachment: :blob})
-  }
-
-  #
-  # == Class Methods
-  #
   def self.ensure_only_one_default(id)
     # rubocop:disable Rails/SkipsModelValidations
     Warehouse
@@ -72,20 +43,5 @@ class Warehouse < ApplicationRecord
       .where.not(id:)
       .update_all(is_default: false)
     # rubocop:enable Rails/SkipsModelValidations
-  end
-
-  #
-  # == Domain Methods
-  #
-  #
-  def average_payment_progress
-    return 0 if purchases.none?
-
-    progresses = purchases.map(&:progress)
-    (progresses.sum / progresses.size).round
-  end
-
-  def total_debt
-    purchases.sum(&:debt).round
   end
 end

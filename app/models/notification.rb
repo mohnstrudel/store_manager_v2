@@ -12,19 +12,8 @@
 #  updated_at :datetime         not null
 #
 class Notification < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
   has_associated_audits
   enum :status, {
@@ -37,28 +26,5 @@ class Notification < ApplicationRecord
     warehouse_changed: 1
   }, default: :product_purchased
 
-  #
-  # == Validations
-  #
-  # (none)
-
-  #
-  # == Associations
-  #
-  has_many :warehouse_transitions, dependent: :nullify
-
-  #
-  # == Scopes
-  #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
+  has_many :warehouse_transitions, dependent: :nullify, inverse_of: :notification
 end

@@ -28,7 +28,8 @@ Capybara.register_driver(:better_cuprite) do |app|
   )
 end
 
-Capybara.default_driver = Capybara.javascript_driver = :better_cuprite
+Capybara.default_driver = :rack_test
+Capybara.javascript_driver = :better_cuprite
 
 module CupriteHelpers
   # Drop #pause anywhere in a test to stop the execution.
@@ -44,10 +45,32 @@ module CupriteHelpers
   end
 end
 
+module BrowserStorageHelpers
+  def clear_browser_storage
+    return unless Capybara.current_session.driver.respond_to?(:browser)
+
+    page.execute_script("window.sessionStorage.clear(); window.localStorage.clear();")
+  rescue StandardError
+    # Storage cleanup is best-effort; some pages or drivers disallow access.
+  end
+end
+
 RSpec.configure do |config|
   config.include CupriteHelpers, type: :feature
+  config.include BrowserStorageHelpers, type: :feature
+
+  config.before(:each, type: :feature) do
+    clear_browser_storage
+  end
 
   config.before(:each, :js, type: :feature) do
     Capybara.current_driver = :better_cuprite
+    clear_browser_storage
+  end
+
+  # Keep non-JS feature specs on the faster rack-test driver.
+  config.after(:each, :js, type: :feature) do
+    clear_browser_storage
+    Capybara.current_driver = Capybara.default_driver
   end
 end

@@ -11,45 +11,12 @@
 #  product_id :bigint
 #
 class ProductColor < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
 
-  #
-  # == Validations
-  #
-  # (none)
+  db_belongs_to :product, inverse_of: :product_colors
+  db_belongs_to :color, inverse_of: :product_colors
 
-  #
-  # == Associations
-  #
-  db_belongs_to :product
-  db_belongs_to :color
-  has_many :store_infos, as: :storable, dependent: :destroy
-
-  #
-  # == Scopes
-  #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
+  has_many :store_infos, as: :storable, dependent: :destroy, inverse_of: :storable
 end

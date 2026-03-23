@@ -39,8 +39,8 @@ RSpec.describe Shopify::PullEditionsJob do
   end
 
   describe "#perform" do
-    it "processes each edition using Edition::ShopifyImporter" do # rubocop:todo RSpec/MultipleExpectations
-      importer_class = Edition::ShopifyImporter
+    it "processes each edition using Edition::Shopify::Importer" do # rubocop:todo RSpec/MultipleExpectations
+      importer_class = Edition::Shopify::Importer
       edition = instance_double(Edition)
 
       allow(importer_class).to receive(:import!)
@@ -74,7 +74,7 @@ RSpec.describe Shopify::PullEditionsJob do
     it "processes multiple editions" do
       multiple_editions = parsed_editions * 3
 
-      allow(Edition::ShopifyImporter).to receive(:import!).and_call_original
+      allow(Edition::Shopify::Importer).to receive(:import!).and_call_original
 
       expect {
         job.perform(product, multiple_editions)

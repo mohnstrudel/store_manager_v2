@@ -10,7 +10,7 @@ class BrandsController < ApplicationController
 
   # GET /brands/1 or /brands/1.json
   def show
-    @brand = Brand.includes_show_associations.find(params[:id])
+    @brand = Brand.includes(:products).find(params[:id])
   end
 
   # GET /brands/new

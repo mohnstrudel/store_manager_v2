@@ -4,7 +4,7 @@ module Shopify
   class CreateProductJob < ApplicationJob
     def perform(product_id)
       product = Product.find(product_id)
-      serialized_product = Product::ShopifySerializer.for_export(product)
+      serialized_product = Product::Shopify::Payload.for_export(product)
 
       if serialized_product.present?
         client = Shopify::Api::Client.new

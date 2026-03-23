@@ -13,19 +13,10 @@
 #  mediaable_id   :bigint           not null
 #
 class Media < ApplicationRecord
-  #
-  # == Concerns
-  #
   include Shopable
 
-  #
-  # == Callbacks
-  #
   after_update :destroy_if_image_removed
 
-  #
-  # == Associations
-  #
   belongs_to :mediaable, polymorphic: true, inverse_of: :media
 
   has_one_attached :image, dependent: :purge_later do |attachable|
@@ -42,15 +33,7 @@ class Media < ApplicationRecord
       resize_to_limit: [120, 120],
       preprocessed: true
   end
-
-  #
-  # == Delegates
-  #
   delegate_missing_to :image
-
-  #
-  # == Scopes
-  #
   scope :ordered, -> { order(position: :asc) }
 
   private

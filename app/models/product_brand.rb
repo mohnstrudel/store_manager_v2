@@ -11,49 +11,11 @@
 #  product_id :bigint
 #
 class ProductBrand < ApplicationRecord
-  #
-  # == Concerns
-  #
   include HasAuditNotifications
+  include ProductTitling
 
-  #
-  # == Extensions
-  #
-  # (none)
-
-  #
-  # == Configuration
-  #
   audited
 
-  #
-  # == Validations
-  #
-  # (none)
-
-  #
-  # == Associations
-  #
-  db_belongs_to :product
-  db_belongs_to :brand
-
-  #
-  # == Callbacks
-  #
-  after_save ->(product_brand) { product_brand.product.update_full_title }
-
-  #
-  # == Scopes
-  #
-  # (none)
-
-  #
-  # == Class Methods
-  #
-  # (none)
-
-  #
-  # == Domain Methods
-  #
-  # (none)
+  db_belongs_to :product, inverse_of: :product_brands
+  db_belongs_to :brand, inverse_of: :product_brands
 end

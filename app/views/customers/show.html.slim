@@ -2,27 +2,121 @@
 
 = render "_shared/nav-show", model: @customer
 
-.section-wide.section-border-base
-  table
-    thead
-      tr
-        th ID
-        th Woo ID
-        th First Name
-        th Last Name
-        th Email
-        th Phone
-        th Created
-        th Updated
-    tbody
-      tr
-        td = @customer.id
-        td = safe_blank_render @customer.woo_id
-        td = @customer.first_name
-        td = @customer.last_name
-        td = safe_blank_render @customer.email
-        td = safe_blank_render @customer.phone
-        td = format_date @customer.created_at
-        td = format_date @customer.updated_at
+.section-wide.flex.flex-col.gap-8
+  .section-border-base
+    table
+      thead
+        tr
+          th ID
+          th Store ID
+          th First Name
+          th Last Name
+          th Email
+          th Phone
+          th Created
+          th Updated
+      tbody
+        tr
+          td = @customer.id
+          td
+            - if @customer.shopify_info&.store_id&.present?
+              .block
+                .inline-block.icon-shopify.w-5.h-5.mr-1.-mb-1
+                = @customer.shopify_info.id_short
+            - if @customer.woo_info&.store_id&.present?
+              .block
+                .inline-block.icon-woo.w-8.h-8.mr-2.-mb-3
+                = @customer.woo_info.store_id
+            - if @customer.shopify_info.blank? && @customer.woo_info.blank?
+              = safe_blank_render @customer.woo_id
+          td = @customer.first_name
+          td = @customer.last_name
+          td = safe_blank_render @customer.email
+          td = safe_blank_render @customer.phone
+          td = format_date @customer.created_at
+          td = format_date @customer.updated_at
+
+  - if @active_sales.present?
+    .table-card
+      h3 Active Sales
+      table data-controller="table"
+        thead
+          tr
+            th Image
+            th Store ID
+            th Status
+            th Price, $
+            th Country
+            th City
+            th Note
+            th
+              span.block Created
+              span.font-normal.text-gray-500 Updated
+        tbody
+          - @active_sales.each do |sale|
+            tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
+              td.text-center
+                - sale.sale_items.each do |sale_item|
+                  = render "_shared/preloadable_img", src: thumb_url(sale_item.product), class_names: "zoomable", width: 60
+              td
+                - if sale.shopify_info&.store_id&.present?
+                  .inline-block.icon-shopify.w-5.h-5.mr-1.-mb-1
+                  = sale.shopify_info.id_short
+                - elsif sale.woo_info&.store_id&.present?
+                  .inline-block.icon-woo.w-8.h-8.mr-2.-mb-3
+                  = sale.woo_info.store_id
+                - else
+                  = safe_blank_render sale.shopify_name.presence || sale.woo_id
+              td = format_sale_status sale.status
+              td.font-mono.whitespace-nowrap = format_money sale.total
+              td = safe_blank_render sale.country
+              td = safe_blank_render sale.city
+              td = safe_blank_render sale.note
+              td
+                = format_date sale.shop_created_at.presence || sale.created_at
+                br
+                span.text-gray-500 = format_date sale.shop_updated_at.presence || sale.updated_at
+
+  - if @completed_sales.present?
+    .table-card
+      h3 Completed Sales
+      table data-controller="table"
+        thead
+          tr
+            th Image
+            th Store ID
+            th Status
+            th Price, $
+            th Country
+            th City
+            th Note
+            th
+              span.block Created
+              span.font-normal.text-gray-500 Updated
+        tbody
+          - @completed_sales.each do |sale|
+            tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
+              td.text-center
+                - sale.sale_items.each do |sale_item|
+                  = render "_shared/preloadable_img", src: thumb_url(sale_item.product), class_names: "zoomable", width: 60
+              td
+                - if sale.shopify_info&.store_id&.present?
+                  .inline-block.icon-shopify.w-5.h-5.mr-1.-mb-1
+                  = sale.shopify_info.id_short
+                - elsif sale.woo_info&.store_id&.present?
+                  .inline-block.icon-woo.w-8.h-8.mr-2.-mb-3
+                  = sale.woo_info.store_id
+                - else
+                  = safe_blank_render sale.shopify_name.presence || sale.woo_id
+              td = format_sale_status sale.status
+              td.font-mono.whitespace-nowrap = format_money sale.total
+              td = safe_blank_render sale.country
+              td = safe_blank_render sale.city
+              td = safe_blank_render sale.note
+              td
+                = format_date sale.shop_created_at.presence || sale.created_at
+                br
+                span.text-gray-500 = format_date sale.shop_updated_at.presence || sale.updated_at
+
 
 = destroy_btn_for @customer

@@ -13,6 +13,8 @@ class CustomersController < ApplicationController
 
   # GET /customers/1
   def show
+    @active_sales = @customer.sales.active.for_details.ordered_by_shop_created_at
+    @completed_sales = @customer.sales.completed.for_details.ordered_by_shop_created_at
   end
 
   # GET /customers/new
@@ -54,7 +56,7 @@ class CustomersController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_customer
-    @customer = Customer.find(params[:id])
+    @customer = Customer.includes(:shopify_info, :woo_info).find(params[:id])
   end
 
   # Only allow a list of trusted parameters through.

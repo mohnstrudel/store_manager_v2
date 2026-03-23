@@ -37,49 +37,6 @@ RSpec.describe "Products Sync API" do
     end
   end
 
-  # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
-  # describe "POST /products/:id/publish_to_shopify" do
-  #   context "when product is not published to Shopify" do
-  #     before do
-  #       allow(Shopify::CreateProductJob).to receive(:perform_later).with(product.id)
-  #     end
-  #
-  #     it "enqueues the Shopify create product job" do
-  #       post publish_to_shopify_product_path(product)
-  #
-  #       expect(Shopify::CreateProductJob).to have_received(:perform_later).with(product.id)
-  #     end
-  #
-  #     it "redirects to products path with notice", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
-  #       post publish_to_shopify_product_path(product)
-  #
-  #       expect(response).to redirect_to(products_path)
-  #       expect(flash[:notice]).to eq("Product is being published to Shopify")
-  #     end
-  #   end
-  # end
-  #
-  # describe "POST /products/:id/push_to_shopify" do
-  #   context "when product is already published to Shopify" do
-  #     before do
-  #       allow(Shopify::UpdateProductJob).to receive(:perform_later).with(product.id)
-  #     end
-  #
-  #     it "enqueues the Shopify update product job" do
-  #       post push_to_shopify_product_path(product)
-  #
-  #       expect(Shopify::UpdateProductJob).to have_received(:perform_later).with(product.id)
-  #     end
-  #
-  #     it "redirects to products path with notice", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
-  #       post push_to_shopify_product_path(product)
-  #
-  #       expect(response).to redirect_to(products_path)
-  #       expect(flash[:notice]).to eq("Product updates are being pushed to Shopify")
-  #     end
-  #   end
-  # end
-
   describe "POST /products/:id/pull_from_shopify" do
     context "when product is published to Shopify" do
       before do
