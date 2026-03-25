@@ -24,4 +24,4 @@ Use this file first. It maps a task to the smallest useful reference set.
 - one aggregate owns a workflow -> `app/models/<model>/<workflow>.rb`
 - one screen owns it -> helper, partial, Jbuilder, or Turbo template
 - repeated request mechanics -> controller concern or base controller
-- multi-aggregate or external orchestration -> focused service object
+- multi-aggregate or external orchestration -> focused object under an explicit `app/models/<namespace>/` home

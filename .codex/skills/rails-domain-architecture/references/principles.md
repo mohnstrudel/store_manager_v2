@@ -8,15 +8,15 @@ Use this file for the non-obvious model-layer rules in this repo.
 - Keep the base model file short as a composition root.
 - Put aggregate-owned behavior under `app/models/<model>/<capability>.rb`.
 - Reserve `app/models/concerns` for true cross-model behavior.
-- Prefer model-area workflow objects such as `app/models/product/upsert.rb` over generic `app/services` when the workflow still belongs to one aggregate.
+- Prefer model-area workflow objects such as `app/models/product/upsert.rb` when the workflow still belongs to one aggregate.
 - Prefer named scopes and preload scopes over controller-built SQL or tiny query wrappers.
 
 ## What Codex Often Gets Wrong
 
-- Do not extract a single-model capability into a service object just because the model has many methods.
+- Do not extract a single-model capability out of the model layer just because the model has many methods.
 - Do not move composable scopes into query objects unless the query is a first-class subsystem.
 - Do not move stable cross-process representations out of the model layer just because they return strings.
-- Do not flatten association-local behavior into manager services if it belongs to one relationship.
+- Do not flatten association-local behavior into detached manager objects if it belongs to one relationship.
 - Do not assume callbacks are bad when they are maintaining one local concept.
 
 ## Base Model Boundary
@@ -68,10 +68,10 @@ Use this file for the non-obvious model-layer rules in this repo.
 - one aggregate owns a bigger workflow -> `app/models/<model>/<workflow>.rb`
 - shared cross-model behavior -> `app/models/concerns/<concern>.rb`
 - repeated read shape -> named scope on the owning model
-- multi-aggregate or external orchestration -> focused service object
+- multi-aggregate or external orchestration -> a focused object in an explicit `app/models/<namespace>/` home
 
 ## Refactor Stance
 
 - Treat current placement as evidence, not as architecture worth preserving.
-- Name explicit target files instead of saying “extract a service”.
+- Name explicit target files instead of saying “extract an object”.
 - Move one coherent slice at a time.
