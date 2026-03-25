@@ -53,12 +53,11 @@ class WarehousesController < ApplicationController
   def update
     result = @warehouse.apply_form_changes!(
       attributes: warehouse_update_attributes,
-      transition_ids: params.dig(:warehouse, :to_warehouse_ids),
-      after_update: -> {
-        @warehouse.update_media_from_form!(normalized_media_attributes_for(@warehouse))
-        @warehouse.add_new_media_from_form!(media_new_images_for(@warehouse))
-      }
-    )
+      transition_ids: params.dig(:warehouse, :to_warehouse_ids)
+    ) do |warehouse|
+      warehouse.update_media_from_form!(normalized_media_attributes_for(warehouse))
+      warehouse.add_new_media_from_form!(media_new_images_for(warehouse))
+    end
 
     if result == Warehouse::Editing::TRANSITIONS_UPDATED
       redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other

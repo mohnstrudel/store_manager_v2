@@ -47,9 +47,8 @@ RSpec.describe Warehouse do
 
       result = warehouse.apply_form_changes!(
         attributes: {"name" => "Updated Name"},
-        transition_ids: [destination.id.to_s],
-        after_update: -> { callback_ran = true }
-      )
+        transition_ids: [destination.id.to_s]
+      ) { callback_ran = true }
 
       aggregate_failures do
         expect(result).to eq(Warehouse::Editing::WAREHOUSE_UPDATED)

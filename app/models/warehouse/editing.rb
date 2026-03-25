@@ -26,14 +26,14 @@ module Warehouse::Editing
     end
   end
 
-  def apply_form_changes!(attributes:, transition_ids:, after_update: nil)
+  def apply_form_changes!(attributes:, transition_ids:)
     transaction do
       if transitions_only_update?(attributes)
         sync_transitions!(transition_ids)
         TRANSITIONS_UPDATED
       else
         update!(attributes)
-        after_update&.call
+        yield self if block_given?
         self.class.ensure_only_one_default(id) if is_default?
         sync_transitions!(transition_ids)
         WAREHOUSE_UPDATED
