@@ -1,10 +1,10 @@
 = form_with model: purchase do |form|
-  .stimulus data-controller="purchase-edition"
+  .stimulus data-controller="purchase-edition" data-purchase-edition-path-value=product_editions_path
     = form.label :product_id
     .stimulus#purchase-product-select
       = form.collection_select :product_id, @product_options || [], :id, :build_full_title_with_shop_id, {}, slim_select_html_options(action: "change->purchase-edition#change")
 
-    .stimulus#purchase-edition-select data-purchase-edition-target="select"
+    .stimulus#purchase-edition-select data-purchase-edition-target="editions"
       - if purchase.product&.editions.present?
         = form.label :edition_id
         = form.collection_select :edition_id, purchase.product.fetch_editions_with_title, :id, :title, {include_blank: true}, slim_select_html_options

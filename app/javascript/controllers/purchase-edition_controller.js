@@ -1,16 +1,33 @@
-import { Controller } from "@hotwired/stimulus";
-import { get } from "@rails/request.js";
+import { Controller } from "@hotwired/stimulus"
+import { get } from "@rails/request.js"
 
 export default class extends Controller {
-  static targets = ["select"];
+  static targets = [ "editions" ]
+  static values = {
+    path: String,
+  }
 
   change(event) {
-    let productId = event.target.selectedOptions[0].value;
-    let target = this.selectTarget.id;
-    let queryPath = `?product_id=${productId}&target=${target}`;
+    const productId = event.currentTarget.value
+    if (!productId) return this.clearEditions()
 
-    get(`/purchases/product_editions${queryPath}`, {
+    get(this.requestPath(productId), {
       responseKind: "turbo-stream",
-    }).catch((error) => console.error("Failed to load editions:", error));
+    }).catch((error) => {
+      console.error("Failed to load purchase editions:", error)
+    })
+  }
+
+  clearEditions() {
+    this.editionsTarget.innerHTML = ""
+  }
+
+  requestPath(productId) {
+    const params = new URLSearchParams({
+      product_id: productId,
+      target: this.editionsTarget.id,
+    })
+
+    return `${this.pathValue}?${params.toString()}`
   }
 }
