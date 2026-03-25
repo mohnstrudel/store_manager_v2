@@ -25,7 +25,9 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - Prefer direct, intention-revealing model APIs before adding a generic service layer between controllers or jobs and the domain.
 - Keep controllers focused on request loading, params, and response format; move aggregate-local transactions out of controllers.
 - Small params normalization can stay in controllers. When one form grows several normalization helpers or needs failed-submit rebuilding, prefer narrow form-boundary objects such as `app/models/product/form_payload.rb` or `app/models/product/form_rehydrator.rb` over a generic form service.
-- In controllers, concerns are for shared request behavior. Shared can mean cross-app or shared by a namespaced controller family such as Fizzy’s `CardScoped`; it does not mean “any chunk I want to move out of one controller file”.
+- Do not default to nested attributes when child records have their own lifecycle. In this repo, the preferred baseline is a small child-resource request surface with its own endpoint and focused form or button.
+- Keep composite parent-plus-children forms as an explicit exception. Use them only when the screen is truly one atomic submit and separate child endpoints would make the flow worse.
+- In controllers, concerns are for shared request behavior. Shared can mean cross-app or shared by a namespaced controller family; it does not mean “any chunk I want to move out of one controller file”.
 - When a side-effect action becomes its own concept, prefer a small nested resource controller over adding another member or collection action to a broad controller.
 - Prefer real write routes for command-style actions. A pull, move, link, or confirmation flow should usually become a `POST`, `PATCH`, or `DELETE` resource endpoint, not a `GET`.
 - Collection-level workflows can also become small resource controllers. Do not reserve this pattern only for member actions.
@@ -55,6 +57,8 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - repeated parent loading across several small controllers: `app/controllers/concerns/<resource>_scoped.rb`
 - repeated request helpers shared by one namespaced controller family: controller concern
 - collection-level command or Turbo endpoint: small controller under `app/controllers/<resource>/...` plus a collection resource route
+- child resource with standalone create, update, or destroy behavior: nested controller plus a small edge form, not a default nested-attributes parent form
+- true one-submit parent/children screen: composite form plus narrow form payload and rehydration objects
 - async transport, retries, scheduling, or pagination: `app/jobs/...`
 - screen-only rendering behavior: helper, partial, Turbo template, or view subtree
 - controller or job only needs one domain action: add or call a named model method before inventing a service

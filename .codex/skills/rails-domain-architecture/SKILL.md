@@ -40,13 +40,15 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 17. Keep small params normalization in controllers, but when one form starts needing several normalization helpers or failed-submit rebuilding, extract narrow form objects such as `FormPayload` or `FormRehydrator` under the owning model namespace instead of growing a generic service layer.
 18. When a non-CRUD controller action starts to feel like its own concept, prefer a small nested resource controller before adding another member or collection action to a broad controller.
 19. Use controller scoping concerns such as `ProductScoped` or `SaleScoped` for repeated boundary loading when several small controllers share the same resource seam.
-19a. In controllers, “shared” includes a namespaced controller family. A concern like Fizzy’s `CardScoped` is a good pattern when multiple small controllers around one seam need the same loading and response helpers.
+19a. In controllers, “shared” includes a namespaced controller family. A scoped concern is a good pattern when multiple small controllers around one seam need the same loading and response helpers.
 19b. Do not create one-off controller concerns just to break up a single broad controller file. If the logic is not shared by multiple controllers, prefer private methods, another controller, or moving business logic into the model layer.
 20. Treat command-style endpoints as write resources: prefer `POST`, `PATCH`, or `DELETE` resource routes over `GET` links for actions such as pulls, links, moves, or webhook confirmations.
 21. Remember that collection-level workflows can also be first-class controllers such as `Purchases::MovesController`, `Purchases::ProductEditionsController`, or `Dashboard::LastOrdersPullsController`; extraction is not only for member actions.
 22. After extracting a controller concept, update the route consumers too: helpers, shared buttons, Turbo widgets, and feature specs should follow the new route shape instead of reconstructing paths by guesswork.
 23. In JavaScript, prefer obvious method names such as `showIndex`, `renderSelection`, or `startLoading` over generic `render`, `sync`, or option-heavy helpers when the widget is small. Optimize for “read at a glance.”
 24. For UI and Stimulus refactors, add or update at least one browser-driven feature spec at the widget seam. The test should cover the user-visible contract that the agent cannot reliably inspect by eye.
+25. Do not make nested attributes the default way to model child-resource editing. When a child entity has its own create, update, or destroy lifecycle, prefer a small child-resource request surface over one giant parent form.
+26. Keep composite parent-plus-children forms as explicit exceptions. Use them only when the screen is truly one atomic submit and splitting the child interactions into separate endpoints would make the UX or invariants worse.
 
 ## Placement Heuristics
 

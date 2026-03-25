@@ -13,6 +13,8 @@ Use this file for the non-obvious model-layer rules in this repo.
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` when the workflow still belongs to one aggregate.
 - When one form needs heavy request-shape translation, use small model-area form objects such as `app/models/product/form_payload.rb` or `app/models/product/form_rehydrator.rb` instead of teaching the aggregate about controller params.
 - Prefer named scopes and preload scopes over controller-built SQL or tiny query wrappers.
+- Do not make nested attributes the default architecture for child records. Prefer separate child-resource request surfaces when the child has an independent lifecycle.
+- Keep composite parent-plus-children forms as explicit exceptions for true one-submit workflows, not as the baseline for all editing screens.
 
 ## What Codex Often Gets Wrong
 
@@ -84,6 +86,8 @@ Use this file for the non-obvious model-layer rules in this repo.
 - controller or job needs one clear domain action -> call the model method directly before inventing a service
 - non-CRUD endpoint is really its own resource -> add a small nested controller under `app/controllers/<parent>/...`
 - collection-level command or Turbo endpoint is its own concept -> add a small collection resource controller under `app/controllers/<parent>/...`
+- child create, update, or destroy action can stand alone -> give it its own nested endpoint instead of folding it into parent nested attributes
+- parent and children truly must submit together -> keep the form composite, but isolate translation and rehydration in narrow model-area form objects
 - several small controllers share the same loading seam -> add a scoped controller concern instead of repeating lookups
 - several namespaced controllers share the same boundary helpers -> a controller-family concern is appropriate
 - command triggered from the UI -> route it with `POST`, `PATCH`, or `DELETE` and update helpers to match the new resource path
