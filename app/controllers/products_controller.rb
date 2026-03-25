@@ -38,12 +38,11 @@ class ProductsController < ApplicationController
     respond_to do |format|
       @product.create_from_form!(
         editions_attributes: normalized_editions_attributes,
-        purchase_attributes: normalized_purchase_attributes
-      ) do |product|
-        product.add_new_media_from_form!(media_new_images_for(product))
-        # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
-        # Shopify::CreateProductJob.perform_later(product.id)
-      end
+        purchase_attributes: normalized_purchase_attributes,
+        new_media_images: media_new_images_for(@product)
+      )
+      # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
+      # Shopify::CreateProductJob.perform_later(@product.id)
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
@@ -59,11 +58,10 @@ class ProductsController < ApplicationController
       @product.apply_form_changes!(
         product_attributes: normalized_product_attributes,
         editions_attributes: normalized_editions_attributes,
-        store_infos_attributes: normalized_store_infos_attributes
-      ) do |product|
-        product.update_media_from_form!(normalized_media_attributes_for(product))
-        product.add_new_media_from_form!(media_new_images_for(product))
-      end
+        store_infos_attributes: normalized_store_infos_attributes,
+        media_attributes: normalized_media_attributes_for(@product),
+        new_media_images: media_new_images_for(@product)
+      )
 
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
       format.json { render :show, status: :ok, location: @product }

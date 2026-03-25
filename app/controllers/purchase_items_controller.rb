@@ -29,36 +29,36 @@ class PurchaseItemsController < ApplicationController
 
   # POST /warehouse_products
   def create
-    @purchase_item = PurchaseItem.new(purchase_item_params)
+    @purchase_item = PurchaseItem.new
 
-    if @purchase_item.save
-      @purchase_item.add_new_media_from_form!(media_new_images_for(@purchase_item))
+    @purchase_item.create_from_form!(
+      purchase_item_params.to_h,
+      new_media_images: media_new_images_for(@purchase_item)
+    )
 
-      redirect_to @purchase_item.warehouse,
-        notice: "Purchase item was successfully created"
-    else
-      load_form_collections
-      render :new, status: :unprocessable_content
-    end
+    redirect_to @purchase_item.warehouse,
+      notice: "Purchase item was successfully created"
+  rescue ActiveRecord::RecordInvalid
+    load_form_collections
+    render :new, status: :unprocessable_content
   end
 
   # PATCH/PUT /purchase_items/1
   def update
-    if @purchase_item.update(
-      purchase_item_params.except(:redirect_to_sale_item)
+    @purchase_item.apply_form_changes!(
+      attributes: purchase_item_params.except(:redirect_to_sale_item).to_h,
+      media_attributes: normalized_media_attributes_for(@purchase_item),
+      new_media_images: media_new_images_for(@purchase_item)
     )
-      @purchase_item.update_media_from_form!(normalized_media_attributes_for(@purchase_item))
-      @purchase_item.add_new_media_from_form!(media_new_images_for(@purchase_item))
 
-      path = purchase_item_params[:redirect_to_sale_item] ?
-        @purchase_item.sale_item :
-        @purchase_item
+    path = purchase_item_params[:redirect_to_sale_item] ?
+      @purchase_item.sale_item :
+      @purchase_item
 
-      redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
-    else
-      set_data_for_edit
-      render :edit, status: :unprocessable_content
-    end
+    redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
+  rescue ActiveRecord::RecordInvalid
+    set_data_for_edit
+    render :edit, status: :unprocessable_content
   end
 
   # DELETE /purchase_items/1

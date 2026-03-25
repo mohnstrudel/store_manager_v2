@@ -16,24 +16,25 @@ module Warehouse::Editing
     end
   end
 
-  def create_from_form!(attributes)
+  def create_from_form!(attributes, new_media_images:)
     transaction do
       assign_attributes(attributes)
       self.class.ensure_only_one_default(nil) if is_default?
       save!
-      yield self if block_given?
+      add_new_media_from_form!(new_media_images)
       self.class.ensure_only_one_default(id) if is_default?
     end
   end
 
-  def apply_form_changes!(attributes:, transition_ids:)
+  def apply_form_changes!(attributes:, transition_ids:, media_attributes:, new_media_images:)
     transaction do
       if transitions_only_update?(attributes)
         sync_transitions!(transition_ids)
         TRANSITIONS_UPDATED
       else
         update!(attributes)
-        yield self if block_given?
+        update_media_from_form!(media_attributes)
+        add_new_media_from_form!(new_media_images)
         self.class.ensure_only_one_default(id) if is_default?
         sync_transitions!(transition_ids)
         WAREHOUSE_UPDATED

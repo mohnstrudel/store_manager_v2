@@ -7,16 +7,14 @@ RSpec.describe Warehouse do
     let!(:existing_default) { create(:warehouse, :default) }
     let(:warehouse) { described_class.new }
 
-    it "creates the warehouse, runs the block, and preserves a single default" do
-      callback_ran = false
-
-      warehouse.create_from_form!(name: "New Default", is_default: true) do |_created_warehouse|
-        callback_ran = true
-      end
+    it "creates the warehouse and preserves a single default" do
+      warehouse.create_from_form!(
+        {name: "New Default", is_default: true},
+        new_media_images: []
+      )
 
       aggregate_failures do
         expect(warehouse).to be_persisted
-        expect(callback_ran).to be(true)
         expect(warehouse.reload.is_default).to be(true)
         expect(existing_default.reload.is_default).to be(false)
       end
@@ -32,7 +30,9 @@ RSpec.describe Warehouse do
 
       result = warehouse.apply_form_changes!(
         attributes: {"to_warehouse_ids" => [destination.id.to_s]},
-        transition_ids: [destination.id.to_s]
+        transition_ids: [destination.id.to_s],
+        media_attributes: [],
+        new_media_images: []
       )
 
       aggregate_failures do
@@ -41,19 +41,19 @@ RSpec.describe Warehouse do
       end
     end
 
-    it "updates attributes, runs the callback, and syncs transitions" do
+    it "updates attributes and syncs transitions" do
       destination = create(:warehouse)
-      callback_ran = false
 
       result = warehouse.apply_form_changes!(
         attributes: {"name" => "Updated Name"},
-        transition_ids: [destination.id.to_s]
-      ) { callback_ran = true }
+        transition_ids: [destination.id.to_s],
+        media_attributes: [],
+        new_media_images: []
+      )
 
       aggregate_failures do
         expect(result).to eq(Warehouse::Editing::WAREHOUSE_UPDATED)
         expect(warehouse.reload.name).to eq("Updated Name")
-        expect(callback_ran).to be(true)
         expect(warehouse.from_transitions.where(to_warehouse: destination)).to exist
       end
     end

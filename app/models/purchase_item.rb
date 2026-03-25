@@ -20,6 +20,7 @@
 #  warehouse_id        :bigint           not null
 #
 class PurchaseItem < ApplicationRecord
+  include Editing
   include HasAuditNotifications
   include HasPreviewImages
   include Linking
