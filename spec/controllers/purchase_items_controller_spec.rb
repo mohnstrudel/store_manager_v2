@@ -5,8 +5,26 @@ require "rails_helper"
 describe PurchaseItemsController do
   include ActionView::RecordIdentifier
 
+  render_views
+
   before { sign_in_as_admin }
   after { log_out }
+
+  describe "GET #show" do
+    let(:purchase_item) { create(:purchase_item) }
+    let(:media) { create(:media, :for_purchase_item, mediaable: purchase_item) }
+
+    it "renders the shared gallery for purchase item media" do
+      media
+      get :show, params: {id: purchase_item.id}
+
+      aggregate_failures do
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('data-controller="gallery"')
+        expect(response.body).to include('data-gallery-target="main"')
+      end
+    end
+  end
 
   describe "DELETE #destroy" do
     # rubocop:todo RSpec/MultipleExpectations
@@ -26,5 +44,4 @@ describe PurchaseItemsController do
       expect(flash[:notice]).to eq("Purchase item was successfully destroyed")
     end
   end
-
 end

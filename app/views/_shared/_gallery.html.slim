@@ -1,17 +1,16 @@
-- attached_media = media.select { |m| m.image.attached? }
-- if attached_media.any?
-  .flex.shrink-0.w-150.h-150.items-center data-controller="gallery" class="#{"-ml-5" if attached_media.size > 1}"
-    - if attached_media.size > 1
+- gallery_items = gallery_items_for(media)
+- if gallery_items.any?
+  - first_item = gallery_items.first
+  .flex.shrink-0.w-150.h-150.items-center data-controller="gallery" class="#{"-ml-5" if gallery_items.size > 1}"
+    - if gallery_items.size > 1
       .gallery-nav.flex.flex-col.items-center.gap-4.w-30.h-70.p-4.overflow-y-scroll.overflow-x-hidden
-        - attached_media.each do |m|
-          - nano_representation = m.image.representation(:nano)
-          - preview_representation = m.image.representation(:preview)
-          = render "_shared/preloadable_img", src: url_for(nano_representation), width: 70,
-              data: {id: attached_media.index(m), preview: url_for(preview_representation), gallery_target: "slide", action: "click->gallery#select"}
-    .gallery-viewbox.flex.relative.w-full.h-fit.max-h-full.wrap.items-center.overflow-hidden.rounded-lg.hover:overflow-visible
-      - if attached_media.size > 1
-        button.gallery-btn.left-0 data-action="gallery#prev" ←
-        button.gallery-btn.right-0 data-action="gallery#next" →
-      - first_media = attached_media.first
-      - main_representation = first_media.image.representation(:preview)
-      = render "_shared/preloadable_img", src: url_for(main_representation), data: {"gallery-target": "main"}
+        - gallery_items.each_with_index do |item, index|
+          button.gallery-thumb type="button" data-id=index data-preview=item[:main_src] data-alt=item[:alt] data-gallery-target="slide" data-action="click->gallery#select"
+            .gallery-thumb__frame.loading
+              = image_tag item[:thumb_src], alt: item[:alt], class: "preloadable-img__img gallery-thumb__image hidden", data: {action: "load->gallery#handleThumbLoad error->gallery#handleThumbError"}
+    .gallery-viewbox.flex.relative.w-full.h-full.max-h-full.wrap.items-center.overflow-hidden.rounded-lg.hover:overflow-visible
+      - if gallery_items.size > 1
+        button.gallery-btn.left-0 type="button" data-action="gallery#prev" ←
+        button.gallery-btn.right-0 type="button" data-action="gallery#next" →
+      .gallery-main__frame.loading data-gallery-target="mainFrame"
+        = image_tag first_item[:main_src], alt: first_item[:alt], class: "preloadable-img__img gallery-main__image hidden", data: {"gallery-target": "main", action: "load->gallery#handleMainLoad error->gallery#handleMainError"}

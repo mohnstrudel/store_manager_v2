@@ -3,8 +3,27 @@
 require "rails_helper"
 
 RSpec.describe ProductsController do
+  render_views
+
   before { sign_in_as_admin }
   after { log_out }
+
+  describe "GET #show" do
+    let(:product) { create(:product) }
+    let(:media) { create_list(:media, 2, :for_product, mediaable: product) }
+
+    it "renders the shared gallery for product media" do
+      media
+      get :show, params: {id: product.to_param}
+
+      aggregate_failures do
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('data-controller="gallery"')
+        expect(response.body).to include('data-gallery-target="main"')
+        expect(response.body).to include('data-gallery-target="slide"')
+      end
+    end
+  end
 
   describe "PATCH #update" do
     let(:product) { create(:product, title: "Original Title") }
