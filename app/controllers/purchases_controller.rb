@@ -37,13 +37,12 @@ class PurchasesController < ApplicationController
 
   # POST /purchases or /purchases.json
   def create
-    attrs = purchase_params.to_h
-    warehouse_id = attrs.delete("warehouse_id")
-    @purchase = Purchase.new(attrs)
+    payload = Purchase::FormPayload.new(params:)
+    @purchase = Purchase.new(payload.attributes)
 
     respond_to do |format|
       if @purchase.save
-        handle_warehouse_assignment_for(@purchase, warehouse_id)
+        handle_warehouse_assignment_for(@purchase, payload.initial_warehouse_id)
 
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
         format.json { render :show, status: :created, location: @purchase }
@@ -57,8 +56,10 @@ class PurchasesController < ApplicationController
 
   # PATCH/PUT /purchases/1 or /purchases/1.json
   def update
+    payload = Purchase::FormPayload.new(params:)
+
     respond_to do |format|
-      if @purchase.update(purchase_params.merge(slug: nil))
+      if @purchase.update(payload.attributes.merge(slug: nil))
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
@@ -92,22 +93,6 @@ class PurchasesController < ApplicationController
 
   def set_default_warehouse_id
     @default_warehouse_id = Warehouse.find_by(is_default: true)&.id
-  end
-
-  # Only allow a list of trusted parameters through.
-  def purchase_params
-    params.expect(
-      purchase: [:supplier_id,
-        :product_id,
-        :edition_id,
-        :order_reference,
-        :item_price,
-        :amount,
-        :purchase_id,
-        :selected_items_ids,
-        :warehouse_id,
-        payments_attributes: [:id, :value, :purchase_id]]
-    )
   end
 
   def load_form_collections
