@@ -1,8 +1,5 @@
-- subheading = "Previously run on #{Config.shopify_sales_sync_time}" if Config.shopify_sales_sync_time.present?
-
 = render "_shared/notice"
-= render "_shared/modal-container", heading: "Sales Synchronization", subheading:, content_partial: "sales/index/sync_modal"
-= render "_shared/nav-index", model: @sales, show_modal: true
+= render "_shared/nav-index", model: @sales, action_partial: "sales/index/sync_dialog"
 
 .section-border-base.section-wide
   .search

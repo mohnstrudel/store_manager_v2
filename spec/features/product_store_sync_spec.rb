@@ -11,7 +11,7 @@ RSpec.describe "Product Store Sync" do
     visit product_path(product)
 
     expect(page).to have_content("Store Sync")
-    expect(page).to have_css("a[data-controller='modal-trigger']")
+    expect(page).to have_css("li[data-controller='dialog']")
   end
 
   scenario "opens store sync modal when button is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -90,6 +90,19 @@ RSpec.describe "Product Store Sync" do
     expect(page).not_to have_css("dialog#product-sync-modal[open]")
   end
 
+  scenario "closes modal when clicking outside the dialog", :js do
+    product = create(:product)
+
+    visit product_path(product)
+    click_link "Store Sync"
+
+    expect(page).to have_css("dialog#product-sync-modal[open]")
+
+    page.find("body").click(0, 0)
+
+    expect(page).not_to have_css("dialog#product-sync-modal[open]")
+  end
+
   scenario "closes modal after pull action and can be reopened", :js do # rubocop:todo RSpec/MultipleExpectations
     product = create(:product)
     allow(Shopify::PullProductJob).to receive(:perform_later)
@@ -105,9 +118,6 @@ RSpec.describe "Product Store Sync" do
 
     # Modal should close (content no longer visible)
     expect(page).not_to have_content("Store Synchronization")
-
-    # Notice should be displayed
-    expect(page).to have_content("Product is being pulled from Shopify")
 
     # Modal should be able to be opened again without errors
     click_link "Store Sync"

@@ -1,13 +1,11 @@
-- show_modal = false if local_assigns[:show_modal].nil?
+- action_partial = nil if local_assigns[:action_partial].nil?
 
 header.nav_header
   h1 = model.model_name.human.pluralize.titleize
   - if Rails.application.routes.url_helpers.respond_to?("new_#{model.model_name.singular_route_key}_path")
     menu.nav_menu
-      - if show_modal
-        li = link_to "#", data: {controller: "modal-trigger", action: "click->modal-trigger#open"}, class: "btn-rounded"
-          = heroicon "arrow-path", variant: "mini"
-          | Store Sync
+      - if action_partial.present?
+        = render action_partial
 
       li
         = link_to controller: model.model_name.plural.to_s, action: "new"

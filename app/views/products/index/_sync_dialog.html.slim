@@ -1,0 +1,24 @@
+- last_sync = Config.shopify_products_sync_time
+
+li data-controller="dialog" data-dialog-modal-value="true" data-action="keydown.esc->dialog#close click@document->dialog#closeOnClickOutside"
+  = link_to "#", class: "btn-rounded", data: {action: "click->dialog#open:stop"} do
+    = heroicon "arrow-path", variant: "mini"
+    | Store Sync
+
+  dialog id="products-index-sync-modal" data-dialog-target="dialog"
+    .dialog-content.rounded-lg.shadow-lg.w-xl.p-4.pb-6.-translate-y-10
+      header.nav_header.mb-6.pb-4
+        hgroup
+          h2 Products Synchronization
+          - if last_sync.present?
+            h4.font-medium Last sync: #{last_sync}
+        button.btn.is-muted.is-inverted.small aria-label="Close" rel="prev" data-action="dialog#close"
+          i.icn ❌
+
+      menu.flex.flex-col.gap-4
+        li
+          = link_to "Pull Last 50 Products", products_pull_path(limit: 50), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", turbo_method: :post}
+        li
+          = link_to "Pull Everything", products_pull_path, class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", turbo_method: :post}
+        li
+          = link_to "Track Jobs Progress", "/jobs/statuses", class: "w-full h-15"

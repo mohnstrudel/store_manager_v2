@@ -1,10 +1,8 @@
 = render "_shared/notice"
-= render "_shared/nav-index", model: @products, show_modal: true
+= render "_shared/nav-index", model: @products, action_partial: "products/index/sync_dialog"
 
 section.section-border-base.section-wide
   .search
     = render partial: "_shared/search-form", locals: {path: products_path}
     .pagination-top = paginate @products
   = render "products/index/table", products: @products
-
-= render "products/index/sync_modal"
