@@ -20,9 +20,11 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
+  include Editing
   include HasAuditNotifications
   include HasPreviewImages
   include Financials
+  include Lifecycle
   include Listing
   include Transitions
 
@@ -31,17 +33,10 @@ class Warehouse < ApplicationRecord
   positioned
 
   validates :name, presence: true
+
   has_many :purchase_items, dependent: :destroy, inverse_of: :warehouse
   has_many :purchases, through: :purchase_items
+
   has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
   has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse
-
-  def self.ensure_only_one_default(id)
-    # rubocop:disable Rails/SkipsModelValidations
-    Warehouse
-      .where(is_default: true)
-      .where.not(id:)
-      .update_all(is_default: false)
-    # rubocop:enable Rails/SkipsModelValidations
-  end
 end

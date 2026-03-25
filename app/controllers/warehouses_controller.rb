@@ -40,20 +40,18 @@ class WarehousesController < ApplicationController
     @warehouse = Warehouse.new(warehouse_params)
     return render_default_warehouse_conflict! if default_warehouse_conflict?(@warehouse)
 
-    if @warehouse.save
-      @warehouse.add_new_media_from_form!(media_new_images_for(@warehouse))
-      Warehouse.ensure_only_one_default(@warehouse.id) if @warehouse.is_default?
-
-      redirect_to @warehouse, notice: "Warehouse was successfully created"
-    else
-      render :new, status: :unprocessable_content
+    @warehouse.create_from_form!(warehouse_params.to_h) do |warehouse|
+      warehouse.add_new_media_from_form!(media_new_images_for(warehouse))
     end
+
+    redirect_to @warehouse, notice: "Warehouse was successfully created"
+  rescue ActiveRecord::RecordInvalid
+    render :new, status: :unprocessable_content
   end
 
   # PATCH/PUT /warehouses/1
   def update
-    result = Warehouse::UpdateWorkflow.call(
-      warehouse: @warehouse,
+    result = @warehouse.apply_form_changes!(
       attributes: warehouse_update_attributes,
       transition_ids: params.dig(:warehouse, :to_warehouse_ids),
       after_update: -> {
@@ -62,7 +60,7 @@ class WarehousesController < ApplicationController
       }
     )
 
-    if result == Warehouse::UpdateWorkflow::TRANSITIONS_UPDATED
+    if result == Warehouse::Editing::TRANSITIONS_UPDATED
       redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
     else
       redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
@@ -75,13 +73,11 @@ class WarehousesController < ApplicationController
   def destroy
     warehouse_name = @warehouse.name
 
-    if @warehouse.purchase_items.any?
-      flash[:error] = "Error. Please select and move out all purchased products before deleting the warehouse"
-      redirect_to @warehouse
-    else
-      @warehouse.destroy!
-      redirect_to warehouses_url, notice: "Warehouse #{warehouse_name} was successfully destroyed", status: :see_other
-    end
+    @warehouse.destroy_if_empty!
+    redirect_to warehouses_url, notice: "Warehouse #{warehouse_name} was successfully destroyed", status: :see_other
+  rescue ActiveRecord::RecordInvalid
+    flash[:error] = @warehouse.errors.full_messages.to_sentence
+    redirect_to @warehouse
   end
 
   def change_position
@@ -93,16 +89,16 @@ class WarehousesController < ApplicationController
 
     prev_position = warehouse.position
 
-    if warehouse.update(position: new_position)
-      respond_to do |format|
-        format.html { redirect_to warehouses_url, notice: "We changed \"#{warehouse.name}\" position from #{prev_position} to #{new_position}", status: :see_other }
-        format.json { head :ok }
-      end
-    else
-      respond_to do |format|
-        format.html { redirect_to warehouses_url, alert: "Failed to update position", status: :unprocessable_content }
-        format.json { head :unprocessable_content }
-      end
+    warehouse.update_position!(new_position)
+
+    respond_to do |format|
+      format.html { redirect_to warehouses_url, notice: "We changed \"#{warehouse.name}\" position from #{prev_position} to #{new_position}", status: :see_other }
+      format.json { head :ok }
+    end
+  rescue ActiveRecord::RecordInvalid
+    respond_to do |format|
+      format.html { redirect_to warehouses_url, alert: "Failed to update position", status: :unprocessable_content }
+      format.json { head :unprocessable_content }
     end
   end
 
