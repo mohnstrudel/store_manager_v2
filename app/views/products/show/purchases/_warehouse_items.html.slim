@@ -1,0 +1,9 @@
+ul
+  - purchase.purchase_items.each do |purchase_item|
+    li
+      a.no-events.mt-2 href=purchase_item_path(purchase_item)
+        i.icn 📦
+        | #{purchase_item.warehouse.name}
+        - if purchase_item.expenses
+          | , exp.:
+          = format_money purchase_item.expenses

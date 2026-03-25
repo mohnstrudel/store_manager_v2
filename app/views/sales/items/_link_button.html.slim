@@ -1,0 +1,4 @@
+- if (sale.active? || sale.completed?) && sale.unlinked_sale_items?
+  a.btn-rounded.mr-3.text-sm.btn-lightblue href=link_purchase_items_sale_path(sale) data-turbo-prefetch="false"
+    i.icn 🔗
+    | Link with purchases

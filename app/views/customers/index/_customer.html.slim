@@ -1,0 +1,7 @@
+tr.hoverable id="#{dom_id customer}" data-action="click->table#goTo" data-table-url-param=customer_path(customer)
+  td = customer.woo_id
+  td = customer.full_name
+  td = customer.email
+  td = customer.phone
+  td.actions
+    = render "_shared/action_edit", route: edit_customer_path(customer)

@@ -1,0 +1,12 @@
+tr.hoverable(
+  data-action="click->table#goTo"
+  data-table-url-param=sale_item_path(sale_item)
+)
+  td.text-center = render "_shared/preloadable_img", src: thumb_url(sale_item.product), class_names: "zoomable", width: 100
+  td.text-sm
+    = link_to sale_item.product.full_title, sale_item.product, class: "no-events"
+    - if sale_item.purchase_items.present?
+      = render "sales/items/purchase_items", purchase_items: sale_item.purchase_items
+  td = sale_item.edition.present? ? sale_item.edition.title : "-"
+  td.text-right.font-mono = format_money sale_item.price
+  td.text-right = format_purchased_sold_ratio(sale_item.purchase_items.size, sale_item.qty)

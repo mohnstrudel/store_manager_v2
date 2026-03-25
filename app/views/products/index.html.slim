@@ -5,20 +5,6 @@ section.section-border-base.section-wide
   .search
     = render partial: "_shared/search-form", locals: {path: products_path}
     .pagination-top = paginate @products
-  - if @products.present? 
-    table data-controller="table"
-      thead
-        tr
-          th.text-center Image
-          th
-            <span>Full name</span> <span class="font-normal text-sm pl-4">+ Editions</span>
-          th Woo ID
-          th Shopify ID
-          th.text-right Actions
-      tbody
-        = render @products
-    .pagination-bottom = paginate @products
-  - else
-    = render "_shared/search-results-empty"
+  = render "products/index/table", products: @products
 
-= render "index_sync_modal"
+= render "products/index/sync_modal"

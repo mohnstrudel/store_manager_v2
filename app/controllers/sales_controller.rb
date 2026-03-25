@@ -19,6 +19,7 @@ class SalesController < ApplicationController
 
   # GET /sales/1
   def show
+    @sale_items = @sale.sale_items
   end
 
   # GET /sales/new

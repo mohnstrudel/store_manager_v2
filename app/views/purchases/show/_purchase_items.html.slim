@@ -1,0 +1,20 @@
+- if purchase_items.any?
+  .table-cards-group data-controller="move-items"
+    = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(purchase_id: purchase.id)
+
+    .table-card
+      .flex.justify-between.align-center
+        h3 Purchase Items: #{purchase_items.size}
+        .w-45.px-3.mt-4.text-center = render "_shared/purchase_payment_progress", progress: purchase.progress, paid: purchase.item_paid, price: purchase.item_price, debt: purchase.item_debt
+
+      = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
+
+      table data-controller="table"
+        thead
+          = render "_shared/move_to_warehouse/th"
+          th Warehouse
+          th Sale
+          th.text-right Shipping
+          th.text-right Actions
+        tbody
+          = render partial: "purchases/show/purchase_items/row", collection: purchase_items, as: :purchase_item

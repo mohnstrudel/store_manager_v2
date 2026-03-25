@@ -1,0 +1,7 @@
+.flex.justify-end
+  - if purchase_item.sale
+    = link_to unlink_purchase_items_path(id: purchase_item.id), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :post}
+      i.icn ✂︎
+      | Unlink
+  = render "_shared/action_destroy", route: purchase_item_path(purchase_item)
+  = render "_shared/action_edit", route: edit_purchase_item_path(purchase_item)

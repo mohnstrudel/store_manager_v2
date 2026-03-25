@@ -1,0 +1,19 @@
+table.vertical(role="grid")
+  thead
+    tr
+      th ID
+      th Email
+      th First Name
+      th Last Name
+      th Role
+      th Created
+      th Updated
+  tbody
+    tr
+      td = user.id
+      td = user.email_address
+      td = user.first_name.presence || "-"
+      td = user.last_name.presence || "-"
+      td = user.role.humanize
+      td = format_date user.created_at
+      td = format_date user.updated_at

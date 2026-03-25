@@ -1,0 +1,13 @@
+header.nav_header
+  .flex.gap-4
+    hgroup
+      h1 = product.title
+      h2 = product.full_title
+  menu.nav_menu
+    li = link_to "#", data: {controller: "modal-trigger", action: "click->modal-trigger#open"}, class: "btn-rounded"
+      = heroicon "arrow-path", variant: "mini"
+      | Store Sync
+    li = link_to new_purchase_path(product:)
+      i.icn 💰
+      | New Purchase
+    li = edit_btn_for product

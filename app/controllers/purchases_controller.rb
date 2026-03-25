@@ -4,7 +4,8 @@ class PurchasesController < ApplicationController
   include WarehouseMovementNotification
 
   before_action :set_default_warehouse_id, only: %i[new edit]
-  before_action :set_purchase, only: %i[show edit update destroy]
+  before_action :set_purchase_for_show, only: :show
+  before_action :set_purchase, only: %i[edit update destroy]
   before_action :load_form_collections, only: %i[new edit]
 
   # GET /purchases or /purchases.json
@@ -19,6 +20,7 @@ class PurchasesController < ApplicationController
       .purchase_items
       .for_purchase_details
       .order(updated_at: :desc)
+    @payments = @purchase.payments.order(payment_date: :asc, created_at: :asc)
   end
 
   # GET /purchases/new
@@ -106,6 +108,10 @@ class PurchasesController < ApplicationController
   private
 
   # Use callbacks to share common setup or constraints between actions.
+  def set_purchase_for_show
+    @purchase = Purchase.for_details.friendly.find(params[:id])
+  end
+
   def set_purchase
     @purchase = Purchase.friendly.find(params[:id])
   end
@@ -133,6 +139,7 @@ class PurchasesController < ApplicationController
   def load_form_collections
     @product_options = Product.with_store_references
     @suppliers = Supplier.order(title: :asc)
+    @warehouse_options = Warehouse.order(name: :asc)
   end
 
   def handle_warehouse_assignment_for(purchase, warehouse_id)

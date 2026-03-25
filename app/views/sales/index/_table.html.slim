@@ -1,0 +1,19 @@
+- if sales.present?
+  table data-controller="table"
+    thead
+      tr
+        th.text-center Image
+        th Customer <span class="font-normal text-sm pl-4">+ Products</span>
+        th.w-80 Purchase Status
+        th.text-right Price
+        th
+          | Created  ▾
+          br
+          <span class="font-normal text-gray-500">Updated</span>
+        th Store ID
+        th.text-right Actions
+    tbody
+      = render partial: "sales/index/sale", collection: sales, as: :sale
+  .pagination-bottom = paginate sales
+- else
+  = render "_shared/search-results-empty"

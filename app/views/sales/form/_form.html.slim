@@ -1,0 +1,74 @@
+= form_with model: sale do |form|
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :id
+      = form.text_field :id, disabled: true, class: "bg-gray-200 text-gray-500 cursor-not-allowed"
+    .block.w-full
+      = form.label :shopify_id
+      = form.text_field :shopify_id
+    .block.w-full
+      = form.label :woo_id
+      = form.text_field :woo_id
+
+  = form.label :customer_id
+  = form.collection_select(:customer_id, @customer_options || [], :id, :name_and_email, {class: "select"}, data: {controller: "slim-select"})
+
+  = form.label :note
+  = form.text_field :note
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :country
+      = form.text_field :country
+    .block.w-full
+      = form.label :state
+      = form.text_field :state
+    .block.w-full
+      = form.label :city
+      = form.text_field :city
+    .block.w-full
+      = form.label :postcode
+      = form.text_field :postcode
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :address_1
+      = form.text_field :address_1
+    .block.w-full
+      = form.label :address_2
+      = form.text_field :address_2
+
+  = form.label :company
+  = form.text_field :company
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :total, "Total price"
+      = form.text_field :total
+    .block.w-full
+      = form.label :discount_total
+      = form.text_field :discount_total
+    .block.w-full
+      = form.label :shipping_total
+      = form.text_field :shipping_total
+
+  label Status
+  .flex.flex-wrap.gap-4.p-4.border.border-gray-200.rounded-md class="dark:border-gray-800"
+    = form.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
+      .flex.items-center.mr-2
+        = rdb.label(class: "m-0 p-0 flex items-center relative cursor-pointer")
+          = rdb.radio_button class: "p-0"
+        = rdb.label class: "m-0 p-0 pl-2 cursor-pointer text-sm"
+
+  h5.mt-8.mb-3 Products
+  div data-controller="sale-items"
+    / Look for the template in sale_items_controller.js
+    = form.collection_select(:_, @product_options || [], :id, :full_title,
+        {prompt: "Select a product"},
+        {hidden: true, data: {"sale-items-target": "options"}})
+    - sale.sale_items.each do |sale_item|
+      = form.fields_for :sale_items, sale_item do |ps_f|
+        = render "sales/form/product_fields", f: ps_f, product: sale_item.product
+    button.btn-rounded.mt-3(data-action="sale-items#addProduct" data-sale-items-target="btn") Add Product
+
+  = form_submit_for(sale, form)

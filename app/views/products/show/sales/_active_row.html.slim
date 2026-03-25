@@ -1,0 +1,28 @@
+tr(
+  class=product_row_class(sale_item.resolve_sold_item.id, selected_id:, hoverable: true)
+  data-action="click->table#goTo"
+  data-table-url-param=sale_path(sale_item.sale)
+)
+  td
+    - if sale_item.sale.shopify_info&.store_id&.present?
+      .inline-block.icon-shopify.w-5.h-5.mr-1.-mb-1
+      = sale_item.sale.shopify_info.id_short
+    - elsif sale_item.sale.woo_info&.store_id&.present?
+      .inline-block.icon-woo.w-8.h-8.mr-2.-mb-3
+      = sale_item.sale.woo_info.store_id
+    - else
+      | -
+  td
+    strong = sale_item.sale.customer.full_name
+    br
+    = sale_item.sale.customer.email
+    br
+    = sale_item.sale.country
+  td = format_date sale_item.sale.woo_created_at.presence || sale_item.created_at
+  - if product.editions.any?
+    td = sale_item.edition&.title || "-"
+  td.text-right.font-mono = format_money sale_item.price
+  td = sale_item.qty
+  td
+    = sale_item.sale.status.capitalize
+    = render "products/show/sales/purchase_items", sale_item: sale_item

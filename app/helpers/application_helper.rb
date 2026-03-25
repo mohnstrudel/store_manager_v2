@@ -1,6 +1,21 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
+  def form_hint(text)
+    tag.p text, class: "text-gray-600 dark:text-gray-500"
+  end
+
+  def slim_select_html_options(action: nil, **attributes)
+    data = attributes.delete(:data) || {}
+    data[:controller] = [data[:controller], "slim-select"].compact.join(" ").strip
+    data[:action] = [data[:action], action].compact.join(" ").strip if action.present?
+
+    {
+      class: class_names("select", attributes.delete(:class)),
+      data:
+    }.merge(attributes)
+  end
+
   def safe_blank_render(value)
     value.presence || "-"
   end

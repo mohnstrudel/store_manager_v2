@@ -5,6 +5,7 @@ class ProductsController < ApplicationController
   include JobsStatusNotice
 
   before_action :set_product, only: %i[show edit update destroy pull_from_shopify] # DISABLED: publish_to_shopify, push_to_shopify
+  before_action :load_form_collections, only: %i[new edit]
 
   # GET /products or /products.json
   def index
@@ -15,8 +16,10 @@ class ProductsController < ApplicationController
   def show
     @active_sales = @product.active_sale_items
     @complete_sales = @product.completed_sale_items
+    @purchases = @product.purchases.includes(:supplier, :edition, purchase_items: :warehouse)
     @editions_sales_sums = @product.edition_sales_sums
     @editions_purchases_sums = @product.edition_purchase_sums
+    @selected_id = params[:selected].presence&.to_i
   end
 
   # GET /products/new
@@ -47,6 +50,7 @@ class ProductsController < ApplicationController
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+      load_form_collections
       format.html { render :new, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -68,6 +72,7 @@ class ProductsController < ApplicationController
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
       reload_product_with_preserved_errors!
       reassign_edition_attributes!
+      load_form_collections
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -234,6 +239,17 @@ class ProductsController < ApplicationController
       warehouse_id: attrs[:warehouse_id].presence,
       payment_value: payment_attrs&.values&.first&.with_indifferent_access&.[](:value)&.presence
     }.compact
+  end
+
+  def load_form_collections
+    @franchise_options = Franchise.order(:title)
+    @brand_options = Brand.order(:title)
+    @shape_options = Shape.order(:title)
+    @size_options = Size.order(:value)
+    @version_options = Version.order(:value)
+    @color_options = Color.order(:value)
+    @supplier_options = Supplier.order(title: :asc)
+    @warehouse_options = Warehouse.order(name: :asc)
   end
 
   # When the transaction fails, @product's associations are stale and may be in an

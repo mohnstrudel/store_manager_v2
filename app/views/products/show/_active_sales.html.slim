@@ -1,0 +1,17 @@
+- if active_sales.present?
+  .table-card
+    h3.flex.justify-between
+      span Active Sales
+      span = active_sales.size
+    table data-controller="table"
+      thead
+        th Shop ID
+        th Customer <span class="font-normal text-sm pl-4">+ Email, Country</span>
+        th Date
+        - if product.editions.any?
+          th Edition?
+        th.text-right Price, $
+        th Amount
+        th Status <span class="font-normal text-sm pl-4">+ Warehouse</span>
+      tbody
+        = render partial: "products/show/sales/active_row", collection: active_sales, as: :sale_item, locals: {product:, selected_id:}

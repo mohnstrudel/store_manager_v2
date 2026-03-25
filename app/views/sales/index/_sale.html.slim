@@ -1,0 +1,44 @@
+tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-param=sale_path(sale)
+  td.text-center
+    - sale.sale_items.each do |ps|
+      = render "_shared/preloadable_img", src: thumb_url(ps.product), class_names: "zoomable", width: 100
+  td
+    span.font-bold = sale.customer.full_name
+    br
+    = sale.customer.email
+    ul.ml-4.mt-2
+      - sale.sale_items.each do |ps|
+        li
+          - if sale.active? || sale.completed?
+            = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)
+            |
+          = ps.title
+  td.w-80.text-sm
+    - purchase_items = sale.sale_items.flat_map(&:purchase_items)
+    - if purchase_items.present?
+      .flex.flex-col.items-start.gap-2
+        - purchase_items.each do |purchase_item|
+          a.mt-2.no-events href=purchase_item_path(purchase_item)
+            i.icn 📦
+            | #{purchase_item.warehouse.name}
+            - if purchase_item.expenses
+              | — expenses: $
+              .font-mono.inline = format_money purchase_item.expenses
+    - else
+      span.text-gray-400 —
+  td.text-right.font-mono.whitespace-nowrap = format_money sale.total
+  td
+    = format_date sale.shop_created_at.presence || sale.created_at
+    br
+    span.text-gray-500 = format_date sale.shop_updated_at.presence || sale.updated_at
+  td
+    - if sale.woo_info&.store_id&.present?
+      .inline-block.icon-woo.w-8.h-8.mr-1.-mb-3
+      = sale.woo_info.store_id
+    - if sale.shopify_info&.store_id&.present?
+      .inline-block.icon-shopify.w-5.h-5.mr-1.-mb-1
+      = sale.shopify_name
+      br
+      span.text-gray-500 = sale.shopify_info.id_short
+  td.actions
+    = render "_shared/action_edit", route: edit_sale_path(sale)

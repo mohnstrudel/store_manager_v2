@@ -1,46 +1,12 @@
 = render "_shared/notice-err", model: @warehouse
 = render "_shared/notice"
 
-header.nav_header
-  .flex.gap-4
-    h1.text-5xl = @warehouse.name
-  menu.nav_menu
-    li = link_to new_purchase_item_path(warehouse_id: @warehouse)
-      i.icn 📦
-      | Add product
-    li = edit_btn_for @warehouse
+= render "warehouses/show/header", warehouse: @warehouse
 
 .section-wide.flex.flex-col.gap-8
   - if @total_purchase_items.positive?
-    = render "purchase_items"
+    = render "warehouses/show/purchase_items", purchase_items: @purchase_items, warehouse: @warehouse
 
-  .cards
-    = render "_shared/gallery", media: @warehouse.media
-    .card.grow
-      h5 Name
-      p = @warehouse.name
-      h5 English External Name (for Clients)
-      p = safe_blank_render @warehouse.external_name_en
-      h5 English Description (for Clients)
-      p = safe_blank_render @warehouse.desc_en
-      h5 German External Name (for Clients)
-      p = safe_blank_render @warehouse.external_name_de
-      h5 German Description (for Clients)
-      p = safe_blank_render @warehouse.desc_de
-    .card.grow
-      h5 CBM
-      p = safe_blank_render @warehouse.cbm
-      h5 Container Tracking Number
-      p = safe_blank_render @warehouse.container_tracking_number
-      h5 Courier Tracking URL
-      p
-        - if @warehouse.courier_tracking_url.present?
-          = link_to @warehouse.courier_tracking_url, @warehouse.courier_tracking_url, target: "_blank", rel: "noopener noreferrer", class: "link"
-        - else
-          | -
-      h5 Is Default?
-      p = @warehouse.is_default ? "Yes" : "No"
-      h5 Created At
-      p = format_date @warehouse.created_at
+  = render "warehouses/show/details", warehouse: @warehouse
 
 = destroy_btn_for @warehouse

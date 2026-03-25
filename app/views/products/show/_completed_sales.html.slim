@@ -1,0 +1,17 @@
+- if complete_sales.present?
+  .table-card
+    h3.flex.justify-between
+      span Completed Sales
+      span = complete_sales.size
+    table data-controller="table"
+      thead
+        th Customer
+        th Email
+        th Country
+        th Date
+        - if product.editions.any?
+          th Edition?
+        th.text-right Price, $
+        th Qty
+      tbody
+        = render partial: "products/show/sales/completed_row", collection: complete_sales, as: :sale_item, locals: {product:, selected_id:}

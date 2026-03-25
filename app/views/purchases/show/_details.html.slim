@@ -1,0 +1,31 @@
+.cards
+  - if purchase.product.image.present?
+    img.product src="#{purchase.product.image}"
+
+  .card.flex.grow
+    .flex-1
+      h5 ID
+      p = purchase.id
+      h5 Qty
+      p = purchase.amount
+      h5 Unit price, $
+      p.font-mono = format_money purchase.item_price
+      h5 Total price
+      p.font-mono = format_money purchase.cost_total
+      h5 Shipping
+      p.font-mono = format_money purchase.shipping_total
+    .flex-1
+      h5 Paid
+      p.font-mono = format_money(purchase.paid).rjust(2, "0")
+      h5 Debt
+      p.font-mono
+        | -
+        = format_money purchase.debt
+
+  .card
+    h5 Supplier
+    p = link_to purchase.supplier.title, supplier_path(purchase.supplier), class: "link"
+    h5 Order reference
+    p = purchase.order_reference
+    h5 Date
+    p = format_date purchase.purchase_date || purchase.created_at

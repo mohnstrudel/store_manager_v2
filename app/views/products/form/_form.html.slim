@@ -1,0 +1,108 @@
+= form_with model: product, html: {multipart: true}, data: {turbo: false} do |form|
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :franchise
+      = form.collection_select :franchise_id, @franchise_options || [], :id, :title, {}, slim_select_html_options
+    .block.w-full
+      = form.label :title
+      = form.text_field :title
+    .block.w-full data-turbo="false"
+      = form.label :brand
+      = form.collection_select :brand_ids, @brand_options || [], :id, :title, {selected: form.object.brand_ids}, slim_select_html_options(multiple: true)
+
+  fieldset
+    .block.w-full
+      = form.label :description
+      = form_hint "Rich text formatting supported"
+      = form.rich_text_area :description, class: "w-full"
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :sku, "SKU"
+      = form.text_field :sku
+    .block.w-full
+      = form.label :shape
+      = form.collection_select :shape_id, @shape_options || [], :id, :title
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :size
+      = form.collection_select :size_ids, @size_options || [], :id, :value, {selected: form.object.size_ids}, slim_select_html_options(multiple: true)
+    .block.w-full
+      = form.label :version
+      = form.collection_select :version_ids, @version_options || [], :id, :value, {selected: form.object.version_ids}, slim_select_html_options(multiple: true)
+    .block.w-full
+      = form.label :color
+      = form.collection_select :color_ids, @color_options || [], :id, :value, {selected: form.object.color_ids}, slim_select_html_options(multiple: true)
+
+  fieldset
+    h2.mt-8.label Editions
+    = form_hint "Manage editions for this product"
+
+    .grid.grid-cols-2.gap-4.my-6
+      - form.object.editions.each_with_index do |edition, index|
+        = fields_for "editions[#{index}]", edition do |edition_fields|
+          = render "products/form/edition_fields", f: edition_fields, edition: edition, sizes: form.object.sizes, versions: form.object.versions, colors: form.object.colors
+
+  fieldset data-controller="edition-form"
+    div data-edition-form-target="container"
+    button.btn-rounded.mt-3 type="button" data-action="edition-form#add"
+      | Add Edition
+
+    template data-edition-form-target="template"
+      = fields_for "editions[NEW_INDEX]", Edition.new, include_id: false do |edition_fields|
+        = render "products/form/edition_form_fields", f: edition_fields, sizes: @product&.sizes, versions: @product&.versions, colors: @product&.colors
+
+  - if product.persisted?
+    fieldset
+      h2.mt-8.label Store Information
+      = form_hint "Manage store information for this product"
+
+      div data-controller="store-info"
+        - form.object.store_infos.each_with_index do |store_info, index|
+          = fields_for "store_infos[#{index}]", store_info do |store_info_fields|
+            = render "products/form/store_info_fields", f: store_info_fields, store_info: store_info
+
+        button.btn-rounded.mt-3 type="button" data-action="store-info#addStoreInfo" data-store-info-target="btn" Add Store Info
+
+  = render "_shared/media_form", form: form, resource_name: "product"
+
+  - if form.object.new_record?
+    fieldset data-controller="product-purchase"
+      label Purchase
+      = form_hint "You can create a purchase alongside with new product"
+      .pb-1 data-product-purchase-target="add"
+        = link_to "", class: "btn-rounded mt-6", data: {action: "product-purchase#addForm"}
+          i.icn 💰
+          | Add Purchase
+      .pb-1.hidden data-product-purchase-target="remove"
+        = link_to "", class: "btn-rounded mt-6 btn-red", data: {action: "product-purchase#removeForm"}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            | Remove Purchase
+      .new-product_purchase-fields.pb-2 data-product-purchase-target="form"
+        = form.fields_for :purchases, product.purchases do |purchase_fields|
+          fieldset.flex.justify-between.gap-4
+            .block.w-full
+              = purchase_fields.label :supplier_id
+              = purchase_fields.collection_select :supplier_id, @supplier_options || [], :id, :title, {}, {class: "w-full"}
+            .block.w-full
+              = purchase_fields.label :order_reference
+              = purchase_fields.text_field :order_reference
+          fieldset.flex.justify-between.gap-4
+            .block.w-full
+              = purchase_fields.label :item_price
+              = purchase_fields.text_field :item_price
+            .block.w-full
+              = purchase_fields.label :amount
+              = purchase_fields.text_field :amount
+            .block.w-full
+              = purchase_fields.fields_for :payments, purchase_fields.object.payments do |payment_builder|
+                = payment_builder.label "What did you pay in total?"
+                = payment_builder.number_field :value, step: :any
+          - if @warehouse_options.present?
+            = purchase_fields.label :warehouse_id, "Initial warehouse"
+            = purchase_fields.collection_select :warehouse_id, @warehouse_options, :id, :name, {selected: @default_warehouse_id}
+
+  = form_submit_for(product, form)

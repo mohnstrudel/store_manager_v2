@@ -1,0 +1,13 @@
+tr(
+  class=product_row_class(sale_item.resolve_sold_item.id, selected_id:, hoverable: true)
+  data-action="click->table#goTo"
+  data-table-url-param=sale_path(sale_item.sale)
+)
+  td = sale_item.sale.customer.full_name
+  td = sale_item.sale.customer.email
+  td = sale_item.sale.country
+  td = format_date sale_item.sale.woo_created_at.presence || sale_item.created_at
+  - if product.editions.any?
+    td = sale_item.edition&.title || "-"
+  td.text-right.font-mono = format_money sale_item.price
+  td = sale_item.qty

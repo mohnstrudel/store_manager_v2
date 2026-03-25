@@ -1,29 +1,11 @@
 - subheading = "Previously run on #{Config.shopify_sales_sync_time}" if Config.shopify_sales_sync_time.present?
 
 = render "_shared/notice"
-= render "_shared/modal-container", heading: "Sales Synchronization", subheading:, content_partial: "modal_sync_menu"
+= render "_shared/modal-container", heading: "Sales Synchronization", subheading:, content_partial: "sales/index/sync_modal"
 = render "_shared/nav-index", model: @sales, show_modal: true
 
 .section-border-base.section-wide
   .search
     = render partial: "_shared/search-form", locals: {path: sales_path}
     .pagination-top = paginate @sales
-  - if @sales.present?
-    table data-controller="table"
-      thead
-        tr
-          th.text-center Image
-          th Customer <span class="font-normal text-sm pl-4">+ Products</span>
-          th.w-80 Purchase Status
-          th.text-right Price
-          th
-            | Created  ▾
-            br
-            <span class="font-normal text-gray-500">Updated</span>
-          th Store ID
-          th.text-right Actions
-      tbody
-        = render @sales
-    .pagination-bottom = paginate @sales
-  - else
-    = render "_shared/search-results-empty"
+  = render "sales/index/table", sales: @sales
