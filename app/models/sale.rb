@@ -38,6 +38,7 @@
 #  woo_id             :string
 #
 class Sale < ApplicationRecord
+  include Editing
   include HasAuditNotifications
   include Linking
   include Listing

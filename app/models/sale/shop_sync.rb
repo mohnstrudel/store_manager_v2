@@ -26,4 +26,8 @@ module Sale::ShopSync
   def shop_updated_at
     shopify_info&.ext_updated_at || woo_updated_at
   end
+
+  def sync_status_change_to_shop!
+    self.class.update_order(self)
+  end
 end

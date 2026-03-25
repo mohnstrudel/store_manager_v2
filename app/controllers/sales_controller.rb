@@ -32,30 +32,22 @@ class SalesController < ApplicationController
 
   # POST /sales
   def create
-    @sale = Sale.new(sale_params)
+    @sale = Sale.new
 
-    if @sale.save
-      linked_ids = @sale.link_with_purchase_items
-      PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids: linked_ids)
-      redirect_to @sale, notice: "Sale was successfully created"
-    else
-      load_form_collections
-      render :new, status: :unprocessable_content
-    end
+    @sale.create_from_form!(sale_params.to_h)
+    redirect_to @sale, notice: "Sale was successfully created"
+  rescue ActiveRecord::RecordInvalid
+    load_form_collections
+    render :new, status: :unprocessable_content
   end
 
   # PATCH/PUT /sales/1
   def update
-    if @sale.update(sale_params.merge(slug: nil))
-      changes = @sale.saved_changes.transform_values(&:last)
-      if changes[:status]
-        Sale.update_order(woo_id: @sale.woo_id, status: changes[:status])
-      end
-      redirect_to @sale, notice: "Sale was successfully updated"
-    else
-      load_form_collections
-      render :edit, status: :unprocessable_content
-    end
+    @sale.apply_form_changes!(sale_params.to_h)
+    redirect_to @sale, notice: "Sale was successfully updated"
+  rescue ActiveRecord::RecordInvalid
+    load_form_collections
+    render :edit, status: :unprocessable_content
   end
 
   # DELETE /sales/1
@@ -65,10 +57,7 @@ class SalesController < ApplicationController
   end
 
   def link_purchase_items
-    purchase_item_ids = @sale.link_with_purchase_items
-
-    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids:)
-
+    @sale.link_purchase_items!
     redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products"
   end
 

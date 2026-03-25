@@ -3,6 +3,11 @@
 module Sale::Linking
   extend ActiveSupport::Concern
 
+  def link_purchase_items!
+    purchase_item_ids = link_with_purchase_items
+    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids:)
+  end
+
   def unlinked_sale_items?
     total_sold = sale_items.sum(:qty)
     total_purchased = sale_items.sum { |sale_item| sale_item.purchase_items.size }

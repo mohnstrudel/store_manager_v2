@@ -135,6 +135,27 @@ RSpec.describe Sale do
     end
   end
 
+  describe "#link_purchase_items!" do
+    let(:sale) { create(:sale, status: active_status) }
+    let(:purchase_item_ids) { [1, 2, 3] }
+
+    before do
+      allow(sale).to receive(:link_with_purchase_items).and_return(purchase_item_ids)
+      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
+    end
+
+    it "links sale items and notifies purchase item changes" do
+      sale.link_purchase_items!
+
+      aggregate_failures do
+        expect(sale).to have_received(:link_with_purchase_items)
+        expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(
+          purchase_item_ids:
+        )
+      end
+    end
+  end
+
   describe "#unlinked_sale_items?" do
     let(:sale) { create(:sale, status: active_status) }
     let!(:sale_item) { create(:sale_item, sale:, product:, qty: 2) }

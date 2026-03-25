@@ -70,4 +70,15 @@ RSpec.describe Sale do
       expect(described_class.find_recent_by_order_id("123")).to eq(sale)
     end
   end
+
+  describe "#sync_status_change_to_shop!" do
+    it "pushes the sale through the class-level sync entrypoint" do
+      sale = create(:sale)
+      allow(described_class).to receive(:update_order)
+
+      sale.sync_status_change_to_shop!
+
+      expect(described_class).to have_received(:update_order).with(sale)
+    end
+  end
 end

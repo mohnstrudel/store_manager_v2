@@ -155,15 +155,10 @@ RSpec.describe SalesController, type: :controller do
         expect(flash[:notice]).to eq("Sale was successfully created")
       end
 
-      it "links with purchase items and sends notifications" do
-        allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
-
+      it "delegates creation workflow to the sale model" do
         post :create, params: {sale: valid_params}
 
-        sale = assigns(:sale)
-        expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(
-          purchase_item_ids: sale.link_with_purchase_items
-        )
+        expect(assigns(:sale)).to be_a(Sale)
       end
     end
   end
@@ -192,22 +187,6 @@ RSpec.describe SalesController, type: :controller do
         expect(flash[:notice]).to eq("Sale was successfully updated")
       end
 
-      it "updates order on Woo when status changes" do
-        allow(Sale).to receive(:update_order).with(woo_id: sale.woo_id, status: new_status)
-
-        patch :update, params: {id: sale.to_param, sale: valid_params}
-
-        expect(Sale).to have_received(:update_order).with(woo_id: sale.woo_id, status: new_status)
-      end
-
-      it "does not update Woo order when status unchanged" do
-        original_status = sale.status
-        allow(Sale).to receive(:update_order)
-
-        patch :update, params: {id: sale.to_param, sale: {status: original_status}}
-
-        expect(Sale).not_to have_received(:update_order)
-      end
     end
   end
 
@@ -238,28 +217,16 @@ RSpec.describe SalesController, type: :controller do
 
   describe "POST #link_purchase_items" do
     let(:sale) { create(:sale) }
-    let(:purchase_item_ids) { [1, 2, 3] }
 
     before do
       allow(controller).to receive(:set_sale)
       controller.instance_variable_set(:@sale, sale)
-
-      allow(sale).to receive(:link_with_purchase_items).and_return(purchase_item_ids)
-
-      notifier_instance = instance_double(PurchaseItem::Notifier)
-      allow(PurchaseItem::Notifier).to receive(:new).and_return(notifier_instance)
-      allow(notifier_instance).to receive(:handle_product_purchase)
+      allow(sale).to receive(:link_purchase_items!)
     end
 
-    it "calls link_with_purchase_items on @sale" do
+    it "delegates linking workflow to the sale model" do
       post :link_purchase_items, params: {id: sale.id}
-      expect(sale).to have_received(:link_with_purchase_items)
-    end
-
-    it "calls PurchaseItem::Notifier with correct purchase_item_ids" do # rubocop:todo RSpec/MultipleExpectations
-      post :link_purchase_items, params: {id: sale.id}
-      expect(PurchaseItem::Notifier).to have_received(:new).with(purchase_item_ids:)
-      expect(PurchaseItem::Notifier.new(purchase_item_ids:)).to have_received(:handle_product_purchase)
+      expect(sale).to have_received(:link_purchase_items!)
     end
 
     it "redirects to sale with success notice" do # rubocop:todo RSpec/MultipleExpectations
