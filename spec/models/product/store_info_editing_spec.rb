@@ -3,13 +3,13 @@
 require "rails_helper"
 
 RSpec.describe Product do
-  describe "#apply_store_infos_attributes!" do
+  describe "#apply_store_info_attributes!" do
     let(:product) { create(:product) }
 
     it "updates an existing store info" do
       shopify_info = product.store_infos.shopify.first
 
-      product.apply_store_infos_attributes!([
+      product.apply_store_info_attributes!([
         {id: shopify_info.id, tag_list: "featured"}
       ])
 
@@ -20,7 +20,7 @@ RSpec.describe Product do
       product.store_infos.destroy_all
 
       expect {
-        product.apply_store_infos_attributes!([
+        product.apply_store_info_attributes!([
           {store_name: "shopify", tag_list: "new-store"}
         ])
       }.to change(product.store_infos, :count).by(1)
@@ -32,7 +32,7 @@ RSpec.describe Product do
       woo_info = product.store_infos.woo.first
 
       expect {
-        product.apply_store_infos_attributes!([
+        product.apply_store_info_attributes!([
           {id: woo_info.id, destroy: true}
         ])
       }.to change(product.store_infos, :count).by(-1)

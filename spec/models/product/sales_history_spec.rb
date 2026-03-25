@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Product do
-  describe "#fetch_active_sale_items" do
+  describe "#active_sale_items" do
     let(:product) { create(:product) }
     let(:edition) { create(:edition, product:) }
 
@@ -38,11 +38,11 @@ RSpec.describe Product do
     end
 
     it "returns active sale items ordered by creation time" do
-      expect(product.fetch_active_sale_items).to eq([older_active_sale_item, newer_active_sale_item])
+      expect(product.active_sale_items).to eq([older_active_sale_item, newer_active_sale_item])
     end
   end
 
-  describe "#fetch_completed_sale_items" do
+  describe "#completed_sale_items" do
     let(:product) { create(:product) }
     let(:edition) { create(:edition, product:) }
 
@@ -67,11 +67,11 @@ RSpec.describe Product do
     end
 
     it "returns completed sale items ordered by creation time" do
-      expect(product.fetch_completed_sale_items).to eq([completed_sale_item])
+      expect(product.completed_sale_items).to eq([completed_sale_item])
     end
   end
 
-  describe "#sum_editions_sale_items" do
+  describe "#edition_sales_sums" do
     let(:product) { create(:product) }
     let(:edition1) { create(:edition, product:) }
     let(:edition2) { create(:edition, product:) }
@@ -83,14 +83,14 @@ RSpec.describe Product do
     end
 
     it "sums active sale quantities per edition" do
-      expect(product.sum_editions_sale_items).to eq(
+      expect(product.edition_sales_sums).to eq(
         edition1.id => 2,
         edition2.id => 5
       )
     end
   end
 
-  describe "#sum_editions_purchase_items" do
+  describe "#edition_purchase_sums" do
     let(:product) { create(:product) }
     let(:edition1) { create(:edition, product:) }
     let(:edition2) { create(:edition, product:) }
@@ -102,7 +102,7 @@ RSpec.describe Product do
     end
 
     it "sums purchase amounts per edition" do
-      expect(product.sum_editions_purchase_items).to eq(
+      expect(product.edition_purchase_sums).to eq(
         edition1.id => 5,
         edition2.id => 7
       )

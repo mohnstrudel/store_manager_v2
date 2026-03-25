@@ -3,7 +3,7 @@
 module Product::SalesHistory
   extend ActiveSupport::Concern
 
-  def fetch_active_sale_items
+  def active_sale_items
     sale_items
       .for_history
       .includes(purchase_items: :warehouse)
@@ -11,11 +11,11 @@ module Product::SalesHistory
       .order(created_at: :asc)
   end
 
-  def fetch_completed_sale_items
+  def completed_sale_items
     sale_items.for_history.completed.order(created_at: :asc)
   end
 
-  def sum_editions_sale_items
+  def edition_sales_sums
     SaleItem
       .active
       .where(edition: editions)
@@ -23,7 +23,7 @@ module Product::SalesHistory
       .sum(:qty)
   end
 
-  def sum_editions_purchase_items
+  def edition_purchase_sums
     Purchase
       .where(edition: editions)
       .group(:edition_id)

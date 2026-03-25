@@ -17,7 +17,7 @@ module Product::Editing
       apply_form_attributes(product_attributes)
       apply_editions_attributes!(editions_attributes)
       save!
-      apply_store_infos_attributes!(store_infos_attributes)
+      apply_store_info_attributes!(store_infos_attributes)
       yield self if block_given?
     end
   end

@@ -119,7 +119,7 @@ RSpec.describe "Product Store Info Management" do
     product_with_one_store.reload
     expect(product_with_one_store.store_infos.count).to eq(2)
     expect(product_with_one_store.woo_info).to be_present
-    expect(product_with_one_store.woo_info.tag_list.to_s).to eq("woo-exclusive, special-offer")
+    expect(product_with_one_store.woo_info.tag_list).to match_array(["woo-exclusive", "special-offer"])
   end
 
   scenario "deletes existing store_info using the destroy checkbox", :js do # rubocop:todo RSpec/MultipleExpectations

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Product::Editions
+module Product::EditionGeneration
   extend ActiveSupport::Concern
 
   def build_new_editions

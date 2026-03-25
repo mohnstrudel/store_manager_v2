@@ -13,10 +13,10 @@ class ProductsController < ApplicationController
 
   # GET /products/1 or /products/1.json
   def show
-    @active_sales = @product.fetch_active_sale_items
-    @complete_sales = @product.fetch_completed_sale_items
-    @editions_sales_sums = @product.sum_editions_sale_items
-    @editions_purchases_sums = @product.sum_editions_purchase_items
+    @active_sales = @product.active_sale_items
+    @complete_sales = @product.completed_sale_items
+    @editions_sales_sums = @product.edition_sales_sums
+    @editions_purchases_sums = @product.edition_purchase_sums
   end
 
   # GET /products/new

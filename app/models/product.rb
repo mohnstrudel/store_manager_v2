@@ -18,8 +18,8 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
-  include Editions
-  include EditionManagement
+  include EditionGeneration
+  include EditionEditing
   include HasAuditNotifications
   include HasPreviewImages
   include InitialPurchase
@@ -28,7 +28,7 @@ class Product < ApplicationRecord
   include SalesHistory
   include Searchable
   include Shopable
-  include StoreInfos
+  include StoreInfoEditing
   include StoreReferences
   include Titling
 

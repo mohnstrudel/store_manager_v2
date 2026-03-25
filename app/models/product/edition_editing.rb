@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Product::EditionManagement
+module Product::EditionEditing
   extend ActiveSupport::Concern
 
   def apply_editions_attributes!(rows)

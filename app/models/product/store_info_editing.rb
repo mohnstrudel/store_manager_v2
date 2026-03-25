@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-module Product::StoreInfos
+module Product::StoreInfoEditing
   extend ActiveSupport::Concern
 
-  def apply_store_infos_attributes!(rows)
+  def apply_store_info_attributes!(rows)
     return if rows.blank?
 
     rows.each do |attributes|
-      apply_store_info_attributes!(attributes)
+      apply_single_store_info_attributes!(attributes)
     end
   end
 
   private
 
-  def apply_store_info_attributes!(attributes)
+  def apply_single_store_info_attributes!(attributes)
     if attributes[:id].blank?
       store_infos.create!(persisted_store_info_attributes(attributes))
       return
