@@ -20,4 +20,4 @@ dialog id="product-sync-modal" data-controller="modal" data-modal-target="contai
     menu.flex.flex-col.gap-4
       - if product.shopify_published?
         li
-          = button_to "Pull updates from Shopify", pull_from_shopify_product_path(product), class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}
+          = button_to "Pull updates from Shopify", product_shopify_pull_path(product), class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->modal#closeAndSubmit"}

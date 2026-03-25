@@ -26,9 +26,11 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 - Do not leave tests at an old seam after ownership moved.
 - Do not skip negative-path rules where state suppresses side effects.
 - Do not hide time-based rules in scheduler tests when they really belong to the domain.
+- Do not let extracted-route regressions hide in shared helpers; add or keep at least one request, controller, or feature check that exercises the real rendered trigger.
 
 ## Repo-Specific Bias
 
 - When a feature depends on `Current`, set that context explicitly in tests.
 - Keep edge-format coverage close to the response contract for Turbo and server-rendered flows.
 - Prefer stable domain scenarios over clever helper-heavy setup.
+- When a feature stubs record behavior for a rendered page, make sure the controller actually uses that same record instance or stub at the seam the controller loads.

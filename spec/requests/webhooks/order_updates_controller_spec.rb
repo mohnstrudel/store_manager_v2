@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe WebhookController do
+RSpec.describe Webhooks::OrderUpdatesController do
   let(:request_body) {
     file_fixture("api_hooks_order.json").read
   }
@@ -27,9 +27,7 @@ RSpec.describe WebhookController do
         woo_id: parsed_order[:products].first[:order_woo_id]
       )
 
-      # rubocop:todo RSpec/AnyInstance
       allow_any_instance_of(described_class).to receive(:verify_webhook).and_return(true)
-      # rubocop:enable RSpec/AnyInstance
 
       post "/update-order", params: request_body, headers: {"CONTENT_TYPE" => "application/json"}
     end

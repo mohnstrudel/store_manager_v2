@@ -1,6 +1,6 @@
 tr.hoverable(
   data-action="click->table#goTo"
-  data-table-url-param=sale_item_path(sale_item)
+  data-table-url-param=sale_item_path(sale_item.sale, sale_item)
 )
   td.text-center = render "_shared/preloadable_img", src: thumb_url(sale_item.product), class_names: "zoomable", width: 100
   td.text-sm

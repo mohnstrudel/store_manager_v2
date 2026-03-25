@@ -1,4 +1,4 @@
-= form_with(model: purchase_item, html: {multipart: true}) do |form|
+= form_with(model: purchase_item, url: local_assigns[:form_url], html: {multipart: true}) do |form|
   = form.label :warehouse
   = form.collection_select :warehouse_id, @warehouse_options || [], :id, :name, {include_blank: true}, slim_select_html_options
 

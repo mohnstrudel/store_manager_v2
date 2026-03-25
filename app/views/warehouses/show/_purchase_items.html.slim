@@ -10,7 +10,7 @@
         .pagination-top = paginate purchase_items
 
     - if purchase_items.present?
-      = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path(warehouse_id: warehouse.id)
+      = render "_shared/move_to_warehouse/form", form_url: warehouse_move_path(warehouse_id: warehouse.id)
 
       table data-controller="table"
         thead

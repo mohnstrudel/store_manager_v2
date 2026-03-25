@@ -13,18 +13,6 @@ class WarehousesController < ApplicationController
     @warehouses = Warehouse.for_listing.order(:position)
   end
 
-  # GET /warehouses/1
-  def show
-    @warehouse = Warehouse.for_details.find(params[:id])
-    @purchase_items = @warehouse
-      .purchase_items
-      .for_warehouse_details
-      .order(updated_at: :desc)
-      .page(params[:page])
-    @total_purchase_items = @warehouse.purchase_items.size
-    @purchase_items = @purchase_items.search(params[:q]) if params[:q].present?
-  end
-
   # GET /warehouses/new
   def new
     @warehouse = Warehouse.new
@@ -78,28 +66,6 @@ class WarehousesController < ApplicationController
   rescue ActiveRecord::RecordInvalid
     flash[:error] = @warehouse.errors.full_messages.to_sentence
     redirect_to @warehouse
-  end
-
-  def change_position
-    new_position = params[:position].to_i
-
-    return head :bad_request unless new_position.positive?
-
-    warehouse = Warehouse.find(params[:id])
-
-    prev_position = warehouse.position
-
-    warehouse.update_position!(new_position)
-
-    respond_to do |format|
-      format.html { redirect_to warehouses_url, notice: "We changed \"#{warehouse.name}\" position from #{prev_position} to #{new_position}", status: :see_other }
-      format.json { head :ok }
-    end
-  rescue ActiveRecord::RecordInvalid
-    respond_to do |format|
-      format.html { redirect_to warehouses_url, alert: "Failed to update position", status: :unprocessable_content }
-      format.json { head :unprocessable_content }
-    end
   end
 
   private

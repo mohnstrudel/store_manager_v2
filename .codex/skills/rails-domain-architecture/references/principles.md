@@ -8,6 +8,7 @@ Use this file for the non-obvious model-layer rules in this repo.
 - Keep the base model file short as a composition root.
 - Put aggregate-owned behavior under `app/models/<model>/<capability>.rb`.
 - Reserve `app/models/concerns` for true cross-model behavior.
+- In the controller layer, reserve concerns for true shared request behavior, either cross-app or reused by a controller family around one seam.
 - Prefer rich model APIs with business verbs over controller-shaped workflows and generic manager objects.
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` when the workflow still belongs to one aggregate.
 - Prefer named scopes and preload scopes over controller-built SQL or tiny query wrappers.
@@ -21,6 +22,7 @@ Use this file for the non-obvious model-layer rules in this repo.
 - Do not flatten association-local behavior into detached manager objects if it belongs to one relationship.
 - Do not assume callbacks are bad when they are maintaining one local concept.
 - Do not leave domain methods named after forms or transport steps when the business action has a clearer name.
+- Do not create a controller concern that is only a private refactor for one controller file; that usually means the logic belongs in private methods, a new controller, or the model layer.
 
 ## Base Model Boundary
 
@@ -77,6 +79,11 @@ Use this file for the non-obvious model-layer rules in this repo.
 - repeated read shape -> named scope on the owning model
 - multi-aggregate or external orchestration -> a focused object in an explicit `app/models/<namespace>/` home
 - controller or job needs one clear domain action -> call the model method directly before inventing a service
+- non-CRUD endpoint is really its own resource -> add a small nested controller under `app/controllers/<parent>/...`
+- collection-level command or Turbo endpoint is its own concept -> add a small collection resource controller under `app/controllers/<parent>/...`
+- several small controllers share the same loading seam -> add a scoped controller concern instead of repeating lookups
+- several namespaced controllers share the same boundary helpers -> a controller-family concern is appropriate
+- command triggered from the UI -> route it with `POST`, `PATCH`, or `DELETE` and update helpers to match the new resource path
 
 ## Refactor Stance
 

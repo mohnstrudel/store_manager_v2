@@ -4,7 +4,7 @@
       span Linked Purchased Items
       span = purchase_items.size
 
-    = render "_shared/move_to_warehouse/form", form_url: move_purchase_items_path, options: {redirect_to_sale_item: true}
+    = render "_shared/move_to_warehouse/form", form_url: warehouse_move_path, options: {redirect_to_sale_item: true}
 
     table data-controller="table"
       thead
@@ -29,7 +29,7 @@
             td.font-mono.text-right = format_money pp.expenses
             td.font-mono.text-right = format_money pp.shipping_cost
             td.actions
-              = link_to unlink_purchase_items_path(id: pp.id), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :post}
+              = link_to purchase_item_sale_item_link_path(pp), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :delete}
                 i.icn ✂︎
                 | Unlink
               = render "_shared/action_edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)

@@ -21,6 +21,11 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` or `app/models/sale/creation.rb` over generic `app/services` classes when the workflow is aggregate-local.
 - Prefer direct, intention-revealing model APIs before adding a generic service layer between controllers or jobs and the domain.
 - Keep controllers focused on request loading, params, and response format; move aggregate-local transactions out of controllers.
+- In controllers, concerns are for shared request behavior. Shared can mean cross-app or shared by a namespaced controller family such as Fizzy’s `CardScoped`; it does not mean “any chunk I want to move out of one controller file”.
+- When a side-effect action becomes its own concept, prefer a small nested resource controller over adding another member or collection action to a broad controller.
+- Prefer real write routes for command-style actions. A pull, move, link, or confirmation flow should usually become a `POST`, `PATCH`, or `DELETE` resource endpoint, not a `GET`.
+- Collection-level workflows can also become small resource controllers. Do not reserve this pattern only for member actions.
+- Inline Turbo edit flows can also be resourceful. Prefer a small singular nested controller over `edit_*`, `cancel_*`, and `update_*` actions on the parent controller.
 - Keep jobs thin and move aggregate-local workflow to model-area collaborators.
 - If a method is reused across parsers, jobs, imports, sync flows, and some views, treat it as a domain representation and keep it near the model rather than moving it to helpers.
 - If a method exists only for one screen, dropdown, widget, or response format, move it to helpers, partials, Jbuilder, or Turbo templates.
@@ -37,9 +42,14 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - parser, importer, or payload tied to one aggregate: `app/models/<model>/<integration>/...`
 - API transport or GraphQL client code: `app/services/<integration>/...`
 - request setup, params, or response concerns: controller or controller concern
+- repeated parent loading across several small controllers: `app/controllers/concerns/<resource>_scoped.rb`
+- repeated request helpers shared by one namespaced controller family: controller concern
+- collection-level command or Turbo endpoint: small controller under `app/controllers/<resource>/...` plus a collection resource route
 - async transport, retries, scheduling, or pagination: `app/jobs/...`
 - screen-only rendering behavior: helper, partial, Turbo template, or view subtree
 - controller or job only needs one domain action: add or call a named model method before inventing a service
+- route-consuming helper or shared button: use the real route helper or correct polymorphic path shape with the correct `turbo_method`; do not guess from the old route layout
+- one controller alone is too big: prefer private methods, another controller, or domain extraction before creating a single-use controller concern
 
 ## Skills
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.

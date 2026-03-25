@@ -35,6 +35,13 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 14. Preserve advanced model patterns when they are deliberate: concern contracts, association-proxy APIs, event fan-out, lifecycle gates, and domain-owned external representations are valid design choices.
 15. Favor business verbs such as `publish`, `move_to`, `link_inventory`, or `sync_store_references` over form-shaped names such as `process_form` or `handle_update`.
 16. Reach for a service object only when ownership is genuinely cross-aggregate, infrastructure-heavy, or not naturally expressible as one model-facing API.
+17. When a non-CRUD controller action starts to feel like its own concept, prefer a small nested resource controller before adding another member or collection action to a broad controller.
+18. Use controller scoping concerns such as `ProductScoped` or `SaleScoped` for repeated boundary loading when several small controllers share the same resource seam.
+18a. In controllers, “shared” includes a namespaced controller family. A concern like Fizzy’s `CardScoped` is a good pattern when multiple small controllers around one seam need the same loading and response helpers.
+18b. Do not create one-off controller concerns just to break up a single broad controller file. If the logic is not shared by multiple controllers, prefer private methods, another controller, or moving business logic into the model layer.
+19. Treat command-style endpoints as write resources: prefer `POST`, `PATCH`, or `DELETE` resource routes over `GET` links for actions such as pulls, links, moves, or webhook confirmations.
+20. Remember that collection-level workflows can also be first-class controllers such as `Purchases::MovesController`, `Purchases::ProductEditionsController`, or `Dashboard::LastOrdersPullsController`; extraction is not only for member actions.
+21. After extracting a controller concept, update the route consumers too: helpers, shared buttons, Turbo widgets, and feature specs should follow the new route shape instead of reconstructing paths by guesswork.
 
 ## Placement Heuristics
 

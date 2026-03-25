@@ -45,12 +45,14 @@ module BreadcrumbsHelper
 
   def special_route
     @special_route_title ||= case "#{controller_path}##{action_name}"
-    when "dashboard#debts"
+    when "dashboard/debts#show"
       "Debts"
     when "dashboard#index"
       "Dashboard"
     when "dashboard#noop"
       "Dashboard"
+    when "warehouses/details#show"
+      @warehouse&.name
     end
   end
 

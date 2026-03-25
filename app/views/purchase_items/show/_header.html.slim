@@ -9,5 +9,5 @@ header.nav_header
       li = link_to purchase_item.sale
         i.icn 🛒
         | Sale
-      li = link_to "Sale Item", purchase_item.sale_item
+      li = link_to "Sale Item", sale_item_path(purchase_item.sale_item.sale, purchase_item.sale_item)
     li = edit_btn_for purchase_item

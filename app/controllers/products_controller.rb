@@ -2,9 +2,8 @@
 
 class ProductsController < ApplicationController
   include MediaFormHandling
-  include JobsStatusNotice
 
-  before_action :set_product, only: %i[show edit update destroy pull_from_shopify] # DISABLED: publish_to_shopify, push_to_shopify
+  before_action :set_product, only: %i[show edit update destroy] # DISABLED: publish_to_shopify, push_to_shopify
   before_action :load_form_collections, only: %i[new edit]
 
   # GET /products or /products.json
@@ -106,27 +105,6 @@ class ProductsController < ApplicationController
   #     format.html { redirect_to products_path, notice: "Product updates are being pushed to Shopify" }
   #   end
   # end
-
-  def pull_from_shopify
-    notice = if @product.shopify_info&.store_id&.present?
-      Shopify::PullProductJob.perform_later(@product.shopify_info.store_id)
-      "Product is being pulled from Shopify"
-    else
-      "Product has not been published to Shopify yet"
-    end
-
-    respond_to do |format|
-      format.turbo_stream { flash.now[:notice] = notice }
-      format.html { redirect_to products_path, notice: }
-    end
-  end
-
-  def pull
-    Shopify::PullProductsJob.perform_later(limit: params[:limit]&.to_i)
-    Config.update_shopify_products_sync_time
-    set_jobs_status_notice!
-    redirect_back_or_to(products_path)
-  end
 
   private
 

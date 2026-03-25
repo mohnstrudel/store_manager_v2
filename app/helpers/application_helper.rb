@@ -82,7 +82,7 @@ module ApplicationHelper
   end
 
   def pull_btn_for(record)
-    link_to polymorphic_path([:pull, record]), class: "btn-rounded", data: {"turbo-prefetch": "false"} do
+    link_to polymorphic_path([record, :pull]), class: "btn-rounded", data: {"turbo-prefetch": "false", turbo_method: :post} do
       tag.i(class: "icn") { "📥" } + "Pull"
     end
   end

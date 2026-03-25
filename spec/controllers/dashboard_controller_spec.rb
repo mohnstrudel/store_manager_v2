@@ -56,66 +56,6 @@ describe DashboardController do
     end
   end
 
-  describe "GET #debts" do
-    let!(:unpaid_purchases) { create_list(:purchase, 3, :unpaid) }
-
-    it "returns successful response" do
-      get :debts
-      expect(response).to be_successful
-      expect(assigns[:unpaid_purchases]).to be_present
-    end
-
-    it "preloads suppliers for unpaid purchases" do
-      get :debts
-      unpaid_purchases = assigns[:unpaid_purchases]
-
-      # Verify suppliers are preloaded (no N+1 queries when accessing supplier)
-      unpaid_purchases.each do |purchase|
-        expect(purchase.association(:supplier)).to be_loaded
-      end
-    end
-
-    it "assigns debts variable" do
-      get :debts
-      expect(assigns[:debts]).not_to be_nil
-      expect(assigns[:debts]).to respond_to(:each)
-    end
-
-    context "with search query" do
-      let!(:product) { create(:product, title: "Special Product") }
-      let!(:customer) { create(:customer, email: "customer@example.com") }
-      let!(:sale) { create(:sale, customer: customer, status: "processing") }
-      let!(:sale_item) { create(:sale_item, sale: sale, product: product, qty: 2) }
-
-      it "filters debts by product title" do
-        get :debts, params: {q: "special"}
-        expect(assigns[:debts]).to be_present
-      end
-
-      it "returns all debts without search query" do
-        get :debts
-        expect(assigns[:debts]).to be_present
-      end
-    end
-  end
-
-  describe "POST #pull_last_orders" do
-    before do
-      # Mock request.referer to avoid nil reference error
-      request.env["HTTP_REFERER"] = "/dashboard"
-    end
-
-    it "triggers the Woo::PullSalesJob" do
-      expect(Woo::PullSalesJob).to receive(:perform_later).with(pages: 2)
-      expect(Config).to receive(:enable_sales_hook)
-
-      post :pull_last_orders
-
-      expect(response).to redirect_to("/dashboard")
-      expect(flash[:notice]).to eq("Started getting missing sales. It'll take around 5–10 minutes")
-    end
-  end
-
   describe "GET #noop" do
     it "returns successful response" do
       get :noop
