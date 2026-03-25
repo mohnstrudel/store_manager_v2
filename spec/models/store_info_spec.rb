@@ -21,7 +21,7 @@
 #
 require "rails_helper"
 
-RSpec.describe StoreInfo, type: :model do
+RSpec.describe StoreInfo do
   describe "associations" do
     it { is_expected.to belong_to(:storable) }
   end
@@ -64,6 +64,17 @@ RSpec.describe StoreInfo, type: :model do
       store_info = create(:store_info, :with_push_time, storable: warehouse)
       expect(store_info.push_time).to be_within(1.second).of(Time.current)
       expect(store_info.storable).to eq(warehouse)
+    end
+  end
+
+  describe "store info limits" do
+    it "does not allow more store infos than assignable store names" do # rubocop:todo RSpec/MultipleExpectations
+      product = create(:product)
+
+      extra_store_info = product.store_infos.build(store_name: :not_assigned)
+
+      expect(extra_store_info).not_to be_valid
+      expect(extra_store_info.errors[:base]).to include("Too many store connections for Product")
     end
   end
 end

@@ -1,7 +1,7 @@
-.store-info-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-4/7 data-store-info-target="field"
+.store-info-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-4/7
   .flex.justify-between.items-center
     = f.hidden_field :id
-    = f.hidden_field :store_name, data: {"store-info-target": "storeNameInput"}
+    = f.hidden_field :store_name
     h6 = store_info.store_name.titleize
     = f.label :_destroy, "Destroy connection?", class: "m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900"
       = f.check_box :_destroy, class: "m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500 red", data: {action: "change->store-info#toggleDestroy"}

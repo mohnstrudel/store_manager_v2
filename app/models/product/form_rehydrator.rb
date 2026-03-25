@@ -8,19 +8,25 @@ class Product::FormRehydrator
 
   def call
     errors = product.errors.dup
-    reloaded_product = Product.for_details.friendly.find(product.id)
-    reloaded_product.errors.copy!(errors)
+    hydrated_product = rehydrated_product
+    hydrated_product.errors.copy!(errors)
 
-    reassign_product_attributes(reloaded_product)
-    reassign_store_infos(reloaded_product)
-    reassign_editions(reloaded_product)
+    reassign_product_attributes(hydrated_product)
+    reassign_store_infos(hydrated_product)
+    reassign_editions(hydrated_product)
 
-    reloaded_product
+    hydrated_product
   end
 
   private
 
   attr_reader :product, :payload
+
+  def rehydrated_product
+    return Product.for_details.friendly.find(product.id) if product.persisted?
+
+    product
+  end
 
   def reassign_product_attributes(reloaded_product)
     reloaded_product.assign_attributes(payload.product_attributes.except("purchases_attributes"))

@@ -6,6 +6,8 @@ RSpec.describe "Product Store Info Management" do
   before { sign_in_as_admin }
 
   let!(:product) { create(:product) }
+  let!(:supplier) { create(:supplier) }
+  let!(:warehouse) { create(:warehouse) }
 
   # Product with only shopify_info (missing woo_info) to test adding new store_infos
   let!(:product_with_one_store) do
@@ -119,7 +121,7 @@ RSpec.describe "Product Store Info Management" do
     product_with_one_store.reload
     expect(product_with_one_store.store_infos.count).to eq(2)
     expect(product_with_one_store.woo_info).to be_present
-    expect(product_with_one_store.woo_info.tag_list).to match_array(["woo-exclusive", "special-offer"])
+    expect(product_with_one_store.woo_info.tag_list).to contain_exactly("woo-exclusive", "special-offer")
   end
 
   scenario "deletes existing store_info using the destroy checkbox", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -275,5 +277,43 @@ RSpec.describe "Product Store Info Management" do
     expect(product_with_one_store.woo_info).to be_present
     expect(product_with_one_store.woo_info.tag_list.to_s).to eq("")
     expect(product_with_one_store.woo_info.tag_list).to be_empty
+  end
+
+  scenario "adds store info while creating a new product", :js do # rubocop:todo RSpec/MultipleExpectations
+    franchise = create(:franchise)
+    shape = create(:shape)
+
+    visit new_product_path
+
+    fill_in "Title", with: "New Product With Store Info"
+    fill_in "SKU", with: "new-product-store-info"
+    franchise_select = find("select[name='product[franchise_id]']", visible: :all)
+    page.execute_script("arguments[0].value = arguments[1]", franchise_select, franchise.id.to_s)
+
+    shape_select = find("select[name='product[shape_id]']", visible: :all)
+    page.execute_script("arguments[0].value = arguments[1]", shape_select, shape.id.to_s)
+
+    click_button "Add Store Info"
+
+    new_store_section = find(".store-info-fields", text: "New Store Info")
+    store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
+    page.execute_script("arguments[0].value = 'shopify'", store_select)
+    new_store_section.fill_in "Tags", with: "featured, launch"
+
+    click_link "Add Purchase"
+    select supplier.title, from: "Supplier"
+    fill_in "Item price", with: "100"
+    fill_in "Amount", with: "1"
+    payment_input = find("input[name*='[payments_attributes]'][name$='[value]']", visible: :all)
+    payment_input.fill_in with: "100"
+    select warehouse.name, from: "Initial warehouse"
+
+    click_button "Create Product"
+
+    expect(page).to have_content("Product was successfully created")
+
+    created_product = Product.find_by!(sku: "new-product-store-info")
+    expect(created_product.shopify_info).to be_present
+    expect(created_product.shopify_info.tag_list).to contain_exactly("featured", "launch")
   end
 end

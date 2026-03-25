@@ -53,17 +53,24 @@
       = fields_for "editions[NEW_INDEX]", Edition.new, include_id: false do |edition_fields|
         = render "products/form/edition_form_fields", f: edition_fields, sizes: @product&.sizes, versions: @product&.versions, colors: @product&.colors
 
-  - if product.persisted?
-    fieldset
-      h2.mt-8.label Store Information
-      = form_hint "Manage store information for this product"
+  fieldset
+    h2.mt-8.label Store Information
+    = form_hint "Manage store information for this product"
 
-      div data-controller="store-info"
+    div data-controller="store-info" data-store-info-store-names-value=StoreInfo.assignable_store_names.to_json
+      div data-store-info-target="container"
         - form.object.store_infos.each_with_index do |store_info, index|
           = fields_for "store_infos[#{index}]", store_info do |store_info_fields|
-            = render "products/form/store_info_fields", f: store_info_fields, store_info: store_info
+            - if store_info.persisted?
+              = render "products/form/store_info_fields", f: store_info_fields, store_info: store_info
+            - else
+              = render "products/form/new_store_info_fields", f: store_info_fields
 
-        button.btn-rounded.mt-3 type="button" data-action="store-info#addStoreInfo" data-store-info-target="btn" Add Store Info
+      button.btn-rounded.mt-3 type="button" data-action="store-info#addStoreInfo" data-store-info-target="button" Add Store Info
+
+      template data-store-info-target="template"
+        = fields_for "store_infos[NEW_INDEX]", StoreInfo.new, include_id: false do |store_info_fields|
+          = render "products/form/new_store_info_fields", f: store_info_fields
 
   = render "_shared/media_form", form: form, resource_name: "product"
 

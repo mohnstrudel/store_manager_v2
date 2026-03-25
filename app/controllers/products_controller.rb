@@ -41,6 +41,7 @@ class ProductsController < ApplicationController
     respond_to do |format|
       @product.create_from_form!(
         editions_attributes: payload.editions_attributes,
+        store_infos_attributes: payload.store_infos_attributes,
         purchase_attributes: payload.purchase_attributes,
         new_media_images: media_new_images_for(@product)
       )
@@ -50,6 +51,7 @@ class ProductsController < ApplicationController
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+      @product = Product::FormRehydrator.new(product: @product, payload:).call
       load_form_collections
       format.html { render :new, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
