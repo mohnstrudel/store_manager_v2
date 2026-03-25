@@ -42,9 +42,11 @@ module FormattingHelper
   end
 
   def format_purchased_sold_ratio(purchased, sold)
+    purchased_count = purchased.to_i
+    sold_count = sold.to_i
     ratio = "#{purchased} / #{sold}"
 
-    if purchased >= sold
+    if purchased_count >= sold_count
       content_tag(:mark, ratio, class: "mark-gray mr-1.5")
     else
       content_tag(:mark, ratio, class: "mr-1.5")
