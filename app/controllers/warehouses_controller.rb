@@ -6,6 +6,7 @@ class WarehousesController < ApplicationController
 
   before_action :set_warehouse, only: %i[edit update destroy]
   before_action :validate_default_warehouse, only: %i[update]
+  before_action :load_form_collections, only: %i[new edit]
 
   # GET /warehouses
   def index
@@ -154,8 +155,15 @@ class WarehousesController < ApplicationController
 
     @warehouse.errors.add(:is_default, default_warehouse_error_message(current_default))
     @positions_count = Warehouse.count
-    render((action_name == "create" ? :new : :edit), status: :unprocessable_content)
+    load_form_collections
+    render(((action_name == "create") ? :new : :edit), status: :unprocessable_content)
     true
+  end
+
+  def load_form_collections
+    warehouse = @warehouse || Warehouse.new
+    @transition_destinations = Warehouse.where.not(id: warehouse.id).order(:name)
+    @warehouse_transitions = WarehouseTransition.where(from_warehouse: warehouse).includes(:to_warehouse)
   end
 
   def current_default_warehouse

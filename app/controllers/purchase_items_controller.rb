@@ -186,7 +186,8 @@ class PurchaseItemsController < ApplicationController
 
   def load_form_collections
     @purchases = Purchase.for_form_select
-    @shipping_companies = ShippingCompany.all
+    @shipping_companies = ShippingCompany.order(:name)
+    @warehouse_options = Warehouse.order(:name)
   end
 
   def render_tracking_number_edit

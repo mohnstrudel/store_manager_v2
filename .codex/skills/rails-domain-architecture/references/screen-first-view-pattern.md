@@ -48,6 +48,21 @@ Then allow shapes like:
 - `index/_sync_modal`
 - `show/_store_sync_modal`
 
+## Form Mechanics Rule
+
+- In heavy forms, prefer a small helper over a new partial when the repetition is mostly wiring rather than UI structure.
+- Good helper targets:
+  - repeated Slim Select setup
+  - repeated select class merging
+  - repeated hint text under labels
+- Keep the helper small and mechanical. Do not turn it into a presenter or HTML DSL.
+
+## Form Data Rule
+
+- Do not query option collections directly from heavy form templates.
+- Avoid `Model.all`, `Model.order`, and `Model.any?` inside the template when the controller can prepare the collection once.
+- Pass form collections explicitly from the controller so failed form rerenders keep the same prepared state.
+
 ## What Codex Often Gets Wrong
 
 - Do not keep adding new root-level partials after a screen subtree exists.
@@ -55,6 +70,7 @@ Then allow shapes like:
 - Do not extract tiny one-line cell partials that are harder to discover than the inline markup.
 - Do not query option collections directly from heavy form templates; prepare them at the controller boundary.
 - Do not let deep partials read `params` when explicit UI state can be passed once.
+- Do not add helper abstractions that merely rename a single field. The helper should remove repeated setup noise, not hide obvious markup.
 
 ## Repo Examples
 
@@ -70,3 +86,8 @@ Then allow shapes like:
 - expanded screen-first resources:
   - `sales`
   - `products`
+- form-helper cleanup examples:
+  - `products/form/_form`
+  - `sales/form/_form`
+  - `purchase_items/form/_form`
+  - `warehouses/form/_form`

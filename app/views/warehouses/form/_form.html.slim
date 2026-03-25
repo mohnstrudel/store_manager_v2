@@ -1,4 +1,4 @@
-= form_with(model: warehouse, html: { multipart: true }) do |form|
+= form_with(model: warehouse, html: {multipart: true}) do |form|
   .block.w-full
     = form.label :name
     = form.text_field :name
@@ -41,8 +41,7 @@
   = render "_shared/media_form", form: form, resource_name: "warehouse"
 
   label Transition notifications
-  p.text-gray-600.dark:text-gray-500.mb-6
-    | We will send a notification when a product is moved from this warehouse to one of the warehouses listed below
+  = form_hint "We will send a notification when a product is moved from this warehouse to one of the warehouses listed below"
   .border.border-gray-200.rounded-lg class="dark:border-gray-800" data-controller="edit-warehouse-transition"
     table
       thead
@@ -50,11 +49,11 @@
           th Destination Warehouse
           th
       tbody
-        - WarehouseTransition.where(from_warehouse: warehouse).includes(:to_warehouse).each do |transition|
+        - @warehouse_transitions.each do |transition|
           tr.no-select-margin
             td
               = select_tag "warehouse[to_warehouse_ids][]",
-                options_from_collection_for_select(Warehouse.where.not(id: warehouse.id), :id, :name, transition.to_warehouse_id),
+                options_from_collection_for_select(@transition_destinations, :id, :name, transition.to_warehouse_id),
                 class: "form-select"
             td
               = link_to "Remove", "#",
@@ -69,7 +68,7 @@
       tr.no-select-margin
         td
           = select_tag "warehouse[to_warehouse_ids][]",
-            options_from_collection_for_select(Warehouse.where.not(id: warehouse.id), :id, :name),
+            options_from_collection_for_select(@transition_destinations, :id, :name),
             class: "form-select"
         td
           = link_to "#",
