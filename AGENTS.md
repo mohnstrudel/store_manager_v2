@@ -7,6 +7,8 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - `Current` is intentionally small in [app/models/current.rb](/Users/geny/Developer/store_manager_v2/app/models/current.rb): it stores `session` and delegates `user`. Do not assume a broader request context.
 - Follow the existing Slim + Turbo patterns in [app/views](/Users/geny/Developer/store_manager_v2/app/views).
 - Do not add presenters by default. If view code is mostly Ruby and very little markup, first decide whether it is screen-only logic that belongs in a helper or edge template, or a durable domain representation that should stay near the model in `app/models/<model>/...`.
+- In this repo, presentation preparation is usually a helper or partial concern, not a presenter layer. If a template starts building small screen-only view structures, move that setup to a helper before inventing a presenter object.
+- In this repo, Stimulus controllers should stay small and literal. Let the server render initial structure and prepared view data; let Stimulus own only interaction state, DOM toggles, and loading transitions for one widget.
 - Tailwind styles are centralized under [app/assets/tailwind/application.css](/Users/geny/Developer/store_manager_v2/app/assets/tailwind/application.css) and related files. Prefer extending those over long inline utility strings.
 - RSpec already mixes fixtures and `FactoryBot` in [spec/rails_helper.rb](/Users/geny/Developer/store_manager_v2/spec/rails_helper.rb). Reuse the nearest pattern and avoid churn in spec helpers.
 - Route Shopify Admin GraphQL work through [app/services/shopify/api/client.rb](/Users/geny/Developer/store_manager_v2/app/services/shopify/api/client.rb) and the query/mutation objects under [app/services/shopify/graphql](/Users/geny/Developer/store_manager_v2/app/services/shopify/graphql).
@@ -30,6 +32,9 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - Keep jobs thin and move aggregate-local workflow to model-area collaborators.
 - If a method is reused across parsers, jobs, imports, sync flows, and some views, treat it as a domain representation and keep it near the model rather than moving it to helpers.
 - If a method exists only for one screen, dropdown, widget, or response format, move it to helpers, partials, Jbuilder, or Turbo templates.
+- If a partial starts building small collections of screen-only view data, prefer a helper method over adding presenters. Use presenters only if the repo explicitly adopts that pattern, which it currently does not.
+- If one widget owns one DOM node's loading or selection lifecycle, prefer one focused Stimulus controller to own that node end-to-end instead of splitting responsibility across multiple controllers.
+- Prefer obvious JavaScript method names over abstract mini-framework patterns. Optimize for code that reads clearly in one pass.
 - Stable cross-process title builders should usually become instance-oriented methods in a capability such as `app/models/product/titling.rb`, not class methods that take a `product` argument.
 - Prefer business verbs such as `publish`, `move_to`, `link_purchase_items`, or `sync_store_references` over controller-shaped or form-shaped names such as `process_form` or `handle_update`.
 - When proposing a refactor, name explicit target files rather than saying only “extract a service” or “move logic”.

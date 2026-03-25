@@ -277,6 +277,7 @@ The intended shape is:
 - If the controller or job just needs one domain action, call a named model method
 - If one form needs heavy request-shape translation, put that translation in a small object such as `app/models/<model>/form_payload.rb`
 - If a failed submit needs rebuilding of nested unsaved state, use a small `form_rehydrator` object near the owning model instead of bloating the controller
+- If one widget or partial needs small screen-only view-data shaping, prefer a helper over a presenter; this repo uses helpers and partials as the default presentation abstraction
 - If an object is cross-aggregate or infrastructure-heavy, a separate object is fine, but it should have a clear home and purpose
 
 ### Local architecture guidance
@@ -468,6 +469,7 @@ This keeps large screens readable without pushing presentation logic into models
 | store API transport or GraphQL client code | `app/services/shopify/...` or another explicit adapter namespace | Keep low-level transport concerns separate from domain ownership. |
 | parser, importer, payload builder tied to one aggregate | `app/models/<model>/<integration>/...` | Keep integration-specific domain translation near the owning aggregate. |
 | screen-only rendering logic | helper, partial, Turbo template, or view subtree | Do not move screen wording or screen branching into models by default. |
+| small screen-only view-data shaping for one partial or widget | helper | Prefer a helper over a presenter; keep it mechanical and presentation-only. |
 | cross-aggregate orchestration or infrastructure-heavy coordination | explicit namespace under `app/models/<namespace>/` or another clear boundary | Reach for this only when a direct model API would be unnatural. |
 
 ### Naming bias

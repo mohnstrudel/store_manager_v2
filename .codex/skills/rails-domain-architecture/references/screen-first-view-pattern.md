@@ -51,10 +51,12 @@ Then allow shapes like:
 ## Form Mechanics Rule
 
 - In heavy forms, prefer a small helper over a new partial when the repetition is mostly wiring rather than UI structure.
+- For screen-only view-data shaping, prefer a helper over a presenter.
 - Good helper targets:
   - repeated Slim Select setup
   - repeated select class merging
   - repeated hint text under labels
+  - small collections of prepared view data for one widget or partial, such as gallery items, badge rows, or select options
 - Keep the helper small and mechanical. Do not turn it into a presenter or HTML DSL.
 
 ## Form Data Rule
@@ -71,6 +73,7 @@ Then allow shapes like:
 - Do not query option collections directly from heavy form templates; prepare them at the controller boundary.
 - Do not let deep partials read `params` when explicit UI state can be passed once.
 - Do not add helper abstractions that merely rename a single field. The helper should remove repeated setup noise, not hide obvious markup.
+- Do not introduce a presenter layer just because a template has a few setup lines. First try a helper if the logic is screen-only.
 
 ## Repo Examples
 

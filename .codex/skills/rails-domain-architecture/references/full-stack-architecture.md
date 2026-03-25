@@ -52,10 +52,16 @@ Use this file for the non-obvious request, controller, and presentation rules in
 
 - Keep screen-specific logic at the edge.
 - Do not add presenters by default.
+- In this repo, presentation preparation usually lives in helpers and partials, not in a presenter layer.
 - Use this sorting rule:
   - one screen or one response format -> helper, partial, Jbuilder, Turbo template
   - reused across jobs, exports, notifications, or integrations -> model-area representation object
   - business identity or state text -> model or capability module
+- If a Slim template starts assembling a small collection of view data for one widget or partial, prefer a helper before inventing a presenter.
+- Keep that helper presentation-only: shaping labels, URLs, image variants, CSS classes, and screen-local flags is fine; domain rules and cross-process payloads are not.
+- For interactive widgets, let the server render the structure and prepared view data first. Stimulus should usually own only interaction state, DOM class changes, and loading transitions.
+- Avoid split ownership of one DOM node across multiple Stimulus controllers unless the separation is truly clear. If one widget owns one image or dialog state machine, prefer one controller to own that node end-to-end.
+- Prefer small, literal Stimulus methods over abstract mini-frameworks. Names like `showIndex`, `renderSelection`, `loadCurrentImage`, or `finishLoading` are easier to audit than a generic `render` plus several hidden options.
 
 ## What Codex Often Gets Wrong
 
@@ -70,6 +76,9 @@ Use this file for the non-obvious request, controller, and presentation rules in
 - Do not use controller concerns as local file-folders for one controller only.
 - Do not keep adding root-level partials after a screen subtree already exists.
 - Do not let deep partials reach into `params` or associations when explicit state can be passed once.
+- Do not add a presenter layer just because a template has a few setup lines; first ask whether a helper can keep the preparation small and screen-local.
+- Do not make Stimulus controllers fight the server-rendered HTML for ownership of initial state. Prefer server-chosen initial markup plus a small reconciliation pass if browser timing makes it necessary.
+- Do not split one widget's loading lifecycle across multiple controllers when one focused controller can own it more readably.
 - Do not forget shared helpers when refactoring routes; a stale polymorphic helper can break a page before the newly extracted controller code even runs.
 
 ## View Defaults

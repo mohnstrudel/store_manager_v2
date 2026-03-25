@@ -18,6 +18,7 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 - job transport behavior -> `spec/jobs/...`
 - helper-only presentation logic -> `spec/helpers/...`
 - only the highest-risk end-to-end flows -> `spec/features/...`
+- browser-driven widget geometry, loading states, or JS interaction contracts -> focused `spec/features/...` coverage before introducing screenshot-diff tooling
 
 ## What Codex Often Gets Wrong
 
@@ -29,6 +30,7 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 - Do not skip negative-path rules where state suppresses side effects.
 - Do not hide time-based rules in scheduler tests when they really belong to the domain.
 - Do not let extracted-route regressions hide in shared helpers; add or keep at least one request, controller, or feature check that exercises the real rendered trigger.
+- Do not jump straight to pixel-diff infrastructure for every UI regression. For many Hotwire or Stimulus widgets, a focused browser-level feature spec that asserts loading classes, geometry stability, and state transitions is cheaper and more durable.
 
 ## Repo-Specific Bias
 
