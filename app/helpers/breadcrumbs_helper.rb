@@ -29,7 +29,8 @@ module BreadcrumbsHelper
   private
 
   def determine_breadcrumb_title
-    return special_route if special_route
+    special_title = special_route_title
+    return special_title if special_title
 
     case action_name
     when "show"
@@ -43,17 +44,17 @@ module BreadcrumbsHelper
     end
   end
 
-  def special_route
-    @special_route_title ||= case "#{controller_path}##{action_name}"
-    when "dashboard/debts#show"
-      "Debts"
-    when "dashboard#index"
-      "Dashboard"
-    when "dashboard#noop"
-      "Dashboard"
-    when "warehouses/details#show"
-      instance_variable_get(:@warehouse)&.name
-    end
+  def special_route_title
+    special_route_titles.fetch("#{controller_path}##{action_name}", nil)&.call
+  end
+
+  def special_route_titles
+    @special_route_titles ||= {
+      "dashboard/debts#show" => -> { "Debts" },
+      "dashboard#index" => -> { "Dashboard" },
+      "dashboard#noop" => -> { "Dashboard" },
+      "warehouses/details#show" => -> { instance_variable_get(:@warehouse)&.name }
+    }
   end
 
   def record_name
