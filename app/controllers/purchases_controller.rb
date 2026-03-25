@@ -82,9 +82,7 @@ class PurchasesController < ApplicationController
   def move
     moved_count = Purchase.friendly
       .where(id: purchase_ids_for_movement)
-      .sum { |purchase|
-        Warehouse::Relocation.move(warehouse_id: params[:destination_id], purchase:)
-      }
+      .sum { |purchase| purchase.move_to_warehouse!(params[:destination_id]) }
 
     flash_movement_notice(moved_count, Warehouse.find(params[:destination_id]))
     redirect_after_purchase_move
@@ -140,8 +138,7 @@ class PurchasesController < ApplicationController
   def handle_warehouse_assignment_for(purchase, warehouse_id)
     return if warehouse_id.blank?
 
-    purchase.add_items_to_warehouse(warehouse_id)
-    purchase.link_with_sales
+    purchase.move_to_warehouse!(warehouse_id)
   end
 
   def purchase_ids_for_movement

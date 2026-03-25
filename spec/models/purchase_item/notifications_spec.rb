@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-describe PurchaseItem::Notifier do
+RSpec.describe PurchaseItem do
   include ActiveJob::TestHelper
 
   before do
@@ -17,16 +17,15 @@ describe PurchaseItem::Notifier do
   let(:purchase_item) { create(:purchase_item, sale: sale, warehouse: warehouse, sale_item: sale_item) }
   let(:notification) { create(:notification, event_type: :warehouse_changed, status: :active) }
 
-  describe "#handle_product_purchase" do
+  describe ".notify_order_status!" do
     it "sends product purchased email" do
       expect {
-        described_class.new(purchase_item_ids: Array(purchase_item.id))
-          .handle_product_purchase
-      }.to have_enqueued_mail(NotificationsMailer, :product_purchased_email)
+        described_class.notify_order_status!(purchase_item_ids: Array(purchase_item.id))
+      }.to have_enqueued_mail(NotificationsMailer, :order_status_updated_email)
     end
   end
 
-  describe "#handle_warehouse_change" do
+  describe ".notify_order_status_change!" do
     let!(:transition) do # rubocop:todo RSpec/LetSetup
       create(:warehouse_transition,
         notification: notification,
@@ -36,22 +35,22 @@ describe PurchaseItem::Notifier do
 
     it "sends warehouse changed email" do
       expect {
-        described_class.new(
+        described_class.notify_order_status_change!(
           purchase_item_ids: Array(purchase_item.id),
           from_id: warehouse.id,
           to_id: to_warehouse.id
-        ).handle_warehouse_change
-      }.to have_enqueued_mail(NotificationsMailer, :warehouse_changed_email)
+        )
+      }.to have_enqueued_mail(NotificationsMailer, :order_status_changed_email)
     end
 
     it "does not send email when warehouses are the same" do
       expect {
-        described_class.new(
+        described_class.notify_order_status_change!(
           purchase_item_ids: Array(purchase_item.id),
           from_id: warehouse.id,
           to_id: warehouse.id
-        ).handle_warehouse_change
-      }.not_to have_enqueued_mail(NotificationsMailer, :warehouse_changed_email)
+        )
+      }.not_to have_enqueued_mail(NotificationsMailer, :order_status_changed_email)
     end
   end
 end

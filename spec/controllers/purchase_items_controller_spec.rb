@@ -32,8 +32,6 @@ describe PurchaseItemsController do
     let(:to_warehouse) { create(:warehouse) }
     let(:purchase_items) { create_list(:purchase_item, 3, warehouse: from_warehouse) }
 
-    let(:notifier) { instance_double(PurchaseItem::Notifier, handle_warehouse_change: true) }
-
     let(:valid_params) do
       {
         selected_items_ids: purchase_items.map(&:id),
@@ -42,9 +40,7 @@ describe PurchaseItemsController do
       }
     end
 
-    before do
-      allow(PurchaseItem::Notifier).to receive(:new).and_return(notifier)
-    end
+    before { allow(PurchaseItem).to receive(:notify_order_status_change!) }
 
     it "moves products to destination warehouse" do
       post :move, params: valid_params
@@ -57,12 +53,11 @@ describe PurchaseItemsController do
     it "notifies about warehouse change" do # rubocop:todo RSpec/MultipleExpectations
       post :move, params: valid_params
 
-      expect(PurchaseItem::Notifier).to have_received(:new).with(
+      expect(PurchaseItem).to have_received(:notify_order_status_change!).with(
         purchase_item_ids: purchase_items.map(&:id),
         from_id: from_warehouse.id,
         to_id: to_warehouse.id
       )
-      expect(notifier).to have_received(:handle_warehouse_change)
     end
   end
 

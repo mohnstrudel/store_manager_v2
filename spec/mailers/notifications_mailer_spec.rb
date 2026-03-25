@@ -3,10 +3,10 @@
 require "rails_helper"
 
 RSpec.describe NotificationsMailer do
-  describe "#product_purchased_email" do
+  describe "#order_status_updated_email" do
     context "without tracking information" do
       let(:mail) {
-        described_class.product_purchased_email(
+        described_class.order_status_updated_email(
           customer_name: "John Doe",
           email: "john@example.com",
           item_name: "Test Item",
@@ -46,7 +46,7 @@ RSpec.describe NotificationsMailer do
 
     context "with tracking information" do
       let(:mail) {
-        described_class.product_purchased_email(
+        described_class.order_status_updated_email(
           customer_name: "Jane Doe",
           email: "jane@example.com",
           item_name: "Test Item 2",
@@ -86,10 +86,10 @@ RSpec.describe NotificationsMailer do
     end
   end
 
-  describe "#warehouse_changed_email" do
+  describe "#order_status_changed_email" do
     context "without tracking information" do
       let(:mail) {
-        described_class.warehouse_changed_email(
+        described_class.order_status_changed_email(
           customer_name: "John Doe",
           email: "john@example.com",
           item_name: "Test Item",
@@ -139,7 +139,7 @@ RSpec.describe NotificationsMailer do
 
     context "with tracking information" do
       let(:mail) {
-        described_class.warehouse_changed_email(
+        described_class.order_status_changed_email(
           customer_name: "Jane Doe",
           email: "jane@example.com",
           item_name: "Test Item 2",

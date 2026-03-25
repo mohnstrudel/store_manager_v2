@@ -2,8 +2,8 @@
 
 # Preview at http://localhost:3000/rails/mailers/notifications_mailer
 class NotificationsMailerPreview < ActionMailer::Preview
-  def product_purchased_email
-    NotificationsMailer.product_purchased_email(
+  def order_status_updated_email
+    NotificationsMailer.order_status_updated_email(
       email: "test@example.com",
       customer_name: "John Doe",
       order_number: "12345",
@@ -17,8 +17,8 @@ class NotificationsMailerPreview < ActionMailer::Preview
     )
   end
 
-  def warehouse_changed_email
-    NotificationsMailer.warehouse_changed_email(
+  def order_status_changed_email
+    NotificationsMailer.order_status_changed_email(
       email: "test@example.com",
       customer_name: "John Doe",
       order_number: "12345",

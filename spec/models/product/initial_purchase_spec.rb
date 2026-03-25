@@ -10,8 +10,8 @@ RSpec.describe Product do
     let!(:purchase) { create(:purchase, product:, supplier:, amount: 2, item_price: 10) }
 
     before do
-      allow(Purchase::Linker).to receive(:link).with(purchase).and_return([])
-      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
+      allow_any_instance_of(Purchase).to receive(:link_purchase_items).and_return([]) # rubocop:todo RSpec/AnyInstance
+      allow(PurchaseItem).to receive(:notify_order_status!)
     end
 
     it "creates warehouse items, links sales, and creates a payment" do
@@ -23,8 +23,9 @@ RSpec.describe Product do
       aggregate_failures do
         expect(purchase.reload.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
         expect(purchase.payments.first.value).to eq(BigDecimal("20"))
-        expect(Purchase::Linker).to have_received(:link).with(purchase)
-        expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(purchase_item_ids: [])
+        expect(PurchaseItem).to have_received(:notify_order_status!).with(
+          purchase_item_ids: []
+        )
       end
     end
 

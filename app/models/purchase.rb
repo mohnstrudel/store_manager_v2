@@ -25,6 +25,7 @@ class Purchase < ApplicationRecord
 
   include Financials
   include HasAuditNotifications
+  include Linking
   include Listing
   include Searchable
   include Warehousing

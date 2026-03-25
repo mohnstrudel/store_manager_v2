@@ -6,38 +6,40 @@ RSpec.describe Purchase do
   let(:warehouse) { create(:warehouse) }
   let(:purchase) { create(:purchase, amount: 3) }
 
-  describe "#add_items_to_warehouse" do
-    it "creates purchase items for the warehouse" do
-      expect {
-        purchase.add_items_to_warehouse(warehouse.id)
-      }.to change(PurchaseItem, :count).by(3)
+  describe "#move_to_warehouse!" do
+    it "creates purchase items and links sales when the purchase has no items" do
+      allow(purchase).to receive(:link_with_sales)
+
+      moved_count = purchase.move_to_warehouse!(warehouse.id)
+
+      expect(moved_count).to eq(3)
+      expect(PurchaseItem.where(purchase_id: purchase.id, warehouse_id: warehouse.id).count).to eq(3)
+      expect(purchase).to have_received(:link_with_sales)
     end
 
-    it "associates purchase items with the purchase" do
-      purchase.add_items_to_warehouse(warehouse.id)
+    it "relocates existing purchase items to the destination warehouse" do
+      origin = create(:warehouse)
+      purchase_items = create_list(:purchase_item, 2, purchase:, warehouse: origin)
+      destination = create(:warehouse)
+      allow(PurchaseItem).to receive(:notify_order_status_change!)
 
-      expect(PurchaseItem.where(purchase_id: purchase.id).count).to eq(3)
-    end
+      moved_count = purchase.move_to_warehouse!(destination.id)
 
-    it "associates purchase items with the warehouse" do
-      purchase.add_items_to_warehouse(warehouse.id)
-
-      expect(PurchaseItem.where(warehouse_id: warehouse.id).count).to eq(3)
-    end
-
-    it "sets created_at and updated_at timestamps" do
-      purchase.add_items_to_warehouse(warehouse.id)
-      purchase_items = PurchaseItem.where(purchase_id: purchase.id)
-
-      expect(purchase_items.all? { |item| item.created_at.present? && item.updated_at.present? }).to be true
+      expect(moved_count).to eq(2)
+      expect(purchase_items.map { |item| item.reload.warehouse_id }).to all(eq(destination.id))
+      expect(PurchaseItem).to have_received(:notify_order_status_change!).with(
+        purchase_item_ids: purchase_items.map(&:id),
+        from_id: origin.id,
+        to_id: destination.id
+      )
     end
 
     context "when amount is zero" do
       let(:purchase) { create(:purchase, amount: 0) }
 
-      it "creates no purchase items" do
+      it "returns 0 without creating purchase items" do
         expect {
-          purchase.add_items_to_warehouse(warehouse.id)
+          expect(purchase.move_to_warehouse!(warehouse.id)).to eq(0)
         }.not_to change(PurchaseItem, :count)
       end
     end
@@ -47,7 +49,7 @@ RSpec.describe Purchase do
 
       it "raises ActiveRecord::RecordInvalid" do
         expect {
-          purchase.add_items_to_warehouse(invalid_warehouse_id)
+          purchase.move_to_warehouse!(invalid_warehouse_id)
         }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
@@ -65,30 +67,30 @@ RSpec.describe Purchase do
     it "links purchase with sales" do
       # rubocop:todo RSpec/StubbedMock
       # rubocop:todo RSpec/MessageSpies
-      expect(Purchase::Linker).to receive(:link).with(purchase).and_return([purchase_item1.id, purchase_item2.id])
+      expect(purchase).to receive(:link_purchase_items).and_return([purchase_item1.id, purchase_item2.id])
       # rubocop:enable RSpec/MessageSpies
       # rubocop:enable RSpec/StubbedMock
-      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
+      allow(PurchaseItem).to receive(:notify_order_status!)
 
       purchase.link_with_sales
     end
 
     it "sends notifications for linked purchase items" do
-      allow(Purchase::Linker).to receive(:link).and_return([purchase_item1.id, purchase_item2.id])
-      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
+      allow(purchase).to receive(:link_purchase_items).and_return([purchase_item1.id, purchase_item2.id])
+      allow(PurchaseItem).to receive(:notify_order_status!)
       purchase.link_with_sales
 
-      expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(purchase_item_ids: [purchase_item1.id, purchase_item2.id])
+      expect(PurchaseItem).to have_received(:notify_order_status!).with(purchase_item_ids: [purchase_item1.id, purchase_item2.id])
     end
 
     it "does nothing when purchase has no purchase_items" do
       purchase.purchase_items.destroy_all
-      allow(Purchase::Linker).to receive(:link).and_return([])
-      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
+      allow(purchase).to receive(:link_purchase_items).and_return([])
+      allow(PurchaseItem).to receive(:notify_order_status!)
 
       purchase.link_with_sales
 
-      expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(purchase_item_ids: [])
+      expect(PurchaseItem).to have_received(:notify_order_status!).with(purchase_item_ids: [])
     end
   end
 end

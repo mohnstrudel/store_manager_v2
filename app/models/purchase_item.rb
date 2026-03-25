@@ -26,10 +26,11 @@ class PurchaseItem < ApplicationRecord
   include Linking
   include Listing
   include Financials
-  include Relocatable
+  include Notifications
   include Searchable
   include Shipping
   include Titling
+  include Warehousing
 
   audited associated_with: :purchase
 

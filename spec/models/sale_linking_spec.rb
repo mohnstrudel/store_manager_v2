@@ -141,7 +141,7 @@ RSpec.describe Sale do
 
     before do
       allow(sale).to receive(:link_with_purchase_items).and_return(purchase_item_ids)
-      allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
+      allow(PurchaseItem).to receive(:notify_order_status!)
     end
 
     it "links sale items and notifies purchase item changes" do
@@ -149,7 +149,7 @@ RSpec.describe Sale do
 
       aggregate_failures do
         expect(sale).to have_received(:link_with_purchase_items)
-        expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).with(
+        expect(PurchaseItem).to have_received(:notify_order_status!).with(
           purchase_item_ids:
         )
       end

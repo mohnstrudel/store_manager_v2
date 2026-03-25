@@ -57,7 +57,7 @@ class Sale::Shopify::Importer
     return unless should_link_items?
 
     linked_ids = sale.link_with_purchase_items
-    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids: linked_ids) if linked_ids.any?
+    PurchaseItem.notify_order_status!(purchase_item_ids: linked_ids)
   end
 
   def should_link_items?

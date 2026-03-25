@@ -5,7 +5,7 @@ module Sale::Linking
 
   def link_purchase_items!
     purchase_item_ids = link_with_purchase_items
-    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids:)
+    PurchaseItem.notify_order_status!(purchase_item_ids:)
   end
 
   def unlinked_sale_items?

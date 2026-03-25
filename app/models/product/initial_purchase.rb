@@ -9,10 +9,7 @@ module Product::InitialPurchase
     purchase = purchases.last
     return unless purchase
 
-    if attributes[:warehouse_id].present?
-      purchase.add_items_to_warehouse(attributes[:warehouse_id])
-      purchase.link_with_sales
-    end
+    purchase.move_to_warehouse!(attributes[:warehouse_id]) if attributes[:warehouse_id].present?
 
     sync_initial_payment!(purchase, attributes[:payment_value])
   end
