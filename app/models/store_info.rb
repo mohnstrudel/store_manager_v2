@@ -71,9 +71,12 @@ class StoreInfo < ApplicationRecord
   end
 
   def in_memory_new_sibling_store_infos
-    return [] unless storable.respond_to?(:store_infos)
+    return [] unless storable.respond_to?(:association)
 
-    storable.store_infos.select do |store_info|
+    association = storable.association(:store_infos)
+    return [] unless association.loaded?
+
+    association.target.select do |store_info|
       store_info != self && !store_info.persisted? && !store_info.marked_for_destruction? && !store_info.destroyed?
     end
   end
