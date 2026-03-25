@@ -62,13 +62,14 @@
 
   h5.mt-8.mb-3 Products
   div data-controller="sale-items"
-    / Look for the template in sale_items_controller.js
-    = form.collection_select :_, @product_options || [], :id, :full_title,
-      {prompt: "Select a product"},
-      {hidden: true, data: {"sale-items-target": "options"}}
-    - sale.sale_items.each do |sale_item|
-      = form.fields_for :sale_items, sale_item do |ps_f|
-        = render "sales/form/product_fields", f: ps_f, product: sale_item.product
-    button.btn-rounded.mt-3(data-action="sale-items#addProduct" data-sale-items-target="btn") Add Product
+    div data-sale-items-target="container"
+      - sale.sale_items.each do |sale_item|
+        = form.fields_for :sale_items, sale_item do |ps_f|
+          = render "sales/form/product_fields", f: ps_f, product: sale_item.product
+    button.btn-rounded.mt-3 type="button" data-action="sale-items#addProduct" data-sale-items-target="button" Add Product
+
+    template data-sale-items-target="template"
+      = form.fields_for :sale_items, SaleItem.new, child_index: "NEW_INDEX" do |ps_f|
+        = render "sales/form/new_product_fields", f: ps_f
 
   = form_submit_for(sale, form)

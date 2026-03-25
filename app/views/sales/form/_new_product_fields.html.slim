@@ -1,0 +1,15 @@
+.sales-form__product_fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-2/3
+  = f.hidden_field :_destroy, value: "0"
+  .flex.justify-between.items-center
+    h6 New product
+    button.btn-rounded.btn-red type="button" data-action="sale-items#removeProduct"
+      | Remove
+
+  = f.label :product_id, "Product"
+  = f.collection_select :product_id, @product_shop_options || [], :id, :build_full_title_with_shop_id, {prompt: "Select a product"}, slim_select_html_options
+
+  = f.label :qty, "Amount"
+  = f.number_field :qty, placeholder: "Amount"
+
+  = f.label :price
+  = f.number_field :price, step: :any, placeholder: "Price"
