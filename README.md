@@ -139,7 +139,20 @@ They are responsible for:
 
 They are not meant to be the home for business rules.
 
-A representative example is `ProductsController`, which prepares params and calls model entry points such as `create_from_form!` and `apply_form_changes!`, while the transaction and domain sequencing live on `Product`.
+A representative example is `ProductsController`, which now uses small form-boundary objects such as `Product::FormPayload` and `Product::FormRehydrator` before calling model entry points such as `create_from_form!` and `apply_form_changes!`.
+
+The rule in this repo is:
+
+- small params normalization may stay in the controller
+- once a form needs several normalization helpers or failed-submit rebuilding, extract narrow objects under the owning model namespace
+
+Typical examples:
+
+- `app/models/product/form_payload.rb`
+- `app/models/product/form_rehydrator.rb`
+- `app/models/purchase/form_payload.rb`
+
+These are not generic service objects. They are boundary translators for one aggregate-owned form.
 
 ### 2. Domain layer
 
@@ -252,6 +265,7 @@ The intended shape is:
 - thin controllers
 - rich model APIs
 - narrow capability modules
+- narrow form-boundary objects when request-shape translation grows
 - named scopes for business queries and preload shapes
 - jobs that call domain code directly
 - integration objects placed near the owning model when they are still part of the domain language
@@ -261,6 +275,8 @@ The intended shape is:
 - If one aggregate owns the rule, put it under `app/models/<model>/...`
 - If the behavior is shared across many models, use `app/models/concerns`
 - If the controller or job just needs one domain action, call a named model method
+- If one form needs heavy request-shape translation, put that translation in a small object such as `app/models/<model>/form_payload.rb`
+- If a failed submit needs rebuilding of nested unsaved state, use a small `form_rehydrator` object near the owning model instead of bloating the controller
 - If an object is cross-aggregate or infrastructure-heavy, a separate object is fine, but it should have a clear home and purpose
 
 ### Local architecture guidance

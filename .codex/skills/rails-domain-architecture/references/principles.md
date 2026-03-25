@@ -11,6 +11,7 @@ Use this file for the non-obvious model-layer rules in this repo.
 - In the controller layer, reserve concerns for true shared request behavior, either cross-app or reused by a controller family around one seam.
 - Prefer rich model APIs with business verbs over controller-shaped workflows and generic manager objects.
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` when the workflow still belongs to one aggregate.
+- When one form needs heavy request-shape translation, use small model-area form objects such as `app/models/product/form_payload.rb` or `app/models/product/form_rehydrator.rb` instead of teaching the aggregate about controller params.
 - Prefer named scopes and preload scopes over controller-built SQL or tiny query wrappers.
 
 ## What Codex Often Gets Wrong
@@ -61,6 +62,7 @@ Use this file for the non-obvious model-layer rules in this repo.
 - Good examples:
   - workflow objects
   - payload builders
+  - form payload or rehydration objects for complex aggregate-owned forms
   - integration importers or parsers
   - query subsystems with real identity
 - A separate object is a good fit when the behavior is cross-aggregate, adapter-specific, or would otherwise force one model to know too much about infrastructure.
@@ -75,6 +77,7 @@ Use this file for the non-obvious model-layer rules in this repo.
 
 - one aggregate owns the invariant -> `app/models/<model>/<capability>.rb`
 - one aggregate owns a bigger workflow -> `app/models/<model>/<workflow>.rb`
+- one aggregate owns a complex form boundary -> `app/models/<model>/form_payload.rb` and, if needed, `app/models/<model>/form_rehydrator.rb`
 - shared cross-model behavior -> `app/models/concerns/<concern>.rb`
 - repeated read shape -> named scope on the owning model
 - multi-aggregate or external orchestration -> a focused object in an explicit `app/models/<namespace>/` home

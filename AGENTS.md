@@ -21,6 +21,7 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` or `app/models/sale/creation.rb` over generic `app/services` classes when the workflow is aggregate-local.
 - Prefer direct, intention-revealing model APIs before adding a generic service layer between controllers or jobs and the domain.
 - Keep controllers focused on request loading, params, and response format; move aggregate-local transactions out of controllers.
+- Small params normalization can stay in controllers. When one form grows several normalization helpers or needs failed-submit rebuilding, prefer narrow form-boundary objects such as `app/models/product/form_payload.rb` or `app/models/product/form_rehydrator.rb` over a generic form service.
 - In controllers, concerns are for shared request behavior. Shared can mean cross-app or shared by a namespaced controller family such as Fizzy’s `CardScoped`; it does not mean “any chunk I want to move out of one controller file”.
 - When a side-effect action becomes its own concept, prefer a small nested resource controller over adding another member or collection action to a broad controller.
 - Prefer real write routes for command-style actions. A pull, move, link, or confirmation flow should usually become a `POST`, `PATCH`, or `DELETE` resource endpoint, not a `GET`.
@@ -37,6 +38,8 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 
 - one aggregate owns the rule: `app/models/<model>/<capability>.rb`
 - one aggregate owns a larger workflow: `app/models/<model>/<workflow>.rb`
+- one aggregate owns a complex form boundary: `app/models/<model>/form_payload.rb`
+- one aggregate needs failed-submit form rebuilding: `app/models/<model>/form_rehydrator.rb`
 - shared cross-model behavior: `app/models/concerns/<concern>.rb`
 - repeated business query or preload shape: named scope on the owning model
 - parser, importer, or payload tied to one aggregate: `app/models/<model>/<integration>/...`

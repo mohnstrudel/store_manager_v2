@@ -23,6 +23,7 @@ Use this file for the non-obvious request, controller, and presentation rules in
   - recipient or payload logic
   - hand-built HTML or JSON
 - Prefer direct calls to intention-revealing model APIs before introducing a service layer between controllers and models.
+- Small params normalization can stay in the controller. If one form needs several normalization helpers, nested-form translation, or failed-submit rebuilding, extract narrow form objects such as `Product::FormPayload` or `Product::FormRehydrator` under `app/models/<model>/`.
 - If the controller action reads like a business verb, that verb probably belongs on the owning model or model-area object.
 - When a side-effect action is really its own concept, prefer a dedicated resource controller such as `Sales::PurchaseItemLinksController` or `Warehouses::PositionsController` over growing one large top-level controller.
 - Use real write verbs for command endpoints. A pull, move, link, or webhook-confirm action should not hide behind `GET` just because the UI triggers it from a button or menu.
@@ -38,6 +39,8 @@ Use this file for the non-obvious request, controller, and presentation rules in
 - repeated request mechanics across one controller family -> controller concern
 - aggregate-owned behavior -> `app/models/<model>/<capability>.rb`
 - aggregate-local orchestration -> `app/models/<model>/<workflow>.rb`
+- complex form input translation -> `app/models/<model>/form_payload.rb`
+- failed-submit form rebuilding -> `app/models/<model>/form_rehydrator.rb`
 - presentation-only branching -> helpers, partials, Jbuilder, Turbo templates
 - repeated resource loading across several small controllers -> `app/controllers/concerns/<resource>_scoped.rb`
 - one controller needs internal cleanup but no other controller shares the logic -> keep private methods or extract another controller, not a single-use concern
@@ -60,6 +63,8 @@ Use this file for the non-obvious request, controller, and presentation rules in
 - Do not move true domain payload builders into helpers.
 - Do not leave controllers orchestrating multi-step aggregate updates when the sequence belongs to one model.
 - Do not introduce a form object or service object by reflex when a named model command would be simpler and clearer.
+- Do not pass `ActionController::Parameters` into model APIs. Translate request-shape data at the edge or in a narrow form payload object first.
+- Do not let a controller accumulate half a dozen `normalized_*` helpers when the form shape itself has become a concept.
 - Do not keep bolting member actions onto one broad controller when the route can become a first-class nested resource.
 - Do not leave command endpoints on `GET` after promoting them into their own concept.
 - Do not use controller concerns as local file-folders for one controller only.
