@@ -3,31 +3,7 @@
 = render "_shared/nav-show", model: @version
 
 .section-wide.flex.flex-col.gap-8.mt-8
-  .table-card
-    table
-      thead
-        tr
-          th ID
-          th Value
-          th Created
-          th Updated
-      tbody
-        = render @version
-
-  - if @version.products.any?
-    .table-card
-      h3 Products
-      table data-controller="table"
-          thead
-            th.text-gray-500 ID
-            th Full Title
-          tbody
-            - @version.products.each do |product|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=product_path(product)
-              )
-                td.text-gray-500 = product.id
-                td = product.full_title 
+  = render "versions/show/details", version: @version
+  = render "versions/show/products", products: @version.products
 
 = destroy_btn_for @version

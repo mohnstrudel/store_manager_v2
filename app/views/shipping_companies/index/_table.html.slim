@@ -1,0 +1,11 @@
+table
+  thead
+    tr
+      th ID
+      th Name
+      th Tracking URL
+      th Created
+      th Updated
+      th.text-right Actions
+  tbody
+    = render partial: "shipping_companies/index/shipping_company", collection: shipping_companies, as: :shipping_company

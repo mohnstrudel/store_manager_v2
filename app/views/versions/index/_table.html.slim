@@ -1,0 +1,10 @@
+table
+  thead
+    tr
+      th ID
+      th Value
+      th Created
+      th Updated
+      th.text-right Actions
+  tbody
+    = render partial: "versions/index/version", collection: versions, as: :version

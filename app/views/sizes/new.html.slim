@@ -1,4 +1,5 @@
 = render "_shared/notice-err", model: @size
 
-h1 New size
-= render "form", size: @size
+= render "_shared/nav-new", model: @size
+
+= render "sizes/form/form", size: @size

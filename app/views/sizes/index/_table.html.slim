@@ -1,0 +1,10 @@
+table(role="grid")
+  thead
+    tr
+      th ID
+      th Value
+      th Created
+      th Updated
+      th.text-right Actions
+  tbody
+    = render partial: "sizes/index/size", collection: sizes, as: :size

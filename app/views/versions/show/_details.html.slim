@@ -1,0 +1,14 @@
+.table-card
+  table
+    thead
+      tr
+        th ID
+        th Value
+        th Created
+        th Updated
+    tbody
+      tr
+        td = version.id
+        td = version.value
+        td = format_date version.created_at
+        td = format_date version.updated_at
