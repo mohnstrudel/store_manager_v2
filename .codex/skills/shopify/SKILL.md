@@ -5,6 +5,7 @@ description: Use for Shopify Admin API work in this repo. The important local ru
 
 # Shopify
 
+- Use this skill together with `rails-domain-architecture` when the task also changes model placement, controllers, views, jobs, or tests.
 - The GraphQL client lives in [app/services/shopify/api/client.rb](/Users/geny/Developer/store_manager_v2/app/services/shopify/api/client.rb).
 - Query and mutation objects live under [app/services/shopify/graphql](/Users/geny/Developer/store_manager_v2/app/services/shopify/graphql).
 - Sync orchestration lives in [app/jobs/shopify](/Users/geny/Developer/store_manager_v2/app/jobs/shopify).

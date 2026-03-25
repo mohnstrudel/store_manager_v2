@@ -7,18 +7,13 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 
 ## Quick Start
 
+- Read `references/task-router.md` first when the task starts as “build”, “add”, “refactor”, or “fix” and you need to choose the right files and references quickly.
+- In this repo, treat `rails-domain-architecture` as the default starting skill for most app work. Add narrower skills such as `shopify` only when the task clearly touches that subsystem.
 - Read `references/principles.md` before proposing a new Rails architecture or refactoring an existing one.
-- Read `references/advanced-model-patterns.md` when the codebase relies on rich concerns, callbacks, event fan-out, association proxy APIs, or model-owned representations.
 - Read `references/full-stack-architecture.md` when the task spans routes, controllers, views, helpers, jobs, mailers, channels, or request context.
 - Read `references/jobs-architecture.md` when the task is about Active Job, recurring work, queue design, retries, or moving logic into or out of background jobs.
-- Read `references/controllers-and-request-refactors.md` when refactoring fat controllers or unclear request boundaries.
-- Read `references/views-and-edge-refactors.md` when presentation logic is scattered across models, controllers, helpers, JSON builders, or JavaScript.
-- Read `references/presentation-methods-without-presenters.md` when models contain many string-building or summary methods and you need to sort them without introducing presenters.
-- Read `references/model-file-style.md` when you are cleaning up model file order, grouping, or cosmetics and want a consistent Fizzy-style layout.
-- Read `references/jobs-refactors.md` when legacy jobs or scheduler code hide domain ownership.
-- Read `references/testing-refactors.md` when tests need to move with new ownership seams after a refactor.
+- Read `references/screen-first-view-pattern.md` for the repo's single view-organization guide, including both the simple CRUD baseline and the expanded screen-first shape.
 - Read `references/testing-architecture.md` when the task is about test strategy, test placement, fixtures, system vs integration coverage, or preserving architecture during refactors.
-- Read `references/refactor-playbook.md` when migrating controller SQL, fat service objects, or ad hoc queries into reusable model structure.
 - Start by identifying the request boundary, the owning model, and whether the work is a domain capability, a cross-cutting concern, a first-class query subsystem, or an orchestration service.
 - Treat legacy file placement as evidence to analyze, not as architecture to preserve. Keep only the parts that are coherent.
 
@@ -62,14 +57,9 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 
 ## References
 
+- Read `references/task-router.md` first for a task-to-reference map covering new models, controllers, views, jobs, tests, and refactors in this repo.
 - Read `references/principles.md` for the default architecture rules and model layout.
-- Read `references/advanced-model-patterns.md` for non-obvious model-centric patterns that generic Rails guidance often misses.
 - Read `references/full-stack-architecture.md` for request flow, routing, controllers, views, jobs, and edge-layer design.
 - Read `references/jobs-architecture.md` for queue, retry, resumability, scheduling, and thin-job design guidance.
-- Read `references/controllers-and-request-refactors.md` for explicit destination rules when moving controller logic back to request boundaries, model workflows, and named scopes.
-- Read `references/views-and-edge-refactors.md` for explicit destination rules when moving screen logic to partials, helpers, Jbuilder, and Turbo templates.
-- Read `references/presentation-methods-without-presenters.md` for rules that distinguish screen-only model methods from true domain representations without defaulting to presenters.
-- Read `references/jobs-refactors.md` for explicit destination rules when slimming jobs and moving workflow logic to model-area collaborators.
-- Read `references/testing-refactors.md` for explicit test-file targets after moving ownership seams.
+- Read `references/screen-first-view-pattern.md` for the repo-local view organization guide, from simple CRUD resources up through section-heavy resources such as `sales` and `products`.
 - Read `references/testing-architecture.md` for test ownership, fixtures, request/system test boundaries, and testing patterns for rich model layers.
-- Read `references/refactor-playbook.md` for a decision matrix and a migration sequence.

@@ -34,6 +34,16 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
 - shopify: Use for Shopify Admin API work in this repo. The important local rule is that GraphQL calls go through the shared client and query or mutation objects, with sync logic kept in jobs and parser or serializer layers. (file: /Users/geny/Developer/store_manager_v2/.codex/skills/shopify/SKILL.md)
 - commit: Use when asked to write a git commit for this repo. The repo-specific guidance is the Conventional Commit format, common scopes, and avoiding attribution footers. (file: /Users/geny/Developer/store_manager_v2/.codex/skills/commit/SKILL.md)
 
+### Default entry point
+- Start with `rails-domain-architecture` for almost every product change in this repo. It is the default router for new models, controllers, views, jobs, tests, and refactors.
+- For new model or domain behavior, first read `references/task-router.md`, then `references/principles.md`.
+- For new controller, route, or request flow, first read `references/task-router.md`, then `references/full-stack-architecture.md`.
+- For new view, partial tree, form, helper, or Turbo response, first read `references/task-router.md`, then `references/full-stack-architecture.md` and `references/screen-first-view-pattern.md`.
+- For new jobs, recurring work, or async orchestration, first read `references/task-router.md`, then `references/jobs-architecture.md`.
+- For testing guidance or when moving ownership seams, read `references/testing-architecture.md`.
+- Add `shopify` together with `rails-domain-architecture` when the task touches Shopify Admin API, sync jobs, parsers, or GraphQL objects.
+- Use `commit` only when the user asks for a commit message or a git commit.
+
 ### How to use skills
 - Discovery: The list above is the skills available in this repo session. Skill bodies live on disk at the listed paths.
 - Trigger rules: If the user names a skill with `$SkillName` or plain text, or if the task clearly matches a skill description above, use that skill for that turn. Multiple mentions mean use them all. Do not carry skills across turns unless re-mentioned.
