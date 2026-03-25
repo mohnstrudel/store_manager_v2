@@ -5,8 +5,8 @@ class WarehousesController < ApplicationController
   include MediaFormHandling
 
   before_action :set_warehouse, only: %i[edit update destroy]
-  before_action :validate_default_warehouse, only: %i[update]
-  before_action :load_form_collections, only: %i[new edit]
+  before_action :prepare_new_form, only: :new
+  before_action :prepare_edit_form, only: :edit
 
   # GET /warehouses
   def index
@@ -16,18 +16,15 @@ class WarehousesController < ApplicationController
   # GET /warehouses/new
   def new
     @warehouse = Warehouse.new
-    @positions_count = Warehouse.count + 1
   end
 
   # GET /warehouses/1/edit
   def edit
-    @positions_count = Warehouse.count
   end
 
   # POST /warehouses
   def create
     @warehouse = Warehouse.new(warehouse_params)
-    return render_default_warehouse_conflict! if default_warehouse_conflict?(@warehouse)
 
     @warehouse.create_from_form!(
       warehouse_params.to_h,
@@ -36,13 +33,14 @@ class WarehousesController < ApplicationController
 
     redirect_to @warehouse, notice: "Warehouse was successfully created"
   rescue ActiveRecord::RecordInvalid
+    prepare_form_state(action: :new)
     render :new, status: :unprocessable_content
   end
 
   # PATCH/PUT /warehouses/1
   def update
     result = @warehouse.apply_form_changes!(
-      attributes: warehouse_update_attributes,
+      attributes: warehouse_params.to_h,
       transition_ids: params.dig(:warehouse, :to_warehouse_ids),
       media_attributes: normalized_media_attributes_for(@warehouse),
       new_media_images: media_new_images_for(@warehouse)
@@ -54,6 +52,7 @@ class WarehousesController < ApplicationController
       redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
     end
   rescue ActiveRecord::RecordInvalid
+    prepare_form_state(action: :edit)
     render :edit, status: :unprocessable_content
   end
 
@@ -88,52 +87,25 @@ class WarehousesController < ApplicationController
         :name,
         :is_default,
         :position,
-        :to_warehouse_ids]
+        to_warehouse_ids: []]
     )
   end
 
-  def warehouse_update_attributes
-    return {"to_warehouse_ids" => params.dig(:warehouse, :to_warehouse_ids)} if transition_only_update?
-
-    warehouse_params.to_h
+  def prepare_new_form
+    @warehouse = Warehouse.new
+    prepare_form_state(action: :new)
   end
 
-  def transition_only_update?
-    params[:warehouse].present? && params[:warehouse].keys.map(&:to_sym) == [:to_warehouse_ids]
+  def prepare_edit_form
+    prepare_form_state(action: :edit)
   end
 
-  def validate_default_warehouse
-    return unless default_warehouse_conflict?(@warehouse)
-
-    render_default_warehouse_conflict!
-  end
-
-  def default_warehouse_conflict?(warehouse)
-    return false unless params.dig(:warehouse, :is_default) == "1"
-
-    current_default = current_default_warehouse
-    current_default.present? && current_default != warehouse
-  end
-
-  def render_default_warehouse_conflict!
-    current_default = current_default_warehouse
-    return false unless current_default
-
-    @warehouse.errors.add(:is_default, default_warehouse_error_message(current_default))
-    @positions_count = Warehouse.count
-    load_form_collections
-    render(((action_name == "create") ? :new : :edit), status: :unprocessable_content)
-    true
-  end
-
-  def load_form_collections
+  def prepare_form_state(action:)
+    @positions_count = (action == :new) ? Warehouse.count + 1 : Warehouse.count
     warehouse = @warehouse || Warehouse.new
     @transition_destinations = Warehouse.where.not(id: warehouse.id).order(:name)
     @warehouse_transitions = WarehouseTransition.where(from_warehouse: warehouse).includes(:to_warehouse)
-  end
-
-  def current_default_warehouse
-    Warehouse.find_by(is_default: true)
+    replace_default_warehouse_conflict_error!
   end
 
   def default_warehouse_error_message(current_default)
@@ -142,5 +114,13 @@ class WarehousesController < ApplicationController
       view_context.link_to(current_default.name, warehouse_path(current_default), class: "link"),
       "\" before setting a new one"
     ])
+  end
+
+  def replace_default_warehouse_conflict_error!
+    blocking_default = @warehouse.blocking_default_warehouse
+    return unless blocking_default
+
+    @warehouse.errors.delete(:is_default)
+    @warehouse.errors.add(:is_default, default_warehouse_error_message(blocking_default))
   end
 end

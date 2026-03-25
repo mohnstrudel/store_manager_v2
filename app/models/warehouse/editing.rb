@@ -6,20 +6,10 @@ module Warehouse::Editing
   TRANSITIONS_UPDATED = :transitions_updated
   WAREHOUSE_UPDATED = :warehouse_updated
 
-  class_methods do
-    def clear_competing_default_warehouses!(except_id: nil)
-      # rubocop:disable Rails/SkipsModelValidations
-      where(is_default: true)
-        .where.not(id: except_id)
-        .update_all(is_default: false)
-      # rubocop:enable Rails/SkipsModelValidations
-    end
-  end
-
   def create_from_form!(attributes, new_media_images:)
     transaction do
       assign_attributes(attributes)
-      clear_competing_default_warehouses_if_needed!
+      validate_default_warehouse_choice!
       save!
       add_new_media_from_form!(new_media_images)
     end
@@ -32,7 +22,7 @@ module Warehouse::Editing
         TRANSITIONS_UPDATED
       else
         assign_attributes(attributes)
-        clear_competing_default_warehouses_if_needed!
+        validate_default_warehouse_choice!
         save!
         update_media_from_form!(media_attributes)
         add_new_media_from_form!(new_media_images)
@@ -46,15 +36,26 @@ module Warehouse::Editing
     update!(position:)
   end
 
+  def blocking_default_warehouse
+    @blocking_default_warehouse ||= find_blocking_default_warehouse
+  end
+
   private
 
   def transitions_only_update?(attributes)
     attributes.one? { |key, _value| key.to_s == "to_warehouse_ids" }
   end
 
-  def clear_competing_default_warehouses_if_needed!
+  def validate_default_warehouse_choice!
+    return unless blocking_default_warehouse
+
+    errors.add(:is_default, "conflict")
+    raise ActiveRecord::RecordInvalid, self
+  end
+
+  def find_blocking_default_warehouse
     return unless is_default?
 
-    self.class.clear_competing_default_warehouses!(except_id: id)
+    self.class.where(is_default: true).where.not(id: id).first
   end
 end

@@ -52,7 +52,7 @@ module BreadcrumbsHelper
     when "dashboard#noop"
       "Dashboard"
     when "warehouses/details#show"
-      @warehouse&.name
+      instance_variable_get(:@warehouse)&.name
     end
   end
 

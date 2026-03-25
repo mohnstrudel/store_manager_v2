@@ -7,23 +7,26 @@ RSpec.describe Warehouse do
     let!(:existing_default) { create(:warehouse, :default) }
     let(:warehouse) { described_class.new }
 
-    it "creates the warehouse and preserves a single default" do
-      warehouse.create_from_form!(
-        {name: "New Default", is_default: true},
-        new_media_images: []
-      )
+    # rubocop:disable RSpec/MultipleExpectations
+    it "rejects creating a new default while another default exists" do
+      expect {
+        warehouse.create_from_form!(
+          {name: "New Default", is_default: true},
+          new_media_images: []
+        )
+      }.to raise_error(ActiveRecord::RecordInvalid)
 
       aggregate_failures do
-        expect(warehouse).to be_persisted
-        expect(warehouse.reload.is_default).to be(true)
-        expect(existing_default.reload.is_default).to be(false)
+        expect(warehouse).not_to be_persisted
+        expect(warehouse.errors[:is_default]).to include("conflict")
+        expect(existing_default.reload.is_default).to be(true)
       end
     end
+    # rubocop:enable RSpec/MultipleExpectations
   end
 
   describe "#apply_form_changes!" do
     let(:warehouse) { create(:warehouse) }
-    let!(:notification) { create(:notification, name: "Warehouse transition") }
 
     it "syncs transitions only when transition ids are the only update" do
       destination = create(:warehouse)
@@ -58,21 +61,26 @@ RSpec.describe Warehouse do
       end
     end
 
-    it "switches the default warehouse before saving when requested" do
+    # rubocop:disable RSpec/MultipleExpectations
+    it "rejects switching to default while another default exists" do
       existing_default = create(:warehouse, :default)
 
-      warehouse.apply_form_changes!(
-        attributes: {is_default: true},
-        transition_ids: [],
-        media_attributes: [],
-        new_media_images: []
-      )
+      expect {
+        warehouse.apply_form_changes!(
+          attributes: {is_default: true},
+          transition_ids: [],
+          media_attributes: [],
+          new_media_images: []
+        )
+      }.to raise_error(ActiveRecord::RecordInvalid)
 
       aggregate_failures do
-        expect(warehouse.reload.is_default).to be(true)
-        expect(existing_default.reload.is_default).to be(false)
+        expect(warehouse.reload.is_default).to be(false)
+        expect(existing_default.reload.is_default).to be(true)
+        expect(warehouse.errors[:is_default]).to include("conflict")
       end
     end
+    # rubocop:enable RSpec/MultipleExpectations
   end
 
   describe "#update_position!" do
