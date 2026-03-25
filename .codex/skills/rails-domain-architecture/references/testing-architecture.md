@@ -8,6 +8,7 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 - Prefer the public seam of a concept over private internals.
 - Keep real application behavior inside the app boundary and stub only true external systems.
 - Treat `Current`, time, async delivery, and access boundaries as architectural inputs.
+- Prefer testing named domain commands and capability APIs over reproducing controller or form choreography in every example.
 
 ## Default Test Seams
 
@@ -20,6 +21,7 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 ## What Codex Often Gets Wrong
 
 - Do not default to service specs when the behavior belongs to a model capability.
+- Do not keep old service or form specs around after ownership moved into the model layer.
 - Do not replace request tests with narrow controller stubs.
 - Do not leave tests at an old seam after ownership moved.
 - Do not skip negative-path rules where state suppresses side effects.

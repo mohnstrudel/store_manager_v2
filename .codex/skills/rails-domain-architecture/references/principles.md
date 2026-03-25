@@ -8,16 +8,19 @@ Use this file for the non-obvious model-layer rules in this repo.
 - Keep the base model file short as a composition root.
 - Put aggregate-owned behavior under `app/models/<model>/<capability>.rb`.
 - Reserve `app/models/concerns` for true cross-model behavior.
+- Prefer rich model APIs with business verbs over controller-shaped workflows and generic manager objects.
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` when the workflow still belongs to one aggregate.
 - Prefer named scopes and preload scopes over controller-built SQL or tiny query wrappers.
 
 ## What Codex Often Gets Wrong
 
 - Do not extract a single-model capability out of the model layer just because the model has many methods.
+- Do not default to a service object when a controller or job can call one clear model method directly.
 - Do not move composable scopes into query objects unless the query is a first-class subsystem.
 - Do not move stable cross-process representations out of the model layer just because they return strings.
 - Do not flatten association-local behavior into detached manager objects if it belongs to one relationship.
 - Do not assume callbacks are bad when they are maintaining one local concept.
+- Do not leave domain methods named after forms or transport steps when the business action has a clearer name.
 
 ## Base Model Boundary
 
@@ -27,6 +30,7 @@ Use this file for the non-obvious model-layer rules in this repo.
   - validations
   - broad ordering or preload scopes
   - light model wiring
+- The base file should read like the aggregate's table of contents.
 - Move concept-heavy behavior out of the base file into capability modules.
 
 ## Capability Modules
@@ -40,6 +44,8 @@ Use this file for the non-obvious model-layer rules in this repo.
   - small private helpers
 - This is the default destination for one business concept on one aggregate.
 - Capability modules may call each other through the aggregate when the API stays small and coherent.
+- Prefer narrow concept modules over broad buckets such as `Editing` when a sharper business name exists.
+- Name public methods after domain actions and states, not after screens, params hashes, or controller flows.
 
 ## Concerns
 
@@ -55,6 +61,7 @@ Use this file for the non-obvious model-layer rules in this repo.
   - payload builders
   - integration importers or parsers
   - query subsystems with real identity
+- A separate object is a good fit when the behavior is cross-aggregate, adapter-specific, or would otherwise force one model to know too much about infrastructure.
 
 ## Representation Boundary
 
@@ -69,9 +76,11 @@ Use this file for the non-obvious model-layer rules in this repo.
 - shared cross-model behavior -> `app/models/concerns/<concern>.rb`
 - repeated read shape -> named scope on the owning model
 - multi-aggregate or external orchestration -> a focused object in an explicit `app/models/<namespace>/` home
+- controller or job needs one clear domain action -> call the model method directly before inventing a service
 
 ## Refactor Stance
 
 - Treat current placement as evidence, not as architecture worth preserving.
 - Name explicit target files instead of saying “extract an object”.
 - Move one coherent slice at a time.
+- When refactoring, improve names as well as placement so the public model API sounds like the business domain.

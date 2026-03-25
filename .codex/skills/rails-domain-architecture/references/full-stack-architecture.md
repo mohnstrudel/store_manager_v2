@@ -22,6 +22,8 @@ Use this file for the non-obvious request, controller, and presentation rules in
   - business-state branching
   - recipient or payload logic
   - hand-built HTML or JSON
+- Prefer direct calls to intention-revealing model APIs before introducing a service layer between controllers and models.
+- If the controller action reads like a business verb, that verb probably belongs on the owning model or model-area object.
 
 ## Placement Decisions
 
@@ -43,6 +45,8 @@ Use this file for the non-obvious request, controller, and presentation rules in
 
 - Do not keep screen-specific text on the model just because it is reused across templates.
 - Do not move true domain payload builders into helpers.
+- Do not leave controllers orchestrating multi-step aggregate updates when the sequence belongs to one model.
+- Do not introduce a form object or service object by reflex when a named model command would be simpler and clearer.
 - Do not keep adding root-level partials after a screen subtree already exists.
 - Do not let deep partials reach into `params` or associations when explicit state can be passed once.
 

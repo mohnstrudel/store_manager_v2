@@ -19,12 +19,27 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - If logic belongs to one aggregate, first ask which file under `app/models/<model>/` it should live in.
 - Prefer capability modules such as `app/models/product/titling.rb`, `app/models/product/editions.rb`, `app/models/sale/statuses.rb`, and `app/models/sale/linking.rb`.
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` or `app/models/sale/creation.rb` over generic `app/services` classes when the workflow is aggregate-local.
+- Prefer direct, intention-revealing model APIs before adding a generic service layer between controllers or jobs and the domain.
 - Keep controllers focused on request loading, params, and response format; move aggregate-local transactions out of controllers.
 - Keep jobs thin and move aggregate-local workflow to model-area collaborators.
 - If a method is reused across parsers, jobs, imports, sync flows, and some views, treat it as a domain representation and keep it near the model rather than moving it to helpers.
 - If a method exists only for one screen, dropdown, widget, or response format, move it to helpers, partials, Jbuilder, or Turbo templates.
 - Stable cross-process title builders should usually become instance-oriented methods in a capability such as `app/models/product/titling.rb`, not class methods that take a `product` argument.
+- Prefer business verbs such as `publish`, `move_to`, `link_purchase_items`, or `sync_store_references` over controller-shaped or form-shaped names such as `process_form` or `handle_update`.
 - When proposing a refactor, name explicit target files rather than saying only “extract a service” or “move logic”.
+
+## Placement Guide
+
+- one aggregate owns the rule: `app/models/<model>/<capability>.rb`
+- one aggregate owns a larger workflow: `app/models/<model>/<workflow>.rb`
+- shared cross-model behavior: `app/models/concerns/<concern>.rb`
+- repeated business query or preload shape: named scope on the owning model
+- parser, importer, or payload tied to one aggregate: `app/models/<model>/<integration>/...`
+- API transport or GraphQL client code: `app/services/<integration>/...`
+- request setup, params, or response concerns: controller or controller concern
+- async transport, retries, scheduling, or pagination: `app/jobs/...`
+- screen-only rendering behavior: helper, partial, Turbo template, or view subtree
+- controller or job only needs one domain action: add or call a named model method before inventing a service
 
 ## Skills
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.

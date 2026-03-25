@@ -9,6 +9,7 @@ Use this file first. It maps a task to the smallest useful reference set.
 - Keep `Current` small.
 - Do not add presenters by default.
 - Prefer explicit target files under `app/models/<model>/...`.
+- Prefer direct model APIs over inserting a generic service layer between the request edge and the domain.
 
 ## Which Reference To Read
 
@@ -25,3 +26,4 @@ Use this file first. It maps a task to the smallest useful reference set.
 - one screen owns it -> helper, partial, Jbuilder, or Turbo template
 - repeated request mechanics -> controller concern or base controller
 - multi-aggregate or external orchestration -> focused object under an explicit `app/models/<namespace>/` home
+- the controller or job only needs to trigger one domain action -> add or call a named model method

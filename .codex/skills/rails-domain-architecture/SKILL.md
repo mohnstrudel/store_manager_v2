@@ -23,15 +23,18 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 2. Choose the owning model and keep the base model file short as the composition root.
 3. Put associations, scopes, callbacks, predicates, and commands for one business concept in `app/models/<model>/<capability>.rb`.
 4. Use `app/models/concerns` only for behavior reused across multiple models.
-5. Keep scopes composable, relation-returning, and named after business concepts.
-6. Use named preload scopes for repeated read shapes.
-7. Keep controllers thin: load the starting relation, compose named scopes, and call model commands.
-8. Keep rendering at the edge: helpers for presentation, partials for HTML, Jbuilder or serializers for JSON, Turbo Stream templates for incremental updates.
-9. Keep jobs thin and let model-adjacent objects own workflow rules.
-10. Keep tests aligned with ownership: model capability tests at the domain seam, integration tests at the request seam, and system tests only for the highest-risk end-to-end flows.
-11. Introduce query objects only when the query becomes a first-class subsystem such as saved filters, full-text search, reporting, or adapter-specific search backends.
-12. Keep orchestration, importers, parsers, payloads, and workflow objects in `app/models` namespaces when they are still part of the domain language.
-13. Preserve advanced model patterns when they are deliberate: concern contracts, association-proxy APIs, event fan-out, lifecycle gates, and domain-owned external representations are valid design choices.
+5. Prefer rich, intention-revealing model APIs over controller-shaped workflow methods or generic service wrappers.
+6. Keep scopes composable, relation-returning, and named after business concepts.
+7. Use named preload scopes for repeated read shapes.
+8. Keep controllers thin: load the starting relation, compose named scopes, and call model commands.
+9. Keep rendering at the edge: helpers for presentation, partials for HTML, Jbuilder or serializers for JSON, Turbo Stream templates for incremental updates.
+10. Keep jobs thin and let model-adjacent objects own workflow rules.
+11. Keep tests aligned with ownership: model capability tests at the domain seam, integration tests at the request seam, and system tests only for the highest-risk end-to-end flows.
+12. Introduce query objects only when the query becomes a first-class subsystem such as saved filters, full-text search, reporting, or adapter-specific search backends.
+13. Keep orchestration, importers, parsers, payloads, and workflow objects in `app/models` namespaces when they are still part of the domain language.
+14. Preserve advanced model patterns when they are deliberate: concern contracts, association-proxy APIs, event fan-out, lifecycle gates, and domain-owned external representations are valid design choices.
+15. Favor business verbs such as `publish`, `move_to`, `link_inventory`, or `sync_store_references` over form-shaped names such as `process_form` or `handle_update`.
+16. Reach for a service object only when ownership is genuinely cross-aggregate, infrastructure-heavy, or not naturally expressible as one model-facing API.
 
 ## Placement Heuristics
 
