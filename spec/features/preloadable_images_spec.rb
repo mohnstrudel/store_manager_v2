@@ -38,6 +38,56 @@ RSpec.describe "Preloadable images", :js do
       expect(image_state["src"]).to be_present
     end
   end
+
+  scenario "keeps the gray skeleton visible until the real image loads" do
+    product = create(:product)
+    attach_valid_image_to(product, "preloadable-thumb.png")
+
+    visit products_path
+
+    expect(page).to have_css("[data-controller='preloadable-img']")
+
+    page.execute_script(<<~JS)
+      (() => {
+        const element = document.querySelector("[data-controller='preloadable-img']")
+        const controller = window.Stimulus.getControllerForElementAndIdentifier(element, "preloadable-img")
+        if (!controller) throw new Error("Preloadable image controller not found")
+
+        controller.showLoading()
+        controller.imgTarget.src = controller.placeholderSrcValue
+        controller.imgTarget.dispatchEvent(new Event("load"))
+      })()
+    JS
+
+    loading_state = page.evaluate_script(<<~JS)
+      (() => {
+        const image = document.querySelector(".preloadable-img__img")
+
+        return {
+          hidden: image.classList.contains("hidden"),
+          loading: image.classList.contains("loading")
+        }
+      })()
+    JS
+
+    aggregate_failures do
+      expect(loading_state["hidden"]).to be(false)
+      expect(loading_state["loading"]).to be(true)
+    end
+
+    page.execute_script(<<~JS)
+      (() => {
+        const element = document.querySelector("[data-controller='preloadable-img']")
+        const controller = window.Stimulus.getControllerForElementAndIdentifier(element, "preloadable-img")
+
+        controller.hasRequestedImage = true
+        controller.imgTarget.src = controller.srcValue
+        controller.imgTarget.dispatchEvent(new Event("load"))
+      })()
+    JS
+
+    expect(page).to have_no_css(".preloadable-img__img.loading")
+  end
   # rubocop:enable RSpec/MultipleExpectations
 
   def attach_valid_image_to(product, filename)

@@ -4,19 +4,23 @@ export default class extends Controller {
   static targets = [ "img", "placeholder" ]
 
   static values = {
+    placeholderSrc: String,
     src: String,
   }
 
   connect() {
     this.hasRequestedImage = false
-    this.handleImageLoad = () => this.showLoadedImage()
+    this.handleImageLoad = () => {
+      if (!this.isShowingActualSource()) return
+      this.showLoadedImage()
+    }
     this.handleImageError = () => this.showFallback()
 
     this.imgTarget.addEventListener("load", this.handleImageLoad)
     this.imgTarget.addEventListener("error", this.handleImageError)
 
     if (!this.hasSource) return this.showFallback()
-    if (this.isImageAlreadyLoaded()) return this.showLoadedImage()
+    if (this.isShowingActualSource() && this.isImageAlreadyLoaded()) return this.showLoadedImage()
 
     this.showLoading()
 
@@ -108,6 +112,10 @@ export default class extends Controller {
   hidePlaceholder() {
     if (!this.hasPlaceholderTarget) return
     this.placeholderTarget.classList.add("hidden")
+  }
+
+  isShowingActualSource() {
+    return this.imgTarget.getAttribute("src") === this.srcValue
   }
 
   get hasSource() {

@@ -1,8 +1,9 @@
 - data ||= {}
 - image_classes = class_names("preloadable-img__img", ("loading" if src.present?), ("hidden" unless src.present?), class_names)
 - placeholder_classes = class_names(("hidden" if src.present?))
+- transparent_src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
 - style = local_assigns[:width].present? ? "height: #{local_assigns[:width] * 1.2}px; min-width: #{local_assigns[:width]}px; max-width: #{local_assigns[:width]}px;" : ""
 
-.preloadable-img__container.justify-self-center.w-fit.h-fit data-controller="preloadable-img" data-preloadable-img-src-value=src data-turbo-permanent="true"
-  = image_tag "", class: image_classes, data: {"preloadable-img-target": "img", **data}, src: "", style:
+.preloadable-img__container.justify-self-center.w-fit.h-fit data-controller="preloadable-img" data-preloadable-img-placeholder-src-value=transparent_src data-preloadable-img-src-value=src data-turbo-permanent="true"
+  = image_tag transparent_src, class: image_classes, data: {"preloadable-img-target": "img", **data}, style:
   i.icn class=placeholder_classes data-preloadable-img-target="placeholder" 👻
