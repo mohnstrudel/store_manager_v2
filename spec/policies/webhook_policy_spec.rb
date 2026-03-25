@@ -5,7 +5,7 @@ require "rails_helper"
 describe WebhookPolicy do
   subject { described_class.new(user, record) }
 
-  let(:record) { instance_double(WebhookController) }
+  let(:record) { instance_double(Webhooks::OrderUpdatesController) }
   let(:user) { User.new }
 
   context "when user is admin" do

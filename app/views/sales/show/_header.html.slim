@@ -13,5 +13,5 @@ header.nav_header
   menu.nav_menu
     - if sale.shopify_id
       li = pull_btn_for sale
-    li = shop_admin_link sale
+    li = link_to "Shop admin", sale_shop_link(sale), class: "btn-lightblue"
     li = edit_btn_for sale

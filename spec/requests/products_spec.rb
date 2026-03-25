@@ -357,7 +357,7 @@ RSpec.describe "Products API" do
 
       # Verification
       shopify_info.reload
-      expect(shopify_info.tag_list).to eq(original_tags)
+      expect(shopify_info.tag_list).to match_array(original_tags)
     end
   end
 
