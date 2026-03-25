@@ -19,6 +19,7 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 - helper-only presentation logic -> `spec/helpers/...`
 - only the highest-risk end-to-end flows -> `spec/features/...`
 - browser-driven widget geometry, loading states, or JS interaction contracts -> focused `spec/features/...` coverage before introducing screenshot-diff tooling
+- when the UI detail itself is the risky part and the agent cannot directly verify it by sight -> prefer a focused browser-level feature spec over confidence-by-inspection
 
 ## What Codex Often Gets Wrong
 
@@ -31,6 +32,8 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 - Do not hide time-based rules in scheduler tests when they really belong to the domain.
 - Do not let extracted-route regressions hide in shared helpers; add or keep at least one request, controller, or feature check that exercises the real rendered trigger.
 - Do not jump straight to pixel-diff infrastructure for every UI regression. For many Hotwire or Stimulus widgets, a focused browser-level feature spec that asserts loading classes, geometry stability, and state transitions is cheaper and more durable.
+- Do not stop at “the code looks right” for JavaScript or CSS-heavy UI changes. When the user is reporting what they can see in the browser and the agent cannot, add a test that encodes that visual or behavioral contract.
+- Do not let a UI refactor rely only on controller or request coverage when the real risk is in rendered DOM behavior.
 
 ## Repo-Specific Bias
 
@@ -38,3 +41,4 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 - Keep edge-format coverage close to the response contract for Turbo and server-rendered flows.
 - Prefer stable domain scenarios over clever helper-heavy setup.
 - When a feature stubs record behavior for a rendered page, make sure the controller actually uses that same record instance or stub at the seam the controller loads.
+- For Stimulus widgets in this repo, a good feature spec often checks one or more of: open or closed state, loading classes, geometry stability, source changes, and whether a user-visible action can be repeated after state changes.

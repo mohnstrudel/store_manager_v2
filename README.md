@@ -240,6 +240,15 @@ Views are organized by resource and often by screen subtree. For example, produc
 - `app/views/products/show/*`
 - `app/views/products/index/*`
 
+One practical rule matters a lot here: UI tests are part of the architecture.
+
+Because the application uses Stimulus, CSS state, and server-rendered HTML together, risky UI work should usually include a focused browser-level feature spec. That is how we lock in behavior the code alone cannot guarantee, such as:
+
+- loading skeletons appearing and disappearing at the right time
+- dialog open and close behavior
+- image or gallery state transitions
+- geometry staying stable while assets load
+
 ### 6. Cross-cutting layer
 
 Shared model concerns are reserved for behavior that truly applies across aggregates.

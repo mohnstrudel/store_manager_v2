@@ -62,6 +62,7 @@ Use this file for the non-obvious request, controller, and presentation rules in
 - For interactive widgets, let the server render the structure and prepared view data first. Stimulus should usually own only interaction state, DOM class changes, and loading transitions.
 - Avoid split ownership of one DOM node across multiple Stimulus controllers unless the separation is truly clear. If one widget owns one image or dialog state machine, prefer one controller to own that node end-to-end.
 - Prefer small, literal Stimulus methods over abstract mini-frameworks. Names like `showIndex`, `renderSelection`, `loadCurrentImage`, or `finishLoading` are easier to audit than a generic `render` plus several hidden options.
+- Because the agent cannot see the browser the way a human can, treat browser-level feature coverage as part of the design of non-trivial widgets. If the risk is visual or interactive, write the test at that seam instead of relying on code inspection alone.
 
 ## What Codex Often Gets Wrong
 

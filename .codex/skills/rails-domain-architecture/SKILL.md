@@ -29,6 +29,7 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 8. Keep controllers thin: load the starting relation, compose named scopes, and call model commands.
 9. Keep rendering at the edge: helpers for presentation, partials for HTML, Jbuilder or serializers for JSON, Turbo Stream templates for incremental updates.
 9a. Keep Stimulus controllers narrow and literal: let the server render structure and view data, and let Stimulus own only interaction state, DOM toggles, and loading transitions for one widget.
+9b. Treat browser-level UI tests as part of the implementation for risky JavaScript work. When the agent cannot truly see the interface, focused feature specs are how it proves geometry, loading states, dialog behavior, and rendered interaction contracts instead of guessing.
 10. Keep jobs thin and let model-adjacent objects own workflow rules.
 11. Keep tests aligned with ownership: model capability tests at the domain seam, integration tests at the request seam, and system tests only for the highest-risk end-to-end flows.
 12. Introduce query objects only when the query becomes a first-class subsystem such as saved filters, full-text search, reporting, or adapter-specific search backends.
@@ -45,6 +46,7 @@ description: Design or refactor Ruby on Rails codebases toward a model-centric a
 21. Remember that collection-level workflows can also be first-class controllers such as `Purchases::MovesController`, `Purchases::ProductEditionsController`, or `Dashboard::LastOrdersPullsController`; extraction is not only for member actions.
 22. After extracting a controller concept, update the route consumers too: helpers, shared buttons, Turbo widgets, and feature specs should follow the new route shape instead of reconstructing paths by guesswork.
 23. In JavaScript, prefer obvious method names such as `showIndex`, `renderSelection`, or `startLoading` over generic `render`, `sync`, or option-heavy helpers when the widget is small. Optimize for “read at a glance.”
+24. For UI and Stimulus refactors, add or update at least one browser-driven feature spec at the widget seam. The test should cover the user-visible contract that the agent cannot reliably inspect by eye.
 
 ## Placement Heuristics
 
