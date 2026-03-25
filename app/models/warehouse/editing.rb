@@ -7,10 +7,10 @@ module Warehouse::Editing
   WAREHOUSE_UPDATED = :warehouse_updated
 
   class_methods do
-    def ensure_only_one_default(id)
+    def clear_competing_default_warehouses!(except_id: nil)
       # rubocop:disable Rails/SkipsModelValidations
       where(is_default: true)
-        .where.not(id:)
+        .where.not(id: except_id)
         .update_all(is_default: false)
       # rubocop:enable Rails/SkipsModelValidations
     end
@@ -19,10 +19,9 @@ module Warehouse::Editing
   def create_from_form!(attributes, new_media_images:)
     transaction do
       assign_attributes(attributes)
-      self.class.ensure_only_one_default(nil) if is_default?
+      clear_competing_default_warehouses_if_needed!
       save!
       add_new_media_from_form!(new_media_images)
-      self.class.ensure_only_one_default(id) if is_default?
     end
   end
 
@@ -32,10 +31,11 @@ module Warehouse::Editing
         sync_transitions!(transition_ids)
         TRANSITIONS_UPDATED
       else
-        update!(attributes)
+        assign_attributes(attributes)
+        clear_competing_default_warehouses_if_needed!
+        save!
         update_media_from_form!(media_attributes)
         add_new_media_from_form!(new_media_images)
-        self.class.ensure_only_one_default(id) if is_default?
         sync_transitions!(transition_ids)
         WAREHOUSE_UPDATED
       end
@@ -50,5 +50,11 @@ module Warehouse::Editing
 
   def transitions_only_update?(attributes)
     attributes.one? { |key, _value| key.to_s == "to_warehouse_ids" }
+  end
+
+  def clear_competing_default_warehouses_if_needed!
+    return unless is_default?
+
+    self.class.clear_competing_default_warehouses!(except_id: id)
   end
 end

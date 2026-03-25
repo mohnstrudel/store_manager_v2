@@ -57,6 +57,22 @@ RSpec.describe Warehouse do
         expect(warehouse.from_transitions.where(to_warehouse: destination)).to exist
       end
     end
+
+    it "switches the default warehouse before saving when requested" do
+      existing_default = create(:warehouse, :default)
+
+      warehouse.apply_form_changes!(
+        attributes: {is_default: true},
+        transition_ids: [],
+        media_attributes: [],
+        new_media_images: []
+      )
+
+      aggregate_failures do
+        expect(warehouse.reload.is_default).to be(true)
+        expect(existing_default.reload.is_default).to be(false)
+      end
+    end
   end
 
   describe "#update_position!" do
