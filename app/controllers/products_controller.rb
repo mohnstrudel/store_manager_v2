@@ -35,12 +35,13 @@ class ProductsController < ApplicationController
 
   # POST /products or /products.json
   def create
-    @product = Product.new(normalized_product_attributes)
+    payload = Product::FormPayload.new(params:)
+    @product = Product.new(payload.product_attributes)
 
     respond_to do |format|
       @product.create_from_form!(
-        editions_attributes: normalized_editions_attributes,
-        purchase_attributes: normalized_purchase_attributes,
+        editions_attributes: payload.editions_attributes,
+        purchase_attributes: payload.purchase_attributes,
         new_media_images: media_new_images_for(@product)
       )
       # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
@@ -57,11 +58,13 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
+    payload = Product::FormPayload.new(params:)
+
     respond_to do |format|
       @product.apply_form_changes!(
-        product_attributes: normalized_product_attributes,
-        editions_attributes: normalized_editions_attributes,
-        store_infos_attributes: normalized_store_infos_attributes,
+        product_attributes: payload.product_attributes,
+        editions_attributes: payload.editions_attributes,
+        store_infos_attributes: payload.store_infos_attributes,
         media_attributes: normalized_media_attributes_for(@product),
         new_media_images: media_new_images_for(@product)
       )
@@ -69,8 +72,7 @@ class ProductsController < ApplicationController
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
       format.json { render :show, status: :ok, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-      reload_product_with_preserved_errors!
-      reassign_edition_attributes!
+      @product = Product::FormRehydrator.new(product: @product, payload:).call
       load_form_collections
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
@@ -113,112 +115,6 @@ class ProductsController < ApplicationController
     @product = Product.for_details.friendly.find(params[:id])
   end
 
-  def product_params
-    params.expect(product: [
-      :title,
-      :description,
-      :franchise_id,
-      :shape_id,
-      :sku,
-      :woo_id,
-      :shopify_id,
-      brand_ids: [],
-      color_ids: [],
-      size_ids: [],
-      version_ids: [],
-      purchases_attributes: [[
-        :item_price,
-        :amount,
-        :supplier_id,
-        :order_reference,
-        :warehouse_id,
-        payments_attributes: [:value]
-      ]]
-    ])
-  end
-
-  def store_infos_params
-    return ActionController::Parameters.new if params[:store_infos].blank?
-
-    params.expect(store_infos: [[
-      :id,
-      :tag_list,
-      :store_name,
-      :_destroy
-    ]])
-  end
-
-  def editions_params
-    return ActionController::Parameters.new if params[:editions].blank?
-
-    params.expect(editions: [[
-      :id,
-      :sku,
-      :size_id,
-      :version_id,
-      :color_id,
-      :purchase_cost,
-      :selling_price,
-      :weight,
-      :_destroy
-    ]])
-  end
-
-  def purchase_params
-    params.dig(:product, :purchases_attributes, "0")
-  end
-
-  def normalized_product_attributes
-    product_params.to_h
-  end
-
-  def normalized_store_infos_attributes
-    return [] if params[:store_infos].blank?
-
-    store_infos_params.to_h.values.map do |attrs|
-      attrs = attrs.with_indifferent_access
-
-      {
-        id: attrs[:id].presence,
-        tag_list: attrs[:tag_list],
-        store_name: attrs[:store_name],
-        destroy: ActiveModel::Type::Boolean.new.cast(attrs[:_destroy])
-      }.compact
-    end
-  end
-
-  def normalized_editions_attributes
-    return [] if params[:editions].blank?
-
-    editions_params.to_h.values.map do |attrs|
-      attrs = attrs.with_indifferent_access
-
-      {
-        id: attrs[:id].presence,
-        sku: attrs[:sku],
-        size_id: attrs[:size_id],
-        version_id: attrs[:version_id],
-        color_id: attrs[:color_id],
-        purchase_cost: attrs[:purchase_cost],
-        selling_price: attrs[:selling_price],
-        weight: attrs[:weight],
-        destroy: ActiveModel::Type::Boolean.new.cast(attrs[:_destroy])
-      }.compact
-    end
-  end
-
-  def normalized_purchase_attributes
-    return {} if purchase_params.blank?
-
-    attrs = purchase_params.with_indifferent_access
-    payment_attrs = attrs[:payments_attributes]&.with_indifferent_access
-
-    {
-      warehouse_id: attrs[:warehouse_id].presence,
-      payment_value: payment_attrs&.values&.first&.with_indifferent_access&.[](:value)&.presence
-    }.compact
-  end
-
   def load_form_collections
     @franchise_options = Franchise.order(:title)
     @brand_options = Brand.order(:title)
@@ -228,35 +124,5 @@ class ProductsController < ApplicationController
     @color_options = Color.order(:value)
     @supplier_options = Supplier.order(title: :asc)
     @warehouse_options = Warehouse.order(name: :asc)
-  end
-
-  # When the transaction fails, @product's associations are stale and may be in an
-  # inconsistent state. We need to reload from the database to get fresh data, but
-  # we can't lose the validation errors that caused the failure—otherwise the user
-  # won't see what went wrong.
-  def reload_product_with_preserved_errors!
-    errors = @product.errors.dup
-    @product = Product.for_details.friendly.find(params[:id])
-    @product.errors.copy!(errors)
-  end
-
-  # After reloading, all the user's unsaved form input would be lost, showing the
-  # original database values instead. We manually reassign the submitted params so
-  # the form displays what the user actually typed. For new editions that failed to
-  # save, we build temporary objects so they still appear in the form for correction.
-  def reassign_edition_attributes!
-    return if editions_params.blank?
-
-    editions_params.to_h.values.each_with_index do |attrs, index|
-      id = attrs["id"]
-
-      if id.present?
-        edition = @product.editions.to_a.find { |e| e.id.to_s == id.to_s }
-        edition&.assign_attributes(attrs.except("_destroy"))
-      else
-        temp_edition = @product.editions.build(attrs.except("_destroy"))
-        temp_edition.instance_variable_set(:@_new_edition_index, index)
-      end
-    end
   end
 end
