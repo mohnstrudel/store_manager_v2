@@ -84,8 +84,8 @@ RSpec.describe Product do
     end
   end
 
-  describe "callbacks" do
-    it "sets full_title after create" do
+  describe "full title synchronization" do
+    it "persists full_title on create" do
       product = create(:product)
 
       expect(product.full_title).to eq("Studio Ghibli — Spirited Away")

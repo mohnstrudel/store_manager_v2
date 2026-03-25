@@ -13,6 +13,10 @@ FactoryBot.define do
     woo_id { SecureRandom.alphanumeric(10) }
     shopify_id { SecureRandom.alphanumeric(10) }
 
+    after(:build) do |product|
+      product.sync_full_title
+    end
+
     after(:create) do |product|
       create(:store_info, :woo, storable: product, store_id: product.woo_id)
       create(:store_info, :shopify, storable: product, store_id: product.shopify_id)

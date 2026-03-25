@@ -5,6 +5,7 @@ module Product::Editing
 
   def create_from_form!(editions_attributes:, purchase_attributes:)
     transaction do
+      sync_full_title
       save!
       yield self if block_given?
       apply_initial_purchase!(purchase_attributes)
@@ -26,6 +27,6 @@ module Product::Editing
 
   def apply_form_attributes(attributes)
     assign_attributes(attributes.merge(slug: nil))
-    self.full_title = generate_full_title
+    sync_full_title
   end
 end

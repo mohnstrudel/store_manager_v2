@@ -80,6 +80,4 @@ class Product < ApplicationRecord
 
   has_rich_text :description
   accepts_nested_attributes_for :purchases
-
-  after_create :update_full_title
 end
