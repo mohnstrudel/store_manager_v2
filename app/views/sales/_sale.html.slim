@@ -13,7 +13,14 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
             = format_purchased_sold_ratio(ps.purchase_items.size, ps.qty)
             |
           = ps.title
-  td = format_sale_status sale.status
+  td.w-80.text-sm
+    - purchase_items = sale.sale_items.flat_map(&:purchase_items)
+    - if purchase_items.present?
+      .flex.flex-col.items-start.gap-2
+        - purchase_items.each do |purchase_item|
+          = render "purchase_item_warehouse", purchase_item: purchase_item
+    - else
+      span.text-gray-400 —
   td.text-right.font-mono.whitespace-nowrap = format_money sale.total
   td
     = format_date sale.shop_created_at.presence || sale.created_at

@@ -17,7 +17,7 @@ module Sale::Listing
         :woo_info,
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
-          :purchase_items,
+          {purchase_items: [:warehouse, purchase: :supplier]},
           {edition: [:version, :color, :size]}
         ]
       )

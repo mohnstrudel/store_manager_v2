@@ -1,12 +1,7 @@
 menu
   - purchase_items.each do |purchase_item|
-    li
-      a.mt-2.no-events href=purchase_item_path(purchase_item)
-        i.icn 📦
-        | #{purchase_item.warehouse.name}
-        - if purchase_item.expenses
-          | — expenses: $
-          .font-mono.inline = format_money purchase_item.expenses
+    li.my-2
+      = render "purchase_item_warehouse", purchase_item: purchase_item
       br
       a.mt-2.no-events href=purchase_path(purchase_item.purchase)
         i.icn 💰
