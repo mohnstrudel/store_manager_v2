@@ -2,7 +2,7 @@
 
 class PurchaseItemsController < ApplicationController
   include WarehouseMovementNotification
-  include HandlesMedia
+  include MediaFormHandling
 
   before_action :set_purchase_item, only: %i[show edit update destroy edit_tracking_number cancel_tracking_number update_tracking_number edit_shipping_company cancel_edit_shipping_company update_shipping_company]
 
@@ -32,7 +32,7 @@ class PurchaseItemsController < ApplicationController
     @purchase_item = PurchaseItem.new(purchase_item_params)
 
     if @purchase_item.save
-      add_new_media(@purchase_item)
+      @purchase_item.add_new_media_from_form!(media_new_images_for(@purchase_item))
 
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
@@ -47,8 +47,8 @@ class PurchaseItemsController < ApplicationController
     if @purchase_item.update(
       purchase_item_params.except(:redirect_to_sale_item)
     )
-      update_media(@purchase_item)
-      add_new_media(@purchase_item)
+      @purchase_item.update_media_from_form!(normalized_media_attributes_for(@purchase_item))
+      @purchase_item.add_new_media_from_form!(media_new_images_for(@purchase_item))
 
       path = purchase_item_params[:redirect_to_sale_item] ?
         @purchase_item.sale_item :

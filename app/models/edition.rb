@@ -21,6 +21,7 @@
 #
 class Edition < ApplicationRecord
   include HasAuditNotifications
+  include Lifecycle
   include Options
   include Titling
   include Shopable

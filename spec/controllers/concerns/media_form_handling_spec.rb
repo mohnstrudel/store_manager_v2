@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe HandlesMedia do
+RSpec.describe MediaFormHandling do
   # Use a real controller that already includes the concern
   describe WarehousesController do
     before { sign_in_as_admin }
@@ -284,8 +284,6 @@ RSpec.describe HandlesMedia do
       end
 
       it "handles non-existent media ids gracefully" do
-        # The concern currently raises an error when media id is not found
-        # This test documents current behavior - the concern doesn't handle nil media_item
         expect {
           patch :update, params: {
             id: warehouse.id,
@@ -296,7 +294,9 @@ RSpec.describe HandlesMedia do
               }
             }
           }
-        }.to raise_error(NoMethodError, /undefined method [`']update!' for nil/)
+        }.not_to raise_error
+
+        expect(warehouse.media.count).to eq(2)
       end
     end
 

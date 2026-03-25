@@ -2,6 +2,7 @@
 
 module HasPreviewImages
   extend ActiveSupport::Concern
+  include Media::FormHandling
 
   included do
     has_many :media, -> { ordered }, as: :mediaable, dependent: :destroy, inverse_of: :mediaable, class_name: "Media"

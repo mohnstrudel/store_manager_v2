@@ -2,7 +2,7 @@
 
 class WarehousesController < ApplicationController
   include ActionView::Helpers::OutputSafetyHelper
-  include HandlesMedia
+  include MediaFormHandling
 
   before_action :set_warehouse, only: %i[edit update destroy]
   before_action :validate_default_warehouse, only: %i[update]
@@ -41,7 +41,7 @@ class WarehousesController < ApplicationController
     return render_default_warehouse_conflict! if default_warehouse_conflict?(@warehouse)
 
     if @warehouse.save
-      add_new_media(@warehouse)
+      @warehouse.add_new_media_from_form!(media_new_images_for(@warehouse))
       Warehouse.ensure_only_one_default(@warehouse.id) if @warehouse.is_default?
 
       redirect_to @warehouse, notice: "Warehouse was successfully created"
@@ -57,8 +57,8 @@ class WarehousesController < ApplicationController
       attributes: warehouse_update_attributes,
       transition_ids: params.dig(:warehouse, :to_warehouse_ids),
       after_update: -> {
-        update_media(@warehouse)
-        add_new_media(@warehouse)
+        @warehouse.update_media_from_form!(normalized_media_attributes_for(@warehouse))
+        @warehouse.add_new_media_from_form!(media_new_images_for(@warehouse))
       }
     )
 

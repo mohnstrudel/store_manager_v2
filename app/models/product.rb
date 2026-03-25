@@ -19,12 +19,16 @@
 #
 class Product < ApplicationRecord
   include Editions
+  include EditionManagement
   include HasAuditNotifications
   include HasPreviewImages
+  include InitialPurchase
   include Listing
+  include Editing
   include SalesHistory
   include Searchable
   include Shopable
+  include StoreInfos
   include StoreReferences
   include Titling
 

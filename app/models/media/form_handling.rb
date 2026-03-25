@@ -1,36 +1,31 @@
 # frozen_string_literal: true
 
-module HandlesMedia
+module Media::FormHandling
   extend ActiveSupport::Concern
 
-  private
-
-  def add_new_media(record)
-    new_images = media_params_for(record)[:new_images]
+  def add_new_media_from_form!(new_images)
     return if new_images.blank?
 
-    base_position = record.media.maximum(:position)&.next || 0
+    base_position = media.maximum(:position)&.next || 0
 
     new_images.each_with_index do |image, index|
       next unless image_like?(image)
 
-      record.media.create!(
+      media.create!(
         image: image,
         position: base_position + index
       )
     end
   end
 
-  def update_media(record)
-    media_attrs = media_params_for(record)[:media]
-    return if media_attrs.blank?
+  def update_media_from_form!(media_attributes)
+    return if media_attributes.blank?
 
-    media_attrs = media_attrs.to_h.values.compact_blank
-
-    media_attrs.each do |attrs|
+    media_attributes.each do |attrs|
       next if attrs[:id].blank?
 
-      media_item = record.media.find_by(id: attrs[:id])
+      media_item = media.find_by(id: attrs[:id])
+      next unless media_item
 
       if truthy?(attrs[:_destroy])
         media_item.destroy!
@@ -47,20 +42,7 @@ module HandlesMedia
     end
   end
 
-  def media_params_for(record)
-    param_key = record.class.model_name.param_key.to_sym
-    permitted = params.dig(param_key)&.permit(
-      media: [[
-        :id,
-        :alt,
-        :position,
-        :_destroy,
-        :image
-      ]],
-      new_images: []
-    ) || ActionController::Parameters.new
-    permitted.slice(:media, :new_images)
-  end
+  private
 
   def image_like?(value)
     return false unless value.respond_to?(:content_type)

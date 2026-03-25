@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ProductsController < ApplicationController
-  include HandlesMedia
+  include MediaFormHandling
   include JobsStatusNotice
 
   before_action :set_product, only: %i[show edit update destroy pull_from_shopify] # DISABLED: publish_to_shopify, push_to_shopify
@@ -33,16 +33,16 @@ class ProductsController < ApplicationController
 
   # POST /products or /products.json
   def create
-    @product = Product.new(product_params)
+    @product = Product.new(normalized_product_attributes)
 
     respond_to do |format|
-      ActiveRecord::Base.transaction do
-        @product.save!
-        add_new_media(@product)
-        handle_new_purchase if purchase_params.present?
-        create_or_update_product_editions!
+      @product.create_from_form!(
+        editions_attributes: normalized_editions_attributes,
+        purchase_attributes: normalized_purchase_attributes
+      ) do |product|
+        product.add_new_media_from_form!(media_new_images_for(product))
         # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
-        # Shopify::CreateProductJob.perform_later(@product.id)
+        # Shopify::CreateProductJob.perform_later(product.id)
       end
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
@@ -55,16 +55,14 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
-    @product.assign_attributes(product_params.to_h.merge(slug: nil))
-    @product.assign_attributes(full_title: @product.generate_full_title)
-
     respond_to do |format|
-      ActiveRecord::Base.transaction do
-        create_or_update_product_editions!
-        @product.save!
-        create_or_update_product_store_infos!
-        update_media(@product)
-        add_new_media(@product)
+      @product.apply_form_changes!(
+        product_attributes: normalized_product_attributes,
+        editions_attributes: normalized_editions_attributes,
+        store_infos_attributes: normalized_store_infos_attributes
+      ) do |product|
+        product.update_media_from_form!(normalized_media_attributes_for(product))
+        product.add_new_media_from_form!(media_new_images_for(product))
       end
 
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
@@ -189,103 +187,55 @@ class ProductsController < ApplicationController
     params.dig(:product, :purchases_attributes, "0")
   end
 
-  def handle_new_purchase
-    return unless (purchase = @product.purchases.last)
-
-    warehouse_id = purchase_params[:warehouse_id]
-    payment_value = purchase_params[:payments_attributes]&.values&.first&.[](:value)
-
-    if warehouse_id
-      purchase.add_items_to_warehouse(warehouse_id)
-      purchase.link_with_sales
-    end
-
-    purchase.payments.create(value: payment_value) if payment_value
+  def normalized_product_attributes
+    product_params.to_h
   end
 
-  def create_or_update_product_store_infos!
-    return if store_infos_params.blank?
+  def normalized_store_infos_attributes
+    return [] if params[:store_infos].blank?
 
-    store_infos_params.to_h.values.each do |attrs|
-      id = attrs.delete("id")
-      should_destroy = attrs.delete("_destroy") == "1"
+    store_infos_params.to_h.values.map do |attrs|
+      attrs = attrs.with_indifferent_access
 
-      if id.blank?
-        @product.store_infos.create!(attrs)
-        next
-      end
-
-      if should_destroy
-        @product.store_infos.find(id).destroy
-        next
-      end
-
-      store_info = @product.store_infos.find(id)
-      store_info.assign_attributes(attrs)
-      store_info.save!
+      {
+        id: attrs[:id].presence,
+        tag_list: attrs[:tag_list],
+        store_name: attrs[:store_name],
+        destroy: ActiveModel::Type::Boolean.new.cast(attrs[:_destroy])
+      }.compact
     end
   end
 
-  def create_or_update_product_editions!
-    return if editions_params.blank?
+  def normalized_editions_attributes
+    return [] if params[:editions].blank?
 
-    new_editions, existing_editions =
-      editions_params.to_h.values.partition do |edt_params|
-        edt_params["id"].blank?
-      end
+    editions_params.to_h.values.map do |attrs|
+      attrs = attrs.with_indifferent_access
 
-    new_editions.each do |attrs|
-      validate_edition_combination!(attrs)
-      @product.editions.create!(attrs)
-    end
-
-    existing_editions.each do |attrs|
-      id = attrs.delete("id")
-      should_destroy = attrs.delete("_destroy") == "1"
-      edition = @product.editions.find(id)
-
-      if should_destroy
-        handle_edition_destruction(edition)
-      else
-        # Assign attributes first so sku_changed? works correctly
-        edition.assign_attributes(attrs)
-        validate_edition_sku_uniqueness!(edition)
-        edition.save!
-      end
+      {
+        id: attrs[:id].presence,
+        sku: attrs[:sku],
+        size_id: attrs[:size_id],
+        version_id: attrs[:version_id],
+        color_id: attrs[:color_id],
+        purchase_cost: attrs[:purchase_cost],
+        selling_price: attrs[:selling_price],
+        weight: attrs[:weight],
+        destroy: ActiveModel::Type::Boolean.new.cast(attrs[:_destroy])
+      }.compact
     end
   end
 
-  def validate_edition_sku_uniqueness!(edition)
-    return unless edition.sku_changed?
+  def normalized_purchase_attributes
+    return {} if purchase_params.blank?
 
-    existing_edition = Edition.where.not(id: edition.id).find_by(sku: edition.sku)
+    attrs = purchase_params.with_indifferent_access
+    payment_attrs = attrs[:payments_attributes]&.with_indifferent_access
 
-    if existing_edition
-      @product.errors.add(:editions, "#{edition.title} sku: has already been taken")
-      raise ActiveRecord::RecordInvalid.new(@product)
-    end
-  end
-
-  def validate_edition_combination!(attrs)
-    combination = {
-      size_id: attrs["size_id"],
-      version_id: attrs["version_id"],
-      color_id: attrs["color_id"]
-    }.compact_blank
-
-    duplicate = @product.editions.find_by(combination)
-    return unless duplicate
-
-    @product.errors.add(:editions, "Combination #{duplicate.title} already exists")
-    raise ActiveRecord::RecordInvalid.new(@product)
-  end
-
-  def handle_edition_destruction(edition)
-    if edition.has_sales_or_purchases?
-      edition.update!(deactivated_at: Time.current)
-    else
-      edition.destroy!
-    end
+    {
+      warehouse_id: attrs[:warehouse_id].presence,
+      payment_value: payment_attrs&.values&.first&.with_indifferent_access&.[](:value)&.presence
+    }.compact
   end
 
   # When the transaction fails, @product's associations are stale and may be in an
