@@ -8,6 +8,23 @@ When a customer buys a product, which physical item fulfilled the order, where d
 
 This repository is intentionally model-centric. Most business behavior lives in `app/models`, controllers stay thin, jobs mainly move work around, and store integrations stay close to the part of the business they support instead of drifting into a generic service layer.
 
+## Contents
+
+- [Bird's-Eye View](#birds-eye-view) - what the system manages and the main business flow
+- [Architecture of This Rails App](#architecture-of-this-rails-app) - how this app differs from layered Rails and where it overlaps with DDD
+- [How the App Is Organized](#how-the-app-is-organized) - how controllers, models, integrations, jobs, and UI are split
+- [Business Record Map](#business-record-map) - the core records and what they are responsible for
+- [Request Flow Examples](#request-flow-examples) - concrete examples of product, sale, and inventory flows
+- [Important Business Areas](#important-business-areas) - catalog, purchasing, warehousing, and store sync
+- [Code Organization](#code-organization) - app layout, view layout, and where to put new code
+- [Authentication and Authorization](#authentication-and-authorization) - how sign-in and permissions work
+- [Testing Strategy](#testing-strategy) - what kinds of tests we rely on and what they cover
+- [Observability and Operations](#observability-and-operations) - monitoring, integrity checks, and async runtime
+- [Tech Stack](#tech-stack) - the main technologies used in the app
+- [Running Locally](#running-locally) - setup, app startup, and test commands
+- [How to Approach Changes in This Repo](#how-to-approach-changes-in-this-repo) - the short checklist for new work
+- [License](#license)
+
 ---
 
 ## Bird's-Eye View
@@ -50,77 +67,97 @@ The app tries to keep the sellable view and the physical view connected:
 
 That lets us answer financial, logistics, and customer-service questions from one system instead of stitching together spreadsheets and store dashboards.
 
----
+## Architecture of This Rails App
 
-## Business Record Map
+This app uses a model-first architecture:
+
+- thin controllers
+- rich model APIs
+- small supporting files near each model
+- small form-translation objects when request-shape translation grows
+- named scopes for business queries and common loading patterns
+- jobs that call domain code directly
+- integration objects placed near the owning model when they are still part of the business workflow
+
+### What that means in practice
+
+In day-to-day work:
+
+- If one business area owns the rule, put it under `app/models/<model>/...`
+- If the behavior is shared across many models, use `app/models/concerns`
+- If the controller or job just needs one business action, call a named model method
+- If one widget or partial needs small screen-only view-data shaping, prefer a helper over a presenter
+- If an object coordinates several business areas or is infrastructure-heavy, a separate object is fine, but it should have a clear home and purpose
+
+### How this differs from a layered `forms / presenters / queries / services` layout
+
+Many Rails codebases organize application logic by technical role:
+
+- `app/forms`
+- `app/presenters`
+- `app/queries`
+- `app/searchers`
+- `app/services`
+
+That style can work well, but it is not the main organizing principle in this repo.
+
+Here, the default question is not "what kind of object is this?" but "which business concept is responsible for this rule?"
+
+### Quick comparison
+
+For a Rails reader, this is the main contrast:
+
+| Decision lens | Layered Rails (`forms / presenters / queries / services`) | This repo |
+| --- | --- | --- |
+| Main organizing question | "What kind of object is this?" | "Which business concept is responsible for this rule?" |
+| How business rules are usually grouped | Split by object type such as form, query, presenter, or service | Grouped near the business area that owns the rule |
+| How screen logic is usually grouped | Often in presenters, decorators, or screen-focused service objects | Usually kept in helpers, partials, and Turbo templates |
+| How external integrations are usually grouped | Often coordinated by top-level services | Parsers and importers live near the business area they update; low-level API clients stay in `app/services` |
+| What becomes easier | Finding all objects of the same technical kind | Tracing one feature end to end in a Rails codebase |
+| What becomes harder | Understanding one business feature across many folders | Keeping model folders focused and not turning them into catch-all buckets |
+
+### Where we overlap with DDD
+
+- Both care about business ownership.
+- Both try to keep important rules close to the business concept they belong to.
+- Both prefer thinner controllers and clearer responsibilities.
+
+### Where we differ from DDD
+
+- We use simpler, more business-friendly language first. For example, we usually say "which business concept is responsible for this rule?" instead of "which aggregate owns this invariant?", and "which part of the business makes this decision?" instead of "where does this domain behavior belong?"
+- We stay closer to standard Rails structure.
+- In a stricter DDD codebase, instead of keeping behavior close to the model and calling it directly, you more often introduce repositories, application services, separate domain-layer objects, and more explicit architectural boundaries.
+- We prefer scopes, helpers, and nearby model files before introducing heavier patterns.
+
+This repo borrows the business-ownership idea from DDD, but expresses it in simpler Rails and business language.
+
+So you will see files such as:
+
+- [`app/models/product/form_payload.rb`](app/models/product/form_payload.rb)
+- [`app/models/product/form_rehydrator.rb`](app/models/product/form_rehydrator.rb)
+- [`app/models/product/shopify/importer.rb`](app/models/product/shopify/importer.rb)
+- [`app/models/sale/statuses.rb`](app/models/sale/statuses.rb)
+- [`app/models/purchase/linking.rb`](app/models/purchase/linking.rb)
+
+instead of a broad top-level split across `app/forms`, `app/importers`, `app/queries`, and `app/services`.
+
+For the detailed placement guide, see `Where to put new code` below.
+
+### Local architecture guidance
+
+More detailed guidance lives under:
 
 ```text
-Franchise
-  -> Product
-    -> Edition
-    -> Media
-    -> StoreInfo
-    -> Purchase
-      -> Payment
-      -> PurchaseItem
-        -> Warehouse
-        -> SaleItem
-          -> Sale
-            -> Customer
-
-Warehouse
-  -> WarehouseTransition
-
-User
-  -> Session
+.codex/skills/rails-domain-architecture/
 ```
 
-### Core business records
+Key reference files:
 
-| Record | Responsibility |
-| --- | --- |
-| `Product` | Catalog root. Owns title composition, edition generation, store references, media coordination, and sales history views. |
-| `Edition` | Concrete sellable variant built from product option dimensions such as size, version, and color. |
-| `Purchase` | Supplier-facing order with cost, quantity, payments, and inventory-linking rules. |
-| `PurchaseItem` | One physical inventory unit with warehousing, shipping, notification, and sale-linking behavior. |
-| `Sale` | Customer-facing order imported from stores, with status calculation and inventory-linking actions. |
-| `SaleItem` | One sold line item that can be matched to one or more `PurchaseItem` records. |
-| `StoreInfo` | Polymorphic store metadata layer for Shopify and Woo records, IDs, timestamps, and sync checksums. |
-| `Warehouse` | Physical storage location plus movement rules, listing, lifecycle behavior, and transitions. |
-
-### Examples of where business behavior lives
-
-```text
-app/models/product/
-  editing.rb
-  edition_generation.rb
-  initial_purchase.rb
-  listing.rb
-  sales_history.rb
-  store_info_editing.rb
-  store_references.rb
-  titling.rb
-  shopify/
-    importer.rb
-    parser.rb
-    payload.rb
-
-app/models/purchase/
-  financials.rb
-  linking.rb
-  warehousing.rb
-
-app/models/sale/
-  editing.rb
-  linking.rb
-  listing.rb
-  shop_sync.rb
-  statuses.rb
-  shopify/
-    importer.rb
-    parser.rb
-    sale_item_importer.rb
-```
+- [`references/principles.md`](.codex/skills/rails-domain-architecture/references/principles.md)
+- [`references/full-stack-architecture.md`](.codex/skills/rails-domain-architecture/references/full-stack-architecture.md)
+- [`references/jobs-architecture.md`](.codex/skills/rails-domain-architecture/references/jobs-architecture.md)
+- [`references/testing-architecture.md`](.codex/skills/rails-domain-architecture/references/testing-architecture.md)
+- [`references/screen-first-view-pattern.md`](.codex/skills/rails-domain-architecture/references/screen-first-view-pattern.md)
 
 ---
 
@@ -267,113 +304,75 @@ Important examples:
 
 ---
 
-## The Repo's Style of Rails
-
-This app is moving toward a stronger model-first style.
-
-The intended shape is:
-
-- thin controllers
-- rich model APIs
-- small supporting files near each model
-- small form-translation objects when request-shape translation grows
-- named scopes for business queries and common loading patterns
-- jobs that call domain code directly
-- integration objects placed near the owning model when they are still part of the business workflow
-
-### What that means in practice
-
-The architectural layers above are the main explanation. In day-to-day work, the practical defaults are:
-
-- If one business area owns the rule, put it under `app/models/<model>/...`
-- If the behavior is shared across many models, use `app/models/concerns`
-- If the controller or job just needs one business action, call a named model method
-- If one widget or partial needs small screen-only view-data shaping, prefer a helper over a presenter
-- If an object coordinates several business areas or is infrastructure-heavy, a separate object is fine, but it should have a clear home and purpose
-
-### How this differs from a layered `forms / presenters / queries / services` layout
-
-Many Rails codebases organize application logic by technical role:
-
-- `app/forms`
-- `app/presenters`
-- `app/queries`
-- `app/searchers`
-- `app/services`
-
-That style can work well, but it is not the main organizing principle in this repo.
-
-Here, the default question is not "what kind of object is this?" but "which business concept is responsible for this rule?"
-
-### Quick comparison
-
-| Dimension | Layered Rails (`forms / presenters / queries / services`) | Classic DDD | This repo |
-| --- | --- | --- | --- |
-| Primary organizing principle | Technical role | Business model with stronger separation between business rules and technical layers | Business ownership inside one Rails monolith |
-| Main question when placing code | "What kind of object is this?" | "Which business area or business object owns this?" | "Which business concept is responsible for this rule?" |
-| Default home for business logic | Often spread across services, forms, queries | Business objects and dedicated business services | `app/models/<model>/...` supporting files and nearby model objects |
-| Controllers | Often coordinate multiple service and form objects | Thin application layer adapters | Thin request handlers that call model methods |
-| Queries | Often separate query objects by default | Dedicated repositories or read models are more common | Named scopes and model-area query methods first, standalone query objects only when the query becomes big enough to deserve its own home |
-| Presentation shaping | Presenters or decorators are common | Separate application or interface layer | Helpers, partials, Turbo templates; presenters are not the default |
-| Integrations | Frequently coordinated in top-level services | Usually separated behind clear business and application boundaries | Business-specific parsers and importers live near the owning model; API clients stay in `app/services` |
-| Strength | Clear technical buckets | Very explicit modeling and boundaries | Fast feature tracing, strong business ownership, practical Rails ergonomics |
-| Main risk | One feature gets scattered across many folders | Can become heavy or over-abstract for a monolith | Requires discipline so model folders stay coherent and do not become catch-all buckets |
-
-The practical advantage of this repo's style is that most changes stay close to the part of the business that makes the decision.
-
-That usually makes it easier to understand a feature end to end:
-
-- the controller shows where the user action enters the system
-- the model area shows the business behavior
-- the helper or partial shows the screen-only shaping
-- the job or integration object shows sync, API, or background-work edges
-
-This gives us some of the clarity people want from DDD without paying the full ceremony cost of strict DDD layers inside a Rails monolith.
-
-That leads to a different placement strategy:
-
-- business behavior owned by one model area lives under `app/models/<model>/...`
-- complex form translation stays near the owning business concept as objects such as `Product::FormPayload`
-- business queries usually stay as named scopes or model-area query methods before becoming standalone query objects
-- screen-only presentation shaping usually stays in helpers and partials before becoming presenters
-- `app/services` is reserved mostly for infrastructure concerns such as API clients and GraphQL wrappers
-
-In other words, this repo is organized primarily by business ownership and only secondarily by technical role.
-
-The tradeoff is intentional:
-
-- we give up some "all forms live together" or "all queries live together" symmetry
-- in return, most feature work stays close to the business area that owns the rule, which makes request flows, async jobs, and integrations easier to trace end to end
-
-This is why you will find files such as:
-
-- [`app/models/product/form_payload.rb`](app/models/product/form_payload.rb)
-- [`app/models/product/form_rehydrator.rb`](app/models/product/form_rehydrator.rb)
-- [`app/models/product/shopify/importer.rb`](app/models/product/shopify/importer.rb)
-- [`app/models/sale/statuses.rb`](app/models/sale/statuses.rb)
-- [`app/models/purchase/linking.rb`](app/models/purchase/linking.rb)
-
-instead of a broad top-level split across `app/forms`, `app/importers`, `app/queries`, and `app/services`.
-
-For the detailed placement guide, see `Where to put new code` below.
-
-### Local architecture guidance
-
-The repo includes architecture references used by both humans and Codex under:
+## Business Record Map
 
 ```text
-.codex/skills/rails-domain-architecture/
+Franchise
+  -> Product
+    -> Edition
+    -> Media
+    -> StoreInfo
+    -> Purchase
+      -> Payment
+      -> PurchaseItem
+        -> Warehouse
+        -> SaleItem
+          -> Sale
+            -> Customer
+
+Warehouse
+  -> WarehouseTransition
+
+User
+  -> Session
 ```
 
-The most important reference files are:
+### Core business records
 
-- [`references/principles.md`](.codex/skills/rails-domain-architecture/references/principles.md)
-- [`references/full-stack-architecture.md`](.codex/skills/rails-domain-architecture/references/full-stack-architecture.md)
-- [`references/jobs-architecture.md`](.codex/skills/rails-domain-architecture/references/jobs-architecture.md)
-- [`references/testing-architecture.md`](.codex/skills/rails-domain-architecture/references/testing-architecture.md)
-- [`references/screen-first-view-pattern.md`](.codex/skills/rails-domain-architecture/references/screen-first-view-pattern.md)
+| Record | Responsibility |
+| --- | --- |
+| `Product` | Catalog root. Owns title composition, edition generation, store references, media coordination, and sales history views. |
+| `Edition` | Concrete sellable variant built from product option dimensions such as size, version, and color. |
+| `Purchase` | Supplier-facing order with cost, quantity, payments, and inventory-linking rules. |
+| `PurchaseItem` | One physical inventory unit with warehousing, shipping, notification, and sale-linking behavior. |
+| `Sale` | Customer-facing order imported from stores, with status calculation and inventory-linking actions. |
+| `SaleItem` | One sold line item that can be matched to one or more `PurchaseItem` records. |
+| `StoreInfo` | Polymorphic store metadata layer for Shopify and Woo records, IDs, timestamps, and sync checksums. |
+| `Warehouse` | Physical storage location plus movement rules, listing, lifecycle behavior, and transitions. |
 
-Those docs describe the preferred way to place new code and refactor older parts of the app in this repository.
+### Examples of where business behavior lives
+
+```text
+app/models/product/
+  editing.rb
+  edition_generation.rb
+  initial_purchase.rb
+  listing.rb
+  sales_history.rb
+  store_info_editing.rb
+  store_references.rb
+  titling.rb
+  shopify/
+    importer.rb
+    parser.rb
+    payload.rb
+
+app/models/purchase/
+  financials.rb
+  linking.rb
+  warehousing.rb
+
+app/models/sale/
+  editing.rb
+  linking.rb
+  listing.rb
+  shop_sync.rb
+  statuses.rb
+  shopify/
+    importer.rb
+    parser.rb
+    sale_item_importer.rb
+```
 
 ---
 
@@ -506,8 +505,6 @@ app/
 
 ### Models layout
 
-The repository uses grouped model folders rather than putting all behavior into giant base files.
-
 Typical pattern:
 
 ```text
@@ -518,13 +515,9 @@ app/models/product/titling.rb
 app/models/product/shopify/importer.rb
 ```
 
-This is the preferred direction for new business logic.
-
 ### Views layout
 
-Views are mostly resource-oriented first, then screen-oriented inside each resource.
-
-The common shape is:
+Views are mostly resource-oriented first, then screen-oriented inside each resource:
 
 ```text
 app/views/<resource>/
@@ -536,8 +529,6 @@ app/views/<resource>/
   turbo_stream/*
 ```
 
-When a screen grows, split it by screen subtree rather than pushing presentation logic into models or inventing presenter layers.
-
 Examples:
 
 - `app/views/products/index/*`
@@ -545,7 +536,7 @@ Examples:
 - `app/views/sales/items/*`
 - `app/views/purchases/form/*`
 
-Helpers are the default place for small screen-only preparation. Use them for mechanical view shaping that belongs to one widget, partial tree, or response format.
+Helpers are the default place for small screen-only preparation.
 
 ### Where to put new code
 
@@ -622,20 +613,12 @@ The test suite is RSpec-based and mirrors the main responsibility lines in the a
 - `spec/policies` for authorization rules
 - `spec/integration` for cross-boundary sync behavior
 
-Helpful examples in this repo:
+Examples in this repo:
 
 - [`spec/models/product`](spec/models/product)
 - [`spec/jobs`](spec/jobs)
 - [`spec/features`](spec/features)
 - [`spec/policies`](spec/policies)
-
-### What is emphasized
-
-- business behavior close to the owning model
-- end-to-end inventory and sales flows
-- integration parsing and import behavior
-- background job retries and sync pagination
-- policy coverage for role-sensitive screens
 
 ### Representative flows covered
 
