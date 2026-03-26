@@ -139,7 +139,7 @@ They are responsible for:
 
 They are not meant to be the home for business rules.
 
-A representative example is `ProductsController`, which now uses small form-boundary objects such as `Product::FormPayload` and `Product::FormRehydrator` before calling model entry points such as `create_from_form!` and `apply_form_changes!`.
+A representative example is `ProductsController`, which uses small form-boundary objects such as `Product::FormPayload` and `Product::FormRehydrator` before calling model entry points such as `create_from_form!` and `apply_form_changes!`.
 
 The rule in this repo is:
 
@@ -235,10 +235,12 @@ Key pieces:
 - Stimulus controllers in `app/javascript/controllers`
 - Tailwind CSS via `tailwindcss-rails`
 
-Views are organized by resource and often by screen subtree. For example, product show and index pages are split into focused partial trees under:
+The presentation rules are:
 
-- `app/views/products/show/*`
-- `app/views/products/index/*`
+- let the server render the initial structure and prepared view data
+- organize views by resource and then by screen subtree when a page gets large
+- keep screen-only wording, branching, and small view-data shaping at the edge in helpers, partials, and Turbo templates
+- keep Stimulus focused on interaction state, DOM toggles, and loading transitions for one widget
 
 One practical rule matters a lot here: UI tests are part of the architecture.
 
@@ -281,13 +283,15 @@ The intended shape is:
 
 ### What that means in practice
 
+The architectural layers above are the main explanation. In day-to-day work, the practical defaults are:
+
 - If one aggregate owns the rule, put it under `app/models/<model>/...`
 - If the behavior is shared across many models, use `app/models/concerns`
 - If the controller or job just needs one domain action, call a named model method
-- If one form needs heavy request-shape translation, put that translation in a small object such as `app/models/<model>/form_payload.rb`
-- If a failed submit needs rebuilding of nested unsaved state, use a small `form_rehydrator` object near the owning model instead of bloating the controller
-- If one widget or partial needs small screen-only view-data shaping, prefer a helper over a presenter; this repo uses helpers and partials as the default presentation abstraction
+- If one widget or partial needs small screen-only view-data shaping, prefer a helper over a presenter
 - If an object is cross-aggregate or infrastructure-heavy, a separate object is fine, but it should have a clear home and purpose
+
+For the detailed placement guide, see `Where to put new code` below.
 
 ### Local architecture guidance
 
@@ -368,7 +372,7 @@ purchase item move request
 
 Catalog data starts from `Franchise` and `Product`.
 
-`Product` owns:
+`Product` owns the core catalog workflows:
 
 - title and full-title composition
 - edition generation
@@ -454,7 +458,21 @@ This is the preferred direction for new domain work.
 
 ### Views layout
 
-Views are mostly screen-oriented and resource-oriented.
+Views are mostly resource-oriented first, then screen-oriented inside each resource.
+
+The common shape is:
+
+```text
+app/views/<resource>/
+  index.html.slim
+  show.html.slim
+  form/_form.html.slim
+  index/*
+  show/*
+  turbo_stream/*
+```
+
+When a screen grows, split it by screen subtree rather than pushing presentation logic into models or inventing presenter layers.
 
 Examples:
 
@@ -463,7 +481,7 @@ Examples:
 - `app/views/sales/items/*`
 - `app/views/purchases/form/*`
 
-This keeps large screens readable without pushing presentation logic into models.
+Helpers are the default place for small screen-only preparation. Use them for mechanical view shaping that belongs to one widget, partial tree, or response format.
 
 ### Where to put new code
 
@@ -644,15 +662,15 @@ PARALLEL_TEST_PROCESSORS=6 bin/rspec
 
 ## How to Approach Changes in This Repo
 
-When adding or refactoring code, the safest default is:
+When adding or refactoring code, a quick working checklist is:
 
 1. identify the owning aggregate
-2. keep the controller or job thin
-3. add behavior under `app/models/<model>/...`
-4. reserve `app/models/concerns` for truly shared behavior
-5. add tests at the same ownership seam
+2. choose the request, domain, or view boundary you are changing
+3. use `Where to put new code` for the default file placement
+4. keep the edge thin and the ownership explicit
+5. add tests at the same seam as the behavior
 
-If the app feels inconsistent in places, treat the current file placement as evidence rather than architecture to preserve blindly. The preferred direction is the model-centric shape described above.
+If the app feels inconsistent in places, treat current file placement as evidence rather than architecture to preserve blindly. Use the architecture sections above for the why, and `Where to put new code` for the practical default.
 
 ---
 
