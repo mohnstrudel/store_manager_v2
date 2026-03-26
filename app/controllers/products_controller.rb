@@ -3,8 +3,8 @@
 class ProductsController < ApplicationController
   include MediaFormHandling
 
-  before_action :set_product, only: %i[show edit update destroy] # DISABLED: publish_to_shopify, push_to_shopify
-  before_action :load_form_collections, only: %i[new edit]
+  before_action :set_product, only: %i[show edit update destroy]
+  before_action :prepare_form_options, only: %i[new edit]
 
   # GET /products or /products.json
   def index
@@ -24,9 +24,7 @@ class ProductsController < ApplicationController
   # GET /products/new
   def new
     @product = Product.new
-    @product.purchases.build do |purchase|
-      purchase.payments.build
-    end
+    @initial_purchase = default_initial_purchase_attributes
   end
 
   # GET /products/1/edit
@@ -42,7 +40,7 @@ class ProductsController < ApplicationController
       @product.create_from_form!(
         editions_attributes: payload.editions_attributes,
         store_infos_attributes: payload.store_infos_attributes,
-        purchase_attributes: payload.purchase_attributes,
+        initial_purchase_attributes: payload.initial_purchase_attributes,
         new_media_images: media_new_images_for(@product)
       )
       # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
@@ -50,11 +48,10 @@ class ProductsController < ApplicationController
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
-    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-      @product = Product::FormRehydrator.new(product: @product, payload:).call
-      load_form_collections
-      format.html { render :new, status: :unprocessable_content }
-      format.json { render json: @product.errors, status: :unprocessable_content }
+    rescue ActiveRecord::RecordInvalid => e
+      handle_failed_create(format, payload, e.record)
+    rescue ActiveRecord::RecordNotUnique
+      handle_failed_create(format, payload)
     end
   end
 
@@ -75,7 +72,7 @@ class ProductsController < ApplicationController
       format.json { render :show, status: :ok, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
       @product = Product::FormRehydrator.new(product: @product, payload:).call
-      load_form_collections
+      prepare_form_options
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -91,25 +88,6 @@ class ProductsController < ApplicationController
     end
   end
 
-  # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
-  # def publish_to_shopify
-  #   Shopify::CreateProductJob.perform_later(@product.id)
-  #
-  #   respond_to do |format|
-  #     format.turbo_stream { flash.now[:notice] = "Product is being published to Shopify" }
-  #     format.html { redirect_to products_path, notice: "Product is being published to Shopify" }
-  #   end
-  # end
-  #
-  # def push_to_shopify
-  #   Shopify::UpdateProductJob.perform_later(@product.id)
-  #
-  #   respond_to do |format|
-  #     format.turbo_stream { flash.now[:notice] = "Product updates are being pushed to Shopify" }
-  #     format.html { redirect_to products_path, notice: "Product updates are being pushed to Shopify" }
-  #   end
-  # end
-
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -117,14 +95,37 @@ class ProductsController < ApplicationController
     @product = Product.for_details.friendly.find(params[:id])
   end
 
-  def load_form_collections
+  def prepare_form_options
     @franchise_options = Franchise.order(:title)
     @brand_options = Brand.order(:title)
     @shape_options = Shape.order(:title)
     @size_options = Size.order(:value)
     @version_options = Version.order(:value)
     @color_options = Color.order(:value)
-    @supplier_options = Supplier.order(title: :asc)
-    @warehouse_options = Warehouse.order(name: :asc)
+    @supplier_options = Supplier.order(:title)
+    @warehouse_options = Warehouse.order(:name)
+  end
+
+  def default_initial_purchase_attributes
+    {
+      warehouse_id: Warehouse.find_by(is_default: true)&.id
+    }.with_indifferent_access
+  end
+
+  def append_initial_purchase_errors(product, record)
+    return unless record.is_a?(Purchase) || record.is_a?(Payment)
+
+    record.errors.full_messages.each do |message|
+      product.errors.add(:base, "Initial purchase #{message}")
+    end
+  end
+
+  def handle_failed_create(format, payload, record = nil)
+    @product = Product::FormRehydrator.new(product: @product, payload:).call
+    append_initial_purchase_errors(@product, record)
+    prepare_form_options
+    @initial_purchase = default_initial_purchase_attributes.merge(payload.submitted_initial_purchase_attributes)
+    format.html { render :new, status: :unprocessable_content }
+    format.json { render json: @product.errors, status: :unprocessable_content }
   end
 end

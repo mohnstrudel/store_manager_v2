@@ -72,44 +72,9 @@
         = fields_for "store_infos[NEW_INDEX]", StoreInfo.new, include_id: false do |store_info_fields|
           = render "products/form/new_store_info_fields", f: store_info_fields
 
-  = render "_shared/media_form", form: form, resource_name: "product"
+  - if product.new_record?
+    = render "products/form/initial_purchase_fields", initial_purchase: (@initial_purchase || {})
 
-  - if form.object.new_record?
-    fieldset data-controller="product-purchase"
-      label Purchase
-      = form_hint "You can create a purchase alongside with new product"
-      .pb-1 data-product-purchase-target="add"
-        = link_to "", class: "btn-rounded mt-6", data: {action: "product-purchase#addForm"}
-          i.icn 💰
-          | Add Purchase
-      .pb-1.hidden data-product-purchase-target="remove"
-        = link_to "", class: "btn-rounded mt-6 btn-red", data: {action: "product-purchase#removeForm"}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-            | Remove Purchase
-      .new-product_purchase-fields.pb-2 data-product-purchase-target="form"
-        = form.fields_for :purchases, product.purchases do |purchase_fields|
-          fieldset.flex.justify-between.gap-4
-            .block.w-full
-              = purchase_fields.label :supplier_id
-              = purchase_fields.collection_select :supplier_id, @supplier_options || [], :id, :title, {}, {class: "w-full"}
-            .block.w-full
-              = purchase_fields.label :order_reference
-              = purchase_fields.text_field :order_reference
-          fieldset.flex.justify-between.gap-4
-            .block.w-full
-              = purchase_fields.label :item_price
-              = purchase_fields.text_field :item_price
-            .block.w-full
-              = purchase_fields.label :amount
-              = purchase_fields.text_field :amount
-            .block.w-full
-              = purchase_fields.fields_for :payments, purchase_fields.object.payments do |payment_builder|
-                = payment_builder.label "What did you pay in total?"
-                = payment_builder.number_field :value, step: :any
-          - if @warehouse_options.present?
-            = purchase_fields.label :warehouse_id, "Initial warehouse"
-            = purchase_fields.collection_select :warehouse_id, @warehouse_options, :id, :name, {selected: @default_warehouse_id}
+  = render "_shared/media_form", form: form, resource_name: "product"
 
   = form_submit_for(product, form)

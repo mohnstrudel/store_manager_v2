@@ -5,7 +5,7 @@
 .section-wide.flex.flex-col.gap-8
   = render "purchases/show/purchase_items", purchase_items: @purchase_items, purchase: @purchase
   = render "purchases/show/details", purchase: @purchase
-  = render "purchases/show/payments", payments: @payments, purchase: @purchase
+  = render "purchases/show/payments", payments: @payments, payment_form: @new_payment, purchase: @purchase
 
 
 = destroy_btn_for @purchase

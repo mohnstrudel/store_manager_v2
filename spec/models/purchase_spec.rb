@@ -58,7 +58,6 @@ RSpec.describe Purchase do
     it { expect(purchase_for_associations).to belong_to(:edition).optional }
 
     it { expect(purchase_for_associations).to have_many(:payments).dependent(:destroy) }
-    it { expect(purchase_for_associations).to accept_nested_attributes_for(:payments) }
 
     it { expect(purchase_for_associations).to have_many(:purchase_items).dependent(:destroy) }
     it { expect(purchase_for_associations).to have_many(:warehouses).through(:purchase_items) }

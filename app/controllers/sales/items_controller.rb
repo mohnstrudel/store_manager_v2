@@ -3,33 +3,18 @@
 module Sales
   class ItemsController < ApplicationController
     before_action :set_sale
-    before_action :set_sale_item, only: %i[show edit update destroy]
-    before_action :load_form_collections, only: :edit
+    before_action :set_sale_item, only: %i[show destroy]
 
     def show
       render "sale_items/show"
     end
 
-    def edit
-    end
-
-    def update
-      attachments = ActiveStorage::Attachment.where(id: params[:deleted_img_ids]) if params[:deleted_img_ids].present?
-
-      if @sale_item.update(sale_item_params)
-        attachments&.map(&:purge_later)
-        redirect_to sale_item_path(@sale, @sale_item), notice: "Sale item was successfully updated", status: :see_other
-      else
-        load_form_collections
-        render :edit, status: :unprocessable_content
-      end
-    end
-
     def destroy
-      warehouse = @sale_item.warehouse
+      unlink_purchase_items
       @sale_item.destroy!
-
-      redirect_to warehouse, notice: "Sale item was successfully destroyed", status: :see_other, turbolinks: false
+      redirect_to redirect_path,
+        notice: "Sale item was successfully destroyed",
+        status: :see_other
     end
 
     private
@@ -43,25 +28,23 @@ module Sales
     end
 
     def set_sale_item
-      @sale_item = if action_name == "show"
-        @sale.sale_items.for_details.find(params[:id])
+      @sale_item = sale_items_scope.find(params[:id])
+    end
+
+    def sale_items_scope
+      if action_name == "show"
+        @sale.sale_items.for_details
       else
-        @sale.sale_items.find(params[:id])
+        @sale.sale_items
       end
     end
 
-    def sale_item_params
-      params.expect(
-        sale_item: [:price,
-          :qty,
-          :sale_id,
-          :edition_id,
-          :woo_id]
-      )
+    def unlink_purchase_items
+      @sale_item.purchase_items.find_each { |purchase_item| purchase_item.update!(sale_item_id: nil) }
     end
 
-    def load_form_collections
-      @purchases = Purchase.for_form_select
+    def redirect_path
+      params[:return_to].presence || sale_path(@sale)
     end
   end
 end

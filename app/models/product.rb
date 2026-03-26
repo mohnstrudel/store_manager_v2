@@ -79,5 +79,4 @@ class Product < ApplicationRecord
   has_many :purchase_items, through: :purchases
 
   has_rich_text :description
-  accepts_nested_attributes_for :purchases
 end

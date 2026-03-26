@@ -61,15 +61,18 @@
         = rdb.label class: "m-0 p-0 pl-2 cursor-pointer text-sm"
 
   h5.mt-8.mb-3 Products
+  - form_sale_items = @sale_items || sale.sale_items.to_a
   div data-controller="sale-items"
     div data-sale-items-target="container"
-      - sale.sale_items.each do |sale_item|
-        = form.fields_for :sale_items, sale_item do |ps_f|
-          = render "sales/form/product_fields", f: ps_f, product: sale_item.product
-    button.btn-rounded.mt-3 type="button" data-action="sale-items#addProduct" data-sale-items-target="button" Add Product
+      - form_sale_items.each_with_index do |sale_item, index|
+        = fields_for "sale_items[#{index}]", sale_item do |sale_item_fields|
+          = render "sales/form/sale_item_fields", f: sale_item_fields, sale_item: sale_item
+
+    button.btn-rounded.mt-3 type="button" data-action="sale-items#addProduct"
+      | Add Product
 
     template data-sale-items-target="template"
-      = form.fields_for :sale_items, SaleItem.new, child_index: "NEW_INDEX" do |ps_f|
-        = render "sales/form/new_product_fields", f: ps_f
+      = fields_for "sale_items[NEW_INDEX]", SaleItem.new do |sale_item_fields|
+        = render "sales/form/sale_item_fields", f: sale_item_fields, sale_item: SaleItem.new
 
   = form_submit_for(sale, form)

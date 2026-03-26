@@ -14,14 +14,10 @@ RSpec.describe Purchase::FormPayload do
         order_reference: "REF-1",
         item_price: "12.50",
         amount: "5",
-        warehouse_id: "9",
-        payments_attributes: {
-          "0" => {
-            id: "7",
-            value: "100.0",
-            purchase_id: "11"
-          }
-        }
+        warehouse_id: "9"
+      },
+      initial_payment: {
+        value: "62.50"
       }
     )
   end
@@ -33,15 +29,9 @@ RSpec.describe Purchase::FormPayload do
       "edition_id" => "3",
       "order_reference" => "REF-1",
       "item_price" => "12.50",
-      "amount" => "5",
-      "payments_attributes" => {
-        "0" => {
-          "id" => "7",
-          "value" => "100.0",
-          "purchase_id" => "11"
-        }
-      }
+      "amount" => "5"
     )
     expect(payload.initial_warehouse_id).to eq("9")
+    expect(payload.initial_payment_value).to eq("62.50")
   end
 end

@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class PurchasesController < ApplicationController
+  include PurchaseShowState
+
   before_action :set_default_warehouse_id, only: %i[new edit]
   before_action :set_purchase_for_show, only: :show
   before_action :set_purchase, only: %i[edit update destroy]
-  before_action :load_form_collections, only: %i[new edit]
+  before_action :prepare_form_options, only: %i[new edit]
 
   # GET /purchases or /purchases.json
   def index
@@ -14,17 +16,13 @@ class PurchasesController < ApplicationController
 
   # GET /purchases/1 or /purchases/1.json
   def show
-    @purchase_items = @purchase
-      .purchase_items
-      .for_purchase_details
-      .order(updated_at: :desc)
-    @payments = @purchase.payments.order(payment_date: :asc, created_at: :asc)
+    prepare_purchase_show_state
   end
 
   # GET /purchases/new
   def new
     @purchase = Purchase.new
-    @purchase.payments.build
+    @initial_payment_value = nil
     if params[:product]
       product = Product.friendly.find(params[:product])
       @purchase.product = product
@@ -38,19 +36,22 @@ class PurchasesController < ApplicationController
   # POST /purchases or /purchases.json
   def create
     payload = Purchase::FormPayload.new(params:)
-    @purchase = Purchase.new(payload.attributes)
+    @purchase = Purchase.new
 
     respond_to do |format|
-      if @purchase.save
-        handle_warehouse_assignment_for(@purchase, payload.initial_warehouse_id)
-
-        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
-        format.json { render :show, status: :created, location: @purchase }
-      else
-        load_form_collections
-        format.html { render :new, status: :unprocessable_content }
-        format.json { render json: @purchase.errors, status: :unprocessable_content }
-      end
+      @purchase.create_from_form!(
+        attributes: payload.attributes,
+        initial_warehouse_id: payload.initial_warehouse_id,
+        initial_payment_value: payload.initial_payment_value
+      )
+      format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
+      format.json { render :show, status: :created, location: @purchase }
+    rescue ActiveRecord::RecordInvalid => e
+      append_initial_payment_errors(@purchase, e.record)
+      prepare_form_options
+      @initial_payment_value = payload.initial_payment_value
+      format.html { render :new, status: :unprocessable_content }
+      format.json { render json: @purchase.errors, status: :unprocessable_content }
     end
   end
 
@@ -63,7 +64,7 @@ class PurchasesController < ApplicationController
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
-        load_form_collections
+        prepare_form_options
         format.html { render :edit, status: :unprocessable_content }
         format.json { render json: @purchase.errors, status: :unprocessable_content }
       end
@@ -95,15 +96,17 @@ class PurchasesController < ApplicationController
     @default_warehouse_id = Warehouse.find_by(is_default: true)&.id
   end
 
-  def load_form_collections
+  def prepare_form_options
     @product_options = Product.with_store_references
     @suppliers = Supplier.order(title: :asc)
     @warehouse_options = Warehouse.order(name: :asc)
   end
 
-  def handle_warehouse_assignment_for(purchase, warehouse_id)
-    return if warehouse_id.blank?
+  def append_initial_payment_errors(purchase, record)
+    return unless record.is_a?(Payment)
 
-    purchase.move_to_warehouse!(warehouse_id)
+    record.errors.full_messages.each do |message|
+      purchase.errors.add(:base, "Initial payment #{message}")
+    end
   end
 end

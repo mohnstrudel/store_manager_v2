@@ -6,9 +6,6 @@ RSpec.describe "Product Store Info Management" do
   before { sign_in_as_admin }
 
   let!(:product) { create(:product) }
-  let!(:supplier) { create(:supplier) }
-  let!(:warehouse) { create(:warehouse) }
-
   # Product with only shopify_info (missing woo_info) to test adding new store_infos
   let!(:product_with_one_store) do
     p = create(:product)
@@ -299,14 +296,6 @@ RSpec.describe "Product Store Info Management" do
     store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
     page.execute_script("arguments[0].value = 'shopify'", store_select)
     new_store_section.fill_in "Tags", with: "featured, launch"
-
-    click_link "Add Purchase"
-    select supplier.title, from: "Supplier"
-    fill_in "Item price", with: "100"
-    fill_in "Amount", with: "1"
-    payment_input = find("input[name*='[payments_attributes]'][name$='[value]']", visible: :all)
-    payment_input.fill_in with: "100"
-    select warehouse.name, from: "Initial warehouse"
 
     click_button "Create Product"
 

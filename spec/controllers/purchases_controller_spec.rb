@@ -11,7 +11,7 @@ RSpec.describe PurchasesController do
     let(:product) { create(:product) }
     let(:warehouse) { create(:warehouse) }
 
-    it "creates the purchase and assigns its items to the selected warehouse" do # rubocop:disable RSpec/MultipleExpectations
+    it "creates the purchase, assigns its items to the selected warehouse, and adds the initial payment" do # rubocop:disable RSpec/MultipleExpectations
       expect {
         post :create, params: {
           purchase: {
@@ -19,10 +19,10 @@ RSpec.describe PurchasesController do
             product_id: product.id,
             amount: 2,
             item_price: "10.00",
-            warehouse_id: warehouse.id,
-            payments_attributes: {
-              "0" => {value: "20.00"}
-            }
+            warehouse_id: warehouse.id
+          },
+          initial_payment: {
+            value: "20.00"
           }
         }
       }.to change(Purchase, :count).by(1)
@@ -30,6 +30,7 @@ RSpec.describe PurchasesController do
       purchase = Purchase.last
       expect(response).to redirect_to(purchase_path(purchase))
       expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
+      expect(purchase.payments.pluck(:value)).to eq([BigDecimal(20)])
     end
   end
 

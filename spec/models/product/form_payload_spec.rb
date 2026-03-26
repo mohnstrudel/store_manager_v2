@@ -15,15 +15,7 @@ RSpec.describe Product::FormPayload do
         brand_ids: ["3"],
         color_ids: ["4"],
         size_ids: ["5"],
-        version_ids: ["6"],
-        purchases_attributes: {
-          "0" => {
-            warehouse_id: "9",
-            payments_attributes: {
-              "0" => {value: "12.50"}
-            }
-          }
-        }
+        version_ids: ["6"]
       },
       store_infos: {
         "0" => {
@@ -45,6 +37,14 @@ RSpec.describe Product::FormPayload do
           weight: "1.5",
           _destroy: "0"
         }
+      },
+      initial_purchase: {
+        supplier_id: "13",
+        order_reference: "PO-42",
+        item_price: "9.99",
+        amount: "3",
+        warehouse_id: "14",
+        payment_value: "29.97"
       }
     )
   end
@@ -71,9 +71,13 @@ RSpec.describe Product::FormPayload do
         destroy: false
       }
     ])
-    expect(payload.purchase_attributes).to eq(
-      warehouse_id: "9",
-      payment_value: "12.50"
-    )
+    expect(payload.initial_purchase_attributes).to eq({
+      supplier_id: "13",
+      order_reference: "PO-42",
+      item_price: "9.99",
+      amount: "3",
+      warehouse_id: "14",
+      payment_value: "29.97"
+    })
   end
 end

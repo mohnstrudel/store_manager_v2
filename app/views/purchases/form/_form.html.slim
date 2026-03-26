@@ -24,11 +24,10 @@
     .block.w-full
       = form.label :amount
       = form.text_field :amount
-    .block.w-full
-      - if purchase.new_record?
-        = form.fields_for :payments do |payment_builder|
-          = payment_builder.label "What did you pay in total?"
-          = payment_builder.number_field :value, step: :any
+    - if purchase.new_record?
+      .block.w-full
+        = label_tag "initial_payment_value", "What did you pay in total?"
+        = number_field_tag "initial_payment[value]", @initial_payment_value, step: :any
 
   - if @warehouse_options.present?
     = form.label :warehouse_id, "Initial warehouse"

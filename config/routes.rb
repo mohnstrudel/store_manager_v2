@@ -56,7 +56,7 @@ Rails.application.routes.draw do
 
   resources :sales do
     scope module: :sales do
-      resources :items, only: %i[show edit update destroy], controller: :items
+      resources :items, only: %i[show destroy], controller: :items
       resource :purchase_item_link, only: :create, path: "link_purchase_items"
       resource :pull, only: :create
 
@@ -72,7 +72,7 @@ Rails.application.routes.draw do
 
   resources :purchases do
     scope module: :purchases do
-      resources :payments, only: :create
+      resources :payments, only: %i[create update destroy]
 
       collection do
         resource :move, only: :create

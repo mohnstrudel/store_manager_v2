@@ -7,7 +7,7 @@ module Warehouses
 
     def new
       @purchase_item = PurchaseItem.new(warehouse: @warehouse)
-      load_form_collections
+      prepare_form_options
 
       render "purchase_items/new"
     end
@@ -23,7 +23,7 @@ module Warehouses
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
     rescue ActiveRecord::RecordInvalid
-      load_form_collections
+      prepare_form_options
       render "purchase_items/new", status: :unprocessable_content
     end
 
@@ -33,7 +33,7 @@ module Warehouses
       authorize :purchase_item
     end
 
-    def load_form_collections
+    def prepare_form_options
       @purchases = Purchase.for_form_select
       @shipping_companies = ShippingCompany.order(:name)
       @warehouse_options = Warehouse.order(:name)

@@ -6,21 +6,19 @@ module Product::InitialPurchase
   def apply_initial_purchase!(attributes)
     return if attributes.blank?
 
-    purchase = purchases.last
-    return unless purchase
+    purchase_attributes = attributes.except(:warehouse_id, :payment_value)
+    purchase = purchases.create!(purchase_attributes)
 
     purchase.move_to_warehouse!(attributes[:warehouse_id]) if attributes[:warehouse_id].present?
 
-    sync_initial_payment!(purchase, attributes[:payment_value])
+    create_initial_payment!(purchase, attributes[:payment_value])
   end
 
   private
 
-  def sync_initial_payment!(purchase, payment_value)
+  def create_initial_payment!(purchase, payment_value)
     return if payment_value.blank?
 
-    payment = purchase.payments.order(:id).first_or_initialize
-    payment.value = payment_value
-    payment.save! if payment.new_record? || payment.changed?
+    purchase.payments.create!(value: payment_value)
   end
 end

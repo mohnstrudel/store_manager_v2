@@ -23,6 +23,7 @@
 class Purchase < ApplicationRecord
   attribute :warehouse_id, :integer
 
+  include Creation
   include Financials
   include HasAuditNotifications
   include Linking
@@ -62,7 +63,6 @@ class Purchase < ApplicationRecord
   belongs_to :edition, optional: true, inverse_of: :purchases
 
   has_many :payments, dependent: :destroy, inverse_of: :purchase
-  accepts_nested_attributes_for :payments
 
   has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
   has_many :warehouses, through: :purchase_items

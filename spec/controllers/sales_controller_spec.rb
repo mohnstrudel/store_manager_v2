@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe SalesController, type: :controller do
+RSpec.describe SalesController do
   before { sign_in_as_admin }
   after { log_out }
 
@@ -117,6 +117,7 @@ RSpec.describe SalesController, type: :controller do
 
   describe "POST #create" do
     context "with valid params" do
+      let(:product) { create(:product) }
       let(:valid_params) do
         {
           customer_id: create(:customer).id,
@@ -129,36 +130,49 @@ RSpec.describe SalesController, type: :controller do
         }
       end
 
+      let(:sale_items_params) do
+        {
+          "0" => {
+            product_id: product.id,
+            qty: "1",
+            price: "100.00"
+          }
+        }
+      end
+
       it "creates a new Sale" do
         expect {
-          post :create, params: {sale: valid_params}
+          post :create, params: {sale: valid_params, sale_items: sale_items_params}
         }.to change(Sale, :count).by(1)
       end
 
-      it "assigns a newly created sale as @sale" do
-        post :create, params: {sale: valid_params}
-        expect(assigns(:sale)).to be_a(Sale)
-      end
-
       it "persists the newly created sale" do
-        post :create, params: {sale: valid_params}
+        post :create, params: {sale: valid_params, sale_items: sale_items_params}
         expect(assigns(:sale)).to be_persisted
       end
 
       it "redirects to the created sale" do
-        post :create, params: {sale: valid_params}
+        post :create, params: {sale: valid_params, sale_items: sale_items_params}
         expect(response).to redirect_to(Sale.last)
       end
 
       it "sets a success notice" do
-        post :create, params: {sale: valid_params}
+        post :create, params: {sale: valid_params, sale_items: sale_items_params}
         expect(flash[:notice]).to eq("Sale was successfully created")
       end
 
-      it "delegates creation workflow to the sale model" do
-        post :create, params: {sale: valid_params}
+      it "builds the created sale through the form workflow" do
+        post :create, params: {sale: valid_params, sale_items: sale_items_params}
 
         expect(assigns(:sale)).to be_a(Sale)
+      end
+
+      it "creates sale items from the same form submission" do # rubocop:disable RSpec/MultipleExpectations
+        post :create, params: {sale: valid_params, sale_items: sale_items_params}
+
+        sale = assigns(:sale)
+        expect(sale.sale_items.count).to eq(1)
+        expect(sale.sale_items.first.product).to eq(product)
       end
     end
   end
@@ -166,27 +180,34 @@ RSpec.describe SalesController, type: :controller do
   describe "PATCH #update" do
     let(:sale) { create(:sale, status: "processing") }
     let(:new_status) { "completed" }
+    let!(:sale_item) { create(:sale_item, sale:, qty: 1, price: 100) }
 
     context "with valid params" do
       let(:valid_params) { {status: new_status} }
 
       it "updates the requested sale" do
-        patch :update, params: {id: sale.to_param, sale: valid_params}
+        patch :update, params: {id: sale.to_param, sale: valid_params, sale_items: {"0" => {id: sale_item.id, product_id: sale_item.product_id, qty: "3", price: "150"}}}
         sale.reload
         expect(sale.status).to eq(new_status)
       end
 
       it "assigns the requested sale as @sale" do
-        patch :update, params: {id: sale.to_param, sale: valid_params}
+        patch :update, params: {id: sale.to_param, sale: valid_params, sale_items: {"0" => {id: sale_item.id, product_id: sale_item.product_id, qty: "3", price: "150"}}}
         expect(assigns(:sale)).to eq(sale)
       end
 
-      it "redirects to the sale" do
-        patch :update, params: {id: sale.to_param, sale: valid_params}
+      it "redirects to the sale" do # rubocop:disable RSpec/MultipleExpectations
+        patch :update, params: {id: sale.to_param, sale: valid_params, sale_items: {"0" => {id: sale_item.id, product_id: sale_item.product_id, qty: "3", price: "150"}}}
         expect(response).to redirect_to(sale)
         expect(flash[:notice]).to eq("Sale was successfully updated")
       end
 
+      it "updates sale items from the same form submission" do # rubocop:disable RSpec/MultipleExpectations
+        patch :update, params: {id: sale.to_param, sale: valid_params, sale_items: {"0" => {id: sale_item.id, product_id: sale_item.product_id, qty: "3", price: "150"}}}
+
+        expect(sale_item.reload.qty).to eq(3)
+        expect(sale_item.price).to eq(BigDecimal(150))
+      end
     end
   end
 
@@ -214,5 +235,4 @@ RSpec.describe SalesController, type: :controller do
       expect(response).to have_http_status(:see_other)
     end
   end
-
 end

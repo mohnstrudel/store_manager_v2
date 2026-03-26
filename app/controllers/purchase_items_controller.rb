@@ -16,7 +16,7 @@ class PurchaseItemsController < ApplicationController
 
   # GET /purchase_items/1/edit
   def edit
-    set_data_for_edit
+    prepare_edit_form
   end
 
   # PATCH/PUT /purchase_items/1
@@ -33,7 +33,7 @@ class PurchaseItemsController < ApplicationController
 
     redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
   rescue ActiveRecord::RecordInvalid
-    set_data_for_edit
+    prepare_edit_form
     render :edit, status: :unprocessable_content
   end
 
@@ -54,12 +54,12 @@ class PurchaseItemsController < ApplicationController
     @purchase_item = PurchaseItem.with_media.find(params[:id])
   end
 
-  def set_data_for_edit
+  def prepare_edit_form
     @sale_items = SaleItem.for_edit_linking(@purchase_item)
-    load_form_collections
+    prepare_form_options
   end
 
-  def load_form_collections
+  def prepare_form_options
     @purchases = Purchase.for_form_select
     @shipping_companies = ShippingCompany.order(:name)
     @warehouse_options = Warehouse.order(:name)

@@ -29,7 +29,7 @@ class Product::FormRehydrator
   end
 
   def reassign_product_attributes(reloaded_product)
-    reloaded_product.assign_attributes(payload.product_attributes.except("purchases_attributes"))
+    reloaded_product.assign_attributes(payload.product_attributes)
   end
 
   def reassign_store_infos(reloaded_product)

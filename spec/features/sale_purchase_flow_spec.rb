@@ -25,13 +25,13 @@ feature "Link sales with purchases flow" do
     fill_in "Amount", with: 5
     fill_in "Item price", with: 50
 
-    # Fill "What did you pay in total?" field
-    fill_in "purchase[payments_attributes][0][value]", with: "250"
-
     click_on "Create Purchase"
 
+    fill_in "payment_amount", with: "250"
+    click_button "Add payment"
+
     # Create a sale
-    expect(page).to have_content("Purchase was successfully created")
+    expect(page).to have_content("Payment was successfully created")
 
     visit sales_path
 
@@ -42,12 +42,11 @@ feature "Link sales with purchases flow" do
 
     fill_in "Total", with: 100
 
-    # Add product to sale
     click_button "Add Product"
-    scroll_to "div[data-controller=sale-items]"
+    scroll_to("div[data-controller='sale-items']")
     slim_select "Select a product", product.title
-    fill_in "sale[sale_items_attributes][1][qty]", with: 1
-    fill_in "sale[sale_items_attributes][1][price]", with: "100.00"
+    fill_in "sale_items[0][qty]", with: 1
+    fill_in "sale_items[0][price]", with: "100.00"
 
     click_on "Create Sale"
 

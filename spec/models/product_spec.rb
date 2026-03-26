@@ -53,7 +53,6 @@ RSpec.describe Product do
     it { is_expected.to have_many(:purchases).dependent(:destroy).inverse_of(:product) }
     it { is_expected.to have_many(:purchase_items).through(:purchases) }
     it { is_expected.to have_rich_text(:description) }
-    it { is_expected.to accept_nested_attributes_for(:purchases) }
   end
 
   describe "configuration and extensions" do

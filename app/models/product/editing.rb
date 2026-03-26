@@ -3,14 +3,14 @@
 module Product::Editing
   extend ActiveSupport::Concern
 
-  def create_from_form!(editions_attributes:, store_infos_attributes:, purchase_attributes:, new_media_images:)
+  def create_from_form!(editions_attributes:, store_infos_attributes:, initial_purchase_attributes:, new_media_images:)
     transaction do
       sync_full_title
       save!
       add_new_media_from_form!(new_media_images)
-      apply_initial_purchase!(purchase_attributes)
       apply_editions_attributes!(editions_attributes)
       apply_store_info_attributes!(store_infos_attributes)
+      apply_initial_purchase!(initial_purchase_attributes)
     end
   end
 

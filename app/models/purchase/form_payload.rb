@@ -6,13 +6,15 @@ class Purchase::FormPayload
   end
 
   def attributes
-    purchase_params.to_h.except("warehouse_id").merge(
-      "payments_attributes" => payments_attributes
-    )
+    purchase_params.to_h.except("warehouse_id")
   end
 
   def initial_warehouse_id
     purchase_params[:warehouse_id].presence
+  end
+
+  def initial_payment_value
+    initial_payment_params[:value].presence
   end
 
   private
@@ -29,15 +31,13 @@ class Purchase::FormPayload
         :amount,
         :purchase_id,
         :selected_items_ids,
-        :warehouse_id,
-        payments_attributes: [:id, :value, :purchase_id]]
+        :warehouse_id]
     )
   end
 
-  def payments_attributes
-    raw_params = params.dig(:purchase, :payments_attributes)
-    return {} if raw_params.blank?
+  def initial_payment_params
+    return {}.with_indifferent_access if params[:initial_payment].blank?
 
-    raw_params.respond_to?(:to_unsafe_h) ? raw_params.to_unsafe_h : raw_params
+    @initial_payment_params ||= params.expect(initial_payment: [:value]).to_h.with_indifferent_access
   end
 end

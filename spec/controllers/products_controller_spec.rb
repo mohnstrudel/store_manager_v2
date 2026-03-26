@@ -45,4 +45,42 @@ RSpec.describe ProductsController do
       expect(assigns(:product).errors[:title]).to include("can't be blank")
     end
   end
+
+  describe "POST #create" do
+    let(:franchise) { create(:franchise) }
+    let(:shape) { create(:shape) }
+    let(:supplier) { create(:supplier) }
+    let(:warehouse) { create(:warehouse, is_default: true) }
+
+    it "creates an initial purchase alongside the product" do
+      post :create, params: {
+        product: {
+          title: "New Product",
+          sku: "new-product-with-purchase",
+          franchise_id: franchise.id,
+          shape_id: shape.id
+        },
+        initial_purchase: {
+          supplier_id: supplier.id,
+          amount: "2",
+          item_price: "15",
+          payment_value: "30",
+          warehouse_id: warehouse.id
+        }
+      }
+
+      product = Product.find_by!(sku: "new-product-with-purchase")
+      purchase = product.purchases.last
+
+      aggregate_failures do
+        expect(response).to redirect_to(product)
+        expect(flash[:notice]).to eq("Product was successfully created")
+        expect(purchase).to be_present
+        expect(purchase.supplier).to eq(supplier)
+        expect(purchase.purchase_items.count).to eq(2)
+        expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
+        expect(purchase.payments.pluck(:value)).to eq([BigDecimal(30)])
+      end
+    end
+  end
 end

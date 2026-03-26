@@ -42,15 +42,18 @@ class Product::FormPayload
     end
   end
 
-  def purchase_attributes
-    return {} if purchase_params.blank?
-
-    attrs = purchase_params.to_h.with_indifferent_access
-    payment_attrs = attrs[:payments_attributes]&.to_h
+  def initial_purchase_attributes
+    attrs = submitted_initial_purchase_attributes
+    return {} if attrs.blank?
+    return {} if attrs.values.all?(&:blank?)
 
     {
+      supplier_id: attrs[:supplier_id].presence,
+      order_reference: attrs[:order_reference].presence,
+      item_price: attrs[:item_price].presence,
+      amount: attrs[:amount].presence,
       warehouse_id: attrs[:warehouse_id].presence,
-      payment_value: payment_attrs&.values&.first&.fetch("value", nil)&.presence
+      payment_value: attrs[:payment_value].presence
     }.compact
   end
 
@@ -64,6 +67,12 @@ class Product::FormPayload
     return [] if params[:store_infos].blank?
 
     store_infos_params.to_h.values
+  end
+
+  def submitted_initial_purchase_attributes
+    return {} if params[:initial_purchase].blank?
+
+    initial_purchase_params.to_h.with_indifferent_access
   end
 
   private
@@ -82,15 +91,7 @@ class Product::FormPayload
       brand_ids: [],
       color_ids: [],
       size_ids: [],
-      version_ids: [],
-      purchases_attributes: [[
-        :item_price,
-        :amount,
-        :supplier_id,
-        :order_reference,
-        :warehouse_id,
-        payments_attributes: [:value]
-      ]]
+      version_ids: []
     ])
   end
 
@@ -117,14 +118,18 @@ class Product::FormPayload
     ]])
   end
 
-  def purchase_params
-    raw_params = params.dig(:product, :purchases_attributes, "0")
-    return if raw_params.blank?
-
-    raw_params.respond_to?(:to_unsafe_h) ? raw_params.to_unsafe_h : raw_params
-  end
-
   def boolean_type
     @boolean_type ||= ActiveModel::Type::Boolean.new
+  end
+
+  def initial_purchase_params
+    params.expect(initial_purchase: [
+      :supplier_id,
+      :order_reference,
+      :item_price,
+      :amount,
+      :warehouse_id,
+      :payment_value
+    ])
   end
 end

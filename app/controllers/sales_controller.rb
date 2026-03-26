@@ -3,7 +3,7 @@
 class SalesController < ApplicationController
   before_action :set_sale_for_show, only: :show
   before_action :set_sale, only: %i[edit update destroy]
-  before_action :load_form_collections, only: %i[new edit]
+  before_action :prepare_form_options, only: %i[new edit]
 
   # GET /sales
   def index
@@ -23,6 +23,7 @@ class SalesController < ApplicationController
   # GET /sales/new
   def new
     @sale = Sale.new
+    @sale_items = []
   end
 
   # GET /sales/1/edit
@@ -31,22 +32,29 @@ class SalesController < ApplicationController
 
   # POST /sales
   def create
-    @sale = Sale.new
+    payload = Sale::FormPayload.new(params:)
+    @sale = Sale.new(payload.sale_attributes)
 
-    @sale.create_from_form!(sale_params.to_h)
+    @sale.create_from_form!(
+      attributes: payload.sale_attributes,
+      sale_item_attributes: payload.sale_item_attributes
+    )
     redirect_to @sale, notice: "Sale was successfully created"
-  rescue ActiveRecord::RecordInvalid
-    load_form_collections
-    render :new, status: :unprocessable_content
+  rescue ActiveRecord::RecordInvalid => e
+    handle_failed_submit(:new, payload, e.record)
   end
 
   # PATCH/PUT /sales/1
   def update
-    @sale.apply_form_changes!(sale_params.to_h)
+    payload = Sale::FormPayload.new(params:)
+
+    @sale.apply_form_changes!(
+      attributes: payload.sale_attributes,
+      sale_item_attributes: payload.sale_item_attributes
+    )
     redirect_to @sale, notice: "Sale was successfully updated"
-  rescue ActiveRecord::RecordInvalid
-    load_form_collections
-    render :edit, status: :unprocessable_content
+  rescue ActiveRecord::RecordInvalid => e
+    handle_failed_submit(:edit, payload, e.record)
   end
 
   # DELETE /sales/1
@@ -66,39 +74,24 @@ class SalesController < ApplicationController
     @sale = Sale.friendly.find(params[:id])
   end
 
-  # Only allow a list of trusted parameters through.
-  def sale_params
-    params.fetch(:sale, {}).permit(
-      :status,
-      :address_1,
-      :address_2,
-      :city,
-      :company,
-      :country,
-      :discount_total,
-      :note,
-      :postcode,
-      :shipping_total,
-      :state,
-      :total,
-      :woo_id,
-      :customer_id,
-      product_ids: [],
-      sale_items_attributes: [
-        :id,
-        :product_id,
-        :qty,
-        :price,
-        :woo_id,
-        :_destroy
-      ]
-    )
-  end
-
-  def load_form_collections
+  def prepare_form_options
     @customer_options = Customer.order(:email)
-    @product_options = Product.order(:full_title)
     @product_shop_options = Product.with_store_references
   end
 
+  def handle_failed_submit(template, payload, record)
+    @sale.assign_attributes(payload.sale_attributes)
+    append_sale_item_errors(record)
+    @sale_items = payload.rebuild_submitted_sale_items(sale: @sale, invalid_record: record)
+    prepare_form_options
+    render template, status: :unprocessable_content
+  end
+
+  def append_sale_item_errors(record)
+    return unless record.is_a?(SaleItem)
+
+    record.errors.full_messages.each do |message|
+      @sale.errors.add(:base, "Sale item #{message}")
+    end
+  end
 end
