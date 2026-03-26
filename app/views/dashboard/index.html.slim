@@ -10,7 +10,7 @@
       li.mt-1 Change the webhook status to "Active" at <a href="https://store.handsomecake.com/wp-admin/admin.php?page=wc-settings&tab=advanced&section=webhooks&edit-webhook=3" target="_blank" class="link">the Woo settings page</a>.
       li.mt-2
         | Afterward, hide this notification using this button:
-        = link_to "pull-last-orders", class: "btn-rounded btn-red bg-red-200/60 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900/70 text-sm ml-2", data: {"turbo-prefetch": "false"}
+        = link_to last_orders_pull_path, class: "btn-rounded btn-red bg-red-200/60 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900/70 text-sm ml-2", data: {"turbo-prefetch": "false", turbo_method: :post}
           | Confirm Woo Webhook Active
 
 header

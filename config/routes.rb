@@ -4,101 +4,115 @@ require "sidekiq/web"
 require "sidekiq-status/web"
 
 Rails.application.routes.draw do
+  # System
   get "up", to: "rails/health#show", as: :rails_health_chec
-
   root "dashboard#index"
 
-  # For monitoring db health
+  # Operations
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"
   end
 
-  # Shopify integration
   mount ShopifyApp::Engine, at: "shopify_app"
   mount Sidekiq::Web => "jobs"
 
-  # WooCommerce integration
-  post "update-order", to: "webhook#process_order"
+  # External webhooks
+  post "update-order", to: "webhooks/order_updates#create"
+  post "sale-status", to: "webhooks/sale_statuses#create"
 
-  # Shopify sale status webhook
-  post "sale-status", to: "webhook#sale_status"
-
+  # Authentication
   resources :passwords, param: :token
 
   resources :users, except: %i[new create]
-  get "sign_up", to: "users#new", as: :new_sign_up
-  post "sign_up", to: "users#create", as: :sign_up
+  resource :sign_up, only: %i[new create], controller: :signups
 
   resource :session, except: %i[new destroy]
   get "sign_in", to: "sessions#new", as: :sign_in
   post "log_out", to: "sessions#destroy", as: :log_out
 
-  get "debts", to: "dashboard#debts"
-  get "debts/:page", to: "dashboard#debts"
-  get "pull-last-orders", to: "dashboard#pull_last_orders"
+  # Dashboard
+  get "debts", to: "dashboard/debts#show"
+  get "debts/:page", to: "dashboard/debts#show"
   get "noop", to: "dashboard#noop", as: :noop
 
-  resources :purchase_items do
-    collection do
-      post :move
-      post :unlink
-    end
-    member do
-      get :edit_tracking_number
-      get :cancel_tracking_number
-      patch :update_tracking_number
-      get :edit_shipping_company
-      get :cancel_edit_shipping_company
-      patch :update_shipping_company
-    end
+  scope module: :dashboard do
+    resource :last_orders_pull, only: :create, path: "pull-last-orders"
   end
 
-  resources :sale_items
-
+  # Inventory
   resources :products do
-    collection do
-      get "/page/:page", action: :index
-      get :pull
+    scope module: :products do
+      resource :shopify_pull, only: :create
+
+      collection do
+        resource :products_pull, only: :create, path: "pull", controller: :pulls
+      end
     end
-    member do
-      # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
-      # post :publish_to_shopify
-      # post :push_to_shopify
-      post :pull_from_shopify
+
+    collection do
+      get "page/:page", action: :index
     end
   end
 
   resources :sales do
-    collection do
-      get :pull
-      get "/page/:page", action: :index
+    scope module: :sales do
+      resources :items, only: %i[show destroy], controller: :items
+      resource :purchase_item_link, only: :create, path: "link_purchase_items"
+      resource :pull, only: :create
+
+      collection do
+        resource :sales_bulk_pull, only: :create, path: "pull", controller: :bulk_pulls
+      end
     end
-    member do
-      get :pull
-      get :link_purchase_items
+
+    collection do
+      get "page/:page", action: :index
     end
   end
 
   resources :purchases do
+    scope module: :purchases do
+      resources :payments, only: %i[create update destroy]
+
+      collection do
+        resource :move, only: :create
+        resource :product_editions, only: :show
+      end
+    end
+
     collection do
-      get "/page/:page", action: :index
-      get :product_editions
-      post :move
+      get "page/:page", action: :index
     end
   end
 
-  resources :warehouses do
-    member do
-      get "/page/:page", action: :show
-      post :change_position
+  resources :purchase_items, except: %i[new create] do
+    scope module: :purchase_items do
+      collection do
+        resource :warehouse_move, only: :create, path: "move"
+      end
+
+      resource :sale_item_link, only: :destroy, path: "unlink"
+      resource :tracking_number, only: %i[show edit update]
+      resource :shipping_company, only: %i[show edit update]
     end
   end
+
+  resources :warehouses, except: :show do
+    scope module: :warehouses do
+      resources :items, only: %i[new create], controller: :items
+      resource :position, only: :update, path: "change_position"
+    end
+  end
+
+  get "warehouses/:id", to: "warehouses/details#show"
+  get "warehouses/:id/page/:page", to: "warehouses/details#show"
 
   resources :customers do
-    get "/page/:page", action: :index, on: :collection
+    collection do
+      get "page/:page", action: :index
+    end
   end
 
-  resources :payments, only: [:create]
-
+  # Reference data
   resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands, :shipping_companies
 end

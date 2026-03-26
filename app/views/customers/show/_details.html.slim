@@ -1,0 +1,32 @@
+.section-border-base
+  table
+    thead
+      tr
+        th ID
+        th Store ID
+        th First Name
+        th Last Name
+        th Email
+        th Phone
+        th Created
+        th Updated
+    tbody
+      tr
+        td = customer.id
+        td
+          - if customer.shopify_info&.store_id&.present?
+            .block
+              .inline-block.icon-shopify.w-5.h-5.mr-1.-mb-1
+              = customer.shopify_info.id_short
+          - if customer.woo_info&.store_id&.present?
+            .block
+              .inline-block.icon-woo.w-8.h-8.mr-2.-mb-3
+              = customer.woo_info.store_id
+          - if customer.shopify_info.blank? && customer.woo_info.blank?
+            = safe_blank_render customer.woo_id
+        td = customer.first_name
+        td = customer.last_name
+        td = safe_blank_render customer.email
+        td = safe_blank_render customer.phone
+        td = format_date customer.created_at
+        td = format_date customer.updated_at

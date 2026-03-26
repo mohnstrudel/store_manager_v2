@@ -1,0 +1,80 @@
+= form_with model: product, html: {multipart: true}, data: {turbo: false} do |form|
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :franchise
+      = form.collection_select :franchise_id, @franchise_options || [], :id, :title, {}, slim_select_html_options
+    .block.w-full
+      = form.label :title
+      = form.text_field :title
+    .block.w-full data-turbo="false"
+      = form.label :brand
+      = form.collection_select :brand_ids, @brand_options || [], :id, :title, {selected: form.object.brand_ids}, slim_select_html_options(multiple: true)
+
+  fieldset
+    .block.w-full
+      = form.label :description
+      = form_hint "Rich text formatting supported"
+      = form.rich_text_area :description, class: "w-full"
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :sku, "SKU"
+      = form.text_field :sku
+    .block.w-full
+      = form.label :shape
+      = form.collection_select :shape_id, @shape_options || [], :id, :title
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :size
+      = form.collection_select :size_ids, @size_options || [], :id, :value, {selected: form.object.size_ids}, slim_select_html_options(multiple: true)
+    .block.w-full
+      = form.label :version
+      = form.collection_select :version_ids, @version_options || [], :id, :value, {selected: form.object.version_ids}, slim_select_html_options(multiple: true)
+    .block.w-full
+      = form.label :color
+      = form.collection_select :color_ids, @color_options || [], :id, :value, {selected: form.object.color_ids}, slim_select_html_options(multiple: true)
+
+  fieldset
+    h2.mt-8.label Editions
+    = form_hint "Manage editions for this product"
+
+    .grid.grid-cols-2.gap-4.my-6
+      - form.object.editions.each_with_index do |edition, index|
+        = fields_for "editions[#{index}]", edition do |edition_fields|
+          = render "products/form/edition_fields", f: edition_fields, edition: edition, sizes: form.object.sizes, versions: form.object.versions, colors: form.object.colors
+
+  fieldset data-controller="edition-form"
+    div data-edition-form-target="container"
+    button.btn-rounded.mt-3 type="button" data-action="edition-form#add"
+      | Add Edition
+
+    template data-edition-form-target="template"
+      = fields_for "editions[NEW_INDEX]", Edition.new, include_id: false do |edition_fields|
+        = render "products/form/edition_form_fields", f: edition_fields, sizes: @product&.sizes, versions: @product&.versions, colors: @product&.colors
+
+  fieldset
+    h2.mt-8.label Store Information
+    = form_hint "Manage store information for this product"
+
+    div data-controller="store-info" data-store-info-store-names-value=StoreInfo.assignable_store_names.to_json
+      div data-store-info-target="container"
+        - form.object.store_infos.each_with_index do |store_info, index|
+          = fields_for "store_infos[#{index}]", store_info do |store_info_fields|
+            - if store_info.persisted?
+              = render "products/form/store_info_fields", f: store_info_fields, store_info: store_info
+            - else
+              = render "products/form/new_store_info_fields", f: store_info_fields
+
+      button.btn-rounded.mt-3 type="button" data-action="store-info#addStoreInfo" data-store-info-target="button" Add Store Info
+
+      template data-store-info-target="template"
+        = fields_for "store_infos[NEW_INDEX]", StoreInfo.new, include_id: false do |store_info_fields|
+          = render "products/form/new_store_info_fields", f: store_info_fields
+
+  - if product.new_record?
+    = render "products/form/initial_purchase_fields", initial_purchase: (@initial_purchase || {})
+
+  = render "_shared/media_form", form: form, resource_name: "product"
+
+  = form_submit_for(product, form)

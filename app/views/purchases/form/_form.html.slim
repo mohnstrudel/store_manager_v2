@@ -1,0 +1,36 @@
+= form_with model: purchase do |form|
+  .stimulus data-controller="purchase-edition" data-purchase-edition-path-value=product_editions_path
+    = form.label :product_id
+    .stimulus#purchase-product-select
+      = form.collection_select :product_id, @product_options || [], :id, :build_full_title_with_shop_id, {}, slim_select_html_options(action: "change->purchase-edition#change")
+
+    .stimulus#purchase-edition-select data-purchase-edition-target="editions"
+      - if purchase.product&.editions.present?
+        = form.label :edition_id
+        = form.collection_select :edition_id, purchase.product.fetch_editions_with_title, :id, :title, {include_blank: true}, slim_select_html_options
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :supplier_id
+      = form.collection_select :supplier_id, @suppliers || [], :id, :title, class: "w-full"
+    .block.w-full
+      = form.label :order_reference
+      = form.text_field :order_reference
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = form.label :item_price
+      = form.text_field :item_price
+    .block.w-full
+      = form.label :amount
+      = form.text_field :amount
+    - if purchase.new_record?
+      .block.w-full
+        = label_tag "initial_payment_value", "What did you pay in total?"
+        = number_field_tag "initial_payment[value]", @initial_payment_value, step: :any
+
+  - if @warehouse_options.present?
+    = form.label :warehouse_id, "Initial warehouse"
+    = form.collection_select :warehouse_id, @warehouse_options, :id, :name, {selected: @default_warehouse_id}
+
+  = form_submit_for(purchase, form)

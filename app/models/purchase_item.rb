@@ -20,15 +20,17 @@
 #  warehouse_id        :bigint           not null
 #
 class PurchaseItem < ApplicationRecord
+  include Editing
   include HasAuditNotifications
   include HasPreviewImages
   include Linking
   include Listing
   include Financials
-  include Relocatable
+  include Notifications
   include Searchable
   include Shipping
   include Titling
+  include Warehousing
 
   audited associated_with: :purchase
 

@@ -3,13 +3,4 @@
 = render "_shared/nav-index", model: @sizes
 
 .section-border-base.section-wide
-  table(role="grid")
-    thead
-      tr
-        th ID
-        th Value
-        th Created
-        th Updated
-        th.text-right Actions
-    tbody
-      = render @sizes
+  = render "sizes/index/table", sizes: @sizes

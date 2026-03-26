@@ -18,13 +18,17 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
-  include Editions
+  include EditionGeneration
+  include EditionEditing
   include HasAuditNotifications
   include HasPreviewImages
+  include InitialPurchase
   include Listing
+  include Editing
   include SalesHistory
   include Searchable
   include Shopable
+  include StoreInfoEditing
   include StoreReferences
   include Titling
 
@@ -75,7 +79,4 @@ class Product < ApplicationRecord
   has_many :purchase_items, through: :purchases
 
   has_rich_text :description
-  accepts_nested_attributes_for :purchases
-
-  after_create :update_full_title
 end

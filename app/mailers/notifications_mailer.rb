@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class NotificationsMailer < ApplicationMailer
-  def product_purchased_email(
+  def order_status_updated_email(
     customer_name:,
     email:,
     item_name:,
@@ -31,7 +31,7 @@ class NotificationsMailer < ApplicationMailer
     end
   end
 
-  def warehouse_changed_email(
+  def order_status_changed_email(
     customer_name:,
     email:,
     item_name:,

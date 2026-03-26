@@ -1,0 +1,30 @@
+.cards
+  = render "_shared/gallery", media: purchase_item.media
+  .card.grow
+    h5 Supplier
+    p = link_to purchase_item.purchase.supplier.title, supplier_path(purchase_item.purchase.supplier), class: "link"
+    h5 Product
+    p = link_to purchase_item.purchase.product.full_title, purchase_item.purchase.product, class: "link"
+    h5 Warehouse
+    p = link_to purchase_item.warehouse.name, purchase_item.warehouse, class: "link"
+    h5 Expenses
+    p.font-mono = format_money safe_blank_render purchase_item.expenses
+    h5 Shipping
+    p.font-mono = format_money safe_blank_render purchase_item.shipping_cost
+    h5 Tracking Number
+    p = safe_blank_render purchase_item.tracking_number
+    h5 Shipping Company
+    p = safe_blank_render purchase_item.shipping_company&.name
+  .card
+    h5 Length, cm
+    p = safe_blank_render purchase_item.length
+    h5 Width, cm
+    p = safe_blank_render purchase_item.width
+    h5 Height, cm
+    p = safe_blank_render purchase_item.height
+    h5 Weight, kg
+    p = safe_blank_render purchase_item.weight
+    h5 Created at
+    p = format_date purchase_item.created_at
+    h5 Updated at
+    p = format_date purchase_item.updated_at

@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
 class UsersController < ApplicationController
-  before_action :redirect_if_authenticated, only: :new
   before_action :set_user, only: %i[show edit update destroy]
-  allow_unauthenticated_access only: %i[new create]
-  skip_before_action :authorize_resourse, only: %i[new create]
-  skip_after_action :verify_authorized, only: %i[new create]
 
   def index
     @users = User.all
@@ -14,21 +10,7 @@ class UsersController < ApplicationController
   def show
   end
 
-  def new
-    @user = User.new
-  end
-
   def edit
-  end
-
-  def create
-    @user = User.new(user_params)
-    if @user.save
-      start_new_session_for @user
-      redirect_to noop_path, notice: "Account for #{@user.email_address} was successfully created"
-    else
-      render :new, status: :unprocessable_content
-    end
   end
 
   def update
@@ -55,8 +37,6 @@ class UsersController < ApplicationController
     params.expect(
       user: [
         :email_address,
-        :password,
-        :password_confirmation,
         :first_name,
         :last_name,
         :role

@@ -1,7 +1,7 @@
 = turbo_frame_tag purchase_item, :tracking_number
   = form_with model: purchase_item,
       class: "flex flex-col w-full gap-2 no-events",
-      url: update_tracking_number_purchase_item_path(purchase_item),
+      url: purchase_item_tracking_number_path(purchase_item),
       method: :patch do |form|
 
     = form.text_field :tracking_number,
@@ -19,7 +19,7 @@
       button.btn-rounded.btn-xs.btn-green type="submit" title="Save"
         i.icn ✅
         | Save
-      = link_to cancel_tracking_number_purchase_item_path(purchase_item),
+      = link_to purchase_item_tracking_number_path(purchase_item),
           class: "btn-red btn-xs btn-rounded",
           title: "Cancel",
           data: {turbo_stream: true} do

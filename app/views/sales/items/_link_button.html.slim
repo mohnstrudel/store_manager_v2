@@ -1,0 +1,4 @@
+- if (sale.active? || sale.completed?) && sale.unlinked_sale_items?
+  = link_to sale_purchase_item_link_path(sale), class: "btn-rounded mr-3 text-sm btn-lightblue", data: {"turbo-prefetch": "false", turbo_method: :post} do
+    i.icn 🔗
+    | Link with purchases

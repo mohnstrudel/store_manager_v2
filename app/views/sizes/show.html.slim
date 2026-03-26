@@ -3,35 +3,7 @@
 = render "_shared/nav-show", model: @size
 
 .section-wide.flex.flex-col.gap-8.mt-8
-  .table-card
-    table
-      thead
-        tr
-          th
-            | ID
-          th
-            | Value
-          th
-            | Created
-          th
-            | Updated
-      tbody
-        = render @size
-
-  - if @size.products.any?
-    .table-card
-      h3 Products
-      table data-controller="table"
-          thead
-            th.text-gray-500 ID
-            th Full Title
-          tbody
-            - @size.products.each do |product|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=product_path(product)
-              )
-                td.text-gray-500 = product.id
-                td = product.full_title 
+  = render "sizes/show/details", size: @size
+  = render "sizes/show/products", products: @size.products
 
 = destroy_btn_for @size

@@ -1,34 +1,39 @@
-import { Controller } from "@hotwired/stimulus";
+import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="table"
 export default class extends Controller {
   goTo(event) {
-    if (event.target.className === "actions") return;
-    if (event.target.parentNode.className === "actions") return;
-    if (event.target.closest(".no-events")) {
-      return;
-    }
+    if (this.shouldIgnoreClick(event)) return
 
-    event.preventDefault();
+    event.preventDefault()
 
-    let url;
-    if (event.params.id) {
-      url =
-        window.location.origin +
-        event.params.url +
-        "?selected=" +
-        event.params.id +
-        "#" +
-        event.params.id;
-    } else {
-      url = window.location.origin + event.params.url;
-    }
+    const url = this.destinationUrl(event.params)
 
     if (event.metaKey || event.ctrlKey) {
-      window.open(url, "_blank");
-      return;
+      this.openInNewTab(url)
+      return
     }
 
-    window.location.assign(url);
+    window.location.assign(url)
+  }
+
+  shouldIgnoreClick(event) {
+    return Boolean(
+      event.target.closest(".actions") ||
+      event.target.closest(".no-events")
+    )
+  }
+
+  destinationUrl(params) {
+    const url = new URL(params.url, window.location.origin)
+    if (!params.id) return url.toString()
+
+    url.searchParams.set("selected", params.id)
+    url.hash = params.id
+
+    return url.toString()
+  }
+
+  openInNewTab(url) {
+    window.open(url, "_blank")
   }
 }

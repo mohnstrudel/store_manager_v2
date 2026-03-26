@@ -1,0 +1,35 @@
+- if purchase_items.present?
+  .table-card data-controller="move-items"
+    h3.flex.justify-between.px-3.pt-4
+      span Linked Purchased Items
+      span = purchase_items.size
+
+    = render "_shared/move_to_warehouse/form", form_url: warehouse_move_path, options: {redirect_to_sale_item: true}
+
+    table data-controller="table"
+      thead
+        = render "_shared/move_to_warehouse/th"
+        th Warehouse
+        th Length × Width × Height, cm
+        th.text-right Kg
+        th.text-right Expenses
+        th.text-right Shipping
+        th.text-right Actions
+      tbody
+        - purchase_items.each do |pp|
+          tr(
+            class="hoverable"
+            data-action="click->table#goTo"
+            data-table-url-param=purchase_item_path(pp)
+          )
+            = render "_shared/move_to_warehouse/td", id: pp.id
+            td = pp.warehouse.name
+            td.font-mono = format_item_size(pp)
+            td.font-mono.text-right = pp.weight
+            td.font-mono.text-right = format_money pp.expenses
+            td.font-mono.text-right = format_money pp.shipping_cost
+            td.actions
+              = link_to purchase_item_sale_item_link_path(pp), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :delete}
+                i.icn ✂︎
+                | Unlink
+              = render "_shared/action_edit", route: edit_purchase_item_path(pp, redirect_to_sale_item: true)

@@ -1,0 +1,4 @@
+- if purchase_item.sale.present?
+  = purchase_item.sale.select_title
+  - if purchase_item.sale.woo_id
+    .mt-2 = link_to "Open in store admin", sale_shop_link(purchase_item.sale), class: "link"

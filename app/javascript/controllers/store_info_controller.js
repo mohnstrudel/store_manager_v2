@@ -1,77 +1,100 @@
-import { Controller } from "@hotwired/stimulus";
+import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["btn"];
-  static values = { usedStoreNames: String, index: Number };
+  static targets = [ "button", "container", "template" ]
+  static values = { index: Number, storeNames: Array }
 
   connect() {
-    this.indexValue = this.element.querySelectorAll(".store-info-fields").length;
+    this.indexValue = this.storeInfoFields.length
+    this.refreshButtonState()
+  }
+
+  addStoreInfo(event) {
+    event.preventDefault()
+    const availableStoreNames = this.availableStoreNames
+    if (availableStoreNames.length === 0) return
+
+    this.containerTarget.insertAdjacentHTML("beforeend", this.nextFieldMarkup)
+    const field = this.containerTarget.lastElementChild
+    const select = field.querySelector("select[name*='[store_name]']")
+
+    this.populateStoreNameOptions(select, availableStoreNames)
+    this.refreshButtonState()
+  }
+
+  remove(event) {
+    event.preventDefault()
+    event.currentTarget.closest(".store-info-fields")?.remove()
+    this.refreshButtonState()
+  }
+
+  toggleDestroy(event) {
+    const field = event.target.closest(".store-info-fields")
+    const hiddenInput = field.querySelector("input[name$='[_destroy]']")
+    const checkbox = event.target
+
+    if (checkbox.checked) {
+      hiddenInput.value = "1"
+      field.style.opacity = "0.5"
+    } else {
+      hiddenInput.value = "false"
+      field.style.opacity = "1"
+    }
+
+    this.refreshButtonState()
+  }
+
+  refreshButtonState() {
+    const hasAvailableNames = this.availableStoreNames.length > 0
+    this.buttonTarget.disabled = !hasAvailableNames
+    this.buttonTarget.classList.toggle("opacity-50", !hasAvailableNames)
+    this.buttonTarget.classList.toggle("cursor-not-allowed", !hasAvailableNames)
+  }
+
+  populateStoreNameOptions(select, availableStoreNames) {
+    if (!select) return
+
+    select.replaceChildren(...this.storeNameOptions(availableStoreNames))
+  }
+
+  storeNameOptions(availableStoreNames) {
+    return [
+      this.buildOption("not_assigned", "Not Assigned"),
+      ...availableStoreNames.map((name) => this.buildOption(name, this.humanize(name)))
+    ]
+  }
+
+  buildOption(value, label) {
+    const option = document.createElement("option")
+    option.value = value
+    option.textContent = label
+    return option
+  }
+
+  humanize(name) {
+    return name.charAt(0).toUpperCase() + name.slice(1)
+  }
+
+  get nextFieldMarkup() {
+    return this.templateTarget.innerHTML.replace(/NEW_INDEX/g, this.indexValue++)
+  }
+
+  get storeInfoFields() {
+    return Array.from(this.containerTarget.querySelectorAll(".store-info-fields"))
   }
 
   get usedStoreNames() {
-    const selects = this.element.querySelectorAll("select[name*='[store_name]'], input[name*='[store_name]']");
-    return Array.from(selects).map(select => select.value);
+    return this.storeInfoFields
+      .filter((field) => !this.isMarkedForDestroy(field))
+      .map((field) => field.querySelector("[name*='[store_name]']")?.value)
+      .filter(Boolean)
   }
 
   get availableStoreNames() {
-    const usedNames = this.usedStoreNames;
-    const uniqueStores = ["shopify", "woo"];
-    return uniqueStores.filter(name => !usedNames.includes(name));
+    return this.storeNamesValue.filter((name) => !this.usedStoreNames.includes(name))
   }
 
-  addStoreInfo(e) {
-    e.preventDefault();
-    const newIndex = this.element.querySelectorAll(".store-info-fields").length;
-    const availableUniqueNames = this.availableStoreNames;
-
-    const optionsHtml = [
-      `<option value="not_assigned">Not Assigned</option>`,
-      ...availableUniqueNames.map(name =>
-        `<option value="${name}">${name.charAt(0).toUpperCase() + name.slice(1)}</option>`
-      )
-    ].join("");
-
-    const template = `
-      <div class="store-info-fields border border-gray-200 dark:border-gray-800 rounded-xl p-4 pb-8 my-6 max-w-1/2" data-store-info-target="field">
-        <div class="flex justify-between items-center">
-          <h6>New Store Info</h6>
-          <a class="btn-rounded btn-red" href="" data-action="click->store-info#remove">Remove</a>
-        </div>
-        <input type="hidden" name="store_infos[${newIndex}][id]" data-store-info-target="id">
-        <fieldset class="flex justify-between gap-4">
-          <div class="block w-1/3">
-            <label for="store_infos_${newIndex}_store_name">Store</label>
-            <select id="store_infos_${newIndex}_store_name" name="store_infos[${newIndex}][store_name]" class="select" data-store-info-target="storeNameInput">
-              ${optionsHtml}
-            </select>
-          </div>
-          <div class="block w-2/3">
-            <label for="store_infos_${newIndex}_tag_list">Tags</label>
-            <input id="store_infos_${newIndex}_tag_list" type="text" value="" name="store_infos[${newIndex}][tag_list]" placeholder="tag1, tag2, tag3">
-          </div>
-        </fieldset>
-      </div>
-    `;
-    this.btnTarget.insertAdjacentHTML("beforebegin", template);
-  }
-
-  remove(e) {
-    e.preventDefault();
-    const field = e.target.closest(".store-info-fields");
-    field.remove();
-  }
-
-  toggleDestroy(e) {
-    const field = e.target.closest(".store-info-fields");
-    const hiddenInput = field.querySelector("input[name$='[_destroy]']");
-    const checkbox = e.target;
-
-    if (checkbox.checked) {
-      hiddenInput.value = "1";
-      field.style.opacity = "0.5";
-    } else {
-      hiddenInput.value = "false";
-      field.style.opacity = "1";
-    }
+  isMarkedForDestroy(field) {
+    return field.querySelector("input[name$='[_destroy]']")?.value === "1"
   }
 }

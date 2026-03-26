@@ -170,7 +170,7 @@ Do not add a job just to hide a method call. If `Mailer.deliver_later` is suffic
 ## Anti-Default LLM Checklist
 
 - Do not move domain workflow out of the model layer just because a job exists.
-- Do not create a service object for every job target; the target method may already be the right abstraction.
+- Do not create a detached object for every job target; the target method or a named model-layer object may already be the right abstraction.
 - Do not put payload generation, recipient selection, or business branching into the job unless it is truly transport-specific.
 - Do not schedule giant scripts when a model class method expresses the intent more clearly.
 - Do not ignore concurrency and resumability for long-running maintenance or import/export jobs.

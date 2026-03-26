@@ -38,6 +38,7 @@
 #  woo_id             :string
 #
 class Sale < ApplicationRecord
+  include Editing
   include HasAuditNotifications
   include Linking
   include Listing
@@ -69,8 +70,6 @@ class Sale < ApplicationRecord
 
   has_many :sale_items, dependent: :destroy, inverse_of: :sale
   has_many :products, through: :sale_items
-
-  accepts_nested_attributes_for :sale_items, allow_destroy: true
 
   def created_at_for_display
     woo_created_at || created_at

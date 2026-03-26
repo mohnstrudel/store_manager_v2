@@ -1,161 +1,44 @@
 # Rails Testing Architecture
 
-Use this guide when the task involves Rails tests, test layout, fixture strategy, adding coverage for a refactor, or deciding where a behavior should be tested.
+Use this file for the non-obvious test placement and seam rules in this repo.
 
-## Core Stance
+## Core Rules
 
 - Tests should follow ownership.
-- Prefer the public seam of a concept over its private internals.
-- Keep real application behavior inside the app boundary and stub only external systems.
-- Treat tenancy, time, async delivery, and request context as architecture, not as incidental setup.
+- Prefer the public seam of a concept over private internals.
+- Keep real application behavior inside the app boundary and stub only true external systems.
+- Treat `Current`, time, async delivery, and access boundaries as architectural inputs.
+- Prefer testing named domain commands and capability APIs over reproducing controller or form choreography in every example.
 
-## 1. Mirror the Architecture in the Suite
+## Default Test Seams
 
-- If the model layer is organized into capability modules, let tests mirror that shape.
-- Good examples:
-- `test/models/card/closeable_test.rb`
-- `test/models/card/eventable_test.rb`
-- `test/models/card/golden_test.rb`
-- `test/models/concerns/mentions_test.rb`
+- model capability -> `spec/models/<model>/<capability>_spec.rb`
+- form payload or rehydration object -> `spec/models/<model>/form_payload_spec.rb` or `spec/models/<model>/form_rehydrator_spec.rb`
+- request or controller behavior -> `spec/requests/...`
+- job transport behavior -> `spec/jobs/...`
+- helper-only presentation logic -> `spec/helpers/...`
+- only the highest-risk end-to-end flows -> `spec/features/...`
+- browser-driven widget geometry, loading states, or JS interaction contracts -> focused `spec/features/...` coverage before introducing screenshot-diff tooling
+- when the UI detail itself is the risky part and the agent cannot directly verify it by sight -> prefer a focused browser-level feature spec over confidence-by-inspection
 
-- This keeps test ownership aligned with code ownership.
-- It also makes rich models safer to navigate because each capability has an obvious place for coverage.
+## What Codex Often Gets Wrong
 
-## 2. Model Tests Should Exercise the Real Capability Seam
-
-- Test:
-- scopes
-- predicates
-- commands
-- validations
-- side effects
-- fan-out outcomes
-
-- Prefer assertions like:
-- `assert_difference`
-- `assert_changes`
-- `assert_no_difference`
-- `assert_no_changes`
-
-- When a capability depends on request context, set `Current` explicitly instead of bypassing that dependency.
-- Do not test private callbacks directly when the public command already proves the behavior.
-
-## 3. Lifecycle Gates Belong in Tests Too
-
-- Rich Rails domains often encode "nothing should happen" rules.
-- Test them explicitly.
-
-Typical examples:
-- drafts do not create mentions
-- drafts do not appear in search
-- inactive users do not receive pushes
-- cancelled accounts do not send email
-- inaccessible users lose derived visibility data
-
-- These tests teach the architecture where the true state boundaries live.
-
-## 4. Time Is a Domain Input
-
-- Use `freeze_time`, `travel_to`, and `travel` whenever the behavior depends on:
-- bundle windows
-- inactivity thresholds
-- expiration
-- rate limiting
-- freshness validators
-- ordered UUID or timestamp assumptions
-
-- Time-sensitive tests are often the clearest way to see whether a rule belongs in the domain object or in a scheduler concern.
-- If a time rule affects a business concept, keep it near the domain and test it there.
-
-## 5. Prefer Integration Tests for Controllers
-
-- Use `ActionDispatch::IntegrationTest` for most controller behavior.
-- Exercise:
-- routing
-- params
-- authentication
-- tenant prefixes
-- authorization
-- content negotiation
-- rendering
-
-- This works especially well in Rails apps where controllers are thin and the real logic lives in models and relations.
-- Request tests are also a better fit for controller concerns such as timezone selection, request forgery behavior, platform detection, or cache validators.
-
-## 6. Test the Edge Contract in the Right Format
-
-- Use `assert_select` for HTML structure and significant UI text.
-- Use `response.parsed_body` for JSON APIs.
-- Use Turbo assertions for stream replacements, inserts, removals, and broadcasts.
-- Keep system tests for a small number of high-risk end-to-end flows.
-
-- In server-rendered Rails apps, response shape is a real contract.
-- Do not treat HTML and Turbo behavior as untestable presentation noise.
-
-## 7. Jobs Should Be Tested Semantically
-
-- A thin job still deserves tests when any of these matter:
-- queue selection
-- idempotency
-- retry or discard behavior
-- checkpointing
-- concurrency-sensitive behavior
-- durable async side effects
-
-- Test the job as a transport seam around domain behavior.
-- If the job is only a shell, keep the heavy assertions focused on the model or subsystem it calls.
-- If the job adds checkpointing or retry semantics, test those semantics explicitly.
-
-## 8. Fixtures Should Encode Domain Scenarios
-
-- Use fixtures as stable domain stories:
-- users with different access
-- boards with different visibility
-- cards in different states
-- notifications, watches, mentions, and pins across access boundaries
-
-- Determinism matters.
-- If your app relies on ordered UUIDs or timestamp semantics, make fixtures preserve those assumptions so `first`, `last`, and "newer than fixtures" remain trustworthy.
-
-## 9. Build Helpers Around Architectural Friction
-
-- Create small test helpers for repeated setup that would otherwise distract from the behavior under test.
-
-Strong candidates:
-- sign-in helpers
-- tenant path or `script_name` helpers
-- HTML normalization helpers
-- search-index reset/setup helpers
-- VCR cassette helpers
-- caching toggles
-- WebAuthn helpers
-- command parser helpers
-
-- Good helpers reduce ceremony without hiding the architecture.
-
-## 10. Stub Only True Boundaries
-
-- Prefer real records and real persistence inside the application boundary.
-- Stub or record only external edges such as:
-- HTTP APIs
-- SMTP transport
-- web push delivery
-- browser-only integration points
-
-- Do not mock away the model layer so thoroughly that the test no longer proves domain behavior.
-
-## 11. What the Tests Teach About the Model Layer
-
-- A lifecycle state can be a domain firewall. Draft, inactive, cancelled, or inaccessible states may intentionally block downstream systems.
-- Access loss can be a meaningful domain transition that triggers cleanup of watches, pins, mentions, notifications, and other derived records.
-- Time windows belong in domain objects when users experience them as product behavior.
-- Public APIs may have both synchronous and asynchronous faces, and both should stay close to the owning concept.
-- A well-factored model layer is often easiest to recognize by how easy it is to test one capability at a time.
-
-## 12. Anti-Default LLM Checklist
-
-- Do not default to service-layer tests if the behavior is owned by a model capability.
+- Do not default to service specs when the behavior belongs to a model capability.
+- Do not keep old service or form specs around after ownership moved into the model layer.
 - Do not replace request tests with narrow controller stubs.
-- Do not ignore negative-path behavior where state suppresses side effects.
-- Do not let time-dependent rules hide in scheduler code if they are really domain rules.
-- Do not solve brittle tests by mocking away the architecture instead of improving the seam.
+- Do not leave tests at an old seam after ownership moved.
+- Do not keep controller-only normalization specs once that logic moved into a form payload object; test the payload object directly and keep one request or controller seam that proves it is wired in.
+- Do not skip negative-path rules where state suppresses side effects.
+- Do not hide time-based rules in scheduler tests when they really belong to the domain.
+- Do not let extracted-route regressions hide in shared helpers; add or keep at least one request, controller, or feature check that exercises the real rendered trigger.
+- Do not jump straight to pixel-diff infrastructure for every UI regression. For many Hotwire or Stimulus widgets, a focused browser-level feature spec that asserts loading classes, geometry stability, and state transitions is cheaper and more durable.
+- Do not stop at “the code looks right” for JavaScript or CSS-heavy UI changes. When the user is reporting what they can see in the browser and the agent cannot, add a test that encodes that visual or behavioral contract.
+- Do not let a UI refactor rely only on controller or request coverage when the real risk is in rendered DOM behavior.
+
+## Repo-Specific Bias
+
+- When a feature depends on `Current`, set that context explicitly in tests.
+- Keep edge-format coverage close to the response contract for Turbo and server-rendered flows.
+- Prefer stable domain scenarios over clever helper-heavy setup.
+- When a feature stubs record behavior for a rendered page, make sure the controller actually uses that same record instance or stub at the seam the controller loads.
+- For Stimulus widgets in this repo, a good feature spec often checks one or more of: open or closed state, loading classes, geometry stability, source changes, and whether a user-visible action can be repeated after state changes.

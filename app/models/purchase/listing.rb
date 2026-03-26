@@ -21,5 +21,14 @@ module Purchase::Listing
     scope :for_supplier_details, -> {
       includes(:product, :payments, edition: [:color, :size, :version])
     }
+
+    scope :for_details, -> {
+      includes(
+        :supplier,
+        :payments,
+        {product: {media: {image_attachment: :blob}}},
+        edition: [:color, :size, :version]
+      )
+    }
   end
 end

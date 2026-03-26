@@ -1,0 +1,10 @@
+tr id="#{dom_id franchise}"
+  td = franchise.id
+  td = franchise.title
+  td = franchise.created_at
+  td = franchise.updated_at
+  td.actions
+    = link_to franchise
+      i.icn 📄
+      | Show
+    = render "_shared/action_edit", route: edit_franchise_path(franchise)

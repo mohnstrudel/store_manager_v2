@@ -2,7 +2,7 @@
   .flex.flex-col.items-center.gap-2.text-center
     - if purchase_item.tracking_number.present?
       span.text-sm.font-mono.cursor-text = purchase_item.tracking_number
-      = link_to edit_tracking_number_purchase_item_path(purchase_item),
+      = link_to edit_purchase_item_tracking_number_path(purchase_item),
           class: "btn-xs btn-rounded",
           title: "Edit tracking number",
           data: {turbo_stream: true} do
@@ -10,7 +10,7 @@
         | Edit
     - else
       = link_to "Add",
-          edit_tracking_number_purchase_item_path(purchase_item),
+          edit_purchase_item_tracking_number_path(purchase_item),
           class: "btn-xs btn-rounded",
           title: "Edit tracking number",
           data: {turbo_stream: true}

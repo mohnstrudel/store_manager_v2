@@ -1,0 +1,12 @@
+.store-info-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-4/7
+  .flex.justify-between.items-center
+    = f.hidden_field :id
+    = f.hidden_field :store_name
+    h6 = store_info.store_name.titleize
+    = f.label :_destroy, "Destroy connection?", class: "m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900"
+      = f.check_box :_destroy, class: "m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500 red", data: {action: "change->store-info#toggleDestroy"}
+      span Destroy connection?
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = f.label :tag_list, "Tags"
+      = f.text_field :tag_list, value: store_info.tag_list.to_s, placeholder: "tag1, tag2, tag3"

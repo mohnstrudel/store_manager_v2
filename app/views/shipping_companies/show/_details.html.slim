@@ -1,0 +1,16 @@
+.table-card
+  table
+    thead
+      tr
+        th ID
+        th Name
+        th Tracking URL
+        th Created
+        th Updated
+    tbody
+      tr
+        td = shipping_company.id
+        td = shipping_company.name
+        td = link_to_if(shipping_company.tracking_url.present?, shipping_company.tracking_url, shipping_company.tracking_url, target: "_blank", rel: "noopener", class: "link")
+        td = shipping_company.created_at
+        td = shipping_company.updated_at

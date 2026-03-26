@@ -2,35 +2,7 @@
 = render "_shared/nav-show", model: @shape
 
 .section-wide.flex.flex-col.gap-8.mt-8
-  .table-card
-    table
-      thead
-        tr
-          th
-            | ID
-          th
-            | Title
-          th
-            | Created
-          th
-            | Updated
-      tbody
-        = render @shape
+  = render "shapes/show/details", shape: @shape
+  = render "shapes/show/products", products: @shape.products
 
-  - if @shape.products.any?
-    .table-card
-      h3 Products
-      table data-controller="table"
-          thead
-            th.text-gray-500 ID
-            th Full Title
-          tbody
-            - @shape.products.each do |product|
-              tr.hoverable(
-                data-action="click->table#goTo"
-                data-table-url-param=product_path(product)
-              )
-                td.text-gray-500 = product.id
-                td = product.full_title 
-
-= destroy_btn_for @shape 
+= destroy_btn_for @shape

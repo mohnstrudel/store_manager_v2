@@ -9,13 +9,13 @@ RSpec.describe "Products Sync API" do
     sign_in_as_admin
   end
 
-  describe "GET /products/pull" do
+  describe "POST /products/pull" do
     context "with limit parameter" do
       it "converts string limit to integer before enqueuing job" do
         allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 50)
         allow(Config).to receive(:update_shopify_products_sync_time)
 
-        get pull_products_path(limit: "50")
+        post products_pull_path(limit: "50")
 
         expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 50)
         expect(response).to redirect_to(products_path)
@@ -28,7 +28,7 @@ RSpec.describe "Products Sync API" do
         allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: nil)
         allow(Config).to receive(:update_shopify_products_sync_time)
 
-        get pull_products_path
+        post products_pull_path
 
         expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: nil)
         expect(response).to redirect_to(products_path)
@@ -37,20 +37,20 @@ RSpec.describe "Products Sync API" do
     end
   end
 
-  describe "POST /products/:id/pull_from_shopify" do
+  describe "POST /products/:product_id/shopify_pull" do
     context "when product is published to Shopify" do
       before do
         allow(Shopify::PullProductJob).to receive(:perform_later).with(product.shopify_info.store_id)
       end
 
       it "enqueues the Shopify pull product job" do
-        post pull_from_shopify_product_path(product)
+        post product_shopify_pull_path(product)
 
         expect(Shopify::PullProductJob).to have_received(:perform_later).with(product.shopify_info.store_id)
       end
 
       it "redirects to products path with notice", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
-        post pull_from_shopify_product_path(product)
+        post product_shopify_pull_path(product)
 
         expect(response).to redirect_to(products_path)
         expect(flash[:notice]).to eq("Product is being pulled from Shopify")
@@ -69,13 +69,13 @@ RSpec.describe "Products Sync API" do
       end
 
       it "does not enqueue any job" do
-        post pull_from_shopify_product_path(unpublished_product)
+        post product_shopify_pull_path(unpublished_product)
 
         expect(Shopify::PullProductJob).not_to have_received(:perform_later)
       end
 
       it "redirects to products path with notice about not being published", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
-        post pull_from_shopify_product_path(unpublished_product)
+        post product_shopify_pull_path(unpublished_product)
 
         expect(response).to redirect_to(products_path)
         expect(flash[:notice]).to eq("Product has not been published to Shopify yet")

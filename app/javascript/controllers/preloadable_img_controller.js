@@ -1,133 +1,124 @@
-import { Controller } from "@hotwired/stimulus";
+import { Controller } from "@hotwired/stimulus"
 
-export default class PreloadableImg extends Controller {
-  static targets = ["img"];
+export default class extends Controller {
+  static targets = [ "img", "placeholder" ]
 
   static values = {
+    placeholderSrc: String,
     src: String,
-  };
-
-  observers = [];
-  isObserved = false;
-  placeholder = null;
+  }
 
   connect() {
-    if (this.srcValue) {
-      this.displayLoading();
-    } else {
-      this.displayNothing();
+    this.hasRequestedImage = false
+    this.handleImageLoad = () => {
+      if (!this.isShowingActualSource()) return
+      this.showLoadedImage()
     }
-    this.placeholder = document.querySelector("#preloader-img__placeholder");
-    this.useIntersectionObserver();
-    this.useMutationObserver();
+    this.handleImageError = () => this.showFallback()
+
+    this.imgTarget.addEventListener("load", this.handleImageLoad)
+    this.imgTarget.addEventListener("error", this.handleImageError)
+
+    if (!this.hasSource) return this.showFallback()
+    if (this.isShowingActualSource() && this.isImageAlreadyLoaded()) return this.showLoadedImage()
+
+    this.showLoading()
+
+    if (this.isNearViewport()) {
+      this.hasRequestedImage = true
+      this.loadImage()
+      return
+    }
+
+    this.observeVisibility()
   }
 
   disconnect() {
-    if (this.observers.length > 0) {
-      this.observers.forEach((observer) => {
-        observer.disconnect();
-      });
-      this.observers = [];
-    }
+    this.imgTarget.removeEventListener("load", this.handleImageLoad)
+    this.imgTarget.removeEventListener("error", this.handleImageError)
+    this.visibilityObserver?.disconnect()
+    this.visibilityObserver = null
   }
 
-  useMutationObserver() {
-    let observer = new MutationObserver((mutations) => {
-      const mutation = mutations[0];
-      const newUrl = mutation.target.src;
-      const isTransparent = newUrl.includes("data:image");
+  observeVisibility() {
+    if (this.visibilityObserver) return
 
-      if (isTransparent) {
-        this.displayLoading();
-        return;
-      }
-
-      this.displayNothing();
-    });
-
-    observer.observe(this.imgTarget, {
-      attributes: true,
-      attributeFilter: ["src"],
-    });
-
-    this.observers.push(observer);
-  }
-
-  useIntersectionObserver() {
-    let observer = new IntersectionObserver(
+    this.visibilityObserver = new IntersectionObserver(
       (entries) => this.handleIntersection(entries),
       {
         root: null,
         rootMargin: "0% 0% 30% 0%",
         threshold: 0.1,
       },
-    );
-    observer.observe(this.imgTarget);
-    this.observers.push(observer);
+    )
+
+    this.visibilityObserver.observe(this.imgTarget)
   }
 
   handleIntersection(entries) {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        if (!this.isObserved) {
-          this.isObserved = true;
-          this.preloadImg(this.srcValue);
-        }
-      }
-    });
+    if (!entries.some((entry) => entry.isIntersecting)) return
+    if (this.hasRequestedImage) return
+
+    this.hasRequestedImage = true
+    this.visibilityObserver?.disconnect()
+    this.visibilityObserver = null
+    this.loadImage()
   }
 
-  preloadImg(imageSrc) {
-    if (imageSrc === "") {
-      this.displayNothing();
-      return;
-    }
-    let img = new Image();
-    img.fetchPriority = "low";
-    this.imgTarget.src =
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-    img.onload = () => {
-      this.imgTarget.src = img.src;
-    };
-    img.onerror = () => {
-      this.imgTarget.src = "";
-    };
-    img.src = imageSrc;
-    this.handleTurboFrameChange(img);
+  isNearViewport() {
+    const rect = this.imgTarget.getBoundingClientRect()
+
+    return rect.top < window.innerHeight * 1.3 && rect.bottom > 0
   }
 
-  displayImg() {
-    if (this.placeholder) this.placeholder.classList.add("hidden");
-    this.imgTarget.classList.remove("hidden");
-    this.imgTarget.classList.remove("loading");
-    this.imgTarget.classList.remove("not-found");
-    this.imgTarget.style.height = "fit-content";
+  loadImage() {
+    if (!this.hasSource) return this.showFallback()
+
+    this.showLoading()
+    this.imgTarget.src = this.srcValue
+    requestAnimationFrame(() => {
+      if (this.isImageAlreadyLoaded()) this.showLoadedImage()
+    })
   }
 
-  displayLoading() {
-    this.imgTarget.style.height = "100%";
-    this.imgTarget.classList.remove("hidden");
-    this.imgTarget.classList.remove("not-found");
-    this.imgTarget.classList.add("loading");
+  showLoadedImage() {
+    this.hidePlaceholder()
+    this.imgTarget.classList.remove("hidden", "loading", "not-found")
+    this.imgTarget.style.height = "fit-content"
   }
 
-  displayNothing() {
-    if (this.placeholder) {
-      document
-        .querySelector("#preloader-img__placeholder")
-        .classList.remove("hidden");
-    }
-    if (this.imgTarget.classList.contains("not-found")) return;
-    this.imgTarget.classList.remove("loading");
-    this.imgTarget.classList.add("not-found");
+  showLoading() {
+    this.hidePlaceholder()
+    this.imgTarget.classList.remove("hidden", "not-found")
+    this.imgTarget.classList.add("loading")
+    this.imgTarget.style.height = "100%"
   }
 
-  handleTurboFrameChange(img) {
-    let listener = addEventListener("turbo:before-fetch-request", (event) => {
-      if (event.target.id === "products-index") {
-        img.src = "";
-        removeEventListener("turbo:before-fetch-request", listener);
-      }
-    });
+  showFallback() {
+    this.showPlaceholder()
+    this.imgTarget.classList.remove("loading")
+    this.imgTarget.classList.add("hidden", "not-found")
+  }
+
+  isImageAlreadyLoaded() {
+    return this.imgTarget.complete && this.imgTarget.naturalWidth > 0
+  }
+
+  showPlaceholder() {
+    if (!this.hasPlaceholderTarget) return
+    this.placeholderTarget.classList.remove("hidden")
+  }
+
+  hidePlaceholder() {
+    if (!this.hasPlaceholderTarget) return
+    this.placeholderTarget.classList.add("hidden")
+  }
+
+  isShowingActualSource() {
+    return this.imgTarget.getAttribute("src") === this.srcValue
+  }
+
+  get hasSource() {
+    return this.hasSrcValue && this.srcValue !== ""
   }
 }

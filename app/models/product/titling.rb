@@ -3,9 +3,13 @@
 module Product::Titling
   extend ActiveSupport::Concern
 
-  def update_full_title
+  def sync_full_title
     self.full_title = generate_full_title
-    save
+  end
+
+  def update_full_title
+    sync_full_title
+    save!
   end
 
   def generate_full_title

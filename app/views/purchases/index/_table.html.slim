@@ -1,0 +1,22 @@
+- if purchases.present?
+  = render "_shared/move_to_warehouse/form", form_url: move_path
+  table(role="grid")
+    thead
+      tr
+        = render "_shared/move_to_warehouse/th"
+        th Image
+        th Product
+        th Order Reference
+        th Supplier
+        th
+          | Payment Progress
+          .flex.justify-between.text-xs.font-medium.opacity-80
+            span.text-lime-700/90 class="dark:text-lime-500/85" paid
+            span.text-slate-400 item
+            span.text-orange-800/70 class="dark:text-orange-400/80" debt
+        th.text-right Actions
+    tbody
+      = render partial: "purchases/index/purchase", collection: purchases, as: :purchase
+  .pagination-bottom = paginate purchases
+- else
+  = render "_shared/search-results-empty"

@@ -1,0 +1,18 @@
+.table-card
+  h3 Payments
+  - if payments.any?
+    .grid.grid-cols-1.gap-4.mb-6
+      - payments.each do |payment|
+        = render "purchases/show/payment_fields", purchase: purchase, payment: payment
+  - else
+    p.text-sm.text-gray-500.mb-6 No payments yet.
+
+  = form_with model: [purchase, payment_form], class: "p-3 pb-6" do |form|
+    = hidden_field_tag :return_to, purchase_path(purchase)
+    - if form.object.errors.any?
+      .mb-3.text-sm.text-red-600
+        - form.object.errors.full_messages.each do |message|
+          div = message
+    = form.label :value, "New Payment"
+    = form.number_field :value, placeholder: "What did you pay in total?", id: "payment_amount", step: :any, class: "w-1/3"
+    = form.submit "Add payment", role: "button", class: "ml-2"

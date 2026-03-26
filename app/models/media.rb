@@ -15,8 +15,6 @@
 class Media < ApplicationRecord
   include Shopable
 
-  after_update :destroy_if_image_removed
-
   belongs_to :mediaable, polymorphic: true, inverse_of: :media
 
   has_one_attached :image, dependent: :purge_later do |attachable|
@@ -35,10 +33,4 @@ class Media < ApplicationRecord
   end
   delegate_missing_to :image
   scope :ordered, -> { order(position: :asc) }
-
-  private
-
-  def destroy_if_image_removed
-    destroy if !image.attached? && persisted?
-  end
 end

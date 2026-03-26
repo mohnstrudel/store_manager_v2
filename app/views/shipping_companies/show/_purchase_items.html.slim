@@ -1,0 +1,18 @@
+- if purchase_items.present?
+  .table-cards-group
+    .table-card
+      h3 Purchase Items
+      table data-controller="table"
+        thead
+          th Product
+          th Tracking Number
+          th Purchase Date
+        tbody
+          - purchase_items.each do |purchase_item|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=purchase_item_path(purchase_item)
+            )
+              td = purchase_item.product.full_title
+              td = purchase_item.tracking_number
+              td.no-wrap = time_ago_in_words(purchase_item.purchase&.purchase_date.presence || purchase_item.created_at)

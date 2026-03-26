@@ -53,7 +53,6 @@ RSpec.describe Product do
     it { is_expected.to have_many(:purchases).dependent(:destroy).inverse_of(:product) }
     it { is_expected.to have_many(:purchase_items).through(:purchases) }
     it { is_expected.to have_rich_text(:description) }
-    it { is_expected.to accept_nested_attributes_for(:purchases) }
   end
 
   describe "configuration and extensions" do
@@ -84,8 +83,8 @@ RSpec.describe Product do
     end
   end
 
-  describe "callbacks" do
-    it "sets full_title after create" do
+  describe "full title synchronization" do
+    it "persists full_title on create" do
       product = create(:product)
 
       expect(product.full_title).to eq("Studio Ghibli — Spirited Away")

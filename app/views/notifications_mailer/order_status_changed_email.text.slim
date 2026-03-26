@@ -1,0 +1,76 @@
+| Hallo #{@customer_name},
+= "\r\n"
+= "\r\n"
+| Tolle Neuigkeiten! Der Status Deiner Bestellung #{@order_number} wurde aktualisiert.
+= "\r\n"
+= "\r\n"
+| Vorheriger Status: #{@from_warehouse_name_de}
+= "\r\n"
+= "\r\n"
+| Neuer Status: #{@to_warehouse_name_de}
+- if @new_status_desc_de.present?
+  = "\r\n"
+  = "\r\n"
+  | Was bedeutet dieser Status?
+  = "\r\n"
+  = @new_status_desc_de
+= "\r\n"
+= "\r\n"
+| Artikel: #{@item_name}
+= "\r\n"
+= "\r\n"
+- if @tracking_number.present?
+  | Du kannst Deine Bestellung unter folgendem Link: #{@tracking_url} mit der folgenden Trackingnummer: #{@tracking_number} nachverfolgen.
+  = "\r\n"
+  = "\r\n"
+| Wenn Du Fragen zu Deiner Bestellung hast, zögere bitte nicht, uns unter support@handsomecake.com zu kontaktieren.
+= "\r\n"
+= "\r\n"
+| Danke, dass Du bei uns eingekauft hast!
+= "\r\n"
+= "\r\n"
+| Beste Grüße aus Stuttgart,
+= "\r\n"
+| Dein HandsomeCake Goodies Team
+= "\r\n"
+= "\r\n"
+
+| ---
+
+= "\r\n"
+= "\r\n"
+| Hello #{@customer_name},
+= "\r\n"
+= "\r\n"
+| Good news! The status of your order #{@order_number} has been updated.
+= "\r\n"
+= "\r\n"
+| Previous Status: #{@from_warehouse_name_en}
+= "\r\n"
+= "\r\n"
+| New Status: #{@to_warehouse_name_en}
+- if @new_status_desc_en.present?
+  = "\r\n"
+  = "\r\n"
+  | What does new status mean?
+  = "\r\n"
+  = @new_status_desc_en
+
+= "\r\n"
+= "\r\n"
+| Sale Item: #{@item_name}
+= "\r\n"
+= "\r\n"
+- if @tracking_number.present?
+  | You can track your order on this page: #{@tracking_url} using the following tracking code #{@tracking_number}.
+  = "\r\n"
+  = "\r\n"
+| If you have any questions about this update, don't hesitate to reach out to us at support@handsomecake.com
+= "\r\n"
+= "\r\n"
+| Thank you for shopping with us!
+= "\r\n"
+= "\r\n"
+| Warm regards,
+= "\r\n"
+| The HandsomeCake Goodies Team

@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 class SalesController < ApplicationController
-  include JobsStatusNotice
-
   before_action :set_sale_for_show, only: :show
-  before_action :set_sale, only: %i[edit update destroy link_purchase_items]
-  before_action :load_form_collections, only: %i[new edit]
+  before_action :set_sale, only: %i[edit update destroy]
+  before_action :prepare_form_options, only: %i[new edit]
 
   # GET /sales
   def index
@@ -19,11 +17,13 @@ class SalesController < ApplicationController
 
   # GET /sales/1
   def show
+    @sale_items = @sale.sale_items
   end
 
   # GET /sales/new
   def new
     @sale = Sale.new
+    @sale_items = []
   end
 
   # GET /sales/1/edit
@@ -32,56 +32,35 @@ class SalesController < ApplicationController
 
   # POST /sales
   def create
-    @sale = Sale.new(sale_params)
+    payload = Sale::FormPayload.new(params:)
+    @sale = Sale.new(payload.sale_attributes)
 
-    if @sale.save
-      linked_ids = @sale.link_with_purchase_items
-      PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids: linked_ids)
-      redirect_to @sale, notice: "Sale was successfully created"
-    else
-      load_form_collections
-      render :new, status: :unprocessable_content
-    end
+    @sale.create_from_form!(
+      attributes: payload.sale_attributes,
+      sale_item_attributes: payload.sale_item_attributes
+    )
+    redirect_to @sale, notice: "Sale was successfully created"
+  rescue ActiveRecord::RecordInvalid => e
+    handle_failed_submit(:new, payload, e.record)
   end
 
   # PATCH/PUT /sales/1
   def update
-    if @sale.update(sale_params.merge(slug: nil))
-      changes = @sale.saved_changes.transform_values(&:last)
-      if changes[:status]
-        Sale.update_order(woo_id: @sale.woo_id, status: changes[:status])
-      end
-      redirect_to @sale, notice: "Sale was successfully updated"
-    else
-      load_form_collections
-      render :edit, status: :unprocessable_content
-    end
+    payload = Sale::FormPayload.new(params:)
+
+    @sale.apply_form_changes!(
+      attributes: payload.sale_attributes,
+      sale_item_attributes: payload.sale_item_attributes
+    )
+    redirect_to @sale, notice: "Sale was successfully updated"
+  rescue ActiveRecord::RecordInvalid => e
+    handle_failed_submit(:edit, payload, e.record)
   end
 
   # DELETE /sales/1
   def destroy
     @sale.destroy
     redirect_to sales_url, notice: "Sale was successfully destroyed", status: :see_other
-  end
-
-  def link_purchase_items
-    purchase_item_ids = @sale.link_with_purchase_items
-
-    PurchaseItem::Notifier.handle_product_purchase(purchase_item_ids:)
-
-    redirect_to @sale, notice: "Success! Sold products were interlinked with purchased products"
-  end
-
-  def pull
-    if params[:id].present?
-      enqueue_single_sale_pull_jobs
-    else
-      Config.update_shopify_sales_sync_time
-      enqueue_bulk_sale_pull_jobs
-    end
-
-    set_jobs_status_notice!
-    redirect_back_or_to(sales_path)
   end
 
   private
@@ -95,50 +74,24 @@ class SalesController < ApplicationController
     @sale = Sale.friendly.find(params[:id])
   end
 
-  # Only allow a list of trusted parameters through.
-  def sale_params
-    params.fetch(:sale, {}).permit(
-      :status,
-      :address_1,
-      :address_2,
-      :city,
-      :company,
-      :country,
-      :discount_total,
-      :note,
-      :postcode,
-      :shipping_total,
-      :state,
-      :total,
-      :woo_id,
-      :customer_id,
-      product_ids: [],
-      sale_items_attributes: [
-        :id,
-        :product_id,
-        :qty,
-        :price,
-        :woo_id,
-        :_destroy
-      ]
-    )
-  end
-
-  def load_form_collections
+  def prepare_form_options
     @customer_options = Customer.order(:email)
-    @product_options = Product.order(:full_title)
     @product_shop_options = Product.with_store_references
   end
 
-  def enqueue_single_sale_pull_jobs
-    sale = Sale.friendly.find(params[:id])
-    Shopify::PullSaleJob.perform_later(sale.shopify_id) if sale.shopify_id.present?
-    Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: sale.woo_id) if sale.woo_id.present?
+  def handle_failed_submit(template, payload, record)
+    @sale.assign_attributes(payload.sale_attributes)
+    append_sale_item_errors(record)
+    @sale_items = payload.rebuild_submitted_sale_items(sale: @sale, invalid_record: record)
+    prepare_form_options
+    render template, status: :unprocessable_content
   end
 
-  def enqueue_bulk_sale_pull_jobs
-    limit = params[:limit]
-    Shopify::PullSalesJob.perform_later(limit:)
-    Woo::PullSalesJob.set(wait: 90.seconds).perform_later(limit:)
+  def append_sale_item_errors(record)
+    return unless record.is_a?(SaleItem)
+
+    record.errors.full_messages.each do |message|
+      @sale.errors.add(:base, "Sale item #{message}")
+    end
   end
 end

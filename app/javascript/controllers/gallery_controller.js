@@ -1,73 +1,132 @@
-import { Controller } from "@hotwired/stimulus";
+import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["slide", "main"];
+  static targets = [ "slide", "main", "mainFrame" ]
 
-  nextImage = null;
-
-  initialize() {
-    let isInit = true;
-    this.selectedImgIndex = 0;
-    this.showCurrentSlide(isInit);
+  connect() {
+    this.selectedIndex = 0
+    this.renderSelection({ scroll: false })
+    this.reconcileLoadedImages()
+    requestAnimationFrame(() => this.reconcileLoadedImages())
   }
 
   select(event) {
-    event.preventDefault();
-    let newSelectedImgIndex = Number(event.target.dataset.id);
-    if (this.selectedImgIndex === newSelectedImgIndex) return;
-    this.selectedImgIndex = newSelectedImgIndex;
-    this.showCurrentSlide();
-    this.changeImage(event.target.dataset.preview);
-  }
-
-  changeImage(imageSrc) {
-    this.mainTarget.src =
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-    this.nextImage = new Image();
-    this.nextImage.onload = () => {
-      this.mainTarget.src = this.nextImage.src;
-    };
-    this.nextImage.onerror = () => {
-      this.mainTarget.src = "";
-    };
-    this.nextImage.fetchPriority = "high";
-    this.nextImage.src = imageSrc;
+    event.preventDefault()
+    this.showIndex(Number(event.currentTarget.dataset.id))
   }
 
   next() {
-    if (this.selectedImgIndex + 1 >= this.slideTargets.length) {
-      this.selectedImgIndex = 0;
-    } else {
-      this.selectedImgIndex++;
-    }
-    this.showCurrentSlide();
-    this.changeImage(this.slideTargets[this.selectedImgIndex].dataset.preview);
+    this.showIndex(this.wrapIndex(this.selectedIndex + 1))
   }
 
   prev() {
-    if (this.selectedImgIndex - 1 < 0) {
-      this.selectedImgIndex = this.slideTargets.length - 1;
-    } else {
-      this.selectedImgIndex--;
-    }
-    this.showCurrentSlide();
-    this.changeImage(this.slideTargets[this.selectedImgIndex].dataset.preview);
+    this.showIndex(this.wrapIndex(this.selectedIndex - 1))
   }
 
-  showCurrentSlide(isInit = false) {
-    this.slideTargets.forEach((element, index) => {
-      if (index === this.selectedImgIndex) {
-        element.classList.add("active");
-        if (!isInit) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "start",
-          });
-        }
-      } else {
-        element.classList.remove("active");
+  handleThumbLoad(event) {
+    this.showThumbImage(event.currentTarget)
+  }
+
+  handleThumbError(event) {
+    this.hideThumbLoader(event.currentTarget)
+  }
+
+  handleMainLoad() {
+    this.finishMainLoading()
+  }
+
+  handleMainError() {
+    this.failMainLoading()
+  }
+
+  showIndex(index) {
+    if (this.selectedIndex === index) return
+
+    this.selectedIndex = index
+    this.renderSelection()
+    this.loadCurrentImage()
+  }
+
+  renderSelection({ scroll = true } = {}) {
+    this.slideTargets.forEach((slide, index) => {
+      const isSelected = index === this.selectedIndex
+
+      slide.classList.toggle("active", isSelected)
+
+      if (isSelected && scroll) {
+        slide.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "start",
+        })
       }
-    });
+    })
+  }
+
+  loadCurrentImage() {
+    const slide = this.currentSlide
+    if (!slide) return
+
+    this.startMainLoading()
+
+    const image = new Image()
+    image.fetchPriority = "high"
+    image.onload = () => {
+      this.mainTarget.src = image.src
+      this.mainTarget.alt = slide.dataset.alt || this.mainTarget.alt
+      this.finishMainLoading()
+    }
+    image.onerror = () => {
+      this.mainTarget.src = ""
+      this.failMainLoading()
+    }
+    image.src = slide.dataset.preview
+  }
+
+  reconcileLoadedImages() {
+    this.slideTargets.forEach((slide) => {
+      const image = slide.querySelector("img")
+      if (image?.complete && image.naturalWidth > 0) {
+        this.showThumbImage(image)
+      }
+    })
+
+    if (this.mainTarget.complete && this.mainTarget.naturalWidth > 0) {
+      this.finishMainLoading()
+    }
+  }
+
+  showThumbImage(image) {
+    image.classList.remove("hidden")
+    image.closest(".gallery-thumb__frame")?.classList.remove("loading")
+  }
+
+  hideThumbLoader(image) {
+    image.closest(".gallery-thumb__frame")?.classList.remove("loading")
+  }
+
+  startMainLoading() {
+    this.mainTarget.classList.add("hidden")
+    this.mainFrameTarget.classList.add("loading")
+  }
+
+  finishMainLoading() {
+    this.mainTarget.classList.remove("hidden")
+    this.mainFrameTarget.classList.remove("loading")
+  }
+
+  failMainLoading() {
+    this.mainTarget.classList.add("hidden")
+    this.mainFrameTarget.classList.remove("loading")
+  }
+
+  wrapIndex(index) {
+    if (this.slideTargets.length === 0) return 0
+
+    return (index + this.slideTargets.length) % this.slideTargets.length
+  }
+
+  get currentSlide() {
+    return this.slideTargets[this.selectedIndex]
   }
 }

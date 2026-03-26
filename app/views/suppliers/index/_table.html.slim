@@ -1,0 +1,10 @@
+table
+  thead
+    tr
+      th ID
+      th Title
+      th Created
+      th Updated
+      th.text-right Actions
+  tbody
+    = render partial: "suppliers/index/supplier", collection: suppliers, as: :supplier

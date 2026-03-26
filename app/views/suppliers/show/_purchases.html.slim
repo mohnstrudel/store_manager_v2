@@ -1,0 +1,29 @@
+- if purchases.present?
+  .table-cards-group
+    .table-card
+      h3 Purchases
+      table data-controller="table"
+        thead
+          th Title
+          th Edition
+          th Purchased ago
+          th.text-right Item Price, $
+          th Qty
+          th Debt
+        tbody
+          - purchases.each do |purchase|
+            tr.hoverable(
+              data-action="click->table#goTo"
+              data-table-url-param=purchase_path(purchase)
+              class="#{(purchase.debt > 0) ? "has-debt" : "paid"}"
+            )
+              - if purchase.edition.present?
+                td = purchase.product.full_title
+                td = purchase.edition.title
+              - else
+                td = purchase.product.full_title
+                td
+              td.no-wrap = time_ago_in_words(purchase.purchase_date.presence || purchase.created_at)
+              td.text-right.font-mono = format_money purchase.item_price
+              td = purchase.amount
+              td = (purchase.debt > 0) ? format_money(purchase.debt) : ""

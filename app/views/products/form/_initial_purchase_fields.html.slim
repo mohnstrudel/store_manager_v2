@@ -1,0 +1,26 @@
+fieldset
+  h2.mt-8.label Initial Purchase
+  = form_hint "Optional. Create the first purchase alongside the product."
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = label_tag "initial_purchase_supplier_id", "Supplier"
+      = select_tag "initial_purchase[supplier_id]", options_from_collection_for_select(@supplier_options || [], :id, :title, initial_purchase[:supplier_id]), include_blank: true, class: "w-full"
+    .block.w-full
+      = label_tag "initial_purchase_order_reference", "Order reference"
+      = text_field_tag "initial_purchase[order_reference]", initial_purchase[:order_reference]
+
+  fieldset.flex.justify-between.gap-4
+    .block.w-full
+      = label_tag "initial_purchase_item_price", "Item price"
+      = text_field_tag "initial_purchase[item_price]", initial_purchase[:item_price]
+    .block.w-full
+      = label_tag "initial_purchase_amount", "Amount"
+      = text_field_tag "initial_purchase[amount]", initial_purchase[:amount]
+    .block.w-full
+      = label_tag "initial_purchase_payment_value", "What did you pay in total?"
+      = number_field_tag "initial_purchase[payment_value]", initial_purchase[:payment_value], step: :any
+
+  - if @warehouse_options.present?
+    = label_tag "initial_purchase_warehouse_id", "Initial warehouse"
+    = select_tag "initial_purchase[warehouse_id]", options_from_collection_for_select(@warehouse_options, :id, :name, initial_purchase[:warehouse_id]), class: "w-full"

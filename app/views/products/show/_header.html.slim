@@ -1,0 +1,11 @@
+header.nav_header
+  .flex.gap-4
+    hgroup
+      h1 = product.title
+      h2 = product.full_title
+  menu.nav_menu
+    = render "products/show/store_sync_dialog", product:
+    li = link_to new_purchase_path(product:)
+      i.icn 💰
+      | New Purchase
+    li = edit_btn_for product

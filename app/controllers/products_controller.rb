@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class ProductsController < ApplicationController
-  include HandlesMedia
-  include JobsStatusNotice
+  include MediaFormHandling
 
-  before_action :set_product, only: %i[show edit update destroy pull_from_shopify] # DISABLED: publish_to_shopify, push_to_shopify
+  before_action :set_product, only: %i[show edit update destroy]
+  before_action :prepare_form_options, only: %i[new edit]
 
   # GET /products or /products.json
   def index
@@ -13,18 +13,18 @@ class ProductsController < ApplicationController
 
   # GET /products/1 or /products/1.json
   def show
-    @active_sales = @product.fetch_active_sale_items
-    @complete_sales = @product.fetch_completed_sale_items
-    @editions_sales_sums = @product.sum_editions_sale_items
-    @editions_purchases_sums = @product.sum_editions_purchase_items
+    @active_sales = @product.active_sale_items
+    @complete_sales = @product.completed_sale_items
+    @purchases = @product.purchases.includes(:supplier, :edition, purchase_items: :warehouse)
+    @editions_sales_sums = @product.edition_sales_sums
+    @editions_purchases_sums = @product.edition_purchase_sums
+    @selected_id = params[:selected].presence&.to_i
   end
 
   # GET /products/new
   def new
     @product = Product.new
-    @product.purchases.build do |purchase|
-      purchase.payments.build
-    end
+    @initial_purchase = default_initial_purchase_attributes
   end
 
   # GET /products/1/edit
@@ -33,45 +33,46 @@ class ProductsController < ApplicationController
 
   # POST /products or /products.json
   def create
-    @product = Product.new(product_params)
+    payload = Product::FormPayload.new(params:)
+    @product = Product.new(payload.product_attributes)
 
     respond_to do |format|
-      ActiveRecord::Base.transaction do
-        @product.save!
-        add_new_media(@product)
-        handle_new_purchase if purchase_params.present?
-        create_or_update_product_editions!
-        # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
-        # Shopify::CreateProductJob.perform_later(@product.id)
-      end
+      @product.create_from_form!(
+        editions_attributes: payload.editions_attributes,
+        store_infos_attributes: payload.store_infos_attributes,
+        initial_purchase_attributes: payload.initial_purchase_attributes,
+        new_media_images: media_new_images_for(@product)
+      )
+      # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
+      # Shopify::CreateProductJob.perform_later(@product.id)
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
-    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-      format.html { render :new, status: :unprocessable_content }
-      format.json { render json: @product.errors, status: :unprocessable_content }
+    rescue ActiveRecord::RecordInvalid => e
+      handle_failed_create(format, payload, e.record)
+    rescue ActiveRecord::RecordNotUnique
+      handle_failed_create(format, payload)
     end
   end
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
-    @product.assign_attributes(product_params.to_h.merge(slug: nil))
-    @product.assign_attributes(full_title: @product.generate_full_title)
+    payload = Product::FormPayload.new(params:)
 
     respond_to do |format|
-      ActiveRecord::Base.transaction do
-        create_or_update_product_editions!
-        @product.save!
-        create_or_update_product_store_infos!
-        update_media(@product)
-        add_new_media(@product)
-      end
+      @product.apply_form_changes!(
+        product_attributes: payload.product_attributes,
+        editions_attributes: payload.editions_attributes,
+        store_infos_attributes: payload.store_infos_attributes,
+        media_attributes: normalized_media_attributes_for(@product),
+        new_media_images: media_new_images_for(@product)
+      )
 
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
       format.json { render :show, status: :ok, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-      reload_product_with_preserved_errors!
-      reassign_edition_attributes!
+      @product = Product::FormRehydrator.new(product: @product, payload:).call
+      prepare_form_options
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -87,46 +88,6 @@ class ProductsController < ApplicationController
     end
   end
 
-  # DISABLED: Push to Shopify functionality - not needed for now, will re-enable later
-  # def publish_to_shopify
-  #   Shopify::CreateProductJob.perform_later(@product.id)
-  #
-  #   respond_to do |format|
-  #     format.turbo_stream { flash.now[:notice] = "Product is being published to Shopify" }
-  #     format.html { redirect_to products_path, notice: "Product is being published to Shopify" }
-  #   end
-  # end
-  #
-  # def push_to_shopify
-  #   Shopify::UpdateProductJob.perform_later(@product.id)
-  #
-  #   respond_to do |format|
-  #     format.turbo_stream { flash.now[:notice] = "Product updates are being pushed to Shopify" }
-  #     format.html { redirect_to products_path, notice: "Product updates are being pushed to Shopify" }
-  #   end
-  # end
-
-  def pull_from_shopify
-    notice = if @product.shopify_info&.store_id&.present?
-      Shopify::PullProductJob.perform_later(@product.shopify_info.store_id)
-      "Product is being pulled from Shopify"
-    else
-      "Product has not been published to Shopify yet"
-    end
-
-    respond_to do |format|
-      format.turbo_stream { flash.now[:notice] = notice }
-      format.html { redirect_to products_path, notice: }
-    end
-  end
-
-  def pull
-    Shopify::PullProductsJob.perform_later(limit: params[:limit]&.to_i)
-    Config.update_shopify_products_sync_time
-    set_jobs_status_notice!
-    redirect_back_or_to(products_path)
-  end
-
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -134,187 +95,37 @@ class ProductsController < ApplicationController
     @product = Product.for_details.friendly.find(params[:id])
   end
 
-  def product_params
-    params.expect(product: [
-      :title,
-      :description,
-      :franchise_id,
-      :shape_id,
-      :sku,
-      :woo_id,
-      :shopify_id,
-      brand_ids: [],
-      color_ids: [],
-      size_ids: [],
-      version_ids: [],
-      purchases_attributes: [[
-        :item_price,
-        :amount,
-        :supplier_id,
-        :order_reference,
-        :warehouse_id,
-        payments_attributes: [:value]
-      ]]
-    ])
+  def prepare_form_options
+    @franchise_options = Franchise.order(:title)
+    @brand_options = Brand.order(:title)
+    @shape_options = Shape.order(:title)
+    @size_options = Size.order(:value)
+    @version_options = Version.order(:value)
+    @color_options = Color.order(:value)
+    @supplier_options = Supplier.order(:title)
+    @warehouse_options = Warehouse.order(:name)
   end
 
-  def store_infos_params
-    return ActionController::Parameters.new if params[:store_infos].blank?
-
-    params.expect(store_infos: [[
-      :id,
-      :tag_list,
-      :store_name,
-      :_destroy
-    ]])
+  def default_initial_purchase_attributes
+    {
+      warehouse_id: Warehouse.find_by(is_default: true)&.id
+    }.with_indifferent_access
   end
 
-  def editions_params
-    return ActionController::Parameters.new if params[:editions].blank?
+  def append_initial_purchase_errors(product, record)
+    return unless record.is_a?(Purchase) || record.is_a?(Payment)
 
-    params.expect(editions: [[
-      :id,
-      :sku,
-      :size_id,
-      :version_id,
-      :color_id,
-      :purchase_cost,
-      :selling_price,
-      :weight,
-      :_destroy
-    ]])
-  end
-
-  def purchase_params
-    params.dig(:product, :purchases_attributes, "0")
-  end
-
-  def handle_new_purchase
-    return unless (purchase = @product.purchases.last)
-
-    warehouse_id = purchase_params[:warehouse_id]
-    payment_value = purchase_params[:payments_attributes]&.values&.first&.[](:value)
-
-    if warehouse_id
-      purchase.add_items_to_warehouse(warehouse_id)
-      purchase.link_with_sales
-    end
-
-    purchase.payments.create(value: payment_value) if payment_value
-  end
-
-  def create_or_update_product_store_infos!
-    return if store_infos_params.blank?
-
-    store_infos_params.to_h.values.each do |attrs|
-      id = attrs.delete("id")
-      should_destroy = attrs.delete("_destroy") == "1"
-
-      if id.blank?
-        @product.store_infos.create!(attrs)
-        next
-      end
-
-      if should_destroy
-        @product.store_infos.find(id).destroy
-        next
-      end
-
-      store_info = @product.store_infos.find(id)
-      store_info.assign_attributes(attrs)
-      store_info.save!
+    record.errors.full_messages.each do |message|
+      product.errors.add(:base, "Initial purchase #{message}")
     end
   end
 
-  def create_or_update_product_editions!
-    return if editions_params.blank?
-
-    new_editions, existing_editions =
-      editions_params.to_h.values.partition do |edt_params|
-        edt_params["id"].blank?
-      end
-
-    new_editions.each do |attrs|
-      validate_edition_combination!(attrs)
-      @product.editions.create!(attrs)
-    end
-
-    existing_editions.each do |attrs|
-      id = attrs.delete("id")
-      should_destroy = attrs.delete("_destroy") == "1"
-      edition = @product.editions.find(id)
-
-      if should_destroy
-        handle_edition_destruction(edition)
-      else
-        # Assign attributes first so sku_changed? works correctly
-        edition.assign_attributes(attrs)
-        validate_edition_sku_uniqueness!(edition)
-        edition.save!
-      end
-    end
-  end
-
-  def validate_edition_sku_uniqueness!(edition)
-    return unless edition.sku_changed?
-
-    existing_edition = Edition.where.not(id: edition.id).find_by(sku: edition.sku)
-
-    if existing_edition
-      @product.errors.add(:editions, "#{edition.title} sku: has already been taken")
-      raise ActiveRecord::RecordInvalid.new(@product)
-    end
-  end
-
-  def validate_edition_combination!(attrs)
-    combination = {
-      size_id: attrs["size_id"],
-      version_id: attrs["version_id"],
-      color_id: attrs["color_id"]
-    }.compact_blank
-
-    duplicate = @product.editions.find_by(combination)
-    return unless duplicate
-
-    @product.errors.add(:editions, "Combination #{duplicate.title} already exists")
-    raise ActiveRecord::RecordInvalid.new(@product)
-  end
-
-  def handle_edition_destruction(edition)
-    if edition.has_sales_or_purchases?
-      edition.update!(deactivated_at: Time.current)
-    else
-      edition.destroy!
-    end
-  end
-
-  # When the transaction fails, @product's associations are stale and may be in an
-  # inconsistent state. We need to reload from the database to get fresh data, but
-  # we can't lose the validation errors that caused the failure—otherwise the user
-  # won't see what went wrong.
-  def reload_product_with_preserved_errors!
-    errors = @product.errors.dup
-    @product = Product.for_details.friendly.find(params[:id])
-    @product.errors.copy!(errors)
-  end
-
-  # After reloading, all the user's unsaved form input would be lost, showing the
-  # original database values instead. We manually reassign the submitted params so
-  # the form displays what the user actually typed. For new editions that failed to
-  # save, we build temporary objects so they still appear in the form for correction.
-  def reassign_edition_attributes!
-    return if editions_params.blank?
-
-    editions_params.to_h.values.each_with_index do |attrs, index|
-      id = attrs["id"]
-
-      if id.present?
-        edition = @product.editions.to_a.find { |e| e.id.to_s == id.to_s }
-        edition&.assign_attributes(attrs.except("_destroy"))
-      else
-        temp_edition = @product.editions.build(attrs.except("_destroy"))
-        temp_edition.instance_variable_set(:@_new_edition_index, index)
-      end
-    end
+  def handle_failed_create(format, payload, record = nil)
+    @product = Product::FormRehydrator.new(product: @product, payload:).call
+    append_initial_purchase_errors(@product, record)
+    prepare_form_options
+    @initial_purchase = default_initial_purchase_attributes.merge(payload.submitted_initial_purchase_attributes)
+    format.html { render :new, status: :unprocessable_content }
+    format.json { render json: @product.errors, status: :unprocessable_content }
   end
 end

@@ -396,9 +396,9 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "notifies customers about linked products" do
-        allow(PurchaseItem::Notifier).to receive(:handle_product_purchase)
+        allow(PurchaseItem).to receive(:notify_order_status!)
         import_order
-        expect(PurchaseItem::Notifier).to have_received(:handle_product_purchase).at_least(:once)
+        expect(PurchaseItem).to have_received(:notify_order_status!).at_least(:once)
       end
     end
   end

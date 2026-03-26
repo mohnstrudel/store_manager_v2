@@ -1,31 +1,12 @@
 = render "_shared/notice"
-
-header.nav_header
-  .flex.gap-4
-    hgroup
-      h1 = @product.title
-      h2 = @product.full_title
-  menu.nav_menu
-    li = link_to "#", data: {controller: "modal-trigger", action: "click->modal-trigger#open"}, class: "btn-rounded"
-      = heroicon "arrow-path", variant: "mini"
-      | Store Sync
-    li = link_to new_purchase_path(product: @product)
-      i.icn 💰
-      | New Purchase
-    li = edit_btn_for @product
+= render "products/show/header", product: @product
 
 .section-wide.flex.flex-col.gap-8.p-8
-  = render "product_attributes", product: @product
-  - if @product.description.present?
-    .card.w-full.pt-8.pr-12.pb-12.pl-6
-      == @product.description
-  = render "product_editions", product: @product
-  = render "product_active_sales", product: @product,
-    active_sales: @active_sales
-  = render "product_complete_sales", product: @product,
-    complete_sales: @complete_sales
-  = render "product_purchases", product: @product
+  = render "products/show/attributes", product: @product
+  = render "products/show/description", product: @product
+  = render "products/show/editions", product: @product, editions_sales_sums: @editions_sales_sums, editions_purchases_sums: @editions_purchases_sums, selected_id: @selected_id
+  = render "products/show/active_sales", product: @product, active_sales: @active_sales, selected_id: @selected_id
+  = render "products/show/completed_sales", product: @product, complete_sales: @complete_sales, selected_id: @selected_id
+  = render "products/show/purchases", purchases: @purchases
 
 = destroy_btn_for @product
-
-= render "products/store_sync_modal", product: @product

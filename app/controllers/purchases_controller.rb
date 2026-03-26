@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class PurchasesController < ApplicationController
-  include WarehouseMovementNotification
+  include PurchaseShowState
 
   before_action :set_default_warehouse_id, only: %i[new edit]
-  before_action :set_purchase, only: %i[show edit update destroy]
-  before_action :load_form_collections, only: %i[new edit]
+  before_action :set_purchase_for_show, only: :show
+  before_action :set_purchase, only: %i[edit update destroy]
+  before_action :prepare_form_options, only: %i[new edit]
 
   # GET /purchases or /purchases.json
   def index
@@ -15,16 +16,13 @@ class PurchasesController < ApplicationController
 
   # GET /purchases/1 or /purchases/1.json
   def show
-    @purchase_items = @purchase
-      .purchase_items
-      .for_purchase_details
-      .order(updated_at: :desc)
+    prepare_purchase_show_state
   end
 
   # GET /purchases/new
   def new
     @purchase = Purchase.new
-    @purchase.payments.build
+    @initial_payment_value = nil
     if params[:product]
       product = Product.friendly.find(params[:product])
       @purchase.product = product
@@ -37,32 +35,36 @@ class PurchasesController < ApplicationController
 
   # POST /purchases or /purchases.json
   def create
-    attrs = purchase_params.to_h
-    warehouse_id = attrs.delete("warehouse_id")
-    @purchase = Purchase.new(attrs)
+    payload = Purchase::FormPayload.new(params:)
+    @purchase = Purchase.new
 
     respond_to do |format|
-      if @purchase.save
-        handle_warehouse_assignment_for(@purchase, warehouse_id)
-
-        format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
-        format.json { render :show, status: :created, location: @purchase }
-      else
-        load_form_collections
-        format.html { render :new, status: :unprocessable_content }
-        format.json { render json: @purchase.errors, status: :unprocessable_content }
-      end
+      @purchase.create_from_form!(
+        attributes: payload.attributes,
+        initial_warehouse_id: payload.initial_warehouse_id,
+        initial_payment_value: payload.initial_payment_value
+      )
+      format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
+      format.json { render :show, status: :created, location: @purchase }
+    rescue ActiveRecord::RecordInvalid => e
+      append_initial_payment_errors(@purchase, e.record)
+      prepare_form_options
+      @initial_payment_value = payload.initial_payment_value
+      format.html { render :new, status: :unprocessable_content }
+      format.json { render json: @purchase.errors, status: :unprocessable_content }
     end
   end
 
   # PATCH/PUT /purchases/1 or /purchases/1.json
   def update
+    payload = Purchase::FormPayload.new(params:)
+
     respond_to do |format|
-      if @purchase.update(purchase_params.merge(slug: nil))
+      if @purchase.update(payload.attributes.merge(slug: nil))
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
-        load_form_collections
+        prepare_form_options
         format.html { render :edit, status: :unprocessable_content }
         format.json { render json: @purchase.errors, status: :unprocessable_content }
       end
@@ -79,35 +81,13 @@ class PurchasesController < ApplicationController
     end
   end
 
-  def move
-    moved_count = Purchase.friendly
-      .where(id: purchase_ids_for_movement)
-      .sum { |purchase|
-        Warehouse::Relocation.move(warehouse_id: params[:destination_id], purchase:)
-      }
-
-    flash_movement_notice(moved_count, Warehouse.find(params[:destination_id]))
-    redirect_after_purchase_move
-  end
-
-  # Used for Turbo in:
-  #  - purchase-edition_controller.js
-  #  - app/views/purchases/editions.turbo_stream.slim
-  #  - app/views/purchases/_form.html.slim
-  # Shows edition select when we choose a product with editions
-  def product_editions
-    @target = params[:target]
-    @product = Product.find(params[:product_id])
-    @editions = @product.fetch_editions_with_title
-
-    respond_to do |format|
-      format.turbo_stream
-    end
-  end
-
   private
 
   # Use callbacks to share common setup or constraints between actions.
+  def set_purchase_for_show
+    @purchase = Purchase.for_details.friendly.find(params[:id])
+  end
+
   def set_purchase
     @purchase = Purchase.friendly.find(params[:id])
   end
@@ -116,43 +96,17 @@ class PurchasesController < ApplicationController
     @default_warehouse_id = Warehouse.find_by(is_default: true)&.id
   end
 
-  # Only allow a list of trusted parameters through.
-  def purchase_params
-    params.expect(
-      purchase: [:supplier_id,
-        :product_id,
-        :edition_id,
-        :order_reference,
-        :item_price,
-        :amount,
-        :purchase_id,
-        :selected_items_ids,
-        :warehouse_id,
-        payments_attributes: [:id, :value, :purchase_id]]
-    )
-  end
-
-  def load_form_collections
+  def prepare_form_options
     @product_options = Product.with_store_references
     @suppliers = Supplier.order(title: :asc)
+    @warehouse_options = Warehouse.order(name: :asc)
   end
 
-  def handle_warehouse_assignment_for(purchase, warehouse_id)
-    return if warehouse_id.blank?
+  def append_initial_payment_errors(purchase, record)
+    return unless record.is_a?(Payment)
 
-    purchase.add_items_to_warehouse(warehouse_id)
-    purchase.link_with_sales
-  end
-
-  def purchase_ids_for_movement
-    params[:selected_items_ids].presence || params[:purchase_id]
-  end
-
-  def redirect_after_purchase_move
-    if params[:purchase_id].present?
-      redirect_to purchase_path(Purchase.friendly.find(params[:purchase_id]))
-    else
-      redirect_to purchases_path
+    record.errors.full_messages.each do |message|
+      purchase.errors.add(:base, "Initial payment #{message}")
     end
   end
 end
