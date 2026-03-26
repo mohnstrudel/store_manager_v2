@@ -11,12 +11,10 @@ describe "Sale show page" do
 
   context "when the nav link should be hidden" do
     before do
-      allow(Sale).to receive_message_chain(:for_details, :friendly, :find).and_return(sale)
-      allow(sale).to receive_messages(active?: false, completed?: false, unlinked_sale_items?: false)
-
+      sale.update!(status: "on-hold", shopify_id: nil, shopify_name: nil, woo_id: nil)
       product = create(:product)
-      create(:sale_item, sale: sale, product: product, edition: nil, qty: 2)
-      create(:purchase_item, purchase: create(:purchase, product: product))
+      sale_item = create(:sale_item, sale: sale, product: product, edition: nil, qty: 1)
+      create(:purchase_item, sale_item:, purchase: create(:purchase, product: product), warehouse: create(:warehouse))
     end
 
     it "does not show the link when all conditions are false" do
@@ -26,7 +24,10 @@ describe "Sale show page" do
     end
 
     it "does not show the link when only #active? is true" do
-      allow(sale).to receive(:active?).and_return(true)
+      sale.update!(status: Sale.active_status_names.first, shopify_id: nil, shopify_name: nil, woo_id: nil)
+      product = create(:product)
+      sale_item = create(:sale_item, sale: sale, product: product, edition: nil, qty: 1)
+      create(:purchase_item, sale_item:, purchase: create(:purchase, product: product), warehouse: create(:warehouse))
 
       visit sale_path(sale)
 
@@ -34,11 +35,31 @@ describe "Sale show page" do
     end
 
     it "does not show the link when only #unlinked_sale_items? is true" do
-      allow(sale).to receive(:unlinked_sale_items?).and_return(true)
+      sale.update!(status: "on-hold", shopify_id: nil, shopify_name: nil, woo_id: nil)
+      product = create(:product)
+      create(:sale_item, sale: sale, product: product, edition: nil, qty: 2)
+      create(:purchase_item, purchase: create(:purchase, product: product), warehouse: create(:warehouse))
 
       visit sale_path(sale)
 
       expect(page).not_to have_link(link_label)
+    end
+  end
+
+  context "when the sale is identified by shopify name" do
+    let(:customer) { create(:customer, email: "user@example.com") }
+    let(:sale) { create(:sale, customer:, status: "pre-ordered", shopify_name: "HSCM#1746", shopify_id: nil, woo_id: nil) }
+
+    it "shows the shop title h1" do
+      visit sale_path(sale)
+
+      expect(page).to have_css("h1", text: "Sale HSCM#1746")
+    end
+
+    it "shows the status/email h2" do
+      visit sale_path(sale)
+
+      expect(page).to have_css("h2", text: "Pre Ordered | user@example.com")
     end
   end
 
@@ -48,8 +69,6 @@ describe "Sale show page" do
       product = create(:product)
       create(:sale_item, sale: active_sale, product:, edition: nil, qty: 2)
       create(:purchase_item, purchase: create(:purchase, product: product))
-      allow(Sale).to receive_message_chain(:for_details, :friendly, :find).and_return(active_sale)
-      allow(active_sale).to receive_messages(active?: true, completed?: false, unlinked_sale_items?: true)
 
       visit sale_path(active_sale)
 
