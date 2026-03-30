@@ -43,7 +43,7 @@ describe "Moving purchased products between warehouses" do
       visit purchases_path
 
       # Verify that we have purchased products in the original warehouse
-      expect(page).to have_content("#{warehouse_from.name}: 3")
+      expect(page).to have_content("#{warehouse_from.name} ← 3")
 
       # Select a purchase
       find("tbody tr:nth-child(1) input[type='checkbox']").check
@@ -59,11 +59,13 @@ describe "Moving purchased products between warehouses" do
       expect(page).to have_content("Success! 3 purchased products moved to: #{warehouse_to.name}")
 
       # Verify the moved purchases are no longer in the original warehouse
-      expect(page).to have_content("#{warehouse_to.name}: 3")
+      expect(page).to have_content("#{warehouse_to.name} ← 3")
 
       # Visit the destination warehouse to verify the moved purchases
       visit warehouse_path(warehouse_to)
-      expect(page).to have_css("tbody tr", count: 3)
+      within(first("table[data-controller='table'] tbody")) do
+        expect(page).to have_css("tr", count: 3)
+      end
     end
   end
 
@@ -72,7 +74,9 @@ describe "Moving purchased products between warehouses" do
       visit purchase_path(purchase)
 
       # Verify that we have purchased products in the original warehouse
-      expect(page).to have_content("Items: 3")
+      within(first("table[data-controller='table'] tbody")) do
+        expect(page).to have_css("tr", count: 3)
+      end
       # 3 items inside the table, 2 in two selects
       expect(page).to have_text(warehouse_from.name, count: 5)
 
@@ -91,7 +95,9 @@ describe "Moving purchased products between warehouses" do
       expect(page).to have_content("Success! 2 purchased products moved to: #{warehouse_to.name}")
 
       # Verify we have the same amount of purchased products
-      expect(page).to have_content("Items: 3")
+      within(first("table[data-controller='table'] tbody")) do
+        expect(page).to have_css("tr", count: 3)
+      end
 
       # Verify the moved purchases are no longer in the original warehouse
       # 1 time in the notice, 2 in two selects, 2 inside the table
