@@ -659,7 +659,7 @@ Examples in this repo:
 
 | Category | Technology |
 | --- | --- |
-| Language | Ruby 4.0.1 |
+| Language | Ruby 4.0 |
 | Framework | Rails 8.x |
 | Database | PostgreSQL |
 | Search | `pg_search` |
@@ -677,7 +677,7 @@ Examples in this repo:
 
 ### Requirements
 
-- Ruby 4.0.1
+- Ruby 4.0
 - PostgreSQL
 - Redis
 
