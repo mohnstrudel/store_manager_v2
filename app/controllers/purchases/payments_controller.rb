@@ -47,7 +47,9 @@ module Purchases
     end
 
     def payment_params
-      params.expect(payment: [:value])
+      params.expect(payment: [:value, :payment_date]).tap do |payment|
+        payment[:payment_date] = payment[:payment_date].presence || @payment&.payment_date || Time.zone.today
+      end
     end
 
     def return_path

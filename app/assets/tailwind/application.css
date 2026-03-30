@@ -20,6 +20,7 @@
   * {
     font-optical-sizing: auto;
   }
+
   html {
     @apply antialiased scroll-smooth;
   }
@@ -80,7 +81,7 @@
     @apply block font-medium text-gray-900 dark:text-gray-100 mt-8 mb-2;
   }
 
-  label + p {
+  label+p {
     @apply -mt-2 mb-4;
   }
 
@@ -162,7 +163,7 @@
   }
 
   .thead-static thead {
-    @apply static shadow-none backdrop-blur-none bg-transparent dark:bg-transparent;
+    @apply static backdrop-blur-none bg-transparent dark:bg-transparent;
   }
 
   tbody tr:first-child td {
@@ -237,11 +238,11 @@
     @apply relative;
   }
 
-  nav[role="navigation-dropdown"] > button {
+  nav[role="navigation-dropdown"]>button {
     @apply p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 cursor-pointer;
   }
 
-  nav[role="navigation-dropdown"]:hover > button {
+  nav[role="navigation-dropdown"]:hover>button {
     @apply bg-gray-100 dark:bg-gray-700;
   }
 
@@ -269,6 +270,7 @@
   .btn-xs {
     @apply w-fit text-xs px-1.5! py-1! gap-0.5!;
   }
+
   .btn-rounded {
     @apply rounded-full px-2.5 border-gray-200 dark:border-gray-600;
   }
@@ -285,12 +287,15 @@
   .undo {
     @apply bg-transparent hover:bg-transparent hover:text-red-400!;
   }
+
   .btn-green {
     @apply text-lime-700 dark:text-lime-300 bg-lime-200/50 dark:bg-lime-900/50 hover:bg-lime-200/90 dark:hover:bg-lime-900/80;
   }
+
   .btn-amber {
     @apply text-amber-700 dark:text-amber-300 bg-amber-200/50 dark:bg-amber-900/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/70;
   }
+
   .icn {
     @apply font-normal font-icn not-italic;
   }
@@ -407,6 +412,7 @@
   .card p {
     @apply mb-2 text-lg;
   }
+
   .table-card h3 {
     @apply p-3 pt-4;
   }

@@ -4,7 +4,9 @@ tr.hoverable(
 )
   td.text-center = render "_shared/preloadable_img", src: thumb_url(sale_item.product), class_names: "zoomable", width: 100
   td.text-sm
-    = link_to sale_item.product.full_title, sale_item.product, class: "no-events"
+    = link_to sale_item.product, class: "no-events"
+      i.icn 🧸
+      = sale_item.product.full_title
     - if sale_item.purchase_items.present?
       = render "sales/items/purchase_items", purchase_items: sale_item.purchase_items
   td = sale_item.edition.present? ? sale_item.edition.title : "-"

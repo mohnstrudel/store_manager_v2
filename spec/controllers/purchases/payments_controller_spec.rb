@@ -11,12 +11,15 @@ RSpec.describe Purchases::PaymentsController do
 
     context "with valid params" do
       it "creates a payment and redirects back to the purchase" do # rubocop:disable RSpec/MultipleExpectations
+        payment_date = Date.new(2026, 3, 30)
+
         expect {
-          post :create, params: {purchase_id: purchase.id, payment: {value: 10}}
+          post :create, params: {purchase_id: purchase.id, payment: {value: 10, payment_date: payment_date}}
         }.to change(Payment, :count).by(1)
 
         expect(response).to redirect_to(purchase_path(purchase))
         expect(Payment.last.purchase_id).to eq(purchase.id)
+        expect(Payment.last.payment_date.to_date).to eq(payment_date)
       end
     end
 
@@ -36,10 +39,13 @@ RSpec.describe Purchases::PaymentsController do
     let(:payment) { create(:payment, purchase:, value: 10) }
 
     it "updates the payment and redirects back to the purchase" do # rubocop:disable RSpec/MultipleExpectations
-      patch :update, params: {purchase_id: purchase.id, id: payment.id, payment: {value: 25}}
+      payment_date = Date.new(2026, 4, 1)
+
+      patch :update, params: {purchase_id: purchase.id, id: payment.id, payment: {value: 25, payment_date: payment_date}}
 
       expect(response).to redirect_to(purchase_path(purchase))
       expect(payment.reload.value).to eq(BigDecimal(25))
+      expect(payment.payment_date.to_date).to eq(payment_date)
     end
   end
 

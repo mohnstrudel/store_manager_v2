@@ -84,11 +84,31 @@ RSpec.describe "Creating a new purchase" do
 
     expect(page).to have_content("Purchase was successfully created")
 
+    expect(find("#payment_date").value).to eq(Date.current.iso8601)
     fill_in "payment_amount", with: "20"
+    find("#payment_date").set("2026-03-29")
     click_button "Add payment"
 
     expect(page).to have_content("Payment was successfully created")
     expect(Purchase.last.payments.count).to eq(1)
     expect(Purchase.last.payments.first.value).to eq(BigDecimal(20))
+    expect(Purchase.last.payments.first.payment_date.to_date).to eq(Date.new(2026, 3, 29))
+  end
+
+  scenario "updates a payment amount and date on the purchase page", :js do # rubocop:todo RSpec/MultipleExpectations
+    purchase = create(:purchase)
+    payment = create(:payment, purchase:, value: 10, payment_date: Date.new(2026, 3, 28))
+
+    visit purchase_path(purchase)
+
+    within("tr[data-payment-id='#{payment.id}']") do
+      find("input[name='payment[payment_date]']").set("2026-03-30")
+      find("input[name='payment[value]']").set("25")
+      click_button "Update Payment"
+    end
+
+    expect(page).to have_content("Payment was successfully updated")
+    expect(payment.reload.value).to eq(BigDecimal(25))
+    expect(payment.payment_date.to_date).to eq(Date.new(2026, 3, 30))
   end
 end
