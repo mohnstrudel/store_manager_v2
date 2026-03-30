@@ -5,6 +5,17 @@ module SaleHelper
     [sale.customer.full_name, sale.address_1, sale.address_2, sale.postcode, sale.city, sale.country, sale.customer.phone].compact_blank.join(", ")
   end
 
+  def sale_address_for_clipboard(sale)
+    [
+      sale.customer.full_name,
+      sale.address_2,
+      sale.address_1,
+      [sale.postcode, sale.city].compact_blank.join(" ").presence,
+      sale.country,
+      sale.customer.phone
+    ].compact_blank.join("\n")
+  end
+
   def format_sale_status(status)
     status_title = status.titleize
 

@@ -1,0 +1,4 @@
+- if purchase_item.sale.present?
+  .flex.flex-col.items-start.gap-2.text-sm
+    = copy_to_clipboard text: sale_address_for_clipboard(purchase_item.sale), css: "text-xs btn-xs", label: "Copy address"
+    = copy_to_clipboard text: purchase_item.sale.customer.email, css: "text-xs btn-xs", label: "Copy email"
