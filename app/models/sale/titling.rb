@@ -9,7 +9,7 @@ module Sale::Titling
     else
       woo_id
     end
-    [status&.titleize, shop_id].compact.join(" | ")
+    [status&.titleize, shop_id].compact_blank.join(" | ")
   end
 
   def select_title
