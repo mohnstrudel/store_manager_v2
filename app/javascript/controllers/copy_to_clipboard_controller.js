@@ -9,6 +9,7 @@ export default class CopyToClipboard extends Controller {
   static targets = ["icon", "text"];
 
   connect() {
+    this.defaultText = this.hasTextTarget ? this.textTarget.textContent : null;
     this.resetContent();
   }
 
@@ -44,7 +45,7 @@ export default class CopyToClipboard extends Controller {
       this.iconTarget.textContent = "📋";
     }
     if (this.hasTextTarget) {
-      this.textTarget.textContent = "Copy";
+      this.textTarget.textContent = this.defaultText || "Copy";
     }
   }
 }
