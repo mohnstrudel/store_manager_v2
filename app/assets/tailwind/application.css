@@ -358,11 +358,11 @@
     @apply w-full h-full;
   }
 
-  .preloadable-img__img.zoomable {
+  .zoomable {
     @apply duration-150 ease-out p-1;
   }
 
-  .preloadable-img__img.zoomable:hover {
+  .zoomable:hover {
     @apply scale-300 backdrop-blur-sm shadow-lg bg-white/45 dark:bg-gray-900/45 z-20;
   }
 
