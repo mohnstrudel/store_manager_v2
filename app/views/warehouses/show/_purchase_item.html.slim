@@ -10,11 +10,11 @@ tr(
       | → #{item.purchase.edition.title}
     .cursor-text.no-events.font-mono.text-sm.text-gray-500.dark:text-gray-400 = item.purchase.product.sku
     - if item.sale
-      = link_to item.sale, title: "Open sales page", class: "no-events text-sm mt-3"
-        - if item.sale.shopify_id.present?
-          .icon-shopify.w-4.h-4
-        - if item.sale.woo_id.present?
-          .icon-woo.w-5.h-5
+      = link_to sale_path(item.sale), title: "Open sales page", class: "no-events text-sm mt-3"
+        - if item.sale.shopify_name.present? || item.sale.shopify_id.present?
+          .inline-block.icon-shopify.w-4.h-4
+        - elsif item.sale.woo_id.present?
+          .inline-block.icon-woo.w-5.h-5
         = item.sale.title
   td.max-w-xs
     - if item.sale.present?
