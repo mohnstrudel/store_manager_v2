@@ -1,9 +1,0 @@
-tr.hoverable(
-  data-action="click->table#goTo"
-  data-table-url-param=purchase_item_path(purchase_item)
-)
-  = render "_shared/move_to_warehouse/td", id: purchase_item.id
-  td = purchase_item.warehouse.name
-  td = render "purchases/show/purchase_items/sale", purchase_item: purchase_item
-  td.font-mono.text-right = format_money purchase_item.shipping_cost
-  td.actions = render "purchases/show/purchase_items/actions", purchase_item: purchase_item

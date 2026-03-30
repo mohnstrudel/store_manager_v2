@@ -11,7 +11,7 @@ module PurchaseShowState
       .for_purchase_details
       .order(updated_at: :desc)
     @payments = payments_for_show
-    @new_payment ||= @purchase.payments.new
+    @new_payment ||= @purchase.payments.new(payment_date: Time.zone.today)
   end
 
   def payments_for_show

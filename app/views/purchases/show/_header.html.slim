@@ -1,7 +1,9 @@
 header.nav_header
   .flex.gap-4
     hgroup
-      h1 Purchase №#{purchase.id}
+      h1
+        i.icn.mr-2 💰
+        | Purchase №#{purchase.id}
       h2 = purchase.product.full_title
       - if purchase.edition
         h4.text-gray-500.font-normal = purchase.edition.type_name_and_value

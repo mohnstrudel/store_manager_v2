@@ -7,4 +7,4 @@ button.btn-rounded.no-events.cursor-pointer.transition-all.ease-out(
   title="Copy to clipboard"
 )
   span.icn data-copy-to-clipboard-target="icon"
-  span data-copy-to-clipboard-target="text"
+  span.text-nowrap data-copy-to-clipboard-target="text" = local_assigns.fetch(:label, "Copy")

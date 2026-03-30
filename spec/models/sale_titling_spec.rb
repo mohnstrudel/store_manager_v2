@@ -14,7 +14,7 @@ RSpec.describe Sale do
   describe "#select_title" do
     it "returns a compact summary for selects" do
       sale = create(:sale, status: "processing", woo_id: "woo-123")
-      expected_title = "Michele Pomarico | italy_mp@web.de | Processing | $0.00 | woo-123"
+      expected_title = "Michele Pomarico | italy_mp@web.de | Processing | woo-123"
 
       expect(sale.select_title).to eq(expected_title)
     end

@@ -14,6 +14,7 @@ type(scope): Description
 ## Rules
 
 - Do not add AI attribution, co-author lines, or generated-by footers.
+- Use the `ai` scope only for changes that are actually about AI behavior, AI tooling, or AI-specific repo features. Do not use `ai` just because Codex made the change.
 
 ## Common scopes
 

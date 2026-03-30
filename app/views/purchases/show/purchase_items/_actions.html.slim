@@ -3,5 +3,4 @@
     = link_to purchase_item_sale_item_link_path(purchase_item), class: "no-events btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :delete}
       i.icn ✂︎
       | Unlink
-  = render "_shared/action_destroy", route: purchase_item_path(purchase_item)
   = render "_shared/action_edit", route: edit_purchase_item_path(purchase_item)

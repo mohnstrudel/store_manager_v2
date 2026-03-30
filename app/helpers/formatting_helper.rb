@@ -9,6 +9,10 @@ module FormattingHelper
     date&.strftime("%-d. %b ’%y")
   end
 
+  def format_datetime(date)
+    date&.strftime("%-d. %b ’%y %H:%M")
+  end
+
   def format_money(amount, unit = "")
     return unless amount.presence
 

@@ -40,8 +40,8 @@ module UiHelper
       data: {turbo_confirm: "Are you sure?"}
   end
 
-  def copy_to_clipboard(text:, css: nil)
-    render partial: "_shared/copy_to_clipboard", locals: {text:, css:}
+  def copy_to_clipboard(text:, css: nil, label: "Copy")
+    render partial: "_shared/copy_to_clipboard", locals: {text:, css:, label:}
   end
 
   def tooltip(text, star_class: nil)

@@ -6,7 +6,24 @@ At a high level, the app answers one business question end to end:
 
 When a customer buys a product, which physical item fulfilled the order, where did it come from, what does it still cost us, and where is it now?
 
-This repository is intentionally model-centric. The domain lives in `app/models`, controllers stay thin, jobs are transport shells, and integrations are attached to the owning domain concepts instead of floating in a generic service layer.
+This repository is intentionally model-centric. Most business behavior lives in `app/models`, controllers stay thin, jobs mainly move work around, and store integrations stay close to the part of the business they support instead of drifting into a generic service layer.
+
+## Contents
+
+- [Bird's-Eye View](#birds-eye-view) - what the system manages and the main business flow
+- [Architecture of This Rails App](#architecture-of-this-rails-app) - how this app differs from layered Rails and where it overlaps with DDD
+- [How the App Is Organized](#how-the-app-is-organized) - how controllers, models, integrations, jobs, and UI are split
+- [Business Record Map](#business-record-map) - the core records and what they are responsible for
+- [Request Flow Examples](#request-flow-examples) - concrete examples of product, sale, and inventory flows
+- [Important Business Areas](#important-business-areas) - catalog, purchasing, warehousing, and store sync
+- [Code Organization](#code-organization) - app layout, view layout, and where to put new code
+- [Authentication and Authorization](#authentication-and-authorization) - how sign-in and permissions work
+- [Testing Strategy](#testing-strategy) - what kinds of tests we rely on and what they cover
+- [Observability and Operations](#observability-and-operations) - monitoring, integrity checks, and async runtime
+- [Tech Stack](#tech-stack) - the main technologies used in the app
+- [Running Locally](#running-locally) - setup, app startup, and test commands
+- [How to Approach Changes in This Repo](#how-to-approach-changes-in-this-repo) - the short checklist for new work
+- [License](#license)
 
 ---
 
@@ -36,10 +53,10 @@ Sales fulfillment
   Customer -> Sale -> SaleItem -> PurchaseItem
 
 External sync
-  Shopify / Woo payload -> Parser -> Importer -> Domain model
+  Shopify / Woo payload -> Parser -> Importer -> local records
 ```
 
-### The main invariant
+### The main business promise
 
 The app tries to keep the sellable view and the physical view connected:
 
@@ -50,9 +67,244 @@ The app tries to keep the sellable view and the physical view connected:
 
 That lets us answer financial, logistics, and customer-service questions from one system instead of stitching together spreadsheets and store dashboards.
 
+## Architecture of This Rails App
+
+This app uses a model-first architecture:
+
+- thin controllers
+- rich model APIs
+- small supporting files near each model
+- small form-translation objects when request-shape translation grows
+- named scopes for business queries and common loading patterns
+- jobs that call domain code directly
+- integration objects placed near the owning model when they are still part of the business workflow
+
+### What that means in practice
+
+In day-to-day work:
+
+- If one business area owns the rule, put it under `app/models/<model>/...`
+- If the behavior is shared across many models, use `app/models/concerns`
+- If the controller or job just needs one business action, call a named model method
+- If one widget or partial needs small screen-only view-data shaping, prefer a helper over a presenter
+- If an object coordinates several business areas or is infrastructure-heavy, a separate object is fine, but it should have a clear home and purpose
+
+### How this differs from a layered `forms / presenters / queries / services` layout
+
+Many Rails codebases organize application logic by technical role:
+
+- `app/forms`
+- `app/presenters`
+- `app/queries`
+- `app/searchers`
+- `app/services`
+
+That style can work well, but it is not the main organizing principle in this repo.
+
+Here, the default question is not "what kind of object is this?" but "which business concept is responsible for this rule?"
+
+### Quick comparison
+
+For a Rails reader, this is the main contrast:
+
+| Decision lens | Layered Rails (`forms / presenters / queries / services`) | This repo |
+| --- | --- | --- |
+| Main organizing question | "What kind of object is this?" | "Which business concept is responsible for this rule?" |
+| How business rules are usually grouped | Split by object type such as form, query, presenter, or service | Grouped near the business area that owns the rule |
+| How screen logic is usually grouped | Often in presenters, decorators, or screen-focused service objects | Usually kept in helpers, partials, and Turbo templates |
+| How external integrations are usually grouped | Often coordinated by top-level services | Parsers and importers live near the business area they update; low-level API clients stay in `app/services` |
+| What becomes easier | Finding all objects of the same technical kind | Tracing one feature end to end in a Rails codebase |
+| What becomes harder | Understanding one business feature across many folders | Keeping model folders focused and not turning them into catch-all buckets |
+
+### Where we overlap with DDD
+
+- Both care about business ownership.
+- Both try to keep important rules close to the business concept they belong to.
+- Both prefer thinner controllers and clearer responsibilities.
+
+### Where we differ from DDD
+
+- We use simpler, more business-friendly language first. For example, we usually say "which business concept is responsible for this rule?" instead of "which aggregate owns this invariant?", and "which part of the business makes this decision?" instead of "where does this domain behavior belong?"
+- We stay closer to standard Rails structure.
+- In a stricter DDD codebase, instead of keeping behavior close to the model and calling it directly, you more often introduce repositories, application services, separate domain-layer objects, and more explicit architectural boundaries.
+- We prefer scopes, helpers, and nearby model files before introducing heavier patterns.
+
+This repo borrows the business-ownership idea from DDD, but expresses it in simpler Rails and business language.
+
+So you will see files such as:
+
+- [`app/models/product/form_payload.rb`](app/models/product/form_payload.rb)
+- [`app/models/product/form_rehydrator.rb`](app/models/product/form_rehydrator.rb)
+- [`app/models/product/shopify/importer.rb`](app/models/product/shopify/importer.rb)
+- [`app/models/sale/statuses.rb`](app/models/sale/statuses.rb)
+- [`app/models/purchase/linking.rb`](app/models/purchase/linking.rb)
+
+instead of a broad top-level split across `app/forms`, `app/importers`, `app/queries`, and `app/services`.
+
+For the detailed placement guide, see `Where to put new code` below.
+
+### Local architecture guidance
+
+More detailed guidance lives under:
+
+```text
+.codex/skills/rails-domain-architecture/
+```
+
+Key reference files:
+
+- [`references/principles.md`](.codex/skills/rails-domain-architecture/references/principles.md)
+- [`references/full-stack-architecture.md`](.codex/skills/rails-domain-architecture/references/full-stack-architecture.md)
+- [`references/jobs-architecture.md`](.codex/skills/rails-domain-architecture/references/jobs-architecture.md)
+- [`references/testing-architecture.md`](.codex/skills/rails-domain-architecture/references/testing-architecture.md)
+- [`references/screen-first-view-pattern.md`](.codex/skills/rails-domain-architecture/references/screen-first-view-pattern.md)
+
 ---
 
-## Domain Map
+## How the App Is Organized
+
+### 1. User actions and controllers
+
+Controllers handle incoming user actions.
+
+They are responsible for:
+
+- loading the starting record or relation
+- normalizing params
+- choosing response format
+- redirecting or rendering
+
+They are not meant to be the main home for business rules.
+
+A representative example is `ProductsController`, which uses small form-translation objects such as `Product::FormPayload` and `Product::FormRehydrator` before calling model methods such as `create_from_form!` and `apply_form_changes!`.
+
+The rule in this repo is:
+
+- small params normalization may stay in the controller
+- once a form needs several normalization helpers or failed-submit rebuilding, extract a small object near the business area it belongs to
+
+Typical examples:
+
+- `app/models/product/form_payload.rb`
+- `app/models/product/form_rehydrator.rb`
+- `app/models/purchase/form_payload.rb`
+
+These are not generic service objects. They are small translators for one specific business form.
+
+### 2. Business rules and model areas
+
+Most business rules live in `app/models`.
+
+Each important business area usually has:
+
+- a short base model file that acts like a table of contents
+- supporting files under `app/models/<model>/`
+- shared behavior in `app/models/concerns` only when it is truly shared
+
+The base model files are meant to read like a table of contents:
+
+- includes
+- associations
+- validations
+- broad scopes
+- light wiring
+
+The heavier business logic moves into nearby supporting files.
+
+This is the repo's main architectural rule.
+
+### 3. Store sync and external APIs
+
+Store-specific logic stays close to the business area it updates, instead of being spread across detached coordinator objects.
+
+Examples:
+
+- `Product::Shopify::Parser`
+- `Product::Shopify::Importer`
+- `Product::Shopify::Payload`
+- `Sale::Shopify::Importer`
+- `Sale::Shopify::SaleItemImporter`
+- `Customer::Shopify::Importer`
+
+The lower-level HTTP or GraphQL client code stays in `app/services` when it is mainly about talking to an external API.
+
+Current examples:
+
+- `app/services/shopify/api/client.rb`
+- `app/services/shopify/graphql/*`
+- `app/services/woo/edition.rb`
+
+### 4. Background jobs
+
+Jobs are thin.
+
+They generally own:
+
+- queueing
+- retries
+- pagination or backoff behavior
+- calling one clear model method or importer
+
+They generally do not own:
+
+- business rules for one area of the app
+- payload interpretation after parsing
+- inventory-linking rules
+- financial logic
+
+`Shopify::BasePullJob` is the main template for paginated imports:
+
+```text
+job fetches payload
+  -> parser turns payload into normalized attributes
+    -> importer updates local records
+      -> follow-up jobs continue long-running sync work
+```
+
+### 5. Screens and interactions
+
+The UI is server-rendered Rails with Hotwire.
+
+Key pieces:
+
+- Slim templates in `app/views`
+- Turbo for incremental updates
+- Stimulus controllers in `app/javascript/controllers`
+- Tailwind CSS via `tailwindcss-rails`
+
+The UI rules are:
+
+- let the server render the initial structure and prepared view data
+- organize views by resource and then by screen subtree when a page gets large
+- keep screen-only wording, branching, and small view-data shaping at the edge in helpers, partials, and Turbo templates
+- keep Stimulus focused on interaction state, DOM toggles, and loading transitions for one widget
+
+One practical rule matters a lot here: UI tests are part of the design.
+
+Because the application uses Stimulus, CSS state, and server-rendered HTML together, risky UI work should usually include a focused browser-level feature spec. That is how we lock in behavior the code alone cannot guarantee, such as:
+
+- loading skeletons appearing and disappearing at the right time
+- dialog open and close behavior
+- image or gallery state transitions
+- geometry staying stable while assets load
+
+### 6. Shared building blocks
+
+Shared model concerns are reserved for behavior that truly applies across several business areas.
+
+Important examples:
+
+| Concern | Purpose |
+| --- | --- |
+| `Searchable` | shared `pg_search` setup and search helpers |
+| `Shopable` | shared store lookup helpers such as `find_by_shopify_id` |
+| `HasAuditNotifications` | audit-triggered background notifications |
+| `HasPreviewImages` | image handling and preview variants |
+| `Sanitizable` | HTML or payload sanitizing helpers used by sync flows |
+
+---
+
+## Business Record Map
 
 ```text
 Franchise
@@ -75,20 +327,20 @@ User
   -> Session
 ```
 
-### Key aggregates
+### Core business records
 
-| Aggregate | Responsibility |
+| Record | Responsibility |
 | --- | --- |
 | `Product` | Catalog root. Owns title composition, edition generation, store references, media coordination, and sales history views. |
 | `Edition` | Concrete sellable variant built from product option dimensions such as size, version, and color. |
 | `Purchase` | Supplier-facing order with cost, quantity, payments, and inventory-linking rules. |
 | `PurchaseItem` | One physical inventory unit with warehousing, shipping, notification, and sale-linking behavior. |
-| `Sale` | Customer-facing order imported from stores, with status derivation and inventory-linking entry points. |
+| `Sale` | Customer-facing order imported from stores, with status calculation and inventory-linking actions. |
 | `SaleItem` | One sold line item that can be matched to one or more `PurchaseItem` records. |
 | `StoreInfo` | Polymorphic store metadata layer for Shopify and Woo records, IDs, timestamps, and sync checksums. |
 | `Warehouse` | Physical storage location plus movement rules, listing, lifecycle behavior, and transitions. |
 
-### Representative model areas
+### Examples of where business behavior lives
 
 ```text
 app/models/product/
@@ -121,195 +373,6 @@ app/models/sale/
     parser.rb
     sale_item_importer.rb
 ```
-
----
-
-## Architecture, Layer by Layer
-
-### 1. Request layer
-
-Controllers are request adapters.
-
-They are responsible for:
-
-- loading the starting record or relation
-- normalizing params
-- choosing response format
-- redirecting or rendering
-
-They are not meant to be the home for business rules.
-
-A representative example is `ProductsController`, which uses small form-boundary objects such as `Product::FormPayload` and `Product::FormRehydrator` before calling model entry points such as `create_from_form!` and `apply_form_changes!`.
-
-The rule in this repo is:
-
-- small params normalization may stay in the controller
-- once a form needs several normalization helpers or failed-submit rebuilding, extract narrow objects under the owning model namespace
-
-Typical examples:
-
-- `app/models/product/form_payload.rb`
-- `app/models/product/form_rehydrator.rb`
-- `app/models/purchase/form_payload.rb`
-
-These are not generic service objects. They are boundary translators for one aggregate-owned form.
-
-### 2. Domain layer
-
-The domain lives in `app/models`.
-
-Each important aggregate has:
-
-- a short base model file that acts as a composition root
-- capability modules under `app/models/<model>/`
-- cross-model behavior in `app/models/concerns` only when it is truly shared
-
-The base model files are meant to read like a table of contents:
-
-- includes
-- associations
-- validations
-- broad scopes
-- light wiring
-
-The concept-heavy behavior moves into capability modules.
-
-This is the repo's main architectural rule.
-
-### 3. Integration layer
-
-External APIs are attached to the owning domain namespace, not spread across detached coordinator objects.
-
-Examples:
-
-- `Product::Shopify::Parser`
-- `Product::Shopify::Importer`
-- `Product::Shopify::Payload`
-- `Sale::Shopify::Importer`
-- `Sale::Shopify::SaleItemImporter`
-- `Customer::Shopify::Importer`
-
-The lower-level HTTP / GraphQL client code stays in `app/services` when it is transport-specific rather than domain-specific.
-
-Current examples:
-
-- `app/services/shopify/api/client.rb`
-- `app/services/shopify/graphql/*`
-- `app/services/woo/edition.rb`
-
-### 4. Async layer
-
-Jobs are thin.
-
-They generally own:
-
-- queueing
-- retries
-- pagination / backoff transport behavior
-- calling one domain entry point
-
-They generally do not own:
-
-- aggregate-local business rules
-- payload interpretation after parsing
-- inventory-linking rules
-- financial logic
-
-`Shopify::BasePullJob` is the main template for paginated imports:
-
-```text
-job fetches payload
-  -> parser turns payload into normalized attributes
-    -> importer updates domain records
-      -> follow-up jobs continue long-running sync work
-```
-
-### 5. Presentation layer
-
-The UI is server-rendered Rails with Hotwire.
-
-Key pieces:
-
-- Slim templates in `app/views`
-- Turbo for incremental updates
-- Stimulus controllers in `app/javascript/controllers`
-- Tailwind CSS via `tailwindcss-rails`
-
-The presentation rules are:
-
-- let the server render the initial structure and prepared view data
-- organize views by resource and then by screen subtree when a page gets large
-- keep screen-only wording, branching, and small view-data shaping at the edge in helpers, partials, and Turbo templates
-- keep Stimulus focused on interaction state, DOM toggles, and loading transitions for one widget
-
-One practical rule matters a lot here: UI tests are part of the architecture.
-
-Because the application uses Stimulus, CSS state, and server-rendered HTML together, risky UI work should usually include a focused browser-level feature spec. That is how we lock in behavior the code alone cannot guarantee, such as:
-
-- loading skeletons appearing and disappearing at the right time
-- dialog open and close behavior
-- image or gallery state transitions
-- geometry staying stable while assets load
-
-### 6. Cross-cutting layer
-
-Shared model concerns are reserved for behavior that truly applies across aggregates.
-
-Important examples:
-
-| Concern | Purpose |
-| --- | --- |
-| `Searchable` | shared `pg_search` setup and query entry points |
-| `Shopable` | shared store lookup helpers such as `find_by_shopify_id` |
-| `HasAuditNotifications` | audit-triggered background notifications |
-| `HasPreviewImages` | image handling and preview variants |
-| `Sanitizable` | HTML or payload sanitizing helpers used by sync flows |
-
----
-
-## The Repo's Style of Rails
-
-This app is moving toward a stronger model-first style.
-
-The intended shape is:
-
-- thin controllers
-- rich model APIs
-- narrow capability modules
-- narrow form-boundary objects when request-shape translation grows
-- named scopes for business queries and preload shapes
-- jobs that call domain code directly
-- integration objects placed near the owning model when they are still part of the domain language
-
-### What that means in practice
-
-The architectural layers above are the main explanation. In day-to-day work, the practical defaults are:
-
-- If one aggregate owns the rule, put it under `app/models/<model>/...`
-- If the behavior is shared across many models, use `app/models/concerns`
-- If the controller or job just needs one domain action, call a named model method
-- If one widget or partial needs small screen-only view-data shaping, prefer a helper over a presenter
-- If an object is cross-aggregate or infrastructure-heavy, a separate object is fine, but it should have a clear home and purpose
-
-For the detailed placement guide, see `Where to put new code` below.
-
-### Local architecture guidance
-
-The repo includes architecture references used by both humans and Codex under:
-
-```text
-.codex/skills/rails-domain-architecture/
-```
-
-The most important reference files are:
-
-- `references/principles.md`
-- `references/full-stack-architecture.md`
-- `references/jobs-architecture.md`
-- `references/testing-architecture.md`
-- `references/screen-first-view-pattern.md`
-
-Those docs describe the preferred way to place new code and refactor legacy code in this repository.
 
 ---
 
@@ -366,11 +429,11 @@ purchase item move request
 
 ---
 
-## Important Subsystems
+## Important Business Areas
 
 ### Catalog and variants
 
-Catalog data starts from `Franchise` and `Product`.
+Catalog data starts from [`Franchise`](app/models/franchise.rb) and [`Product`](app/models/product.rb).
 
 `Product` owns the core catalog workflows:
 
@@ -380,7 +443,7 @@ Catalog data starts from `Franchise` and `Product`.
 - media coordination
 - high-level listing and sales-history queries
 
-`Edition` represents a concrete sellable option combination and supports both:
+[`Edition`](app/models/edition.rb) represents a concrete sellable option combination and supports both:
 
 - simple base-model products
 - richer variant combinations through size, version, and color
@@ -389,10 +452,10 @@ Catalog data starts from `Franchise` and `Product`.
 
 Purchasing is centered around:
 
-- `Supplier`
-- `Purchase`
-- `Payment`
-- `PurchaseItem`
+- [`Supplier`](app/models/supplier.rb)
+- [`Purchase`](app/models/purchase.rb)
+- [`Payment`](app/models/payment.rb)
+- [`PurchaseItem`](app/models/purchase_item.rb)
 
 This area tracks:
 
@@ -403,7 +466,7 @@ This area tracks:
 
 ### Warehousing
 
-Inventory is stored at the per-unit level through `PurchaseItem`.
+Inventory is stored at the per-unit level through [`PurchaseItem`](app/models/purchase_item.rb).
 
 This gives the app fine-grained control over:
 
@@ -412,7 +475,7 @@ This gives the app fine-grained control over:
 - shipping metadata
 - order allocation
 
-`WarehouseTransition` stores the allowed or tracked movement relationships between warehouses.
+[`WarehouseTransition`](app/models/warehouse_transition.rb) stores the allowed or tracked movement relationships between warehouses.
 
 ### Store sync
 
@@ -421,7 +484,7 @@ The app currently integrates with:
 - Shopify
 - WooCommerce
 
-`StoreInfo` is the shared store metadata layer. It lets the domain models keep store-specific identifiers, sync times, slugs, and checksums without hard-coding those columns onto every aggregate.
+[`StoreInfo`](app/models/store_info.rb) is the shared store metadata layer. It lets the business models keep store-specific identifiers, sync times, slugs, and checksums without hard-coding those columns onto every main record.
 
 ---
 
@@ -431,18 +494,16 @@ The app currently integrates with:
 
 ```text
 app/
-  controllers/   request boundary
-  jobs/          async transport shells
-  models/        domain layer
+  controllers/   user actions and responses
+  jobs/          background work
+  models/        business rules and records
   policies/      Pundit authorization
-  services/      transport or API adapters
+  services/      API and infrastructure adapters
   views/         Slim + Turbo UI
   javascript/    Stimulus controllers
 ```
 
 ### Models layout
-
-The repository uses a namespaced model layout rather than putting all behavior into giant base files.
 
 Typical pattern:
 
@@ -454,13 +515,9 @@ app/models/product/titling.rb
 app/models/product/shopify/importer.rb
 ```
 
-This is the preferred direction for new domain work.
-
 ### Views layout
 
-Views are mostly resource-oriented first, then screen-oriented inside each resource.
-
-The common shape is:
+Views are mostly resource-oriented first, then screen-oriented inside each resource:
 
 ```text
 app/views/<resource>/
@@ -472,8 +529,6 @@ app/views/<resource>/
   turbo_stream/*
 ```
 
-When a screen grows, split it by screen subtree rather than pushing presentation logic into models or inventing presenter layers.
-
 Examples:
 
 - `app/views/products/index/*`
@@ -481,34 +536,34 @@ Examples:
 - `app/views/sales/items/*`
 - `app/views/purchases/form/*`
 
-Helpers are the default place for small screen-only preparation. Use them for mechanical view shaping that belongs to one widget, partial tree, or response format.
+Helpers are the default place for small screen-only preparation.
 
 ### Where to put new code
 
 | If the change is... | Put it here first | Notes |
 | --- | --- | --- |
-| behavior owned by one aggregate | `app/models/<model>/<capability>.rb` | Default choice for domain rules, commands, callbacks, and aggregate-local scopes. |
-| a larger workflow still owned by one aggregate | `app/models/<model>/<workflow>.rb` | Good for imports, reconciliation, or multi-step domain operations that still belong to one model area. |
-| shared cross-model behavior | `app/models/concerns/<concern>.rb` | Use only when the behavior is truly shared and not just extracted for file size. |
-| a repeated business query or preload shape | named scope on the owning model | Prefer relation-returning scopes over controller SQL or tiny query wrappers. |
-| request setup, params normalization, response format | controller or controller concern | Keep domain branching and transactions out of the controller. |
-| async transport, retry, scheduling, pagination | `app/jobs/...` | Jobs should call one clear domain entry point. |
-| store API transport or GraphQL client code | `app/services/shopify/...` or another explicit adapter namespace | Keep low-level transport concerns separate from domain ownership. |
-| parser, importer, payload builder tied to one aggregate | `app/models/<model>/<integration>/...` | Keep integration-specific domain translation near the owning aggregate. |
+| behavior owned by one business area | `app/models/<model>/<feature>.rb` | Default choice for business rules, commands, callbacks, and local scopes. |
+| a larger workflow still owned by one business area | `app/models/<model>/<workflow>.rb` | Good for imports, reconciliation, or multi-step work that still belongs to one model area. |
+| shared cross-model behavior | `app/models/concerns/<shared_behavior>.rb` | Use only when the behavior is truly shared and not just extracted for file size. |
+| a repeated business query or common loading shape | named scope on the owning model | Prefer scopes over controller SQL or tiny query wrappers. |
+| request setup, params normalization, response format | controller or controller concern | Keep business branching and transactions out of the controller. |
+| background retries, scheduling, pagination | `app/jobs/...` | Jobs should call one clear model method or importer. |
+| store API or GraphQL client code | `app/services/shopify/...` or another explicit integration folder | Keep low-level API code separate from business behavior. |
+| parser, importer, payload builder tied to one business area | `app/models/<model>/<integration>/...` | Keep store-specific translation near the business area it updates. |
 | screen-only rendering logic | helper, partial, Turbo template, or view subtree | Do not move screen wording or screen branching into models by default. |
 | small screen-only view-data shaping for one partial or widget | helper | Prefer a helper over a presenter; keep it mechanical and presentation-only. |
-| cross-aggregate orchestration or infrastructure-heavy coordination | explicit namespace under `app/models/<namespace>/` or another clear boundary | Reach for this only when a direct model API would be unnatural. |
+| coordination across several business areas or infrastructure-heavy logic | explicit folder under `app/models/<name>/` or another clear boundary | Reach for this only when a direct model API would be unnatural. |
 
 ### Naming bias
 
-Prefer names that sound like the business domain:
+Prefer names that sound like the business:
 
 - `publish`
 - `move_to`
 - `link_purchase_items`
 - `sync_store_references`
 
-Avoid generic or UI-shaped names when a domain verb exists:
+Avoid generic or UI-shaped names when a business verb exists:
 
 - `process_form`
 - `handle_update`
@@ -523,10 +578,10 @@ Avoid generic or UI-shaped names when a domain verb exists:
 
 The app uses custom session-based authentication:
 
-- `Current` stores the current session
+- [`Current`](app/models/current.rb) stores the current session
 - `Current.user` is delegated from the session
 - signed cookies hold `session_id`
-- `User` uses `has_secure_password`
+- [`User`](app/models/user.rb) uses `has_secure_password`
 
 Unauthenticated requests are redirected to the sign-in flow.
 
@@ -534,7 +589,7 @@ Unauthenticated requests are redirected to the sign-in flow.
 
 Authorization is handled with Pundit.
 
-The authorization concern runs on controllers automatically and verifies that each request is authorized.
+The [authorization concern](app/controllers/concerns/authorization.rb) runs on controllers automatically and verifies that each request is authorized.
 
 Current roles are:
 
@@ -547,24 +602,23 @@ Current roles are:
 
 ## Testing Strategy
 
-The test suite is RSpec-based and mirrors ownership seams in the app.
+The test suite is RSpec-based and mirrors the main responsibility lines in the app.
 
 ### Main test layers
 
-- `spec/models` for domain behavior and capability modules
-- `spec/requests` and selected controller specs for request boundaries
-- `spec/jobs` for async transport behavior
+- `spec/models` for business behavior and model-area files
+- `spec/requests` and selected controller specs for request handling
+- `spec/jobs` for background-work behavior
 - `spec/features` for high-risk browser flows
 - `spec/policies` for authorization rules
 - `spec/integration` for cross-boundary sync behavior
 
-### What is emphasized
+Examples in this repo:
 
-- domain behavior close to the owning model
-- end-to-end inventory and sales flows
-- integration parsing and import behavior
-- background job retries and sync pagination
-- policy coverage for role-sensitive screens
+- [`spec/models/product`](spec/models/product)
+- [`spec/jobs`](spec/jobs)
+- [`spec/features`](spec/features)
+- [`spec/policies`](spec/policies)
 
 ### Representative flows covered
 
@@ -605,7 +659,7 @@ The test suite is RSpec-based and mirrors ownership seams in the app.
 
 | Category | Technology |
 | --- | --- |
-| Language | Ruby 4.0.1 |
+| Language | Ruby 4.0 |
 | Framework | Rails 8.x |
 | Database | PostgreSQL |
 | Search | `pg_search` |
@@ -623,21 +677,21 @@ The test suite is RSpec-based and mirrors ownership seams in the app.
 
 ### Requirements
 
-- Ruby 4.0.1
+- Ruby 4.0
 - PostgreSQL
 - Redis
 
 ### Setup
 
 ```bash
-bundle install
-bin/rails db:create db:migrate
+mise exec -- bin/bundle install
+mise exec -- bin/rails db:create db:migrate
 ```
 
 ### Run the app
 
 ```bash
-bin/dev
+mise exec -- bin/dev
 ```
 
 `bin/dev` starts:
@@ -649,13 +703,13 @@ bin/dev
 ### Run tests
 
 ```bash
-bin/rspec
+mise exec -- bin/rspec
 ```
 
 Parallel example:
 
 ```bash
-PARALLEL_TEST_PROCESSORS=6 bin/rspec
+PARALLEL_TEST_PROCESSORS=6 mise exec -- bin/rspec
 ```
 
 ---
@@ -664,13 +718,13 @@ PARALLEL_TEST_PROCESSORS=6 bin/rspec
 
 When adding or refactoring code, a quick working checklist is:
 
-1. identify the owning aggregate
-2. choose the request, domain, or view boundary you are changing
+1. identify which business area is responsible for the rule
+2. choose whether you are changing user flow, business behavior, or screen rendering
 3. use `Where to put new code` for the default file placement
-4. keep the edge thin and the ownership explicit
-5. add tests at the same seam as the behavior
+4. keep the edges thin and the ownership clear
+5. add tests at the same level as the behavior
 
-If the app feels inconsistent in places, treat current file placement as evidence rather than architecture to preserve blindly. Use the architecture sections above for the why, and `Where to put new code` for the practical default.
+If the app feels inconsistent in places, treat current file placement as evidence rather than architecture to preserve blindly. Use the architecture sections above for the reasoning, and `Where to put new code` for the practical default.
 
 ---
 

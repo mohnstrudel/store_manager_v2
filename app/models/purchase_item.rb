@@ -33,6 +33,7 @@ class PurchaseItem < ApplicationRecord
   include Warehousing
 
   audited associated_with: :purchase
+  audited max_audits: 100
 
   set_search_scope :search,
     against: [:tracking_number],

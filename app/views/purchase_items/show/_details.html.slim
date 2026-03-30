@@ -5,7 +5,7 @@
     p = link_to purchase_item.purchase.supplier.title, supplier_path(purchase_item.purchase.supplier), class: "link"
     h5 Product
     p = link_to purchase_item.purchase.product.full_title, purchase_item.purchase.product, class: "link"
-    h5 Warehouse
+    h5 Current Warehouse
     p = link_to purchase_item.warehouse.name, purchase_item.warehouse, class: "link"
     h5 Expenses
     p.font-mono = format_money safe_blank_render purchase_item.expenses
@@ -28,3 +28,4 @@
     p = format_date purchase_item.created_at
     h5 Updated at
     p = format_date purchase_item.updated_at
+  = render "purchase_items/show/warehouse_movements", purchase_item: purchase_item

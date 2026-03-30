@@ -1,20 +1,23 @@
-= form_with model: [purchase, payment], class: "border border-gray-200 rounded-xl p-4 dark:border-gray-800" do |form|
-  = hidden_field_tag :return_to, purchase_path(purchase)
+- form_id = "payment_#{payment.id}_inline"
+- if payment.errors.any?
+  tr
+    td[colspan="3"]
+      .px-3.pt-3.text-sm.text-red-600
+        - payment.errors.full_messages.each do |message|
+          div = message
 
-  - if payment.errors.any?
-    .mb-3.text-sm.text-red-600
-      - payment.errors.full_messages.each do |message|
-        div = message
-
-  .flex.items-end.gap-4
-    .block.w-full
-      = form.label :value, "Amount"
-      = form.number_field :value, step: :any
-    .block.w-full
-      = form.label :payment_date, "Date"
-      input type="text" value=format_date(payment.payment_date) disabled=true class="bg-gray-200 text-gray-500 cursor-not-allowed"
-    .flex.gap-2
-      = form.submit "Update Payment"
+tr data-payment-id=payment.id
+  td
+    = form_with model: [purchase, payment], id: form_id, class: "hidden" do |form|
+      = hidden_field_tag :return_to, purchase_path(purchase)
+    = label_tag nil, "Date", class: "sr-only"
+    = date_field_tag "payment[payment_date]", payment.payment_date&.to_date, form: form_id
+  td
+    = label_tag nil, "Amount", class: "sr-only"
+    = number_field_tag "payment[value]", payment.value, step: :any, placeholder: "Amount", form: form_id
+  td
+    .flex.flex-wrap.gap-2
+      = submit_tag "Update", form: form_id, class: "btn-rounded btn-lightblue"
       = link_to "Remove",
         purchase_payment_path(purchase, payment, return_to: purchase_path(purchase)),
         class: "btn-rounded btn-red",
