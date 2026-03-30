@@ -4,6 +4,7 @@ module PurchaseItem::Warehousing
   extend ActiveSupport::Concern
 
   NOTHING_MOVED = 0
+  WarehouseMovement = Data.define(:moved_in, :warehouse)
 
   class_methods do
     def move_to_warehouse!(purchase_item_ids:, warehouse_id:)
@@ -33,5 +34,33 @@ module PurchaseItem::Warehousing
 
   def move_to_warehouse!(warehouse_id)
     update!(warehouse_id:)
+  end
+
+  def warehouse_movements
+    movement_data = audits.each_with_object([]) do |audit, rows|
+      moved_warehouse_id = moved_warehouse_id_for(audit)
+      next if moved_warehouse_id.blank?
+
+      rows << {moved_in: audit.created_at, warehouse_id: moved_warehouse_id}
+    end
+
+    warehouses_by_id = Warehouse
+      .where(id: movement_data.pluck(:warehouse_id))
+      .index_by(&:id)
+
+    movement_data.map do |movement|
+      WarehouseMovement.new(
+        moved_in: movement[:moved_in],
+        warehouse: warehouses_by_id[movement[:warehouse_id]]
+      )
+    end
+  end
+
+  private
+
+  def moved_warehouse_id_for(audit)
+    change = audit.audited_changes["warehouse_id"]
+    value = change.is_a?(Array) ? change.last : change
+    value&.to_i
   end
 end

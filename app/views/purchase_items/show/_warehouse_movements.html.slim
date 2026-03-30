@@ -1,0 +1,18 @@
+- warehouse_movements = purchase_item.warehouse_movements
+
+- if warehouse_movements.present?
+  .card
+    table.vertical.thead-static(role="grid")
+      thead
+        tr
+          th Moved in
+          th Warehouse
+      tbody
+        - warehouse_movements.each do |movement|
+          tr
+            td = format_datetime movement.moved_in
+            td
+              - if movement.warehouse.present?
+                = link_to movement.warehouse.name, movement.warehouse, class: "link"
+              - else
+                = "-"
