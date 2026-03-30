@@ -104,7 +104,7 @@ RSpec.describe "Creating a new purchase" do
     within("tr[data-payment-id='#{payment.id}']") do
       find("input[name='payment[payment_date]']").set("2026-03-30")
       find("input[name='payment[value]']").set("25")
-      click_button "Update Payment"
+      click_button "Update"
     end
 
     expect(page).to have_content("Payment was successfully updated")
