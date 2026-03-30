@@ -71,8 +71,8 @@ RSpec.describe Edition::Shopify::Importer do
       it "saves ext_created_at and ext_updated_at to StoreInfo" do
         described_class.import!(product, parsed_variant_with_timestamps)
         edition = Edition.last
-        expect(edition.shopify_info.ext_created_at).to be_within(1.second).of(1.day.ago)
-        expect(edition.shopify_info.ext_updated_at).to be_within(1.second).of(1.hour.ago)
+        expect(edition.shopify_info.ext_created_at).to eq(Time.zone.parse(parsed_variant_with_timestamps[:store_info][:ext_created_at]))
+        expect(edition.shopify_info.ext_updated_at).to eq(Time.zone.parse(parsed_variant_with_timestamps[:store_info][:ext_updated_at]))
       end
     end
 
@@ -163,8 +163,8 @@ RSpec.describe Edition::Shopify::Importer do
           existing_edition.shopify_info.reload
           expect(existing_edition.shopify_info.ext_created_at).not_to eq(original_created_at)
           expect(existing_edition.shopify_info.ext_updated_at).not_to eq(original_updated_at)
-          expect(existing_edition.shopify_info.ext_created_at).to be_within(1.second).of(2.days.ago)
-          expect(existing_edition.shopify_info.ext_updated_at).to be_within(1.second).of(30.minutes.ago)
+          expect(existing_edition.shopify_info.ext_created_at).to eq(Time.zone.parse(parsed_variant_with_new_timestamps[:store_info][:ext_created_at]))
+          expect(existing_edition.shopify_info.ext_updated_at).to eq(Time.zone.parse(parsed_variant_with_new_timestamps[:store_info][:ext_updated_at]))
         end
       end
     end
