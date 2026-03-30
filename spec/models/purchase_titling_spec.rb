@@ -7,7 +7,7 @@ RSpec.describe Purchase do
     it "includes the purchase id and product title" do
       purchase = create(:purchase)
 
-      expect(purchase.title).to eq("Purchase №#{purchase.id}: #{purchase.product.title}")
+      expect(purchase.title).to eq("Purchase #{purchase.id}: #{purchase.product.title}")
     end
   end
 

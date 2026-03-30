@@ -46,8 +46,8 @@ feature "Breadcrumbs navigation", :js do
     within "[data-controller='breadcrumbs']" do
       expect(page).not_to have_content("Products")
       expect(page).to have_content(warehouse.name)
-      expect(page).to have_content("Purchase №#{purchase.id}")
-      expect(page).to have_content("Purchase Item №#{purchase_item.id}")
+      expect(page).to have_content("Purchase #{purchase.id}")
+      expect(page).to have_content("Purchase Item #{purchase_item.id}")
     end
   end
 
@@ -139,13 +139,13 @@ feature "Breadcrumbs navigation", :js do
     # Purchase page
     visit purchase_path(purchase)
     within "[data-controller='breadcrumbs']" do
-      expect(page).to have_content("Purchase №#{purchase.id}")
+      expect(page).to have_content("Purchase #{purchase.id}")
     end
 
     # Purchase item page
     visit purchase_item_path(purchase_item)
     within "[data-controller='breadcrumbs']" do
-      expect(page).to have_content("Purchase Item №#{purchase_item.id}")
+      expect(page).to have_content("Purchase Item #{purchase_item.id}")
     end
 
     # Warehouse page

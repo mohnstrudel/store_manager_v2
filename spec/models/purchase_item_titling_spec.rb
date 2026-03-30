@@ -12,6 +12,6 @@ describe PurchaseItem do
   describe "#title" do
     subject(:purchase_item) { create(:purchase_item) }
 
-    it { expect(purchase_item.title).to eq("Purchase Item №#{purchase_item.id}") }
+    it { expect(purchase_item.title).to eq("Purchase Item #{purchase_item.id}") }
   end
 end

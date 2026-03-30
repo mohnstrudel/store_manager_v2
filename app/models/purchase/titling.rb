@@ -4,7 +4,7 @@ module Purchase::Titling
   extend ActiveSupport::Concern
 
   def title
-    "Purchase №#{id}: #{product.title}"
+    "Purchase #{id}: #{product.title}"
   end
 
   def full_title

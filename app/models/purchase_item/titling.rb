@@ -8,6 +8,6 @@ module PurchaseItem::Titling
   end
 
   def title
-    "Purchase Item №#{id}"
+    "Purchase Item #{id}"
   end
 end
