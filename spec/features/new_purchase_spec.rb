@@ -46,6 +46,37 @@ RSpec.describe "Creating a new purchase" do
     expect(purchase.payments.pluck(:value)).to eq([BigDecimal(50)])
   end
 
+  scenario "shows validation errors after an invalid submit" do
+    visit new_purchase_path
+
+    click_button "Create Purchase"
+
+    expect(page).to have_content("Fix errors and try again")
+    expect(page).to have_content("Amount")
+    expect(page).to have_content("Item price")
+    expect(page).to have_content("can't be blank")
+    expect(page).to have_button("Create Purchase")
+  end
+
+  scenario "keeps the product slim select working after an invalid submit", :js do
+    visit new_purchase_path
+
+    expect(page).to have_css("#purchase-product-select .ss-main")
+
+    click_button "Create Purchase"
+
+    expect(page).to have_content("Fix errors and try again")
+
+    within("#purchase-product-select") do
+      expect(page).to have_css(".ss-main")
+      find(".ss-arrow").click
+    end
+
+    find(".ss-option", text: product.build_full_title_with_shop_id).click
+
+    expect(find("#purchase_product_id", visible: false).value).to eq(product.id.to_s)
+  end
+
   # rubocop:todo RSpec/MultipleExpectations
   scenario "displays warehouse information on the purchase page after creation" do
     # rubocop:enable RSpec/MultipleExpectations
