@@ -1,4 +1,7 @@
 - if purchase_item.sale.present?
-  = purchase_item.sale.select_title
-  - if purchase_item.sale.woo_id
-    .mt-2 = link_to "Open in store admin", sale_shop_link(purchase_item.sale), class: "link"
+  = link_to sale_path(purchase_item.sale), class: "no-events text-sm"
+    - if purchase_item.sale.shopify_name.present? || purchase_item.sale.shopify_id.present?
+      .inline-block.icon-shopify.w-4.h-4
+    - elsif purchase_item.sale.woo_id.present?
+      .inline-block.icon-woo.w-5.h-5
+    = purchase_item.sale.select_title
