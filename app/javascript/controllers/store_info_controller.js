@@ -23,6 +23,11 @@ export default class extends Controller {
     this.refreshButtonState()
   }
 
+  syncStoreNames() {
+    this.populateExistingStoreSelectors()
+    this.refreshButtonState()
+  }
+
   remove(event) {
     event.preventDefault()
     event.currentTarget.closest(".store-info-fields")?.remove()

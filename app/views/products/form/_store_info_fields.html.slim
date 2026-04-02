@@ -1,15 +1,30 @@
-.store-info-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-4/7
+.store-info-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-4.max-w-4/7
+  - store_name_error = store_info.errors[:store_name].first
   - base_error = store_info.errors[:base].first
-  .flex.justify-between.items-center
-    = f.hidden_field :id
-    = f.hidden_field :store_name
-    h6 = store_info.store_name.titleize
-    = f.label :_destroy, "Destroy connection?", class: "m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900"
-      = f.check_box :_destroy, class: "m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500 red", data: {action: "change->store-info#toggleDestroy"}
-      span Destroy connection?
   - if base_error.present?
     p.text-error.mt-2 = base_error
+
+  header.flex.justify-between.items-center
+    - if store_info.persisted?
+      = f.hidden_field :id
+      h6.font-semibold = store_info.store_name.titleize
+      = f.label :_destroy, "Destroy connection?", class: "m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900"
+        = f.check_box :_destroy, class: "m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500 red", data: {action: "change->store-info#toggleDestroy"}
+        span Destroy connection?
+    - else
+      h6.font-semibold New Store Info
+      button.btn-rounded.btn-red type="button" data-action="store-info#remove" Remove
+
   fieldset.flex.justify-between.gap-4
-    .block.w-full
+    .block.w-1/3
+      = f.label :store_name, "Store"
+      - store_name_options = options_for_select([["Not Assigned", "not_assigned"]] + StoreInfo.assignable_store_names.map { |name| [name.titleize, name] }, store_info.persisted? ? store_info.store_name : nil)
+      - if store_name_error.present?
+        .field_with_errors
+          = f.select :store_name, store_name_options, {}, class: "select", data: {action: "change->store-info#syncStoreNames"}
+        .text-error = store_name_error
+      - else
+        = f.select :store_name, store_name_options, {}, class: "select", data: {action: "change->store-info#syncStoreNames"}
+    .block.w-2/3
       = f.label :tag_list, "Tags"
       = f.text_field :tag_list, value: store_info.tag_list.to_s, placeholder: "tag1, tag2, tag3"

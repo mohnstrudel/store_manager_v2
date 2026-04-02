@@ -51,24 +51,22 @@
       = fields_for "editions[NEW_INDEX]", Edition.new, include_id: false do |edition_fields|
         = render "products/form/edition_fields", f: edition_fields, edition: edition_fields.object, sizes: form.object.sizes, versions: form.object.versions, colors: form.object.colors
 
-  fieldset
-    h2.mt-8.label Store Information
-    = form_hint "Manage store information for this product"
+  section
+    header
+      h2.mt-8.label Store Information
+      = form_hint "Manage store information for this product"
 
     div data-controller="store-info" data-store-info-store-names-value=StoreInfo.assignable_store_names.to_json
       div data-store-info-target="container"
         - form.object.store_infos.each_with_index do |store_info, index|
           = fields_for "store_infos[#{index}]", store_info do |store_info_fields|
-            - if store_info.persisted?
-              = render "products/form/store_info_fields", f: store_info_fields, store_info: store_info
-            - else
-              = render "products/form/new_store_info_fields", f: store_info_fields, store_info: store_info
+            = render "products/form/store_info_fields", f: store_info_fields, store_info:
 
       button.btn-rounded.mt-3 type="button" data-action="store-info#addStoreInfo" data-store-info-target="button" Add Store Info
 
       template data-store-info-target="template"
         = fields_for "store_infos[NEW_INDEX]", StoreInfo.new, include_id: false do |store_info_fields|
-          = render "products/form/new_store_info_fields", f: store_info_fields, store_info: store_info_fields.object
+          = render "products/form/store_info_fields", f: store_info_fields, store_info: store_info_fields.object
 
   - if product.new_record?
     fieldset data-controller="product-purchase" data-product-purchase-expanded-value=purchase_section_expanded?(@purchase)

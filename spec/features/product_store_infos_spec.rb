@@ -13,6 +13,10 @@ RSpec.describe "Product Store Info Management" do
     p
   end
 
+  def store_info_field(title)
+    all(".store-info-fields").detect { |section| section.has_css?("header h6", text: title) }
+  end
+
   scenario "edits existing store_info tags on product edit page", :js do # rubocop:todo RSpec/MultipleExpectations
     visit edit_product_path(product)
 
@@ -25,7 +29,7 @@ RSpec.describe "Product Store Info Management" do
     expect(page).to have_content("Woo")
 
     # Find and update Shopify tags
-    shopify_section = find(".store-info-fields", text: "Shopify")
+    shopify_section = store_info_field("Shopify")
     shopify_tags_field = shopify_section.find_field("Tags")
 
     # Verify current tags are visible (empty initially)
@@ -35,7 +39,7 @@ RSpec.describe "Product Store Info Management" do
     shopify_tags_field.fill_in with: "featured, new-arrival, sale"
 
     # Find and update Woo tags
-    woo_section = find(".store-info-fields", text: "Woo")
+    woo_section = store_info_field("Woo")
     woo_tags_field = woo_section.find_field("Tags")
 
     # Fill in new tags
@@ -63,7 +67,7 @@ RSpec.describe "Product Store Info Management" do
     visit edit_product_path(product)
 
     # Verify page loads with existing tags
-    shopify_section = find(".store-info-fields", text: "Shopify")
+    shopify_section = store_info_field("Shopify")
     shopify_tags_field = shopify_section.find_field("Tags")
 
     expect(shopify_tags_field.value).to eq("old-tag-1, old-tag-2")
@@ -87,10 +91,8 @@ RSpec.describe "Product Store Info Management" do
     # Verify page loads and shows store information section
     expect(page).to have_content("Store Information")
 
-    # Verify only Shopify store_info is displayed (Woo was removed)
+    # Verify the existing store_info is displayed
     expect(page).to have_content("Shopify")
-    expect(page).not_to have_content("Woo")
-
     # Click Add Store Info button
     click_button "Add Store Info"
 
@@ -98,7 +100,7 @@ RSpec.describe "Product Store Info Management" do
     expect(page).to have_content("New Store Info")
 
     # Find the newly added store info fields
-    new_store_section = find(".store-info-fields", text: "New Store Info")
+    new_store_section = store_info_field("New Store Info")
 
     # Select Woo from the dropdown
     # The select element is hidden by slim-select, so we need to find it with visible: false
@@ -129,7 +131,7 @@ RSpec.describe "Product Store Info Management" do
     expect(page).to have_content("Woo")
 
     # Find the Woo store_info section and check the destroy checkbox
-    woo_section = find(".store-info-fields", text: "Woo")
+    woo_section = store_info_field("Woo")
     within woo_section do
       check "Destroy connection?"
     end
@@ -147,6 +149,40 @@ RSpec.describe "Product Store Info Management" do
     expect(product.woo_info).to be_nil
   end
 
+  scenario "keeps available store names in sync after changing an existing store_info", :js do # rubocop:todo RSpec/MultipleExpectations
+    visit edit_product_path(product_with_one_store)
+
+    shopify_section = store_info_field("Shopify")
+    store_select = shopify_section.find("select[name$='[store_name]']", visible: :all)
+
+    page.execute_script("arguments[0].value = 'woo'; arguments[0].dispatchEvent(new Event('change', { bubbles: true }))", store_select)
+
+    click_button "Add Store Info"
+
+    new_store_section = store_info_field("New Store Info")
+    new_store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
+    options = new_store_select.all("option", visible: :all).map(&:value)
+
+    expect(options).to include("shopify")
+    expect(options).not_to include("woo")
+  end
+
+  scenario "changes an existing store_info store_name", :js do # rubocop:todo RSpec/MultipleExpectations
+    visit edit_product_path(product_with_one_store)
+
+    shopify_section = store_info_field("Shopify")
+    store_select = shopify_section.find("select[name$='[store_name]']", visible: :all)
+
+    page.execute_script("arguments[0].value = 'woo'; arguments[0].dispatchEvent(new Event('change', { bubbles: true }))", store_select)
+
+    click_button "Update Product"
+
+    product_with_one_store.reload
+    expect(product_with_one_store.store_infos.count).to eq(1)
+    expect(product_with_one_store.woo_info).to be_present
+    expect(product_with_one_store.shopify_info).to be_nil
+  end
+
   scenario "prevents adding duplicate store_name for the same product", :js do # rubocop:todo RSpec/MultipleExpectations
     visit edit_product_path(product_with_one_store)
 
@@ -158,7 +194,7 @@ RSpec.describe "Product Store Info Management" do
     click_button "Add Store Info"
 
     # Find the newly added store info fields
-    new_store_section = find(".store-info-fields", text: "New Store Info")
+    new_store_section = store_info_field("New Store Info")
 
     # Verify the dropdown only shows available (non-duplicate) store names
     store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
@@ -189,7 +225,7 @@ RSpec.describe "Product Store Info Management" do
     visit edit_product_path(product)
 
     # Verify tags are displayed
-    shopify_section = find(".store-info-fields", text: "Shopify")
+    shopify_section = store_info_field("Shopify")
     shopify_tags_field = shopify_section.find_field("Tags")
     expect(shopify_tags_field.value).to eq("featured, new")
 
@@ -220,13 +256,13 @@ RSpec.describe "Product Store Info Management" do
     expect(page).to have_content("Shopify")
 
     # Edit: Update Shopify tags
-    shopify_section = find(".store-info-fields", text: "Shopify")
+    shopify_section = store_info_field("Shopify")
     shopify_tags_field = shopify_section.find_field("Tags")
     shopify_tags_field.fill_in with: "updated-shopify-tag"
 
     # Add: Add a new Woo store_info
     click_button "Add Store Info"
-    new_store_section = find(".store-info-fields", text: "New Store Info")
+    new_store_section = store_info_field("New Store Info")
     store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
     page.execute_script("arguments[0].value = 'woo'", store_select)
     new_store_section.fill_in "Tags", with: "new-woo-tag"
@@ -254,7 +290,7 @@ RSpec.describe "Product Store Info Management" do
     click_button "Add Store Info"
 
     # Find the newly added store info fields
-    new_store_section = find(".store-info-fields", text: "New Store Info")
+    new_store_section = store_info_field("New Store Info")
 
     # Select Woo from the dropdown but leave tags empty
     store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
@@ -292,7 +328,7 @@ RSpec.describe "Product Store Info Management" do
 
     click_button "Add Store Info"
 
-    new_store_section = find(".store-info-fields", text: "New Store Info")
+    new_store_section = store_info_field("New Store Info")
     store_select = new_store_section.find("select[name$='[store_name]']", visible: :all)
     page.execute_script("arguments[0].value = 'shopify'", store_select)
     new_store_section.fill_in "Tags", with: "featured, launch"
