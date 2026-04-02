@@ -4,12 +4,12 @@ module Purchase::Titling
   extend ActiveSupport::Concern
 
   def title
-    "Purchase #{id}: #{product.title}"
+    "Purchase #{id}: #{product&.title}"
   end
 
   def full_title
     date = purchase_date || created_at
-    "#{supplier.title} | #{product.full_title} | #{date&.strftime("%Y-%m-%d")}"
+    "#{supplier&.title} | #{product&.full_title} | #{date&.strftime("%Y-%m-%d")}"
   end
 
   def edition_title

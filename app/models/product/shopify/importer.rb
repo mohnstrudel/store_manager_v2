@@ -39,7 +39,7 @@ class Product::Shopify::Importer
       )
       assign_brand
       assign_size
-      product.sync_full_title
+      product.full_title = product.generate_full_title
       product.save!
     end
   end

@@ -77,4 +77,14 @@ RSpec.describe StoreInfo do
       expect(extra_store_info.errors[:base]).to include("Too many store connections for Product")
     end
   end
+
+  describe "editing validations" do
+    it "does not allow duplicate store names while editing store connections" do # rubocop:todo RSpec/MultipleExpectations
+      product = create(:product)
+      duplicate_store_info = product.store_infos.build(store_name: :shopify)
+
+      expect(duplicate_store_info).not_to be_valid
+      expect(duplicate_store_info.errors[:store_name]).to include("has already been taken")
+    end
+  end
 end

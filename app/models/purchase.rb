@@ -22,8 +22,10 @@
 #
 class Purchase < ApplicationRecord
   attribute :warehouse_id, :integer
+  attribute :payment_value, :decimal
 
   include Creation
+  include Editing
   include Financials
   include HasAuditNotifications
   include Linking

@@ -22,6 +22,16 @@
 require "rails_helper"
 
 RSpec.describe Edition do
+  describe "validations" do
+    it "enforces persisted sku uniqueness" do # rubocop:todo RSpec/MultipleExpectations
+      create(:edition, sku: "DUPLICATE-SKU")
+      duplicate = build(:edition, sku: "DUPLICATE-SKU")
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:sku]).to include("has already been taken")
+    end
+  end
+
   describe "price" do
     it "returns 0.0 since price tracking was removed from StoreInfo" do
       edition = create(:edition)

@@ -14,7 +14,7 @@ FactoryBot.define do
     shopify_id { SecureRandom.alphanumeric(10) }
 
     after(:build) do |product|
-      product.sync_full_title
+      product.full_title = product.generate_full_title
     end
 
     after(:create) do |product|

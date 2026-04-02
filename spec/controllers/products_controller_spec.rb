@@ -28,7 +28,7 @@ RSpec.describe ProductsController do
   describe "PATCH #update" do
     let(:product) { create(:product, title: "Original Title") }
 
-    it "rehydrates submitted attributes after a failed update" do # rubocop:disable RSpec/MultipleExpectations
+    it "keeps submitted attributes after a failed update" do # rubocop:disable RSpec/MultipleExpectations
       patch :update, params: {
         id: product.to_param,
         product: {
@@ -52,7 +52,7 @@ RSpec.describe ProductsController do
     let(:supplier) { create(:supplier) }
     let(:warehouse) { create(:warehouse, is_default: true) }
 
-    it "creates an initial purchase alongside the product" do
+    it "creates a purchase alongside the product" do
       post :create, params: {
         product: {
           title: "New Product",
@@ -60,7 +60,7 @@ RSpec.describe ProductsController do
           franchise_id: franchise.id,
           shape_id: shape.id
         },
-        initial_purchase: {
+        purchase: {
           supplier_id: supplier.id,
           amount: "2",
           item_price: "15",

@@ -26,7 +26,7 @@ RSpec.describe Product do
     it { is_expected.to validate_presence_of(:title) }
     it { is_expected.to validate_presence_of(:sku) }
 
-    it "enforces sku uniqueness" do
+    it "enforces sku uniqueness" do # rubocop:todo RSpec/MultipleExpectations
       existing_product = create(:product, sku: "SKU-123")
       duplicate_product = build(:product, sku: existing_product.sku)
 

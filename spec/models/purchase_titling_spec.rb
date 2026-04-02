@@ -9,6 +9,12 @@ RSpec.describe Purchase do
 
       expect(purchase.title).to eq("Purchase #{purchase.id}: #{purchase.product.title}")
     end
+
+    it "handles a missing product gracefully" do
+      purchase = build(:purchase, product: nil)
+
+      expect { purchase.title }.not_to raise_error
+    end
   end
 
   describe "#full_title" do
@@ -39,6 +45,12 @@ RSpec.describe Purchase do
 
       expected_title = "#{purchase.supplier.title} | #{purchase.product.full_title} | "
       expect(purchase.full_title).to eq(expected_title)
+    end
+
+    it "handles missing associations gracefully" do
+      purchase = build(:purchase, supplier: nil, product: nil)
+
+      expect { purchase.full_title }.not_to raise_error
     end
   end
 

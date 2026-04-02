@@ -19,16 +19,13 @@
 #
 class Product < ApplicationRecord
   include EditionGeneration
-  include EditionEditing
   include HasAuditNotifications
   include HasPreviewImages
-  include InitialPurchase
   include Listing
   include Editing
   include SalesHistory
   include Searchable
   include Shopable
-  include StoreInfoEditing
   include StoreReferences
   include Titling
 
@@ -55,6 +52,7 @@ class Product < ApplicationRecord
   validates :title, presence: true
   validates :sku, presence: true
   validates_db_uniqueness_of :sku
+  validates_associated :editions
 
   db_belongs_to :franchise, inverse_of: :products
   db_belongs_to :shape, inverse_of: :products

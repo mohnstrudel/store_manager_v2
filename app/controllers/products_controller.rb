@@ -24,7 +24,7 @@ class ProductsController < ApplicationController
   # GET /products/new
   def new
     @product = Product.new
-    @initial_purchase = default_initial_purchase_attributes
+    @purchase = default_purchase
   end
 
   # GET /products/1/edit
@@ -33,37 +33,36 @@ class ProductsController < ApplicationController
 
   # POST /products or /products.json
   def create
-    payload = Product::FormPayload.new(params:)
-    @product = Product.new(payload.product_attributes)
+    editing_payload = Product::Editing::Payload.new(params:)
+    @product = Product.new
 
     respond_to do |format|
-      @product.create_from_form!(
-        editions_attributes: payload.editions_attributes,
-        store_infos_attributes: payload.store_infos_attributes,
-        initial_purchase_attributes: payload.initial_purchase_attributes,
+      @product.save_editing!(
+        product_attributes: editing_payload.product_attributes,
+        editions_attributes: editing_payload.editions_attributes,
+        store_infos_attributes: editing_payload.store_infos_attributes,
+        purchase_attributes: editing_payload.purchase_attributes,
         new_media_images: media_new_images_for(@product)
       )
-      # DISABLED: Auto-push to Shopify on product create - not needed for now, will re-enable later
-      # Shopify::CreateProductJob.perform_later(@product.id)
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
     rescue ActiveRecord::RecordInvalid => e
-      handle_failed_create(format, payload, e.record)
+      handle_failed_create(format, editing_payload.purchase_attributes)
     rescue ActiveRecord::RecordNotUnique
-      handle_failed_create(format, payload)
+      handle_failed_create(format, editing_payload.purchase_attributes)
     end
   end
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
-    payload = Product::FormPayload.new(params:)
+    editing_payload = Product::Editing::Payload.new(params:)
 
     respond_to do |format|
-      @product.apply_form_changes!(
-        product_attributes: payload.product_attributes,
-        editions_attributes: payload.editions_attributes,
-        store_infos_attributes: payload.store_infos_attributes,
+      @product.save_editing!(
+        product_attributes: editing_payload.product_attributes,
+        editions_attributes: editing_payload.editions_attributes,
+        store_infos_attributes: editing_payload.store_infos_attributes,
         media_attributes: normalized_media_attributes_for(@product),
         new_media_images: media_new_images_for(@product)
       )
@@ -71,7 +70,6 @@ class ProductsController < ApplicationController
       format.html { redirect_to product_url(@product), notice: "Product was successfully updated" }
       format.json { render :show, status: :ok, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-      @product = Product::FormRehydrator.new(product: @product, payload:).call
       prepare_form_options
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
@@ -106,26 +104,23 @@ class ProductsController < ApplicationController
     @warehouse_options = Warehouse.order(:name)
   end
 
-  def default_initial_purchase_attributes
-    {
-      warehouse_id: Warehouse.find_by(is_default: true)&.id
-    }.with_indifferent_access
+  def default_purchase
+    Purchase.new(warehouse_id: Warehouse.find_by(is_default: true)&.id)
   end
 
-  def append_initial_purchase_errors(product, record)
-    return unless record.is_a?(Purchase) || record.is_a?(Payment)
-
-    record.errors.full_messages.each do |message|
-      product.errors.add(:base, "Initial purchase #{message}")
-    end
-  end
-
-  def handle_failed_create(format, payload, record = nil)
-    @product = Product::FormRehydrator.new(product: @product, payload:).call
-    append_initial_purchase_errors(@product, record)
+  def handle_failed_create(format, purchase_attributes)
     prepare_form_options
-    @initial_purchase = default_initial_purchase_attributes.merge(payload.submitted_initial_purchase_attributes)
+    @purchase = build_purchase_for_form(purchase_attributes)
+
     format.html { render :new, status: :unprocessable_content }
     format.json { render json: @product.errors, status: :unprocessable_content }
+  end
+
+  def build_purchase_for_form(purchase_attributes)
+    return default_purchase if purchase_attributes.blank?
+
+    purchase = Purchase.new(purchase_attributes.merge(product: @product))
+    purchase.valid?
+    purchase
   end
 end

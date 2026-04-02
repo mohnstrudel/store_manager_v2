@@ -25,6 +25,7 @@ class Edition < ApplicationRecord
   include Options
   include Titling
   include Shopable
+  include Validation
 
   audited associated_with: :product
 
