@@ -35,21 +35,32 @@
       = form.label :color
       = form.collection_select :color_ids, @color_options || [], :id, :value, {selected: form.object.color_ids}, slim_select_html_options(multiple: true)
 
-  fieldset data-controller="edition-form"
-    h2.mt-8.label Editions
-    = form_hint "Manage editions for this product"
+  section data-controller="edition-form"
+    header
+      h2.mt-8.label Editions
+      = form_hint "Manage editions for this product"
 
-    div data-edition-form-target="container"
+    .grid.grid-cols-2.gap-x-6 data-edition-form-target="container"
       - form.object.editions.each_with_index do |edition, index|
         = fields_for "editions[#{index}]", edition do |edition_fields|
-          = render "products/form/edition_fields", f: edition_fields, edition: edition, sizes: form.object.sizes, versions: form.object.versions, colors: form.object.colors
+          = render "products/form/edition_fields",
+            f: edition_fields,
+            edition:,
+            sizes: form.object.sizes,
+            versions: form.object.versions,
+            colors: form.object.colors
 
     button.btn-rounded.mt-3 type="button" data-action="edition-form#add"
       | Add Edition
 
     template data-edition-form-target="template"
       = fields_for "editions[NEW_INDEX]", Edition.new, include_id: false do |edition_fields|
-        = render "products/form/edition_fields", f: edition_fields, edition: edition_fields.object, sizes: form.object.sizes, versions: form.object.versions, colors: form.object.colors
+        = render "products/form/edition_fields",
+          f: edition_fields,
+          edition: edition_fields.object,
+          sizes: form.object.sizes,
+          versions: form.object.versions,
+          colors: form.object.colors
 
   section
     header
