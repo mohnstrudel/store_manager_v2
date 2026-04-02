@@ -5,29 +5,23 @@ module Product::Editing
 
   def save_editing!(product_attributes:, editions_attributes:, store_infos_attributes:, purchase_attributes: {}, media_attributes: [], new_media_images: [])
     creating = new_record?
-
-    if creating && purchase_attributes.present?
-      purchase = Purchase.new(purchase_attributes.merge(product: self))
-    end
+    purchase = build_initial_purchase(purchase_attributes, creating)
 
     assign_product_attributes(product_attributes)
-    assign_editions_attributes(editions_attributes)
-    assigned_store_infos = assigned_store_infos_from_attributes(store_infos_attributes)
+    assign_collection_attributes(:editions, editions_attributes)
+    assign_collection_attributes(:store_infos, store_infos_attributes)
 
     valid?
     validate_edition_uniqueness!
-    validate_store_infos!(assigned_store_infos)
+    validate_store_infos!
 
-    if purchase.present? && !purchase.valid?
-      errors.add(:purchase, "is invalid")
-    end
+    errors.add(:purchase, "is invalid") if purchase.present? && !purchase.valid?
 
     raise ActiveRecord::RecordInvalid.new(self) if errors.any?
 
     transaction do
       save!
-      assigned_store_infos.each { |store_info| save_store_info!(store_info) }
-      reset_store_info_associations
+      store_infos.each { |store_info| save_store_info!(store_info) }
       editions.each { |edition| save_edition!(edition) }
       update_media_from_form!(media_attributes) unless creating
       add_new_media_from_form!(new_media_images)
@@ -38,78 +32,58 @@ module Product::Editing
 
   private
 
+  def build_initial_purchase(purchase_attributes, creating)
+    return unless creating && purchase_attributes.present?
+
+    Purchase.new(purchase_attributes.merge(product: self))
+  end
+
   def assign_product_attributes(attributes)
     assign_attributes(attributes.merge(slug: nil))
     self.full_title = generate_full_title
   end
 
-  def assign_editions_attributes(edition_attributes)
-    return if edition_attributes.blank?
+  def assign_collection_attributes(association_name, attributes_list)
+    return if attributes_list.blank?
 
-    existing_editions = editions.load_target.index_by { |edition| edition.id.to_s }
+    existing_records = public_send(association_name).load_target.index_by { |record| record.id.to_s }
 
-    edition_attributes.each do |attributes|
+    attributes_list.each do |attributes|
       next if destroy_flag?(attributes) && attributes[:id].blank?
 
-      edition = existing_editions[attributes[:id].to_s] || editions.build(product: self)
-      assign_edition_attributes(edition, attributes)
+      record = existing_records[attributes[:id].to_s] || build_associated_record(association_name)
+      assign_editable_attributes(record, attributes, association_name)
     end
   end
 
-  def assigned_store_infos_from_attributes(store_info_attributes)
-    return [] if store_info_attributes.blank?
-
-    association(:store_infos).reset
-    existing_store_infos = store_infos.load_target.index_by { |store_info| store_info.id.to_s }
-    assigned_store_infos = []
-
-    store_info_attributes.each do |attributes|
-      next if destroy_flag?(attributes) && attributes[:id].blank?
-
-      store_info = existing_store_infos[attributes[:id].to_s] || store_infos.build(storable: self)
-      assign_store_info_attributes(store_info, attributes)
-      assigned_store_infos << store_info
+  def build_associated_record(association_name)
+    case association_name
+    when :editions
+      editions.build(product: self)
+    when :store_infos
+      store_infos.build(storable: self)
+    else
+      raise ArgumentError, "Unsupported association: #{association_name}"
     end
-
-    assigned_store_infos
   end
 
-  def reset_store_info_associations
-    association(:store_infos).reset if association(:store_infos).loaded?
-    association(:shopify_info).reset if association(:shopify_info).loaded?
-    association(:woo_info).reset if association(:woo_info).loaded?
-  end
+  def assign_editable_attributes(record, attributes, association_name)
+    record._destroy = destroy_flag?(attributes)
 
-  def assign_store_info_attributes(store_info, attributes)
-    store_info._destroy = destroy_flag?(attributes)
-
-    if store_info.marked_for_editing_destruction?
-      store_info.mark_for_destruction
+    if record.marked_for_editing_destruction?
+      record.mark_for_destruction if association_name == :store_infos
       return
     end
 
-    store_info.assign_attributes(attributes.except(:id, :destroy))
-  end
-
-  def validate_store_infos!(store_infos)
-    store_infos.each(&:valid?)
-    errors.add(:store_infos, "is invalid") if store_infos.any? { |store_info| store_info.errors.any? }
-  end
-
-  def save_store_info!(store_info)
-    if store_info.marked_for_destruction?
-      store_info.destroy! if store_info.persisted?
-      return
-    end
-
-    store_info.save! if store_info.new_record? || store_info.changed?
+    record.assign_attributes(attributes.except(:id, :destroy))
   end
 
   def validate_edition_uniqueness!
     sku_editions = {}
     combination_editions = {}
+    editing_editions = active_editing_editions
 
-    active_editing_editions.each do |edition|
+    editing_editions.each do |edition|
       if edition.sku.present?
         sku_editions[edition.sku] ||= []
         sku_editions[edition.sku] << edition
@@ -125,29 +99,16 @@ module Product::Editing
     add_duplicate_sku_errors(sku_editions)
     add_duplicate_combination_errors(combination_editions)
 
-    errors.add(:editions, "is invalid") if active_editing_editions.any? { |edition| edition.errors.any? }
-  end
-
-  def assign_edition_attributes(edition, attributes)
-    edition._destroy = destroy_flag?(attributes)
-    return if edition.marked_for_editing_destruction?
-
-    edition.assign_attributes(attributes.except(:id, :destroy))
-  end
-
-  def save_edition!(edition)
-    return if edition.new_record? && edition.marked_for_editing_destruction?
-
-    if edition.marked_for_editing_destruction?
-      edition.remove_or_deactivate!
-      return
-    end
-
-    edition.save! if edition.new_record? || edition.changed?
+    errors.add(:editions, "is invalid") if editing_editions.any? { |edition| edition.errors.any? }
   end
 
   def active_editing_editions
     association(:editions).target.reject(&:marked_for_editing_destruction?)
+  end
+
+  def edition_combination(edition)
+    combination = [edition.size_id, edition.version_id, edition.color_id]
+    combination if combination.any?(&:present?)
   end
 
   def add_duplicate_sku_errors(grouped_editions)
@@ -166,9 +127,35 @@ module Product::Editing
     end
   end
 
-  def edition_combination(edition)
-    combination = [edition.size_id, edition.version_id, edition.color_id]
-    combination if combination.any?(&:present?)
+  def validate_store_infos!
+    editing_store_infos = active_editing_store_infos
+
+    editing_store_infos.each(&:valid?)
+    errors.add(:store_infos, "is invalid") if editing_store_infos.any? { |store_info| store_info.errors.any? }
+  end
+
+  def active_editing_store_infos
+    association(:store_infos).target.reject(&:marked_for_editing_destruction?)
+  end
+
+  def save_store_info!(store_info)
+    if store_info.marked_for_destruction?
+      store_info.destroy! if store_info.persisted?
+      return
+    end
+
+    store_info.save! if store_info.new_record? || store_info.changed?
+  end
+
+  def save_edition!(edition)
+    return if edition.new_record? && edition.marked_for_editing_destruction?
+
+    if edition.marked_for_editing_destruction?
+      edition.remove_or_deactivate!
+      return
+    end
+
+    edition.save! if edition.new_record? || edition.changed?
   end
 
   def destroy_flag?(attributes)

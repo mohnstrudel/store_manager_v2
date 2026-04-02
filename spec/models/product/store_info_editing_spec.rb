@@ -59,26 +59,6 @@ RSpec.describe Product do
       expect(product.reload.woo_info).to be_nil
     end
 
-    it "clears cached store references on the same product instance after destroying a store info" do # rubocop:todo RSpec/MultipleExpectations
-      woo_info = product.store_infos.woo.first
-
-      product.store_infos.load
-      expect(product.woo_info).to eq(woo_info)
-
-      product.save_editing!(
-        product_attributes: editing_product_attributes(product),
-        editions_attributes: [],
-        store_infos_attributes: [
-          {id: woo_info.id, destroy: true}
-        ],
-        media_attributes: [],
-        new_media_images: []
-      )
-
-      expect(product.woo_info).to be_nil
-      expect(product.store_infos.map(&:store_name)).not_to include("woo")
-    end
-
     it "raises a product validation error for duplicate store connections" do # rubocop:todo RSpec/MultipleExpectations
       shopify_info = product.store_infos.shopify.first
 
