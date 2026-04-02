@@ -1,4 +1,5 @@
 .store-info-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-4/7
+  - base_error = store_info.errors[:base].first
   .flex.justify-between.items-center
     = f.hidden_field :id
     = f.hidden_field :store_name
@@ -6,6 +7,8 @@
     = f.label :_destroy, "Destroy connection?", class: "m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900"
       = f.check_box :_destroy, class: "m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500 red", data: {action: "change->store-info#toggleDestroy"}
       span Destroy connection?
+  - if base_error.present?
+    p.text-error.mt-2 = base_error
   fieldset.flex.justify-between.gap-4
     .block.w-full
       = f.label :tag_list, "Tags"

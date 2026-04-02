@@ -1,5 +1,5 @@
 = form_with model: product, html: {multipart: true}, data: {turbo: false} do |form|
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.-mt-8
     .block.w-full
       = form.label :franchise
       = form.collection_select :franchise_id, @franchise_options || [], :id, :title, {}, slim_select_html_options
@@ -35,23 +35,21 @@
       = form.label :color
       = form.collection_select :color_ids, @color_options || [], :id, :value, {selected: form.object.color_ids}, slim_select_html_options(multiple: true)
 
-  fieldset
+  fieldset data-controller="edition-form"
     h2.mt-8.label Editions
     = form_hint "Manage editions for this product"
 
-    .grid.grid-cols-2.gap-4.my-6
+    div data-edition-form-target="container"
       - form.object.editions.each_with_index do |edition, index|
         = fields_for "editions[#{index}]", edition do |edition_fields|
           = render "products/form/edition_fields", f: edition_fields, edition: edition, sizes: form.object.sizes, versions: form.object.versions, colors: form.object.colors
 
-  fieldset data-controller="edition-form"
-    div data-edition-form-target="container"
     button.btn-rounded.mt-3 type="button" data-action="edition-form#add"
       | Add Edition
 
     template data-edition-form-target="template"
       = fields_for "editions[NEW_INDEX]", Edition.new, include_id: false do |edition_fields|
-        = render "products/form/edition_form_fields", f: edition_fields, sizes: @product&.sizes, versions: @product&.versions, colors: @product&.colors
+        = render "products/form/edition_fields", f: edition_fields, edition: edition_fields.object, sizes: form.object.sizes, versions: form.object.versions, colors: form.object.colors
 
   fieldset
     h2.mt-8.label Store Information
@@ -64,16 +62,28 @@
             - if store_info.persisted?
               = render "products/form/store_info_fields", f: store_info_fields, store_info: store_info
             - else
-              = render "products/form/new_store_info_fields", f: store_info_fields
+              = render "products/form/new_store_info_fields", f: store_info_fields, store_info: store_info
 
       button.btn-rounded.mt-3 type="button" data-action="store-info#addStoreInfo" data-store-info-target="button" Add Store Info
 
       template data-store-info-target="template"
         = fields_for "store_infos[NEW_INDEX]", StoreInfo.new, include_id: false do |store_info_fields|
-          = render "products/form/new_store_info_fields", f: store_info_fields
+          = render "products/form/new_store_info_fields", f: store_info_fields, store_info: store_info_fields.object
 
   - if product.new_record?
-    = render "products/form/initial_purchase_fields", initial_purchase: (@initial_purchase || {})
+    fieldset data-controller="product-purchase" data-product-purchase-expanded-value=purchase_section_expanded?(@purchase)
+      h2.mt-8.label Purchase
+      = form_hint "Add a purchase if you want to create one alongside the product."
+
+      button.btn-rounded.mt-3 type="button" data-action="product-purchase#addForm" data-product-purchase-target="add" class=class_names(hidden: purchase_section_expanded?(@purchase))
+        | Add Purchase
+
+      div class=class_names("mt-6": purchase_section_expanded?(@purchase)) data-product-purchase-target="form"
+        - if purchase_section_expanded?(@purchase)
+          = render "products/form/purchase_fields", purchase: @purchase
+
+      template data-product-purchase-target="template"
+        = render "products/form/purchase_fields", purchase: @purchase
 
   = render "_shared/media_form", form: form, resource_name: "product"
 

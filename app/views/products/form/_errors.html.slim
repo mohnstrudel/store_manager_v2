@@ -1,0 +1,13 @@
+- errors = product_form_errors(product:, purchase:)
+
+- if errors.any?
+  article.h-fit.mx-auto.bg-red-100.rounded-xl.mb-8.text-red-700 class="dark:bg-red-800/60 dark:text-red-300"
+    header.p-8.h-24.flex.justify-between.items-center.border-b-4.border-red-800/5.dark:border-red-950/30
+      i.icn.text-3xl 🚨
+      p.text-lg.font-semibold Fix errors and try again
+      i.icn.text-3xl 🚨
+    ol.list-decimal.h-fit.min-h-24.p-8.pl-16.text-lg
+      - errors.each do |error|
+        li.mt-1
+          span.font-semibold = "#{error[:label]}:"
+          = " #{error[:message]}"

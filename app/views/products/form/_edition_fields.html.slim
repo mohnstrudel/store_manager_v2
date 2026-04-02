@@ -1,10 +1,19 @@
-.edition-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-12 class=class_names("opacity-50": edition.deactivated?) data-controller="edition-fields" data-edition-fields-existing-value=(@product&.persisted? ? @product.editions.active.to_json({include: [:size, :version, :color]}) : "[]")
+.edition-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-12 class=class_names("opacity-50": edition.deactivated?, "my-4 max-w-4/7": edition.new_record?) data-controller="edition-fields" data-edition-fields-existing-value=(@product&.persisted? ? @product.editions.active.to_json({include: [:size, :version, :color]}) : "[]")
+  - combination_error = edition.errors[:base].find { |message| message.include?("Combination") }
+  - sku_error = edition.errors[:sku].first
+  - weight_error = edition.errors[:weight].first
+  - purchase_cost_error = edition.errors[:purchase_cost].first
+  - selling_price_error = edition.errors[:selling_price].first
+  - title = (edition.persisted? || [edition.size_id, edition.version_id, edition.color_id].any?(&:present?)) ? edition.title : "New Edition"
   .flex.justify-between.items-center
     = f.hidden_field :id
-    h6.font-semibold data-edition-fields-target="title" = edition.title
+    h6.font-semibold data-edition-fields-target="title" = title
     - if edition.deactivated?
       span.text-sm.text-gray-500.dark:text-gray-400
         | (Deactivated)
+    - elsif edition.new_record?
+      a.btn-rounded.btn-red.m-0 href="" data-action="click->edition-form#remove"
+        | Remove
     - else
       - checkbox_label = edition.has_sales_or_purchases? ? "Deactivate?" : "Destroy?"
       = f.label :_destroy, checkbox_label, class: "m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900"
@@ -14,71 +23,61 @@
   .flex.justify-between.gap-4
     .block.w-full
       = f.label :size_id, "Size"
-      - edition_size_error = @product&.errors&.[](:editions)&.find { |e| e.include?(edition.id.to_s) && e.include?("size") }
-      - if edition_size_error
+      - if combination_error.present?
         .field_with_errors
           = f.collection_select(:size_id, local_assigns[:sizes] || [], :id, :value, {include_blank: true, selected: edition.size_id}, {class: "select", data: {action: "change->edition-fields#checkDuplicate change->edition-fields#updateTitle"}})
-        .text-error = edition_size_error.split(": ", 2).last
       - else
         = f.collection_select(:size_id, local_assigns[:sizes] || [], :id, :value, {include_blank: true, selected: edition.size_id}, {class: "select", data: {action: "change->edition-fields#checkDuplicate change->edition-fields#updateTitle"}})
     .block.w-full
       = f.label :version_id, "Version"
-      - edition_version_error = @product&.errors&.[](:editions)&.find { |e| e.include?(edition.id.to_s) && e.include?("version") }
-      - if edition_version_error
+      - if combination_error.present?
         .field_with_errors
           = f.collection_select(:version_id, local_assigns[:versions] || [], :id, :value, {include_blank: true, selected: edition.version_id}, {class: "select", data: {action: "change->edition-fields#checkDuplicate change->edition-fields#updateTitle"}})
-        .text-error = edition_version_error.split(": ", 2).last
       - else
         = f.collection_select(:version_id, local_assigns[:versions] || [], :id, :value, {include_blank: true, selected: edition.version_id}, {class: "select", data: {action: "change->edition-fields#checkDuplicate change->edition-fields#updateTitle"}})
     .block.w-full
       = f.label :color_id, "Color"
-      - edition_color_error = @product&.errors&.[](:editions)&.find { |e| e.include?(edition.id.to_s) && e.include?("color") }
-      - if edition_color_error
+      - if combination_error.present?
         .field_with_errors
           = f.collection_select(:color_id, local_assigns[:colors] || [], :id, :value, {include_blank: true, selected: edition.color_id}, {class: "select", data: {action: "change->edition-fields#checkDuplicate change->edition-fields#updateTitle"}})
-        .text-error = edition_color_error.split(": ", 2).last
       - else
         = f.collection_select(:color_id, local_assigns[:colors] || [], :id, :value, {include_blank: true, selected: edition.color_id}, {class: "select", data: {action: "change->edition-fields#checkDuplicate change->edition-fields#updateTitle"}})
 
-  .text-error.mt-2.hidden data-edition-fields-target="duplicateWarning"
-    | This combination already exists
+  .text-error.mt-2 class=class_names(hidden: combination_error.blank?) data-edition-fields-target="duplicateWarning"
+    = combination_error.presence || "This combination already exists"
 
   .block
     = f.label :sku, "SKU"
-    - edition_sku_error = @product&.errors&.[](:editions)&.find { |e| e.include?("#{edition.title} sku:") }
-    - if edition_sku_error
+    - if sku_error.present?
       .field_with_errors
         = f.text_field :sku, placeholder: "SKU", class: "h-fit"
-      .text-error = edition_sku_error.split(": ", 2).last
+      .text-error = sku_error
     - else
       = f.text_field :sku, placeholder: "SKU", class: "h-fit"
 
     .flex.justify-between.gap-4
       .block.w-full
         = f.label :weight, "Weight (kg)"
-        - edition_weight_error = @product&.errors&.[](:editions)&.find { |e| e.include?(edition.id.to_s) && e.include?("weight") }
-        - if edition_weight_error
+        - if weight_error.present?
           .field_with_errors
             = f.number_field :weight, step: 0.01, min: 0
-          .text-error = edition_weight_error.split(": ", 2).last
+          .text-error = weight_error
         - else
           = f.number_field :weight, step: 0.01, min: 0
 
       .block.w-full
         = f.label :purchase_cost, "Purchase Cost"
-        - edition_purchase_cost_error = @product&.errors&.[](:editions)&.find { |e| e.include?(edition.id.to_s) && e.include?("purchase cost") }
-        - if edition_purchase_cost_error
+        - if purchase_cost_error.present?
           .field_with_errors
             = f.number_field :purchase_cost, step: 0.01, min: 0
-          .text-error = edition_purchase_cost_error.split(": ", 2).last
+          .text-error = purchase_cost_error
         - else
           = f.number_field :purchase_cost, step: 0.01, min: 0
       .block.w-full
         = f.label :selling_price, "Selling Price"
-        - edition_selling_price_error = @product&.errors&.[](:editions)&.find { |e| e.include?(edition.id.to_s) && e.include?("selling price") }
-        - if edition_selling_price_error
+        - if selling_price_error.present?
           .field_with_errors
             = f.number_field :selling_price, step: 0.01, min: 0
-          .text-error = edition_selling_price_error.split(": ", 2).last
+          .text-error = selling_price_error
         - else
           = f.number_field :selling_price, step: 0.01, min: 0

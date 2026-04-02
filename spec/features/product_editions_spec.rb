@@ -336,6 +336,32 @@ RSpec.describe "Product Editions Management" do
       end
     end
 
+    scenario "open edition form updates when product options change", :js do
+      create(:size, value: "Large")
+      create(:version, value: "Premium")
+      create(:color, value: "Blue")
+
+      visit edit_product_path(product)
+
+      click_button "Add Edition"
+      edition_section = all(".edition-fields").last
+
+      find("label", text: "Size", match: :first).find(:xpath, "..").find(".ss-main").click
+      find(".ss-option", text: "Large").click
+
+      find("label", text: "Version", match: :first).find(:xpath, "..").find(".ss-main").click
+      find(".ss-option", text: "Premium").click
+
+      find("label", text: "Color", match: :first).find(:xpath, "..").find(".ss-main").click
+      find(".ss-option", text: "Blue").click
+
+      within edition_section do
+        expect(page).to have_select("Size", with_options: ["", "Large"])
+        expect(page).to have_select("Version", with_options: ["", "Premium"])
+        expect(page).to have_select("Color", with_options: ["", "Blue"])
+      end
+    end
+
     scenario "clicking Remove button deletes the form", :js do
       visit edit_product_path(product)
 
@@ -670,11 +696,42 @@ RSpec.describe "Product Editions Management" do
       # New edition should still be present with its values
       new_section = all(".edition-fields").last
       within new_section do
+        expect(page).to have_content("New Edition")
+        expect(page).to have_link("Remove")
         expect(page).to have_field("SKU", with: "NEW-SKU-123")
         expect(page).to have_field("Weight (kg)", with: "2.5")
         expect(page).to have_field("Purchase Cost", with: "30.00")
         expect(page).to have_field("Selling Price", with: "59.99")
       end
+    end
+
+    scenario "new edition uses the currently selected product options", :js do
+      create(:size, value: "Large")
+      create(:version, value: "Premium")
+      create(:color, value: "Blue")
+
+      visit edit_product_path(product)
+
+      find("label", text: "Size", match: :first).find(:xpath, "..").find(".ss-main").click
+      find(".ss-option", text: "Large").click
+
+      find("label", text: "Version", match: :first).find(:xpath, "..").find(".ss-main").click
+      find(".ss-option", text: "Premium").click
+
+      find("label", text: "Color", match: :first).find(:xpath, "..").find(".ss-main").click
+      find(".ss-option", text: "Blue").click
+
+      click_button "Add Edition"
+
+      new_section = all(".edition-fields").last
+
+      size_options = new_section.all("select[name$='[size_id]'] option", visible: :all).map(&:text)
+      version_options = new_section.all("select[name$='[version_id]'] option", visible: :all).map(&:text)
+      color_options = new_section.all("select[name$='[color_id]'] option", visible: :all).map(&:text)
+
+      expect(size_options).to include("Large")
+      expect(version_options).to include("Premium")
+      expect(color_options).to include("Blue")
     end
 
     scenario "duplicate combination error is displayed in error notice", :js do

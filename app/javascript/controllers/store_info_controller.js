@@ -6,6 +6,7 @@ export default class extends Controller {
 
   connect() {
     this.indexValue = this.storeInfoFields.length
+    this.populateExistingStoreSelectors()
     this.refreshButtonState()
   }
 
@@ -51,6 +52,19 @@ export default class extends Controller {
     this.buttonTarget.classList.toggle("cursor-not-allowed", !hasAvailableNames)
   }
 
+  populateExistingStoreSelectors() {
+    this.storeInfoFields.forEach((field) => {
+      const select = field.querySelector("select[name*='[store_name]']")
+      if (!select) return
+
+      const currentValue = select.value
+      const availableStoreNames = this.availableStoreNamesFor(currentValue)
+
+      this.populateStoreNameOptions(select, availableStoreNames)
+      if (currentValue) select.value = currentValue
+    })
+  }
+
   populateStoreNameOptions(select, availableStoreNames) {
     if (!select) return
 
@@ -92,6 +106,12 @@ export default class extends Controller {
 
   get availableStoreNames() {
     return this.storeNamesValue.filter((name) => !this.usedStoreNames.includes(name))
+  }
+
+  availableStoreNamesFor(currentValue) {
+    if (!currentValue || currentValue === "not_assigned") return this.availableStoreNames
+
+    return this.availableStoreNames.includes(currentValue) ? this.availableStoreNames : [currentValue, ...this.availableStoreNames]
   }
 
   isMarkedForDestroy(field) {

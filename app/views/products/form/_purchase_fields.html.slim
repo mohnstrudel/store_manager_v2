@@ -1,0 +1,48 @@
+= fields_for "purchase", purchase do |form|
+  - supplier_error = purchase.errors[:supplier_id].first
+  - item_price_error = purchase.errors[:item_price].first
+  - amount_error = purchase.errors[:amount].first
+
+  .purchase-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.mt-6.max-w-4/7
+    .flex.justify-between.items-center
+      h6 New Purchase
+      button.btn-rounded.btn-red type="button" data-action="product-purchase#removeForm"
+        | Remove
+
+    fieldset.flex.justify-between.gap-4
+      .block.w-full id="purchase-supplier-field"
+        = form.label :supplier_id, "Supplier"
+        - if supplier_error.present?
+          .field_with_errors
+            = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
+          .text-error = supplier_error
+        - else
+          = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
+      .block.w-full
+        = form.label :order_reference, "Order reference"
+        = form.text_field :order_reference
+
+    fieldset.flex.justify-between.gap-4
+      .block.w-full id="purchase-item-price-field"
+        = form.label :item_price, "Item price"
+        - if item_price_error.present?
+          .field_with_errors
+            = form.text_field :item_price
+          .text-error = item_price_error
+        - else
+          = form.text_field :item_price
+      .block.w-full id="purchase-amount-field"
+        = form.label :amount, "Amount"
+        - if amount_error.present?
+          .field_with_errors
+            = form.text_field :amount
+          .text-error = amount_error
+        - else
+          = form.text_field :amount
+      .block.w-full
+        = form.label :payment_value, "What did you pay in total?"
+        = form.number_field :payment_value, step: :any
+
+    - if @warehouse_options.present?
+      = form.label :warehouse_id, "Initial warehouse"
+      = form.collection_select :warehouse_id, @warehouse_options, :id, :name, {}, {class: "w-full"}

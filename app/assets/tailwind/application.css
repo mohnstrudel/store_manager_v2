@@ -93,6 +93,12 @@
     @apply appearance-none w-full pl-3 pr-10 py-1.5 cursor-pointer border border-gray-300/80 dark:border-gray-600/80 rounded-sm bg-white dark:bg-gray-800;
   }
 
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  .ss-main {
+    @apply h-10;
+  }
+
   textarea,
   trix-editor {
     @apply min-h-24;
@@ -272,7 +278,7 @@
   }
 
   .btn-rounded {
-    @apply rounded-full px-2.5 border-gray-200 dark:border-gray-600;
+    @apply h-10 rounded-full px-2.5 border-gray-200 dark:border-gray-600;
   }
 
   .btn-red,
