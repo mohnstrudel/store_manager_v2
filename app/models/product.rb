@@ -18,6 +18,8 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
+  attr_accessor :initial_purchase
+
   include EditionGeneration
   include HasAuditNotifications
   include HasPreviewImages

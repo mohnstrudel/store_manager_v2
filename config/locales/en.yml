@@ -30,7 +30,27 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  activerecord:
+    errors:
+      models:
+        edition:
+          attributes:
+            base:
+              combination_exists: "Combination already exists"
+        product:
+          attributes:
+            initial_purchase:
+              invalid: "is invalid"
+        store_info:
+          attributes:
+            base:
+              too_many_store_connections: "Too many store connections for %{storable_type}"
+        warehouse:
+          attributes:
+            base:
+              destroy_blocked: "Error. Please select and move out all purchased products before deleting the warehouse"
+            is_default:
+              conflict: "conflict"
   views:
     pagination:
       first: "First"

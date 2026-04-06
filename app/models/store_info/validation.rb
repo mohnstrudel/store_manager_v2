@@ -20,7 +20,7 @@ module StoreInfo::Validation
     return if marked_for_editing_destruction? || store_name.blank? || not_assigned?
     return unless active_sibling_store_infos.any? { |store_info| store_info.store_name == store_name }
 
-    errors.add(:store_name, "has already been taken")
+    errors.add(:store_name, :taken)
   end
 
   def storable_store_info_limit
@@ -31,7 +31,7 @@ module StoreInfo::Validation
 
     return unless active_store_infos.count > self.class.assignable_store_names.count
 
-    errors.add(:base, "Too many store connections for #{storable_type}")
+    errors.add(:base, :too_many_store_connections, storable_type:)
   end
 
   def limited_store_info_storable?

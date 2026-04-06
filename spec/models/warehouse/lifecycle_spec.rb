@@ -20,7 +20,9 @@ RSpec.describe Warehouse do
         warehouse.destroy_if_empty!
       }.to raise_error(ActiveRecord::RecordInvalid, /move out all purchased products/)
 
-      expect(warehouse.errors[:base]).to include(Warehouse::Lifecycle::DESTROY_BLOCKED_MESSAGE)
+      expect(warehouse.errors[:base]).to include(
+        "Error. Please select and move out all purchased products before deleting the warehouse"
+      )
     end
   end
 end

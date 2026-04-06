@@ -53,7 +53,7 @@ RSpec.describe Product do
         expect(error.record).to eq(product)
       }
 
-      expect(product.errors[:purchase]).to include("is invalid")
+      expect(product.errors[:initial_purchase]).to include("is invalid")
     end
 
     it "raises purchase validation errors when only part of the initial purchase is filled in" do # rubocop:todo RSpec/MultipleExpectations
@@ -73,7 +73,7 @@ RSpec.describe Product do
         expect(error.record).to eq(product)
       }
 
-      expect(product.errors[:purchase]).to include("is invalid")
+      expect(product.errors[:initial_purchase]).to include("is invalid")
     end
 
     # rubocop:todo RSpec/MessageSpies

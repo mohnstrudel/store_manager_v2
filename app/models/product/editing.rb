@@ -5,7 +5,7 @@ module Product::Editing
 
   def save_editing!(product_attributes:, editions_attributes:, store_infos_attributes:, purchase_attributes: {}, media_attributes: [], new_media_images: [])
     creating = new_record?
-    purchase = build_initial_purchase(purchase_attributes, creating)
+    self.initial_purchase = build_initial_purchase(purchase_attributes, creating)
 
     assign_product_attributes(product_attributes)
     assign_collection_attributes(:editions, editions_attributes)
@@ -15,7 +15,7 @@ module Product::Editing
     validate_edition_uniqueness!
     validate_store_infos!
 
-    errors.add(:purchase, "is invalid") if purchase.present? && !purchase.valid?
+    errors.add(:initial_purchase, :invalid) if initial_purchase.present? && !initial_purchase.valid?
 
     raise ActiveRecord::RecordInvalid.new(self) if errors.any?
 
@@ -25,8 +25,8 @@ module Product::Editing
       editions.each { |edition| save_edition!(edition) }
       update_media_from_form!(media_attributes) unless creating
       add_new_media_from_form!(new_media_images)
-      purchase&.product = self
-      purchase&.save_editing!
+      initial_purchase&.product = self
+      initial_purchase&.save_editing!
     end
   end
 
@@ -99,7 +99,7 @@ module Product::Editing
     add_duplicate_sku_errors(sku_editions)
     add_duplicate_combination_errors(combination_editions)
 
-    errors.add(:editions, "is invalid") if editing_editions.any? { |edition| edition.errors.any? }
+    errors.add(:editions, :invalid) if editing_editions.any? { |edition| edition.errors.any? }
   end
 
   def active_editing_editions
@@ -115,7 +115,7 @@ module Product::Editing
     grouped_editions.each_value do |duplicate_editions|
       next if duplicate_editions.one?
 
-      duplicate_editions.each { |edition| edition.errors.add(:sku, "has already been taken") }
+      duplicate_editions.each { |edition| edition.errors.add(:sku, :taken) }
     end
   end
 
@@ -123,7 +123,7 @@ module Product::Editing
     grouped_editions.each_value do |duplicate_editions|
       next if duplicate_editions.one?
 
-      duplicate_editions.each { |edition| edition.errors.add(:base, "Combination already exists") }
+      duplicate_editions.each { |edition| edition.errors.add(:base, :combination_exists) }
     end
   end
 
@@ -131,7 +131,7 @@ module Product::Editing
     editing_store_infos = active_editing_store_infos
 
     editing_store_infos.each(&:valid?)
-    errors.add(:store_infos, "is invalid") if editing_store_infos.any? { |store_info| store_info.errors.any? }
+    errors.add(:store_infos, :invalid) if editing_store_infos.any? { |store_info| store_info.errors.any? }
   end
 
   def active_editing_store_infos

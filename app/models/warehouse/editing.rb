@@ -49,7 +49,7 @@ module Warehouse::Editing
   def validate_default_warehouse_choice!
     return unless blocking_default_warehouse
 
-    errors.add(:is_default, "conflict")
+    errors.add(:is_default, :conflict)
     raise ActiveRecord::RecordInvalid, self
   end
 
