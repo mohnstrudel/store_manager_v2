@@ -13,8 +13,7 @@
       .block.w-full id="purchase-supplier-field"
         = form.label :supplier_id, "Supplier"
         - if supplier_error.present?
-          .field_with_errors
-            = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
+          = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
           .text-error = supplier_error
         - else
           = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
@@ -26,16 +25,14 @@
       .block.w-full id="purchase-item-price-field"
         = form.label :item_price, "Item price"
         - if item_price_error.present?
-          .field_with_errors
-            = form.text_field :item_price
+          = form.text_field :item_price
           .text-error = item_price_error
         - else
           = form.text_field :item_price
       .block.w-full id="purchase-amount-field"
         = form.label :amount, "Amount"
         - if amount_error.present?
-          .field_with_errors
-            = form.text_field :amount
+          = form.text_field :amount
           .text-error = amount_error
         - else
           = form.text_field :amount
