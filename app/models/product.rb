@@ -30,6 +30,8 @@ class Product < ApplicationRecord
   include Shopable
   include Shopify::Matching
   include Shopify::Fallbacks
+  include Shopify::Exporting
+  include Shopify::Publishing
   include StoreReferences
   include Titling
 
@@ -48,6 +50,9 @@ class Product < ApplicationRecord
       sizes: [:value],
       versions: [:value],
       colors: [:value]
+    },
+    using: {
+      tsearch: {prefix: true}
     }
 
   validates :title, presence: true
