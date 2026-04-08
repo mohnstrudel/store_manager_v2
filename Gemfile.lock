@@ -304,11 +304,19 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
+<<<<<<< HEAD
     mime-types-data (3.2026.0414)
     mini_magick (5.3.1)
       logger
     mini_mime (1.1.5)
     minitest (6.0.4)
+=======
+    mime-types-data (3.2026.0331)
+    mini_magick (5.3.1)
+      logger
+    mini_mime (1.1.5)
+    minitest (6.0.3)
+>>>>>>> b68ba5b (chore(app): refresh lockfile and clean up Sentry init)
       drb (~> 2.0)
       prism (~> 1.5)
     msgpack (1.8.0)
@@ -337,7 +345,11 @@ GEM
     openssl (4.0.1)
     ostruct (0.6.3)
     parallel (1.28.0)
+<<<<<<< HEAD
     parallel_tests (5.7.0)
+=======
+    parallel_tests (5.6.0)
+>>>>>>> b68ba5b (chore(app): refresh lockfile and clean up Sentry init)
       parallel
     parser (3.3.11.1)
       ast (~> 2.4.1)
@@ -635,7 +647,11 @@ GEM
     solargraph-rails (1.3)
       activesupport
       solargraph (>= 0.48.0)
+<<<<<<< HEAD
     sorbet-runtime (0.6.13128)
+=======
+    sorbet-runtime (0.6.13096)
+>>>>>>> b68ba5b (chore(app): refresh lockfile and clean up Sentry init)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
       logger
