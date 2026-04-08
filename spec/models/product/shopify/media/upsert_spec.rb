@@ -112,5 +112,36 @@ RSpec.describe Product::Shopify::Media::Upsert do
         )
       }.not_to change(product.media, :count)
     end
+
+    it "reattaches a matching checksum when the existing blob is missing from storage" do
+      create(:store_info, :shopify,
+        storable: existing_media,
+        store_id: "gid://shopify/MediaImage/1",
+        checksum: existing_media.image.blob.checksum)
+
+      service = instance_double(
+        ActiveStorage::Service,
+        exist?: false,
+        delete: true,
+        delete_prefixed: true
+      )
+      allow(existing_media.image.blob).to receive(:service).and_return(service)
+      upsert = described_class.new(product:)
+      allow(upsert).to receive(:existing_media_by_checksum).and_return(
+        existing_media.image.blob.checksum => existing_media
+      )
+
+      expect {
+        upsert.call(
+          media_items: [media_items.first],
+          downloads_by_key: {"existing" => existing_download}
+        )
+      }.not_to change(product.media, :count)
+
+      existing_media.reload
+      expect(existing_media.image).to be_attached
+      expect(existing_media.image.filename.to_s).to eq("existing.jpg")
+      expect(existing_media.shopify_info.store_id).to eq("gid://shopify/MediaImage/1")
+    end
   end
 end

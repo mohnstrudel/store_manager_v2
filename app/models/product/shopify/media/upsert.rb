@@ -30,7 +30,7 @@ module Product::Shopify::Media
       media = existing_by_checksum[downloaded_file.checksum] || product.media.build
       update_media_attributes(media, parsed_item)
       update_or_create_shopify_info(media, parsed_item, downloaded_file)
-      attach_image(media, downloaded_file) unless media.image.attached?
+      attach_image(media, downloaded_file) if needs_image_attachment?(media)
     end
 
     def existing_media_by_checksum
@@ -47,10 +47,26 @@ module Product::Shopify::Media
     end
 
     def attach_image(media, downloaded_file)
+      media.image.purge if media.image.attached?
       media.image.attach(
         io: downloaded_file.file,
         filename: downloaded_file.filename
       )
+    end
+
+    def needs_image_attachment?(media)
+      return true unless media.image.attached?
+
+      blob = media.image.blob
+      return true if blob.blank?
+
+      !blob.service.exist?(blob.key)
+    rescue StandardError => e
+      Rails.logger.warn(
+        "[Product::Shopify::Media::Upsert] Falling back to reattach missing image " \
+        "for media=#{media.id || 'new'}: #{e.class}: #{e.message}"
+      )
+      true
     end
 
     def update_or_create_shopify_info(media, parsed_item, downloaded_file)
