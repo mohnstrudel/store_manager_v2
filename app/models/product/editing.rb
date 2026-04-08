@@ -28,9 +28,15 @@ module Product::Editing
       initial_purchase&.product = self
       initial_purchase&.save_editing!
     end
+
+    enqueue_shopify_create! if creating
   end
 
   private
+
+  def enqueue_shopify_create!
+    Shopify::CreateProductJob.perform_later(id)
+  end
 
   def build_initial_purchase(purchase_attributes, creating)
     return unless creating && purchase_attributes.present?
