@@ -47,7 +47,7 @@ class ProductsController < ApplicationController
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
-    rescue ActiveRecord::RecordInvalid => e
+    rescue ActiveRecord::RecordInvalid
       handle_failed_create(format, editing_payload.purchase_attributes)
     rescue ActiveRecord::RecordNotUnique
       handle_failed_create(format, editing_payload.purchase_attributes)

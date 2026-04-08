@@ -82,5 +82,22 @@ RSpec.describe ProductsController do
         expect(purchase.payments.pluck(:value)).to eq([BigDecimal(30)])
       end
     end
+
+    it "enqueues Shopify product creation for the new product" do
+      allow(Shopify::CreateProductJob).to receive(:perform_later)
+
+      post :create, params: {
+        product: {
+          title: "Sync Me",
+          sku: "sync-me-product",
+          franchise_id: franchise.id,
+          shape_id: shape.id
+        }
+      }
+
+      product = Product.find_by!(sku: "sync-me-product")
+
+      expect(Shopify::CreateProductJob).to have_received(:perform_later).with(product.id)
+    end
   end
 end
