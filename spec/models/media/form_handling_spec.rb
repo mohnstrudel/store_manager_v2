@@ -23,7 +23,10 @@ RSpec.describe Warehouse do
         ])
       }.to change(warehouse.media, :count).by(2)
 
-      expect(warehouse.media.ordered.pluck(:position)).to eq([0, 1])
+      aggregate_failures do
+        expect(warehouse.media.ordered.pluck(:position)).to eq([0, 1])
+        expect(warehouse.media.ordered.all? { |media_item| media_item.image.attached? }).to be(true)
+      end
     end
   end
 
