@@ -4,8 +4,7 @@ class BackfillStoreInfosFromLegacyIds < ActiveRecord::Migration[8.1]
   disable_ddl_transaction!
 
   def up
-    # Use safety_assured since we're doing data migration, not schema changes
-    safety_assured { backfill_store_infos }
+    backfill_store_infos
 
     # Add indexes for performance after data is backfilled (concurrently to avoid blocking)
     add_index :store_infos, [:store_name, :store_id], name: "index_store_infos_on_store_name_and_store_id", algorithm: :concurrently
@@ -18,7 +17,7 @@ class BackfillStoreInfosFromLegacyIds < ActiveRecord::Migration[8.1]
     remove_index :store_infos, name: "index_store_infos_on_store_name_and_store_id"
 
     # Delete backfilled StoreInfo records
-    safety_assured { delete_backfilled_store_infos }
+    delete_backfilled_store_infos
   end
 
   private

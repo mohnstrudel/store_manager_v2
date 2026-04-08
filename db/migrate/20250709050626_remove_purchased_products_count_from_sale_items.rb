@@ -1,6 +1,6 @@
 class RemovePurchasedProductsCountFromSaleItems < ActiveRecord::Migration[8.0]
   def up
-    safety_assured { remove_column :sale_items, :purchased_products_count }
+    remove_column :sale_items, :purchased_products_count
   end
 
   def down

@@ -4,14 +4,13 @@ class BackfillStoreInfoSlugFromProductsStoreLink < ActiveRecord::Migration[8.1]
   disable_ddl_transaction!
 
   def up
-    # Use safety_assured since we're doing data migration, not schema changes
-    safety_assured { backfill_slug_from_products }
-    safety_assured { backfill_slug_from_editions }
+    backfill_slug_from_products
+    backfill_slug_from_editions
   end
 
   def down
     # Clear backfilled slug values
-    safety_assured { clear_backfilled_slugs }
+    clear_backfilled_slugs
   end
 
   private
