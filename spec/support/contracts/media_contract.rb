@@ -22,7 +22,7 @@ RSpec.shared_examples "valid media contract" do
     let(:media_item) { parsed_media.first }
 
     it "has required top-level keys" do
-      expect(media_item).to include(:id, :url, :alt, :position)
+      expect(media_item).to include(:key, :id, :url, :alt, :position)
     end
 
     it "has store_info nested structure" do
