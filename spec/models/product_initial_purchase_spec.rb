@@ -76,6 +76,53 @@ RSpec.describe Product do
       expect(product.errors[:initial_purchase]).to include("is invalid")
     end
 
+    it "enqueues Shopify product creation after a successful create" do
+      allow(Shopify::CreateProductJob).to receive(:perform_later)
+
+      product.save_editing!(
+        product_attributes: creation_product_attributes,
+        editions_attributes: [],
+        store_infos_attributes: [],
+        new_media_images: []
+      )
+
+      expect(Shopify::CreateProductJob).to have_received(:perform_later).with(product.id)
+    end
+
+    it "does not enqueue Shopify product creation when validation fails" do
+      allow(Shopify::CreateProductJob).to receive(:perform_later)
+
+      expect {
+        product.save_editing!(
+          product_attributes: creation_product_attributes.merge(title: ""),
+          editions_attributes: [],
+          store_infos_attributes: [],
+          new_media_images: []
+        )
+      }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(Shopify::CreateProductJob).not_to have_received(:perform_later)
+    end
+
+    it "does not enqueue Shopify product creation on update" do
+      persisted_product = create(:product)
+      allow(Shopify::CreateProductJob).to receive(:perform_later)
+
+      persisted_product.save_editing!(
+        product_attributes: {
+          title: "Updated title",
+          sku: persisted_product.sku,
+          franchise_id: persisted_product.franchise_id,
+          shape_id: persisted_product.shape_id
+        },
+        editions_attributes: [],
+        store_infos_attributes: [],
+        new_media_images: []
+      )
+
+      expect(Shopify::CreateProductJob).not_to have_received(:perform_later)
+    end
+
     # rubocop:todo RSpec/MessageSpies
     it "persists the purchase after the rest of the product changes" do # rubocop:todo RSpec/MultipleExpectations
       purchase = instance_double(Purchase)

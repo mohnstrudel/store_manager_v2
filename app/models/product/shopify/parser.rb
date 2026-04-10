@@ -81,6 +81,7 @@ class Product::Shopify::Parser
   def parse_media
     @parsed_media = payload.dig("media", "nodes")&.map&.with_index do |node, index|
       {
+        key: node["id"].presence || node.dig("image", "url").presence || "media:#{index}",
         id: node["id"],
         alt: node["alt"],
         url: node.dig("image", "url"),

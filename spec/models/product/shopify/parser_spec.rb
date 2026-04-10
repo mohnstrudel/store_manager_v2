@@ -128,6 +128,7 @@ RSpec.describe Product::Shopify::Parser do
 
         expect(result[:media]).to eq([
           {
+            key: "gid://shopify/MediaImage/123",
             id: "gid://shopify/MediaImage/123",
             alt: "Front view",
             url: "https://example.com/image1.jpg",
@@ -138,6 +139,7 @@ RSpec.describe Product::Shopify::Parser do
             }
           },
           {
+            key: "gid://shopify/MediaImage/456",
             id: "gid://shopify/MediaImage/456",
             alt: "Side view",
             url: "https://example.com/image2.jpg",

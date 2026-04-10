@@ -12,9 +12,9 @@ RSpec.describe Product::Shopify::Media::Downloader do
 
   let(:media_items) do
     [
-      {key: "first", payload: {}, store_id: store_id_1, url: success_url_1},
-      {key: "failed", payload: {}, store_id: failed_store_id, url: failed_url},
-      {key: "second", payload: {}, store_id: store_id_2, url: success_url_2}
+      {key: "first", id: store_id_1, url: success_url_1},
+      {key: "failed", id: failed_store_id, url: failed_url},
+      {key: "second", id: store_id_2, url: success_url_2}
     ]
   end
 

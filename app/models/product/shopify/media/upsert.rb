@@ -18,7 +18,7 @@ module Product::Shopify::Media
           next
         end
 
-        upsert_media(item[:payload], downloaded_file, existing_by_checksum)
+        upsert_media(item, downloaded_file, existing_by_checksum)
       end
     end
 
