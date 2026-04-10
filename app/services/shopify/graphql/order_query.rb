@@ -8,6 +8,10 @@
 module Shopify
   module Graphql
     class OrderQuery
+      SALE_PRODUCT_FIELDS = <<~GQL
+        id
+      GQL
+
       # GraphQL fields for an order including customer and line items
       SALE_FIELDS = <<~GQL
         cancelledAt
@@ -24,9 +28,21 @@ module Shopify
         note
         returnStatus
         statusPageUrl
-        totalDiscounts
-        totalPrice
-        totalShippingPrice
+        totalDiscountsSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalPriceSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalShippingPriceSet {
+          shopMoney {
+            amount
+          }
+        }
         unpaid
         updatedAt
         phone
@@ -34,9 +50,13 @@ module Shopify
         customer {
           id
           lastName
-          email
           firstName
-          phone
+          defaultEmailAddress {
+            emailAddress
+          }
+          defaultPhoneNumber {
+            phoneNumber
+          }
           createdAt
           updatedAt
         }
@@ -53,18 +73,21 @@ module Shopify
           nodes {
             id
             quantity
-            originalTotal
+            originalTotalSet {
+              shopMoney {
+                amount
+              }
+            }
             variantTitle
             title
             variant {
               id
-              displayName
               product {
                 id
               }
             }
             product {
-              #{ProductQuery::PRODUCT_FIELDS}
+              #{SALE_PRODUCT_FIELDS}
             }
           }
         }

@@ -176,7 +176,11 @@ RSpec.describe Shopify::Api::Client do
           "order" => {
             "id" => order_id,
             "name" => "#1001",
-            "totalPrice" => "99.99"
+            "totalPriceSet" => {
+              "shopMoney" => {
+                "amount" => "99.99"
+              }
+            }
           }
         }
       })

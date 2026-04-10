@@ -17,17 +17,31 @@
       note: null,
       returnStatus: "NO_RETURN",
       statusPageUrl: "https://handsomecake.com/88389648713/orders/424a0acedf2c6c9ff92c550af160753b/authenticate?key=e2a2cee2bc54e099b01d1169af163c7f",
-      totalDiscounts: "0.00",
-      totalPrice: "99.80",
-      totalShippingPrice: "20.00",
+      totalDiscountsSet: {
+        shopMoney: {
+          amount: "0.00"
+        }
+      },
+      totalPriceSet: {
+        shopMoney: {
+          amount: "99.80"
+        }
+      },
+      totalShippingPriceSet: {
+        shopMoney: {
+          amount: "20.00"
+        }
+      },
       unpaid: false,
       updatedAt: "2025-04-30T06:13:04Z",
       customer: {
         id: "gid://shopify/Customer/8735512789321",
         lastName: "Pisanenko",
-        email: "scheka00@yahoo.de",
+        defaultEmailAddress: {
+          emailAddress: "scheka00@yahoo.de"
+        },
         firstName: "Yevgen",
-        phone: null
+        defaultPhoneNumber: null
       },
       shippingAddress: {
         address1: "Bahnhofstr. 25b",
@@ -41,7 +55,11 @@
           {
             id: "gid://shopify/LineItem/16848835543369",
             quantity: 1,
-            originalTotal: "79.80",
+            originalTotalSet: {
+              shopMoney: {
+                amount: "79.80"
+              }
+            },
             variantTitle: null,
             title: "Naruto - Naruto | Resin Statue | by Iron Curtain Studio",
             variant: {
@@ -146,17 +164,31 @@
       note: null,
       returnStatus: "NO_RETURN",
       statusPageUrl: "https://handsomecake.com/88389648713/orders/841bdabf80c9523386c429c7820d263b/authenticate?key=e57a485b2a48c312e776140046e3b62f",
-      totalDiscounts: "0.00",
-      totalPrice: "700.00",
-      totalShippingPrice: "20.00",
+      totalDiscountsSet: {
+        shopMoney: {
+          amount: "0.00"
+        }
+      },
+      totalPriceSet: {
+        shopMoney: {
+          amount: "700.00"
+        }
+      },
+      totalShippingPriceSet: {
+        shopMoney: {
+          amount: "20.00"
+        }
+      },
       unpaid: false,
       updatedAt: "2025-04-26T12:58:16Z",
       customer: {
         id: "gid://shopify/Customer/8843207246153",
         lastName: "Buchmann",
-        email: "msmb94@yahoo.de",
+        defaultEmailAddress: {
+          emailAddress: "msmb94@yahoo.de"
+        },
         firstName: "Mirko",
-        phone: null
+        defaultPhoneNumber: null
       },
       shippingAddress: {
         address1: "Alsterkrugchaussee 586",
@@ -170,7 +202,11 @@
           {
             id: "gid://shopify/LineItem/16839346848073",
             quantity: 1,
-            originalTotal: "680.00",
+            originalTotalSet: {
+              shopMoney: {
+                amount: "680.00"
+              }
+            },
             variantTitle: null,
             title: "Stellar Blade - EVE | 1:4 Resin Statue | von CP Studio",
             variant: {
@@ -275,17 +311,31 @@
       note: null,
       returnStatus: "NO_RETURN",
       statusPageUrl: "https://handsomecake.com/88389648713/orders/ff9664036e4ecedb07158b76a6d4a17b/authenticate?key=20434247efed064e869e4fe23c50693a",
-      totalDiscounts: "0.00",
-      totalPrice: "73.13",
-      totalShippingPrice: "20.00",
+      totalDiscountsSet: {
+        shopMoney: {
+          amount: "0.00"
+        }
+      },
+      totalPriceSet: {
+        shopMoney: {
+          amount: "73.13"
+        }
+      },
+      totalShippingPriceSet: {
+        shopMoney: {
+          amount: "20.00"
+        }
+      },
       unpaid: false,
       updatedAt: "2025-04-26T06:05:06Z",
       customer: {
         id: "gid://shopify/Customer/8725924544841",
         lastName: "Kastrati",
-        email: "eleonkastrati@gmail.com",
+        defaultEmailAddress: {
+          emailAddress: "eleonkastrati@gmail.com"
+        },
         firstName: "Eleon",
-        phone: null
+        defaultPhoneNumber: null
       },
       shippingAddress: {
         address1: "Düppelweg 2",
@@ -299,7 +349,11 @@
           {
             id: "gid://shopify/LineItem/16838403260745",
             quantity: 1,
-            originalTotal: "53.13",
+            originalTotalSet: {
+              shopMoney: {
+                amount: "53.13"
+              }
+            },
             variantTitle: "Ryomen Sukuna Regular",
             title: "Jujutsju Kaisen - Fushiguro Megumi & Ryomen Sukuna | 1:6 Resin Statue | by Space Realm Studio",
             variant: {

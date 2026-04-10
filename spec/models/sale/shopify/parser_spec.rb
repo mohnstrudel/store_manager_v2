@@ -17,9 +17,9 @@ RSpec.describe Sale::Shopify::Parser do
       "displayFulfillmentStatus" => "UNFULFILLED",
       "note" => "Customer note",
       "returnStatus" => nil,
-      "totalDiscounts" => "10.00",
-      "totalPrice" => "100.00",
-      "totalShippingPrice" => "5.00",
+      "totalDiscountsSet" => {"shopMoney" => {"amount" => "10.00"}},
+      "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
+      "totalShippingPriceSet" => {"shopMoney" => {"amount" => "5.00"}},
       "email" => "customer@example.com",
       "shippingAddress" => {
         "address1" => "123 Main St",
@@ -33,7 +33,8 @@ RSpec.describe Sale::Shopify::Parser do
         "id" => "gid://shopify/Customer/67890",
         "firstName" => "John",
         "lastName" => "Doe",
-        "phone" => "555-1234",
+        "defaultPhoneNumber" => {"phoneNumber" => "555-1234"},
+        "defaultEmailAddress" => {"emailAddress" => "customer@example.com"},
         "createdAt" => "2023-01-01T11:00:00Z",
         "updatedAt" => "2023-01-02T11:00:00Z"
       },
@@ -43,7 +44,7 @@ RSpec.describe Sale::Shopify::Parser do
             "id" => "gid://shopify/LineItem/111",
             "title" => "Stellar Blade - Eve | 1:4 Resin Statue",
             "quantity" => 1,
-            "originalTotal" => "95.00",
+            "originalTotalSet" => {"shopMoney" => {"amount" => "95.00"}},
             "variantTitle" => "Regular",
             "variant" => {
               "id" => "gid://shopify/ProductVariant/222",
@@ -175,7 +176,7 @@ RSpec.describe Sale::Shopify::Parser do
 
         expect(result[:sale_items].first).to include(
           edition_store_id: nil,
-          product_store_id: nil
+          product_store_id: "gid://shopify/Product/333"
         )
       end
 

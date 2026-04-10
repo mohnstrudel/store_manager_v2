@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "rails_helper"
+
 RSpec.describe Shopify::Graphql::OrderQuery do
   describe ".by_id" do
     it "returns a valid GraphQL query string" do
@@ -43,13 +45,13 @@ RSpec.describe Shopify::Graphql::OrderQuery do
     it "includes required order fields" do
       expect(described_class::SALE_FIELDS).to include("id")
       expect(described_class::SALE_FIELDS).to include("name")
-      expect(described_class::SALE_FIELDS).to include("totalPrice")
+      expect(described_class::SALE_FIELDS).to include("totalPriceSet")
       expect(described_class::SALE_FIELDS).to include("createdAt")
     end
 
     it "includes customer fields" do
       expect(described_class::SALE_FIELDS).to include("customer")
-      expect(described_class::SALE_FIELDS).to include("email")
+      expect(described_class::SALE_FIELDS).to include("defaultEmailAddress")
       expect(described_class::SALE_FIELDS).to include("firstName")
       expect(described_class::SALE_FIELDS).to include("lastName")
     end
@@ -67,11 +69,17 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       expect(described_class::SALE_FIELDS).to include("variantTitle")
     end
 
-    it "includes product fields from ProductQuery" do
+    it "includes minimal product reference fields for sale item linking" do
       expect(described_class::SALE_FIELDS).to include("id")
-      expect(described_class::SALE_FIELDS).to include("title")
-      expect(described_class::SALE_FIELDS).to include("handle")
+      expect(described_class::SALE_FIELDS).to include("product {")
       expect(described_class::SALE_FIELDS).to include("createdAt")
+    end
+
+    it "uses a lighter product payload for order sync" do
+      expect(described_class::SALE_FIELDS).not_to include("media(first: 20)")
+      expect(described_class::SALE_FIELDS).not_to include("descriptionHtml")
+      expect(described_class::SALE_FIELDS).not_to include("inventoryItem")
+      expect(described_class::SALE_FIELDS).not_to include("variants(first: 10)")
     end
   end
 end
