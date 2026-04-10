@@ -28,6 +28,8 @@ class Product < ApplicationRecord
   include SalesHistory
   include Searchable
   include Shopable
+  include Shopify::Matching
+  include Shopify::Fallbacks
   include StoreReferences
   include Titling
 

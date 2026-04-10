@@ -238,6 +238,84 @@ RSpec.describe Product::Shopify::Importer do
       end
     end
 
+    context "when product exists without Shopify or Woo linkage and matches parsed identity" do
+      let!(:existing_product) do
+        create(:product,
+          title: "Eve",
+          franchise: create(:franchise, title: "Stellar Blade"),
+          shape: create(:shape, title: "Statue"),
+          sku: "storeless-eve-sku").tap do |product|
+          product.store_infos.destroy_all
+          product.update_columns(shopify_id: nil, woo_id: nil)
+          product.reload
+          product.brands << create(:brand, title: "Light and Dust Studio")
+          product.sizes << create(:size, value: "1:4")
+        end
+      end
+
+      let(:parsed_product_without_linkage) do
+        parsed_product.merge(
+          store_id: nil,
+          store_link: nil,
+          media: [],
+          editions: []
+        )
+      end
+
+      it "reuses the storeless product instead of creating a duplicate" do
+        expect { described_class.import!(parsed_product_without_linkage) }.not_to change(Product, :count)
+
+        existing_product.reload
+        expect(existing_product.title).to eq("Eve")
+        expect(existing_product.sku).to eq("storeless-eve-sku")
+      end
+    end
+
+    context "when product already exists with Woo linkage and matching identity" do
+      let!(:existing_product) do
+        create(:product,
+          title: "Eve",
+          franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
+          shape: Shape.find_or_create_by!(title: "Statue"),
+          sku: "woo-linked-eve-sku").tap do |product|
+          product.store_infos.destroy_all
+          product.update_columns(shopify_id: nil, woo_id: "woo-product-123")
+          product.reload
+          product.store_infos.create!(store_name: :woo, store_id: "woo-product-123", pull_time: Time.zone.now)
+          product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
+          product.sizes << Size.find_or_create_by!(value: "1:4")
+        end
+      end
+
+      it "reuses the Woo-linked product and attaches Shopify linkage" do
+        expect { described_class.import!(parsed_product) }.not_to change(Product, :count)
+
+        existing_product.reload
+        expect(existing_product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
+        expect(existing_product.sku).to eq("woo-linked-eve-sku")
+      end
+    end
+
+    context "when a matching product is already linked to another Shopify product" do
+      let!(:existing_product) do
+        create(:product,
+          shopify_id: "gid://shopify/Product/already-linked",
+          title: "Eve",
+          franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
+          shape: Shape.find_or_create_by!(title: "Statue"),
+          sku: "already-linked-sku").tap do |product|
+          product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
+          product.sizes << Size.find_or_create_by!(value: "1:4")
+        end
+      end
+
+      it "creates a new product instead of reusing the differently linked Shopify product" do
+        expect { described_class.import!(parsed_product) }.to change(Product, :count).by(1)
+
+        expect(Product.find_by_shopify_id("gid://shopify/Product/12345")).not_to eq(existing_product)
+      end
+    end
+
     context "with nil or empty relation values" do
       let(:parsed_product_with_nil_values) do
         parsed_product.merge(
