@@ -21,7 +21,7 @@ class Product::Shopify::Importer
     update_shopify_store_info! if parsed[:store_id]
 
     Shopify::PullEditionsJob.perform_later(product, parsed[:editions]) if parsed[:editions]
-    Shopify::PullMediaJob.perform_later(product.id, parsed[:media]) if parsed[:media]
+    Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
 
     product
   end
