@@ -41,35 +41,29 @@ RSpec.describe Product::Shopify::Media::Upsert do
     [
       {
         key: "existing",
-        payload: {
-          id: "gid://shopify/MediaImage/1",
-          alt: "Updated alt",
-          position: 3,
-          store_info: {
-            ext_created_at: "2024-01-01T00:00:00Z",
-            ext_updated_at: "2024-01-02T00:00:00Z"
-          }
+        id: "gid://shopify/MediaImage/1",
+        alt: "Updated alt",
+        position: 3,
+        store_info: {
+          ext_created_at: "2024-01-01T00:00:00Z",
+          ext_updated_at: "2024-01-02T00:00:00Z"
         }
       },
       {
         key: "new",
-        payload: {
-          id: "gid://shopify/MediaImage/2",
-          alt: "Brand new",
-          position: 4,
-          store_info: {
-            ext_created_at: "2024-01-03T00:00:00Z",
-            ext_updated_at: "2024-01-04T00:00:00Z"
-          }
+        id: "gid://shopify/MediaImage/2",
+        alt: "Brand new",
+        position: 4,
+        store_info: {
+          ext_created_at: "2024-01-03T00:00:00Z",
+          ext_updated_at: "2024-01-04T00:00:00Z"
         }
       },
       {
         key: "missing",
-        payload: {
-          id: "gid://shopify/MediaImage/3",
-          alt: "Skipped",
-          position: 5
-        }
+        id: "gid://shopify/MediaImage/3",
+        alt: "Skipped",
+        position: 5
       }
     ]
   end
