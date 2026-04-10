@@ -97,6 +97,7 @@ class Sale::Shopify::SaleItemImporter
 
   def create_custom_edition_for_product(product)
     return nil if product.blank?
+    return nil if parsed[:edition_title].blank?
 
     existing_edition = product.editions.joins(:version).find_by(versions: {value: parsed[:edition_title]})
     return existing_edition if existing_edition

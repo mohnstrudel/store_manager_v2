@@ -222,6 +222,27 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
         expect(Sale.order(:id).last(2).map { |sale| sale.sale_items.last.product_id }.uniq.count).to eq(1)
       end
+
+      it "creates sale item without edition when edition_title is blank" do
+        parsed_order_without_edition_title = parsed_order_title_only.deep_dup
+        parsed_order_without_edition_title[:sale_items].first[:edition_title] = nil
+        parsed_order_without_edition_title[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-no-edition"
+        parsed_order_without_edition_title[:sale][:shopify_id] = "gid://shopify/Order/title-only-no-edition"
+        parsed_order_without_edition_title[:store_info][:store_id] = "gid://shopify/Order/title-only-no-edition"
+
+        allow(Product::Shopify::Importer).to receive(:import!).and_call_original
+        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+        allow(Shopify::PullMediaJob).to receive(:perform_later)
+
+        expect {
+          described_class.import!(parsed_order_without_edition_title)
+        }.to change(SaleItem, :count).by(1)
+          .and change(Edition, :count).by(0) # rubocop:todo RSpec/ChangeByZero
+
+        sale_item = SaleItem.last
+        expect(sale_item.product).to be_present
+        expect(sale_item.edition).to be_nil
+      end
     end
 
     context "when a Shopify product reference cannot be resolved" do
