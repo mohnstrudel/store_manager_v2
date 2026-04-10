@@ -50,7 +50,7 @@ module Product::Shopify::Media
     end
 
     def record_failed_download(item)
-      record_failed_store_id(item[:store_id])
+      record_failed_store_id(item[:id])
     end
 
     def store_download(item, downloaded_file)
@@ -70,7 +70,7 @@ module Product::Shopify::Media
 
       DownloadedImage.new(file:, filename:, checksum:)
     rescue Down::Error => e
-      Rails.logger.error "[Product::Shopify::Media::Pull] Download failed #{url} - #{e.class}: #{e.message}"
+      Rails.logger.error "[Product::Shopify::MediaImporting] Download failed #{url} - #{e.class}: #{e.message}"
       nil
     end
 

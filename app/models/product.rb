@@ -29,6 +29,7 @@ class Product < ApplicationRecord
   include Searchable
   include Shopable
   include Shopify::Exporting
+  include Shopify::MediaImporting
   include Shopify::Publishing
   include StoreReferences
   include Titling
