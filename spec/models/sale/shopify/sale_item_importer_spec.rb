@@ -57,6 +57,40 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
     end
 
+    context "when the sale item includes parsed Shopify product data" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/parsed",
+          price: "15.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          product: {
+            store_id: product_store_id,
+            title: "Parsed Product",
+            franchise: "Parsed Franchise",
+            shape: "Statue",
+            sku: "parsed-sku-1",
+            editions: []
+          }
+        }
+      end
+      let(:imported_product) { create(:product, title: "Parsed Product") }
+
+      before do
+        allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(nil)
+        allow(Product::Shopify::Importer).to receive(:import!)
+          .with(parsed_sale_item[:product])
+          .and_return(imported_product)
+      end
+
+      it "imports the product payload before creating the sale item" do
+        result = described_class.new(sale, parsed_sale_item).import!
+
+        expect(result).to be_persisted
+        expect(result.product).to eq(imported_product)
+      end
+    end
+
     context "when only the full title is available" do
       let(:parsed_sale_item) do
         {
@@ -97,6 +131,28 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         sale_item = SaleItem.last
         expect(sale_item.product).to eq(imported_product)
         expect(sale_item.edition.version.value).to eq("Limited Edition")
+      end
+    end
+
+    context "when a Shopify product reference cannot be resolved" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/missing",
+          price: "30.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          product: nil
+        }
+      end
+
+      it "creates and uses a placeholder product instead of raising" do
+        expect {
+          result = described_class.new(sale, parsed_sale_item).import!
+          expect(result).to be_persisted
+          expect(result.product.shopify_info.store_id).to eq(product_store_id)
+          expect(result.product.title).to include("[BROKEN SHOPIFY PRODUCT]")
+        }.to change(SaleItem, :count).by(1)
+          .and change(Product, :count).by(1)
       end
     end
   end

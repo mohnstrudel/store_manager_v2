@@ -175,6 +175,77 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(sale_item.product).to be_present
         expect(sale_item.edition).to be_present
       end
+
+      it "reuses an existing storeless product with the same parsed identity" do
+        parsed_title = Product::Shopify::Parser.parse({"title" => parsed_order_title_only[:sale_items].first[:full_title]})
+
+        existing_product = create(
+          :product,
+          title: parsed_title[:title],
+          franchise: Franchise.find_or_create_by!(title: parsed_title[:franchise]),
+          shape: Shape.find_or_create_by!(title: parsed_title[:shape]),
+          sku: "storeless-#{parsed_title[:title].parameterize}"
+        ).tap do |product|
+          product.store_infos.destroy_all
+          product.update_columns(shopify_id: nil, woo_id: nil)
+          product.reload
+          Array(parsed_title[:size]).compact.each { |value| product.sizes << Size.find_or_create_by!(value:) }
+          Array(parsed_title[:brand]).compact.each { |title| product.brands << Brand.find_or_create_by!(title:) }
+        end
+
+        expect { described_class.import!(parsed_order_title_only) }.not_to change(Product, :count)
+        expect(SaleItem.last.product).to eq(existing_product)
+      end
+
+      it "reuses the same product across different title-only sales" do
+        first_order = parsed_order_title_only.deep_dup
+        second_order = parsed_order_title_only.deep_dup
+
+        first_order[:sale][:shopify_id] = "gid://shopify/Order/title-only-1"
+        first_order[:store_info][:store_id] = "gid://shopify/Order/title-only-1"
+        first_order[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-1"
+
+        second_order[:sale][:shopify_id] = "gid://shopify/Order/title-only-2"
+        second_order[:store_info][:store_id] = "gid://shopify/Order/title-only-2"
+        second_order[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-2"
+
+        allow(Product::Shopify::Importer).to receive(:import!).and_call_original
+        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+        allow(Shopify::PullMediaJob).to receive(:perform_later)
+
+        expect {
+          described_class.import!(first_order)
+          described_class.import!(second_order)
+        }.to change(Product, :count).by(1)
+          .and change(Sale, :count).by(2)
+          .and change(SaleItem, :count).by(2)
+
+        expect(Sale.order(:id).last(2).map { |sale| sale.sale_items.last.product_id }.uniq.count).to eq(1)
+      end
+    end
+
+    context "when a Shopify product reference cannot be resolved" do
+      let(:parsed_order_with_unresolved_product) do
+        order = valid_parsed_order.deep_dup
+        order[:sale_items].first.merge!(
+          product_store_id: "gid://shopify/Product/missing-product",
+          product: nil,
+          full_title: nil
+        )
+        order
+      end
+
+      it "creates the sale item with a placeholder product instead of crashing" do
+        expect {
+          described_class.import!(parsed_order_with_unresolved_product)
+        }.to change(Sale, :count).by(1)
+          .and change(SaleItem, :count).by(1)
+          .and change(Product, :count).by(1)
+
+        sale_item = SaleItem.last
+        expect(sale_item.product.shopify_info.store_id).to eq("gid://shopify/Product/missing-product")
+        expect(sale_item.product.title).to include("[BROKEN SHOPIFY PRODUCT]")
+      end
     end
 
     context "when creating new edition with custom title" do

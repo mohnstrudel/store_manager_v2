@@ -14,10 +14,14 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
         "displayFinancialStatus" => "PAID",
         "displayFulfillmentStatus" => "UNFULFILLED",
         "email" => "customer@example.com",
+        "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
+        "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00"}},
+        "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00"}},
         "customer" => {
           "id" => "gid://shopify/Customer/456",
           "firstName" => "Jane",
-          "lastName" => "Smith"
+          "lastName" => "Smith",
+          "defaultEmailAddress" => {"emailAddress" => "customer@example.com"}
         }
       }
     end

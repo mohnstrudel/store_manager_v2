@@ -42,17 +42,17 @@ class Sale::Shopify::Parser
       company: @order.dig("shippingAddress", "company"),
       confirmed: @order["confirmed"],
       country: @order.dig("shippingAddress", "country"),
-      discount_total: @order["totalDiscounts"],
+      discount_total: money_amount(@order["totalDiscountsSet"]),
       financial_status: @order["displayFinancialStatus"],
       fulfillment_status: @order["displayFulfillmentStatus"],
       shopify_name: @order["name"],
       note: @order["note"],
       postcode: @order.dig("shippingAddress", "zip"),
       return_status: @order["returnStatus"],
-      shipping_total: @order["totalShippingPrice"],
+      shipping_total: money_amount(@order["totalShippingPriceSet"]),
       shopify_created_at: parse_datetime(@order["createdAt"]),
       status: derive_status,
-      total: @order["totalPrice"]
+      total: money_amount(@order["totalPriceSet"])
     }
   end
 
@@ -79,11 +79,16 @@ class Sale::Shopify::Parser
   end
 
   def find_customer_email
-    (@order.dig("customer", "email") || @order["email"])&.downcase
+    (
+      @order.dig("customer", "defaultEmailAddress", "emailAddress") ||
+      @order["email"]
+    )&.downcase
   end
 
   def find_customer_phone
-    @order.dig("customer", "phone") || @order["phone"] || @order.dig("shippingAddress", "phone")
+    @order.dig("customer", "defaultPhoneNumber", "phoneNumber") ||
+      @order["phone"] ||
+      @order.dig("shippingAddress", "phone")
   end
 
   def parse_sale_items
@@ -91,15 +96,15 @@ class Sale::Shopify::Parser
       []
     else
       @order["lineItems"]["nodes"].map do |line_item|
-        parsed_product = line_item["product"] ? Product::Shopify::Parser.parse(line_item["product"]) : nil
+        parsed_product = parse_product(line_item["product"])
 
         {
-          price: line_item["originalTotal"],
+          price: money_amount(line_item["originalTotalSet"]),
           qty: line_item["quantity"],
           store_id: line_item["id"],
           edition_title: line_item["variantTitle"],
           edition_store_id: line_item.dig("variant", "id"),
-          product_store_id: line_item.dig("variant", "product", "id"),
+          product_store_id: line_item.dig("variant", "product", "id") || line_item.dig("product", "id"),
           full_title: line_item["title"],
           product: parsed_product
         }
@@ -117,5 +122,16 @@ class Sale::Shopify::Parser
     DateTime.parse(datetime_str)
   rescue ArgumentError
     raise ArgumentError, "Invalid datetime format: #{datetime_str}"
+  end
+
+  def money_amount(money_set)
+    money_set&.dig("shopMoney", "amount")
+  end
+
+  def parse_product(product_payload)
+    return nil if product_payload.blank?
+    return nil unless product_payload["title"].present?
+
+    Product::Shopify::Parser.parse(product_payload)
   end
 end

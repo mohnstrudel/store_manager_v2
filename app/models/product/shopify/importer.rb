@@ -12,6 +12,7 @@ class Product::Shopify::Importer
 
   def initialize(parsed_payload)
     @parsed = parsed_payload
+    @storeless_match = false
   end
 
   def update_or_create!
@@ -34,7 +35,7 @@ class Product::Shopify::Importer
         title: parsed[:title],
         franchise: Franchise.find_or_create_by(title: parsed[:franchise]),
         shape: Shape.find_or_create_by(title: parsed[:shape]),
-        sku: parsed[:sku],
+        sku: resolved_sku,
         description: normalize_description_html(parsed[:description])
       )
       assign_brand
@@ -47,11 +48,31 @@ class Product::Shopify::Importer
   def find_or_initialize_product
     @product = Product.find_by_shopify_id(parsed[:store_id]) if parsed[:store_id]
     @product = find_by_store_link if product.nil? && parsed[:store_link].present?
+    if product.nil?
+      @product = Product.find_storeless_match_for_shopify(
+        franchise_title: parsed[:franchise],
+        product_title: parsed[:title],
+        shape_title: parsed[:shape],
+        brand_titles: parsed[:brand],
+        size_values: parsed[:size]
+      )
+      @storeless_match = product.present?
+    end
     @product ||= Product.new
   end
 
   def find_by_store_link
     StoreInfo.find_by(store_name: :shopify, slug: parsed[:store_link])&.storable
+  end
+
+  def resolved_sku
+    return product.sku if storeless_match? && product.sku.present?
+
+    parsed[:sku]
+  end
+
+  def storeless_match?
+    @storeless_match
   end
 
   def update_shopify_store_info!

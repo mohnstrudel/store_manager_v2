@@ -17,12 +17,15 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
             "displayFinancialStatus" => "PAID",
             "displayFulfillmentStatus" => "UNFULFILLED",
             "email" => "customer@example.com",
+            "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
+            "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00"}},
+            "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00"}},
             "customer" => {
               "id" => "gid://shopify/Customer/456",
               "firstName" => "John",
               "lastName" => "Doe",
-              "email" => "customer@example.com",
-              "phone" => "555-1234"
+              "defaultEmailAddress" => {"emailAddress" => "customer@example.com"},
+              "defaultPhoneNumber" => {"phoneNumber" => "555-1234"}
             },
             "lineItems" => {nodes: []}
           }
@@ -36,6 +39,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       # rubocop:enable RSpec/VerifiedDoubles
       allow(mock_client).to receive(:fetch_orders).and_return(api_response)
       allow(Shopify::Api::Client).to receive(:new).and_return(mock_client)
+      allow(Config).to receive(:update_shopify_sales_sync_time)
     end
 
     it "creates sales from Shopify order data" do
