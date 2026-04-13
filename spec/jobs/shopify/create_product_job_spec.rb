@@ -20,7 +20,9 @@ RSpec.describe Shopify::CreateProductJob do
     end
 
     before do
-      allow_any_instance_of(Product).to receive(:shopify_payload).and_return(serialized_product)
+      allow(Product).to receive(:find).and_call_original
+      allow(Product).to receive(:find).with(product_id).and_return(product)
+      allow(product).to receive(:shopify_payload).and_return(serialized_product)
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:create_product).with(serialized_product).and_return(product_response)
     end
@@ -47,16 +49,17 @@ RSpec.describe Shopify::CreateProductJob do
       expect(api_client).to have_received(:create_product).with(serialized_product)
     end
 
-    it "publishes the product on Shopify in the domain" do
-      allow(Product).to receive(:find).with(product_id).and_return(product)
-      allow(product).to receive(:publish_on_shopify!).and_call_original
+    it "updates or creates Shopify store info in the domain", :aggregate_failures do
+      allow(product).to receive(:link_shopify_info!).and_call_original
+      allow(product).to receive(:mark_shopify_pushed!).and_call_original
 
       described_class.perform_now(product_id)
 
-      expect(product).to have_received(:publish_on_shopify!).with(
+      expect(product).to have_received(:link_shopify_info!).with(
         store_id: "gid://shopify/Product/12345",
         slug: "test-product"
       )
+      expect(product).to have_received(:mark_shopify_pushed!)
     end
 
     it "returns true on success" do
@@ -94,19 +97,19 @@ RSpec.describe Shopify::CreateProductJob do
     end
 
     context "when serialized product is blank" do
-      before do
-        allow_any_instance_of(Product).to receive(:shopify_payload).and_return(nil)
-      end
+      before { allow(product).to receive(:shopify_payload).and_return(nil) }
 
       it "does not create API client or call create_product" do
         described_class.perform_now(product_id)
         expect(Shopify::Api::Client).not_to have_received(:new)
       end
 
-      it "does not update store info" do
-        allow(product).to receive(:publish_on_shopify!)
+      it "does not update store info", :aggregate_failures do
+        allow(product).to receive(:link_shopify_info!)
+        allow(product).to receive(:mark_shopify_pushed!)
         described_class.perform_now(product_id)
-        expect(product).not_to have_received(:publish_on_shopify!)
+        expect(product).not_to have_received(:link_shopify_info!)
+        expect(product).not_to have_received(:mark_shopify_pushed!)
       end
 
       it "does not enqueue options job" do
@@ -157,8 +160,9 @@ RSpec.describe Shopify::CreateProductJob do
         }.to raise_error(Shopify::Api::Client::ApiError, "API Error")
       end
 
-      it "does not create or update store info on error" do
-        allow(product).to receive(:publish_on_shopify!)
+      it "does not create or update store info on error", :aggregate_failures do
+        allow(product).to receive(:link_shopify_info!)
+        allow(product).to receive(:mark_shopify_pushed!)
 
         begin
           described_class.perform_now(product_id)
@@ -166,7 +170,8 @@ RSpec.describe Shopify::CreateProductJob do
           # Expected error
         end
 
-        expect(product).not_to have_received(:publish_on_shopify!)
+        expect(product).not_to have_received(:link_shopify_info!)
+        expect(product).not_to have_received(:mark_shopify_pushed!)
       end
 
       it "does not enqueue options job on error" do
@@ -191,19 +196,19 @@ RSpec.describe Shopify::CreateProductJob do
     end
 
     context "when serialized product is empty string" do
-      before do
-        allow_any_instance_of(Product).to receive(:shopify_payload).and_return("")
-      end
+      before { allow(product).to receive(:shopify_payload).and_return("") }
 
       it "does not create API client or call create_product" do
         described_class.perform_now(product_id)
         expect(Shopify::Api::Client).not_to have_received(:new)
       end
 
-      it "does not update store info" do
-        allow(product).to receive(:publish_on_shopify!)
+      it "does not update store info", :aggregate_failures do
+        allow(product).to receive(:link_shopify_info!)
+        allow(product).to receive(:mark_shopify_pushed!)
         described_class.perform_now(product_id)
-        expect(product).not_to have_received(:publish_on_shopify!)
+        expect(product).not_to have_received(:link_shopify_info!)
+        expect(product).not_to have_received(:mark_shopify_pushed!)
       end
     end
 

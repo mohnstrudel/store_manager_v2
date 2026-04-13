@@ -11,7 +11,7 @@ RSpec.describe "Products Sync API" do
 
   describe "POST /products/pull" do
     context "with limit parameter" do
-      it "converts string limit to integer before enqueuing job" do
+      it "converts string limit to integer before enqueuing job", :aggregate_failures do
         allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 50)
         allow(Config).to receive(:update_shopify_products_sync_time)
 
@@ -24,7 +24,7 @@ RSpec.describe "Products Sync API" do
     end
 
     context "without limit parameter" do
-      it "enqueues job with nil limit" do
+      it "enqueues job with nil limit", :aggregate_failures do
         allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: nil)
         allow(Config).to receive(:update_shopify_products_sync_time)
 

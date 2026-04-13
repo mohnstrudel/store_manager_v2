@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Products::ShopifyPullsController, type: :controller do
+RSpec.describe Products::ShopifyPullsController do
   before { sign_in_as_admin }
   after { log_out }
 
@@ -20,7 +20,7 @@ RSpec.describe Products::ShopifyPullsController, type: :controller do
         expect(Shopify::PullProductJob).to have_received(:perform_later).with(product.shopify_info.store_id)
       end
 
-      it "redirects to products path with notice" do
+      it "redirects to products path with notice", :aggregate_failures do
         post :create, params: {product_id: product.to_param}
 
         expect(response).to redirect_to(products_path)
@@ -45,7 +45,7 @@ RSpec.describe Products::ShopifyPullsController, type: :controller do
         expect(Shopify::PullProductJob).not_to have_received(:perform_later)
       end
 
-      it "redirects with an unpublished notice" do
+      it "redirects with an unpublished notice", :aggregate_failures do
         post :create, params: {product_id: product.to_param}
 
         expect(response).to redirect_to(products_path)

@@ -25,7 +25,14 @@ class Edition::Shopify::Importer
       find_or_initialize_edition
       edition.assign_attributes(edition_attrs)
       edition.save!
-      update_shopify_store_info! if parsed[:store_id]
+      if parsed[:store_id]
+        edition.link_shopify_info!(
+          store_id: parsed[:store_id],
+          ext_created_at: parsed.dig(:store_info, :ext_created_at),
+          ext_updated_at: parsed.dig(:store_info, :ext_updated_at)
+        )
+        edition.mark_shopify_pulled!
+      end
     end
 
     edition
@@ -85,17 +92,6 @@ class Edition::Shopify::Importer
     end
 
     attributes
-  end
-
-  def update_shopify_store_info!
-    store_info = edition.shopify_info || edition.store_infos.shopify.new
-    store_info.assign_attributes(
-      store_id: parsed[:store_id],
-      pull_time: Time.zone.now,
-      ext_created_at: parsed.dig(:store_info, :ext_created_at),
-      ext_updated_at: parsed.dig(:store_info, :ext_updated_at)
-    )
-    store_info.save!
   end
 
   def handle_record_invalid(error)

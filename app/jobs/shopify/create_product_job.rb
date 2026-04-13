@@ -13,10 +13,11 @@ module Shopify
         product_store_id = product_response.fetch("id")
         product_slug = product_response.fetch("handle")
 
-        product.publish_on_shopify!(
+        product.link_shopify_info!(
           store_id: product_store_id,
           slug: product_slug
         )
+        product.mark_shopify_pushed!
 
         if product.media.any?
           Shopify::PushMediaJob.perform_later(product.id, product_store_id)

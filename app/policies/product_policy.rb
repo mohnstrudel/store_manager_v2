@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ProductPolicy < ApplicationPolicy
-  def publish_to_shopify?
+  def create_on_shopify?
     admin? || manager?
   end
 

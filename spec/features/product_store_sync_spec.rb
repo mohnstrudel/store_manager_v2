@@ -25,7 +25,7 @@ RSpec.describe "Product Store Sync" do
     expect(page).to have_content("Store Synchronization")
   end
 
-  scenario "hides pull button when product is not published to Shopify", :js do
+  scenario "hides pull button when product is not published to Shopify", :aggregate_failures, :js do
     product = create(:product)
     product.shopify_info.update!(store_id: nil, push_time: nil)
 
@@ -90,7 +90,7 @@ RSpec.describe "Product Store Sync" do
     expect(page).not_to have_css("dialog#product-sync-modal[open]")
   end
 
-  scenario "closes modal when clicking outside the dialog", :js do
+  scenario "closes modal when clicking outside the dialog", :aggregate_failures, :js do
     product = create(:product)
 
     visit product_path(product)
