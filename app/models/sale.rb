@@ -61,9 +61,6 @@ class Sale < ApplicationRecord
     associated_against: {
       customer: [:email, :first_name, :last_name, :phone, :woo_id],
       products: [:full_title]
-    },
-    using: {
-      tsearch: {prefix: true}
     }
 
   db_belongs_to :customer, inverse_of: :sales

@@ -43,9 +43,6 @@ class PurchaseItem < ApplicationRecord
       sale: [:shopify_name, :woo_id],
       customer: [:email, :first_name, :last_name],
       shipping_company: [:name]
-    },
-    using: {
-      tsearch: {prefix: true}
     }
 
   validates :shipping_company_id,
@@ -57,7 +54,7 @@ class PurchaseItem < ApplicationRecord
   belongs_to :sale_item, optional: true, counter_cache: true, inverse_of: :purchase_items
   belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
 
-  has_one :customer, through: :sale
   has_one :product, through: :purchase
   has_one :sale, through: :sale_item
+  has_one :customer, through: :sale
 end

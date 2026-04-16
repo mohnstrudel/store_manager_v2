@@ -50,9 +50,6 @@ class Purchase < ApplicationRecord
       sizes: [:value],
       versions: [:value],
       colors: [:value]
-    },
-    using: {
-      tsearch: {prefix: true}
     }
 
   validates :amount, presence: true
