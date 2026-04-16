@@ -43,9 +43,6 @@ class PurchaseItem < ApplicationRecord
       sale: [:shopify_name, :woo_id],
       customer: [:email, :first_name, :last_name],
       shipping_company: [:name]
-    },
-    using: {
-      tsearch: {prefix: true}
     }
 
   validates :shipping_company_id,

@@ -46,9 +46,6 @@ class Product < ApplicationRecord
       sizes: [:value],
       versions: [:value],
       colors: [:value]
-    },
-    using: {
-      tsearch: {prefix: true}
     }
 
   validates :title, presence: true

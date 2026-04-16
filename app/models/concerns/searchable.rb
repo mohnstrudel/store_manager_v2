@@ -5,7 +5,11 @@ module Searchable
 
   class_methods do
     def set_search_scope(scope_name = :search, **options)
-      pg_search_scope scope_name, **options
+      using = options[:using]&.deep_dup || {}
+      using[:tsearch] ||= {}
+      using[:tsearch][:prefix] = true
+
+      pg_search_scope scope_name, **options.merge(using:)
     end
   end
 
