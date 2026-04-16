@@ -45,4 +45,54 @@ RSpec.describe Sale do
       expect(described_class.auditing_enabled).to be true
     end
   end
+
+  describe "search" do
+    let!(:matching_customer) do
+      create(
+        :customer,
+        email: "michele@example.com",
+        first_name: "Michele",
+        last_name: "Pomarico",
+        phone: "+491729364665",
+        woo_id: "cust-woo-123"
+      )
+    end
+    let!(:matching_sale) do
+      create(
+        :sale,
+        customer: matching_customer,
+        shopify_name: "Order Alpha",
+        note: "Fragile shipment",
+        status: "processing",
+        financial_status: "paid",
+        fulfillment_status: "fulfilled",
+        woo_id: "sale-woo-123",
+        shopify_id: "gid://shopify/Order/123"
+      )
+    end
+    let!(:matching_product) { create(:product, title: "Spirited Away") }
+    let!(:other_sale) { create(:sale, shopify_name: "Order Beta", note: "Standard") }
+
+    before do
+      create(:sale_item, sale: matching_sale, product: matching_product)
+    end
+
+    it "finds sales by prefixes from their own and associated searchable fields" do
+      aggregate_failures do
+        expect(described_class.search_by("Order Al")).to include(matching_sale)
+        expect(described_class.search_by("Frag")).to include(matching_sale)
+        expect(described_class.search_by("proc")).to include(matching_sale)
+        expect(described_class.search_by("mich")).to include(matching_sale)
+        expect(described_class.search_by("Spiri")).to include(matching_sale)
+      end
+    end
+
+    it "returns all sales when the query is blank" do
+      expect(described_class.search_by("")).to match_array([matching_sale, other_sale])
+    end
+
+    it "returns no sales when nothing matches" do
+      expect(described_class.search_by("nonexistent")).to be_empty
+    end
+  end
 end

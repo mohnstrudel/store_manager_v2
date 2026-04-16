@@ -90,4 +90,39 @@ RSpec.describe Product do
       expect(product.full_title).to eq("Studio Ghibli — Spirited Away")
     end
   end
+
+  describe "search" do
+    let!(:matching_product) do
+      create(:product, title: "Spirited Away", woo_id: "woo-spirited-123").tap do |product|
+        size = create(:size, value: "Premium")
+        version = create(:version, value: "Collector")
+        color = create(:color, value: "Scarlet")
+
+        create(:product_size, product_id: product.id, size_id: size.id)
+        create(:product_version, product_id: product.id, version_id: version.id)
+        create(:product_color, product_id: product.id, color_id: color.id)
+
+        product.reload
+      end
+    end
+    let!(:other_product) { create(:product, title: "My Neighbor Totoro", woo_id: "woo-totoro-456") }
+
+    it "finds products by prefixes from their own and associated searchable fields" do
+      aggregate_failures do
+        expect(described_class.search_by("Spiri")).to include(matching_product)
+        expect(described_class.search_by("woo-spir")).to include(matching_product)
+        expect(described_class.search_by("Prem")).to include(matching_product)
+        expect(described_class.search_by("Coll")).to include(matching_product)
+        expect(described_class.search_by("Scarl")).to include(matching_product)
+      end
+    end
+
+    it "returns all products when the query is blank" do
+      expect(described_class.search_by("")).to match_array([matching_product, other_product])
+    end
+
+    it "returns no products when nothing matches" do
+      expect(described_class.search_by("nonexistent")).to be_empty
+    end
+  end
 end
