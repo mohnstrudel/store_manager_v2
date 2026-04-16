@@ -80,4 +80,42 @@ RSpec.describe Customer do
       end
     end
   end
+
+  describe "search" do
+    let!(:matching_customer) do
+      create(
+        :customer,
+        email: "michele@example.com",
+        first_name: "Michele",
+        last_name: "Pomarico",
+        phone: "+491729364665"
+      )
+    end
+    let!(:other_customer) do
+      create(
+        :customer,
+        email: "alice@example.com",
+        first_name: "Alice",
+        last_name: "Wonder",
+        phone: "+15551234567"
+      )
+    end
+
+    it "finds customers by prefixes from searchable fields" do
+      aggregate_failures do
+        expect(described_class.search_by("Mich")).to include(matching_customer)
+        expect(described_class.search_by("Poma")).to include(matching_customer)
+        expect(described_class.search_by("michele")).to include(matching_customer)
+        expect(described_class.search_by("+4917")).to include(matching_customer)
+      end
+    end
+
+    it "returns all customers when the query is blank" do
+      expect(described_class.search_by("")).to match_array([matching_customer, other_customer])
+    end
+
+    it "returns no customers when nothing matches" do
+      expect(described_class.search_by("nonexistent")).to be_empty
+    end
+  end
 end

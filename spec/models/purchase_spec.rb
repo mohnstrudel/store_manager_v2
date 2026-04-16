@@ -194,8 +194,9 @@ RSpec.describe Purchase do
     end
   end
 
-  describe "Search functionality" do
+  describe "search" do
     let!(:purchase) { create(:purchase, order_reference: "TEST-123") }
+    let!(:other_purchase) { create(:purchase, order_reference: "OTHER-456") }
     let!(:supplier) { purchase.supplier }
     let!(:product) { purchase.product }
     let!(:edition) { create(:edition, product:) }
@@ -208,32 +209,19 @@ RSpec.describe Purchase do
       purchase.update!(edition:)
     end
 
-    it "searches by order_reference" do
-      expect(described_class.search_by("TEST-123")).to include(purchase)
-    end
-
-    it "searches by supplier title" do
-      expect(described_class.search_by(supplier.title)).to include(purchase)
-    end
-
-    it "searches by product full_title" do
-      expect(described_class.search_by(product.full_title)).to include(purchase)
-    end
-
-    it "searches by size value" do
-      expect(described_class.search_by("1:4")).to include(purchase)
-    end
-
-    it "searches by version value" do
-      expect(described_class.search_by("Deluxe")).to include(purchase)
-    end
-
-    it "searches by color value" do
-      expect(described_class.search_by("Red")).to include(purchase)
+    it "finds purchases by prefixes from their own and associated searchable fields" do
+      aggregate_failures do
+        expect(described_class.search_by("TEST-1")).to include(purchase)
+        expect(described_class.search_by(supplier.title.first(4))).to include(purchase)
+        expect(described_class.search_by(product.full_title.first(5))).to include(purchase)
+        expect(described_class.search_by("1:")).to include(purchase)
+        expect(described_class.search_by("Del")).to include(purchase)
+        expect(described_class.search_by("Re")).to include(purchase)
+      end
     end
 
     it "returns all records when query is blank" do
-      expect(described_class.search_by("")).to include(purchase)
+      expect(described_class.search_by("")).to match_array([purchase, other_purchase])
     end
 
     it "returns empty result for non-matching query" do
