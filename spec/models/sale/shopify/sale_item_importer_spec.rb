@@ -177,6 +177,93 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
     end
 
+    context "when full_title is present but edition_title sanitizes to blank" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/no-edition-sanitized",
+          price: "20.00",
+          qty: 1,
+          edition_title: "\u00A0",
+          full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
+        }
+      end
+      let(:parsed_product) do
+        {
+          store_id: "gid://shopify/Product/1001",
+          title: "Princess Leia",
+          franchise: "Star Wars",
+          shape: "Statue",
+          sku: "princess-leia-1001",
+          editions: []
+        }
+      end
+      let(:imported_product) { create(:product, title: "Princess Leia") }
+
+      before do
+        allow(Product::Shopify::Parser).to receive(:parse)
+          .with({"title" => parsed_sale_item[:full_title]})
+          .and_return(parsed_product)
+        allow(Product::Shopify::Importer).to receive(:import!)
+          .with(parsed_product)
+          .and_return(imported_product)
+      end
+
+      it "creates sale item with product and no edition" do
+        expect {
+          described_class.new(sale, parsed_sale_item).import!
+        }.to change(SaleItem, :count).by(1)
+          .and change(Edition, :count).by(0) # rubocop:todo RSpec/ChangeByZero
+
+        sale_item = SaleItem.last
+        expect(sale_item.product).to eq(imported_product)
+        expect(sale_item.edition).to be_nil
+      end
+    end
+
+    context "when Shopify sends the default variant title" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/default-title",
+          price: "20.00",
+          qty: 1,
+          edition_title: "Default Title",
+          full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
+        }
+      end
+      let(:parsed_product) do
+        {
+          store_id: "gid://shopify/Product/1002",
+          title: "Princess Leia",
+          franchise: "Star Wars",
+          shape: "Statue",
+          sku: "princess-leia-1002",
+          editions: []
+        }
+      end
+      let(:imported_product) { create(:product, title: "Princess Leia") }
+
+      before do
+        allow(Product::Shopify::Parser).to receive(:parse)
+          .with({"title" => parsed_sale_item[:full_title]})
+          .and_return(parsed_product)
+        allow(Product::Shopify::Importer).to receive(:import!)
+          .with(parsed_product)
+          .and_return(imported_product)
+      end
+
+      it "creates sale item with the base model edition" do
+        expect {
+          described_class.new(sale, parsed_sale_item).import!
+        }.to change(SaleItem, :count).by(1)
+          .and change(Edition, :count).by(1)
+
+        sale_item = SaleItem.last
+        expect(sale_item.product).to eq(imported_product)
+        expect(sale_item.edition).to be_present
+        expect(sale_item.edition.title).to eq("Base Model")
+      end
+    end
+
     context "when a Shopify product reference cannot be resolved" do
       let(:parsed_sale_item) do
         {

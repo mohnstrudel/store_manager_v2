@@ -118,7 +118,7 @@ RSpec.describe Gettable do
 
   describe "#api_get" do
     let(:test_url) { "https://example.com/api/test" }
-    let(:mock_response) { double("Response", body: '{"id": 1, "name": "Test"}') }
+    let(:mock_response) { double("Response", body: '{"id": 1, "name": "Test"}', code: 200, success?: true) }
 
     context "with successful HTTP request" do
       before do
@@ -177,6 +177,7 @@ RSpec.describe Gettable do
       before do
         allow(HTTParty).to receive(:get).and_raise(StandardError.new(error_message))
         allow(Rails.logger).to receive(:error)
+        allow(Sentry).to receive(:capture_message)
         allow(instance).to receive(:sleep) # Mock sleep to avoid actual delays
       end
 
@@ -187,12 +188,29 @@ RSpec.describe Gettable do
 
       it "logs the error after final retry" do
         instance.api_get(test_url)
-        expect(Rails.logger).to have_received(:error).with("Gettable. Error: #{error_message}")
+        expect(Rails.logger).to have_received(:error).with("Gettable. Error: StandardError: #{error_message}")
       end
 
       it "returns nil after all retries fail" do
         result = instance.api_get(test_url)
         expect(result).to be_nil
+      end
+
+      it "captures the failure in Sentry" do
+        instance.api_get(test_url)
+
+        expect(Sentry).to have_received(:capture_message).with(
+          "Woo API GET failed after retries",
+          level: :error,
+          tags: {integration: "woo", concern: "Gettable"},
+          extra: {
+            url: test_url,
+            query: {},
+            error_class: "StandardError",
+            error_message: error_message,
+            retries: 3
+          }
+        )
       end
     end
 
@@ -215,6 +233,68 @@ RSpec.describe Gettable do
         result = instance.api_get(test_url)
         expect(HTTParty).to have_received(:get).exactly(3).times
         expect(result).to eq({id: 1, name: "Test"})
+      end
+    end
+
+    context "when the response body is blank" do
+      let(:blank_response) { double("Response", body: "", code: 200, success?: true) }
+
+      before do
+        allow(HTTParty).to receive(:get).and_return(blank_response)
+        allow(Rails.logger).to receive(:warn)
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "returns nil" do
+        expect(instance.api_get(test_url)).to be_nil
+      end
+
+      it "captures the blank response in Sentry" do
+        instance.api_get(test_url)
+
+        expect(Sentry).to have_received(:capture_message).with(
+          "Woo API GET returned blank body",
+          level: :warning,
+          tags: {integration: "woo", concern: "Gettable"},
+          extra: {
+            url: test_url,
+            query: {},
+            response_class: "RSpec::Mocks::Double"
+          }
+        )
+      end
+    end
+
+    context "when the response is unsuccessful" do
+      let(:error_response) { double("Response", body: '{"message":"Unauthorized"}', code: 401, success?: false) }
+
+      before do
+        allow(HTTParty).to receive(:get).and_return(error_response)
+        allow(Rails.logger).to receive(:error)
+        allow(Sentry).to receive(:capture_message)
+      end
+
+      it "returns nil" do
+        expect(instance.api_get(test_url)).to be_nil
+      end
+
+      it "captures the unsuccessful response in Sentry" do
+        instance.api_get(test_url)
+
+        expect(Sentry).to have_received(:capture_message).with(
+          "Woo API GET returned unsuccessful response",
+          level: :error,
+          tags: {integration: "woo", concern: "Gettable"},
+          extra: {
+            url: test_url,
+            query: {},
+            status_code: 401,
+            error_code: nil,
+            error_message: "Unauthorized",
+            error_data: nil,
+            body_preview: '{"message":"Unauthorized"}'
+          }
+        )
       end
     end
   end
