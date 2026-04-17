@@ -143,8 +143,8 @@ RSpec.describe "Product Store Sync" do
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_link("Pull Last 50 Products")
-      expect(page).to have_link("Pull Everything")
+      expect(page).to have_button("Pull Last 50 Products")
+      expect(page).to have_button("Pull Everything")
       expect(page).to have_link("Track Jobs Progress")
     end
 
@@ -164,7 +164,7 @@ RSpec.describe "Product Store Sync" do
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_link("Pull Last 50 Products", href: "/products/pull?limit=50")
+      expect(page).to have_button("Pull Last 50 Products")
     end
 
     scenario "navigates to pull products without limit when Pull Everything is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -173,7 +173,7 @@ RSpec.describe "Product Store Sync" do
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_link("Pull Everything", href: "/products/pull")
+      expect(page).to have_button("Pull Everything")
     end
 
     scenario "navigates to jobs statuses page when Track Jobs Progress is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -183,6 +183,22 @@ RSpec.describe "Product Store Sync" do
       click_link "Store Sync"
 
       expect(page).to have_link("Track Jobs Progress", href: "/jobs/statuses")
+    end
+
+    scenario "keeps the page clickable after starting a bulk pull", :js do # rubocop:todo RSpec/MultipleExpectations
+      create_list(:product, 3)
+      allow(Shopify::PullProductsJob).to receive(:perform_later)
+
+      visit products_path
+      click_link "Store Sync"
+
+      click_button "Pull Last 50 Products"
+
+      expect(page).to have_current_path(products_path, ignore_query: true)
+      expect(page).not_to have_css("dialog#products-index-sync-modal[open]")
+
+      click_link "Store Sync"
+      expect(page).to have_css("dialog#products-index-sync-modal[open]")
     end
   end
 end
