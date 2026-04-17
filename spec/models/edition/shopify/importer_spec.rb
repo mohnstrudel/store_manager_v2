@@ -307,6 +307,28 @@ RSpec.describe Edition::Shopify::Importer do
         expect(Edition.last.color).to be_nil
         expect(Edition.last.title).to eq("Base Model")
       end
+
+      context "when the product already has a base edition without Shopify linkage" do
+        let!(:existing_edition) do
+          create(:edition,
+            product: product,
+            version: nil,
+            sku: "LOCAL-BASE-SKU").tap do |edition|
+            edition.store_infos.destroy_all
+            edition.update_columns(shopify_id: nil, woo_id: nil)
+          end
+        end
+
+        it "reuses the existing base edition and attaches the Shopify store info" do # rubocop:todo RSpec/MultipleExpectations
+          expect { described_class.import!(product, parsed_single_variant) }.not_to change(Edition, :count)
+
+          existing_edition.reload
+          expect(existing_edition.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
+          expect(existing_edition.size).to be_nil
+          expect(existing_edition.version).to be_nil
+          expect(existing_edition.color).to be_nil
+        end
+      end
     end
 
     context "with Title option only (multi-variant product)" do
@@ -327,6 +349,25 @@ RSpec.describe Edition::Shopify::Importer do
         expect(Edition.last.color).to be_nil
         expect(Edition.last.size).to be_nil
         expect(Edition.last.version).to be_nil
+      end
+
+      context "when the product already has a nil-attribute edition without Shopify linkage" do
+        let!(:existing_edition) do
+          create(:edition, product: product, version: nil, sku: "LOCAL-TITLE-SKU").tap do |edition|
+            edition.store_infos.destroy_all
+            edition.update_columns(shopify_id: nil, woo_id: nil)
+          end
+        end
+
+        it "updates the existing edition instead of creating a duplicate" do # rubocop:todo RSpec/MultipleExpectations
+          expect { described_class.import!(product, parsed_variant_with_title) }.not_to change(Edition, :count)
+
+          existing_edition.reload
+          expect(existing_edition.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
+          expect(existing_edition.color).to be_nil
+          expect(existing_edition.size).to be_nil
+          expect(existing_edition.version).to be_nil
+        end
       end
     end
 

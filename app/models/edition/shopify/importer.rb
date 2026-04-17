@@ -21,9 +21,12 @@ class Edition::Shopify::Importer
   def update_or_create!
     return nil if parsed[:options].blank?
 
-    find_or_initialize_edition
-    update_or_create_edition!
-    update_shopify_store_info! if parsed[:store_id]
+    product.with_lock do
+      find_or_initialize_edition
+      edition.assign_attributes(edition_attrs)
+      edition.save!
+      update_shopify_store_info! if parsed[:store_id]
+    end
 
     edition
   rescue ActiveRecord::RecordInvalid => e
@@ -32,18 +35,11 @@ class Edition::Shopify::Importer
 
   private
 
-  def update_or_create_edition!
-    ActiveRecord::Base.transaction do
-      edition.assign_attributes(edition_attrs)
-      edition.save!
-    end
-  end
-
   def find_or_initialize_edition
     @edition = Edition.find_by_shopify_id(parsed[:store_id]) if parsed[:store_id]
 
     if edition.nil? || belongs_to_different_product?
-      @edition = lookup_attrs.present? ? product.editions.where(lookup_attrs).first_or_initialize : product.editions.new
+      @edition = product.editions.find_by(edition_identity_attrs) || product.editions.new
     end
   end
 
@@ -55,8 +51,14 @@ class Edition::Shopify::Importer
     @edition_attrs ||= build_edition_attrs
   end
 
-  def lookup_attrs
-    @lookup_attrs ||= edition_attrs.except(:sku, :selling_price, :purchase_cost, :weight)
+  def edition_identity_attrs
+    @edition_identity_attrs ||= edition_attrs
+      .except(:sku, :selling_price, :purchase_cost, :weight)
+      .presence || {
+        color_id: nil,
+        size_id: nil,
+        version_id: nil
+      }
   end
 
   def build_edition_attrs
@@ -65,6 +67,7 @@ class Edition::Shopify::Importer
     attributes[:selling_price] = parsed[:selling_price] if parsed[:selling_price].present?
     attributes[:purchase_cost] = parsed[:purchase_cost] if parsed[:purchase_cost].present?
     attributes[:weight] = parsed[:weight] if parsed[:weight].present?
+
     return attributes if parsed[:is_single_variant]
 
     parsed[:options].each do |option|
