@@ -153,6 +153,15 @@ class Sale::Shopify::SaleItemImporter
   def handle_record_invalid(error)
     model_name = error.record.class.name
     detailed_errors = error.record.errors.full_messages.join(", ")
-    raise Sale::Shopify::Importer::Error, "Failed to process #{model_name}: #{detailed_errors}"
+    context_details = [
+      "sale_store_id: #{sale.shopify_info&.store_id || sale.shopify_id}",
+      "sale_item_store_id: #{parsed[:store_id]}",
+      "product_store_id: #{parsed[:product_store_id]}",
+      "edition_store_id: #{parsed[:edition_store_id]}",
+      "edition_title: #{parsed[:edition_title].presence || "blank"}",
+      "full_title: #{parsed[:full_title].presence || "blank"}"
+    ].join(", ")
+
+    raise Sale::Shopify::Importer::Error, "Failed to process #{model_name}: #{detailed_errors}\n#{context_details}"
   end
 end
