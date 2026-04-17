@@ -40,22 +40,77 @@ class Sale::Shopify::SaleItemImporter
   end
 
   def create_title_only_sale_item!
-    product = resolved_product
-    edition = create_custom_edition_for_product(product)
+    return unless resolved_product || imported_edition
 
-    return unless product || edition
+    sale_item.assign_attributes(sale_item_attributes)
+    sale_item.save!
 
-    sale_item.assign_attributes({
+    sale_item
+  end
+
+  def sale_item_attributes
+    {
       price: parsed[:price],
       qty: parsed[:qty],
       shopify_id: parsed[:store_id],
       sale: sale,
-      product:,
-      edition:
-    }.compact)
-    sale_item.save!
+      product: resolved_product,
+      edition: imported_edition
+    }.compact
+  end
 
-    sale_item
+  def imported_edition
+    return @imported_edition if defined?(@imported_edition)
+
+    @imported_edition =
+      if parsed[:edition_store_id].present?
+        find_or_create_edition_from_shopify
+      elsif normalized_edition_title.blank? && !base_model_edition_title?
+        nil
+      else
+        create_custom_edition
+      end
+  end
+
+  def find_or_create_edition_from_shopify
+    existing_edition = Edition.find_by_shopify_id(parsed[:edition_store_id])
+    return existing_edition if existing_edition
+    return nil if parsed.dig(:product, :editions).blank?
+
+    parsed[:product][:editions]
+      .map { |parsed_edition| Edition::Shopify::Importer.import!(resolved_product, parsed_edition) }
+      .find { |edition| edition.shopify_info&.store_id == parsed[:edition_store_id] }
+  end
+
+  def create_custom_edition
+    return nil if resolved_product.blank?
+    return base_model_edition_for(resolved_product) if base_model_edition_title?
+    return nil if normalized_edition_title.blank?
+
+    existing_edition = resolved_product.editions.joins(:version).find_by(versions: {value: normalized_edition_title})
+    return existing_edition if existing_edition
+
+    version = resolved_product.versions.create!(value: normalized_edition_title)
+    resolved_product.editions.create!(version:, color: nil, size: nil)
+  end
+
+  def normalized_edition_title
+    return @normalized_edition_title if defined?(@normalized_edition_title)
+
+    raw_title = parsed[:edition_title].to_s
+    return @normalized_edition_title = nil if raw_title.blank?
+
+    title = Sanitizable.sanitize(raw_title).presence
+    @normalized_edition_title = title
+  end
+
+  def base_model_edition_title?
+    normalized_edition_title == "Default Title"
+  end
+
+  def base_model_edition_for(product)
+    product.editions.find_by(version_id: nil, color_id: nil, size_id: nil) ||
+      product.editions.create!(version: nil, color: nil, size: nil)
   end
 
   def resolved_product
@@ -93,45 +148,6 @@ class Sale::Shopify::SaleItemImporter
     return nil if parsed[:product_store_id].blank?
 
     Product.find_or_create_shopify_placeholder!(store_id: parsed[:product_store_id])
-  end
-
-  def create_custom_edition_for_product(product)
-    return nil if product.blank?
-    return nil if parsed[:edition_title].blank?
-
-    existing_edition = product.editions.joins(:version).find_by(versions: {value: parsed[:edition_title]})
-    return existing_edition if existing_edition
-
-    version = product.versions.create!(value: parsed[:edition_title])
-    product.editions.create!(version:, color: nil, size: nil)
-  end
-
-  def imported_edition
-    return find_or_create_edition_from_shopify if parsed[:edition_store_id].present?
-    return nil if parsed[:edition_title].blank?
-
-    create_custom_edition_for_product(resolved_product)
-  end
-
-  def sale_item_attributes
-    {
-      price: parsed[:price],
-      qty: parsed[:qty],
-      shopify_id: parsed[:store_id],
-      sale: sale,
-      product: resolved_product,
-      edition: imported_edition
-    }.compact
-  end
-
-  def find_or_create_edition_from_shopify
-    existing_edition = Edition.find_by_shopify_id(parsed[:edition_store_id])
-    return existing_edition if existing_edition
-    return nil unless parsed[:product] && parsed[:product][:editions]
-
-    parsed[:product][:editions]
-      .map { |parsed_edition| Edition::Shopify::Importer.import!(resolved_product, parsed_edition) }
-      .find { |edition| edition.shopify_info&.store_id == parsed[:edition_store_id] }
   end
 
   def handle_record_invalid(error)
