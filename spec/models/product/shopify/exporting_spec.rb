@@ -26,6 +26,16 @@ RSpec.describe Product::Shopify::Exporting do
       expect(product.shopify_payload[:title]).to eq("Studio Ghibli - Spirited Away | Resin Statue | by Zuoban Studio")
     end
 
+    it "includes joined sizes before the resin shape when present" do
+      product.sizes << [
+        create(:size, value: "1:4"),
+        create(:size, value: "1:6"),
+        create(:size, value: "1:3")
+      ]
+
+      expect(product.shopify_payload[:title]).to eq("Studio Ghibli - Spirited Away | 1:4/1:6/1:3 Resin Statue | by Zuoban Studio")
+    end
+
     it "returns title and tags when description is blank" do
       expect(product.shopify_payload.keys).to eq([:title, :tags])
     end

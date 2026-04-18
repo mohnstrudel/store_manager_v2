@@ -12,7 +12,7 @@ module Product::Shopify::Exporting
   private
 
   def shopify_title
-    "#{franchise.title} - #{title} | Resin #{shape.title} | by #{shopify_brand_titles}"
+    "#{franchise.title} - #{title} | #{shopify_size_title_part}Resin #{shape.title} | by #{shopify_brand_titles}"
   end
 
   def shopify_description_html
@@ -26,12 +26,11 @@ module Product::Shopify::Exporting
   end
 
   def shopify_brand_titles
-    titles = if brands.loaded?
-      brands.map(&:title)
-    else
-      brands.pluck(:title)
-    end
+    brands.pluck(:title).compact_blank.join(", ")
+  end
 
-    titles.compact_blank.join(", ")
+  def shopify_size_title_part
+    joined_sizes = sizes.pluck(:value).compact_blank.join("/")
+    joined_sizes.presence ? "#{joined_sizes} " : ""
   end
 end
