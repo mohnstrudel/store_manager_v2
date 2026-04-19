@@ -30,15 +30,9 @@ class Customer < ApplicationRecord
 
   has_many :sales, dependent: :destroy, inverse_of: :customer
 
-  before_save :downcase_email
+  normalizes :email, with: ->(email) { email&.downcase }
 
   def self.woo_id_is_valid?(woo_id)
     !woo_id.in? [0, "0", ""]
-  end
-
-  private
-
-  def downcase_email
-    self.email = email&.downcase
   end
 end

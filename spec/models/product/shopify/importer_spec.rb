@@ -43,12 +43,12 @@ RSpec.describe Product::Shopify::Importer do
 
     it "enqueues sync jobs for editions and media" do # rubocop:todo RSpec/MultipleExpectations
       allow(Shopify::PullEditionsJob).to receive(:perform_later)
-      allow(Shopify::PullMediaJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
       product = described_class.import!(parsed_product)
 
       expect(Shopify::PullEditionsJob).to have_received(:perform_later).with(product, parsed_product[:editions])
-      expect(Shopify::PullMediaJob).to have_received(:perform_later).with(product.id, parsed_product[:media])
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
     end
 
     it "generates correct full title" do
@@ -132,7 +132,7 @@ RSpec.describe Product::Shopify::Importer do
         )
       end
 
-      it "normalizes HTML by unwrapping p tags inside li" do
+      it "normalizes HTML by unwrapping p tags inside li", :aggregate_failures do
         product = described_class.import!(parsed_product_with_list)
         product.reload
 
@@ -150,7 +150,7 @@ RSpec.describe Product::Shopify::Importer do
         )
       end
 
-      it "normalizes HTML by unwrapping div tags inside li" do
+      it "normalizes HTML by unwrapping div tags inside li", :aggregate_failures do
         product = described_class.import!(parsed_product_with_div_list)
         product.reload
 
@@ -353,17 +353,17 @@ RSpec.describe Product::Shopify::Importer do
     context "when no media are provided" do
       let(:parsed_product_no_media) { parsed_product.merge(media: nil) }
 
-      it "does not enqueue PullMediaJob" do
-        allow(Shopify::PullMediaJob).to receive(:perform_later)
+      it "does not enqueue ImportMediaJob" do
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         described_class.import!(parsed_product_no_media)
 
-        expect(Shopify::PullMediaJob).not_to have_received(:perform_later)
+        expect(Shopify::ImportMediaJob).not_to have_received(:perform_later)
       end
     end
 
     context "when no shopify_id is provided" do
-      let(:parsed_product_no_id) { parsed_product.except(:shopify_id) }
+      let(:parsed_product_no_id) { parsed_product.except(:store_id) }
 
       it "creates a new product without store_info" do # rubocop:todo RSpec/MultipleExpectations
         product = described_class.import!(parsed_product_no_id)

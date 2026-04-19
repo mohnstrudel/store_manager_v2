@@ -14,7 +14,7 @@ module Products
 
       respond_to do |format|
         format.turbo_stream { flash.now[:notice] = notice }
-        format.html { redirect_to products_path, notice: }
+        format.html { redirect_back_or_to product_path(@product), notice: }
       end
     end
 

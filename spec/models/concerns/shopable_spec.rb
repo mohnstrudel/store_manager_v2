@@ -39,7 +39,7 @@ RSpec.describe Shopable do
     end
 
     context "when store_id is blank" do
-      it "returns nil" do
+      it "returns nil", :aggregate_failures do
         expect(Product.find_by_shopify_id(nil)).to be_nil
         expect(Product.find_by_shopify_id("")).to be_nil
       end
@@ -78,14 +78,14 @@ RSpec.describe Shopable do
     end
 
     context "when store_id is blank" do
-      it "returns nil" do
+      it "returns nil", :aggregate_failures do
         expect(Product.find_by_woo_id(nil)).to be_nil
         expect(Product.find_by_woo_id("")).to be_nil
       end
     end
   end
 
-  describe "#shopify_published?" do
+  describe "#shopify_linked?" do
     context "when shopify_info has store_id" do
       let(:product) { create(:product) }
 
@@ -94,7 +94,7 @@ RSpec.describe Shopable do
       end
 
       it "returns true" do
-        expect(product.shopify_published?).to be true
+        expect(product.shopify_linked?).to be true
       end
     end
 
@@ -106,7 +106,7 @@ RSpec.describe Shopable do
       end
 
       it "returns false" do
-        expect(product.shopify_published?).to be false
+        expect(product.shopify_linked?).to be false
       end
     end
 
@@ -118,11 +118,11 @@ RSpec.describe Shopable do
         product.reload
       end
 
-      it "returns false" do
+      it "returns false", :aggregate_failures do
         # After destroy and reload, shopify_info should be nil
         # since has_one associations don't auto-create
         expect(product.shopify_info).to be_nil
-        expect(product.shopify_published?).to be false
+        expect(product.shopify_linked?).to be false
       end
     end
   end

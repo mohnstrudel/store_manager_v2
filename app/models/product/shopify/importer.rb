@@ -18,10 +18,8 @@ class Product::Shopify::Importer
   def update_or_create!
     update_or_create_product!
 
-    update_shopify_store_info! if parsed[:store_id]
-
     Shopify::PullEditionsJob.perform_later(product, parsed[:editions]) if parsed[:editions]
-    Shopify::PullMediaJob.perform_later(product.id, parsed[:media]) if parsed[:media]
+    Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
 
     product
   end
@@ -42,6 +40,17 @@ class Product::Shopify::Importer
       assign_size
       product.full_title = product.generate_full_title
       product.save!
+
+      if parsed[:store_id]
+        product.link_shopify_info!(
+          store_id: parsed[:store_id],
+          slug: parsed[:store_link],
+          ext_created_at: parsed.dig(:store_info, :ext_created_at),
+          ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
+          tag_list: parsed[:tags]
+        )
+        product.mark_shopify_pulled!
+      end
     end
   end
 
@@ -74,22 +83,6 @@ class Product::Shopify::Importer
   def storeless_match?
     @storeless_match
   end
-
-  def update_shopify_store_info!
-    store_info = product.shopify_info || product.store_infos.shopify.new
-
-    store_info.assign_attributes(
-      store_id: parsed[:store_id],
-      slug: parsed[:store_link],
-      pull_time: Time.zone.now,
-      ext_created_at: parsed.dig(:store_info, :ext_created_at),
-      ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
-      tag_list: parsed[:tags]
-    )
-
-    store_info.save!
-  end
-
   def assign_brand
     return unless parsed[:brand]
 

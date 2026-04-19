@@ -42,6 +42,7 @@ Rails.application.routes.draw do
   # Inventory
   resources :products do
     scope module: :products do
+      resource :shopify_push, only: :create
       resource :shopify_pull, only: :create
 
       collection do
