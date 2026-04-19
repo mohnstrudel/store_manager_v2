@@ -23,7 +23,7 @@ RSpec.describe Products::ShopifyPullsController do
       it "redirects to products path with notice", :aggregate_failures do
         post :create, params: {product_id: product.to_param}
 
-        expect(response).to redirect_to(products_path)
+        expect(response).to redirect_to(product_path(product))
         expect(flash[:notice]).to eq("Product is being pulled from Shopify")
       end
     end
@@ -48,7 +48,7 @@ RSpec.describe Products::ShopifyPullsController do
       it "redirects with an unpublished notice", :aggregate_failures do
         post :create, params: {product_id: product.to_param}
 
-        expect(response).to redirect_to(products_path)
+        expect(response).to redirect_to(product_path(product))
         expect(flash[:notice]).to eq("Product has not been published to Shopify yet")
       end
     end

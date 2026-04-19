@@ -52,7 +52,7 @@ RSpec.describe "Products Sync API" do
       it "redirects to products path with notice", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
         post product_shopify_pull_path(product)
 
-        expect(response).to redirect_to(products_path)
+        expect(response).to redirect_to(product_path(product))
         expect(flash[:notice]).to eq("Product is being pulled from Shopify")
       end
     end
@@ -77,8 +77,54 @@ RSpec.describe "Products Sync API" do
       it "redirects to products path with notice about not being published", :aggregate_failures do # rubocop:todo RSpec/MultipleExpectations
         post product_shopify_pull_path(unpublished_product)
 
-        expect(response).to redirect_to(products_path)
+        expect(response).to redirect_to(product_path(unpublished_product))
         expect(flash[:notice]).to eq("Product has not been published to Shopify yet")
+      end
+    end
+  end
+
+  describe "POST /products/:product_id/shopify_push" do
+    context "when product is published to Shopify" do
+      before do
+        allow(Shopify::UpdateProductJob).to receive(:perform_later).with(product.id)
+      end
+
+      it "enqueues the Shopify update product job" do
+        post product_shopify_push_path(product)
+
+        expect(Shopify::UpdateProductJob).to have_received(:perform_later).with(product.id)
+      end
+
+      it "redirects to the product with notice", :aggregate_failures do
+        post product_shopify_push_path(product)
+
+        expect(response).to redirect_to(product_path(product))
+        expect(flash[:notice]).to eq("Product is being pushed to Shopify")
+      end
+    end
+
+    context "when product is not published to Shopify" do
+      let(:unpublished_product) do
+        record = create(:product)
+        record.shopify_info.update!(store_id: nil)
+        record
+      end
+
+      before do
+        allow(Shopify::CreateProductJob).to receive(:perform_later).with(unpublished_product.id)
+      end
+
+      it "enqueues the Shopify create product job" do
+        post product_shopify_push_path(unpublished_product)
+
+        expect(Shopify::CreateProductJob).to have_received(:perform_later).with(unpublished_product.id)
+      end
+
+      it "redirects to the product with notice", :aggregate_failures do
+        post product_shopify_push_path(unpublished_product)
+
+        expect(response).to redirect_to(product_path(unpublished_product))
+        expect(flash[:notice]).to eq("Product is being pushed to Shopify")
       end
     end
   end
