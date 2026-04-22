@@ -67,13 +67,6 @@ module Woo
         end
       end
 
-      # Generate SKU if missing
-      if product.sku.blank?
-        title_for_sku = product.full_title.presence || "#{product.franchise.title} #{product.title}"
-        base_sku = title_for_sku.parameterize[0..50]
-        product.sku = "#{base_sku}-#{SecureRandom.uuid[0..7]}"
-      end
-
       product.save!
 
       if parsed_product[:store_link].present?

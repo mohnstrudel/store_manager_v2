@@ -80,12 +80,12 @@ RSpec.describe Product do
       }.not_to change(Edition, :count)
 
       expect(edition.reload.deactivated_at).to be_present
+      expect(product.base_edition).to be_present
     end
 
     def editing_product_attributes(product)
       {
         title: product.title,
-        sku: product.sku,
         franchise_id: product.franchise_id,
         shape_id: product.shape_id
       }

@@ -59,60 +59,6 @@ class Sale::Shopify::SaleItemImporter
     }.compact
   end
 
-  def imported_edition
-    return @imported_edition if defined?(@imported_edition)
-
-    @imported_edition =
-      if parsed[:edition_store_id].present?
-        find_or_create_edition_from_shopify
-      elsif normalized_edition_title.blank? && !base_model_edition_title?
-        nil
-      else
-        create_custom_edition
-      end
-  end
-
-  def find_or_create_edition_from_shopify
-    existing_edition = Edition.find_by_shopify_id(parsed[:edition_store_id])
-    return existing_edition if existing_edition
-    return nil if parsed.dig(:product, :editions).blank?
-
-    parsed[:product][:editions]
-      .map { |parsed_edition| Edition::Shopify::Importer.import!(resolved_product, parsed_edition) }
-      .find { |edition| edition.shopify_info&.store_id == parsed[:edition_store_id] }
-  end
-
-  def create_custom_edition
-    return nil if resolved_product.blank?
-    return base_model_edition_for(resolved_product) if base_model_edition_title?
-    return nil if normalized_edition_title.blank?
-
-    existing_edition = resolved_product.editions.joins(:version).find_by(versions: {value: normalized_edition_title})
-    return existing_edition if existing_edition
-
-    version = resolved_product.versions.create!(value: normalized_edition_title)
-    resolved_product.editions.create!(version:, color: nil, size: nil)
-  end
-
-  def normalized_edition_title
-    return @normalized_edition_title if defined?(@normalized_edition_title)
-
-    raw_title = parsed[:edition_title].to_s
-    return @normalized_edition_title = nil if raw_title.blank?
-
-    title = Sanitizable.sanitize(raw_title).presence
-    @normalized_edition_title = title
-  end
-
-  def base_model_edition_title?
-    normalized_edition_title == "Default Title"
-  end
-
-  def base_model_edition_for(product)
-    product.editions.find_by(version_id: nil, color_id: nil, size_id: nil) ||
-      product.editions.create!(version: nil, color: nil, size: nil)
-  end
-
   def resolved_product
     @resolved_product ||=
       product_from_store_id ||
@@ -148,6 +94,68 @@ class Sale::Shopify::SaleItemImporter
     return nil if parsed[:product_store_id].blank?
 
     Product.find_or_create_shopify_placeholder!(store_id: parsed[:product_store_id])
+  end
+
+  def imported_edition
+    return @imported_edition if defined?(@imported_edition)
+
+    @imported_edition =
+      if parsed[:edition_store_id].present?
+        find_or_create_edition_from_shopify
+      elsif normalized_edition_title.blank? && !base_model_edition_title?
+        nil
+      else
+        create_custom_edition
+      end
+  end
+
+  def find_or_create_edition_from_shopify
+    existing_edition = Edition.find_by_shopify_id(parsed[:edition_store_id])
+    return existing_edition if existing_edition
+    return nil if parsed.dig(:product, :editions).blank?
+
+    parsed[:product][:editions]
+      .map { |parsed_edition| Edition::Shopify::Importer.import!(resolved_product, parsed_edition) }
+      .find { |edition| edition.shopify_info&.store_id == parsed[:edition_store_id] }
+  end
+
+  def create_custom_edition
+    return nil if resolved_product.blank?
+    return base_model_edition_for(resolved_product) if base_model_edition_title?
+    return nil if normalized_edition_title.blank?
+
+    existing_edition = resolved_product.editions.joins(:version).find_by(versions: {value: normalized_edition_title})
+    return existing_edition if existing_edition
+
+    version = resolved_product.versions.create!(value: normalized_edition_title)
+    resolved_product.editions.create!(
+      version:,
+      color: nil,
+      size: nil,
+      sku: resolved_product.pick_available_sku(normalized_edition_title.parameterize)
+    )
+  end
+
+  def base_model_edition_title?
+    normalized_edition_title == "Default Title"
+  end
+
+  def normalized_edition_title
+    return @normalized_edition_title if defined?(@normalized_edition_title)
+
+    raw_title = parsed[:edition_title].to_s
+    return @normalized_edition_title = nil if raw_title.blank?
+
+    title = Sanitizable.sanitize(raw_title).presence
+    @normalized_edition_title = title
+  end
+
+  def base_model_edition_for(product)
+    return product.base_edition if product.base_edition
+
+    product.build_base_edition
+    product.save!
+    product.base_edition
   end
 
   def handle_record_invalid(error)

@@ -19,8 +19,6 @@ class Edition::Shopify::Importer
   end
 
   def update_or_create!
-    return nil if parsed[:options].blank?
-
     product.with_lock do
       find_or_initialize_edition
       edition.assign_attributes(edition_attrs)
@@ -70,7 +68,7 @@ class Edition::Shopify::Importer
 
   def build_edition_attrs
     attributes = {}
-    attributes[:sku] = parsed[:sku] if parsed[:sku].present?
+    attributes[:sku] = parsed[:sku].presence || generated_fallback_sku
     attributes[:selling_price] = parsed[:selling_price] if parsed[:selling_price].present?
     attributes[:purchase_cost] = parsed[:purchase_cost] if parsed[:purchase_cost].present?
     attributes[:weight] = parsed[:weight] if parsed[:weight].present?
@@ -92,6 +90,20 @@ class Edition::Shopify::Importer
     end
 
     attributes
+  end
+
+  def generated_fallback_sku
+    store_id_segment = parsed[:store_id].to_s.split("/").last.presence || SecureRandom.hex(4)
+    seed = "shopify-#{product.id}-#{store_id_segment}"
+    return seed unless Edition.exists?(sku: seed)
+
+    suffix = 2
+    loop do
+      candidate = "#{seed}-#{suffix}"
+      return candidate unless Edition.exists?(sku: candidate)
+
+      suffix += 1
+    end
   end
 
   def handle_record_invalid(error)

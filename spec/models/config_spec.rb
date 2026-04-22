@@ -15,6 +15,8 @@ require "rails_helper"
 
 RSpec.describe Config do
   context "when we use it to handle sales hook" do
+    before { described_class.disable_sales_hook }
+
     it "returns correct status" do
       expect(described_class.sales_hook_disabled?).to be true
     end

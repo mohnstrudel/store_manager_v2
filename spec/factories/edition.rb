@@ -4,6 +4,7 @@ FactoryBot.define do
   factory(:edition) do
     product
     version
+    sku { generate(:unique_sku) }
     woo_id { SecureRandom.alphanumeric(10) }
     shopify_id { SecureRandom.alphanumeric(10) }
 

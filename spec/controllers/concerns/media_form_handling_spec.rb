@@ -404,7 +404,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
@@ -418,7 +417,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
@@ -432,7 +430,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
@@ -447,7 +444,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
@@ -465,7 +461,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image]
@@ -483,7 +478,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image]
@@ -501,7 +495,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image]
@@ -518,7 +511,6 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
             shape_id: shape.id,
             new_images: [create_test_image]

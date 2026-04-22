@@ -18,9 +18,6 @@
 
   fieldset.flex.justify-between.gap-4
     .block.w-full
-      = form.label :sku, "SKU"
-      = form.text_field :sku
-    .block.w-full
       = form.label :shape
       = form.collection_select :shape_id, @shape_options || [], :id, :title
 

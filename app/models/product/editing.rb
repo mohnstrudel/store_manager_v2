@@ -10,10 +10,12 @@ module Product::Editing
     assign_product_attributes(product_attributes)
     assign_collection_attributes(:editions, editions_attributes)
     assign_collection_attributes(:store_infos, store_infos_attributes)
+    build_base_edition
+    ensure_editing_editions_have_skus
 
     valid?
-    validate_edition_uniqueness!
-    validate_store_infos!
+    validate_edition_uniqueness
+    validate_store_infos
 
     errors.add(:initial_purchase, :invalid) if initial_purchase.present? && !initial_purchase.valid?
 
@@ -21,8 +23,8 @@ module Product::Editing
 
     transaction do
       save!
-      store_infos.each { |store_info| save_store_info!(store_info) }
-      editions.each { |edition| save_edition!(edition) }
+      store_infos.each { |store_info| save_store_info(store_info) }
+      editions.each { |edition| save_edition(edition) }
       update_media_from_form!(media_attributes) unless creating
       add_new_media_from_form!(new_media_images)
       initial_purchase&.product = self
@@ -70,7 +72,7 @@ module Product::Editing
   def assign_editable_attributes(record, attributes, association_name)
     record._destroy = destroy_flag?(attributes)
 
-    if record.marked_for_editing_destruction?
+    if record.should_be_removed?
       record.mark_for_destruction if association_name == :store_infos
       return
     end
@@ -78,7 +80,7 @@ module Product::Editing
     record.assign_attributes(attributes.except(:id, :destroy))
   end
 
-  def validate_edition_uniqueness!
+  def validate_edition_uniqueness
     sku_editions = {}
     combination_editions = {}
     editing_editions = active_editing_editions
@@ -103,7 +105,7 @@ module Product::Editing
   end
 
   def active_editing_editions
-    association(:editions).target.reject(&:marked_for_editing_destruction?)
+    association(:editions).target.reject(&:should_be_removed?)
   end
 
   def edition_combination(edition)
@@ -127,7 +129,13 @@ module Product::Editing
     end
   end
 
-  def validate_store_infos!
+  def ensure_editing_editions_have_skus
+    active_editing_editions.each do |edition|
+      fill_edition_sku(edition, edition.sku.presence || default_base_sku)
+    end
+  end
+
+  def validate_store_infos
     editing_store_infos = active_editing_store_infos
 
     editing_store_infos.each(&:valid?)
@@ -135,10 +143,10 @@ module Product::Editing
   end
 
   def active_editing_store_infos
-    association(:store_infos).target.reject(&:marked_for_editing_destruction?)
+    association(:store_infos).target.reject(&:should_be_removed?)
   end
 
-  def save_store_info!(store_info)
+  def save_store_info(store_info)
     if store_info.marked_for_destruction?
       store_info.destroy! if store_info.persisted?
       return
@@ -147,10 +155,10 @@ module Product::Editing
     store_info.save! if store_info.new_record? || store_info.changed?
   end
 
-  def save_edition!(edition)
-    return if edition.new_record? && edition.marked_for_editing_destruction?
+  def save_edition(edition)
+    return if edition.new_record? && edition.should_be_removed?
 
-    if edition.marked_for_editing_destruction?
+    if edition.should_be_removed?
       edition.remove_or_deactivate!
       return
     end

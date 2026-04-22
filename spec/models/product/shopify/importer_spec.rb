@@ -56,9 +56,9 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")
     end
 
-    it "uses provided SKU" do
+    it "routes provided SKU to the base edition" do
       product = described_class.import!(parsed_product)
-      expect(product.sku).to eq("TEST-SKU-001")
+      expect(product.base_edition.sku).to eq("TEST-SKU-001")
     end
 
     it "saves Shopify ID to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
@@ -243,11 +243,11 @@ RSpec.describe Product::Shopify::Importer do
         create(:product,
           title: "Eve",
           franchise: create(:franchise, title: "Stellar Blade"),
-          shape: create(:shape, title: "Statue"),
-          sku: "storeless-eve-sku").tap do |product|
+          shape: create(:shape, title: "Statue")).tap do |product|
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: nil)
           product.reload
+          product.base_edition.update!(sku: "storeless-eve-sku")
           product.brands << create(:brand, title: "Light and Dust Studio")
           product.sizes << create(:size, value: "1:4")
         end
@@ -267,7 +267,7 @@ RSpec.describe Product::Shopify::Importer do
 
         existing_product.reload
         expect(existing_product.title).to eq("Eve")
-        expect(existing_product.sku).to eq("storeless-eve-sku")
+        expect(existing_product.base_edition.sku).to eq("storeless-eve-sku")
       end
     end
 
@@ -276,11 +276,11 @@ RSpec.describe Product::Shopify::Importer do
         create(:product,
           title: "Eve",
           franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
-          shape: Shape.find_or_create_by!(title: "Statue"),
-          sku: "woo-linked-eve-sku").tap do |product|
+          shape: Shape.find_or_create_by!(title: "Statue")).tap do |product|
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: "woo-product-123")
           product.reload
+          product.base_edition.update!(sku: "woo-linked-eve-sku")
           product.store_infos.create!(store_name: :woo, store_id: "woo-product-123", pull_time: Time.zone.now)
           product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
           product.sizes << Size.find_or_create_by!(value: "1:4")
@@ -292,7 +292,7 @@ RSpec.describe Product::Shopify::Importer do
 
         existing_product.reload
         expect(existing_product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
-        expect(existing_product.sku).to eq("woo-linked-eve-sku")
+        expect(existing_product.base_edition.sku).to eq("woo-linked-eve-sku")
       end
     end
 
@@ -302,8 +302,8 @@ RSpec.describe Product::Shopify::Importer do
           shopify_id: "gid://shopify/Product/already-linked",
           title: "Eve",
           franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
-          shape: Shape.find_or_create_by!(title: "Statue"),
-          sku: "already-linked-sku").tap do |product|
+          shape: Shape.find_or_create_by!(title: "Statue")).tap do |product|
+          product.base_edition.update!(sku: "already-linked-sku")
           product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
           product.sizes << Size.find_or_create_by!(value: "1:4")
         end

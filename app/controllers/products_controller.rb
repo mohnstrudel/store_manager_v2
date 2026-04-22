@@ -24,11 +24,13 @@ class ProductsController < ApplicationController
   # GET /products/new
   def new
     @product = Product.new
+    @product.build_base_edition
     @purchase = default_purchase
   end
 
   # GET /products/1/edit
   def edit
+    @product.build_base_edition
   end
 
   # POST /products or /products.json

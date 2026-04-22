@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_02_183628) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_21_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -115,7 +115,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_183628) do
     t.decimal "selling_price", precision: 10, scale: 2, default: "0.0", null: false
     t.string "shopify_id"
     t.bigint "size_id"
-    t.string "sku"
+    t.string "sku", null: false
     t.datetime "updated_at", null: false
     t.bigint "version_id"
     t.decimal "weight", precision: 10, scale: 2, default: "0.0", null: false
@@ -234,7 +234,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_183628) do
     t.string "image"
     t.bigint "shape_id", null: false
     t.string "shopify_id"
-    t.string "sku"
     t.string "slug"
     t.string "title"
     t.datetime "updated_at", null: false
@@ -242,7 +241,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_183628) do
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
     t.index ["shape_id"], name: "index_products_on_shape_id"
     t.index ["shopify_id"], name: "index_products_on_shopify_id"
-    t.index ["sku"], name: "index_products_on_sku", unique: true
     t.index ["slug"], name: "index_products_on_slug", unique: true
   end
 

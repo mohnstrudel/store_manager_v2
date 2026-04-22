@@ -15,23 +15,25 @@ module Product::Shopify::Fallbacks
       find_by_shopify_id(store_id) || create_shopify_placeholder!(store_id:)
     end
 
-    private
-
     def create_shopify_placeholder!(store_id:)
-      create!(
+      product = new(
         title: "#{TITLE_PREFIX} #{short_store_id(store_id)}",
         franchise: Franchise.find_or_create_by!(title: FALLBACK_FRANCHISE_TITLE),
         shape: Shape.find_or_create_by!(title: FALLBACK_SHAPE_TITLE),
-        sku: deterministic_shopify_placeholder_sku(store_id),
         full_title: "#{FALLBACK_FRANCHISE_TITLE} -- #{TITLE_PREFIX} #{short_store_id(store_id)}"
-      ).tap do |product|
-        product.store_infos.create!(
-          store_name: :shopify,
-          store_id: store_id,
-          pull_time: Time.zone.now
-        )
-      end
+      )
+
+      product.build_base_edition(sku: deterministic_shopify_placeholder_sku(store_id))
+      product.save!
+      product.store_infos.create!(
+        store_name: :shopify,
+        store_id: store_id,
+        pull_time: Time.zone.now
+      )
+      product
     end
+
+    private
 
     def deterministic_shopify_placeholder_sku(store_id)
       "#{SKU_PREFIX}-#{Digest::SHA256.hexdigest(store_id).first(12)}"

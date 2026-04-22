@@ -33,7 +33,6 @@ RSpec.describe ProductsController do
         id: product.to_param,
         product: {
           title: "",
-          sku: product.sku,
           franchise_id: product.franchise_id,
           shape_id: product.shape_id
         }
@@ -56,9 +55,13 @@ RSpec.describe ProductsController do
       post :create, params: {
         product: {
           title: "New Product",
-          sku: "new-product-with-purchase",
           franchise_id: franchise.id,
           shape_id: shape.id
+        },
+        editions: {
+          "0" => {
+            sku: "new-product-with-purchase"
+          }
         },
         purchase: {
           supplier_id: supplier.id,
@@ -69,7 +72,7 @@ RSpec.describe ProductsController do
         }
       }
 
-      product = Product.find_by!(sku: "new-product-with-purchase")
+      product = Edition.find_by!(sku: "new-product-with-purchase").product
       purchase = product.purchases.last
 
       aggregate_failures do
@@ -87,7 +90,6 @@ RSpec.describe ProductsController do
       post :create, params: {
         product: {
           title: "Broken Purchase Product",
-          sku: "broken-purchase-product",
           franchise_id: franchise.id,
           shape_id: shape.id
         },
@@ -105,8 +107,8 @@ RSpec.describe ProductsController do
         expect(assigns(:product).errors[:initial_purchase]).to include("is invalid")
         expect(assigns(:purchase)).to be_present
         expect(assigns(:purchase).amount).to eq(2)
-        expect(assigns(:purchase).item_price).to eq(BigDecimal("15"))
-        expect(assigns(:purchase).payment_value).to eq(BigDecimal("30"))
+        expect(assigns(:purchase).item_price).to eq(BigDecimal(15))
+        expect(assigns(:purchase).payment_value).to eq(BigDecimal(30))
         expect(assigns(:purchase).warehouse_id).to eq(warehouse.id)
       end
     end

@@ -7,7 +7,6 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
-#  sku          :string
 #  slug         :string
 #  title        :string
 #  created_at   :datetime         not null
@@ -24,15 +23,6 @@ RSpec.describe Product do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:title) }
-    it { is_expected.to validate_presence_of(:sku) }
-
-    it "enforces sku uniqueness" do # rubocop:todo RSpec/MultipleExpectations
-      existing_product = create(:product, sku: "SKU-123")
-      duplicate_product = build(:product, sku: existing_product.sku)
-
-      expect(duplicate_product).not_to be_valid
-      expect(duplicate_product.errors[:sku]).to include("has already been taken")
-    end
   end
 
   describe "associations" do
@@ -118,7 +108,7 @@ RSpec.describe Product do
     end
 
     it "returns all products when the query is blank" do
-      expect(described_class.search_by("")).to match_array([matching_product, other_product])
+      expect(described_class.search_by("")).to contain_exactly(matching_product, other_product)
     end
 
     it "returns no products when nothing matches" do

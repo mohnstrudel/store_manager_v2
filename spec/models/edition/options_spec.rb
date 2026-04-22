@@ -16,7 +16,7 @@ RSpec.describe Edition::Options do
 
   describe "#base_model?" do
     context "when edition has no options" do
-      let(:edition) { create(:edition, version: nil) }
+      let(:edition) { create(:product).base_edition }
 
       it "returns true" do
         expect(edition.base_model?).to be true

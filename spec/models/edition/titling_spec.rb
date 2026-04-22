@@ -50,7 +50,7 @@ RSpec.describe Edition::Titling do
     end
 
     context "when edition has no options (Base Model)" do
-      let(:edition) { create(:edition, version: nil) }
+      let(:edition) { create(:product).base_edition }
 
       it "returns Base Model" do
         expect(edition.title).to eq("Base Model")

@@ -7,7 +7,6 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
-#  sku          :string
 #  slug         :string
 #  title        :string
 #  created_at   :datetime         not null
@@ -56,8 +55,6 @@ class Product < ApplicationRecord
     }
 
   validates :title, presence: true
-  validates :sku, presence: true
-  validates_db_uniqueness_of :sku
   validates_associated :editions
 
   db_belongs_to :franchise, inverse_of: :products

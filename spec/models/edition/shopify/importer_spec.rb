@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Edition::Shopify::Importer do
-  let(:product) { create(:product) }
+  let!(:product) { create(:product) }
   let(:parsed_variant) do
     {
       store_id: "gid://shopify/ProductVariant/12345",
@@ -189,10 +189,12 @@ RSpec.describe Edition::Shopify::Importer do
     end
 
     context "with blank options" do
-      it "returns nil and does not create an edition" do # rubocop:todo RSpec/MultipleExpectations
+      it "creates a base edition" do # rubocop:todo RSpec/MultipleExpectations
         result = described_class.import!(product, {options: []})
-        expect { described_class.import!(product, {options: []}) }.not_to change(Edition, :count)
-        expect(result).to be_nil
+        expect(result).not_to be_nil
+        expect(result.size).to be_nil
+        expect(result.version).to be_nil
+        expect(result.color).to be_nil
       end
     end
 
@@ -310,10 +312,8 @@ RSpec.describe Edition::Shopify::Importer do
 
       context "when the product already has a base edition without Shopify linkage" do
         let!(:existing_edition) do
-          create(:edition,
-            product: product,
-            version: nil,
-            sku: "LOCAL-BASE-SKU").tap do |edition|
+          product.base_edition.tap do |edition|
+            edition.update!(sku: "LOCAL-BASE-SKU")
             edition.store_infos.destroy_all
             edition.update_columns(shopify_id: nil, woo_id: nil)
           end
@@ -353,7 +353,8 @@ RSpec.describe Edition::Shopify::Importer do
 
       context "when the product already has a nil-attribute edition without Shopify linkage" do
         let!(:existing_edition) do
-          create(:edition, product: product, version: nil, sku: "LOCAL-TITLE-SKU").tap do |edition|
+          product.base_edition.tap do |edition|
+            edition.update!(sku: "LOCAL-TITLE-SKU")
             edition.store_infos.destroy_all
             edition.update_columns(shopify_id: nil, woo_id: nil)
           end

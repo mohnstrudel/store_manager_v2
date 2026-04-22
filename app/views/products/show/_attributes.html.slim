@@ -20,8 +20,6 @@
   .card
     h5 ID
     p = product.id
-    h5 SKU
-    p = product.sku.presence || "-"
     h5 Created At
     = render_product_timestamp_columns product, :created_at
     h5 Updated At

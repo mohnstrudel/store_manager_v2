@@ -33,6 +33,7 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - Collection-level workflows can also become small resource controllers. Do not reserve this pattern only for member actions.
 - Inline Turbo edit flows can also be resourceful. Prefer a small singular nested controller over `edit_*`, `cancel_*`, and `update_*` actions on the parent controller.
 - Keep jobs thin and move aggregate-local workflow to model-area collaborators.
+- Order methods top-down by dependency: put the main public method first, then place the helper it calls immediately below it, and continue that pattern through the file.
 - If a method is reused across parsers, jobs, imports, sync flows, and some views, treat it as a domain representation and keep it near the model rather than moving it to helpers.
 - If a method exists only for one screen, dropdown, widget, or response format, move it to helpers, partials, Jbuilder, or Turbo templates.
 - If a partial starts building small collections of screen-only view data, prefer a helper method over adding presenters. Use presenters only if the repo explicitly adopts that pattern, which it currently does not.

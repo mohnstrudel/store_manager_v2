@@ -105,7 +105,6 @@ RSpec.describe Product do
     def creation_product_attributes
       {
         title: "Product with initial purchase",
-        sku: "product-with-initial-purchase",
         franchise_id: franchise.id,
         shape_id: shape.id
       }

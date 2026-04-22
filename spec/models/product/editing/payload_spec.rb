@@ -9,7 +9,6 @@ RSpec.describe Product::Editing::Payload do
     ActionController::Parameters.new(
       product: {
         title: "Test Product",
-        sku: "SKU-1",
         franchise_id: "1",
         shape_id: "2",
         brand_ids: ["3"],

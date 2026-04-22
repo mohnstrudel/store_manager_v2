@@ -37,7 +37,7 @@ RSpec.describe "Creating a product with a purchase" do
 
     click_button "Create Product"
 
-    created_product = Product.find_by!(sku: "product-with-initial-purchase")
+    created_product = Edition.find_by!(sku: "product-with-initial-purchase").product
     purchase = created_product.purchases.last
 
     expect(page).to have_current_path(product_path(created_product))
@@ -126,12 +126,10 @@ RSpec.describe "Creating a product with a purchase" do
     select franchise.title, from: "product[franchise_id]"
     select shape.title, from: "product[shape_id]"
 
-    expect {
-      click_button "Create Product"
-    }.to change(Product, :count).by(1)
-      .and change(Purchase, :count).by(0)
+    expect { click_button "Create Product" }.to change(Product, :count).by(1)
+    expect(Purchase.count).to eq(0)
 
-    created_product = Product.find_by!(sku: "product-without-purchase")
+    created_product = Edition.find_by!(sku: "product-without-purchase").product
     expect(page).to have_current_path(product_path(created_product))
     expect(page).to have_content("Product was successfully created")
   end
