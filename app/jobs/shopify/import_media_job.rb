@@ -5,7 +5,7 @@ module Shopify
     def perform(product, parsed_media)
       return if product.blank?
 
-      product.import_shopify_media!(parsed_media:)
+      product.import_shopify_media(parsed_media:)
     end
   end
 end

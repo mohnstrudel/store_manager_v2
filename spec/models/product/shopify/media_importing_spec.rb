@@ -46,12 +46,12 @@ RSpec.describe Product::Shopify::MediaImporting do
     )
   end
 
-  describe "#import_shopify_media!" do
+  describe "#import_shopify_media" do
     it "clears local media when parsed_media is blank" do
       create_list(:media, 2, mediaable: product)
 
       expect {
-        product.import_shopify_media!(parsed_media: [])
+        product.import_shopify_media(parsed_media: [])
       }.to change { product.media.count }.from(2).to(0)
     end
 
@@ -86,7 +86,7 @@ RSpec.describe Product::Shopify::MediaImporting do
       )
 
       expect {
-        product.import_shopify_media!(parsed_media:)
+        product.import_shopify_media(parsed_media:)
       }.to change { product.media.count }.by(-1)
 
       expect(kept_media.reload).to be_persisted

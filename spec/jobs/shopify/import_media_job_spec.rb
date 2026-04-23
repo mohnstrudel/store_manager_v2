@@ -83,11 +83,11 @@ RSpec.describe Shopify::ImportMediaJob do
 
   describe "#perform" do
     it "imports Shopify media through the domain" do
-      allow(product).to receive(:import_shopify_media!)
+      allow(product).to receive(:import_shopify_media)
 
       job.perform(product, parsed_media)
 
-      expect(product).to have_received(:import_shopify_media!).with(parsed_media:)
+      expect(product).to have_received(:import_shopify_media).with(parsed_media:)
     end
 
     context "when product is missing" do

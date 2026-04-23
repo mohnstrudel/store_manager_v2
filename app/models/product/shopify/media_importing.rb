@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 module Product::Shopify::MediaImporting
-  def import_shopify_media!(parsed_media:)
+  def import_shopify_media(parsed_media:)
     return media.destroy_all if parsed_media.blank?
 
     downloaded_files = Product::Shopify::Media::Downloader.call(media_items: parsed_media)
     remove_obsolete_shopify_media(downloaded_files)
-    upsert_shopify_media!(media_items: parsed_media, downloaded_files:)
+    upsert_shopify_media(media_items: parsed_media, downloaded_files:)
   ensure
     downloaded_files&.close_downloads!
   end
@@ -41,7 +41,7 @@ module Product::Shopify::MediaImporting
     obsolete_media.where.not(id: failed_download_media_ids)
   end
 
-  def upsert_shopify_media!(media_items:, downloaded_files:)
+  def upsert_shopify_media(media_items:, downloaded_files:)
     Product::Shopify::Media::Upsert.new(product: self).call(
       media_items:,
       downloads_by_key: downloaded_files.downloads_by_key
