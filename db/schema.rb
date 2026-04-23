@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_21_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_23_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -232,16 +232,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_120000) do
     t.bigint "franchise_id", null: false
     t.string "full_title"
     t.string "image"
-    t.bigint "shape_id", null: false
+    t.string "shape", default: "Statue", null: false
     t.string "shopify_id"
     t.string "slug"
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "woo_id"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
-    t.index ["shape_id"], name: "index_products_on_shape_id"
     t.index ["shopify_id"], name: "index_products_on_shopify_id"
     t.index ["slug"], name: "index_products_on_slug", unique: true
+    t.check_constraint "shape::text = ANY (ARRAY['Statue'::character varying, 'Bust'::character varying]::text[])", name: "products_shape_allowed_values"
   end
 
   create_table "purchase_items", force: :cascade do |t|
@@ -348,12 +348,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_120000) do
     t.string "user_agent"
     t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
-  end
-
-  create_table "shapes", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "title"
-    t.datetime "updated_at", null: false
   end
 
   create_table "shipping_companies", force: :cascade do |t|
@@ -505,7 +499,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_120000) do
   add_foreign_key "product_versions", "products"
   add_foreign_key "product_versions", "versions"
   add_foreign_key "products", "franchises"
-  add_foreign_key "products", "shapes"
   add_foreign_key "purchase_items", "purchases"
   add_foreign_key "purchase_items", "sale_items"
   add_foreign_key "purchase_items", "shipping_companies"

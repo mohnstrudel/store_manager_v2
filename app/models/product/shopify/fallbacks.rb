@@ -6,7 +6,6 @@ module Product::Shopify::Fallbacks
   extend ActiveSupport::Concern
 
   FALLBACK_FRANCHISE_TITLE = "Broken Shopify Products"
-  FALLBACK_SHAPE_TITLE = "Unknown Shopify Shape"
   TITLE_PREFIX = "[BROKEN SHOPIFY PRODUCT]"
   SKU_PREFIX = "broken-shopify"
 
@@ -19,7 +18,7 @@ module Product::Shopify::Fallbacks
       product = new(
         title: "#{TITLE_PREFIX} #{short_store_id(store_id)}",
         franchise: Franchise.find_or_create_by!(title: FALLBACK_FRANCHISE_TITLE),
-        shape: Shape.find_or_create_by!(title: FALLBACK_SHAPE_TITLE),
+        shape: default_shape,
         full_title: "#{FALLBACK_FRANCHISE_TITLE} -- #{TITLE_PREFIX} #{short_store_id(store_id)}"
       )
 

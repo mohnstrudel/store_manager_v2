@@ -9,7 +9,6 @@ RSpec.describe "Product base edition creation" do
 
   scenario "creates a base edition when the blank edition form is submitted", :js do
     franchise = create(:franchise)
-    shape = create(:shape)
 
     visit new_product_path
 
@@ -18,8 +17,7 @@ RSpec.describe "Product base edition creation" do
     franchise_select = find("select[name='product[franchise_id]']", visible: :all)
     page.execute_script("arguments[0].value = arguments[1]", franchise_select, franchise.id.to_s)
 
-    shape_select = find("select[name='product[shape_id]']", visible: :all)
-    page.execute_script("arguments[0].value = arguments[1]", shape_select, shape.id.to_s)
+    expect(find("select[name='product[shape]']", visible: :all).value).to eq(Product.default_shape)
 
     click_button "Create Product"
 
@@ -37,7 +35,6 @@ RSpec.describe "Product base edition creation" do
 
   scenario "creates a base edition even when the blank edition form is removed", :js do
     franchise = create(:franchise)
-    shape = create(:shape)
 
     visit new_product_path
 
@@ -46,8 +43,7 @@ RSpec.describe "Product base edition creation" do
     franchise_select = find("select[name='product[franchise_id]']", visible: :all)
     page.execute_script("arguments[0].value = arguments[1]", franchise_select, franchise.id.to_s)
 
-    shape_select = find("select[name='product[shape_id]']", visible: :all)
-    page.execute_script("arguments[0].value = arguments[1]", shape_select, shape.id.to_s)
+    expect(find("select[name='product[shape]']", visible: :all).value).to eq(Product.default_shape)
 
     within all(".edition-fields").first do
       click_link "Remove"

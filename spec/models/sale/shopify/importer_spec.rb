@@ -22,7 +22,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       product.assign_attributes(
         title: parsed_product[:title],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
-        shape: Shape.find_or_create_by(title: parsed_product[:shape] || "Statue")
+        shape: parsed_product[:shape] || Product.default_shape
       )
       product.build_base_edition(sku: parsed_product[:sku] || "#{parsed_product[:title].parameterize}-#{rand(1000..9999)}")
       product.save! if product.new_record? || product.changed? || product.base_edition&.new_record? || product.base_edition&.changed?
@@ -188,7 +188,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           :product,
           title: parsed_title[:title],
           franchise: Franchise.find_or_create_by!(title: parsed_title[:franchise]),
-          shape: Shape.find_or_create_by!(title: parsed_title[:shape])
+          shape: parsed_title[:shape]
         ).tap do |product|
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: nil)

@@ -128,7 +128,7 @@
 
   input[type="submit"],
   .btn-blue {
-    @apply bg-blue-600 hover:bg-blue-700 dark:bg-blue-900! dark:hover:bg-blue-800! text-white px-3 w-fit border-transparent! h-10;
+    @apply bg-blue-600 hover:bg-blue-700 dark:bg-blue-900 dark:hover:bg-blue-800 text-white px-3 w-fit border-transparent! h-10;
   }
 
   input[type="checkbox"],

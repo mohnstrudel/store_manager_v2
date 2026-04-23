@@ -82,7 +82,7 @@ RSpec.describe Product do
       {
         title: product.title,
         franchise_id: product.franchise_id,
-        shape_id: product.shape_id
+        shape: product.shape
       }
     end
   end

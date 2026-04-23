@@ -12,7 +12,7 @@ module Product::Shopify::Exporting
   private
 
   def shopify_title
-    "#{franchise.title} - #{title} | #{shopify_size_title_part}Resin #{shape.title} | by #{shopify_brand_titles}"
+    "#{franchise.title} - #{title} | #{shopify_size_title_part}Resin #{shape} | by #{shopify_brand_titles}"
   end
 
   def shopify_description_html

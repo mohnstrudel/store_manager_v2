@@ -34,7 +34,7 @@ RSpec.describe ProductsController do
         product: {
           title: "",
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
       }
 
@@ -47,7 +47,6 @@ RSpec.describe ProductsController do
 
   describe "POST #create" do
     let(:franchise) { create(:franchise) }
-    let(:shape) { create(:shape) }
     let(:supplier) { create(:supplier) }
     let(:warehouse) { create(:warehouse, is_default: true) }
 
@@ -56,7 +55,7 @@ RSpec.describe ProductsController do
         product: {
           title: "New Product",
           franchise_id: franchise.id,
-          shape_id: shape.id
+          shape: Product.default_shape
         },
         editions: {
           "0" => {
@@ -91,7 +90,7 @@ RSpec.describe ProductsController do
         product: {
           title: "Broken Purchase Product",
           franchise_id: franchise.id,
-          shape_id: shape.id
+          shape: Product.default_shape
         },
         purchase: {
           amount: "2",

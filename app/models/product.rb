@@ -7,12 +7,12 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
+#  shape        :string           default("Statue"), not null
 #  slug         :string
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #  franchise_id :bigint           not null
-#  shape_id     :bigint           not null
 #  shopify_id   :string
 #  woo_id       :string
 #
@@ -26,6 +26,7 @@ class Product < ApplicationRecord
   include Editing
   include SalesHistory
   include Searchable
+  include Shapes
   include Shopable
   include Shopify::Matching
   include Shopify::Fallbacks
@@ -58,7 +59,6 @@ class Product < ApplicationRecord
   validates_associated :editions
 
   db_belongs_to :franchise, inverse_of: :products
-  db_belongs_to :shape, inverse_of: :products
 
   has_many :editions, dependent: :destroy, autosave: true, inverse_of: :product
 

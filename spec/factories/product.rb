@@ -7,7 +7,7 @@ FactoryBot.define do
 
   factory(:product) do
     franchise
-    shape
+    shape { Product.default_shape }
     title { "Spirited Away" }
     woo_id { SecureRandom.alphanumeric(10) }
     shopify_id { SecureRandom.alphanumeric(10) }

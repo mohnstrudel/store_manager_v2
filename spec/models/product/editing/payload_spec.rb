@@ -10,7 +10,7 @@ RSpec.describe Product::Editing::Payload do
       product: {
         title: "Test Product",
         franchise_id: "1",
-        shape_id: "2",
+        shape: "Bust",
         brand_ids: ["3"],
         color_ids: ["4"],
         size_ids: ["5"],

@@ -101,7 +101,7 @@ class ProductsController < ApplicationController
   def prepare_form_options
     @franchise_options = Franchise.order(:title)
     @brand_options = Brand.order(:title)
-    @shape_options = Shape.order(:title)
+    @shape_options = Product.shape_options
     @size_options = Size.order(:value)
     @version_options = Version.order(:value)
     @color_options = Color.order(:value)

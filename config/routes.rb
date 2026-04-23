@@ -115,5 +115,5 @@ Rails.application.routes.draw do
   end
 
   # Reference data
-  resources :versions, :suppliers, :sizes, :franchises, :shapes, :colors, :brands, :shipping_companies
+  resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
 end

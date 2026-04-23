@@ -55,7 +55,7 @@ class Product::Editing::Payload
       :title,
       :description,
       :franchise_id,
-      :shape_id,
+      :shape,
       :woo_id,
       :shopify_id,
       brand_ids: [],

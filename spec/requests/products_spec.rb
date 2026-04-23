@@ -4,7 +4,6 @@ require "rails_helper"
 
 RSpec.describe "Products API" do
   let(:franchise) { create(:franchise) }
-  let(:shape) { create(:shape) }
   let(:brand) { create(:brand) }
 
   before do
@@ -14,13 +13,13 @@ RSpec.describe "Products API" do
   describe "description field" do
     it "stores HTML content in the database" do
       html_description = "<p>This is a <strong>premium</strong> collectible figure.</p>"
-      product = create(:product, franchise:, shape:, description: html_description)
+      product = create(:product, franchise:, description: html_description)
 
       expect(product.description.body.to_html.strip).to eq(html_description)
     end
 
     it "allows updating description with HTML" do
-      product = create(:product, franchise:, shape:)
+      product = create(:product, franchise:)
       html_description = "<p>Updated <em>description</em> with formatting.</p>"
 
       product.update(description: html_description)
@@ -29,7 +28,7 @@ RSpec.describe "Products API" do
     end
 
     it "allows products without descriptions" do
-      product = create(:product, franchise:, shape:, description: nil)
+      product = create(:product, franchise:, description: nil)
 
       expect(product.description.body).to be_blank
     end
@@ -45,7 +44,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: "Updated Product",
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
         store_infos_params = {
           "0" => {
@@ -69,7 +68,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: "Updated Product",
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
         store_infos_params = {
           "0" => {
@@ -101,7 +100,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: "Updated Product",
           franchise_id: product_without_stores.franchise_id,
-          shape_id: product_without_stores.shape_id
+          shape: product_without_stores.shape
         }
         store_infos_params = {
           "0" => {
@@ -124,7 +123,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: "Updated Product",
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
         store_infos_params = {
           "0" => {
@@ -151,7 +150,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: "Updated Title",
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
 
         # Exercise
@@ -173,7 +172,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: "Updated Product",
           franchise_id: product_without_stores.franchise_id,
-          shape_id: product_without_stores.shape_id
+          shape: product_without_stores.shape
         }
 
         # Exercise
@@ -235,7 +234,7 @@ RSpec.describe "Products API" do
       update_params = {
         title: "Updated Product",
         franchise_id: product.franchise_id,
-        shape_id: product.shape_id
+        shape: product.shape
       }
       store_infos_params = {
         "0" => {
@@ -260,7 +259,7 @@ RSpec.describe "Products API" do
       update_params = {
         title: "Updated Product",
         franchise_id: product_without_stores.franchise_id,
-        shape_id: product_without_stores.shape_id
+        shape: product_without_stores.shape
       }
       store_infos_params = {
         "0" => {
@@ -286,7 +285,7 @@ RSpec.describe "Products API" do
       update_params = {
         title: "Updated Product",
         franchise_id: product.franchise_id,
-        shape_id: product.shape_id
+        shape: product.shape
       }
       store_infos_params = {
         "0" => {
@@ -312,7 +311,7 @@ RSpec.describe "Products API" do
       update_params = {
         title: "Updated Product",
         franchise_id: product.franchise_id,
-        shape_id: product.shape_id
+        shape: product.shape
       }
       store_infos_params = {
         "0" => {
@@ -338,7 +337,7 @@ RSpec.describe "Products API" do
       update_params = {
         title: "Just Title Update",
         franchise_id: product.franchise_id,
-        shape_id: product.shape_id
+        shape: product.shape
       }
 
       # Exercise
@@ -366,7 +365,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: product.title,
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
         editions_params = {
           "0" => {
@@ -388,7 +387,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: product.title,
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
         editions_params = {
           "0" => {
@@ -412,7 +411,7 @@ RSpec.describe "Products API" do
         update_params = {
           title: product.title,
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
         editions_params = {
           "0" => {

@@ -5,9 +5,8 @@ require "rails_helper"
 RSpec.describe Product::Shopify::Exporting do
   describe "#shopify_payload" do
     let(:franchise) { create(:franchise, title: "Studio Ghibli") }
-    let(:shape) { create(:shape, title: "Statue") }
     let(:brand) { create(:brand, title: "Zuoban Studio") }
-    let(:product) { create(:product, title: "Spirited Away", franchise:, shape:) }
+    let(:product) { create(:product, title: "Spirited Away", franchise:, shape: "Statue") }
 
     before do
       product.brands << brand
@@ -95,7 +94,7 @@ RSpec.describe Product::Shopify::Exporting do
     end
 
     it "returns empty array for tags when product has no Shopify StoreInfo" do
-      product_without_store_info = create(:product, title: "No Store Info", franchise:, shape:)
+      product_without_store_info = create(:product, title: "No Store Info", franchise:, shape: "Statue")
       product_without_store_info.brands << brand
       product_without_store_info.store_infos.destroy_all
 

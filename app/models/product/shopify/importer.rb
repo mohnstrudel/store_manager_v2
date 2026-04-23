@@ -31,7 +31,7 @@ class Product::Shopify::Importer
       product.assign_attributes(
         title: parsed[:title],
         franchise: Franchise.find_or_create_by(title: parsed[:franchise]),
-        shape: Shape.find_or_create_by(title: parsed[:shape]),
+        shape: parsed[:shape].presence || Product.default_shape,
         description: normalize_description_html(parsed[:description])
       )
       assign_brand

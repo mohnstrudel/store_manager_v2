@@ -40,7 +40,7 @@ module Woo
         title: parsed_product[:title],
         woo_id: parsed_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
-        shape: Shape.find_or_create_by(title: parsed_product[:shape])
+        shape: parsed_product[:shape].presence || Product.default_shape
       })
 
       parsed_product[:brands]&.each do |i|
