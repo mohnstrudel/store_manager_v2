@@ -24,12 +24,12 @@ class Edition::Shopify::Importer
       edition.assign_attributes(edition_attrs)
       edition.save!
       if parsed[:store_id]
-        edition.link_shopify_info!(
+        edition.upsert_shopify_info!(
           store_id: parsed[:store_id],
           ext_created_at: parsed.dig(:store_info, :ext_created_at),
-          ext_updated_at: parsed.dig(:store_info, :ext_updated_at)
+          ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
+          pull_time: Time.zone.now
         )
-        edition.mark_shopify_pulled!
       end
     end
 

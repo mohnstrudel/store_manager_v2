@@ -60,7 +60,7 @@ class Woo::Edition
         edition = product.editions.find_by(prepared_options)
         if edition.blank?
           edition = product.editions.build(prepared_options)
-          product.fill_edition_sku!(edition, "woo-#{product.id}-#{parsed_edition[:woo_id]}")
+          product.fill_edition_sku(edition, "woo-#{product.id}-#{parsed_edition[:woo_id]}")
           edition.save!
         end
       end

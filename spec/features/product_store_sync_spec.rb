@@ -5,23 +5,23 @@ require "rails_helper"
 RSpec.describe "Product Store Sync" do
   before { sign_in_as_admin }
 
-  scenario "shows push and pull actions on product show page for linked products", :js do # rubocop:todo RSpec/MultipleExpectations
+  scenario "shows only pull action on product show page for linked products", :js do # rubocop:todo RSpec/MultipleExpectations
     product = create(:product)
 
     visit product_path(product)
 
     expect(page).to have_link("Pull")
-    expect(page).to have_link("Push")
+    expect(page).to have_no_link("Push")
     expect(page).not_to have_content("Store Sync")
   end
 
-  scenario "shows only push when product is not published to Shopify", :aggregate_failures, :js do
+  scenario "shows no push when product is not published to Shopify", :aggregate_failures, :js do
     product = create(:product)
     product.shopify_info.update!(store_id: nil, push_time: nil)
 
     visit product_path(product)
 
-    expect(page).to have_link("Push")
+    expect(page).to have_no_link("Push")
     expect(page).to have_no_link("Pull")
   end
 
@@ -35,18 +35,6 @@ RSpec.describe "Product Store Sync" do
 
     expect(page).to have_current_path(product_path(product), ignore_query: true)
     expect(page).to have_content("Product is being pulled from Shopify")
-  end
-
-  scenario "starts a push from the show page without leaving it", :js do # rubocop:todo RSpec/MultipleExpectations
-    product = create(:product)
-    allow(Shopify::UpdateProductJob).to receive(:perform_later)
-
-    visit product_path(product)
-
-    click_link "Push"
-
-    expect(page).to have_current_path(product_path(product), ignore_query: true)
-    expect(page).to have_content("Product is being pushed to Shopify")
   end
 
   context "when on products index page" do

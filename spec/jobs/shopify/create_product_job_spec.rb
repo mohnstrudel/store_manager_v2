@@ -50,16 +50,15 @@ RSpec.describe Shopify::CreateProductJob do
     end
 
     it "updates or creates Shopify store info in the domain", :aggregate_failures do
-      allow(product).to receive(:link_shopify_info!).and_call_original
-      allow(product).to receive(:mark_shopify_pushed!).and_call_original
+      allow(product).to receive(:upsert_shopify_info!).and_call_original
 
       described_class.perform_now(product_id)
 
-      expect(product).to have_received(:link_shopify_info!).with(
+      expect(product).to have_received(:upsert_shopify_info!).with(
         store_id: "gid://shopify/Product/12345",
-        slug: "test-product"
+        slug: "test-product",
+        push_time: kind_of(Time)
       )
-      expect(product).to have_received(:mark_shopify_pushed!)
     end
 
     it "returns true on success" do
@@ -105,11 +104,9 @@ RSpec.describe Shopify::CreateProductJob do
       end
 
       it "does not update store info", :aggregate_failures do
-        allow(product).to receive(:link_shopify_info!)
-        allow(product).to receive(:mark_shopify_pushed!)
+        allow(product).to receive(:upsert_shopify_info!)
         described_class.perform_now(product_id)
-        expect(product).not_to have_received(:link_shopify_info!)
-        expect(product).not_to have_received(:mark_shopify_pushed!)
+        expect(product).not_to have_received(:upsert_shopify_info!)
       end
 
       it "does not enqueue options job" do
@@ -161,8 +158,7 @@ RSpec.describe Shopify::CreateProductJob do
       end
 
       it "does not create or update store info on error", :aggregate_failures do
-        allow(product).to receive(:link_shopify_info!)
-        allow(product).to receive(:mark_shopify_pushed!)
+        allow(product).to receive(:upsert_shopify_info!)
 
         begin
           described_class.perform_now(product_id)
@@ -170,8 +166,7 @@ RSpec.describe Shopify::CreateProductJob do
           # Expected error
         end
 
-        expect(product).not_to have_received(:link_shopify_info!)
-        expect(product).not_to have_received(:mark_shopify_pushed!)
+        expect(product).not_to have_received(:upsert_shopify_info!)
       end
 
       it "does not enqueue options job on error" do
@@ -204,11 +199,9 @@ RSpec.describe Shopify::CreateProductJob do
       end
 
       it "does not update store info", :aggregate_failures do
-        allow(product).to receive(:link_shopify_info!)
-        allow(product).to receive(:mark_shopify_pushed!)
+        allow(product).to receive(:upsert_shopify_info!)
         described_class.perform_now(product_id)
-        expect(product).not_to have_received(:link_shopify_info!)
-        expect(product).not_to have_received(:mark_shopify_pushed!)
+        expect(product).not_to have_received(:upsert_shopify_info!)
       end
     end
 

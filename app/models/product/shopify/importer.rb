@@ -41,14 +41,14 @@ class Product::Shopify::Importer
       product.save!
 
       if parsed[:store_id]
-        product.link_shopify_info!(
+        product.upsert_shopify_info!(
           store_id: parsed[:store_id],
           slug: parsed[:store_link],
           ext_created_at: parsed.dig(:store_info, :ext_created_at),
           ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
-          tag_list: parsed[:tags]
+          tag_list: parsed[:tags],
+          pull_time: Time.zone.now
         )
-        product.mark_shopify_pulled!
       end
     end
   end

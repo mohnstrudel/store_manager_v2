@@ -35,7 +35,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       created_editions[edition_key] ||= begin
         edition = Edition.find_by_shopify_id(parsed_edition[:id]) || Edition.new(product: product)
         edition.version = Version.find_or_create_by(value: parsed_edition[:title] || "Default")
-        product.fill_edition_sku!(edition, "shopify-sale-#{parsed_edition[:id] || parsed_edition[:title] || SecureRandom.hex(4)}")
+        product.fill_edition_sku(edition, "shopify-sale-#{parsed_edition[:id] || parsed_edition[:title] || SecureRandom.hex(4)}")
         edition.save!
         edition
       end

@@ -21,8 +21,7 @@ class Sale::Shopify::Importer
 
     ActiveRecord::Base.transaction do
       sale.update!(sale_attributes)
-      sale.link_shopify_info!(**parsed[:store_info])
-      sale.mark_shopify_pulled!
+      sale.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
       update_or_create_sale_items!
     end
 

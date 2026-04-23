@@ -19,16 +19,16 @@ module Shopable
     store_info
   end
 
-  def link_shopify_info!(**attributes)
+  def upsert_shopify_info!(**attributes)
     update_or_create_store_info!(store_name: :shopify, **attributes)
   end
 
   def mark_shopify_pushed!(at: Time.current)
-    update_or_create_store_info!(store_name: :shopify, push_time: at)
+    upsert_shopify_info!(push_time: at)
   end
 
   def mark_shopify_pulled!(at: Time.zone.now)
-    update_or_create_store_info!(store_name: :shopify, pull_time: at)
+    upsert_shopify_info!(pull_time: at)
   end
 
   def shopify_linked?

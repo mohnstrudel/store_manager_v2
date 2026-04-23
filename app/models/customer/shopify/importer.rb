@@ -23,8 +23,7 @@ class Customer::Shopify::Importer
       customer.update!(parsed.except(:store_info))
 
       if parsed[:store_info]
-        customer.link_shopify_info!(**parsed[:store_info])
-        customer.mark_shopify_pulled!
+        customer.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
       end
     end
 

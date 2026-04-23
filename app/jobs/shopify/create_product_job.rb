@@ -13,11 +13,11 @@ module Shopify
         product_store_id = product_response.fetch("id")
         product_slug = product_response.fetch("handle")
 
-        product.link_shopify_info!(
+        product.upsert_shopify_info!(
           store_id: product_store_id,
-          slug: product_slug
+          slug: product_slug,
+          push_time: Time.current
         )
-        product.mark_shopify_pushed!
 
         if product.media.any?
           Shopify::PushMediaJob.perform_later(product.id, product_store_id)

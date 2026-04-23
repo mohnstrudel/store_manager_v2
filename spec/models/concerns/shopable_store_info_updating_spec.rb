@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Shopable do
-  describe "#link_shopify_info!" do
+  describe "#upsert_shopify_info!" do
     let(:record) do
       create(:product_with_brands).tap do |created_product|
         created_product.store_infos.destroy_all
@@ -14,18 +14,18 @@ RSpec.describe Shopable do
 
     it "creates a Shopify store info when missing" do
       expect {
-        record.link_shopify_info!(store_id:, slug:)
+        record.upsert_shopify_info!(store_id:, slug:)
       }.to change { record.store_infos.shopify.count }.by(1)
     end
 
     it "stores the Shopify product ID" do
-      store_info = record.link_shopify_info!(store_id:, slug:)
+      store_info = record.upsert_shopify_info!(store_id:, slug:)
 
       expect(store_info.store_id).to eq("gid://shopify/Product/12345")
     end
 
     it "stores the product slug" do
-      store_info = record.link_shopify_info!(store_id:, slug:)
+      store_info = record.upsert_shopify_info!(store_id:, slug:)
 
       expect(store_info.slug).to eq("test-product")
     end
@@ -40,7 +40,7 @@ RSpec.describe Shopable do
 
       it "updates the existing Shopify store info", :aggregate_failures do
         expect {
-          record.link_shopify_info!(store_id:, slug:)
+          record.upsert_shopify_info!(store_id:, slug:)
         }.not_to change { record.store_infos.shopify.count }
 
         expect(existing_store_info.reload.store_id).to eq("gid://shopify/Product/12345")
