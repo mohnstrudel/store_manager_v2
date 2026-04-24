@@ -14,7 +14,6 @@ jobs:
       PGPASSWORD: postgres
       RAILS_ENV: test
       REDIS_HOST: redis
-      CI: true
 
     services:
       postgres:
@@ -27,10 +26,8 @@ jobs:
       redis:
         image: redis
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "redis-cli ping" --health-interval 10s --health-timeout
+          5s --health-retries 5
         ports: ["6379:6379"]
 
     steps:
