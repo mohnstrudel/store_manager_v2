@@ -82,12 +82,18 @@ RSpec.describe Shopify::PullEditionsJob do
 
     it "re-raises SKU collision errors" do
       allow(Edition::Shopify::Importer).to receive(:import!).and_raise(
-        StandardError.new("Validation failed: Sku has already been taken")
+        ActiveRecord::RecordInvalid.new(Edition.new.tap { |edition| edition.errors.add(:sku, "has already been taken") })
       )
 
       expect {
         job.perform(product, parsed_editions)
-      }.to raise_error(StandardError, /Sku has already been taken/)
+      }.to raise_error(StandardError) { |error|
+        expect(error.message).to include("Validation failed: Sku has already been taken")
+        expect(error.message).to include("product_id: #{product.id}")
+        expect(error.message).to include("product_shopify_id: #{product.shopify_info.store_id}")
+        expect(error.message).to include("edition_store_id: gid://shopify/ProductVariant/12345")
+        expect(error.message).to include("edition_sku: blank")
+      }
     end
   end
 end
