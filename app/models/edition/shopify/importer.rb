@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Edition::Shopify::Importer
-  class Error < StandardError; end
-
   attr_reader :product, :parsed, :edition
   private :product, :parsed, :edition
 
@@ -22,6 +20,7 @@ class Edition::Shopify::Importer
     product.with_lock do
       find_or_initialize_edition
       edition.assign_attributes(edition_attrs)
+      adopt_matching_sku_edition!
       edition.save!
       if parsed[:store_id]
         edition.upsert_shopify_info!(
@@ -34,8 +33,6 @@ class Edition::Shopify::Importer
     end
 
     edition
-  rescue ActiveRecord::RecordInvalid => e
-    handle_record_invalid(e)
   end
 
   private
@@ -50,6 +47,26 @@ class Edition::Shopify::Importer
 
   def belongs_to_different_product?
     edition&.product_id != product.id
+  end
+
+  def adopt_matching_sku_edition!
+    return if edition.sku.blank?
+
+    sku_match = Edition.find_by(sku: edition.sku)
+    return if sku_match.nil? || sku_match == edition
+
+    raise_sku_conflict!(sku_match) unless reusable_sku_match?(sku_match)
+
+    @edition = sku_match
+    edition.assign_attributes(edition_attrs.merge(product: product))
+  end
+
+  def reusable_sku_match?(sku_match)
+    return true if sku_match.product_id == product.id
+    return false if sku_match.shopify_linked? && sku_match.shopify_info.store_id != parsed[:store_id]
+    return false if sku_match.has_sales_or_purchases?
+
+    !sku_match.product&.shopify_linked?
   end
 
   def edition_attrs
@@ -106,10 +123,13 @@ class Edition::Shopify::Importer
     end
   end
 
-  def handle_record_invalid(error)
-    model_name = error.record.class.name
-    detailed_errors = error.record.errors.full_messages.join(", ")
-    store_id_details = "store_id: #{parsed[:store_id]}"
-    raise Error, "Failed to process #{model_name}: #{detailed_errors}\n#{store_id_details}"
+  def raise_sku_conflict!(sku_match)
+    edition.errors.add(
+      :sku,
+      "has already been taken by edition_id=#{sku_match.id} product_id=#{sku_match.product_id} " \
+      "shopify_id=#{sku_match.shopify_info&.store_id || "blank"} " \
+      "has_sales_or_purchases=#{sku_match.has_sales_or_purchases?}"
+    )
+    raise ActiveRecord::RecordInvalid.new(edition)
   end
 end

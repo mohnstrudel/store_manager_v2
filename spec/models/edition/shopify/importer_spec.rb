@@ -431,5 +431,48 @@ RSpec.describe Edition::Shopify::Importer do
         expect(edition.weight).to eq(0.0)
       end
     end
+
+    context "when the same sku already exists on a storeless edition from another product" do
+      let(:storeless_product) do
+        create(:product).tap do |existing_product|
+          existing_product.store_infos.destroy_all
+          existing_product.update_columns(shopify_id: nil, woo_id: nil)
+        end
+      end
+
+      let!(:existing_edition) do
+        create(:edition, product: storeless_product, sku: parsed_variant[:sku]).tap do |edition|
+          edition.store_infos.destroy_all
+          edition.update_columns(shopify_id: nil, woo_id: nil)
+        end
+      end
+
+      it "reuses the existing edition instead of creating a duplicate sku" do # rubocop:todo RSpec/MultipleExpectations
+        expect { described_class.import!(product, parsed_variant) }.not_to change(Edition, :count)
+
+        existing_edition.reload
+        expect(existing_edition.product).to eq(product)
+        expect(existing_edition.shopify_info.store_id).to eq(parsed_variant[:store_id])
+        expect(existing_edition.version.value).to eq("Deluxe")
+        expect(existing_edition.size.value).to eq("Large")
+        expect(existing_edition.color.value).to eq("Red")
+      end
+    end
+
+    context "when the same sku already exists on another linked product" do
+      let!(:conflicting_edition) { create(:edition, sku: parsed_variant[:sku]) }
+
+      it "raises a conflict with detailed diagnostic context" do
+        expect {
+          described_class.import!(product, parsed_variant)
+        }.to raise_error(ActiveRecord::RecordInvalid) { |error|
+          expect(error.message).to include("Sku has already been taken")
+          expect(error.message).to include("edition_id=#{conflicting_edition.id}")
+          expect(error.message).to include("product_id=#{conflicting_edition.product_id}")
+          expect(error.message).to include("shopify_id=#{conflicting_edition.shopify_info.store_id}")
+          expect(error.message).to include("has_sales_or_purchases=false")
+        }
+      end
+    end
   end
 end
