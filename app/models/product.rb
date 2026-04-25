@@ -45,11 +45,13 @@ class Product < ApplicationRecord
   paginates_per 50
 
   set_search_scope :search,
-    against: [:full_title, :woo_id],
+    against: [:id, :full_title, :woo_id],
     associated_against: {
       sizes: [:value],
       versions: [:value],
-      colors: [:value]
+      colors: [:value],
+      editions: [:sku],
+      store_infos: [:store_id]
     },
     using: {
       tsearch: {prefix: true}
