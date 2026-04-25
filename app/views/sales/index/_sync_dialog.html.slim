@@ -1,4 +1,4 @@
-- subheading = "Previously run on #{Config.shopify_sales_sync_time}" if Config.shopify_sales_sync_time.present?
+- last_sync = Config.shopify_sales_sync_time
 
 li data-controller="dialog" data-dialog-modal-value="true" data-action="keydown.esc->dialog#close click@document->dialog#closeOnClickOutside"
   = link_to "#", class: "btn-rounded", data: {action: "click->dialog#open:stop"} do
@@ -10,12 +10,15 @@ li data-controller="dialog" data-dialog-modal-value="true" data-action="keydown.
       header.nav_header.mb-6.pb-4
         hgroup
           h2 Sales Synchronization
-          - if subheading.present?
-            h4.font-medium = subheading
+          - if last_sync.present?
+            h4.font-medium Last sync: #{last_sync}
         button.btn.is-muted.is-inverted.small aria-label="Close" rel="prev" data-action="dialog#close"
           i.icn ❌
 
-      menu.flex.flex-col.gap-4.justify-between.pb-4
-        li = button_to "Pull Last 50 Sales", sales_bulk_pull_path(limit: 50), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
-        li = button_to "Pull Everything", sales_bulk_pull_path, class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
-        li = link_to "Track Jobs Progress", "/jobs/statuses", class: "w-full h-15"
+      menu.flex.flex-col.gap-4
+        li
+          = button_to "Pull Last 50 Sales", sales_bulk_pull_path(limit: 50), class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
+        li
+          = button_to "Pull Everything", sales_bulk_pull_path, class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
+        li
+          = link_to "Track Jobs Progress", "/jobs/statuses", class: "w-full h-15"

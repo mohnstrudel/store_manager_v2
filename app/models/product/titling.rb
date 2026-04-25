@@ -13,7 +13,7 @@ module Product::Titling
   end
 
   def find_slug_candidate
-    sku.presence || full_title
+    full_title
   end
 
   private

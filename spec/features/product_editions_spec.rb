@@ -17,6 +17,14 @@ RSpec.describe "Product Editions Management" do
   let!(:product) { create(:product) }
   let!(:color) { create(:color, value: "Red") }
   let!(:version) { create(:version, value: "Deluxe") }
+  let(:variant_edition) { product.editions.find { |edition| edition.version_id.present? || edition.color_id.present? || edition.size_id.present? } }
+
+  def variant_section
+    all(".edition-fields").find do |section|
+      title = section.find("[data-edition-fields-target='title']").text
+      title.include?(version.value) && title.include?(color.value)
+    end
+  end
 
   # === SECTION 1: Display ===
   context "Displaying editions" do
@@ -30,7 +38,7 @@ RSpec.describe "Product Editions Management" do
     scenario "displays all edition attributes in form fields", :rubocop_todo do
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_field("SKU")
         expect(page).to have_field("Weight (kg)")
@@ -45,7 +53,7 @@ RSpec.describe "Product Editions Management" do
     scenario "shows edition title with size, version, and color", :rubocop_todo do
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         title_element = find("[data-edition-fields-target='title']")
         expect(title_element).to have_content("Deluxe")
@@ -54,12 +62,12 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "shows deactivated editions with muted styling", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
       edition.update!(deactivated_at: Time.current)
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       expect(edition_section[:class]).to include("opacity-50")
       within edition_section do
         expect(page).to have_content("(Deactivated)")
@@ -67,12 +75,12 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "displays deactivated label for deactivated editions", :js do
-      edition = product.editions.first
+      edition = variant_edition
       edition.update!(deactivated_at: Time.current)
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_content("(Deactivated)")
       end
@@ -82,11 +90,11 @@ RSpec.describe "Product Editions Management" do
   # === SECTION 2: Editing Editions ===
   context "Editing existing editions" do
     scenario "updates edition SKU", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "SKU", with: "NEW-SKU-123"
       end
@@ -100,11 +108,11 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "updates edition weight", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "Weight (kg)", with: "2.5"
       end
@@ -118,11 +126,11 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "updates edition purchase cost", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "Purchase Cost", with: "35.00"
       end
@@ -136,11 +144,11 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "updates edition selling price", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "Selling Price", with: "79.99"
       end
@@ -154,11 +162,11 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "updates all pricing fields together", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "Weight (kg)", with: "1.5"
         fill_in "Purchase Cost", with: "25.00"
@@ -180,7 +188,7 @@ RSpec.describe "Product Editions Management" do
 
       fill_in "product_title", with: ""
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "SKU", with: "EDITION-SKU-123"
         fill_in "Weight (kg)", with: "3.5"
@@ -192,7 +200,7 @@ RSpec.describe "Product Editions Management" do
 
       expect(page).to have_content("Fix errors and try again")
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_field("SKU", with: "EDITION-SKU-123")
         expect(page).to have_field("Weight (kg)", with: "3.5")
@@ -205,12 +213,12 @@ RSpec.describe "Product Editions Management" do
   # === SECTION 3: Edition Destruction ===
   context "Destroying and deactivating editions" do
     scenario "hard destroys edition without sales or purchases", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
       edition_count = product.editions.count
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_content("Destroy?")
         check "Destroy?"
@@ -225,13 +233,13 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "soft deletes edition with sale items", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
       sale = create(:sale)
       SaleItem.create!(product: product, edition: edition, sale: sale, qty: 1)
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_content("Deactivate?")
         check "Deactivate?"
@@ -247,13 +255,13 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "soft deletes edition with purchases", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
       supplier = create(:supplier)
       Purchase.create!(product: product, edition: edition, supplier: supplier, amount: 1, item_price: 10)
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_content("Deactivate?")
         check "Deactivate?"
@@ -269,13 +277,13 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "shows Deactivate checkbox for editions with sales", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
       sale = create(:sale)
       SaleItem.create!(product: product, edition: edition, sale: sale, qty: 1)
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_content("Deactivate?")
         expect(page).not_to have_content("Destroy?")
@@ -285,7 +293,7 @@ RSpec.describe "Product Editions Management" do
     scenario "shows Destroy checkbox for editions without sales/purchases", :rubocop_todo do
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_content("Destroy?")
         expect(page).not_to have_content("Deactivate?")
@@ -293,12 +301,12 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "prevents checkbox interaction for deactivated editions", :rubocop_todo do
-      edition = product.editions.first
+      edition = variant_edition
       edition.update!(deactivated_at: Time.current)
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       expect(edition_section[:class]).to include("opacity-50")
       within edition_section do
         expect(page).to have_content("(Deactivated)")
@@ -399,15 +407,14 @@ RSpec.describe "Product Editions Management" do
       sections = all(".edition-fields")
 
       # Remove the first new edition
-      within sections[1] do
+      within all(".edition-fields").last(2).first do
         click_link "Remove"
       end
 
       expect(all(".edition-fields").count).to eq(count_after_add - 1)
 
       # Remove the second new edition
-      sections = all(".edition-fields")
-      within sections[1] do
+      within all(".edition-fields").last do
         click_link "Remove"
       end
 
@@ -481,7 +488,7 @@ RSpec.describe "Product Editions Management" do
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         original_title = find("[data-edition-fields-target='title']").text
 
@@ -500,7 +507,7 @@ RSpec.describe "Product Editions Management" do
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         # Store the original title
         title_element = find("[data-edition-fields-target='title']")
@@ -554,19 +561,19 @@ RSpec.describe "Product Editions Management" do
   # === SECTION 7: Opacity Styling ===
   context "Opacity styling" do
     scenario "deactivated editions have opacity-50 class", :js do
-      edition = product.editions.first
+      edition = variant_edition
       edition.update!(deactivated_at: Time.current)
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       expect(edition_section[:class]).to include("opacity-50")
     end
 
     scenario "checking destroy checkbox applies opacity-50 class", :js do
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       # Style may be nil initially, which is fine
       initial_style = edition_section[:style]
       expect(initial_style.nil? || initial_style.exclude?("opacity")).to be true
@@ -581,7 +588,7 @@ RSpec.describe "Product Editions Management" do
     scenario "unchecking destroy checkbox removes opacity-50 class", :js do
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
 
       within edition_section do
         check "Destroy?"
@@ -615,7 +622,7 @@ RSpec.describe "Product Editions Management" do
 
       fill_in "product_title", with: ""
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "SKU", with: "EDITION-SKU-123"
         fill_in "Weight (kg)", with: "3.5"
@@ -627,7 +634,7 @@ RSpec.describe "Product Editions Management" do
 
       expect(page).to have_content("Fix errors and try again")
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         expect(page).to have_field("SKU", with: "EDITION-SKU-123")
         expect(page).to have_field("Weight (kg)", with: "3.5")
@@ -639,7 +646,7 @@ RSpec.describe "Product Editions Management" do
     scenario "clears errors after successful update", :js do
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "SKU", with: "VALID-SKU"
       end
@@ -661,7 +668,7 @@ RSpec.describe "Product Editions Management" do
     scenario "editing existing edition with duplicate SKU shows inline error" do
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "SKU", with: "EXISTING-SKU-999"
       end
@@ -741,7 +748,7 @@ RSpec.describe "Product Editions Management" do
       product.save
 
       # Build and create an edition with just the size (no version, no color)
-      duplicate_edition = product.editions.build(size: new_size, version: nil, color: nil)
+      duplicate_edition = product.editions.build(size: new_size, version: nil, color: nil, sku: "large-only-duplicate")
       duplicate_edition.save!
 
       # Verify the duplicate edition was created correctly
@@ -769,11 +776,11 @@ RSpec.describe "Product Editions Management" do
     end
 
     scenario "successful update redirects to product show page" do
-      edition = product.editions.first
+      edition = variant_edition
 
       visit edit_product_path(product)
 
-      edition_section = find(".edition-fields")
+      edition_section = variant_section
       within edition_section do
         fill_in "SKU", with: "UNIQUE-SKU-456"
       end

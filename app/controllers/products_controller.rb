@@ -24,11 +24,13 @@ class ProductsController < ApplicationController
   # GET /products/new
   def new
     @product = Product.new
+    @product.build_base_edition
     @purchase = default_purchase
   end
 
   # GET /products/1/edit
   def edit
+    @product.build_base_edition
   end
 
   # POST /products or /products.json
@@ -47,10 +49,12 @@ class ProductsController < ApplicationController
 
       format.html { redirect_to @product, notice: "Product was successfully created" }
       format.json { render :show, status: :created, location: @product }
-    rescue ActiveRecord::RecordInvalid => e
-      handle_failed_create(format, editing_payload.purchase_attributes)
-    rescue ActiveRecord::RecordNotUnique
-      handle_failed_create(format, editing_payload.purchase_attributes)
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+      prepare_form_options
+      @purchase = build_purchase_for_form(editing_payload.purchase_attributes)
+
+      format.html { render :new, status: :unprocessable_content }
+      format.json { render json: @product.errors, status: :unprocessable_content }
     end
   end
 
@@ -71,6 +75,7 @@ class ProductsController < ApplicationController
       format.json { render :show, status: :ok, location: @product }
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
       prepare_form_options
+
       format.html { render :edit, status: :unprocessable_content }
       format.json { render json: @product.errors, status: :unprocessable_content }
     end
@@ -96,7 +101,7 @@ class ProductsController < ApplicationController
   def prepare_form_options
     @franchise_options = Franchise.order(:title)
     @brand_options = Brand.order(:title)
-    @shape_options = Shape.order(:title)
+    @shape_options = Product.shape_options
     @size_options = Size.order(:value)
     @version_options = Version.order(:value)
     @color_options = Color.order(:value)
@@ -106,14 +111,6 @@ class ProductsController < ApplicationController
 
   def default_purchase
     Purchase.new(warehouse_id: Warehouse.find_by(is_default: true)&.id)
-  end
-
-  def handle_failed_create(format, purchase_attributes)
-    prepare_form_options
-    @purchase = build_purchase_for_form(purchase_attributes)
-
-    format.html { render :new, status: :unprocessable_content }
-    format.json { render json: @product.errors, status: :unprocessable_content }
   end
 
   def build_purchase_for_form(purchase_attributes)

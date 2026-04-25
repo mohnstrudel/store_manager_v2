@@ -13,19 +13,17 @@
     h5 Size
     p = format_relation(product.sizes, "value")
     h5 Shape
-    p = product.shape.title
+    p = product.shape
     h5 Color
     p = format_relation(product.colors, "value")
 
   .card
     h5 ID
     p = product.id
-    h5 SKU
-    p = product.sku.presence || "-"
-    h5 Created
-    p = format_date product.created_at
-    h5 Updated
-    p = format_date product.updated_at
+    h5 Created At
+    = render_product_timestamp_columns product, :created_at
+    h5 Updated At
+    = render_product_timestamp_columns product, :updated_at
     h5 Woo ID
     - if product.woo_info.present? && product.woo_info.store_id.present?
       - woo_url = product.woo_info.product_url

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Edition::Shopify::Importer
-  class Error < StandardError; end
-
   attr_reader :product, :parsed, :edition
   private :product, :parsed, :edition
 
@@ -19,18 +17,22 @@ class Edition::Shopify::Importer
   end
 
   def update_or_create!
-    return nil if parsed[:options].blank?
-
     product.with_lock do
       find_or_initialize_edition
       edition.assign_attributes(edition_attrs)
+      adopt_matching_sku_edition!
       edition.save!
-      update_shopify_store_info! if parsed[:store_id]
+      if parsed[:store_id]
+        edition.upsert_shopify_info!(
+          store_id: parsed[:store_id],
+          ext_created_at: parsed.dig(:store_info, :ext_created_at),
+          ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
+          pull_time: Time.zone.now
+        )
+      end
     end
 
     edition
-  rescue ActiveRecord::RecordInvalid => e
-    handle_record_invalid(e)
   end
 
   private
@@ -45,6 +47,26 @@ class Edition::Shopify::Importer
 
   def belongs_to_different_product?
     edition&.product_id != product.id
+  end
+
+  def adopt_matching_sku_edition!
+    return if edition.sku.blank?
+
+    sku_match = Edition.find_by(sku: edition.sku)
+    return if sku_match.nil? || sku_match == edition
+
+    raise_sku_conflict!(sku_match) unless reusable_sku_match?(sku_match)
+
+    @edition = sku_match
+    edition.assign_attributes(edition_attrs.merge(product: product))
+  end
+
+  def reusable_sku_match?(sku_match)
+    return true if sku_match.product_id == product.id
+    return false if sku_match.shopify_linked? && sku_match.shopify_info.store_id != parsed[:store_id]
+    return false if sku_match.has_sales_or_purchases?
+
+    !sku_match.product&.shopify_linked?
   end
 
   def edition_attrs
@@ -63,7 +85,7 @@ class Edition::Shopify::Importer
 
   def build_edition_attrs
     attributes = {}
-    attributes[:sku] = parsed[:sku] if parsed[:sku].present?
+    attributes[:sku] = parsed[:sku].presence || generated_fallback_sku
     attributes[:selling_price] = parsed[:selling_price] if parsed[:selling_price].present?
     attributes[:purchase_cost] = parsed[:purchase_cost] if parsed[:purchase_cost].present?
     attributes[:weight] = parsed[:weight] if parsed[:weight].present?
@@ -87,21 +109,27 @@ class Edition::Shopify::Importer
     attributes
   end
 
-  def update_shopify_store_info!
-    store_info = edition.shopify_info || edition.store_infos.shopify.new
-    store_info.assign_attributes(
-      store_id: parsed[:store_id],
-      pull_time: Time.zone.now,
-      ext_created_at: parsed.dig(:store_info, :ext_created_at),
-      ext_updated_at: parsed.dig(:store_info, :ext_updated_at)
-    )
-    store_info.save!
+  def generated_fallback_sku
+    store_id_segment = parsed[:store_id].to_s.split("/").last.presence || SecureRandom.hex(4)
+    seed = "shopify-#{product.id}-#{store_id_segment}"
+    return seed unless Edition.exists?(sku: seed)
+
+    suffix = 2
+    loop do
+      candidate = "#{seed}-#{suffix}"
+      return candidate unless Edition.exists?(sku: candidate)
+
+      suffix += 1
+    end
   end
 
-  def handle_record_invalid(error)
-    model_name = error.record.class.name
-    detailed_errors = error.record.errors.full_messages.join(", ")
-    store_id_details = "store_id: #{parsed[:store_id]}"
-    raise Error, "Failed to process #{model_name}: #{detailed_errors}\n#{store_id_details}"
+  def raise_sku_conflict!(sku_match)
+    edition.errors.add(
+      :sku,
+      "has already been taken by edition_id=#{sku_match.id} product_id=#{sku_match.product_id} " \
+      "shopify_id=#{sku_match.shopify_info&.store_id || "blank"} " \
+      "has_sales_or_purchases=#{sku_match.has_sales_or_purchases?}"
+    )
+    raise ActiveRecord::RecordInvalid.new(edition)
   end
 end

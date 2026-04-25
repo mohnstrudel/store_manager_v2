@@ -25,7 +25,11 @@ module Woo
     end
 
     def create_sales(parsed_orders)
+      current_order = nil
+
       parsed_orders.each do |order|
+        current_order = order
+
         ActiveRecord::Base.transaction do
           customer_id = get_customer_id(order[:customer])
           sale = get_sale(order[:sale].merge(customer_id:))
@@ -62,14 +66,14 @@ module Woo
         end
       end
     rescue ActiveRecord::RecordInvalid => e
-      Rails.logger.error "!!! Validation error for order #{order.dig(:sale, :woo_id)}: #{e.message}"
+      Rails.logger.error "!!! Validation error for order #{current_order&.dig(:sale, :woo_id)}: #{e.message}"
       Rails.logger.error "!!! Failed record: #{e.record&.attributes}"
       raise
     rescue ActiveRecord::StatementInvalid => e
-      Rails.logger.error "!!! Database error for order #{order.dig(:sale, :woo_id)}: #{e.message}"
+      Rails.logger.error "!!! Database error for order #{current_order&.dig(:sale, :woo_id)}: #{e.message}"
       raise
     rescue => e
-      Rails.logger.error "!!! Unexpected error for order #{order.dig(:sale, :woo_id)}: #{e.class} - #{e.message}"
+      Rails.logger.error "!!! Unexpected error for order #{current_order&.dig(:sale, :woo_id)}: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       raise
     end

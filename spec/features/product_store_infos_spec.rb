@@ -314,7 +314,6 @@ RSpec.describe "Product Store Info Management" do
 
   scenario "adds store info while creating a new product", :js do # rubocop:todo RSpec/MultipleExpectations
     franchise = create(:franchise)
-    shape = create(:shape)
 
     visit new_product_path
 
@@ -323,8 +322,7 @@ RSpec.describe "Product Store Info Management" do
     franchise_select = find("select[name='product[franchise_id]']", visible: :all)
     page.execute_script("arguments[0].value = arguments[1]", franchise_select, franchise.id.to_s)
 
-    shape_select = find("select[name='product[shape_id]']", visible: :all)
-    page.execute_script("arguments[0].value = arguments[1]", shape_select, shape.id.to_s)
+    expect(find("select[name='product[shape]']", visible: :all).value).to eq(Product.default_shape)
 
     click_button "Add Store Info"
 
@@ -337,7 +335,7 @@ RSpec.describe "Product Store Info Management" do
 
     expect(page).to have_content("Product was successfully created")
 
-    created_product = Product.find_by!(sku: "new-product-store-info")
+    created_product = Edition.find_by!(sku: "new-product-store-info").product
     expect(created_product.shopify_info).to be_present
     expect(created_product.shopify_info.tag_list).to contain_exactly("featured", "launch")
   end

@@ -397,16 +397,14 @@ RSpec.describe MediaFormHandling do
 
     describe "POST #create with new images" do
       let(:franchise) { create(:franchise) }
-      let(:shape) { create(:shape) }
 
       it "attaches new images to the product" do
         initial_count = Media.count
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
           }
         }
@@ -418,9 +416,8 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
           }
         }
@@ -432,9 +429,8 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
           }
         }
@@ -447,9 +443,8 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Test Product",
-            sku: "TEST-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
           }
         }
@@ -465,9 +460,8 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image]
           }
         }
@@ -483,9 +477,8 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image]
           }
         }
@@ -501,9 +494,8 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image]
           }
         }
@@ -518,9 +510,8 @@ RSpec.describe MediaFormHandling do
         post :create, params: {
           product: {
             title: "Another Product",
-            sku: "ANOTHER-#{rand(1000..9999)}",
             franchise_id: franchise.id,
-            shape_id: shape.id,
+            shape: Product.default_shape,
             new_images: [create_test_image]
           }
         }
@@ -539,7 +530,7 @@ RSpec.describe MediaFormHandling do
           product: {
             title: product.title,
             franchise_id: product.franchise_id,
-            shape_id: product.shape_id,
+            shape: product.shape,
             media: {
               "0" => {id: first_media.id.to_s, alt: "Updated alt"}
             }
@@ -555,7 +546,7 @@ RSpec.describe MediaFormHandling do
           product: {
             title: product.title,
             franchise_id: product.franchise_id,
-            shape_id: product.shape_id,
+            shape: product.shape,
             media: {},
             new_images: [create_test_image(filename: "new.jpg")]
           }

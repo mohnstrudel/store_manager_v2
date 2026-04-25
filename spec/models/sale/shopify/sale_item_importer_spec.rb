@@ -255,7 +255,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         expect {
           described_class.new(sale, parsed_sale_item).import!
         }.to change(SaleItem, :count).by(1)
-          .and change(Edition, :count).by(1)
+          .and change(Edition, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
         sale_item = SaleItem.last
         expect(sale_item.product).to eq(imported_product)

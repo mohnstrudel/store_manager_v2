@@ -21,7 +21,7 @@ class Sale::Shopify::Importer
 
     ActiveRecord::Base.transaction do
       sale.update!(sale_attributes)
-      update_or_create_store_info!
+      sale.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
       update_or_create_sale_items!
     end
 
@@ -39,12 +39,6 @@ class Sale::Shopify::Importer
 
   def sale_attributes
     parsed[:sale].merge(customer: Customer::Shopify::Importer.import!(parsed[:customer]))
-  end
-
-  def update_or_create_store_info!
-    store_info = sale.shopify_info || sale.store_infos.shopify.new
-    store_info.assign_attributes(**parsed[:store_info], pull_time: Time.zone.now)
-    store_info.save!
   end
 
   def update_or_create_sale_items!

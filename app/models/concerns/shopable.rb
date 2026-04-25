@@ -12,7 +12,26 @@ module Shopable
       dependent: :destroy, inverse_of: :storable
   end
 
-  def shopify_published?
+  def update_or_create_store_info!(store_name:, **attributes)
+    store_info = store_infos.find_or_initialize_by(store_name:)
+    store_info.assign_attributes(attributes)
+    store_info.save!
+    store_info
+  end
+
+  def upsert_shopify_info!(**attributes)
+    update_or_create_store_info!(store_name: :shopify, **attributes)
+  end
+
+  def mark_shopify_pushed!(at: Time.current)
+    upsert_shopify_info!(push_time: at)
+  end
+
+  def mark_shopify_pulled!(at: Time.zone.now)
+    upsert_shopify_info!(pull_time: at)
+  end
+
+  def shopify_linked?
     shopify_info&.store_id.present?
   end
 

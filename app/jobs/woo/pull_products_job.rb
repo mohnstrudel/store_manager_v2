@@ -40,7 +40,7 @@ module Woo
         title: parsed_product[:title],
         woo_id: parsed_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
-        shape: Shape.find_or_create_by(title: parsed_product[:shape])
+        shape: parsed_product[:shape].presence || Product.default_shape
       })
 
       parsed_product[:brands]&.each do |i|
@@ -65,13 +65,6 @@ module Woo
         if product.colors.find_by(value: i).nil?
           product.colors << Color.find_or_create_by(value: i)
         end
-      end
-
-      # Generate SKU if missing
-      if product.sku.blank?
-        title_for_sku = product.full_title.presence || "#{product.franchise.title} #{product.title}"
-        base_sku = title_for_sku.parameterize[0..50]
-        product.sku = "#{base_sku}-#{SecureRandom.uuid[0..7]}"
       end
 
       product.save!

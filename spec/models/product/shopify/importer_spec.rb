@@ -27,7 +27,6 @@ RSpec.describe Product::Shopify::Importer do
     it "creates a new product with correct attributes" do # rubocop:todo RSpec/MultipleExpectations
       expect { described_class.import!(parsed_product) }.to change(Product, :count).by(1)
         .and change(Franchise, :count).by(1)
-        .and change(Shape, :count).by(1)
         .and change(Brand, :count).by(1)
         .and change(Size, :count).by(1)
 
@@ -36,19 +35,19 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.shopify_info.slug).to eq("stellar-blade-eve-statue")
       expect(product.title).to eq("Eve")
       expect(product.franchise.title).to eq("Stellar Blade")
-      expect(product.shape.title).to eq("Statue")
+      expect(product.shape).to eq("Statue")
       expect(product.brands.first.title).to eq("Light and Dust Studio")
       expect(product.sizes.first.value).to eq("1:4")
     end
 
     it "enqueues sync jobs for editions and media" do # rubocop:todo RSpec/MultipleExpectations
       allow(Shopify::PullEditionsJob).to receive(:perform_later)
-      allow(Shopify::PullMediaJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
       product = described_class.import!(parsed_product)
 
       expect(Shopify::PullEditionsJob).to have_received(:perform_later).with(product, parsed_product[:editions])
-      expect(Shopify::PullMediaJob).to have_received(:perform_later).with(product.id, parsed_product[:media])
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
     end
 
     it "generates correct full title" do
@@ -56,9 +55,26 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")
     end
 
-    it "uses provided SKU" do
-      product = described_class.import!(parsed_product)
-      expect(product.sku).to eq("TEST-SKU-001")
+    it "does not route a variant SKU to the base edition for multi-variant products" do
+      product = described_class.import!(parsed_product.merge(
+        sku: "TEST-SKU-001",
+        editions: [
+          {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: false},
+          {store_id: "gid://shopify/ProductVariant/67891", is_single_variant: false}
+        ]
+      ))
+
+      expect(product.base_edition.sku).not_to eq("TEST-SKU-001")
+    end
+
+    it "routes provided SKU to the base edition for single-variant products" do
+      product = described_class.import!(parsed_product.merge(
+        editions: [
+          {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: true}
+        ]
+      ))
+
+      expect(product.base_edition.sku).to eq("TEST-SKU-001")
     end
 
     it "saves Shopify ID to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
@@ -132,7 +148,7 @@ RSpec.describe Product::Shopify::Importer do
         )
       end
 
-      it "normalizes HTML by unwrapping p tags inside li" do
+      it "normalizes HTML by unwrapping p tags inside li", :aggregate_failures do
         product = described_class.import!(parsed_product_with_list)
         product.reload
 
@@ -150,7 +166,7 @@ RSpec.describe Product::Shopify::Importer do
         )
       end
 
-      it "normalizes HTML by unwrapping div tags inside li" do
+      it "normalizes HTML by unwrapping div tags inside li", :aggregate_failures do
         product = described_class.import!(parsed_product_with_div_list)
         product.reload
 
@@ -243,11 +259,11 @@ RSpec.describe Product::Shopify::Importer do
         create(:product,
           title: "Eve",
           franchise: create(:franchise, title: "Stellar Blade"),
-          shape: create(:shape, title: "Statue"),
-          sku: "storeless-eve-sku").tap do |product|
+          shape: "Statue").tap do |product|
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: nil)
           product.reload
+          product.base_edition.update!(sku: "storeless-eve-sku")
           product.brands << create(:brand, title: "Light and Dust Studio")
           product.sizes << create(:size, value: "1:4")
         end
@@ -267,7 +283,7 @@ RSpec.describe Product::Shopify::Importer do
 
         existing_product.reload
         expect(existing_product.title).to eq("Eve")
-        expect(existing_product.sku).to eq("storeless-eve-sku")
+        expect(existing_product.base_edition.sku).to eq("storeless-eve-sku")
       end
     end
 
@@ -276,11 +292,11 @@ RSpec.describe Product::Shopify::Importer do
         create(:product,
           title: "Eve",
           franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
-          shape: Shape.find_or_create_by!(title: "Statue"),
-          sku: "woo-linked-eve-sku").tap do |product|
+          shape: "Statue").tap do |product|
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: "woo-product-123")
           product.reload
+          product.base_edition.update!(sku: "woo-linked-eve-sku")
           product.store_infos.create!(store_name: :woo, store_id: "woo-product-123", pull_time: Time.zone.now)
           product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
           product.sizes << Size.find_or_create_by!(value: "1:4")
@@ -292,7 +308,7 @@ RSpec.describe Product::Shopify::Importer do
 
         existing_product.reload
         expect(existing_product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
-        expect(existing_product.sku).to eq("woo-linked-eve-sku")
+        expect(existing_product.base_edition.sku).to eq("woo-linked-eve-sku")
       end
     end
 
@@ -302,8 +318,8 @@ RSpec.describe Product::Shopify::Importer do
           shopify_id: "gid://shopify/Product/already-linked",
           title: "Eve",
           franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
-          shape: Shape.find_or_create_by!(title: "Statue"),
-          sku: "already-linked-sku").tap do |product|
+          shape: "Statue").tap do |product|
+          product.base_edition.update!(sku: "already-linked-sku")
           product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
           product.sizes << Size.find_or_create_by!(value: "1:4")
         end
@@ -332,7 +348,6 @@ RSpec.describe Product::Shopify::Importer do
         expect { described_class.import!(parsed_product_with_nil_values) }
           .to change(Product, :count).by(1)
           .and change(Franchise, :count).by(1)
-          .and change(Shape, :count).by(1)
           .and change(Brand, :count).by(0) # rubocop:todo RSpec/ChangeByZero
           .and change(Size, :count).by(0) # rubocop:todo RSpec/ChangeByZero
       end
@@ -353,17 +368,17 @@ RSpec.describe Product::Shopify::Importer do
     context "when no media are provided" do
       let(:parsed_product_no_media) { parsed_product.merge(media: nil) }
 
-      it "does not enqueue PullMediaJob" do
-        allow(Shopify::PullMediaJob).to receive(:perform_later)
+      it "does not enqueue ImportMediaJob" do
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         described_class.import!(parsed_product_no_media)
 
-        expect(Shopify::PullMediaJob).not_to have_received(:perform_later)
+        expect(Shopify::ImportMediaJob).not_to have_received(:perform_later)
       end
     end
 
     context "when no shopify_id is provided" do
-      let(:parsed_product_no_id) { parsed_product.except(:shopify_id) }
+      let(:parsed_product_no_id) { parsed_product.except(:store_id) }
 
       it "creates a new product without store_info" do # rubocop:todo RSpec/MultipleExpectations
         product = described_class.import!(parsed_product_no_id)
@@ -408,16 +423,10 @@ RSpec.describe Product::Shopify::Importer do
       end
     end
 
-    context "when shape already exists" do
-      let!(:existing_shape) { create(:shape, title: "Statue") }
+    it "assigns the parsed shape directly to the product" do
+      product = described_class.import!(parsed_product.merge(shape: "Bust"))
 
-      it "uses existing shape instead of creating new one" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(parsed_product) }
-          .to change(Product, :count).by(1)
-          .and change(Shape, :count).by(0) # rubocop:todo RSpec/ChangeByZero
-
-        expect(Product.last.shape).to eq(existing_shape)
-      end
+      expect(product.shape).to eq("Bust")
     end
   end
 

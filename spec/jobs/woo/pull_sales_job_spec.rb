@@ -316,5 +316,21 @@ RSpec.describe Woo::PullSalesJob do
         expect { job.create_sales([parsed_order_with_missing_product]) }.not_to raise_error
       end
     end
+
+    context "when an unexpected error happens while processing an order" do
+      it "keeps the current order available for rescue logging" do
+        allow(job).to receive(:get_customer_id).and_return(1)
+        allow(job).to receive(:get_sale).and_raise(StandardError, "boom")
+        allow(Rails.logger).to receive(:error)
+
+        expect do
+          job.create_sales([sample_parsed_order])
+        end.to raise_error(StandardError, "boom")
+
+        expect(Rails.logger).to have_received(:error).with(
+          /Unexpected error for order #{sample_parsed_order[:sale][:woo_id]}: StandardError - boom/
+        )
+      end
+    end
   end
 end

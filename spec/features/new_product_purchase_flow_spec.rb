@@ -8,7 +8,6 @@ RSpec.describe "Creating a product with a purchase" do
 
   scenario "creates both records from the new product form", :js do # rubocop:todo RSpec/MultipleExpectations
     franchise = create(:franchise)
-    shape = create(:shape)
     supplier = create(:supplier)
     warehouse = create(:warehouse, is_default: true)
 
@@ -20,8 +19,7 @@ RSpec.describe "Creating a product with a purchase" do
     franchise_select = find("select[name='product[franchise_id]']", visible: :all)
     page.execute_script("arguments[0].value = arguments[1]", franchise_select, franchise.id.to_s)
 
-    shape_select = find("select[name='product[shape_id]']", visible: :all)
-    page.execute_script("arguments[0].value = arguments[1]", shape_select, shape.id.to_s)
+    expect(find("select[name='product[shape]']", visible: :all).value).to eq(Product.default_shape)
 
     click_button "Add Purchase"
 
@@ -37,7 +35,7 @@ RSpec.describe "Creating a product with a purchase" do
 
     click_button "Create Product"
 
-    created_product = Product.find_by!(sku: "product-with-initial-purchase")
+    created_product = Edition.find_by!(sku: "product-with-initial-purchase").product
     purchase = created_product.purchases.last
 
     expect(page).to have_current_path(product_path(created_product))
@@ -51,7 +49,6 @@ RSpec.describe "Creating a product with a purchase" do
 
   scenario "re-renders with purchase field errors when only part of it is filled in", :js do # rubocop:disable RSpec/MultipleExpectations
     franchise = create(:franchise)
-    shape = create(:shape)
     create(:warehouse, is_default: true)
 
     visit new_product_path
@@ -62,8 +59,7 @@ RSpec.describe "Creating a product with a purchase" do
     franchise_select = find("select[name='product[franchise_id]']", visible: :all)
     page.execute_script("arguments[0].value = arguments[1]", franchise_select, franchise.id.to_s)
 
-    shape_select = find("select[name='product[shape_id]']", visible: :all)
-    page.execute_script("arguments[0].value = arguments[1]", shape_select, shape.id.to_s)
+    expect(find("select[name='product[shape]']", visible: :all).value).to eq(Product.default_shape)
 
     click_button "Add Purchase"
 
@@ -85,7 +81,6 @@ RSpec.describe "Creating a product with a purchase" do
 
   scenario "re-renders with purchase field errors when the purchase is left blank", :js do # rubocop:disable RSpec/MultipleExpectations
     franchise = create(:franchise)
-    shape = create(:shape)
     create(:warehouse, is_default: true)
 
     visit new_product_path
@@ -96,8 +91,7 @@ RSpec.describe "Creating a product with a purchase" do
     franchise_select = find("select[name='product[franchise_id]']", visible: :all)
     page.execute_script("arguments[0].value = arguments[1]", franchise_select, franchise.id.to_s)
 
-    shape_select = find("select[name='product[shape_id]']", visible: :all)
-    page.execute_script("arguments[0].value = arguments[1]", shape_select, shape.id.to_s)
+    expect(find("select[name='product[shape]']", visible: :all).value).to eq(Product.default_shape)
     click_button "Add Purchase"
 
     expect {
@@ -113,7 +107,6 @@ RSpec.describe "Creating a product with a purchase" do
 
   scenario "creates a product without a purchase when the purchase block stays closed" do # rubocop:disable RSpec/MultipleExpectations
     franchise = create(:franchise)
-    shape = create(:shape)
 
     visit new_product_path
 
@@ -124,14 +117,12 @@ RSpec.describe "Creating a product with a purchase" do
     fill_in "SKU", with: "product-without-purchase"
 
     select franchise.title, from: "product[franchise_id]"
-    select shape.title, from: "product[shape_id]"
+    expect(find_field("product[shape]").value).to eq(Product.default_shape)
 
-    expect {
-      click_button "Create Product"
-    }.to change(Product, :count).by(1)
-      .and change(Purchase, :count).by(0)
+    expect { click_button "Create Product" }.to change(Product, :count).by(1)
+    expect(Purchase.count).to eq(0)
 
-    created_product = Product.find_by!(sku: "product-without-purchase")
+    created_product = Edition.find_by!(sku: "product-without-purchase").product
     expect(page).to have_current_path(product_path(created_product))
     expect(page).to have_content("Product was successfully created")
   end

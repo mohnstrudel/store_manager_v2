@@ -15,7 +15,7 @@ RSpec.describe Product::Shopify::Matching do
     end
 
     def create_storeless_product(title:, franchise_title:, shape_title:, size_values: [], brand_titles: [])
-      product = create(:product, title: title, franchise: create(:franchise, title: franchise_title), shape: create(:shape, title: shape_title))
+      product = create(:product, title: title, franchise: create(:franchise, title: franchise_title), shape: shape_title)
       product.store_infos.destroy_all
       product.update_columns(shopify_id: nil, woo_id: nil)
       product.reload

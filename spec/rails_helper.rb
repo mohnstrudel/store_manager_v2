@@ -9,6 +9,16 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 require "rspec/rails"
 # Add additional requires below this line. Rails is not loaded until this point!
 
+tailwind_build = Rails.root.join("app/assets/builds/tailwind.css")
+tailwind_sources = Dir[Rails.root.join("app/assets/tailwind/**/*.css").to_s]
+tailwind_missing_or_stale =
+  !tailwind_build.exist? ||
+  tailwind_sources.any? { |source| File.mtime(source) > tailwind_build.mtime }
+
+if tailwind_missing_or_stale
+  system({"RAILS_ENV" => "test"}, Rails.root.join("bin/rails").to_s, "tailwindcss:build", exception: true)
+end
+
 Rails.root.glob("spec/support/**/*.rb").each { |f| require f }
 
 # Checks for pending migrations and applies them before tests are run.

@@ -6,10 +6,11 @@ module Edition::Validation
   included do
     attr_accessor :_destroy
 
-    validates_db_uniqueness_of :sku, allow_blank: true, unless: :marked_for_editing_destruction?
+    validates :sku, presence: true, unless: :should_be_removed?
+    validates_db_uniqueness_of :sku, unless: :should_be_removed?
   end
 
-  def marked_for_editing_destruction?
+  def should_be_removed?
     ActiveModel::Type::Boolean.new.cast(@_destroy)
   end
 end
