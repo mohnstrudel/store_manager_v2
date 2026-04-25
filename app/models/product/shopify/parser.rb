@@ -19,9 +19,9 @@ class Product::Shopify::Parser
 
   def parse
     parse_shopify_title
-    parse_sku
     parse_media
     parse_editions
+    parse_sku
 
     {
       brand: parsed_title[:brand],
@@ -71,7 +71,14 @@ class Product::Shopify::Parser
   end
 
   def parse_sku
-    @parsed_sku = payload.dig("variants", "edges", 0, "node", "sku") || generate_sku
+    first_variant_sku = payload.dig("variants", "edges", 0, "node", "sku")
+
+    @parsed_sku =
+      if parsed_editions.many?
+        nil
+      else
+        first_variant_sku || generate_sku
+      end
   end
 
   def generate_sku

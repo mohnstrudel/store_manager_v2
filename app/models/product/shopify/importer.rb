@@ -37,7 +37,7 @@ class Product::Shopify::Importer
       assign_brand
       assign_size
       product.full_title = product.generate_full_title
-      product.build_base_edition(sku: parsed[:sku])
+      product.build_base_edition(sku: base_edition_sku)
       product.save!
 
       if parsed[:store_id]
@@ -95,5 +95,14 @@ class Product::Shopify::Importer
       node.remove
     end
     doc.to_html
+  end
+
+  def base_edition_sku
+    return parsed[:sku] if parsed[:editions].blank?
+
+    single_variant_edition = parsed[:editions].one? && parsed[:editions].first[:is_single_variant]
+    return parsed[:sku] if single_variant_edition
+
+    nil
   end
 end

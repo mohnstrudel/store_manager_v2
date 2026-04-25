@@ -55,8 +55,25 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")
     end
 
-    it "routes provided SKU to the base edition" do
-      product = described_class.import!(parsed_product)
+    it "does not route a variant SKU to the base edition for multi-variant products" do
+      product = described_class.import!(parsed_product.merge(
+        sku: "TEST-SKU-001",
+        editions: [
+          {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: false},
+          {store_id: "gid://shopify/ProductVariant/67891", is_single_variant: false}
+        ]
+      ))
+
+      expect(product.base_edition.sku).not_to eq("TEST-SKU-001")
+    end
+
+    it "routes provided SKU to the base edition for single-variant products" do
+      product = described_class.import!(parsed_product.merge(
+        editions: [
+          {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: true}
+        ]
+      ))
+
       expect(product.base_edition.sku).to eq("TEST-SKU-001")
     end
 

@@ -198,9 +198,9 @@ RSpec.describe Product::Shopify::Parser do
         )
       end
 
-      it "extracts SKU from first variant" do
+      it "does not expose a product-level sku for multi-variant products" do
         result = described_class.parse(api_payload)
-        expect(result[:sku]).to eq("SB-EVE-001")
+        expect(result[:sku]).to be_nil
       end
 
       it "parses tags from the payload" do
@@ -422,6 +422,11 @@ RSpec.describe Product::Shopify::Parser do
       it "sets is_single_variant flag to true" do
         result = described_class.parse(single_variant_payload)
         expect(result[:editions].first[:is_single_variant]).to be(true)
+      end
+
+      it "keeps the variant sku as the product-level sku" do
+        result = described_class.parse(single_variant_payload)
+        expect(result[:sku]).to eq("TEST-001")
       end
 
       it "parses price, cost, and weight from inventory item" do

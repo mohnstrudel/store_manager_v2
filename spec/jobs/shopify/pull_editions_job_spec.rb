@@ -21,7 +21,6 @@ RSpec.describe Shopify::PullEditionsJob do
       }
     ]
   end
-
   describe ".queue_as" do
     it "enqueues on the default queue" do
       expect {
@@ -79,6 +78,16 @@ RSpec.describe Shopify::PullEditionsJob do
       expect {
         job.perform(product, multiple_editions)
       }.to change(product.editions, :count).by_at_least(1)
+    end
+
+    it "re-raises SKU collision errors" do
+      allow(Edition::Shopify::Importer).to receive(:import!).and_raise(
+        StandardError.new("Validation failed: Sku has already been taken")
+      )
+
+      expect {
+        job.perform(product, parsed_editions)
+      }.to raise_error(StandardError, /Sku has already been taken/)
     end
   end
 end
