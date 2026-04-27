@@ -108,6 +108,18 @@ RSpec.describe Product do
       end
     end
 
+    it "finds products by exact store_id" do
+      matching_product.shopify_info.update!(store_id: "gid://shopify/Product/10166608396617")
+
+      expect(described_class.search_by("gid://shopify/Product/10166608396617")).to include(matching_product)
+    end
+
+    it "finds products by trailing store_id segment" do
+      matching_product.shopify_info.update!(store_id: "gid://shopify/Product/10166608396617")
+
+      expect(described_class.search_by("10166608396617")).to include(matching_product)
+    end
+
     it "returns all products when the query is blank" do
       expect(described_class.search_by("")).to contain_exactly(matching_product, other_product)
     end

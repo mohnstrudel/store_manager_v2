@@ -50,11 +50,7 @@ class Product < ApplicationRecord
       sizes: [:value],
       versions: [:value],
       colors: [:value],
-      editions: [:sku],
-      store_infos: [:store_id]
-    },
-    using: {
-      tsearch: {prefix: true}
+      editions: [:sku]
     }
 
   validates :title, presence: true
