@@ -41,4 +41,4 @@
       p -
     - if product.shopify_info && product.shopify_info.tag_list.present?
       h5 Tags
-      p = product.shopify_info.tag_list.join(", ")
+      p.max-w-min = product.shopify_info.tag_list.join(", ")
