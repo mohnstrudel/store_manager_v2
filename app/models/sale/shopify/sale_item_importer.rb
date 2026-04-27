@@ -13,6 +13,9 @@ class Sale::Shopify::SaleItemImporter
     return if no_product_data?
 
     find_or_initialize_sale_item
+    missing_product_reference =
+      parsed[:product_store_id].present? && Product.find_by_shopify_id(parsed[:product_store_id]).nil?
+
     return create_title_only_sale_item! if only_product_title?
 
     ActiveRecord::Base.transaction do
@@ -20,6 +23,7 @@ class Sale::Shopify::SaleItemImporter
       sale_item.save!
     end
 
+    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if missing_product_reference
     sale_item
   rescue ActiveRecord::RecordInvalid => e
     handle_record_invalid(e)
@@ -44,7 +48,6 @@ class Sale::Shopify::SaleItemImporter
 
     sale_item.assign_attributes(sale_item_attributes)
     sale_item.save!
-
     sale_item
   end
 
@@ -61,16 +64,10 @@ class Sale::Shopify::SaleItemImporter
 
   def resolved_product
     @resolved_product ||=
-      product_from_store_id ||
+      existing_product_from_store_id ||
       product_from_payload ||
       product_from_full_title ||
       placeholder_product
-  end
-
-  def product_from_store_id
-    return nil if parsed[:product_store_id].blank?
-
-    Product.find_by_shopify_id(parsed[:product_store_id])
   end
 
   def product_from_payload
@@ -87,7 +84,7 @@ class Sale::Shopify::SaleItemImporter
 
   def create_product_from_full_title
     parsed_product = Product::Shopify::Parser.parse({"title" => parsed[:full_title]})
-    Product::Shopify::Importer.import!(parsed_product)
+    Product::Shopify::Importer.import!(parsed_product.merge(store_id: parsed[:product_store_id] || parsed_product[:store_id]))
   end
 
   def placeholder_product
@@ -156,6 +153,12 @@ class Sale::Shopify::SaleItemImporter
     product.build_base_edition
     product.save!
     product.base_edition
+  end
+
+  def existing_product_from_store_id
+    return nil if parsed[:product_store_id].blank?
+
+    Product.find_by_shopify_id(parsed[:product_store_id])
   end
 
   def handle_record_invalid(error)

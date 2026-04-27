@@ -81,6 +81,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Importer).to receive(:import!)
           .with(parsed_sale_item[:product])
           .and_return(imported_product)
+        allow(Shopify::PullProductJob).to receive(:perform_later)
       end
 
       it "imports the product payload before creating the sale item" do
@@ -88,6 +89,12 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
         expect(result).to be_persisted
         expect(result.product).to eq(imported_product)
+      end
+
+      it "enqueues a canonical product pull for missing local Shopify products" do
+        described_class.new(sale, parsed_sale_item).import!
+
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
       end
     end
 
@@ -120,6 +127,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Importer).to receive(:import!)
           .with(parsed_product)
           .and_return(imported_product)
+        allow(Shopify::PullProductJob).to receive(:perform_later)
       end
 
       it "creates a product and custom edition from the title" do
@@ -131,6 +139,61 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         sale_item = SaleItem.last
         expect(sale_item.product).to eq(imported_product)
         expect(sale_item.edition.version.value).to eq("Limited Edition")
+      end
+
+      it "does not enqueue a product pull without a Shopify product id" do
+        described_class.new(sale, parsed_sale_item).import!
+
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
+      end
+    end
+
+    context "when product_store_id is present but the product must be rebuilt from full_title" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/2-with-store-id",
+          price: "20.00",
+          qty: 1,
+          product_store_id: "gid://shopify/Product/999",
+          edition_title: "Limited Edition",
+          full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
+        }
+      end
+      let(:parsed_product) do
+        {
+          title: "Princess Leia",
+          franchise: "Star Wars",
+          shape: "Statue",
+          sku: "princess-leia-999",
+          editions: []
+        }
+      end
+      let(:imported_product) do
+        create(:product, shopify_id: "gid://shopify/Product/999", title: "Princess Leia")
+      end
+
+      before do
+        allow(Product).to receive(:find_by_shopify_id).with("gid://shopify/Product/999").and_return(nil)
+        allow(Product::Shopify::Parser).to receive(:parse)
+          .with({"title" => parsed_sale_item[:full_title]})
+          .and_return(parsed_product)
+        allow(Product::Shopify::Importer).to receive(:import!)
+          .with(parsed_product.merge(store_id: "gid://shopify/Product/999"))
+          .and_return(imported_product)
+        allow(Shopify::PullProductJob).to receive(:perform_later)
+      end
+
+      it "passes the known Shopify product id into the imported product payload" do
+        result = described_class.new(sale, parsed_sale_item).import!
+
+        expect(result).to be_persisted
+        expect(result.product).to eq(imported_product)
+      end
+
+      it "enqueues a canonical product pull after rebuilding from title" do
+        described_class.new(sale, parsed_sale_item).import!
+
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with("gid://shopify/Product/999")
       end
     end
 
@@ -275,6 +338,10 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         }
       end
 
+      before do
+        allow(Shopify::PullProductJob).to receive(:perform_later)
+      end
+
       it "creates and uses a placeholder product instead of raising" do
         expect {
           result = described_class.new(sale, parsed_sale_item).import!
@@ -283,6 +350,12 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
           expect(result.product.title).to include("[BROKEN SHOPIFY PRODUCT]")
         }.to change(SaleItem, :count).by(1)
           .and change(Product, :count).by(1)
+      end
+
+      it "enqueues a background pull for the missing Shopify product" do
+        described_class.new(sale, parsed_sale_item).import!
+
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
       end
     end
   end

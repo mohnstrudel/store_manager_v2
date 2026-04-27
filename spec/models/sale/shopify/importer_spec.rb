@@ -249,6 +249,41 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
+    context "when a sale item only has full_title but still includes product_store_id" do
+      let(:parsed_order_with_store_id_and_title_only) do
+        order = valid_parsed_order.deep_dup
+        order[:sale_items].first.merge!(
+          edition_title: "Limited Edition",
+          edition_store_id: nil,
+          product_store_id: "gid://shopify/Product/title-rebuilt",
+          product: nil,
+          full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
+        )
+        order
+      end
+
+      before do
+        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
+        allow(Shopify::PullProductJob).to receive(:perform_later)
+        allow(Product::Shopify::Importer).to receive(:import!).and_call_original
+      end
+
+      it "creates a product linked to the known Shopify store id" do
+        described_class.import!(parsed_order_with_store_id_and_title_only)
+
+        sale_item = SaleItem.last
+        expect(sale_item.product).to be_present
+        expect(sale_item.product.shopify_info.store_id).to eq("gid://shopify/Product/title-rebuilt")
+      end
+
+      it "enqueues a full Shopify product pull for the missing local product" do
+        described_class.import!(parsed_order_with_store_id_and_title_only)
+
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with("gid://shopify/Product/title-rebuilt")
+      end
+    end
+
     context "when a Shopify product reference cannot be resolved" do
       let(:parsed_order_with_unresolved_product) do
         order = valid_parsed_order.deep_dup

@@ -211,6 +211,23 @@ RSpec.describe Sale::Shopify::Parser do
         )
       end
 
+      it "stamps the known product_store_id onto parsed product payloads" do
+        allow(Product::Shopify::Parser).to receive(:parse).and_return(
+          {
+            title: "Eve",
+            franchise: "Stellar Blade",
+            editions: []
+          }
+        )
+
+        result = described_class.parse(api_order)
+
+        expect(result[:sale_items].first[:product]).to include(
+          store_id: "gid://shopify/Product/333",
+          title: "Eve"
+        )
+      end
+
       it "handles missing customer data" do
         order_without_customer = api_order.deep_dup
         order_without_customer["customer"] = nil
