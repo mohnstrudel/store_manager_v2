@@ -9,6 +9,8 @@ module StoreInfo::References
     when "shopify"
       "https://handsomecake.com/products/#{handle}"
     when "woo"
+      return handle if handle.to_s.start_with?("http://", "https://")
+
       "https://store.handsomecake.com/product/#{handle}"
     end
   end

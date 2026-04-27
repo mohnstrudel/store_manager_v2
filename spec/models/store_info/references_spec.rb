@@ -15,6 +15,12 @@ RSpec.describe StoreInfo::References do
 
       expect(store_info.product_url("custom-handle")).to eq("https://store.handsomecake.com/product/custom-handle")
     end
+
+    it "returns a stored Woo permalink as-is" do
+      store_info = build(:store_info, :woo, slug: "https://store.handsomecake.com/product/test-product/")
+
+      expect(store_info.product_url).to eq("https://store.handsomecake.com/product/test-product/")
+    end
   end
 
   describe "#id_short" do

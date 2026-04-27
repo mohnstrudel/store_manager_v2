@@ -17,7 +17,7 @@ module Woo
         [api_get_order(id)]
       else
         limit ||= ORDERS_SIZE
-        api_get_all(URL, limit, pages)
+        api_get_all_orders(limit, pages)
       end
       parsed_orders = parse_all(woo_orders)
       create_sales(parsed_orders)

@@ -94,25 +94,25 @@ RSpec.describe Woo::PullSalesJob do
 
     context "without id parameter" do
       it "fetches all orders and creates sales" do
-        allow(job).to receive(:api_get_all).with(Woo::PullSalesJob::URL, 2700, nil).and_return(woo_orders)
+        allow(job).to receive(:api_get_all_orders).with(2700, nil).and_return(woo_orders)
         allow(job).to receive(:parse_all).and_return(parsed_woo_orders)
         allow(job).to receive(:create_sales)
 
         job.perform
 
-        expect(job).to have_received(:api_get_all).with(Woo::PullSalesJob::URL, 2700, nil)
+        expect(job).to have_received(:api_get_all_orders).with(2700, nil)
         expect(job).to have_received(:parse_all).with(woo_orders)
         expect(job).to have_received(:create_sales).with(parsed_woo_orders)
       end
 
       it "uses custom limit and pages when provided" do
-        allow(job).to receive(:api_get_all).with(Woo::PullSalesJob::URL, 100, 5).and_return(woo_orders)
+        allow(job).to receive(:api_get_all_orders).with(100, 5).and_return(woo_orders)
         allow(job).to receive(:parse_all).and_return(parsed_woo_orders)
         allow(job).to receive(:create_sales)
 
         job.perform(limit: 100, pages: 5)
 
-        expect(job).to have_received(:api_get_all).with(Woo::PullSalesJob::URL, 100, 5)
+        expect(job).to have_received(:api_get_all_orders).with(100, 5)
       end
     end
   end
@@ -276,6 +276,11 @@ RSpec.describe Woo::PullSalesJob do
       it "reuses existing sales" do
         existing_sale = Sale.find_by(woo_id: parsed_woo_orders.first[:sale][:woo_id])
         expect(existing_sale.city).not_to eq(denpasar)
+      end
+
+      it "updates the existing sale status from the pulled Woo payload" do
+        existing_sale = Sale.find_by(woo_id: parsed_woo_orders.first[:sale][:woo_id])
+        expect(existing_sale.status).to eq(parsed_woo_orders.first[:sale][:status])
       end
 
       it "reuses existing editions" do

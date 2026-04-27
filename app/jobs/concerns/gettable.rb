@@ -6,33 +6,38 @@ module Gettable
   CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user) || ENV.fetch("WOO_API_USER", "")
   CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass) || ENV.fetch("WOO_API_PASS", "")
   PER_PAGE = 100
+  WOO_ORDERS_API_ENDPOINT = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
+  WOO_ORDERS_ORDER_BY = "modified"
 
   included do
-    def api_get_all(url, total_records, pages = nil, status = nil)
+    def api_get_all(url, total_records, pages = nil, status = nil, orderby = nil)
       total_records = total_records.to_i
       pages ||= (total_records <= PER_PAGE) ? 1 : total_records.fdiv(PER_PAGE).ceil
 
       result = []
 
       (1..pages).each do |page|
-        parsed_payload = api_get(url, status, PER_PAGE, page)
+        parsed_payload = api_get(url, status, PER_PAGE, page, nil, orderby)
         result << parsed_payload
       end
 
       result.flatten.compact_blank
     end
 
+    def api_get_all_orders(total_records, pages = nil)
+      api_get_all(WOO_ORDERS_API_ENDPOINT, total_records, pages, nil, WOO_ORDERS_ORDER_BY)
+    end
+
     def api_get_order(id)
-      api_get("https://store.handsomecake.com/wp-json/wc/v3/orders/#{id}")
+      api_get("#{WOO_ORDERS_API_ENDPOINT}#{id}")
     end
 
     def api_get_latest_orders
-      orders_api_endpoint = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
-      api_get(orders_api_endpoint, nil, PER_PAGE, 1)
+      api_get(WOO_ORDERS_API_ENDPOINT, nil, PER_PAGE, 1, nil, WOO_ORDERS_ORDER_BY)
     end
 
-    def api_get(url, status = nil, per_page = nil, page = nil, order = nil)
-      query = {status:, per_page:, page:, order:}.compact
+    def api_get(url, status = nil, per_page = nil, page = nil, order = nil, orderby = nil)
+      query = {status:, per_page:, page:, order:, orderby:}.compact
 
       response = perform_api_get_request(url, query)
       return if response.blank?

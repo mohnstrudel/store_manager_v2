@@ -20,10 +20,7 @@ module Woo
     end
 
     def create_all(parsed_products)
-      products = Product.where(woo_id: parsed_products.pluck(:woo_id))
-
       parsed_products.each do |parsed_product|
-        next if products.find { |i| i.woo_id == parsed_product[:woo_id].to_s }
         create(parsed_product)
       end
     end
@@ -36,12 +33,13 @@ module Woo
     def create(parsed_product)
       return if parsed_product.blank?
 
-      product = Product.find_or_initialize_by({
+      product = Product.find_by(woo_id: parsed_product[:woo_id]) || Product.new
+      product.assign_attributes(
         title: parsed_product[:title],
         woo_id: parsed_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
         shape: parsed_product[:shape].presence || Product.default_shape
-      })
+      )
 
       parsed_product[:brands]&.each do |i|
         if product.brands.find_by(title: i).nil?
@@ -69,15 +67,11 @@ module Woo
 
       product.save!
 
-      if parsed_product[:store_link].present?
-        woo_info = product.woo_info || product.store_infos.woo.new
-        if woo_info.persisted?
-          woo_info.update(slug: parsed_product[:store_link])
-        else
-          woo_info.slug = parsed_product[:store_link]
-          woo_info.save!
-        end
-      end
+      product.update_or_create_store_info!(
+        store_name: :woo,
+        store_id: parsed_product[:woo_id],
+        slug: parsed_product[:store_link]
+      )
 
       product
     end

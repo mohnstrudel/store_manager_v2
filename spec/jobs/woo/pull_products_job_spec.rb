@@ -50,5 +50,26 @@ RSpec.describe Woo::PullProductsJob do
         expect(first_created.colors.size).to eq(first_parsed[:colors].size)
       end
     end
+
+    context "when a Woo product already exists locally" do
+      let(:first_parsed) { parsed_products.first }
+      let!(:existing_product) do
+        create(:product, woo_id: first_parsed[:woo_id], title: "Old Title").tap do |product|
+          product.woo_info.update!(slug: nil)
+        end
+      end
+
+      it "updates the existing product instead of skipping it" do
+        expect {
+          job.create_all([first_parsed])
+        }.not_to change(Product, :count)
+
+        existing_product.reload
+        expect(existing_product.title).to eq(first_parsed[:title])
+        expect(existing_product.shape).to eq(first_parsed[:shape])
+        expect(existing_product.woo_info.store_id).to eq(first_parsed[:woo_id].to_s)
+        expect(existing_product.woo_info.slug).to eq(first_parsed[:store_link])
+      end
+    end
   end
 end

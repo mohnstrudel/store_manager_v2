@@ -32,6 +32,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     job.perform
 
     expect(Config.sales_hook_disabled?).to be false
+    expect(job).to have_received(:api_get_latest_orders)
   end
 
   it "change the webhook status to disabled if sales and orders are not in sync" do
