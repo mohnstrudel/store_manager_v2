@@ -73,7 +73,6 @@ gem "inline_svg"
 gem "rails_heroicon"
 
 gem "aws-sdk-s3", require: false
-gem "mailtrap"
 gem "shopify_app"
 
 gem "sentry-ruby"
@@ -83,6 +82,10 @@ gem "sentry-sidekiq"
 gem "ruby-progressbar"
 gem "down", "~> 5.0"
 gem "httparty"
+
+group :production do
+  gem "mailtrap"
+end
 
 group :production, :staging do
   # Prevents webserver from spending time working on a request

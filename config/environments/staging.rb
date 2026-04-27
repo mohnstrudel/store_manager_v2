@@ -95,11 +95,6 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.action_mailer.perform_deliveries = true
-  config.action_mailer.delivery_method = :mailtrap
-  config.action_mailer.mailtrap_settings = {
-    api_key: ENV["MAIL_API_KEY"],
-    sandbox: true,
-    inbox_id: ENV["MAIL_INBOX_ID"]
-  }
+  config.action_mailer.perform_deliveries = false
+  config.action_mailer.delivery_method = :test
 end
