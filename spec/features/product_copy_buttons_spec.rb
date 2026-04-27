@@ -13,10 +13,7 @@ RSpec.describe "Product copy buttons" do
     visit product_path(product)
 
     expect(page).to have_css('[data-copy-to-clipboard-text-value="99000"]', text: "Copy")
-    expect(page).to have_css(
-      '[data-copy-to-clipboard-text-value="gid://shopify/Product/10166608396617"]',
-      text: "Copy"
-    )
+    expect(page).to have_css('[data-copy-to-clipboard-text-value="10166608396617"]', text: "Copy")
   end
 
   scenario "hides copy buttons when store ids are missing", :js do
