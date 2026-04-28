@@ -1,9 +1,4 @@
 = form_with model: sale do |form|
-  fieldset.flex.justify-between.gap-4
-    .block.w-full
-      = form.label :id
-      = form.text_field :id, disabled: true, class: "bg-gray-200 text-gray-500 cursor-not-allowed"
-
   = form.label :customer_id
   = form.collection_select :customer_id, @customer_options || [], :id, :name_and_email, {}, slim_select_html_options
 
