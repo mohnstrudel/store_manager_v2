@@ -24,21 +24,18 @@ class Customer < ApplicationRecord
   has_associated_audits
 
   set_search_scope :search,
-    against: [:woo_id, :email, :first_name, :last_name, :phone],
-    associated_against: {sales: :woo_id}
+    against: [:email, :first_name, :last_name, :phone],
+    associated_against: {
+      woo_info: [:store_id],
+      sales: [:shopify_name]
+    }
   paginates_per 50
 
   has_many :sales, dependent: :destroy, inverse_of: :customer
 
-  before_save :downcase_email
+  normalizes :email, with: ->(email) { email&.downcase }
 
   def self.woo_id_is_valid?(woo_id)
     !woo_id.in? [0, "0", ""]
-  end
-
-  private
-
-  def downcase_email
-    self.email = email&.downcase
   end
 end

@@ -7,24 +7,17 @@ module Woo
     def perform
       product_job = Woo::PullProductsJob.new
       parsed_products = product_job.parse_all(product_job.get_woo_products)
-      products = Product.where(woo_id: parsed_products.pluck(:woo_id))
-
-      total = parsed_products.pluck(:images).flatten.size
-      progressbar = ProgressBar.create(
-        title: self.class.name + "(#{total} total): ",
-        total:
-      )
+      products = Product.where_woo_ids(parsed_products.pluck(:woo_id))
 
       products.each do |product|
         parsed_product = parsed_products.find do |parsed_product|
-          parsed_product[:woo_id].to_s == product.woo_id
+          parsed_product[:woo_id].to_s == product.woo_store_id
         end
 
         next unless parsed_product
 
         parsed_product[:images].each do |img_url|
           attach_images(product, img_url) if img_url
-          progressbar.increment
         end
       end
     end

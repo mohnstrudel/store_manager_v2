@@ -96,7 +96,8 @@ class Sale::Shopify::Parser
       []
     else
       @order["lineItems"]["nodes"].map do |line_item|
-        parsed_product = parse_product(line_item["product"])
+        product_store_id = line_item.dig("variant", "product", "id") || line_item.dig("product", "id")
+        parsed_product = parse_product(line_item["product"], product_store_id)
 
         {
           price: money_amount(line_item["originalTotalSet"]),
@@ -104,7 +105,7 @@ class Sale::Shopify::Parser
           store_id: line_item["id"],
           edition_title: line_item["variantTitle"],
           edition_store_id: line_item.dig("variant", "id"),
-          product_store_id: line_item.dig("variant", "product", "id") || line_item.dig("product", "id"),
+          product_store_id: product_store_id,
           full_title: line_item["title"],
           product: parsed_product
         }
@@ -128,10 +129,10 @@ class Sale::Shopify::Parser
     money_set&.dig("shopMoney", "amount")
   end
 
-  def parse_product(product_payload)
+  def parse_product(product_payload, product_store_id)
     return nil if product_payload.blank?
-    return nil unless product_payload["title"].present?
+    return nil if product_payload["title"].blank?
 
-    Product::Shopify::Parser.parse(product_payload)
+    Product::Shopify::Parser.parse(product_payload).merge(store_id: product_store_id || product_payload["id"])
   end
 end

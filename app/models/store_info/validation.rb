@@ -10,14 +10,14 @@ module StoreInfo::Validation
     validate :storable_store_info_limit
   end
 
-  def marked_for_editing_destruction?
+  def should_be_removed?
     ActiveModel::Type::Boolean.new.cast(@_destroy) || marked_for_destruction? || destroyed?
   end
 
   private
 
   def store_name_must_be_unique_within_storable
-    return if marked_for_editing_destruction? || store_name.blank? || not_assigned?
+    return if should_be_removed? || store_name.blank? || not_assigned?
     return unless active_sibling_store_infos.any? { |store_info| store_info.store_name == store_name }
 
     errors.add(:store_name, :taken)
@@ -26,8 +26,9 @@ module StoreInfo::Validation
   def storable_store_info_limit
     return unless limited_store_info_storable?
 
-    active_store_infos = active_sibling_store_infos.dup
-    active_store_infos << self unless marked_for_editing_destruction?
+    active_store_infos = active_sibling_store_infos.reject(&:not_assigned?).dup
+    active_store_infos << self unless should_be_removed?
+    active_store_infos.reject!(&:not_assigned?)
 
     return unless active_store_infos.count > self.class.assignable_store_names.count
 
@@ -40,7 +41,7 @@ module StoreInfo::Validation
 
   def active_sibling_store_infos
     (persisted_sibling_store_infos + in_memory_sibling_store_infos).uniq.reject do |store_info|
-      same_store_info?(store_info) || store_info.marked_for_editing_destruction?
+      same_store_info?(store_info) || store_info.should_be_removed?
     end
   end
 

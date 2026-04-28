@@ -21,7 +21,10 @@ class Customer::Shopify::Importer
 
     ActiveRecord::Base.transaction do
       customer.update!(parsed.except(:store_info))
-      update_or_create_store_info!
+
+      if parsed[:store_info]
+        customer.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
+      end
     end
 
     customer
@@ -36,19 +39,6 @@ class Customer::Shopify::Importer
       Customer.find_by_shopify_id(parsed[:store_info][:store_id]) || Customer.new
     else
       Customer.new
-    end
-  end
-
-  def update_or_create_store_info!
-    return unless parsed[:store_info]
-
-    attrs = parsed[:store_info].merge(store_name: :shopify, pull_time: Time.zone.now)
-    store_info = customer.store_infos.find_by(store_name: :shopify)
-
-    if store_info
-      store_info.update!(attrs)
-    else
-      customer.store_infos.create!(attrs)
     end
   end
 

@@ -8,7 +8,6 @@ RSpec.describe Product do
     let(:warehouse) { create(:warehouse) }
     let(:supplier) { create(:supplier) }
     let(:franchise) { create(:franchise) }
-    let(:shape) { create(:shape) }
 
     it "creates a purchase, warehouse items, and a payment" do # rubocop:disable RSpec/MultipleExpectations
       expect {
@@ -105,9 +104,8 @@ RSpec.describe Product do
     def creation_product_attributes
       {
         title: "Product with initial purchase",
-        sku: "product-with-initial-purchase",
         franchise_id: franchise.id,
-        shape_id: shape.id
+        shape: Product.default_shape
       }
     end
   end

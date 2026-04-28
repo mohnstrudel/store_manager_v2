@@ -8,7 +8,7 @@
 #  deactivated_at :datetime
 #  purchase_cost  :decimal(10, 2)   default(0.0), not null
 #  selling_price  :decimal(10, 2)   default(0.0), not null
-#  sku            :string
+#  sku            :string           not null
 #  weight         :decimal(10, 2)   default(0.0), not null
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null

@@ -7,7 +7,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     described_class.new
   }
   let(:sale) {
-    create(:sale, woo_id: "123", status: Sale.active_status_names.first)
+    create(:sale, woo_store_id: "123", status: Sale.active_status_names.first)
   }
 
   before do
@@ -26,12 +26,13 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     Config.enable_sales_hook
 
     allow(job).to receive(:api_get_latest_orders).and_return([{
-      id: sale.woo_id,
+      id: sale.woo_store_id,
       status: sale.status
     }])
     job.perform
 
     expect(Config.sales_hook_disabled?).to be false
+    expect(job).to have_received(:api_get_latest_orders)
   end
 
   it "change the webhook status to disabled if sales and orders are not in sync" do
@@ -65,7 +66,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     Config.enable_sales_hook
 
     allow(job).to receive(:api_get_latest_orders).and_return([{
-      id: sale.woo_id,
+      id: sale.woo_store_id,
       status: "cancelled"
     }])
 

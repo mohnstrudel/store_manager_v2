@@ -17,6 +17,11 @@ module Shopify
 
     private
 
+    def import_product_from_shopify(payload)
+      parsed_payload = Product::Shopify::Parser.parse(payload)
+      Product::Shopify::Importer.import!(parsed_payload)
+    end
+
     def remove_product_store_info(shopify_product_id)
       store_info = StoreInfo.find_by(store_name: "shopify", store_id: shopify_product_id)
 
@@ -33,9 +38,5 @@ module Shopify
       store_info.destroy!
     end
 
-    def import_product_from_shopify(payload)
-      parsed_payload = Product::Shopify::Parser.parse(payload)
-      Product::Shopify::Importer.import!(parsed_payload)
-    end
   end
 end

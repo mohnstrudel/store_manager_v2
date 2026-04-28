@@ -10,7 +10,7 @@ RSpec.describe PurchaseItem do
   end
 
   let(:customer) { create(:customer, email: "test@example.com", first_name: "John", last_name: "Doe") }
-  let(:sale) { create(:sale, customer: customer, woo_id: "123") }
+  let(:sale) { create(:sale, customer: customer, woo_store_id: "123") }
   let(:warehouse) { create(:warehouse, name: "Test WH", external_name_en: "Public WH", desc_en: "English description for Test WH", desc_de: "German description for Test WH") }
   let(:to_warehouse) { create(:warehouse, name: "New WH", desc_en: "English description for New WH", desc_de: "German description for New WH") }
   let(:sale_item) { create(:sale_item) }

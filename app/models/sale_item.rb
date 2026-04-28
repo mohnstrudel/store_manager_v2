@@ -24,14 +24,29 @@ class SaleItem < ApplicationRecord
   include HasAuditNotifications
   include Linkability
   include Listing
+  include Shopable
   include Titling
 
   audited associated_with: :sale
-  validates_db_uniqueness_of :woo_id, allow_nil: true
+  validate :validate_unique_woo_store_id
 
   db_belongs_to :product, inverse_of: :sale_items
   db_belongs_to :sale, inverse_of: :sale_items
   belongs_to :edition, optional: true, inverse_of: :sale_items
 
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
+
+  private
+
+  def validate_unique_woo_store_id
+    return if woo_store_id.blank?
+
+    existing_store_info = StoreInfo
+      .woo
+      .where(storable_type: self.class.name, store_id: woo_store_id)
+      .where.not(storable_id: id)
+      .exists?
+
+    errors.add(:woo_store_id, "has already been taken") if existing_store_info
+  end
 end

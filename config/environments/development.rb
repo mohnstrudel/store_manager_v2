@@ -104,11 +104,4 @@ Rails.application.configure do
   }
   config.action_mailer.perform_deliveries = true
   config.action_mailer.delivery_method = :letter_opener
-  # For testing with Maitrap web interface
-  # config.action_mailer.delivery_method = :mailtrap
-  # config.action_mailer.mailtrap_settings = {
-  #   api_key: Rails.application.credentials.dig(:mailtrap, :api_key),
-  #   sandbox: true,
-  #   inbox_id: 3265246
-  # }
 end

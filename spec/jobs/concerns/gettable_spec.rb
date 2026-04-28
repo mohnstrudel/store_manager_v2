@@ -35,9 +35,17 @@ RSpec.describe Gettable do
       it "passes correct page numbers to api_get" do
         instance.api_get_all(base_url, total_records)
 
-        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 1)
-        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 2)
-        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 3)
+        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 1, nil, nil)
+        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 2, nil, nil)
+        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 3, nil, nil)
+      end
+
+      it "passes through orderby when provided" do
+        instance.api_get_all(base_url, total_records, nil, nil, "modified")
+
+        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 1, nil, "modified")
+        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 2, nil, "modified")
+        expect(instance).to have_received(:api_get).with(base_url, nil, 100, 3, nil, "modified")
       end
 
       it "flattens and compacts results" do
@@ -81,7 +89,7 @@ RSpec.describe Gettable do
 
   describe "#api_get_order" do
     let(:order_id) { "12345" }
-    let(:order_url) { "https://store.handsomecake.com/wp-json/wc/v3/orders/#{order_id}" }
+    let(:order_url) { "#{Gettable::WOO_ORDERS_API_ENDPOINT}#{order_id}" }
 
     before do
       allow(instance).to receive(:api_get).and_return({id: order_id, status: "processing"})
@@ -98,8 +106,28 @@ RSpec.describe Gettable do
     end
   end
 
+  describe "#api_get_all_orders" do
+    let(:total_records) { 250 }
+
+    before do
+      allow(instance).to receive(:api_get_all)
+    end
+
+    it "uses the Woo orders endpoint with modified ordering" do
+      instance.api_get_all_orders(total_records, 3)
+
+      expect(instance).to have_received(:api_get_all).with(
+        Gettable::WOO_ORDERS_API_ENDPOINT,
+        total_records,
+        3,
+        nil,
+        Gettable::WOO_ORDERS_ORDER_BY
+      )
+    end
+  end
+
   describe "#api_get_latest_orders" do
-    let(:orders_url) { "https://store.handsomecake.com/wp-json/wc/v3/orders/" }
+    let(:orders_url) { Gettable::WOO_ORDERS_API_ENDPOINT }
 
     before do
       allow(instance).to receive(:api_get).and_return([{id: 1}, {id: 2}])
@@ -107,7 +135,14 @@ RSpec.describe Gettable do
 
     it "calls api_get with orders endpoint and PER_PAGE" do
       instance.api_get_latest_orders
-      expect(instance).to have_received(:api_get).with(orders_url, nil, Gettable::PER_PAGE, 1)
+      expect(instance).to have_received(:api_get).with(
+        orders_url,
+        nil,
+        Gettable::PER_PAGE,
+        1,
+        nil,
+        Gettable::WOO_ORDERS_ORDER_BY
+      )
     end
 
     it "returns the latest orders" do
@@ -139,7 +174,7 @@ RSpec.describe Gettable do
       end
 
       it "passes query parameters when provided" do
-        params = {status: "processing", per_page: 50, page: 2, order: "desc"}
+        params = {status: "processing", per_page: 50, page: 2, order: "desc", orderby: "modified"}
         instance.api_get(test_url, *params.values)
 
         expect(HTTParty).to have_received(:get).with(

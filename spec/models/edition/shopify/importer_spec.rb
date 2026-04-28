@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Edition::Shopify::Importer do
-  let(:product) { create(:product) }
+  let!(:product) { create(:product) }
   let(:parsed_variant) do
     {
       store_id: "gid://shopify/ProductVariant/12345",
@@ -189,10 +189,12 @@ RSpec.describe Edition::Shopify::Importer do
     end
 
     context "with blank options" do
-      it "returns nil and does not create an edition" do # rubocop:todo RSpec/MultipleExpectations
+      it "creates a base edition" do # rubocop:todo RSpec/MultipleExpectations
         result = described_class.import!(product, {options: []})
-        expect { described_class.import!(product, {options: []}) }.not_to change(Edition, :count)
-        expect(result).to be_nil
+        expect(result).not_to be_nil
+        expect(result.size).to be_nil
+        expect(result.version).to be_nil
+        expect(result.color).to be_nil
       end
     end
 
@@ -310,10 +312,8 @@ RSpec.describe Edition::Shopify::Importer do
 
       context "when the product already has a base edition without Shopify linkage" do
         let!(:existing_edition) do
-          create(:edition,
-            product: product,
-            version: nil,
-            sku: "LOCAL-BASE-SKU").tap do |edition|
+          product.base_edition.tap do |edition|
+            edition.update!(sku: "LOCAL-BASE-SKU")
             edition.store_infos.destroy_all
             edition.update_columns(shopify_id: nil, woo_id: nil)
           end
@@ -353,7 +353,8 @@ RSpec.describe Edition::Shopify::Importer do
 
       context "when the product already has a nil-attribute edition without Shopify linkage" do
         let!(:existing_edition) do
-          create(:edition, product: product, version: nil, sku: "LOCAL-TITLE-SKU").tap do |edition|
+          product.base_edition.tap do |edition|
+            edition.update!(sku: "LOCAL-TITLE-SKU")
             edition.store_infos.destroy_all
             edition.update_columns(shopify_id: nil, woo_id: nil)
           end
@@ -428,6 +429,49 @@ RSpec.describe Edition::Shopify::Importer do
         expect(edition.selling_price.to_s).to eq("199.99")
         expect(edition.purchase_cost).to eq(0.0)
         expect(edition.weight).to eq(0.0)
+      end
+    end
+
+    context "when the same sku already exists on a storeless edition from another product" do
+      let(:storeless_product) do
+        create(:product).tap do |existing_product|
+          existing_product.store_infos.destroy_all
+          existing_product.update_columns(shopify_id: nil, woo_id: nil)
+        end
+      end
+
+      let!(:existing_edition) do
+        create(:edition, product: storeless_product, sku: parsed_variant[:sku]).tap do |edition|
+          edition.store_infos.destroy_all
+          edition.update_columns(shopify_id: nil, woo_id: nil)
+        end
+      end
+
+      it "reuses the existing edition instead of creating a duplicate sku" do # rubocop:todo RSpec/MultipleExpectations
+        expect { described_class.import!(product, parsed_variant) }.not_to change(Edition, :count)
+
+        existing_edition.reload
+        expect(existing_edition.product).to eq(product)
+        expect(existing_edition.shopify_info.store_id).to eq(parsed_variant[:store_id])
+        expect(existing_edition.version.value).to eq("Deluxe")
+        expect(existing_edition.size.value).to eq("Large")
+        expect(existing_edition.color.value).to eq("Red")
+      end
+    end
+
+    context "when the same sku already exists on another linked product" do
+      let!(:conflicting_edition) { create(:edition, sku: parsed_variant[:sku]) }
+
+      it "raises a conflict with detailed diagnostic context" do
+        expect {
+          described_class.import!(product, parsed_variant)
+        }.to raise_error(ActiveRecord::RecordInvalid) { |error|
+          expect(error.message).to include("Sku has already been taken")
+          expect(error.message).to include("edition_id=#{conflicting_edition.id}")
+          expect(error.message).to include("product_id=#{conflicting_edition.product_id}")
+          expect(error.message).to include("shopify_id=#{conflicting_edition.shopify_info.store_id}")
+          expect(error.message).to include("has_sales_or_purchases=false")
+        }
       end
     end
   end

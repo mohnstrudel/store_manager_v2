@@ -82,11 +82,12 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     end
 
     fill_in "q", with: batman.title
-    find_by_id("q").native.send_keys(:return)
+    click_button "Search"
 
     aggregate_failures do
       expect(page).to have_text(batman.full_title)
       expect(page).to have_no_text(guts.full_title)
+      expect(page.current_url).not_to include("button=")
     end
   end
 
@@ -99,11 +100,12 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     end
 
     fill_in "q", with: laura_palmer.email
-    find_by_id("q").native.send_keys(:return)
+    click_button "Search"
 
     aggregate_failures do
       expect(page).to have_text(laura_palmer.email)
       expect(page).to have_no_text(dale_cooper.email)
+      expect(page.current_url).not_to include("button=")
     end
   end
 
@@ -116,12 +118,13 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     end
 
     fill_in "q", with: asuka.full_title
-    find_by_id("q").native.send_keys(:return)
+    click_button "Search"
 
     aggregate_failures do
       expect(page).to have_text(asuka.full_title)
       expect(page).to have_no_text(batman.full_title)
       expect(page).to have_no_text(guts.full_title)
+      expect(page.current_url).not_to include("button=")
     end
   end
 
@@ -135,7 +138,7 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     visit debts_path
 
     fill_in "q", with: batman.title
-    find_by_id("q").native.send_keys(:return)
+    click_button "Search"
 
     batman_selector = "tr[data-table-id-param='#{batman.id}']"
     sold_amount_selector = "td:nth-child(3)"
@@ -159,7 +162,7 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     visit debts_path
 
     fill_in "q", with: dc_comics.title
-    find_by_id("q").native.send_keys(:return)
+    click_button "Search"
 
     within batman_selector do
       expect(page).to have_text(Product.find(batman.id).full_title)
@@ -173,7 +176,7 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     visit purchases_path
 
     fill_in "q", with: purchase_batman.order_reference
-    find_by_id("q").native.send_keys(:return)
+    click_button "Search"
 
     # Open the purchase row, then edit the product relation
     find("tr[data-table-url-param='/purchases/#{purchase_batman.friendly_id}']").click
@@ -194,7 +197,7 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     visit purchases_path
 
     fill_in "q", with: purchase_batman.order_reference
-    find_by_id("q").native.send_keys(:return)
+    click_button "Search"
 
     expect(page).to have_text(asuka_edition.title)
   end

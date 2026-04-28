@@ -20,10 +20,7 @@ module Woo
     end
 
     def create_all(parsed_products)
-      products = Product.where(woo_id: parsed_products.pluck(:woo_id))
-
       parsed_products.each do |parsed_product|
-        next if products.find { |i| i.woo_id == parsed_product[:woo_id].to_s }
         create(parsed_product)
       end
     end
@@ -36,12 +33,12 @@ module Woo
     def create(parsed_product)
       return if parsed_product.blank?
 
-      product = Product.find_or_initialize_by({
+      product = Product.find_by_woo_id(parsed_product[:woo_id]) || Product.new
+      product.assign_attributes(
         title: parsed_product[:title],
-        woo_id: parsed_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
-        shape: Shape.find_or_create_by(title: parsed_product[:shape])
-      })
+        shape: parsed_product[:shape].presence || Product.default_shape
+      )
 
       parsed_product[:brands]&.each do |i|
         if product.brands.find_by(title: i).nil?
@@ -67,24 +64,14 @@ module Woo
         end
       end
 
-      # Generate SKU if missing
-      if product.sku.blank?
-        title_for_sku = product.full_title.presence || "#{product.franchise.title} #{product.title}"
-        base_sku = title_for_sku.parameterize[0..50]
-        product.sku = "#{base_sku}-#{SecureRandom.uuid[0..7]}"
-      end
-
       product.save!
 
-      if parsed_product[:store_link].present?
-        woo_info = product.woo_info || product.store_infos.woo.new
-        if woo_info.persisted?
-          woo_info.update(slug: parsed_product[:store_link])
-        else
-          woo_info.slug = parsed_product[:store_link]
-          woo_info.save!
-        end
-      end
+      product.update_or_create_store_info!(
+        store_name: :woo,
+        store_id: parsed_product[:woo_id],
+        slug: parsed_product[:store_link],
+        pull_time: Time.zone.now
+      )
 
       product
     end
@@ -165,8 +152,8 @@ module Woo
         .pluck(:woo_id)
     end
 
-    def get_and_create_product(woo_id)
-      woo_product = api_get(URL + woo_id.to_s, STATUS)
+    def get_and_create_product(product_woo_id)
+      woo_product = api_get(URL + product_woo_id.to_s, STATUS)
       parsed_product = parse(woo_product)
 
       return if parsed_product.blank?

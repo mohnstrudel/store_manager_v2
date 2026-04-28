@@ -39,43 +39,6 @@ RSpec.describe Shopify::PullProductJob do
       }
     }
   end
-  let(:parsed_product) do
-    {
-      shopify_id: product_id,
-      title: "Malenia",
-      franchise: "Elden Ring",
-      shape: "Statue",
-      brand: "Prime 1 Studio",
-      size: "1:4",
-      sku: "TEST-SKU-001",
-      store_link: "test-product",
-      store_info: {
-        ext_created_at: "2024-01-01T00:00:00Z",
-        ext_updated_at: "2024-01-01T00:00:00Z"
-      },
-      editions: [
-        {
-          id: "gid://shopify/ProductVariant/1",
-          title: "Regular",
-          sku: "TEST-SKU-001",
-          options: []
-        }
-      ],
-      media: [
-        {
-          id: "gid://shopify/MediaImage/1",
-          alt: "Test Image",
-          url: "https://example.com/image.jpg",
-          position: 0,
-          store_info: {
-            ext_created_at: "2024-01-01T00:00:00Z",
-            ext_updated_at: "2024-01-01T00:00:00Z"
-          }
-        }
-      ]
-    }
-  end
-
   describe ".queue_as" do
     it "enqueues on the default queue" do
       expect {
@@ -94,12 +57,19 @@ RSpec.describe Shopify::PullProductJob do
 
   describe "#perform" do
     let(:api_client) { instance_double(Shopify::Api::Client) }
+    let(:parsed_product) do
+      {
+        title: "Simple Figure",
+        store_id: "gid://shopify/Product/12345"
+      }
+    end
+    let(:imported_product) { instance_double(Product) }
 
     before do
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:fetch_product).with(product_id).and_return(api_response)
       allow(Product::Shopify::Parser).to receive(:parse).with(api_response).and_return(parsed_product)
-      allow(Product::Shopify::Importer).to receive(:import!).with(parsed_product).and_return(instance_double(Product))
+      allow(Product::Shopify::Importer).to receive(:import!).with(parsed_product).and_return(imported_product)
     end
 
     context "with valid product_id and valid response" do
@@ -113,9 +83,10 @@ RSpec.describe Shopify::PullProductJob do
         expect(api_client).to have_received(:fetch_product).with(product_id)
       end
 
-      it "parses the response" do
+      it "parses and imports the response" do
         job.perform(product_id)
         expect(Product::Shopify::Parser).to have_received(:parse).with(api_response)
+        expect(Product::Shopify::Importer).to have_received(:import!).with(parsed_product)
       end
 
       it "creates or updates product" do

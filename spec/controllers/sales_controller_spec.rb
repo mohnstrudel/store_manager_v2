@@ -58,6 +58,16 @@ RSpec.describe SalesController do
       expect(Sale).to have_received(:search_by).with(search_term)
     end
 
+    it "searches sales by store_id without ambiguous timestamp errors" do
+      matching_sale = create(:sale, woo_store_id: "18159")
+
+      expect {
+        get :index, params: {q: "18159"}
+      }.not_to raise_error
+
+      expect(assigns(:sales)).to include(matching_sale)
+    end
+
     it "paginates results" do
       get :index, params: {page: 2}
       expect(assigns(:sales)).to respond_to(:current_page)
@@ -198,6 +208,7 @@ RSpec.describe SalesController do
 
       it "redirects to the sale" do # rubocop:disable RSpec/MultipleExpectations
         patch :update, params: {id: sale.to_param, sale: valid_params, sale_items: {"0" => {id: sale_item.id, product_id: sale_item.product_id, qty: "3", price: "150"}}}
+        sale.reload
         expect(response).to redirect_to(sale)
         expect(flash[:notice]).to eq("Sale was successfully updated")
       end

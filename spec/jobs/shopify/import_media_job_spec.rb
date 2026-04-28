@@ -3,7 +3,7 @@
 require "rails_helper"
 require "support/contracts/media_contract"
 
-RSpec.describe Shopify::PullMediaJob do
+RSpec.describe Shopify::ImportMediaJob do
   include ActiveJob::TestHelper
   include ActiveSupport::Testing::TimeHelpers
 
@@ -19,6 +19,7 @@ RSpec.describe Shopify::PullMediaJob do
 
   let(:parsed_media_item) do
     {
+      key: shopify_image_id,
       id: shopify_image_id,
       url: img_url,
       alt: alt_text,
@@ -65,6 +66,7 @@ RSpec.describe Shopify::PullMediaJob do
   describe "media contract" do
     let(:parsed_media) do
       [{
+        key: shopify_image_id,
         id: shopify_image_id,
         url: img_url,
         alt: alt_text,
@@ -80,12 +82,12 @@ RSpec.describe Shopify::PullMediaJob do
   end
 
   describe "#perform" do
-    it "delegates to Product::Shopify::Media::Pull" do
-      allow(Product::Shopify::Media::Pull).to receive(:call)
+    it "imports Shopify media through the domain" do
+      allow(product).to receive(:import_shopify_media)
 
-      job.perform(product.id, parsed_media)
+      job.perform(product, parsed_media)
 
-      expect(Product::Shopify::Media::Pull).to have_received(:call).with(product_id: product.id, parsed_media:)
+      expect(product).to have_received(:import_shopify_media).with(parsed_media:)
     end
 
     context "when product is missing" do
@@ -100,7 +102,7 @@ RSpec.describe Shopify::PullMediaJob do
         media = create_list(:media, 2, mediaable: product)
         create(:store_info, :shopify, storable: media.first)
 
-        expect { job.perform(product.id, []) }
+        expect { job.perform(product, []) }
           .to change { product.media.count }.from(2).to(0)
       end
 
@@ -108,7 +110,7 @@ RSpec.describe Shopify::PullMediaJob do
         media = create_list(:media, 2, mediaable: product)
         create(:store_info, :shopify, storable: media.first)
 
-        expect { job.perform(product.id, []) }
+        expect { job.perform(product, []) }
           .to change { StoreInfo.where(storable_type: "Media").count }.by(-1)
       end
     end
@@ -117,7 +119,7 @@ RSpec.describe Shopify::PullMediaJob do
       # rubocop:disable RSpec/MultipleExpectations
       it "creates media + attachment + store_info" do
         freeze_time do
-          expect { job.perform(product.id, parsed_media) }
+          expect { job.perform(product, parsed_media) }
             .to change { product.media.count }.by(1)
             .and change { StoreInfo.where(storable_type: "Media").count }.by(1)
 
@@ -154,7 +156,7 @@ RSpec.describe Shopify::PullMediaJob do
       end
 
       it "updates media attributes and shopify_info" do
-        expect { job.perform(product.id, parsed_media) }
+        expect { job.perform(product, parsed_media) }
           .to change { media.reload.alt }.to(alt_text)
           .and change { media.reload.position }.to(position)
           .and change { store_info.reload.pull_time }
@@ -185,7 +187,7 @@ RSpec.describe Shopify::PullMediaJob do
       it "updates position without redownloading image" do
         original_checksum = media.image.blob.checksum
 
-        job.perform(product.id, parsed_media)
+        job.perform(product, parsed_media)
 
         expect(media.reload.position).to eq(5)
         expect(media.image.blob.checksum).to eq(original_checksum)
@@ -194,7 +196,7 @@ RSpec.describe Shopify::PullMediaJob do
       it "updates timestamp without redownloading image" do
         original_checksum = media.image.blob.checksum
 
-        job.perform(product.id, parsed_media)
+        job.perform(product, parsed_media)
 
         expect(store_info.reload.ext_updated_at).to eq(Time.zone.parse(new_ext_updated_at))
         expect(media.image.blob.checksum).to eq(original_checksum)
@@ -218,7 +220,7 @@ RSpec.describe Shopify::PullMediaJob do
       # rubocop:disable RSpec/MultipleExpectations
       it "removes old media and creates new one" do
         freeze_time do
-          expect { job.perform(product.id, parsed_media) }
+          expect { job.perform(product, parsed_media) }
             # rubocop:disable RSpec/ChangeByZero
             .to change { product.media.count }.by(0)
             # rubocop:enable RSpec/ChangeByZero
@@ -237,7 +239,11 @@ RSpec.describe Shopify::PullMediaJob do
       let(:parsed_media) do
         [
           parsed_media_item,
-          parsed_media_item.merge(id: "gid://shopify/ProductImage/999", url: "https://404.example.com")
+          parsed_media_item.merge(
+            key: "gid://shopify/ProductImage/999",
+            id: "gid://shopify/ProductImage/999",
+            url: "https://404.example.com"
+          )
         ]
       end
 
@@ -261,7 +267,7 @@ RSpec.describe Shopify::PullMediaJob do
           storable: failed_remote_media,
           store_id: "gid://shopify/ProductImage/999")
 
-        job.perform(product.id, parsed_media)
+        job.perform(product, parsed_media)
 
         expect(Media.where(id: failed_remote_media.id)).to exist
         expect(product.media.count).to eq 2
@@ -283,7 +289,7 @@ RSpec.describe Shopify::PullMediaJob do
       it "does not create partial records" do
         expect {
           begin
-            job.perform(product.id, parsed_media)
+            job.perform(product, parsed_media)
           rescue
             nil
           end

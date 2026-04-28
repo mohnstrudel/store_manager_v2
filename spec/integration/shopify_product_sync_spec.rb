@@ -77,7 +77,7 @@ RSpec.describe "Shopify Job Integration" do
       product.editions << edition
 
       # Mock the serializer
-      allow(Product::Shopify::Payload).to receive(:for_export).with(product).and_return(serialized_product)
+      allow_any_instance_of(Product).to receive(:shopify_payload).and_return(serialized_product)
     end
 
     context "when both jobs execute successfully" do
@@ -240,7 +240,7 @@ RSpec.describe "Shopify Job Integration" do
       end
 
       before do
-        allow(Product::Shopify::Payload).to receive(:for_export).with(product_without_options).and_return(serialized_simple_product)
+        allow_any_instance_of(Product).to receive(:shopify_payload).and_return(serialized_simple_product)
 
         api_client = instance_spy(Shopify::Api::Client)
         allow(Shopify::Api::Client).to receive(:new).and_return(api_client)

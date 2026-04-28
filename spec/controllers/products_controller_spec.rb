@@ -33,9 +33,8 @@ RSpec.describe ProductsController do
         id: product.to_param,
         product: {
           title: "",
-          sku: product.sku,
           franchise_id: product.franchise_id,
-          shape_id: product.shape_id
+          shape: product.shape
         }
       }
 
@@ -48,7 +47,6 @@ RSpec.describe ProductsController do
 
   describe "POST #create" do
     let(:franchise) { create(:franchise) }
-    let(:shape) { create(:shape) }
     let(:supplier) { create(:supplier) }
     let(:warehouse) { create(:warehouse, is_default: true) }
 
@@ -56,9 +54,13 @@ RSpec.describe ProductsController do
       post :create, params: {
         product: {
           title: "New Product",
-          sku: "new-product-with-purchase",
           franchise_id: franchise.id,
-          shape_id: shape.id
+          shape: Product.default_shape
+        },
+        editions: {
+          "0" => {
+            sku: "new-product-with-purchase"
+          }
         },
         purchase: {
           supplier_id: supplier.id,
@@ -69,7 +71,7 @@ RSpec.describe ProductsController do
         }
       }
 
-      product = Product.find_by!(sku: "new-product-with-purchase")
+      product = Edition.find_by!(sku: "new-product-with-purchase").product
       purchase = product.purchases.last
 
       aggregate_failures do
@@ -80,6 +82,33 @@ RSpec.describe ProductsController do
         expect(purchase.purchase_items.count).to eq(2)
         expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
         expect(purchase.payments.pluck(:value)).to eq([BigDecimal(30)])
+      end
+    end
+
+    it "rebuilds the submitted purchase when creation fails" do
+      post :create, params: {
+        product: {
+          title: "Broken Purchase Product",
+          franchise_id: franchise.id,
+          shape: Product.default_shape
+        },
+        purchase: {
+          amount: "2",
+          item_price: "15",
+          payment_value: "30",
+          warehouse_id: warehouse.id
+        }
+      }
+
+      aggregate_failures do
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response).to render_template(:new)
+        expect(assigns(:product).errors[:initial_purchase]).to include("is invalid")
+        expect(assigns(:purchase)).to be_present
+        expect(assigns(:purchase).amount).to eq(2)
+        expect(assigns(:purchase).item_price).to eq(BigDecimal(15))
+        expect(assigns(:purchase).payment_value).to eq(BigDecimal(30))
+        expect(assigns(:purchase).warehouse_id).to eq(warehouse.id)
       end
     end
   end

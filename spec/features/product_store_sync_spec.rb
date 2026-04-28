@@ -5,123 +5,37 @@ require "rails_helper"
 RSpec.describe "Product Store Sync" do
   before { sign_in_as_admin }
 
-  scenario "displays store sync button on product show page", :js do # rubocop:todo RSpec/MultipleExpectations
+  scenario "shows only fetch action on product show page for linked products", :js do # rubocop:todo RSpec/MultipleExpectations
     product = create(:product)
 
     visit product_path(product)
 
-    expect(page).to have_content("Store Sync")
-    expect(page).to have_css("li[data-controller='dialog']")
+    expect(page).to have_link("Fetch")
+    expect(page).to have_css("menu.nav_menu a.btn-rounded svg")
+    expect(page).to have_no_link("Push")
+    expect(page).not_to have_content("Store Sync")
   end
 
-  scenario "opens store sync modal when button is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
-    product = create(:product)
-
-    visit product_path(product)
-
-    click_link "Store Sync"
-
-    expect(page).to have_css("dialog#product-sync-modal")
-    expect(page).to have_content("Store Synchronization")
-  end
-
-  scenario "hides pull button when product is not published to Shopify", :js do
+  scenario "shows no push when product is not published to Shopify", :aggregate_failures, :js do
     product = create(:product)
     product.shopify_info.update!(store_id: nil, push_time: nil)
 
     visit product_path(product)
-    click_link "Store Sync"
 
-    expect(page).to have_content("Not yet pushed")
-    expect(page).to have_no_button("Pull updates from Shopify")
+    expect(page).to have_no_link("Push")
+    expect(page).to have_no_link("Fetch")
   end
 
-  scenario "displays push and pull times when available", :js do # rubocop:todo RSpec/MultipleExpectations
-    product = create(:product)
-    product.shopify_info.update(
-      push_time: 2.days.ago,
-      pull_time: 1.day.ago
-    )
-
-    visit product_path(product)
-    click_link "Store Sync"
-
-    expect(page).to have_content(/Pushed:/)
-    expect(page).to have_content(/Pulled:/)
-  end
-
-  scenario "displays not yet pushed message when push_time is blank", :js do # rubocop:todo RSpec/MultipleExpectations
-    product = create(:product)
-    product.shopify_info.update(push_time: nil)
-
-    visit product_path(product)
-    click_link "Store Sync"
-
-    expect(page).to have_content("Not yet pushed")
-  end
-
-  scenario "does not highlight push time in red when it is current", :js do # rubocop:todo RSpec/MultipleExpectations
-    product = create(:product)
-    product.shopify_info.update(
-      push_time: 1.day.ago,
-      pull_time: 3.days.ago
-    )
-    # Set updated_at to be older than push_time so it's not outdated
-    product.update_column(:updated_at, 2.days.ago) # rubocop:disable Rails/SkipsModelValidations
-
-    visit product_path(product)
-    click_link "Store Sync"
-
-    within("dialog#product-sync-modal") do
-      expect(page).to have_css("h4.font-medium", text: /Pushed:/)
-      expect(page).not_to have_css("h4.text-red-600", text: /Pushed:/)
-    end
-  end
-
-  scenario "closes modal when close button is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
-    product = create(:product)
-
-    visit product_path(product)
-    click_link "Store Sync"
-    expect(page).to have_css("dialog#product-sync-modal")
-
-    find("button[aria-label='Close']").click
-
-    expect(page).not_to have_css("dialog#product-sync-modal[open]")
-  end
-
-  scenario "closes modal when clicking outside the dialog", :js do
-    product = create(:product)
-
-    visit product_path(product)
-    click_link "Store Sync"
-
-    expect(page).to have_css("dialog#product-sync-modal[open]")
-
-    page.find("body").click(0, 0)
-
-    expect(page).not_to have_css("dialog#product-sync-modal[open]")
-  end
-
-  scenario "closes modal after pull action and can be reopened", :js do # rubocop:todo RSpec/MultipleExpectations
+  scenario "starts a fetch from the show page without leaving it", :js do # rubocop:todo RSpec/MultipleExpectations
     product = create(:product)
     allow(Shopify::PullProductJob).to receive(:perform_later)
 
     visit product_path(product)
 
-    # Open the modal
-    click_link "Store Sync"
-    expect(page).to have_content("Store Synchronization")
+    click_link "Fetch"
 
-    # Click pull action
-    click_button "Pull updates from Shopify"
-
-    # Modal should close (content no longer visible)
-    expect(page).not_to have_content("Store Synchronization")
-
-    # Modal should be able to be opened again without errors
-    click_link "Store Sync"
-    expect(page).to have_content("Store Synchronization")
+    expect(page).to have_current_path(product_path(product), ignore_query: true)
+    expect(page).to have_content("Product is being fetched from Shopify")
   end
 
   context "when on products index page" do
@@ -143,37 +57,37 @@ RSpec.describe "Product Store Sync" do
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_button("Pull Last 50 Products")
-      expect(page).to have_button("Pull Everything")
+      expect(page).to have_button("Fetch Last 100 Products")
+      expect(page).to have_button("Fetch Everything")
       expect(page).to have_link("Track Jobs Progress")
+      expect(page).to have_css("menu.flex.flex-col.gap-4 li:nth-child(1) button.btn-blue", text: "Fetch Everything")
     end
 
-    scenario "displays last sync time when available", :js do # rubocop:todo RSpec/MultipleExpectations
-      allow(Config).to receive(:shopify_products_sync_time).and_return("2026-01-05 10:00")
+    scenario "displays last fetched time when available", :js do # rubocop:todo RSpec/MultipleExpectations
+      allow(Config).to receive(:shopify_products_sync_at).and_return(Time.zone.local(2026, 1, 5, 10, 0))
+      create_list(:product, 3)
+
+      visit products_path
+      expect(page).to have_content("Last fetched at 5 January at 10:00")
+    end
+
+    scenario "navigates to fetch products with limit when Fetch Last 100 is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
       create_list(:product, 3)
 
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_content("Last sync: 2026-01-05 10:00")
+      expect(page).to have_button("Fetch Last 100 Products")
+      expect(page).to have_button("Fetch Everything")
     end
 
-    scenario "navigates to pull products with limit when Pull Last 50 is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
+    scenario "navigates to fetch products without limit when Fetch Everything is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
       create_list(:product, 3)
 
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_button("Pull Last 50 Products")
-    end
-
-    scenario "navigates to pull products without limit when Pull Everything is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
-      create_list(:product, 3)
-
-      visit products_path
-      click_link "Store Sync"
-
-      expect(page).to have_button("Pull Everything")
+      expect(page).to have_button("Fetch Everything")
     end
 
     scenario "navigates to jobs statuses page when Track Jobs Progress is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -185,20 +99,31 @@ RSpec.describe "Product Store Sync" do
       expect(page).to have_link("Track Jobs Progress", href: "/jobs/statuses")
     end
 
-    scenario "keeps the page clickable after starting a bulk pull", :js do # rubocop:todo RSpec/MultipleExpectations
+    scenario "keeps the page clickable after starting a bulk fetch", :js do # rubocop:todo RSpec/MultipleExpectations
       create_list(:product, 3)
       allow(Shopify::PullProductsJob).to receive(:perform_later)
 
       visit products_path
       click_link "Store Sync"
 
-      click_button "Pull Last 50 Products"
+      click_button "Fetch Last 100 Products"
 
       expect(page).to have_current_path(products_path, ignore_query: true)
       expect(page).not_to have_css("dialog#products-index-sync-modal[open]")
 
       click_link "Store Sync"
       expect(page).to have_css("dialog#products-index-sync-modal[open]")
+    end
+
+    scenario "closes when clicking outside the modal", :js do # rubocop:todo RSpec/MultipleExpectations
+      create_list(:product, 3)
+
+      visit products_path
+      click_link "Store Sync"
+
+      page.execute_script("document.querySelector('#products-index-sync-modal').dispatchEvent(new MouseEvent('click', { bubbles: true }))")
+
+      expect(page).not_to have_css("dialog#products-index-sync-modal[open]")
     end
   end
 end

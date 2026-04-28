@@ -34,15 +34,23 @@ class Config < ApplicationRecord
     CONFIG.update(shopify_products_sync: Time.current)
   end
 
+  def self.shopify_products_sync_at
+    CONFIG.shopify_products_sync
+  end
+
   def self.shopify_products_sync_time
-    CONFIG.shopify_products_sync&.localtime&.strftime("%d.%m at %H:%M")
+    shopify_products_sync_at&.in_time_zone&.strftime("%d.%m at %H:%M")
   end
 
   def self.update_shopify_sales_sync_time
     CONFIG.update(shopify_sales_sync: Time.current)
   end
 
+  def self.shopify_sales_sync_at
+    CONFIG.shopify_sales_sync
+  end
+
   def self.shopify_sales_sync_time
-    CONFIG.shopify_sales_sync&.localtime&.strftime("%d.%m at %H:%M")
+    shopify_sales_sync_at&.in_time_zone&.strftime("%d.%m at %H:%M")
   end
 end

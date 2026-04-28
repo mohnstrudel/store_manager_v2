@@ -9,11 +9,17 @@ RSpec.describe Sale do
 
       expect(sale.title).to eq("Processing | HSCM#123")
     end
+
+    it "falls back to the short Shopify id when the shop name is missing" do
+      sale = create(:sale, status: "processing", shopify_name: nil, shopify_id: "gid://shopify/Order/7383283466569")
+
+      expect(sale.title).to eq("Processing | 7383283466569")
+    end
   end
 
   describe "#select_title" do
     it "returns a compact summary for selects" do
-      sale = create(:sale, status: "processing", woo_id: "woo-123")
+      sale = create(:sale, status: "processing", woo_store_id: "woo-123")
       expected_title = "Michele Pomarico | italy_mp@web.de | Processing | woo-123"
 
       expect(sale.select_title).to eq(expected_title)
@@ -30,7 +36,7 @@ RSpec.describe Sale do
 
   describe "#full_title" do
     it "includes customer name and woo id" do
-      sale = create(:sale, woo_id: "woo-123")
+      sale = create(:sale, woo_store_id: "woo-123")
 
       expect(sale.full_title).to include("woo-123")
     end

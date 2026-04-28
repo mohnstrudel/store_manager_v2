@@ -6,8 +6,8 @@ module Sales
     include JobsStatusNotice
 
     def create
-      shopify_id = @sale.shopify_info&.store_id
-      woo_id = @sale.woo_info&.store_id
+      shopify_id = @sale.shopify_store_id
+      woo_id = @sale.woo_store_id
 
       Shopify::PullSaleJob.perform_later(shopify_id) if shopify_id
       Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: woo_id) if woo_id

@@ -28,7 +28,7 @@
                 .inline-block.icon-woo.w-8.h-8.mr-2.-mb-3
                 = sale.woo_info.store_id
               - else
-                = safe_blank_render sale.shopify_name.presence || sale.woo_id
+                = safe_blank_render sale.shopify_name.presence || sale.woo_store_id
             td = format_sale_status sale.status
             td.font-mono.whitespace-nowrap = format_money sale.total
             td = safe_blank_render sale.country

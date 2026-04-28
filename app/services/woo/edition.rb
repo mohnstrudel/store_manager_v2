@@ -57,13 +57,19 @@ class Woo::Edition
       edition = Edition.find_by_woo_id(parsed_edition[:woo_id])
 
       if edition.blank?
-        edition = product.editions.find_or_create_by(prepared_options)
+        edition = product.editions.find_by(prepared_options)
+        if edition.blank?
+          edition = product.editions.build(prepared_options)
+          product.fill_edition_sku(edition, "woo-#{product.id}-#{parsed_edition[:woo_id]}")
+          edition.save!
+        end
       end
 
       woo_info = edition.woo_info || edition.store_infos.woo.new
       updates = {}
       updates[:store_id] = parsed_edition[:woo_id] if parsed_edition[:woo_id].present? && woo_info.store_id != parsed_edition[:woo_id]
       updates[:slug] = parsed_edition[:store_link] if parsed_edition[:store_link].present? && woo_info.slug != parsed_edition[:store_link]
+      updates[:pull_time] = Time.zone.now
 
       if updates.any?
         if woo_info.persisted?

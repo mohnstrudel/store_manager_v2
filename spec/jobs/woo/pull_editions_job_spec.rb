@@ -40,8 +40,7 @@ RSpec.describe Woo::PullEditionsJob do
       end
 
       it "saves each variant to the DB" do
-        job.create(parsed_editions)
-        expect(Edition.all.size).to eq(pre_parsed_editions.size)
+        expect { job.create(parsed_editions) }.to change(Edition, :count).by(pre_parsed_editions.size)
       end
 
       it "creates editions with all parsed types" do

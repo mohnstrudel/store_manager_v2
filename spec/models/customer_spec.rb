@@ -55,19 +55,17 @@ RSpec.describe Customer do
     end
   end
 
-  describe "callbacks" do
-    describe "#downcase_email" do
-      it "downcases the email before save" do
-        customer = create(:customer, email: "JOHN@EXAMPLE.COM")
+  describe "normalization" do
+    it "downcases the email" do
+      customer = create(:customer, email: "JOHN@EXAMPLE.COM")
 
-        expect(customer.email).to eq("john@example.com")
-      end
+      expect(customer.email).to eq("john@example.com")
+    end
 
-      it "handles nil email" do
-        customer = create(:customer, email: nil)
+    it "handles nil email" do
+      customer = create(:customer, email: nil)
 
-        expect(customer.email).to be_nil
-      end
+      expect(customer.email).to be_nil
     end
   end
 

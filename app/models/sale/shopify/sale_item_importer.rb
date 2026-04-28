@@ -13,6 +13,9 @@ class Sale::Shopify::SaleItemImporter
     return if no_product_data?
 
     find_or_initialize_sale_item
+    missing_product_reference =
+      parsed[:product_store_id].present? && Product.find_by_shopify_id(parsed[:product_store_id]).nil?
+
     return create_title_only_sale_item! if only_product_title?
 
     ActiveRecord::Base.transaction do
@@ -20,6 +23,7 @@ class Sale::Shopify::SaleItemImporter
       sale_item.save!
     end
 
+    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if missing_product_reference
     sale_item
   rescue ActiveRecord::RecordInvalid => e
     handle_record_invalid(e)
@@ -44,7 +48,6 @@ class Sale::Shopify::SaleItemImporter
 
     sale_item.assign_attributes(sale_item_attributes)
     sale_item.save!
-
     sale_item
   end
 
@@ -57,6 +60,37 @@ class Sale::Shopify::SaleItemImporter
       product: resolved_product,
       edition: imported_edition
     }.compact
+  end
+
+  def resolved_product
+    @resolved_product ||=
+      existing_product_from_store_id ||
+      product_from_payload ||
+      product_from_full_title ||
+      placeholder_product
+  end
+
+  def product_from_payload
+    return nil if parsed[:product].blank?
+
+    Product::Shopify::Importer.import!(parsed[:product])
+  end
+
+  def product_from_full_title
+    return nil if parsed[:full_title].blank?
+
+    create_product_from_full_title
+  end
+
+  def create_product_from_full_title
+    parsed_product = Product::Shopify::Parser.parse({"title" => parsed[:full_title]})
+    Product::Shopify::Importer.import!(parsed_product.merge(store_id: parsed[:product_store_id] || parsed_product[:store_id]))
+  end
+
+  def placeholder_product
+    return nil if parsed[:product_store_id].blank?
+
+    Product.find_or_create_shopify_placeholder!(store_id: parsed[:product_store_id])
   end
 
   def imported_edition
@@ -91,7 +125,16 @@ class Sale::Shopify::SaleItemImporter
     return existing_edition if existing_edition
 
     version = resolved_product.versions.create!(value: normalized_edition_title)
-    resolved_product.editions.create!(version:, color: nil, size: nil)
+    resolved_product.editions.create!(
+      version:,
+      color: nil,
+      size: nil,
+      sku: resolved_product.pick_available_sku(normalized_edition_title.parameterize)
+    )
+  end
+
+  def base_model_edition_title?
+    normalized_edition_title == "Default Title"
   end
 
   def normalized_edition_title
@@ -104,50 +147,18 @@ class Sale::Shopify::SaleItemImporter
     @normalized_edition_title = title
   end
 
-  def base_model_edition_title?
-    normalized_edition_title == "Default Title"
-  end
-
   def base_model_edition_for(product)
-    product.editions.find_by(version_id: nil, color_id: nil, size_id: nil) ||
-      product.editions.create!(version: nil, color: nil, size: nil)
+    return product.base_edition if product.base_edition
+
+    product.build_base_edition
+    product.save!
+    product.base_edition
   end
 
-  def resolved_product
-    @resolved_product ||=
-      product_from_store_id ||
-      product_from_payload ||
-      product_from_full_title ||
-      placeholder_product
-  end
-
-  def product_from_store_id
+  def existing_product_from_store_id
     return nil if parsed[:product_store_id].blank?
 
     Product.find_by_shopify_id(parsed[:product_store_id])
-  end
-
-  def product_from_payload
-    return nil if parsed[:product].blank?
-
-    Product::Shopify::Importer.import!(parsed[:product])
-  end
-
-  def product_from_full_title
-    return nil if parsed[:full_title].blank?
-
-    create_product_from_full_title
-  end
-
-  def create_product_from_full_title
-    parsed_product = Product::Shopify::Parser.parse({"title" => parsed[:full_title]})
-    Product::Shopify::Importer.import!(parsed_product)
-  end
-
-  def placeholder_product
-    return nil if parsed[:product_store_id].blank?
-
-    Product.find_or_create_shopify_placeholder!(store_id: parsed[:product_store_id])
   end
 
   def handle_record_invalid(error)

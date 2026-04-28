@@ -24,9 +24,9 @@ module UiHelper
     render "_shared/action_edit", route: edit_polymorphic_path(record)
   end
 
-  def pull_btn_for(record)
-    link_to polymorphic_path([record, :pull]), class: "btn-rounded", data: {"turbo-prefetch": "false", turbo_method: :post} do
-      tag.i(class: "icn") { "📥" } + "Pull"
+  def fetch_btn_for(record, path: nil)
+    link_to(path || polymorphic_path([record, :pull]), class: "btn-rounded", data: {"turbo-prefetch": "false", turbo_method: :post}) do
+      heroicon("chevron-double-down", variant: "mini") + "Fetch"
     end
   end
 

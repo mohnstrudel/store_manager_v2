@@ -98,3 +98,4 @@ Use this file for the non-obvious model-layer rules in this repo.
 - Name explicit target files instead of saying “extract an object”.
 - Move one coherent slice at a time.
 - When refactoring, improve names as well as placement so the public model API sounds like the business domain.
+- Order methods top-down by dependency within a file: put the main method first, then place the helper it calls immediately below it so the reader can follow the flow without jumping around.

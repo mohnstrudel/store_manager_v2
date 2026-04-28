@@ -709,7 +709,7 @@ mise exec -- bin/rspec
 Parallel example:
 
 ```bash
-PARALLEL_TEST_PROCESSORS=6 mise exec -- bin/rspec
+PARALLEL_TEST_PROCESSORS=6 mise exec -- bin/parallel-rspec
 ```
 
 ---

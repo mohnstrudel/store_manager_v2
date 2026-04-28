@@ -4,14 +4,14 @@ header.nav_header
       - if sale.shopify_name.present? || sale.shopify_id.present?
         h1
           .inline-block.icon-shopify.w-13.h-13.mr-3.-mb-1
-          | Sale #{sale.shopify_name.presence || sale.shopify_id}
-      - elsif sale.woo_id.present?
+          | Sale #{sale.shop_identifier}
+      - elsif sale.woo_store_id.present?
         h1
           .inline-block.icon-woo.w-17.h-17.mr-4.-mb-4
-          | Sale #{sale.woo_id}
+          | Sale #{sale.woo_store_id}
       h2 = [sale.status&.titleize, sale.customer.email.presence].compact.join(" | ")
   menu.nav_menu
     - if sale.shopify_name.present? || sale.shopify_id.present?
-      li = pull_btn_for sale
+      li = fetch_btn_for sale
     li = shop_admin_link(sale)
     li = edit_btn_for sale

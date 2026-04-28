@@ -12,16 +12,13 @@ class Product::Shopify::Importer
 
   def initialize(parsed_payload)
     @parsed = parsed_payload
-    @storeless_match = false
   end
 
   def update_or_create!
     update_or_create_product!
 
-    update_shopify_store_info! if parsed[:store_id]
-
-    Shopify::PullEditionsJob.perform_later(product, parsed[:editions]) if parsed[:editions]
-    Shopify::PullMediaJob.perform_later(product.id, parsed[:media]) if parsed[:media]
+    Shopify::PullEditionsJob.perform_later(product, parsed[:editions]) if parsed[:editions].present?
+    Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
 
     product
   end
@@ -34,14 +31,25 @@ class Product::Shopify::Importer
       product.assign_attributes(
         title: parsed[:title],
         franchise: Franchise.find_or_create_by(title: parsed[:franchise]),
-        shape: Shape.find_or_create_by(title: parsed[:shape]),
-        sku: resolved_sku,
+        shape: parsed[:shape].presence || Product.default_shape,
         description: normalize_description_html(parsed[:description])
       )
       assign_brand
       assign_size
       product.full_title = product.generate_full_title
+      product.build_base_edition(sku: base_edition_sku)
       product.save!
+
+      if parsed[:store_id]
+        product.upsert_shopify_info!(
+          store_id: parsed[:store_id],
+          slug: parsed[:store_link],
+          ext_created_at: parsed.dig(:store_info, :ext_created_at),
+          ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
+          tag_list: parsed[:tags],
+          pull_time: Time.zone.now
+        )
+      end
     end
   end
 
@@ -56,38 +64,12 @@ class Product::Shopify::Importer
         brand_titles: parsed[:brand],
         size_values: parsed[:size]
       )
-      @storeless_match = product.present?
     end
     @product ||= Product.new
   end
 
   def find_by_store_link
     StoreInfo.find_by(store_name: :shopify, slug: parsed[:store_link])&.storable
-  end
-
-  def resolved_sku
-    return product.sku if storeless_match? && product.sku.present?
-
-    parsed[:sku]
-  end
-
-  def storeless_match?
-    @storeless_match
-  end
-
-  def update_shopify_store_info!
-    store_info = product.shopify_info || product.store_infos.shopify.new
-
-    store_info.assign_attributes(
-      store_id: parsed[:store_id],
-      slug: parsed[:store_link],
-      pull_time: Time.zone.now,
-      ext_created_at: parsed.dig(:store_info, :ext_created_at),
-      ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
-      tag_list: parsed[:tags]
-    )
-
-    store_info.save!
   end
 
   def assign_brand
@@ -113,5 +95,14 @@ class Product::Shopify::Importer
       node.remove
     end
     doc.to_html
+  end
+
+  def base_edition_sku
+    return parsed[:sku] if parsed[:editions].blank?
+
+    single_variant_edition = parsed[:editions].one? && parsed[:editions].first[:is_single_variant]
+    return parsed[:sku] if single_variant_edition
+
+    nil
   end
 end

@@ -7,13 +7,12 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
-#  sku          :string
+#  shape        :string           default("Statue"), not null
 #  slug         :string
 #  title        :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #  franchise_id :bigint           not null
-#  shape_id     :bigint           not null
 #  shopify_id   :string
 #  woo_id       :string
 #
@@ -27,9 +26,12 @@ class Product < ApplicationRecord
   include Editing
   include SalesHistory
   include Searchable
+  include Shapes
   include Shopable
   include Shopify::Matching
   include Shopify::Fallbacks
+  include Shopify::Exporting
+  include Shopify::MediaImporting
   include StoreReferences
   include Titling
 
@@ -43,20 +45,19 @@ class Product < ApplicationRecord
   paginates_per 50
 
   set_search_scope :search,
-    against: [:full_title, :woo_id],
+    against: [:id, :full_title],
     associated_against: {
+      woo_info: [:store_id],
       sizes: [:value],
       versions: [:value],
-      colors: [:value]
+      colors: [:value],
+      editions: [:sku]
     }
 
   validates :title, presence: true
-  validates :sku, presence: true
-  validates_db_uniqueness_of :sku
   validates_associated :editions
 
   db_belongs_to :franchise, inverse_of: :products
-  db_belongs_to :shape, inverse_of: :products
 
   has_many :editions, dependent: :destroy, autosave: true, inverse_of: :product
 

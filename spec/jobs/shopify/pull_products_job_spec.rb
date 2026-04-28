@@ -62,7 +62,8 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
 
     it "logs warnings when SKU collision errors occur" do
       # Create an existing product with the same SKU
-      create(:product, sku: "malenia-001")
+      product = create(:product)
+      create(:edition, product:, sku: "malenia-001")
 
       # Stub to raise SKU collision error
       allow(Product::Shopify::Importer).to receive(:import!).and_raise(
@@ -71,7 +72,7 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
       allow(Rails.logger).to receive(:warn)
 
       expect { job.perform }.not_to raise_error
-      expect(Rails.logger).to have_received(:warn).with(/Skipping item due to SKU collision/)
+      expect(Rails.logger).to have_received(:warn).with(/Skipping item due to edition SKU collision/)
       expect(Product.count).to eq(1) # No new product created
     end
 

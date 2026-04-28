@@ -13,7 +13,7 @@ module Product::Shopify::Matching
           product.shopify_info&.store_id.blank? &&
           product.franchise&.title == franchise_title &&
           product.title == product_title &&
-          product.shape&.title == shape_title &&
+          product.shape == shape_title &&
           product.brands.map(&:title).sort == normalized_brand_titles &&
           product.sizes.map(&:value).sort == normalized_size_values
       end
@@ -23,7 +23,7 @@ module Product::Shopify::Matching
 
     def storeless_for_shopify_match
       where(shopify_id: nil)
-        .includes(:franchise, :shape, :brands, :sizes, :shopify_info, :woo_info)
+        .includes(:franchise, :brands, :sizes, :shopify_info, :woo_info)
         .order(:id)
     end
   end

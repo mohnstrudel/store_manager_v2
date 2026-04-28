@@ -18,14 +18,14 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
     # Stub Product::Shopify::Importer to create valid products with SKUs
     # Also return existing products if they match by shopify_id
     allow(Product::Shopify::Importer).to receive(:import!) do |parsed_product|
-      product = Product.find_by_shopify_id(parsed_product[:shopify_id]) || Product.find_by(title: parsed_product[:title]) || Product.new
+      product = Product.find_by_shopify_id(parsed_product[:store_id]) || Product.find_by(title: parsed_product[:title]) || Product.new
       product.assign_attributes(
         title: parsed_product[:title],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
-        shape: Shape.find_or_create_by(title: parsed_product[:shape] || "Statue"),
-        sku: parsed_product[:sku] || "#{parsed_product[:title].parameterize}-#{rand(1000..9999)}"
+        shape: parsed_product[:shape] || Product.default_shape
       )
-      product.save! if product.new_record?
+      product.build_base_edition(sku: parsed_product[:sku] || "#{parsed_product[:title].parameterize}-#{rand(1000..9999)}")
+      product.save! if product.new_record? || product.changed? || product.base_edition&.new_record? || product.base_edition&.changed?
       product
     end
 
@@ -35,6 +35,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       created_editions[edition_key] ||= begin
         edition = Edition.find_by_shopify_id(parsed_edition[:id]) || Edition.new(product: product)
         edition.version = Version.find_or_create_by(value: parsed_edition[:title] || "Default")
+        product.fill_edition_sku(edition, "shopify-sale-#{parsed_edition[:id] || parsed_edition[:title] || SecureRandom.hex(4)}")
         edition.save!
         edition
       end
@@ -115,7 +116,11 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
     context "when edition already exists" do
       let!(:existing_edition) do
-        create(:edition, shopify_id: valid_parsed_order[:sale_items].first[:edition_store_id])
+        create(
+          :edition,
+          product: create(:product, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id]),
+          shopify_id: valid_parsed_order[:sale_items].first[:edition_store_id]
+        )
       end
 
       it "uses existing edition" do
@@ -165,7 +170,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "creates edition from edition_title" do
-        expect { described_class.import!(parsed_order_title_only) }.to change(Edition, :count).by(1)
+        expect { described_class.import!(parsed_order_title_only) }.to change(Edition, :count).by(2)
         expect(Edition.last.version.value).to eq("Limited Edition")
       end
 
@@ -183,8 +188,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           :product,
           title: parsed_title[:title],
           franchise: Franchise.find_or_create_by!(title: parsed_title[:franchise]),
-          shape: Shape.find_or_create_by!(title: parsed_title[:shape]),
-          sku: "storeless-#{parsed_title[:title].parameterize}"
+          shape: parsed_title[:shape]
         ).tap do |product|
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: nil)
@@ -211,7 +215,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
         allow(Product::Shopify::Importer).to receive(:import!).and_call_original
         allow(Shopify::PullEditionsJob).to receive(:perform_later)
-        allow(Shopify::PullMediaJob).to receive(:perform_later)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         expect {
           described_class.import!(first_order)
@@ -232,16 +236,51 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
         allow(Product::Shopify::Importer).to receive(:import!).and_call_original
         allow(Shopify::PullEditionsJob).to receive(:perform_later)
-        allow(Shopify::PullMediaJob).to receive(:perform_later)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         expect {
           described_class.import!(parsed_order_without_edition_title)
         }.to change(SaleItem, :count).by(1)
-          .and change(Edition, :count).by(0) # rubocop:todo RSpec/ChangeByZero
+          .and change(Edition, :count).by(1)
 
         sale_item = SaleItem.last
         expect(sale_item.product).to be_present
         expect(sale_item.edition).to be_nil
+      end
+    end
+
+    context "when a sale item only has full_title but still includes product_store_id" do
+      let(:parsed_order_with_store_id_and_title_only) do
+        order = valid_parsed_order.deep_dup
+        order[:sale_items].first.merge!(
+          edition_title: "Limited Edition",
+          edition_store_id: nil,
+          product_store_id: "gid://shopify/Product/title-rebuilt",
+          product: nil,
+          full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
+        )
+        order
+      end
+
+      before do
+        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
+        allow(Shopify::PullProductJob).to receive(:perform_later)
+        allow(Product::Shopify::Importer).to receive(:import!).and_call_original
+      end
+
+      it "creates a product linked to the known Shopify store id" do
+        described_class.import!(parsed_order_with_store_id_and_title_only)
+
+        sale_item = SaleItem.last
+        expect(sale_item.product).to be_present
+        expect(sale_item.product.shopify_info.store_id).to eq("gid://shopify/Product/title-rebuilt")
+      end
+
+      it "enqueues a full Shopify product pull for the missing local product" do
+        described_class.import!(parsed_order_with_store_id_and_title_only)
+
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with("gid://shopify/Product/title-rebuilt")
       end
     end
 

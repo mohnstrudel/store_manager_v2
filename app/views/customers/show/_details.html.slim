@@ -23,7 +23,7 @@
               .inline-block.icon-woo.w-8.h-8.mr-2.-mb-3
               = customer.woo_info.store_id
           - if customer.shopify_info.blank? && customer.woo_info.blank?
-            = safe_blank_render customer.woo_id
+            = safe_blank_render customer.woo_store_id
         td = customer.first_name
         td = customer.last_name
         td = safe_blank_render customer.email

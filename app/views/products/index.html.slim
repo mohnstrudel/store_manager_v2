@@ -1,5 +1,5 @@
 = render "_shared/notice"
-= render "_shared/nav-index", model: @products, action_partial: "products/index/sync_dialog"
+= render "_shared/nav-index", model: @products, subtitle: format_last_fetched_at(Config.shopify_products_sync_at), action_partial: "products/index/sync_dialog"
 
 section.section-border-base.section-wide
   .search

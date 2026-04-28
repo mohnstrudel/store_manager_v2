@@ -40,7 +40,8 @@ class PurchaseItem < ApplicationRecord
     associated_against: {
       product: [:full_title],
       purchase: [:order_reference],
-      sale: [:shopify_name, :woo_id],
+      sale: [:shopify_name],
+      woo_info: [:store_id],
       customer: [:email, :first_name, :last_name],
       shipping_company: [:name]
     }
@@ -57,4 +58,5 @@ class PurchaseItem < ApplicationRecord
   has_one :product, through: :purchase
   has_one :sale, through: :sale_item
   has_one :customer, through: :sale
+  has_one :woo_info, through: :sale, source: :woo_info
 end

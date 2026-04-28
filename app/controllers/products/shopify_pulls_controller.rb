@@ -7,14 +7,14 @@ module Products
     def create
       notice = if @product.shopify_info&.store_id&.present?
         Shopify::PullProductJob.perform_later(@product.shopify_info.store_id)
-        "Product is being pulled from Shopify"
+        "Product is being fetched from Shopify"
       else
         "Product has not been published to Shopify yet"
       end
 
       respond_to do |format|
         format.turbo_stream { flash.now[:notice] = notice }
-        format.html { redirect_to products_path, notice: }
+        format.html { redirect_back_or_to product_path(@product), notice: }
       end
     end
 

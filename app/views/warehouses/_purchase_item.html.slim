@@ -8,12 +8,13 @@ tr(
     = item.purchase.product.full_title
     - if item.purchase.edition.present?
       | → #{item.purchase.edition.title}
-    .cursor-text.no-events.font-mono.text-sm.text-gray-500.dark:text-gray-400 = item.purchase.product.sku
+    - display_sku = item.purchase.edition&.sku || item.purchase.product&.base_edition&.sku || "-"
+    .cursor-text.no-events.font-mono.text-sm.text-gray-500.dark:text-gray-400 = display_sku
     - if item.sale
       = link_to item.sale, title: "Open sales page", class: "no-events text-sm mt-3"
         - if item.sale.shopify_id.present?
           .icon-shopify.w-4.h-4
-        - if item.sale.woo_id.present?
+        - if item.sale.woo_store_id.present?
           .icon-woo.w-5.h-5
         = item.sale.title
   td.max-w-xs

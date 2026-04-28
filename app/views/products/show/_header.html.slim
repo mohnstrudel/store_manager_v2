@@ -4,7 +4,13 @@ header.nav_header
       h1 = product.title
       h2 = product.full_title
   menu.nav_menu
-    = render "products/show/store_sync_dialog", product:
+    / - if policy(:product).push_to_shopify?
+    /   li
+    /     = link_to product_shopify_push_path(product), class: "btn-rounded btn-amber", data: {"turbo-prefetch": "false", turbo_method: :post} do
+    /       = heroicon "chevron-double-up", variant: "mini"
+    /       | Push
+    - if policy(:product).pull_from_shopify? && product.shopify_linked?
+      li = fetch_btn_for product, path: product_shopify_pull_path(product)
     li = link_to new_purchase_path(product:)
       i.icn 💰
       | New Purchase

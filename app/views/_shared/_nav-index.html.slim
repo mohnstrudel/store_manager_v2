@@ -1,7 +1,11 @@
 - action_partial = nil if local_assigns[:action_partial].nil?
+- subtitle = local_assigns[:subtitle]
 
 header.nav_header
-  h1 = model.model_name.human.pluralize.titleize
+  hgroup
+    h1 = model.model_name.human.pluralize.titleize
+    - if subtitle.present?
+      p.text-sm.font-medium.text-gray-500.dark:text-gray-400 = subtitle
   - if Rails.application.routes.url_helpers.respond_to?("new_#{model.model_name.singular_route_key}_path")
     menu.nav_menu
       - if action_partial.present?

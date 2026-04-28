@@ -81,9 +81,8 @@ RSpec.describe Product do
     def editing_product_attributes(product)
       {
         title: product.title,
-        sku: product.sku,
         franchise_id: product.franchise_id,
-        shape_id: product.shape_id
+        shape: product.shape
       }
     end
   end
