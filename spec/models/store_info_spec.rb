@@ -68,13 +68,12 @@ RSpec.describe StoreInfo do
   end
 
   describe "store info limits" do
-    it "does not allow more store infos than assignable store names" do # rubocop:todo RSpec/MultipleExpectations
+    it "does not count not_assigned store infos against the store connection limit" do
       product = create(:product)
 
       extra_store_info = product.store_infos.build(store_name: :not_assigned)
 
-      expect(extra_store_info).not_to be_valid
-      expect(extra_store_info.errors[:base]).to include("Too many store connections for Product")
+      expect(extra_store_info).to be_valid
     end
   end
 

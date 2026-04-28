@@ -10,7 +10,7 @@ RSpec.describe Sales::PullsController, type: :controller do
     let(:sale) { create(:sale) }
 
     it "triggers the Woo pull job when the sale has a woo id" do
-      allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(id: sale.woo_id)
+      allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(id: sale.woo_store_id)
       allow(Shopify::PullSaleJob).to receive(:perform_later)
 
       post :create, params: {sale_id: sale.to_param}

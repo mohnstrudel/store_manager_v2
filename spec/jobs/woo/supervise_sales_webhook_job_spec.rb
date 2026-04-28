@@ -7,7 +7,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     described_class.new
   }
   let(:sale) {
-    create(:sale, woo_id: "123", status: Sale.active_status_names.first)
+    create(:sale, woo_store_id: "123", status: Sale.active_status_names.first)
   }
 
   before do
@@ -26,7 +26,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     Config.enable_sales_hook
 
     allow(job).to receive(:api_get_latest_orders).and_return([{
-      id: sale.woo_id,
+      id: sale.woo_store_id,
       status: sale.status
     }])
     job.perform
@@ -66,7 +66,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     Config.enable_sales_hook
 
     allow(job).to receive(:api_get_latest_orders).and_return([{
-      id: sale.woo_id,
+      id: sale.woo_store_id,
       status: "cancelled"
     }])
 

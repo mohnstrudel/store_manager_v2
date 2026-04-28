@@ -29,7 +29,7 @@ RSpec.describe Woo::PullSalesJob do
         existing_customer = create(
           :customer,
           email: "#{SecureRandom.hex(5)}@mail.com",
-          woo_id: parsed_customer[:woo_id]
+          woo_store_id: parsed_customer[:woo_id]
         )
         parsed_customer_id = job.get_customer_id(parsed_customer)
 
@@ -44,7 +44,7 @@ RSpec.describe Woo::PullSalesJob do
         create(
           :customer,
           email: parsed_customer[:email],
-          woo_id: nil
+          woo_store_id: nil
         )
       }
 
@@ -171,12 +171,12 @@ RSpec.describe Woo::PullSalesJob do
       sale = job.get_sale(parsed_sale_with_customer)
 
       expect(sale).to be_persisted
-      expect(sale.woo_id.to_s).to eq(parsed_sale[:woo_id].to_s)
+      expect(sale.woo_store_id.to_s).to eq(parsed_sale[:woo_id].to_s)
       expect(sale.total).to eq(BigDecimal(parsed_sale[:total]))
     end
 
     it "updates existing sale" do
-      existing_sale = create(:sale, woo_id: parsed_sale[:woo_id], total: 100)
+      existing_sale = create(:sale, woo_store_id: parsed_sale[:woo_id], total: 100)
 
       updated_sale = job.get_sale(parsed_sale.merge(total: 200))
 
@@ -188,7 +188,7 @@ RSpec.describe Woo::PullSalesJob do
   describe "#get_product_from_woo" do
     it "syncs product from Woo and returns it" do
       woo_id = "123"
-      product = create(:product, woo_id: woo_id)
+      product = create(:product, woo_store_id: woo_id)
 
       sync_job = instance_double(Woo::PullProductsJob)
       allow(Woo::PullProductsJob).to receive(:new).and_return(sync_job)
@@ -248,17 +248,17 @@ RSpec.describe Woo::PullSalesJob do
       before do
         create(
           :sale,
-          woo_id: parsed_woo_orders.first[:sale][:woo_id],
+          woo_store_id: parsed_woo_orders.first[:sale][:woo_id],
           city: denpasar
         )
         create(
           :edition,
-          woo_id: parsed_woo_orders.first[:products].first[:edition][:woo_id]
+          woo_store_id: parsed_woo_orders.first[:products].first[:edition][:woo_id]
         ).tap do |e|
           e.woo_info.update(slug: weird_link)
         end
         parsed_woo_orders.pluck(:products).flatten.each do |p|
-          create(:product, woo_id: p[:product_woo_id])
+          create(:product, woo_store_id: p[:product_woo_id])
         end
         job.create_sales(parsed_woo_orders)
       end
@@ -274,17 +274,17 @@ RSpec.describe Woo::PullSalesJob do
       end
 
       it "reuses existing sales" do
-        existing_sale = Sale.find_by(woo_id: parsed_woo_orders.first[:sale][:woo_id])
+        existing_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
         expect(existing_sale.city).not_to eq(denpasar)
       end
 
       it "updates the existing sale status from the pulled Woo payload" do
-        existing_sale = Sale.find_by(woo_id: parsed_woo_orders.first[:sale][:woo_id])
+        existing_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
         expect(existing_sale.status).to eq(parsed_woo_orders.first[:sale][:status])
       end
 
       it "reuses existing editions" do
-        existing_edition = Edition.find_by(woo_id: parsed_woo_orders.first[:products].first[:edition][:woo_id])
+        existing_edition = Edition.find_by_woo_id(parsed_woo_orders.first[:products].first[:edition][:woo_id])
         expect(existing_edition.woo_info.slug).to eq(weird_link)
       end
     end
@@ -299,7 +299,7 @@ RSpec.describe Woo::PullSalesJob do
 
       it "fetches missing product from Woo" do
         # Ensure no product exists with this woo_id
-        Product.where(woo_id: product_woo_id).destroy_all
+        Product.where_woo_ids([product_woo_id]).destroy_all
 
         # Don't stub - let the actual method run, but mock the dependency
         sync_job = instance_double(Woo::PullProductsJob)

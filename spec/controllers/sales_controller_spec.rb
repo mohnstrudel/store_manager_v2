@@ -198,6 +198,7 @@ RSpec.describe SalesController do
 
       it "redirects to the sale" do # rubocop:disable RSpec/MultipleExpectations
         patch :update, params: {id: sale.to_param, sale: valid_params, sale_items: {"0" => {id: sale_item.id, product_id: sale_item.product_id, qty: "3", price: "150"}}}
+        sale.reload
         expect(response).to redirect_to(sale)
         expect(flash[:notice]).to eq("Sale was successfully updated")
       end

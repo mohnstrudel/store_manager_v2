@@ -6,6 +6,11 @@ FactoryBot.define do
   end
 
   factory(:product) do
+    transient do
+      woo_store_id { nil }
+      shopify_store_id { nil }
+    end
+
     franchise
     shape { Product.default_shape }
     title { "Spirited Away" }
@@ -16,9 +21,9 @@ FactoryBot.define do
       product.full_title = product.generate_full_title
     end
 
-    after(:create) do |product|
-      create(:store_info, :woo, storable: product, store_id: product.woo_id)
-      create(:store_info, :shopify, storable: product, store_id: product.shopify_id)
+    after(:create) do |product, evaluator|
+      product.upsert_woo_info!(store_id: evaluator.woo_store_id || product[:woo_id])
+      product.upsert_shopify_info!(store_id: evaluator.shopify_store_id || product.shopify_id)
     end
 
     trait :with_brand do
