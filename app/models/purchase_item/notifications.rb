@@ -65,7 +65,7 @@ module PurchaseItem::Notifications
       {
         email:,
         customer_name: sale.customer.full_name,
-        order_number: sale.woo_id.presence || sale.shopify_name.presence || sale.id,
+        order_number: sale.woo_store_id.presence || sale.shopify_name.presence || sale.id,
         item_name: purchase_item.sale_item.title
       }
     end

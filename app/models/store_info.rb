@@ -20,9 +20,6 @@
 #  store_id       :string
 #
 class StoreInfo < ApplicationRecord
-  # TODO: Remove after deploy 99
-  self.ignored_columns += ["price"]
-
   include References
   include Validation
 

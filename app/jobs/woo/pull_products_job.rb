@@ -33,10 +33,9 @@ module Woo
     def create(parsed_product)
       return if parsed_product.blank?
 
-      product = Product.find_by(woo_id: parsed_product[:woo_id]) || Product.new
+      product = Product.find_by_woo_id(parsed_product[:woo_id]) || Product.new
       product.assign_attributes(
         title: parsed_product[:title],
-        woo_id: parsed_product[:woo_id],
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
         shape: parsed_product[:shape].presence || Product.default_shape
       )
@@ -70,7 +69,8 @@ module Woo
       product.update_or_create_store_info!(
         store_name: :woo,
         store_id: parsed_product[:woo_id],
-        slug: parsed_product[:store_link]
+        slug: parsed_product[:store_link],
+        pull_time: Time.zone.now
       )
 
       product
@@ -152,8 +152,8 @@ module Woo
         .pluck(:woo_id)
     end
 
-    def get_and_create_product(woo_id)
-      woo_product = api_get(URL + woo_id.to_s, STATUS)
+    def get_and_create_product(product_woo_id)
+      woo_product = api_get(URL + product_woo_id.to_s, STATUS)
       parsed_product = parse(woo_product)
 
       return if parsed_product.blank?

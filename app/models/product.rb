@@ -45,8 +45,9 @@ class Product < ApplicationRecord
   paginates_per 50
 
   set_search_scope :search,
-    against: [:id, :full_title, :woo_id],
+    against: [:id, :full_title],
     associated_against: {
+      woo_info: [:store_id],
       sizes: [:value],
       versions: [:value],
       colors: [:value],

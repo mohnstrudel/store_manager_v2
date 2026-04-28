@@ -21,7 +21,6 @@ class Sale::FormPayload
         edition_id: attrs[:edition_id].presence,
         qty: attrs[:qty].presence,
         price: attrs[:price].presence,
-        woo_id: attrs[:woo_id].presence,
         destroy: boolean_type.cast(attrs[:_destroy])
       }.compact
     end
@@ -37,8 +36,7 @@ class Sale::FormPayload
         product_id: attrs[:product_id],
         edition_id: attrs[:edition_id],
         qty: attrs[:qty],
-        price: attrs[:price],
-        woo_id: attrs[:woo_id]
+        price: attrs[:price]
       )
       sale_item._destroy = attrs[:_destroy]
       sale_item
@@ -64,7 +62,6 @@ class Sale::FormPayload
         :shipping_total,
         :state,
         :total,
-        :woo_id,
         :customer_id
       ]
     )
@@ -78,7 +75,6 @@ class Sale::FormPayload
         :edition_id,
         :qty,
         :price,
-        :woo_id,
         :_destroy
       ]]
     )

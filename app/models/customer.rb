@@ -24,8 +24,11 @@ class Customer < ApplicationRecord
   has_associated_audits
 
   set_search_scope :search,
-    against: [:woo_id, :email, :first_name, :last_name, :phone],
-    associated_against: {sales: :woo_id}
+    against: [:email, :first_name, :last_name, :phone],
+    associated_against: {
+      woo_info: [:store_id],
+      sales: [:shopify_name]
+    }
   paginates_per 50
 
   has_many :sales, dependent: :destroy, inverse_of: :customer

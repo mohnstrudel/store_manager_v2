@@ -26,8 +26,9 @@ module StoreInfo::Validation
   def storable_store_info_limit
     return unless limited_store_info_storable?
 
-    active_store_infos = active_sibling_store_infos.dup
+    active_store_infos = active_sibling_store_infos.reject(&:not_assigned?).dup
     active_store_infos << self unless should_be_removed?
+    active_store_infos.reject!(&:not_assigned?)
 
     return unless active_store_infos.count > self.class.assignable_store_names.count
 

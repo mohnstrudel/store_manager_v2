@@ -13,11 +13,11 @@ module Woo
     end
 
     def update_order(sale)
-      order_url = URL + sale[:woo_id]
+      order_url = URL + sale.woo_store_id.to_s
       HTTParty.post(
         order_url,
         body: {
-          status: sale[:status]
+          status: sale.status
         },
         basic_auth: {
           username: CONSUMER_KEY,

@@ -18,13 +18,13 @@ module Woo
     def get_editions(products_with_editions, status)
       progress = 0
       total = products_with_editions.size
-      products = Product.where(woo_id: products_with_editions)
+      products = Product.where_woo_ids(products_with_editions)
 
       products_with_editions.map do |product_woo_id|
         progress += 1
         warn "\nGetting editions for product: #{product_woo_id}. Remaining: #{total - progress} products"
 
-        next if products.find { |p| p.woo_id == product_woo_id.to_s }
+        next if products.find { |p| p.woo_store_id == product_woo_id.to_s }
           .editions.present?
 
         api_get(
@@ -50,7 +50,7 @@ module Woo
     )
       Woo::Edition.import(
         woo_id: edition_woo_id,
-        product_woo_id: product.woo_id,
+        product_woo_id: product.woo_store_id,
         store_link: store_link,
         options: edition_types
       )

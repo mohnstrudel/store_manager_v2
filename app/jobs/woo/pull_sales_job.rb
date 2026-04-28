@@ -26,16 +26,17 @@ module Woo
 
     def create_sales(parsed_orders)
       current_order = nil
+      pulled_at = Time.zone.now
 
       parsed_orders.each do |order|
         current_order = order
 
         ActiveRecord::Base.transaction do
-          customer_id = get_customer_id(order[:customer])
-          sale = get_sale(order[:sale].merge(customer_id:))
+          customer_id = get_customer_id(order[:customer], pulled_at:)
+          sale = get_sale(order[:sale].merge(customer_id:), pulled_at:)
 
           order[:products].each do |order_product|
-            product = Product.find_by(woo_id: order_product[:product_woo_id])
+            product = Product.find_by_woo_id(order_product[:product_woo_id])
 
             if product.blank?
               product = get_product_from_woo(order_product[:product_woo_id])
@@ -46,9 +47,7 @@ module Woo
             product.with_lock do
               edition = Woo::Edition.import(order_product[:edition])
 
-              sale_item = SaleItem.find_or_initialize_by(
-                woo_id: order_product[:sale_item_woo_id]
-              )
+              sale_item = SaleItem.find_by_woo_id(order_product[:sale_item_woo_id]) || SaleItem.new
 
               sale_item.assign_attributes({
                 price: order_product[:price],
@@ -61,6 +60,8 @@ module Woo
               unless sale_item.save!
                 Rails.logger.error "!!! Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
               end
+
+              sale_item.upsert_woo_info!(store_id: order_product[:sale_item_woo_id], pull_time: pulled_at) if order_product[:sale_item_woo_id].present?
             end
           end
         end
@@ -131,25 +132,25 @@ module Woo
       Woo::Edition.deserialize_from_order_response(line_item)
     end
 
-    def get_customer_id(parsed_customer)
+    def get_customer_id(parsed_customer, pulled_at: Time.zone.now)
       customer = if Customer.woo_id_is_valid? parsed_customer[:woo_id]
-        Customer.find_or_initialize_by(
-          woo_id: parsed_customer[:woo_id]
-        )
+        Customer.find_by_woo_id(parsed_customer[:woo_id]) || Customer.new
       else
         Customer.find_or_initialize_by(
           email: parsed_customer[:email]
         )
       end
-      customer.assign_attributes(parsed_customer)
+      customer.assign_attributes(parsed_customer.except(:woo_id, :store_id))
       customer.save!
+      customer.upsert_woo_info!(store_id: parsed_customer[:woo_id], pull_time: pulled_at) if Customer.woo_id_is_valid?(parsed_customer[:woo_id])
       customer.id
     end
 
-    def get_sale(parsed_sale)
-      sale = Sale.find_or_initialize_by(woo_id: parsed_sale[:woo_id])
-      sale.assign_attributes(parsed_sale)
+    def get_sale(parsed_sale, pulled_at: Time.zone.now)
+      sale = Sale.find_by_woo_id(parsed_sale[:woo_id]) || Sale.new
+      sale.assign_attributes(parsed_sale.except(:woo_id, :store_id))
       sale.save!
+      sale.upsert_woo_info!(store_id: parsed_sale[:woo_id], pull_time: pulled_at) if parsed_sale[:woo_id].present?
 
       sale
     end
@@ -157,7 +158,7 @@ module Woo
     def get_product_from_woo(woo_id)
       job = Woo::PullProductsJob.new
       job.get_and_create_product(woo_id)
-      Product.find_by(woo_id:)
+      Product.find_by_woo_id(woo_id)
     end
 
     def get_edition(parsed_edition, product)

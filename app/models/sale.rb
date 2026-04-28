@@ -57,9 +57,10 @@ class Sale < ApplicationRecord
   paginates_per 50
 
   set_search_scope :search,
-    against: [:woo_id, :shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
+    against: [:shopify_id, :status, :financial_status, :fulfillment_status, :note, :shopify_name],
     associated_against: {
-      customer: [:email, :first_name, :last_name, :phone, :woo_id],
+      woo_info: [:store_id],
+      customer: [:email, :first_name, :last_name, :phone],
       products: [:full_title]
     }
 

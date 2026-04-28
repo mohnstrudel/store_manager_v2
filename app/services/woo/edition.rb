@@ -69,6 +69,7 @@ class Woo::Edition
       updates = {}
       updates[:store_id] = parsed_edition[:woo_id] if parsed_edition[:woo_id].present? && woo_info.store_id != parsed_edition[:woo_id]
       updates[:slug] = parsed_edition[:store_link] if parsed_edition[:store_link].present? && woo_info.slug != parsed_edition[:store_link]
+      updates[:pull_time] = Time.zone.now
 
       if updates.any?
         if woo_info.persisted?
