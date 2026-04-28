@@ -324,7 +324,7 @@
   }
 
   .pagination a {
-    @apply whitespace-nowrap ml-2;
+    @apply whitespace-nowrap ml-2 min-w-9;
   }
 
   .pagination-list {
