@@ -10,10 +10,7 @@ header.nav_header
     /       = heroicon "chevron-double-up", variant: "mini"
     /       | Push
     - if policy(:product).pull_from_shopify? && product.shopify_linked?
-      li
-        = link_to product_shopify_pull_path(product), class: "btn-rounded", data: {"turbo-prefetch": "false", turbo_method: :post} do
-          = heroicon "chevron-double-down", variant: "mini"
-          | Pull
+      li = pull_btn_for product, path: product_shopify_pull_path(product)
     li = link_to new_purchase_path(product:)
       i.icn 💰
       | New Purchase

@@ -61,6 +61,13 @@ describe "Sale show page" do
 
       expect(page).to have_css("h2", text: "Pre Ordered | user@example.com")
     end
+
+    it "shows the shared pull icon" do
+      visit sale_path(sale)
+
+      expect(page).to have_link("Pull")
+      expect(page).to have_css("menu.nav_menu a.btn-rounded svg")
+    end
   end
 
   context "when the sale is identified by Shopify GIDs" do

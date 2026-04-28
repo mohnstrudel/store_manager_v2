@@ -11,6 +11,7 @@ RSpec.describe "Product Store Sync" do
     visit product_path(product)
 
     expect(page).to have_link("Pull")
+    expect(page).to have_css("menu.nav_menu a.btn-rounded svg")
     expect(page).to have_no_link("Push")
     expect(page).not_to have_content("Store Sync")
   end
