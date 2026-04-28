@@ -30,19 +30,7 @@ module Product::EditionGeneration
   def fill_edition_sku(edition, seed)
     return if edition.sku.present?
 
-    edition.sku = pick_available_sku(seed.presence || default_base_sku)
-  end
-
-  def pick_available_sku(seed_sku)
-    return seed_sku unless Edition.exists?(sku: seed_sku)
-
-    suffix = 2
-    loop do
-      candidate = "#{seed_sku}-#{suffix}"
-      return candidate unless Edition.exists?(sku: candidate)
-
-      suffix += 1
-    end
+    edition.sku = seed.presence || default_base_sku
   end
 
   def default_base_sku
@@ -70,7 +58,7 @@ module Product::EditionGeneration
             size_id: size&.id,
             version_id: version&.id,
             color_id: color&.id,
-            sku: pick_available_sku(combination_sku(size:, version:, color:))
+            sku: combination_sku(size:, version:, color:)
           }.compact_blank
 
           next if editions.exists?(edition_attributes.except(:sku))

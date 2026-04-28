@@ -20,7 +20,6 @@ class Edition::Shopify::Importer
     product.with_lock do
       find_or_initialize_edition
       edition.assign_attributes(edition_attrs)
-      adopt_matching_sku_edition!
       edition.save!
       if parsed[:store_id]
         edition.upsert_shopify_info!(
@@ -47,26 +46,6 @@ class Edition::Shopify::Importer
 
   def belongs_to_different_product?
     edition&.product_id != product.id
-  end
-
-  def adopt_matching_sku_edition!
-    return if edition.sku.blank?
-
-    sku_match = Edition.find_by(sku: edition.sku)
-    return if sku_match.nil? || sku_match == edition
-
-    raise_sku_conflict!(sku_match) unless reusable_sku_match?(sku_match)
-
-    @edition = sku_match
-    edition.assign_attributes(edition_attrs.merge(product: product))
-  end
-
-  def reusable_sku_match?(sku_match)
-    return true if sku_match.product_id == product.id
-    return false if sku_match.shopify_linked? && sku_match.shopify_info.store_id != parsed[:store_id]
-    return false if sku_match.has_sales_or_purchases?
-
-    !sku_match.product&.shopify_linked?
   end
 
   def edition_attrs
@@ -111,25 +90,6 @@ class Edition::Shopify::Importer
 
   def generated_fallback_sku
     store_id_segment = parsed[:store_id].to_s.split("/").last.presence || SecureRandom.hex(4)
-    seed = "shopify-#{product.id}-#{store_id_segment}"
-    return seed unless Edition.exists?(sku: seed)
-
-    suffix = 2
-    loop do
-      candidate = "#{seed}-#{suffix}"
-      return candidate unless Edition.exists?(sku: candidate)
-
-      suffix += 1
-    end
-  end
-
-  def raise_sku_conflict!(sku_match)
-    edition.errors.add(
-      :sku,
-      "has already been taken by edition_id=#{sku_match.id} product_id=#{sku_match.product_id} " \
-      "shopify_id=#{sku_match.shopify_info&.store_id || "blank"} " \
-      "has_sales_or_purchases=#{sku_match.has_sales_or_purchases?}"
-    )
-    raise ActiveRecord::RecordInvalid.new(edition)
+    "shopify-#{product.id}-#{store_id_segment}"
   end
 end

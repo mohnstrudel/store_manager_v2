@@ -329,6 +329,43 @@ RSpec.describe Edition::Shopify::Importer do
           expect(existing_edition.color).to be_nil
         end
       end
+
+      context "when a local base edition already exists and another reusable product owns the incoming sku" do
+        let(:parsed_single_variant) do
+          super().merge(sku: "fantasy-studio-nanami-kento")
+        end
+
+        let!(:existing_edition) do
+          product.base_edition.tap do |edition|
+            edition.update!(sku: "product-4147-base")
+            edition.store_infos.destroy_all
+            edition.update_columns(shopify_id: nil, woo_id: nil)
+          end
+        end
+
+        let!(:foreign_placeholder_edition) do
+          storeless_product = create(:product).tap do |existing_product|
+            existing_product.store_infos.destroy_all
+            existing_product.update_columns(shopify_id: nil, woo_id: nil)
+          end
+
+          create(:edition, product: storeless_product, sku: parsed_single_variant[:sku]).tap do |edition|
+            edition.store_infos.destroy_all
+            edition.update_columns(shopify_id: nil, woo_id: nil)
+          end
+        end
+
+        it "updates the local base edition instead of reusing the foreign sku row" do # rubocop:todo RSpec/MultipleExpectations
+          expect { described_class.import!(product, parsed_single_variant) }.not_to change(Edition, :count)
+
+          expect(foreign_placeholder_edition.reload.sku).to eq("fantasy-studio-nanami-kento")
+
+          existing_edition.reload
+          expect(existing_edition.sku).to eq("fantasy-studio-nanami-kento")
+          expect(existing_edition.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
+          expect(existing_edition.title).to eq("Base Model")
+        end
+      end
     end
 
     context "with Title option only (multi-variant product)" do
@@ -447,31 +484,34 @@ RSpec.describe Edition::Shopify::Importer do
         end
       end
 
-      it "reuses the existing edition instead of creating a duplicate sku" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(product, parsed_variant) }.not_to change(Edition, :count)
+      it "creates a new edition on the current product and leaves the foreign one untouched" do # rubocop:todo RSpec/MultipleExpectations
+        expect { described_class.import!(product, parsed_variant) }.to change(Edition, :count).by(1)
 
         existing_edition.reload
-        expect(existing_edition.product).to eq(product)
-        expect(existing_edition.shopify_info.store_id).to eq(parsed_variant[:store_id])
-        expect(existing_edition.version.value).to eq("Deluxe")
-        expect(existing_edition.size.value).to eq("Large")
-        expect(existing_edition.color.value).to eq("Red")
+        expect(existing_edition.product).to eq(storeless_product)
+        expect(existing_edition.shopify_info).to be_nil
+
+        imported_edition = Edition.find_by_shopify_id(parsed_variant[:store_id])
+        expect(imported_edition.product).to eq(product)
+        expect(imported_edition.sku).to eq(parsed_variant[:sku])
+        expect(imported_edition.version.value).to eq("Deluxe")
+        expect(imported_edition.size.value).to eq("Large")
+        expect(imported_edition.color.value).to eq("Red")
       end
     end
 
     context "when the same sku already exists on another linked product" do
       let!(:conflicting_edition) { create(:edition, sku: parsed_variant[:sku]) }
 
-      it "raises a conflict with detailed diagnostic context" do
-        expect {
-          described_class.import!(product, parsed_variant)
-        }.to raise_error(ActiveRecord::RecordInvalid) { |error|
-          expect(error.message).to include("Sku has already been taken")
-          expect(error.message).to include("edition_id=#{conflicting_edition.id}")
-          expect(error.message).to include("product_id=#{conflicting_edition.product_id}")
-          expect(error.message).to include("shopify_id=#{conflicting_edition.shopify_info.store_id}")
-          expect(error.message).to include("has_sales_or_purchases=false")
-        }
+      it "creates a separate edition with the same sku on the current product" do # rubocop:todo RSpec/MultipleExpectations
+        expect { described_class.import!(product, parsed_variant) }.to change(Edition, :count).by(1)
+
+        conflicting_edition.reload
+        expect(conflicting_edition.product).not_to eq(product)
+
+        imported_edition = Edition.find_by_shopify_id(parsed_variant[:store_id])
+        expect(imported_edition.product).to eq(product)
+        expect(imported_edition.sku).to eq(parsed_variant[:sku])
       end
     end
   end

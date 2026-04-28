@@ -62,6 +62,24 @@ RSpec.describe Product do
       expect(product.editions.find(&:new_record?).errors[:sku]).to include("has already been taken")
     end
 
+    it "raises a product validation error when another product already uses the sku" do # rubocop:todo RSpec/MultipleExpectations
+      create(:edition, sku: "GLOBAL-SKU")
+
+      expect {
+        product.save_editing!(
+          product_attributes: editing_product_attributes(product),
+          editions_attributes: [
+            {sku: "GLOBAL-SKU"}
+          ],
+          store_infos_attributes: [],
+          media_attributes: [],
+          new_media_images: []
+        )
+      }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(product.editions.find(&:new_record?).errors[:sku]).to include("has already been taken")
+    end
+
     it "deactivates an edition with sale history instead of destroying it" do # rubocop:todo RSpec/MultipleExpectations
       edition = create(:edition, product:)
       sale = create(:sale)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_23_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -126,7 +126,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_23_120000) do
     t.index ["product_id"], name: "index_editions_on_product_id"
     t.index ["shopify_id"], name: "index_editions_on_shopify_id", unique: true, where: "(shopify_id IS NOT NULL)"
     t.index ["size_id"], name: "index_editions_on_size_id"
-    t.index ["sku"], name: "index_editions_on_sku", unique: true
+    t.index ["sku"], name: "index_editions_on_sku"
     t.index ["version_id"], name: "index_editions_on_version_id"
     t.index ["woo_id"], name: "index_editions_on_woo_id", unique: true, where: "(woo_id IS NOT NULL)"
   end
