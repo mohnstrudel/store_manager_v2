@@ -90,8 +90,8 @@ module DashboardDebtReporting
       SQL
       .joins(<<~SQL.squish)
         LEFT JOIN versions ON versions.id = variants.version_id
-        LEFT JOIN colors ON colors.id = variants.version_id
-        LEFT JOIN sizes ON sizes.id = variants.version_id
+        LEFT JOIN colors ON colors.id = variants.color_id
+        LEFT JOIN sizes ON sizes.id = variants.size_id
       SQL
       .group("variants.id, versions.value, colors.value, sizes.value")
   end

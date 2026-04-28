@@ -9,7 +9,6 @@ module Woo
 
     URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
     ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2700
-    EDITION_TYPES = ::Variant.types.values
     SYNC_VARIANTS_JOB = Woo::PullVariantsJob.new
 
     def perform(limit: nil, pages: nil, id: nil)
