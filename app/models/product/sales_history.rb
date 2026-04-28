@@ -15,18 +15,18 @@ module Product::SalesHistory
     sale_items.for_history.completed.order(created_at: :asc)
   end
 
-  def edition_sales_sums
+  def variant_sales_sums
     SaleItem
       .active
-      .where(edition: editions)
-      .group(:edition_id)
+      .where(variant: variants)
+      .group(:variant_id)
       .sum(:qty)
   end
 
-  def edition_purchase_sums
+  def variant_purchase_sums
     Purchase
-      .where(edition: editions)
-      .group(:edition_id)
+      .where(variant: variants)
+      .group(:variant_id)
       .sum(:amount)
   end
 end

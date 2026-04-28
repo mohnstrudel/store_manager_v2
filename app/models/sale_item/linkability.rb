@@ -22,9 +22,9 @@ module SaleItem::Linkability
       active
         .linkable
         .where(
-          purchase.edition_id.present? ?
-            {edition_id: purchase.edition_id} :
-            {product_id: purchase.product_id, edition_id: nil}
+          purchase.variant_id.present? ?
+            {variant_id: purchase.variant_id} :
+            {product_id: purchase.product_id, variant_id: nil}
         )
     end
 
@@ -41,6 +41,6 @@ module SaleItem::Linkability
   end
 
   def resolve_sold_item
-    edition.presence || product
+    variant.presence || product
   end
 end

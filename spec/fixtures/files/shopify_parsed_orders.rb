@@ -32,8 +32,8 @@
         store_id: "gid://shopify/LineItem/16851717685577",
         qty: 1,
         price: "159.41",
-        edition_title: "mit großer Brust + weißen Stiefeln",
-        edition_store_id: "gid://shopify/ProductVariant/50195649364297",
+        variant_title: "mit großer Brust + weißen Stiefeln",
+        variant_store_id: "gid://shopify/ProductVariant/50195649364297",
         product_store_id: "gid://shopify/Product/9118444224841",
         full_title: "Star Wars - Princess Leia | 1:4 Resin Statue | von xionart",
         product: {
@@ -76,7 +76,7 @@
               src: "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/444446317_1173934120412648_2221599433085833028_n.jpg?v=1729854217"
             }
           ],
-          editions: [
+          variants: [
             {
               id: "gid://shopify/ProductVariant/50195649364297",
               title: "mit großer Brust + weißen Stiefeln",
@@ -145,8 +145,8 @@
         store_id: "gid://shopify/LineItem/16848835543369",
         qty: 1,
         price: "79.80",
-        edition_title: nil,
-        edition_store_id: "gid://shopify/ProductVariant/51994739376457",
+        variant_title: nil,
+        variant_store_id: "gid://shopify/ProductVariant/51994739376457",
         product_store_id: "gid://shopify/Product/9602169995593",
         full_title: "Naruto - Naruto | Resin Statue | by Iron Curtain Studio",
         product: {
@@ -189,7 +189,7 @@
               src: "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/c3ce41a6-dd6d-591b-8da7-feb2da201960.jpg?v=1743167729"
             }
           ],
-          editions: [
+          variants: [
             {
               id: "gid://shopify/ProductVariant/51994739376457",
               title: "Default Title",
@@ -248,8 +248,8 @@
         store_id: "gid://shopify/LineItem/16839346848073",
         qty: 1,
         price: "680.00",
-        edition_title: nil,
-        edition_store_id: "gid://shopify/ProductVariant/50195633537353",
+        variant_title: nil,
+        variant_store_id: "gid://shopify/ProductVariant/50195633537353",
         product_store_id: "gid://shopify/Product/9118438064457",
         full_title: "Stellar Blade - EVE | 1:4 Resin Statue | von CP Studio",
         product: {
@@ -292,7 +292,7 @@
               src: "https://cdn.shopify.com/s/files/1/0883/8964/8713/files/4352F1B8-5BA7-49B2-9987-0A2FCBD14F33.jpg?v=1718535517"
             }
           ],
-          editions: [
+          variants: [
             {
               id: "gid://shopify/ProductVariant/50195633537353",
               title: "Default Title",

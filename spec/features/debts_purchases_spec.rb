@@ -19,32 +19,32 @@ describe "Debts can take purchases into account" do
       brand: create(:brand, title: "Coolbear Studio")
     )
 
-    # Create a bunch of edition to prevent this test failing at production environment
-    create_list(:edition, 3)
+    # Create a bunch of variant to prevent this test failing at production environment
+    create_list(:variant, 3)
 
     @malenia_regular = create(
-      :edition,
+      :variant,
       product: @malenia, # rubocop:todo RSpec/InstanceVariable
       version: regular
     )
     @malenia_revealing = create(
-      :edition,
+      :variant,
       product: @malenia, # rubocop:todo RSpec/InstanceVariable
       version: revealing
     )
 
-    create_list(:sale_item, 3, product: @malenia, edition: nil) # rubocop:todo RSpec/InstanceVariable
+    create_list(:sale_item, 3, product: @malenia, variant: nil) # rubocop:todo RSpec/InstanceVariable
     create_list(
       :sale_item,
       6,
       product: @malenia, # rubocop:todo RSpec/InstanceVariable
-      edition: @malenia_regular # rubocop:todo RSpec/InstanceVariable
+      variant: @malenia_regular # rubocop:todo RSpec/InstanceVariable
     )
     create_list(
       :sale_item,
       9,
       product: @malenia, # rubocop:todo RSpec/InstanceVariable
-      edition: @malenia_revealing # rubocop:todo RSpec/InstanceVariable
+      variant: @malenia_revealing # rubocop:todo RSpec/InstanceVariable
     )
   end
 
@@ -93,7 +93,7 @@ describe "Debts can take purchases into account" do
       expect(find(purchases_selector)).to have_text("0")
     end
 
-    create(:purchase, product: @malenia, edition: @malenia_regular, amount: 2) # rubocop:todo RSpec/InstanceVariable
+    create(:purchase, product: @malenia, variant: @malenia_regular, amount: 2) # rubocop:todo RSpec/InstanceVariable
 
     refresh
 
@@ -109,7 +109,7 @@ describe "Debts can take purchases into account" do
       expect(find(purchases_selector)).to have_text("0")
     end
 
-    create(:purchase, product: @malenia, edition: @malenia_revealing, amount: 3) # rubocop:todo RSpec/InstanceVariable
+    create(:purchase, product: @malenia, variant: @malenia_revealing, amount: 3) # rubocop:todo RSpec/InstanceVariable
 
     refresh
 

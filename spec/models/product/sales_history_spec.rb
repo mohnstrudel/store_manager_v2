@@ -5,12 +5,12 @@ require "rails_helper"
 RSpec.describe Product do
   describe "#active_sale_items" do
     let(:product) { create(:product) }
-    let(:edition) { create(:edition, product:) }
+    let(:variant) { create(:variant, product:) }
 
     let!(:older_active_sale_item) do
       create(:sale_item,
         product:,
-        edition:,
+        variant:,
         sale: create(:sale, status: "processing"),
         qty: 2,
         created_at: 2.days.ago,
@@ -20,7 +20,7 @@ RSpec.describe Product do
     let!(:newer_active_sale_item) do
       create(:sale_item,
         product:,
-        edition:,
+        variant:,
         sale: create(:sale, status: "pre-ordered"),
         qty: 1,
         created_at: 1.day.ago,
@@ -30,7 +30,7 @@ RSpec.describe Product do
     let!(:completed_sale_item) do
       create(:sale_item,
         product:,
-        edition:,
+        variant:,
         sale: create(:sale, status: "completed"),
         qty: 5,
         created_at: 3.days.ago,
@@ -44,12 +44,12 @@ RSpec.describe Product do
 
   describe "#completed_sale_items" do
     let(:product) { create(:product) }
-    let(:edition) { create(:edition, product:) }
+    let(:variant) { create(:variant, product:) }
 
     let!(:completed_sale_item) do
       create(:sale_item,
         product:,
-        edition:,
+        variant:,
         sale: create(:sale, status: "completed"),
         qty: 4,
         created_at: 1.day.ago,
@@ -59,7 +59,7 @@ RSpec.describe Product do
     let!(:active_sale_item) do
       create(:sale_item,
         product:,
-        edition:,
+        variant:,
         sale: create(:sale, status: "processing"),
         qty: 2,
         created_at: 2.days.ago,
@@ -71,40 +71,40 @@ RSpec.describe Product do
     end
   end
 
-  describe "#edition_sales_sums" do
+  describe "#variant_sales_sums" do
     let(:product) { create(:product) }
-    let(:edition1) { create(:edition, product:) }
-    let(:edition2) { create(:edition, product:) }
+    let(:variant1) { create(:variant, product:) }
+    let(:variant2) { create(:variant, product:) }
 
     before do
-      create(:sale_item, product:, edition: edition1, sale: create(:sale, status: "processing"), qty: 2)
-      create(:sale_item, product:, edition: edition1, sale: create(:sale, status: "completed"), qty: 9)
-      create(:sale_item, product:, edition: edition2, sale: create(:sale, status: "partially-paid"), qty: 5)
+      create(:sale_item, product:, variant: variant1, sale: create(:sale, status: "processing"), qty: 2)
+      create(:sale_item, product:, variant: variant1, sale: create(:sale, status: "completed"), qty: 9)
+      create(:sale_item, product:, variant: variant2, sale: create(:sale, status: "partially-paid"), qty: 5)
     end
 
-    it "sums active sale quantities per edition" do
-      expect(product.edition_sales_sums).to eq(
-        edition1.id => 2,
-        edition2.id => 5
+    it "sums active sale quantities per variant" do
+      expect(product.variant_sales_sums).to eq(
+        variant1.id => 2,
+        variant2.id => 5
       )
     end
   end
 
-  describe "#edition_purchase_sums" do
+  describe "#variant_purchase_sums" do
     let(:product) { create(:product) }
-    let(:edition1) { create(:edition, product:) }
-    let(:edition2) { create(:edition, product:) }
+    let(:variant1) { create(:variant, product:) }
+    let(:variant2) { create(:variant, product:) }
 
     before do
-      create(:purchase, product:, edition: edition1, amount: 3, item_price: 10)
-      create(:purchase, product:, edition: edition1, amount: 2, item_price: 10)
-      create(:purchase, product:, edition: edition2, amount: 7, item_price: 10)
+      create(:purchase, product:, variant: variant1, amount: 3, item_price: 10)
+      create(:purchase, product:, variant: variant1, amount: 2, item_price: 10)
+      create(:purchase, product:, variant: variant2, amount: 7, item_price: 10)
     end
 
-    it "sums purchase amounts per edition" do
-      expect(product.edition_purchase_sums).to eq(
-        edition1.id => 5,
-        edition2.id => 7
+    it "sums purchase amounts per variant" do
+      expect(product.variant_purchase_sums).to eq(
+        variant1.id => 5,
+        variant2.id => 7
       )
     end
   end

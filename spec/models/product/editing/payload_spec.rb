@@ -24,7 +24,7 @@ RSpec.describe Product::Editing::Payload do
           _destroy: "0"
         }
       },
-      editions: {
+      variants: {
         "0" => {
           id: "",
           sku: "ED-1",
@@ -50,7 +50,7 @@ RSpec.describe Product::Editing::Payload do
 
   it "builds editing attributes for product saving" do # rubocop:disable RSpec/MultipleExpectations
     expect(editing_payload.product_attributes[:title]).to eq("Test Product")
-    expect(editing_payload.editions_attributes).to eq([
+    expect(editing_payload.variants_attributes).to eq([
       {
         sku: "ED-1",
         size_id: "10",

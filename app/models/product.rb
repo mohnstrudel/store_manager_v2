@@ -19,7 +19,7 @@
 class Product < ApplicationRecord
   attr_accessor :initial_purchase
 
-  include EditionGeneration
+  include VariantGeneration
   include HasAuditNotifications
   include HasPreviewImages
   include Listing
@@ -46,21 +46,21 @@ class Product < ApplicationRecord
 
   set_search_scope :search,
     against: [:id, :full_title],
-    store_id_associations: [:editions],
+    store_id_associations: [:variants],
     associated_against: {
       woo_info: [:store_id],
       sizes: [:value],
       versions: [:value],
       colors: [:value],
-      editions: [:sku]
+      variants: [:sku]
     }
 
   validates :title, presence: true
-  validates_associated :editions
+  validates_associated :variants
 
   db_belongs_to :franchise, inverse_of: :products
 
-  has_many :editions, dependent: :destroy, autosave: true, inverse_of: :product
+  has_many :variants, dependent: :destroy, autosave: true, inverse_of: :product
 
   has_many :product_brands, dependent: :destroy, inverse_of: :product
   has_many :brands, through: :product_brands

@@ -11,8 +11,8 @@ RSpec.describe "Shopify Job Integration" do
     let(:product_size) { create(:product_size, product: product, size: size) }
     let(:product_version) { create(:product_version, product: product, version: version) }
     let(:product_color) { create(:product_color, product: product, color: color) }
-    let(:edition) do
-      create(:edition, product: product, size: size, version: version, color: color)
+    let(:variant) do
+      create(:variant, product: product, size: size, version: version, color: color)
     end
 
     # Mock API responses
@@ -74,7 +74,7 @@ RSpec.describe "Shopify Job Integration" do
       product_size
       product_version
       product_color
-      product.editions << edition
+      product.variants << variant
 
       # Mock the serializer
       allow_any_instance_of(Product).to receive(:shopify_payload).and_return(serialized_product)
@@ -148,13 +148,13 @@ RSpec.describe "Shopify Job Integration" do
         expect(color_store_info.store_id).to eq("gid://shopify/ProductOptionValue/3")
 
         # Verify variant was created
-        edition.reload
-        edition_store_info = edition.store_infos.find_by(store_name: :shopify)
-        expect(edition_store_info).to be_present
-        expect(edition_store_info.store_id).to eq("gid://shopify/ProductVariant/1")
+        variant.reload
+        variant_store_info = variant.store_infos.find_by(store_name: :shopify)
+        expect(variant_store_info).to be_present
+        expect(variant_store_info.store_id).to eq("gid://shopify/ProductVariant/1")
 
         # Verify all store infos have push times
-        [product_store_info, size_store_info, version_store_info, color_store_info, edition_store_info].each do |store_info|
+        [product_store_info, size_store_info, version_store_info, color_store_info, variant_store_info].each do |store_info|
           expect(store_info.push_time).to be_within(1.second).of(Time.current)
         end
       end
@@ -191,11 +191,11 @@ RSpec.describe "Shopify Job Integration" do
 
     context "when first job succeeds but second job fails" do
       before do
-        # Remove factory-created shopify store_infos for options and edition
+        # Remove factory-created shopify store_infos for options and variant
         product_size.store_infos.where(store_name: :shopify).destroy_all
         product_version.store_infos.where(store_name: :shopify).destroy_all
         product_color.store_infos.where(store_name: :shopify).destroy_all
-        edition.store_infos.where(store_name: :shopify).destroy_all
+        variant.store_infos.where(store_name: :shopify).destroy_all
 
         # Setup first job to succeed
         api_client = instance_spy(Shopify::Api::Client)
@@ -227,7 +227,7 @@ RSpec.describe "Shopify Job Integration" do
         expect(product_size.store_infos.where(store_name: :shopify)).to be_none
         expect(product_version.store_infos.where(store_name: :shopify)).to be_none
         expect(product_color.store_infos.where(store_name: :shopify)).to be_none
-        expect(edition.store_infos.where(store_name: :shopify)).to be_none
+        expect(variant.store_infos.where(store_name: :shopify)).to be_none
       end
     end
 
@@ -313,9 +313,9 @@ RSpec.describe "Shopify Job Integration" do
         size_store_info = product_size.store_infos.find_by(store_name: :shopify)
         expect(size_store_info).to be_present
 
-        edition.reload
-        edition_store_info = edition.store_infos.find_by(store_name: :shopify)
-        expect(edition_store_info).to be_present
+        variant.reload
+        variant_store_info = variant.store_infos.find_by(store_name: :shopify)
+        expect(variant_store_info).to be_present
       end
     end
 

@@ -22,7 +22,7 @@ module Product::Shopify::Fallbacks
         full_title: "#{FALLBACK_FRANCHISE_TITLE} -- #{TITLE_PREFIX} #{short_store_id(store_id)}"
       )
 
-      product.build_base_edition(sku: deterministic_shopify_placeholder_sku(store_id))
+      product.build_base_variant(sku: deterministic_shopify_placeholder_sku(store_id))
       product.save!
       product.store_infos.create!(
         store_name: :shopify,

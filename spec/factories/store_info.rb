@@ -5,8 +5,8 @@ FactoryBot.define do
     association :storable, factory: :product
     store_name { :not_assigned }
 
-    trait :for_edition do
-      association :storable, factory: :edition
+    trait :for_variant do
+      association :storable, factory: :variant
     end
 
     trait :shopify do

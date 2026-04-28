@@ -7,7 +7,7 @@ tr(
   td = sale_item.sale.customer.email
   td = sale_item.sale.country
   td = format_date sale_item.sale.woo_created_at.presence || sale_item.created_at
-  - if product.editions.any?
-    td = sale_item.edition&.title || "-"
+  - if product.variants.any?
+    td = sale_item.variant&.title || "-"
   td.text-right.font-mono = format_money sale_item.price
   td = sale_item.qty

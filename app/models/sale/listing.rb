@@ -18,7 +18,7 @@ module Sale::Listing
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
           {purchase_items: [:warehouse, purchase: :supplier]},
-          {edition: [:version, :color, :size]}
+          {variant: [:version, :color, :size]}
         ]
       )
     }

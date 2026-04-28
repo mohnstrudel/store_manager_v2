@@ -4,7 +4,7 @@
 .section-wide.flex.flex-col.gap-8.p-8
   = render "products/show/attributes", product: @product
   = render "products/show/description", product: @product
-  = render "products/show/editions", product: @product, editions_sales_sums: @editions_sales_sums, editions_purchases_sums: @editions_purchases_sums, selected_id: @selected_id
+  = render "products/show/variants", product: @product, variants_sales_sums: @variants_sales_sums, variants_purchases_sums: @variants_purchases_sums, selected_id: @selected_id
   = render "products/show/active_sales", product: @product, active_sales: @active_sales, selected_id: @selected_id
   = render "products/show/completed_sales", product: @product, complete_sales: @complete_sales, selected_id: @selected_id
   = render "products/show/purchases", purchases: @purchases

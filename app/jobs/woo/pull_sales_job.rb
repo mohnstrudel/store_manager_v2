@@ -9,8 +9,8 @@ module Woo
 
     URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
     ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2700
-    EDITION_TYPES = ::Edition.types.values
-    SYNC_EDITIONS_JOB = Woo::PullEditionsJob.new
+    EDITION_TYPES = ::Variant.types.values
+    SYNC_VARIANTS_JOB = Woo::PullVariantsJob.new
 
     def perform(limit: nil, pages: nil, id: nil)
       woo_orders = if id.present?
@@ -45,7 +45,7 @@ module Woo
             next if product.blank?
 
             product.with_lock do
-              edition = Woo::Edition.import(order_product[:edition])
+              variant = Woo::Variant.import(order_product[:variant])
 
               sale_item = SaleItem.find_by_woo_id(order_product[:sale_item_woo_id]) || SaleItem.new
 
@@ -54,7 +54,7 @@ module Woo
                 product:,
                 qty: order_product[:qty],
                 sale:,
-                edition:
+                variant:
               }.compact)
 
               unless sale_item.save!
@@ -122,14 +122,14 @@ module Woo
             price: line_item[:price].to_i + line_item[:total_tax].to_i,
             product_woo_id: line_item[:product_id],
             qty: line_item[:quantity],
-            edition: parse_edition(line_item)
+            variant: parse_variant(line_item)
           }.compact
         }
       }
     end
 
-    def parse_edition(line_item)
-      Woo::Edition.deserialize_from_order_response(line_item)
+    def parse_variant(line_item)
+      Woo::Variant.deserialize_from_order_response(line_item)
     end
 
     def get_customer_id(parsed_customer, pulled_at: Time.zone.now)
@@ -161,15 +161,15 @@ module Woo
       Product.find_by_woo_id(woo_id)
     end
 
-    def get_edition(parsed_edition, product)
-      return if parsed_edition.blank?
+    def get_variant(parsed_variant, product)
+      return if parsed_variant.blank?
 
-      SYNC_EDITIONS_JOB.create_edition(
+      SYNC_VARIANTS_JOB.create_variant(
         product:,
-        edition_woo_id: parsed_edition[:woo_id],
-        edition_types: {
-          type: parsed_edition[:type],
-          value: parsed_edition[:value]
+        variant_woo_id: parsed_variant[:woo_id],
+        variant_types: {
+          type: parsed_variant[:type],
+          value: parsed_variant[:value]
         }
       )
     end

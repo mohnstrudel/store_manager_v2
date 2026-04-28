@@ -51,7 +51,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     it "re-raises SKU collision errors" do
       # Create a product that will cause SKU collision
       product = create(:product)
-      create(:edition, product:, sku: "test-001")
+      create(:variant, product:, sku: "test-001")
       create(:sale, shopify_id: "gid://shopify/Order/123")
 
       # Stub to raise SKU collision error

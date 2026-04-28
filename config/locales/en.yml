@@ -33,7 +33,7 @@ en:
   activerecord:
     errors:
       models:
-        edition:
+        variant:
           attributes:
             base:
               combination_exists: "Combination already exists"

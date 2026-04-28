@@ -56,10 +56,10 @@ describe "Search works across products, sales, purchases, and debts", js: true d
   end
 
   before do
-    create(:sale_item, sale: sale_cooper, product: asuka, edition: nil)
-    create(:sale_item, sale: sale_cooper, product: batman, edition: nil)
-    create(:sale_item, sale: sale_cooper, product: guts, edition: nil)
-    create(:sale_item, sale: sale_palmer, product: batman, edition: nil)
+    create(:sale_item, sale: sale_cooper, product: asuka, variant: nil)
+    create(:sale_item, sale: sale_cooper, product: batman, variant: nil)
+    create(:sale_item, sale: sale_cooper, product: guts, variant: nil)
+    create(:sale_item, sale: sale_palmer, product: batman, variant: nil)
   end
 
   it "shows the expected products and supplier debts on the index" do
@@ -130,7 +130,7 @@ describe "Search works across products, sales, purchases, and debts", js: true d
 
   it "updates the debts page when product associations change" do
     4.times do
-      create(:sale_item, sale: sale_cooper, product: batman, edition: nil)
+      create(:sale_item, sale: sale_cooper, product: batman, variant: nil)
     end
 
     dc_comics = create(:franchise, title: "DC Comics")
@@ -171,7 +171,7 @@ describe "Search works across products, sales, purchases, and debts", js: true d
   end
 
   it "updates the purchases page when a purchase changes product" do
-    asuka_edition = create(:edition, product: asuka)
+    asuka_variant = create(:variant, product: asuka)
 
     visit purchases_path
 
@@ -186,10 +186,10 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     # and select a different product
     slim_select(batman.build_full_title_with_shop_id, asuka.build_full_title_with_shop_id)
 
-    scroll_to("label[for='purchase_edition'] ~ div")
-    # Select an edition for the new product
-    find("#purchase-edition-select:last-child").click
-    find("div[aria-selected='false']", text: asuka_edition.title).click
+    scroll_to("label[for='purchase_variant'] ~ div")
+    # Select a variant for the new product
+    find("#purchase-variant-select:last-child").click
+    find("div[aria-selected='false']", text: asuka_variant.title).click
 
     scroll_to("input[type=submit]")
     find("input[type=submit]").click
@@ -199,6 +199,6 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     fill_in "q", with: purchase_batman.order_reference
     click_button "Search"
 
-    expect(page).to have_text(asuka_edition.title)
+    expect(page).to have_text(asuka_variant.title)
   end
 end

@@ -3,8 +3,8 @@
 class Product::Shopify::Parser
   include Sanitizable
 
-  attr_reader :payload, :parsed_editions, :parsed_media, :parsed_sku, :parsed_title
-  private :payload, :parsed_editions, :parsed_media, :parsed_sku, :parsed_title
+  attr_reader :payload, :parsed_variants, :parsed_media, :parsed_sku, :parsed_title
+  private :payload, :parsed_variants, :parsed_media, :parsed_sku, :parsed_title
 
   def self.parse(payload)
     raise ArgumentError, "Payload cannot be blank" if payload.blank?
@@ -20,13 +20,13 @@ class Product::Shopify::Parser
   def parse
     parse_shopify_title
     parse_media
-    parse_editions
+    parse_variants
     parse_sku
 
     {
       brand: parsed_title[:brand],
       description: payload["descriptionHtml"].presence,
-      editions: parsed_editions,
+      variants: parsed_variants,
       franchise: parsed_title[:franchise],
       media: parsed_media,
       shape: parsed_title[:shape],
@@ -74,7 +74,7 @@ class Product::Shopify::Parser
     first_variant_sku = payload.dig("variants", "edges", 0, "node", "sku")
 
     @parsed_sku =
-      if parsed_editions.many?
+      if parsed_variants.many?
         nil
       else
         first_variant_sku || generate_sku
@@ -101,18 +101,18 @@ class Product::Shopify::Parser
     end || []
   end
 
-  def parse_editions
+  def parse_variants
     variants = payload.dig("variants", "edges") || []
 
     if (is_single_variant = variants.size == 1)
-      @parsed_editions = [build_edition_data(variants.first["node"], is_single_variant:)]
+      @parsed_variants = [build_variant_data(variants.first["node"], is_single_variant:)]
       return
     end
 
-    @parsed_editions = variants.map { |edge| build_edition_data(edge["node"]) }
+    @parsed_variants = variants.map { |edge| build_variant_data(edge["node"]) }
   end
 
-  def build_edition_data(variant, is_single_variant: false)
+  def build_variant_data(variant, is_single_variant: false)
     inventory_item = variant["inventoryItem"] || {}
 
     {

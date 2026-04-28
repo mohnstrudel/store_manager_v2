@@ -10,16 +10,16 @@ module SaleItem::Listing
       includes(
         :product,
         sale: [:customer],
-        edition: [:color, :size, :version]
+        variant: [:color, :size, :version]
       )
     }
 
     scope :for_history, -> {
-      includes(:product, sale: :customer, edition: [:version, :color, :size])
+      includes(:product, sale: :customer, variant: [:version, :color, :size])
     }
 
     scope :for_tracking_status, -> {
-      includes(:product, edition: [:version, :color, :size], purchase_items: :warehouse)
+      includes(:product, variant: [:version, :color, :size], purchase_items: :warehouse)
     }
   end
 end

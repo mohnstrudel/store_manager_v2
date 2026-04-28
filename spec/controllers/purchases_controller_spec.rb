@@ -44,7 +44,7 @@ RSpec.describe PurchasesController do
         purchase: {
           supplier_id: purchase.supplier_id,
           product_id: purchase.product_id,
-          edition_id: purchase.edition_id,
+          variant_id: purchase.variant_id,
           amount: 3,
           item_price: purchase.item_price,
           order_reference: "UPDATED-REF"

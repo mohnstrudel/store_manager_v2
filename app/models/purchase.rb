@@ -16,9 +16,9 @@
 #  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  edition_id      :bigint
 #  product_id      :bigint
 #  supplier_id     :bigint           not null
+#  variant_id      :bigint
 #
 class Purchase < ApplicationRecord
   attribute :warehouse_id, :integer
@@ -59,14 +59,14 @@ class Purchase < ApplicationRecord
   db_belongs_to :supplier, inverse_of: :purchases
 
   belongs_to :product, optional: true, inverse_of: :purchases
-  belongs_to :edition, optional: true, inverse_of: :purchases
+  belongs_to :variant, optional: true, inverse_of: :purchases
 
   has_many :payments, dependent: :destroy, inverse_of: :purchase
 
   has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
   has_many :warehouses, through: :purchase_items
 
-  has_many :sizes, through: :edition
-  has_many :versions, through: :edition
-  has_many :colors, through: :edition
+  has_many :sizes, through: :variant
+  has_many :versions, through: :variant
+  has_many :colors, through: :variant
 end

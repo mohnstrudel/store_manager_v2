@@ -17,7 +17,7 @@ module PurchaseItem::Listing
     }
 
     scope :for_shipping_details, -> {
-      includes(:product, :purchase, edition: [:color, :size, :version])
+      includes(:product, :purchase, variant: [:color, :size, :version])
     }
 
     scope :for_notifications, -> {
@@ -26,7 +26,7 @@ module PurchaseItem::Listing
         sale: :customer,
         sale_item: [
           :product,
-          edition: [:size, :version, :color]
+          variant: [:size, :version, :color]
         ]
       )
     }

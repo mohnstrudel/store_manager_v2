@@ -16,8 +16,8 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
     let(:product_size) { create(:product_size, product: product, size: size) }
     let(:product_version) { create(:product_version, product: product, version: version) }
     let(:product_color) { create(:product_color, product: product, color: color) }
-    let(:edition) do
-      create(:edition, product: product, size: size, version: version, color: color)
+    let(:variant) do
+      create(:variant, product: product, size: size, version: version, color: color)
     end
 
     # Expected serialized options
@@ -101,7 +101,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       product_size
       product_version
       product_color
-      product.editions << edition
+      product.variants << variant
 
       allow(api_client).to receive(:create_product_options)
         .with(shopify_product_id, expected_options)
@@ -117,7 +117,7 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         product_size
         product_version
         product_color
-        product.editions << edition
+        product.variants << variant
 
         allow(api_client).to receive(:create_product_options)
           .with(shopify_product_id, expected_options)
@@ -162,20 +162,20 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         expect(color_store_info.store_id).to eq("gid://shopify/ProductOptionValue/3")
       end
 
-      it "creates store info for edition variants" do # rubocop:todo RSpec/MultipleExpectations
+      it "creates store info for variants" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
-        edition.reload
-        edition_store_info = edition.store_infos.find_by(store_name: :shopify)
-        expect(edition_store_info).to be_present
-        expect(edition_store_info.store_id).to eq("gid://shopify/ProductVariant/1")
+        variant.reload
+        variant_store_info = variant.store_infos.find_by(store_name: :shopify)
+        expect(variant_store_info).to be_present
+        expect(variant_store_info.store_id).to eq("gid://shopify/ProductVariant/1")
       end
 
       it "sets push_time for all created store infos" do
         before_time = Time.current
         described_class.perform_now(product_id, shopify_product_id)
 
-        [product_size, product_version, product_color, edition].each do |record|
+        [product_size, product_version, product_color, variant].each do |record|
           store_info = record.reload.store_infos.find_by(store_name: :shopify)
           expect(store_info.push_time).to be_between(before_time, Time.current).inclusive
         end
@@ -279,9 +279,9 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       end
     end
 
-    context "when edition cannot be matched to variant" do
-      let(:unmatched_edition) do
-        create(:edition, product: product, size: create(:size, value: "Small"))
+    context "when variant cannot be matched to variant" do
+      let(:unmatched_variant) do
+        create(:variant, product: product, size: create(:size, value: "Small"))
       end
 
       let(:variant_response) do
@@ -310,18 +310,18 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
 
       before do
         product_size
-        product.editions << unmatched_edition
+        product.variants << unmatched_variant
         # Remove the shopify store_info that the factory creates
-        unmatched_edition.store_infos.where(store_name: :shopify).destroy_all
+        unmatched_variant.store_infos.where(store_name: :shopify).destroy_all
         allow(api_client).to receive(:create_product_options).and_return(variant_response)
       end
 
-      it "does not create store info for unmatched edition" do
+      it "does not create store info for unmatched variant" do
         described_class.perform_now(product_id, shopify_product_id)
 
-        unmatched_edition.reload
-        edition_store_info = unmatched_edition.store_infos.find_by(store_name: :shopify)
-        expect(edition_store_info).to be_nil
+        unmatched_variant.reload
+        variant_store_info = unmatched_variant.store_infos.find_by(store_name: :shopify)
+        expect(variant_store_info).to be_nil
       end
 
       it "still creates store info for matched options" do
@@ -381,29 +381,29 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       end
     end
 
-    context "when store info already exists for editions" do
-      let!(:existing_edition_store_info) do
-        edition.shopify_info.update(store_id: "old_variant_id")
-        edition.shopify_info
+    context "when store info already exists for variants" do
+      let!(:existing_variant_store_info) do
+        variant.shopify_info.update(store_id: "old_variant_id")
+        variant.shopify_info
       end
 
       before do
         product_size
         product_version
         product_color
-        product.editions << edition
+        product.variants << variant
 
         allow(api_client).to receive(:create_product_options)
           .with(shopify_product_id, expected_options)
           .and_return(options_response)
       end
 
-      it "updates existing edition store info" do # rubocop:todo RSpec/MultipleExpectations
+      it "updates existing variant store info" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
-        existing_edition_store_info.reload
-        expect(existing_edition_store_info.store_id).to eq("gid://shopify/ProductVariant/1")
-        expect(existing_edition_store_info.push_time).to be_within(1.second).of(Time.current)
+        existing_variant_store_info.reload
+        expect(existing_variant_store_info.store_id).to eq("gid://shopify/ProductVariant/1")
+        expect(existing_variant_store_info.push_time).to be_within(1.second).of(Time.current)
       end
     end
 
@@ -430,14 +430,14 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         allow(api_client).to receive(:create_product_options).and_return(empty_variants_response)
       end
 
-      it "creates store info for options but no editions" do # rubocop:todo RSpec/MultipleExpectations
+      it "creates store info for options but no variants" do # rubocop:todo RSpec/MultipleExpectations
         described_class.perform_now(product_id, shopify_product_id)
 
         product_size.reload
         size_store_info = product_size.store_infos.find_by(store_name: :shopify)
         expect(size_store_info).to be_present
 
-        expect(Edition.where(product: product).none? { |e|
+        expect(Variant.where(product: product).none? { |e|
           e.store_infos.exists?(store_name: :shopify)
         }).to be true
       end

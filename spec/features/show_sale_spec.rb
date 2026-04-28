@@ -13,7 +13,7 @@ describe "Sale show page" do
     before do
       sale.update!(status: "on-hold", shopify_id: nil, shopify_name: nil, woo_id: nil)
       product = create(:product)
-      sale_item = create(:sale_item, sale: sale, product: product, edition: nil, qty: 1)
+      sale_item = create(:sale_item, sale: sale, product: product, variant: nil, qty: 1)
       create(:purchase_item, sale_item:, purchase: create(:purchase, product: product), warehouse: create(:warehouse))
     end
 
@@ -26,7 +26,7 @@ describe "Sale show page" do
     it "does not show the link when only #active? is true" do
       sale.update!(status: Sale.active_status_names.first, shopify_id: nil, shopify_name: nil, woo_id: nil)
       product = create(:product)
-      sale_item = create(:sale_item, sale: sale, product: product, edition: nil, qty: 1)
+      sale_item = create(:sale_item, sale: sale, product: product, variant: nil, qty: 1)
       create(:purchase_item, sale_item:, purchase: create(:purchase, product: product), warehouse: create(:warehouse))
 
       visit sale_path(sale)
@@ -37,7 +37,7 @@ describe "Sale show page" do
     it "does not show the link when only #unlinked_sale_items? is true" do
       sale.update!(status: "on-hold", shopify_id: nil, shopify_name: nil, woo_id: nil)
       product = create(:product)
-      create(:sale_item, sale: sale, product: product, edition: nil, qty: 2)
+      create(:sale_item, sale: sale, product: product, variant: nil, qty: 2)
       create(:purchase_item, purchase: create(:purchase, product: product), warehouse: create(:warehouse))
 
       visit sale_path(sale)
@@ -103,7 +103,7 @@ describe "Sale show page" do
     it "shows the link when all conditions are true" do
       active_sale = create(:sale, status: Sale.active_status_names.first)
       product = create(:product)
-      create(:sale_item, sale: active_sale, product:, edition: nil, qty: 2)
+      create(:sale_item, sale: active_sale, product:, variant: nil, qty: 2)
       create(:purchase_item, purchase: create(:purchase, product: product))
 
       visit sale_path(active_sale)

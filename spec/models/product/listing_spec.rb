@@ -14,7 +14,7 @@ RSpec.describe Product do
         expect(relation.first.id).to eq(newer.id)
         expect(relation.first.association(:shopify_info).loaded?).to be true
         expect(relation.first.association(:woo_info).loaded?).to be true
-        expect(relation.first.association(:editions).loaded?).to be true
+        expect(relation.first.association(:variants).loaded?).to be true
       end
     end
   end

@@ -13,7 +13,7 @@ FactoryBot.define do
     shopify_id { SecureRandom.alphanumeric(10) }
     product
     sale
-    edition
+    variant
 
     after(:create) do |sale_item, evaluator|
       if evaluator.woo_store_id.present? || sale_item[:woo_id].present?

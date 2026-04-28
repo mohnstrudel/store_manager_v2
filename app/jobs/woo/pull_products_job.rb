@@ -16,7 +16,7 @@ module Woo
     def perform
       parsed_products = parse_all(get_woo_products)
       create_all(parsed_products)
-      get_products_with_editions(parsed_products)
+      get_products_with_variants(parsed_products)
     end
 
     def create_all(parsed_products)
@@ -105,7 +105,7 @@ module Woo
         woo_id: woo_product[:id],
         store_link: woo_product[:permalink],
         shape:,
-        editions: woo_product[:editions],
+        variants: woo_product[:variants] || woo_product[:editions],
         title:,
         franchise:,
         images: woo_product[:images].pluck(:src)
@@ -118,13 +118,13 @@ module Woo
           values = options.map { |i| smart_titleize(sanitize(i)) }
 
           case attr[:name]
-          when *::Edition.types[:version]
+          when *::Variant.types[:version]
             attrs[:versions] = values
-          when *::Edition.types[:size]
+          when *::Variant.types[:size]
             attrs[:sizes] = values
-          when *::Edition.types[:color]
+          when *::Variant.types[:color]
             attrs[:colors] = values
-          when *::Edition.types[:brand]
+          when *::Variant.types[:brand]
             attrs[:brands] = values
           end
 
@@ -146,9 +146,9 @@ module Woo
       woo_products.map { |woo_product| parse(woo_product) }.compact_blank
     end
 
-    def get_products_with_editions(parsed_products)
+    def get_products_with_variants(parsed_products)
       parsed_products
-        .select { |i| i[:editions].present? }
+        .select { |i| i[:variants].present? }
         .pluck(:woo_id)
     end
 

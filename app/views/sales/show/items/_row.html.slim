@@ -9,6 +9,6 @@ tr.hoverable(
       = sale_item.product.full_title
     - if sale_item.purchase_items.present?
       = render "sales/items/purchase_items", purchase_items: sale_item.purchase_items
-  td = sale_item.edition.present? ? sale_item.edition.title : "-"
+  td = sale_item.variant.present? ? sale_item.variant.title : "-"
   td.text-right.font-mono = format_money sale_item.price
   td.text-right = format_purchased_sold_ratio(sale_item.purchase_items.size, sale_item.qty)

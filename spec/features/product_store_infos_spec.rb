@@ -335,7 +335,7 @@ RSpec.describe "Product Store Info Management" do
 
     expect(page).to have_content("Product was successfully created")
 
-    created_product = Edition.find_by!(sku: "new-product-store-info").product
+    created_product = Variant.find_by!(sku: "new-product-store-info").product
     expect(created_product.shopify_info).to be_present
     expect(created_product.shopify_info.tag_list).to contain_exactly("featured", "launch")
   end

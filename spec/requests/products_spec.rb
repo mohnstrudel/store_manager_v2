@@ -206,13 +206,13 @@ RSpec.describe "Products API" do
   describe "GET /products/:id" do
     it "renders the product show page sections for sales and purchases" do
       product = create(:product)
-      edition = create(:edition, product:)
+      variant = create(:variant, product:)
       active_sale = create(:sale, status: "processing")
       completed_sale = create(:sale, status: "completed")
 
-      create(:sale_item, product:, edition:, sale: active_sale, qty: 1)
-      create(:sale_item, product:, edition:, sale: completed_sale, qty: 2)
-      create(:purchase, product:, edition:, amount: 3, item_price: 12.5)
+      create(:sale_item, product:, variant:, sale: active_sale, qty: 1)
+      create(:sale_item, product:, variant:, sale: completed_sale, qty: 2)
+      create(:purchase, product:, variant:, amount: 3, item_price: 12.5)
 
       get product_path(product)
 
@@ -349,82 +349,82 @@ RSpec.describe "Products API" do
     end
   end
 
-  describe "PATCH/PUT /products/:id with editions" do
+  describe "PATCH/PUT /products/:id with variants" do
     let(:product) { create(:product) }
     let(:color) { create(:color, value: "Red") }
 
     before do
       product.colors << color
-      product.build_new_editions
+      product.build_new_variants
       product.save
     end
 
-    context "when updating edition SKU" do
-      it "updates edition SKU" do
-        edition = product.editions.find { |current| current.color_id.present? }
+    context "when updating variant SKU" do
+      it "updates variant SKU" do
+        variant = product.variants.find { |current| current.color_id.present? }
         update_params = {
           title: product.title,
           franchise_id: product.franchise_id,
           shape: product.shape
         }
-        editions_params = {
+        variants_params = {
           "0" => {
-            id: edition.id,
+            id: variant.id,
             sku: "NEW-SKU-123"
           }
         }
 
-        patch product_path(product), params: {product: update_params, editions: editions_params}
+        patch product_path(product), params: {product: update_params, variants: variants_params}
 
-        edition.reload
-        expect(edition.sku).to eq("NEW-SKU-123")
+        variant.reload
+        expect(variant.sku).to eq("NEW-SKU-123")
       end
     end
 
-    context "when destroying edition without sales or purchases" do
-      it "destroys the edition" do
-        edition = product.editions.find { |current| current.color_id.present? }
+    context "when destroying variant without sales or purchases" do
+      it "destroys the variant" do
+        variant = product.variants.find { |current| current.color_id.present? }
         update_params = {
           title: product.title,
           franchise_id: product.franchise_id,
           shape: product.shape
         }
-        editions_params = {
+        variants_params = {
           "0" => {
-            id: edition.id,
+            id: variant.id,
             _destroy: "1"
           }
         }
 
         expect {
-          patch product_path(product), params: {product: update_params, editions: editions_params}
-        }.to change { product.editions.count }.by(-1)
+          patch product_path(product), params: {product: update_params, variants: variants_params}
+        }.to change { product.variants.count }.by(-1)
       end
     end
 
-    context "when destroying edition with sale_items" do
+    context "when destroying variant with sale_items" do
       let(:sale) { create(:sale) }
-      let!(:sale_item) { SaleItem.create!(product: product, edition: product.editions.first, sale: sale, qty: 1) }
+      let!(:sale_item) { SaleItem.create!(product: product, variant: product.variants.first, sale: sale, qty: 1) }
 
-      it "soft deletes the edition by setting deactivated_at" do
-        edition = product.editions.first
+      it "soft deletes the variant by setting deactivated_at" do
+        variant = product.variants.first
         update_params = {
           title: product.title,
           franchise_id: product.franchise_id,
           shape: product.shape
         }
-        editions_params = {
+        variants_params = {
           "0" => {
-            id: edition.id,
+            id: variant.id,
             _destroy: "1"
           }
         }
 
-        patch product_path(product), params: {product: update_params, editions: editions_params}
+        patch product_path(product), params: {product: update_params, variants: variants_params}
 
-        edition.reload
-        expect(edition.deactivated_at).to be_present
-        expect(Edition.exists?(edition.id)).to be true
+        variant.reload
+        expect(variant.deactivated_at).to be_present
+        expect(Variant.exists?(variant.id)).to be true
       end
     end
   end

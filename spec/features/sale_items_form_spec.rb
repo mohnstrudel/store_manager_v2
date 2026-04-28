@@ -9,7 +9,7 @@ RSpec.describe "Sale items form" do
   scenario "removes an existing sale item from a sale", :js do # rubocop:todo RSpec/MultipleExpectations
     sale = create(:sale)
     product = create(:product, title: "Removable Product")
-    create(:sale_item, sale:, product:, edition: nil, qty: 2, price: 100)
+    create(:sale_item, sale:, product:, variant: nil, qty: 2, price: 100)
 
     visit edit_sale_path(sale)
 
@@ -26,7 +26,7 @@ RSpec.describe "Sale items form" do
   scenario "updates an existing sale item on the sale edit page", :js do # rubocop:todo RSpec/MultipleExpectations
     sale = create(:sale)
     product = create(:product, title: "Editable Product")
-    sale_item = create(:sale_item, sale:, product:, edition: nil, qty: 2, price: 100)
+    sale_item = create(:sale_item, sale:, product:, variant: nil, qty: 2, price: 100)
 
     visit edit_sale_path(sale)
 

@@ -76,7 +76,7 @@ RSpec.describe Sale::Shopify::Parser do
         store_id: "gid://shopify/Product/333",
         title: "Eve",
         franchise: "Stellar Blade",
-        editions: []
+        variants: []
       }
     )
   end
@@ -175,7 +175,7 @@ RSpec.describe Sale::Shopify::Parser do
         result = described_class.parse(order_without_variant)
 
         expect(result[:sale_items].first).to include(
-          edition_store_id: nil,
+          variant_store_id: nil,
           product_store_id: "gid://shopify/Product/333"
         )
       end
@@ -195,7 +195,7 @@ RSpec.describe Sale::Shopify::Parser do
             store_id: "gid://shopify/Product/333",
             title: "Eve",
             franchise: "Stellar Blade",
-            editions: [{
+            variants: [{
               id: "gid://shopify/ProductVariant/222",
               title: "Regular"
             }]
@@ -216,7 +216,7 @@ RSpec.describe Sale::Shopify::Parser do
           {
             title: "Eve",
             franchise: "Stellar Blade",
-            editions: []
+            variants: []
           }
         )
 

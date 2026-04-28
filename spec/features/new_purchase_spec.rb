@@ -144,16 +144,16 @@ RSpec.describe "Creating a new purchase" do
     end
   end
 
-  scenario "shows the edition title in the purchase items header when the purchase has an edition" do # rubocop:todo RSpec/MultipleExpectations
-    edition = create(:edition, product:)
-    purchase = create(:purchase, product:, supplier:, edition:)
+  scenario "shows the variant title in the purchase items header when the purchase has a variant" do # rubocop:todo RSpec/MultipleExpectations
+    variant = create(:variant, product:)
+    purchase = create(:purchase, product:, supplier:, variant:)
     create(:purchase_item, purchase:)
 
     visit purchase_path(purchase)
 
     within(first(".table-cards-group .table-card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
-      expect(page).to have_text("→ #{edition.title}")
+      expect(page).to have_text("→ #{variant.title}")
     end
   end
 

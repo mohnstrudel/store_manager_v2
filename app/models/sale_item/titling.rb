@@ -4,7 +4,7 @@ module SaleItem::Titling
   extend ActiveSupport::Concern
 
   def title
-    edition_id.present? ? "#{product.full_title} → #{edition.title}" : product.full_title
+    variant_id.present? ? "#{product.full_title} → #{variant.title}" : product.full_title
   end
 
   def build_title_for_select

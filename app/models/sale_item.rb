@@ -10,10 +10,10 @@
 #  qty                  :integer
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
-#  edition_id           :bigint
 #  product_id           :bigint           not null
 #  sale_id              :bigint           not null
 #  shopify_id           :string
+#  variant_id           :bigint
 #  woo_id               :string
 #
 class SaleItem < ApplicationRecord
@@ -32,7 +32,7 @@ class SaleItem < ApplicationRecord
 
   db_belongs_to :product, inverse_of: :sale_items
   db_belongs_to :sale, inverse_of: :sale_items
-  belongs_to :edition, optional: true, inverse_of: :sale_items
+  belongs_to :variant, optional: true, inverse_of: :sale_items
 
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
 

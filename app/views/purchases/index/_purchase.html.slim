@@ -4,8 +4,8 @@ tr.hoverable id="#{dom_id purchase}" data-action="click->table#goTo" data-table-
     = render "_shared/preloadable_img", src: thumb_url(purchase.product), class_names: "zoomable", width: 100
   td
     = purchase.product.full_title
-    - if purchase.edition.present?
-      | → #{purchase.edition.title}
+    - if purchase.variant.present?
+      | → #{purchase.variant.title}
     ul.ml-4.mt-2.text-sm
       - if purchase.purchase_items.size != purchase.amount
           li <mark class="inline-block mb-2">Warehouses: #{purchase.purchase_items.size} / Purchased: #{purchase.amount}</mark>

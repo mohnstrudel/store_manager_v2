@@ -10,7 +10,7 @@ RSpec.describe Purchase::FormPayload do
       purchase: {
         supplier_id: "1",
         product_id: "2",
-        edition_id: "3",
+        variant_id: "3",
         order_reference: "REF-1",
         item_price: "12.50",
         amount: "5",
@@ -26,7 +26,7 @@ RSpec.describe Purchase::FormPayload do
     expect(payload.attributes).to eq(
       "supplier_id" => "1",
       "product_id" => "2",
-      "edition_id" => "3",
+      "variant_id" => "3",
       "order_reference" => "REF-1",
       "item_price" => "12.50",
       "amount" => "5"

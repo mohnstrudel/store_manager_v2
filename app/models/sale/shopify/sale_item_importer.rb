@@ -40,11 +40,11 @@ class Sale::Shopify::SaleItemImporter
   end
 
   def only_product_title?
-    parsed[:full_title].present? && parsed[:edition_store_id].blank? && parsed[:product_store_id].blank?
+    parsed[:full_title].present? && parsed[:variant_store_id].blank? && parsed[:product_store_id].blank?
   end
 
   def create_title_only_sale_item!
-    return unless resolved_product || imported_edition
+    return unless resolved_product || imported_variant
 
     sale_item.assign_attributes(sale_item_attributes)
     sale_item.save!
@@ -58,7 +58,7 @@ class Sale::Shopify::SaleItemImporter
       shopify_id: parsed[:store_id],
       sale: sale,
       product: resolved_product,
-      edition: imported_edition
+      variant: imported_variant
     }.compact
   end
 
@@ -93,66 +93,66 @@ class Sale::Shopify::SaleItemImporter
     Product.find_or_create_shopify_placeholder!(store_id: parsed[:product_store_id])
   end
 
-  def imported_edition
-    return @imported_edition if defined?(@imported_edition)
+  def imported_variant
+    return @imported_variant if defined?(@imported_variant)
 
-    @imported_edition =
-      if parsed[:edition_store_id].present?
-        find_or_create_edition_from_shopify
-      elsif normalized_edition_title.blank? && !base_model_edition_title?
+    @imported_variant =
+      if parsed[:variant_store_id].present?
+        find_or_create_variant_from_shopify
+      elsif normalized_variant_title.blank? && !base_model_variant_title?
         nil
       else
-        create_custom_edition
+        create_custom_variant
       end
   end
 
-  def find_or_create_edition_from_shopify
-    existing_edition = Edition.find_by_shopify_id(parsed[:edition_store_id])
-    return existing_edition if existing_edition
-    return nil if parsed.dig(:product, :editions).blank?
+  def find_or_create_variant_from_shopify
+    existing_variant = Variant.find_by_shopify_id(parsed[:variant_store_id])
+    return existing_variant if existing_variant
+    return nil if parsed.dig(:product, :variants).blank?
 
-    parsed[:product][:editions]
-      .map { |parsed_edition| Edition::Shopify::Importer.import!(resolved_product, parsed_edition) }
-      .find { |edition| edition.shopify_info&.store_id == parsed[:edition_store_id] }
+    parsed[:product][:variants]
+      .map { |parsed_variant| Variant::Shopify::Importer.import!(resolved_product, parsed_variant) }
+      .find { |variant| variant.shopify_info&.store_id == parsed[:variant_store_id] }
   end
 
-  def create_custom_edition
+  def create_custom_variant
     return nil if resolved_product.blank?
-    return base_model_edition_for(resolved_product) if base_model_edition_title?
-    return nil if normalized_edition_title.blank?
+    return base_model_variant_for(resolved_product) if base_model_variant_title?
+    return nil if normalized_variant_title.blank?
 
-    existing_edition = resolved_product.editions.joins(:version).find_by(versions: {value: normalized_edition_title})
-    return existing_edition if existing_edition
+    existing_variant = resolved_product.variants.joins(:version).find_by(versions: {value: normalized_variant_title})
+    return existing_variant if existing_variant
 
-    version = resolved_product.versions.create!(value: normalized_edition_title)
-    resolved_product.editions.create!(
+    version = resolved_product.versions.create!(value: normalized_variant_title)
+    resolved_product.variants.create!(
       version:,
       color: nil,
       size: nil,
-      sku: normalized_edition_title.parameterize
+      sku: normalized_variant_title.parameterize
     )
   end
 
-  def base_model_edition_title?
-    normalized_edition_title == "Default Title"
+  def base_model_variant_title?
+    normalized_variant_title == "Default Title"
   end
 
-  def normalized_edition_title
-    return @normalized_edition_title if defined?(@normalized_edition_title)
+  def normalized_variant_title
+    return @normalized_variant_title if defined?(@normalized_variant_title)
 
-    raw_title = parsed[:edition_title].to_s
-    return @normalized_edition_title = nil if raw_title.blank?
+    raw_title = parsed[:variant_title].to_s
+    return @normalized_variant_title = nil if raw_title.blank?
 
     title = Sanitizable.sanitize(raw_title).presence
-    @normalized_edition_title = title
+    @normalized_variant_title = title
   end
 
-  def base_model_edition_for(product)
-    return product.base_edition if product.base_edition
+  def base_model_variant_for(product)
+    return product.base_variant if product.base_variant
 
-    product.build_base_edition
+    product.build_base_variant
     product.save!
-    product.base_edition
+    product.base_variant
   end
 
   def existing_product_from_store_id
@@ -168,8 +168,8 @@ class Sale::Shopify::SaleItemImporter
       "sale_store_id: #{sale.shopify_info&.store_id || sale.shopify_id}",
       "sale_item_store_id: #{parsed[:store_id]}",
       "product_store_id: #{parsed[:product_store_id]}",
-      "edition_store_id: #{parsed[:edition_store_id]}",
-      "edition_title: #{parsed[:edition_title].presence || "blank"}",
+      "variant_store_id: #{parsed[:variant_store_id]}",
+      "variant_title: #{parsed[:variant_title].presence || "blank"}",
       "full_title: #{parsed[:full_title].presence || "blank"}"
     ].join(", ")
 
