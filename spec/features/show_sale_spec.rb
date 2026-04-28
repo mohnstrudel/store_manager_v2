@@ -63,6 +63,35 @@ describe "Sale show page" do
     end
   end
 
+  context "when the sale is identified by Shopify GIDs" do
+    let(:customer) { create(:customer, email: "user@example.com") }
+    let(:sale) do
+      create(
+        :sale,
+        customer:,
+        status: "pre-ordered",
+        shopify_name: nil,
+        shopify_id: "gid://shopify/Order/7383283466569",
+        woo_id: nil
+      )
+    end
+
+    before do
+      customer.upsert_shopify_info!(store_id: "gid://shopify/Customer/9341147185481")
+      sale.shopify_info.update!(store_id: "gid://shopify/Order/7383283466569")
+    end
+
+    it "shows short Shopify ids instead of the full GIDs" do
+      visit sale_path(sale)
+
+      expect(page).to have_css("h1", text: "Sale 7383283466569")
+      expect(page).to have_text("9341147185481")
+      expect(page).to have_text("7383283466569")
+      expect(page).to have_no_text("gid://shopify/Customer/9341147185481")
+      expect(page).to have_no_text("gid://shopify/Order/7383283466569")
+    end
+  end
+
   context "when the nav link should be visible" do
     it "shows the link when all conditions are true" do
       active_sale = create(:sale, status: Sale.active_status_names.first)

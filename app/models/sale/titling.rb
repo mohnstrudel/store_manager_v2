@@ -4,12 +4,7 @@ module Sale::Titling
   extend ActiveSupport::Concern
 
   def title
-    shop_id = if shopify_id.present?
-      shopify_name
-    else
-      woo_store_id
-    end
-    [status&.titleize, shop_id].compact_blank.join(" | ")
+    [status&.titleize, shop_identifier].compact_blank.join(" | ")
   end
 
   def select_title
@@ -22,5 +17,15 @@ module Sale::Titling
 
   def full_title
     [customer.name_and_email, woo_store_id.presence].compact.join(" | ")
+  end
+
+  def shop_identifier
+    shopify_name.presence || short_shopify_id(shopify_id) || woo_store_id
+  end
+
+  private
+
+  def short_shopify_id(store_id)
+    store_id.to_s.split("/").last.presence
   end
 end

@@ -4,7 +4,7 @@ header.nav_header
       - if sale.shopify_name.present? || sale.shopify_id.present?
         h1
           .inline-block.icon-shopify.w-13.h-13.mr-3.-mb-1
-          | Sale #{sale.shopify_name.presence || sale.shopify_id}
+          | Sale #{sale.shop_identifier}
       - elsif sale.woo_store_id.present?
         h1
           .inline-block.icon-woo.w-17.h-17.mr-4.-mb-4

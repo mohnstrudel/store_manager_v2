@@ -9,6 +9,12 @@ RSpec.describe Sale do
 
       expect(sale.title).to eq("Processing | HSCM#123")
     end
+
+    it "falls back to the short Shopify id when the shop name is missing" do
+      sale = create(:sale, status: "processing", shopify_name: nil, shopify_id: "gid://shopify/Order/7383283466569")
+
+      expect(sale.title).to eq("Processing | 7383283466569")
+    end
   end
 
   describe "#select_title" do
