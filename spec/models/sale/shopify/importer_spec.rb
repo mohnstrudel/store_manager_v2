@@ -90,10 +90,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
-    context "when sale already exists" do
-      before { import_order }
-    end
-
     context "when store_info timestamps are updated" do
       let(:modified_order_with_new_timestamps) do
         valid_parsed_order.deep_dup.tap do |order|
@@ -425,8 +421,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:store_info) { instance_double(StoreInfo, assign_attributes: true, save!: true) }
 
       before do
-        allow(Sale).to receive(:find_by_shopify_id).and_return(nil)
-        allow(Sale).to receive(:new).and_return(Sale.new)
+        allow(Sale).to receive_messages(find_by_shopify_id: nil, new: Sale.new)
         allow_any_instance_of(Sale).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(Sale.new))
         allow_any_instance_of(Sale).to receive(:shopify_info).and_return(store_info)
         allow_any_instance_of(Sale).to receive(:store_infos).and_return(double(shopify: store_info))

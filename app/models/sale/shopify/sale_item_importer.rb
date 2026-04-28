@@ -129,7 +129,7 @@ class Sale::Shopify::SaleItemImporter
       version:,
       color: nil,
       size: nil,
-      sku: resolved_product.pick_available_sku(normalized_edition_title.parameterize)
+      sku: normalized_edition_title.parameterize
     )
   end
 
