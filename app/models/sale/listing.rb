@@ -6,7 +6,7 @@ module Sale::Listing
   included do
     scope :ordered_by_shop_created_at, -> {
       order(
-        Arel.sql("COALESCE(shopify_created_at, woo_created_at, created_at) DESC")
+        Arel.sql("COALESCE(sales.shopify_created_at, sales.woo_created_at, sales.created_at) DESC")
       )
     }
 

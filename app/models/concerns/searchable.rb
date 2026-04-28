@@ -26,12 +26,14 @@ module Searchable
     private
 
     def search_by_store_id(query)
-      joins(:store_infos)
+      matching_ids = joins(:store_infos)
         .where(
           "store_infos.store_id = :query OR split_part(store_infos.store_id, '/', array_length(string_to_array(store_infos.store_id, '/'), 1)) = :query",
           query:
         )
-        .distinct
+        .select(:id)
+
+      where(id: matching_ids)
     end
   end
 

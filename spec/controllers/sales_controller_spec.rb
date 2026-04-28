@@ -58,6 +58,16 @@ RSpec.describe SalesController do
       expect(Sale).to have_received(:search_by).with(search_term)
     end
 
+    it "searches sales by store_id without ambiguous timestamp errors" do
+      matching_sale = create(:sale, woo_store_id: "18159")
+
+      expect {
+        get :index, params: {q: "18159"}
+      }.not_to raise_error
+
+      expect(assigns(:sales)).to include(matching_sale)
+    end
+
     it "paginates results" do
       get :index, params: {page: 2}
       expect(assigns(:sales)).to respond_to(:current_page)
