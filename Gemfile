@@ -79,7 +79,6 @@ gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
 
-gem "ruby-progressbar"
 gem "down", "~> 5.0"
 gem "httparty"
 

@@ -759,7 +759,6 @@ DEPENDENCIES
   rubocop-rspec_rails
   rubocop-slim
   ruby-lsp
-  ruby-progressbar
   rubycritic
   scout_apm
   sentry-rails
