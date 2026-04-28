@@ -53,7 +53,7 @@ RSpec.describe "Products Sync API" do
         post product_shopify_pull_path(product)
 
         expect(response).to redirect_to(product_path(product))
-        expect(flash[:notice]).to eq("Product is being pulled from Shopify")
+        expect(flash[:notice]).to eq("Product is being fetched from Shopify")
       end
     end
 

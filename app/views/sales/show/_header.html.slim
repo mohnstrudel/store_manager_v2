@@ -12,6 +12,6 @@ header.nav_header
       h2 = [sale.status&.titleize, sale.customer.email.presence].compact.join(" | ")
   menu.nav_menu
     - if sale.shopify_name.present? || sale.shopify_id.present?
-      li = pull_btn_for sale
+      li = fetch_btn_for sale
     li = shop_admin_link(sale)
     li = edit_btn_for sale

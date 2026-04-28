@@ -62,10 +62,10 @@ describe "Sale show page" do
       expect(page).to have_css("h2", text: "Pre Ordered | user@example.com")
     end
 
-    it "shows the shared pull icon" do
+    it "shows the shared fetch icon" do
       visit sale_path(sale)
 
-      expect(page).to have_link("Pull")
+      expect(page).to have_link("Fetch")
       expect(page).to have_css("menu.nav_menu a.btn-rounded svg")
     end
   end

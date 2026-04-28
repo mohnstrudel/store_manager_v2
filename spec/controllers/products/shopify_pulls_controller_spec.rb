@@ -24,7 +24,7 @@ RSpec.describe Products::ShopifyPullsController do
         post :create, params: {product_id: product.to_param}
 
         expect(response).to redirect_to(product_path(product))
-        expect(flash[:notice]).to eq("Product is being pulled from Shopify")
+        expect(flash[:notice]).to eq("Product is being fetched from Shopify")
       end
     end
 

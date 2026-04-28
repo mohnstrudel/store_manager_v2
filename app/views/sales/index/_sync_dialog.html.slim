@@ -17,8 +17,8 @@ li data-controller="dialog" data-dialog-modal-value="true" data-action="keydown.
 
       menu.flex.flex-col.gap-4
         li
-          = button_to "Pull Everything", sales_bulk_pull_path, class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
+          = button_to "Fetch Everything", sales_bulk_pull_path, class: "w-full h-15 btn-blue btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
         li
-          = button_to "Pull Last 100 Sales", sales_bulk_pull_path(limit: 100), class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
+          = button_to "Fetch Last 100 Sales", sales_bulk_pull_path(limit: 100), class: "w-full h-15 btn-rounded", data: {"turbo-prefetch": "false", action: "click->dialog#closeAndSubmit"}
         li
           = link_to "Track Jobs Progress", "/jobs/statuses", class: "w-full h-15"

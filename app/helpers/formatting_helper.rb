@@ -13,6 +13,12 @@ module FormattingHelper
     date&.strftime("%-d. %b ’%y %H:%M")
   end
 
+  def format_last_fetched_at(time)
+    return if time.blank?
+
+    "Last fetched at #{time.in_time_zone.strftime("%-d %B at %H:%M")}"
+  end
+
   def format_money(amount, unit = "")
     return unless amount.presence
 
