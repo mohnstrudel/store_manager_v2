@@ -8,12 +8,12 @@ RSpec.describe Products::PullsController, type: :controller do
 
   describe "POST #create" do
     it "converts string limit to integer before enqueuing job" do
-      allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 50)
+      allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 100)
       allow(Config).to receive(:update_shopify_products_sync_time)
 
-      post :create, params: {limit: "50"}
+      post :create, params: {limit: "100"}
 
-      expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 50)
+      expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 100)
       expect(response).to redirect_to(products_path)
       expect(flash[:notice]).to include("Success! Visit")
     end

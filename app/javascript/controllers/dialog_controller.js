@@ -50,7 +50,12 @@ export default class extends Controller {
 
   closeOnClickOutside({ target }) {
     if (!this.dialogTarget.open) return
-    if (this.element.contains(target)) return
+    if (target === this.dialogTarget) {
+      this.close()
+      return
+    }
+
+    if (this.dialogTarget.contains(target)) return
 
     this.close()
   }

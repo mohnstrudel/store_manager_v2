@@ -13,7 +13,7 @@ RSpec.describe "Sales Store Sync" do
     visit sales_path
     click_link "Store Sync"
 
-    click_button "Pull Last 50 Sales"
+    click_button "Pull Everything"
 
     expect(page).to have_current_path(sales_path, ignore_query: true)
     expect(page).not_to have_css("dialog#sales-index-sync-modal[open]")

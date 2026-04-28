@@ -12,12 +12,12 @@ RSpec.describe "Products Sync API" do
   describe "POST /products/pull" do
     context "with limit parameter" do
       it "converts string limit to integer before enqueuing job", :aggregate_failures do
-        allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 50)
+        allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 100)
         allow(Config).to receive(:update_shopify_products_sync_time)
 
-        post products_pull_path(limit: "50")
+        post products_pull_path(limit: "100")
 
-        expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 50)
+        expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 100)
         expect(response).to redirect_to(products_path)
         expect(flash[:notice]).to include("Success! Visit")
       end

@@ -56,9 +56,10 @@ RSpec.describe "Product Store Sync" do
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_button("Pull Last 50 Products")
+      expect(page).to have_button("Pull Last 100 Products")
       expect(page).to have_button("Pull Everything")
       expect(page).to have_link("Track Jobs Progress")
+      expect(page).to have_css("menu.flex.flex-col.gap-4 li:nth-child(1) button.btn-blue", text: "Pull Everything")
     end
 
     scenario "displays last sync time when available", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -71,13 +72,14 @@ RSpec.describe "Product Store Sync" do
       expect(page).to have_content("Last sync: 2026-01-05 10:00")
     end
 
-    scenario "navigates to pull products with limit when Pull Last 50 is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
+    scenario "navigates to pull products with limit when Pull Last 100 is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
       create_list(:product, 3)
 
       visit products_path
       click_link "Store Sync"
 
-      expect(page).to have_button("Pull Last 50 Products")
+      expect(page).to have_button("Pull Last 100 Products")
+      expect(page).to have_button("Pull Everything")
     end
 
     scenario "navigates to pull products without limit when Pull Everything is clicked", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -105,13 +107,24 @@ RSpec.describe "Product Store Sync" do
       visit products_path
       click_link "Store Sync"
 
-      click_button "Pull Last 50 Products"
+      click_button "Pull Last 100 Products"
 
       expect(page).to have_current_path(products_path, ignore_query: true)
       expect(page).not_to have_css("dialog#products-index-sync-modal[open]")
 
       click_link "Store Sync"
       expect(page).to have_css("dialog#products-index-sync-modal[open]")
+    end
+
+    scenario "closes when clicking outside the modal", :js do # rubocop:todo RSpec/MultipleExpectations
+      create_list(:product, 3)
+
+      visit products_path
+      click_link "Store Sync"
+
+      page.execute_script("document.querySelector('#products-index-sync-modal').dispatchEvent(new MouseEvent('click', { bubbles: true }))")
+
+      expect(page).not_to have_css("dialog#products-index-sync-modal[open]")
     end
   end
 end
