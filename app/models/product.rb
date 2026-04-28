@@ -46,6 +46,7 @@ class Product < ApplicationRecord
 
   set_search_scope :search,
     against: [:id, :full_title],
+    store_id_associations: [:editions],
     associated_against: {
       woo_info: [:store_id],
       sizes: [:value],

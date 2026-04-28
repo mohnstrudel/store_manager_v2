@@ -7,7 +7,6 @@ module Edition::Validation
     attr_accessor :_destroy
 
     validates :sku, presence: true, unless: :should_be_removed?
-    validates_db_uniqueness_of :sku, unless: :should_be_removed?
   end
 
   def should_be_removed?

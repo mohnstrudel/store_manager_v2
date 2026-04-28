@@ -30,12 +30,12 @@ RSpec.describe Edition do
       expect(edition.errors[:sku]).to include("can't be blank")
     end
 
-    it "enforces persisted sku uniqueness" do # rubocop:todo RSpec/MultipleExpectations
+    it "allows the same sku on editions from different products" do # rubocop:todo RSpec/MultipleExpectations
       create(:edition, sku: "DUPLICATE-SKU")
       duplicate = build(:edition, sku: "DUPLICATE-SKU")
 
-      expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:sku]).to include("has already been taken")
+      expect(duplicate).to be_valid
+      expect(duplicate.errors[:sku]).to be_empty
     end
   end
 

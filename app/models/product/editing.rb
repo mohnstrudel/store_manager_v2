@@ -99,6 +99,7 @@ module Product::Editing
     end
 
     add_duplicate_sku_errors(sku_editions)
+    add_taken_sku_errors(editing_editions)
     add_duplicate_combination_errors(combination_editions)
 
     errors.add(:editions, :invalid) if editing_editions.any? { |edition| edition.errors.any? }
@@ -118,6 +119,18 @@ module Product::Editing
       next if duplicate_editions.one?
 
       duplicate_editions.each { |edition| edition.errors.add(:sku, :taken) }
+    end
+  end
+
+  def add_taken_sku_errors(editing_editions)
+    editing_editions.each do |edition|
+      next if edition.errors[:sku].present? || edition.sku.blank?
+
+      conflicting_scope = Edition.where(sku: edition.sku)
+      conflicting_scope = conflicting_scope.where.not(id: edition.id) if edition.persisted?
+      next unless conflicting_scope.exists?
+
+      edition.errors.add(:sku, :taken)
     end
   end
 
