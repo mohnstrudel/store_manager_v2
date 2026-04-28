@@ -88,11 +88,13 @@ RSpec.describe Product do
         size = create(:size, value: "Premium")
         version = create(:version, value: "Collector")
         color = create(:color, value: "Scarlet")
+        edition = create(:edition, product: product, sku: "spirited-edition-123")
 
         create(:product_size, product_id: product.id, size_id: size.id)
         create(:product_version, product_id: product.id, version_id: version.id)
         create(:product_color, product_id: product.id, color_id: color.id)
 
+        edition.reload
         product.reload
       end
     end
@@ -118,6 +120,18 @@ RSpec.describe Product do
       matching_product.shopify_info.update!(store_id: "gid://shopify/Product/10166608396617")
 
       expect(described_class.search_by("10166608396617")).to include(matching_product)
+    end
+
+    it "finds products by an edition exact store_id" do
+      matching_product.editions.first.upsert_shopify_info!(store_id: "gid://shopify/ProductVariant/501")
+
+      expect(described_class.search_by("gid://shopify/ProductVariant/501")).to include(matching_product)
+    end
+
+    it "finds products by an edition trailing store_id segment" do
+      matching_product.editions.first.upsert_shopify_info!(store_id: "gid://shopify/ProductVariant/501")
+
+      expect(described_class.search_by("501")).to include(matching_product)
     end
 
     it "returns all products when the query is blank" do
