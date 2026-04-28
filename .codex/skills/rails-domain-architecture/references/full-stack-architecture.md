@@ -11,26 +11,17 @@ Use this file for the non-obvious request, controller, and presentation rules in
 ## Controllers
 
 - Controllers are request adapters, not domain homes.
-- Keep in controllers:
-  - boundary loading
-  - params normalization
-  - format choice
-  - render or redirect
-- Move out of controllers:
-  - long relation chains
-  - aggregate-local transactions
-  - business-state branching
-  - recipient or payload logic
-  - hand-built HTML or JSON
+- Keep boundary loading, params normalization, format choice, and render or redirect decisions in controllers.
+- Move long relation chains, aggregate-local transactions, business-state branching, payload logic, and hand-built HTML or JSON out of controllers.
 - Prefer direct calls to intention-revealing model APIs before introducing a service layer between controllers and models.
 - Small params normalization can stay in the controller. If one form needs several normalization helpers, nested-form translation, or failed-submit rebuilding, extract narrow form objects such as `Product::FormPayload` or `Product::FormRehydrator` under `app/models/<model>/`.
 - If the controller action reads like a business verb, that verb probably belongs on the owning model or model-area object.
-- When a side-effect action is really its own concept, prefer a dedicated resource controller such as `Sales::PurchaseItemLinksController` or `Warehouses::PositionsController` over growing one large top-level controller.
+- When a side-effect action is really its own concept, prefer a dedicated resource controller over growing one large top-level controller.
 - Use real write verbs for command endpoints. A pull, move, link, or webhook-confirm action should not hide behind `GET` just because the UI triggers it from a button or menu.
 - Prefer small controller concerns for repeated resource seams such as `ProductScoped`, `SaleScoped`, or `WarehouseScoped`.
 - Controller concerns should hold shared request-layer behavior, not one controller's private organization. “Shared” can mean app-wide or reused across one namespaced controller family.
 - Inline Turbo interactions such as edit or cancel or update flows can still be resourceful; a small singular nested controller is often cleaner than `edit_foo`, `cancel_foo`, and `update_foo` actions on the parent controller.
-- Collection workflows can be resourceful too. `Purchases::MovesController`, `Purchases::ProductEditionsController`, and `Dashboard::LastOrdersPullsController` are valid shapes when the concept lives at the collection or dashboard boundary.
+- Collection workflows can be resourceful too when the concept lives at the collection or dashboard boundary.
 - After route extraction, update helper code and shared UI primitives to use the new route contract. Generic helpers should prefer route helpers or correctly shaped polymorphic calls plus the right `turbo_method`, rather than assuming the old path shape still works.
 - Do not default to `accepts_nested_attributes_for` or big nested payloads when the child entity has its own lifecycle. A small child-resource endpoint plus a focused form or button is usually the clearer request boundary.
 - Keep nested or composite forms as an exception for truly atomic screens. If the child records can reasonably be created, edited, or removed independently, prefer separate request surfaces.
@@ -57,35 +48,23 @@ Use this file for the non-obvious request, controller, and presentation rules in
 - Keep screen-specific logic at the edge.
 - Do not add presenters by default.
 - In this repo, presentation preparation usually lives in helpers and partials, not in a presenter layer.
-- Use this sorting rule:
-  - one screen or one response format -> helper, partial, Jbuilder, Turbo template
-  - reused across jobs, exports, notifications, or integrations -> model-area representation object
-  - business identity or state text -> model or capability module
+- Use this sorting rule: one screen or response format belongs in helpers or templates; cross-process representations belong near the model; business identity or state text belongs in the model layer.
 - If a Slim template starts assembling a small collection of view data for one widget or partial, prefer a helper before inventing a presenter.
 - Keep that helper presentation-only: shaping labels, URLs, image variants, CSS classes, and screen-local flags is fine; domain rules and cross-process payloads are not.
 - For interactive widgets, let the server render the structure and prepared view data first. Stimulus should usually own only interaction state, DOM class changes, and loading transitions.
 - Avoid split ownership of one DOM node across multiple Stimulus controllers unless the separation is truly clear. If one widget owns one image or dialog state machine, prefer one controller to own that node end-to-end.
-- Prefer small, literal Stimulus methods over abstract mini-frameworks. Names like `showIndex`, `renderSelection`, `loadCurrentImage`, or `finishLoading` are easier to audit than a generic `render` plus several hidden options.
+- Prefer small, literal Stimulus methods over abstract mini-frameworks.
 - Because the agent cannot see the browser the way a human can, treat browser-level feature coverage as part of the design of non-trivial widgets. If the risk is visual or interactive, write the test at that seam instead of relying on code inspection alone.
 
 ## What Codex Often Gets Wrong
 
-- Do not keep screen-specific text on the model just because it is reused across templates.
-- Do not move true domain payload builders into helpers.
-- Do not leave controllers orchestrating multi-step aggregate updates when the sequence belongs to one model.
-- Do not introduce a form object or service object by reflex when a named model command would be simpler and clearer.
-- Do not pass `ActionController::Parameters` into model APIs. Translate request-shape data at the edge or in a narrow form payload object first.
-- Do not let a controller accumulate half a dozen `normalized_*` helpers when the form shape itself has become a concept.
-- Do not reach for nested attributes just because they are convenient. If the child lifecycle is independent, the request boundary is probably wrong.
-- Do not keep bolting member actions onto one broad controller when the route can become a first-class nested resource.
-- Do not leave command endpoints on `GET` after promoting them into their own concept.
-- Do not use controller concerns as local file-folders for one controller only.
-- Do not keep adding root-level partials after a screen subtree already exists.
-- Do not let deep partials reach into `params` or associations when explicit state can be passed once.
-- Do not add a presenter layer just because a template has a few setup lines; first ask whether a helper can keep the preparation small and screen-local.
-- Do not make Stimulus controllers fight the server-rendered HTML for ownership of initial state. Prefer server-chosen initial markup plus a small reconciliation pass if browser timing makes it necessary.
-- Do not split one widget's loading lifecycle across multiple controllers when one focused controller can own it more readably.
-- Do not forget shared helpers when refactoring routes; a stale polymorphic helper can break a page before the newly extracted controller code even runs.
+- Do not keep screen-specific text on the model or move true domain payloads into helpers.
+- Do not leave controllers orchestrating aggregate workflows when one model command would say the business action clearly.
+- Do not pass `ActionController::Parameters` into model APIs; translate request-shaped data at the edge or in a narrow form payload object.
+- Do not use nested attributes, member actions, `GET` command endpoints, or one-off concerns as defaults when a real resource boundary exists.
+- Do not add presenters, root-level partials, or deep `params` reads when helpers and explicit locals keep view preparation small.
+- Do not make Stimulus fight server-rendered HTML or split one widget's lifecycle across multiple controllers without a clear boundary.
+- Do not forget shared helpers and buttons when refactoring routes; stale route consumers often break before the new controller code runs.
 
 ## View Defaults
 

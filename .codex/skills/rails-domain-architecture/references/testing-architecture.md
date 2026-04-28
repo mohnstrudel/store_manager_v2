@@ -23,17 +23,12 @@ Use this file for the non-obvious test placement and seam rules in this repo.
 
 ## What Codex Often Gets Wrong
 
-- Do not default to service specs when the behavior belongs to a model capability.
-- Do not keep old service or form specs around after ownership moved into the model layer.
-- Do not replace request tests with narrow controller stubs.
-- Do not leave tests at an old seam after ownership moved.
-- Do not keep controller-only normalization specs once that logic moved into a form payload object; test the payload object directly and keep one request or controller seam that proves it is wired in.
-- Do not skip negative-path rules where state suppresses side effects.
-- Do not hide time-based rules in scheduler tests when they really belong to the domain.
-- Do not let extracted-route regressions hide in shared helpers; add or keep at least one request, controller, or feature check that exercises the real rendered trigger.
-- Do not jump straight to pixel-diff infrastructure for every UI regression. For many Hotwire or Stimulus widgets, a focused browser-level feature spec that asserts loading classes, geometry stability, and state transitions is cheaper and more durable.
-- Do not stop at “the code looks right” for JavaScript or CSS-heavy UI changes. When the user is reporting what they can see in the browser and the agent cannot, add a test that encodes that visual or behavioral contract.
-- Do not let a UI refactor rely only on controller or request coverage when the real risk is in rendered DOM behavior.
+- Do not keep specs at an old service, form, or controller seam after ownership moves into the model layer.
+- Do not replace request behavior with narrow controller stubs when the route or rendered trigger is the real contract.
+- Do not keep controller-only normalization specs once that logic moves into a form payload object; test the object and keep one wiring check.
+- Do not skip negative-path rules where state suppresses side effects, or hide domain time rules in scheduler tests.
+- Do not jump straight to pixel-diff tooling for UI regressions; focused browser specs are usually cheaper and more durable.
+- Do not stop at code inspection for JavaScript or CSS-heavy changes when rendered DOM behavior is the risk.
 
 ## Repo-Specific Bias
 
