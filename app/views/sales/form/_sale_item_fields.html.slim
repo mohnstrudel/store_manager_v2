@@ -1,5 +1,5 @@
 - marked_for_removal = ActiveModel::Type::Boolean.new.cast(sale_item._destroy)
-.sales-form__product_fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-2/3 class=("hidden" if marked_for_removal)
+.sales-form__product_fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-full.lg:max-w-2/3 class=class_names(hidden: marked_for_removal)
   = f.hidden_field :id if sale_item.persisted?
   = f.hidden_field :_destroy, value: (marked_for_removal ? "1" : "0")
 

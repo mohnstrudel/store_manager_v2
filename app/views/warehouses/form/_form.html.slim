@@ -3,7 +3,7 @@
     = form.label :name
     = form.text_field :name
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :external_name_en, "External Name in English"
       = form.text_field :external_name_en
@@ -11,7 +11,7 @@
       = form.label :external_name_de, "External Name in German"
       = form.text_field :external_name_de
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :desc_en, "English Description"
       = form.text_area :desc_en
@@ -19,7 +19,7 @@
       = form.label :desc_de, "German Description"
       = form.text_area :desc_de
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :cbm
       = form.text_field :cbm
@@ -30,7 +30,7 @@
       = form.label :is_default
       = form.select :is_default, options_for_select([["No", "0"], ["Yes", "1"]], warehouse.is_default? ? "1" : "0")
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :container_tracking_number
       = form.text_field :container_tracking_number
@@ -42,7 +42,7 @@
 
   label Transition notifications
   = form_hint "We will send a notification when a product is moved from this warehouse to one of the warehouses listed below"
-  .border.border-gray-200.rounded-lg class="dark:border-gray-800" data-controller="edit-warehouse-transition"
+  .border.border-gray-200.rounded-lg.dark:border-gray-800 data-controller="edit-warehouse-transition"
     table
       thead
         tr

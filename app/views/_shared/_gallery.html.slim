@@ -1,14 +1,14 @@
 - gallery_items = gallery_items_for(media)
 - if gallery_items.any?
   - first_item = gallery_items.first
-  .flex.shrink-0.w-150.h-150.items-center data-controller="gallery" class="#{"-ml-5" if gallery_items.size > 1}"
+  .flex.flex-col.gap-4.w-full.max-w-full.items-center data-controller="gallery" class="#{"lg:flex-row lg:shrink-0 lg:w-150 lg:h-150 lg:-ml-5" if gallery_items.size > 1}"
     - if gallery_items.size > 1
-      .gallery-nav.flex.flex-col.items-center.gap-4.w-30.h-70.p-4.overflow-y-scroll.overflow-x-hidden
+      .gallery-nav.flex.flex-row.items-center.gap-4.w-full.h-auto.p-4.overflow-x-auto.overflow-y-hidden.lg:flex-col.lg:w-30.lg:h-70.lg:overflow-y-scroll.lg:overflow-x-hidden
         - gallery_items.each_with_index do |item, index|
           button.gallery-thumb type="button" data-id=index data-preview=item[:main_src] data-alt=item[:alt] data-gallery-target="slide" data-action="click->gallery#select"
             .gallery-thumb__frame.loading
               = image_tag item[:thumb_src], alt: item[:alt], class: "preloadable-img__img gallery-thumb__image hidden", data: {action: "load->gallery#handleThumbLoad error->gallery#handleThumbError"}
-    .gallery-viewbox.flex.relative.w-full.h-full.max-h-full.wrap.items-center.overflow-hidden.rounded-lg.hover:overflow-visible
+    .gallery-viewbox.flex.relative.w-full.h-80.max-h-full.wrap.items-center.overflow-hidden.rounded-lg.hover:overflow-visible.lg:h-full
       - if gallery_items.size > 1
         button.gallery-btn.left-0 type="button" data-action="gallery#prev" ←
         button.gallery-btn.right-0 type="button" data-action="gallery#next" →

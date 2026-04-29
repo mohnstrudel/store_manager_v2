@@ -1,8 +1,8 @@
-.table-cards-group
+.flex.flex-col.gap-4
   .table-card data-controller="move-items"
     .flex.justify-between.align-center
       h3 Number of Items: #{purchase_items.total_count}
-      .w-45.px-3.mt-4.text-center = render "_shared/purchase_payment_progress", progress: warehouse.average_payment_progress, debt: warehouse.total_debt, only_debt: true
+      .w-full.max-w-45.px-3.mt-4.text-center.lg:w-45 = render "_shared/purchase_payment_progress", progress: warehouse.average_payment_progress, debt: warehouse.total_debt, only_debt: true
 
     .search.-mt-2
       = render partial: "_shared/search-form", locals: {path: warehouse_path}
@@ -22,9 +22,9 @@
           th
             | Payment Progress
             .flex.justify-between.text-xs.font-medium.opacity-80
-              span.text-lime-700/90 class="dark:text-lime-500/85" paid
+              span.text-lime-700/90.dark:text-lime-500/85 paid
               span.text-slate-400 item
-              span.text-orange-800/70 class="dark:text-orange-400/80" debt
+              span.text-orange-800/70.dark:text-orange-400/80 debt
         tbody
           - purchase_items.each do |item|
             = render "warehouses/show/purchase_item", item: item

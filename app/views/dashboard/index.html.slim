@@ -1,11 +1,11 @@
 = render "_shared/notice"
 
 - if @config.sales_hook_disabled?
-  article#webhook-error.h-fit.mx-auto.bg-red-100.rounded-xl.mb-8.text-red-700 class="dark:bg-red-800/60 dark:text-red-300"
-    header.p-8.h-24.flex.justify-between.items-center.border-b-4.border-red-800/5.dark:border-red-950/30
-      i.icn.text-3xl 🪝
-      p.text-lg.font-semibold The WooCommerce Sales Webhook is Deactivated
-      i.icn.text-3xl 🪝
+  article#webhook-error.h-fit.mx-auto.bg-red-100.rounded-xl.mb-8.text-center.text-red-700.lg:text-left.dark:bg-red-800/60.dark:text-red-300
+    header.p-0.flex.flex-col.justify-between.items-center.gap-2.border-b-4.border-red-800/5.dark:border-red-950/30.lg:p-8.lg:h-24.lg:flex-row.lg:gap-0
+      i.icn.text-2xl.lg:text-3xl 🪝
+      p.text-base.font-semibold.lg:text-lg The WooCommerce Sales Webhook is Deactivated
+      i.icn.text-2xl.lg:text-3xl 🪝
     ol.list-decimal.h-fit.min-h-24.p-8.pl-16.text-lg
       li.mt-1 Change the webhook status to "Active" at <a href="https://store.handsomecake.com/wp-admin/admin.php?page=wc-settings&tab=advanced&section=webhooks&edit-webhook=3" target="_blank" class="link">the Woo settings page</a>.
       li.mt-2

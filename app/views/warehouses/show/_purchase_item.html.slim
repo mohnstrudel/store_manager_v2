@@ -33,4 +33,4 @@ tr(
     = render "purchase_items/inline_tracking_show", purchase_item: item
   td
     = render "purchase_items/inline_shipping_company_show", purchase_item: item
-  td.w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt
+  td.w-full.max-w-45.lg:w-45 = render "_shared/purchase_payment_progress", progress: item.purchase.progress, paid: item.purchase.item_paid, price: item.purchase.item_price, debt: item.purchase.item_debt

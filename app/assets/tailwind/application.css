@@ -47,11 +47,11 @@
   }
 
   h1 {
-    @apply text-6xl text-gray-900 dark:text-gray-50;
+    @apply text-3xl lg:text-6xl text-gray-900 dark:text-gray-50;
   }
 
   h2 {
-    @apply text-2xl;
+    @apply text-xl lg:text-2xl;
   }
 
   h3 {
@@ -77,8 +77,20 @@
   }
 
   /* Forms */
+  form {
+    @apply max-w-full min-w-0;
+  }
+
   label {
-    @apply block font-medium text-gray-900 dark:text-gray-100 mt-8 mb-2;
+    @apply block font-medium text-gray-900 dark:text-gray-100 mt-0 lg:mt-8 mb-2;
+  }
+
+  fieldset {
+    @apply min-w-0 mb-4 lg:mb-0;
+  }
+
+  fieldset > :where(*) {
+    @apply w-full lg:w-auto;
   }
 
   label+p {
@@ -161,7 +173,7 @@
 
   /* Tables */
   table {
-    @apply w-full border-collapse table-auto text-left border-b mt-3;
+    @apply w-full min-w-min border-collapse table-auto text-left border-b mt-3;
   }
 
   thead {
@@ -182,7 +194,7 @@
 
   th,
   td {
-    @apply p-3;
+    @apply p-2 lg:p-3;
   }
 
   tbody tr {
@@ -227,17 +239,52 @@
 @layer components {
 
   /* Navigation */
-  nav[role="navigation-main"],
   nav[role="navigation-main"] ul {
     @apply flex items-center;
   }
 
   nav[role="navigation-main"] {
-    @apply justify-between;
+    @apply justify-between items-center gap-3;
+  }
+
+  nav[role="navigation-main"] > ul {
+    @apply w-auto;
+  }
+
+  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) {
+    @apply flex-wrap items-center justify-start gap-2 w-full;
   }
 
   nav[role="navigation-main"] a {
-    @apply text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border-0 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700;
+    @apply rounded-sm uppercase lg:normal-case tracking-wide lg:tracking-normal text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 lg:border-0 lg:bg-transparent lg:dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700;
+  }
+
+  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] a {
+    @apply text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700;
+  }
+
+  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] > button {
+    @apply p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 cursor-pointer;
+  }
+
+  nav[role="navigation-main"] {
+    @apply lg:justify-between;
+  }
+
+  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) {
+    @apply lg:ml-0 lg:w-auto lg:flex-nowrap lg:justify-start;
+  }
+
+  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] a {
+    @apply border-0 bg-transparent dark:bg-transparent;
+  }
+
+  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] > button {
+    @apply p-1 bg-transparent lg:p-2 lg:rounded-sm lg:hover:bg-gray-100 lg:dark:hover:bg-gray-700;
+  }
+
+  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] {
+    @apply absolute right-0 top-0 lg:relative lg:right-auto lg:top-auto;
   }
 
   nav[role="navigation-dropdown"] {
@@ -253,7 +300,7 @@
   }
 
   nav[role="navigation-dropdown"] ul {
-    @apply flex flex-col items-start absolute right-0 top-full w-40 pt-5 pr-4 pb-7 pl-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg opacity-0 invisible transition-all duration-150 z-228;
+    @apply flex flex-col items-start absolute right-0 top-full w-50 pt-5 pr-4 pb-7 pl-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg opacity-0 invisible transition-all duration-150 z-228;
   }
 
   nav[role="navigation-dropdown"]:hover ul {
@@ -265,11 +312,15 @@
   }
 
   .nav_header {
-    @apply flex justify-between items-center text-pretty mb-5;
+    @apply flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 lg:gap-0 text-pretty mb-4 lg:mb-5;
+  }
+
+  .nav_header > .flex {
+    @apply flex-col lg:flex-row gap-1 lg:gap-0;
   }
 
   .nav_menu {
-    @apply flex justify-end whitespace-nowrap gap-2 pt-2;
+    @apply flex flex-wrap justify-start lg:justify-end whitespace-nowrap gap-2 pt-0 lg:pt-2;
   }
 
   /* Buttons */
@@ -312,19 +363,19 @@
 
   /* Pagination */
   .pagination {
-    @apply flex items-center self-end text-center;
+    @apply flex items-center justify-start lg:justify-center self-end text-center;
   }
 
   .pagination-top {
-    @apply flex justify-end min-w-4/10;
+    @apply flex justify-start lg:justify-end min-w-0 lg:min-w-4/10;
   }
 
   .pagination-bottom {
-    @apply flex justify-center items-center py-8 w-full h-full;
+    @apply flex justify-start lg:justify-center items-center py-4 lg:py-8 w-full h-full;
   }
 
   .pagination a {
-    @apply whitespace-nowrap ml-2 min-w-9;
+    @apply whitespace-nowrap ml-0 lg:ml-2 mr-2 lg:mr-0 min-w-9;
   }
 
   .pagination-list {
@@ -379,11 +430,11 @@
   /* Sections & layout helpers */
   .section-border-base,
   .table-card {
-    @apply border border-gray-200/80 dark:border-gray-800 rounded-xl;
+    @apply border border-gray-200/80 dark:border-gray-800 rounded-xl overflow-x-auto lg:overflow-visible;
   }
 
   .section-wide {
-    @apply mt-4 -mx-8;
+    @apply mt-4 mx-0 px-0 lg:-mx-8;
   }
 
   .actions {
@@ -395,7 +446,11 @@
   }
 
   .search {
-    @apply px-8 pt-7 mb-6 flex justify-between;
+    @apply px-4 lg:px-8 pt-4 lg:pt-7 pb-2 lg:pb-0 mb-4 lg:mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-0;
+  }
+
+  .search form {
+    @apply w-full max-w-none;
   }
 
   .progress-end {
@@ -404,11 +459,11 @@
 
   /* Cards */
   .cards {
-    @apply flex items-center gap-6;
+    @apply flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6;
   }
 
   .card {
-    @apply bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 pl-4 pt-4 pr-10 pb-8 rounded-lg w-fit h-fit;
+    @apply bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 pl-4 pt-4 pr-4 lg:pr-10 pb-8 rounded-lg w-full lg:w-fit h-fit;
   }
 
   .card h5 {
@@ -416,11 +471,11 @@
   }
 
   .card p {
-    @apply mb-2 text-lg;
+    @apply mb-2 text-base lg:text-lg;
   }
 
   .table-card h3 {
-    @apply p-3 pt-4;
+    @apply p-0 lg:p-3 pt-4;
   }
 
   /* Gallery */
@@ -433,7 +488,7 @@
   }
 
   .gallery-thumb__frame {
-    @apply overflow-hidden flex items-center justify-center w-[70px] h-[84px] rounded-md;
+    @apply overflow-hidden flex items-center justify-center w-16 lg:w-[70px] h-20 lg:h-[84px] rounded-md;
   }
 
   .gallery-thumb__frame.loading,
@@ -446,7 +501,7 @@
   }
 
   .gallery-main__frame {
-    @apply flex items-center justify-center w-full h-full min-h-full rounded-lg;
+    @apply flex items-center justify-center w-full h-full min-h-80 lg:min-h-full rounded-lg;
   }
 
   .gallery-main__image {
@@ -462,7 +517,7 @@
   }
 
   .gallery-btn {
-    @apply absolute top-1/2 -translate-y-1/2 z-10 border-none w-20 min-h-83 h-full text-3xl bg-transparent text-gray-300 dark:text-gray-500 transition-all duration-150 hover:bg-black/20 dark:hover:bg-gray-900/50 hover:text-white dark:hover:text-gray-100;
+    @apply absolute top-1/2 -translate-y-1/2 z-10 border-none w-12 lg:w-20 min-h-83 h-full text-2xl lg:text-3xl bg-transparent text-gray-300 dark:text-gray-500 transition-all duration-150 hover:bg-black/20 dark:hover:bg-gray-900/50 hover:text-white dark:hover:text-gray-100;
   }
 
   /* Dialogs */
@@ -471,7 +526,7 @@
   }
 
   dialog {
-    @apply flex fixed inset-0 justify-center items-center z-999 backdrop-blur-sm border-0 bg-gray-300/50 dark:bg-gray-800/50 p-2 w-full min-w-full h-full min-h-full;
+    @apply flex fixed inset-0 justify-center items-center z-999 backdrop-blur-sm border-0 bg-gray-300/50 dark:bg-gray-800/50 box-border p-2 w-full min-w-full h-full min-h-full;
   }
 
   dialog:not([open]),
@@ -480,7 +535,7 @@
   }
 
   .dialog-content {
-    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-3xl p-4 pb-6 -translate-y-10;
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-full lg:max-w-3xl p-4 pb-6 translate-y-0 lg:-translate-y-10;
   }
 
   /* Forms: errors */
@@ -499,7 +554,7 @@
   .field_with_errors input,
   .field_with_errors textarea,
   .field_with_errors trix-editor {
-    @apply border;
+    @apply border min-w-0;
   }
 
   mark {

@@ -1,15 +1,15 @@
 = form_with model: product, html: {multipart: true}, data: {turbo: false} do |form|
-  fieldset.flex.justify-between.gap-4.-mt-8
-    .block.w-2/3
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
+    .block.w-full.lg:w-2/3
       = form.label :franchise
       = form.collection_select :franchise_id, @franchise_options || [], :id, :title, {}, slim_select_html_options
     .block.w-full
       = form.label :title
       = form.text_field :title
-    .block.w-1/4
+    .block.w-full.lg:w-1/4
       = form.label :shape
       = form.select :shape, options_for_select(@shape_options || Product.shape_options, form.object.shape)
-    .block.w-2/3 data-turbo="false"
+    .block.w-full.lg:w-2/3 data-turbo="false"
       = form.label :brand
       = form.collection_select :brand_ids, @brand_options || [], :id, :title, {selected: form.object.brand_ids}, slim_select_html_options(multiple: true)
 
@@ -19,9 +19,7 @@
       = form_hint "Rich text formatting supported"
       = form.rich_text_area :description, class: "w-full"
 
-
-
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :size
       = form.collection_select :size_ids, @size_options || [], :id, :value, {selected: form.object.size_ids}, slim_select_html_options(multiple: true)
@@ -37,7 +35,7 @@
       h2.mt-8.label Variants
       = form_hint "Manage variants for this product"
 
-    .grid.grid-cols-2.gap-x-6 data-variant-form-target="container"
+    .grid.grid-cols-1.gap-x-6.lg:grid-cols-2 data-variant-form-target="container"
       - form.object.variants.each_with_index do |variant, index|
         = fields_for "variants[#{index}]", variant do |variant_fields|
           = render "products/form/variant_fields",

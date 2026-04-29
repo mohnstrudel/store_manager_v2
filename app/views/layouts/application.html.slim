@@ -12,32 +12,30 @@ html
     = turbo_refresh_scroll_tag :preserve
     = breadcrumb_meta_tag
   body.flex.flex-col.min-h-screen
-    header.container.mx-auto.pt-2
-      nav role="navigation-main"
-        ul role="navigation-logo"
-         li.text-gray-700.dark:text-gray-500
-          i.icn.text-2xl.mr-2 😸
-          strong.align-text-bottom StoreMate
-        ul.text-sm
+    header.container.mx-auto.pt-2.px-4.lg:px-0
+      nav.flex.flex-col.items-stretch.gap-3.relative.lg:flex-row.lg:items-center role="navigation-main"
+        ul.flex.w-full.items-center.justify-between.lg:w-auto role="navigation-logo"
+          li.text-gray-700.dark:text-gray-500
+            i.icn.text-2xl.mr-2 😸
+            strong.align-text-bottom StoreMate
+        ul.text-sm.flex.flex-wrap.items-center.gap-2.lg:flex-nowrap.lg:whitespace-nowrap
           - if current_user.guest?
             li = link_to "Log Out", log_out_path, method: :post, data: {confirm: "Are you sure you want to log out?", turbo_method: :post}, type: "button"
           - else
             li = link_to "Dashboard", root_path, type: "button"
             li = link_to "Debts", debts_path, type: "button"
-            .ml-6
+            .hidden.lg:block.lg:ml-6
             li = link_to "Sales", sales_path, type: "button"
             li = link_to "Purchases", purchases_path, type: "button"
             li = link_to "Warehouses", warehouses_path, type: "button"
-            .ml-6
+            .hidden.lg:block.lg:ml-6
             li = link_to "Products", products_path, type: "button"
             li = link_to "Customers", customers_path, type: "button"
 
           - unless current_user.guest?
-            nav.ml-6 role="navigation-dropdown"
+            nav.ml-0.lg:ml-6 role="navigation-dropdown"
               button
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
-                </svg>
+                = heroicon "bars-2", variant: "mini"
               ul
                 li = link_to "Suppliers", suppliers_path, type: "button"
                 li = link_to "Shipping Companies", shipping_companies_path, type: "button"
@@ -52,9 +50,9 @@ html
                 - if current_user.admin?
                   li = link_to "Users", users_path, type: "button"
                 li = link_to "Log Out", log_out_path, method: :post, data: {confirm: "Are you sure you want to log out?", turbo_method: :post}, type: "button"
-    main.container.mx-auto.mt-8.mb-60
+    main.container.mx-auto.mt-4.mb-24.px-4.lg:mt-8.lg:mb-60.lg:px-0
       = breadcrumbs
       = yield
-    footer.container.mx-auto.text-center.mb-8
+    footer.container.mx-auto.text-center.mb-8.px-4.lg:px-0
       a.no-underline.hover:bg-transparent href="" onclick="window.scrollTo({top: 0}); return false;" class="link"
         i.icn.text-3xl.text-gray-500 😸

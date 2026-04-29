@@ -80,6 +80,8 @@
     border-bottom-left-radius: 0px;
   }
   .ss-main .ss-values {
+    @apply min-w-0;
+
     display: inline-flex;
     flex: 1 1 100%;
     flex-wrap: wrap;
@@ -111,11 +113,13 @@
     user-select: none;
   }
   .ss-main .ss-values .ss-single {
+    @apply min-w-0 overflow-hidden text-ellipsis;
+
     display: flex;
     margin: auto 0px auto var(--ss-spacing-s);
   }
   .ss-main .ss-values .ss-value {
-    @apply bg-blue-600 dark:bg-blue-900 rounded-sm;
+    @apply bg-blue-600 dark:bg-blue-900 rounded-sm max-w-full;
 
     display: flex;
     align-items: center;
@@ -132,7 +136,7 @@
     animation-name: ss-valueOut;
   }
   .ss-main .ss-values .ss-value .ss-value-text {
-    @apply text-gray-100 dark:text-gray-300;
+    @apply text-gray-100 dark:text-gray-300 min-w-0 overflow-hidden text-ellipsis;
 
     padding: var(--ss-spacing-s) var(--ss-spacing-m);
     font-size: 12px;
