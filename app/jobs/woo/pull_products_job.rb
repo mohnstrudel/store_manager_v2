@@ -98,6 +98,8 @@ module Woo
     end
 
     def parse(woo_product)
+      return if woo_product.blank?
+
       return if woo_product[:name].blank?
 
       title, franchise, shape = parse_product_name(woo_product[:name])
