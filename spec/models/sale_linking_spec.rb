@@ -72,17 +72,17 @@ RSpec.describe Sale do
       end
     end
 
-    context "when sale_items have editions" do
+    context "when sale_items have variants" do
       let(:sale) { create(:sale, status: active_status) }
-      let(:edition_a) { create(:edition, :with_version, version_value: "A") }
-      let(:edition_b) { create(:edition, :with_version, version_value: "B") }
-      let!(:sale_item_a) { create(:sale_item, sale:, product:, edition: edition_a, qty: 2) }
-      let!(:sale_item_b) { create(:sale_item, sale:, product:, edition: edition_b, qty: 1) }
-      let!(:sale_item_none) { create(:sale_item, sale:, product:, edition: nil, qty: 1) }
+      let(:variant_a) { create(:variant, :with_version, version_value: "A") }
+      let(:variant_b) { create(:variant, :with_version, version_value: "B") }
+      let!(:sale_item_a) { create(:sale_item, sale:, product:, variant: variant_a, qty: 2) }
+      let!(:sale_item_b) { create(:sale_item, sale:, product:, variant: variant_b, qty: 1) }
+      let!(:sale_item_none) { create(:sale_item, sale:, product:, variant: nil, qty: 1) }
 
-      let!(:purchase_a) { create(:purchase, product:, edition: edition_a, amount: 2) }
-      let!(:purchase_b) { create(:purchase, product:, edition: edition_b, amount: 1) }
-      let!(:purchase_none) { create(:purchase, product:, edition: nil, amount: 1) }
+      let!(:purchase_a) { create(:purchase, product:, variant: variant_a, amount: 2) }
+      let!(:purchase_b) { create(:purchase, product:, variant: variant_b, amount: 1) }
+      let!(:purchase_none) { create(:purchase, product:, variant: nil, amount: 1) }
 
       # rubocop:todo RSpec/IndexedLet
       let!(:purchase_item_a1) { create(:purchase_item, purchase: purchase_a, warehouse:) }
@@ -92,11 +92,11 @@ RSpec.describe Sale do
       # rubocop:enable RSpec/IndexedLet
       let!(:purchase_item_b1) { create(:purchase_item, purchase: purchase_b, warehouse:) }
       let!(:purchase_item_none) { create(:purchase_item, purchase: purchase_none, warehouse:) }
-      let!(:purchase_item_wrong_edition) { create(:purchase_item, purchase:, warehouse:) }
+      let!(:purchase_item_wrong_variant) { create(:purchase_item, purchase:, warehouse:) }
 
       before { sale.link_with_purchase_items }
 
-      it "links only purchased products with matching edition to sale_item" do
+      it "links only purchased products with matching variant to sale_item" do
         aggregate_failures do
           expect(purchase_item_a1.reload.sale_item_id).to eq(sale_item_a.id)
           expect(purchase_item_a2.reload.sale_item_id).to eq(sale_item_a.id)
@@ -105,8 +105,8 @@ RSpec.describe Sale do
         end
       end
 
-      it "does not link purchased products with mismatched edition" do
-        expect(purchase_item_wrong_edition.reload.sale_item_id).to be_nil
+      it "does not link purchased products with mismatched variant" do
+        expect(purchase_item_wrong_variant.reload.sale_item_id).to be_nil
       end
 
       it "does not link more purchased products than sale_item qty" do

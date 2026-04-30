@@ -1,0 +1,22 @@
+tr class=product_row_class(variant.id, selected_id:, "opacity-50": variant.deactivated?)
+  td = variant.id
+  td
+    = variant.title
+    - if variant.deactivated?
+      span.text-sm.text-gray-500.dark:text-gray-400.ml-2
+        | (Deactivated)
+  td = variant.types_name
+  td.text-right = variant.weight.zero? ? "-" : "#{variant.weight} kg"
+  td.text-right = variant.purchase_cost.zero? ? "-" : number_to_currency(variant.purchase_cost)
+  td.text-right = variant.selling_price.zero? ? "-" : number_to_currency(variant.selling_price)
+  td.text-right = format_zero_values variants_sales_sums[variant.id]
+  td = format_zero_values variants_purchases_sums[variant.id]
+  td
+    - if variant.shopify_info.present?
+      - esi = variant.shopify_info
+      - variant_url = esi.product_url("#{product.shopify_info&.slug}?variant=#{esi.id_short}")
+      = link_to esi.id_short, variant_url, target: "_blank", rel: "noopener noreferrer", class: "link"
+    - elsif variant.woo_info.present?
+      = variant.woo_info.store_id
+    - else
+      | -

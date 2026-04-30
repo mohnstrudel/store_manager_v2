@@ -7,7 +7,7 @@
       thead
         th Supplier
         th Ref
-        th Edition?
+        th Variant?
         th Time ago
         th.text-right Item Price, $
         th Amount
@@ -20,8 +20,8 @@
           )
             td = purchase.supplier.title
             td.font-mono.text-sm = purchase.order_reference
-            - if purchase.edition.present?
-              td = purchase.edition.title
+            - if purchase.variant.present?
+              td = purchase.variant.title
             - else
               td
             td = time_ago_in_words purchase.created_at

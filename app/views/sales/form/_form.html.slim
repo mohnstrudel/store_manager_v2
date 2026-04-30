@@ -2,10 +2,11 @@
   = form.label :customer_id
   = form.collection_select :customer_id, @customer_options || [], :id, :name_and_email, {}, slim_select_html_options
 
-  = form.label :note
-  = form.text_field :note
+  .mt-4
+    = form.label :note
+    = form.text_field :note
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
     .block.w-full
       = form.label :country
       = form.text_field :country
@@ -19,7 +20,7 @@
       = form.label :postcode
       = form.text_field :postcode
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :address_1
       = form.text_field :address_1
@@ -30,7 +31,7 @@
   = form.label :company
   = form.text_field :company
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
     .block.w-full
       = form.label :total, "Total price"
       = form.text_field :total
@@ -42,7 +43,7 @@
       = form.text_field :shipping_total
 
   label Status
-  .flex.flex-wrap.gap-4.p-4.border.border-gray-200.rounded-md class="dark:border-gray-800"
+  .flex.flex-wrap.gap-4.p-4.border.border-gray-200.rounded-md.dark:border-gray-800
     = form.collection_radio_buttons(:status, Sale.status_names, :itself, :titleize) do |rdb|
       .flex.items-center.mr-2
         = rdb.label(class: "m-0 p-0 flex items-center relative cursor-pointer")

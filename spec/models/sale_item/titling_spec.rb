@@ -4,16 +4,16 @@ require "rails_helper"
 
 RSpec.describe SaleItem::Titling do
   describe "#title" do
-    it "returns the product title when there is no edition" do
-      sale_item = create(:sale_item, edition: nil)
+    it "returns the product title when there is no variant" do
+      sale_item = create(:sale_item, variant: nil)
 
       expect(sale_item.title).to eq(sale_item.product.full_title)
     end
 
-    it "returns the product and edition title when edition is present" do
+    it "returns the product and variant title when variant is present" do
       sale_item = create(:sale_item)
 
-      expect(sale_item.title).to eq("#{sale_item.product.full_title} → #{sale_item.edition.title}")
+      expect(sale_item.title).to eq("#{sale_item.product.full_title} → #{sale_item.variant.title}")
     end
   end
 

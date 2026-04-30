@@ -16,12 +16,12 @@ RSpec.describe Webhooks::OrderUpdatesController do
       customer = create(:customer, woo_id: parsed_order[:customer][:woo_id])
       sale = create(:sale, woo_id: parsed_order[:sale][:woo_id], customer:)
       product = create(:product, woo_id: parsed_order[:products].first[:product_woo_id])
-      edition = create(:edition, woo_id: parsed_order[:products].first[:edition][:woo_id], product:)
+      variant = create(:variant, woo_id: parsed_order[:products].first[:variant][:woo_id], product:)
       @sale_item = create(
         :sale_item,
         sale:,
         product:,
-        edition:,
+        variant:,
         qty: 666,
         price: 666,
         woo_id: parsed_order[:products].first[:order_woo_id]
@@ -40,8 +40,8 @@ RSpec.describe Webhooks::OrderUpdatesController do
       expect(updated_sale_item.price).to eq(
         BigDecimal(parsed_product[:price])
       )
-      expect(updated_sale_item.edition.title).to eq(
-        parsed_product[:edition][:display_value]
+      expect(updated_sale_item.variant.title).to eq(
+        parsed_product[:variant][:display_value]
       )
     end
 
@@ -53,8 +53,8 @@ RSpec.describe Webhooks::OrderUpdatesController do
       expect(new_sale.price).to eq(
         BigDecimal(parsed_product[:price])
       )
-      expect(new_sale.edition.title).to eq(
-        parsed_product[:edition][:display_value]
+      expect(new_sale.variant.title).to eq(
+        parsed_product[:variant][:display_value]
       )
     end
   end

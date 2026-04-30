@@ -10,8 +10,8 @@ module Dashboard
         search_query = params[:q].downcase
         sale_debts.select do |product|
           product.full_title&.downcase&.include?(search_query) ||
-            product.editions.any? do |edition|
-              edition.title&.downcase&.include?(search_query)
+            product.variants.any? do |variant|
+              variant.title&.downcase&.include?(search_query)
             end
         end
       else

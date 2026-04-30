@@ -8,7 +8,7 @@ module Product::Listing
       includes(
         :shopify_info,
         :woo_info,
-        editions: [:version, :color, :size],
+        variants: [:version, :color, :size],
         media: {image_attachment: :blob}
       ).order(created_at: :desc)
     }
@@ -16,9 +16,9 @@ module Product::Listing
     scope :for_details, -> {
       includes(
         media: {image_attachment: :blob},
-        purchases: [:product, :supplier, edition: [:version, :color, :size]],
+        purchases: [:product, :supplier, variant: [:version, :color, :size]],
         purchase_items: [:warehouse, :purchase],
-        editions: [
+        variants: [
           :version,
           :color,
           :size,

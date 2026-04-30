@@ -15,22 +15,22 @@ class ProductsController < ApplicationController
   def show
     @active_sales = @product.active_sale_items
     @complete_sales = @product.completed_sale_items
-    @purchases = @product.purchases.includes(:supplier, :edition, purchase_items: :warehouse)
-    @editions_sales_sums = @product.edition_sales_sums
-    @editions_purchases_sums = @product.edition_purchase_sums
+    @purchases = @product.purchases.includes(:supplier, :variant, purchase_items: :warehouse)
+    @variants_sales_sums = @product.variant_sales_sums
+    @variants_purchases_sums = @product.variant_purchase_sums
     @selected_id = params[:selected].presence&.to_i
   end
 
   # GET /products/new
   def new
     @product = Product.new
-    @product.build_base_edition
+    @product.build_base_variant
     @purchase = default_purchase
   end
 
   # GET /products/1/edit
   def edit
-    @product.build_base_edition
+    @product.build_base_variant
   end
 
   # POST /products or /products.json
@@ -41,7 +41,7 @@ class ProductsController < ApplicationController
     respond_to do |format|
       @product.save_editing!(
         product_attributes: editing_payload.product_attributes,
-        editions_attributes: editing_payload.editions_attributes,
+        variants_attributes: editing_payload.variants_attributes,
         store_infos_attributes: editing_payload.store_infos_attributes,
         purchase_attributes: editing_payload.purchase_attributes,
         new_media_images: media_new_images_for(@product)
@@ -65,7 +65,7 @@ class ProductsController < ApplicationController
     respond_to do |format|
       @product.save_editing!(
         product_attributes: editing_payload.product_attributes,
-        editions_attributes: editing_payload.editions_attributes,
+        variants_attributes: editing_payload.variants_attributes,
         store_infos_attributes: editing_payload.store_infos_attributes,
         media_attributes: normalized_media_attributes_for(@product),
         new_media_images: media_new_images_for(@product)

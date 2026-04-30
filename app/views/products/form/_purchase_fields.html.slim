@@ -3,13 +3,13 @@
   - item_price_error = purchase.errors[:item_price].first
   - amount_error = purchase.errors[:amount].first
 
-  .purchase-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.mt-6.max-w-4/7
-    .flex.justify-between.items-center
+  .purchase-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.mt-6.max-w-full.lg:max-w-4/7
+    .flex.justify-between.items-start.flex-col.lg:flex-row.lg:items-center.gap-2
       h6.font-semibold New Purchase
       button.btn-rounded.btn-red type="button" data-action="product-purchase#removeForm"
         | Remove
 
-    fieldset.flex.justify-between.gap-4
+    fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.pt-4.lg:pt-0
       .block.w-full id="purchase-supplier-field"
         = form.label :supplier_id, "Supplier"
         - if supplier_error.present?
@@ -21,7 +21,7 @@
         = form.label :order_reference, "Order reference"
         = form.text_field :order_reference
 
-    fieldset.flex.justify-between.gap-4
+    fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
       .block.w-full id="purchase-item-price-field"
         = form.label :item_price, "Item price"
         - if item_price_error.present?

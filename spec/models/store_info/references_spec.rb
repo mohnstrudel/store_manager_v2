@@ -42,8 +42,8 @@ RSpec.describe StoreInfo::References do
       expect(store_info.id_short).to eq("777")
     end
 
-    it "strips Shopify product-variant gid prefix for Edition storables" do
-      store_info = build(:store_info, :shopify, storable: build(:edition), store_id: "gid://shopify/ProductVariant/888")
+    it "strips Shopify product-variant gid prefix for Variant storables" do
+      store_info = build(:store_info, :shopify, storable: build(:variant), store_id: "gid://shopify/ProductVariant/888")
 
       expect(store_info.id_short).to eq("888")
     end

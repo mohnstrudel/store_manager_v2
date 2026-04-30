@@ -12,8 +12,8 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
   end
 
   before do
-    # Use local hash to track created editions and avoid uniqueness violations
-    created_editions = {}
+    # Use local hash to track created variants and avoid uniqueness violations
+    created_variants = {}
 
     # Stub Product::Shopify::Importer to create valid products with SKUs
     # Also return existing products if they match by shopify_id
@@ -24,20 +24,20 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
         shape: parsed_product[:shape] || Product.default_shape
       )
-      product.build_base_edition(sku: parsed_product[:sku] || "#{parsed_product[:title].parameterize}-#{rand(1000..9999)}")
-      product.save! if product.new_record? || product.changed? || product.base_edition&.new_record? || product.base_edition&.changed?
+      product.build_base_variant(sku: parsed_product[:sku] || "#{parsed_product[:title].parameterize}-#{rand(1000..9999)}")
+      product.save! if product.new_record? || product.changed? || product.base_variant&.new_record? || product.base_variant&.changed?
       product
     end
 
-    # Stub Edition::Shopify::Importer to return unique editions
-    allow(Edition::Shopify::Importer).to receive(:import!) do |product, parsed_edition|
-      edition_key = "#{product.id}-#{parsed_edition[:id]}"
-      created_editions[edition_key] ||= begin
-        edition = Edition.find_by_shopify_id(parsed_edition[:id]) || Edition.new(product: product)
-        edition.version = Version.find_or_create_by(value: parsed_edition[:title] || "Default")
-        product.fill_edition_sku(edition, "shopify-sale-#{parsed_edition[:id] || parsed_edition[:title] || SecureRandom.hex(4)}")
-        edition.save!
-        edition
+    # Stub Variant::Shopify::Importer to return unique variants
+    allow(Variant::Shopify::Importer).to receive(:import!) do |product, parsed_variant|
+      variant_key = "#{product.id}-#{parsed_variant[:id]}"
+      created_variants[variant_key] ||= begin
+        variant = Variant.find_by_shopify_id(parsed_variant[:id]) || Variant.new(product: product)
+        variant.version = Version.find_or_create_by(value: parsed_variant[:title] || "Default")
+        product.fill_variant_sku(variant, "shopify-sale-#{parsed_variant[:id] || parsed_variant[:title] || SecureRandom.hex(4)}")
+        variant.save!
+        variant
       end
     end
   end
@@ -110,34 +110,34 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
-    context "when edition already exists" do
-      let!(:existing_edition) do
+    context "when variant already exists" do
+      let!(:existing_variant) do
         create(
-          :edition,
+          :variant,
           product: create(:product, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id]),
-          shopify_id: valid_parsed_order[:sale_items].first[:edition_store_id]
+          shopify_id: valid_parsed_order[:sale_items].first[:variant_store_id]
         )
       end
 
-      it "uses existing edition" do
-        expect { import_order }.not_to change(Edition, :count)
+      it "uses existing variant" do
+        expect { import_order }.not_to change(Variant, :count)
       end
     end
 
     context "when product sale is corrupted (no product info at all)" do
       let(:parsed_order_corrupted) do
         order = valid_parsed_order.deep_dup
-        order[:sale_items].first[:edition_store_id] = nil
+        order[:sale_items].first[:variant_store_id] = nil
         order[:sale_items].first[:product_store_id] = nil
-        order[:sale_items].first[:edition_title] = nil
+        order[:sale_items].first[:variant_title] = nil
         order[:sale_items].first[:full_title] = nil
         order[:sale_items].first[:product] = nil
         order
       end
       let(:importer_corrupted) { described_class.new(parsed_order_corrupted) }
 
-      it "does not create a new edition when edition_title is missing" do
-        expect { described_class.import!(parsed_order_corrupted) }.not_to change(Edition, :count)
+      it "does not create a new variant when variant_title is missing" do
+        expect { described_class.import!(parsed_order_corrupted) }.not_to change(Variant, :count)
       end
 
       it "does not create sale_item when product data is completely missing" do
@@ -149,8 +149,8 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:parsed_order_title_only) do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
-          edition_title: "Limited Edition",
-          edition_store_id: nil,
+          variant_title: "Limited Variant",
+          variant_store_id: nil,
           product_store_id: nil,
           product: nil,
           full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
@@ -165,16 +165,16 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(product.franchise.title).to eq("Star Wars")
       end
 
-      it "creates edition from edition_title" do
-        expect { described_class.import!(parsed_order_title_only) }.to change(Edition, :count).by(2)
-        expect(Edition.last.version.value).to eq("Limited Edition")
+      it "creates variant from variant_title" do
+        expect { described_class.import!(parsed_order_title_only) }.to change(Variant, :count).by(2)
+        expect(Variant.last.version.value).to eq("Limited Variant")
       end
 
-      it "creates sale_item with product and edition" do
+      it "creates sale_item with product and variant" do
         described_class.import!(parsed_order_title_only)
         sale_item = SaleItem.last
         expect(sale_item.product).to be_present
-        expect(sale_item.edition).to be_present
+        expect(sale_item.variant).to be_present
       end
 
       it "reuses an existing storeless product with the same parsed identity" do
@@ -210,7 +210,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         second_order[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-2"
 
         allow(Product::Shopify::Importer).to receive(:import!).and_call_original
-        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+        allow(Shopify::PullVariantsJob).to receive(:perform_later)
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         expect {
@@ -223,25 +223,25 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(Sale.order(:id).last(2).map { |sale| sale.sale_items.last.product_id }.uniq.count).to eq(1)
       end
 
-      it "creates sale item without edition when edition_title is blank" do
-        parsed_order_without_edition_title = parsed_order_title_only.deep_dup
-        parsed_order_without_edition_title[:sale_items].first[:edition_title] = nil
-        parsed_order_without_edition_title[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-no-edition"
-        parsed_order_without_edition_title[:sale][:shopify_id] = "gid://shopify/Order/title-only-no-edition"
-        parsed_order_without_edition_title[:store_info][:store_id] = "gid://shopify/Order/title-only-no-edition"
+      it "creates sale item without variant when variant_title is blank" do
+        parsed_order_without_variant_title = parsed_order_title_only.deep_dup
+        parsed_order_without_variant_title[:sale_items].first[:variant_title] = nil
+        parsed_order_without_variant_title[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-no-variant"
+        parsed_order_without_variant_title[:sale][:shopify_id] = "gid://shopify/Order/title-only-no-variant"
+        parsed_order_without_variant_title[:store_info][:store_id] = "gid://shopify/Order/title-only-no-variant"
 
         allow(Product::Shopify::Importer).to receive(:import!).and_call_original
-        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+        allow(Shopify::PullVariantsJob).to receive(:perform_later)
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         expect {
-          described_class.import!(parsed_order_without_edition_title)
+          described_class.import!(parsed_order_without_variant_title)
         }.to change(SaleItem, :count).by(1)
-          .and change(Edition, :count).by(1)
+          .and change(Variant, :count).by(1)
 
         sale_item = SaleItem.last
         expect(sale_item.product).to be_present
-        expect(sale_item.edition).to be_nil
+        expect(sale_item.variant).to be_nil
       end
     end
 
@@ -249,8 +249,8 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:parsed_order_with_store_id_and_title_only) do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
-          edition_title: "Limited Edition",
-          edition_store_id: nil,
+          variant_title: "Limited Variant",
+          variant_store_id: nil,
           product_store_id: "gid://shopify/Product/title-rebuilt",
           product: nil,
           full_title: "Star Wars - Princess Leia | 1:4 | Resin Statue | by von xionart"
@@ -259,7 +259,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       before do
-        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+        allow(Shopify::PullVariantsJob).to receive(:perform_later)
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
         allow(Shopify::PullProductJob).to receive(:perform_later)
         allow(Product::Shopify::Importer).to receive(:import!).and_call_original
@@ -304,116 +304,116 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
-    context "when creating new edition with custom title" do
-      let(:parsed_order_with_new_edition) do
+    context "when creating new variant with custom title" do
+      let(:parsed_order_with_new_variant) do
         order = valid_parsed_order.deep_dup
-        # Use existing product with custom edition title (not in product's editions)
+        # Use existing product with custom variant title (not in product's variants)
         order[:sale_items].first.merge!(
-          edition_title: "New Edition",
-          edition_store_id: nil,  # No shopify_id, should use create_custom_edition path
+          variant_title: "New Variant",
+          variant_store_id: nil,  # No shopify_id, should use create_custom_variant path
           product_store_id: "gid://shopify/Product/999999",
-          edition_title_from_product: "Regular",
+          variant_title_from_product: "Regular",
           product: {
             store_id: "gid://shopify/Product/999999",
             title: "Test Product",
             franchise: "Test Franchise",
             shape: "Statue",
             sku: "test-product-999",
-            editions: []
+            variants: []
           }
         )
         order
       end
 
       let(:product) { create(:product, shopify_id: "gid://shopify/Product/999999") }
-      let(:edition) { create(:edition, product: product) }
+      let(:variant) { create(:variant, product: product) }
 
       before do
         allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
-        allow(Version).to receive(:find_or_create_by).with(value: "New Edition").and_return(edition.version)
-        allow(edition.version).to receive(:value).and_return("New Edition")
-        allow_any_instance_of(Edition).to receive(:save!).and_return(true)
+        allow(Version).to receive(:find_or_create_by).with(value: "New Variant").and_return(variant.version)
+        allow(variant.version).to receive(:value).and_return("New Variant")
+        allow_any_instance_of(Variant).to receive(:save!).and_return(true)
         allow_any_instance_of(Version).to receive(:save!).and_return(true)
       end
 
-      it "creates new edition with correct title" do
-        expect { described_class.import!(parsed_order_with_new_edition) }.to change(Edition, :count).by(1)
-        expect(Edition.last.version.value).to eq("New Edition")
+      it "creates new variant with correct title" do
+        expect { described_class.import!(parsed_order_with_new_variant) }.to change(Variant, :count).by(1)
+        expect(Variant.last.version.value).to eq("New Variant")
       end
     end
 
-    context "when creating edition with multiple custom attributes" do
-      let(:parsed_order_with_complex_edition) do
+    context "when creating variant with multiple custom attributes" do
+      let(:parsed_order_with_complex_variant) do
         order = valid_parsed_order.deep_dup
-        # Use existing product with custom edition title (not in product's editions)
+        # Use existing product with custom variant title (not in product's variants)
         order[:sale_items].first.merge!(
-          edition_title: "1:4 | New Edition | Red",
-          edition_store_id: nil,  # No shopify_id, should use create_custom_edition path
+          variant_title: "1:4 | New Variant | Red",
+          variant_store_id: nil,  # No shopify_id, should use create_custom_variant path
           product_store_id: "gid://shopify/Product/888888",
-          edition_title_from_product: "Regular",
+          variant_title_from_product: "Regular",
           product: {
             store_id: "gid://shopify/Product/888888",
             title: "Test Product",
             franchise: "Test Franchise",
             shape: "Statue",
             sku: "test-product-888",
-            editions: []
+            variants: []
           }
         )
         order
       end
 
       let(:product) { create(:product, shopify_id: "gid://shopify/Product/888888") }
-      let(:edition) { create(:edition, product: product) }
+      let(:variant) { create(:variant, product: product) }
 
       before do
         allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
-        allow(Version).to receive(:find_or_create_by).with(value: "1:4 | New Edition | Red").and_return(edition.version)
-        allow(edition.version).to receive(:value).and_return("1:4 | New Edition | Red")
-        allow_any_instance_of(Edition).to receive(:save!).and_return(true)
+        allow(Version).to receive(:find_or_create_by).with(value: "1:4 | New Variant | Red").and_return(variant.version)
+        allow(variant.version).to receive(:value).and_return("1:4 | New Variant | Red")
+        allow_any_instance_of(Variant).to receive(:save!).and_return(true)
         allow_any_instance_of(Version).to receive(:save!).and_return(true)
       end
 
-      it "creates new edition with multiple attributes" do
-        expect { described_class.import!(parsed_order_with_complex_edition) }.to change(Edition, :count).by(1)
-        expect(Edition.last.version.value).to eq("1:4 | New Edition | Red")
+      it "creates new variant with multiple attributes" do
+        expect { described_class.import!(parsed_order_with_complex_variant) }.to change(Variant, :count).by(1)
+        expect(Variant.last.version.value).to eq("1:4 | New Variant | Red")
       end
     end
 
-    context "when edition creation fails" do
-      let(:parsed_order_with_invalid_edition) do
+    context "when variant creation fails" do
+      let(:parsed_order_with_invalid_variant) do
         order = valid_parsed_order.deep_dup
         order[:sale_items].first.merge!(
-          edition_title: "Invalid Edition",
-          edition_store_id: "gid://shopify/ProductVariant/12345",
+          variant_title: "Invalid Variant",
+          variant_store_id: "gid://shopify/ProductVariant/12345",
           product_store_id: "gid://shopify/Product/67890",
           product: {
             title: "Test Product",
-            editions: [{
+            variants: [{
               id: "gid://shopify/ProductVariant/12345",
-              title: "Invalid Edition"
+              title: "Invalid Variant"
             }]
           }
         )
         order
       end
-      let(:importer_with_invalid_edition) { described_class.new(parsed_order_with_invalid_edition) }
+      let(:importer_with_invalid_variant) { described_class.new(parsed_order_with_invalid_variant) }
       let(:product) { create(:product) }
 
       before do
         allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
-        allow(Edition::Shopify::Importer).to receive(:import!).and_raise(ActiveRecord::RecordInvalid.new(Edition.new))
+        allow(Variant::Shopify::Importer).to receive(:import!).and_raise(ActiveRecord::RecordInvalid.new(Variant.new))
       end
 
-      it "rolls back all changes when edition creation fails" do
-        expect { described_class.import!(parsed_order_with_invalid_edition) }.to raise_error(Sale::Shopify::Importer::Error)
+      it "rolls back all changes when variant creation fails" do
+        expect { described_class.import!(parsed_order_with_invalid_variant) }.to raise_error(Sale::Shopify::Importer::Error)
         expect {
           begin
-            described_class.import!(parsed_order_with_invalid_edition)
+            described_class.import!(parsed_order_with_invalid_variant)
           rescue
             nil
           end
-        }.not_to change(Edition, :count)
+        }.not_to change(Variant, :count)
       end
     end
 
@@ -475,7 +475,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let!(:existing_sale) { create(:sale, shopify_id: valid_parsed_order[:sale][:store_id]) }
       let!(:existing_sale_item) do
         product = create(:product, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id])
-        edition = create(:edition, shopify_id: valid_parsed_order[:sale_items].first[:edition_store_id])
+        variant = create(:variant, shopify_id: valid_parsed_order[:sale_items].first[:variant_store_id])
 
         create(:sale_item,
           shopify_id: valid_parsed_order[:sale_items].first[:store_id],
@@ -483,7 +483,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           qty: 1,
           sale: existing_sale,
           product: product,
-          edition: edition)
+          variant: variant)
       end
 
       it "updates existing sale_item with new data" do

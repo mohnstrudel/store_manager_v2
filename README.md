@@ -32,7 +32,7 @@ This repository is intentionally model-centric. Most business behavior lives in 
 ### What the system manages
 
 - product catalog for collectible goods
-- variant modeling through editions, sizes, versions, and colors
+- variant modeling through variants, sizes, versions, and colors
 - supplier purchases and partial payments
 - per-unit inventory via `PurchaseItem`
 - warehouse storage and warehouse-to-warehouse transitions
@@ -44,7 +44,7 @@ This repository is intentionally model-centric. Most business behavior lives in 
 
 ```text
 Catalog setup
-  Franchise -> Product -> Edition
+  Franchise -> Product -> Variant
 
 Inventory acquisition
   Supplier -> Purchase -> PurchaseItem -> Warehouse
@@ -60,7 +60,7 @@ External sync
 
 The app tries to keep the sellable view and the physical view connected:
 
-- `Product` and `Edition` describe what we sell
+- `Product` and `Variant` describe what we sell
 - `Sale` and `SaleItem` describe what customers ordered
 - `Purchase` and `PurchaseItem` describe what we actually bought
 - `Warehouse` and `WarehouseTransition` describe where inventory lives and how it moves
@@ -232,7 +232,7 @@ Current examples:
 
 - `app/services/shopify/api/client.rb`
 - `app/services/shopify/graphql/*`
-- `app/services/woo/edition.rb`
+- `app/services/woo/variant.rb`
 
 ### 4. Background jobs
 
@@ -309,7 +309,7 @@ Important examples:
 ```text
 Franchise
   -> Product
-    -> Edition
+    -> Variant
     -> Media
     -> StoreInfo
     -> Purchase
@@ -331,8 +331,8 @@ User
 
 | Record | Responsibility |
 | --- | --- |
-| `Product` | Catalog root. Owns title composition, edition generation, store references, media coordination, and sales history views. |
-| `Edition` | Concrete sellable variant built from product option dimensions such as size, version, and color. |
+| `Product` | Catalog root. Owns title composition, variant generation, store references, media coordination, and sales history views. |
+| `Variant` | Concrete sellable variant built from product option dimensions such as size, version, and color. |
 | `Purchase` | Supplier-facing order with cost, quantity, payments, and inventory-linking rules. |
 | `PurchaseItem` | One physical inventory unit with warehousing, shipping, notification, and sale-linking behavior. |
 | `Sale` | Customer-facing order imported from stores, with status calculation and inventory-linking actions. |
@@ -345,7 +345,7 @@ User
 ```text
 app/models/product/
   editing.rb
-  edition_generation.rb
+  variant_generation.rb
   initial_purchase.rb
   listing.rb
   sales_history.rb
@@ -382,10 +382,10 @@ app/models/sale/
 
 ```text
 ProductsController
-  -> normalize product, edition, purchase, and media params
+  -> normalize product, variant, purchase, and media params
   -> Product#create_from_form! / #apply_form_changes!
     -> sync title and slug-related data
-    -> update editions
+    -> update variants
     -> create or update store info
     -> attach media
     -> optionally create initial purchasing data
@@ -401,7 +401,7 @@ Shopify::PullProductsJob
     -> Product::Shopify::Importer.import!
       -> update Product
       -> update StoreInfo
-      -> enqueue edition and media follow-up jobs
+      -> enqueue variant and media follow-up jobs
 ```
 
 ### Importing sales from Shopify
@@ -438,12 +438,12 @@ Catalog data starts from [`Franchise`](app/models/franchise.rb) and [`Product`](
 `Product` owns the core catalog workflows:
 
 - title and full-title composition
-- edition generation
+- variant generation
 - store references
 - media coordination
 - high-level listing and sales-history queries
 
-[`Edition`](app/models/edition.rb) represents a concrete sellable option combination and supports both:
+[`Variant`](app/models/variant.rb) represents a concrete sellable option combination and supports both:
 
 - simple base-model products
 - richer variant combinations through size, version, and color
@@ -625,7 +625,7 @@ Examples in this repo:
 - sale to purchase-item linking
 - store sync for products and sales
 - warehouse movement
-- product editions and media handling
+- product variants and media handling
 - debt tracking and purchase flows
 
 ---

@@ -12,7 +12,7 @@ RSpec.describe Product, ".find_or_create_shopify_placeholder!" do
       expect(product).to be_persisted
       expect(product.shopify_info.store_id).to eq(store_id)
       expect(product.title).to include("[BROKEN SHOPIFY PRODUCT]")
-      expect(product.base_edition.sku).to start_with("broken-shopify-")
+      expect(product.base_variant.sku).to start_with("broken-shopify-")
       expect(product.franchise.title).to eq("Broken Shopify Products")
       expect(product.shape).to eq(Product.default_shape)
     end

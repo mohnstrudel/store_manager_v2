@@ -17,7 +17,7 @@ class Product::Shopify::Importer
   def update_or_create!
     update_or_create_product!
 
-    Shopify::PullEditionsJob.perform_later(product, parsed[:editions]) if parsed[:editions].present?
+    Shopify::PullVariantsJob.perform_later(product, parsed[:variants]) if parsed[:variants].present?
     Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
 
     product
@@ -37,7 +37,7 @@ class Product::Shopify::Importer
       assign_brand
       assign_size
       product.full_title = product.generate_full_title
-      product.build_base_edition(sku: base_edition_sku)
+      product.build_base_variant(sku: base_variant_sku)
       product.save!
 
       if parsed[:store_id]
@@ -97,11 +97,11 @@ class Product::Shopify::Importer
     doc.to_html
   end
 
-  def base_edition_sku
-    return parsed[:sku] if parsed[:editions].blank?
+  def base_variant_sku
+    return parsed[:sku] if parsed[:variants].blank?
 
-    single_variant_edition = parsed[:editions].one? && parsed[:editions].first[:is_single_variant]
-    return parsed[:sku] if single_variant_edition
+    single_variant_variant = parsed[:variants].one? && parsed[:variants].first[:is_single_variant]
+    return parsed[:sku] if single_variant_variant
 
     nil
   end

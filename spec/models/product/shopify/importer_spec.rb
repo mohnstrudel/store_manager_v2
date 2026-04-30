@@ -20,7 +20,7 @@ RSpec.describe Product::Shopify::Importer do
           ext_updated_at: 1.hour.ago.iso8601
         },
         media: [{id: "gid://shopify/MediaImage/1", url: "https://example.com/image.jpg"}],
-        editions: [{id: "gid://shopify/ProductVariant/67890"}]
+        variants: [{id: "gid://shopify/ProductVariant/67890"}]
       }
     end
 
@@ -40,13 +40,13 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.sizes.first.value).to eq("1:4")
     end
 
-    it "enqueues sync jobs for editions and media" do # rubocop:todo RSpec/MultipleExpectations
-      allow(Shopify::PullEditionsJob).to receive(:perform_later)
+    it "enqueues sync jobs for variants and media" do # rubocop:todo RSpec/MultipleExpectations
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
       allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
       product = described_class.import!(parsed_product)
 
-      expect(Shopify::PullEditionsJob).to have_received(:perform_later).with(product, parsed_product[:editions])
+      expect(Shopify::PullVariantsJob).to have_received(:perform_later).with(product, parsed_product[:variants])
       expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
     end
 
@@ -55,26 +55,26 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")
     end
 
-    it "does not route a variant SKU to the base edition for multi-variant products" do
+    it "does not route a variant SKU to the base variant for multi-variant products" do
       product = described_class.import!(parsed_product.merge(
         sku: "TEST-SKU-001",
-        editions: [
+        variants: [
           {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: false},
           {store_id: "gid://shopify/ProductVariant/67891", is_single_variant: false}
         ]
       ))
 
-      expect(product.base_edition.sku).not_to eq("TEST-SKU-001")
+      expect(product.base_variant.sku).not_to eq("TEST-SKU-001")
     end
 
-    it "routes provided SKU to the base edition for single-variant products" do
+    it "routes provided SKU to the base variant for single-variant products" do
       product = described_class.import!(parsed_product.merge(
-        editions: [
+        variants: [
           {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: true}
         ]
       ))
 
-      expect(product.base_edition.sku).to eq("TEST-SKU-001")
+      expect(product.base_variant.sku).to eq("TEST-SKU-001")
     end
 
     it "saves Shopify ID to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
@@ -263,7 +263,7 @@ RSpec.describe Product::Shopify::Importer do
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: nil)
           product.reload
-          product.base_edition.update!(sku: "storeless-eve-sku")
+          product.base_variant.update!(sku: "storeless-eve-sku")
           product.brands << create(:brand, title: "Light and Dust Studio")
           product.sizes << create(:size, value: "1:4")
         end
@@ -274,7 +274,7 @@ RSpec.describe Product::Shopify::Importer do
           store_id: nil,
           store_link: nil,
           media: [],
-          editions: []
+          variants: []
         )
       end
 
@@ -283,7 +283,7 @@ RSpec.describe Product::Shopify::Importer do
 
         existing_product.reload
         expect(existing_product.title).to eq("Eve")
-        expect(existing_product.base_edition.sku).to eq("storeless-eve-sku")
+        expect(existing_product.base_variant.sku).to eq("storeless-eve-sku")
       end
     end
 
@@ -296,7 +296,7 @@ RSpec.describe Product::Shopify::Importer do
           product.store_infos.destroy_all
           product.update_columns(shopify_id: nil, woo_id: "woo-product-123")
           product.reload
-          product.base_edition.update!(sku: "woo-linked-eve-sku")
+          product.base_variant.update!(sku: "woo-linked-eve-sku")
           product.store_infos.create!(store_name: :woo, store_id: "woo-product-123", pull_time: Time.zone.now)
           product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
           product.sizes << Size.find_or_create_by!(value: "1:4")
@@ -308,7 +308,7 @@ RSpec.describe Product::Shopify::Importer do
 
         existing_product.reload
         expect(existing_product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
-        expect(existing_product.base_edition.sku).to eq("woo-linked-eve-sku")
+        expect(existing_product.base_variant.sku).to eq("woo-linked-eve-sku")
       end
     end
 
@@ -319,7 +319,7 @@ RSpec.describe Product::Shopify::Importer do
           title: "Eve",
           franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
           shape: "Statue").tap do |product|
-          product.base_edition.update!(sku: "already-linked-sku")
+          product.base_variant.update!(sku: "already-linked-sku")
           product.brands << Brand.find_or_create_by!(title: "Light and Dust Studio")
           product.sizes << Size.find_or_create_by!(value: "1:4")
         end
@@ -353,15 +353,15 @@ RSpec.describe Product::Shopify::Importer do
       end
     end
 
-    context "when no editions are provided" do
-      let(:parsed_product_no_editions) { parsed_product.merge(editions: nil) }
+    context "when no variants are provided" do
+      let(:parsed_product_no_variants) { parsed_product.merge(variants: nil) }
 
-      it "does not enqueue PullEditionsJob" do
-        allow(Shopify::PullEditionsJob).to receive(:perform_later)
+      it "does not enqueue PullVariantsJob" do
+        allow(Shopify::PullVariantsJob).to receive(:perform_later)
 
-        described_class.import!(parsed_product_no_editions)
+        described_class.import!(parsed_product_no_variants)
 
-        expect(Shopify::PullEditionsJob).not_to have_received(:perform_later)
+        expect(Shopify::PullVariantsJob).not_to have_received(:perform_later)
       end
     end
 

@@ -5,7 +5,7 @@ class PurchasePolicy < ApplicationPolicy
     admin?
   end
 
-  def product_editions?
+  def product_variants?
     admin?
   end
 end

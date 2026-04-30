@@ -3,7 +3,7 @@
     "id": 111,
     "permalink": "http://store.handsomecake.com/link-id",
     "name": "Studio Ghibli - Spirited Away | 1:4 Resin Statue | von ZuoBan Studio",
-    "editions": [0, 5],
+    "variants": [0, 5],
     "attributes": [
       {
         "id": 0,
@@ -56,7 +56,7 @@
     "id": 222,
     "permalink": "http://store.handsomecake.com/link-id",
     "name": "Neon Genesis Evangelion - Asuka Langley | 1:4 Resin Statue | von Unique Art Studio",
-    "editions": [],
+    "variants": [],
     "attributes": [
       {
         "id": 0,
@@ -109,7 +109,7 @@
     "id": 333,
     "permalink": "http://store.handsomecake.com/link-id",
     "name": "Studio Ghibli - Spirited Away | 1:4 Resin Bust | von ZuoBan Studio",
-    "editions": [],
+    "variants": [],
     "attributes": [
       {
         "id": 0,
@@ -162,7 +162,7 @@
     "id": 444,
     "permalink": "http://store.handsomecake.com/link-id",
     "name": "Neon Genesis Evangelion - Asuka Langley | 1:4 Resin Bust | von Unique Art Studio",
-    "editions": [],
+    "variants": [],
     "attributes": [
       {
         "id": 0,

@@ -25,7 +25,7 @@ class Purchase::FormPayload
     @purchase_params ||= params.expect(
       purchase: [:supplier_id,
         :product_id,
-        :edition_id,
+        :variant_id,
         :order_reference,
         :item_price,
         :amount,

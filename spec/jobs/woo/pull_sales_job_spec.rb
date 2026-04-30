@@ -35,6 +35,20 @@ RSpec.describe Woo::PullSalesJob do
 
         expect(parsed_customer_id).to eq(existing_customer.id)
       end
+
+      it "creates a customer with only Woo store information" do
+        parsed_customer_id = job.get_customer_id({
+          email: nil,
+          first_name: nil,
+          last_name: nil,
+          phone: nil,
+          woo_id: "12345"
+        })
+
+        customer = Customer.find(parsed_customer_id)
+
+        expect(customer.woo_info.store_id).to eq("12345")
+      end
     end
 
     context "when we receive invalid woo_id" do
@@ -137,28 +151,28 @@ RSpec.describe Woo::PullSalesJob do
     end
   end
 
-  describe "#parse_edition" do
+  describe "#parse_variant" do
     let(:line_item) { sample_order[:line_items].first }
 
-    it "parses edition when found in meta_data" do
-      edition = job.parse_edition(line_item)
+    it "parses variant when found in meta_data" do
+      variant = job.parse_variant(line_item)
 
-      expect(edition).to be_present
-      expect(edition[:options]).to be_present
+      expect(variant).to be_present
+      expect(variant[:options]).to be_present
     end
 
-    it "returns nil when no edition found in meta_data" do
-      line_item_without_edition = line_item.merge(meta_data: [])
-      edition = job.parse_edition(line_item_without_edition)
+    it "returns nil when no variant found in meta_data" do
+      line_item_without_variant = line_item.merge(meta_data: [])
+      variant = job.parse_variant(line_item_without_variant)
 
-      expect(edition).to be_nil
+      expect(variant).to be_nil
     end
 
     it "includes woo_id when variation_id is present" do
       line_item_with_variation_id = line_item.merge(variation_id: 123)
-      edition = job.parse_edition(line_item_with_variation_id)
+      variant = job.parse_variant(line_item_with_variation_id)
 
-      expect(edition[:woo_id]).to eq(123)
+      expect(variant[:woo_id]).to eq(123)
     end
   end
 
@@ -213,29 +227,29 @@ RSpec.describe Woo::PullSalesJob do
     end
   end
 
-  describe "#get_edition" do
-    let(:parsed_edition) { sample_parsed_order[:products].first[:edition] }
+  describe "#get_variant" do
+    let(:parsed_variant) { sample_parsed_order[:products].first[:variant] }
     let(:product) { create(:product) }
 
-    it "creates edition through Woo::PullEditionsJob" do
-      sync_editions_job = instance_double(Woo::PullEditionsJob)
-      allow(sync_editions_job).to receive(:create_edition)
-      stub_const("Woo::PullSalesJob::SYNC_EDITIONS_JOB", sync_editions_job)
+    it "creates variant through Woo::PullVariantsJob" do
+      sync_variants_job = instance_double(Woo::PullVariantsJob)
+      allow(sync_variants_job).to receive(:create_variant)
+      stub_const("Woo::PullSalesJob::SYNC_VARIANTS_JOB", sync_variants_job)
 
-      job.get_edition(parsed_edition, product)
+      job.get_variant(parsed_variant, product)
 
-      expect(sync_editions_job).to have_received(:create_edition).with(
+      expect(sync_variants_job).to have_received(:create_variant).with(
         product: product,
-        edition_woo_id: parsed_edition[:woo_id],
-        edition_types: {
-          type: parsed_edition[:type],
-          value: parsed_edition[:value]
+        variant_woo_id: parsed_variant[:woo_id],
+        variant_types: {
+          type: parsed_variant[:type],
+          value: parsed_variant[:value]
         }
       )
     end
 
-    it "returns nil when parsed_edition is blank" do
-      result = job.get_edition(nil, product)
+    it "returns nil when parsed_variant is blank" do
+      result = job.get_variant(nil, product)
       expect(result).to be_nil
     end
   end
@@ -252,8 +266,8 @@ RSpec.describe Woo::PullSalesJob do
           city: denpasar
         )
         create(
-          :edition,
-          woo_store_id: parsed_woo_orders.first[:products].first[:edition][:woo_id]
+          :variant,
+          woo_store_id: parsed_woo_orders.first[:products].first[:variant][:woo_id]
         ).tap do |e|
           e.woo_info.update(slug: weird_link)
         end
@@ -267,10 +281,10 @@ RSpec.describe Woo::PullSalesJob do
         expect(Sale.all.size).to eq(parsed_woo_orders.size)
       end
 
-      it "creates product sales with editions" do
-        with_edition = SaleItem.where.not(edition_id: nil)
-        parsed_editions_count = parsed_woo_orders.pluck(:products).flatten.count { |product| product[:edition].present? }
-        expect(with_edition.size).to eq(parsed_editions_count)
+      it "creates product sales with variants" do
+        with_variant = SaleItem.where.not(variant_id: nil)
+        parsed_variants_count = parsed_woo_orders.pluck(:products).flatten.count { |product| product[:variant].present? }
+        expect(with_variant.size).to eq(parsed_variants_count)
       end
 
       it "reuses existing sales" do
@@ -283,9 +297,9 @@ RSpec.describe Woo::PullSalesJob do
         expect(existing_sale.status).to eq(parsed_woo_orders.first[:sale][:status])
       end
 
-      it "reuses existing editions" do
-        existing_edition = Edition.find_by_woo_id(parsed_woo_orders.first[:products].first[:edition][:woo_id])
-        expect(existing_edition.woo_info.slug).to eq(weird_link)
+      it "reuses existing variants" do
+        existing_variant = Variant.find_by_woo_id(parsed_woo_orders.first[:products].first[:variant][:woo_id])
+        expect(existing_variant.woo_info.slug).to eq(weird_link)
       end
     end
 
@@ -305,7 +319,7 @@ RSpec.describe Woo::PullSalesJob do
         sync_job = instance_double(Woo::PullProductsJob)
         allow(Woo::PullProductsJob).to receive(:new).and_return(sync_job)
         allow(sync_job).to receive(:get_and_create_product).with(product_woo_id)
-        allow(job).to receive(:get_edition).and_return(nil)
+        allow(job).to receive(:get_variant).and_return(nil)
 
         job.create_sales([parsed_order_with_missing_product])
         expect(Woo::PullProductsJob).to have_received(:new)
@@ -315,7 +329,7 @@ RSpec.describe Woo::PullSalesJob do
       it "skips product creation when product is blank" do
         allow(job).to receive_messages(
           get_product_from_woo: nil,
-          get_edition: nil
+          get_variant: nil
         )
 
         expect { job.create_sales([parsed_order_with_missing_product]) }.not_to raise_error

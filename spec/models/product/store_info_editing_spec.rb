@@ -12,7 +12,7 @@ RSpec.describe Product do
 
       product.save_editing!(
         product_attributes: editing_product_attributes(product),
-        editions_attributes: [],
+        variants_attributes: [],
         store_infos_attributes: [
           {id: shopify_info.id, tag_list: "featured"}
         ],
@@ -29,7 +29,7 @@ RSpec.describe Product do
       expect {
         product.save_editing!(
           product_attributes: editing_product_attributes(product),
-          editions_attributes: [],
+          variants_attributes: [],
           store_infos_attributes: [
             {store_name: "shopify", tag_list: "new-store"}
           ],
@@ -47,7 +47,7 @@ RSpec.describe Product do
       expect {
         product.save_editing!(
           product_attributes: editing_product_attributes(product),
-          editions_attributes: [],
+          variants_attributes: [],
           store_infos_attributes: [
             {id: woo_info.id, destroy: true}
           ],
@@ -65,7 +65,7 @@ RSpec.describe Product do
       expect {
         product.save_editing!(
           product_attributes: editing_product_attributes(product),
-          editions_attributes: [],
+          variants_attributes: [],
           store_infos_attributes: [
             {id: shopify_info.id, store_name: "woo"}
           ],

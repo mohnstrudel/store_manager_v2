@@ -7,8 +7,8 @@ class CustomersController < ApplicationController
   def index
     @customers = Customer
       .order(:created_at)
-      .page(params[:page])
     @customers = @customers.search(params[:q]) if params[:q].present?
+    @customers = @customers.for_listing.page(params[:page])
   end
 
   # GET /customers/1

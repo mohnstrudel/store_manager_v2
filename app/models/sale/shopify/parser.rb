@@ -103,8 +103,8 @@ class Sale::Shopify::Parser
           price: money_amount(line_item["originalTotalSet"]),
           qty: line_item["quantity"],
           store_id: line_item["id"],
-          edition_title: line_item["variantTitle"],
-          edition_store_id: line_item.dig("variant", "id"),
+          variant_title: line_item["variantTitle"],
+          variant_store_id: line_item.dig("variant", "id"),
           product_store_id: product_store_id,
           full_title: line_item["title"],
           product: parsed_product

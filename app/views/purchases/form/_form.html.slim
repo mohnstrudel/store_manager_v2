@@ -1,16 +1,16 @@
 = form_with model: purchase do |form|
-  .stimulus data-controller="purchase-edition" data-purchase-edition-path-value=product_editions_path
+  .stimulus data-controller="purchase-variant" data-purchase-variant-path-value=product_variants_path
     = form.label :product_id
     .stimulus#purchase-product-select
-      = form.collection_select :product_id, @product_options || [], :id, :build_full_title_with_shop_id, {}, slim_select_html_options(action: "change->purchase-edition#change")
+      = form.collection_select :product_id, @product_options || [], :id, :build_full_title_with_shop_id, {}, slim_select_html_options(action: "change->purchase-variant#change")
 
-    - editions = purchase.product ? purchase.product.fetch_editions_with_title : []
-    .stimulus#purchase-edition-select data-purchase-edition-target="editions"
-      - if editions.any?
-        = form.label :edition_id
-        = form.collection_select :edition_id, editions, :id, :title, {include_blank: true}, slim_select_html_options
+    - variants = purchase.product ? purchase.product.fetch_variants_with_title : []
+    .stimulus#purchase-variant-select data-purchase-variant-target="variants"
+      - if variants.any?
+        = form.label :variant_id
+        = form.collection_select :variant_id, variants, :id, :title, {include_blank: true}, slim_select_html_options
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
     .block.w-full
       = form.label :supplier_id
       = form.collection_select :supplier_id, @suppliers || [], :id, :title, class: "w-full"
@@ -18,7 +18,7 @@
       = form.label :order_reference
       = form.text_field :order_reference
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :item_price
       = form.text_field :item_price

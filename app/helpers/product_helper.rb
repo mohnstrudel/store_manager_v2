@@ -41,14 +41,14 @@ module ProductHelper
     errors = []
 
     product.errors.each do |error|
-      next if %i[editions store_infos purchase].include?(error.attribute)
+      next if %i[variants store_infos purchase].include?(error.attribute)
 
       errors << {label: error.attribute.to_s.humanize, message: error.message}
     end
 
-    product.editions.each do |edition|
-      edition.errors.each do |error|
-        label = (error.attribute == :base) ? "Edition #{edition.title}" : "Edition #{edition.title} #{error.attribute.to_s.humanize}"
+    product.variants.each do |variant|
+      variant.errors.each do |error|
+        label = (error.attribute == :base) ? "Variant #{variant.title}" : "Variant #{variant.title} #{error.attribute.to_s.humanize}"
         errors << {label:, message: error.message}
       end
     end

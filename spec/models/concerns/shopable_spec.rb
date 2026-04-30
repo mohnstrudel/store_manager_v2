@@ -46,10 +46,10 @@ RSpec.describe Shopable do
     end
 
     context "when store_id belongs to different storable_type" do
-      let(:edition) { create(:edition) }
+      let(:variant) { create(:variant) }
 
       before do
-        edition.shopify_info.update!(store_id: "gid://shopify/Product/12345")
+        variant.shopify_info.update!(store_id: "gid://shopify/Product/12345")
       end
 
       it "does not find the record" do

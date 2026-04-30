@@ -10,7 +10,7 @@ module Purchase::Listing
         :payments,
         {product: {media: {image_attachment: :blob}}},
         purchase_items: [:warehouse],
-        edition: [:color, :size, :version]
+        variant: [:color, :size, :version]
       )
     }
 
@@ -19,7 +19,7 @@ module Purchase::Listing
     }
 
     scope :for_supplier_details, -> {
-      includes(:product, :payments, edition: [:color, :size, :version])
+      includes(:product, :payments, variant: [:color, :size, :version])
     }
 
     scope :for_details, -> {
@@ -27,7 +27,7 @@ module Purchase::Listing
         :supplier,
         :payments,
         {product: {media: {image_attachment: :blob}}},
-        edition: [:color, :size, :version]
+        variant: [:color, :size, :version]
       )
     }
   end

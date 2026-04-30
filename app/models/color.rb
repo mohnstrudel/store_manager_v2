@@ -18,5 +18,5 @@ class Color < ApplicationRecord
 
   has_many :product_colors, dependent: :destroy, inverse_of: :color
   has_many :products, through: :product_colors
-  has_many :editions, dependent: :destroy, inverse_of: :color
+  has_many :variants, dependent: :destroy, inverse_of: :color
 end

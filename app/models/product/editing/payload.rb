@@ -24,8 +24,8 @@ class Product::Editing::Payload
     end
   end
 
-  def editions_attributes
-    edition_rows.map do |attrs|
+  def variants_attributes
+    variant_rows.map do |attrs|
       attrs = attrs.symbolize_keys
 
       {
@@ -72,8 +72,8 @@ class Product::Editing::Payload
     ]])
   end
 
-  def editions_params
-    params.expect(editions: [[
+  def variants_params
+    params.expect(variants: [[
       :id,
       :sku,
       :size_id,
@@ -97,10 +97,10 @@ class Product::Editing::Payload
     ])
   end
 
-  def edition_rows
-    return [] if params[:editions].blank?
+  def variant_rows
+    return [] if params[:variants].blank?
 
-    editions_params.to_h.values
+    variants_params.to_h.values
   end
 
   def raw_purchase_attributes

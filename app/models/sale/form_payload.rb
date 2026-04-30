@@ -18,7 +18,7 @@ class Sale::FormPayload
       {
         id: attrs[:id].presence,
         product_id: attrs[:product_id].presence,
-        edition_id: attrs[:edition_id].presence,
+        variant_id: attrs[:variant_id].presence,
         qty: attrs[:qty].presence,
         price: attrs[:price].presence,
         destroy: boolean_type.cast(attrs[:_destroy])
@@ -34,7 +34,7 @@ class Sale::FormPayload
       sale_item = build_sale_item(sale:, attrs:, invalid_record:, index:)
       sale_item.assign_attributes(
         product_id: attrs[:product_id],
-        edition_id: attrs[:edition_id],
+        variant_id: attrs[:variant_id],
         qty: attrs[:qty],
         price: attrs[:price]
       )
@@ -72,7 +72,7 @@ class Sale::FormPayload
       sale_items: [[
         :id,
         :product_id,
-        :edition_id,
+        :variant_id,
         :qty,
         :price,
         :_destroy

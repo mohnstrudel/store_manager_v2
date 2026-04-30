@@ -45,6 +45,16 @@ RSpec.describe Customer do
     end
   end
 
+  describe ".for_listing" do
+    it "preloads Woo store information for the index table" do
+      customer = create(:customer)
+
+      listed_customer = described_class.for_listing.find(customer.id)
+
+      expect(listed_customer.association(:woo_info)).to be_loaded
+    end
+  end
+
   describe "associations" do
     it "has many sales" do
       customer = create(:customer)
@@ -76,6 +86,20 @@ RSpec.describe Customer do
       it "allows customer without email" do
         expect(customer).to be_valid
       end
+    end
+
+    it "rejects a customer without contact details or store information" do
+      customer = described_class.new
+
+      expect(customer).not_to be_valid
+      expect(customer.errors[:base]).to include("Customer must have contact details or store information")
+    end
+
+    it "allows a customer with only store information" do
+      customer = described_class.new
+      customer.store_infos.build(store_name: :shopify, store_id: "gid://shopify/Customer/12345")
+
+      expect(customer).to be_valid
     end
   end
 

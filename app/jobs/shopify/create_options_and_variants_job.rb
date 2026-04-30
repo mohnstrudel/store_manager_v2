@@ -5,7 +5,7 @@ module Shopify
     def perform(product_id, shopify_product_id)
       product = Product
         .includes(
-          editions: [:color, :size, :version],
+          variants: [:color, :size, :version],
           product_colors: [:color],
           product_sizes: [:size],
           product_versions: [:version]
@@ -19,7 +19,7 @@ module Shopify
         options_response = client.create_product_options(shopify_product_id, serialized_options)
 
         update_options_shopify_info(product, options_response["options"])
-        update_editions_shopify_info(product, options_response["variants"]["nodes"])
+        update_variants_shopify_info(product, options_response["variants"]["nodes"])
       end
 
       true
@@ -75,31 +75,31 @@ module Shopify
       end
     end
 
-    def update_editions_shopify_info(product, shopify_variants)
-      shopify_variants.each do |variant|
-        edition = find_edition_by_variant_options(product, variant["selectedOptions"])
+    def update_variants_shopify_info(product, shopify_variants)
+      shopify_variants.each do |shopify_variant|
+        variant = find_variant_by_variant_options(product, shopify_variant["selectedOptions"])
 
-        next unless edition
+        next unless variant
 
-        edition_shopify_info = edition.store_infos.find_or_initialize_by(store_name: :shopify)
-        edition_shopify_info.assign_attributes(
-          store_id: variant["id"],
+        variant_shopify_info = variant.store_infos.find_or_initialize_by(store_name: :shopify)
+        variant_shopify_info.assign_attributes(
+          store_id: shopify_variant["id"],
           push_time: Time.current
         )
-        edition_shopify_info.save!
+        variant_shopify_info.save!
       end
     end
 
-    def find_edition_by_variant_options(product, shopify_options)
-      product.editions.find do |edition|
+    def find_variant_by_variant_options(product, shopify_options)
+      product.variants.find do |variant|
         shopify_options.all? do |option|
           case option["name"]
           when "Color"
-            edition.color&.value == option["value"]
+            variant.color&.value == option["value"]
           when "Size"
-            edition.size&.value == option["value"]
+            variant.size&.value == option["value"]
           when "Version"
-            edition.version&.value == option["value"]
+            variant.version&.value == option["value"]
           end
         end
       end

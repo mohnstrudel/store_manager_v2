@@ -13,7 +13,7 @@ RSpec.describe Product do
       expect {
         product.save_editing!(
           product_attributes: creation_product_attributes,
-          editions_attributes: [],
+          variants_attributes: [],
           store_infos_attributes: [],
           purchase_attributes: {
             supplier_id: supplier.id,
@@ -41,7 +41,7 @@ RSpec.describe Product do
       expect {
         product.save_editing!(
           product_attributes: creation_product_attributes,
-          editions_attributes: [],
+          variants_attributes: [],
           store_infos_attributes: [],
           purchase_attributes: {
             warehouse_id: warehouse.id
@@ -59,7 +59,7 @@ RSpec.describe Product do
       expect {
         product.save_editing!(
           product_attributes: creation_product_attributes,
-          editions_attributes: [],
+          variants_attributes: [],
           store_infos_attributes: [],
           purchase_attributes: {
             amount: "2",
@@ -89,7 +89,7 @@ RSpec.describe Product do
 
       product.save_editing!(
         product_attributes: creation_product_attributes,
-        editions_attributes: [],
+        variants_attributes: [],
         store_infos_attributes: [],
         purchase_attributes: {
           supplier_id: supplier.id,

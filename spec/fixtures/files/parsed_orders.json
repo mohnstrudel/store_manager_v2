@@ -30,7 +30,7 @@
         "qty": 1,
         "price": 235,
         "sale_item_woo_id": 7449,
-        "edition": {
+        "variant": {
           "options": [
             {
               "name": "version",

@@ -1,11 +1,11 @@
 - if purchases.present?
-  .table-cards-group
+  .flex.flex-col.gap-4
     .table-card
       h3 Purchases
       table data-controller="table"
         thead
           th Title
-          th Edition
+          th Variant
           th Purchased ago
           th.text-right Item Price, $
           th Qty
@@ -17,9 +17,9 @@
               data-table-url-param=purchase_path(purchase)
               class="#{(purchase.debt > 0) ? "has-debt" : "paid"}"
             )
-              - if purchase.edition.present?
+              - if purchase.variant.present?
                 td = purchase.product.full_title
-                td = purchase.edition.title
+                td = purchase.variant.title
               - else
                 td = purchase.product.full_title
                 td

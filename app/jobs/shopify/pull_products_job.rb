@@ -8,7 +8,7 @@ module Shopify
       super
     rescue => e
       if e.message.to_s.downcase.include?("sku")
-        Rails.logger.warn("Skipping item due to edition SKU collision: #{e.message}")
+        Rails.logger.warn("Skipping item due to variant SKU collision: #{e.message}")
       else
         raise
       end

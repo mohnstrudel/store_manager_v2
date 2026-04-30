@@ -20,5 +20,5 @@ class Size < ApplicationRecord
 
   has_many :product_sizes, dependent: :destroy, inverse_of: :size
   has_many :products, through: :product_sizes
-  has_many :editions, dependent: :destroy, inverse_of: :size
+  has_many :variants, dependent: :destroy, inverse_of: :size
 end

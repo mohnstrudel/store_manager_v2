@@ -18,11 +18,17 @@ RSpec.describe Woo::PullProductsJob do
     end
   end
 
-  describe "#get_products_with_editions" do
-    it "returns products editions after saving products" do
-      expect(job.get_products_with_editions(parsed_products).size).to eq(
+  describe "#parse" do
+    it "returns nil when Woo returns no product" do
+      expect(job.parse(nil)).to be_nil
+    end
+  end
+
+  describe "#get_products_with_variants" do
+    it "returns products variants after saving products" do
+      expect(job.get_products_with_variants(parsed_products).size).to eq(
         parsed_products
-          .map { |p| p[:woo_id] if p[:editions].present? }.compact.size
+          .map { |p| p[:woo_id] if p[:variants].present? }.compact.size
       )
     end
   end

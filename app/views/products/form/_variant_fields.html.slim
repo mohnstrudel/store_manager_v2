@@ -1,0 +1,85 @@
+.variant-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-12.my-4 class=class_names("opacity-50": variant.deactivated?) data-controller="variant-fields" data-variant-fields-existing-value=(@product&.persisted? ? @product.variants.active.to_json({include: [:size, :version, :color]}) : "[]")
+  - combination_error = variant.errors[:base].find { |message| message.include?("Combination") }
+  - sku_error = variant.errors[:sku].first
+  - weight_error = variant.errors[:weight].first
+  - purchase_cost_error = variant.errors[:purchase_cost].first
+  - selling_price_error = variant.errors[:selling_price].first
+  - title = (variant.persisted? || [variant.size_id, variant.version_id, variant.color_id].any?(&:present?)) ? variant.title : "New Variant"
+
+  .flex.justify-between.items-start.flex-col.lg:flex-row.lg:items-center.gap-2
+    = f.hidden_field :id
+    h6.font-semibold data-variant-fields-target="title" = title
+    - if variant.deactivated?
+      span.text-sm.text-gray-500.dark:text-gray-400
+        | (Deactivated)
+    - elsif variant.new_record?
+      a.btn-rounded.btn-red.m-0 href="" data-action="click->variant-form#remove"
+        | Remove
+    - else
+      - checkbox_label = variant.has_sales_or_purchases? ? "Deactivate?" : "Destroy?"
+      = f.label :_destroy, checkbox_label, class: "m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900"
+        = f.check_box :_destroy, class: "m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500 red", data: {action: "change->variant-fields#toggleDestroy"}
+        span = checkbox_label
+
+  .flex.justify-between.gap-4.flex-col.lg:flex-row.pt-4.lg:pt-0
+    .block.w-full
+      = f.label :size_id, "Size"
+      - if combination_error.present?
+        .field_with_errors
+          = f.collection_select(:size_id, local_assigns[:sizes] || [], :id, :value, {include_blank: true, selected: variant.size_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
+      - else
+        = f.collection_select(:size_id, local_assigns[:sizes] || [], :id, :value, {include_blank: true, selected: variant.size_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
+    .block.w-full
+      = f.label :version_id, "Version"
+      - if combination_error.present?
+        .field_with_errors
+          = f.collection_select(:version_id, local_assigns[:versions] || [], :id, :value, {include_blank: true, selected: variant.version_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
+      - else
+        = f.collection_select(:version_id, local_assigns[:versions] || [], :id, :value, {include_blank: true, selected: variant.version_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
+    .block.w-full
+      = f.label :color_id, "Color"
+      - if combination_error.present?
+        .field_with_errors
+          = f.collection_select(:color_id, local_assigns[:colors] || [], :id, :value, {include_blank: true, selected: variant.color_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
+      - else
+        = f.collection_select(:color_id, local_assigns[:colors] || [], :id, :value, {include_blank: true, selected: variant.color_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
+
+  .text-error.mt-2 class=class_names(hidden: combination_error.blank?) data-variant-fields-target="duplicateWarning"
+    = combination_error.presence || "This combination already exists"
+
+  .flex.justify-between.gap-4.flex-col.pt-4.lg:pt-0
+    .block
+      = f.label :sku, "SKU"
+      - if sku_error.present?
+        .field_with_errors
+          = f.text_field :sku, placeholder: "SKU", class: "h-fit"
+        .text-error = sku_error
+      - else
+        = f.text_field :sku, placeholder: "SKU", class: "h-fit"
+
+    .flex.justify-between.gap-4.flex-col.lg:flex-row
+      .block.w-full
+        = f.label :weight, "Weight (kg)"
+        - if weight_error.present?
+          .field_with_errors
+            = f.number_field :weight, step: 0.01, min: 0
+          .text-error = weight_error
+        - else
+          = f.number_field :weight, step: 0.01, min: 0
+
+      .block.w-full
+        = f.label :purchase_cost, "Purchase Cost"
+        - if purchase_cost_error.present?
+          .field_with_errors
+            = f.number_field :purchase_cost, step: 0.01, min: 0
+          .text-error = purchase_cost_error
+        - else
+          = f.number_field :purchase_cost, step: 0.01, min: 0
+      .block.w-full
+        = f.label :selling_price, "Selling Price"
+        - if selling_price_error.present?
+          .field_with_errors
+            = f.number_field :selling_price, step: 0.01, min: 0
+          .text-error = selling_price_error
+        - else
+          = f.number_field :selling_price, step: 0.01, min: 0

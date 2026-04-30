@@ -82,15 +82,15 @@
       [{"node" =>
          {"id" => "gid://shopify/ProductVariant/51858210095433",
           "title" => "A",
-          "selectedOptions" => [{"value" => "A", "name" => "Edition"}]}},
+          "selectedOptions" => [{"value" => "A", "name" => "Variant"}]}},
         {"node" =>
           {"id" => "gid://shopify/ProductVariant/51858210128201",
            "title" => "B",
-           "selectedOptions" => [{"value" => "B", "name" => "Edition"}]}},
+           "selectedOptions" => [{"value" => "B", "name" => "Variant"}]}},
         {"node" =>
           {"id" => "gid://shopify/ProductVariant/51858210160969",
            "title" => "C",
-           "selectedOptions" => [{"value" => "C", "name" => "Edition"}]}}]}},
+           "selectedOptions" => [{"value" => "C", "name" => "Variant"}]}}]}},
   {"id" => "gid://shopify/Product/9575432094025",
    "title" =>
     "Jujutsu Kaisen - Geto Suguru vs. Toji Fushiguro | 1:6 Resin Statue | by AR Studio",
@@ -168,11 +168,11 @@
       [{"node" =>
          {"id" => "gid://shopify/ProductVariant/51857360585033",
           "title" => "A",
-          "selectedOptions" => [{"value" => "A", "name" => "Edition"}]}},
+          "selectedOptions" => [{"value" => "A", "name" => "Variant"}]}},
         {"node" =>
           {"id" => "gid://shopify/ProductVariant/51857360617801",
            "title" => "B",
-           "selectedOptions" => [{"value" => "B", "name" => "Edition"}]}}]}},
+           "selectedOptions" => [{"value" => "B", "name" => "Variant"}]}}]}},
   {"id" => "gid://shopify/Product/9575328383305",
    "title" =>
     "Elden Ring - Maliketh's Black Blade | Resin Statue | by Panda Studio",

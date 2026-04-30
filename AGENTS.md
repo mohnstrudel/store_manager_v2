@@ -20,7 +20,7 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 
 - Treat the current legacy placement as input data for refactoring, not as the target architecture.
 - If logic belongs to one aggregate, first ask which file under `app/models/<model>/` it should live in.
-- Prefer capability modules such as `app/models/product/titling.rb`, `app/models/product/editions.rb`, `app/models/sale/statuses.rb`, and `app/models/sale/linking.rb`.
+- Prefer capability modules such as `app/models/product/titling.rb`, `app/models/product/variants.rb`, `app/models/sale/statuses.rb`, and `app/models/sale/linking.rb`.
 - Prefer model-area workflow objects such as `app/models/product/upsert.rb` or `app/models/sale/creation.rb` over generic `app/services` classes when the workflow is aggregate-local.
 - Prefer direct, intention-revealing model APIs before adding a generic service layer between controllers or jobs and the domain.
 - Keep controllers focused on request loading, params, and response format; move aggregate-local transactions out of controllers.

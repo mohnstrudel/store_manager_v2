@@ -57,7 +57,7 @@ RSpec.describe ProductsController do
           franchise_id: franchise.id,
           shape: Product.default_shape
         },
-        editions: {
+        variants: {
           "0" => {
             sku: "new-product-with-purchase"
           }
@@ -71,7 +71,7 @@ RSpec.describe ProductsController do
         }
       }
 
-      product = Edition.find_by!(sku: "new-product-with-purchase").product
+      product = Variant.find_by!(sku: "new-product-with-purchase").product
       purchase = product.purchases.last
 
       aggregate_failures do

@@ -29,24 +29,13 @@ Use this file for the non-obvious model-layer rules in this repo.
 
 ## Base Model Boundary
 
-- The base file should mostly show:
-  - includes
-  - top-level associations
-  - validations
-  - broad ordering or preload scopes
-  - light model wiring
+- The base file should mostly show includes, top-level associations, validations, broad ordering or preload scopes, and light model wiring.
 - The base file should read like the aggregate's table of contents.
 - Move concept-heavy behavior out of the base file into capability modules.
 
 ## Capability Modules
 
-- A capability module may own:
-  - associations
-  - scopes
-  - callbacks
-  - predicates
-  - commands
-  - small private helpers
+- A capability module may own associations, scopes, callbacks, predicates, commands, and small private helpers for one business concept.
 - This is the default destination for one business concept on one aggregate.
 - Capability modules may call each other through the aggregate when the API stays small and coherent.
 - Prefer narrow concept modules over broad buckets such as `Editing` when a sharper business name exists.
@@ -61,12 +50,7 @@ Use this file for the non-obvious model-layer rules in this repo.
 ## Model-Area Objects
 
 - Keep model-adjacent POROs in `app/models` when they are part of the domain language.
-- Good examples:
-  - workflow objects
-  - payload builders
-  - form payload or rehydration objects for complex aggregate-owned forms
-  - integration importers or parsers
-  - query subsystems with real identity
+- Typical uses are workflow objects, payload builders, form payload or rehydration objects, integration importers or parsers, and query subsystems with real identity.
 - A separate object is a good fit when the behavior is cross-aggregate, adapter-specific, or would otherwise force one model to know too much about infrastructure.
 
 ## Representation Boundary
@@ -82,7 +66,6 @@ Use this file for the non-obvious model-layer rules in this repo.
 - one aggregate owns a complex form boundary -> `app/models/<model>/form_payload.rb` and, if needed, `app/models/<model>/form_rehydrator.rb`
 - shared cross-model behavior -> `app/models/concerns/<concern>.rb`
 - repeated read shape -> named scope on the owning model
-- multi-aggregate or external orchestration -> a focused object in an explicit `app/models/<namespace>/` home
 - controller or job needs one clear domain action -> call the model method directly before inventing a service
 - non-CRUD endpoint is really its own resource -> add a small nested controller under `app/controllers/<parent>/...`
 - collection-level command or Turbo endpoint is its own concept -> add a small collection resource controller under `app/controllers/<parent>/...`

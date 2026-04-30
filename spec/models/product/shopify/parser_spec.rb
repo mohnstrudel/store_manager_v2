@@ -152,10 +152,10 @@ RSpec.describe Product::Shopify::Parser do
         ])
       end
 
-      it "parses editions with all variant data" do
+      it "parses variants with all variant data" do
         result = described_class.parse(api_payload)
 
-        expect(result[:editions]).to eq([
+        expect(result[:variants]).to eq([
           {
             store_id: "gid://shopify/ProductVariant/67890",
             title: "Regular",
@@ -228,7 +228,7 @@ RSpec.describe Product::Shopify::Parser do
         expect(result[:title]).to eq("Simple Figure")
         expect(result[:franchise]).to eq("Simple Figure")
         expect(result[:media] || []).to eq([])
-        expect(result[:editions] || []).to eq([])
+        expect(result[:variants] || []).to eq([])
         expect(result[:brand]).to be_nil
         expect(result[:size]).to be_nil
       end
@@ -373,7 +373,7 @@ RSpec.describe Product::Shopify::Parser do
 
       it "parses variant options correctly" do
         result = described_class.parse(options_payload)
-        expect(result[:editions].first[:options]).to eq([
+        expect(result[:variants].first[:options]).to eq([
           {name: "Color", value: "Red"},
           {name: "Size", value: "Large"}
         ])
@@ -421,7 +421,7 @@ RSpec.describe Product::Shopify::Parser do
 
       it "sets is_single_variant flag to true" do
         result = described_class.parse(single_variant_payload)
-        expect(result[:editions].first[:is_single_variant]).to be(true)
+        expect(result[:variants].first[:is_single_variant]).to be(true)
       end
 
       it "keeps the variant sku as the product-level sku" do
@@ -431,18 +431,18 @@ RSpec.describe Product::Shopify::Parser do
 
       it "parses price, cost, and weight from inventory item" do
         result = described_class.parse(single_variant_payload)
-        edition = result[:editions].first
+        variant = result[:variants].first
 
-        expect(edition[:selling_price]).to eq("199.99")
-        expect(edition[:purchase_cost]).to eq("80.00")
-        expect(edition[:weight]).to eq(1.5)
+        expect(variant[:selling_price]).to eq("199.99")
+        expect(variant[:purchase_cost]).to eq("80.00")
+        expect(variant[:weight]).to eq(1.5)
       end
 
       it "parses store_info timestamps from variant" do
         result = described_class.parse(single_variant_payload)
-        edition = result[:editions].first
+        variant = result[:variants].first
 
-        expect(edition[:store_info]).to eq({
+        expect(variant[:store_info]).to eq({
           ext_created_at: "2024-01-01T00:00:00Z",
           ext_updated_at: "2024-01-02T00:00:00Z"
         })
@@ -476,11 +476,11 @@ RSpec.describe Product::Shopify::Parser do
 
       it "parses selling_price but omits missing purchase_cost and weight" do
         result = described_class.parse(variant_without_inventory_payload)
-        edition = result[:editions].first
+        variant = result[:variants].first
 
-        expect(edition[:selling_price]).to eq("99.99")
-        expect(edition.key?(:purchase_cost)).to be false
-        expect(edition.key?(:weight)).to be false
+        expect(variant[:selling_price]).to eq("99.99")
+        expect(variant.key?(:purchase_cost)).to be false
+        expect(variant.key?(:weight)).to be false
       end
     end
   end

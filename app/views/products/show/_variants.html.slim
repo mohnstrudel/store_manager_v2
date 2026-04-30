@@ -1,0 +1,16 @@
+- if product.variants.any?
+  .table-card
+    h3 Variants
+    table data-controller="table"
+      thead
+        th ID
+        th Name
+        th Type
+        th.text-right Weight
+        th.text-right Purchase Cost
+        th.text-right Selling Price
+        th.text-right Active Sales
+        th Purchases
+        th Store ID
+      tbody
+        = render partial: "products/show/variants/row", collection: product.variants, as: :variant, locals: {product:, variants_sales_sums:, variants_purchases_sums:, selected_id:}

@@ -13,11 +13,20 @@ module PurchaseItem::Listing
     }
 
     scope :for_warehouse_details, -> {
-      includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
+      includes(
+        :shipping_company,
+        sale: :customer,
+        purchase: [
+          :payments,
+          :purchase_items,
+          :variant,
+          {product: :variants}
+        ]
+      )
     }
 
     scope :for_shipping_details, -> {
-      includes(:product, :purchase, edition: [:color, :size, :version])
+      includes(:product, :purchase, variant: [:color, :size, :version])
     }
 
     scope :for_notifications, -> {
@@ -26,7 +35,7 @@ module PurchaseItem::Listing
         sale: :customer,
         sale_item: [
           :product,
-          edition: [:size, :version, :color]
+          variant: [:size, :version, :color]
         ]
       )
     }

@@ -5,11 +5,7 @@ Use this file for the repo-specific view organization pattern.
 ## Core Rules
 
 - Keep root templates small: `index.html.slim`, `show.html.slim`, `new.html.slim`, `edit.html.slim`.
-- Organize by screen first:
-  - `index/`
-  - `show/`
-  - `form/`
-  - `items/` when a fragment is reused across screens inside one resource
+- Organize by screen first: `index/`, `show/`, `form/`, and resource-local shared folders such as `items/` only when needed.
 - Keep only truly cross-resource fragments in `app/views/_shared`.
 - Keep endpoint-owned `*.turbo_stream.*` templates at the resource root.
 
@@ -52,11 +48,7 @@ Then allow shapes like:
 
 - In heavy forms, prefer a small helper over a new partial when the repetition is mostly wiring rather than UI structure.
 - For screen-only view-data shaping, prefer a helper over a presenter.
-- Good helper targets:
-  - repeated Slim Select setup
-  - repeated select class merging
-  - repeated hint text under labels
-  - small collections of prepared view data for one widget or partial, such as gallery items, badge rows, or select options
+- Good helper targets include repeated form wiring or small prepared view-data collections for one widget or partial.
 - Keep the helper small and mechanical. Do not turn it into a presenter or HTML DSL.
 
 ## Form Data Rule
@@ -75,22 +67,8 @@ Then allow shapes like:
 - Do not add helper abstractions that merely rename a single field. The helper should remove repeated setup noise, not hide obvious markup.
 - Do not introduce a presenter layer just because a template has a few setup lines. First try a helper if the logic is screen-only.
 
-## Repo Examples
+## Repo Check
 
-- simple baseline resources:
-  - `brands`
-  - `colors`
-  - `franchises`
-  - `shapes`
-  - `sizes`
-  - `suppliers`
-  - `shipping_companies`
-  - `versions`
-- expanded screen-first resources:
-  - `sales`
-  - `products`
-- form-helper cleanup examples:
-  - `products/form/_form`
-  - `sales/form/_form`
-  - `purchase_items/form/_form`
-  - `warehouses/form/_form`
+- Simple reference-data resources should usually stay on the default baseline.
+- Section-heavy resources such as products and sales can use expanded screen-first trees.
+- Heavy forms should move repeated setup to helpers before introducing presenters.

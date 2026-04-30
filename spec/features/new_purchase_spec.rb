@@ -96,7 +96,7 @@ RSpec.describe "Creating a new purchase" do
     purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))
 
-    within(first(".table-cards-group .table-card")) do
+    within(first(".table-card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
     end
 
@@ -139,21 +139,21 @@ RSpec.describe "Creating a new purchase" do
       expect(page).not_to have_selector("h2", text: product.full_title)
     end
 
-    within(first(".table-cards-group .table-card")) do
+    within(first(".table-card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
     end
   end
 
-  scenario "shows the edition title in the purchase items header when the purchase has an edition" do # rubocop:todo RSpec/MultipleExpectations
-    edition = create(:edition, product:)
-    purchase = create(:purchase, product:, supplier:, edition:)
+  scenario "shows the variant title in the purchase items header when the purchase has a variant" do # rubocop:todo RSpec/MultipleExpectations
+    variant = create(:variant, product:)
+    purchase = create(:purchase, product:, supplier:, variant:)
     create(:purchase_item, purchase:)
 
     visit purchase_path(purchase)
 
-    within(first(".table-cards-group .table-card")) do
+    within(first(".table-card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
-      expect(page).to have_text("→ #{edition.title}")
+      expect(page).to have_text("→ #{variant.title}")
     end
   end
 
@@ -164,7 +164,7 @@ RSpec.describe "Creating a new purchase" do
 
     visit purchase_path(purchase)
 
-    within(first(".table-cards-group .table-card")) do
+    within(first(".table-card")) do
       expect(page).to have_selector("img[class*='hover:scale-[7]']", count: 1)
     end
   end

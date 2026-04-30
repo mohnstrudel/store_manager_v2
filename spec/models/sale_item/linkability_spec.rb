@@ -36,28 +36,28 @@ RSpec.describe SaleItem::Linkability do
 
   describe ".linkable_for" do
     let(:product) { create(:product) }
-    let(:edition) { create(:edition, product:) }
-    let(:purchase_with_edition) { create(:purchase, product:, edition:, amount: 2) }
-    let(:purchase_without_edition) { create(:purchase, product:, edition: nil, amount: 2) }
+    let(:variant) { create(:variant, product:) }
+    let(:purchase_with_variant) { create(:purchase, product:, variant:, amount: 2) }
+    let(:purchase_without_variant) { create(:purchase, product:, variant: nil, amount: 2) }
 
-    let!(:matching_edition_item) do
-      create(:sale_item, product:, edition:, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
+    let!(:matching_variant_item) do
+      create(:sale_item, product:, variant:, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
     end
     let!(:matching_product_base_item) do
-      create(:sale_item, product:, edition: nil, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
+      create(:sale_item, product:, variant: nil, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
     end
-    let!(:wrong_edition_item) do
-      create(:sale_item, product:, edition: create(:edition, product:), qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
-    end
-
-    it "filters by edition when purchase has an edition" do
-      expect(SaleItem.linkable_for(purchase_with_edition)).to include(matching_edition_item)
-      expect(SaleItem.linkable_for(purchase_with_edition)).not_to include(matching_product_base_item, wrong_edition_item)
+    let!(:wrong_variant_item) do
+      create(:sale_item, product:, variant: create(:variant, product:), qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
     end
 
-    it "filters by base product when purchase edition is nil" do
-      expect(SaleItem.linkable_for(purchase_without_edition)).to include(matching_product_base_item)
-      expect(SaleItem.linkable_for(purchase_without_edition)).not_to include(matching_edition_item, wrong_edition_item)
+    it "filters by variant when purchase has a variant" do
+      expect(SaleItem.linkable_for(purchase_with_variant)).to include(matching_variant_item)
+      expect(SaleItem.linkable_for(purchase_with_variant)).not_to include(matching_product_base_item, wrong_variant_item)
+    end
+
+    it "filters by base product when purchase variant is nil" do
+      expect(SaleItem.linkable_for(purchase_without_variant)).to include(matching_product_base_item)
+      expect(SaleItem.linkable_for(purchase_without_variant)).not_to include(matching_variant_item, wrong_variant_item)
     end
 
   end
@@ -83,15 +83,15 @@ RSpec.describe SaleItem::Linkability do
   describe "#resolve_sold_item" do
     let(:product) { create(:product) }
 
-    it "returns edition when present" do
-      edition = create(:edition, product:)
-      sale_item = create(:sale_item, product:, edition:)
+    it "returns variant when present" do
+      variant = create(:variant, product:)
+      sale_item = create(:sale_item, product:, variant:)
 
-      expect(sale_item.resolve_sold_item).to eq(edition)
+      expect(sale_item.resolve_sold_item).to eq(variant)
     end
 
-    it "returns product when edition is missing" do
-      sale_item = create(:sale_item, product:, edition: nil)
+    it "returns product when variant is missing" do
+      sale_item = create(:sale_item, product:, variant: nil)
 
       expect(sale_item.resolve_sold_item).to eq(product)
     end

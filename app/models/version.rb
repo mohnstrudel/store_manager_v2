@@ -18,5 +18,5 @@ class Version < ApplicationRecord
 
   has_many :product_versions, dependent: :destroy, inverse_of: :version
   has_many :products, through: :product_versions
-  has_many :editions, dependent: :destroy, inverse_of: :version
+  has_many :variants, dependent: :destroy, inverse_of: :version
 end

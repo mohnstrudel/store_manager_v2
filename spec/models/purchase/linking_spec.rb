@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe Purchase do
   let(:supplier) { create(:supplier) }
   let(:product) { create(:product) }
-  let(:edition) { create(:edition, product:) }
+  let(:variant) { create(:variant, product:) }
   let(:active_status) { Sale.active_status_names.first }
   let(:completed_status) { Sale.completed_status_names.first }
 
@@ -27,7 +27,7 @@ RSpec.describe Purchase do
 
       context "with an active status" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: active_status) }
-        let!(:sale_item) { create(:sale_item, product:, sale:, edition_id: nil, qty: 5) }
+        let!(:sale_item) { create(:sale_item, product:, sale:, variant_id: nil, qty: 5) }
 
         it "links purchased items with sold products" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = purchase.link_purchase_items
@@ -50,8 +50,8 @@ RSpec.describe Purchase do
       context "when there are multiple product sales" do # rubocop:todo RSpec/NestedGroups
         let!(:sale1) { create(:sale, status: active_status) } # rubocop:todo RSpec/IndexedLet
         let!(:sale2) { create(:sale, status: active_status) } # rubocop:todo RSpec/IndexedLet
-        let!(:sale_item1) { create(:sale_item, product:, sale: sale1, qty: 1, edition_id: nil) } # rubocop:todo RSpec/IndexedLet
-        let!(:sale_item2) { create(:sale_item, product:, sale: sale2, qty: 4, edition_id: nil) } # rubocop:todo RSpec/IndexedLet
+        let!(:sale_item1) { create(:sale_item, product:, sale: sale1, qty: 1, variant_id: nil) } # rubocop:todo RSpec/IndexedLet
+        let!(:sale_item2) { create(:sale_item, product:, sale: sale2, qty: 4, variant_id: nil) } # rubocop:todo RSpec/IndexedLet
 
         it "links purchased products to multiple product sales" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = purchase.link_purchase_items
@@ -65,7 +65,7 @@ RSpec.describe Purchase do
 
       context "when there are not enough product sales" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: active_status) }
-        let!(:sale_item) { create(:sale_item, product:, sale:, qty: 1, edition_id: nil) }
+        let!(:sale_item) { create(:sale_item, product:, sale:, qty: 1, variant_id: nil) }
 
         it "links as many purchased products as possible" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = purchase.link_purchase_items
@@ -106,17 +106,17 @@ RSpec.describe Purchase do
       end
     end
 
-    context "when linking with sold editions" do
-      let(:purchase) { create(:purchase, product:, edition:, amount: 3) }
+    context "when linking with sold variants" do
+      let(:purchase) { create(:purchase, product:, variant:, amount: 3) }
       let!(:purchase_items) do
         3.times.map { create(:purchase_item, purchase:) }
       end
 
-      context "when there are available product sales for the edition" do # rubocop:todo RSpec/NestedGroups
+      context "when there are available product sales for the variant" do # rubocop:todo RSpec/NestedGroups
         let!(:sale) { create(:sale, status: active_status) }
-        let!(:sale_item) { create(:sale_item, product:, edition:, sale:, qty: 5) }
+        let!(:sale_item) { create(:sale_item, product:, variant:, sale:, qty: 5) }
 
-        it "links purchased products to product sales with matching edition" do # rubocop:todo RSpec/MultipleExpectations
+        it "links purchased products to product sales with matching variant" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = purchase.link_purchase_items
 
           expect(linked_ids).to match_array(purchase_items.map(&:id))
@@ -126,10 +126,10 @@ RSpec.describe Purchase do
         end
       end
 
-      context "when there are no product sales for the edition" do # rubocop:todo RSpec/NestedGroups
-        let!(:other_edition) { create(:edition, product:) }
+      context "when there are no product sales for the variant" do # rubocop:todo RSpec/NestedGroups
+        let!(:other_variant) { create(:variant, product:) }
         let!(:sale) { create(:sale, status: active_status) }
-        let!(:sale_item) { create(:sale_item, product:, edition: other_edition, sale:, qty: 5) } # rubocop:todo RSpec/LetSetup
+        let!(:sale_item) { create(:sale_item, product:, variant: other_variant, sale:, qty: 5) } # rubocop:todo RSpec/LetSetup
 
         it "does not link purchased products" do # rubocop:todo RSpec/MultipleExpectations
           linked_ids = purchase.link_purchase_items

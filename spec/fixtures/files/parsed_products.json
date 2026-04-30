@@ -12,7 +12,7 @@
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4"],
     "colors": ["Rot"],
-    "editions": [0, 5]
+    "variants": [0, 5]
   },
   {
     "woo_id": 222,
@@ -27,7 +27,7 @@
     "brands": ["Unique Art Studio"],
     "sizes": ["1:4", "1:6"],
     "colors": ["Rot", "Blau"],
-    "editions": []
+    "variants": []
   },
   {
     "woo_id": 333,
@@ -42,7 +42,7 @@
     "brands": ["Zuoban Studio"],
     "sizes": ["1:4"],
     "colors": ["Rot"],
-    "editions": []
+    "variants": []
   },
   {
     "woo_id": 444,
@@ -57,6 +57,6 @@
     "brands": ["Unique Art Studio"],
     "sizes": ["1:4", "1:6"],
     "colors": ["Rot", "Blau"],
-    "editions": []
+    "variants": []
   }
 ]

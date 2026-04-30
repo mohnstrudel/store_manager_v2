@@ -16,9 +16,9 @@
 #  synced          :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  edition_id      :bigint
 #  product_id      :bigint
 #  supplier_id     :bigint           not null
+#  variant_id      :bigint
 #
 require "rails_helper"
 
@@ -55,32 +55,32 @@ RSpec.describe Purchase do
 
     it { expect(purchase_for_associations).to belong_to(:supplier) }
     it { expect(purchase_for_associations).to belong_to(:product).optional }
-    it { expect(purchase_for_associations).to belong_to(:edition).optional }
+    it { expect(purchase_for_associations).to belong_to(:variant).optional }
 
     it { expect(purchase_for_associations).to have_many(:payments).dependent(:destroy) }
 
     it { expect(purchase_for_associations).to have_many(:purchase_items).dependent(:destroy) }
     it { expect(purchase_for_associations).to have_many(:warehouses).through(:purchase_items) }
 
-    describe "through edition associations" do
-      let(:edition) { create(:edition) }
-      let(:purchase) { create(:purchase, edition:) }
+    describe "through variant associations" do
+      let(:variant) { create(:variant) }
+      let(:purchase) { create(:purchase, variant:) }
 
-      it "has many sizes through edition" do
-        expect(purchase.sizes).to include(edition.size) if edition.size
+      it "has many sizes through variant" do
+        expect(purchase.sizes).to include(variant.size) if variant.size
       end
 
-      it "has many versions through edition" do
-        expect(purchase.versions).to include(edition.version) if edition.version
+      it "has many versions through variant" do
+        expect(purchase.versions).to include(variant.version) if variant.version
       end
 
-      it "has many colors through edition" do
-        expect(purchase.colors).to include(edition.color) if edition.color
+      it "has many colors through variant" do
+        expect(purchase.colors).to include(variant.color) if variant.color
       end
     end
 
-    context "when edition is nil" do
-      let(:purchase) { create(:purchase, edition: nil) }
+    context "when variant is nil" do
+      let(:purchase) { create(:purchase, variant: nil) }
 
       it "returns empty collections for through associations" do # rubocop:todo RSpec/MultipleExpectations
         expect(purchase.sizes).to be_empty
@@ -199,14 +199,14 @@ RSpec.describe Purchase do
     let!(:other_purchase) { create(:purchase, order_reference: "OTHER-456") }
     let!(:supplier) { purchase.supplier }
     let!(:product) { purchase.product }
-    let!(:edition) { create(:edition, product:) }
+    let!(:variant) { create(:variant, product:) }
     let!(:size) { create(:size, value: "1:4") }
     let!(:version) { create(:version, value: "Deluxe") }
     let!(:color) { create(:color, value: "Red") }
 
     before do
-      edition.update!(size:, version:, color:)
-      purchase.update!(edition:)
+      variant.update!(size:, version:, color:)
+      purchase.update!(variant:)
     end
 
     it "finds purchases by prefixes from their own and associated searchable fields" do

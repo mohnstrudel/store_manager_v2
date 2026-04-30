@@ -8,7 +8,7 @@
   = form.label :sale_item
   = form.collection_select :sale_item_id, @sale_items || [], :id, :build_title_for_select, {include_blank: true}, slim_select_html_options
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :length
       = form.text_field :length
@@ -22,7 +22,7 @@
       = form.label :weight
       = form.text_field :weight
 
-  fieldset.flex.justify-between.gap-4
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
     .block.w-full
       = form.label :expenses
       = form.text_field :expenses

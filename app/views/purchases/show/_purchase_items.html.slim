@@ -1,11 +1,11 @@
 - if purchase_items.any?
   - product_thumb = thumb_url(purchase.product)
 
-  .table-cards-group data-controller="move-items"
+  .flex.flex-col.gap-4 data-controller="move-items"
     = render "_shared/move_to_warehouse/form", form_url: warehouse_move_path(purchase_id: purchase.id)
 
     .table-card
-      .flex.justify-between.align-center
+      .flex.justify-between.align-center.flex-wrap
         h3
           = link_to purchase.product, class: "inline-flex items-center gap-3 font-semibold" do
             - if product_thumb.present?
@@ -14,9 +14,9 @@
                 class: "rounded h-7 w-7 shrink-0 object-cover transition-transform duration-150 ease-out hover:scale-[7] hover:z-990 hover:shadow"
             span
               = purchase.product.full_title
-              - if purchase.edition.present?
-                span = " → #{purchase.edition.title}"
-        .w-45.px-3.mt-4.text-center = render "_shared/purchase_payment_progress", progress: purchase.progress, paid: purchase.item_paid, price: purchase.item_price, debt: purchase.item_debt
+              - if purchase.variant.present?
+                span = " → #{purchase.variant.title}"
+        .w-full.max-w-45.px-3.mt-4.text-center.lg:w-45 = render "_shared/purchase_payment_progress", progress: purchase.progress, paid: purchase.item_paid, price: purchase.item_price, debt: purchase.item_debt
 
       = render "_shared/move_to_warehouse/form", form_url: warehouse_move_path, options: {redirect_to_sale_item: true}
 

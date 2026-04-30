@@ -77,7 +77,7 @@ Rails.application.routes.draw do
 
       collection do
         resource :move, only: :create
-        resource :product_editions, only: :show
+        resource :product_variants, only: :show
       end
     end
 

@@ -29,7 +29,7 @@ module StoreInfo::References
     case our_name
     when "Sale"
       "Order"
-    when "Edition"
+    when "Variant"
       "ProductVariant"
     else
       our_name
