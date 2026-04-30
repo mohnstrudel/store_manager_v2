@@ -2,10 +2,11 @@
   = form.label :customer_id
   = form.collection_select :customer_id, @customer_options || [], :id, :name_and_email, {}, slim_select_html_options
 
-  = form.label :note
-  = form.text_field :note
+  .mt-4
+    = form.label :note
+    = form.text_field :note
 
-  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
     .block.w-full
       = form.label :country
       = form.text_field :country
@@ -30,7 +31,7 @@
   = form.label :company
   = form.text_field :company
 
-  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
     .block.w-full
       = form.label :total, "Total price"
       = form.text_field :total

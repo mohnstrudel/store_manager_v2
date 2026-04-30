@@ -21,7 +21,7 @@
         = f.check_box :_destroy, class: "m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500 red", data: {action: "change->variant-fields#toggleDestroy"}
         span = checkbox_label
 
-  .flex.justify-between.gap-4.flex-col.lg:flex-row
+  .flex.justify-between.gap-4.flex-col.lg:flex-row.pt-4.lg:pt-0
     .block.w-full
       = f.label :size_id, "Size"
       - if combination_error.present?
@@ -47,14 +47,15 @@
   .text-error.mt-2 class=class_names(hidden: combination_error.blank?) data-variant-fields-target="duplicateWarning"
     = combination_error.presence || "This combination already exists"
 
-  .block
-    = f.label :sku, "SKU"
-    - if sku_error.present?
-      .field_with_errors
+  .flex.justify-between.gap-4.flex-col.pt-4.lg:pt-0
+    .block
+      = f.label :sku, "SKU"
+      - if sku_error.present?
+        .field_with_errors
+          = f.text_field :sku, placeholder: "SKU", class: "h-fit"
+        .text-error = sku_error
+      - else
         = f.text_field :sku, placeholder: "SKU", class: "h-fit"
-      .text-error = sku_error
-    - else
-      = f.text_field :sku, placeholder: "SKU", class: "h-fit"
 
     .flex.justify-between.gap-4.flex-col.lg:flex-row
       .block.w-full

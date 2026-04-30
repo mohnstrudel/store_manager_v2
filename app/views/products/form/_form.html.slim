@@ -1,5 +1,5 @@
 = form_with model: product, html: {multipart: true}, data: {turbo: false} do |form|
-  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.lg:-mt-8
     .block.w-full.lg:w-2/3
       = form.label :franchise
       = form.collection_select :franchise_id, @franchise_options || [], :id, :title, {}, slim_select_html_options

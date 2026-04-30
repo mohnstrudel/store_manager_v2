@@ -15,7 +15,7 @@
       h6.font-semibold New Store Info
       button.btn-rounded.btn-red type="button" data-action="store-info#remove" Remove
 
-  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.pt-4.lg:pt-0
     .block.w-full.lg:w-1/3
       = f.label :store_name, "Store"
       - store_name_options = options_for_select([["Not Assigned", "not_assigned"]] + StoreInfo.assignable_store_names.map { |name| [name.titleize, name] }, store_info.persisted? ? store_info.store_name : nil)

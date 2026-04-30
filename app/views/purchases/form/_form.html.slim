@@ -10,7 +10,7 @@
         = form.label :variant_id
         = form.collection_select :variant_id, variants, :id, :title, {include_blank: true}, slim_select_html_options
 
-  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
+  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
     .block.w-full
       = form.label :supplier_id
       = form.collection_select :supplier_id, @suppliers || [], :id, :title, class: "w-full"

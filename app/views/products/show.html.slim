@@ -1,7 +1,7 @@
 = render "_shared/notice"
 = render "products/show/header", product: @product
 
-.section-wide.flex.flex-col.gap-8.p-4.lg:p-8
+.section-wide.flex.flex-col.gap-8
   = render "products/show/attributes", product: @product
   = render "products/show/description", product: @product
   = render "products/show/variants", product: @product, variants_sales_sums: @variants_sales_sums, variants_purchases_sums: @variants_purchases_sums, selected_id: @selected_id

@@ -9,7 +9,7 @@
       button.btn-rounded.btn-red type="button" data-action="product-purchase#removeForm"
         | Remove
 
-    fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
+    fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.pt-4.lg:pt-0
       .block.w-full id="purchase-supplier-field"
         = form.label :supplier_id, "Supplier"
         - if supplier_error.present?

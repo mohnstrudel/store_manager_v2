@@ -1,5 +1,5 @@
 - marked_for_removal = ActiveModel::Type::Boolean.new.cast(sale_item._destroy)
-.sales-form__product_fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-full.lg:max-w-2/3 class=class_names(hidden: marked_for_removal)
+.sales-form__product_fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.my-6.max-w-full.lg:max-w-2/3.gap-4.lg:gap-Z.flex.flex-col class=class_names(hidden: marked_for_removal)
   = f.hidden_field :id if sale_item.persisted?
   = f.hidden_field :_destroy, value: (marked_for_removal ? "1" : "0")
 
@@ -8,11 +8,14 @@
     button.btn-rounded.btn-red type="button" data-action="sale-items#removeProduct"
       | Remove
 
-  = f.label :product_id, "Product"
-  = f.collection_select :product_id, @product_shop_options || [], :id, :build_full_title_with_shop_id, {prompt: ("Select a product" if sale_item.product_id.blank?)}, slim_select_html_options
+  div
+    = f.label :product_id, "Product"
+    = f.collection_select :product_id, @product_shop_options || [], :id, :build_full_title_with_shop_id, {prompt: ("Select a product" if sale_item.product_id.blank?)}, slim_select_html_options
 
-  = f.label :qty, "Amount"
-  = f.number_field :qty, placeholder: "Amount"
+  div
+    = f.label :qty, "Amount"
+    = f.number_field :qty, placeholder: "Amount"
 
-  = f.label :price
-  = f.number_field :price, step: :any, placeholder: "Price"
+  div
+    = f.label :price
+    = f.number_field :price, step: :any, placeholder: "Price"
