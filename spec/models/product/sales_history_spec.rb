@@ -40,6 +40,18 @@ RSpec.describe Product do
     it "returns active sale items ordered by creation time" do
       expect(product.active_sale_items).to eq([older_active_sale_item, newer_active_sale_item])
     end
+
+    it "preloads sale store information for the active sales table" do
+      product.active_sale_items.each do |sale_item|
+        sale = sale_item.sale
+
+        aggregate_failures do
+          expect(sale.association(:customer)).to be_loaded
+          expect(sale.association(:shopify_info)).to be_loaded
+          expect(sale.association(:woo_info)).to be_loaded
+        end
+      end
+    end
   end
 
   describe "#completed_sale_items" do

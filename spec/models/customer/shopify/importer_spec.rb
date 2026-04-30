@@ -171,28 +171,9 @@ RSpec.describe Customer::Shopify::Importer do
         }
       end
 
-      it "creates a customer with nil attributes" do
-        expect { described_class.import!(nil_payload) }.to change(Customer, :count).by(1)
-      end
-
-      it "stores nil email" do
-        customer = described_class.import!(nil_payload)
-        expect(customer.email).to be_nil
-      end
-
-      it "stores nil first name" do
-        customer = described_class.import!(nil_payload)
-        expect(customer.first_name).to be_nil
-      end
-
-      it "stores nil last name" do
-        customer = described_class.import!(nil_payload)
-        expect(customer.last_name).to be_nil
-      end
-
-      it "stores nil phone" do
-        customer = described_class.import!(nil_payload)
-        expect(customer.phone).to be_nil
+      it "rejects a customer without contact details or store information" do
+        expect { described_class.import!(nil_payload) }
+          .to raise_error(described_class::Error, /Customer must have contact details or store information/)
       end
     end
 
@@ -240,8 +221,7 @@ RSpec.describe Customer::Shopify::Importer do
         expect { described_class.import!(nil) }.to raise_error(ArgumentError, /Parsed payload cannot be blank/)
       end
 
-      it "successfully imports customer with minimal data (no validations on Customer model)" do
-        # Customer model has no validations, so minimal data should succeed
+      it "successfully imports customer with minimal contact data" do
         minimal_payload = {
           email: "minimal@example.com"
         }
@@ -252,7 +232,6 @@ RSpec.describe Customer::Shopify::Importer do
       end
 
       it "successfully imports customer with only store_info data" do
-        # Customer can be imported with just store_info, no other fields required
         store_only_payload = {
           store_info: {store_id: "gid://shopify/Customer/77777"}
         }

@@ -17,6 +17,7 @@
 class Customer < ApplicationRecord
   include HasAuditNotifications
   include Identity
+  include Listing
   include Searchable
   include Shopable
 

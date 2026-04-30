@@ -35,6 +35,20 @@ RSpec.describe Woo::PullSalesJob do
 
         expect(parsed_customer_id).to eq(existing_customer.id)
       end
+
+      it "creates a customer with only Woo store information" do
+        parsed_customer_id = job.get_customer_id({
+          email: nil,
+          first_name: nil,
+          last_name: nil,
+          phone: nil,
+          woo_id: "12345"
+        })
+
+        customer = Customer.find(parsed_customer_id)
+
+        expect(customer.woo_info.store_id).to eq("12345")
+      end
     end
 
     context "when we receive invalid woo_id" do

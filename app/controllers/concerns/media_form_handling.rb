@@ -28,7 +28,8 @@ module MediaFormHandling
 
   def media_form_params_for(record)
     param_key = record.class.model_name.param_key.to_sym
-    permitted = params.dig(param_key)&.permit(
+    media_params = params.dig(param_key)&.slice(:media, :new_images)
+    permitted = media_params&.permit(
       media: [[
         :id,
         :alt,

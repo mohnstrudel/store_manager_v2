@@ -13,7 +13,16 @@ module PurchaseItem::Listing
     }
 
     scope :for_warehouse_details, -> {
-      includes(:product, :shipping_company, sale: :customer, purchase: [:payments, :purchase_items])
+      includes(
+        :shipping_company,
+        sale: :customer,
+        purchase: [
+          :payments,
+          :purchase_items,
+          :variant,
+          {product: :variants}
+        ]
+      )
     }
 
     scope :for_shipping_details, -> {

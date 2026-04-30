@@ -24,7 +24,9 @@ module Product::VariantGeneration
 
   def base_variant
     variant_from_memory = association(:variants).target.find { |ed| base_variant?(ed) }
-    variant_from_memory || variants.find_by(BASE_VARIANT_ATTRIBUTES)
+    return variant_from_memory if variant_from_memory || association(:variants).loaded?
+
+    variants.find_by(BASE_VARIANT_ATTRIBUTES)
   end
 
   def fill_variant_sku(variant, seed)

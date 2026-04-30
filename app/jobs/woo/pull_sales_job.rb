@@ -140,6 +140,7 @@ module Woo
         )
       end
       customer.assign_attributes(parsed_customer.except(:woo_id, :store_id))
+      customer.store_infos.build(store_name: :woo, store_id: parsed_customer[:woo_id], pull_time: pulled_at) if customer.new_record? && Customer.woo_id_is_valid?(parsed_customer[:woo_id])
       customer.save!
       customer.upsert_woo_info!(store_id: parsed_customer[:woo_id], pull_time: pulled_at) if Customer.woo_id_is_valid?(parsed_customer[:woo_id])
       customer.id

@@ -15,7 +15,11 @@ module SaleItem::Listing
     }
 
     scope :for_history, -> {
-      includes(:product, sale: :customer, variant: [:version, :color, :size])
+      includes(
+        :product,
+        sale: [:customer, :shopify_info, :woo_info],
+        variant: [:version, :color, :size]
+      )
     }
 
     scope :for_tracking_status, -> {
