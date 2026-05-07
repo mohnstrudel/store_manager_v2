@@ -12,24 +12,7 @@ module Webhooks
 
       return render json: {error: "Order '#{order_id}' not found"}, status: :not_found if sale.blank?
 
-      response = sale.sale_items.for_tracking_status.map do |sale_item|
-        purchase_item = sale_item.purchase_items.first
-
-        if purchase_item&.warehouse_id.present?
-          warehouse = purchase_item.warehouse
-          status = warehouse.external_name_de.presence || warehouse.external_name_en.presence || "No status available"
-          description = warehouse.desc_de.presence || warehouse.desc_en.presence || "No description available"
-        end
-
-        {
-          productName: sale_item.title,
-          status:,
-          description:
-        }
-      end
-
-      final_response = response.one? ? response.first : response
-      render json: final_response
+      render json: sale.item_tracking_payload
     end
 
     private

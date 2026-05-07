@@ -20,6 +20,9 @@ Rails.application.routes.draw do
   post "update-order", to: "webhooks/order_updates#create"
   post "sale-status", to: "webhooks/sale_statuses#create"
 
+  # MCP endpoint (unauthenticated, for external agents)
+  post "mcp", to: "mcp/server#handle"
+
   # Authentication
   resources :passwords, param: :token
 
