@@ -88,4 +88,22 @@ module Sale::Statuses
   def completed?
     self.class.completed_status_names.include?(status)
   end
+
+  def item_tracking_payload
+    items = sale_items.for_tracking_status.map do |sale_item|
+      purchase_item = sale_item.purchase_items.first
+      status = nil
+      description = nil
+
+      if purchase_item&.warehouse_id.present?
+        warehouse = purchase_item.warehouse
+        status = warehouse.external_name_de.presence || warehouse.external_name_en.presence || "No status available"
+        description = warehouse.desc_de.presence || warehouse.desc_en.presence || "No description available"
+      end
+
+      {productName: sale_item.title, status:, description:}
+    end
+
+    items
+  end
 end
