@@ -1,5 +1,6 @@
 tr(
-  class="hoverable"
+  id=item.id
+  class=class_names("hoverable", selected: local_assigns[:selected_id] == item.id)
   data-action="click->table#goTo"
   data-table-url-param=purchase_item_path(item)
 )

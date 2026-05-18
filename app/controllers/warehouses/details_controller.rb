@@ -4,6 +4,7 @@ module Warehouses
   class DetailsController < ApplicationController
     def show
       @warehouse = Warehouse.for_details.find(params[:id])
+      @selected_id = params[:selected].presence&.to_i
       @purchase_items = @warehouse
         .purchase_items
         .for_warehouse_details

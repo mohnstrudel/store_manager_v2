@@ -4,7 +4,10 @@ module SaleItem::Titling
   extend ActiveSupport::Concern
 
   def title
-    variant_id.present? ? "#{product.full_title} → #{variant.title}" : product.full_title
+    if variant_id.present? && variant.title != "Base Model"
+      return "#{product.full_title} → #{variant.title}"
+    end
+    product.full_title
   end
 
   def build_title_for_select

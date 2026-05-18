@@ -90,7 +90,7 @@ module Sale::Statuses
   end
 
   def item_tracking_payload
-    items = sale_items.for_tracking_status.map do |sale_item|
+    sale_items.for_tracking_status.map do |sale_item|
       purchase_item = sale_item.purchase_items.first
       status = nil
       description = nil
@@ -103,7 +103,15 @@ module Sale::Statuses
 
       {productName: sale_item.title, status:, description:}
     end
+  end
 
-    items
+  def movement_statuses
+    Warehouse
+      .joins(purchase_items: :sale_item)
+      .where(sale_items: {sale_id: id})
+      .distinct
+      .pluck(:name)
+      .join(", ")
+      .presence
   end
 end
