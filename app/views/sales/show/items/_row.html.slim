@@ -7,5 +7,8 @@ tr.cursor-default
       = sale_item.title
     - if sale_item.purchase_items.present?
       = render "sales/items/purchase_items", purchase_items: sale_item.purchase_items
+    - else
+      mark.block.uppercase.tracking-wide.text-xs.w-fit.mt-2.-ml-1
+        span.font-semibold NO PURCHASE
   td.text-right.font-mono = format_money sale_item.price
   td.text-center = format_purchased_sold_ratio(sale_item.purchase_items.size, sale_item.qty)
