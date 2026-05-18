@@ -1,21 +1,42 @@
 menu
   - purchase_items.each do |purchase_item|
-    li.my-2.ml-8
-      a.mt-2.no-events href=purchase_item_path(purchase_item)
-        i.icn 📦
-        | #{purchase_item.warehouse.name}
-        - if purchase_item.expenses
-          | — expenses: $
-          .font-mono.inline = format_money purchase_item.expenses
-      br
-      a.mt-2.no-events href=purchase_path(purchase_item.purchase)
+    li.mt-2
+      a.no-events href=purchase_path(purchase_item.purchase)
         i.icn 💰
         | #{purchase_item.purchase.supplier.title}
         | , #{format_date purchase_item.purchase.date}
         - if purchase_item.purchase.item_price
           | , $
           = format_money purchase_item.purchase.item_price
-      br
-      = link_to purchase_item_sale_item_link_path(purchase_item), class: "no-events mt-2 btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :delete}
+      = link_to purchase_item_sale_item_link_path(purchase_item), class: "no-events ml-2 my-2 btn-red btn-rounded", data: {turbo_confirm: "Are you sure?", turbo_method: :delete}
         i.icn ✂︎
         | Unlink
+      - movements = purchase_item.warehouse_movements.sort_by(&:moved_in).reverse
+      - if movements.present?
+        details.mt-1.group
+          - summary_cursor = movements.one? ? "cursor-default" : "cursor-pointer"
+          summary.w-fit.flex.items-center.gap-2.list-none.no-events(class=summary_cursor)
+            span
+              | Status:&nbsp;
+              a.no-events.btn-xs href=warehouse_path(purchase_item.warehouse, selected: purchase_item.id, anchor: purchase_item.id)
+                i.icn 📦
+                = movements.first.warehouse&.name || "—"
+            - unless movements.one?
+              span.text-xs.btn-rounded.w-5.h-5.p-0.btn-lightblue.flex.items-center.justify-center.transition-transform.origin-center.group-open:-rotate-90
+                = heroicon "chevron-left", variant: "micro"
+          - unless movements.one?
+            .border.max-w-2/3.border-gray-100.dark:border-gray-600/80.rounded-sm.mt-2
+              table.text-xs.my-0
+                thead
+                  tr
+                    th Moved in
+                    th Warehouse
+                tbody
+                  - movements.drop(1).each do |movement|
+                    tr
+                      td.pr-2.text-muted.whitespace-nowrap = format_datetime movement.moved_in
+                      td
+                        - if movement.warehouse.present?
+                          = movement.warehouse.name
+                        - else
+                          | —

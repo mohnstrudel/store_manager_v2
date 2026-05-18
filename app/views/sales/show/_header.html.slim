@@ -9,8 +9,8 @@ header.nav_header
         h1
           .inline-block.icon-woo.w-17.h-17.mr-4.-mb-4
           | Sale #{sale.woo_store_id}
-      h2 = [sale.status&.titleize, sale.customer.email.presence].compact.join(" | ")
   menu.nav_menu
+    li = render "sales/items/link_button", sale: sale
     - if sale.shopify_name.present? || sale.shopify_id.present?
       li = fetch_btn_for sale
     li = shop_admin_link(sale)

@@ -56,10 +56,11 @@ describe "Sale show page" do
       expect(page).to have_css("h1", text: "Sale HSCM#1746")
     end
 
-    it "shows the status/email h2" do
+    it "shows the status and email in the attributes" do
       visit sale_path(sale)
 
-      expect(page).to have_css("h2", text: "Pre Ordered | user@example.com")
+      expect(page).to have_text("Pre Ordered")
+      expect(page).to have_text("user@example.com")
     end
 
     it "shows the shared fetch icon" do

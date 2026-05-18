@@ -1,24 +1,44 @@
-.cards
-  .card.grow
+.cards.items-start
+  .card.w-2/3
     h5 Status
     p = sale.status&.titleize
-    h5 Customer
-    p = "#{sale.customer.first_name} #{sale.customer.last_name}"
     h5 Email
     p = safe_blank_render sale.customer.email
-    h5 Note
-    p = safe_blank_render sale.note
     - if sale.customer.shopify_info&.store_id&.present?
       h5 Customer Shop ID
       p = link_to sale.customer.shopify_info.id_short, customer_shop_link(sale.customer), class: "link"
-
-  .card
+    h5 Customer
+    p = "#{sale.customer.first_name} #{sale.customer.last_name}"
+    h5 Note
+    p = safe_blank_render sale.note
     h5 Total, $
-    p.text-right.fit.font-mono = format_money sale.total
+    p.fit.font-mono = format_money sale.total
     h5 Discount
-    p.text-right.fit.font-mono = format_money sale.discount_total
+    p.fit.font-mono = format_money sale.discount_total
     h5 Shipping
-    p.text-right.fit.font-mono = format_money sale.shipping_total
+    p.fit.font-mono = format_money sale.shipping_total
+
+  .card.w-1/3
+    h5 Address 1
+    p = safe_blank_render sale.address_1
+    - if sale.address_2.present?
+      h5 Address 2
+      p = safe_blank_render sale.address_2
+    h5 City
+    p = safe_blank_render sale.city
+    - if sale.company.present?
+      h5 Company
+      p = safe_blank_render sale.company
+    h5 Country
+    p = safe_blank_render sale.country
+    h5 Phone
+    p = safe_blank_render sale.customer.phone
+    h5 Postcode
+    p = safe_blank_render sale.postcode
+    - if sale.state.present?
+      h5 State
+      p = safe_blank_render sale.state
+
 
   .card
     h5 ID

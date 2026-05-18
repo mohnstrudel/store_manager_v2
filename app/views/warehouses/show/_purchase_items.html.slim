@@ -27,7 +27,7 @@
               span.text-orange-800/70.dark:text-orange-400/80 debt
         tbody
           - purchase_items.each do |item|
-            = render "warehouses/show/purchase_item", item: item
+            = render "warehouses/show/purchase_item", item: item, selected_id: selected_id
       .pagination-bottom = paginate purchase_items
     - else
       = render "_shared/search-results-empty"

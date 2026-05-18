@@ -6,7 +6,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
     span.font-bold = sale.customer.full_name
     br
     = sale.customer.email
-    ul.ml-4.mt-2
+    ul.mt-2
       - sale.sale_items.each do |ps|
         li
           - if sale.active? || sale.completed?
@@ -26,7 +26,7 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
               .font-mono.inline = format_money purchase_item.expenses
     - else
       span.text-gray-400 —
-  td.text-right.font-mono.whitespace-nowrap = format_money sale.total
+  td.text-sm.text-right.font-mono.whitespace-nowrap = format_money sale.total
   td
     = format_date sale.shop_created_at.presence || sale.created_at
     br
@@ -40,5 +40,3 @@ tr.hoverable id="#{dom_id sale}" data-action="click->table#goTo" data-table-url-
       = sale.shopify_name
       br
       span.text-gray-500 = sale.shopify_info.id_short
-  td.actions
-    = render "_shared/action_edit", route: edit_sale_path(sale)

@@ -5,7 +5,7 @@
 
 .section-wide.flex.flex-col.gap-8
   - if @total_purchase_items.positive?
-    = render "warehouses/show/purchase_items", purchase_items: @purchase_items, warehouse: @warehouse
+    = render "warehouses/show/purchase_items", purchase_items: @purchase_items, warehouse: @warehouse, selected_id: @selected_id
 
   = render "warehouses/show/details", warehouse: @warehouse
 

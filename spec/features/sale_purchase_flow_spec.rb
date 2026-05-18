@@ -52,9 +52,7 @@ feature "Link sales with purchases flow" do
 
     expect(page).to have_content("Sale was successfully created")
 
-    # Verify "Sale Items List" exists
-    # and that it contains the product we added to the sale
-    expect(page).to have_content("Sale Items List")
+    # Verify the sale items are shown with purchase info
     expect(page).to have_content(product.full_title)
     expect(page).to have_content(supplier.title)
     expect(page).to have_content(warehouse.name)

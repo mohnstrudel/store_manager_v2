@@ -1,15 +1,10 @@
 - if sale_items.present?
   .table-card.full-width
-    .sales_show__order-list.flex.justify-between.items-center
-      h3 Sale Items List
-      = render "sales/items/link_button", sale: sale
-
     table data-controller="table"
       thead
         th.text-center Image
         th Product
-        th Variant
         th.text-right Price, $
-        th.text-right Purchased / Sold Amount
+        th.text-center Purchased / Sold
       tbody
         = render partial: "sales/show/items/row", collection: sale_items, as: :sale_item
