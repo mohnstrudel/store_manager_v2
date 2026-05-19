@@ -13,6 +13,10 @@ Rails.application.routes.draw do
     mount PgHero::Engine, at: "pghero"
   end
 
+  if Rails.env.local?
+    get "/_inertia_smoke", to: "smoke#index"
+  end
+
   mount ShopifyApp::Engine, at: "shopify_app"
   mount Sidekiq::Web => "jobs"
 
