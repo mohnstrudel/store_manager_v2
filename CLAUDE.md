@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Memory
+
+Project-specific memories (conventions, feedback, decisions) live in `.claude/memory/`. Read `.claude/memory/MEMORY.md` at the start of any session for the index, then load individual files as relevant.
+
 ## Authoritative docs
 
 - [README.md](README.md) — full architecture, business record map, request flow examples, and "Where to put new code" placement guide. Read this before non-trivial changes.
