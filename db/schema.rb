@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_28_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_19_124500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -261,6 +261,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_28_130000) do
     t.index ["variant_id"], name: "index_purchases_on_variant_id"
   end
 
+  create_table "sale_addresses", force: :cascade do |t|
+    t.string "address_1"
+    t.string "address_2"
+    t.string "city"
+    t.string "company"
+    t.string "country"
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.string "first_name"
+    t.integer "kind", null: false
+    t.string "last_name"
+    t.string "phone"
+    t.string "postcode"
+    t.bigint "sale_id", null: false
+    t.string "state"
+    t.datetime "updated_at", null: false
+    t.index ["sale_id", "kind"], name: "index_sale_addresses_on_sale_id_and_kind", unique: true
+    t.index ["sale_id"], name: "index_sale_addresses_on_sale_id"
+  end
+
   create_table "sale_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.decimal "price", precision: 8, scale: 2
@@ -280,23 +300,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_28_130000) do
   end
 
   create_table "sales", force: :cascade do |t|
-    t.string "address_1"
-    t.string "address_2"
     t.string "cancel_reason"
     t.datetime "cancelled_at"
-    t.string "city"
     t.boolean "closed", default: false
     t.datetime "closed_at"
-    t.string "company"
     t.boolean "confirmed", default: false
-    t.string "country"
     t.datetime "created_at", null: false
     t.bigint "customer_id", null: false
     t.decimal "discount_total", precision: 8, scale: 2
     t.string "financial_status"
     t.string "fulfillment_status"
     t.string "note"
-    t.string "postcode"
     t.string "return_status"
     t.decimal "shipping_total", precision: 8, scale: 2
     t.datetime "shopify_created_at"
@@ -304,7 +318,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_28_130000) do
     t.string "shopify_name"
     t.datetime "shopify_updated_at"
     t.string "slug"
-    t.string "state"
     t.string "status"
     t.decimal "total", precision: 8, scale: 2
     t.datetime "updated_at", null: false
@@ -502,6 +515,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_28_130000) do
   add_foreign_key "purchases", "products"
   add_foreign_key "purchases", "suppliers"
   add_foreign_key "purchases", "variants"
+  add_foreign_key "sale_addresses", "sales"
   add_foreign_key "sale_items", "products"
   add_foreign_key "sale_items", "sales"
   add_foreign_key "sale_items", "variants"
