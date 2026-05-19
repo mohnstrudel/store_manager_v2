@@ -464,7 +464,7 @@
   }
 
   .card {
-    @apply bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 pl-4 pt-4 pr-4 lg:pr-10 pb-8 rounded-lg w-full lg:w-fit h-fit;
+    @apply bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 pl-4 pt-4 pr-4 pb-8 rounded-lg w-full lg:w-fit h-fit;
   }
 
   .card h5 {
@@ -605,6 +605,19 @@
   trix-toolbar .trix-button.trix-active,
   trix-editor .trix-button.trix-active {
     @apply bg-sky-100! dark:bg-sky-800!;
+  }
+
+  /* Tabs */
+  .tab-bar {
+    @apply w-full inline-flex items-stretch gap-1 p-1 bg-gray-200/50 dark:bg-gray-800 rounded-full mt-1 mb-4;
+  }
+
+  .tab-btn {
+    @apply w-full flex items-center justify-center rounded-full px-4 py-1 bg-transparent dark:bg-transparent hover:bg-transparent dark:hover:bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-150 text-sm font-medium;
+  }
+
+  .tab-btn[aria-selected="true"] {
+    @apply shadow-sm bg-white/80 dark:bg-gray-700 text-gray-600 dark:text-gray-200;
   }
 
   /* Breadcrumbs */

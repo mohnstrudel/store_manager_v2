@@ -15,6 +15,8 @@ module Sale::Listing
         :customer,
         :shopify_info,
         :woo_info,
+        :shipping_address,
+        :billing_address,
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
           {purchase_items: [:warehouse, purchase: :supplier]},
@@ -27,6 +29,8 @@ module Sale::Listing
       includes(
         :shopify_info,
         :woo_info,
+        :shipping_address,
+        :billing_address,
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
           {purchase_items: [:warehouse, purchase: :supplier]}

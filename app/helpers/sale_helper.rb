@@ -2,17 +2,29 @@
 
 module SaleHelper
   def sale_summary_for_warehouse(sale)
-    [sale.customer.full_name, sale.address_1, sale.address_2, sale.postcode, sale.city, sale.country, sale.customer.phone].compact_blank.join(", ")
+    address = sale.shipping_address
+
+    [
+      sale.customer.full_name,
+      address&.address_1,
+      address&.address_2,
+      address&.postcode,
+      address&.city,
+      address&.country,
+      address&.phone.presence || sale.customer.phone
+    ].compact_blank.join(", ")
   end
 
   def sale_address_for_clipboard(sale)
+    address = sale.shipping_address
+
     [
       sale.customer.full_name,
-      sale.address_2,
-      sale.address_1,
-      [sale.postcode, sale.city].compact_blank.join(" ").presence,
-      sale.country,
-      sale.customer.phone
+      address&.address_2,
+      address&.address_1,
+      [address&.postcode, address&.city].compact_blank.join(" ").presence,
+      address&.country,
+      address&.phone.presence || sale.customer.phone
     ].compact_blank.join("\n")
   end
 

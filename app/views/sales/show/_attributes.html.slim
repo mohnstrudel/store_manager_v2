@@ -1,6 +1,6 @@
 .cards.items-start
   .card.w-2/3
-    h5 Status
+    h5 E-Commerce Order Status
     p = sale.status&.titleize
     h5 Email
     p = safe_blank_render sale.customer.email
@@ -18,27 +18,63 @@
     h5 Shipping
     p.fit.font-mono = format_money sale.shipping_total
 
-  .card.w-1/3
-    h5 Address 1
-    p = safe_blank_render sale.address_1
-    - if sale.address_2.present?
-      h5 Address 2
-      p = safe_blank_render sale.address_2
-    h5 City
-    p = safe_blank_render sale.city
-    - if sale.company.present?
-      h5 Company
-      p = safe_blank_render sale.company
-    h5 Country
-    p = safe_blank_render sale.country
-    h5 Phone
-    p = safe_blank_render sale.customer.phone
-    h5 Postcode
-    p = safe_blank_render sale.postcode
-    - if sale.state.present?
-      h5 State
-      p = safe_blank_render sale.state
+  .card.w-1/3 data-controller="tabs"
+    .tab-bar
+      button.tab-btn type="button" aria-selected="true" data-tabs-target="tab" data-action="tabs#show" data-tab-panel="shipping" Shipping
+      button.tab-btn type="button" aria-selected="false" data-tabs-target="tab" data-action="tabs#show" data-tab-panel="billing"
+        | Billing
+        - if sale.billing_differs_from_shipping?
+          span.text-yellow-600.text-xl.leading-0 *
 
+    - shipping = sale.shipping_address
+    div data-tabs-target="panel" data-panel-name="shipping"
+      - if shipping
+        h5 Address 1
+        p = safe_blank_render shipping.address_1
+        - if shipping.address_2.present?
+          h5 Address 2
+          p = safe_blank_render shipping.address_2
+        h5 City
+        p = safe_blank_render shipping.city
+        - if shipping.company.present?
+          h5 Company
+          p = safe_blank_render shipping.company
+        h5 Country
+        p = safe_blank_render shipping.country
+        h5 Phone
+        p = safe_blank_render shipping.phone
+        h5 Postcode
+        p = safe_blank_render shipping.postcode
+        - if shipping.state.present?
+          h5 State
+          p = safe_blank_render shipping.state
+      - else
+        p.my-6.text-center.text-gray-400.dark:text-gray-500 No shipping address
+
+    - billing = sale.billing_address
+    div.hidden data-tabs-target="panel" data-panel-name="billing"
+      - if billing
+        h5 Address 1
+        p = safe_blank_render billing.address_1
+        - if billing.address_2.present?
+          h5 Address 2
+          p = safe_blank_render billing.address_2
+        h5 City
+        p = safe_blank_render billing.city
+        - if billing.company.present?
+          h5 Company
+          p = safe_blank_render billing.company
+        h5 Country
+        p = safe_blank_render billing.country
+        h5 Phone
+        p = safe_blank_render billing.phone
+        h5 Postcode
+        p = safe_blank_render billing.postcode
+        - if billing.state.present?
+          h5 State
+          p = safe_blank_render billing.state
+      - else
+        p.my-6.text-center.text-gray-400.dark:text-gray-500 No billing address
 
   .card
     h5 ID

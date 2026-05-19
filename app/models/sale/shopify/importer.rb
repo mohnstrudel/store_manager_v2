@@ -22,6 +22,7 @@ class Sale::Shopify::Importer
     ActiveRecord::Base.transaction do
       sale.update!(sale_attributes)
       sale.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
+      update_addresses!
       update_or_create_sale_items!
     end
 
@@ -38,7 +39,19 @@ class Sale::Shopify::Importer
   end
 
   def sale_attributes
-    parsed[:sale].merge(customer: Customer::Shopify::Importer.import!(parsed[:customer]))
+    parsed[:sale]
+      .slice(*Sale.attribute_names.map(&:to_sym))
+      .merge(customer: Customer::Shopify::Importer.import!(parsed[:customer]))
+  end
+
+  def address_attributes
+    (parsed[:addresses] || {}).reverse_merge(shipping: nil, billing: nil)
+  end
+
+  def update_addresses!
+    return unless parsed.key?(:addresses)
+
+    sale.upsert_addresses!(**address_attributes)
   end
 
   def update_or_create_sale_items!

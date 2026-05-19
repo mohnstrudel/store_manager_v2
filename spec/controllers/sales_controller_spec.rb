@@ -133,10 +133,12 @@ RSpec.describe SalesController do
           customer_id: create(:customer).id,
           total: 100,
           status: "processing",
-          address_1: "123 Test St",
-          city: "Test City",
-          country: "US",
-          postcode: "12345"
+          shipping_address: {
+            address_1: "123 Test St",
+            city: "Test City",
+            country: "US",
+            postcode: "12345"
+          }
         }
       end
 

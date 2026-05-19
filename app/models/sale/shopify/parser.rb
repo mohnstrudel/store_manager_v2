@@ -16,12 +16,14 @@ class Sale::Shopify::Parser
 
   def parse
     parse_sale_attributes
+    parse_addresses
     parse_store_info
     parse_customer
     parse_sale_items
 
     {
       sale: @sale,
+      addresses: @addresses,
       store_info: @store_info,
       sale_items: @sale_items,
       customer: @customer
@@ -32,28 +34,45 @@ class Sale::Shopify::Parser
 
   def parse_sale_attributes
     @sale = {
-      address_1: @order.dig("shippingAddress", "address1"),
-      address_2: @order.dig("shippingAddress", "address2"),
       cancel_reason: @order["cancelReason"],
       cancelled_at: parse_datetime(@order["cancelledAt"]),
-      city: @order.dig("shippingAddress", "city"),
       closed: @order["closed"],
       closed_at: parse_datetime(@order["closedAt"]),
-      company: @order.dig("shippingAddress", "company"),
       confirmed: @order["confirmed"],
-      country: @order.dig("shippingAddress", "country"),
       discount_total: money_amount(@order["totalDiscountsSet"]),
       financial_status: @order["displayFinancialStatus"],
       fulfillment_status: @order["displayFulfillmentStatus"],
       shopify_name: @order["name"],
       note: @order["note"],
-      postcode: @order.dig("shippingAddress", "zip"),
       return_status: @order["returnStatus"],
       shipping_total: money_amount(@order["totalShippingPriceSet"]),
       shopify_created_at: parse_datetime(@order["createdAt"]),
       status: derive_status,
       total: money_amount(@order["totalPriceSet"])
     }
+  end
+
+  def parse_addresses
+    @addresses = {
+      shipping: address_attributes("shippingAddress"),
+      billing: address_attributes("billingAddress", email: find_customer_email)
+    }
+  end
+
+  def address_attributes(key, email: nil)
+    {
+      first_name: @order.dig(key, "firstName"),
+      last_name: @order.dig(key, "lastName"),
+      email:,
+      phone: @order.dig(key, "phone"),
+      company: @order.dig(key, "company"),
+      address_1: @order.dig(key, "address1"),
+      address_2: @order.dig(key, "address2"),
+      city: @order.dig(key, "city"),
+      state: @order.dig(key, "provinceCode") || @order.dig(key, "province"),
+      postcode: @order.dig(key, "zip"),
+      country: @order.dig(key, "country")
+    }.compact_blank
   end
 
   def parse_store_info
@@ -88,6 +107,7 @@ class Sale::Shopify::Parser
   def find_customer_phone
     @order.dig("customer", "defaultPhoneNumber", "phoneNumber") ||
       @order["phone"] ||
+      @order.dig("billingAddress", "phone") ||
       @order.dig("shippingAddress", "phone")
   end
 

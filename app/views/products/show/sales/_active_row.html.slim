@@ -17,7 +17,7 @@ tr(
     br
     = sale_item.sale.customer.email
     br
-    = sale_item.sale.country
+    = sale_item.sale.shipping_address&.country
   td = format_date sale_item.sale.woo_created_at.presence || sale_item.created_at
   - if product.variants.any?
     td = sale_item.variant&.title || "-"

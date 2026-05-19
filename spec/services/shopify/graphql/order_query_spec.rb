@@ -58,9 +58,11 @@ RSpec.describe Shopify::Graphql::OrderQuery do
 
     it "includes shipping address fields" do
       expect(described_class::SALE_FIELDS).to include("shippingAddress")
+      expect(described_class::SALE_FIELDS).to include("billingAddress")
       expect(described_class::SALE_FIELDS).to include("address1")
       expect(described_class::SALE_FIELDS).to include("city")
       expect(described_class::SALE_FIELDS).to include("zip")
+      expect(described_class::SALE_FIELDS).to include("provinceCode")
     end
 
     it "includes line items fields" do

@@ -88,6 +88,20 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(sale.shopify_info.store_id).to eq(valid_parsed_order[:sale][:shopify_id])
         expect(customer.shopify_info.store_id).to eq(valid_parsed_order[:customer][:store_info][:store_id])
       end
+
+      it "persists shipping and billing addresses" do
+        parsed_order = valid_parsed_order.deep_dup.merge(
+          addresses: {
+            shipping: {address_1: "Shipping St", city: "Berlin", country: "DE"},
+            billing: {address_1: "Billing St", city: "Munich", country: "DE"}
+          }
+        )
+
+        sale = import_order(parsed_order)
+
+        expect(sale.shipping_address).to have_attributes(address_1: "Shipping St", city: "Berlin")
+        expect(sale.billing_address).to have_attributes(address_1: "Billing St", city: "Munich")
+      end
     end
 
     context "when store_info timestamps are updated" do
@@ -107,6 +121,31 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
         sale = Sale.last
         expect(sale.shopify_info.ext_created_at).not_to eq(original_created_at)
+      end
+
+      it "updates existing address snapshots" do
+        described_class.import!(
+          valid_parsed_order.deep_dup.merge(
+            addresses: {
+              shipping: {address_1: "Old Shipping St", city: "Berlin"},
+              billing: {address_1: "Old Billing St", city: "Munich"}
+            }
+          )
+        )
+
+        described_class.import!(
+          valid_parsed_order.deep_dup.merge(
+            addresses: {
+              shipping: {address_1: "New Shipping St", city: "Hamburg"},
+              billing: {address_1: "New Billing St", city: "Cologne"}
+            }
+          )
+        )
+
+        sale = Sale.last
+        expect(sale.addresses.count).to eq(2)
+        expect(sale.shipping_address).to have_attributes(address_1: "New Shipping St", city: "Hamburg")
+        expect(sale.billing_address).to have_attributes(address_1: "New Billing St", city: "Cologne")
       end
     end
 

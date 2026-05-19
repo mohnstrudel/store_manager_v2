@@ -3,24 +3,26 @@
 module Sale::Editing
   extend ActiveSupport::Concern
 
-  def create_from_form!(attributes: nil, sale_item_attributes: [], **raw_attributes)
+  def create_from_form!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
     attributes = normalize_form_attributes(attributes, raw_attributes)
 
     transaction do
       assign_attributes(attributes)
       save!
+      upsert_addresses!(shipping: shipping_address, billing: billing_address)
       apply_sale_item_attributes!(sale_item_attributes)
       link_purchase_items!
     end
   end
 
-  def apply_form_changes!(attributes: nil, sale_item_attributes: [], **raw_attributes)
+  def apply_form_changes!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
     attributes = normalize_form_attributes(attributes, raw_attributes)
 
     transaction do
       assign_attributes(attributes.merge(slug: nil))
       status_changed = will_save_change_to_status?
       save!
+      upsert_addresses!(shipping: shipping_address, billing: billing_address)
       apply_sale_item_attributes!(sale_item_attributes)
       sync_status_change_to_shop! if status_changed
       link_purchase_items!

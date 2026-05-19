@@ -61,11 +61,28 @@ module Shopify
           updatedAt
         }
         shippingAddress {
+          firstName
+          lastName
           address1
           address2
           city
           company
           country
+          province
+          provinceCode
+          zip
+          phone
+        }
+        billingAddress {
+          firstName
+          lastName
+          address1
+          address2
+          city
+          company
+          country
+          province
+          provinceCode
           zip
           phone
         }
