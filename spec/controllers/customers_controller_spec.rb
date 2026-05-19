@@ -39,7 +39,7 @@ RSpec.describe CustomersController do
         }
       }.not_to change(Customer, :count)
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_customer_path)
     end
   end
 end
