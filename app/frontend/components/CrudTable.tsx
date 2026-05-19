@@ -1,6 +1,22 @@
-import { router } from "@inertiajs/react";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+  type Row,
+  type RowData,
+} from "@tanstack/react-table";
 import type { KeyboardEvent, ReactNode } from "react";
+import { router } from "@inertiajs/react";
 import Link from "@/components/Link";
+
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string;
+    isActions?: boolean;
+  }
+}
 
 type CrudTableColumn<T> = {
   header: string;
@@ -14,7 +30,7 @@ type CrudTableAction<T> = {
   label: string;
 };
 
-type CrudTableProps<T> = {
+type CrudTableProps<T extends object> = {
   actions?: CrudTableAction<T>[];
   columns: CrudTableColumn<T>[];
   rowHref?: (row: T) => string;
@@ -23,7 +39,7 @@ type CrudTableProps<T> = {
   rows: T[];
 };
 
-export default function CrudTable<T>({
+export default function CrudTable<T extends object>({
   actions = [],
   columns,
   rowClassName,
@@ -31,9 +47,44 @@ export default function CrudTable<T>({
   rowKey,
   rows,
 }: CrudTableProps<T>) {
+  const tanstackColumns: ColumnDef<T>[] = [
+    ...columns.map<ColumnDef<T>>((col) => ({
+      id: col.header,
+      header: col.header,
+      cell: ({ row }: { row: Row<T> }) => col.render(row.original),
+      meta: { className: col.className },
+    })),
+    ...(actions.length > 0
+      ? [
+          {
+            id: "__actions__",
+            header: "Actions",
+            cell: ({ row }: { row: Row<T> }) =>
+              actions.map((action) => (
+                <Link
+                  href={action.href(row.original)}
+                  key={action.label}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {action.icon}
+                  {action.label}
+                </Link>
+              )),
+            meta: { className: "text-right", isActions: true },
+          } as ColumnDef<T>,
+        ]
+      : []),
+  ];
+
+  const table = useReactTable({
+    data: rows,
+    columns: tanstackColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => String(rowKey(row)),
+  });
+
   function visitRow(row: T) {
     if (!rowHref) return;
-
     router.visit(rowHref(row));
   }
 
@@ -48,43 +99,37 @@ export default function CrudTable<T>({
   return (
     <table role="grid">
       <thead>
-        <tr>
-          {columns.map((column) => (
-            <th className={column.className} key={column.header}>
-              {column.header}
-            </th>
-          ))}
-          {actions.length > 0 ? <th className="text-right">Actions</th> : null}
-        </tr>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <th className={header.column.columnDef.meta?.className} key={header.id}>
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </th>
+            ))}
+          </tr>
+        ))}
       </thead>
       <tbody>
-        {rows.map((row) => (
+        {table.getRowModel().rows.map((row) => (
           <tr
-            className={rowClassName?.(row)}
-            key={rowKey(row)}
-            onClick={() => visitRow(row)}
-            onKeyDown={(event) => handleRowKeyDown(row, event)}
+            className={rowClassName?.(row.original)}
+            key={row.id}
+            onClick={() => visitRow(row.original)}
+            onKeyDown={(event) => handleRowKeyDown(row.original, event)}
             tabIndex={rowHref ? 0 : undefined}
           >
-            {columns.map((column) => (
-              <td className={column.className} key={column.header}>
-                {column.render(row)}
+            {row.getVisibleCells().map((cell) => (
+              <td
+                className={
+                  cell.column.columnDef.meta?.isActions
+                    ? "actions"
+                    : cell.column.columnDef.meta?.className
+                }
+                key={cell.id}
+              >
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>
             ))}
-            {actions.length > 0 ? (
-              <td className="actions">
-                {actions.map((action) => (
-                  <Link
-                    href={action.href(row)}
-                    key={action.label}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    {action.icon}
-                    {action.label}
-                  </Link>
-                ))}
-              </td>
-            ) : null}
           </tr>
         ))}
       </tbody>

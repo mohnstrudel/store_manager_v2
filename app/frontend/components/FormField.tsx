@@ -4,7 +4,7 @@ type FormFieldProps = {
   name: string;
   namespace: string;
   onChange: (value: string) => void;
-  type?: "text" | "url";
+  type?: "text" | "url" | "email";
   value: string;
 };
 
