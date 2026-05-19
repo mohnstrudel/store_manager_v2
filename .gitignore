@@ -54,6 +54,7 @@ opencode.json
 *.local
 
 # pnpm — lock file is committed; npm lock file must not be
+node_modules/
 package-lock.json
 
 # Claude Code local state — not version-controlled
