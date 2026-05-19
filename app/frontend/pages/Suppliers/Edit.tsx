@@ -1,31 +1,31 @@
 import ErrorNotice from "@/components/ErrorNotice";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { SupplierErrors, SupplierRecord } from "./types";
 
 type EditProps = {
-  errors: SupplierErrors;
+  errors?: SupplierErrors;
   supplier: SupplierRecord;
 };
 
-export default function Edit({ errors, supplier }: EditProps) {
+export default function Edit({ errors = {}, supplier }: EditProps) {
   return (
     <>
       <ErrorNotice errors={errors} />
 
-      <header className="nav_header mb-8">
-        <div className="flex gap-4">
-          <h1>Edit Supplier</h1>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/suppliers/${supplier.id}`}>
               <i className="icn">📄</i>
               View Supplier Page
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        className="mb-8"
+        title="Edit Supplier"
+      />
 
       <Form
         errors={errors}

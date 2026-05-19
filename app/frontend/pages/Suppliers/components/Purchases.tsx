@@ -12,7 +12,11 @@ export default function Purchases({ purchases }: PurchasesProps) {
     { header: "Title", render: (purchase: PurchaseRecord) => purchase.title },
     { header: "Variant", render: (purchase: PurchaseRecord) => purchase.variant },
     { header: "Purchased ago", render: (purchase: PurchaseRecord) => purchase.purchased_ago },
-    { header: "Item Price, $", render: (purchase: PurchaseRecord) => purchase.item_price, className: "text-right" },
+    {
+      header: "Item Price, $",
+      render: (purchase: PurchaseRecord) => purchase.item_price,
+      className: "text-right",
+    },
     { header: "Qty", render: (purchase: PurchaseRecord) => purchase.amount },
     { header: "Debt", render: (purchase: PurchaseRecord) => purchase.debt },
   ];

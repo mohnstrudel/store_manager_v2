@@ -1,22 +1,19 @@
 import ErrorNotice from "@/components/ErrorNotice";
+import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { ShippingCompanyErrors, ShippingCompanyRecord } from "./types";
 
 type NewProps = {
-  errors: ShippingCompanyErrors;
+  errors?: ShippingCompanyErrors;
   shippingCompany: ShippingCompanyRecord;
 };
 
-export default function New({ errors, shippingCompany }: NewProps) {
+export default function New({ errors = {}, shippingCompany }: NewProps) {
   return (
     <>
       <ErrorNotice errors={errors} />
 
-      <header className="nav_header mb-8">
-        <div className="flex gap-4">
-          <h1>New Shipping Company</h1>
-        </div>
-      </header>
+      <PageHeader className="mb-8" title="New Shipping Company" />
 
       <Form
         errors={errors}

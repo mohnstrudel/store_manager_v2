@@ -7,13 +7,13 @@ import { ColorErrors, ColorRecord } from "../types";
 
 type ColorFormProps = {
   color: ColorRecord;
-  errors: ColorErrors;
+  errors?: ColorErrors;
   method: "post" | "patch";
   submitLabel: string;
   url: string;
 };
 
-export default function Form({ color, errors, method, submitLabel, url }: ColorFormProps) {
+export default function Form({ color, errors = {}, method, submitLabel, url }: ColorFormProps) {
   const { data, patch, post, processing, setData } = useForm({
     color: {
       value: color.value,
@@ -33,7 +33,12 @@ export default function Form({ color, errors, method, submitLabel, url }: ColorF
   return (
     <>
       <ErrorNotice errors={errors} />
-      <ResourceForm cancelHref="/colors" onSubmit={submit} submitDisabled={processing} submitLabel={submitLabel}>
+      <ResourceForm
+        cancelHref="/colors"
+        onSubmit={submit}
+        submitDisabled={processing}
+        submitLabel={submitLabel}
+      >
         <FormField
           error={errors.value}
           label="Value"

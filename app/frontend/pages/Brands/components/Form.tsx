@@ -7,13 +7,13 @@ import { BrandErrors, BrandRecord } from "../types";
 
 type BrandFormProps = {
   brand: BrandRecord;
-  errors: BrandErrors;
+  errors?: BrandErrors;
   method: "post" | "patch";
   submitLabel: string;
   url: string;
 };
 
-export default function Form({ brand, errors, method, submitLabel, url }: BrandFormProps) {
+export default function Form({ brand, errors = {}, method, submitLabel, url }: BrandFormProps) {
   const { data, patch, post, processing, setData } = useForm({
     brand: {
       title: brand.title,
@@ -33,7 +33,12 @@ export default function Form({ brand, errors, method, submitLabel, url }: BrandF
   return (
     <>
       <ErrorNotice errors={errors} />
-      <ResourceForm cancelHref="/brands" onSubmit={submit} submitDisabled={processing} submitLabel={submitLabel}>
+      <ResourceForm
+        cancelHref="/brands"
+        onSubmit={submit}
+        submitDisabled={processing}
+        submitLabel={submitLabel}
+      >
         <FormField
           error={errors.title}
           label="Title"

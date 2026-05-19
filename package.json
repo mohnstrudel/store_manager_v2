@@ -4,7 +4,12 @@
   "packageManager": "pnpm@11.1.3",
   "scripts": {
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint app/frontend",
+    "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint app/frontend --fix",
+    "format": "prettier --write app/frontend .eslintrc.cjs .prettierrc config/vite.json package.json tsconfig.json vite.config.ts",
+    "format:check": "prettier --check app/frontend .eslintrc.cjs .prettierrc config/vite.json package.json tsconfig.json vite.config.ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -13,8 +18,14 @@
     "@types/node": "^25.9.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
+    "@typescript-eslint/parser": "^8.59.3",
     "@vitejs/plugin-react": "^6.0.2",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^29.1.1",
+    "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "vite": "^8.0.13",
     "vite-plugin-ruby": "^5.2.2",

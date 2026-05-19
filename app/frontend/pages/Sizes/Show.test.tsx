@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import Show from "./Show";
 
 vi.mock("@/components/Link", () => ({
-  default: ({ children, href }: { children: ReactNode; href: string }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock("@inertiajs/react", () => ({
@@ -24,7 +26,12 @@ describe("Sizes/Show", () => {
     render(
       <Show
         products={[{ id: 10, full_title: "Studio Ghibli — Spirited Away", path: "/products/10" }]}
-        size={{ id: 1, value: "1:6", created_at: "19. May '26 16:18", updated_at: "19. May '26 16:18" }}
+        size={{
+          id: 1,
+          value: "1:6",
+          created_at: "19. May '26 16:18",
+          updated_at: "19. May '26 16:18",
+        }}
       />,
     );
 

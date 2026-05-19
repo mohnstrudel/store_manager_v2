@@ -32,7 +32,10 @@ export default function FormField({
         value={value}
       />
       {error.length > 0 ? (
-        <p className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300" id={`${inputId}_error`}>
+        <p
+          className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300"
+          id={`${inputId}_error`}
+        >
           {error.join(", ")}
         </p>
       ) : null}

@@ -6,14 +6,14 @@ import ResourceForm from "@/components/ResourceForm";
 import { VersionErrors, VersionRecord } from "../types";
 
 type VersionFormProps = {
-  errors: VersionErrors;
+  errors?: VersionErrors;
   method: "post" | "patch";
   submitLabel: string;
   url: string;
   version: VersionRecord;
 };
 
-export default function Form({ errors, method, submitLabel, url, version }: VersionFormProps) {
+export default function Form({ errors = {}, method, submitLabel, url, version }: VersionFormProps) {
   const { data, patch, post, processing, setData } = useForm({
     version: {
       value: version.value,
@@ -33,7 +33,12 @@ export default function Form({ errors, method, submitLabel, url, version }: Vers
   return (
     <>
       <ErrorNotice errors={errors} />
-      <ResourceForm cancelHref="/versions" onSubmit={submit} submitDisabled={processing} submitLabel={submitLabel}>
+      <ResourceForm
+        cancelHref="/versions"
+        onSubmit={submit}
+        submitDisabled={processing}
+        submitLabel={submitLabel}
+      >
         <FormField
           error={errors.value}
           label="Value"

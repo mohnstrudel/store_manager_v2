@@ -6,14 +6,20 @@ import ResourceForm from "@/components/ResourceForm";
 import { SupplierErrors, SupplierRecord } from "../types";
 
 type SupplierFormProps = {
-  errors: SupplierErrors;
+  errors?: SupplierErrors;
   method: "post" | "patch";
   submitLabel: string;
   supplier: SupplierRecord;
   url: string;
 };
 
-export default function Form({ errors, method, submitLabel, supplier, url }: SupplierFormProps) {
+export default function Form({
+  errors = {},
+  method,
+  submitLabel,
+  supplier,
+  url,
+}: SupplierFormProps) {
   const { data, patch, post, processing, setData } = useForm({
     supplier: {
       title: supplier.title,
@@ -33,7 +39,12 @@ export default function Form({ errors, method, submitLabel, supplier, url }: Sup
   return (
     <>
       <ErrorNotice errors={errors} />
-      <ResourceForm cancelHref="/suppliers" onSubmit={submit} submitDisabled={processing} submitLabel={submitLabel}>
+      <ResourceForm
+        cancelHref="/suppliers"
+        onSubmit={submit}
+        submitDisabled={processing}
+        submitLabel={submitLabel}
+      >
         <FormField
           error={errors.title}
           label="Title"

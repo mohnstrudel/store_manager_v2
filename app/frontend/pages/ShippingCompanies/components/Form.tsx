@@ -6,7 +6,7 @@ import ResourceForm from "@/components/ResourceForm";
 import { ShippingCompanyErrors, ShippingCompanyRecord } from "../types";
 
 type ShippingCompanyFormProps = {
-  errors: ShippingCompanyErrors;
+  errors?: ShippingCompanyErrors;
   method: "post" | "patch";
   submitLabel: string;
   shippingCompany: ShippingCompanyRecord;
@@ -14,7 +14,7 @@ type ShippingCompanyFormProps = {
 };
 
 export default function Form({
-  errors,
+  errors = {},
   method,
   submitLabel,
   shippingCompany,
@@ -40,7 +40,12 @@ export default function Form({
   return (
     <>
       <ErrorNotice errors={errors} />
-      <ResourceForm cancelHref="/shipping_companies" onSubmit={submit} submitDisabled={processing} submitLabel={submitLabel}>
+      <ResourceForm
+        cancelHref="/shipping_companies"
+        onSubmit={submit}
+        submitDisabled={processing}
+        submitLabel={submitLabel}
+      >
         <FormField
           error={errors.name}
           label="Name"

@@ -3,7 +3,9 @@ type ErrorNoticeProps = {
 };
 
 export default function ErrorNotice({ errors }: ErrorNoticeProps) {
-  const messages = Object.entries(errors).filter(([, attributeMessages]) => attributeMessages?.length);
+  const messages = Object.entries(errors).filter(
+    ([, attributeMessages]) => attributeMessages?.length,
+  );
 
   if (messages.length === 0) return null;
 

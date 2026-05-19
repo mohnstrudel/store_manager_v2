@@ -23,7 +23,12 @@ export default function Details({ shippingCompany }: DetailsProps) {
             <td>{shippingCompany.name}</td>
             <td>
               {shippingCompany.tracking_url ? (
-                <a className="link" href={shippingCompany.tracking_url} rel="noopener" target="_blank">
+                <a
+                  className="link"
+                  href={shippingCompany.tracking_url}
+                  rel="noopener"
+                  target="_blank"
+                >
                   {shippingCompany.tracking_url}
                 </a>
               ) : (

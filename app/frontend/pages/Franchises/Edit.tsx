@@ -1,31 +1,31 @@
 import ErrorNotice from "@/components/ErrorNotice";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { FranchiseErrors, FranchiseRecord } from "./types";
 
 type EditProps = {
-  errors: FranchiseErrors;
+  errors?: FranchiseErrors;
   franchise: FranchiseRecord;
 };
 
-export default function Edit({ errors, franchise }: EditProps) {
+export default function Edit({ errors = {}, franchise }: EditProps) {
   return (
     <>
       <ErrorNotice errors={errors} />
 
-      <header className="nav_header mb-8">
-        <div className="flex gap-4">
-          <h1>Edit Franchise</h1>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/franchises/${franchise.id}`}>
               <i className="icn">📄</i>
               View Franchise Page
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        className="mb-8"
+        title="Edit Franchise"
+      />
 
       <Form
         errors={errors}

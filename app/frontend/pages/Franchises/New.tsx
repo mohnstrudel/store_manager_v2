@@ -1,24 +1,27 @@
 import ErrorNotice from "@/components/ErrorNotice";
+import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { FranchiseErrors, FranchiseRecord } from "./types";
 
 type NewProps = {
-  errors: FranchiseErrors;
+  errors?: FranchiseErrors;
   franchise: FranchiseRecord;
 };
 
-export default function New({ errors, franchise }: NewProps) {
+export default function New({ errors = {}, franchise }: NewProps) {
   return (
     <>
       <ErrorNotice errors={errors} />
 
-      <header className="nav_header mb-8">
-        <div className="flex gap-4">
-          <h1>New Franchise</h1>
-        </div>
-      </header>
+      <PageHeader className="mb-8" title="New Franchise" />
 
-      <Form errors={errors} franchise={franchise} method="post" submitLabel="Create Franchise" url="/franchises" />
+      <Form
+        errors={errors}
+        franchise={franchise}
+        method="post"
+        submitLabel="Create Franchise"
+        url="/franchises"
+      />
     </>
   );
 }

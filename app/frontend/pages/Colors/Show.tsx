@@ -2,6 +2,7 @@ import { router } from "@inertiajs/react";
 import Button from "@/components/Button";
 import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Details from "./components/Details";
 import Products from "./components/Products";
 import { ColorRecord, ProductRecord } from "./types";
@@ -22,22 +23,18 @@ export default function Show({ color, products }: ShowProps) {
     <>
       <FlashMessages />
 
-      <header className="nav_header">
-        <div className="flex gap-4">
-          <hgroup>
-            <h1>{color.value}</h1>
-            <h4>Color {color.id}</h4>
-          </hgroup>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/colors/${color.id}/edit`}>
               <i className="icn">✏</i>
               Edit
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        subtitle={`Color ${color.id}`}
+        title={color.value}
+      />
 
       <div className="section-wide flex flex-col gap-8 mt-8">
         <Details color={color} />

@@ -1,33 +1,39 @@
 import ErrorNotice from "@/components/ErrorNotice";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { BrandErrors, BrandRecord } from "./types";
 
 type EditProps = {
   brand: BrandRecord;
-  errors: BrandErrors;
+  errors?: BrandErrors;
 };
 
-export default function Edit({ brand, errors }: EditProps) {
+export default function Edit({ brand, errors = {} }: EditProps) {
   return (
     <>
       <ErrorNotice errors={errors} />
 
-      <header className="nav_header mb-8">
-        <div className="flex gap-4">
-          <h1>Edit Brand</h1>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/brands/${brand.id}`}>
               <i className="icn">📄</i>
               View Brand Page
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        className="mb-8"
+        title="Edit Brand"
+      />
 
-      <Form brand={brand} errors={errors} method="patch" submitLabel="Update Brand" url={`/brands/${brand.id}`} />
+      <Form
+        brand={brand}
+        errors={errors}
+        method="patch"
+        submitLabel="Update Brand"
+        url={`/brands/${brand.id}`}
+      />
     </>
   );
 }

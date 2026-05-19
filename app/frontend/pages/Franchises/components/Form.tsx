@@ -6,14 +6,20 @@ import ResourceForm from "@/components/ResourceForm";
 import { FranchiseErrors, FranchiseRecord } from "../types";
 
 type FranchiseFormProps = {
-  errors: FranchiseErrors;
+  errors?: FranchiseErrors;
   franchise: FranchiseRecord;
   method: "post" | "patch";
   submitLabel: string;
   url: string;
 };
 
-export default function Form({ errors, franchise, method, submitLabel, url }: FranchiseFormProps) {
+export default function Form({
+  errors = {},
+  franchise,
+  method,
+  submitLabel,
+  url,
+}: FranchiseFormProps) {
   const { data, patch, post, processing, setData } = useForm({
     franchise: {
       title: franchise.title,
@@ -33,7 +39,12 @@ export default function Form({ errors, franchise, method, submitLabel, url }: Fr
   return (
     <>
       <ErrorNotice errors={errors} />
-      <ResourceForm cancelHref="/franchises" onSubmit={submit} submitDisabled={processing} submitLabel={submitLabel}>
+      <ResourceForm
+        cancelHref="/franchises"
+        onSubmit={submit}
+        submitDisabled={processing}
+        submitLabel={submitLabel}
+      >
         <FormField
           error={errors.title}
           label="Title"

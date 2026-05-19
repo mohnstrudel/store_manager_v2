@@ -26,8 +26,14 @@ export default function Table({ shippingCompanies }: TableProps) {
           ""
         ),
     },
-    { header: "Created", render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.created_at },
-    { header: "Updated", render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.updated_at },
+    {
+      header: "Created",
+      render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.created_at,
+    },
+    {
+      header: "Updated",
+      render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.updated_at,
+    },
   ];
 
   const actions = [
@@ -37,7 +43,8 @@ export default function Table({ shippingCompanies }: TableProps) {
       label: "Show",
     },
     {
-      href: (shippingCompany: ShippingCompanyRecord) => `/shipping_companies/${shippingCompany.id}/edit`,
+      href: (shippingCompany: ShippingCompanyRecord) =>
+        `/shipping_companies/${shippingCompany.id}/edit`,
       icon: <i className="icn">✏</i>,
       label: "Edit",
     },

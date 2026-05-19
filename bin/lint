@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+set -e
+
+ESLINT_USE_FLAT_CONFIG=false pnpm lint
+pnpm format:check
+pnpm typecheck

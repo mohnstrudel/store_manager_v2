@@ -2,6 +2,7 @@ import { router } from "@inertiajs/react";
 import Button from "@/components/Button";
 import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Details from "./components/Details";
 import Products from "./components/Products";
 import { FranchiseRecord, ProductRecord } from "./types";
@@ -22,22 +23,18 @@ export default function Show({ franchise, products }: ShowProps) {
     <>
       <FlashMessages />
 
-      <header className="nav_header">
-        <div className="flex gap-4">
-          <hgroup>
-            <h1>{franchise.title}</h1>
-            <h4>Franchise {franchise.id}</h4>
-          </hgroup>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/franchises/${franchise.id}/edit`}>
               <i className="icn">✏</i>
               Edit
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        subtitle={`Franchise ${franchise.id}`}
+        title={franchise.title}
+      />
 
       <div className="section-wide flex flex-col gap-8 mt-8">
         <Details franchise={franchise} />

@@ -5,14 +5,14 @@ import ResourceForm from "@/components/ResourceForm";
 import { SizeErrors, SizeRecord } from "../types";
 
 type SizeFormProps = {
-  errors: SizeErrors;
+  errors?: SizeErrors;
   method: "post" | "patch";
   size: SizeRecord;
   submitLabel: string;
   url: string;
 };
 
-export default function Form({ errors, method, size, submitLabel, url }: SizeFormProps) {
+export default function Form({ errors = {}, method, size, submitLabel, url }: SizeFormProps) {
   const { data, patch, post, processing, setData } = useForm({
     size: {
       value: size.value,
@@ -30,7 +30,12 @@ export default function Form({ errors, method, size, submitLabel, url }: SizeFor
   }
 
   return (
-    <ResourceForm cancelHref="/sizes" onSubmit={submit} submitDisabled={processing} submitLabel={submitLabel}>
+    <ResourceForm
+      cancelHref="/sizes"
+      onSubmit={submit}
+      submitDisabled={processing}
+      submitLabel={submitLabel}
+    >
       <FormField
         error={errors.value}
         label="Value"

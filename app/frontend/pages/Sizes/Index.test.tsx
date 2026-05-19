@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import Index from "./Index";
 
 vi.mock("@/components/Link", () => ({
-  default: ({ children, href }: { children: ReactNode; href: string }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock("@inertiajs/react", () => ({
@@ -27,7 +29,10 @@ describe("Sizes/Index", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Sizes" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Add New Record/ })).toHaveAttribute("href", "/sizes/new");
+    expect(screen.getByRole("link", { name: /Add New Record/ })).toHaveAttribute(
+      "href",
+      "/sizes/new",
+    );
     expect(screen.getByRole("cell", { name: "1:6" })).toBeInTheDocument();
   });
 });

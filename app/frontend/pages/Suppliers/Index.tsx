@@ -1,5 +1,6 @@
 import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Table from "./components/Table";
 import { SupplierRecord } from "./types";
 
@@ -12,19 +13,17 @@ export default function Index({ suppliers }: IndexProps) {
     <>
       <FlashMessages />
 
-      <header className="nav_header">
-        <hgroup>
-          <h1>Suppliers</h1>
-        </hgroup>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href="/suppliers/new">
               <i className="icn">🐣</i>
               Add New Record
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        title="Suppliers"
+      />
 
       <div className="section-border-base section-wide">
         <Table suppliers={suppliers} />

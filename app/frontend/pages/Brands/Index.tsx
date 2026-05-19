@@ -1,5 +1,6 @@
 import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Table from "./components/Table";
 import { BrandRecord } from "./types";
 
@@ -12,19 +13,17 @@ export default function Index({ brands }: IndexProps) {
     <>
       <FlashMessages />
 
-      <header className="nav_header">
-        <hgroup>
-          <h1>Brands</h1>
-        </hgroup>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href="/brands/new">
               <i className="icn">🐣</i>
               Add New Record
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        title="Brands"
+      />
 
       <div className="section-border-base section-wide">
         <Table brands={brands} />

@@ -1,33 +1,39 @@
 import ErrorNotice from "@/components/ErrorNotice";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { ColorErrors, ColorRecord } from "./types";
 
 type EditProps = {
   color: ColorRecord;
-  errors: ColorErrors;
+  errors?: ColorErrors;
 };
 
-export default function Edit({ color, errors }: EditProps) {
+export default function Edit({ color, errors = {} }: EditProps) {
   return (
     <>
       <ErrorNotice errors={errors} />
 
-      <header className="nav_header mb-8">
-        <div className="flex gap-4">
-          <h1>Edit Color</h1>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/colors/${color.id}`}>
               <i className="icn">📄</i>
               View Color Page
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        className="mb-8"
+        title="Edit Color"
+      />
 
-      <Form color={color} errors={errors} method="patch" submitLabel="Update Color" url={`/colors/${color.id}`} />
+      <Form
+        color={color}
+        errors={errors}
+        method="patch"
+        submitLabel="Update Color"
+        url={`/colors/${color.id}`}
+      />
     </>
   );
 }

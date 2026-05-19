@@ -5,7 +5,9 @@ type PageModule = {
 };
 
 export function resolvePage(name: string) {
-  const pages = import.meta.glob<PageModule>(["../pages/**/*.tsx", "!../pages/**/*.test.tsx"], { eager: true });
+  const pages = import.meta.glob<PageModule>(["../pages/**/*.tsx", "!../pages/**/*.test.tsx"], {
+    eager: true,
+  });
   const page = pages[`../pages/${name}.tsx`];
 
   if (!page) {

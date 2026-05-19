@@ -1,5 +1,6 @@
 import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Table from "./components/Table";
 import { ColorRecord } from "./types";
 
@@ -12,19 +13,17 @@ export default function Index({ colors }: IndexProps) {
     <>
       <FlashMessages />
 
-      <header className="nav_header">
-        <hgroup>
-          <h1>Colors</h1>
-        </hgroup>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href="/colors/new">
               <i className="icn">🐣</i>
               Add New Record
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        title="Colors"
+      />
 
       <div className="section-border-base section-wide">
         <Table colors={colors} />

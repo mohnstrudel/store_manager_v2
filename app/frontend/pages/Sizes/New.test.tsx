@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import New from "./New";
 
 vi.mock("@/components/Link", () => ({
-  default: ({ children, href }: { children: ReactNode; href: string }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock("@inertiajs/react", () => ({

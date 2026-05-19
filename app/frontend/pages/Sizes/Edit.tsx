@@ -1,33 +1,39 @@
-import Link from "@/components/Link";
-import Form from "./components/Form";
 import ErrorNotice from "@/components/ErrorNotice";
+import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
+import Form from "./components/Form";
 import { SizeErrors, SizeRecord } from "./types";
 
 type EditProps = {
-  errors: SizeErrors;
+  errors?: SizeErrors;
   size: SizeRecord;
 };
 
-export default function Edit({ errors, size }: EditProps) {
+export default function Edit({ errors = {}, size }: EditProps) {
   return (
     <>
       <ErrorNotice errors={errors} />
 
-      <header className="nav_header mb-8">
-        <div className="flex gap-4">
-          <h1>Edit Size</h1>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/sizes/${size.id}`}>
               <i className="icn">📄</i>
               View Size Page
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        className="mb-8"
+        title="Edit Size"
+      />
 
-      <Form errors={errors} method="patch" size={size} submitLabel="Update Size" url={`/sizes/${size.id}`} />
+      <Form
+        errors={errors}
+        method="patch"
+        size={size}
+        submitLabel="Update Size"
+        url={`/sizes/${size.id}`}
+      />
     </>
   );
 }

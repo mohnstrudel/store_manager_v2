@@ -9,9 +9,18 @@ export default function PurchaseItems({ purchaseItems }: PurchaseItemsProps) {
   if (purchaseItems.length === 0) return null;
 
   const columns = [
-    { header: "Product", render: (purchaseItem: PurchaseItemRecord) => purchaseItem.product_full_title },
-    { header: "Tracking Number", render: (purchaseItem: PurchaseItemRecord) => purchaseItem.tracking_number },
-    { header: "Purchase Date", render: (purchaseItem: PurchaseItemRecord) => purchaseItem.purchased_ago },
+    {
+      header: "Product",
+      render: (purchaseItem: PurchaseItemRecord) => purchaseItem.product_full_title,
+    },
+    {
+      header: "Tracking Number",
+      render: (purchaseItem: PurchaseItemRecord) => purchaseItem.tracking_number,
+    },
+    {
+      header: "Purchase Date",
+      render: (purchaseItem: PurchaseItemRecord) => purchaseItem.purchased_ago,
+    },
   ];
 
   return (

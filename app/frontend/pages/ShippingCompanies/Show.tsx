@@ -2,6 +2,7 @@ import { router } from "@inertiajs/react";
 import Button from "@/components/Button";
 import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import Details from "./components/Details";
 import PurchaseItems from "./components/PurchaseItems";
 import { PurchaseItemRecord, ShippingCompanyRecord } from "./types";
@@ -22,22 +23,18 @@ export default function Show({ purchaseItems, shippingCompany }: ShowProps) {
     <>
       <FlashMessages />
 
-      <header className="nav_header">
-        <div className="flex gap-4">
-          <hgroup>
-            <h1>{shippingCompany.name}</h1>
-            <h4>Shipping Company {shippingCompany.id}</h4>
-          </hgroup>
-        </div>
-        <menu className="nav_menu">
+      <PageHeader
+        actions={
           <li>
             <Link href={`/shipping_companies/${shippingCompany.id}/edit`}>
               <i className="icn">✏</i>
               Edit
             </Link>
           </li>
-        </menu>
-      </header>
+        }
+        subtitle={`Shipping Company ${shippingCompany.id}`}
+        title={shippingCompany.name}
+      />
 
       <div className="section-wide flex flex-col gap-8 mt-8">
         <Details shippingCompany={shippingCompany} />

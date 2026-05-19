@@ -22,7 +22,12 @@ export default function ResourceForm({
       {children}
 
       <div className="flex flex-col gap-4 items-start justify-start mt-14 lg:flex-row lg:items-center">
-        <Button className="w-full lg:w-fit" disabled={submitDisabled} type="submit" variant="primary">
+        <Button
+          className="w-full lg:w-fit"
+          disabled={submitDisabled}
+          type="submit"
+          variant="primary"
+        >
           {submitLabel}
         </Button>
         <Link className="w-full lg:w-fit h-10" href={cancelHref}>
