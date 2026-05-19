@@ -93,11 +93,15 @@ RSpec.describe "Brands" do
     it "rerenders the new Inertia component when invalid" do
       post brands_path, params: {brand: {title: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_brand_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Brands/New")
       expect_inertia.to have_props(
         brand: {created_at: nil, id: nil, updated_at: nil, title: ""},
-        errors: {title: ["Title can't be blank"]}
+        errors: {title: ["can't be blank"]}
       )
     end
   end
@@ -128,16 +132,20 @@ RSpec.describe "Brands" do
 
       patch brand_path(brand), params: {brand: {title: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(edit_brand_path(brand))
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Brands/Edit")
       expect_inertia.to have_props(
         brand: {
           created_at: formatted_time(brand.created_at),
           id: brand.id,
           updated_at: formatted_time(brand.updated_at),
-          title: ""
+          title: brand.title
         },
-        errors: {title: ["Title can't be blank"]}
+        errors: {title: ["can't be blank"]}
       )
     end
   end

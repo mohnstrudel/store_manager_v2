@@ -43,11 +43,7 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully created" }
         format.json { render :show, status: :created, location: @color }
       else
-        format.html do
-          render inertia: "Colors/New",
-            props: form_props(@color),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to new_color_url, inertia: {errors: @color.errors} }
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -60,11 +56,7 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully updated" }
         format.json { render :show, status: :ok, location: @color }
       else
-        format.html do
-          render inertia: "Colors/Edit",
-            props: form_props(@color),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to edit_color_url(@color), inertia: {errors: @color.errors} }
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -94,8 +86,7 @@ class ColorsController < ApplicationController
 
   def form_props(color)
     {
-      color: color_props(color),
-      errors: color.errors.to_hash(true)
+      color: color_props(color)
     }
   end
 

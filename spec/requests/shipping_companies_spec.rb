@@ -115,14 +115,18 @@ RSpec.describe "ShippingCompanies" do
     it "rerenders the new Inertia component when invalid" do
       post shipping_companies_path, params: {shipping_company: {name: "Skyline", tracking_url: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_shipping_company_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ShippingCompanies/New")
       expect_inertia.to have_props(
-        errors: {tracking_url: ["Tracking url can't be blank"]},
+        errors: {tracking_url: ["can't be blank"]},
         shippingCompany: {
           created_at: nil,
           id: nil,
-          name: "Skyline",
+          name: "",
           tracking_url: nil,
           updated_at: nil
         }
@@ -164,15 +168,19 @@ RSpec.describe "ShippingCompanies" do
         shipping_company: {name: "Skyline", tracking_url: ""}
       }
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(edit_shipping_company_path(shipping_company))
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ShippingCompanies/Edit")
       expect_inertia.to have_props(
-        errors: {tracking_url: ["Tracking url can't be blank"]},
+        errors: {tracking_url: ["can't be blank"]},
         shippingCompany: {
           created_at: formatted_time(shipping_company.created_at),
           id: shipping_company.id,
-          name: "Skyline",
-          tracking_url: nil,
+          name: shipping_company.name,
+          tracking_url: shipping_company.tracking_url,
           updated_at: formatted_time(shipping_company.updated_at)
         }
       )

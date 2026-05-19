@@ -93,10 +93,14 @@ RSpec.describe "Versions" do
     it "rerenders the new Inertia component when invalid" do
       post versions_path, params: {version: {value: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_version_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Versions/New")
       expect_inertia.to have_props(
-        errors: {value: ["Value can't be blank"]},
+        errors: {value: ["can't be blank"]},
         version: {created_at: nil, id: nil, updated_at: nil, value: ""}
       )
     end
@@ -128,15 +132,19 @@ RSpec.describe "Versions" do
 
       patch version_path(version), params: {version: {value: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(edit_version_path(version))
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Versions/Edit")
       expect_inertia.to have_props(
-        errors: {value: ["Value can't be blank"]},
+        errors: {value: ["can't be blank"]},
         version: {
           created_at: formatted_time(version.created_at),
           id: version.id,
           updated_at: formatted_time(version.updated_at),
-          value: ""
+          value: version.value
         }
       )
     end

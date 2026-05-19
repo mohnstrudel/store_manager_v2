@@ -92,10 +92,14 @@ RSpec.describe "Franchises" do
     it "rerenders the new Inertia component when invalid" do
       post franchises_path, params: {franchise: {title: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_franchise_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Franchises/New")
       expect_inertia.to have_props(
-        errors: {title: ["Title can't be blank"]},
+        errors: {title: ["can't be blank"]},
         franchise: {created_at: nil, id: nil, updated_at: nil, title: ""}
       )
     end
@@ -127,15 +131,19 @@ RSpec.describe "Franchises" do
 
       patch franchise_path(franchise), params: {franchise: {title: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(edit_franchise_path(franchise))
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Franchises/Edit")
       expect_inertia.to have_props(
-        errors: {title: ["Title can't be blank"]},
+        errors: {title: ["can't be blank"]},
         franchise: {
           created_at: formatted_time(franchise.created_at),
           id: franchise.id,
           updated_at: formatted_time(franchise.updated_at),
-          title: ""
+          title: franchise.title
         }
       )
     end

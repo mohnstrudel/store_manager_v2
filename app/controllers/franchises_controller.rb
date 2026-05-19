@@ -43,11 +43,7 @@ class FranchisesController < ApplicationController
         format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully created" }
         format.json { render :show, status: :created, location: @franchise }
       else
-        format.html do
-          render inertia: "Franchises/New",
-            props: form_props(@franchise),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to new_franchise_url, inertia: {errors: @franchise.errors} }
         format.json { render json: @franchise.errors, status: :unprocessable_content }
       end
     end
@@ -60,11 +56,7 @@ class FranchisesController < ApplicationController
         format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully updated" }
         format.json { render :show, status: :ok, location: @franchise }
       else
-        format.html do
-          render inertia: "Franchises/Edit",
-            props: form_props(@franchise),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to edit_franchise_url(@franchise), inertia: {errors: @franchise.errors} }
         format.json { render json: @franchise.errors, status: :unprocessable_content }
       end
     end
@@ -94,8 +86,7 @@ class FranchisesController < ApplicationController
 
   def form_props(franchise)
     {
-      franchise: franchise_props(franchise),
-      errors: franchise.errors.to_hash(true)
+      franchise: franchise_props(franchise)
     }
   end
 

@@ -43,11 +43,7 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully created" }
         format.json { render :show, status: :created, location: @version }
       else
-        format.html do
-          render inertia: "Versions/New",
-            props: form_props(@version),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to new_version_url, inertia: {errors: @version.errors} }
         format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
@@ -60,11 +56,7 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully updated" }
         format.json { render :show, status: :ok, location: @version }
       else
-        format.html do
-          render inertia: "Versions/Edit",
-            props: form_props(@version),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to edit_version_url(@version), inertia: {errors: @version.errors} }
         format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
@@ -94,8 +86,7 @@ class VersionsController < ApplicationController
 
   def form_props(version)
     {
-      version: version_props(version),
-      errors: version.errors.to_hash(true)
+      version: version_props(version)
     }
   end
 

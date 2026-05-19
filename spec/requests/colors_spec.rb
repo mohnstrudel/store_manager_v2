@@ -93,11 +93,15 @@ RSpec.describe "Colors" do
     it "rerenders the new Inertia component when invalid" do
       post colors_path, params: {color: {value: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_color_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Colors/New")
       expect_inertia.to have_props(
         color: {created_at: nil, id: nil, updated_at: nil, value: ""},
-        errors: {value: ["Value can't be blank"]}
+        errors: {value: ["can't be blank"]}
       )
     end
   end
@@ -128,16 +132,20 @@ RSpec.describe "Colors" do
 
       patch color_path(color), params: {color: {value: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(edit_color_path(color))
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Colors/Edit")
       expect_inertia.to have_props(
         color: {
           created_at: formatted_time(color.created_at),
           id: color.id,
           updated_at: formatted_time(color.updated_at),
-          value: ""
+          value: color.value
         },
-        errors: {value: ["Value can't be blank"]}
+        errors: {value: ["can't be blank"]}
       )
     end
   end

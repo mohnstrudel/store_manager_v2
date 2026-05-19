@@ -111,10 +111,14 @@ RSpec.describe "Suppliers" do
     it "rerenders the new Inertia component when invalid" do
       post suppliers_path, params: {supplier: {title: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_supplier_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Suppliers/New")
       expect_inertia.to have_props(
-        errors: {title: ["Title can't be blank"]},
+        errors: {title: ["can't be blank"]},
         supplier: {created_at: nil, id: nil, updated_at: nil, title: ""}
       )
     end
@@ -146,15 +150,20 @@ RSpec.describe "Suppliers" do
 
       patch supplier_path(supplier), params: {supplier: {title: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to be_redirect
+      expect(response.location).to match(%r{/suppliers/.+/edit$})
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Suppliers/Edit")
       expect_inertia.to have_props(
-        errors: {title: ["Title can't be blank"]},
+        errors: {title: ["can't be blank"]},
         supplier: {
           created_at: formatted_time(supplier.created_at),
           id: supplier.id,
           updated_at: formatted_time(supplier.updated_at),
-          title: ""
+          title: supplier.title
         }
       )
     end

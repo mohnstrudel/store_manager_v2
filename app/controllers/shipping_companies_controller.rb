@@ -43,11 +43,7 @@ class ShippingCompaniesController < ApplicationController
         format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully created" }
         format.json { render :show, status: :created, location: @shipping_company }
       else
-        format.html do
-          render inertia: "ShippingCompanies/New",
-            props: form_props(@shipping_company),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to new_shipping_company_url, inertia: {errors: @shipping_company.errors} }
         format.json { render json: @shipping_company.errors, status: :unprocessable_content }
       end
     end
@@ -60,11 +56,7 @@ class ShippingCompaniesController < ApplicationController
         format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully updated" }
         format.json { render :show, status: :ok, location: @shipping_company }
       else
-        format.html do
-          render inertia: "ShippingCompanies/Edit",
-            props: form_props(@shipping_company),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to edit_shipping_company_url(@shipping_company), inertia: {errors: @shipping_company.errors} }
         format.json { render json: @shipping_company.errors, status: :unprocessable_content }
       end
     end
@@ -94,7 +86,6 @@ class ShippingCompaniesController < ApplicationController
 
   def form_props(shipping_company)
     {
-      errors: shipping_company.errors.to_hash(true),
       shippingCompany: shipping_company_props(shipping_company)
     }
   end

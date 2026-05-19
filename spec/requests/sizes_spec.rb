@@ -92,10 +92,14 @@ RSpec.describe "Sizes" do
     it "rerenders the new Inertia component when invalid" do
       post sizes_path, params: {size: {value: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(new_size_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Sizes/New")
       expect_inertia.to have_props(
-        errors: {value: ["Value can't be blank"]},
+        errors: {value: ["can't be blank"]},
         size: {id: nil, value: "", created_at: nil, updated_at: nil}
       )
     end
@@ -127,13 +131,17 @@ RSpec.describe "Sizes" do
 
       patch size_path(size), params: {size: {value: ""}}
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to redirect_to(edit_size_path(size))
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Sizes/Edit")
       expect_inertia.to have_props(
-        errors: {value: ["Value can't be blank"]},
+        errors: {value: ["can't be blank"]},
         size: {
           id: size.id,
-          value: "",
+          value: size.value,
           created_at: formatted_time(size.created_at),
           updated_at: formatted_time(size.updated_at)
         }

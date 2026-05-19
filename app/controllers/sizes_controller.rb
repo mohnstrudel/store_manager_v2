@@ -43,11 +43,7 @@ class SizesController < ApplicationController
         format.html { redirect_to size_url(@size), notice: "Size was successfully created" }
         format.json { render :show, status: :created, location: @size }
       else
-        format.html do
-          render inertia: "Sizes/New",
-            props: form_props(@size),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to new_size_url, inertia: {errors: @size.errors} }
         format.json { render json: @size.errors, status: :unprocessable_content }
       end
     end
@@ -60,11 +56,7 @@ class SizesController < ApplicationController
         format.html { redirect_to size_url(@size), notice: "Size was successfully updated" }
         format.json { render :show, status: :ok, location: @size }
       else
-        format.html do
-          render inertia: "Sizes/Edit",
-            props: form_props(@size),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to edit_size_url(@size), inertia: {errors: @size.errors} }
         format.json { render json: @size.errors, status: :unprocessable_content }
       end
     end
@@ -94,8 +86,7 @@ class SizesController < ApplicationController
 
   def form_props(size)
     {
-      size: size_props(size),
-      errors: size.errors.to_hash(true)
+      size: size_props(size)
     }
   end
 

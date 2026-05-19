@@ -43,11 +43,7 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully created" }
         format.json { render :show, status: :created, location: @supplier }
       else
-        format.html do
-          render inertia: "Suppliers/New",
-            props: form_props(@supplier),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to new_supplier_url, inertia: {errors: @supplier.errors} }
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -60,11 +56,7 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated" }
         format.json { render :show, status: :ok, location: @supplier }
       else
-        format.html do
-          render inertia: "Suppliers/Edit",
-            props: form_props(@supplier),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to edit_supplier_url(@supplier.reload), inertia: {errors: @supplier.errors} }
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -94,7 +86,6 @@ class SuppliersController < ApplicationController
 
   def form_props(supplier)
     {
-      errors: supplier.errors.to_hash(true),
       supplier: supplier_props(supplier)
     }
   end

@@ -43,11 +43,7 @@ class BrandsController < ApplicationController
         format.html { redirect_to brand_url(@brand), notice: "Brand was successfully created" }
         format.json { render :show, status: :created, location: @brand }
       else
-        format.html do
-          render inertia: "Brands/New",
-            props: form_props(@brand),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to new_brand_url, inertia: {errors: @brand.errors} }
         format.json { render json: @brand.errors, status: :unprocessable_content }
       end
     end
@@ -60,11 +56,7 @@ class BrandsController < ApplicationController
         format.html { redirect_to brand_url(@brand), notice: "Brand was successfully updated" }
         format.json { render :show, status: :ok, location: @brand }
       else
-        format.html do
-          render inertia: "Brands/Edit",
-            props: form_props(@brand),
-            status: :unprocessable_content
-        end
+        format.html { redirect_to edit_brand_url(@brand), inertia: {errors: @brand.errors} }
         format.json { render json: @brand.errors, status: :unprocessable_content }
       end
     end
@@ -94,8 +86,7 @@ class BrandsController < ApplicationController
 
   def form_props(brand)
     {
-      brand: brand_props(brand),
-      errors: brand.errors.to_hash(true)
+      brand: brand_props(brand)
     }
   end
 
