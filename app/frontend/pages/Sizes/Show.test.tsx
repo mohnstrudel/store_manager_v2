@@ -14,15 +14,10 @@ vi.mock("@inertiajs/react", () => ({
     delete: vi.fn(),
     visit: vi.fn(),
   },
-  usePage: () => ({
-    props: {
-      flash: { notice: "Size was successfully updated", alert: null },
-    },
-  }),
 }));
 
 describe("Sizes/Show", () => {
-  it("renders size details, flash, and linked products", () => {
+  it("renders size details and linked products", () => {
     render(
       <Show
         products={[{ id: 10, full_title: "Studio Ghibli — Spirited Away", path: "/products/10" }]}
@@ -35,7 +30,6 @@ describe("Sizes/Show", () => {
       />,
     );
 
-    expect(screen.getByText("Size was successfully updated")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "1:6" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Products" })).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "Studio Ghibli — Spirited Away" })).toBeInTheDocument();

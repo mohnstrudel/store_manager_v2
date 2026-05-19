@@ -1,4 +1,3 @@
-import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import Table from "./components/Table";
@@ -11,7 +10,6 @@ type IndexProps = {
 export default function Index({ colors }: IndexProps) {
   return (
     <>
-      <FlashMessages />
 
       <PageHeader
         actions={

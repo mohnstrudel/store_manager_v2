@@ -11,11 +11,6 @@ vi.mock("@/components/Link", () => ({
 
 vi.mock("@inertiajs/react", () => ({
   router: { visit: vi.fn() },
-  usePage: () => ({
-    props: {
-      flash: { notice: null, alert: null },
-    },
-  }),
 }));
 
 describe("Sizes/Index", () => {

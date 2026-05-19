@@ -1,7 +1,12 @@
-import type { ComponentType } from "react";
+import { createElement, type ComponentType, type ReactNode } from "react";
+import AppLayout from "@/layouts/AppLayout";
 
 type PageModule = {
   default: ComponentType;
+};
+
+type ComponentWithLayout = ComponentType & {
+  layout?: (page: ReactNode) => ReactNode;
 };
 
 export function resolvePage(name: string) {
@@ -14,5 +19,9 @@ export function resolvePage(name: string) {
     throw new Error(`Inertia page not found: ${name}`);
   }
 
-  return page.default;
+  const component = page.default as ComponentWithLayout;
+  if (!component.layout) {
+    component.layout = (children: ReactNode) => createElement(AppLayout, null, children);
+  }
+  return component;
 }

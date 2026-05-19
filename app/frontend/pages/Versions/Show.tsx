@@ -1,6 +1,5 @@
 import { router } from "@inertiajs/react";
 import Button from "@/components/Button";
-import FlashMessages from "@/components/FlashMessages";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import Details from "./components/Details";
@@ -21,7 +20,6 @@ export default function Show({ products, version }: ShowProps) {
 
   return (
     <>
-      <FlashMessages />
 
       <PageHeader
         actions={
