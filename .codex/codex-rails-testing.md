@@ -54,7 +54,41 @@ Design tests around domain ownership and request boundaries, not around arbitrar
 - Test forbidden and not-found paths when access changes.
 - Use controller concern tests for request mechanics such as timezone, platform, ETag variation, and forgery handling.
 
-## View, Helper, and Turbo Tests
+## Inertia + React Testing (three-layer strategy)
+
+The app is migrating from Slim + Hotwire to Inertia + React gradually. During and after the migration, three test layers work together — none replaces the others.
+
+**Vitest** — component unit tests (fast, no Rails, jsdom)
+- Test each page component: given these props, does the component render correctly?
+- Mock `usePage()` from `@inertiajs/react` to inject props; never hit the Rails server.
+- Cover: conditional rendering, user interactions, local state, hook logic, utility functions.
+- Location: `app/frontend/pages/<Resource>/<Page>.test.tsx`, shared components alongside source.
+- Do NOT use Vitest to test authorization, prop serialization, or HTTP status — those belong in request specs.
+
+**RSpec request specs** — controller → Inertia contract
+- Test the Rails side: given this authenticated request, does the controller produce the right Inertia response?
+- Assert: HTTP status, `render_component("Resource/Page")`, key props via `expect_inertia.to have_props(...)`.
+- Catches: Pundit policy missing, wrong prop keys, DB query errors in controllers, `inertia_share` gaps.
+- `have_props` uses `==` after `deep_symbolize_keys` — nested `hash_including` matchers don't work; use exact symbol-keyed hashes.
+- Include `inertia_rails/rspec` via `spec/support/inertia.rb` (already wired).
+- Write one request spec per Inertia controller covering: index, show, new, create (valid + invalid), edit, update, destroy, and auth/authorization paths.
+
+**Cuprite feature specs** — full browser end-to-end
+- Only for genuinely high-risk flows where the Vitest + request spec combination leaves real risk uncovered.
+- Triggers: file uploads, dialogs, multi-step forms, navigation handoffs, drag-and-drop.
+- Simple CRUD on a single text field does NOT need a Cuprite spec.
+
+**What each layer catches that the others miss:**
+
+| Bug | Vitest | Request | Cuprite |
+|---|---|---|---|
+| Pundit policy missing | ✗ | ✓ | ✓ |
+| Wrong prop key from Rails | ✗ | ✓ | ✓ |
+| Component renders wrong UI for props | ✓ | ✗ | ✓ |
+| Flash not appearing after redirect | ✗ | ✓ | ✓ |
+| Dialog doesn't close on submit | ✗ | ✗ | ✓ |
+
+## View, Helper, and Turbo Tests (Slim / Hotwire pages)
 
 - Use helper tests for presentation-specific logic and sanitization.
 - Use `assert_select` for meaningful HTML fragments rather than broad body-string matches when possible.
