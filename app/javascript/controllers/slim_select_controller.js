@@ -34,6 +34,6 @@ export default class extends Controller {
   }
 
   hasSlimSelectUi() {
-    return Boolean(this.element.parentElement?.querySelector(".ss-main"));
+    return Boolean(this.element.nextElementSibling?.classList.contains("ss-main"));
   }
 }

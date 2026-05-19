@@ -29,6 +29,8 @@ module StoreInfo::References
     case our_name
     when "Sale"
       "Order"
+    when "SaleItem"
+      "LineItem"
     when "Variant"
       "ProductVariant"
     else

@@ -9,6 +9,8 @@ module SaleItem::Listing
     scope :for_linking, -> {
       includes(
         :product,
+        :shopify_info,
+        :woo_info,
         sale: [:customer],
         variant: [:color, :size, :version]
       )

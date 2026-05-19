@@ -14,8 +14,9 @@ module SaleItem::Titling
     status = sale.status&.titleize
     email = sale.customer.email
     pretty_sale_id = "Sale ID: #{sale_id}"
-    pretty_woo_id = woo_store_id && "Woo ID: #{woo_store_id}"
+    pretty_woo_id = woo_store_id && "Woo: #{woo_store_id}"
+    pretty_shopify_id = shopify_store_id && "Shopify: #{shopify_info.id_short}"
 
-    [id, status, title, email, pretty_sale_id, pretty_woo_id].compact.join(" | ")
+    [id, status, title, email, pretty_sale_id, pretty_woo_id, pretty_shopify_id].compact.join(" | ")
   end
 end
