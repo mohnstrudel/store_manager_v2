@@ -17,7 +17,42 @@ RSpec.describe Woo::PullSalesJob do
     context "when we receive an array of orders from Woo API" do
       it "gives us parsed result" do
         parsed = job.parse_all(woo_orders)
-        expect(parsed).to eq(parsed_woo_orders)
+
+        expect(parsed.map { |order| order.except(:addresses) }).to eq(
+          parsed_woo_orders.map do |order|
+            order.deep_dup.tap do |parsed_order|
+              parsed_order[:sale].except!(:address_1, :address_2, :city, :company, :country, :postcode, :state)
+            end
+          end
+        )
+        expect(parsed.first[:addresses]).to eq(
+          shipping: {
+            first_name: "Robert",
+            last_name: "Dethloff",
+            email: "",
+            phone: "",
+            company: "",
+            address_1: "Schillerstrasse 68",
+            address_2: "",
+            city: "Bremerhaven",
+            state: "",
+            postcode: "27570",
+            country: "DE"
+          },
+          billing: {
+            first_name: "Robert",
+            last_name: "Dethloff",
+            email: "robert_dethloff@web.de",
+            phone: "017631584891",
+            company: "",
+            address_1: "Schillerstrasse 68",
+            address_2: "",
+            city: "Bremerhaven",
+            state: "",
+            postcode: "27570",
+            country: "DE"
+          }
+        )
       end
     end
   end
@@ -142,12 +177,22 @@ RSpec.describe Woo::PullSalesJob do
       expect(parsed[:products].first[:product_woo_id]).to eq(sample_order[:line_items].first[:product_id])
     end
 
-    it "handles shipping address merging" do
-      # When shipping is empty, it should use billing data
+    it "uses billing data for the customer when shipping is empty" do
       order_with_empty_shipping = sample_order.merge(shipping: {})
       parsed = job.parse(order_with_empty_shipping)
 
-      expect(parsed[:sale][:city]).to eq(sample_order[:billing][:city])
+      expect(parsed[:customer][:email]).to eq(sample_order[:billing][:email])
+    end
+
+    it "keeps shipping and billing addresses separate" do
+      changed_billing = sample_order.deep_dup
+      changed_billing[:billing][:address_1] = "Billing-only street"
+
+      parsed = job.parse(changed_billing)
+
+      expect(parsed[:addresses][:shipping][:address_1]).to eq(sample_order[:shipping][:address_1])
+      expect(parsed[:addresses][:billing][:address_1]).to eq("Billing-only street")
+      expect(parsed[:sale]).not_to include(:address_1)
     end
   end
 
@@ -196,6 +241,22 @@ RSpec.describe Woo::PullSalesJob do
 
       expect(updated_sale.id).to eq(existing_sale.id)
       expect(updated_sale.total).to eq(200)
+    end
+
+    it "updates address snapshots for an existing sale", :aggregate_failures do
+      existing_sale = create(:sale, woo_store_id: parsed_sale[:woo_id])
+
+      updated_sale = job.get_sale(
+        parsed_sale,
+        addresses: {
+          shipping: {address_1: "Updated Shipping St", city: "Berlin"},
+          billing: {address_1: "Updated Billing St", city: "Munich"}
+        }
+      )
+
+      expect(updated_sale.id).to eq(existing_sale.id)
+      expect(updated_sale.shipping_address).to have_attributes(address_1: "Updated Shipping St", city: "Berlin")
+      expect(updated_sale.billing_address).to have_attributes(address_1: "Updated Billing St", city: "Munich")
     end
   end
 
@@ -260,11 +321,7 @@ RSpec.describe Woo::PullSalesJob do
 
     context "when we parsed orders from Woo API" do
       before do
-        create(
-          :sale,
-          woo_store_id: parsed_woo_orders.first[:sale][:woo_id],
-          city: denpasar
-        )
+        create(:sale, woo_store_id: parsed_woo_orders.first[:sale][:woo_id], total: 50)
         create(
           :variant,
           woo_store_id: parsed_woo_orders.first[:products].first[:variant][:woo_id]
@@ -289,7 +346,7 @@ RSpec.describe Woo::PullSalesJob do
 
       it "reuses existing sales" do
         existing_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
-        expect(existing_sale.city).not_to eq(denpasar)
+        expect(existing_sale.total).not_to eq(50)
       end
 
       it "updates the existing sale status from the pulled Woo payload" do
@@ -300,6 +357,45 @@ RSpec.describe Woo::PullSalesJob do
       it "reuses existing variants" do
         existing_variant = Variant.find_by_woo_id(parsed_woo_orders.first[:products].first[:variant][:woo_id])
         expect(existing_variant.woo_info.slug).to eq(weird_link)
+      end
+    end
+
+    context "when parsed orders include separate addresses" do
+      before do
+        job.parse_all(woo_orders).pluck(:products).flatten.each do |p|
+          create(:product, woo_store_id: p[:product_woo_id])
+        end
+      end
+
+      it "persists shipping and billing address snapshots" do
+        job.create_sales(job.parse_all(woo_orders))
+
+        sale = Sale.find_by_woo_id(sample_order[:id])
+        expect(sale.shipping_address).to have_attributes(
+          address_1: sample_order[:shipping][:address_1],
+          city: sample_order[:shipping][:city]
+        )
+        expect(sale.billing_address).to have_attributes(
+          address_1: sample_order[:billing][:address_1],
+          email: sample_order[:billing][:email]
+        )
+      end
+
+      it "updates existing address snapshots" do
+        parsed_orders = job.parse_all(woo_orders)
+        job.create_sales(parsed_orders)
+
+        updated_orders = job.parse_all(woo_orders).tap do |orders|
+          orders.first[:addresses][:shipping][:address_1] = "Updated Shipping St"
+          orders.first[:addresses][:billing][:address_1] = "Updated Billing St"
+        end
+
+        job.create_sales(updated_orders)
+
+        sale = Sale.find_by_woo_id(sample_order[:id])
+        expect(sale.addresses.count).to eq(2)
+        expect(sale.shipping_address).to have_attributes(address_1: "Updated Shipping St")
+        expect(sale.billing_address).to have_attributes(address_1: "Updated Billing St")
       end
     end
 

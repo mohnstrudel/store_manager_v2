@@ -22,12 +22,28 @@ RSpec.describe Sale::Shopify::Parser do
       "totalShippingPriceSet" => {"shopMoney" => {"amount" => "5.00"}},
       "email" => "customer@example.com",
       "shippingAddress" => {
+        "firstName" => "John",
+        "lastName" => "Doe",
         "address1" => "123 Main St",
         "address2" => "Apt 4B",
         "city" => "New York",
         "company" => "Acme Inc",
         "country" => "United States",
-        "zip" => "10001"
+        "provinceCode" => "NY",
+        "zip" => "10001",
+        "phone" => "555-9999"
+      },
+      "billingAddress" => {
+        "firstName" => "Jane",
+        "lastName" => "Doe",
+        "address1" => "500 Billing Ave",
+        "address2" => "Suite 2",
+        "city" => "Boston",
+        "company" => "Billing Inc",
+        "country" => "United States",
+        "province" => "Massachusetts",
+        "zip" => "02110",
+        "phone" => "555-0000"
       },
       "customer" => {
         "id" => "gid://shopify/Customer/67890",
@@ -152,19 +168,54 @@ RSpec.describe Sale::Shopify::Parser do
         expect(result[:customer][:email]).to eq("customer@example.com")
       end
 
-      it "handles missing shipping address" do
+      it "handles missing addresses" do
         order_without_address = api_order.deep_dup
         order_without_address["shippingAddress"] = nil
+        order_without_address["billingAddress"] = nil
 
         result = described_class.parse(order_without_address)
 
-        expect(result[:sale]).to include(
-          address_1: nil,
-          address_2: nil,
-          city: nil,
-          company: nil,
-          country: nil,
-          postcode: nil
+        expect(result[:addresses]).to eq(shipping: {}, billing: {email: "customer@example.com"})
+      end
+
+      it "keeps sale attributes free of address fields" do
+        order_without_shipping_address = api_order.deep_dup
+        order_without_shipping_address["shippingAddress"] = nil
+
+        result = described_class.parse(order_without_shipping_address)
+
+        expect(result[:sale]).not_to include(:address_1, :address_2, :city, :company, :country, :postcode, :state)
+      end
+
+      it "parses shipping and billing addresses separately" do
+        result = described_class.parse(api_order)
+
+        expect(result[:addresses]).to eq(
+          shipping: {
+            first_name: "John",
+            last_name: "Doe",
+            phone: "555-9999",
+            company: "Acme Inc",
+            address_1: "123 Main St",
+            address_2: "Apt 4B",
+            city: "New York",
+            state: "NY",
+            postcode: "10001",
+            country: "United States"
+          },
+          billing: {
+            first_name: "Jane",
+            last_name: "Doe",
+            email: "customer@example.com",
+            phone: "555-0000",
+            company: "Billing Inc",
+            address_1: "500 Billing Ave",
+            address_2: "Suite 2",
+            city: "Boston",
+            state: "Massachusetts",
+            postcode: "02110",
+            country: "United States"
+          }
         )
       end
 

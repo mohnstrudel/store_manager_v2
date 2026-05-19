@@ -32,7 +32,7 @@ module Woo
 
         ActiveRecord::Base.transaction do
           customer_id = get_customer_id(order[:customer], pulled_at:)
-          sale = get_sale(order[:sale].merge(customer_id:), pulled_at:)
+          sale = get_sale(order[:sale].merge(customer_id:), addresses: order[:addresses], pulled_at:)
 
           order[:products].each do |order_product|
             product = Product.find_by_woo_id(order_product[:product_woo_id])
@@ -85,34 +85,30 @@ module Woo
     def parse(order)
       return if order.blank?
 
-      shipping = {}
-      [order[:shipping], order[:billing]].compact.each do |address|
-        address&.each { |k, v| shipping[k] = v.presence || "" }
-      end
+      shipping = parse_address(order[:shipping])
+      billing = parse_address(order[:billing])
+      customer_address = billing.presence || shipping
 
       {
         sale: {
-          address_1: shipping[:address_1],
-          address_2: shipping[:address_2],
-          city: shipping[:city],
-          company: shipping[:company],
-          country: shipping[:country],
           discount_total: order[:discount_total],
           note: order[:customer_note],
-          postcode: shipping[:postcode],
           shipping_total: order[:shipping_total],
-          state: shipping[:state],
           status: order[:status],
           total: order[:total],
           woo_created_at: DateTime.parse(order[:date_created]),
           woo_id: order[:id],
           woo_updated_at: DateTime.parse(order[:date_modified])
         },
+        addresses: {
+          shipping:,
+          billing:
+        },
         customer: {
-          email: shipping[:email].downcase,
-          first_name: shipping[:first_name],
-          last_name: shipping[:last_name],
-          phone: shipping[:phone],
+          email: customer_address[:email]&.downcase,
+          first_name: customer_address[:first_name],
+          last_name: customer_address[:last_name],
+          phone: customer_address[:phone],
           woo_id: order[:customer_id]
         },
         products: order[:line_items].map { |line_item|
@@ -131,6 +127,24 @@ module Woo
       Woo::Variant.deserialize_from_order_response(line_item)
     end
 
+    def parse_address(address)
+      return {} if address.blank?
+
+      {
+        first_name: address[:first_name],
+        last_name: address[:last_name],
+        email: address[:email],
+        phone: address[:phone],
+        company: address[:company],
+        address_1: address[:address_1],
+        address_2: address[:address_2],
+        city: address[:city],
+        state: address[:state],
+        postcode: address[:postcode],
+        country: address[:country]
+      }.transform_values { |value| value.presence || "" }
+    end
+
     def get_customer_id(parsed_customer, pulled_at: Time.zone.now)
       customer = if Customer.woo_id_is_valid? parsed_customer[:woo_id]
         Customer.find_by_woo_id(parsed_customer[:woo_id]) || Customer.new
@@ -146,11 +160,15 @@ module Woo
       customer.id
     end
 
-    def get_sale(parsed_sale, pulled_at: Time.zone.now)
+    def get_sale(parsed_sale, addresses: nil, pulled_at: Time.zone.now)
+      addresses_present = !addresses.nil?
+      addresses ||= {}
+
       sale = Sale.find_by_woo_id(parsed_sale[:woo_id]) || Sale.new
-      sale.assign_attributes(parsed_sale.except(:woo_id, :store_id))
+      sale.assign_attributes(parsed_sale.slice(*Sale.attribute_names.map(&:to_sym)).except(:woo_id, :store_id))
       sale.save!
       sale.upsert_woo_info!(store_id: parsed_sale[:woo_id], pull_time: pulled_at) if parsed_sale[:woo_id].present?
+      sale.upsert_addresses!(**addresses.reverse_merge(shipping: nil, billing: nil)) if addresses_present
 
       sale
     end
