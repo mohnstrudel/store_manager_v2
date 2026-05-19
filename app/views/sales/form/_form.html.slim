@@ -8,31 +8,6 @@
 
   fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
     .block.w-full
-      = form.label :country
-      = form.text_field :country
-    .block.w-full
-      = form.label :state
-      = form.text_field :state
-    .block.w-full
-      = form.label :city
-      = form.text_field :city
-    .block.w-full
-      = form.label :postcode
-      = form.text_field :postcode
-
-  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
-    .block.w-full
-      = form.label :address_1
-      = form.text_field :address_1
-    .block.w-full
-      = form.label :address_2
-      = form.text_field :address_2
-
-  = form.label :company
-  = form.text_field :company
-
-  fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.mt-4.lg:mt-0
-    .block.w-full
       = form.label :total, "Total price"
       = form.text_field :total
     .block.w-full
@@ -50,19 +25,32 @@
           = rdb.radio_button class: "p-0"
         = rdb.label class: "m-0 p-0 pl-2 cursor-pointer text-sm"
 
-  h5.mt-8.mb-3 Products
-  - form_sale_items = @sale_items || sale.sale_items.to_a
-  div data-controller="sale-items"
-    div data-sale-items-target="container"
-      - form_sale_items.each_with_index do |sale_item, index|
-        = fields_for "sale_items[#{index}]", sale_item do |sale_item_fields|
-          = render "sales/form/sale_item_fields", f: sale_item_fields, sale_item: sale_item
+  section.mt-8
+    header.mb-4
+      h2.label Addresses
 
-    button.btn-rounded.mt-3 type="button" data-action="sale-items#addProduct"
-      | Add Product
+    .grid.grid-cols-1.gap-6.lg:grid-cols-2
+      = form.fields_for :shipping_address, (sale.shipping_address || SaleAddress.new) do |addr|
+        = render "sales/form/address_fields", f: addr, title: "Shipping Address"
+      = form.fields_for :billing_address, (sale.billing_address || SaleAddress.new) do |addr|
+        = render "sales/form/address_fields", f: addr, title: "Billing Address"
 
-    template data-sale-items-target="template"
-      = fields_for "sale_items[NEW_INDEX]", SaleItem.new do |sale_item_fields|
-        = render "sales/form/sale_item_fields", f: sale_item_fields, sale_item: SaleItem.new
+  section.mt-8
+    header.mb-4
+      h2.label Products
+
+    - form_sale_items = @sale_items || sale.sale_items.to_a
+    div data-controller="sale-items"
+      div.flex.flex-col.gap-6 data-sale-items-target="container"
+        - form_sale_items.each_with_index do |sale_item, index|
+          = fields_for "sale_items[#{index}]", sale_item do |sale_item_fields|
+            = render "sales/form/sale_item_fields", f: sale_item_fields, sale_item: sale_item
+
+      button.btn-rounded.mt-3 type="button" data-action="sale-items#addProduct"
+        | Add Product
+
+      template data-sale-items-target="template"
+        = fields_for "sale_items[NEW_INDEX]", SaleItem.new do |sale_item_fields|
+          = render "sales/form/sale_item_fields", f: sale_item_fields, sale_item: SaleItem.new
 
   = form_submit_for(sale, form)

@@ -5,8 +5,18 @@ class Sale::FormPayload
     @params = params
   end
 
+  ADDRESS_FIELDS = %i[first_name last_name email phone company address_1 address_2 city state postcode country].freeze
+
   def sale_attributes
     sale_params.to_h
+  end
+
+  def shipping_address_attributes
+    address_params_for(:shipping_address)
+  end
+
+  def billing_address_attributes
+    address_params_for(:billing_address)
   end
 
   def sale_item_attributes
@@ -47,20 +57,20 @@ class Sale::FormPayload
 
   attr_reader :params
 
+  def address_params_for(kind)
+    nested = params.dig(:sale, kind)
+    return {} if nested.blank?
+
+    nested.permit(*ADDRESS_FIELDS).to_h
+  end
+
   def sale_params
     params.expect(
       sale: [
         :status,
-        :address_1,
-        :address_2,
-        :city,
-        :company,
-        :country,
         :discount_total,
         :note,
-        :postcode,
         :shipping_total,
-        :state,
         :total,
         :customer_id
       ]

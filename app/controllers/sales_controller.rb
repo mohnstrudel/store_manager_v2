@@ -37,7 +37,9 @@ class SalesController < ApplicationController
 
     @sale.create_from_form!(
       attributes: payload.sale_attributes,
-      sale_item_attributes: payload.sale_item_attributes
+      sale_item_attributes: payload.sale_item_attributes,
+      shipping_address: payload.shipping_address_attributes,
+      billing_address: payload.billing_address_attributes
     )
     redirect_to @sale, notice: "Sale was successfully created"
   rescue ActiveRecord::RecordInvalid => e
@@ -50,7 +52,9 @@ class SalesController < ApplicationController
 
     @sale.apply_form_changes!(
       attributes: payload.sale_attributes,
-      sale_item_attributes: payload.sale_item_attributes
+      sale_item_attributes: payload.sale_item_attributes,
+      shipping_address: payload.shipping_address_attributes,
+      billing_address: payload.billing_address_attributes
     )
     redirect_to @sale, notice: "Sale was successfully updated"
   rescue ActiveRecord::RecordInvalid => e

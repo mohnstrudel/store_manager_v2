@@ -31,8 +31,8 @@
                 = safe_blank_render sale.shopify_name.presence || sale.woo_store_id
             td = format_sale_status sale.status
             td.font-mono.whitespace-nowrap = format_money sale.total
-            td = safe_blank_render sale.country
-            td = safe_blank_render sale.city
+            td = safe_blank_render sale.shipping_address&.country
+            td = safe_blank_render sale.shipping_address&.city
             td = safe_blank_render sale.note
             td
               = format_date sale.shop_created_at.presence || sale.created_at
