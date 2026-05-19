@@ -1,9 +1,0 @@
-= render "_shared/notice"
-
-= render "_shared/nav-show", model: @color
-
-.section-wide.flex.flex-col.gap-8.mt-8
-  = render "colors/show/details", color: @color
-  = render "colors/show/products", products: @color.products
-
-= destroy_btn_for @color

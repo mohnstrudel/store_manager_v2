@@ -1,6 +1,6 @@
-import ErrorNotice from "./components/ErrorNotice";
 import Link from "@/components/Link";
 import Form from "./components/Form";
+import ErrorNotice from "@/components/ErrorNotice";
 import { SizeErrors, SizeRecord } from "./types";
 
 type EditProps = {

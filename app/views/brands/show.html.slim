@@ -1,9 +1,0 @@
-= render "_shared/notice"
-
-= render "_shared/nav-show", model: @brand
-
-.section-wide.flex.flex-col.gap-8.mt-8
-  = render "brands/show/details", brand: @brand
-  = render "brands/show/products", products: @brand.products
-
-= destroy_btn_for @brand

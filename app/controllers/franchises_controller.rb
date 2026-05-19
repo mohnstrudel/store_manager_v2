@@ -6,20 +6,32 @@ class FranchisesController < ApplicationController
   # GET /franchises or /franchises.json
   def index
     @franchises = Franchise.order(:title)
+
+    render inertia: "Franchises/Index", props: {
+      franchises: @franchises.map { |franchise| franchise_props(franchise) }
+    }
   end
 
   # GET /franchises/1 or /franchises/1.json
   def show
     @franchise = Franchise.includes(:products).find(params[:id])
+
+    render inertia: "Franchises/Show", props: {
+      franchise: franchise_props(@franchise),
+      products: @franchise.products.map { |product| product_props(product) }
+    }
   end
 
   # GET /franchises/new
   def new
     @franchise = Franchise.new
+
+    render inertia: "Franchises/New", props: form_props(@franchise)
   end
 
   # GET /franchises/1/edit
   def edit
+    render inertia: "Franchises/Edit", props: form_props(@franchise)
   end
 
   # POST /franchises or /franchises.json
@@ -31,7 +43,11 @@ class FranchisesController < ApplicationController
         format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully created" }
         format.json { render :show, status: :created, location: @franchise }
       else
-        format.html { render :new, status: :unprocessable_content }
+        format.html do
+          render inertia: "Franchises/New",
+            props: form_props(@franchise),
+            status: :unprocessable_content
+        end
         format.json { render json: @franchise.errors, status: :unprocessable_content }
       end
     end
@@ -44,7 +60,11 @@ class FranchisesController < ApplicationController
         format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully updated" }
         format.json { render :show, status: :ok, location: @franchise }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html do
+          render inertia: "Franchises/Edit",
+            props: form_props(@franchise),
+            status: :unprocessable_content
+        end
         format.json { render json: @franchise.errors, status: :unprocessable_content }
       end
     end
@@ -70,5 +90,33 @@ class FranchisesController < ApplicationController
   # Only allow a list of trusted parameters through.
   def franchise_params
     params.fetch(:franchise, {}).permit(:title)
+  end
+
+  def form_props(franchise)
+    {
+      franchise: franchise_props(franchise),
+      errors: franchise.errors.to_hash(true)
+    }
+  end
+
+  def franchise_props(franchise)
+    {
+      id: franchise.id,
+      title: franchise.title.to_s,
+      created_at: formatted_timestamp(franchise.created_at),
+      updated_at: formatted_timestamp(franchise.updated_at)
+    }
+  end
+
+  def product_props(product)
+    {
+      id: product.id,
+      full_title: product.full_title.to_s,
+      path: product_path(product)
+    }
+  end
+
+  def formatted_timestamp(time)
+    time&.strftime("%-d. %b '%y %H:%M")
   end
 end

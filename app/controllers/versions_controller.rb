@@ -6,20 +6,32 @@ class VersionsController < ApplicationController
   # GET /versions or /versions.json
   def index
     @versions = Version.order(:value)
+
+    render inertia: "Versions/Index", props: {
+      versions: @versions.map { |version| version_props(version) }
+    }
   end
 
   # GET /versions/1 or /versions/1.json
   def show
     @version = Version.includes(:products).find(params[:id])
+
+    render inertia: "Versions/Show", props: {
+      version: version_props(@version),
+      products: @version.products.map { |product| product_props(product) }
+    }
   end
 
   # GET /versions/new
   def new
     @version = Version.new
+
+    render inertia: "Versions/New", props: form_props(@version)
   end
 
   # GET /versions/1/edit
   def edit
+    render inertia: "Versions/Edit", props: form_props(@version)
   end
 
   # POST /versions or /versions.json
@@ -31,7 +43,11 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully created" }
         format.json { render :show, status: :created, location: @version }
       else
-        format.html { render :new, status: :unprocessable_content }
+        format.html do
+          render inertia: "Versions/New",
+            props: form_props(@version),
+            status: :unprocessable_content
+        end
         format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
@@ -44,7 +60,11 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully updated" }
         format.json { render :show, status: :ok, location: @version }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html do
+          render inertia: "Versions/Edit",
+            props: form_props(@version),
+            status: :unprocessable_content
+        end
         format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
@@ -70,5 +90,33 @@ class VersionsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def version_params
     params.fetch(:version, {}).permit(:value)
+  end
+
+  def form_props(version)
+    {
+      version: version_props(version),
+      errors: version.errors.to_hash(true)
+    }
+  end
+
+  def version_props(version)
+    {
+      id: version.id,
+      value: version.value.to_s,
+      created_at: formatted_timestamp(version.created_at),
+      updated_at: formatted_timestamp(version.updated_at)
+    }
+  end
+
+  def product_props(product)
+    {
+      id: product.id,
+      full_title: product.full_title.to_s,
+      path: product_path(product)
+    }
+  end
+
+  def formatted_timestamp(time)
+    time&.strftime("%-d. %b '%y %H:%M")
   end
 end

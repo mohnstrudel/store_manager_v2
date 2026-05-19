@@ -1,5 +1,5 @@
-import ErrorNotice from "./components/ErrorNotice";
 import Form from "./components/Form";
+import ErrorNotice from "@/components/ErrorNotice";
 import { SizeErrors, SizeRecord } from "./types";
 
 type NewProps = {

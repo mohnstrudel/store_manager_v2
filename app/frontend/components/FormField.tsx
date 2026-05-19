@@ -2,12 +2,22 @@ type FormFieldProps = {
   error?: string[];
   label: string;
   name: string;
+  namespace: string;
   onChange: (value: string) => void;
+  type?: "text" | "url";
   value: string;
 };
 
-export default function FormField({ error = [], label, name, onChange, value }: FormFieldProps) {
-  const inputId = `size_${name}`;
+export default function FormField({
+  error = [],
+  label,
+  name,
+  namespace,
+  onChange,
+  type = "text",
+  value,
+}: FormFieldProps) {
+  const inputId = `${namespace}_${name}`;
 
   return (
     <fieldset>
@@ -16,9 +26,9 @@ export default function FormField({ error = [], label, name, onChange, value }: 
         aria-invalid={error.length > 0}
         aria-describedby={error.length > 0 ? `${inputId}_error` : undefined}
         id={inputId}
-        name={`size[${name}]`}
+        name={`${namespace}[${name}]`}
         onChange={(event) => onChange(event.target.value)}
-        type="text"
+        type={type}
         value={value}
       />
       {error.length > 0 ? (

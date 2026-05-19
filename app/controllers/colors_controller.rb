@@ -6,20 +6,32 @@ class ColorsController < ApplicationController
   # GET /colors or /colors.json
   def index
     @colors = Color.order(:value)
+
+    render inertia: "Colors/Index", props: {
+      colors: @colors.map { |color| color_props(color) }
+    }
   end
 
   # GET /colors/1 or /colors/1.json
   def show
     @color = Color.includes(:products).find(params[:id])
+
+    render inertia: "Colors/Show", props: {
+      color: color_props(@color),
+      products: @color.products.map { |product| product_props(product) }
+    }
   end
 
   # GET /colors/new
   def new
     @color = Color.new
+
+    render inertia: "Colors/New", props: form_props(@color)
   end
 
   # GET /colors/1/edit
   def edit
+    render inertia: "Colors/Edit", props: form_props(@color)
   end
 
   # POST /colors or /colors.json
@@ -31,7 +43,11 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully created" }
         format.json { render :show, status: :created, location: @color }
       else
-        format.html { render :new, status: :unprocessable_content }
+        format.html do
+          render inertia: "Colors/New",
+            props: form_props(@color),
+            status: :unprocessable_content
+        end
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -44,7 +60,11 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully updated" }
         format.json { render :show, status: :ok, location: @color }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html do
+          render inertia: "Colors/Edit",
+            props: form_props(@color),
+            status: :unprocessable_content
+        end
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -70,5 +90,33 @@ class ColorsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def color_params
     params.expect(color: [:value])
+  end
+
+  def form_props(color)
+    {
+      color: color_props(color),
+      errors: color.errors.to_hash(true)
+    }
+  end
+
+  def color_props(color)
+    {
+      id: color.id,
+      value: color.value.to_s,
+      created_at: formatted_timestamp(color.created_at),
+      updated_at: formatted_timestamp(color.updated_at)
+    }
+  end
+
+  def product_props(product)
+    {
+      id: product.id,
+      full_title: product.full_title.to_s,
+      path: product_path(product)
+    }
+  end
+
+  def formatted_timestamp(time)
+    time&.strftime("%-d. %b '%y %H:%M")
   end
 end

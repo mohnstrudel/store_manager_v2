@@ -1,5 +1,4 @@
-import { router } from "@inertiajs/react";
-import Link from "@/components/Link";
+import CrudTable from "@/components/CrudTable";
 import { SizeRecord } from "../types";
 
 type TableProps = {
@@ -7,42 +6,33 @@ type TableProps = {
 };
 
 export default function Table({ sizes }: TableProps) {
+  const columns = [
+    { header: "ID", render: (size: SizeRecord) => size.id },
+    { header: "Value", render: (size: SizeRecord) => size.value },
+    { header: "Created", render: (size: SizeRecord) => size.created_at },
+    { header: "Updated", render: (size: SizeRecord) => size.updated_at },
+  ];
+
+  const actions = [
+    {
+      href: (size: SizeRecord) => `/sizes/${size.id}`,
+      icon: <i className="icn">📄</i>,
+      label: "Show",
+    },
+    {
+      href: (size: SizeRecord) => `/sizes/${size.id}/edit`,
+      icon: <i className="icn">✏</i>,
+      label: "Edit",
+    },
+  ];
+
   return (
-    <table role="grid">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Value</th>
-          <th>Created</th>
-          <th>Updated</th>
-          <th className="text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {sizes.map((size) => (
-          <tr
-            id={`size_${size.id}`}
-            key={size.id}
-            onClick={() => router.visit(`/sizes/${size.id}`)}
-            tabIndex={0}
-          >
-            <td>{size.id}</td>
-            <td>{size.value}</td>
-            <td>{size.created_at}</td>
-            <td>{size.updated_at}</td>
-            <td className="actions">
-              <Link href={`/sizes/${size.id}`} onClick={(event) => event.stopPropagation()}>
-                <i className="icn">📄</i>
-                Show
-              </Link>
-              <Link href={`/sizes/${size.id}/edit`} onClick={(event) => event.stopPropagation()}>
-                <i className="icn">✏</i>
-                Edit
-              </Link>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <CrudTable
+      actions={actions}
+      columns={columns}
+      rowHref={(size) => `/sizes/${size.id}`}
+      rowKey={(size) => size.id ?? "new"}
+      rows={sizes}
+    />
   );
 }

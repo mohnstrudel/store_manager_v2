@@ -6,20 +6,32 @@ class SuppliersController < ApplicationController
   # GET /suppliers or /suppliers.json
   def index
     @suppliers = Supplier.order(:title)
+
+    render inertia: "Suppliers/Index", props: {
+      suppliers: @suppliers.map { |supplier| supplier_props(supplier) }
+    }
   end
 
   # GET /suppliers/1 or /suppliers/1.json
   def show
     @purchases = @supplier.purchases.for_supplier_details
+
+    render inertia: "Suppliers/Show", props: {
+      purchases: @purchases.map { |purchase| purchase_props(purchase) },
+      supplier: supplier_props(@supplier)
+    }
   end
 
   # GET /suppliers/new
   def new
     @supplier = Supplier.new
+
+    render inertia: "Suppliers/New", props: form_props(@supplier)
   end
 
   # GET /suppliers/1/edit
   def edit
+    render inertia: "Suppliers/Edit", props: form_props(@supplier)
   end
 
   # POST /suppliers or /suppliers.json
@@ -31,7 +43,11 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully created" }
         format.json { render :show, status: :created, location: @supplier }
       else
-        format.html { render :new, status: :unprocessable_content }
+        format.html do
+          render inertia: "Suppliers/New",
+            props: form_props(@supplier),
+            status: :unprocessable_content
+        end
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -44,7 +60,11 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated" }
         format.json { render :show, status: :ok, location: @supplier }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html do
+          render inertia: "Suppliers/Edit",
+            props: form_props(@supplier),
+            status: :unprocessable_content
+        end
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -70,5 +90,39 @@ class SuppliersController < ApplicationController
   # Only allow a list of trusted parameters through.
   def supplier_params
     params.fetch(:supplier, {}).permit(:title)
+  end
+
+  def form_props(supplier)
+    {
+      errors: supplier.errors.to_hash(true),
+      supplier: supplier_props(supplier)
+    }
+  end
+
+  def supplier_props(supplier)
+    {
+      id: supplier.id,
+      title: supplier.title.to_s,
+      created_at: formatted_timestamp(supplier.created_at),
+      updated_at: formatted_timestamp(supplier.updated_at)
+    }
+  end
+
+  def purchase_props(purchase)
+    {
+      amount: purchase.amount,
+      debt: purchase.debt.positive? ? helpers.format_money(purchase.debt) : "",
+      has_debt: purchase.debt.positive?,
+      id: purchase.id,
+      item_price: helpers.format_money(purchase.item_price),
+      path: purchase_path(purchase),
+      purchased_ago: helpers.time_ago_in_words(purchase.date),
+      title: purchase.product.full_title.to_s,
+      variant: purchase.variant&.title.to_s
+    }
+  end
+
+  def formatted_timestamp(time)
+    time&.strftime("%-d. %b '%y %H:%M")
   end
 end

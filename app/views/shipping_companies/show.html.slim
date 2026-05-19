@@ -1,9 +1,0 @@
-= render "_shared/notice"
-
-= render "_shared/nav-show", model: @shipping_company
-
-.section-wide.flex.flex-col.gap-8.mt-8
-  = render "shipping_companies/show/details", shipping_company: @shipping_company
-  = render "shipping_companies/show/purchase_items", purchase_items: @shipping_company.purchase_items
-
-= destroy_btn_for @shipping_company
