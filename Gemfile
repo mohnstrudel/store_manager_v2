@@ -69,6 +69,8 @@ gem "friendly_id"
 gem "slim-rails"
 gem "requestjs-rails"
 gem "tailwindcss-rails"
+gem "vite_rails"
+gem "inertia_rails"
 gem "inline_svg"
 gem "rails_heroicon"
 
