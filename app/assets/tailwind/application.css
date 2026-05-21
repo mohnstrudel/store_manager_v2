@@ -9,8 +9,49 @@
     "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
     "Noto Color Emoji";
   --font-sans: "Bricolage Grotesque", sans-serif;
+  --font-nunito: "Nunito", sans-serif;
   --icon-chevron: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22currentColor%22%20class%3D%22size-6%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22m19.5%208.25-7.5%207.5-7.5-7.5%22%2F%3E%3C%2Fsvg%3E);
   --icon-chevron-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='oklch(70.7% .022 261.325)' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
+}
+
+:root {
+  --react-select-bg: #ffffff;
+  --react-select-menu-bg: #ffffff;
+  --react-select-text: #111827;
+  --react-select-muted: #6b7280;
+  --react-select-placeholder: #6b7280;
+  --react-select-border: rgb(209 213 219 / 0.8);
+  --react-select-outline: rgb(209 213 219);
+  --react-select-chip-bg: #2563eb;
+  --react-select-chip-text: #ffffff;
+  --react-select-chip-remove-hover: rgb(255 255 255 / 0.14);
+  --react-select-option-hover: #f3f4f6;
+  --react-select-option-active: #e5e7eb;
+  --react-select-option-selected: #dbeafe;
+  --react-select-shadow: rgb(15 23 42 / 0.08);
+  --react-select-disabled-bg: rgb(3 7 18 / 0.1);
+  --react-select-disabled-text: #9ca3af;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --react-select-bg: #1f2937;
+    --react-select-menu-bg: #1f2937;
+    --react-select-text: #e5e7eb;
+    --react-select-muted: #9ca3af;
+    --react-select-placeholder: #9ca3af;
+    --react-select-border: rgb(75 85 99 / 0.8);
+    --react-select-outline: rgb(107 114 128);
+    --react-select-chip-bg: #1d4ed8;
+    --react-select-chip-text: #f9fafb;
+    --react-select-chip-remove-hover: rgb(255 255 255 / 0.12);
+    --react-select-option-hover: rgb(55 65 81);
+    --react-select-option-active: rgb(75 85 99);
+    --react-select-option-selected: rgb(30 64 175 / 0.4);
+    --react-select-shadow: rgb(0 0 0 / 0.36);
+    --react-select-disabled-bg: rgb(31 41 55 / 0.7);
+    --react-select-disabled-text: #6b7280;
+  }
 }
 
 /* === Base styles === */
@@ -364,7 +405,7 @@
 
   /* Pagination */
   .pagination {
-    @apply flex items-center justify-start lg:justify-center self-end text-center;
+    @apply flex items-center justify-start lg:justify-center self-end text-center gap-2;
   }
 
   .pagination-top {
@@ -376,27 +417,30 @@
   }
 
   .pagination a {
-    @apply whitespace-nowrap ml-0 lg:ml-2 mr-2 lg:mr-0 min-w-9;
+    @apply whitespace-nowrap;
   }
 
-  .pagination-list {
-    @apply flex items-end;
+  .pagination-previous,
+  .pagination-next {
+    @apply min-w-24;
   }
 
-  .pagination-list li {
-    @apply flex justify-end min-w-10 max-w-fit;
+  .pagination-pages {
+    @apply flex items-center gap-1;
   }
 
   .pagination-link {
-    @apply w-full;
+    font-weight: 480;
+    font-stretch: 98%;
+    @apply inline-flex items-center justify-center min-w-9 gap-1.5 px-2 py-1.5 rounded-sm;
   }
 
-  .pagination-ellipsis {
-    @apply w-full block ml-2;
+  .pagination-link.is-current {
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-default;
   }
 
-  .pagination a.is-current {
-    @apply bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed;
+  .pagination-gap {
+    @apply inline-flex items-center justify-center min-w-6 text-gray-500 dark:text-gray-400;
   }
 
   /* Preloadable images */
@@ -643,5 +687,131 @@
 
   .breadcrumb-separator {
     @apply text-gray-400 dark:text-gray-500 select-none;
+  }
+
+  /* Rich text content (product descriptions) */
+  .rich-text {
+    text-rendering: optimizeSpeed;
+
+    & * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-size: 17px;
+    }
+
+    & h1 {
+      font-size: 2.25em;
+      font-weight: 900;
+      line-height: 1.111;
+      margin-top: 0;
+      margin-bottom: 0.889em;
+    }
+
+    & h2 {
+      font-size: 1.5em;
+      font-weight: 800;
+      line-height: 1.333;
+      margin-bottom: 1em;
+    }
+
+    & h3 {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 0.6em;
+    }
+
+    & h4, & h5, & h6 {
+      font-weight: 600;
+      line-height: 1.5;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+    }
+
+    & p {
+      margin-top: 1.25em;
+      margin-bottom: 1.25em;
+    }
+
+    & a {
+      @apply text-blue-500 dark:text-blue-400 underline;
+      text-underline-offset: 2px;
+    }
+
+    & a:hover {
+      @apply text-blue-600 dark:text-blue-300;
+    }
+
+    & strong {
+      font-weight: 600;
+    }
+
+    & em {
+      font-style: italic;
+    }
+
+    & blockquote {
+      @apply border-l-4 border-gray-200 dark:border-gray-600 italic text-gray-500 dark:text-gray-400;
+      margin-top: 1.6em;
+      margin-bottom: 1.6em;
+      padding-left: 1em;
+    }
+
+    & ul, & ol {
+      margin-top: 1.25em;
+      margin-bottom: 1.25em;
+      padding-left: 2.625em;
+    }
+
+    & li {
+      margin-bottom: 0.5em;
+    }
+
+    & ul {
+      list-style-type: disc;
+    }
+
+    & ol {
+      list-style-type: decimal;
+    }
+
+    & hr {
+      @apply border-t border-gray-200 dark:border-gray-700;
+      margin-top: 3em;
+      margin-bottom: 3em;
+    }
+
+    & pre {
+      @apply bg-gray-100 dark:bg-gray-800 rounded-md overflow-x-auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.875em;
+      line-height: 1.714;
+      margin-top: 1.714em;
+      margin-bottom: 1.714em;
+      padding: 0.857em 1.143em;
+      white-space: pre;
+    }
+
+    & code {
+      @apply bg-gray-100 dark:bg-gray-800 rounded;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.875em;
+      padding: 0.2em 0.4em;
+    }
+
+    & pre code {
+      background-color: transparent;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    & img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin-top: 2em;
+      margin-bottom: 2em;
+    }
   }
 }

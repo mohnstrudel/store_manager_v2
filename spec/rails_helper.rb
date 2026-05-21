@@ -71,6 +71,7 @@ RSpec.configure do |config|
 
   # Custom helper to test custom selects
   config.include Helpers::SlimSelect, type: :feature
+  config.include Helpers::ReactSelect, type: :feature
 
   # Custom helper to test session management
   config.include Helpers::SessionManagement, type: :controller

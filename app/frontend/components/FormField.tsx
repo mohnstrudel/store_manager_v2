@@ -1,44 +1,30 @@
 type FormFieldProps = {
-  error?: string[];
+  defaultValue?: string;
+  error?: string;
   label: string;
   name: string;
-  namespace: string;
-  onChange: (value: string) => void;
   type?: "text" | "url" | "email";
-  value: string;
 };
 
-export default function FormField({
-  error = [],
-  label,
-  name,
-  namespace,
-  onChange,
-  type = "text",
-  value,
-}: FormFieldProps) {
-  const inputId = `${namespace}_${name}`;
+export default function FormField({ defaultValue = "", error, label, name, type = "text" }: FormFieldProps) {
+  const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
 
   return (
     <fieldset>
-      <label htmlFor={inputId}>{label}</label>
+      <label htmlFor={id}>{label}</label>
       <input
-        aria-invalid={error.length > 0}
-        aria-describedby={error.length > 0 ? `${inputId}_error` : undefined}
-        id={inputId}
-        name={`${namespace}[${name}]`}
-        onChange={(event) => onChange(event.target.value)}
+        aria-describedby={error ? `${id}_error` : undefined}
+        aria-invalid={!!error}
+        defaultValue={defaultValue}
+        id={id}
+        name={name}
         type={type}
-        value={value}
       />
-      {error.length > 0 ? (
-        <p
-          className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300"
-          id={`${inputId}_error`}
-        >
-          {error.join(", ")}
+      {error && (
+        <p className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300" id={`${id}_error`}>
+          {error}
         </p>
-      ) : null}
+      )}
     </fieldset>
   );
 }

@@ -11,6 +11,17 @@ class ApplicationController < ActionController::Base
     }
   end
 
+  private
+
+  def pagination_props(collection)
+    {
+      current_page: collection.current_page,
+      total_pages: collection.total_pages,
+      total_count: collection.total_count,
+      limit: collection.limit_value
+    }
+  end
+
   if Rails.env.development?
     before_action do
       ActiveStorage::Current.url_options = {host: "http://localhost:3000"}

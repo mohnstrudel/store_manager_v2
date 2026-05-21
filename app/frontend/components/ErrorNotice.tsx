@@ -1,13 +1,10 @@
-type ErrorNoticeProps = {
-  errors: Partial<Record<string, string[] | undefined>>;
-};
+import { usePage } from "@inertiajs/react";
 
-export default function ErrorNotice({ errors }: ErrorNoticeProps) {
-  const messages = Object.entries(errors).filter(
-    ([, attributeMessages]) => attributeMessages?.length,
-  );
+export default function ErrorNotice() {
+  const { errors } = usePage().props as { errors: Record<string, string | string[]> };
+  const entries = Object.entries(errors ?? {}).filter(([, v]) => (Array.isArray(v) ? v.length > 0 : !!v));
 
-  if (messages.length === 0) return null;
+  if (entries.length === 0) return null;
 
   return (
     <article className="h-fit mx-auto bg-red-100 rounded-xl mb-8 text-center text-red-700 lg:text-left dark:bg-red-800/60 dark:text-red-300">
@@ -17,15 +14,16 @@ export default function ErrorNotice({ errors }: ErrorNoticeProps) {
         <i className="icn text-2xl lg:text-3xl">🚨</i>
       </header>
       <ol className="list-decimal h-fit min-h-24 p-8 pl-16 text-left text-lg">
-        {messages.map(([attribute, attributeMessages]) =>
-          (attributeMessages || []).map((message) => (
+        {entries.map(([attribute, value]) => {
+          const messages = Array.isArray(value) ? value : [value];
+          return messages.map((message) => (
             <li className="mt-1" key={`${attribute}-${message}`}>
               <span className="font-semibold">{humanize(attribute)}</span>
               <span className="font-semibold">: </span>
-              {message.replace(`${humanize(attribute)} `, "")}
+              {message}
             </li>
-          )),
-        )}
+          ));
+        })}
       </ol>
     </article>
   );
