@@ -5,8 +5,6 @@ export type BrandRecord = {
   title: string;
 };
 
-export type BrandErrors = Partial<Record<"title", string[]>>;
-
 export type ProductRecord = {
   full_title: string;
   id: number;

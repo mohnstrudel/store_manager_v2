@@ -5,7 +5,6 @@ export type ColorRecord = {
   value: string;
 };
 
-export type ColorErrors = Partial<Record<"value", string[]>>;
 
 export type ProductRecord = {
   full_title: string;

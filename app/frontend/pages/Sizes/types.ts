@@ -5,7 +5,6 @@ export type SizeRecord = {
   updated_at: string | null;
 };
 
-export type SizeErrors = Partial<Record<"value", string[]>>;
 
 export type ProductRecord = {
   id: number;

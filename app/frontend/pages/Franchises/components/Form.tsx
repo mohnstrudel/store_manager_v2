@@ -1,59 +1,21 @@
-import { FormEvent } from "react";
-import { useForm } from "@inertiajs/react";
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import FormField from "@/components/FormField";
 import ResourceForm from "@/components/ResourceForm";
-import { FranchiseErrors, FranchiseRecord } from "../types";
+import { FranchiseRecord } from "../types";
 
 type FranchiseFormProps = {
-  errors?: FranchiseErrors;
   franchise: FranchiseRecord;
   method: "post" | "patch";
   submitLabel: string;
   url: string;
 };
 
-export default function Form({
-  errors = {},
-  franchise,
-  method,
-  submitLabel,
-  url,
-}: FranchiseFormProps) {
-  const { data, patch, post, processing, setData } = useForm({
-    franchise: {
-      title: franchise.title,
-    },
-  });
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (method === "patch") {
-      patch(url);
-    } else {
-      post(url);
-    }
-  }
+export default function Form({ franchise, method, submitLabel, url }: FranchiseFormProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
 
   return (
-    <>
-      <ErrorNotice errors={errors} />
-      <ResourceForm
-        cancelHref="/franchises"
-        onSubmit={submit}
-        submitDisabled={processing}
-        submitLabel={submitLabel}
-      >
-        <FormField
-          error={errors.title}
-          label="Title"
-          name="title"
-          namespace="franchise"
-          onChange={(title) => setData("franchise", { ...data.franchise, title })}
-          value={data.franchise.title}
-        />
-      </ResourceForm>
-    </>
+    <ResourceForm action={url} cancelHref="/franchises" method={method} submitLabel={submitLabel}>
+      <FormField defaultValue={franchise.title} error={errors.title} label="Title" name="franchise[title]" />
+    </ResourceForm>
   );
 }

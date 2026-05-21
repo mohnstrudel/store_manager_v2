@@ -1,4 +1,6 @@
-import CrudTable from "@/components/CrudTable";
+import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import Link from "@/components/Link";
 import { ShippingCompanyRecord } from "../types";
 
 type TableProps = {
@@ -6,57 +8,85 @@ type TableProps = {
 };
 
 export default function Table({ shippingCompanies }: TableProps) {
-  const columns = [
-    { header: "ID", render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.id },
-    { header: "Name", render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.name },
-    {
-      header: "Tracking URL",
-      render: (shippingCompany: ShippingCompanyRecord) =>
-        shippingCompany.tracking_url ? (
-          <a
-            className="link"
-            href={shippingCompany.tracking_url}
-            onClick={(event) => event.stopPropagation()}
-            rel="noopener"
-            target="_blank"
-          >
-            {shippingCompany.tracking_url}
-          </a>
-        ) : (
-          ""
-        ),
-    },
-    {
-      header: "Created",
-      render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.created_at,
-    },
-    {
-      header: "Updated",
-      render: (shippingCompany: ShippingCompanyRecord) => shippingCompany.updated_at,
-    },
-  ];
+  function visitShippingCompany(shippingCompany: ShippingCompanyRecord) {
+    router.visit(`/shipping_companies/${shippingCompany.id}`);
+  }
 
-  const actions = [
-    {
-      href: (shippingCompany: ShippingCompanyRecord) => `/shipping_companies/${shippingCompany.id}`,
-      icon: <i className="icn">📄</i>,
-      label: "Show",
-    },
-    {
-      href: (shippingCompany: ShippingCompanyRecord) =>
-        `/shipping_companies/${shippingCompany.id}/edit`,
-      icon: <i className="icn">✏</i>,
-      label: "Edit",
-    },
-  ];
+  function handleKeyDown(
+    shippingCompany: ShippingCompanyRecord,
+    event: KeyboardEvent<HTMLTableRowElement>
+  ) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    visitShippingCompany(shippingCompany);
+  }
+
+  function stopRowNavigation(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   return (
-    <CrudTable
-      actions={actions}
-      columns={columns}
-      rowHref={(shippingCompany) => `/shipping_companies/${shippingCompany.id}`}
-      rowKey={(shippingCompany) => shippingCompany.id ?? "new"}
-      rows={shippingCompanies}
-    />
+    <table role="grid">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Tracking URL</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th className="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {shippingCompanies.map((shippingCompany) => (
+          <tr
+            className="hoverable"
+            key={shippingCompany.id}
+            onClick={() => visitShippingCompany(shippingCompany)}
+            onKeyDown={(event) => handleKeyDown(shippingCompany, event)}
+            tabIndex={0}
+          >
+            <td>{shippingCompany.id}</td>
+            <td>{shippingCompany.name}</td>
+            <td>
+              {shippingCompany.tracking_url ? (
+                <a
+                  className="link"
+                  href={shippingCompany.tracking_url}
+                  onClick={stopRowNavigation}
+                  rel="noopener"
+                  target="_blank"
+                >
+                  {shippingCompany.tracking_url}
+                </a>
+              ) : (
+                ""
+              )}
+            </td>
+            <td>{shippingCompany.created_at}</td>
+            <td>{shippingCompany.updated_at}</td>
+            <td className="actions text-right">
+              <div className="flex flex-wrap justify-end gap-3">
+                <Link
+                  href={`/shipping_companies/${shippingCompany.id}`}
+                  onClick={stopRowNavigation}
+                >
+                  <i className="icn">📄</i>
+                  Show
+                </Link>
+                <Link
+                  href={`/shipping_companies/${shippingCompany.id}/edit`}
+                  onClick={stopRowNavigation}
+                >
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

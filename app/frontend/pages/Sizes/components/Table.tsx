@@ -1,4 +1,6 @@
-import CrudTable from "@/components/CrudTable";
+import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import Link from "@/components/Link";
 import { SizeRecord } from "../types";
 
 type TableProps = {
@@ -6,33 +8,60 @@ type TableProps = {
 };
 
 export default function Table({ sizes }: TableProps) {
-  const columns = [
-    { header: "ID", render: (size: SizeRecord) => size.id },
-    { header: "Value", render: (size: SizeRecord) => size.value },
-    { header: "Created", render: (size: SizeRecord) => size.created_at },
-    { header: "Updated", render: (size: SizeRecord) => size.updated_at },
-  ];
+  function visitSize(size: SizeRecord) {
+    router.visit(`/sizes/${size.id}`);
+  }
 
-  const actions = [
-    {
-      href: (size: SizeRecord) => `/sizes/${size.id}`,
-      icon: <i className="icn">📄</i>,
-      label: "Show",
-    },
-    {
-      href: (size: SizeRecord) => `/sizes/${size.id}/edit`,
-      icon: <i className="icn">✏</i>,
-      label: "Edit",
-    },
-  ];
+  function handleKeyDown(size: SizeRecord, event: KeyboardEvent<HTMLTableRowElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    visitSize(size);
+  }
+
+  function stopRowNavigation(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   return (
-    <CrudTable
-      actions={actions}
-      columns={columns}
-      rowHref={(size) => `/sizes/${size.id}`}
-      rowKey={(size) => size.id ?? "new"}
-      rows={sizes}
-    />
+    <table role="grid">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Value</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th className="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sizes.map((size) => (
+          <tr
+            className="hoverable"
+            key={size.id}
+            onClick={() => visitSize(size)}
+            onKeyDown={(event) => handleKeyDown(size, event)}
+            tabIndex={0}
+          >
+            <td>{size.id}</td>
+            <td>{size.value}</td>
+            <td>{size.created_at}</td>
+            <td>{size.updated_at}</td>
+            <td className="actions text-right">
+              <div className="flex flex-wrap justify-end gap-3">
+                <Link href={`/sizes/${size.id}`} onClick={stopRowNavigation}>
+                  <i className="icn">📄</i>
+                  Show
+                </Link>
+                <Link href={`/sizes/${size.id}/edit`} onClick={stopRowNavigation}>
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

@@ -1,4 +1,6 @@
-import CrudTable from "@/components/CrudTable";
+import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import Link from "@/components/Link";
 import { VersionRecord } from "../types";
 
 type TableProps = {
@@ -6,33 +8,60 @@ type TableProps = {
 };
 
 export default function Table({ versions }: TableProps) {
-  const columns = [
-    { header: "ID", render: (version: VersionRecord) => version.id },
-    { header: "Value", render: (version: VersionRecord) => version.value },
-    { header: "Created", render: (version: VersionRecord) => version.created_at },
-    { header: "Updated", render: (version: VersionRecord) => version.updated_at },
-  ];
+  function visitVersion(version: VersionRecord) {
+    router.visit(`/versions/${version.id}`);
+  }
 
-  const actions = [
-    {
-      href: (version: VersionRecord) => `/versions/${version.id}`,
-      icon: <i className="icn">📄</i>,
-      label: "Show",
-    },
-    {
-      href: (version: VersionRecord) => `/versions/${version.id}/edit`,
-      icon: <i className="icn">✏</i>,
-      label: "Edit",
-    },
-  ];
+  function handleKeyDown(version: VersionRecord, event: KeyboardEvent<HTMLTableRowElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    visitVersion(version);
+  }
+
+  function stopRowNavigation(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   return (
-    <CrudTable
-      actions={actions}
-      columns={columns}
-      rowHref={(version) => `/versions/${version.id}`}
-      rowKey={(version) => version.id ?? "new"}
-      rows={versions}
-    />
+    <table role="grid">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Value</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th className="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {versions.map((version) => (
+          <tr
+            className="hoverable"
+            key={version.id}
+            onClick={() => visitVersion(version)}
+            onKeyDown={(event) => handleKeyDown(version, event)}
+            tabIndex={0}
+          >
+            <td>{version.id}</td>
+            <td>{version.value}</td>
+            <td>{version.created_at}</td>
+            <td>{version.updated_at}</td>
+            <td className="actions text-right">
+              <div className="flex flex-wrap justify-end gap-3">
+                <Link href={`/versions/${version.id}`} onClick={stopRowNavigation}>
+                  <i className="icn">📄</i>
+                  Show
+                </Link>
+                <Link href={`/versions/${version.id}/edit`} onClick={stopRowNavigation}>
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

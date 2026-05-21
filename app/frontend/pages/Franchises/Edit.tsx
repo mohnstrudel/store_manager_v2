@@ -1,19 +1,19 @@
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import Form from "./components/Form";
-import { FranchiseErrors, FranchiseRecord } from "./types";
+import FormField from "@/components/FormField";
+import ResourceForm from "@/components/ResourceForm";
+import { FranchiseRecord } from "./types";
 
 type EditProps = {
-  errors?: FranchiseErrors;
   franchise: FranchiseRecord;
 };
 
-export default function Edit({ errors = {}, franchise }: EditProps) {
+export default function Edit({ franchise }: EditProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+
   return (
     <>
-      <ErrorNotice errors={errors} />
-
       <PageHeader
         actions={
           <li>
@@ -27,13 +27,9 @@ export default function Edit({ errors = {}, franchise }: EditProps) {
         title="Edit Franchise"
       />
 
-      <Form
-        errors={errors}
-        franchise={franchise}
-        method="patch"
-        submitLabel="Update Franchise"
-        url={`/franchises/${franchise.id}`}
-      />
+      <ResourceForm action={`/franchises/${franchise.id}`} cancelHref="/franchises" method="patch" submitLabel="Update Franchise">
+        <FormField defaultValue={franchise.title} error={errors.title} label="Title" name="franchise[title]" />
+      </ResourceForm>
     </>
   );
 }

@@ -1,59 +1,21 @@
-import { FormEvent } from "react";
-import { useForm } from "@inertiajs/react";
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import FormField from "@/components/FormField";
 import ResourceForm from "@/components/ResourceForm";
-import { SupplierErrors, SupplierRecord } from "../types";
+import { SupplierRecord } from "../types";
 
 type SupplierFormProps = {
-  errors?: SupplierErrors;
   method: "post" | "patch";
   submitLabel: string;
   supplier: SupplierRecord;
   url: string;
 };
 
-export default function Form({
-  errors = {},
-  method,
-  submitLabel,
-  supplier,
-  url,
-}: SupplierFormProps) {
-  const { data, patch, post, processing, setData } = useForm({
-    supplier: {
-      title: supplier.title,
-    },
-  });
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (method === "patch") {
-      patch(url);
-    } else {
-      post(url);
-    }
-  }
+export default function Form({ method, submitLabel, supplier, url }: SupplierFormProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
 
   return (
-    <>
-      <ErrorNotice errors={errors} />
-      <ResourceForm
-        cancelHref="/suppliers"
-        onSubmit={submit}
-        submitDisabled={processing}
-        submitLabel={submitLabel}
-      >
-        <FormField
-          error={errors.title}
-          label="Title"
-          name="title"
-          namespace="supplier"
-          onChange={(title) => setData("supplier", { ...data.supplier, title })}
-          value={data.supplier.title}
-        />
-      </ResourceForm>
-    </>
+    <ResourceForm action={url} cancelHref="/suppliers" method={method} submitLabel={submitLabel}>
+      <FormField defaultValue={supplier.title} error={errors.title} label="Title" name="supplier[title]" />
+    </ResourceForm>
   );
 }

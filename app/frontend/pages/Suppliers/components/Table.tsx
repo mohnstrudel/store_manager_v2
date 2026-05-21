@@ -1,4 +1,6 @@
-import CrudTable from "@/components/CrudTable";
+import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import Link from "@/components/Link";
 import { SupplierRecord } from "../types";
 
 type TableProps = {
@@ -6,33 +8,60 @@ type TableProps = {
 };
 
 export default function Table({ suppliers }: TableProps) {
-  const columns = [
-    { header: "ID", render: (supplier: SupplierRecord) => supplier.id },
-    { header: "Title", render: (supplier: SupplierRecord) => supplier.title },
-    { header: "Created", render: (supplier: SupplierRecord) => supplier.created_at },
-    { header: "Updated", render: (supplier: SupplierRecord) => supplier.updated_at },
-  ];
+  function visitSupplier(supplier: SupplierRecord) {
+    router.visit(`/suppliers/${supplier.id}`);
+  }
 
-  const actions = [
-    {
-      href: (supplier: SupplierRecord) => `/suppliers/${supplier.id}`,
-      icon: <i className="icn">📄</i>,
-      label: "Show",
-    },
-    {
-      href: (supplier: SupplierRecord) => `/suppliers/${supplier.id}/edit`,
-      icon: <i className="icn">✏</i>,
-      label: "Edit",
-    },
-  ];
+  function handleKeyDown(supplier: SupplierRecord, event: KeyboardEvent<HTMLTableRowElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    visitSupplier(supplier);
+  }
+
+  function stopRowNavigation(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   return (
-    <CrudTable
-      actions={actions}
-      columns={columns}
-      rowHref={(supplier) => `/suppliers/${supplier.id}`}
-      rowKey={(supplier) => supplier.id ?? "new"}
-      rows={suppliers}
-    />
+    <table role="grid">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th className="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {suppliers.map((supplier) => (
+          <tr
+            className="hoverable"
+            key={supplier.id}
+            onClick={() => visitSupplier(supplier)}
+            onKeyDown={(event) => handleKeyDown(supplier, event)}
+            tabIndex={0}
+          >
+            <td>{supplier.id}</td>
+            <td>{supplier.title}</td>
+            <td>{supplier.created_at}</td>
+            <td>{supplier.updated_at}</td>
+            <td className="actions text-right">
+              <div className="flex flex-wrap justify-end gap-3">
+                <Link href={`/suppliers/${supplier.id}`} onClick={stopRowNavigation}>
+                  <i className="icn">📄</i>
+                  Show
+                </Link>
+                <Link href={`/suppliers/${supplier.id}/edit`} onClick={stopRowNavigation}>
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

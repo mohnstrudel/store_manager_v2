@@ -1,21 +1,23 @@
-import Form from "./components/Form";
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import { ColorErrors, ColorRecord } from "./types";
+import FormField from "@/components/FormField";
+import ResourceForm from "@/components/ResourceForm";
+import { ColorRecord } from "./types";
 
 type NewProps = {
   color: ColorRecord;
-  errors?: ColorErrors;
 };
 
-export default function New({ color, errors = {} }: NewProps) {
+export default function New({ color }: NewProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+
   return (
     <>
-      <ErrorNotice errors={errors} />
-
       <PageHeader className="mb-8" title="New Color" />
 
-      <Form color={color} errors={errors} method="post" submitLabel="Create Color" url="/colors" />
+      <ResourceForm action="/colors" cancelHref="/colors" method="post" submitLabel="Create Color">
+        <FormField defaultValue={color.value} error={errors.value} label="Value" name="color[value]" />
+      </ResourceForm>
     </>
   );
 }

@@ -6,7 +6,6 @@ export type ShippingCompanyRecord = {
   updated_at: string | null;
 };
 
-export type ShippingCompanyErrors = Partial<Record<"name" | "tracking_url", string[]>>;
 
 export type PurchaseItemRecord = {
   id: number;

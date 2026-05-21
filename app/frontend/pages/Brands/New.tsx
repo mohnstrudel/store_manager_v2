@@ -1,21 +1,23 @@
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import Form from "./components/Form";
-import { BrandErrors, BrandRecord } from "./types";
+import FormField from "@/components/FormField";
+import ResourceForm from "@/components/ResourceForm";
+import { BrandRecord } from "./types";
 
 type NewProps = {
   brand: BrandRecord;
-  errors?: BrandErrors;
 };
 
-export default function New({ brand, errors = {} }: NewProps) {
+export default function New({ brand }: NewProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+
   return (
     <>
-      <ErrorNotice errors={errors} />
-
       <PageHeader className="mb-8" title="New Brand" />
 
-      <Form brand={brand} errors={errors} method="post" submitLabel="Create Brand" url="/brands" />
+      <ResourceForm action="/brands" cancelHref="/brands" method="post" submitLabel="Create Brand">
+        <FormField defaultValue={brand.title} error={errors.title} label="Title" name="brand[title]" />
+      </ResourceForm>
     </>
   );
 }

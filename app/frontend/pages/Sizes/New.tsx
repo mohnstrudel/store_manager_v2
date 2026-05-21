@@ -1,21 +1,23 @@
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import Form from "./components/Form";
-import { SizeErrors, SizeRecord } from "./types";
+import FormField from "@/components/FormField";
+import ResourceForm from "@/components/ResourceForm";
+import { SizeRecord } from "./types";
 
 type NewProps = {
-  errors?: SizeErrors;
   size: SizeRecord;
 };
 
-export default function New({ errors = {}, size }: NewProps) {
+export default function New({ size }: NewProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+
   return (
     <>
-      <ErrorNotice errors={errors} />
-
       <PageHeader className="mb-8" title="New Size" />
 
-      <Form errors={errors} method="post" size={size} submitLabel="Create Size" url="/sizes" />
+      <ResourceForm action="/sizes" cancelHref="/sizes" method="post" submitLabel="Create Size">
+        <FormField defaultValue={size.value} error={errors.value} label="Value" name="size[value]" />
+      </ResourceForm>
     </>
   );
 }

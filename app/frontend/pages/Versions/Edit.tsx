@@ -1,18 +1,15 @@
-import ErrorNotice from "@/components/ErrorNotice";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
-import { VersionErrors, VersionRecord } from "./types";
+import { VersionRecord } from "./types";
 
 type EditProps = {
-  errors?: VersionErrors;
   version: VersionRecord;
 };
 
-export default function Edit({ errors = {}, version }: EditProps) {
+export default function Edit({ version }: EditProps) {
   return (
     <>
-      <ErrorNotice errors={errors} />
 
       <PageHeader
         actions={
@@ -28,7 +25,6 @@ export default function Edit({ errors = {}, version }: EditProps) {
       />
 
       <Form
-        errors={errors}
         method="patch"
         submitLabel="Update Version"
         url={`/versions/${version.id}`}

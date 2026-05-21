@@ -1,4 +1,6 @@
-import CrudTable from "@/components/CrudTable";
+import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import Link from "@/components/Link";
 import { BrandRecord } from "../types";
 
 type TableProps = {
@@ -6,33 +8,60 @@ type TableProps = {
 };
 
 export default function Table({ brands }: TableProps) {
-  const columns = [
-    { header: "ID", render: (brand: BrandRecord) => brand.id },
-    { header: "Title", render: (brand: BrandRecord) => brand.title },
-    { header: "Created", render: (brand: BrandRecord) => brand.created_at },
-    { header: "Updated", render: (brand: BrandRecord) => brand.updated_at },
-  ];
+  function visitBrand(brand: BrandRecord) {
+    router.visit(`/brands/${brand.id}`);
+  }
 
-  const actions = [
-    {
-      href: (brand: BrandRecord) => `/brands/${brand.id}`,
-      icon: <i className="icn">📄</i>,
-      label: "Show",
-    },
-    {
-      href: (brand: BrandRecord) => `/brands/${brand.id}/edit`,
-      icon: <i className="icn">✏</i>,
-      label: "Edit",
-    },
-  ];
+  function handleKeyDown(brand: BrandRecord, event: KeyboardEvent<HTMLTableRowElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    visitBrand(brand);
+  }
+
+  function stopRowNavigation(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   return (
-    <CrudTable
-      actions={actions}
-      columns={columns}
-      rowHref={(brand) => `/brands/${brand.id}`}
-      rowKey={(brand) => brand.id ?? "new"}
-      rows={brands}
-    />
+    <table role="grid">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th className="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {brands.map((brand) => (
+          <tr
+            className="hoverable"
+            key={brand.id}
+            onClick={() => visitBrand(brand)}
+            onKeyDown={(event) => handleKeyDown(brand, event)}
+            tabIndex={0}
+          >
+            <td>{brand.id}</td>
+            <td>{brand.title}</td>
+            <td>{brand.created_at}</td>
+            <td>{brand.updated_at}</td>
+            <td className="actions text-right">
+              <div className="flex flex-wrap justify-end gap-3">
+                <Link href={`/brands/${brand.id}`} onClick={stopRowNavigation}>
+                  <i className="icn">📄</i>
+                  Show
+                </Link>
+                <Link href={`/brands/${brand.id}/edit`} onClick={stopRowNavigation}>
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

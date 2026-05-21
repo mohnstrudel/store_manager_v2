@@ -1,18 +1,15 @@
-import ErrorNotice from "@/components/ErrorNotice";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
-import { ShippingCompanyErrors, ShippingCompanyRecord } from "./types";
+import { ShippingCompanyRecord } from "./types";
 
 type EditProps = {
-  errors?: ShippingCompanyErrors;
   shippingCompany: ShippingCompanyRecord;
 };
 
-export default function Edit({ errors = {}, shippingCompany }: EditProps) {
+export default function Edit({ shippingCompany }: EditProps) {
   return (
     <>
-      <ErrorNotice errors={errors} />
 
       <PageHeader
         actions={
@@ -28,7 +25,6 @@ export default function Edit({ errors = {}, shippingCompany }: EditProps) {
       />
 
       <Form
-        errors={errors}
         method="patch"
         shippingCompany={shippingCompany}
         submitLabel="Update Shipping Company"

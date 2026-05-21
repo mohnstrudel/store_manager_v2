@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import New from "./New";
 
 vi.mock("@/components/Link", () => ({
@@ -9,33 +9,35 @@ vi.mock("@/components/Link", () => ({
   ),
 }));
 
+let pageErrors: Record<string, string> = {};
+
 vi.mock("@inertiajs/react", () => ({
-  useForm: (initialData: { size: { value: string } }) => ({
-    data: initialData,
-    post: vi.fn(),
-    processing: false,
-    setData: vi.fn(),
-  }),
+  Form: ({ children, action, method }: { children: ReactNode; action: string; method: string }) => (
+    <form action={action} method={method}>{children}</form>
+  ),
+  usePage: () => ({ props: { errors: pageErrors } }),
 }));
 
+const size = { id: null, value: "", created_at: null, updated_at: null };
+
 describe("Sizes/New", () => {
+  beforeEach(() => {
+    pageErrors = {};
+  });
+
   it("renders the form", () => {
-    render(<New errors={{}} size={{ id: null, value: "", created_at: null, updated_at: null }} />);
+    render(<New size={size} />);
 
     expect(screen.getByRole("heading", { name: "New Size" })).toBeInTheDocument();
     expect(screen.getByLabelText("Value")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Create Size" })).toBeInTheDocument();
   });
 
-  it("renders validation errors", () => {
-    render(
-      <New
-        errors={{ value: ["Value can't be blank"] }}
-        size={{ id: null, value: "", created_at: null, updated_at: null }}
-      />,
-    );
+  it("renders field validation errors", () => {
+    pageErrors = { value: "can't be blank" };
 
-    expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
+    render(<New size={size} />);
+
     expect(screen.getByText("can't be blank")).toBeInTheDocument();
   });
 });

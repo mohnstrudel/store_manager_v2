@@ -5,7 +5,6 @@ export type SupplierRecord = {
   title: string;
 };
 
-export type SupplierErrors = Partial<Record<"title", string[]>>;
 
 export type PurchaseRecord = {
   amount: number;

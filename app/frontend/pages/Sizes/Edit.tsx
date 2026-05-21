@@ -2,17 +2,16 @@ import ErrorNotice from "@/components/ErrorNotice";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
-import { SizeErrors, SizeRecord } from "./types";
+import { SizeRecord } from "./types";
 
 type EditProps = {
-  errors?: SizeErrors;
   size: SizeRecord;
 };
 
-export default function Edit({ errors = {}, size }: EditProps) {
+export default function Edit({ size }: EditProps) {
   return (
     <>
-      <ErrorNotice errors={errors} />
+      <ErrorNotice />
 
       <PageHeader
         actions={
@@ -28,7 +27,6 @@ export default function Edit({ errors = {}, size }: EditProps) {
       />
 
       <Form
-        errors={errors}
         method="patch"
         size={size}
         submitLabel="Update Size"

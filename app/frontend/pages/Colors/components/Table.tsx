@@ -1,4 +1,6 @@
-import CrudTable from "@/components/CrudTable";
+import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import Link from "@/components/Link";
 import { ColorRecord } from "../types";
 
 type TableProps = {
@@ -6,33 +8,60 @@ type TableProps = {
 };
 
 export default function Table({ colors }: TableProps) {
-  const columns = [
-    { header: "ID", render: (color: ColorRecord) => color.id },
-    { header: "Value", render: (color: ColorRecord) => color.value },
-    { header: "Created", render: (color: ColorRecord) => color.created_at },
-    { header: "Updated", render: (color: ColorRecord) => color.updated_at },
-  ];
+  function visitColor(color: ColorRecord) {
+    router.visit(`/colors/${color.id}`);
+  }
 
-  const actions = [
-    {
-      href: (color: ColorRecord) => `/colors/${color.id}`,
-      icon: <i className="icn">📄</i>,
-      label: "Show",
-    },
-    {
-      href: (color: ColorRecord) => `/colors/${color.id}/edit`,
-      icon: <i className="icn">✏</i>,
-      label: "Edit",
-    },
-  ];
+  function handleKeyDown(color: ColorRecord, event: KeyboardEvent<HTMLTableRowElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    visitColor(color);
+  }
+
+  function stopRowNavigation(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   return (
-    <CrudTable
-      actions={actions}
-      columns={columns}
-      rowHref={(color) => `/colors/${color.id}`}
-      rowKey={(color) => color.id ?? "new"}
-      rows={colors}
-    />
+    <table role="grid">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Value</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th className="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {colors.map((color) => (
+          <tr
+            className="hoverable"
+            key={color.id}
+            onClick={() => visitColor(color)}
+            onKeyDown={(event) => handleKeyDown(color, event)}
+            tabIndex={0}
+          >
+            <td>{color.id}</td>
+            <td>{color.value}</td>
+            <td>{color.created_at}</td>
+            <td>{color.updated_at}</td>
+            <td className="actions text-right">
+              <div className="flex flex-wrap justify-end gap-3">
+                <Link href={`/colors/${color.id}`} onClick={stopRowNavigation}>
+                  <i className="icn">📄</i>
+                  Show
+                </Link>
+                <Link href={`/colors/${color.id}/edit`} onClick={stopRowNavigation}>
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

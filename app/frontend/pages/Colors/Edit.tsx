@@ -1,19 +1,19 @@
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import Form from "./components/Form";
-import { ColorErrors, ColorRecord } from "./types";
+import FormField from "@/components/FormField";
+import ResourceForm from "@/components/ResourceForm";
+import { ColorRecord } from "./types";
 
 type EditProps = {
   color: ColorRecord;
-  errors?: ColorErrors;
 };
 
-export default function Edit({ color, errors = {} }: EditProps) {
+export default function Edit({ color }: EditProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+
   return (
     <>
-      <ErrorNotice errors={errors} />
-
       <PageHeader
         actions={
           <li>
@@ -27,13 +27,9 @@ export default function Edit({ color, errors = {} }: EditProps) {
         title="Edit Color"
       />
 
-      <Form
-        color={color}
-        errors={errors}
-        method="patch"
-        submitLabel="Update Color"
-        url={`/colors/${color.id}`}
-      />
+      <ResourceForm action={`/colors/${color.id}`} cancelHref="/colors" method="patch" submitLabel="Update Color">
+        <FormField defaultValue={color.value} error={errors.value} label="Value" name="color[value]" />
+      </ResourceForm>
     </>
   );
 }

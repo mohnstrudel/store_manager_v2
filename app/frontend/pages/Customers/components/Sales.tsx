@@ -49,14 +49,18 @@ export default function Sales({ heading, sales }: SalesProps) {
                     .join(" ")}
                 </span>
               </td>
-              <td className="font-mono whitespace-nowrap">{sale.total || "-"}</td>
-              <td>{sale.country || "-"}</td>
-              <td>{sale.city || "-"}</td>
-              <td>{sale.note || "-"}</td>
+              <td className="font-mono whitespace-nowrap">{sale.total ?? ""}</td>
+              <td>{sale.country ?? ""}</td>
+              <td>{sale.city ?? ""}</td>
+              <td>{sale.note ?? ""}</td>
               <td>
                 {sale.created_at}
-                <br />
-                <span className="text-gray-500">{sale.updated_at}</span>
+                {sale.updated_at ? (
+                  <>
+                    <br />
+                    <span className="text-gray-500">{sale.updated_at}</span>
+                  </>
+                ) : null}
               </td>
             </tr>
           ))}

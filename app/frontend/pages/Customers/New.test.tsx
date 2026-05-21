@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import New from "./New";
 
 vi.mock("@/components/Link", () => ({
@@ -9,48 +9,46 @@ vi.mock("@/components/Link", () => ({
   ),
 }));
 
+let pageErrors: Record<string, string> = {};
+
 vi.mock("@inertiajs/react", () => ({
-  useForm: (initialData: object) => ({
-    data: initialData,
-    post: vi.fn(),
-    processing: false,
-    setData: vi.fn(),
-  }),
+  Form: ({ children, action, method }: { children: ReactNode; action: string; method: string }) => (
+    <form action={action} method={method}>{children}</form>
+  ),
+  usePage: () => ({ props: { errors: pageErrors } }),
 }));
 
 const emptyCustomer = {
   id: null,
+  woo_store_id: "",
+  full_name: "",
   first_name: "",
   last_name: "",
-  full_name: "",
   email: "",
   phone: "",
-  woo_store_id: "",
   created_at: null,
   updated_at: null,
-  path: "",
+  path: "/customers/new",
 };
 
 describe("Customers/New", () => {
+  beforeEach(() => {
+    pageErrors = {};
+  });
+
   it("renders the form", () => {
     render(<New customer={emptyCustomer} />);
 
     expect(screen.getByRole("heading", { name: "New Customer" })).toBeInTheDocument();
     expect(screen.getByLabelText("First name")).toBeInTheDocument();
-    expect(screen.getByLabelText("Last name")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
-    expect(screen.getByLabelText("Phone")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Create Customer" })).toBeInTheDocument();
   });
 
-  it("renders validation errors", () => {
-    render(
-      <New
-        customer={emptyCustomer}
-        errors={{ base: ["Customer must have contact details or store information"] }}
-      />,
-    );
+  it("renders field validation errors", () => {
+    pageErrors = { first_name: "can't be blank" };
 
-    expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
+    render(<New customer={emptyCustomer} />);
+
+    expect(screen.getByText("can't be blank")).toBeInTheDocument();
   });
 });

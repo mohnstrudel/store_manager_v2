@@ -1,4 +1,6 @@
-import CrudTable from "@/components/CrudTable";
+import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import Link from "@/components/Link";
 import { FranchiseRecord } from "../types";
 
 type TableProps = {
@@ -6,33 +8,60 @@ type TableProps = {
 };
 
 export default function Table({ franchises }: TableProps) {
-  const columns = [
-    { header: "ID", render: (franchise: FranchiseRecord) => franchise.id },
-    { header: "Title", render: (franchise: FranchiseRecord) => franchise.title },
-    { header: "Created", render: (franchise: FranchiseRecord) => franchise.created_at },
-    { header: "Updated", render: (franchise: FranchiseRecord) => franchise.updated_at },
-  ];
+  function visitFranchise(franchise: FranchiseRecord) {
+    router.visit(`/franchises/${franchise.id}`);
+  }
 
-  const actions = [
-    {
-      href: (franchise: FranchiseRecord) => `/franchises/${franchise.id}`,
-      icon: <i className="icn">📄</i>,
-      label: "Show",
-    },
-    {
-      href: (franchise: FranchiseRecord) => `/franchises/${franchise.id}/edit`,
-      icon: <i className="icn">✏</i>,
-      label: "Edit",
-    },
-  ];
+  function handleKeyDown(franchise: FranchiseRecord, event: KeyboardEvent<HTMLTableRowElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    visitFranchise(franchise);
+  }
+
+  function stopRowNavigation(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   return (
-    <CrudTable
-      actions={actions}
-      columns={columns}
-      rowHref={(franchise) => `/franchises/${franchise.id}`}
-      rowKey={(franchise) => franchise.id ?? "new"}
-      rows={franchises}
-    />
+    <table role="grid">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Created</th>
+          <th>Updated</th>
+          <th className="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {franchises.map((franchise) => (
+          <tr
+            className="hoverable"
+            key={franchise.id}
+            onClick={() => visitFranchise(franchise)}
+            onKeyDown={(event) => handleKeyDown(franchise, event)}
+            tabIndex={0}
+          >
+            <td>{franchise.id}</td>
+            <td>{franchise.title}</td>
+            <td>{franchise.created_at}</td>
+            <td>{franchise.updated_at}</td>
+            <td className="actions text-right">
+              <div className="flex flex-wrap justify-end gap-3">
+                <Link href={`/franchises/${franchise.id}`} onClick={stopRowNavigation}>
+                  <i className="icn">📄</i>
+                  Show
+                </Link>
+                <Link href={`/franchises/${franchise.id}/edit`} onClick={stopRowNavigation}>
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

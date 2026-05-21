@@ -1,4 +1,4 @@
-import CrudTable from "@/components/CrudTable";
+import Link from "@/components/Link";
 import { ProductRecord } from "../types";
 
 type ProductsProps = {
@@ -8,20 +8,27 @@ type ProductsProps = {
 export default function Products({ products }: ProductsProps) {
   if (products.length === 0) return null;
 
-  const columns = [
-    { header: "ID", render: (product: ProductRecord) => product.id, className: "text-gray-500" },
-    { header: "Full Title", render: (product: ProductRecord) => product.full_title },
-  ];
-
   return (
     <div className="table-card">
       <h3>Products</h3>
-      <CrudTable
-        columns={columns}
-        rowHref={(product) => product.path}
-        rowKey={(product) => product.id}
-        rows={products}
-      />
+      <table>
+        <thead>
+          <tr>
+            <th className="text-gray-500">ID</th>
+            <th>Full Title</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((product) => (
+            <tr key={product.id}>
+              <td className="text-gray-500">{product.id}</td>
+              <td>
+                <Link href={product.path}>{product.full_title}</Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

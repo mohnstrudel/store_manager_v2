@@ -16,9 +16,6 @@ export type CustomerDetailRecord = CustomerRecord & {
   shopify_id_short: string;
 };
 
-export type CustomerErrors = Partial<
-  Record<"email" | "first_name" | "last_name" | "phone" | "base", string[]>
->;
 
 export type SaleRecord = {
   id: number;

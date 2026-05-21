@@ -1,19 +1,19 @@
-import ErrorNotice from "@/components/ErrorNotice";
+import { usePage } from "@inertiajs/react";
 import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import Form from "./components/Form";
-import { BrandErrors, BrandRecord } from "./types";
+import FormField from "@/components/FormField";
+import ResourceForm from "@/components/ResourceForm";
+import { BrandRecord } from "./types";
 
 type EditProps = {
   brand: BrandRecord;
-  errors?: BrandErrors;
 };
 
-export default function Edit({ brand, errors = {} }: EditProps) {
+export default function Edit({ brand }: EditProps) {
+  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+
   return (
     <>
-      <ErrorNotice errors={errors} />
-
       <PageHeader
         actions={
           <li>
@@ -27,13 +27,9 @@ export default function Edit({ brand, errors = {} }: EditProps) {
         title="Edit Brand"
       />
 
-      <Form
-        brand={brand}
-        errors={errors}
-        method="patch"
-        submitLabel="Update Brand"
-        url={`/brands/${brand.id}`}
-      />
+      <ResourceForm action={`/brands/${brand.id}`} cancelHref="/brands" method="patch" submitLabel="Update Brand">
+        <FormField defaultValue={brand.title} error={errors.title} label="Title" name="brand[title]" />
+      </ResourceForm>
     </>
   );
 }
