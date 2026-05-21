@@ -13,14 +13,15 @@ RSpec.describe "Sales Store Sync" do
 
     visit sales_path
     expect(page).to have_content("Last fetched at 28 April at 13:45")
-    click_link "Store Sync"
+    expect(page).to have_link("Add New Record", href: new_sale_path)
+    click_button "Store Sync"
 
     click_button "Fetch Everything"
 
     expect(page).to have_current_path(sales_path, ignore_query: true)
     expect(page).not_to have_css("dialog#sales-index-sync-modal[open]")
 
-    click_link "Store Sync"
+    click_button "Store Sync"
     expect(page).to have_css("dialog#sales-index-sync-modal[open]")
   end
 end

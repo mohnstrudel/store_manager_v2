@@ -9,10 +9,11 @@ module Media::FormHandling
     base_position = media.maximum(:position)&.next || 0
 
     new_images.each_with_index do |image, index|
-      next unless image_like?(image)
+      attachable = resolve_attachable(image)
+      next unless attachable
 
       media.create!(
-        image: image,
+        image: attachable,
         position: base_position + index
       )
     end
@@ -32,7 +33,8 @@ module Media::FormHandling
         next
       end
 
-      media_item.image.attach(attrs[:image]) if image_like?(attrs[:image])
+      attachable = resolve_attachable(attrs[:image])
+      media_item.image.attach(attachable) if attachable
 
       updates = attrs.slice(:position, :alt)
         .compact_blank
@@ -43,6 +45,15 @@ module Media::FormHandling
   end
 
   private
+
+  def resolve_attachable(value)
+    return value if image_like?(value)
+    return nil unless value.is_a?(String) && value.present?
+
+    ActiveStorage::Blob.find_signed(value)
+  rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveRecord::RecordNotFound
+    nil
+  end
 
   def image_like?(value)
     return false unless value.respond_to?(:content_type)
