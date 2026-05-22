@@ -6,7 +6,13 @@ type FormFieldProps = {
   type?: "text" | "url" | "email";
 };
 
-export default function FormField({ defaultValue = "", error, label, name, type = "text" }: FormFieldProps) {
+export default function FormField({
+  defaultValue = "",
+  error,
+  label,
+  name,
+  type = "text",
+}: FormFieldProps) {
   const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
 
   return (

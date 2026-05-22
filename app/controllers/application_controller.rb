@@ -5,6 +5,7 @@ class ApplicationController < ActionController::Base
   include Authorization
   inertia_share do
     {
+      breadcrumb: helpers.breadcrumb_title,
       auth: {user: current_user&.slice(:id, :email_address, :role)},
       flash: {notice: flash.notice, alert: flash.alert},
       csrf_token: form_authenticity_token
@@ -19,6 +20,18 @@ class ApplicationController < ActionController::Base
       total_pages: collection.total_pages,
       total_count: collection.total_count,
       limit: collection.limit_value
+    }
+  end
+
+  def media_props(media)
+    return unless media.image.attached?
+
+    {
+      id: media.id,
+      alt: media.alt.to_s,
+      position: media.position,
+      preview_url: url_for(media.image.representation(:preview)),
+      thumb_url: url_for(media.image.representation(:thumb))
     }
   end
 

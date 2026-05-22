@@ -3,17 +3,11 @@ import SlimSelect from "slim-select";
 
 // Connects to data-controller="slim-select"
 export default class extends Controller {
-  turboRenderHandler = () => {
-    window.requestAnimationFrame(() => this.init());
-  };
-
   connect() {
     this.init();
-    document.addEventListener("turbo:render", this.turboRenderHandler);
   }
 
   disconnect() {
-    document.removeEventListener("turbo:render", this.turboRenderHandler);
     this.destroySlimSelect();
   }
 

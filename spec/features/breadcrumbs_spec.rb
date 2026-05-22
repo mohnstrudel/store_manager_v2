@@ -18,7 +18,7 @@ feature "Breadcrumbs navigation", :js do
     expect(page).to have_content("Products")
 
     # Navigate to a product by clicking on the table row
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
     expect(page).to have_current_path(product_path(product))
     expect_breadcrumbs_to_include("Products", product.title)
 
@@ -32,13 +32,13 @@ feature "Breadcrumbs navigation", :js do
 
   scenario "limits breadcrumbs to last 4 pages" do
     visit products_path
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
 
     visit warehouses_path
-    find("tr[data-table-url-param='#{warehouse_path(warehouse)}']").click
+    click_warehouse_row
 
     visit purchases_path
-    find("tr[data-table-url-param='#{purchase_path(purchase)}']").click
+    click_purchase_row
 
     visit purchase_item_path(purchase_item)
 
@@ -53,7 +53,7 @@ feature "Breadcrumbs navigation", :js do
 
   scenario "does not create duplicates on page reload" do
     visit products_path
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
 
     # Reload the page
     visit current_path
@@ -67,10 +67,10 @@ feature "Breadcrumbs navigation", :js do
 
   scenario "does not create duplicates when visiting same page multiple times" do
     visit products_path
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
 
     visit products_path
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
 
     # Should not have duplicate entries
     within "[data-controller='breadcrumbs']" do
@@ -81,10 +81,10 @@ feature "Breadcrumbs navigation", :js do
 
   scenario "shows opacity gradient for breadcrumbs" do
     visit products_path
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
 
     visit warehouses_path
-    find("tr[data-table-url-param='#{warehouse_path(warehouse)}']").click
+    click_warehouse_row
 
     visit purchases_path
 
@@ -107,7 +107,7 @@ feature "Breadcrumbs navigation", :js do
 
   scenario "current page is not a link" do
     visit products_path
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
 
     within "[data-controller='breadcrumbs']" do
       # Current page should not be wrapped in a link
@@ -119,13 +119,27 @@ feature "Breadcrumbs navigation", :js do
 
   scenario "previous pages are clickable links" do
     visit products_path
-    find("tr[data-table-url-param='#{product_path(product)}']").click
+    click_product_row
 
     visit warehouses_path
 
     within "[data-controller='breadcrumbs']" do
       # Previous page should be a link
       expect(page).to have_link(product.title, href: product_path(product))
+    end
+  end
+
+  scenario "renders breadcrumb icons with consistent spacing" do
+    visit purchases_path
+    click_purchase_row
+    visit purchase_item_path(purchase_item)
+
+    within "[data-controller='breadcrumbs']" do
+      purchase_breadcrumb = find("li", text: "Purchase #{purchase.id}")
+      purchase_item_breadcrumb = find("li", text: "Purchase Item #{purchase_item.id}")
+
+      expect(purchase_breadcrumb).to have_css("i.icn.mr-2", text: "💰")
+      expect(purchase_item_breadcrumb).to have_css("i.icn.mr-2", text: "📦")
     end
   end
 
@@ -195,5 +209,17 @@ feature "Breadcrumbs navigation", :js do
       breadcrumb = find("li", text: name)
       expect(breadcrumb).not_to have_selector("a")
     end
+  end
+
+  def click_product_row
+    find("tr[tabindex='0']", text: product.full_title, match: :first).click
+  end
+
+  def click_warehouse_row
+    find("tr[tabindex='0']", text: warehouse.name, match: :first).click
+  end
+
+  def click_purchase_row
+    find("tr[tabindex='0']", text: purchase.product_title, match: :first).click
   end
 end

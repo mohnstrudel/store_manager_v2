@@ -1,6 +1,4 @@
-import CreatableSelect, {
-  type CreatableProps,
-} from "react-select/creatable";
+import CreatableSelect, { type CreatableProps } from "react-select/creatable";
 import { type GroupBase, type StylesConfig } from "react-select";
 import { reactSelectStyles } from "./SmartSelect";
 
@@ -23,6 +21,10 @@ export default function TagSelect<
       {...props}
       classNamePrefix="rs"
       styles={reactSelectStyles as StylesConfig<Option, IsMulti, Group>}
+      classNames={{
+        control: () => "!h-auto",
+        valueContainer: () => "!flex-wrap !overflow-visible !h-auto !items-start !p-2 !gap-1",
+      }}
     />
   );
 }

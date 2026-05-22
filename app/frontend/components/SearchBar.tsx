@@ -1,6 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { router } from "@inertiajs/react";
-import Link from "@/components/Link";
+import { router, Link } from "@inertiajs/react";
 
 type SearchBarProps = {
   initialQuery: string;
@@ -13,11 +12,7 @@ export default function SearchBar({ initialQuery, path, reloadOnly }: SearchBarP
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.get(
-      path,
-      { q: query || undefined },
-      { only: reloadOnly, preserveState: true },
-    );
+    router.get(path, { q: query || undefined }, { only: reloadOnly, preserveState: true });
   }
 
   return (

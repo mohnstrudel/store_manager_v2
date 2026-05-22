@@ -1,8 +1,4 @@
-import Select, {
-  type GroupBase,
-  type Props as SelectProps,
-  type StylesConfig,
-} from "react-select";
+import Select, { type GroupBase, type Props as SelectProps, type StylesConfig } from "react-select";
 
 type SmartSelectProps<
   Option,
@@ -148,7 +144,7 @@ export const reactSelectStyles: StylesConfig<unknown, boolean, GroupBase<unknown
   }),
   multiValueLabel: (base) => ({
     ...base,
-    padding: "2px 6px",
+    padding: "4px 6px",
     fontSize: 13,
     lineHeight: 1,
     color: "var(--react-select-chip-text)",
@@ -163,9 +159,7 @@ export const reactSelectStyles: StylesConfig<unknown, boolean, GroupBase<unknown
       backgroundColor: "var(--react-select-chip-remove-hover)",
       color: "var(--react-select-chip-text)",
     },
-    ...(state.isFocused
-      ? { backgroundColor: "var(--react-select-chip-remove-hover)" }
-      : {}),
+    ...(state.isFocused ? { backgroundColor: "var(--react-select-chip-remove-hover)" } : {}),
   }),
   noOptionsMessage: (base) => ({
     ...base,

@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 
 type PaginationMeta = {
   current_page: number;
@@ -47,11 +47,7 @@ export default function Pagination({
               {page}
             </span>
           ) : (
-            <Link
-              className="pagination-link"
-              href={hrefForPage(path, page, params)}
-              key={page}
-            >
+            <Link className="pagination-link" href={hrefForPage(path, page, params)} key={page}>
               {page}
             </Link>
           ),

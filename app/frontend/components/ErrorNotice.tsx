@@ -1,8 +1,11 @@
 import { usePage } from "@inertiajs/react";
 
 export default function ErrorNotice() {
-  const { errors } = usePage().props as { errors: Record<string, string | string[]> };
-  const entries = Object.entries(errors ?? {}).filter(([, v]) => (Array.isArray(v) ? v.length > 0 : !!v));
+  const { errors } = usePage().props as { errors: Record<string, string | undefined> };
+  const entries = Object.entries(errors ?? {}).filter(([attribute, value]) => {
+    if (attribute.includes(".") || attribute.includes("[") || attribute.includes("]")) return false;
+    return !!value;
+  });
 
   if (entries.length === 0) return null;
 
@@ -14,16 +17,13 @@ export default function ErrorNotice() {
         <i className="icn text-2xl lg:text-3xl">🚨</i>
       </header>
       <ol className="list-decimal h-fit min-h-24 p-8 pl-16 text-left text-lg">
-        {entries.map(([attribute, value]) => {
-          const messages = Array.isArray(value) ? value : [value];
-          return messages.map((message) => (
-            <li className="mt-1" key={`${attribute}-${message}`}>
-              <span className="font-semibold">{humanize(attribute)}</span>
-              <span className="font-semibold">: </span>
-              {message}
-            </li>
-          ));
-        })}
+        {entries.map(([attribute, message]) => (
+          <li className="mt-1" key={`${attribute}-${message}`}>
+            <span className="font-semibold">{humanize(attribute)}</span>
+            <span className="font-semibold">: </span>
+            {message}
+          </li>
+        ))}
       </ol>
     </article>
   );

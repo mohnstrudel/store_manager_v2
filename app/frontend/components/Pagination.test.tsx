@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Pagination from "./Pagination";
 
-vi.mock("@/components/Link", () => ({
-  default: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
+vi.mock("@inertiajs/react", () => ({
+  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
     <a href={href} {...props}>
       {children}
     </a>

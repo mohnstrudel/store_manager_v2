@@ -1,6 +1,3 @@
-// Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
-import "@hotwired/turbo-rails";
-
 function disableAutocorrect(root = document) {
     root.querySelectorAll("input, textarea").forEach(el => {
         el.setAttribute("autocomplete", "off");
@@ -10,7 +7,7 @@ function disableAutocorrect(root = document) {
     });
 }
 
-document.addEventListener("turbo:load", () => disableAutocorrect());
+document.addEventListener("DOMContentLoaded", () => disableAutocorrect());
 
 new MutationObserver(mutations => {
     for (const { addedNodes } of mutations) {

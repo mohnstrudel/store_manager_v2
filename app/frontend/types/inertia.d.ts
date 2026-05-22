@@ -1,5 +1,6 @@
 export interface PageProps {
   [key: string]: unknown;
+  breadcrumb: string | null;
   auth: {
     user: {
       id: number;

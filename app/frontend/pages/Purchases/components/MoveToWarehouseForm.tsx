@@ -1,0 +1,79 @@
+import { router } from "@inertiajs/react";
+import { type FormEvent, useState } from "react";
+import type { WarehouseOption } from "../types";
+
+type MoveToWarehouseFormProps = {
+  fixed?: boolean;
+  movePath: string;
+  onMoved?: () => void;
+  purchaseId?: number;
+  redirectToSaleItem?: boolean;
+  selectedIds: number[];
+  warehouses: WarehouseOption[];
+};
+
+export default function MoveToWarehouseForm({
+  fixed = true,
+  movePath,
+  onMoved,
+  purchaseId,
+  redirectToSaleItem = false,
+  selectedIds,
+  warehouses,
+}: MoveToWarehouseFormProps) {
+  const [destinationId, setDestinationId] = useState("");
+  const visible = selectedIds.length > 0;
+
+  if (!visible) return null;
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!destinationId) return;
+
+    router.post(
+      movePath,
+      {
+        destination_id: destinationId,
+        purchase_id: purchaseId,
+        redirect_to_sale_item: redirectToSaleItem || undefined,
+        selected_items_ids: selectedIds,
+      },
+      { onSuccess: onMoved },
+    );
+  }
+
+  return (
+    <div
+      className={[
+        fixed
+          ? "move_to_warehouse__form fixed bottom-4 inset-x-2 mx-auto z-228 backdrop-blur-xl shadow-xl rounded-xl border border-gray-100 p-4 dark:border-gray-800 lg:bottom-8 lg:inset-x-0 lg:p-8 lg:w-4/5"
+          : "mb-4",
+      ].join(" ")}
+    >
+      <form
+        className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4"
+        onSubmit={handleSubmit}
+      >
+        <select
+          className="select"
+          onChange={(event) => setDestinationId(event.target.value)}
+          value={destinationId}
+        >
+          <option value="">Select a warehouse</option>
+          {warehouses.map((warehouse) => (
+            <option key={warehouse.id} value={warehouse.id}>
+              {warehouse.name}
+            </option>
+          ))}
+        </select>
+        <button className="btn-rounded btn-blue h-11 w-full lg:w-auto" type="submit">
+          <i className="icn">🚚</i>
+          Move
+          {selectedIds.length > 0 && (
+            <span className="text-nowrap -ml-1"> {selectedIds.length}</span>
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}

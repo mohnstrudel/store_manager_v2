@@ -24,7 +24,6 @@ export default class extends Controller {
     }
 
     this.dialogTarget.setAttribute("aria-hidden", "false")
-    this.loadLazyFrames()
     this.dispatch("show")
   }
 
@@ -66,9 +65,4 @@ export default class extends Controller {
     event.currentTarget.form?.requestSubmit()
   }
 
-  loadLazyFrames() {
-    this.dialogTarget.querySelectorAll("turbo-frame").forEach((frame) => {
-      frame.loading = "eager"
-    })
-  }
 }

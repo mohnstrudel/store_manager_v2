@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 module BreadcrumbsHelper
+  def breadcrumb_title
+    determine_breadcrumb_title.presence
+  end
+
   # Renders meta tag with breadcrumb data for the current page
   # Used by the Stimulus breadcrumbs controller to update the trail
   #
@@ -12,7 +16,7 @@ module BreadcrumbsHelper
   #   <meta name="breadcrumb" content="Test Product" data-url="/products/123">
   #
   def breadcrumb_meta_tag
-    breadcrumb_title = determine_breadcrumb_title
+    breadcrumb_title = self.breadcrumb_title
     return if breadcrumb_title.blank?
 
     tag.meta(

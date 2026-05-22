@@ -25,7 +25,7 @@ module UiHelper
   end
 
   def fetch_btn_for(record, path: nil)
-    link_to(path || polymorphic_path([record, :pull]), class: "btn-rounded", data: {"turbo-prefetch": "false", turbo_method: :post}) do
+    button_to(path || polymorphic_path([record, :pull]), class: "btn-rounded", method: :post) do
       heroicon("chevron-double-down", variant: "mini") + "Fetch"
     end
   end
@@ -37,7 +37,7 @@ module UiHelper
       polymorphic_path(record),
       method: :delete,
       class: "btn-red w-full h-12 mt-16 btn-rounded",
-      data: {turbo_confirm: "Are you sure?"}
+      data: {confirm: "Are you sure?"}
   end
 
   def copy_to_clipboard(text:, css: nil, label: "Copy")

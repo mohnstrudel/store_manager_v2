@@ -8,6 +8,8 @@ export default class extends Controller {
   static targets = ["list"]
 
   connect() {
+    if (this.element.closest("#app")) return
+
     this.render()
   }
 

@@ -11,11 +11,13 @@ RSpec.describe "Preloadable images", :js do
   end
 
   # rubocop:todo RSpec/MultipleExpectations
-  scenario "loads a visible product thumbnail on the products index" do
+  scenario "loads a visible product thumbnail on the purchases index" do
     product = create(:product)
     attach_valid_image_to(product, "preloadable-thumb.png")
+    purchase = create(:purchase, product:, supplier: create(:supplier))
+    create(:purchase_item, purchase:)
 
-    visit products_path
+    visit purchases_path
 
     expect(page).to have_css("[data-controller='preloadable-img']")
     expect(page).to have_no_css(".preloadable-img__img.loading", wait: 10)
@@ -42,8 +44,10 @@ RSpec.describe "Preloadable images", :js do
   scenario "keeps the gray skeleton visible until the real image loads" do
     product = create(:product)
     attach_valid_image_to(product, "preloadable-thumb.png")
+    purchase = create(:purchase, product:, supplier: create(:supplier))
+    create(:purchase_item, purchase:)
 
-    visit products_path
+    visit purchases_path
 
     expect(page).to have_css("[data-controller='preloadable-img']")
 

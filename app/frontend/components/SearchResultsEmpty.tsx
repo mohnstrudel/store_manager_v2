@@ -18,10 +18,9 @@ export default function SearchResultsEmpty({ seed = "" }: SearchResultsEmptyProp
 function iconForSeed(seed: string) {
   if (!seed) return EMPTY_ICONS[0];
 
-  const index = Array.from(seed).reduce(
-    (sum, character) => sum + character.charCodeAt(0),
-    0,
-  ) % EMPTY_ICONS.length;
+  const index =
+    Array.from(seed).reduce((sum, character) => sum + character.charCodeAt(0), 0) %
+    EMPTY_ICONS.length;
 
   return EMPTY_ICONS[index];
 }
