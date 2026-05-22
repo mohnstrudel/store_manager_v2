@@ -46,7 +46,7 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
             </button>
           </li>
           <li>
-            <Link href="/sales/new">
+            <Link href="/sales/new" prefetch>
               <i className="icn">🐣</i>
               Add New Record
             </Link>

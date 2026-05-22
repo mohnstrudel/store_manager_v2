@@ -36,7 +36,7 @@ export default function Details({ purchase }: DetailsProps) {
       <div className="card">
         <h5>Supplier</h5>
         <p>
-          <Link className="link" href={purchase.supplier_path}>
+          <Link className="link" href={purchase.supplier_path} prefetch>
             {purchase.supplier_title}
           </Link>
         </p>

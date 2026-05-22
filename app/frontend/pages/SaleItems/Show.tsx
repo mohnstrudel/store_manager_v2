@@ -57,13 +57,13 @@ export default function Show({
         </div>
         <menu className="nav_menu">
           <li>
-            <Link href={sale_item.product_path}>
+            <Link href={sale_item.product_path} prefetch>
               <i className="icn">🧸</i>
               Product
             </Link>
           </li>
           <li>
-            <Link href={sale_item.sale_path}>
+            <Link href={sale_item.sale_path} prefetch>
               <i className="icn">🛒</i>
               Sale
             </Link>
@@ -132,6 +132,7 @@ export default function Show({
                         className="no-events"
                         href={purchaseItem.edit_path}
                         onClick={stopRowNavigation}
+                        prefetch
                       >
                         <i className="icn">✏</i>
                         Edit

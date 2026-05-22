@@ -13,7 +13,7 @@ export default function Index({ colors }: IndexProps) {
       <PageHeader
         actions={
           <li>
-            <Link href="/colors/new">
+            <Link href="/colors/new" prefetch>
               <i className="icn">🐣</i>
               Add New Record
             </Link>

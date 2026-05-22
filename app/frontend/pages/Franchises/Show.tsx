@@ -22,7 +22,7 @@ export default function Show({ franchise, products }: ShowProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/franchises/${franchise.id}/edit`}>
+            <Link href={`/franchises/${franchise.id}/edit`} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

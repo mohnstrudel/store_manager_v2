@@ -5,9 +5,19 @@ function openTab(path: string) {
   window.open(path, "_blank", "noopener,noreferrer");
 }
 
+function prefetch(path: string) {
+  router.prefetch(path, { method: "get" });
+}
+
 export function rowNavigationProps(path: string) {
   return {
     tabIndex: 0 as const,
+    onFocus() {
+      prefetch(path);
+    },
+    onMouseEnter() {
+      prefetch(path);
+    },
     onClick(e: MouseEvent<HTMLTableRowElement>) {
       if (e.metaKey || e.ctrlKey) {
         openTab(path);

@@ -31,7 +31,7 @@ export default function Show({ active_sales, completed_sales, customer }: ShowPr
       <PageHeader
         actions={
           <li>
-            <Link href={editPath}>
+            <Link href={editPath} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

@@ -16,7 +16,7 @@ export default function Edit({ brand }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/brands/${brand.id}`}>
+            <Link href={`/brands/${brand.id}`} prefetch>
               <i className="icn">📄</i>
               View Brand Page
             </Link>

@@ -32,7 +32,7 @@ export default function Index({ products, pagination, search, last_sync_at }: In
               </button>
             </li>
             <li>
-              <Link href="/products/new">
+              <Link href="/products/new" prefetch>
                 <i className="icn">🐣</i>
                 Add New Record
               </Link>
@@ -97,7 +97,11 @@ export default function Index({ products, pagination, search, last_sync_at }: In
                   <td>{product.woo_store_id || "—"}</td>
                   <td>{product.shopify_id_short || "—"}</td>
                   <td className="actions text-right">
-                    <Link href={product.new_purchase_path} onClick={(e) => e.stopPropagation()}>
+                    <Link
+                      href={product.new_purchase_path}
+                      onClick={(e) => e.stopPropagation()}
+                      prefetch
+                    >
                       <i className="icn">💰</i>
                       Purchase
                     </Link>

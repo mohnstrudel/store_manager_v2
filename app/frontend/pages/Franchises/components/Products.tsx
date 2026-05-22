@@ -23,7 +23,9 @@ export default function Products({ products }: ProductsProps) {
             <tr key={product.id}>
               <td className="text-gray-500">{product.id}</td>
               <td>
-                <Link href={product.path}>{product.full_title}</Link>
+                <Link href={product.path} prefetch>
+                  {product.full_title}
+                </Link>
               </td>
             </tr>
           ))}

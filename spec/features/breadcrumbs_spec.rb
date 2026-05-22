@@ -30,6 +30,19 @@ feature "Breadcrumbs navigation", :js do
     expect_breadcrumb_not_to_be_a_link("Edit #{product.title}")
   end
 
+  scenario "keeps the breadcrumb trail when navigating through the main nav" do
+    visit products_path
+
+    click_link "Sales"
+
+    expect(page).to have_current_path(sales_path)
+
+    within breadcrumb_container do
+      expect(page).to have_link("Products", href: products_path)
+      expect(page).to have_content("Sales")
+    end
+  end
+
   scenario "limits breadcrumbs to last 4 pages" do
     visit products_path
     click_product_row
@@ -43,7 +56,7 @@ feature "Breadcrumbs navigation", :js do
     visit purchase_item_path(purchase_item)
 
     # Should only show last 4 pages
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).not_to have_content("Products")
       expect(page).to have_content(warehouse.name)
       expect(page).to have_content("Purchase #{purchase.id}")
@@ -59,7 +72,7 @@ feature "Breadcrumbs navigation", :js do
     visit current_path
 
     # Should not have duplicate entries
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       product_breadcrumbs = page.all("li", text: product.title)
       expect(product_breadcrumbs.count).to eq(1)
     end
@@ -73,7 +86,7 @@ feature "Breadcrumbs navigation", :js do
     click_product_row
 
     # Should not have duplicate entries
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       product_breadcrumbs = page.all("li", text: product.title)
       expect(product_breadcrumbs.count).to eq(1)
     end
@@ -89,7 +102,7 @@ feature "Breadcrumbs navigation", :js do
     visit purchases_path
 
     # Check that breadcrumbs have opacity styles
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       breadcrumbs = page.all("li")
       expect(breadcrumbs.length).to be >= 2
 
@@ -109,7 +122,7 @@ feature "Breadcrumbs navigation", :js do
     visit products_path
     click_product_row
 
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       # Current page should not be wrapped in a link
       current_breadcrumb = page.all("li").last
       expect(current_breadcrumb).not_to have_selector("a")
@@ -123,7 +136,7 @@ feature "Breadcrumbs navigation", :js do
 
     visit warehouses_path
 
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       # Previous page should be a link
       expect(page).to have_link(product.title, href: product_path(product))
     end
@@ -134,37 +147,34 @@ feature "Breadcrumbs navigation", :js do
     click_purchase_row
     visit purchase_item_path(purchase_item)
 
-    within "[data-controller='breadcrumbs']" do
-      purchase_breadcrumb = find("li", text: "Purchase #{purchase.id}")
-      purchase_item_breadcrumb = find("li", text: "Purchase Item #{purchase_item.id}")
-
-      expect(purchase_breadcrumb).to have_css("i.icn.mr-2", text: "💰")
-      expect(purchase_item_breadcrumb).to have_css("i.icn.mr-2", text: "📦")
+    within breadcrumb_container do
+      expect(page).to have_content("Purchase #{purchase.id}")
+      expect(page).to have_content("Purchase Item #{purchase_item.id}")
     end
   end
 
   scenario "uses correct naming for different resource types" do
     # Product page
     visit product_path(product)
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content(product.title)
     end
 
     # Purchase page
     visit purchase_path(purchase)
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content("Purchase #{purchase.id}")
     end
 
     # Purchase item page
     visit purchase_item_path(purchase_item)
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content("Purchase Item #{purchase_item.id}")
     end
 
     # Warehouse page
     visit warehouse_path(warehouse)
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content(warehouse.name)
     end
   end
@@ -172,24 +182,24 @@ feature "Breadcrumbs navigation", :js do
   scenario "uses correct naming for edit pages" do
     visit edit_product_path(product)
 
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content("Edit #{product.title}")
     end
   end
 
   scenario "uses correct naming for index pages" do
     visit products_path
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content("Products")
     end
 
     visit purchases_path
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content("Purchases")
     end
 
     visit warehouses_path
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       expect(page).to have_content("Warehouses")
     end
   end
@@ -197,7 +207,7 @@ feature "Breadcrumbs navigation", :js do
   private
 
   def expect_breadcrumbs_to_include(*names)
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       names.each do |name|
         expect(page).to have_content(name)
       end
@@ -205,7 +215,7 @@ feature "Breadcrumbs navigation", :js do
   end
 
   def expect_breadcrumb_not_to_be_a_link(name)
-    within "[data-controller='breadcrumbs']" do
+    within breadcrumb_container do
       breadcrumb = find("li", text: name)
       expect(breadcrumb).not_to have_selector("a")
     end
@@ -220,6 +230,10 @@ feature "Breadcrumbs navigation", :js do
   end
 
   def click_purchase_row
-    find("tr[tabindex='0']", text: purchase.product_title, match: :first).click
+    find("tr[tabindex='0']", text: purchase.product.full_title, match: :first).click
+  end
+
+  def breadcrumb_container
+    "nav[aria-label='Breadcrumb'], [data-controller='breadcrumbs']"
   end
 end

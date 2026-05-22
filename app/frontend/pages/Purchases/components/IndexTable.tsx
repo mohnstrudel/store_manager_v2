@@ -82,7 +82,12 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
               <PaymentProgressBar progress={purchase.payment_progress} />
             </td>
             <td className="actions">
-              <Link className="no-events" href={purchase.edit_path} onClick={stopRowNavigation}>
+              <Link
+                className="no-events"
+                href={purchase.edit_path}
+                onClick={stopRowNavigation}
+                prefetch
+              >
                 <i className="icn">✏</i>
                 Edit
               </Link>

@@ -31,7 +31,7 @@ export default function Sales({ heading, sales }: SalesProps) {
           {sales.map((sale) => (
             <tr key={sale.id}>
               <td>
-                <Link href={sale.path}>
+                <Link href={sale.path} prefetch>
                   {sale.store_type === "shopify" && (
                     <span className="inline-block icon-shopify w-5 h-5 mr-1 -mb-1" />
                   )}

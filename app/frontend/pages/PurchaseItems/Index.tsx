@@ -80,12 +80,12 @@ export default function Index({ pagination, purchase_items, search }: IndexProps
                     {...rowNavigationProps(purchaseItem.path)}
                   >
                     <td>
-                      <Link href={purchaseItem.purchase_path} onClick={stopRowNavigation}>
+                      <Link href={purchaseItem.purchase_path} onClick={stopRowNavigation} prefetch>
                         {purchaseItem.purchase_title}
                       </Link>
                     </td>
                     <td>
-                      <Link href={purchaseItem.product_path} onClick={stopRowNavigation}>
+                      <Link href={purchaseItem.product_path} onClick={stopRowNavigation} prefetch>
                         {purchaseItem.product_title}
                       </Link>
                       {purchaseItem.variant_title && purchaseItem.variant_title !== "-" && (
@@ -95,13 +95,13 @@ export default function Index({ pagination, purchase_items, search }: IndexProps
                       )}
                     </td>
                     <td>
-                      <Link href={purchaseItem.warehouse_path} onClick={stopRowNavigation}>
+                      <Link href={purchaseItem.warehouse_path} onClick={stopRowNavigation} prefetch>
                         {purchaseItem.warehouse_name}
                       </Link>
                     </td>
                     <td>
                       {purchaseItem.sale_path ? (
-                        <Link href={purchaseItem.sale_path} onClick={stopRowNavigation}>
+                        <Link href={purchaseItem.sale_path} onClick={stopRowNavigation} prefetch>
                           {purchaseItem.sale_title}
                         </Link>
                       ) : (
@@ -120,7 +120,7 @@ export default function Index({ pagination, purchase_items, search }: IndexProps
                     </td>
                     <td>{purchaseItem.updated_at}</td>
                     <td className="actions text-right">
-                      <Link href={purchaseItem.edit_path} onClick={stopRowNavigation}>
+                      <Link href={purchaseItem.edit_path} onClick={stopRowNavigation} prefetch>
                         <i className="icn">✏</i>
                         Edit
                       </Link>

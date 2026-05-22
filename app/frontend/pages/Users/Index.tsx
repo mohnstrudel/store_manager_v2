@@ -55,7 +55,7 @@ export default function Index({ users }: IndexProps) {
                 <td>{user.created_at}</td>
                 <td>{user.updated_at}</td>
                 <td className="actions text-right">
-                  <Link href={user.edit_path} onClick={stopRowNavigation}>
+                  <Link href={user.edit_path} onClick={stopRowNavigation} prefetch>
                     <i className="icn">✏</i>
                     Edit
                   </Link>

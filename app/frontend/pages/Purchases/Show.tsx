@@ -47,7 +47,7 @@ export default function Show({
         </div>
         <menu className="nav_menu">
           <li>
-            <Link href={purchase.edit_path}>
+            <Link href={purchase.edit_path} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

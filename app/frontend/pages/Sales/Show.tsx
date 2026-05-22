@@ -66,7 +66,7 @@ export default function Show({ sale }: ShowProps) {
             </li>
           ) : null}
           <li>
-            <Link href={sale.edit_path}>
+            <Link href={sale.edit_path} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

@@ -32,6 +32,7 @@ export default function Pagination({
           className="pagination-previous"
           href={hrefForPage(path, current_page - 1, params)}
           rel="prev"
+          prefetch
         >
           Previous
         </Link>
@@ -47,7 +48,12 @@ export default function Pagination({
               {page}
             </span>
           ) : (
-            <Link className="pagination-link" href={hrefForPage(path, page, params)} key={page}>
+            <Link
+              className="pagination-link"
+              href={hrefForPage(path, page, params)}
+              key={page}
+              prefetch
+            >
               {page}
             </Link>
           ),
@@ -58,6 +64,7 @@ export default function Pagination({
           className="pagination-next"
           href={hrefForPage(path, current_page + 1, params)}
           rel="next"
+          prefetch
         >
           Next
         </Link>

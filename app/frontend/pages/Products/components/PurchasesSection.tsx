@@ -32,7 +32,9 @@ export default function PurchasesSection({ purchases }: PurchasesSectionProps) {
           {purchases.map((purchase) => (
             <tr className="hoverable" key={purchase.id}>
               <td>
-                <Link href={purchase.path}>{purchase.supplier}</Link>
+                <Link href={purchase.path} prefetch>
+                  {purchase.supplier}
+                </Link>
               </td>
               <td className="font-mono text-sm">{purchase.order_reference}</td>
               <td>{purchase.variant_title ?? ""}</td>

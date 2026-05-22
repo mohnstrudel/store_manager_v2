@@ -36,11 +36,11 @@ export default function Table({ versions }: TableProps) {
             <td>{version.updated_at}</td>
             <td className="actions text-right">
               <div className="flex flex-wrap justify-end gap-3">
-                <Link href={`/versions/${version.id}`} onClick={stopRowNavigation}>
+                <Link href={`/versions/${version.id}`} onClick={stopRowNavigation} prefetch>
                   <i className="icn">📄</i>
                   Show
                 </Link>
-                <Link href={`/versions/${version.id}/edit`} onClick={stopRowNavigation}>
+                <Link href={`/versions/${version.id}/edit`} onClick={stopRowNavigation} prefetch>
                   <i className="icn">✏</i>
                   Edit
                 </Link>

@@ -22,7 +22,7 @@ export default function Show({ purchaseItems, shippingCompany }: ShowProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/shipping_companies/${shippingCompany.id}/edit`}>
+            <Link href={`/shipping_companies/${shippingCompany.id}/edit`} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

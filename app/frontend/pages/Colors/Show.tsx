@@ -22,7 +22,7 @@ export default function Show({ color, products }: ShowProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/colors/${color.id}/edit`}>
+            <Link href={`/colors/${color.id}/edit`} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

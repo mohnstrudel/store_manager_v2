@@ -13,7 +13,7 @@ export default function Edit({ shippingCompany }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/shipping_companies/${shippingCompany.id}`}>
+            <Link href={`/shipping_companies/${shippingCompany.id}`} prefetch>
               <i className="icn">📄</i>
               View Shipping Company Page
             </Link>

@@ -24,7 +24,7 @@ export default function ResourceForm({
       <Button className="w-full lg:w-fit" type="submit" variant="primary">
         {submitLabel}
       </Button>
-      <Link className="w-full lg:w-fit h-10" href={cancelHref}>
+      <Link className="w-full lg:w-fit h-10" href={cancelHref} prefetch>
         Cancel
       </Link>
     </div>

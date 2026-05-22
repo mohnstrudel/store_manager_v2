@@ -50,6 +50,7 @@ export default function PurchaseItems({
             <Link
               className="inline-flex items-center gap-3 font-semibold"
               href={purchase.product_path}
+              prefetch
             >
               {purchase.product_thumb_url && (
                 <img
@@ -111,6 +112,7 @@ export default function PurchaseItems({
                     className="link no-events"
                     href={purchaseItem.warehouse_path}
                     onClick={stopRowNavigation}
+                    prefetch
                   >
                     {purchaseItem.warehouse_name}
                   </Link>
@@ -121,6 +123,7 @@ export default function PurchaseItems({
                       className="link no-events"
                       href={purchaseItem.sale_path}
                       onClick={stopRowNavigation}
+                      prefetch
                     >
                       {purchaseItem.sale_title}
                     </Link>
@@ -159,6 +162,7 @@ export default function PurchaseItems({
                       className="no-events"
                       href={purchaseItem.edit_path}
                       onClick={stopRowNavigation}
+                      prefetch
                     >
                       <i className="icn">✏</i>
                       Edit

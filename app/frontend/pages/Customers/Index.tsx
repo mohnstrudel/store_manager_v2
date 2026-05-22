@@ -17,7 +17,7 @@ export default function Index({ customers, pagination, search }: IndexProps) {
       <PageHeader
         actions={
           <li>
-            <Link href="/customers/new">
+            <Link href="/customers/new" prefetch>
               <i className="icn">🐣</i>
               Add New Record
             </Link>

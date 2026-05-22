@@ -55,6 +55,7 @@ export default function Table({ shippingCompanies }: TableProps) {
                 <Link
                   href={`/shipping_companies/${shippingCompany.id}`}
                   onClick={stopRowNavigation}
+                  prefetch
                 >
                   <i className="icn">📄</i>
                   Show
@@ -62,6 +63,7 @@ export default function Table({ shippingCompanies }: TableProps) {
                 <Link
                   href={`/shipping_companies/${shippingCompany.id}/edit`}
                   onClick={stopRowNavigation}
+                  prefetch
                 >
                   <i className="icn">✏</i>
                   Edit

@@ -108,7 +108,9 @@ export default function Index({
             ))}
             <tr className="hover:bg-transparent hover:cursor-default">
               <td colSpan={3}>
-                <Link href={debts_path}>See More...</Link>
+                <Link href={debts_path} prefetch>
+                  See More...
+                </Link>
               </td>
             </tr>
           </tbody>

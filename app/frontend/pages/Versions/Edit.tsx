@@ -13,7 +13,7 @@ export default function Edit({ version }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/versions/${version.id}`}>
+            <Link href={`/versions/${version.id}`} prefetch>
               <i className="icn">📄</i>
               View Version Page
             </Link>

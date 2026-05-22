@@ -33,7 +33,7 @@ export default function SearchBar({ initialQuery, path, reloadOnly }: SearchBarP
         Search
       </button>
       {initialQuery && (
-        <Link className="mt-2 lg:mt-0 lg:ml-2 btn-rounded btn-red" href={path}>
+        <Link className="mt-2 lg:mt-0 lg:ml-2 btn-rounded btn-red" href={path} prefetch>
           <i className="icn">❎</i>
           Exit
         </Link>

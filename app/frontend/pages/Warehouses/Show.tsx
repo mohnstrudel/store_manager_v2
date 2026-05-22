@@ -65,13 +65,13 @@ export default function Show({
         </div>
         <menu className="nav_menu">
           <li>
-            <Link href={warehouse.new_item_path}>
+            <Link href={warehouse.new_item_path} prefetch>
               <i className="icn">📦</i>
               Add product
             </Link>
           </li>
           <li>
-            <Link href={warehouse.edit_path}>
+            <Link href={warehouse.edit_path} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>
@@ -161,6 +161,7 @@ export default function Show({
                                 href={item.sale_path}
                                 onClick={stopRowNavigation}
                                 title="Open sales page"
+                                prefetch
                               >
                                 {item.sale_store_type === "shopify" && (
                                   <span className="inline-block icon-shopify w-4 h-4" />
@@ -212,6 +213,7 @@ export default function Show({
                                 className="btn-xs btn-rounded"
                                 href={item.tracking_edit_path}
                                 onClick={stopRowNavigation}
+                                prefetch
                               >
                                 {item.tracking_number ? "Edit" : "Add"}
                               </Link>
@@ -226,6 +228,7 @@ export default function Show({
                                 className="btn-xs btn-rounded no-events"
                                 href={item.shipping_company_edit_path}
                                 onClick={stopRowNavigation}
+                                prefetch
                               >
                                 {item.shipping_company_name ? "Edit" : "Add"}
                               </Link>

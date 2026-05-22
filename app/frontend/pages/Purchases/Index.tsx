@@ -46,7 +46,7 @@ export default function Index({
 
         <menu className="nav_menu">
           <li>
-            <Link href="/purchases/new">
+            <Link href="/purchases/new" prefetch>
               <i className="icn">🐣</i>
               Add New Record
             </Link>

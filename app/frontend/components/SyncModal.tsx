@@ -64,7 +64,7 @@ export default function SyncModal({
             </button>
           </li>
           <li>
-            <Link className="w-full h-15" href="/jobs/statuses">
+            <Link className="w-full h-15" href="/jobs/statuses" prefetch>
               Track Jobs Progress
             </Link>
           </li>

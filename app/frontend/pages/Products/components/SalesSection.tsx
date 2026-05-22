@@ -69,6 +69,7 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
                       className="no-events btn-rounded text-xs"
                       href={item.purchase_item_path}
                       onClick={stopRowNavigation}
+                      prefetch
                     >
                       <i className="icn">📦</i>
                       {item.warehouse || "Purchase Item"}

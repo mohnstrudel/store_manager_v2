@@ -37,7 +37,11 @@ export default function Items({ saleItems }: ItemsProps) {
                 ) : null}
               </td>
               <td>
-                <Link className="link no-underline font-semibold" href={saleItem.product_path}>
+                <Link
+                  className="link no-underline font-semibold"
+                  href={saleItem.product_path}
+                  prefetch
+                >
                   {saleItem.title}
                 </Link>
                 {saleItem.purchase_items.length > 0 ? (
@@ -77,7 +81,7 @@ function PurchaseItems({
               <span className="text-gray-500">
                 <i className="icn">💰</i>&nbsp;Purchase:
               </span>
-              <Link className="link ml-2" href={purchaseItem.path}>
+              <Link className="link ml-2" href={purchaseItem.path} prefetch>
                 {purchaseItem.supplier_title}, {purchaseItem.purchase_date}
                 {purchaseItem.item_price && (
                   <>
@@ -118,7 +122,7 @@ function PurchaseItems({
                   <span className="text-gray-500">
                     <i className="icn">📦</i>&nbsp;Status:
                   </span>
-                  <Link className="link ml-2" href={purchaseItem.current_warehouse_path}>
+                  <Link className="link ml-2" href={purchaseItem.current_warehouse_path} prefetch>
                     {purchaseItem.current_warehouse_name}
                   </Link>
                 </span>

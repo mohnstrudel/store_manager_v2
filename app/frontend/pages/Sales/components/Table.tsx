@@ -91,6 +91,7 @@ export default function Table({ sales }: TableProps) {
                         href={purchaseItem.path}
                         key={purchaseItem.id}
                         onClick={stopRowNavigation}
+                        prefetch
                       >
                         <i className="icn">📦</i>
                         {purchaseItem.warehouse_name}

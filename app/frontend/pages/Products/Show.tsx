@@ -49,13 +49,13 @@ export default function Show({
             </li>
           )}
           <li>
-            <Link href={product.new_purchase_path}>
+            <Link href={product.new_purchase_path} prefetch>
               <i className="icn">💰</i>
               New Purchase
             </Link>
           </li>
           <li>
-            <Link href={product.edit_path}>
+            <Link href={product.edit_path} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

@@ -16,7 +16,7 @@ export default function Edit({ franchise }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/franchises/${franchise.id}`}>
+            <Link href={`/franchises/${franchise.id}`} prefetch>
               <i className="icn">📄</i>
               View Franchise Page
             </Link>

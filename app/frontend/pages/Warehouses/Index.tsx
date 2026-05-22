@@ -42,7 +42,7 @@ export default function Index({ warehouses }: IndexProps) {
         </hgroup>
         <menu className="nav_menu">
           <li>
-            <Link href="/warehouses/new">
+            <Link href="/warehouses/new" prefetch>
               <i className="icn">🐣</i>
               Add New Record
             </Link>
@@ -98,7 +98,7 @@ export default function Index({ warehouses }: IndexProps) {
                   )}
                 </td>
                 <td className="actions text-right">
-                  <Link href={warehouse.edit_path} onClick={stopRowNavigation}>
+                  <Link href={warehouse.edit_path} onClick={stopRowNavigation} prefetch>
                     <i className="icn">✏</i>
                     Edit
                   </Link>

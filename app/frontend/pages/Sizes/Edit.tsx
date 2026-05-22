@@ -16,7 +16,7 @@ export default function Edit({ size }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/sizes/${size.id}`}>
+            <Link href={`/sizes/${size.id}`} prefetch>
               <i className="icn">📄</i>
               View Size Page
             </Link>

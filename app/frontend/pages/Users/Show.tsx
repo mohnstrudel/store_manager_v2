@@ -32,7 +32,7 @@ export default function Show({ user }: ShowProps) {
         </hgroup>
         <menu className="nav_menu">
           <li>
-            <Link href={user.edit_path}>
+            <Link href={user.edit_path} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>

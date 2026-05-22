@@ -64,7 +64,7 @@ function BreadcrumbItem({
         {isLast ? (
           <BreadcrumbLabel name={item.name} />
         ) : (
-          <Link href={item.url}>
+          <Link href={item.url} prefetch>
             <BreadcrumbLabel name={item.name} />
           </Link>
         )}

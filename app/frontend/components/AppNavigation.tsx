@@ -153,7 +153,12 @@ export default function AppNavigation() {
             <>
               {primaryLinks.slice(0, 2).map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} component={link.component} pageProps={link.pageProps}>
+                  <Link
+                    href={link.href}
+                    component={link.component}
+                    pageProps={instantPageProps(link.pageProps)}
+                    prefetch
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -161,7 +166,12 @@ export default function AppNavigation() {
               <li aria-hidden="true" className="hidden lg:block lg:ml-6" />
               {primaryLinks.slice(2, 5).map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} component={link.component} pageProps={link.pageProps}>
+                  <Link
+                    href={link.href}
+                    component={link.component}
+                    pageProps={instantPageProps(link.pageProps)}
+                    prefetch
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -169,7 +179,12 @@ export default function AppNavigation() {
               <li aria-hidden="true" className="hidden lg:block lg:ml-6" />
               {primaryLinks.slice(5).map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} component={link.component} pageProps={link.pageProps}>
+                  <Link
+                    href={link.href}
+                    component={link.component}
+                    pageProps={instantPageProps(link.pageProps)}
+                    prefetch
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -188,7 +203,8 @@ export default function AppNavigation() {
                         <Link
                           href={link.href}
                           component={link.component}
-                          pageProps={link.pageProps}
+                          pageProps={instantPageProps(link.pageProps)}
+                          prefetch
                         >
                           {link.label}
                         </Link>
@@ -197,7 +213,12 @@ export default function AppNavigation() {
                   )}
                   {user?.role === "admin" ? (
                     <li>
-                      <Link href="/users" component="Users/Index" pageProps={{ users: [] }}>
+                      <Link
+                        href="/users"
+                        component="Users/Index"
+                        pageProps={instantPageProps({ users: [] })}
+                        prefetch
+                      >
                         Users
                       </Link>
                     </li>
@@ -221,4 +242,11 @@ function logOut() {
   if (!window.confirm("Are you sure you want to log out?")) return;
 
   router.post("/log_out");
+}
+
+function instantPageProps(pageProps: Record<string, unknown>) {
+  return (_currentProps: Record<string, unknown>, sharedProps: Record<string, unknown>) => ({
+    ...sharedProps,
+    ...pageProps,
+  });
 }

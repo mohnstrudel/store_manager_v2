@@ -13,7 +13,7 @@ export default function Index({ brands }: IndexProps) {
       <PageHeader
         actions={
           <li>
-            <Link href="/brands/new">
+            <Link href="/brands/new" prefetch>
               <i className="icn">🐣</i>
               Add New Record
             </Link>

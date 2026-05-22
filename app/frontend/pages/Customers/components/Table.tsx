@@ -41,7 +41,7 @@ export default function Table({ customers, searchQuery = "" }: TableProps) {
             <td>{customer.email ?? ""}</td>
             <td>{customer.phone ?? ""}</td>
             <td className="actions">
-              <Link href={`/customers/${customer.id}/edit`} onClick={stopRowNavigation}>
+              <Link href={`/customers/${customer.id}/edit`} onClick={stopRowNavigation} prefetch>
                 <i className="icn">✏</i>
                 Edit
               </Link>

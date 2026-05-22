@@ -16,7 +16,7 @@ export default function Edit({ color }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={`/colors/${color.id}`}>
+            <Link href={`/colors/${color.id}`} prefetch>
               <i className="icn">📄</i>
               View Color Page
             </Link>

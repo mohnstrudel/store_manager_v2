@@ -15,7 +15,7 @@ export default function Edit({ customer }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={customerPath}>
+            <Link href={customerPath} prefetch>
               <i className="icn">📄</i>
               View Customer Page
             </Link>

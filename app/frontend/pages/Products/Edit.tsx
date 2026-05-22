@@ -17,7 +17,7 @@ export default function Edit({ options, product }: EditProps) {
       <PageHeader
         actions={
           <li>
-            <Link href={product.path}>
+            <Link href={product.path} prefetch>
               <i className="icn">📄</i>
               View Product
             </Link>

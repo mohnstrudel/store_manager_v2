@@ -25,14 +25,14 @@ export default function Show({ purchase_item }: ShowProps) {
         </div>
         <menu className="nav_menu">
           <li>
-            <Link href={purchase_item.purchase_path}>
+            <Link href={purchase_item.purchase_path} prefetch>
               <i className="icn">💰</i>
               Purchase
             </Link>
           </li>
           {purchase_item.sale_path && (
             <li>
-              <Link href={purchase_item.sale_path}>
+              <Link href={purchase_item.sale_path} prefetch>
                 <i className="icn">🛒</i>
                 Sale
               </Link>
@@ -40,11 +40,13 @@ export default function Show({ purchase_item }: ShowProps) {
           )}
           {purchase_item.sale_item_path && (
             <li>
-              <Link href={purchase_item.sale_item_path}>Sale Item</Link>
+              <Link href={purchase_item.sale_item_path} prefetch>
+                Sale Item
+              </Link>
             </li>
           )}
           <li>
-            <Link href={purchase_item.edit_path}>
+            <Link href={purchase_item.edit_path} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>
@@ -58,19 +60,19 @@ export default function Show({ purchase_item }: ShowProps) {
           <div className="card grow">
             <h5>Supplier</h5>
             <p>
-              <Link className="link" href={purchase_item.supplier_path}>
+              <Link className="link" href={purchase_item.supplier_path} prefetch>
                 {purchase_item.supplier_title}
               </Link>
             </p>
             <h5>Product</h5>
             <p>
-              <Link className="link" href={purchase_item.product_path}>
+              <Link className="link" href={purchase_item.product_path} prefetch>
                 {purchase_item.product_title}
               </Link>
             </p>
             <h5>Current Warehouse</h5>
             <p>
-              <Link className="link" href={purchase_item.warehouse_path}>
+              <Link className="link" href={purchase_item.warehouse_path} prefetch>
                 {purchase_item.warehouse_name}
               </Link>
             </p>
@@ -112,7 +114,7 @@ export default function Show({ purchase_item }: ShowProps) {
                       <td>{movement.moved_in}</td>
                       <td>
                         {movement.warehouse_path ? (
-                          <Link className="link" href={movement.warehouse_path}>
+                          <Link className="link" href={movement.warehouse_path} prefetch>
                             {movement.warehouse_name}
                           </Link>
                         ) : (
