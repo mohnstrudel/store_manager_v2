@@ -16,7 +16,12 @@ export default function New({ size }: NewProps) {
       <PageHeader className="mb-8" title="New Size" />
 
       <ResourceForm action="/sizes" cancelHref="/sizes" method="post" submitLabel="Create Size">
-        <FormField defaultValue={size.value} error={errors.value} label="Value" name="size[value]" />
+        <FormField
+          defaultValue={size.value}
+          error={errors.value}
+          label="Value"
+          name="size[value]"
+        />
       </ResourceForm>
     </>
   );

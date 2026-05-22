@@ -15,8 +15,18 @@ export default function New({ franchise }: NewProps) {
     <>
       <PageHeader className="mb-8" title="New Franchise" />
 
-      <ResourceForm action="/franchises" cancelHref="/franchises" method="post" submitLabel="Create Franchise">
-        <FormField defaultValue={franchise.title} error={errors.title} label="Title" name="franchise[title]" />
+      <ResourceForm
+        action="/franchises"
+        cancelHref="/franchises"
+        method="post"
+        submitLabel="Create Franchise"
+      >
+        <FormField
+          defaultValue={franchise.title}
+          error={errors.title}
+          label="Title"
+          name="franchise[title]"
+        />
       </ResourceForm>
     </>
   );

@@ -3,13 +3,12 @@
 module Purchases
   class ProductVariantsController < ApplicationController
     def show
-      @target = params[:target]
-      @product = Product.find(params[:product_id])
-      @variants = @product.fetch_variants_with_title
+      product = Product.find(params[:product_id])
+      variants = product.fetch_variants_with_title
 
-      respond_to do |format|
-        format.turbo_stream { render "purchases/product_variants" }
-      end
+      render json: {
+        variants: variants.map { |variant| {id: variant.id, title: variant.title.to_s} }
+      }
     end
 
     private

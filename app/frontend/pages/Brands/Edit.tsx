@@ -1,5 +1,4 @@
-import { usePage } from "@inertiajs/react";
-import Link from "@/components/Link";
+import { usePage, Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import FormField from "@/components/FormField";
 import ResourceForm from "@/components/ResourceForm";
@@ -27,8 +26,18 @@ export default function Edit({ brand }: EditProps) {
         title="Edit Brand"
       />
 
-      <ResourceForm action={`/brands/${brand.id}`} cancelHref="/brands" method="patch" submitLabel="Update Brand">
-        <FormField defaultValue={brand.title} error={errors.title} label="Title" name="brand[title]" />
+      <ResourceForm
+        action={`/brands/${brand.id}`}
+        cancelHref="/brands"
+        method="patch"
+        submitLabel="Update Brand"
+      >
+        <FormField
+          defaultValue={brand.title}
+          error={errors.title}
+          label="Title"
+          name="brand[title]"
+        />
       </ResourceForm>
     </>
   );

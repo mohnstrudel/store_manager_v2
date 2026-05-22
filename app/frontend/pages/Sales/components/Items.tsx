@@ -1,6 +1,5 @@
-import { router } from "@inertiajs/react";
+import { router, Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
-import Link from "@/components/Link";
 import PurchasedSoldRatio from "./PurchasedSoldRatio";
 import type { SaleShowSaleItemRecord } from "../types";
 
@@ -51,7 +50,10 @@ export default function Items({ saleItems }: ItemsProps) {
               </td>
               <td className="text-right font-mono">{saleItem.price ?? ""}</td>
               <td className="text-center">
-                <PurchasedSoldRatio purchased={saleItem.purchase_items.length} sold={saleItem.qty} />
+                <PurchasedSoldRatio
+                  purchased={saleItem.purchase_items.length}
+                  sold={saleItem.qty}
+                />
               </td>
             </tr>
           ))}
@@ -105,7 +107,9 @@ function PurchaseItems({
               <summary
                 className={[
                   "w-fit flex items-center gap-2",
-                  purchaseItem.warehouse_movements.length === 1 ? "cursor-default" : "cursor-pointer",
+                  purchaseItem.warehouse_movements.length === 1
+                    ? "cursor-default"
+                    : "cursor-pointer",
                 ]
                   .filter(Boolean)
                   .join(" ")}

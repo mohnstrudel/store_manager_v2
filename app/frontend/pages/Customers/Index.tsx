@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import Pagination from "@/components/Pagination";
 import PageHeader from "@/components/PageHeader";
 import SearchBar from "@/components/SearchBar";
@@ -38,7 +38,7 @@ export default function Index({ customers, pagination, search }: IndexProps) {
           </div>
         </div>
 
-        <Table customers={customers} />
+        <Table customers={customers} searchQuery={search.q} />
 
         <div className="pagination-bottom">
           <Pagination pagination={pagination} params={{ q: search.q }} path="/customers" />

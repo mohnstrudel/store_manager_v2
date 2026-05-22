@@ -6,7 +6,6 @@ export type ShippingCompanyRecord = {
   updated_at: string | null;
 };
 
-
 export type PurchaseItemRecord = {
   id: number;
   path: string;

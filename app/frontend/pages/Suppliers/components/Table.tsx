@@ -1,28 +1,17 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent, MouseEvent } from "react";
-import Link from "@/components/Link";
+import type { MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { SupplierRecord } from "../types";
 
 type TableProps = {
   suppliers: SupplierRecord[];
 };
 
+function stopRowNavigation(event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export default function Table({ suppliers }: TableProps) {
-  function visitSupplier(supplier: SupplierRecord) {
-    router.visit(`/suppliers/${supplier.id}`);
-  }
-
-  function handleKeyDown(supplier: SupplierRecord, event: KeyboardEvent<HTMLTableRowElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitSupplier(supplier);
-  }
-
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <table role="grid">
       <thead>
@@ -39,9 +28,7 @@ export default function Table({ suppliers }: TableProps) {
           <tr
             className="hoverable"
             key={supplier.id}
-            onClick={() => visitSupplier(supplier)}
-            onKeyDown={(event) => handleKeyDown(supplier, event)}
-            tabIndex={0}
+            {...rowNavigationProps(`/suppliers/${supplier.id}`)}
           >
             <td>{supplier.id}</td>
             <td>{supplier.title}</td>

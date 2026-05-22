@@ -1,4 +1,4 @@
-import { router } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { ProductRecord } from "../types";
 
 type ProductsProps = {
@@ -20,12 +20,7 @@ export default function Products({ products }: ProductsProps) {
         </thead>
         <tbody>
           {products.map((product) => (
-            <tr
-              className="hoverable"
-              key={product.id}
-              onClick={() => router.visit(product.path)}
-              tabIndex={0}
-            >
+            <tr className="hoverable" key={product.id} {...rowNavigationProps(product.path)}>
               <td className="text-gray-500">{product.id}</td>
               <td>{product.full_title}</td>
             </tr>

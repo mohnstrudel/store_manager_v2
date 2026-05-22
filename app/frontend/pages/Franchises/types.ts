@@ -5,7 +5,6 @@ export type FranchiseRecord = {
   title: string;
 };
 
-
 export type ProductRecord = {
   full_title: string;
   id: number;

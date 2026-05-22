@@ -4,13 +4,12 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Index from "./Index";
 
-vi.mock("@/components/Link", () => ({
-  default: ({ children, href }: { children: ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
-}));
-
 vi.mock("@inertiajs/react", () => ({
+  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
   router: { get: vi.fn(), post: vi.fn(), visit: vi.fn() },
 }));
 

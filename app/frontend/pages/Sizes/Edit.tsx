@@ -1,5 +1,5 @@
 import ErrorNotice from "@/components/ErrorNotice";
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { SizeRecord } from "./types";
@@ -26,12 +26,7 @@ export default function Edit({ size }: EditProps) {
         title="Edit Size"
       />
 
-      <Form
-        method="patch"
-        size={size}
-        submitLabel="Update Size"
-        url={`/sizes/${size.id}`}
-      />
+      <Form method="patch" size={size} submitLabel="Update Size" url={`/sizes/${size.id}`} />
     </>
   );
 }

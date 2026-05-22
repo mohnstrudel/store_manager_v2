@@ -5,25 +5,20 @@ module PurchaseItems
     include PurchaseItemScoped
 
     def show
-      render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_show")
+      render partial: "purchase_items/inline_tracking_show", locals: {purchase_item: @purchase_item}
     end
 
     def edit
-      if @purchase_item.shipping_company_id.present?
-        render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_edit")
-      else
-        render turbo_stream: [
-          turbo_replace_purchase_item(:tracking_number, "inline_tracking_edit"),
-          turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
-        ]
-      end
+      render partial: "purchase_items/inline_tracking_edit", locals: {purchase_item: @purchase_item}
     end
 
     def update
       if @purchase_item.update(tracking_number: params[:purchase_item][:tracking_number])
-        render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_show")
+        redirect_to purchase_item_path(@purchase_item), notice: "Tracking number was successfully updated"
       else
-        render turbo_stream: turbo_replace_purchase_item(:tracking_number, "inline_tracking_edit")
+        render partial: "purchase_items/inline_tracking_edit",
+          locals: {purchase_item: @purchase_item},
+          status: :unprocessable_content
       end
     end
 

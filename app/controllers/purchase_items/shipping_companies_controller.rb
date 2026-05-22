@@ -5,18 +5,20 @@ module PurchaseItems
     include PurchaseItemScoped
 
     def show
-      render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_show")
+      render partial: "purchase_items/inline_shipping_company_show", locals: {purchase_item: @purchase_item}
     end
 
     def edit
-      render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
+      render partial: "purchase_items/inline_shipping_company_edit", locals: {purchase_item: @purchase_item}
     end
 
     def update
       if @purchase_item.update(shipping_company_id: params[:purchase_item][:shipping_company_id])
-        render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_show")
+        redirect_to purchase_item_path(@purchase_item), notice: "Shipping company was successfully updated"
       else
-        render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
+        render partial: "purchase_items/inline_shipping_company_edit",
+          locals: {purchase_item: @purchase_item},
+          status: :unprocessable_content
       end
     end
 

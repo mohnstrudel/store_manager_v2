@@ -4,6 +4,7 @@ require "rails_helper"
 
 RSpec.describe PurchaseItems::ShippingCompaniesController, type: :controller do
   include ActionView::RecordIdentifier
+  render_views
 
   before { sign_in_as_admin }
   after { log_out }
@@ -16,12 +17,11 @@ RSpec.describe PurchaseItems::ShippingCompaniesController, type: :controller do
       purchase_item.update!(shipping_company: shipping_company)
     end
 
-    it "returns turbo stream response with edit form" do
-      get :edit, params: {purchase_item_id: purchase_item.id}, format: :turbo_stream
+    it "returns the edit form partial" do
+      get :edit, params: {purchase_item_id: purchase_item.id}
 
-      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
-      expect(response.body).to include("action=\"replace\" target=\"#{dom_id(purchase_item, :shipping_company)}\"")
-      expect(response.body).to include("<turbo-stream")
+      expect(response).to be_successful
+      expect(response.body).to include("id=\"#{dom_id(purchase_item, :shipping_company)}\"")
     end
   end
 
@@ -33,12 +33,11 @@ RSpec.describe PurchaseItems::ShippingCompaniesController, type: :controller do
       purchase_item.update!(shipping_company: shipping_company)
     end
 
-    it "returns turbo stream response with show view" do
-      get :show, params: {purchase_item_id: purchase_item.id}, format: :turbo_stream
+    it "returns the show partial" do
+      get :show, params: {purchase_item_id: purchase_item.id}
 
-      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
-      expect(response.body).to include("action=\"replace\" target=\"#{dom_id(purchase_item, :shipping_company)}\"")
-      expect(response.body).to include("<turbo-stream")
+      expect(response).to be_successful
+      expect(response.body).to include("id=\"#{dom_id(purchase_item, :shipping_company)}\"")
     end
   end
 
@@ -56,7 +55,7 @@ RSpec.describe PurchaseItems::ShippingCompaniesController, type: :controller do
         patch :update, params: {
           purchase_item_id: purchase_item.id,
           purchase_item: {shipping_company_id: new_shipping_company.id}
-        }, format: :turbo_stream
+        }
       }.to change { purchase_item.reload.shipping_company }.from(shipping_company).to(new_shipping_company)
     end
 
@@ -65,7 +64,7 @@ RSpec.describe PurchaseItems::ShippingCompaniesController, type: :controller do
         patch :update, params: {
           purchase_item_id: purchase_item.id,
           purchase_item: {shipping_company_id: ""}
-        }, format: :turbo_stream
+        }
       }.to change { purchase_item.reload.shipping_company }.from(shipping_company).to(nil)
     end
   end

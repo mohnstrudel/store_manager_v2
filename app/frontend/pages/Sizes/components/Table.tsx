@@ -1,28 +1,17 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent, MouseEvent } from "react";
-import Link from "@/components/Link";
+import type { MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { SizeRecord } from "../types";
 
 type TableProps = {
   sizes: SizeRecord[];
 };
 
+function stopRowNavigation(event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export default function Table({ sizes }: TableProps) {
-  function visitSize(size: SizeRecord) {
-    router.visit(`/sizes/${size.id}`);
-  }
-
-  function handleKeyDown(size: SizeRecord, event: KeyboardEvent<HTMLTableRowElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitSize(size);
-  }
-
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <table role="grid">
       <thead>
@@ -36,13 +25,7 @@ export default function Table({ sizes }: TableProps) {
       </thead>
       <tbody>
         {sizes.map((size) => (
-          <tr
-            className="hoverable"
-            key={size.id}
-            onClick={() => visitSize(size)}
-            onKeyDown={(event) => handleKeyDown(size, event)}
-            tabIndex={0}
-          >
+          <tr className="hoverable" key={size.id} {...rowNavigationProps(`/sizes/${size.id}`)}>
             <td>{size.id}</td>
             <td>{size.value}</td>
             <td>{size.created_at}</td>

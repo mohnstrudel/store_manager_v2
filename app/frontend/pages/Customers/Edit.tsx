@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { CustomerRecord } from "./types";
@@ -8,13 +8,14 @@ type EditProps = {
 };
 
 export default function Edit({ customer }: EditProps) {
+  const customerPath = customer.path || "#";
+
   return (
     <>
-
       <PageHeader
         actions={
           <li>
-            <Link href={`/customers/${customer.id}`}>
+            <Link href={customerPath}>
               <i className="icn">📄</i>
               View Customer Page
             </Link>
@@ -24,12 +25,7 @@ export default function Edit({ customer }: EditProps) {
         title="Edit Customer"
       />
 
-      <Form
-        customer={customer}
-        method="patch"
-        submitLabel="Update Customer"
-        url={`/customers/${customer.id}`}
-      />
+      <Form customer={customer} method="patch" submitLabel="Update Customer" url={customerPath} />
     </>
   );
 }

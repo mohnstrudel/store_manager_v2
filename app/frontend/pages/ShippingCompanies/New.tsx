@@ -9,7 +9,6 @@ type NewProps = {
 export default function New({ shippingCompany }: NewProps) {
   return (
     <>
-
       <PageHeader className="mb-8" title="New Shipping Company" />
 
       <Form

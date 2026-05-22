@@ -1,28 +1,17 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent, MouseEvent } from "react";
-import Link from "@/components/Link";
+import type { MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { VersionRecord } from "../types";
 
 type TableProps = {
   versions: VersionRecord[];
 };
 
+function stopRowNavigation(event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export default function Table({ versions }: TableProps) {
-  function visitVersion(version: VersionRecord) {
-    router.visit(`/versions/${version.id}`);
-  }
-
-  function handleKeyDown(version: VersionRecord, event: KeyboardEvent<HTMLTableRowElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitVersion(version);
-  }
-
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <table role="grid">
       <thead>
@@ -39,9 +28,7 @@ export default function Table({ versions }: TableProps) {
           <tr
             className="hoverable"
             key={version.id}
-            onClick={() => visitVersion(version)}
-            onKeyDown={(event) => handleKeyDown(version, event)}
-            tabIndex={0}
+            {...rowNavigationProps(`/versions/${version.id}`)}
           >
             <td>{version.id}</td>
             <td>{version.value}</td>

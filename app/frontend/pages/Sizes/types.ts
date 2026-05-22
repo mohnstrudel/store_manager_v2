@@ -5,7 +5,6 @@ export type SizeRecord = {
   updated_at: string | null;
 };
 
-
 export type ProductRecord = {
   id: number;
   full_title: string;

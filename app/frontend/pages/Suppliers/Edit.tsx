@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { SupplierRecord } from "./types";
@@ -10,7 +10,6 @@ type EditProps = {
 export default function Edit({ supplier }: EditProps) {
   return (
     <>
-
       <PageHeader
         actions={
           <li>

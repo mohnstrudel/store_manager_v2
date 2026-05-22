@@ -10,12 +10,27 @@ type ShippingCompanyFormProps = {
   url: string;
 };
 
-export default function Form({ method, shippingCompany, submitLabel, url }: ShippingCompanyFormProps) {
+export default function Form({
+  method,
+  shippingCompany,
+  submitLabel,
+  url,
+}: ShippingCompanyFormProps) {
   const { errors = {} } = usePage().props as { errors?: Record<string, string> };
 
   return (
-    <ResourceForm action={url} cancelHref="/shipping_companies" method={method} submitLabel={submitLabel}>
-      <FormField defaultValue={shippingCompany.name} error={errors.name} label="Name" name="shipping_company[name]" />
+    <ResourceForm
+      action={url}
+      cancelHref="/shipping_companies"
+      method={method}
+      submitLabel={submitLabel}
+    >
+      <FormField
+        defaultValue={shippingCompany.name}
+        error={errors.name}
+        label="Name"
+        name="shipping_company[name]"
+      />
       <FormField
         defaultValue={shippingCompany.tracking_url ?? ""}
         error={errors.tracking_url}

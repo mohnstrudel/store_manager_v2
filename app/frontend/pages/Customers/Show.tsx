@@ -1,6 +1,5 @@
-import { router } from "@inertiajs/react";
+import { router, Link } from "@inertiajs/react";
 import Button from "@/components/Button";
-import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import Details from "./components/Details";
 import Sales from "./components/Sales";
@@ -13,9 +12,17 @@ type ShowProps = {
 };
 
 export default function Show({ active_sales, completed_sales, customer }: ShowProps) {
+  const editPath = customer.path ? `${customer.path}/edit` : "#";
+  const destroyPath = customer.path || "#";
+  const title =
+    customer.full_name ||
+    customer.email ||
+    (customer.id != null ? `Customer ${customer.id}` : "Customer");
+  const subtitle = customer.id != null ? `Customer ${customer.id}` : undefined;
+
   function destroyCustomer() {
     if (window.confirm("Are you sure?")) {
-      router.delete(`/customers/${customer.id}`);
+      router.delete(destroyPath);
     }
   }
 
@@ -24,14 +31,14 @@ export default function Show({ active_sales, completed_sales, customer }: ShowPr
       <PageHeader
         actions={
           <li>
-            <Link href={`/customers/${customer.id}/edit`}>
+            <Link href={editPath}>
               <i className="icn">✏</i>
               Edit
             </Link>
           </li>
         }
-        subtitle={`Customer ${customer.id}`}
-        title={customer.full_name || customer.email || `Customer ${customer.id}`}
+        subtitle={subtitle}
+        title={title}
       />
 
       <div className="section-wide flex flex-col gap-8 mt-8">

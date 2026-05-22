@@ -16,7 +16,12 @@ export default function New({ brand }: NewProps) {
       <PageHeader className="mb-8" title="New Brand" />
 
       <ResourceForm action="/brands" cancelHref="/brands" method="post" submitLabel="Create Brand">
-        <FormField defaultValue={brand.title} error={errors.title} label="Title" name="brand[title]" />
+        <FormField
+          defaultValue={brand.title}
+          error={errors.title}
+          label="Title"
+          name="brand[title]"
+        />
       </ResourceForm>
     </>
   );

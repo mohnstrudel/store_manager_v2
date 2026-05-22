@@ -5,7 +5,6 @@ export type VersionRecord = {
   value: string;
 };
 
-
 export type ProductRecord = {
   full_title: string;
   id: number;

@@ -34,9 +34,13 @@ export default function Details({ sale }: DetailsProps) {
         <h5>Total, $</h5>
         {sale.total != null ? <p className="fit font-mono">{sale.total}</p> : null}
         <h5>Discount</h5>
-        {sale.discount_total != null ? <p className="fit font-mono">{sale.discount_total}</p> : null}
+        {sale.discount_total != null ? (
+          <p className="fit font-mono">{sale.discount_total}</p>
+        ) : null}
         <h5>Shipping</h5>
-        {sale.shipping_total != null ? <p className="fit font-mono">{sale.shipping_total}</p> : null}
+        {sale.shipping_total != null ? (
+          <p className="fit font-mono">{sale.shipping_total}</p>
+        ) : null}
       </div>
 
       <div className="card w-1/3">
@@ -103,11 +107,7 @@ export default function Details({ sale }: DetailsProps) {
   );
 }
 
-function AddressPanel({
-  address,
-}: {
-  address: SaleAddressRecord | null;
-}) {
+function AddressPanel({ address }: { address: SaleAddressRecord | null }) {
   if (!address) {
     return null;
   }

@@ -13,8 +13,7 @@ module Purchases
         redirect_to return_path, notice: "Payment was successfully created", status: :see_other
       else
         @new_payment = @payment
-        prepare_purchase_show_state
-        render "purchases/show", status: :unprocessable_content
+        render_purchase_show_error
       end
     end
 
@@ -22,8 +21,7 @@ module Purchases
       if @payment.update(payment_params)
         redirect_to return_path, notice: "Payment was successfully updated", status: :see_other
       else
-        prepare_purchase_show_state
-        render "purchases/show", status: :unprocessable_content
+        render_purchase_show_error
       end
     end
 
@@ -54,6 +52,10 @@ module Purchases
 
     def return_path
       params[:return_to].presence || purchase_path(@purchase)
+    end
+
+    def render_purchase_show_error
+      render inertia: "Purchases/Show", props: purchase_show_props, status: :unprocessable_content
     end
   end
 end

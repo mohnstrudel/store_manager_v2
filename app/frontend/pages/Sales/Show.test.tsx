@@ -4,13 +4,12 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Show from "./Show";
 
-vi.mock("@/components/Link", () => ({
-  default: ({ children, href }: { children: ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
-}));
-
 vi.mock("@inertiajs/react", () => ({
+  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
   router: { delete: vi.fn(), post: vi.fn(), visit: vi.fn() },
 }));
 
@@ -90,7 +89,7 @@ const sale = {
           unlink_path: "/purchase_items/101/unlink",
           current_warehouse_name: "Berlin Hub",
           current_warehouse_path: "/warehouses/1?selected=101#101",
-          warehouse_movements: [{moved_in: "18. May '26 08:30", warehouse_name: "Berlin Hub"}],
+          warehouse_movements: [{ moved_in: "18. May '26 08:30", warehouse_name: "Berlin Hub" }],
         },
       ],
     },

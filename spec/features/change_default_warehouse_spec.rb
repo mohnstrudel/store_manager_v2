@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-describe "Changing default warehouse" do
+describe "Changing default warehouse", js: true do
   before { sign_in_as_admin }
   after { log_out }
 

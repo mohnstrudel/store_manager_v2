@@ -15,7 +15,12 @@ export default function Form({ method, submitLabel, url, version }: VersionFormP
 
   return (
     <ResourceForm action={url} cancelHref="/versions" method={method} submitLabel={submitLabel}>
-      <FormField defaultValue={version.value} error={errors.value} label="Value" name="version[value]" />
+      <FormField
+        defaultValue={version.value}
+        error={errors.value}
+        label="Value"
+        name="version[value]"
+      />
     </ResourceForm>
   );
 }

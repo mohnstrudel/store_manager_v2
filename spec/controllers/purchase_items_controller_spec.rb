@@ -14,14 +14,15 @@ describe PurchaseItemsController do
     let(:purchase_item) { create(:purchase_item) }
     let(:media) { create(:media, :for_purchase_item, mediaable: purchase_item) }
 
-    it "renders the shared gallery for purchase item media" do
+    it "renders the Inertia show component with purchase item media" do
       media
       get :show, params: {id: purchase_item.id}
 
       aggregate_failures do
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include('data-controller="gallery"')
-        expect(response.body).to include('data-gallery-target="main"')
+        expect_inertia.to render_component("PurchaseItems/Show")
+        expect(inertia.props[:purchase_item][:id]).to eq(purchase_item.id)
+        expect(inertia.props[:purchase_item][:media].first[:id]).to eq(media.id)
       end
     end
   end

@@ -1,6 +1,6 @@
 import { ChevronDoubleDownIcon } from "@heroicons/react/20/solid";
 import { BuildingStorefrontIcon } from "@heroicons/react/24/outline";
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import Details from "./components/Details";
 import Items from "./components/Items";
 import type { SaleShowRecord } from "./types";
@@ -34,7 +34,11 @@ export default function Show({ sale }: ShowProps) {
         <menu className="nav_menu">
           {sale.can_link_purchase_items && (
             <li>
-              <Link className="btn-rounded btn-lightblue" href={sale.link_purchase_items_path} method="post">
+              <Link
+                className="btn-rounded btn-lightblue"
+                href={sale.link_purchase_items_path}
+                method="post"
+              >
                 <i className="icn">🔗</i>
                 Link with purchases
               </Link>

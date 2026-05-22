@@ -1,28 +1,17 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent, MouseEvent } from "react";
-import Link from "@/components/Link";
+import type { MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { ColorRecord } from "../types";
 
 type TableProps = {
   colors: ColorRecord[];
 };
 
+function stopRowNavigation(event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export default function Table({ colors }: TableProps) {
-  function visitColor(color: ColorRecord) {
-    router.visit(`/colors/${color.id}`);
-  }
-
-  function handleKeyDown(color: ColorRecord, event: KeyboardEvent<HTMLTableRowElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitColor(color);
-  }
-
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <table role="grid">
       <thead>
@@ -36,13 +25,7 @@ export default function Table({ colors }: TableProps) {
       </thead>
       <tbody>
         {colors.map((color) => (
-          <tr
-            className="hoverable"
-            key={color.id}
-            onClick={() => visitColor(color)}
-            onKeyDown={(event) => handleKeyDown(color, event)}
-            tabIndex={0}
-          >
+          <tr className="hoverable" key={color.id} {...rowNavigationProps(`/colors/${color.id}`)}>
             <td>{color.id}</td>
             <td>{color.value}</td>
             <td>{color.created_at}</td>

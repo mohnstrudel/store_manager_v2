@@ -1,28 +1,17 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent, MouseEvent } from "react";
-import Link from "@/components/Link";
+import type { MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { FranchiseRecord } from "../types";
 
 type TableProps = {
   franchises: FranchiseRecord[];
 };
 
+function stopRowNavigation(event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export default function Table({ franchises }: TableProps) {
-  function visitFranchise(franchise: FranchiseRecord) {
-    router.visit(`/franchises/${franchise.id}`);
-  }
-
-  function handleKeyDown(franchise: FranchiseRecord, event: KeyboardEvent<HTMLTableRowElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitFranchise(franchise);
-  }
-
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <table role="grid">
       <thead>
@@ -39,9 +28,7 @@ export default function Table({ franchises }: TableProps) {
           <tr
             className="hoverable"
             key={franchise.id}
-            onClick={() => visitFranchise(franchise)}
-            onKeyDown={(event) => handleKeyDown(franchise, event)}
-            tabIndex={0}
+            {...rowNavigationProps(`/franchises/${franchise.id}`)}
           >
             <td>{franchise.id}</td>
             <td>{franchise.title}</td>

@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
 import { ShippingCompanyRecord } from "./types";
@@ -10,7 +10,6 @@ type EditProps = {
 export default function Edit({ shippingCompany }: EditProps) {
   return (
     <>
-
       <PageHeader
         actions={
           <li>

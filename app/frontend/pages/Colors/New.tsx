@@ -16,7 +16,12 @@ export default function New({ color }: NewProps) {
       <PageHeader className="mb-8" title="New Color" />
 
       <ResourceForm action="/colors" cancelHref="/colors" method="post" submitLabel="Create Color">
-        <FormField defaultValue={color.value} error={errors.value} label="Value" name="color[value]" />
+        <FormField
+          defaultValue={color.value}
+          error={errors.value}
+          label="Value"
+          name="color[value]"
+        />
       </ResourceForm>
     </>
   );

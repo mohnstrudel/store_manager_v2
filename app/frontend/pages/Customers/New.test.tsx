@@ -3,17 +3,18 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import New from "./New";
 
-vi.mock("@/components/Link", () => ({
-  default: ({ children, href }: { children: ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
-}));
-
 let pageErrors: Record<string, string> = {};
 
 vi.mock("@inertiajs/react", () => ({
+  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
   Form: ({ children, action, method }: { children: ReactNode; action: string; method: string }) => (
-    <form action={action} method={method}>{children}</form>
+    <form action={action} method={method}>
+      {children}
+    </form>
   ),
   usePage: () => ({ props: { errors: pageErrors } }),
 }));

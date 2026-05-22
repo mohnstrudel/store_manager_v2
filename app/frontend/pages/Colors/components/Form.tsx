@@ -15,7 +15,12 @@ export default function Form({ color, method, submitLabel, url }: ColorFormProps
 
   return (
     <ResourceForm action={url} cancelHref="/colors" method={method} submitLabel={submitLabel}>
-      <FormField defaultValue={color.value} error={errors.value} label="Value" name="color[value]" />
+      <FormField
+        defaultValue={color.value}
+        error={errors.value}
+        label="Value"
+        name="color[value]"
+      />
     </ResourceForm>
   );
 }

@@ -1,8 +1,0 @@
-= render "_shared/notice"
-
-= render "_shared/nav-show", model: @user
-
-main
-  = render "users/show/details", user: @user
-
-= destroy_btn_for @user

@@ -16,7 +16,6 @@ export type CustomerDetailRecord = CustomerRecord & {
   shopify_id_short: string;
 };
 
-
 export type SaleRecord = {
   id: number;
   path: string;

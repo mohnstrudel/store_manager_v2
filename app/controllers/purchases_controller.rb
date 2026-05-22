@@ -12,11 +12,19 @@ class PurchasesController < ApplicationController
   def index
     @purchases = Purchase.for_listing.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
+
+    render inertia: "Purchases/Index", props: {
+      purchases: @purchases.map { |purchase| purchase_index_props(purchase) },
+      pagination: pagination_props(@purchases),
+      search: {q: params[:q].to_s},
+      warehouses: Warehouse.order(name: :asc).map { |warehouse| warehouse_props(warehouse) },
+      move_path: move_path
+    }
   end
 
   # GET /purchases/1 or /purchases/1.json
   def show
-    prepare_purchase_show_state
+    render inertia: "Purchases/Show", props: purchase_show_props
   end
 
   # GET /purchases/new
@@ -108,5 +116,27 @@ class PurchasesController < ApplicationController
     record.errors.full_messages.each do |message|
       purchase.errors.add(:base, "Initial payment #{message}")
     end
+  end
+
+  def purchase_index_props(purchase)
+    {
+      id: purchase.id,
+      path: purchase_path(purchase),
+      edit_path: edit_purchase_path(purchase),
+      product_title: purchase.product.full_title.to_s,
+      product_thumb_url: helpers.thumb_url(purchase.product),
+      variant_title: purchase.variant&.title.to_s,
+      order_reference: purchase.order_reference.to_s,
+      supplier_title: purchase.supplier.title.to_s,
+      amount: purchase.amount.to_i,
+      purchase_items_count: purchase.purchase_items.size,
+      warehouse_counts: purchase.purchase_items.group_by(&:warehouse).map do |warehouse, purchase_items|
+        {
+          warehouse_name: warehouse.name.to_s,
+          count: purchase_items.count
+        }
+      end,
+      payment_progress: payment_progress_props(purchase)
+    }
   end
 end

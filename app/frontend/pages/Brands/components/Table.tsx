@@ -1,28 +1,17 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent, MouseEvent } from "react";
-import Link from "@/components/Link";
+import type { MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { BrandRecord } from "../types";
 
 type TableProps = {
   brands: BrandRecord[];
 };
 
+function stopRowNavigation(event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export default function Table({ brands }: TableProps) {
-  function visitBrand(brand: BrandRecord) {
-    router.visit(`/brands/${brand.id}`);
-  }
-
-  function handleKeyDown(brand: BrandRecord, event: KeyboardEvent<HTMLTableRowElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitBrand(brand);
-  }
-
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <table role="grid">
       <thead>
@@ -36,13 +25,7 @@ export default function Table({ brands }: TableProps) {
       </thead>
       <tbody>
         {brands.map((brand) => (
-          <tr
-            className="hoverable"
-            key={brand.id}
-            onClick={() => visitBrand(brand)}
-            onKeyDown={(event) => handleKeyDown(brand, event)}
-            tabIndex={0}
-          >
+          <tr className="hoverable" key={brand.id} {...rowNavigationProps(`/brands/${brand.id}`)}>
             <td>{brand.id}</td>
             <td>{brand.title}</td>
             <td>{brand.created_at}</td>

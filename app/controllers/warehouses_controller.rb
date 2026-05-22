@@ -11,6 +11,9 @@ class WarehousesController < ApplicationController
   # GET /warehouses
   def index
     @warehouses = Warehouse.for_listing.order(:position)
+    render inertia: "Warehouses/Index", props: {
+      warehouses: @warehouses.map { |warehouse| warehouse_index_props(warehouse, @warehouses.size) }
+    }
   end
 
   # GET /warehouses/new
@@ -122,5 +125,28 @@ class WarehousesController < ApplicationController
 
     @warehouse.errors.delete(:is_default)
     @warehouse.errors.add(:is_default, default_warehouse_error_message(blocking_default))
+  end
+
+  def warehouse_index_props(warehouse, warehouses_count)
+    {
+      id: warehouse.id,
+      path: warehouse_path(warehouse),
+      edit_path: edit_warehouse_path(warehouse),
+      position_path: warehouse_position_path(warehouse),
+      position: warehouse.position,
+      positions: (1..warehouses_count).to_a,
+      name: warehouse.name.to_s,
+      is_default: warehouse.is_default?,
+      external_name_en: warehouse.external_name_en.presence || "N/A",
+      cbm: warehouse.cbm.to_s,
+      purchase_items_count: warehouse.purchase_items.size,
+      has_purchase_items: warehouse.purchase_items.any?,
+      payment_progress: {
+        progress: warehouse.average_payment_progress.to_f,
+        paid: "",
+        price: "",
+        debt: helpers.format_money(warehouse.total_debt).to_s
+      }
+    }
   end
 end

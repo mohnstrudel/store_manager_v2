@@ -8,7 +8,7 @@ export default function HelloIndex() {
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Inertia + React is working</h1>
       <p className="text-gray-600">
-        Signed in as: {auth.user?.email_address ?? "not authenticated"}
+        Signed in as: {auth?.user?.email_address ?? "not authenticated"}
       </p>
     </div>
   );

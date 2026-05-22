@@ -5,7 +5,6 @@ export type SupplierRecord = {
   title: string;
 };
 
-
 export type PurchaseRecord = {
   amount: number;
   has_debt: boolean;

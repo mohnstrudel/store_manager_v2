@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import { SaleRecord } from "../types";
 
 type SalesProps = {

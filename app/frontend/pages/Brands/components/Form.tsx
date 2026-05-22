@@ -15,7 +15,12 @@ export default function Form({ brand, method, submitLabel, url }: BrandFormProps
 
   return (
     <ResourceForm action={url} cancelHref="/brands" method={method} submitLabel={submitLabel}>
-      <FormField defaultValue={brand.title} error={errors.title} label="Title" name="brand[title]" />
+      <FormField
+        defaultValue={brand.title}
+        error={errors.title}
+        label="Title"
+        name="brand[title]"
+      />
     </ResourceForm>
   );
 }

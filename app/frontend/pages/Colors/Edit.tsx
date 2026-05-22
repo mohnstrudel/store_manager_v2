@@ -1,5 +1,4 @@
-import { usePage } from "@inertiajs/react";
-import Link from "@/components/Link";
+import { usePage, Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import FormField from "@/components/FormField";
 import ResourceForm from "@/components/ResourceForm";
@@ -27,8 +26,18 @@ export default function Edit({ color }: EditProps) {
         title="Edit Color"
       />
 
-      <ResourceForm action={`/colors/${color.id}`} cancelHref="/colors" method="patch" submitLabel="Update Color">
-        <FormField defaultValue={color.value} error={errors.value} label="Value" name="color[value]" />
+      <ResourceForm
+        action={`/colors/${color.id}`}
+        cancelHref="/colors"
+        method="patch"
+        submitLabel="Update Color"
+      >
+        <FormField
+          defaultValue={color.value}
+          error={errors.value}
+          label="Value"
+          name="color[value]"
+        />
       </ResourceForm>
     </>
   );

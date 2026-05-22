@@ -1,31 +1,17 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent, MouseEvent } from "react";
-import Link from "@/components/Link";
+import type { MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { ShippingCompanyRecord } from "../types";
 
 type TableProps = {
   shippingCompanies: ShippingCompanyRecord[];
 };
 
+function stopRowNavigation(event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export default function Table({ shippingCompanies }: TableProps) {
-  function visitShippingCompany(shippingCompany: ShippingCompanyRecord) {
-    router.visit(`/shipping_companies/${shippingCompany.id}`);
-  }
-
-  function handleKeyDown(
-    shippingCompany: ShippingCompanyRecord,
-    event: KeyboardEvent<HTMLTableRowElement>
-  ) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitShippingCompany(shippingCompany);
-  }
-
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <table role="grid">
       <thead>
@@ -43,9 +29,7 @@ export default function Table({ shippingCompanies }: TableProps) {
           <tr
             className="hoverable"
             key={shippingCompany.id}
-            onClick={() => visitShippingCompany(shippingCompany)}
-            onKeyDown={(event) => handleKeyDown(shippingCompany, event)}
-            tabIndex={0}
+            {...rowNavigationProps(`/shipping_companies/${shippingCompany.id}`)}
           >
             <td>{shippingCompany.id}</td>
             <td>{shippingCompany.name}</td>

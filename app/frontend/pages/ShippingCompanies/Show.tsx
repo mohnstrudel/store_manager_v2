@@ -1,6 +1,5 @@
-import { router } from "@inertiajs/react";
+import { router, Link } from "@inertiajs/react";
 import Button from "@/components/Button";
-import Link from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import Details from "./components/Details";
 import PurchaseItems from "./components/PurchaseItems";
@@ -20,7 +19,6 @@ export default function Show({ purchaseItems, shippingCompany }: ShowProps) {
 
   return (
     <>
-
       <PageHeader
         actions={
           <li>

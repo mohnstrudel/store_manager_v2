@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { router } from "@inertiajs/react";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
+import SyncModal from "@/components/SyncModal";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
@@ -16,13 +16,7 @@ type IndexProps = {
   last_sync_time: string | null;
 };
 
-export default function Index({
-  sales,
-  pagination,
-  search,
-  last_sync_at,
-  last_sync_time,
-}: IndexProps) {
+export default function Index({ sales, pagination, search, last_sync_time }: IndexProps) {
   const [syncOpen, setSyncOpen] = useState(false);
 
   useEffect(() => {
@@ -42,12 +36,7 @@ export default function Index({
   return (
     <>
       <header className="nav_header">
-        <hgroup>
-          <h1>Sales</h1>
-          {last_sync_at && (
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{last_sync_at}</p>
-          )}
-        </hgroup>
+        <h1>Sales</h1>
 
         <menu className="nav_menu">
           <li>
@@ -66,64 +55,14 @@ export default function Index({
       </header>
 
       {syncOpen && (
-        <dialog
+        <SyncModal
+          fetchLimitedLabel="Fetch Last 100 Sales"
           id="sales-index-sync-modal"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              setSyncOpen(false);
-            }
-          }}
-          open
-        >
-          <div className="dialog-content rounded-lg shadow-lg w-xl p-4 pb-6 -translate-y-10">
-            <header className="nav_header mb-6 pb-4">
-              <hgroup>
-                <h2>Sales Synchronization</h2>
-                {last_sync_time && <h4 className="font-medium">Last sync: {last_sync_time}</h4>}
-              </hgroup>
-              <button
-                aria-label="Close"
-                className="btn is-muted is-inverted small"
-                onClick={() => setSyncOpen(false)}
-                type="button"
-              >
-                ❌
-              </button>
-            </header>
-
-            <menu className="flex flex-col gap-4">
-              <li>
-                <button
-                  className="w-full h-15 btn-blue btn-rounded"
-                  onClick={() => {
-                    router.post("/sales/pull");
-                    setSyncOpen(false);
-                  }}
-                  type="button"
-                >
-                  Fetch Everything
-                </button>
-              </li>
-              <li>
-                <button
-                  className="w-full h-15 btn-rounded"
-                  onClick={() => {
-                    router.post("/sales/pull", { limit: 100 });
-                    setSyncOpen(false);
-                  }}
-                  type="button"
-                >
-                  Fetch Last 100 Sales
-                </button>
-              </li>
-              <li>
-                <Link className="w-full h-15" href="/jobs/statuses">
-                  Track Jobs Progress
-                </Link>
-              </li>
-            </menu>
-          </div>
-        </dialog>
+          lastSyncAt={last_sync_time ? `Last sync: ${last_sync_time}` : null}
+          onClose={() => setSyncOpen(false)}
+          pullPath="/sales/pull"
+          title="Sales Synchronization"
+        />
       )}
 
       <div className="section-border-base section-wide">
@@ -138,7 +77,11 @@ export default function Index({
           </div>
         </div>
 
-        {sales.length > 0 ? <Table sales={sales} /> : <SearchResultsEmpty seed={search.q} />}
+        {sales.length > 0 ? (
+          <Table sales={sales} />
+        ) : search.q ? (
+          <SearchResultsEmpty seed={search.q} />
+        ) : null}
 
         {sales.length > 0 && (
           <div className="pagination-bottom">

@@ -1,5 +1,4 @@
-import { router } from "@inertiajs/react";
-import type { KeyboardEvent } from "react";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 import { PurchaseRecord } from "../types";
 
 type PurchasesProps = {
@@ -10,17 +9,6 @@ export default function Purchases({ purchases }: PurchasesProps) {
   if (purchases.length === 0) return null;
 
   const columns = ["Title", "Variant", "Purchased ago", "Item Price, $", "Qty", "Debt"];
-
-  function visitPurchase(purchase: PurchaseRecord) {
-    router.visit(purchase.path);
-  }
-
-  function handleKeyDown(purchase: PurchaseRecord, event: KeyboardEvent<HTMLTableRowElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    event.preventDefault();
-    visitPurchase(purchase);
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -37,11 +25,9 @@ export default function Purchases({ purchases }: PurchasesProps) {
           <tbody>
             {purchases.map((purchase) => (
               <tr
-                className={purchase.has_debt ? "has-debt" : "paid"}
+                className={["hoverable", purchase.has_debt ? "has-debt" : "paid"].join(" ")}
                 key={purchase.id}
-                onClick={() => visitPurchase(purchase)}
-                onKeyDown={(event) => handleKeyDown(purchase, event)}
-                tabIndex={0}
+                {...rowNavigationProps(purchase.path)}
               >
                 <td>{purchase.title}</td>
                 <td>{purchase.variant}</td>

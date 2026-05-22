@@ -23,36 +23,35 @@ describe DashboardController do
     it "returns successful response" do
       get :index
       expect(response).to be_successful
-      expect(assigns[:suppliers_debts]).to be_present
-      expect(assigns[:suppliers_debts].size).to eq(3)
+      expect_inertia.to render_component("Dashboard/Index")
+      expect(inertia.props[:suppliers_debts].size).to eq(3)
     end
 
     it "calculates correct debt values" do
       get :index
-      supplier_debts = assigns[:suppliers_debts]
+      supplier_debts = inertia.props[:suppliers_debts]
 
       supplier_debts.each do |supplier_debt|
         expect(supplier_debt[:total_size]).to be > 0
-        expect(supplier_debt[:total_cost]).to be >= 0
-        expect(supplier_debt[:paid]).to be >= 0
-        expect(supplier_debt[:total_debt]).to be >= 0
+        expect(supplier_debt[:total_cost]).to be_present
+        expect(supplier_debt[:paid]).to be_present
+        expect(supplier_debt[:total_debt]).to be_present
       end
     end
 
     it "assigns total suppliers debt" do
       get :index
-      expect(assigns[:total_suppliers_debt]).to be_present
-      expect(assigns[:total_suppliers_debt]).to be >= 0
+      expect(inertia.props[:total_suppliers_debt]).to be_present
     end
 
     it "assigns sale debts variable" do
       get :index
-      expect(assigns[:sale_debts]).not_to be_nil
+      expect(inertia.props[:sale_debts]).not_to be_nil
     end
 
     it "assigns config" do
       get :index
-      expect(assigns[:config]).to eq(Config)
+      expect(inertia.props[:sales_hook_disabled]).to eq(Config.sales_hook_disabled?)
     end
   end
 
@@ -60,6 +59,7 @@ describe DashboardController do
     it "returns successful response" do
       get :noop
       expect(response).to be_successful
+      expect_inertia.to render_component("Dashboard/Noop")
     end
   end
 
@@ -96,11 +96,10 @@ describe DashboardController do
 
     it "calculates sale debts correctly" do
       get :index
-      sale_debts = assigns[:sale_debts]
+      sale_debts = inertia.props[:sale_debts]
 
       # The sale_debts query should return results but we don't test specific values
       # as the SQL is complex and the exact calculation depends on multiple factors
-      expect(sale_debts).to be_a(ActiveRecord::Relation)
       expect(sale_debts).to respond_to(:each)
     end
   end

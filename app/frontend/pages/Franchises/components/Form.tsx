@@ -15,7 +15,12 @@ export default function Form({ franchise, method, submitLabel, url }: FranchiseF
 
   return (
     <ResourceForm action={url} cancelHref="/franchises" method={method} submitLabel={submitLabel}>
-      <FormField defaultValue={franchise.title} error={errors.title} label="Title" name="franchise[title]" />
+      <FormField
+        defaultValue={franchise.title}
+        error={errors.title}
+        label="Title"
+        name="franchise[title]"
+      />
     </ResourceForm>
   );
 }

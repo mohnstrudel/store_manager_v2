@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import Table from "./components/Table";
 import { SizeRecord } from "./types";
@@ -10,7 +10,6 @@ type IndexProps = {
 export default function Index({ sizes }: IndexProps) {
   return (
     <>
-
       <PageHeader
         actions={
           <li>

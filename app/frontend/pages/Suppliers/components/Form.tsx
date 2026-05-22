@@ -15,7 +15,12 @@ export default function Form({ method, submitLabel, supplier, url }: SupplierFor
 
   return (
     <ResourceForm action={url} cancelHref="/suppliers" method={method} submitLabel={submitLabel}>
-      <FormField defaultValue={supplier.title} error={errors.title} label="Title" name="supplier[title]" />
+      <FormField
+        defaultValue={supplier.title}
+        error={errors.title}
+        label="Title"
+        name="supplier[title]"
+      />
     </ResourceForm>
   );
 }

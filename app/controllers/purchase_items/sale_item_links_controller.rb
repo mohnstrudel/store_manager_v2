@@ -15,8 +15,7 @@ module PurchaseItems
       else
         redirect_to target_path,
           alert: "Something went wrong. Try again later or contact the administrators",
-          status: :see_other,
-          turbolinks: false
+          status: :see_other
       end
     end
 
