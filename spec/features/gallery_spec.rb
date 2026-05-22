@@ -17,11 +17,9 @@ RSpec.describe "Gallery", :js do
     attach_gallery_images_to(product)
 
     visit product_path(product)
-    mark_gallery_images_as_loaded
 
-    expect(page).to have_css("[data-controller='gallery']")
-    expect(page).to have_no_css(".gallery-thumb__frame.loading")
-    expect(page).to have_no_css(".gallery-main__frame.loading")
+    expect(page).to have_css(".gallery-nav")
+    expect(page).to have_css(".gallery-thumb.active")
 
     geometry = page.evaluate_script(<<~JS)
       (() => {
@@ -48,60 +46,59 @@ RSpec.describe "Gallery", :js do
   end
 
   # rubocop:todo RSpec/MultipleExpectations
-  scenario "shows a visible loading state while switching gallery images" do
+  scenario "tracks the active preview and scrolls it into view while switching images" do
     product = create(:product)
     attach_gallery_images_to(product)
 
     visit product_path(product)
-    mark_gallery_images_as_loaded
 
-    expect(page).to have_css("[data-controller='gallery']")
-    expect(page).to have_no_css(".gallery-main__frame.loading")
+    expect(page).to have_css(".gallery-nav")
 
     initial_state = page.evaluate_script(<<~JS)
       (() => {
-        const mainFrame = document.querySelector(".gallery-main__frame")
-        const mainImage = document.querySelector("[data-gallery-target='main']")
+        const mainImage = document.querySelector(".gallery-main__image")
 
         return {
-          height: mainFrame.getBoundingClientRect().height,
-          src: mainImage.src
+          activeThumbSrc: document.querySelector(".gallery-thumb.active img").src,
+          src: mainImage.src,
+          scrollCalls: window.__galleryScrollCalls || []
         }
       })()
     JS
 
     page.execute_script(<<~JS)
       (() => {
-        const element = document.querySelector("[data-controller='gallery']")
-        const controller = window.Stimulus.getControllerForElementAndIdentifier(element, "gallery")
-        if (!controller) throw new Error("Gallery controller not found")
-
-        controller.loadCurrentImage = function() {
-          const selectedSlide = this.currentSlide
-          if (!selectedSlide) return
-
-          this.startMainLoading()
-
-          setTimeout(() => {
-            this.mainTarget.src = selectedSlide.dataset.preview
-            this.mainTarget.alt = selectedSlide.dataset.alt || this.mainTarget.alt
-            this.finishMainLoading()
-          }, 300)
+        window.__galleryScrollCalls = []
+        Element.prototype.scrollIntoView = function(options) {
+          window.__galleryScrollCalls.push({
+            active: this.classList.contains("active"),
+            className: this.className,
+            options
+          })
         }
       })()
     JS
 
     find(".gallery-btn.right-0").click
 
-    expect(page).to have_css(".gallery-main__frame.loading")
+    final_state = page.evaluate_script(<<~JS)
+      (() => ({
+        activeThumbSrc: document.querySelector(".gallery-thumb.active img").src,
+        src: document.querySelector(".gallery-main__image").src,
+        scrollCalls: window.__galleryScrollCalls
+      }))()
+    JS
 
-    loading_height = page.evaluate_script("document.querySelector('.gallery-main__frame').getBoundingClientRect().height")
-    expect(loading_height).to be_within(1.0).of(initial_state["height"])
-
-    expect(page).to have_no_css(".gallery-main__frame.loading")
-
-    final_src = page.evaluate_script("document.querySelector('[data-gallery-target=\"main\"]').src")
-    expect(final_src).not_to eq(initial_state["src"])
+    aggregate_failures do
+      expect(final_state["activeThumbSrc"]).not_to eq(initial_state["activeThumbSrc"])
+      expect(final_state["src"]).not_to eq(initial_state["src"])
+      expect(final_state["scrollCalls"].last["active"]).to eq(true)
+      expect(final_state["scrollCalls"].last["options"]).to include(
+        "behavior" => "smooth",
+        "block" => "nearest",
+        "inline" => "start"
+      )
+    end
   end
   # rubocop:enable RSpec/MultipleExpectations
 
@@ -133,24 +130,4 @@ RSpec.describe "Gallery", :js do
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aW1cAAAAASUVORK5CYII="
   end
 
-  def mark_gallery_images_as_loaded
-    page.execute_script(<<~JS)
-      (() => {
-        document.querySelectorAll(".gallery-thumb__image").forEach((image) => {
-          image.classList.remove("hidden")
-          image.closest(".gallery-thumb__frame")?.classList.remove("loading")
-          image.dispatchEvent(new Event("load"))
-        })
-
-        const mainImage = document.querySelector(".gallery-main__image")
-        const mainFrame = document.querySelector(".gallery-main__frame")
-
-        if (mainImage && mainFrame) {
-          mainImage.classList.remove("hidden")
-          mainFrame.classList.remove("loading")
-          mainImage.dispatchEvent(new Event("load"))
-        }
-      })()
-    JS
-  end
 end

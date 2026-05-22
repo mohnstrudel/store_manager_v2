@@ -46,6 +46,9 @@ Rails.application.routes.draw do
     resource :last_orders_pull, only: :create, path: "pull-last-orders"
   end
 
+  # Media
+  post "media/uploads", to: "media_uploads#create", as: :media_uploads
+
   # Inventory
   resources :products do
     scope module: :products do

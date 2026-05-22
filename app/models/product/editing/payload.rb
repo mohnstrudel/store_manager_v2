@@ -6,13 +6,15 @@ class Product::Editing::Payload
   end
 
   def product_attributes
-    product_params.to_h.symbolize_keys
+    attributes = product_params.to_h.symbolize_keys
+    attributes[:brand_ids] = Array(attributes[:brand_ids]).reject(&:blank?) if attributes.key?(:brand_ids)
+    attributes
   end
 
   def store_infos_attributes
     return [] if params[:store_infos].blank?
 
-    store_infos_params.to_h.values.map do |attrs|
+    row_values(params[:store_infos]).map do |attrs|
       attrs = attrs.symbolize_keys
 
       {
@@ -25,7 +27,7 @@ class Product::Editing::Payload
   end
 
   def variants_attributes
-    variant_rows.map do |attrs|
+    row_values(params[:variants]).map do |attrs|
       attrs = attrs.symbolize_keys
 
       {
@@ -56,34 +58,8 @@ class Product::Editing::Payload
       :description,
       :franchise_id,
       :shape,
-      brand_ids: [],
-      color_ids: [],
-      size_ids: [],
-      version_ids: []
+      brand_ids: []
     ])
-  end
-
-  def store_infos_params
-    params.expect(store_infos: [[
-      :id,
-      :tag_list,
-      :store_name,
-      :_destroy
-    ]])
-  end
-
-  def variants_params
-    params.expect(variants: [[
-      :id,
-      :sku,
-      :size_id,
-      :version_id,
-      :color_id,
-      :purchase_cost,
-      :selling_price,
-      :weight,
-      :_destroy
-    ]])
   end
 
   def purchase_params
@@ -97,12 +73,6 @@ class Product::Editing::Payload
     ])
   end
 
-  def variant_rows
-    return [] if params[:variants].blank?
-
-    variants_params.to_h.values
-  end
-
   def raw_purchase_attributes
     return {} if params[:purchase].blank?
 
@@ -111,5 +81,18 @@ class Product::Editing::Payload
 
   def boolean_type
     @boolean_type ||= ActiveModel::Type::Boolean.new
+  end
+
+  def row_values(value)
+    case value
+    when ActionController::Parameters
+      value.to_unsafe_h.values
+    when Hash
+      value.values
+    when Array
+      value.map { |v| v.is_a?(ActionController::Parameters) ? v.to_unsafe_h : v }
+    else
+      []
+    end
   end
 end

@@ -23,7 +23,6 @@ RSpec.describe Product do
             warehouse_id: warehouse.id,
             payment_value: "20"
           },
-          new_media_images: []
         )
       }.to change(Purchase, :count).by(1)
         .and change(PurchaseItem, :count).by(2)
@@ -46,7 +45,6 @@ RSpec.describe Product do
           purchase_attributes: {
             warehouse_id: warehouse.id
           },
-          new_media_images: []
         )
       }.to raise_error(ActiveRecord::RecordInvalid) { |error|
         expect(error.record).to eq(product)
@@ -66,7 +64,6 @@ RSpec.describe Product do
             item_price: "10",
             payment_value: "20"
           },
-          new_media_images: []
         )
       }.to raise_error(ActiveRecord::RecordInvalid) { |error|
         expect(error.record).to eq(product)
@@ -81,9 +78,9 @@ RSpec.describe Product do
 
       allow(Purchase).to receive(:new).and_return(purchase)
       allow(purchase).to receive(:valid?).and_return(true)
+      allow(purchase).to receive(:errors).and_return([])
 
       expect(product).to receive(:save!).ordered.and_call_original
-      expect(product).to receive(:add_new_media_from_form!).ordered.and_call_original
       expect(purchase).to receive(:product=).with(product).ordered
       expect(purchase).to receive(:save_editing!).ordered
 
@@ -96,7 +93,6 @@ RSpec.describe Product do
           amount: "2",
           item_price: "10"
         },
-        new_media_images: []
       )
     end
     # rubocop:enable RSpec/MessageSpies

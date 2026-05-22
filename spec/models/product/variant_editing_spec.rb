@@ -17,7 +17,6 @@ RSpec.describe Product do
         ],
         store_infos_attributes: [],
         media_attributes: [],
-        new_media_images: []
       )
 
       expect(variant.reload.sku).to eq("NEW-SKU")
@@ -37,7 +36,6 @@ RSpec.describe Product do
           ],
           store_infos_attributes: [],
           media_attributes: [],
-          new_media_images: []
         )
       }.to raise_error(ActiveRecord::RecordInvalid)
 
@@ -55,7 +53,6 @@ RSpec.describe Product do
           ],
           store_infos_attributes: [],
           media_attributes: [],
-          new_media_images: []
         )
       }.to raise_error(ActiveRecord::RecordInvalid)
 
@@ -73,7 +70,6 @@ RSpec.describe Product do
           ],
           store_infos_attributes: [],
           media_attributes: [],
-          new_media_images: []
         )
       }.to raise_error(ActiveRecord::RecordInvalid)
 
@@ -93,7 +89,6 @@ RSpec.describe Product do
           ],
           store_infos_attributes: [],
           media_attributes: [],
-          new_media_images: []
         )
       }.not_to change(Variant, :count)
 

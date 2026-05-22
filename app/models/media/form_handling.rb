@@ -23,7 +23,17 @@ module Media::FormHandling
     return if media_attributes.blank?
 
     media_attributes.each do |attrs|
-      next if attrs[:id].blank?
+      if attrs[:id].blank?
+        attachable = resolve_attachable(attrs[:image])
+        next unless attachable
+
+        media.create!(
+          image: attachable,
+          position: attrs[:position].to_i,
+          alt: attrs[:alt].to_s
+        )
+        next
+      end
 
       media_item = media.find_by(id: attrs[:id])
       next unless media_item

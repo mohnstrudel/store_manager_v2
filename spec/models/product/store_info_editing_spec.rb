@@ -17,7 +17,6 @@ RSpec.describe Product do
           {id: shopify_info.id, tag_list: "featured"}
         ],
         media_attributes: [],
-        new_media_images: []
       )
 
       expect(shopify_info.reload.tag_list).to eq(["featured"])
@@ -34,7 +33,6 @@ RSpec.describe Product do
             {store_name: "shopify", tag_list: "new-store"}
           ],
           media_attributes: [],
-          new_media_images: []
         )
       }.to change(product.store_infos, :count).by(1)
 
@@ -52,7 +50,6 @@ RSpec.describe Product do
             {id: woo_info.id, destroy: true}
           ],
           media_attributes: [],
-          new_media_images: []
         )
       }.to change(product.store_infos, :count).by(-1)
 
@@ -70,7 +67,6 @@ RSpec.describe Product do
             {id: shopify_info.id, store_name: "woo"}
           ],
           media_attributes: [],
-          new_media_images: []
         )
       }.to raise_error(ActiveRecord::RecordInvalid)
 

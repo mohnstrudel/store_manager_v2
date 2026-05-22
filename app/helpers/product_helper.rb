@@ -41,7 +41,8 @@ module ProductHelper
     errors = []
 
     product.errors.each do |error|
-      next if %i[variants store_infos purchase].include?(error.attribute)
+      next if nested_product_error?(error.attribute)
+      next if %i[variants store_infos purchase initial_purchase].include?(error.attribute)
 
       errors << {label: error.attribute.to_s.humanize, message: error.message}
     end
@@ -67,6 +68,11 @@ module ProductHelper
     end
 
     errors
+  end
+
+  def nested_product_error?(attribute)
+    attribute = attribute.to_s
+    attribute.include?(".") || attribute.include?("[") || attribute.include?("]")
   end
 
   def purchase_section_expanded?(purchase)

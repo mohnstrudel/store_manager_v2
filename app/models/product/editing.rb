@@ -3,21 +3,21 @@
 module Product::Editing
   extend ActiveSupport::Concern
 
-  def save_editing!(product_attributes:, variants_attributes:, store_infos_attributes:, purchase_attributes: {}, media_attributes: [], new_media_images: [])
+  def save_editing!(product_attributes:, variants_attributes:, store_infos_attributes:, purchase_attributes: {}, media_attributes: [])
     creating = new_record?
     self.initial_purchase = build_initial_purchase(purchase_attributes, creating)
 
     assign_product_attributes(product_attributes)
     assign_collection_attributes(:variants, variants_attributes)
     assign_collection_attributes(:store_infos, store_infos_attributes)
+    sync_variant_option_ids
     build_base_variant
     ensure_editing_variants_have_skus
 
     valid?
     validate_variant_uniqueness
     validate_store_infos
-
-    errors.add(:initial_purchase, :invalid) if initial_purchase.present? && !initial_purchase.valid?
+    validate_initial_purchase
 
     raise ActiveRecord::RecordInvalid.new(self) if errors.any?
 
@@ -25,8 +25,7 @@ module Product::Editing
       save!
       store_infos.each { |store_info| save_store_info(store_info) }
       variants.each { |variant| save_variant(variant) }
-      update_media_from_form!(media_attributes) unless creating
-      add_new_media_from_form!(new_media_images)
+      update_media_from_form!(media_attributes)
       initial_purchase&.product = self
       initial_purchase&.save_editing!
     end
@@ -101,6 +100,7 @@ module Product::Editing
     add_duplicate_sku_errors(sku_variants)
     add_taken_sku_errors(editing_variants)
     add_duplicate_combination_errors(combination_variants)
+    bubble_record_errors("variants", editing_variants)
 
     errors.add(:variants, :invalid) if editing_variants.any? { |variant| variant.errors.any? }
   end
@@ -152,7 +152,16 @@ module Product::Editing
     editing_store_infos = active_editing_store_infos
 
     editing_store_infos.each(&:valid?)
+    bubble_record_errors("store_infos", editing_store_infos)
     errors.add(:store_infos, :invalid) if editing_store_infos.any? { |store_info| store_info.errors.any? }
+  end
+
+  def validate_initial_purchase
+    return unless initial_purchase.present?
+
+    initial_purchase.valid?
+    bubble_record_errors("purchase", [initial_purchase])
+    errors.add(:initial_purchase, :invalid) if initial_purchase.errors.any?
   end
 
   def active_editing_store_infos
@@ -181,5 +190,24 @@ module Product::Editing
 
   def destroy_flag?(attributes)
     ActiveModel::Type::Boolean.new.cast(attributes[:destroy])
+  end
+
+  def sync_variant_option_ids
+    self.size_ids = variant_option_ids(:size_id)
+    self.version_ids = variant_option_ids(:version_id)
+    self.color_ids = variant_option_ids(:color_id)
+  end
+
+  def variant_option_ids(attribute_name)
+    active_editing_variants.filter_map { |variant| variant.public_send(attribute_name) }.uniq
+  end
+
+  def bubble_record_errors(prefix, records)
+    records.each_with_index do |record, index|
+      record.errors.each do |error|
+        nested_attribute = error.attribute == :base ? "base" : error.attribute
+        errors.add("#{prefix}.#{index}.#{nested_attribute}", error.message)
+      end
+    end
   end
 end
