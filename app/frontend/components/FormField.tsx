@@ -1,9 +1,10 @@
 type FormFieldProps = {
-  defaultValue?: string;
+  defaultValue?: string | number;
   error?: string;
   label: string;
   name: string;
-  type?: "text" | "url" | "email";
+  step?: string;
+  type?: "text" | "url" | "email" | "number";
 };
 
 export default function FormField({
@@ -11,12 +12,13 @@ export default function FormField({
   error,
   label,
   name,
+  step,
   type = "text",
 }: FormFieldProps) {
   const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
 
   return (
-    <fieldset>
+    <>
       <label htmlFor={id}>{label}</label>
       <input
         aria-describedby={error ? `${id}_error` : undefined}
@@ -24,6 +26,7 @@ export default function FormField({
         defaultValue={defaultValue}
         id={id}
         name={name}
+        step={step}
         type={type}
       />
       {error && (
@@ -31,6 +34,6 @@ export default function FormField({
           {error}
         </p>
       )}
-    </fieldset>
+    </>
   );
 }

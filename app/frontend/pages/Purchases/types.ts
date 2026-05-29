@@ -10,6 +10,11 @@ export type WarehouseOption = {
   name: string;
 };
 
+export type SelectOption<Value extends string | number = string | number> = {
+  value: Value;
+  label: string;
+};
+
 export type PaymentProgress = {
   progress: number;
   paid: string;
@@ -83,4 +88,25 @@ export type NewPaymentRecord = {
   payment_date: string;
   value: string;
   errors: string[];
+};
+
+export type PurchaseFormRecord = {
+  id: number | null;
+  path: string;
+  product_id: number | null;
+  variant_id: number | null;
+  supplier_id: number | null;
+  order_reference: string;
+  item_price: string;
+  amount: string;
+  warehouse_id: number | null;
+  payment_value: string;
+  variant_options: SelectOption<number>[];
+};
+
+export type PurchaseFormOptions = {
+  product_variants_path: string;
+  products: SelectOption<number>[];
+  suppliers: SelectOption<number>[];
+  warehouses: SelectOption<number>[];
 };
