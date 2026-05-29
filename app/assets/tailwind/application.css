@@ -131,8 +131,8 @@
     @apply min-w-0 mb-4 lg:mb-0;
   }
 
-  fieldset > :where(*) {
-    @apply w-full lg:w-auto;
+  fieldset > div {
+    @apply w-full;
   }
 
   label+p {

@@ -1,22 +1,26 @@
-type FormFieldProps = {
+type FormInputProps = {
   className?: string;
   defaultValue?: string | number;
   error?: string;
   label: string;
+  min?: string | number;
   name: string;
+  placeholder?: string;
   step?: string;
   type?: "text" | "url" | "email" | "number";
 };
 
-export default function FormField({
-  className,
+export default function FormInput({
+  className = "",
   defaultValue = "",
   error,
   label,
+  min,
   name,
+  placeholder,
   step,
   type = "text",
-}: FormFieldProps) {
+}: FormInputProps) {
   const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
 
   return (
@@ -27,12 +31,14 @@ export default function FormField({
         aria-invalid={!!error}
         defaultValue={defaultValue}
         id={id}
+        min={min}
         name={name}
+        placeholder={placeholder}
         step={step}
         type={type}
       />
       {error && (
-        <p className="mt-2 text-sm font-semibold text-red-700 dark:text-red-300" id={`${id}_error`}>
+        <p className="text-error mt-2" id={`${id}_error`}>
           {error}
         </p>
       )}
