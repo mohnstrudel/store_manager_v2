@@ -7,7 +7,7 @@ module Purchases
       variants = product.fetch_variants_with_title
 
       render json: {
-        variants: variants.map { |variant| {id: variant.id, title: variant.title.to_s} }
+        variants: variants.map { |variant| {value: variant.id, label: variant.title.to_s} }
       }
     end
 

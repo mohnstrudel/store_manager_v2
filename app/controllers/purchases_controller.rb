@@ -30,15 +30,18 @@ class PurchasesController < ApplicationController
   # GET /purchases/new
   def new
     @purchase = Purchase.new
-    @initial_payment_value = nil
-    if params[:product]
-      product = Product.friendly.find(params[:product])
-      @purchase.product = product
-    end
+
+    @purchase.product = Product.friendly.find(params[:product]) if params[:product].present?
+    @purchase.warehouse_id = @default_warehouse_id
+
+    render inertia: "Purchases/New", props: form_props(@purchase)
   end
 
   # GET /purchases/1/edit
   def edit
+    @purchase.warehouse_id = @default_warehouse_id
+
+    render inertia: "Purchases/Edit", props: form_props(@purchase)
   end
 
   # POST /purchases or /purchases.json
@@ -56,9 +59,7 @@ class PurchasesController < ApplicationController
       format.json { render :show, status: :created, location: @purchase }
     rescue ActiveRecord::RecordInvalid => e
       append_initial_payment_errors(@purchase, e.record)
-      prepare_form_options
-      @initial_payment_value = payload.initial_payment_value
-      format.html { render :new, status: :unprocessable_content }
+      format.html { redirect_to new_purchase_url, inertia: {errors: @purchase.errors} }
       format.json { render json: @purchase.errors, status: :unprocessable_content }
     end
   end
@@ -72,8 +73,7 @@ class PurchasesController < ApplicationController
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
-        prepare_form_options
-        format.html { render :edit, status: :unprocessable_content }
+        format.html { redirect_to edit_purchase_url(@purchase), inertia: {errors: @purchase.errors} }
         format.json { render json: @purchase.errors, status: :unprocessable_content }
       end
     end
@@ -138,5 +138,52 @@ class PurchasesController < ApplicationController
       end,
       payment_progress: payment_progress_props(purchase)
     }
+  end
+
+  def form_props(purchase)
+    {
+      purchase: purchase_form_props(purchase),
+      options: form_options_props
+    }
+  end
+
+  def form_options_props
+    {
+      products: select_option_props(@product_options) { |product| product.build_full_title_with_shop_id.to_s },
+      suppliers: select_option_props(@suppliers) { |supplier| supplier.title.to_s },
+      warehouses: select_option_props(@warehouse_options) { |warehouse| warehouse.name.to_s },
+      product_variants_path: product_variants_path
+    }
+  end
+
+  def purchase_form_props(purchase)
+    {
+      id: purchase.id,
+      path: purchase.persisted? ? purchase_path(purchase) : "",
+      product_id: purchase.product_id,
+      variant_id: purchase.variant_id,
+      supplier_id: purchase.supplier_id,
+      order_reference: purchase.order_reference.to_s,
+      item_price: purchase.item_price.to_s,
+      amount: purchase.amount.to_s,
+      warehouse_id: purchase.warehouse_id,
+      payment_value: purchase.payment_value.to_s,
+      variant_options: purchase_variant_options(purchase.product)
+    }
+  end
+
+  def purchase_variant_options(product)
+    return [] unless product
+
+    select_option_props(product.fetch_variants_with_title) { |variant| variant.title.to_s }
+  end
+
+  def select_option_props(collection)
+    collection.map do |record|
+      {
+        value: record.id,
+        label: yield(record)
+      }
+    end
   end
 end
