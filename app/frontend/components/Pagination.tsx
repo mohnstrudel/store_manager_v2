@@ -26,7 +26,7 @@ export default function Pagination({
   if (total_pages <= 1) return null;
 
   return (
-    <nav aria-label={label} className={["pagination", className].filter(Boolean).join(" ")}>
+    <nav aria-label={label} className={`pagination ${className}`}>
       {current_page > 1 && (
         <Link
           className="pagination-previous"

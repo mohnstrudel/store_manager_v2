@@ -23,13 +23,7 @@ export default function CopyToClipboardButton({
 
   return (
     <button
-      className={[
-        "btn-rounded no-events cursor-pointer transition-all ease-out",
-        copied ? "btn-amber" : "",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={`btn-rounded no-events cursor-pointer transition-all ease-out ${copied ? "btn-amber" : ""} ${className}`}
       data-copy-to-clipboard-text-value={text}
       onClick={copy}
       title="Copy to clipboard"

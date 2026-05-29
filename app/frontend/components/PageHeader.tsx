@@ -9,7 +9,7 @@ type PageHeaderProps = {
 
 export default function PageHeader({ actions, className = "", subtitle, title }: PageHeaderProps) {
   return (
-    <header className={["nav_header", className].filter(Boolean).join(" ")}>
+    <header className={`nav_header ${className}`}>
       <div className="flex gap-4">
         <hgroup>
           <h1>{title}</h1>

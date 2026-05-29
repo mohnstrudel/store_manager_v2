@@ -29,7 +29,7 @@ export default function ProductVariantSelect({
   }, [variantOptions]);
 
   return (
-    <div className="block w-full">
+    <>
       <label htmlFor="purchase_variant_id">Variant</label>
       <SmartSelect
         inputId="purchase_variant_id"
@@ -38,7 +38,7 @@ export default function ProductVariantSelect({
         options={variantOptions}
         value={selectedVariant}
       />
-    </div>
+    </>
   );
 }
 

@@ -9,25 +9,35 @@ type ShowProps = {
   sale: SaleShowRecord;
 };
 
+function SaleHeading({ sale }: { sale: SaleShowRecord }) {
+  if (sale.shopify_name || sale.shopify_id) {
+    return (
+      <h1>
+        <span className="inline-block icon-shopify w-13 h-13 mr-3 -mb-1" />
+        Sale {sale.shop_identifier}
+      </h1>
+    );
+  }
+
+  if (sale.woo_store_id) {
+    return (
+      <h1>
+        <span className="inline-block icon-woo w-17 h-17 mr-4 -mb-4" />
+        Sale {sale.woo_store_id}
+      </h1>
+    );
+  }
+
+  return <h1>Sale {sale.id}</h1>;
+}
+
 export default function Show({ sale }: ShowProps) {
   return (
     <>
       <header className="nav_header">
         <div className="flex gap-4">
           <hgroup>
-            {sale.shopify_name || sale.shopify_id ? (
-              <h1>
-                <span className="inline-block icon-shopify w-13 h-13 mr-3 -mb-1" />
-                Sale {sale.shop_identifier}
-              </h1>
-            ) : sale.woo_store_id ? (
-              <h1>
-                <span className="inline-block icon-woo w-17 h-17 mr-4 -mb-4" />
-                Sale {sale.woo_store_id}
-              </h1>
-            ) : (
-              <h1>Sale {sale.id}</h1>
-            )}
+            <SaleHeading sale={sale} />
           </hgroup>
         </div>
 

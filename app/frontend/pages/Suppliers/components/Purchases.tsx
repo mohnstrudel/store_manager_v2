@@ -25,7 +25,7 @@ export default function Purchases({ purchases }: PurchasesProps) {
           <tbody>
             {purchases.map((purchase) => (
               <tr
-                className={["hoverable", purchase.has_debt ? "has-debt" : "paid"].join(" ")}
+                className={`hoverable ${purchase.has_debt ? "has-debt" : "paid"}`}
                 key={purchase.id}
                 {...rowNavigationProps(purchase.path)}
               >

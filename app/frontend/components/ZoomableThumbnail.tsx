@@ -22,13 +22,7 @@ export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) 
       )}
       <img
         alt={alt}
-        className={[
-          "block rounded-md w-[100px] h-[120px] object-cover object-center transition-transform duration-150 ease-out",
-          "zoomable",
-          isLoaded ? "" : "opacity-0 is-loading",
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className={`block rounded-md w-[100px] h-[120px] object-cover object-center transition-transform duration-150 ease-out zoomable ${isLoaded ? "" : "opacity-0 is-loading"}`}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
         src={src}

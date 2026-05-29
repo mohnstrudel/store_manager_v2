@@ -109,14 +109,7 @@ function PurchaseItems({
           {purchaseItem.warehouse_movements.length > 0 && (
             <details className="my-2 group">
               <summary
-                className={[
-                  "w-fit flex items-center gap-2",
-                  purchaseItem.warehouse_movements.length === 1
-                    ? "cursor-default"
-                    : "cursor-pointer",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={`w-fit flex items-center gap-2 ${purchaseItem.warehouse_movements.length === 1 ? "cursor-default" : "cursor-pointer"}`}
               >
                 <span>
                   <span className="text-gray-500">

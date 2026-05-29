@@ -19,7 +19,7 @@ export default function Button({
   }[variant];
 
   return (
-    <button className={[variantClass, className].filter(Boolean).join(" ")} type={type} {...props}>
+    <button className={`${variantClass} ${className}`} type={type} {...props}>
       {children}
     </button>
   );

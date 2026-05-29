@@ -134,9 +134,7 @@ export default function Show({
                     <tbody>
                       {purchase_items.map((item) => (
                         <tr
-                          className={["hoverable", selected_id === item.id ? "selected" : ""]
-                            .filter(Boolean)
-                            .join(" ")}
+                          className={`hoverable ${selected_id === item.id ? "selected" : ""}`}
                           id={String(item.id)}
                           key={item.id}
                           {...rowNavigationProps(item.path)}

@@ -14,12 +14,7 @@ export default function PaymentProgressBar({
   return (
     <>
       <div
-        className={[
-          "progress-container relative z-10",
-          progress.progress >= 100 ? "" : "bg-slate-200/50 dark:bg-slate-700/40",
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className={`progress-container relative z-10 ${progress.progress >= 100 ? "" : "bg-slate-200/50 dark:bg-slate-700/40"}`}
       >
         {progress.progress > 0 && progress.progress <= 100 && (
           <div
