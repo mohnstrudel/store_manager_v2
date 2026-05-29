@@ -13,8 +13,8 @@ RSpec.describe "Creating a new purchase" do
   scenario "creates purchased products in the default warehouse" do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
 
@@ -31,8 +31,8 @@ RSpec.describe "Creating a new purchase" do
   scenario "creates an initial payment alongside the purchase" do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
     fill_in "What did you pay in total?", with: "50"
@@ -58,23 +58,16 @@ RSpec.describe "Creating a new purchase" do
     expect(page).to have_button("Create Purchase")
   end
 
-  scenario "keeps the product slim select working after an invalid submit", :js do
+  scenario "keeps the product react select working after an invalid submit", :js do
     visit new_purchase_path
-
-    expect(page).to have_css("#purchase-product-select .ss-main")
 
     click_button "Create Purchase"
 
     expect(page).to have_content("Fix errors and try again")
 
-    within("#purchase-product-select") do
-      expect(page).to have_css(".ss-main")
-      find(".ss-arrow").click
-    end
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
 
-    find(".ss-option", text: product.build_full_title_with_shop_id).click
-
-    expect(find("#purchase_product_id", visible: false).value).to eq(product.id.to_s)
+    expect(find("input[name='purchase[product_id]']", visible: false).value).to eq(product.id.to_s)
   end
 
   # rubocop:todo RSpec/MultipleExpectations
@@ -86,8 +79,9 @@ RSpec.describe "Creating a new purchase" do
 
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
+    choose_react_select(warehouse.name, from: "Initial warehouse")
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
 
@@ -108,8 +102,8 @@ RSpec.describe "Creating a new purchase" do
   scenario "adds a payment after the purchase is created", :js do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
     find("#purchase_amount").set(2)
     find("#purchase_item_price").set(10)
 

@@ -182,14 +182,11 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     find("tr[data-table-url-param='/purchases/#{purchase_batman.friendly_id}']").click
     find("a[href='/purchases/#{purchase_batman.friendly_id}/edit']", text: "Edit").click
 
-    # Click on the products dropdown select
-    # and select a different product
-    slim_select(batman.build_full_title_with_shop_id, asuka.build_full_title_with_shop_id)
+    # Click on the products dropdown select and select a different product
+    choose_react_select(asuka.build_full_title_with_shop_id, from: "Product")
 
-    scroll_to("label[for='purchase_variant'] ~ div")
     # Select a variant for the new product
-    find("#purchase-variant-select:last-child").click
-    find("div[aria-selected='false']", text: asuka_variant.title).click
+    choose_react_select(asuka_variant.title, from: "Variant")
 
     scroll_to("input[type=submit]")
     find("input[type=submit]").click

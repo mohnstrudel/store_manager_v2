@@ -20,7 +20,7 @@ feature "Link sales with purchases flow" do
 
     click_on "Add New Record"
 
-    select supplier.title, from: "purchase[supplier_id]"
+    choose_react_select(supplier.title, from: "Supplier")
 
     fill_in "Amount", with: 5
     fill_in "Item price", with: 50
