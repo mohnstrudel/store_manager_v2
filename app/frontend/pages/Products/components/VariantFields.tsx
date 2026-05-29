@@ -1,4 +1,6 @@
 import { useState } from "react";
+import FormInput from "@/components/FormInput";
+import FormSmartSelect from "@/components/FormSmartSelect";
 import SmartSelect from "@/components/SmartSelect";
 import { type SelectOption, type VariantFormData } from "../types";
 
@@ -45,6 +47,44 @@ function generateVariantTitle(
   return parts.length > 0 ? parts.join(" | ") : "Base Model";
 }
 
+function VariantActions({
+  index,
+  onRemove,
+  variant,
+}: {
+  index: number;
+  onRemove: (index: number) => void;
+  variant: VariantFormData;
+}) {
+  if (variant.deactivated) {
+    return <span className="text-sm text-gray-500 dark:text-gray-400">(Deactivated)</span>;
+  }
+
+  if (!variant.id) {
+    return (
+      <button className="btn-rounded btn-red m-0" onClick={() => onRemove(index)} type="button">
+        Remove
+      </button>
+    );
+  }
+
+  return (
+    <>
+      <input name={`variants[${index}][_destroy]`} type="hidden" defaultValue="0" />
+      <label className="m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900">
+        <input
+          className="m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500"
+          defaultChecked={variant._destroy}
+          name={`variants[${index}][_destroy]`}
+          type="checkbox"
+          value="1"
+        />
+        <span>{variant.has_sales_or_purchases ? "Deactivate?" : "Destroy?"}</span>
+      </label>
+    </>
+  );
+}
+
 export default function VariantFields({
   colors,
   errors = {},
@@ -70,43 +110,18 @@ export default function VariantFields({
 
   return (
     <div
-      className={[
-        "variant-fields border border-gray-200 dark:border-gray-800 rounded-xl p-4 pb-8",
-        variant.deactivated ? "opacity-50" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={`variant-fields border border-gray-200 dark:border-gray-800 rounded-xl p-4 pb-8 ${variant.deactivated ? "opacity-50" : ""}`}
     >
       <div className="flex justify-between items-start flex-col lg:flex-row lg:items-center gap-2">
         <h6 className="font-semibold">{title}</h6>
-        {variant.deactivated ? (
-          <span className="text-sm text-gray-500 dark:text-gray-400">(Deactivated)</span>
-        ) : !variant.id ? (
-          <button className="btn-rounded btn-red m-0" onClick={() => onRemove(index)} type="button">
-            Remove
-          </button>
-        ) : (
-          <>
-            <input name={`variants[${index}][_destroy]`} type="hidden" defaultValue="0" />
-            <label className="m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900">
-              <input
-                className="m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500"
-                defaultChecked={variant._destroy}
-                name={`variants[${index}][_destroy]`}
-                type="checkbox"
-                value="1"
-              />
-              <span>{variant.has_sales_or_purchases ? "Deactivate?" : "Destroy?"}</span>
-            </label>
-          </>
-        )}
+        <VariantActions index={index} onRemove={onRemove} variant={variant} />
       </div>
 
       <input name={`variants[${index}][id]`} type="hidden" defaultValue={variant.id ?? ""} />
 
-      <div className="flex justify-between gap-4 flex-col lg:flex-row">
-        <div className="block w-full">
-          <label className="mt-4 block">Size</label>
+      <div className="flex justify-between gap-4 flex-col lg:flex-row mt-4">
+        <div className="w-full">
+          <label htmlFor={`variant-${index}-size`}>Size</label>
           <SmartSelect
             isClearable
             inputId={`variant-${index}-size`}
@@ -118,77 +133,67 @@ export default function VariantFields({
           {sizeError && <p className="text-error mt-2">{sizeError}</p>}
           {combinationError && <p className="text-error mt-2">{combinationError}</p>}
         </div>
-        <div className="block w-full">
-          <label className="mt-4 block">Version</label>
-          <SmartSelect
-            isClearable
-            inputId={`variant-${index}-version`}
-            options={versions}
-            name={`variants[${index}][version_id]`}
-            defaultValue={toSelectedOption(versions, versionId)}
-            onChange={(option) => setVersionId(option?.value ?? null)}
-          />
-          {versionError && <p className="text-error mt-2">{versionError}</p>}
-        </div>
-        <div className="block w-full">
-          <label className="mt-4 block">Color</label>
-          <SmartSelect
-            isClearable
-            inputId={`variant-${index}-color`}
-            options={colors}
-            name={`variants[${index}][color_id]`}
-            defaultValue={toSelectedOption(colors, colorId)}
-            onChange={(option) => setColorId(option?.value ?? null)}
-          />
-          {colorError && <p className="text-error mt-2">{colorError}</p>}
-        </div>
+        <FormSmartSelect
+          className="w-full"
+          error={versionError}
+          isClearable
+          inputId={`variant-${index}-version`}
+          label="Version"
+          name={`variants[${index}][version_id]`}
+          defaultValue={toSelectedOption(versions, versionId)}
+          onChange={(option) => setVersionId(option?.value ?? null)}
+          options={versions}
+        />
+        <FormSmartSelect
+          className="w-full"
+          error={colorError}
+          isClearable
+          inputId={`variant-${index}-color`}
+          label="Color"
+          name={`variants[${index}][color_id]`}
+          defaultValue={toSelectedOption(colors, colorId)}
+          onChange={(option) => setColorId(option?.value ?? null)}
+          options={colors}
+        />
       </div>
 
       <div className="flex flex-col gap-4 mt-4">
-        <div className="block">
-          <label className="block">SKU</label>
-          <input
-            aria-invalid={!!skuError}
-            className={["h-fit", skuError ? "border-red-500" : ""].filter(Boolean).join(" ")}
-            defaultValue={variant.sku}
-            name={`variants[${index}][sku]`}
-            placeholder="SKU"
-            type="text"
-          />
-          {skuError && <p className="text-error mt-2">{skuError}</p>}
-        </div>
+        <FormInput
+          defaultValue={variant.sku}
+          error={skuError}
+          label="SKU"
+          name={`variants[${index}][sku]`}
+          placeholder="SKU"
+        />
 
-        <div className="flex justify-between gap-4 flex-col lg:flex-row mt-4">
-          <div className="block w-full">
-            <label className="block">Weight (kg)</label>
-            <input
-              defaultValue={variant.weight}
-              min="0"
-              name={`variants[${index}][weight]`}
-              step="0.01"
-              type="number"
-            />
-          </div>
-          <div className="block w-full">
-            <label className="block">Purchase Cost</label>
-            <input
-              defaultValue={variant.purchase_cost}
-              min="0"
-              name={`variants[${index}][purchase_cost]`}
-              step="0.01"
-              type="number"
-            />
-          </div>
-          <div className="block w-full">
-            <label className="block">Selling Price</label>
-            <input
-              defaultValue={variant.selling_price}
-              min="0"
-              name={`variants[${index}][selling_price]`}
-              step="0.01"
-              type="number"
-            />
-          </div>
+        <div className="flex justify-between gap-4 flex-col lg:flex-row">
+          <FormInput
+            className="w-full"
+            defaultValue={variant.weight}
+            label="Weight (kg)"
+            min="0"
+            name={`variants[${index}][weight]`}
+            step="0.01"
+            type="number"
+          />
+          <FormInput
+            className="w-full"
+            defaultValue={variant.purchase_cost}
+            label="Purchase Cost"
+            min="0"
+            name={`variants[${index}][purchase_cost]`}
+            step="0.01"
+            type="number"
+          />
+          <FormInput
+            className="w-full"
+            defaultValue={variant.selling_price}
+            label="Selling Price"
+            min="0"
+            name={`variants[${index}][selling_price]`}
+            step="0.01"
+            type="number"
+          />
         </div>
       </div>
     </div>

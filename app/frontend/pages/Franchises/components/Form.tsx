@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { FranchiseRecord } from "../types";
 
@@ -15,7 +15,7 @@ export default function Form({ franchise, method, submitLabel, url }: FranchiseF
 
   return (
     <ResourceForm action={url} cancelHref="/franchises" method={method} submitLabel={submitLabel}>
-      <FormField
+      <FormInput
         defaultValue={franchise.title}
         error={errors.title}
         label="Title"

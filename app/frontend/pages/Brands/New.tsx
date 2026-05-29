@@ -1,6 +1,6 @@
 import { usePage } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { BrandRecord } from "./types";
 
@@ -16,7 +16,7 @@ export default function New({ brand }: NewProps) {
       <PageHeader className="mb-8" title="New Brand" />
 
       <ResourceForm action="/brands" cancelHref="/brands" method="post" submitLabel="Create Brand">
-        <FormField
+        <FormInput
           defaultValue={brand.title}
           error={errors.title}
           label="Title"

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { DragDropProvider } from "@dnd-kit/react";
+import FormSectionHeading from "@/components/FormSectionHeading";
 import { useSortable, isSortable } from "@dnd-kit/react/sortable";
 import { ArrowsRightLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { type MediaFormData } from "../types";
@@ -133,8 +134,7 @@ export default function ImageUploader({ media, onMediaChange }: ImageUploaderPro
 
   return (
     <fieldset className="mt-6">
-      <h2 className="label mb-1">Images</h2>
-      <p className="text-gray-600 dark:text-gray-500 mb-4 text">Drag images to reorder</p>
+      <FormSectionHeading subtitle="Drag images to reorder" title="Images" />
 
       {/* Hidden inputs — unified for both existing and new images */}
       <div aria-hidden="true" className="hidden">

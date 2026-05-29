@@ -1,6 +1,6 @@
 import { usePage, Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { ColorRecord } from "./types";
 
@@ -32,7 +32,7 @@ export default function Edit({ color }: EditProps) {
         method="patch"
         submitLabel="Update Color"
       >
-        <FormField
+        <FormInput
           defaultValue={color.value}
           error={errors.value}
           label="Value"

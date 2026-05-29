@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { BrandRecord } from "../types";
 
@@ -15,7 +15,7 @@ export default function Form({ brand, method, submitLabel, url }: BrandFormProps
 
   return (
     <ResourceForm action={url} cancelHref="/brands" method={method} submitLabel={submitLabel}>
-      <FormField
+      <FormInput
         defaultValue={brand.title}
         error={errors.title}
         label="Title"

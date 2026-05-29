@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { SizeRecord } from "../types";
 
@@ -15,7 +15,7 @@ export default function Form({ method, size, submitLabel, url }: SizeFormProps) 
 
   return (
     <ResourceForm action={url} cancelHref="/sizes" method={method} submitLabel={submitLabel}>
-      <FormField defaultValue={size.value} error={errors.value} label="Value" name="size[value]" />
+      <FormInput defaultValue={size.value} error={errors.value} label="Value" name="size[value]" />
     </ResourceForm>
   );
 }

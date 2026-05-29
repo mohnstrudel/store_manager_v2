@@ -1,5 +1,6 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FieldSet from "@/components/FieldSet";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { CustomerRecord } from "../types";
 
@@ -15,43 +16,35 @@ export default function Form({ customer, method, submitLabel, url }: CustomerFor
 
   return (
     <ResourceForm action={url} cancelHref="/customers" method={method} submitLabel={submitLabel}>
-      <fieldset className="flex justify-between gap-4 flex-col lg:flex-row lg:-mt-8">
-        <div className="block w-full">
-          <FormField
-            defaultValue={customer.first_name}
-            error={errors.first_name}
-            label="First name"
-            name="customer[first_name]"
-          />
-        </div>
-        <div className="block w-full">
-          <FormField
-            defaultValue={customer.last_name}
-            error={errors.last_name}
-            label="Last name"
-            name="customer[last_name]"
-          />
-        </div>
-      </fieldset>
-      <fieldset className="flex justify-between gap-4 flex-col lg:flex-row">
-        <div className="block w-full">
-          <FormField
-            defaultValue={customer.email}
-            error={errors.email}
-            label="Email"
-            name="customer[email]"
-            type="email"
-          />
-        </div>
-        <div className="block w-full">
-          <FormField
-            defaultValue={customer.phone}
-            error={errors.phone}
-            label="Phone"
-            name="customer[phone]"
-          />
-        </div>
-      </fieldset>
+      <FieldSet className="lg:-mt-8">
+        <FormInput
+          defaultValue={customer.first_name}
+          error={errors.first_name}
+          label="First name"
+          name="customer[first_name]"
+        />
+        <FormInput
+          defaultValue={customer.last_name}
+          error={errors.last_name}
+          label="Last name"
+          name="customer[last_name]"
+        />
+      </FieldSet>
+      <FieldSet>
+        <FormInput
+          defaultValue={customer.email}
+          error={errors.email}
+          label="Email"
+          name="customer[email]"
+          type="email"
+        />
+        <FormInput
+          defaultValue={customer.phone}
+          error={errors.phone}
+          label="Phone"
+          name="customer[phone]"
+        />
+      </FieldSet>
     </ResourceForm>
   );
 }

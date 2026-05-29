@@ -15,15 +15,7 @@ type ToolbarButtonProps = {
 function ToolbarButton({ active, disabled, label, onClick }: ToolbarButtonProps) {
   return (
     <button
-      className={[
-        "px-2 py-1 text-sm rounded border",
-        active
-          ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border-transparent"
-          : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700",
-        disabled ? "opacity-50 cursor-not-allowed" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={`px-2 py-1 text-sm rounded border ${active ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border-transparent" : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       disabled={disabled}
       onClick={onClick}
       type="button"

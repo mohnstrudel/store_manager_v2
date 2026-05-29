@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { VersionRecord } from "../types";
 
@@ -15,7 +15,7 @@ export default function Form({ method, submitLabel, url, version }: VersionFormP
 
   return (
     <ResourceForm action={url} cancelHref="/versions" method={method} submitLabel={submitLabel}>
-      <FormField
+      <FormInput
         defaultValue={version.value}
         error={errors.value}
         label="Value"

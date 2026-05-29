@@ -57,9 +57,7 @@ export default function ImageGallery({ media }: ImageGalleryProps) {
       <div className="gallery-nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
         {media.map((item, index) => (
           <button
-            className={["gallery-thumb", index === selectedIndex ? "active" : ""]
-              .filter(Boolean)
-              .join(" ")}
+            className={`gallery-thumb ${index === selectedIndex ? "active" : ""}`}
             key={item.id}
             onClick={() => setSelectedIndex(index)}
             ref={(element) => {

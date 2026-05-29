@@ -1,6 +1,9 @@
 import { useRef, useState } from "react";
+import FieldSet from "@/components/FieldSet";
+import FormInput from "@/components/FormInput";
+import FormSectionHeading from "@/components/FormSectionHeading";
+import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
-import SmartSelect from "@/components/SmartSelect";
 import TiptapEditor from "./TiptapEditor";
 import VariantFields from "./VariantFields";
 import StoreInfoFields from "./StoreInfoFields";
@@ -150,30 +153,24 @@ export default function ProductForm({
 
         return (
           <>
-            <fieldset className="flex justify-between gap-4 flex-col lg:flex-row">
-              <div className="block w-full lg:w-2/3">
-                <label htmlFor="product_franchise_id">Franchise</label>
-                <SmartSelect
-                  inputId="product_franchise_id"
-                  isClearable
-                  name="product[franchise_id]"
-                  options={options.franchises}
-                  defaultValue={franchiseOpt}
-                />
-                {franchiseError && <p className="text-error mt-2">{franchiseError}</p>}
-              </div>
-              <div className="block w-full">
-                <label htmlFor="product_title">Title</label>
-                <input
-                  aria-invalid={!!titleError}
-                  defaultValue={product.title}
-                  id="product_title"
-                  name="product[title]"
-                  type="text"
-                />
-                {titleError && <p className="text-error mt-2">{titleError}</p>}
-              </div>
-              <div className="block w-full lg:w-1/4">
+            <FieldSet>
+              <FormSmartSelect
+                className="lg:w-2/3"
+                defaultValue={franchiseOpt}
+                error={franchiseError}
+                inputId="product_franchise_id"
+                isClearable
+                label="Franchise"
+                name="product[franchise_id]"
+                options={options.franchises}
+              />
+              <FormInput
+                defaultValue={product.title}
+                error={titleError}
+                label="Title"
+                name="product[title]"
+              />
+              <div className="lg:w-1/4">
                 <label htmlFor="product_shape">Shape</label>
                 <select id="product_shape" name="product[shape]" defaultValue={product.shape}>
                   {options.shapes.map((shape) => (
@@ -184,34 +181,26 @@ export default function ProductForm({
                 </select>
                 {shapeError && <p className="text-error mt-2">{shapeError}</p>}
               </div>
-              <div className="block w-full lg:w-2/3">
-                <label htmlFor="product_brand_ids">Brand</label>
-                <SmartSelect
-                  inputId="product_brand_ids"
-                  isMulti
-                  name="product[brand_ids][]"
-                  options={options.brands}
-                  defaultValue={selectedBrands}
-                />
-                {brandError && <p className="text-error mt-2">{brandError}</p>}
-              </div>
-            </fieldset>
+              <FormSmartSelect
+                className="lg:w-2/3"
+                defaultValue={selectedBrands}
+                error={brandError}
+                inputId="product_brand_ids"
+                isMulti
+                label="Brand"
+                name="product[brand_ids][]"
+                options={options.brands}
+              />
+            </FieldSet>
 
-            <fieldset className="mt-6">
-              <div className="block w-full">
-                <label htmlFor="product[description]">Description</label>
-                <TiptapEditor defaultValue={product.description_html} name="product[description]" />
-                {descriptionError && <p className="text-error mt-2">{descriptionError}</p>}
-              </div>
-            </fieldset>
+            <div className="mt-6">
+              <label htmlFor="product[description]">Description</label>
+              <TiptapEditor defaultValue={product.description_html} name="product[description]" />
+              {descriptionError && <p className="text-error mt-2">{descriptionError}</p>}
+            </div>
 
             <section className="mt-6">
-              <header>
-                <h2 className="label mb-1">Variants</h2>
-                <p className="text-gray-600 dark:text-gray-500 mb-4">
-                  Manage variants for this product
-                </p>
-              </header>
+              <FormSectionHeading subtitle="Manage variants for this product" title="Variants" />
 
               <div className="grid grid-cols-1 gap-x-6 gap-y-4 lg:grid-cols-2">
                 {variants.map((variant, index) => (
@@ -234,12 +223,7 @@ export default function ProductForm({
             </section>
 
             <section className="mt-6">
-              <header>
-                <h2 className="label mb-1">Store Information</h2>
-                <p className="text-gray-600 dark:text-gray-500 mb-4">
-                  Manage store information for this product
-                </p>
-              </header>
+              <FormSectionHeading subtitle="Manage store information for this product" title="Store Information" />
 
               <div className="flex flex-col gap-4">
                 {storeInfos.map((storeInfo, index) => (
@@ -265,10 +249,7 @@ export default function ProductForm({
 
             {isNew && (
               <fieldset className="mt-6">
-                <h2 className="label mb-1">Purchase</h2>
-                <p className="text-gray-600 dark:text-gray-500 mb-4">
-                  Add a purchase if you want to create one alongside the product.
-                </p>
+                <FormSectionHeading subtitle="Add a purchase if you want to create one alongside the product." title="Purchase" />
 
                 {!renderPurchase && (
                   <button

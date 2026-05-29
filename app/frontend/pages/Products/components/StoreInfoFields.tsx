@@ -1,4 +1,4 @@
-import SmartSelect from "@/components/SmartSelect";
+import FormSmartSelect from "@/components/FormSmartSelect";
 import TagSelect from "@/components/TagSelect";
 import { type SelectOption, type StoreInfoFormData } from "../types";
 
@@ -75,32 +75,19 @@ export default function StoreInfoFields({
       <input name={`store_infos[${index}][id]`} type="hidden" defaultValue={storeInfo.id ?? ""} />
 
       <div className="flex justify-between gap-4 flex-col mt-4">
-        <div className="block w-full lg:w-1/3">
-          <label className="block">Store</label>
-          {storeInfo.id ? (
-            <>
-              <div className="h-10 rounded border border-gray-300 dark:border-gray-600 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                {currentStoreOption?.label ?? storeInfo.store_name}
-              </div>
-              <input
-                name={`store_infos[${index}][store_name]`}
-                type="hidden"
-                defaultValue={storeInfo.store_name}
-              />
-            </>
-          ) : (
-            <SmartSelect
-              isClearable
-              inputId={`store-info-${index}-store-name`}
-              name={`store_infos[${index}][store_name]`}
-              options={storeNameOptions}
-              defaultValue={currentStoreOption}
-            />
-          )}
-          {storeNameError && <p className="text-error mt-2">{storeNameError}</p>}
-        </div>
-        <div className="block w-full h-fit">
-          <label className="block">Tags</label>
+        <FormSmartSelect
+          className="w-full lg:w-1/3"
+          defaultValue={currentStoreOption}
+          error={storeNameError}
+          inputId={`store-info-${index}-store-name`}
+          isClearable
+          isDisabled={!!storeInfo.id}
+          label="Store"
+          name={`store_infos[${index}][store_name]`}
+          options={storeNameOptions}
+        />
+        <div className="w-full h-fit">
+          <label>Tags</label>
           <TagSelect
             delimiter=", "
             isMulti

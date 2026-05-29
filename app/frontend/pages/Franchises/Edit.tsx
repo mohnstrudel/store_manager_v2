@@ -1,6 +1,6 @@
 import { usePage, Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { FranchiseRecord } from "./types";
 
@@ -32,7 +32,7 @@ export default function Edit({ franchise }: EditProps) {
         method="patch"
         submitLabel="Update Franchise"
       >
-        <FormField
+        <FormInput
           defaultValue={franchise.title}
           error={errors.title}
           label="Title"

@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { ColorRecord } from "../types";
 
@@ -15,7 +15,7 @@ export default function Form({ color, method, submitLabel, url }: ColorFormProps
 
   return (
     <ResourceForm action={url} cancelHref="/colors" method={method} submitLabel={submitLabel}>
-      <FormField
+      <FormInput
         defaultValue={color.value}
         error={errors.value}
         label="Value"

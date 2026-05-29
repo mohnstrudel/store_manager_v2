@@ -1,4 +1,5 @@
-import SmartSelect from "@/components/SmartSelect";
+import FormInput from "@/components/FormInput";
+import FormSmartSelect from "@/components/FormSmartSelect";
 import { type PurchaseFormData, type SelectOption } from "../types";
 
 type PurchaseFieldsProps = {
@@ -36,73 +37,62 @@ export default function PurchaseFields({
       {baseError && <p className="text-error mb-4">{baseError}</p>}
 
       <div className="flex justify-between gap-4 flex-col lg:flex-row">
-        <div className="block w-full">
-          <label className="block">Supplier</label>
-          <SmartSelect
-            isClearable
-            inputId="purchase-supplier"
-            options={suppliers}
-            name="purchase[supplier_id]"
-            defaultValue={toSelectedOption(suppliers, purchase.supplier_id)}
-          />
-          {supplierError && <p className="text-error mt-2">{supplierError}</p>}
-        </div>
-        <div className="block w-full">
-          <label className="block">Order reference</label>
-          <input
-            defaultValue={purchase.order_reference}
-            name="purchase[order_reference]"
-            type="text"
-          />
-          {orderReferenceError && <p className="text-error mt-2">{orderReferenceError}</p>}
-        </div>
+        <FormSmartSelect
+          className="w-full"
+          defaultValue={toSelectedOption(suppliers, purchase.supplier_id)}
+          error={supplierError}
+          isClearable
+          inputId="purchase-supplier"
+          label="Supplier"
+          name="purchase[supplier_id]"
+          options={suppliers}
+        />
+        <FormInput
+          className="w-full"
+          defaultValue={purchase.order_reference}
+          error={orderReferenceError}
+          label="Order reference"
+          name="purchase[order_reference]"
+        />
       </div>
 
       <div className="flex justify-between gap-4 flex-col lg:flex-row mt-4">
-        <div className="block w-full">
-          <label className="block">Item price</label>
-          <input
-            aria-invalid={!!itemPriceError}
-            defaultValue={purchase.item_price}
-            name="purchase[item_price]"
-            type="text"
-          />
-          {itemPriceError && <p className="text-error mt-2">{itemPriceError}</p>}
-        </div>
-        <div className="block w-full">
-          <label className="block">Amount</label>
-          <input
-            aria-invalid={!!amountError}
-            defaultValue={purchase.amount}
-            name="purchase[amount]"
-            type="text"
-          />
-          {amountError && <p className="text-error mt-2">{amountError}</p>}
-        </div>
-        <div className="block w-full">
-          <label className="block">What did you pay in total?</label>
-          <input
-            defaultValue={purchase.payment_value}
-            name="purchase[payment_value]"
-            step="any"
-            type="number"
-          />
-          {paymentValueError && <p className="text-error mt-2">{paymentValueError}</p>}
-        </div>
+        <FormInput
+          className="w-full"
+          defaultValue={purchase.item_price}
+          error={itemPriceError}
+          label="Item price"
+          name="purchase[item_price]"
+        />
+        <FormInput
+          className="w-full"
+          defaultValue={purchase.amount}
+          error={amountError}
+          label="Amount"
+          name="purchase[amount]"
+        />
+        <FormInput
+          className="w-full"
+          defaultValue={purchase.payment_value}
+          error={paymentValueError}
+          label="What did you pay in total?"
+          name="purchase[payment_value]"
+          step="any"
+          type="number"
+        />
       </div>
 
       {warehouses.length > 0 && (
-        <div className="mt-4">
-          <label className="block">Initial warehouse</label>
-          <SmartSelect
-            isClearable
-            inputId="purchase-warehouse"
-            options={warehouses}
-            name="purchase[warehouse_id]"
-            defaultValue={toSelectedOption(warehouses, purchase.warehouse_id)}
-          />
-          {warehouseError && <p className="text-error mt-2">{warehouseError}</p>}
-        </div>
+        <FormSmartSelect
+          className="mt-4"
+          defaultValue={toSelectedOption(warehouses, purchase.warehouse_id)}
+          error={warehouseError}
+          isClearable
+          inputId="purchase-warehouse"
+          label="Initial warehouse"
+          name="purchase[warehouse_id]"
+          options={warehouses}
+        />
       )}
     </div>
   );

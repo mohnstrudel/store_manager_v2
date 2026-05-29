@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { SupplierRecord } from "../types";
 
@@ -15,7 +15,7 @@ export default function Form({ method, submitLabel, supplier, url }: SupplierFor
 
   return (
     <ResourceForm action={url} cancelHref="/suppliers" method={method} submitLabel={submitLabel}>
-      <FormField
+      <FormInput
         defaultValue={supplier.title}
         error={errors.title}
         label="Title"

@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import FormField from "@/components/FormField";
+import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { ShippingCompanyRecord } from "../types";
 
@@ -25,13 +25,13 @@ export default function Form({
       method={method}
       submitLabel={submitLabel}
     >
-      <FormField
+      <FormInput
         defaultValue={shippingCompany.name}
         error={errors.name}
         label="Name"
         name="shipping_company[name]"
       />
-      <FormField
+      <FormInput
         defaultValue={shippingCompany.tracking_url ?? ""}
         error={errors.tracking_url}
         label="Tracking URL"
