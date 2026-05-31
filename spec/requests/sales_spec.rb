@@ -2,6 +2,7 @@
 
 require "rails_helper"
 
+# rubocop:disable RSpec/MultipleExpectations
 RSpec.describe "Sales" do
   before { sign_in_as_admin }
 
@@ -35,6 +36,187 @@ RSpec.describe "Sales" do
 
       expect_inertia.to have_props(search: {q: "HSCM"})
       expect(inertia.props[:sales].map { |item| item[:id] }).to eq([matching.id])
+    end
+  end
+
+  describe "GET /sales/new" do
+    it "renders the new Inertia component with form options" do
+      customer = create(:customer)
+      product = create(:product)
+
+      get new_sale_path
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Sales/New")
+      expect(inertia.props[:sale]).to include(
+        id: nil,
+        path: "",
+        status: nil,
+        customer_id: nil,
+        note: nil,
+        total: "",
+        discount_total: "",
+        shipping_total: ""
+      )
+      expect(inertia.props[:sale][:sale_items]).to eq([])
+      expect(inertia.props[:options][:customers].pluck(:value)).to include(customer.id)
+      expect(inertia.props[:options][:products].pluck(:value)).to include(product.id)
+      expect(inertia.props[:options][:status_names]).to eq(Sale.status_names)
+    end
+  end
+
+  describe "GET /sales/:id/edit" do
+    it "renders the edit Inertia component with existing sale data" do
+      customer = create(:customer)
+      sale = create(:sale, customer:, status: "processing", note: "test note")
+      product = create(:product)
+      sale_item = create(:sale_item, sale:, product:, qty: 2, price: 19.99)
+      create(:sale_address, sale:, kind: :shipping, city: "Berlin")
+
+      get edit_sale_path(sale)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Sales/Edit")
+      expect(inertia.props[:sale]).to include(
+        id: sale.id,
+        path: sale_path(sale),
+        status: "processing",
+        customer_id: customer.id,
+        note: "test note"
+      )
+      expect(inertia.props[:sale][:shipping_address]).to include(city: "Berlin")
+      expect(inertia.props[:sale][:sale_items].first).to include(
+        id: sale_item.id,
+        product_id: product.id,
+        qty: "2",
+        price: "19.99",
+        _destroy: false
+      )
+      expect(inertia.props[:options][:status_names]).to eq(Sale.status_names)
+    end
+  end
+
+  describe "POST /sales" do
+    it "rerenders the new page when the form is submitted untouched" do
+      post sales_path, params: {
+        sale: {
+          customer_id: "",
+          status: "",
+          note: "",
+          total: "",
+          discount_total: "",
+          shipping_total: ""
+        }
+      }
+
+      expect(response).to redirect_to(new_sale_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Sales/New")
+      expect(inertia.props[:errors]).to be_present
+    end
+
+    it "creates a sale with sale items" do # rubocop:disable RSpec/MultipleExpectations
+      customer = create(:customer)
+      product = create(:product)
+
+      expect {
+        post sales_path, params: {
+          sale: {
+            customer_id: customer.id,
+            status: "processing",
+            total: "100.00"
+          },
+          sale_items: {
+            "0" => {
+              product_id: product.id,
+              qty: "1",
+              price: "100.00",
+              _destroy: "0"
+            }
+          }
+        }
+      }.to change(Sale, :count).by(1)
+        .and change(SaleItem, :count).by(1)
+
+      sale = Sale.order(:id).last
+      expect(response).to redirect_to(sale_path(sale))
+      expect(sale.sale_items.first.product).to eq(product)
+    end
+
+    it "redirects to the new page with errors when a sale item is invalid" do
+      customer = create(:customer)
+
+      post sales_path, params: {
+        sale: {customer_id: customer.id, status: "processing"},
+        sale_items: {"0" => {product_id: "", qty: "1", price: "10.00", _destroy: "0"}}
+      }
+
+      expect(response).to redirect_to(new_sale_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Sales/New")
+      expect(inertia.props[:errors]).to be_present
+    end
+  end
+
+  describe "PATCH /sales/:id" do
+    it "updates a sale with sale items" do # rubocop:disable RSpec/MultipleExpectations
+      customer = create(:customer)
+      product = create(:product)
+      sale = create(:sale, customer:, status: "processing")
+      sale_item = create(:sale_item, sale:, product:, qty: 1, price: 100)
+
+      patch sale_path(sale), params: {
+        sale: {
+          customer_id: customer.id,
+          status: "completed",
+          total: "150.00"
+        },
+        sale_items: {
+          "0" => {
+            id: sale_item.id,
+            product_id: product.id,
+            qty: "3",
+            price: "150.00",
+            _destroy: "0"
+          }
+        }
+      }
+
+      sale.reload
+
+      expect(response).to redirect_to(sale_path(sale))
+      expect(sale.status).to eq("completed")
+      expect(sale_item.reload.qty).to eq(3)
+      expect(sale_item.price).to eq(BigDecimal("150.00"))
+    end
+
+    it "redirects to the edit page with errors when a sale item is invalid" do
+      customer = create(:customer)
+      sale = create(:sale, customer:)
+
+      patch sale_path(sale), params: {
+        sale: {customer_id: customer.id, status: sale.status},
+        sale_items: {"0" => {product_id: "", qty: "1", price: "10.00", _destroy: "0"}}
+      }
+
+      expect(response).to be_redirect
+      expect(response.location).to match(%r{/sales/.+/edit\z})
+
+      # The slug in the redirect URL may differ from the persisted slug because
+      # FriendlyId regenerates it (with woo_store_id now present) inside the
+      # rolled-back transaction. Request the edit page via the original path so
+      # we can verify the errors were stored in the session.
+      get edit_sale_path(sale)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Sales/Edit")
+      expect(inertia.props[:errors]).to be_present
     end
   end
 
@@ -75,3 +257,4 @@ RSpec.describe "Sales" do
     end
   end
 end
+# rubocop:enable RSpec/MultipleExpectations

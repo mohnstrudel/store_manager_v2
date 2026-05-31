@@ -13,8 +13,8 @@ RSpec.describe "Sale items form" do
 
     visit edit_sale_path(sale)
 
-    within ".sales-form__product_fields", text: "Removable Product" do
-      click_button "Remove"
+    within ".sales_form__product_fields", text: "Removable Product" do
+      check "Mark for deletion"
     end
 
     click_button "Update Sale"
@@ -30,7 +30,7 @@ RSpec.describe "Sale items form" do
 
     visit edit_sale_path(sale)
 
-    within ".sales-form__product_fields", text: "Editable Product" do
+    within ".sales_form__product_fields", text: "Editable Product" do
       fill_in "Amount", with: "3"
       fill_in "Price", with: "150"
     end

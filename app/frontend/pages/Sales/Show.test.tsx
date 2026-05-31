@@ -10,7 +10,11 @@ vi.mock("@inertiajs/react", () => ({
       {children}
     </a>
   ),
-  router: { delete: vi.fn(), post: vi.fn(), visit: vi.fn() },
+  router: {
+    delete: vi.fn<(...args: unknown[]) => unknown>(),
+    post: vi.fn<(...args: unknown[]) => unknown>(),
+    visit: vi.fn<(...args: unknown[]) => unknown>(),
+  },
 }));
 
 const sale = {

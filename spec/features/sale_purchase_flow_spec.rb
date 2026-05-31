@@ -58,6 +58,6 @@ feature "Link sales with purchases flow" do
     expect(page).to have_content(warehouse.name)
 
     # Purchased/Sold ratio is correct
-    expect(page).to have_selector(".mark-gray", text: "1 / 1", normalize_ws: true)
+    expect(page).to have_selector(".mark_gray", text: "1 / 1", normalize_ws: true)
   end
 end

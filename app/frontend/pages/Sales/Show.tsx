@@ -13,7 +13,7 @@ function SaleHeading({ sale }: { sale: SaleShowRecord }) {
   if (sale.shopify_name || sale.shopify_id) {
     return (
       <h1>
-        <span className="inline-block icon-shopify w-13 h-13 mr-3 -mb-1" />
+        <span className="inline-block icon_shopify w-13 h-13 mr-3 -mb-1" />
         Sale {sale.shop_identifier}
       </h1>
     );
@@ -22,7 +22,7 @@ function SaleHeading({ sale }: { sale: SaleShowRecord }) {
   if (sale.woo_store_id) {
     return (
       <h1>
-        <span className="inline-block icon-woo w-17 h-17 mr-4 -mb-4" />
+        <span className="inline-block icon_woo w-17 h-17 mr-4 -mb-4" />
         Sale {sale.woo_store_id}
       </h1>
     );
@@ -45,7 +45,7 @@ export default function Show({ sale }: ShowProps) {
           {sale.can_link_purchase_items && (
             <li>
               <Link
-                className="btn-rounded btn-lightblue"
+                className="btn_rounded btn_lightblue"
                 href={sale.link_purchase_items_path}
                 method="post"
               >
@@ -56,7 +56,7 @@ export default function Show({ sale }: ShowProps) {
           )}
           {sale.shopify_name || sale.shopify_id ? (
             <li>
-              <Link className="btn-rounded" href={sale.pull_path} method="post">
+              <Link className="btn_rounded" href={sale.pull_path} method="post">
                 <ChevronDoubleDownIcon height={20} width={20} />
                 Fetch
               </Link>
@@ -68,7 +68,7 @@ export default function Show({ sale }: ShowProps) {
                 href={sale.shop_admin_url}
                 rel="noopener noreferrer"
                 target="_blank"
-                className="no-events"
+                className="no_events"
               >
                 <BuildingStorefrontIcon height={20} width={20} />
                 Go to {sale.shopify_name || sale.shopify_id ? "Shopify" : "WooCommerce"}
@@ -84,7 +84,7 @@ export default function Show({ sale }: ShowProps) {
         </menu>
       </header>
 
-      <div className="section-wide flex flex-col gap-8 mt-8">
+      <div className="section_wide flex flex-col gap-8 mt-8">
         <Items saleItems={sale.sale_items} />
         <Details sale={sale} />
       </div>

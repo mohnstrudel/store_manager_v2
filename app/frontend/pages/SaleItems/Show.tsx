@@ -1,6 +1,6 @@
 import { router, Link } from "@inertiajs/react";
-import { type MouseEvent, useState } from "react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { type ChangeEvent, type MouseEvent, useCallback, useState } from "react";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import MoveToWarehouseForm from "@/pages/Purchases/components/MoveToWarehouseForm";
 import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
 
@@ -18,25 +18,34 @@ export default function Show({
   warehouses,
 }: ShowProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const clearSelectedIds = useCallback(() => setSelectedIds([]), []);
 
-  function togglePurchaseItem(purchaseItemId: number) {
+  const togglePurchaseItem = useCallback((purchaseItemId: number) => {
     setSelectedIds((current) =>
       current.includes(purchaseItemId)
         ? current.filter((selectedId) => selectedId !== purchaseItemId)
         : [...current, purchaseItemId],
     );
-  }
+  }, []);
 
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
+  const handleTogglePurchaseItem = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const purchaseItemId = Number(event.currentTarget.dataset.purchaseItemId);
+      if (Number.isNaN(purchaseItemId)) return;
+      togglePurchaseItem(purchaseItemId);
+    },
+    [togglePurchaseItem],
+  );
 
-  function unlinkPurchaseItem(purchaseItem: SaleItemPurchaseItemRecord, event: MouseEvent) {
+  const handleUnlinkPurchaseItem = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    const unlinkPath = event.currentTarget.dataset.unlinkPath;
+    if (!unlinkPath) return;
+
     if (window.confirm("Are you sure?")) {
-      router.delete(purchaseItem.unlink_path);
+      router.delete(unlinkPath);
     }
-  }
+  }, []);
 
   return (
     <>
@@ -71,9 +80,9 @@ export default function Show({
         </menu>
       </header>
 
-      <div className="section-wide flex flex-col gap-8">
+      <div className="section_wide flex flex-col gap-8">
         {purchase_items.length > 0 && (
-          <div className="table-card">
+          <div className="table_card">
             <h3 className="flex justify-between px-3 pt-4">
               <span>Linked Purchased Items</span>
               <span>{purchase_items.length}</span>
@@ -81,7 +90,7 @@ export default function Show({
 
             <MoveToWarehouseForm
               movePath={warehouse_move_path}
-              onMoved={() => setSelectedIds([])}
+              onMoved={clearSelectedIds}
               redirectToSaleItem
               selectedIds={selectedIds}
               warehouses={warehouses}
@@ -106,10 +115,11 @@ export default function Show({
                     key={purchaseItem.id}
                     {...rowNavigationProps(purchaseItem.path)}
                   >
-                    <td className="no-events text-center">
+                    <td className="no_events text-center">
                       <input
                         checked={selectedIds.includes(purchaseItem.id)}
-                        onChange={() => togglePurchaseItem(purchaseItem.id)}
+                        data-purchase-item-id={purchaseItem.id}
+                        onChange={handleTogglePurchaseItem}
                         onClick={stopRowNavigation}
                         type="checkbox"
                       />
@@ -121,15 +131,16 @@ export default function Show({
                     <td className="font-mono text-right">{purchaseItem.shipping_cost}</td>
                     <td className="actions">
                       <button
-                        className="no-events btn-red btn-rounded"
-                        onClick={(event) => unlinkPurchaseItem(purchaseItem, event)}
+                        className="no_events btn_red btn_rounded"
+                        data-unlink-path={purchaseItem.unlink_path}
+                        onClick={handleUnlinkPurchaseItem}
                         type="button"
                       >
                         <i className="icn">✂︎</i>
                         Unlink
                       </button>
                       <Link
-                        className="no-events"
+                        className="no_events"
                         href={purchaseItem.edit_path}
                         onClick={stopRowNavigation}
                         prefetch

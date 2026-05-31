@@ -10,7 +10,11 @@ vi.mock("@inertiajs/react", () => ({
       {children}
     </a>
   ),
-  router: { get: vi.fn(), post: vi.fn(), visit: vi.fn() },
+  router: {
+    get: vi.fn<(...args: unknown[]) => unknown>(),
+    post: vi.fn<(...args: unknown[]) => unknown>(),
+    visit: vi.fn<(...args: unknown[]) => unknown>(),
+  },
 }));
 
 const pagination = { current_page: 1, total_pages: 1, total_count: 1, limit: 50 };
@@ -73,8 +77,15 @@ describe("Sales/Index", () => {
     expect(screen.getByRole("searchbox")).toHaveValue("dale");
   });
 
-  it("renders an empty state when there are no sales", () => {
-    render(<Index {...defaultProps} sales={[]} pagination={{ ...pagination, total_count: 0 }} />);
+  it("renders an empty state when a search has no matches", () => {
+    render(
+      <Index
+        {...defaultProps}
+        pagination={{ ...pagination, total_count: 0 }}
+        sales={[]}
+        search={{ q: "missing sale" }}
+      />,
+    );
 
     expect(screen.getByText("Nothing found")).toBeInTheDocument();
   });

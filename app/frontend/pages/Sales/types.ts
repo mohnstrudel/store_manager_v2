@@ -1,3 +1,8 @@
+export type SelectOption<Value extends string | number = string | number> = {
+  value: Value;
+  label: string;
+};
+
 export type PaginationMeta = {
   current_page: number;
   total_pages: number;
@@ -77,6 +82,48 @@ export type SaleShowSaleItemRecord = {
   product_path: string;
   product_thumb_url: string | null;
   purchase_items: SaleShowPurchaseItemRecord[];
+};
+
+export type SaleAddressFormRecord = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  company: string;
+  address_1: string;
+  address_2: string;
+  city: string;
+  state: string;
+  postcode: string;
+  country: string;
+};
+
+export type SaleItemFormRecord = {
+  id: number | null;
+  product_id: number | null;
+  qty: string;
+  price: string;
+  _destroy: boolean;
+};
+
+export type SaleFormRecord = {
+  id: number | null;
+  path: string;
+  status: string;
+  customer_id: number | null;
+  note: string;
+  total: string;
+  discount_total: string;
+  shipping_total: string;
+  shipping_address: SaleAddressFormRecord;
+  billing_address: SaleAddressFormRecord;
+  sale_items: SaleItemFormRecord[];
+};
+
+export type SaleFormOptions = {
+  customers: SelectOption<number>[];
+  products: SelectOption<number>[];
+  status_names: string[];
 };
 
 export type SaleCustomerRecord = {

@@ -67,7 +67,7 @@ describe "Sale show page" do
       visit sale_path(sale)
 
       expect(page).to have_link("Fetch")
-      expect(page).to have_css("menu.nav_menu a.btn-rounded svg")
+      expect(page).to have_css("menu.nav_menu a.btn_rounded svg")
     end
   end
 
@@ -109,7 +109,7 @@ describe "Sale show page" do
 
       visit sale_path(active_sale)
 
-      expect(page).to have_css("a.btn-lightblue", text: link_label)
+      expect(page).to have_css("a.btn_lightblue", text: link_label)
     end
   end
 end

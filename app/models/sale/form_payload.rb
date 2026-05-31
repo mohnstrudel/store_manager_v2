@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 class Sale::FormPayload
+  ADDRESS_FIELDS = %i[first_name last_name email phone company address_1 address_2 city state postcode country].freeze
+
   def initialize(params:)
     @params = params
   end
 
-  ADDRESS_FIELDS = %i[first_name last_name email phone company address_1 address_2 city state postcode country].freeze
-
   def sale_attributes
-    sale_params.to_h
+    sale_params.to_h.symbolize_keys
   end
 
   def shipping_address_attributes
@@ -20,11 +20,7 @@ class Sale::FormPayload
   end
 
   def sale_item_attributes
-    return [] if params[:sale_items].blank?
-
-    sale_items_params.to_h.values.map do |attrs|
-      attrs = attrs.with_indifferent_access
-
+    submitted_sale_item_attributes.map do |attrs|
       {
         id: attrs[:id].presence,
         product_id: attrs[:product_id].presence,
@@ -37,10 +33,9 @@ class Sale::FormPayload
   end
 
   def rebuild_submitted_sale_items(sale:, invalid_record: nil)
-    return sale.sale_items.to_a if params[:sale_items].blank?
+    return sale.sale_items.to_a if submitted_sale_item_attributes.empty?
 
-    sale_items_params.to_h.values.map.with_index do |attrs, index|
-      attrs = attrs.with_indifferent_access
+    submitted_sale_item_attributes.map.with_index do |attrs, index|
       sale_item = build_sale_item(sale:, attrs:, invalid_record:, index:)
       sale_item.assign_attributes(
         product_id: attrs[:product_id],
@@ -61,7 +56,7 @@ class Sale::FormPayload
     nested = params.dig(:sale, kind)
     return {} if nested.blank?
 
-    nested.permit(*ADDRESS_FIELDS).to_h
+    nested.permit(*ADDRESS_FIELDS).to_h.symbolize_keys
   end
 
   def sale_params
@@ -77,17 +72,8 @@ class Sale::FormPayload
     )
   end
 
-  def sale_items_params
-    params.expect(
-      sale_items: [[
-        :id,
-        :product_id,
-        :variant_id,
-        :qty,
-        :price,
-        :_destroy
-      ]]
-    )
+  def submitted_sale_item_attributes
+    row_values(params[:sale_items]).map { |attrs| attrs.symbolize_keys }
   end
 
   def build_sale_item(sale:, attrs:, invalid_record:, index:)
@@ -108,10 +94,23 @@ class Sale::FormPayload
   end
 
   def first_new_sale_item_index
-    @first_new_sale_item_index ||= sale_items_params.to_h.values.find_index { |attrs| attrs[:id].blank? }
+    @first_new_sale_item_index ||= submitted_sale_item_attributes.find_index { |attrs| attrs[:id].blank? }
   end
 
   def boolean_type
     @boolean_type ||= ActiveModel::Type::Boolean.new
+  end
+
+  def row_values(value)
+    case value
+    when ActionController::Parameters
+      value.to_unsafe_h.values
+    when Hash
+      value.values
+    when Array
+      value.map { |v| v.is_a?(ActionController::Parameters) ? v.to_unsafe_h : v }
+    else
+      []
+    end
   end
 end

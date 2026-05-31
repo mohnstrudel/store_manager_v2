@@ -34,7 +34,7 @@ module Sale::Listing
         :billing_address,
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
-          {purchase_items: [:warehouse, {warehouse_movements: :warehouse}, {purchase: :supplier}]},
+          {purchase_items: [:warehouse, {purchase: :supplier}]},
           {variant: [:version, :color, :size]}
         ]
       )

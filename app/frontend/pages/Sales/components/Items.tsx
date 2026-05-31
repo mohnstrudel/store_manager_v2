@@ -1,5 +1,6 @@
 import { router, Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import PurchasedSoldRatio from "./PurchasedSoldRatio";
 import type { SaleShowSaleItemRecord } from "../types";
 
@@ -11,7 +12,7 @@ export default function Items({ saleItems }: ItemsProps) {
   if (saleItems.length === 0) return null;
 
   return (
-    <div className="table-card full-width">
+    <div className="table_card full_width">
       <table>
         <thead>
           <tr>
@@ -25,16 +26,11 @@ export default function Items({ saleItems }: ItemsProps) {
           {saleItems.map((saleItem) => (
             <tr className="cursor-default" key={saleItem.id}>
               <td>
-                {saleItem.product_thumb_url ? (
-                  <div className="preloadable-img__container w-fit h-fit justify-self-center">
-                    <img
-                      alt={saleItem.title}
-                      className="preloadable-img__img zoomable"
-                      src={saleItem.product_thumb_url}
-                      style={{ height: "120px", maxWidth: "100px", minWidth: "100px" }}
-                    />
-                  </div>
-                ) : null}
+                <ZoomableThumbnail
+                  alt={saleItem.title}
+                  key={`${saleItem.id}-${saleItem.product_thumb_url ?? "missing"}`}
+                  src={saleItem.product_thumb_url}
+                />
               </td>
               <td>
                 <Link
@@ -93,7 +89,7 @@ function PurchaseItems({
             </div>
 
             <button
-              className="btn-xs btn-red btn-rounded"
+              className="btn_xs btn_red btn_rounded"
               onClick={() => {
                 if (window.confirm("Are you sure?")) {
                   router.delete(purchaseItem.unlink_path);
@@ -121,7 +117,7 @@ function PurchaseItems({
                 </span>
 
                 {purchaseItem.warehouse_movements.length > 1 && (
-                  <span className="text-xs btn-rounded w-5 h-5 p-0 btn-lightblue flex items-center justify-center transition-transform origin-center group-open:-rotate-90">
+                  <span className="text-xs btn_rounded w-5 h-5 p-0 btn_lightblue flex items-center justify-center transition-transform origin-center group-open:-rotate-90">
                     <ChevronLeftIcon className="h-4 w-4" />
                   </span>
                 )}
@@ -139,7 +135,7 @@ function PurchaseItems({
                     <tbody>
                       {purchaseItem.warehouse_movements.slice(1).map((movement, index) => (
                         <tr className="cursor-auto" key={`${purchaseItem.id}-${index}`}>
-                          <td className="pr-2 text-muted whitespace-nowrap">{movement.moved_in}</td>
+                          <td className="pr-2 text_muted whitespace-nowrap">{movement.moved_in}</td>
                           <td>{movement.warehouse_name}</td>
                         </tr>
                       ))}

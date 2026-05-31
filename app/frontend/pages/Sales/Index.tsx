@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 import SyncModal from "@/components/SyncModal";
@@ -18,6 +18,8 @@ type IndexProps = {
 
 export default function Index({ sales, pagination, search, last_sync_time }: IndexProps) {
   const [syncOpen, setSyncOpen] = useState(false);
+  const openSync = useCallback(() => setSyncOpen(true), []);
+  const closeSync = useCallback(() => setSyncOpen(false), []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -40,7 +42,7 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
 
         <menu className="nav_menu">
           <li>
-            <button className="btn-rounded" onClick={() => setSyncOpen(true)} type="button">
+            <button className="btn_rounded" onClick={openSync} type="button">
               <ArrowPathIcon height={20} width={20} />
               Store Sync
             </button>
@@ -59,21 +61,17 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
           fetchLimitedLabel="Fetch Last 100 Sales"
           id="sales-index-sync-modal"
           lastSyncAt={last_sync_time ? `Last sync: ${last_sync_time}` : null}
-          onClose={() => setSyncOpen(false)}
+          onClose={closeSync}
           pullPath="/sales/pull"
           title="Sales Synchronization"
         />
       )}
 
-      <div className="section-border-base section-wide">
+      <div className="section_border_base section_wide">
         <div className="search">
-          <SearchBar
-            initialQuery={search.q}
-            path="/sales"
-            reloadOnly={["sales", "pagination", "search"]}
-          />
-          <div className="pagination-top">
-            <Pagination pagination={pagination} params={{ q: search.q }} path="/sales" />
+          <SearchBar initialQuery={search.q} path="/sales" resourceName="sales" />
+          <div className="pagination_top">
+            <Pagination pagination={pagination} path="/sales" query={search.q} />
           </div>
         </div>
 
@@ -84,8 +82,8 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
         ) : null}
 
         {sales.length > 0 && (
-          <div className="pagination-bottom">
-            <Pagination pagination={pagination} params={{ q: search.q }} path="/sales" />
+          <div className="pagination_bottom">
+            <Pagination pagination={pagination} path="/sales" query={search.q} />
           </div>
         )}
       </div>

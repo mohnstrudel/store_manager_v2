@@ -44,10 +44,10 @@ export default function Details({ sale }: DetailsProps) {
       </div>
 
       <div className="card w-1/3">
-        <div className="tab-bar">
+        <div className="tab_bar">
           <button
             aria-selected={tab === "shipping"}
-            className="tab-btn"
+            className="tab_btn"
             data-tab-panel="shipping"
             onClick={() => setTab("shipping")}
             type="button"
@@ -56,7 +56,7 @@ export default function Details({ sale }: DetailsProps) {
           </button>
           <button
             aria-selected={tab === "billing"}
-            className="tab-btn"
+            className="tab_btn"
             data-tab-panel="billing"
             onClick={() => setTab("billing")}
             type="button"

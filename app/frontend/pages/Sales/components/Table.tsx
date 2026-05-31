@@ -1,6 +1,6 @@
-import type { MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import PurchasedSoldRatio from "./PurchasedSoldRatio";
 import type { SaleIndexRecord } from "../types";
 
@@ -9,10 +9,6 @@ type TableProps = {
 };
 
 export default function Table({ sales }: TableProps) {
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   if (sales.length === 0) return null;
 
   return (
@@ -41,21 +37,13 @@ export default function Table({ sales }: TableProps) {
             <tr className="hoverable" key={sale.id} {...rowNavigationProps(sale.path)}>
               <td className="text-center">
                 <div className="flex flex-wrap justify-center gap-2">
-                  {sale.sale_items.map((saleItem) =>
-                    saleItem.product_thumb_url ? (
-                      <div
-                        className="preloadable-img__container w-fit h-fit justify-self-center"
-                        key={saleItem.id}
-                      >
-                        <img
-                          alt={saleItem.title}
-                          className="preloadable-img__img zoomable"
-                          src={saleItem.product_thumb_url}
-                          style={{ height: "120px", maxWidth: "100px", minWidth: "100px" }}
-                        />
-                      </div>
-                    ) : null,
-                  )}
+                  {sale.sale_items.map((saleItem) => (
+                    <ZoomableThumbnail
+                      alt={saleItem.title}
+                      key={`${saleItem.id}-${saleItem.product_thumb_url ?? "missing"}`}
+                      src={saleItem.product_thumb_url}
+                    />
+                  ))}
                 </div>
               </td>
 
@@ -87,7 +75,7 @@ export default function Table({ sales }: TableProps) {
                   <div className="flex flex-col items-start gap-2">
                     {purchaseItems.map((purchaseItem) => (
                       <Link
-                        className="mt-2 no-events"
+                        className="mt-2 no_events"
                         href={purchaseItem.path}
                         key={purchaseItem.id}
                         onClick={stopRowNavigation}
@@ -123,13 +111,13 @@ export default function Table({ sales }: TableProps) {
               <td>
                 {sale.woo_store_id && (
                   <span className="block">
-                    <span className="inline-block icon-woo w-8 h-8 mr-1 -mb-3" />
+                    <span className="inline-block icon_woo w-8 h-8 mr-1 -mb-3" />
                     {sale.woo_store_id}
                   </span>
                 )}
                 {(sale.shopify_name || sale.shopify_id_short || sale.shopify_id) && (
                   <span className="block">
-                    <span className="inline-block icon-shopify w-5 h-5 mr-1 -mb-1" />
+                    <span className="inline-block icon_shopify w-5 h-5 mr-1 -mb-1" />
                     {sale.shopify_name || sale.shopify_id_short || sale.shopify_id}
                     {sale.shopify_id_short && (
                       <>
