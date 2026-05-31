@@ -1,7 +1,7 @@
-import { useCallback, useState } from "react";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 import SyncModal from "@/components/SyncModal";
+import { useModalVisibility } from "@/lib/useModalVisibility";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import Pagination from "@/components/Pagination";
 import PageHeader from "@/components/PageHeader";
@@ -18,9 +18,7 @@ type IndexProps = {
 };
 
 export default function Index({ products, pagination, search, last_sync_at }: IndexProps) {
-  const [syncOpen, setSyncOpen] = useState(false);
-  const openSync = useCallback(() => setSyncOpen(true), []);
-  const closeSync = useCallback(() => setSyncOpen(false), []);
+  const { close: closeSync, isOpen: syncOpen, open: openSync } = useModalVisibility();
 
   return (
     <>

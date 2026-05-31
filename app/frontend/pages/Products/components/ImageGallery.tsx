@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-  type SyntheticEvent,
-} from "react";
+import { useCallback, useEffect, useRef, useState, type RefCallback, type RefObject } from "react";
 import { type MediaRecord } from "../types";
 
 type ImageGalleryProps = {
@@ -14,178 +7,353 @@ type ImageGalleryProps = {
 
 type LoadState = "loading" | "loaded" | "failed";
 
+type MainLoadState = {
+  imageId: number | null;
+  state: LoadState;
+};
+
+type ImageGalleryBehavior = {
+  current: MediaRecord | null;
+  hasMultipleImages: boolean;
+  mainImageRef: RefObject<HTMLImageElement | null>;
+  mainIsLoaded: boolean;
+  mainIsLoading: boolean;
+  markMainImageFailed: () => void;
+  markMainImageLoaded: () => void;
+  markThumbnailFailed: (imageId: number) => void;
+  markThumbnailLoaded: (imageId: number) => void;
+  selectImage: (index: number) => void;
+  selectedIndex: number;
+  setThumbnailButtonRef: (index: number) => RefCallback<HTMLButtonElement>;
+  setThumbnailImageRef: (index: number) => RefCallback<HTMLImageElement>;
+  showNextImage: () => void;
+  showPreviousImage: () => void;
+  thumbnailLoadStates: Record<number, LoadState>;
+};
+
+type GalleryWithCurrentImage = ImageGalleryBehavior & {
+  current: MediaRecord;
+};
+
 export default function ImageGallery({ media }: ImageGalleryProps) {
+  const gallery = useImageGallery(media);
+
+  if (!hasCurrentImage(gallery)) return null;
+
+  if (!gallery.hasMultipleImages) return <SingleImageGallery gallery={gallery} />;
+
+  return <CarouselImageGallery gallery={gallery} media={media} />;
+}
+
+function SingleImageGallery({ gallery }: { gallery: GalleryWithCurrentImage }) {
+  const loadingClassName = gallery.mainIsLoading ? "animate-pulse" : "";
+
+  return (
+    <div
+      className={`gallery_viewbox mx-8 overflow-hidden rounded-lg border border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 ${loadingClassName}`}
+    >
+      <GalleryMainImage gallery={gallery} layout="single" />
+    </div>
+  );
+}
+
+function CarouselImageGallery({
+  gallery,
+  media,
+}: {
+  gallery: GalleryWithCurrentImage;
+  media: MediaRecord[];
+}) {
+  return (
+    <div className="grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-150 lg:h-150 lg:flex-row">
+      <ThumbnailNavigation gallery={gallery} media={media} />
+      <CarouselStage gallery={gallery} />
+    </div>
+  );
+}
+
+function ThumbnailNavigation({
+  gallery,
+  media,
+}: {
+  gallery: GalleryWithCurrentImage;
+  media: MediaRecord[];
+}) {
+  return (
+    <div className="gallery_nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
+      {media.map((image, index) => (
+        <GalleryThumbnail gallery={gallery} image={image} index={index} key={image.id} />
+      ))}
+    </div>
+  );
+}
+
+function GalleryThumbnail({
+  gallery,
+  image,
+  index,
+}: {
+  gallery: GalleryWithCurrentImage;
+  image: MediaRecord;
+  index: number;
+}) {
+  const loadState = gallery.thumbnailLoadStates[image.id] ?? "loading";
+  const loadingClassName = loadState === "loading" ? "loading" : "";
+  const selectedClassName = index === gallery.selectedIndex ? "active" : "";
+  const visibleClassName = loadState === "loaded" ? "" : "hidden";
+
+  return (
+    <button
+      aria-label={image.alt || ""}
+      className={`gallery_thumb ${selectedClassName}`}
+      onClick={() => gallery.selectImage(index)}
+      ref={gallery.setThumbnailButtonRef(index)}
+      type="button"
+    >
+      <div className={`gallery_thumb__frame ${loadingClassName}`}>
+        <img
+          alt={image.alt || ""}
+          className={`gallery_thumb__image w-full h-full object-cover object-center ${visibleClassName}`}
+          onError={() => gallery.markThumbnailFailed(image.id)}
+          onLoad={() => gallery.markThumbnailLoaded(image.id)}
+          ref={gallery.setThumbnailImageRef(index)}
+          src={image.thumb_url}
+        />
+      </div>
+    </button>
+  );
+}
+
+function CarouselStage({ gallery }: { gallery: GalleryWithCurrentImage }) {
+  const loadingClassName = gallery.mainIsLoading ? "loading" : "";
+
+  return (
+    <div className="gallery_viewbox flex relative w-full h-80 max-h-full items-center overflow-hidden rounded-lg hover:overflow-visible lg:h-full">
+      <button className="gallery_btn left-0" onClick={gallery.showPreviousImage} type="button">
+        ←
+      </button>
+      <button className="gallery_btn right-0" onClick={gallery.showNextImage} type="button">
+        →
+      </button>
+      <div className={`gallery_main__frame w-full ${loadingClassName}`}>
+        <GalleryMainImage gallery={gallery} layout="carousel" />
+      </div>
+    </div>
+  );
+}
+
+function GalleryMainImage({
+  gallery,
+  layout,
+}: {
+  gallery: GalleryWithCurrentImage;
+  layout: "carousel" | "single";
+}) {
+  const imageClassName =
+    layout === "carousel" ? "w-full h-full object-contain object-center" : "max-h-160 max-w-160";
+  const visibleClassName = gallery.mainIsLoaded ? "" : "hidden";
+
+  return (
+    <img
+      alt={gallery.current.alt || ""}
+      className={`gallery_main__image ${imageClassName} ${visibleClassName}`}
+      key={gallery.current.preview_url}
+      onError={gallery.markMainImageFailed}
+      onLoad={gallery.markMainImageLoaded}
+      ref={gallery.mainImageRef}
+      src={gallery.current.preview_url}
+    />
+  );
+}
+
+function useImageGallery(media: MediaRecord[]): ImageGalleryBehavior {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [mainLoadState, setMainLoadState] = useState<{
-    imageId: number | null;
-    state: LoadState;
-  }>({
+  const [thumbnailLoadStates, setThumbnailLoadStates] = useState<Record<number, LoadState>>({});
+  const [mainLoadState, setMainLoadState] = useState<MainLoadState>({
     imageId: null,
     state: "loading",
   });
-  const [thumbLoadStates, setThumbLoadStates] = useState<Record<number, LoadState>>({});
-  const thumbButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const thumbImageRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const thumbnailButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const thumbnailImageRefs = useRef<(HTMLImageElement | null)[]>([]);
   const mainImageRef = useRef<HTMLImageElement | null>(null);
-  const hasRenderedSelection = useRef(false);
+
   const hasMultipleImages = media.length > 1;
   const current = media[selectedIndex] ?? null;
   const currentImageId = current?.id ?? null;
-  const setThumbLoadState = useCallback((imageId: number, state: LoadState) => {
-    setThumbLoadStates((currentStates) =>
+
+  const setThumbnailLoadState = useCallback((imageId: number, state: LoadState) => {
+    setThumbnailLoadStates((currentStates) =>
       currentStates[imageId] === state ? currentStates : { ...currentStates, [imageId]: state },
     );
   }, []);
-  const prev = useCallback(() => {
-    setSelectedIndex((i) => (i > 0 ? i - 1 : media.length - 1));
-  }, [media.length]);
-  const next = useCallback(() => {
-    setSelectedIndex((i) => (i < media.length - 1 ? i + 1 : 0));
-  }, [media.length]);
-  const handleMainLoad = useCallback(() => {
-    if (!currentImageId) return;
-    setMainLoadState({ imageId: currentImageId, state: "loaded" });
-  }, [currentImageId]);
-  const handleMainError = useCallback(() => {
-    if (!currentImageId) return;
-    setMainLoadState({ imageId: currentImageId, state: "failed" });
-  }, [currentImageId]);
-  const handleThumbClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    const index = Number(event.currentTarget.dataset.index);
-    if (Number.isNaN(index)) return;
-    setSelectedIndex(index);
-  }, []);
-  const handleThumbLoad = useCallback(
-    (event: SyntheticEvent<HTMLImageElement>) => {
-      const imageId = Number(event.currentTarget.dataset.imageId);
-      if (Number.isNaN(imageId)) return;
-      setThumbLoadState(imageId, "loaded");
+
+  const selectImage = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= media.length) return;
+
+      setSelectedIndex(index);
     },
-    [setThumbLoadState],
-  );
-  const handleThumbError = useCallback(
-    (event: SyntheticEvent<HTMLImageElement>) => {
-      const imageId = Number(event.currentTarget.dataset.imageId);
-      if (Number.isNaN(imageId)) return;
-      setThumbLoadState(imageId, "failed");
-    },
-    [setThumbLoadState],
+    [media.length],
   );
 
+  const showPreviousImage = useCallback(() => {
+    setSelectedIndex((currentIndex) => previousImageIndex(currentIndex, media.length));
+  }, [media.length]);
+
+  const showNextImage = useCallback(() => {
+    setSelectedIndex((currentIndex) => nextImageIndex(currentIndex, media.length));
+  }, [media.length]);
+
+  const markMainImageLoaded = useCallback(() => {
+    if (currentImageId == null) return;
+
+    setMainLoadState({ imageId: currentImageId, state: "loaded" });
+  }, [currentImageId]);
+
+  const markMainImageFailed = useCallback(() => {
+    if (currentImageId == null) return;
+
+    setMainLoadState({ imageId: currentImageId, state: "failed" });
+  }, [currentImageId]);
+
+  const markThumbnailLoaded = useCallback(
+    (imageId: number) => {
+      setThumbnailLoadState(imageId, "loaded");
+    },
+    [setThumbnailLoadState],
+  );
+
+  const markThumbnailFailed = useCallback(
+    (imageId: number) => {
+      setThumbnailLoadState(imageId, "failed");
+    },
+    [setThumbnailLoadState],
+  );
+
+  const setThumbnailButtonRef = useCallback(
+    (index: number) => (element: HTMLButtonElement | null) => {
+      thumbnailButtonRefs.current[index] = element;
+    },
+    [],
+  );
+
+  const setThumbnailImageRef = useCallback(
+    (index: number) => (element: HTMLImageElement | null) => {
+      thumbnailImageRefs.current[index] = element;
+    },
+    [],
+  );
+
+  useKeepSelectionInBounds(media.length, selectImage, selectedIndex);
+  useScrollSelectedThumbnailIntoView(selectedIndex, thumbnailButtonRefs);
+  useMarkCachedMainImageLoaded(current, mainImageRef, markMainImageLoaded);
+  useMarkCachedThumbnailImagesLoaded(media, markThumbnailLoaded, thumbnailImageRefs);
+
+  const mainIsLoaded = currentImageHasLoaded(mainLoadState, currentImageId);
+  const mainIsLoading = currentImageIsLoading(mainLoadState, currentImageId);
+
+  return {
+    current,
+    hasMultipleImages,
+    mainImageRef,
+    mainIsLoaded,
+    mainIsLoading,
+    markMainImageFailed,
+    markMainImageLoaded,
+    markThumbnailFailed,
+    markThumbnailLoaded,
+    selectImage,
+    selectedIndex,
+    setThumbnailButtonRef,
+    setThumbnailImageRef,
+    showNextImage,
+    showPreviousImage,
+    thumbnailLoadStates,
+  };
+}
+
+function useKeepSelectionInBounds(
+  imageCount: number,
+  selectImage: (index: number) => void,
+  selectedIndex: number,
+) {
   useEffect(() => {
-    const selectedThumb = thumbButtonRefs.current[selectedIndex];
-    if (!selectedThumb) return;
+    if (selectedIndex >= imageCount && imageCount > 0) selectImage(0);
+  }, [imageCount, selectImage, selectedIndex]);
+}
+
+function useScrollSelectedThumbnailIntoView(
+  selectedIndex: number,
+  thumbnailButtonRefs: RefObject<(HTMLButtonElement | null)[]>,
+) {
+  const hasRenderedSelection = useRef(false);
+
+  useEffect(() => {
+    const selectedThumbnail = thumbnailButtonRefs.current[selectedIndex];
+    if (!selectedThumbnail) return;
 
     if (!hasRenderedSelection.current) {
       hasRenderedSelection.current = true;
       return;
     }
 
-    selectedThumb.scrollIntoView({
+    selectedThumbnail.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
       inline: "start",
     });
-  }, [selectedIndex]);
+  }, [selectedIndex, thumbnailButtonRefs]);
+}
 
+function useMarkCachedMainImageLoaded(
+  current: MediaRecord | null,
+  mainImageRef: RefObject<HTMLImageElement | null>,
+  markMainImageLoaded: () => void,
+) {
   useEffect(() => {
     if (!current) return;
+    if (!hasLoadedImage(mainImageRef.current)) return;
 
-    if (mainImageRef.current?.complete && mainImageRef.current.naturalWidth > 0) {
-      setMainLoadState({ imageId: current.id, state: "loaded" });
-    }
-  }, [current]);
+    markMainImageLoaded();
+  }, [current, mainImageRef, markMainImageLoaded]);
+}
 
+function useMarkCachedThumbnailImagesLoaded(
+  media: MediaRecord[],
+  markThumbnailLoaded: (imageId: number) => void,
+  thumbnailImageRefs: RefObject<(HTMLImageElement | null)[]>,
+) {
   useEffect(() => {
-    media.forEach((item, index) => {
-      const image = thumbImageRefs.current[index];
-      if (image?.complete && image.naturalWidth > 0) {
-        setThumbLoadState(item.id, "loaded");
-      }
+    media.forEach((image, index) => {
+      if (hasLoadedImage(thumbnailImageRefs.current[index])) markThumbnailLoaded(image.id);
     });
-  }, [media, setThumbLoadState]);
+  }, [media, markThumbnailLoaded, thumbnailImageRefs]);
+}
 
-  if (media.length === 0) return null;
+function hasCurrentImage(gallery: ImageGalleryBehavior): gallery is GalleryWithCurrentImage {
+  return gallery.current != null;
+}
 
-  if (!current) return null;
+function hasLoadedImage(image: HTMLImageElement | null) {
+  return image != null && image.complete && image.naturalWidth > 0;
+}
 
-  const mainIsLoaded = mainLoadState.imageId === current.id && mainLoadState.state === "loaded";
-  const mainIsFailed = mainLoadState.imageId === current.id && mainLoadState.state === "failed";
-  const mainIsLoading = !mainIsLoaded && !mainIsFailed;
-  const mainImageClassName = hasMultipleImages
-    ? "w-full h-full object-contain object-center"
-    : "max-h-160 max-w-160";
-  const mainImage = (
-    <img
-      alt={current.alt || ""}
-      className={`gallery_main__image ${mainImageClassName} ${mainIsLoaded ? "" : "hidden"}`}
-      key={current.preview_url}
-      onError={handleMainError}
-      onLoad={handleMainLoad}
-      ref={mainImageRef}
-      src={current.preview_url}
-    />
-  );
+function currentImageHasLoaded(loadState: MainLoadState, imageId: number | null) {
+  return imageId != null && loadState.imageId === imageId && loadState.state === "loaded";
+}
 
-  if (!hasMultipleImages) {
-    return (
-      <div
-        className={`gallery_viewbox mx-8 overflow-hidden rounded-lg border border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 ${mainIsLoading ? "animate-pulse" : ""}`}
-      >
-        {mainImage}
-      </div>
-    );
-  }
+function currentImageIsLoading(loadState: MainLoadState, imageId: number | null) {
+  return imageId != null && (loadState.imageId !== imageId || loadState.state === "loading");
+}
 
-  return (
-    <div className="grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-150 lg:h-150 lg:flex-row">
-      <div className="gallery_nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
-        {media.map((item, index) => (
-          <button
-            className={`gallery_thumb ${index === selectedIndex ? "active" : ""}`}
-            aria-label={item.alt || ""}
-            data-index={index}
-            key={item.id}
-            onClick={handleThumbClick}
-            ref={(element) => {
-              thumbButtonRefs.current[index] = element;
-            }}
-            type="button"
-          >
-            <div
-              className={`gallery_thumb__frame ${
-                (thumbLoadStates[item.id] || "loading") === "loading" ? "loading" : ""
-              }`}
-            >
-              <img
-                alt={item.alt || ""}
-                className={`gallery_thumb__image w-full h-full object-cover object-center ${
-                  thumbLoadStates[item.id] === "loaded" ? "" : "hidden"
-                }`}
-                data-image-id={item.id}
-                onError={handleThumbError}
-                onLoad={handleThumbLoad}
-                ref={(element) => {
-                  thumbImageRefs.current[index] = element;
-                }}
-                src={item.thumb_url}
-              />
-            </div>
-          </button>
-        ))}
-      </div>
+function previousImageIndex(currentIndex: number, imageCount: number) {
+  if (imageCount === 0) return 0;
 
-      <div className="gallery_viewbox flex relative w-full h-80 max-h-full items-center overflow-hidden rounded-lg hover:overflow-visible lg:h-full">
-        <button className="gallery_btn left-0" onClick={prev} type="button">
-          ←
-        </button>
-        <button className="gallery_btn right-0" onClick={next} type="button">
-          →
-        </button>
-        <div className={`gallery_main__frame w-full ${mainIsLoading ? "loading" : ""}`}>
-          {mainImage}
-        </div>
-      </div>
-    </div>
-  );
+  return currentIndex > 0 ? currentIndex - 1 : imageCount - 1;
+}
+
+function nextImageIndex(currentIndex: number, imageCount: number) {
+  if (imageCount === 0) return 0;
+
+  return currentIndex < imageCount - 1 ? currentIndex + 1 : 0;
 }

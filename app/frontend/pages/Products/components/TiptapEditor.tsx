@@ -30,29 +30,120 @@ type ToolbarButtonProps = {
   onAction: (action: ToolbarAction) => void;
 };
 
-function ToolbarButton({ action, active, disabled, label, onAction }: ToolbarButtonProps) {
-  const handleClick = useCallback(() => onAction(action), [action, onAction]);
-
-  return (
-    <button
-      className={`px-2 py-1 text-sm rounded border ${active ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border-transparent" : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-      disabled={disabled}
-      onClick={handleClick}
-      type="button"
-    >
-      {label}
-    </button>
-  );
-}
-
 type TiptapEditorProps = {
   defaultValue: string;
   name: string;
 };
 
 export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) {
+  const { editor, html, runToolbarAction } = useTiptapDescriptionEditor(defaultValue);
+
+  if (!editor) return null;
+
+  return (
+    <>
+      <input name={name} type="hidden" value={html} />
+      <div className="tiptap-editor border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+        <div className="tiptap-toolbar flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
+          <ToolbarButton
+            action="bold"
+            active={editor.isFocused && editor.isActive("bold")}
+            label="B"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="italic"
+            active={editor.isFocused && editor.isActive("italic")}
+            label="I"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="underline"
+            active={editor.isFocused && editor.isActive("underline")}
+            label="U"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="strike"
+            active={editor.isFocused && editor.isActive("strike")}
+            label="S̶"
+            onAction={runToolbarAction}
+          />
+          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+          <ToolbarButton
+            action="heading-2"
+            active={editor.isFocused && editor.isActive("heading", { level: 2 })}
+            label="H2"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="heading-3"
+            active={editor.isFocused && editor.isActive("heading", { level: 3 })}
+            label="H3"
+            onAction={runToolbarAction}
+          />
+          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+          <ToolbarButton
+            action="bullet-list"
+            active={editor.isFocused && editor.isActive("bulletList")}
+            label="• List"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="ordered-list"
+            active={editor.isFocused && editor.isActive("orderedList")}
+            label="1. List"
+            onAction={runToolbarAction}
+          />
+          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+          <ToolbarButton
+            action="align-left"
+            active={editor.isFocused && editor.isActive({ textAlign: "left" })}
+            label="Left"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="align-center"
+            active={editor.isFocused && editor.isActive({ textAlign: "center" })}
+            label="Center"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="align-right"
+            active={editor.isFocused && editor.isActive({ textAlign: "right" })}
+            label="Right"
+            onAction={runToolbarAction}
+          />
+          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+          <ToolbarButton
+            action="link"
+            active={editor.isFocused && editor.isActive("link")}
+            label="Link"
+            onAction={runToolbarAction}
+          />
+          <ToolbarButton
+            action="unlink"
+            disabled={!editor.isActive("link")}
+            label="Unlink"
+            onAction={runToolbarAction}
+          />
+          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+          <ToolbarButton action="undo" label="↩" onAction={runToolbarAction} />
+          <ToolbarButton action="redo" label="↪" onAction={runToolbarAction} />
+        </div>
+        <EditorContent
+          className="tiptap_content rich_text font-nunito prose prose-sm dark:prose-invert max-w-none p-4 min-h-48 [&_.ProseMirror]:outline-none"
+          editor={editor}
+        />
+      </div>
+    </>
+  );
+}
+
+function useTiptapDescriptionEditor(defaultValue: string) {
   const [html, setHtml] = useState(defaultValue);
   const [, rerender] = useState(0);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -67,13 +158,13 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
       setHtml(currentEditor.getHTML());
     },
     onSelectionUpdate() {
-      rerender((n) => n + 1);
+      rerender((count) => count + 1);
     },
     onFocus() {
-      rerender((n) => n + 1);
+      rerender((count) => count + 1);
     },
     onBlur() {
-      rerender((n) => n + 1);
+      rerender((count) => count + 1);
     },
   });
 
@@ -81,9 +172,10 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
     if (!editor) return;
 
     const attributes = editor.getAttributes("link");
-    const prev = typeof attributes.href === "string" ? attributes.href : undefined;
-    const url = window.prompt("Enter URL", prev ?? "");
+    const previousUrl = typeof attributes.href === "string" ? attributes.href : undefined;
+    const url = window.prompt("Enter URL", previousUrl ?? "");
     if (url === null) return;
+
     if (url === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
     } else {
@@ -91,7 +183,7 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
     }
   }, [editor]);
 
-  const handleToolbarAction = useCallback(
+  const runToolbarAction = useCallback(
     (action: ToolbarAction) => {
       if (!editor) return;
 
@@ -145,104 +237,20 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
     [editor, setLink],
   );
 
-  if (!editor) return null;
+  return { editor, html, runToolbarAction };
+}
+
+function ToolbarButton({ action, active, disabled, label, onAction }: ToolbarButtonProps) {
+  const handleClick = useCallback(() => onAction(action), [action, onAction]);
 
   return (
-    <>
-      <input name={name} type="hidden" value={html} />
-      <div className="tiptap-editor border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
-        <div className="tiptap-toolbar flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
-          <ToolbarButton
-            action="bold"
-            active={editor.isFocused && editor.isActive("bold")}
-            label="B"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="italic"
-            active={editor.isFocused && editor.isActive("italic")}
-            label="I"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="underline"
-            active={editor.isFocused && editor.isActive("underline")}
-            label="U"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="strike"
-            active={editor.isFocused && editor.isActive("strike")}
-            label="S̶"
-            onAction={handleToolbarAction}
-          />
-          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
-          <ToolbarButton
-            action="heading-2"
-            active={editor.isFocused && editor.isActive("heading", { level: 2 })}
-            label="H2"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="heading-3"
-            active={editor.isFocused && editor.isActive("heading", { level: 3 })}
-            label="H3"
-            onAction={handleToolbarAction}
-          />
-          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
-          <ToolbarButton
-            action="bullet-list"
-            active={editor.isFocused && editor.isActive("bulletList")}
-            label="• List"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="ordered-list"
-            active={editor.isFocused && editor.isActive("orderedList")}
-            label="1. List"
-            onAction={handleToolbarAction}
-          />
-          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
-          <ToolbarButton
-            action="align-left"
-            active={editor.isFocused && editor.isActive({ textAlign: "left" })}
-            label="Left"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="align-center"
-            active={editor.isFocused && editor.isActive({ textAlign: "center" })}
-            label="Center"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="align-right"
-            active={editor.isFocused && editor.isActive({ textAlign: "right" })}
-            label="Right"
-            onAction={handleToolbarAction}
-          />
-          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
-          <ToolbarButton
-            action="link"
-            active={editor.isFocused && editor.isActive("link")}
-            label="Link"
-            onAction={handleToolbarAction}
-          />
-          <ToolbarButton
-            action="unlink"
-            disabled={!editor.isActive("link")}
-            label="Unlink"
-            onAction={handleToolbarAction}
-          />
-          <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
-          <ToolbarButton action="undo" label="↩" onAction={handleToolbarAction} />
-          <ToolbarButton action="redo" label="↪" onAction={handleToolbarAction} />
-        </div>
-        <EditorContent
-          className="tiptap_content rich_text font-nunito prose prose-sm dark:prose-invert max-w-none p-4 min-h-48 [&_.ProseMirror]:outline-none"
-          editor={editor}
-        />
-      </div>
-    </>
+    <button
+      className={`px-2 py-1 text-sm rounded border ${active ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border-transparent" : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      disabled={disabled}
+      onClick={handleClick}
+      type="button"
+    >
+      {label}
+    </button>
   );
 }

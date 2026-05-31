@@ -20,66 +20,6 @@ type VariantFieldsProps = {
   versions: SelectOption<number>[];
 };
 
-const EMPTY_ERRORS: Record<string, string | undefined> = {};
-
-function generateVariantTitle(
-  variant: VariantFormData,
-  colors: SelectOption<number>[],
-  sizes: SelectOption<number>[],
-  versions: SelectOption<number>[],
-): string {
-  const parts: string[] = [];
-
-  if (variant.size_id) {
-    const size = sizes.find((s) => s.value === variant.size_id);
-    if (size) parts.push(size.label);
-  }
-
-  if (variant.version_id) {
-    const version = versions.find((v) => v.value === variant.version_id);
-    if (version) parts.push(version.label);
-  }
-
-  if (variant.color_id) {
-    const color = colors.find((c) => c.value === variant.color_id);
-    if (color) parts.push(color.label);
-  }
-
-  return parts.length > 0 ? parts.join(" | ") : "Base Model";
-}
-
-function VariantActions({
-  index,
-  onMarkedForDeletionChange,
-  onRemove,
-  variant,
-}: {
-  index: number;
-  onMarkedForDeletionChange: (checked: boolean) => void;
-  onRemove: () => void;
-  variant: VariantFormData;
-}) {
-  if (variant.deactivated) {
-    return <span className="text-sm text-gray-500 dark:text-gray-400">(Deactivated)</span>;
-  }
-
-  if (!variant.id) {
-    return (
-      <button className="text-sm btn_rounded btn_red" onClick={onRemove} type="button">
-        Cancel
-      </button>
-    );
-  }
-
-  return (
-    <DestroyCheckbox
-      defaultChecked={variant._destroy}
-      name={`variants[${index}][_destroy]`}
-      onChange={onMarkedForDeletionChange}
-    />
-  );
-}
-
 export default function VariantFields({
   colors,
   errors = EMPTY_ERRORS,
@@ -89,10 +29,7 @@ export default function VariantFields({
   variant,
   versions,
 }: VariantFieldsProps) {
-  const [sizeId, setSizeId] = useState<number | null>(variant.size_id);
-  const [versionId, setVersionId] = useState<number | null>(variant.version_id);
-  const [colorId, setColorId] = useState<number | null>(variant.color_id);
-  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(variant._destroy);
+  const variantFields = useVariantFieldState(variant);
 
   const prefix = `variants.${index}`;
   const skuError = errors[`${prefix}.sku`];
@@ -101,33 +38,26 @@ export default function VariantFields({
   const colorError = errors[`${prefix}.color_id`];
   const combinationError = errors[`${prefix}.base`];
 
-  const displayVariant = { ...variant, size_id: sizeId, version_id: versionId, color_id: colorId };
+  const displayVariant = {
+    ...variant,
+    color_id: variantFields.colorId,
+    size_id: variantFields.sizeId,
+    version_id: variantFields.versionId,
+  };
   const title = generateVariantTitle(displayVariant, colors, sizes, versions);
-  const isDimmed = variant.deactivated || isMarkedForDeletion;
+  const isDimmed = variant.deactivated || variantFields.isMarkedForDeletion;
   const sizeHasError = !!(sizeError || combinationError);
   const handleRemove = useCallback(() => onRemove(index), [index, onRemove]);
-  const handleSizeChange = useCallback(
-    (option: SelectOption<number> | null) => setSizeId(option?.value ?? null),
-    [],
-  );
-  const handleVersionChange = useCallback(
-    (option: SelectOption<number> | null) => setVersionId(option?.value ?? null),
-    [],
-  );
-  const handleColorChange = useCallback(
-    (option: SelectOption<number> | null) => setColorId(option?.value ?? null),
-    [],
-  );
   const actions = useMemo(
     () => (
       <VariantActions
         index={index}
-        onMarkedForDeletionChange={setIsMarkedForDeletion}
+        onMarkedForDeletionChange={variantFields.setIsMarkedForDeletion}
         onRemove={handleRemove}
         variant={variant}
       />
     ),
-    [handleRemove, index, variant],
+    [handleRemove, index, variant, variantFields.setIsMarkedForDeletion],
   );
 
   return (
@@ -149,8 +79,8 @@ export default function VariantFields({
             inputId={`variant-${index}-size`}
             options={sizes}
             name={`variants[${index}][size_id]`}
-            defaultValue={toSelectedOption(sizes, sizeId)}
-            onChange={handleSizeChange}
+            defaultValue={toSelectedOption(sizes, variantFields.sizeId)}
+            onChange={variantFields.selectSize}
           />
           <FormError inline>{sizeError}</FormError>
           <FormError inline>{combinationError}</FormError>
@@ -163,8 +93,8 @@ export default function VariantFields({
           inputId={`variant-${index}-version`}
           label="Version"
           name={`variants[${index}][version_id]`}
-          defaultValue={toSelectedOption(versions, versionId)}
-          onChange={handleVersionChange}
+          defaultValue={toSelectedOption(versions, variantFields.versionId)}
+          onChange={variantFields.selectVersion}
           options={versions}
         />
 
@@ -175,8 +105,8 @@ export default function VariantFields({
           inputId={`variant-${index}-color`}
           label="Color"
           name={`variants[${index}][color_id]`}
-          defaultValue={toSelectedOption(colors, colorId)}
-          onChange={handleColorChange}
+          defaultValue={toSelectedOption(colors, variantFields.colorId)}
+          onChange={variantFields.selectColor}
           options={colors}
         />
       </FormRow>
@@ -220,4 +150,95 @@ export default function VariantFields({
       </FormRow>
     </NestedFormContainer>
   );
+}
+
+function VariantActions({
+  index,
+  onMarkedForDeletionChange,
+  onRemove,
+  variant,
+}: {
+  index: number;
+  onMarkedForDeletionChange: (checked: boolean) => void;
+  onRemove: () => void;
+  variant: VariantFormData;
+}) {
+  if (variant.deactivated) {
+    return <span className="text-sm text-gray-500 dark:text-gray-400">(Deactivated)</span>;
+  }
+
+  if (!variant.id) {
+    return (
+      <button className="text-sm btn_rounded btn_red" onClick={onRemove} type="button">
+        Cancel
+      </button>
+    );
+  }
+
+  return (
+    <DestroyCheckbox
+      defaultChecked={variant._destroy}
+      name={`variants[${index}][_destroy]`}
+      onChange={onMarkedForDeletionChange}
+    />
+  );
+}
+
+function useVariantFieldState(variant: VariantFormData) {
+  const [sizeId, setSizeId] = useState<number | null>(variant.size_id);
+  const [versionId, setVersionId] = useState<number | null>(variant.version_id);
+  const [colorId, setColorId] = useState<number | null>(variant.color_id);
+  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(variant._destroy);
+
+  const selectSize = useCallback(
+    (option: SelectOption<number> | null) => setSizeId(option?.value ?? null),
+    [],
+  );
+  const selectVersion = useCallback(
+    (option: SelectOption<number> | null) => setVersionId(option?.value ?? null),
+    [],
+  );
+  const selectColor = useCallback(
+    (option: SelectOption<number> | null) => setColorId(option?.value ?? null),
+    [],
+  );
+
+  return {
+    colorId,
+    isMarkedForDeletion,
+    selectColor,
+    selectSize,
+    selectVersion,
+    setIsMarkedForDeletion,
+    sizeId,
+    versionId,
+  };
+}
+
+const EMPTY_ERRORS: Record<string, string | undefined> = {};
+
+function generateVariantTitle(
+  variant: VariantFormData,
+  colors: SelectOption<number>[],
+  sizes: SelectOption<number>[],
+  versions: SelectOption<number>[],
+): string {
+  const parts: string[] = [];
+
+  if (variant.size_id) {
+    const size = sizes.find((s) => s.value === variant.size_id);
+    if (size) parts.push(size.label);
+  }
+
+  if (variant.version_id) {
+    const version = versions.find((v) => v.value === variant.version_id);
+    if (version) parts.push(version.label);
+  }
+
+  if (variant.color_id) {
+    const color = colors.find((c) => c.value === variant.color_id);
+    if (color) parts.push(color.label);
+  }
+
+  return parts.length > 0 ? parts.join(" | ") : "Base Model";
 }

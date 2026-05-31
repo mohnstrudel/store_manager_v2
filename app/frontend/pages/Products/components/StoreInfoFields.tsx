@@ -36,57 +36,44 @@ export default function StoreInfoFields({
   storeInfo,
   storeNames,
 }: StoreInfoFieldsProps) {
-  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(storeInfo._destroy);
-  const storeNameOptions = useMemo<StoreOption[]>(
-    () => storeNames.map((n) => ({ value: n, label: capitalize(n) })),
-    [storeNames],
-  );
-
-  const currentStoreOption = storeNameOptions.find((o) => o.value === storeInfo.store_name) ?? null;
-
-  const tagOptions = useMemo(() => toTagOptions(storeInfo.tag_list), [storeInfo.tag_list]);
+  const storeInfoFields = useStoreInfoFieldState(storeInfo, storeNames);
   const prefix = `store_infos.${index}`;
   const baseError = errors[`${prefix}.base`];
   const storeNameError = errors[`${prefix}.store_name`];
   const tagListError = errors[`${prefix}.tag_list`];
   const handleRemove = useCallback(() => onRemove(index), [index, onRemove]);
 
-  const title = storeInfo.id ? capitalize(storeInfo.store_name) : "New Store Info";
   const actions = useMemo(
-    () =>
-      storeInfo.id ? (
-        <DestroyCheckbox
-          defaultChecked={storeInfo._destroy}
-          name={`store_infos[${index}][_destroy]`}
-          onChange={setIsMarkedForDeletion}
-        />
-      ) : (
-        <button className="btn_rounded btn_red" onClick={handleRemove} type="button">
-          Cancel
-        </button>
-      ),
-    [handleRemove, index, storeInfo._destroy, storeInfo.id],
+    () => (
+      <StoreInfoActions
+        index={index}
+        onMarkedForDeletionChange={storeInfoFields.setIsMarkedForDeletion}
+        onRemove={handleRemove}
+        storeInfo={storeInfo}
+      />
+    ),
+    [handleRemove, index, storeInfo, storeInfoFields.setIsMarkedForDeletion],
   );
 
   return (
     <NestedFormContainer
       actions={actions}
-      className={`store_info_fields ${isMarkedForDeletion ? "opacity-50" : ""}`}
+      className={`store_info_fields ${storeInfoFields.isMarkedForDeletion ? "opacity-50" : ""}`}
       error={baseError}
-      title={title}
+      title={storeInfoFields.title}
     >
       <input name={`store_infos[${index}][id]`} type="hidden" defaultValue={storeInfo.id ?? ""} />
 
       <FormSmartSelect
         className="w-full lg:w-2/3"
-        defaultValue={currentStoreOption}
+        defaultValue={storeInfoFields.currentStoreOption}
         error={storeNameError}
         inputId={`store-info-${index}-store-name`}
         isClearable
         isDisabled={!!storeInfo.id}
         label="Store"
         name={`store_infos[${index}][store_name]`}
-        options={storeNameOptions}
+        options={storeInfoFields.storeNameOptions}
       />
       <FormControl className="w-full h-fit" error={tagListError} label="Tags">
         <TagSelect
@@ -95,9 +82,58 @@ export default function StoreInfoFields({
           inputId={`store-info-${index}-tag-list`}
           name={`store_infos[${index}][tag_list]`}
           placeholder="Add tags..."
-          defaultValue={tagOptions}
+          defaultValue={storeInfoFields.tagOptions}
         />
       </FormControl>
     </NestedFormContainer>
   );
+}
+
+function StoreInfoActions({
+  index,
+  onMarkedForDeletionChange,
+  onRemove,
+  storeInfo,
+}: {
+  index: number;
+  onMarkedForDeletionChange: (checked: boolean) => void;
+  onRemove: () => void;
+  storeInfo: StoreInfoFormData;
+}) {
+  if (!storeInfo.id) {
+    return (
+      <button className="btn_rounded btn_red" onClick={onRemove} type="button">
+        Cancel
+      </button>
+    );
+  }
+
+  return (
+    <DestroyCheckbox
+      defaultChecked={storeInfo._destroy}
+      name={`store_infos[${index}][_destroy]`}
+      onChange={onMarkedForDeletionChange}
+    />
+  );
+}
+
+function useStoreInfoFieldState(storeInfo: StoreInfoFormData, storeNames: string[]) {
+  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(storeInfo._destroy);
+  const storeNameOptions = useMemo<StoreOption[]>(
+    () => storeNames.map((name) => ({ value: name, label: capitalize(name) })),
+    [storeNames],
+  );
+  const currentStoreOption =
+    storeNameOptions.find((option) => option.value === storeInfo.store_name) ?? null;
+  const tagOptions = useMemo(() => toTagOptions(storeInfo.tag_list), [storeInfo.tag_list]);
+  const title = storeInfo.id ? capitalize(storeInfo.store_name) : "New Store Info";
+
+  return {
+    currentStoreOption,
+    isMarkedForDeletion,
+    setIsMarkedForDeletion,
+    storeNameOptions,
+    tagOptions,
+    title,
+  };
 }

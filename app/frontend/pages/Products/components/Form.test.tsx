@@ -192,7 +192,7 @@ vi.mock("./PurchaseFields", () => ({
   ),
 }));
 
-vi.mock("./ImageUploader", () => ({
+vi.mock("@/components/ImageUploader", () => ({
   default: () => <div data-testid="image-uploader" />,
 }));
 
