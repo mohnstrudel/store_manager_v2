@@ -53,7 +53,7 @@ function makeVariant(overrides: Partial<VariantFormData> = {}): VariantFormData 
 }
 
 function renderVariant(variant: VariantFormData, props: Record<string, unknown> = {}) {
-  const onRemove = vi.fn();
+  const onRemove = vi.fn<(index: number) => void>();
   const result = render(
     <VariantFields
       colors={colors}
@@ -72,65 +72,71 @@ describe("VariantFields", () => {
   describe("title", () => {
     it("shows 'Base Model' when no options are selected", () => {
       renderVariant(makeVariant());
-      expect(screen.getByRole("heading", { level: 6 })).toHaveTextContent("Base Model");
+      expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("Base Model");
     });
 
     it("shows combined title from selected options", () => {
       renderVariant(makeVariant({ size_id: 1, version_id: 10, color_id: 100 }));
-      expect(screen.getByRole("heading", { level: 6 })).toHaveTextContent("Large | Deluxe | Red");
+      expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("Large | Deluxe | Red");
     });
 
     it("shows only size when other options are not selected", () => {
       renderVariant(makeVariant({ size_id: 1 }));
-      expect(screen.getByRole("heading", { level: 6 })).toHaveTextContent("Large");
+      expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("Large");
     });
 
     it("shows size and color when version is not selected", () => {
       renderVariant(makeVariant({ size_id: 1, color_id: 100 }));
-      expect(screen.getByRole("heading", { level: 6 })).toHaveTextContent("Large | Red");
+      expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("Large | Red");
     });
   });
 
   describe("controls", () => {
-    it("shows Remove button for new variants and calls onRemove on click", () => {
+    it("shows Cancel button for new variants and calls onRemove on click", () => {
       const { onRemove } = renderVariant(makeVariant());
-      fireEvent.click(screen.getByRole("button", { name: "Remove" }));
-      expect(onRemove).toHaveBeenCalledWith(0);
+      fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      expect(onRemove).toHaveBeenCalled();
     });
 
-    it("shows Destroy? checkbox for existing variant without sales or purchases", () => {
+    it("shows Mark for deletion checkbox for existing variant without sales or purchases", () => {
       renderVariant(makeVariant({ id: 1 }));
-      expect(screen.getByLabelText("Destroy?")).toBeInTheDocument();
-      expect(screen.queryByLabelText("Deactivate?")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Mark for deletion")).toBeInTheDocument();
     });
 
-    it("renders Rails-style destroy inputs for existing variants", () => {
+    it("renders Rails-style destroy inputs with the red checkbox styling", () => {
       renderVariant(makeVariant({ id: 1 }));
-      const checkbox = screen.getByLabelText("Destroy?");
+      const checkbox = screen.getByLabelText("Mark for deletion");
 
       expect(
         document.querySelector('input[name="variants[0][_destroy]"][type="hidden"]'),
       ).toHaveValue("0");
       expect(checkbox).toHaveAttribute("name", "variants[0][_destroy]");
       expect(checkbox).toHaveAttribute("value", "1");
+      expect(checkbox).toHaveClass("red");
+      expect(checkbox).not.toHaveClass("w-4");
+      expect(checkbox).not.toHaveClass("h-4");
     });
 
-    it("shows Deactivate? for existing variant with sales or purchases", () => {
+    it("keeps the same delete checkbox for existing variants with sales or purchases", () => {
       renderVariant(makeVariant({ id: 1, has_sales_or_purchases: true }));
-      expect(screen.getByLabelText("Deactivate?")).toBeInTheDocument();
-      expect(screen.queryByLabelText("Destroy?")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Mark for deletion")).toBeInTheDocument();
     });
 
     it("shows (Deactivated) and no action controls when deactivated", () => {
       renderVariant(makeVariant({ id: 1, deactivated: true }));
       expect(screen.getByText("(Deactivated)")).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
-      expect(screen.queryByLabelText("Destroy?")).not.toBeInTheDocument();
-      expect(screen.queryByLabelText("Deactivate?")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Cancel" })).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Mark for deletion")).not.toBeInTheDocument();
     });
 
     it("applies opacity-50 class when deactivated", () => {
       const { container } = renderVariant(makeVariant({ id: 1, deactivated: true }));
+      expect(container.firstChild).toHaveClass("opacity-50");
+    });
+
+    it("applies opacity-50 class when marked for deletion", () => {
+      const { container } = renderVariant(makeVariant({ id: 1 }));
+      fireEvent.click(screen.getByLabelText("Mark for deletion"));
       expect(container.firstChild).toHaveClass("opacity-50");
     });
   });

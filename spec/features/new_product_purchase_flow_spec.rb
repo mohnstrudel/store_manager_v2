@@ -6,6 +6,20 @@ RSpec.describe "Creating a product with a purchase" do
   before { sign_in_as_admin }
   after { log_out }
 
+  scenario "shows validation errors when the new product form is submitted untouched", :aggregate_failures, :js do
+    create(:franchise)
+
+    visit new_product_path
+
+    expect {
+      click_button "Create Product"
+    }.not_to change(Product, :count)
+
+    expect(page).to have_current_path(new_product_path, ignore_query: true)
+    expect(page).to have_content("Fix errors and try again")
+    expect(page).to have_content("Title")
+  end
+
   scenario "creates both records from the new product form", :js do # rubocop:todo RSpec/MultipleExpectations
     franchise = create(:franchise)
     brand = create(:brand, title: "Featured Brand")
@@ -19,19 +33,25 @@ RSpec.describe "Creating a product with a purchase" do
 
     fill_in "Title", with: "Product With Purchase"
     choose_react_select(franchise.title, from: "Franchise")
-    choose_react_select("Bust", from: "Shape")
+    select "Bust", from: "Shape"
     choose_react_select(brand.title, from: "Brand")
 
     expect(find("input[name='product[franchise_id]']", visible: false).value).to eq(franchise.id.to_s)
-    expect(find("input[name='product[shape]']", visible: false).value).to eq("Bust")
+    expect(find("#product_shape").value).to eq("Bust")
     expect(all("input[name='product[brand_ids][]']", visible: false).map(&:value)).to include(brand.id.to_s)
 
     click_button "Add Variant"
 
     within(all(".variant-fields").last) do
       choose_react_select(size.value, from: "Size")
+    end
+    within(all(".variant-fields").last) do
       choose_react_select(version.value, from: "Version")
+    end
+    within(all(".variant-fields").last) do
       choose_react_select(color.value, from: "Color")
+    end
+    within(all(".variant-fields").last) do
       fill_in "SKU", with: "product-with-initial-purchase-variant"
       fill_in "Weight (kg)", with: "1.5"
       fill_in "Purchase Cost", with: "9.99"
@@ -77,14 +97,20 @@ RSpec.describe "Creating a product with a purchase" do
 
     fill_in "Title", with: "Product With Invalid Purchase"
     choose_react_select(franchise.title, from: "Franchise")
-    expect(find("input[name='product[shape]']", visible: false).value).to eq(Product.default_shape)
+    expect(find("#product_shape").value).to eq(Product.default_shape)
 
     click_button "Add Variant"
 
     within(all(".variant-fields").last) do
       choose_react_select(size.value, from: "Size")
+    end
+    within(all(".variant-fields").last) do
       choose_react_select(version.value, from: "Version")
+    end
+    within(all(".variant-fields").last) do
       choose_react_select(color.value, from: "Color")
+    end
+    within(all(".variant-fields").last) do
       fill_in "SKU", with: "product-with-invalid-initial-purchase-variant"
       fill_in "Weight (kg)", with: "1.5"
       fill_in "Purchase Cost", with: "9.99"
@@ -125,7 +151,7 @@ RSpec.describe "Creating a product with a purchase" do
 
     fill_in "Title", with: "Product With Blank Purchase"
     choose_react_select(franchise.title, from: "Franchise")
-    expect(find("input[name='product[shape]']", visible: false).value).to eq(Product.default_shape)
+    expect(find("#product_shape").value).to eq(Product.default_shape)
     click_button "Add Purchase"
 
     expect {
@@ -134,12 +160,12 @@ RSpec.describe "Creating a product with a purchase" do
 
     expect(page).to have_content("Fix errors and try again")
     expect(page).to have_content("Purchase Supplier")
-    expect(page).to have_css("#purchase-supplier-field .field_with_errors")
-    expect(page).to have_css("#purchase-item-price-field .field_with_errors")
-    expect(page).to have_css("#purchase-amount-field .field_with_errors")
+    expect(page).to have_content("Supplier")
+    expect(page).to have_content("Item price can't be blank")
+    expect(page).to have_content("Amount can't be blank")
   end
 
-  scenario "creates a product without a purchase when the purchase block stays closed" do # rubocop:disable RSpec/MultipleExpectations
+  scenario "creates a product without a purchase when the purchase block stays closed", :js do # rubocop:disable RSpec/MultipleExpectations
     franchise = create(:franchise)
 
     visit new_product_path
@@ -149,7 +175,7 @@ RSpec.describe "Creating a product with a purchase" do
 
     fill_in "Title", with: "Product Without Purchase"
     choose_react_select(franchise.title, from: "Franchise")
-    expect(find("input[name='product[shape]']", visible: false).value).to eq(Product.default_shape)
+    expect(find("#product_shape").value).to eq(Product.default_shape)
 
     expect { click_button "Create Product" }.to change(Product, :count).by(1)
     expect(Purchase.count).to eq(0)

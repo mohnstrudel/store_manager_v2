@@ -13,7 +13,7 @@
       span.text-sm.text-gray-500.dark:text-gray-400
         | (Deactivated)
     - elsif variant.new_record?
-      a.btn-rounded.btn-red.m-0 href="" data-action="click->variant-form#remove"
+      a.btn_rounded.btn_red.m-0 href="" data-action="click->variant-form#remove"
         | Remove
     - else
       - checkbox_label = variant.has_sales_or_purchases? ? "Deactivate?" : "Destroy?"
@@ -22,21 +22,23 @@
         span = checkbox_label
 
   .flex.justify-between.gap-4.flex-col.lg:flex-row.pt-4.lg:pt-0
-    .block.w-full
+    .block.w-full.relative
       = f.label :size_id, "Size"
       - if combination_error.present?
         .field_with_errors
           = f.collection_select(:size_id, local_assigns[:sizes] || [], :id, :value, {include_blank: true, selected: variant.size_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
       - else
         = f.collection_select(:size_id, local_assigns[:sizes] || [], :id, :value, {include_blank: true, selected: variant.size_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
-    .block.w-full
+      .text_error.mt-1.ml-1.absolute.text-sm class=class_names(hidden: combination_error.blank?) data-variant-fields-target="duplicateWarning"
+        = combination_error.presence || "This combination already exists"
+    .block.w-full.relative
       = f.label :version_id, "Version"
       - if combination_error.present?
         .field_with_errors
           = f.collection_select(:version_id, local_assigns[:versions] || [], :id, :value, {include_blank: true, selected: variant.version_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
       - else
         = f.collection_select(:version_id, local_assigns[:versions] || [], :id, :value, {include_blank: true, selected: variant.version_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
-    .block.w-full
+    .block.w-full.relative
       = f.label :color_id, "Color"
       - if combination_error.present?
         .field_with_errors
@@ -44,42 +46,39 @@
       - else
         = f.collection_select(:color_id, local_assigns[:colors] || [], :id, :value, {include_blank: true, selected: variant.color_id}, {class: "select", data: {action: "change->variant-fields#checkDuplicate change->variant-fields#updateTitle"}})
 
-  .text-error.mt-2 class=class_names(hidden: combination_error.blank?) data-variant-fields-target="duplicateWarning"
-    = combination_error.presence || "This combination already exists"
-
   .flex.justify-between.gap-4.flex-col.pt-4.lg:pt-0
-    .block
+    .block.relative
       = f.label :sku, "SKU"
       - if sku_error.present?
         .field_with_errors
           = f.text_field :sku, placeholder: "SKU", class: "h-fit"
-        .text-error = sku_error
+        .text_error.mt-1.ml-1.absolute.text-sm = sku_error
       - else
         = f.text_field :sku, placeholder: "SKU", class: "h-fit"
 
     .flex.justify-between.gap-4.flex-col.lg:flex-row
-      .block.w-full
+      .block.w-full.relative
         = f.label :weight, "Weight (kg)"
         - if weight_error.present?
           .field_with_errors
             = f.number_field :weight, step: 0.01, min: 0
-          .text-error = weight_error
+          .text_error.mt-1.ml-1.absolute.text-sm = weight_error
         - else
           = f.number_field :weight, step: 0.01, min: 0
 
-      .block.w-full
+      .block.w-full.relative
         = f.label :purchase_cost, "Purchase Cost"
         - if purchase_cost_error.present?
           .field_with_errors
             = f.number_field :purchase_cost, step: 0.01, min: 0
-          .text-error = purchase_cost_error
+          .text_error.mt-1.ml-1.absolute.text-sm = purchase_cost_error
         - else
           = f.number_field :purchase_cost, step: 0.01, min: 0
-      .block.w-full
+      .block.w-full.relative
         = f.label :selling_price, "Selling Price"
         - if selling_price_error.present?
           .field_with_errors
             = f.number_field :selling_price, step: 0.01, min: 0
-          .text-error = selling_price_error
+          .text_error.mt-1.ml-1.absolute.text-sm = selling_price_error
         - else
           = f.number_field :selling_price, step: 0.01, min: 0

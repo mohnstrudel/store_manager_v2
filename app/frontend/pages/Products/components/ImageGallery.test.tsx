@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ImageGallery from "./ImageGallery";
@@ -29,8 +29,14 @@ const media: MediaRecord[] = [
 ];
 
 describe("ImageGallery", () => {
+  const scrollIntoView = vi.fn<(...args: unknown[]) => unknown>();
+
   beforeEach(() => {
-    Element.prototype.scrollIntoView = vi.fn();
+    scrollIntoView.mockReset();
+    Object.defineProperty(Element.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
   });
 
   it("marks the selected thumbnail and scrolls newly selected previews into view", async () => {
@@ -43,13 +49,14 @@ describe("ImageGallery", () => {
 
     expect(firstThumb).toHaveClass("active");
     expect(secondThumb).not.toHaveClass("active");
-    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
 
     await user.click(secondThumb);
 
     expect(firstThumb).not.toHaveClass("active");
     expect(secondThumb).toHaveClass("active");
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+    expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: "smooth",
       block: "nearest",
       inline: "start",
@@ -64,9 +71,47 @@ describe("ImageGallery", () => {
     await user.click(screen.getByRole("button", { name: "→" }));
 
     expect(screen.getByRole("button", { name: "Side" })).toHaveClass("active");
-    expect(document.querySelector(".gallery-main__image")).toHaveAttribute(
+    expect(document.querySelector(".gallery_main__image")).toHaveAttribute(
       "src",
       "/side-preview.png",
     );
+  });
+
+  it("shows pulsing loading frames until the gallery images load", () => {
+    const { container } = render(<ImageGallery media={media} />);
+
+    const thumbFrame = container.querySelector(".gallery_thumb__frame");
+    const thumbImage = container.querySelector(".gallery_thumb__frame img");
+    const mainFrame = container.querySelector(".gallery_main__frame");
+    const mainImage = container.querySelector(".gallery_main__frame img");
+
+    expect(thumbFrame).toHaveClass("loading");
+    expect(thumbImage).toHaveClass("hidden");
+    expect(mainFrame).toHaveClass("loading");
+    expect(mainImage).toHaveClass("hidden");
+
+    fireEvent.load(thumbImage!);
+    fireEvent.load(mainImage!);
+
+    expect(thumbFrame).not.toHaveClass("loading");
+    expect(thumbImage).not.toHaveClass("hidden");
+    expect(mainFrame).not.toHaveClass("loading");
+    expect(mainImage).not.toHaveClass("hidden");
+  });
+
+  it("renders a single image without carousel controls", () => {
+    const { container } = render(<ImageGallery media={[media[0]]} />);
+
+    expect(screen.getByRole("img", { name: "Front" })).toHaveClass("gallery_main__image");
+    expect(screen.queryByRole("button", { name: "←" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "→" })).not.toBeInTheDocument();
+    expect(container.querySelector(".gallery_viewbox")).toHaveClass("aspect-[4/3]", "h-80");
+    expect(container.querySelector(".gallery_main__frame")).toHaveClass("loading");
+    expect(screen.getByAltText("Front")).toHaveClass("hidden");
+
+    fireEvent.load(screen.getByAltText("Front"));
+
+    expect(container.querySelector(".gallery_main__frame")).not.toHaveClass("loading");
+    expect(screen.getByAltText("Front")).not.toHaveClass("hidden");
   });
 });

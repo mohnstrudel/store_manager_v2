@@ -1,8 +1,13 @@
+import { useCallback, useMemo, useState } from "react";
+import DestroyCheckbox from "@/components/DestroyCheckbox";
+import FormControl from "@/components/FormControl";
+import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import TagSelect from "@/components/TagSelect";
 import { type SelectOption, type StoreInfoFormData } from "../types";
 
 type StoreOption = SelectOption<string>;
+const EMPTY_ERRORS: Record<string, string | undefined> = {};
 
 function toTagOptions(tagString: string): { value: string; label: string }[] {
   return tagString
@@ -10,6 +15,10 @@ function toTagOptions(tagString: string): { value: string; label: string }[] {
     .map((t) => t.trim())
     .filter(Boolean)
     .map((t) => ({ value: t, label: t }));
+}
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 type StoreInfoFieldsProps = {
@@ -21,84 +30,74 @@ type StoreInfoFieldsProps = {
 };
 
 export default function StoreInfoFields({
-  errors = {},
+  errors = EMPTY_ERRORS,
   index,
   onRemove,
   storeInfo,
   storeNames,
 }: StoreInfoFieldsProps) {
-  const storeNameOptions: StoreOption[] = storeNames.map((n) => ({
-    value: n,
-    label: n.charAt(0).toUpperCase() + n.slice(1),
-  }));
+  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(storeInfo._destroy);
+  const storeNameOptions = useMemo<StoreOption[]>(
+    () => storeNames.map((n) => ({ value: n, label: capitalize(n) })),
+    [storeNames],
+  );
 
   const currentStoreOption = storeNameOptions.find((o) => o.value === storeInfo.store_name) ?? null;
 
-  const tagOptions = toTagOptions(storeInfo.tag_list);
+  const tagOptions = useMemo(() => toTagOptions(storeInfo.tag_list), [storeInfo.tag_list]);
   const prefix = `store_infos.${index}`;
   const baseError = errors[`${prefix}.base`];
   const storeNameError = errors[`${prefix}.store_name`];
   const tagListError = errors[`${prefix}.tag_list`];
+  const handleRemove = useCallback(() => onRemove(index), [index, onRemove]);
+
+  const title = storeInfo.id ? capitalize(storeInfo.store_name) : "New Store Info";
+  const actions = useMemo(
+    () =>
+      storeInfo.id ? (
+        <DestroyCheckbox
+          defaultChecked={storeInfo._destroy}
+          name={`store_infos[${index}][_destroy]`}
+          onChange={setIsMarkedForDeletion}
+        />
+      ) : (
+        <button className="btn_rounded btn_red" onClick={handleRemove} type="button">
+          Cancel
+        </button>
+      ),
+    [handleRemove, index, storeInfo._destroy, storeInfo.id],
+  );
 
   return (
-    <div className="store-info-fields border border-gray-200 dark:border-gray-800 rounded-xl p-4 pb-8 max-w-full lg:max-w-4/7">
-      {baseError && <p className="text-error mb-4">{baseError}</p>}
-
-      <div className="flex justify-between items-start flex-col lg:flex-row lg:items-center gap-2">
-        {storeInfo.id ? (
-          <>
-            <h6 className="font-semibold">
-              {storeInfo.store_name.charAt(0).toUpperCase() + storeInfo.store_name.slice(1)}
-            </h6>
-            <input name={`store_infos[${index}][_destroy]`} type="hidden" defaultValue="0" />
-            <label className="m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900">
-              <input
-                className="m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500"
-                defaultChecked={storeInfo._destroy}
-                name={`store_infos[${index}][_destroy]`}
-                type="checkbox"
-                value="1"
-              />
-              <span>Destroy connection?</span>
-            </label>
-          </>
-        ) : (
-          <>
-            <h6 className="font-semibold">New Store Info</h6>
-            <button className="btn-rounded btn-red" onClick={() => onRemove(index)} type="button">
-              Remove
-            </button>
-          </>
-        )}
-      </div>
-
+    <NestedFormContainer
+      actions={actions}
+      className={`store_info_fields ${isMarkedForDeletion ? "opacity-50" : ""}`}
+      error={baseError}
+      title={title}
+    >
       <input name={`store_infos[${index}][id]`} type="hidden" defaultValue={storeInfo.id ?? ""} />
 
-      <div className="flex justify-between gap-4 flex-col mt-4">
-        <FormSmartSelect
-          className="w-full lg:w-1/3"
-          defaultValue={currentStoreOption}
-          error={storeNameError}
-          inputId={`store-info-${index}-store-name`}
-          isClearable
-          isDisabled={!!storeInfo.id}
-          label="Store"
-          name={`store_infos[${index}][store_name]`}
-          options={storeNameOptions}
+      <FormSmartSelect
+        className="w-full lg:w-2/3"
+        defaultValue={currentStoreOption}
+        error={storeNameError}
+        inputId={`store-info-${index}-store-name`}
+        isClearable
+        isDisabled={!!storeInfo.id}
+        label="Store"
+        name={`store_infos[${index}][store_name]`}
+        options={storeNameOptions}
+      />
+      <FormControl className="w-full h-fit" error={tagListError} label="Tags">
+        <TagSelect
+          delimiter=", "
+          isMulti
+          inputId={`store-info-${index}-tag-list`}
+          name={`store_infos[${index}][tag_list]`}
+          placeholder="Add tags..."
+          defaultValue={tagOptions}
         />
-        <div className="w-full h-fit">
-          <label>Tags</label>
-          <TagSelect
-            delimiter=", "
-            isMulti
-            inputId={`store-info-${index}-tag-list`}
-            name={`store_infos[${index}][tag_list]`}
-            placeholder="Add tags..."
-            defaultValue={tagOptions}
-          />
-          {tagListError && <p className="text-error mt-2">{tagListError}</p>}
-        </div>
-      </div>
-    </div>
+      </FormControl>
+    </NestedFormContainer>
   );
 }

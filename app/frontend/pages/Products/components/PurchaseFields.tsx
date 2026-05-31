@@ -1,5 +1,8 @@
 import FormInput from "@/components/FormInput";
+import FormRow from "@/components/FormRow";
+import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
+import { toSelectedOption } from "@/lib/selectOptions";
 import { type PurchaseFormData, type SelectOption } from "../types";
 
 type PurchaseFieldsProps = {
@@ -9,15 +12,10 @@ type PurchaseFieldsProps = {
   warehouses: SelectOption<number>[];
 };
 
-function toSelectedOption(
-  options: SelectOption<number>[],
-  value: number | null,
-): SelectOption<number> | null {
-  return options.find((option) => option.value === value) ?? null;
-}
+const EMPTY_ERRORS: Record<string, string | undefined> = {};
 
 export default function PurchaseFields({
-  errors = {},
+  errors = EMPTY_ERRORS,
   purchase,
   suppliers,
   warehouses,
@@ -32,11 +30,12 @@ export default function PurchaseFields({
   const warehouseError = errors[`${prefix}.warehouse_id`];
 
   return (
-    <div className="purchase-fields border border-gray-200 dark:border-gray-800 rounded-xl p-4 pb-8 max-w-full lg:max-w-4/7">
-      <h6 className="font-semibold mb-4">New Purchase</h6>
-      {baseError && <p className="text-error mb-4">{baseError}</p>}
-
-      <div className="flex justify-between gap-4 flex-col lg:flex-row">
+    <NestedFormContainer
+      className="purchase-fields max-w-full lg:max-w-4/7"
+      error={baseError}
+      title="New Purchase"
+    >
+      <FormRow>
         <FormSmartSelect
           className="w-full"
           defaultValue={toSelectedOption(suppliers, purchase.supplier_id)}
@@ -54,25 +53,22 @@ export default function PurchaseFields({
           label="Order reference"
           name="purchase[order_reference]"
         />
-      </div>
+      </FormRow>
 
-      <div className="flex justify-between gap-4 flex-col lg:flex-row mt-4">
+      <FormRow>
         <FormInput
-          className="w-full"
           defaultValue={purchase.item_price}
           error={itemPriceError}
           label="Item price"
           name="purchase[item_price]"
         />
         <FormInput
-          className="w-full"
           defaultValue={purchase.amount}
           error={amountError}
           label="Amount"
           name="purchase[amount]"
         />
         <FormInput
-          className="w-full"
           defaultValue={purchase.payment_value}
           error={paymentValueError}
           label="What did you pay in total?"
@@ -80,11 +76,10 @@ export default function PurchaseFields({
           step="any"
           type="number"
         />
-      </div>
+      </FormRow>
 
       {warehouses.length > 0 && (
         <FormSmartSelect
-          className="mt-4"
           defaultValue={toSelectedOption(warehouses, purchase.warehouse_id)}
           error={warehouseError}
           isClearable
@@ -94,6 +89,6 @@ export default function PurchaseFields({
           options={warehouses}
         />
       )}
-    </div>
+    </NestedFormContainer>
   );
 }

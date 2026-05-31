@@ -11,6 +11,7 @@ type MockOption = {
 type SmartSelectMockProps = {
   defaultValue: MockOption | null;
   isClearable?: boolean;
+  isDisabled?: boolean;
   name: string;
   options: MockOption[];
 };
@@ -21,16 +22,26 @@ type TagSelectMockProps = {
   name: string;
 };
 
+const optionKey = (option: MockOption) => option.value;
+
 vi.mock("@/components/SmartSelect", () => ({
-  default: ({ defaultValue, name, options, isClearable = false }: SmartSelectMockProps) => {
-    const key = (o: MockOption) => String(o.value);
+  default: ({
+    defaultValue,
+    isDisabled = false,
+    name,
+    options,
+    isClearable = false,
+  }: SmartSelectMockProps) => {
     return (
       <>
         <input name={name} type="hidden" value={defaultValue?.value ?? ""} />
-        <select defaultValue={defaultValue != null ? key(defaultValue) : ""}>
+        <select
+          defaultValue={defaultValue != null ? optionKey(defaultValue) : ""}
+          disabled={isDisabled}
+        >
           {isClearable && <option value="">—</option>}
           {options.map((o) => (
-            <option key={key(o)} value={key(o)}>
+            <option key={optionKey(o)} value={optionKey(o)}>
               {o.label}
             </option>
           ))}
@@ -60,8 +71,8 @@ function makeStoreInfo(overrides: Partial<StoreInfoFormData> = {}): StoreInfoFor
 }
 
 function renderStoreInfo(storeInfo: StoreInfoFormData, props: Record<string, unknown> = {}) {
-  const onRemove = vi.fn();
-  render(
+  const onRemove = vi.fn<(index: number) => void>();
+  const result = render(
     <StoreInfoFields
       index={0}
       onRemove={onRemove}
@@ -70,44 +81,53 @@ function renderStoreInfo(storeInfo: StoreInfoFormData, props: Record<string, unk
       {...props}
     />,
   );
-  return { onRemove };
+  return { ...result, onRemove };
 }
 
 describe("StoreInfoFields", () => {
   describe("title", () => {
     it("shows 'New Store Info' for a new store info", () => {
       renderStoreInfo(makeStoreInfo());
-      expect(screen.getByRole("heading", { level: 6 })).toHaveTextContent("New Store Info");
+      expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("New Store Info");
     });
 
     it("shows capitalized store_name as title for existing store info", () => {
       renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
-      expect(screen.getByRole("heading", { level: 6 })).toHaveTextContent("Shopify");
+      expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("Shopify");
     });
   });
 
   describe("controls", () => {
-    it("shows Remove button for new store info and calls onRemove on click", () => {
+    it("shows Cancel button for new store info and calls onRemove on click", () => {
       const { onRemove } = renderStoreInfo(makeStoreInfo());
-      fireEvent.click(screen.getByRole("button", { name: "Remove" }));
-      expect(onRemove).toHaveBeenCalledWith(0);
+      fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      expect(onRemove).toHaveBeenCalled();
     });
 
-    it("shows Destroy connection? checkbox for existing store info", () => {
+    it("shows Mark for deletion checkbox for existing store info", () => {
       renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
-      expect(screen.getByLabelText("Destroy connection?")).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Mark for deletion")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Cancel" })).not.toBeInTheDocument();
     });
 
-    it("renders Rails-style destroy inputs for existing store info", () => {
+    it("renders Rails-style destroy inputs with the red checkbox styling", () => {
       renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
-      const checkbox = screen.getByLabelText("Destroy connection?");
+      const checkbox = screen.getByLabelText("Mark for deletion");
 
       expect(
         document.querySelector('input[name="store_infos[0][_destroy]"][type="hidden"]'),
       ).toHaveValue("0");
       expect(checkbox).toHaveAttribute("name", "store_infos[0][_destroy]");
       expect(checkbox).toHaveAttribute("value", "1");
+      expect(checkbox).toHaveClass("red");
+      expect(checkbox).not.toHaveClass("w-4");
+      expect(checkbox).not.toHaveClass("h-4");
+    });
+
+    it("applies opacity-50 class when marked for deletion", () => {
+      const { container } = renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
+      fireEvent.click(screen.getByLabelText("Mark for deletion"));
+      expect(container.firstChild).toHaveClass("opacity-50");
     });
   });
 
@@ -118,9 +138,9 @@ describe("StoreInfoFields", () => {
       expect(document.querySelector('input[name="store_infos[0][store_name]"]')).toHaveValue("");
     });
 
-    it("renders text and a hidden store_name for existing store info", () => {
+    it("renders a disabled select and a hidden store_name for existing store info", () => {
       renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
-      expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+      expect(screen.getByRole("combobox")).toBeDisabled();
       expect(document.querySelector('input[name="store_infos[0][store_name]"]')).toHaveValue(
         "shopify",
       );

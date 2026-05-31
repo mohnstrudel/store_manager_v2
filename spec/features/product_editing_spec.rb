@@ -48,7 +48,41 @@ RSpec.describe "Editing a product" do
     within all(".variant-fields").first do
       expect(page).to have_content("has already been taken")
     end
+    error = find(".variant-fields .text_error", text: "has already been taken", visible: :all)
+    expect(error[:class]).to include("absolute")
+    expect(
+      page.evaluate_script(
+        "getComputedStyle(document.querySelector('.variant-fields input[name=\"variants[0][sku]\"]')).borderTopColor",
+      ),
+    ).to match(/185, 28, 28|0\.505/)
     expect(page).not_to have_content("Variants 0 sku")
+  end
+
+  scenario "dims a variant when it is marked for deletion", :js do
+    product = create(:product)
+
+    visit edit_product_path(product)
+
+    within all(".variant-fields").first do
+      checkbox = find("input[type='checkbox']")
+      expect(checkbox[:class]).to include("red")
+
+      check "Mark for deletion"
+    end
+
+    expect(page).to have_css(".variant-fields.opacity-50")
+  end
+
+  scenario "aligns the variant header on the text baseline", :js do
+    product = create(:product)
+
+    visit edit_product_path(product)
+
+    expect(
+      page.evaluate_script(
+        "getComputedStyle(document.querySelector('.variant-fields .form_section_item_header')).alignItems",
+      ),
+    ).to eq("baseline")
   end
 end
 # rubocop:enable RSpec/MultipleExpectations

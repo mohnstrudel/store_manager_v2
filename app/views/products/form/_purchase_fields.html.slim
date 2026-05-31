@@ -6,15 +6,16 @@
   .purchase-fields.border.border-gray-200.dark:border-gray-800.rounded-xl.p-4.pb-8.mt-6.max-w-full.lg:max-w-4/7
     .flex.justify-between.items-start.flex-col.lg:flex-row.lg:items-center.gap-2
       h6.font-semibold New Purchase
-      button.btn-rounded.btn-red type="button" data-action="product-purchase#removeForm"
+      button.btn_rounded.btn_red type="button" data-action="product-purchase#removeForm"
         | Remove
 
     fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row.pt-4.lg:pt-0
-      .block.w-full id="purchase-supplier-field"
+      .block.w-full.relative id="purchase-supplier-field"
         = form.label :supplier_id, "Supplier"
         - if supplier_error.present?
-          = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
-          .text-error = supplier_error
+          .field_with_errors
+            = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
+          .text_error.mt-1.ml-1.absolute.text-sm = supplier_error
         - else
           = form.collection_select :supplier_id, @supplier_options || [], :id, :title, {include_blank: true}, {class: "w-full"}
       .block.w-full
@@ -22,18 +23,20 @@
         = form.text_field :order_reference
 
     fieldset.flex.justify-between.gap-4.flex-col.lg:flex-row
-      .block.w-full id="purchase-item-price-field"
+      .block.w-full.relative id="purchase-item-price-field"
         = form.label :item_price, "Item price"
         - if item_price_error.present?
-          = form.text_field :item_price
-          .text-error = item_price_error
+          .field_with_errors
+            = form.text_field :item_price
+          .text_error.mt-1.ml-1.absolute.text-sm = item_price_error
         - else
           = form.text_field :item_price
-      .block.w-full id="purchase-amount-field"
+      .block.w-full.relative id="purchase-amount-field"
         = form.label :amount, "Amount"
         - if amount_error.present?
-          = form.text_field :amount
-          .text-error = amount_error
+          .field_with_errors
+            = form.text_field :amount
+          .text_error.mt-1.ml-1.absolute.text-sm = amount_error
         - else
           = form.text_field :amount
       .block.w-full

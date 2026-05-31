@@ -11,7 +11,7 @@ export default function PurchasesSection({ purchases }: PurchasesSectionProps) {
   const total = purchases.reduce((sum, p) => sum + p.amount, 0);
 
   return (
-    <div className="table-card">
+    <div className="table_card">
       <h3 className="flex justify-between">
         <span>Purchases</span>
         <span>{total}</span>

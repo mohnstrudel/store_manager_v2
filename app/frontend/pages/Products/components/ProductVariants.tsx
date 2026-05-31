@@ -8,7 +8,7 @@ export default function ProductVariants({ variants }: ProductVariantsProps) {
   if (variants.length === 0) return null;
 
   return (
-    <div className="table-card">
+    <div className="table_card">
       <h3>Variants</h3>
       <table>
         <thead>

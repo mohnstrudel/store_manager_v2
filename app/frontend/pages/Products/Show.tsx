@@ -42,7 +42,7 @@ export default function Show({
         <menu className="nav_menu">
           {product.can_pull_from_shopify && product.shopify_linked && (
             <li>
-              <Link className="btn-rounded" href={product.shopify_pull_path} method="post">
+              <Link className="btn_rounded" href={product.shopify_pull_path} method="post">
                 <ChevronDoubleDownIcon height={20} width={20} />
                 Fetch
               </Link>
@@ -63,7 +63,7 @@ export default function Show({
         </menu>
       </header>
 
-      <div className="section-wide flex flex-col gap-8">
+      <div className="section_wide flex flex-col gap-8">
         <div className="cards">
           <ImageGallery media={product.media} />
 
@@ -109,7 +109,7 @@ export default function Show({
                   )}
                 </p>
                 <CopyToClipboardButton
-                  className="text-xs btn-xs"
+                  className="text-xs btn_xs"
                   text={product.woo_info.store_id}
                 />
               </>
@@ -130,7 +130,7 @@ export default function Show({
                   </a>
                 </p>
                 <CopyToClipboardButton
-                  className="text-xs btn-xs"
+                  className="text-xs btn_xs"
                   text={product.shopify_info.id_short}
                 />
               </>
@@ -149,7 +149,7 @@ export default function Show({
         {product.description_html && (
           <div className="card w-full pt-8 pr-12 pb-12 pl-6">
             <div
-              className="rich-text columns-2 gap-x-20 font-nunito subpixel-antialiased break-words leading-[1.75]"
+              className="rich_text columns-2 gap-x-20 font-nunito subpixel-antialiased break-words leading-[1.75]"
               dangerouslySetInnerHTML={{ __html: product.description_html }}
             />
           </div>
@@ -166,7 +166,7 @@ export default function Show({
 
       <div className="mt-16">
         <button
-          className="btn-red w-full h-12 btn-rounded"
+          className="btn_red w-full h-12 btn_rounded"
           onClick={() => {
             if (confirm("Are you sure?")) {
               router.delete(product.path);

@@ -40,18 +40,22 @@ vi.mock("@tiptap/react", () => ({
 }));
 
 vi.mock("@tiptap/starter-kit", () => ({
+  StarterKit: { configure: () => "starter-kit" },
   default: { configure: () => "starter-kit" },
 }));
 
 vi.mock("@tiptap/extension-underline", () => ({
+  Underline: "underline",
   default: "underline",
 }));
 
 vi.mock("@tiptap/extension-text-align", () => ({
+  TextAlign: { configure: () => "text-align" },
   default: { configure: () => "text-align" },
 }));
 
 vi.mock("@tiptap/extension-link", () => ({
+  Link: { configure: () => "link" },
   default: { configure: () => "link" },
 }));
 

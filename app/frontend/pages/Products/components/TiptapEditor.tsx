@@ -1,23 +1,43 @@
-import { useEditor, EditorContent } from "@tiptap/react";
-import { useState } from "react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
-import Link from "@tiptap/extension-link";
+import { EditorContent, useEditor } from "@tiptap/react";
+import { useCallback, useState } from "react";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Underline } from "@tiptap/extension-underline";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Link } from "@tiptap/extension-link";
+
+type ToolbarAction =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "strike"
+  | "heading-2"
+  | "heading-3"
+  | "bullet-list"
+  | "ordered-list"
+  | "align-left"
+  | "align-center"
+  | "align-right"
+  | "link"
+  | "unlink"
+  | "undo"
+  | "redo";
 
 type ToolbarButtonProps = {
+  action: ToolbarAction;
   active?: boolean;
   disabled?: boolean;
   label: string;
-  onClick: () => void;
+  onAction: (action: ToolbarAction) => void;
 };
 
-function ToolbarButton({ active, disabled, label, onClick }: ToolbarButtonProps) {
+function ToolbarButton({ action, active, disabled, label, onAction }: ToolbarButtonProps) {
+  const handleClick = useCallback(() => onAction(action), [action, onAction]);
+
   return (
     <button
       className={`px-2 py-1 text-sm rounded border ${active ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border-transparent" : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       disabled={disabled}
-      onClick={onClick}
+      onClick={handleClick}
       type="button"
     >
       {label}
@@ -43,8 +63,8 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
       Link.configure({ openOnClick: false }),
     ],
     content: defaultValue,
-    onUpdate({ editor }) {
-      setHtml(editor.getHTML());
+    onUpdate({ editor: currentEditor }) {
+      setHtml(currentEditor.getHTML());
     },
     onSelectionUpdate() {
       rerender((n) => n + 1);
@@ -57,18 +77,75 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
     },
   });
 
-  if (!editor) return null;
+  const setLink = useCallback(() => {
+    if (!editor) return;
 
-  function setLink() {
-    const prev = editor!.getAttributes("link").href as string | undefined;
+    const attributes = editor.getAttributes("link");
+    const prev = typeof attributes.href === "string" ? attributes.href : undefined;
     const url = window.prompt("Enter URL", prev ?? "");
     if (url === null) return;
     if (url === "") {
-      editor!.chain().focus().extendMarkRange("link").unsetLink().run();
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
     } else {
-      editor!.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
     }
-  }
+  }, [editor]);
+
+  const handleToolbarAction = useCallback(
+    (action: ToolbarAction) => {
+      if (!editor) return;
+
+      switch (action) {
+        case "bold":
+          editor.chain().focus().toggleBold().run();
+          return;
+        case "italic":
+          editor.chain().focus().toggleItalic().run();
+          return;
+        case "underline":
+          editor.chain().focus().toggleUnderline().run();
+          return;
+        case "strike":
+          editor.chain().focus().toggleStrike().run();
+          return;
+        case "heading-2":
+          editor.chain().focus().toggleHeading({ level: 2 }).run();
+          return;
+        case "heading-3":
+          editor.chain().focus().toggleHeading({ level: 3 }).run();
+          return;
+        case "bullet-list":
+          editor.chain().focus().toggleBulletList().run();
+          return;
+        case "ordered-list":
+          editor.chain().focus().toggleOrderedList().run();
+          return;
+        case "align-left":
+          editor.chain().focus().setTextAlign("left").run();
+          return;
+        case "align-center":
+          editor.chain().focus().setTextAlign("center").run();
+          return;
+        case "align-right":
+          editor.chain().focus().setTextAlign("right").run();
+          return;
+        case "link":
+          setLink();
+          return;
+        case "unlink":
+          editor.chain().focus().unsetLink().run();
+          return;
+        case "undo":
+          editor.chain().focus().undo().run();
+          return;
+        case "redo":
+          editor.chain().focus().redo().run();
+      }
+    },
+    [editor, setLink],
+  );
+
+  if (!editor) return null;
 
   return (
     <>
@@ -76,80 +153,93 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
       <div className="tiptap-editor border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
         <div className="tiptap-toolbar flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
           <ToolbarButton
+            action="bold"
             active={editor.isFocused && editor.isActive("bold")}
             label="B"
-            onClick={() => editor.chain().focus().toggleBold().run()}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="italic"
             active={editor.isFocused && editor.isActive("italic")}
             label="I"
-            onClick={() => editor.chain().focus().toggleItalic().run()}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="underline"
             active={editor.isFocused && editor.isActive("underline")}
             label="U"
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="strike"
             active={editor.isFocused && editor.isActive("strike")}
             label="S̶"
-            onClick={() => editor.chain().focus().toggleStrike().run()}
+            onAction={handleToolbarAction}
           />
           <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
           <ToolbarButton
+            action="heading-2"
             active={editor.isFocused && editor.isActive("heading", { level: 2 })}
             label="H2"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="heading-3"
             active={editor.isFocused && editor.isActive("heading", { level: 3 })}
             label="H3"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            onAction={handleToolbarAction}
           />
           <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
           <ToolbarButton
+            action="bullet-list"
             active={editor.isFocused && editor.isActive("bulletList")}
             label="• List"
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="ordered-list"
             active={editor.isFocused && editor.isActive("orderedList")}
             label="1. List"
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            onAction={handleToolbarAction}
           />
           <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
           <ToolbarButton
+            action="align-left"
             active={editor.isFocused && editor.isActive({ textAlign: "left" })}
             label="Left"
-            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="align-center"
             active={editor.isFocused && editor.isActive({ textAlign: "center" })}
             label="Center"
-            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="align-right"
             active={editor.isFocused && editor.isActive({ textAlign: "right" })}
             label="Right"
-            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+            onAction={handleToolbarAction}
           />
           <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
           <ToolbarButton
+            action="link"
             active={editor.isFocused && editor.isActive("link")}
             label="Link"
-            onClick={setLink}
+            onAction={handleToolbarAction}
           />
           <ToolbarButton
+            action="unlink"
             disabled={!editor.isActive("link")}
             label="Unlink"
-            onClick={() => editor.chain().focus().unsetLink().run()}
+            onAction={handleToolbarAction}
           />
           <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
-          <ToolbarButton label="↩" onClick={() => editor.chain().focus().undo().run()} />
-          <ToolbarButton label="↪" onClick={() => editor.chain().focus().redo().run()} />
+          <ToolbarButton action="undo" label="↩" onAction={handleToolbarAction} />
+          <ToolbarButton action="redo" label="↪" onAction={handleToolbarAction} />
         </div>
         <EditorContent
-          className="tiptap-content rich-text font-nunito prose prose-sm dark:prose-invert max-w-none p-4 min-h-48 [&_.ProseMirror]:outline-none"
+          className="tiptap_content rich_text font-nunito prose prose-sm dark:prose-invert max-w-none p-4 min-h-48 [&_.ProseMirror]:outline-none"
           editor={editor}
         />
       </div>

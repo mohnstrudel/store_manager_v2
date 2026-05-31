@@ -38,6 +38,12 @@ RSpec.describe Product do
 
         expect(product.full_title).to eq(expected_title)
       end
+
+      it "falls back to the product title when the franchise is missing" do
+        product = described_class.new(title: "Malenia")
+
+        expect(product.generate_full_title).to eq("Malenia")
+      end
     end
   end
 end

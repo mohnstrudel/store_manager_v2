@@ -1,6 +1,5 @@
-import type { MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { type SaleItemRecord } from "../types";
 
 type SalesSectionProps = {
@@ -9,15 +8,11 @@ type SalesSectionProps = {
   title: string;
 };
 
-function stopRowNavigation(event: MouseEvent) {
-  event.stopPropagation();
-}
-
 export default function SalesSection({ hasVariants, sales, title }: SalesSectionProps) {
   if (sales.length === 0) return null;
 
   return (
-    <div className="table-card">
+    <div className="table_card">
       <h3 className="flex justify-between">
         <span>{title}</span>
         <span>{sales.length}</span>
@@ -43,10 +38,10 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
             <tr className="hoverable" key={item.id} {...rowNavigationProps(item.sale_path)}>
               <td>
                 {item.store_type === "shopify" && (
-                  <span className="inline-block icon-shopify w-5 h-5 mr-1" />
+                  <span className="inline-block icon_shopify w-5 h-5 mr-1" />
                 )}
                 {item.store_type === "woo" && (
-                  <span className="inline-block icon-woo w-8 h-8 mr-2" />
+                  <span className="inline-block icon_woo w-8 h-8 mr-2" />
                 )}
                 {item.store_id ?? ""}
               </td>
@@ -66,7 +61,7 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
                 {item.purchase_item_path && (
                   <div className="mt-1">
                     <Link
-                      className="no-events btn-rounded text-xs"
+                      className="no_events btn_rounded text-xs"
                       href={item.purchase_item_path}
                       onClick={stopRowNavigation}
                       prefetch

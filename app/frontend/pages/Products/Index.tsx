@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 import SyncModal from "@/components/SyncModal";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import Pagination from "@/components/Pagination";
 import PageHeader from "@/components/PageHeader";
 import { type PaginationMeta, type ProductIndexRecord } from "./types";
@@ -19,49 +19,42 @@ type IndexProps = {
 
 export default function Index({ products, pagination, search, last_sync_at }: IndexProps) {
   const [syncOpen, setSyncOpen] = useState(false);
+  const openSync = useCallback(() => setSyncOpen(true), []);
+  const closeSync = useCallback(() => setSyncOpen(false), []);
 
   return (
     <>
-      <PageHeader
-        actions={
-          <>
-            <li>
-              <button className="btn-rounded" onClick={() => setSyncOpen(true)} type="button">
-                <ArrowPathIcon height={20} width={20} />
-                Store Sync
-              </button>
-            </li>
-            <li>
-              <Link href="/products/new" prefetch>
-                <i className="icn">🐣</i>
-                Add New Record
-              </Link>
-            </li>
-          </>
-        }
-        title="Products"
-      />
+      <PageHeader title="Products">
+        <li>
+          <button className="btn_rounded" onClick={openSync} type="button">
+            <ArrowPathIcon height={20} width={20} />
+            Store Sync
+          </button>
+        </li>
+        <li>
+          <Link href="/products/new" prefetch>
+            <i className="icn">🐣</i>
+            Add New Record
+          </Link>
+        </li>
+      </PageHeader>
 
       {syncOpen && (
         <SyncModal
           fetchLimitedLabel="Fetch Last 100 Products"
           id="products-index-sync-modal"
           lastSyncAt={last_sync_at}
-          onClose={() => setSyncOpen(false)}
+          onClose={closeSync}
           pullPath="/products/pull"
           title="Products Synchronization"
         />
       )}
 
-      <div className="section-border-base section-wide">
+      <div className="section_border_base section_wide">
         <div className="search">
-          <SearchBar
-            initialQuery={search.q}
-            path="/products"
-            reloadOnly={["products", "pagination", "search"]}
-          />
-          <div className="pagination-top">
-            <Pagination pagination={pagination} params={{ q: search.q }} path="/products" />
+          <SearchBar initialQuery={search.q} path="/products" resourceName="products" />
+          <div className="pagination_top">
+            <Pagination pagination={pagination} path="/products" query={search.q} />
           </div>
         </div>
 
@@ -80,7 +73,11 @@ export default function Index({ products, pagination, search, last_sync_at }: In
               {products.map((product) => (
                 <tr className="hoverable" key={product.id} {...rowNavigationProps(product.path)}>
                   <td className="text-center">
-                    <ZoomableThumbnail alt={product.title} src={product.thumb_url} />
+                    <ZoomableThumbnail
+                      alt={product.title}
+                      key={`${product.id}-${product.thumb_url ?? "missing"}`}
+                      src={product.thumb_url}
+                    />
                   </td>
                   <td>
                     <span>{product.full_title}</span>
@@ -96,12 +93,12 @@ export default function Index({ products, pagination, search, last_sync_at }: In
                   </td>
                   <td>{product.woo_store_id || "—"}</td>
                   <td>{product.shopify_id_short || "—"}</td>
-                  <td className="actions text-right">
-                    <Link
-                      href={product.new_purchase_path}
-                      onClick={(e) => e.stopPropagation()}
-                      prefetch
-                    >
+                  <td className="actions text-right" onClick={stopRowNavigation}>
+                    <Link href={product.edit_path} prefetch>
+                      <i className="icn">✏</i>
+                      Edit
+                    </Link>
+                    <Link href={product.new_purchase_path} prefetch>
                       <i className="icn">💰</i>
                       Purchase
                     </Link>
@@ -114,8 +111,8 @@ export default function Index({ products, pagination, search, last_sync_at }: In
           <SearchResultsEmpty seed={search.q} />
         ) : null}
 
-        <div className="pagination-bottom">
-          <Pagination pagination={pagination} params={{ q: search.q }} path="/products" />
+        <div className="pagination_bottom">
+          <Pagination pagination={pagination} path="/products" query={search.q} />
         </div>
       </div>
     </>

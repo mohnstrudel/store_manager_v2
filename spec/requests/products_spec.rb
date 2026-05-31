@@ -219,12 +219,28 @@ RSpec.describe "Products" do
       expect_inertia.to render_component("Products/New")
       expect(inertia.props[:errors]).to be_present
     end
+
+    it "redirects to new with errors when the product is submitted blank", :aggregate_failures do
+      post products_path, params: {
+        product: {title: "", franchise_id: "", shape: Product.default_shape}
+      }
+
+      expect(response).to redirect_to(new_product_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/New")
+      expect(inertia.props[:errors]).to be_present
+    end
   end
 
   describe "PATCH /products/:id" do
     let(:product) { create(:product) }
 
-    it "updates the product and redirects to show" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      original_title = product.title
+
       patch product_path(product), params: {
         product: {
           title: product.title,
@@ -234,7 +250,20 @@ RSpec.describe "Products" do
       }
 
       expect(response).to redirect_to(product_path(product.reload))
-      expect(product.title).to eq(product.title)
+      expect(product.title).to eq(original_title)
+    end
+
+    it "updates the product and redirects to show", :aggregate_failures do
+      patch product_path(product), params: {
+        product: {
+          title: "Updated Product",
+          franchise_id: product.franchise_id,
+          shape: product.shape
+        }
+      }
+
+      expect(response).to redirect_to(product_path(product.reload))
+      expect(product.title).to eq("Updated Product")
     end
 
     it "redirects to edit with errors when title is blank" do

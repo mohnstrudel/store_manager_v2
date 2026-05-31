@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import DestroyCheckbox from "@/components/DestroyCheckbox";
+import FormControl from "@/components/FormControl";
+import FormError from "@/components/FormError";
 import FormInput from "@/components/FormInput";
+import FormRow from "@/components/FormRow";
+import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import SmartSelect from "@/components/SmartSelect";
+import { toSelectedOption } from "@/lib/selectOptions";
 import { type SelectOption, type VariantFormData } from "../types";
 
 type VariantFieldsProps = {
@@ -14,12 +20,7 @@ type VariantFieldsProps = {
   versions: SelectOption<number>[];
 };
 
-function toSelectedOption(
-  options: SelectOption<number>[],
-  value: number | null,
-): SelectOption<number> | null {
-  return options.find((option) => option.value === value) ?? null;
-}
+const EMPTY_ERRORS: Record<string, string | undefined> = {};
 
 function generateVariantTitle(
   variant: VariantFormData,
@@ -49,11 +50,13 @@ function generateVariantTitle(
 
 function VariantActions({
   index,
+  onMarkedForDeletionChange,
   onRemove,
   variant,
 }: {
   index: number;
-  onRemove: (index: number) => void;
+  onMarkedForDeletionChange: (checked: boolean) => void;
+  onRemove: () => void;
   variant: VariantFormData;
 }) {
   if (variant.deactivated) {
@@ -62,32 +65,24 @@ function VariantActions({
 
   if (!variant.id) {
     return (
-      <button className="btn-rounded btn-red m-0" onClick={() => onRemove(index)} type="button">
-        Remove
+      <button className="text-sm btn_rounded btn_red" onClick={onRemove} type="button">
+        Cancel
       </button>
     );
   }
 
   return (
-    <>
-      <input name={`variants[${index}][_destroy]`} type="hidden" defaultValue="0" />
-      <label className="m-0 flex items-center gap-2 text-sm cursor-pointer text-red-600 dark:text-red-900">
-        <input
-          className="m-0 w-4 h-4 text-red-600 rounded focus:ring-red-500"
-          defaultChecked={variant._destroy}
-          name={`variants[${index}][_destroy]`}
-          type="checkbox"
-          value="1"
-        />
-        <span>{variant.has_sales_or_purchases ? "Deactivate?" : "Destroy?"}</span>
-      </label>
-    </>
+    <DestroyCheckbox
+      defaultChecked={variant._destroy}
+      name={`variants[${index}][_destroy]`}
+      onChange={onMarkedForDeletionChange}
+    />
   );
 }
 
 export default function VariantFields({
   colors,
-  errors = {},
+  errors = EMPTY_ERRORS,
   index,
   onRemove,
   sizes,
@@ -97,6 +92,7 @@ export default function VariantFields({
   const [sizeId, setSizeId] = useState<number | null>(variant.size_id);
   const [versionId, setVersionId] = useState<number | null>(variant.version_id);
   const [colorId, setColorId] = useState<number | null>(variant.color_id);
+  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(variant._destroy);
 
   const prefix = `variants.${index}`;
   const skuError = errors[`${prefix}.sku`];
@@ -107,32 +103,59 @@ export default function VariantFields({
 
   const displayVariant = { ...variant, size_id: sizeId, version_id: versionId, color_id: colorId };
   const title = generateVariantTitle(displayVariant, colors, sizes, versions);
+  const isDimmed = variant.deactivated || isMarkedForDeletion;
+  const sizeHasError = !!(sizeError || combinationError);
+  const handleRemove = useCallback(() => onRemove(index), [index, onRemove]);
+  const handleSizeChange = useCallback(
+    (option: SelectOption<number> | null) => setSizeId(option?.value ?? null),
+    [],
+  );
+  const handleVersionChange = useCallback(
+    (option: SelectOption<number> | null) => setVersionId(option?.value ?? null),
+    [],
+  );
+  const handleColorChange = useCallback(
+    (option: SelectOption<number> | null) => setColorId(option?.value ?? null),
+    [],
+  );
+  const actions = useMemo(
+    () => (
+      <VariantActions
+        index={index}
+        onMarkedForDeletionChange={setIsMarkedForDeletion}
+        onRemove={handleRemove}
+        variant={variant}
+      />
+    ),
+    [handleRemove, index, variant],
+  );
 
   return (
-    <div
-      className={`variant-fields border border-gray-200 dark:border-gray-800 rounded-xl p-4 pb-8 ${variant.deactivated ? "opacity-50" : ""}`}
+    <NestedFormContainer
+      actions={actions}
+      className={`variant-fields ${isDimmed ? "opacity-50" : ""}`}
+      title={title}
     >
-      <div className="flex justify-between items-start flex-col lg:flex-row lg:items-center gap-2">
-        <h6 className="font-semibold">{title}</h6>
-        <VariantActions index={index} onRemove={onRemove} variant={variant} />
-      </div>
-
       <input name={`variants[${index}][id]`} type="hidden" defaultValue={variant.id ?? ""} />
 
-      <div className="flex justify-between gap-4 flex-col lg:flex-row mt-4">
-        <div className="w-full">
-          <label htmlFor={`variant-${index}-size`}>Size</label>
+      <FormRow>
+        <FormControl
+          className={`w-full ${sizeHasError ? "field_with_errors" : ""}`}
+          htmlFor={`variant-${index}-size`}
+          label="Size"
+        >
           <SmartSelect
             isClearable
             inputId={`variant-${index}-size`}
             options={sizes}
             name={`variants[${index}][size_id]`}
             defaultValue={toSelectedOption(sizes, sizeId)}
-            onChange={(option) => setSizeId(option?.value ?? null)}
+            onChange={handleSizeChange}
           />
-          {sizeError && <p className="text-error mt-2">{sizeError}</p>}
-          {combinationError && <p className="text-error mt-2">{combinationError}</p>}
-        </div>
+          <FormError inline>{sizeError}</FormError>
+          <FormError inline>{combinationError}</FormError>
+        </FormControl>
+
         <FormSmartSelect
           className="w-full"
           error={versionError}
@@ -141,9 +164,10 @@ export default function VariantFields({
           label="Version"
           name={`variants[${index}][version_id]`}
           defaultValue={toSelectedOption(versions, versionId)}
-          onChange={(option) => setVersionId(option?.value ?? null)}
+          onChange={handleVersionChange}
           options={versions}
         />
+
         <FormSmartSelect
           className="w-full"
           error={colorError}
@@ -152,50 +176,48 @@ export default function VariantFields({
           label="Color"
           name={`variants[${index}][color_id]`}
           defaultValue={toSelectedOption(colors, colorId)}
-          onChange={(option) => setColorId(option?.value ?? null)}
+          onChange={handleColorChange}
           options={colors}
         />
-      </div>
+      </FormRow>
 
-      <div className="flex flex-col gap-4 mt-4">
+      <FormInput
+        defaultValue={variant.sku}
+        error={skuError}
+        label="SKU"
+        name={`variants[${index}][sku]`}
+        placeholder="SKU"
+      />
+
+      <FormRow>
         <FormInput
-          defaultValue={variant.sku}
-          error={skuError}
-          label="SKU"
-          name={`variants[${index}][sku]`}
-          placeholder="SKU"
+          className="w-full"
+          defaultValue={variant.weight}
+          label="Weight (kg)"
+          min="0"
+          name={`variants[${index}][weight]`}
+          step="0.01"
+          type="number"
         />
-
-        <div className="flex justify-between gap-4 flex-col lg:flex-row">
-          <FormInput
-            className="w-full"
-            defaultValue={variant.weight}
-            label="Weight (kg)"
-            min="0"
-            name={`variants[${index}][weight]`}
-            step="0.01"
-            type="number"
-          />
-          <FormInput
-            className="w-full"
-            defaultValue={variant.purchase_cost}
-            label="Purchase Cost"
-            min="0"
-            name={`variants[${index}][purchase_cost]`}
-            step="0.01"
-            type="number"
-          />
-          <FormInput
-            className="w-full"
-            defaultValue={variant.selling_price}
-            label="Selling Price"
-            min="0"
-            name={`variants[${index}][selling_price]`}
-            step="0.01"
-            type="number"
-          />
-        </div>
-      </div>
-    </div>
+        <FormInput
+          className="w-full"
+          defaultValue={variant.purchase_cost}
+          label="Purchase Cost"
+          min="0"
+          name={`variants[${index}][purchase_cost]`}
+          step="0.01"
+          type="number"
+        />
+        <FormInput
+          className="w-full"
+          defaultValue={variant.selling_price}
+          label="Selling Price"
+          min="0"
+          name={`variants[${index}][selling_price]`}
+          step="0.01"
+          type="number"
+        />
+      </FormRow>
+    </NestedFormContainer>
   );
 }

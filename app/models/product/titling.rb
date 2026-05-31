@@ -19,9 +19,11 @@ module Product::Titling
   private
 
   def base_title_part
-    return title if title == franchise.title
+    franchise_title = franchise&.title
+    return title if franchise_title.blank?
+    return title if title == franchise_title
 
-    "#{franchise.title} — #{title}"
+    [franchise_title, title].compact_blank.join(" — ")
   end
 
   def brand_title_part

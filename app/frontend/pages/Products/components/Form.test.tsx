@@ -13,11 +13,11 @@ import {
 } from "../types";
 
 type SmartSelectMockProps = {
-  defaultValue?: SelectOption<number | string> | SelectOption<number | string>[] | null;
+  defaultValue?: SelectOption | SelectOption[] | null;
   inputId?: string;
   isMulti?: boolean;
   name?: string;
-  options?: SelectOption<number | string>[];
+  options?: SelectOption[];
 };
 
 let pageErrors: Record<string, string> = {};
@@ -84,8 +84,8 @@ vi.mock("@/components/SmartSelect", () => ({
         : [];
     const hiddenInputs = !name ? null : isMulti ? (
       selectedValues.length > 0 ? (
-        selectedValues.map((selectedValue, index) => (
-          <input key={index} name={name} type="hidden" value={selectedValue} />
+        selectedValues.map((selectedValue) => (
+          <input key={selectedValue} name={name} type="hidden" value={selectedValue} />
         ))
       ) : (
         <input name={name} type="hidden" value="" />
@@ -271,6 +271,7 @@ describe("Products/Components/Form", () => {
 
   it("renders the shell with nested errors and hidden form fields", () => {
     pageErrors = {
+      franchise: "Franchise must exist",
       "variants.0.sku": "has already been taken",
       "purchase.0.item_price": "can't be blank",
     };
@@ -298,6 +299,10 @@ describe("Products/Components/Form", () => {
     expect(screen.getByDisplayValue("Bust")).toHaveAttribute("name", "product[shape]");
     expect(screen.getByTestId("description-input")).toHaveAttribute("name", "product[description]");
     expect(document.querySelector('input[name="product[brand_ids][]"]')).toHaveValue("");
+    expect(screen.getByTestId("product_franchise_id").parentElement).toHaveClass(
+      "field_with_errors",
+    );
+    expect(screen.getByText("Franchise must exist")).toBeInTheDocument();
     expect(screen.getByText("has already been taken")).toBeInTheDocument();
     expect(screen.getByText("can't be blank")).toBeInTheDocument();
     expect(screen.getByTestId("purchase-fields")).toBeInTheDocument();

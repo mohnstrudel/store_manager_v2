@@ -10,7 +10,11 @@ vi.mock("@inertiajs/react", () => ({
       {children}
     </a>
   ),
-  router: { get: vi.fn(), visit: vi.fn(), post: vi.fn() },
+  router: {
+    get: vi.fn<(...args: unknown[]) => unknown>(),
+    visit: vi.fn<(...args: unknown[]) => unknown>(),
+    post: vi.fn<(...args: unknown[]) => unknown>(),
+  },
 }));
 
 const pagination = { current_page: 1, total_pages: 1, total_count: 1, limit: 50 };
@@ -42,11 +46,18 @@ describe("Products/Index", () => {
       "href",
       "/products/new",
     );
+    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
+      "href",
+      "/products/pikachu/edit",
+    );
     expect(screen.getByText("Pokémon — Pikachu | Nendoroid")).toBeInTheDocument();
   });
 
-  it("renders the last fetched timestamp when available", () => {
+  it("renders the last fetched timestamp when available", async () => {
+    const user = userEvent.setup();
     render(<Index {...defaultProps} last_sync_at="Last fetched at 19 May at 11:53" />);
+
+    await user.click(screen.getByRole("button", { name: "Store Sync" }));
 
     expect(screen.getByText("Last fetched at 19 May at 11:53")).toBeInTheDocument();
   });
@@ -59,7 +70,12 @@ describe("Products/Index", () => {
 
   it("renders an empty state when no products", () => {
     render(
-      <Index {...defaultProps} pagination={{ ...pagination, total_count: 0 }} products={[]} />,
+      <Index
+        {...defaultProps}
+        pagination={{ ...pagination, total_count: 0 }}
+        products={[]}
+        search={{ q: "pikachu" }}
+      />,
     );
 
     expect(screen.getByText("Nothing found")).toBeInTheDocument();
@@ -89,7 +105,7 @@ describe("Products/Index", () => {
 
       await user.click(screen.getByRole("button", { name: "Store Sync" }));
 
-      expect(screen.getAllByText("Last fetched at 5 January at 10:00")).toHaveLength(2);
+      expect(screen.getByText("Last fetched at 5 January at 10:00")).toBeInTheDocument();
     });
 
     it("closes the dialog when Close is clicked", async () => {
