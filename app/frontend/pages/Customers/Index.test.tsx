@@ -9,7 +9,10 @@ vi.mock("@inertiajs/react", () => ({
       {children}
     </a>
   ),
-  router: { get: vi.fn(), visit: vi.fn() },
+  router: {
+    get: vi.fn<(...args: unknown[]) => unknown>(),
+    visit: vi.fn<(...args: unknown[]) => unknown>(),
+  },
 }));
 
 const pagination = { current_page: 1, total_pages: 1, total_count: 1, limit: 50 };

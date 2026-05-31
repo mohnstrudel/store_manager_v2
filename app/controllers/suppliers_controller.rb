@@ -8,7 +8,7 @@ class SuppliersController < ApplicationController
     @suppliers = Supplier.order(:title)
 
     render inertia: "Suppliers/Index", props: {
-      suppliers: @suppliers.map { |supplier| supplier_props(supplier) }
+      suppliers: @suppliers.map { |supplier| helpers.supplier_props(supplier) }
     }
   end
 
@@ -17,8 +17,8 @@ class SuppliersController < ApplicationController
     @purchases = @supplier.purchases.for_supplier_details
 
     render inertia: "Suppliers/Show", props: {
-      purchases: @purchases.map { |purchase| purchase_props(purchase) },
-      supplier: supplier_props(@supplier)
+      purchases: @purchases.map { |purchase| helpers.supplier_purchase_props(purchase) },
+      supplier: helpers.supplier_props(@supplier)
     }
   end
 
@@ -26,12 +26,12 @@ class SuppliersController < ApplicationController
   def new
     @supplier = Supplier.new
 
-    render inertia: "Suppliers/New", props: form_props(@supplier)
+    render inertia: "Suppliers/New", props: helpers.supplier_form_props(@supplier)
   end
 
   # GET /suppliers/1/edit
   def edit
-    render inertia: "Suppliers/Edit", props: form_props(@supplier)
+    render inertia: "Suppliers/Edit", props: helpers.supplier_form_props(@supplier)
   end
 
   # POST /suppliers or /suppliers.json
@@ -43,7 +43,7 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully created" }
         format.json { render :show, status: :created, location: @supplier }
       else
-        format.html { redirect_to new_supplier_url, inertia: {errors: @supplier.errors} }
+        format.html { redirect_to new_supplier_url, inertia: inertia_errors(@supplier.errors) }
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -56,7 +56,7 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated" }
         format.json { render :show, status: :ok, location: @supplier }
       else
-        format.html { redirect_to edit_supplier_url(@supplier.reload), inertia: {errors: @supplier.errors} }
+        format.html { redirect_to edit_supplier_url(@supplier.reload), inertia: inertia_errors(@supplier.errors) }
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -84,36 +84,4 @@ class SuppliersController < ApplicationController
     params.fetch(:supplier, {}).permit(:title)
   end
 
-  def form_props(supplier)
-    {
-      supplier: supplier_props(supplier)
-    }
-  end
-
-  def supplier_props(supplier)
-    {
-      id: supplier.id,
-      title: supplier.title.to_s,
-      created_at: formatted_timestamp(supplier.created_at),
-      updated_at: formatted_timestamp(supplier.updated_at)
-    }
-  end
-
-  def purchase_props(purchase)
-    {
-      amount: purchase.amount,
-      debt: purchase.debt.positive? ? helpers.format_money(purchase.debt) : "",
-      has_debt: purchase.debt.positive?,
-      id: purchase.id,
-      item_price: helpers.format_money(purchase.item_price),
-      path: purchase_path(purchase),
-      purchased_ago: helpers.time_ago_in_words(purchase.date),
-      title: purchase.product.full_title.to_s,
-      variant: purchase.variant&.title.to_s
-    }
-  end
-
-  def formatted_timestamp(time)
-    time&.strftime("%-d. %b '%y %H:%M")
-  end
 end

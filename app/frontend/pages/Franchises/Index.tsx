@@ -10,19 +10,16 @@ type IndexProps = {
 export default function Index({ franchises }: IndexProps) {
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href="/franchises/new" prefetch>
-              <i className="icn">🐣</i>
-              Add New Record
-            </Link>
-          </li>
-        }
-        title="Franchises"
-      />
+      <PageHeader title="Franchises">
+        <li>
+          <Link href="/franchises/new" prefetch>
+            <i className="icn">🐣</i>
+            Add New Record
+          </Link>
+        </li>
+      </PageHeader>
 
-      <div className="section-border-base section-wide">
+      <div className="section_border_base section_wide">
         <Table franchises={franchises} />
       </div>
     </>

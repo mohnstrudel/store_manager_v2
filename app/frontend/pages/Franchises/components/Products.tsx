@@ -9,7 +9,7 @@ export default function Products({ products }: ProductsProps) {
   if (products.length === 0) return null;
 
   return (
-    <div className="table-card">
+    <div className="table_card">
       <h3>Products</h3>
       <table>
         <thead>

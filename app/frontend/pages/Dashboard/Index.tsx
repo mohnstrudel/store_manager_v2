@@ -70,7 +70,7 @@ export default function Index({
             <li className="mt-2">
               Afterward, hide this notification using this button:
               <button
-                className="btn-rounded btn-red bg-red-200/60 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900/70 text-sm ml-2"
+                className="btn_rounded btn_red bg-red-200/60 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900/70 text-sm ml-2"
                 onClick={() => router.post(last_orders_pull_path)}
                 type="button"
               >
@@ -85,7 +85,7 @@ export default function Index({
         <h1>Dashboard</h1>
       </header>
 
-      <section className="section-border-base section-wide">
+      <section className="section_border_base section_wide">
         <h3 className="flex justify-between px-3 pt-4">
           <span>Sales Debt</span>
           <span>{sale_debts_count}</span>
@@ -118,7 +118,7 @@ export default function Index({
       </section>
 
       {suppliers_debts.length > 0 && (
-        <section className="section-border-base section-wide">
+        <section className="section_border_base section_wide">
           <h3 className="flex justify-between px-3 pt-4">
             <span>Suppliers Debt</span>
             <span>{total_suppliers_debt}</span>

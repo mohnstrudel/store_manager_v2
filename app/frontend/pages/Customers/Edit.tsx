@@ -12,18 +12,14 @@ export default function Edit({ customer }: EditProps) {
 
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={customerPath} prefetch>
-              <i className="icn">📄</i>
-              View Customer Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Customer"
-      />
+      <PageHeader className="mb-8" title="Edit Customer">
+        <li>
+          <Link href={customerPath} prefetch>
+            <i className="icn">📄</i>
+            View Customer Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <Form customer={customer} method="patch" submitLabel="Update Customer" url={customerPath} />
     </>

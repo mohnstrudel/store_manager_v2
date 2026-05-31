@@ -8,7 +8,7 @@ class ColorsController < ApplicationController
     @colors = Color.order(:value)
 
     render inertia: "Colors/Index", props: {
-      colors: @colors.map { |color| color_props(color) }
+      colors: @colors.map { |color| helpers.color_props(color) }
     }
   end
 
@@ -17,8 +17,8 @@ class ColorsController < ApplicationController
     @color = Color.includes(:products).find(params[:id])
 
     render inertia: "Colors/Show", props: {
-      color: color_props(@color),
-      products: @color.products.map { |product| product_props(product) }
+      color: helpers.color_props(@color),
+      products: @color.products.map { |product| helpers.product_props(product) }
     }
   end
 
@@ -26,12 +26,12 @@ class ColorsController < ApplicationController
   def new
     @color = Color.new
 
-    render inertia: "Colors/New", props: form_props(@color)
+    render inertia: "Colors/New", props: helpers.color_form_props(@color)
   end
 
   # GET /colors/1/edit
   def edit
-    render inertia: "Colors/Edit", props: form_props(@color)
+    render inertia: "Colors/Edit", props: helpers.color_form_props(@color)
   end
 
   # POST /colors or /colors.json
@@ -43,7 +43,7 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully created" }
         format.json { render :show, status: :created, location: @color }
       else
-        format.html { redirect_to new_color_url, inertia: {errors: @color.errors} }
+        format.html { redirect_to new_color_url, inertia: inertia_errors(@color.errors) }
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -56,7 +56,7 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully updated" }
         format.json { render :show, status: :ok, location: @color }
       else
-        format.html { redirect_to edit_color_url(@color), inertia: {errors: @color.errors} }
+        format.html { redirect_to edit_color_url(@color), inertia: inertia_errors(@color.errors) }
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -84,30 +84,4 @@ class ColorsController < ApplicationController
     params.expect(color: [:value])
   end
 
-  def form_props(color)
-    {
-      color: color_props(color)
-    }
-  end
-
-  def color_props(color)
-    {
-      id: color.id,
-      value: color.value.to_s,
-      created_at: formatted_timestamp(color.created_at),
-      updated_at: formatted_timestamp(color.updated_at)
-    }
-  end
-
-  def product_props(product)
-    {
-      id: product.id,
-      full_title: product.full_title.to_s,
-      path: product_path(product)
-    }
-  end
-
-  def formatted_timestamp(time)
-    time&.strftime("%-d. %b '%y %H:%M")
-  end
 end

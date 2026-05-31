@@ -9,7 +9,7 @@ vi.mock("@inertiajs/react", () => ({
       {children}
     </a>
   ),
-  router: { visit: vi.fn() },
+  router: { visit: vi.fn<(...args: unknown[]) => unknown>() },
 }));
 
 describe("Sizes/Index", () => {

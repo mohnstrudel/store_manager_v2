@@ -1,15 +1,10 @@
-import type { MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { VersionRecord } from "../types";
 
 type TableProps = {
   versions: VersionRecord[];
 };
-
-function stopRowNavigation(event: MouseEvent) {
-  event.stopPropagation();
-}
 
 export default function Table({ versions }: TableProps) {
   return (

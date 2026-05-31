@@ -101,12 +101,21 @@ RSpec.describe "Colors" do
       expect_inertia.to render_component("Colors/New")
       expect_inertia.to have_props(
         color: {created_at: nil, id: nil, updated_at: nil, value: ""},
-        errors: {value: ["can't be blank"]}
+        errors: {value: "Value can't be blank"}
       )
     end
   end
 
   describe "PATCH /colors/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      color = create(:color, value: "Azure")
+
+      patch color_path(color), params: {color: {value: "Azure"}}
+
+      expect(response).to redirect_to(color_path(color))
+      expect(color.reload.value).to eq("Azure")
+    end
+
     it "redirects to the updated color", :aggregate_failures do
       color = create(:color)
 
@@ -145,7 +154,7 @@ RSpec.describe "Colors" do
           updated_at: formatted_time(color.updated_at),
           value: color.value
         },
-        errors: {value: ["can't be blank"]}
+        errors: {value: "Value can't be blank"}
       )
     end
   end

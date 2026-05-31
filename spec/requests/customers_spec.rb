@@ -96,12 +96,23 @@ RSpec.describe "Customers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Customers/New")
       expect_inertia.to have_props(
-        errors: {base: ["Customer must have contact details or store information"]}
+        errors: {base: "Customer must have contact details or store information"}
       )
     end
   end
 
   describe "PATCH /customers/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      customer = create(:customer, first_name: "Dale", last_name: "Cooper", email: "dale@fbi.gov", phone: "")
+
+      patch customer_path(customer), params: {
+        customer: {first_name: "Dale", last_name: "Cooper", email: "dale@fbi.gov", phone: ""}
+      }
+
+      expect(response).to redirect_to(customer_path(customer))
+      expect(customer.reload.email).to eq("dale@fbi.gov")
+    end
+
     it "redirects to the updated customer", :aggregate_failures do
       customer = create(:customer)
 
@@ -141,7 +152,7 @@ RSpec.describe "Customers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Customers/Edit")
       expect_inertia.to have_props(
-        errors: {base: ["Customer must have contact details or store information"]}
+        errors: {base: "Customer must have contact details or store information"}
       )
     end
   end

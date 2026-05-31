@@ -8,7 +8,7 @@ class VersionsController < ApplicationController
     @versions = Version.order(:value)
 
     render inertia: "Versions/Index", props: {
-      versions: @versions.map { |version| version_props(version) }
+      versions: @versions.map { |version| helpers.version_props(version) }
     }
   end
 
@@ -17,8 +17,8 @@ class VersionsController < ApplicationController
     @version = Version.includes(:products).find(params[:id])
 
     render inertia: "Versions/Show", props: {
-      version: version_props(@version),
-      products: @version.products.map { |product| product_props(product) }
+      version: helpers.version_props(@version),
+      products: @version.products.map { |product| helpers.product_props(product) }
     }
   end
 
@@ -26,12 +26,12 @@ class VersionsController < ApplicationController
   def new
     @version = Version.new
 
-    render inertia: "Versions/New", props: form_props(@version)
+    render inertia: "Versions/New", props: helpers.version_form_props(@version)
   end
 
   # GET /versions/1/edit
   def edit
-    render inertia: "Versions/Edit", props: form_props(@version)
+    render inertia: "Versions/Edit", props: helpers.version_form_props(@version)
   end
 
   # POST /versions or /versions.json
@@ -43,7 +43,7 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully created" }
         format.json { render :show, status: :created, location: @version }
       else
-        format.html { redirect_to new_version_url, inertia: {errors: @version.errors} }
+        format.html { redirect_to new_version_url, inertia: inertia_errors(@version.errors) }
         format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
@@ -56,7 +56,7 @@ class VersionsController < ApplicationController
         format.html { redirect_to version_url(@version), notice: "Version was successfully updated" }
         format.json { render :show, status: :ok, location: @version }
       else
-        format.html { redirect_to edit_version_url(@version), inertia: {errors: @version.errors} }
+        format.html { redirect_to edit_version_url(@version), inertia: inertia_errors(@version.errors) }
         format.json { render json: @version.errors, status: :unprocessable_content }
       end
     end
@@ -84,30 +84,4 @@ class VersionsController < ApplicationController
     params.fetch(:version, {}).permit(:value)
   end
 
-  def form_props(version)
-    {
-      version: version_props(version)
-    }
-  end
-
-  def version_props(version)
-    {
-      id: version.id,
-      value: version.value.to_s,
-      created_at: formatted_timestamp(version.created_at),
-      updated_at: formatted_timestamp(version.updated_at)
-    }
-  end
-
-  def product_props(product)
-    {
-      id: product.id,
-      full_title: product.full_title.to_s,
-      path: product_path(product)
-    }
-  end
-
-  def formatted_timestamp(time)
-    time&.strftime("%-d. %b '%y %H:%M")
-  end
 end

@@ -118,13 +118,22 @@ RSpec.describe "Suppliers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Suppliers/New")
       expect_inertia.to have_props(
-        errors: {title: ["can't be blank"]},
+        errors: {title: "Title can't be blank"},
         supplier: {created_at: nil, id: nil, updated_at: nil, title: ""}
       )
     end
   end
 
   describe "PATCH /suppliers/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      supplier = create(:supplier, title: "Moon Supply")
+
+      patch supplier_path(supplier), params: {supplier: {title: "Moon Supply"}}
+
+      expect(response).to redirect_to(supplier_path(supplier.reload))
+      expect(supplier.title).to eq("Moon Supply")
+    end
+
     it "redirects to the updated supplier", :aggregate_failures do
       supplier = create(:supplier)
 
@@ -158,7 +167,7 @@ RSpec.describe "Suppliers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Suppliers/Edit")
       expect_inertia.to have_props(
-        errors: {title: ["can't be blank"]},
+        errors: {title: "Title can't be blank"},
         supplier: {
           created_at: formatted_time(supplier.created_at),
           id: supplier.id,

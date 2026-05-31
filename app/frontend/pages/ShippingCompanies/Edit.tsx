@@ -10,18 +10,14 @@ type EditProps = {
 export default function Edit({ shippingCompany }: EditProps) {
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/shipping_companies/${shippingCompany.id}`} prefetch>
-              <i className="icn">📄</i>
-              View Shipping Company Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Shipping Company"
-      />
+      <PageHeader className="mb-8" title="Edit Shipping Company">
+        <li>
+          <Link href={`/shipping_companies/${shippingCompany.id}`} prefetch>
+            <i className="icn">📄</i>
+            View Shipping Company Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <Form
         method="patch"

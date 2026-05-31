@@ -10,7 +10,7 @@ export default function PurchaseItems({ purchaseItems }: PurchaseItemsProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="table-card">
+      <div className="table_card">
         <h3>Purchase Items</h3>
         <table role="grid">
           <thead>

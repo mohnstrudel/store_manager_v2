@@ -10,19 +10,16 @@ type IndexProps = {
 export default function Index({ shippingCompanies }: IndexProps) {
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href="/shipping_companies/new" prefetch>
-              <i className="icn">🐣</i>
-              Add New Record
-            </Link>
-          </li>
-        }
-        title="Shipping Companies"
-      />
+      <PageHeader title="Shipping Companies">
+        <li>
+          <Link href="/shipping_companies/new" prefetch>
+            <i className="icn">🐣</i>
+            Add New Record
+          </Link>
+        </li>
+      </PageHeader>
 
-      <div className="section-border-base section-wide">
+      <div className="section_border_base section_wide">
         <Table shippingCompanies={shippingCompanies} />
       </div>
     </>

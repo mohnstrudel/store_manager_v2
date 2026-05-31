@@ -8,7 +8,7 @@ class SizesController < ApplicationController
     @sizes = Size.order(:value)
 
     render inertia: "Sizes/Index", props: {
-      sizes: @sizes.map { |size| size_props(size) }
+      sizes: @sizes.map { |size| helpers.size_props(size) }
     }
   end
 
@@ -17,8 +17,8 @@ class SizesController < ApplicationController
     @size = Size.includes(:products).find(params[:id])
 
     render inertia: "Sizes/Show", props: {
-      size: size_props(@size),
-      products: @size.products.map { |product| product_props(product) }
+      size: helpers.size_props(@size),
+      products: @size.products.map { |product| helpers.product_props(product) }
     }
   end
 
@@ -26,12 +26,12 @@ class SizesController < ApplicationController
   def new
     @size = Size.new
 
-    render inertia: "Sizes/New", props: form_props(@size)
+    render inertia: "Sizes/New", props: helpers.size_form_props(@size)
   end
 
   # GET /sizes/1/edit
   def edit
-    render inertia: "Sizes/Edit", props: form_props(@size)
+    render inertia: "Sizes/Edit", props: helpers.size_form_props(@size)
   end
 
   # POST /sizes or /sizes.json
@@ -43,7 +43,7 @@ class SizesController < ApplicationController
         format.html { redirect_to size_url(@size), notice: "Size was successfully created" }
         format.json { render :show, status: :created, location: @size }
       else
-        format.html { redirect_to new_size_url, inertia: {errors: @size.errors} }
+        format.html { redirect_to new_size_url, inertia: inertia_errors(@size.errors) }
         format.json { render json: @size.errors, status: :unprocessable_content }
       end
     end
@@ -56,7 +56,7 @@ class SizesController < ApplicationController
         format.html { redirect_to size_url(@size), notice: "Size was successfully updated" }
         format.json { render :show, status: :ok, location: @size }
       else
-        format.html { redirect_to edit_size_url(@size), inertia: {errors: @size.errors} }
+        format.html { redirect_to edit_size_url(@size), inertia: inertia_errors(@size.errors) }
         format.json { render json: @size.errors, status: :unprocessable_content }
       end
     end
@@ -84,26 +84,4 @@ class SizesController < ApplicationController
     params.fetch(:size, {}).permit(:value)
   end
 
-  def form_props(size)
-    {
-      size: size_props(size)
-    }
-  end
-
-  def size_props(size)
-    {
-      id: size.id,
-      value: size.value.to_s,
-      created_at: size.created_at&.strftime("%-d. %b '%y %H:%M"),
-      updated_at: size.updated_at&.strftime("%-d. %b '%y %H:%M")
-    }
-  end
-
-  def product_props(product)
-    {
-      id: product.id,
-      full_title: product.full_title.to_s,
-      path: product_path(product)
-    }
-  end
 end

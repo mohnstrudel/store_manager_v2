@@ -38,16 +38,12 @@ export default function Debts({ debts, pagination, search, unpaid_purchases }: D
         <h1>Debts</h1>
       </header>
 
-      <div className="section-wide flex flex-col gap-8">
-        <div className="table-card">
+      <div className="section_wide flex flex-col gap-8">
+        <div className="table_card">
           <div className="search">
-            <SearchBar
-              initialQuery={search.q}
-              path="/debts"
-              reloadOnly={["debts", "pagination", "search"]}
-            />
-            <div className="pagination-top">
-              <Pagination pagination={pagination} params={{ q: search.q }} path="/debts" />
+            <SearchBar initialQuery={search.q} path="/debts" resourceName="debts" />
+            <div className="pagination_top">
+              <Pagination pagination={pagination} path="/debts" query={search.q} />
             </div>
           </div>
           {debts.length > 0 ? (
@@ -78,8 +74,8 @@ export default function Debts({ debts, pagination, search, unpaid_purchases }: D
                   ))}
                 </tbody>
               </table>
-              <div className="pagination-bottom">
-                <Pagination pagination={pagination} params={{ q: search.q }} path="/debts" />
+              <div className="pagination_bottom">
+                <Pagination pagination={pagination} path="/debts" query={search.q} />
               </div>
             </>
           ) : search.q ? (
@@ -88,7 +84,7 @@ export default function Debts({ debts, pagination, search, unpaid_purchases }: D
         </div>
 
         {unpaid_purchases.length > 0 && (
-          <div className="table-card">
+          <div className="table_card">
             <h3>Purchases Without Payments</h3>
             <table role="grid">
               <thead>

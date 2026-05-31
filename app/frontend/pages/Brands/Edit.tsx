@@ -13,18 +13,14 @@ export default function Edit({ brand }: EditProps) {
 
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/brands/${brand.id}`} prefetch>
-              <i className="icn">📄</i>
-              View Brand Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Brand"
-      />
+      <PageHeader className="mb-8" title="Edit Brand">
+        <li>
+          <Link href={`/brands/${brand.id}`} prefetch>
+            <i className="icn">📄</i>
+            View Brand Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <ResourceForm
         action={`/brands/${brand.id}`}

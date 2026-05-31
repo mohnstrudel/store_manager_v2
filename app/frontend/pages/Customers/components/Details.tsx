@@ -6,7 +6,7 @@ type DetailsProps = {
 
 export default function Details({ customer }: DetailsProps) {
   return (
-    <section className="section-border-base">
+    <section className="section_border_base">
       <table>
         <thead>
           <tr>
@@ -26,13 +26,13 @@ export default function Details({ customer }: DetailsProps) {
             <td>
               {customer.shopify_id_short && (
                 <span className="block">
-                  <span className="inline-block icon-shopify w-5 h-5 mr-1 -mb-1" />
+                  <span className="inline-block icon_shopify w-5 h-5 mr-1 -mb-1" />
                   {customer.shopify_id_short}
                 </span>
               )}
               {customer.woo_store_id && (
                 <span className="block">
-                  <span className="inline-block icon-woo w-8 h-8 mr-2 -mb-3" />
+                  <span className="inline-block icon_woo w-8 h-8 mr-2 -mb-3" />
                   {customer.woo_store_id}
                 </span>
               )}

@@ -99,13 +99,22 @@ RSpec.describe "Franchises" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Franchises/New")
       expect_inertia.to have_props(
-        errors: {title: ["can't be blank"]},
+        errors: {title: "Title can't be blank"},
         franchise: {created_at: nil, id: nil, updated_at: nil, title: ""}
       )
     end
   end
 
   describe "PATCH /franchises/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      franchise = create(:franchise, title: "Moonbase")
+
+      patch franchise_path(franchise), params: {franchise: {title: "Moonbase"}}
+
+      expect(response).to redirect_to(franchise_path(franchise))
+      expect(franchise.reload.title).to eq("Moonbase")
+    end
+
     it "redirects to the updated franchise", :aggregate_failures do
       franchise = create(:franchise)
 
@@ -138,7 +147,7 @@ RSpec.describe "Franchises" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Franchises/Edit")
       expect_inertia.to have_props(
-        errors: {title: ["can't be blank"]},
+        errors: {title: "Title can't be blank"},
         franchise: {
           created_at: formatted_time(franchise.created_at),
           id: franchise.id,

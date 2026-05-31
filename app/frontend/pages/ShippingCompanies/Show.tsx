@@ -19,20 +19,16 @@ export default function Show({ purchaseItems, shippingCompany }: ShowProps) {
 
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/shipping_companies/${shippingCompany.id}/edit`} prefetch>
-              <i className="icn">✏</i>
-              Edit
-            </Link>
-          </li>
-        }
-        subtitle={`Shipping Company ${shippingCompany.id}`}
-        title={shippingCompany.name}
-      />
+      <PageHeader subtitle={`Shipping Company ${shippingCompany.id}`} title={shippingCompany.name}>
+        <li>
+          <Link href={`/shipping_companies/${shippingCompany.id}/edit`} prefetch>
+            <i className="icn">✏</i>
+            Edit
+          </Link>
+        </li>
+      </PageHeader>
 
-      <div className="section-wide flex flex-col gap-8 mt-8">
+      <div className="section_wide flex flex-col gap-8 mt-8">
         <Details shippingCompany={shippingCompany} />
         <PurchaseItems purchaseItems={purchaseItems} />
       </div>

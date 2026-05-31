@@ -1,6 +1,5 @@
-import type { MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { CustomerRecord } from "../types";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 
@@ -10,10 +9,6 @@ type TableProps = {
 };
 
 export default function Table({ customers, searchQuery = "" }: TableProps) {
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   if (customers.length === 0) {
     return searchQuery ? <SearchResultsEmpty seed={searchQuery} /> : null;
   }

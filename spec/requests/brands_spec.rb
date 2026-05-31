@@ -101,12 +101,21 @@ RSpec.describe "Brands" do
       expect_inertia.to render_component("Brands/New")
       expect_inertia.to have_props(
         brand: {created_at: nil, id: nil, updated_at: nil, title: ""},
-        errors: {title: ["can't be blank"]}
+        errors: {title: "Title can't be blank"}
       )
     end
   end
 
   describe "PATCH /brands/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      brand = create(:brand, title: "Moonbow")
+
+      patch brand_path(brand), params: {brand: {title: "Moonbow"}}
+
+      expect(response).to redirect_to(brand_path(brand))
+      expect(brand.reload.title).to eq("Moonbow")
+    end
+
     it "redirects to the updated brand", :aggregate_failures do
       brand = create(:brand)
 
@@ -145,7 +154,7 @@ RSpec.describe "Brands" do
           updated_at: formatted_time(brand.updated_at),
           title: brand.title
         },
-        errors: {title: ["can't be blank"]}
+        errors: {title: "Title can't be blank"}
       )
     end
   end

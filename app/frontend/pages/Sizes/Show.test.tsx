@@ -10,8 +10,8 @@ vi.mock("@inertiajs/react", () => ({
     </a>
   ),
   router: {
-    delete: vi.fn(),
-    visit: vi.fn(),
+    delete: vi.fn<(...args: unknown[]) => unknown>(),
+    visit: vi.fn<(...args: unknown[]) => unknown>(),
   },
 }));
 

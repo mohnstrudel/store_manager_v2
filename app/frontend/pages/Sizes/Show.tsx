@@ -19,20 +19,16 @@ export default function Show({ products, size }: ShowProps) {
 
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/sizes/${size.id}/edit`} prefetch>
-              <i className="icn">✏</i>
-              Edit
-            </Link>
-          </li>
-        }
-        subtitle={`Size ${size.id}`}
-        title={size.value}
-      />
+      <PageHeader subtitle={`Size ${size.id}`} title={size.value}>
+        <li>
+          <Link href={`/sizes/${size.id}/edit`} prefetch>
+            <i className="icn">✏</i>
+            Edit
+          </Link>
+        </li>
+      </PageHeader>
 
-      <div className="section-wide flex flex-col gap-8 mt-8">
+      <div className="section_wide flex flex-col gap-8 mt-8">
         <Details size={size} />
         <Products products={products} />
       </div>

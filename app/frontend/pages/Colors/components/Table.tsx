@@ -1,15 +1,10 @@
-import type { MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { ColorRecord } from "../types";
 
 type TableProps = {
   colors: ColorRecord[];
 };
-
-function stopRowNavigation(event: MouseEvent) {
-  event.stopPropagation();
-}
 
 export default function Table({ colors }: TableProps) {
   return (

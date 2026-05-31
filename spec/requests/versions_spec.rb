@@ -100,13 +100,22 @@ RSpec.describe "Versions" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Versions/New")
       expect_inertia.to have_props(
-        errors: {value: ["can't be blank"]},
+        errors: {value: "Value can't be blank"},
         version: {created_at: nil, id: nil, updated_at: nil, value: ""}
       )
     end
   end
 
   describe "PATCH /versions/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      version = create(:version, value: "XL")
+
+      patch version_path(version), params: {version: {value: "XL"}}
+
+      expect(response).to redirect_to(version_path(version))
+      expect(version.reload.value).to eq("XL")
+    end
+
     it "redirects to the updated version", :aggregate_failures do
       version = create(:version)
 
@@ -139,7 +148,7 @@ RSpec.describe "Versions" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Versions/Edit")
       expect_inertia.to have_props(
-        errors: {value: ["can't be blank"]},
+        errors: {value: "Value can't be blank"},
         version: {
           created_at: formatted_time(version.created_at),
           id: version.id,

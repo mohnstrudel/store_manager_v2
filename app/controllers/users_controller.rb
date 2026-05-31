@@ -6,13 +6,13 @@ class UsersController < ApplicationController
   def index
     @users = User.all
     render inertia: "Users/Index", props: {
-      users: @users.map { |user| user_props(user) }
+      users: @users.map { |user| helpers.user_props(user) }
     }
   end
 
   def show
     render inertia: "Users/Show", props: {
-      user: user_props(@user)
+      user: helpers.user_props(@user)
     }
   end
 
@@ -50,18 +50,4 @@ class UsersController < ApplicationController
     )
   end
 
-  def user_props(user)
-    {
-      id: user.id,
-      email_address: user.email_address.to_s,
-      first_name: user.first_name.presence || "-",
-      last_name: user.last_name.presence || "-",
-      role: user.role.humanize,
-      created_at: helpers.format_date(user.created_at).to_s,
-      updated_at: helpers.format_date(user.updated_at).to_s,
-      path: user_path(user),
-      edit_path: edit_user_path(user),
-      destroy_path: user_path(user)
-    }
-  end
 end

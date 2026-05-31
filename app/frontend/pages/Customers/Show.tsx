@@ -28,20 +28,16 @@ export default function Show({ active_sales, completed_sales, customer }: ShowPr
 
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={editPath} prefetch>
-              <i className="icn">✏</i>
-              Edit
-            </Link>
-          </li>
-        }
-        subtitle={subtitle}
-        title={title}
-      />
+      <PageHeader subtitle={subtitle} title={title}>
+        <li>
+          <Link href={editPath} prefetch>
+            <i className="icn">✏</i>
+            Edit
+          </Link>
+        </li>
+      </PageHeader>
 
-      <div className="section-wide flex flex-col gap-8 mt-8">
+      <div className="section_wide flex flex-col gap-8 mt-8">
         <Details customer={customer} />
         <Sales heading="Active Sales" sales={active_sales} />
         <Sales heading="Completed Sales" sales={completed_sales} />

@@ -13,18 +13,14 @@ export default function Edit({ franchise }: EditProps) {
 
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/franchises/${franchise.id}`} prefetch>
-              <i className="icn">📄</i>
-              View Franchise Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Franchise"
-      />
+      <PageHeader className="mb-8" title="Edit Franchise">
+        <li>
+          <Link href={`/franchises/${franchise.id}`} prefetch>
+            <i className="icn">📄</i>
+            View Franchise Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <ResourceForm
         action={`/franchises/${franchise.id}`}

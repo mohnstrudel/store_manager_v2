@@ -8,7 +8,7 @@ class ShippingCompaniesController < ApplicationController
     @shipping_companies = ShippingCompany.order(:name)
 
     render inertia: "ShippingCompanies/Index", props: {
-      shippingCompanies: @shipping_companies.map { |shipping_company| shipping_company_props(shipping_company) }
+      shippingCompanies: @shipping_companies.map { |shipping_company| helpers.shipping_company_props(shipping_company) }
     }
   end
 
@@ -17,8 +17,8 @@ class ShippingCompaniesController < ApplicationController
     @purchase_items = @shipping_company.purchase_items.for_shipping_details
 
     render inertia: "ShippingCompanies/Show", props: {
-      purchaseItems: @purchase_items.map { |purchase_item| purchase_item_props(purchase_item) },
-      shippingCompany: shipping_company_props(@shipping_company)
+      purchaseItems: @purchase_items.map { |purchase_item| helpers.shipping_company_purchase_item_props(purchase_item) },
+      shippingCompany: helpers.shipping_company_props(@shipping_company)
     }
   end
 
@@ -26,12 +26,12 @@ class ShippingCompaniesController < ApplicationController
   def new
     @shipping_company = ShippingCompany.new
 
-    render inertia: "ShippingCompanies/New", props: form_props(@shipping_company)
+    render inertia: "ShippingCompanies/New", props: helpers.shipping_company_form_props(@shipping_company)
   end
 
   # GET /shipping_companies/1/edit
   def edit
-    render inertia: "ShippingCompanies/Edit", props: form_props(@shipping_company)
+    render inertia: "ShippingCompanies/Edit", props: helpers.shipping_company_form_props(@shipping_company)
   end
 
   # POST /shipping_companies or /shipping_companies.json
@@ -43,7 +43,7 @@ class ShippingCompaniesController < ApplicationController
         format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully created" }
         format.json { render :show, status: :created, location: @shipping_company }
       else
-        format.html { redirect_to new_shipping_company_url, inertia: {errors: @shipping_company.errors} }
+        format.html { redirect_to new_shipping_company_url, inertia: inertia_errors(@shipping_company.errors) }
         format.json { render json: @shipping_company.errors, status: :unprocessable_content }
       end
     end
@@ -56,7 +56,7 @@ class ShippingCompaniesController < ApplicationController
         format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully updated" }
         format.json { render :show, status: :ok, location: @shipping_company }
       else
-        format.html { redirect_to edit_shipping_company_url(@shipping_company), inertia: {errors: @shipping_company.errors} }
+        format.html { redirect_to edit_shipping_company_url(@shipping_company), inertia: inertia_errors(@shipping_company.errors) }
         format.json { render json: @shipping_company.errors, status: :unprocessable_content }
       end
     end
@@ -84,33 +84,4 @@ class ShippingCompaniesController < ApplicationController
     params.fetch(:shipping_company, {}).permit(:name, :tracking_url)
   end
 
-  def form_props(shipping_company)
-    {
-      shippingCompany: shipping_company_props(shipping_company)
-    }
-  end
-
-  def shipping_company_props(shipping_company)
-    {
-      created_at: formatted_timestamp(shipping_company.created_at),
-      id: shipping_company.id,
-      name: shipping_company.name.to_s,
-      tracking_url: shipping_company.tracking_url.to_s.presence,
-      updated_at: formatted_timestamp(shipping_company.updated_at)
-    }
-  end
-
-  def purchase_item_props(purchase_item)
-    {
-      id: purchase_item.id,
-      path: purchase_item_path(purchase_item),
-      product_full_title: purchase_item.product.full_title.to_s,
-      purchased_ago: helpers.time_ago_in_words(purchase_item.purchase&.date || purchase_item.created_at),
-      tracking_number: purchase_item.tracking_number.to_s
-    }
-  end
-
-  def formatted_timestamp(time)
-    time&.strftime("%-d. %b '%y %H:%M")
-  end
 end

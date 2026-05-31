@@ -10,18 +10,14 @@ type EditProps = {
 export default function Edit({ version }: EditProps) {
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/versions/${version.id}`} prefetch>
-              <i className="icn">📄</i>
-              View Version Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Version"
-      />
+      <PageHeader className="mb-8" title="Edit Version">
+        <li>
+          <Link href={`/versions/${version.id}`} prefetch>
+            <i className="icn">📄</i>
+            View Version Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <Form
         method="patch"

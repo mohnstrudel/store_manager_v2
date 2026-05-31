@@ -99,13 +99,22 @@ RSpec.describe "Sizes" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Sizes/New")
       expect_inertia.to have_props(
-        errors: {value: ["can't be blank"]},
+        errors: {value: "Value can't be blank"},
         size: {id: nil, value: "", created_at: nil, updated_at: nil}
       )
     end
   end
 
   describe "PATCH /sizes/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      size = create(:size, value: "1:8")
+
+      patch size_path(size), params: {size: {value: "1:8"}}
+
+      expect(response).to redirect_to(size_path(size))
+      expect(size.reload.value).to eq("1:8")
+    end
+
     it "redirects to the updated size", :aggregate_failures do
       size = create(:size)
 
@@ -138,7 +147,7 @@ RSpec.describe "Sizes" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Sizes/Edit")
       expect_inertia.to have_props(
-        errors: {value: ["can't be blank"]},
+        errors: {value: "Value can't be blank"},
         size: {
           id: size.id,
           value: size.value,

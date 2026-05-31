@@ -13,18 +13,14 @@ export default function Edit({ color }: EditProps) {
 
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/colors/${color.id}`} prefetch>
-              <i className="icn">📄</i>
-              View Color Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Color"
-      />
+      <PageHeader className="mb-8" title="Edit Color">
+        <li>
+          <Link href={`/colors/${color.id}`} prefetch>
+            <i className="icn">📄</i>
+            View Color Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <ResourceForm
         action={`/colors/${color.id}`}

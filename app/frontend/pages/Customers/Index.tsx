@@ -14,34 +14,27 @@ type IndexProps = {
 export default function Index({ customers, pagination, search }: IndexProps) {
   return (
     <>
-      <PageHeader
-        actions={
-          <li>
-            <Link href="/customers/new" prefetch>
-              <i className="icn">🐣</i>
-              Add New Record
-            </Link>
-          </li>
-        }
-        title="Customers"
-      />
+      <PageHeader title="Customers">
+        <li>
+          <Link href="/customers/new" prefetch>
+            <i className="icn">🐣</i>
+            Add New Record
+          </Link>
+        </li>
+      </PageHeader>
 
-      <div className="section-border-base section-wide">
+      <div className="section_border_base section_wide">
         <div className="search">
-          <SearchBar
-            initialQuery={search.q}
-            path="/customers"
-            reloadOnly={["customers", "pagination", "search"]}
-          />
-          <div className="pagination-top">
-            <Pagination pagination={pagination} params={{ q: search.q }} path="/customers" />
+          <SearchBar initialQuery={search.q} path="/customers" resourceName="customers" />
+          <div className="pagination_top">
+            <Pagination pagination={pagination} path="/customers" query={search.q} />
           </div>
         </div>
 
         <Table customers={customers} searchQuery={search.q} />
 
-        <div className="pagination-bottom">
-          <Pagination pagination={pagination} params={{ q: search.q }} path="/customers" />
+        <div className="pagination_bottom">
+          <Pagination pagination={pagination} path="/customers" query={search.q} />
         </div>
       </div>
     </>

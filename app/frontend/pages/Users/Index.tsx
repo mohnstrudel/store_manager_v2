@@ -1,6 +1,5 @@
-import type { MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 
 type UserRecord = {
   id: number;
@@ -19,10 +18,6 @@ type IndexProps = {
   users: UserRecord[];
 };
 
-function stopRowNavigation(event: MouseEvent) {
-  event.stopPropagation();
-}
-
 export default function Index({ users }: IndexProps) {
   return (
     <>
@@ -32,7 +27,7 @@ export default function Index({ users }: IndexProps) {
         </hgroup>
       </header>
 
-      <section className="section-border-base section-wide">
+      <section className="section_border_base section_wide">
         <table role="grid">
           <thead>
             <tr>

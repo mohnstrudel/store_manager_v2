@@ -8,7 +8,7 @@ class FranchisesController < ApplicationController
     @franchises = Franchise.order(:title)
 
     render inertia: "Franchises/Index", props: {
-      franchises: @franchises.map { |franchise| franchise_props(franchise) }
+      franchises: @franchises.map { |franchise| helpers.franchise_props(franchise) }
     }
   end
 
@@ -17,8 +17,8 @@ class FranchisesController < ApplicationController
     @franchise = Franchise.includes(:products).find(params[:id])
 
     render inertia: "Franchises/Show", props: {
-      franchise: franchise_props(@franchise),
-      products: @franchise.products.map { |product| product_props(product) }
+      franchise: helpers.franchise_props(@franchise),
+      products: @franchise.products.map { |product| helpers.product_props(product) }
     }
   end
 
@@ -26,12 +26,12 @@ class FranchisesController < ApplicationController
   def new
     @franchise = Franchise.new
 
-    render inertia: "Franchises/New", props: form_props(@franchise)
+    render inertia: "Franchises/New", props: helpers.franchise_form_props(@franchise)
   end
 
   # GET /franchises/1/edit
   def edit
-    render inertia: "Franchises/Edit", props: form_props(@franchise)
+    render inertia: "Franchises/Edit", props: helpers.franchise_form_props(@franchise)
   end
 
   # POST /franchises or /franchises.json
@@ -43,7 +43,7 @@ class FranchisesController < ApplicationController
         format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully created" }
         format.json { render :show, status: :created, location: @franchise }
       else
-        format.html { redirect_to new_franchise_url, inertia: {errors: @franchise.errors} }
+        format.html { redirect_to new_franchise_url, inertia: inertia_errors(@franchise.errors) }
         format.json { render json: @franchise.errors, status: :unprocessable_content }
       end
     end
@@ -56,7 +56,7 @@ class FranchisesController < ApplicationController
         format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully updated" }
         format.json { render :show, status: :ok, location: @franchise }
       else
-        format.html { redirect_to edit_franchise_url(@franchise), inertia: {errors: @franchise.errors} }
+        format.html { redirect_to edit_franchise_url(@franchise), inertia: inertia_errors(@franchise.errors) }
         format.json { render json: @franchise.errors, status: :unprocessable_content }
       end
     end
@@ -84,30 +84,4 @@ class FranchisesController < ApplicationController
     params.fetch(:franchise, {}).permit(:title)
   end
 
-  def form_props(franchise)
-    {
-      franchise: franchise_props(franchise)
-    }
-  end
-
-  def franchise_props(franchise)
-    {
-      id: franchise.id,
-      title: franchise.title.to_s,
-      created_at: formatted_timestamp(franchise.created_at),
-      updated_at: formatted_timestamp(franchise.updated_at)
-    }
-  end
-
-  def product_props(product)
-    {
-      id: product.id,
-      full_title: product.full_title.to_s,
-      path: product_path(product)
-    }
-  end
-
-  def formatted_timestamp(time)
-    time&.strftime("%-d. %b '%y %H:%M")
-  end
 end

@@ -105,6 +105,18 @@ RSpec.describe "ShippingCompanies" do
   end
 
   describe "POST /shipping_companies" do
+    it "rerenders the new Inertia component when submitted untouched", :aggregate_failures do
+      post shipping_companies_path, params: {shipping_company: {name: "", tracking_url: ""}}
+
+      expect(response).to redirect_to(new_shipping_company_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("ShippingCompanies/New")
+      expect(inertia.props[:errors]).to include(tracking_url: "Tracking url can't be blank")
+    end
+
     it "redirects to the created shipping company", :aggregate_failures do
       post shipping_companies_path, params: {shipping_company: {name: "Skyline", tracking_url: "https://track.me"}}
 
@@ -122,7 +134,7 @@ RSpec.describe "ShippingCompanies" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ShippingCompanies/New")
       expect_inertia.to have_props(
-        errors: {tracking_url: ["can't be blank"]},
+        errors: {tracking_url: "Tracking url can't be blank"},
         shippingCompany: {
           created_at: nil,
           id: nil,
@@ -135,6 +147,17 @@ RSpec.describe "ShippingCompanies" do
   end
 
   describe "PATCH /shipping_companies/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      shipping_company = create(:shipping_company, name: "Skyline", tracking_url: "https://track.me")
+
+      patch shipping_company_path(shipping_company), params: {
+        shipping_company: {name: "Skyline", tracking_url: "https://track.me"}
+      }
+
+      expect(response).to redirect_to(shipping_company_path(shipping_company))
+      expect(shipping_company.reload.tracking_url).to eq("https://track.me")
+    end
+
     it "redirects to the updated shipping company", :aggregate_failures do
       shipping_company = create(:shipping_company)
 
@@ -175,7 +198,7 @@ RSpec.describe "ShippingCompanies" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ShippingCompanies/Edit")
       expect_inertia.to have_props(
-        errors: {tracking_url: ["can't be blank"]},
+        errors: {tracking_url: "Tracking url can't be blank"},
         shippingCompany: {
           created_at: formatted_time(shipping_company.created_at),
           id: shipping_company.id,

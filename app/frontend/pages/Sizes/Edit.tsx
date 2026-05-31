@@ -13,18 +13,14 @@ export default function Edit({ size }: EditProps) {
     <>
       <ErrorNotice />
 
-      <PageHeader
-        actions={
-          <li>
-            <Link href={`/sizes/${size.id}`} prefetch>
-              <i className="icn">📄</i>
-              View Size Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Size"
-      />
+      <PageHeader className="mb-8" title="Edit Size">
+        <li>
+          <Link href={`/sizes/${size.id}`} prefetch>
+            <i className="icn">📄</i>
+            View Size Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <Form method="patch" size={size} submitLabel="Update Size" url={`/sizes/${size.id}`} />
     </>

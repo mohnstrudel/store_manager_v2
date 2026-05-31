@@ -1,6 +1,6 @@
 import { usePage } from "@inertiajs/react";
-import FieldSet from "@/components/FieldSet";
 import FormInput from "@/components/FormInput";
+import FormRow from "@/components/FormRow";
 import ResourceForm from "@/components/ResourceForm";
 import { CustomerRecord } from "../types";
 
@@ -16,7 +16,7 @@ export default function Form({ customer, method, submitLabel, url }: CustomerFor
 
   return (
     <ResourceForm action={url} cancelHref="/customers" method={method} submitLabel={submitLabel}>
-      <FieldSet className="lg:-mt-8">
+      <FormRow>
         <FormInput
           defaultValue={customer.first_name}
           error={errors.first_name}
@@ -29,8 +29,8 @@ export default function Form({ customer, method, submitLabel, url }: CustomerFor
           label="Last name"
           name="customer[last_name]"
         />
-      </FieldSet>
-      <FieldSet>
+      </FormRow>
+      <FormRow>
         <FormInput
           defaultValue={customer.email}
           error={errors.email}
@@ -44,7 +44,7 @@ export default function Form({ customer, method, submitLabel, url }: CustomerFor
           label="Phone"
           name="customer[phone]"
         />
-      </FieldSet>
+      </FormRow>
     </ResourceForm>
   );
 }

@@ -10,7 +10,7 @@ export default function Sales({ heading, sales }: SalesProps) {
   if (sales.length === 0) return null;
 
   return (
-    <section className="table-card">
+    <section className="table_card">
       <h3>{heading}</h3>
       <table>
         <thead>
@@ -33,10 +33,10 @@ export default function Sales({ heading, sales }: SalesProps) {
               <td>
                 <Link href={sale.path} prefetch>
                   {sale.store_type === "shopify" && (
-                    <span className="inline-block icon-shopify w-5 h-5 mr-1 -mb-1" />
+                    <span className="inline-block icon_shopify w-5 h-5 mr-1 -mb-1" />
                   )}
                   {sale.store_type === "woo" && (
-                    <span className="inline-block icon-woo w-8 h-8 mr-2 -mb-3" />
+                    <span className="inline-block icon_woo w-8 h-8 mr-2 -mb-3" />
                   )}
                   {sale.store_id || sale.id}
                 </Link>

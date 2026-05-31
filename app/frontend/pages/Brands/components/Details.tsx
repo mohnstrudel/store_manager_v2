@@ -6,7 +6,7 @@ type DetailsProps = {
 
 export default function Details({ brand }: DetailsProps) {
   return (
-    <div className="table-card">
+    <div className="table_card">
       <table>
         <thead>
           <tr>

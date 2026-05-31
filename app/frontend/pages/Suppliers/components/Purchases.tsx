@@ -12,7 +12,7 @@ export default function Purchases({ purchases }: PurchasesProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="table-card">
+      <div className="table_card">
         <h3>Purchases</h3>
         <table role="grid">
           <thead>
