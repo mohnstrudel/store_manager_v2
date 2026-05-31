@@ -1,0 +1,63 @@
+# frozen_string_literal: true
+
+module PurchaseItemHelper
+  def purchase_item_index_props(purchase_item)
+    {
+      id: purchase_item.id,
+      path: purchase_item_path(purchase_item),
+      edit_path: edit_purchase_item_path(purchase_item),
+      purchase_path: purchase_path(purchase_item.purchase),
+      purchase_title: purchase_item.purchase.full_title,
+      product_path: product_path(purchase_item.purchase.product),
+      product_title: purchase_item.purchase.product.full_title,
+      variant_title: purchase_item.purchase.variant_title,
+      warehouse_name: purchase_item.warehouse.name,
+      warehouse_path: warehouse_path(purchase_item.warehouse),
+      sale_path: purchase_item.sale ? sale_path(purchase_item.sale) : nil,
+      sale_title: purchase_item.sale&.full_title,
+      customer_email: purchase_item.customer&.email,
+      tracking_number: safe_blank_render(purchase_item.tracking_number),
+      shipping_company_name: safe_blank_render(purchase_item.shipping_company&.name),
+      shipping_cost: format_money(purchase_item.shipping_cost),
+      updated_at: format_date(purchase_item.updated_at)
+    }
+  end
+
+  def purchase_item_show_props(purchase_item)
+    {
+      id: purchase_item.id,
+      path: purchase_item_path(purchase_item),
+      edit_path: edit_purchase_item_path(purchase_item),
+      destroy_path: purchase_item_path(purchase_item),
+      purchase_path: purchase_path(purchase_item.purchase),
+      purchase_title: purchase_item.purchase.full_title,
+      sale_path: purchase_item.sale ? sale_path(purchase_item.sale) : nil,
+      sale_item_path: purchase_item.sale_item ? sale_item_path(purchase_item.sale, purchase_item.sale_item) : nil,
+      supplier_title: purchase_item.purchase.supplier.title,
+      supplier_path: supplier_path(purchase_item.purchase.supplier),
+      product_title: purchase_item.purchase.product.full_title,
+      product_path: product_path(purchase_item.purchase.product),
+      warehouse_name: purchase_item.warehouse.name,
+      warehouse_path: warehouse_path(purchase_item.warehouse),
+      expenses: format_money(safe_blank_render(purchase_item.expenses)),
+      shipping_cost: format_money(safe_blank_render(purchase_item.shipping_cost)),
+      tracking_number: safe_blank_render(purchase_item.tracking_number),
+      shipping_company_name: safe_blank_render(purchase_item.shipping_company&.name),
+      length: safe_blank_render(purchase_item.length),
+      width: safe_blank_render(purchase_item.width),
+      height: safe_blank_render(purchase_item.height),
+      weight: safe_blank_render(purchase_item.weight),
+      created_at: format_date(purchase_item.created_at),
+      updated_at: format_date(purchase_item.updated_at),
+      media: purchase_item.media.filter_map { |media| media_props(media) },
+      warehouse_movements: purchase_item.warehouse_movements.map.with_index do |movement, index|
+        {
+          id: index,
+          moved_in: format_datetime(movement.moved_in),
+          warehouse_name: movement.warehouse&.name,
+          warehouse_path: movement.warehouse ? warehouse_path(movement.warehouse) : nil
+        }
+      end
+    }
+  end
+end

@@ -54,7 +54,7 @@ export default function Show({ purchase_item }: ShowProps) {
         </menu>
       </header>
 
-      <div className="section-wide">
+      <div className="section_wide">
         <div className="cards">
           <ImageGallery media={purchase_item.media} />
           <div className="card grow">
@@ -101,7 +101,7 @@ export default function Show({ purchase_item }: ShowProps) {
           </div>
           {purchase_item.warehouse_movements.length > 0 && (
             <div className="card">
-              <table className="vertical thead-static" role="grid">
+              <table className="vertical thead_static" role="grid">
                 <thead>
                   <tr>
                     <th>Moved in</th>

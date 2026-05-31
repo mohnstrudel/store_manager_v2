@@ -55,7 +55,7 @@ export default function Show({
         </menu>
       </header>
 
-      <div className="section-wide flex flex-col gap-8">
+      <div className="section_wide flex flex-col gap-8">
         <PurchaseItems
           movePath={warehouse_move_path}
           purchase={purchase}

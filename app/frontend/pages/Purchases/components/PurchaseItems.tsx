@@ -1,7 +1,7 @@
 import { router, Link } from "@inertiajs/react";
 import { type MouseEvent, useState } from "react";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import MoveToWarehouseForm from "./MoveToWarehouseForm";
 import PaymentProgressBar from "./PaymentProgressBar";
 import type { PurchaseItemRecord, PurchaseShowRecord, WarehouseOption } from "../types";
@@ -12,6 +12,13 @@ type PurchaseItemsProps = {
   purchaseItems: PurchaseItemRecord[];
   warehouses: WarehouseOption[];
 };
+
+function unlinkPurchaseItem(purchaseItem: PurchaseItemRecord, event: MouseEvent) {
+  event.stopPropagation();
+  if (window.confirm("Are you sure?")) {
+    router.delete(purchaseItem.unlink_path);
+  }
+}
 
 export default function PurchaseItems({
   movePath,
@@ -31,20 +38,9 @@ export default function PurchaseItems({
     );
   }
 
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
-  function unlinkPurchaseItem(purchaseItem: PurchaseItemRecord, event: MouseEvent) {
-    event.stopPropagation();
-    if (window.confirm("Are you sure?")) {
-      router.delete(purchaseItem.unlink_path);
-    }
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      <div className="table-card">
+      <div className="table_card">
         <div className="flex justify-between align-center flex-wrap">
           <h3>
             <Link
@@ -98,7 +94,7 @@ export default function PurchaseItems({
                 key={purchaseItem.id}
                 {...rowNavigationProps(purchaseItem.path)}
               >
-                <td className="no-events text-center">
+                <td className="no_events text-center">
                   <input
                     checked={selectedIds.includes(purchaseItem.id)}
                     onChange={() => togglePurchaseItem(purchaseItem.id)}
@@ -109,7 +105,7 @@ export default function PurchaseItems({
                 <td>{purchaseItem.id}</td>
                 <td>
                   <Link
-                    className="link no-events"
+                    className="link no_events"
                     href={purchaseItem.warehouse_path}
                     onClick={stopRowNavigation}
                     prefetch
@@ -120,7 +116,7 @@ export default function PurchaseItems({
                 <td>
                   {purchaseItem.sale_path && (
                     <Link
-                      className="link no-events"
+                      className="link no_events"
                       href={purchaseItem.sale_path}
                       onClick={stopRowNavigation}
                       prefetch
@@ -133,12 +129,12 @@ export default function PurchaseItems({
                   {purchaseItem.sale_path && (
                     <div className="flex flex-col items-start gap-2 text-sm">
                       <CopyToClipboardButton
-                        className="text-xs btn-xs"
+                        className="text-xs btn_xs"
                         label="Copy address"
                         text={purchaseItem.sale_address}
                       />
                       <CopyToClipboardButton
-                        className="text-xs btn-xs"
+                        className="text-xs btn_xs"
                         label="Copy email"
                         text={purchaseItem.customer_email}
                       />
@@ -150,7 +146,7 @@ export default function PurchaseItems({
                   <div className="flex justify-end">
                     {purchaseItem.sale_path && (
                       <button
-                        className="no-events btn-red btn-rounded"
+                        className="no_events btn_red btn_rounded"
                         onClick={(event) => unlinkPurchaseItem(purchaseItem, event)}
                         type="button"
                       >
@@ -159,7 +155,7 @@ export default function PurchaseItems({
                       </button>
                     )}
                     <Link
-                      className="no-events"
+                      className="no_events"
                       href={purchaseItem.edit_path}
                       onClick={stopRowNavigation}
                       prefetch

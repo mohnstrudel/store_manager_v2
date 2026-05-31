@@ -2,12 +2,12 @@
   - if purchase_item.tracking_number.present?
     span.text-sm.font-mono.cursor-text = purchase_item.tracking_number
     = link_to edit_purchase_item_tracking_number_path(purchase_item),
-        class: "btn-xs btn-rounded",
+        class: "btn_xs btn_rounded",
         title: "Edit tracking number" do
       i.icn ✏
       | Edit
   - else
     = link_to "Add",
         edit_purchase_item_tracking_number_path(purchase_item),
-        class: "btn-xs btn-rounded",
+        class: "btn_xs btn_rounded",
         title: "Edit tracking number"

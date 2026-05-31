@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { usePage } from "@inertiajs/react";
-import FieldSet from "@/components/FieldSet";
 import FormInput from "@/components/FormInput";
+import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
+import { toSelectedOption } from "@/lib/selectOptions";
 import ProductVariantSelect from "./ProductVariantSelect";
-import { type PurchaseFormOptions, type PurchaseFormRecord, type SelectOption } from "../types";
+import { type PurchaseFormOptions, type PurchaseFormRecord } from "../types";
 
 type PurchaseFormProps = {
   isNew: boolean;
@@ -15,13 +16,6 @@ type PurchaseFormProps = {
 };
 
 type PageErrors = Record<string, string | undefined>;
-
-function toSelectedOption(
-  options: SelectOption<number>[],
-  value: number | null,
-): SelectOption<number> | null {
-  return options.find((option) => option.value === value) ?? null;
-}
 
 export default function Form({ isNew, options, purchase, submitLabel }: PurchaseFormProps) {
   const { errors = {} } = usePage().props as { errors?: PageErrors };
@@ -37,7 +31,7 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
       method={isNew ? "post" : "patch"}
       submitLabel={submitLabel}
     >
-      <FieldSet>
+      <FormRow>
         <FormSmartSelect
           isClearable
           inputId="purchase_product_id"
@@ -60,27 +54,24 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
           options={options.suppliers}
           value={toSelectedOption(options.suppliers, supplierId)}
         />
-      </FieldSet>
+      </FormRow>
 
-      <div className="mt-4">
-        <ProductVariantSelect
-          initialVariants={purchase.variant_options}
-          onChange={setVariantId}
-          productId={productId}
-          productVariantsPath={options.product_variants_path}
-          value={variantId}
-        />
-      </div>
+      <ProductVariantSelect
+        initialVariants={purchase.variant_options}
+        onChange={setVariantId}
+        productId={productId}
+        productVariantsPath={options.product_variants_path}
+        value={variantId}
+      />
 
       <FormInput
-        className="mt-4"
         defaultValue={purchase.order_reference}
         error={errors.order_reference}
         label="Order reference"
         name="purchase[order_reference]"
       />
 
-      <FieldSet className="mt-4">
+      <FormRow>
         <FormInput
           defaultValue={purchase.item_price}
           error={errors.item_price}
@@ -105,11 +96,10 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
             type="number"
           />
         )}
-      </FieldSet>
+      </FormRow>
 
       {options.warehouses.length > 0 && (
         <FormSmartSelect
-          className="mt-4"
           isClearable
           inputId="purchase_warehouse_id"
           label="Initial warehouse"

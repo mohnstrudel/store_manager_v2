@@ -1,6 +1,5 @@
-import type { MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
@@ -33,10 +32,6 @@ type IndexProps = {
 };
 
 export default function Index({ pagination, purchase_items, search }: IndexProps) {
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
   return (
     <>
       <header className="nav_header">
@@ -45,15 +40,11 @@ export default function Index({ pagination, purchase_items, search }: IndexProps
         </hgroup>
       </header>
 
-      <section className="section-border-base section-wide">
+      <section className="section_border_base section_wide">
         <div className="search">
-          <SearchBar
-            initialQuery={search.q}
-            path="/purchase_items"
-            reloadOnly={["purchase_items", "pagination", "search"]}
-          />
-          <div className="pagination-top">
-            <Pagination pagination={pagination} params={{ q: search.q }} path="/purchase_items" />
+          <SearchBar initialQuery={search.q} path="/purchase_items" resourceName="purchase_items" />
+          <div className="pagination_top">
+            <Pagination pagination={pagination} path="/purchase_items" query={search.q} />
           </div>
         </div>
 
@@ -129,8 +120,8 @@ export default function Index({ pagination, purchase_items, search }: IndexProps
                 ))}
               </tbody>
             </table>
-            <div className="pagination-bottom">
-              <Pagination pagination={pagination} params={{ q: search.q }} path="/purchase_items" />
+            <div className="pagination_bottom">
+              <Pagination pagination={pagination} path="/purchase_items" query={search.q} />
             </div>
           </>
         ) : search.q ? (

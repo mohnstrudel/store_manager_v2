@@ -110,6 +110,35 @@ RSpec.describe "Purchases" do
   end
 
   describe "POST /purchases" do
+    it "creates a purchase with initial warehouse and payment", :aggregate_failures do
+      product = create(:product)
+      supplier = create(:supplier)
+      warehouse = create(:warehouse, is_default: true)
+
+      expect {
+        post purchases_path, params: {
+          purchase: {
+            supplier_id: supplier.id,
+            product_id: product.id,
+            item_price: "15.00",
+            amount: "2",
+            order_reference: "PO-1",
+            warehouse_id: warehouse.id
+          },
+          initial_payment: {
+            value: "30.00"
+          }
+        }
+      }.to change(Purchase, :count).by(1)
+        .and change(PurchaseItem, :count).by(2)
+        .and change(Payment, :count).by(1)
+
+      purchase = Purchase.order(:id).last
+      expect(response).to redirect_to(purchase_path(purchase))
+      expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
+      expect(purchase.payments.first.value).to eq(BigDecimal(30))
+    end
+
     it "redirects to the new page with errors when invalid" do
       post purchases_path, params: {
         purchase: {
@@ -127,14 +156,42 @@ RSpec.describe "Purchases" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Purchases/New")
       expect(inertia.props[:errors]).to include(
-        supplier_id: ["can't be blank"],
-        item_price: ["can't be blank"],
-        amount: ["can't be blank"]
+        supplier_id: "Supplier can't be blank",
+        item_price: "Item price can't be blank",
+        amount: "Amount can't be blank"
       )
     end
   end
 
   describe "PATCH /purchases/:id" do
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      product = create(:product)
+      supplier = create(:supplier)
+      purchase = create(
+        :purchase,
+        product:,
+        supplier:,
+        item_price: BigDecimal(15),
+        amount: 2,
+        order_reference: "PO-1"
+      )
+
+      patch purchase_path(purchase), params: {
+        purchase: {
+          supplier_id: supplier.id,
+          product_id: product.id,
+          variant_id: "",
+          item_price: "15.00",
+          amount: "2",
+          order_reference: "PO-1"
+        }
+      }
+
+      expect(response).to redirect_to(purchase_path(purchase.reload))
+      expect(purchase.amount).to eq(2)
+      expect(purchase.item_price).to eq(BigDecimal(15))
+    end
+
     it "redirects to the edit page with errors when invalid" do
       purchase = create(:purchase)
 
@@ -155,9 +212,9 @@ RSpec.describe "Purchases" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Purchases/Edit")
       expect(inertia.props[:errors]).to include(
-        supplier_id: ["can't be blank"],
-        item_price: ["can't be blank"],
-        amount: ["can't be blank"]
+        supplier_id: "Supplier can't be blank",
+        item_price: "Item price can't be blank",
+        amount: "Amount can't be blank"
       )
     end
   end

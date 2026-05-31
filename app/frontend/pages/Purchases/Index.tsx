@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "@inertiajs/react";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
@@ -23,19 +23,19 @@ export default function Index({
   warehouses,
 }: IndexProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const paginationBottom = (
-    <div className="pagination-bottom">
-      <Pagination pagination={pagination} params={{ q: search.q }} path="/purchases" />
-    </div>
-  );
-
-  function togglePurchase(purchaseId: number) {
+  const clearSelectedIds = useCallback(() => setSelectedIds([]), []);
+  const togglePurchase = useCallback((purchaseId: number) => {
     setSelectedIds((current) =>
       current.includes(purchaseId)
         ? current.filter((selectedId) => selectedId !== purchaseId)
         : [...current, purchaseId],
     );
-  }
+  }, []);
+  const paginationBottom = (
+    <div className="pagination_bottom">
+      <Pagination pagination={pagination} path="/purchases" query={search.q} />
+    </div>
+  );
 
   return (
     <>
@@ -54,15 +54,11 @@ export default function Index({
         </menu>
       </header>
 
-      <section className="section-border-base section-wide">
+      <section className="section_border_base section_wide">
         <div className="search">
-          <SearchBar
-            initialQuery={search.q}
-            path="/purchases"
-            reloadOnly={["purchases", "pagination", "search"]}
-          />
-          <div className="pagination-top">
-            <Pagination pagination={pagination} params={{ q: search.q }} path="/purchases" />
+          <SearchBar initialQuery={search.q} path="/purchases" resourceName="purchases" />
+          <div className="pagination_top">
+            <Pagination pagination={pagination} path="/purchases" query={search.q} />
           </div>
         </div>
 
@@ -76,7 +72,7 @@ export default function Index({
             {paginationBottom}
             <MoveToWarehouseForm
               movePath={move_path}
-              onMoved={() => setSelectedIds([])}
+              onMoved={clearSelectedIds}
               selectedIds={selectedIds}
               warehouses={warehouses}
             />

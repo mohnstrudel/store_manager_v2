@@ -1,5 +1,5 @@
 = form_with model: purchase_item,
-    class: "flex flex-col w-full gap-2 no-events",
+    class: "flex flex-col w-full gap-2 no_events",
     id: dom_id(purchase_item, :shipping_company),
     url: purchase_item_shipping_company_path(purchase_item),
     method: :patch do |form|
@@ -10,15 +10,15 @@
     {class: "border rounded px-2 py-1 text-sm w-full min-w-35", autofocus: true}
 
   - if purchase_item.errors.any?
-    p.text-error.text-xs.no-events
+    p.text_error.text-xs.no_events
       = purchase_item.errors.full_messages.join(", ")
 
   .flex.gap-1.justify-center
-    button.btn-rounded.btn-xs.btn-green type="submit" title="Save"
+    button.btn_rounded.btn_xs.btn_green type="submit" title="Save"
       i.icn ✅
       | Save
     = link_to purchase_item_path(purchase_item),
-        class: "btn-red btn-xs btn-rounded",
+        class: "btn_red btn_xs btn_rounded",
         title: "Cancel" do
       i.icn ❎
       | Exit

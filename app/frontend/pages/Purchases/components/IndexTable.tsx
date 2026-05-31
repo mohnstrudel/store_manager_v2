@@ -1,6 +1,7 @@
-import type { MouseEvent } from "react";
+import { useCallback, type ChangeEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import PaymentProgressBar from "./PaymentProgressBar";
 import type { PurchaseIndexRecord } from "../types";
 
@@ -11,9 +12,14 @@ type IndexTableProps = {
 };
 
 export default function IndexTable({ onTogglePurchase, purchases, selectedIds }: IndexTableProps) {
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
+  const handleTogglePurchase = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const purchaseId = Number(event.currentTarget.dataset.purchaseId);
+      if (Number.isNaN(purchaseId)) return;
+      onTogglePurchase(purchaseId);
+    },
+    [onTogglePurchase],
+  );
 
   return (
     <table role="grid">
@@ -38,25 +44,21 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
       <tbody>
         {purchases.map((purchase) => (
           <tr className="hoverable" key={purchase.id} {...rowNavigationProps(purchase.path)}>
-            <td className="no-events text-center">
+            <td className="no_events text-center">
               <input
                 checked={selectedIds.includes(purchase.id)}
-                onChange={() => onTogglePurchase(purchase.id)}
+                data-purchase-id={purchase.id}
+                onChange={handleTogglePurchase}
                 onClick={stopRowNavigation}
                 type="checkbox"
               />
             </td>
             <td className="text-center">
-              {purchase.product_thumb_url && (
-                <div className="preloadable-img__container justify-self-center w-fit h-fit">
-                  <img
-                    alt={purchase.product_title}
-                    className="preloadable-img__img zoomable"
-                    src={purchase.product_thumb_url}
-                    style={{ height: "120px", maxWidth: "100px", minWidth: "100px" }}
-                  />
-                </div>
-              )}
+              <ZoomableThumbnail
+                alt={purchase.product_title}
+                key={`${purchase.id}-${purchase.product_thumb_url ?? "missing"}`}
+                src={purchase.product_thumb_url}
+              />
             </td>
             <td>
               {purchase.product_title}
@@ -83,7 +85,7 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
             </td>
             <td className="actions">
               <Link
-                className="no-events"
+                className="no_events"
                 href={purchase.edit_path}
                 onClick={stopRowNavigation}
                 prefetch

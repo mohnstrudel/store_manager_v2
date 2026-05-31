@@ -14,18 +14,14 @@ export default function Edit({ options, purchase }: EditProps) {
     <>
       <ErrorNotice />
 
-      <PageHeader
-        actions={
-          <li>
-            <Link href={purchase.path} prefetch>
-              <i className="icn">📄</i>
-              View Purchase Page
-            </Link>
-          </li>
-        }
-        className="mb-8"
-        title="Edit Purchase"
-      />
+      <PageHeader className="mb-8" title="Edit Purchase">
+        <li>
+          <Link href={purchase.path} prefetch>
+            <i className="icn">📄</i>
+            View Purchase Page
+          </Link>
+        </li>
+      </PageHeader>
 
       <Form isNew={false} options={options} purchase={purchase} submitLabel="Update Purchase" />
     </>

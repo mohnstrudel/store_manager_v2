@@ -55,7 +55,13 @@ module Purchases
     end
 
     def render_purchase_show_error
-      render inertia: "Purchases/Show", props: purchase_show_props, status: :unprocessable_content
+      prepare_purchase_show_state
+      render inertia: "Purchases/Show", props: helpers.purchase_show_props(
+        @purchase,
+        purchase_items: @purchase_items,
+        payments: @payments,
+        new_payment: @new_payment
+      ), status: :unprocessable_content
     end
   end
 end

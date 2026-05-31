@@ -10,7 +10,7 @@ RSpec.describe "Creating a new purchase" do
   let!(:product) { create(:product) }
   let!(:warehouse) { create(:warehouse, is_default: true) }
 
-  scenario "creates purchased products in the default warehouse" do # rubocop:todo RSpec/MultipleExpectations
+  scenario "creates purchased products in the default warehouse", :js do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
     choose_react_select(supplier.title, from: "Supplier")
@@ -28,7 +28,7 @@ RSpec.describe "Creating a new purchase" do
     expect(purchase.purchase_items.all? { |pp| pp.warehouse == warehouse }).to be true
   end
 
-  scenario "creates an initial payment alongside the purchase" do # rubocop:todo RSpec/MultipleExpectations
+  scenario "creates an initial payment alongside the purchase", :js do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
     choose_react_select(supplier.title, from: "Supplier")
@@ -46,7 +46,7 @@ RSpec.describe "Creating a new purchase" do
     expect(purchase.payments.pluck(:value)).to eq([BigDecimal(50)])
   end
 
-  scenario "shows validation errors after an invalid submit" do
+  scenario "shows validation errors after an invalid submit", :js do
     visit new_purchase_path
 
     click_button "Create Purchase"
@@ -71,7 +71,7 @@ RSpec.describe "Creating a new purchase" do
   end
 
   # rubocop:todo RSpec/MultipleExpectations
-  scenario "displays warehouse information on the purchase page after creation" do
+  scenario "displays warehouse information on the purchase page after creation", :js do
     # rubocop:enable RSpec/MultipleExpectations
     visit product_path(product)
 
@@ -90,7 +90,7 @@ RSpec.describe "Creating a new purchase" do
     purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))
 
-    within(first(".table-card")) do
+    within(first(".table_card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
     end
 
@@ -122,7 +122,7 @@ RSpec.describe "Creating a new purchase" do
     expect(Purchase.last.payments.first.payment_date.to_date).to eq(Date.new(2026, 3, 29))
   end
 
-  scenario "shows the product link in the purchase items header instead of a header subtitle" do # rubocop:todo RSpec/MultipleExpectations
+  scenario "shows the product link in the purchase items header instead of a header subtitle", :js do # rubocop:todo RSpec/MultipleExpectations
     purchase = create(:purchase, product:, supplier:)
     create(:purchase_item, purchase:)
 
@@ -133,32 +133,32 @@ RSpec.describe "Creating a new purchase" do
       expect(page).not_to have_selector("h2", text: product.full_title)
     end
 
-    within(first(".table-card")) do
+    within(first(".table_card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
     end
   end
 
-  scenario "shows the variant title in the purchase items header when the purchase has a variant" do # rubocop:todo RSpec/MultipleExpectations
+  scenario "shows the variant title in the purchase items header when the purchase has a variant", :js do # rubocop:todo RSpec/MultipleExpectations
     variant = create(:variant, product:)
     purchase = create(:purchase, product:, supplier:, variant:)
     create(:purchase_item, purchase:)
 
     visit purchase_path(purchase)
 
-    within(first(".table-card")) do
+    within(first(".table_card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
       expect(page).to have_text("→ #{variant.title}")
     end
   end
 
-  scenario "shows a zoomable product thumbnail in the purchase items header" do
+  scenario "shows a zoomable product thumbnail in the purchase items header", :js do
     purchase = create(:purchase, product:, supplier:)
     create(:purchase_item, purchase:)
     create(:media, :for_product, mediaable: product)
 
     visit purchase_path(purchase)
 
-    within(first(".table-card")) do
+    within(first(".table_card")) do
       expect(page).to have_selector("img[class*='hover:scale-[7]']", count: 1)
     end
   end
@@ -170,8 +170,8 @@ RSpec.describe "Creating a new purchase" do
     visit purchase_path(purchase)
 
     within("tr[data-payment-id='#{payment.id}']") do
-      find("input[name='payment[payment_date]']").set("2026-03-30")
-      find("input[name='payment[value]']").set("25")
+      find("input[type='date']").set("2026-03-30")
+      find("input[type='number']").set("25")
       click_button "Update"
     end
 

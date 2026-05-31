@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import SmartSelect from "@/components/SmartSelect";
 import { type SelectOption } from "../types";
 
@@ -23,22 +23,26 @@ export default function ProductVariantSelect({
 }: ProductVariantSelectProps) {
   const variantOptions = useProductVariants(productId, initialVariants, productVariantsPath);
   const selectedVariant = variantOptions.find((option) => option.value === value) ?? null;
+  const handleChange = useCallback(
+    (option: SelectOption<number> | null) => onChange(option?.value ?? null),
+    [onChange],
+  );
 
   useEffect(() => {
     if (value === null && variantOptions.length > 0) onChange(variantOptions[0].value);
-  }, [variantOptions]);
+  }, [onChange, value, variantOptions]);
 
   return (
-    <>
+    <div>
       <label htmlFor="purchase_variant_id">Variant</label>
       <SmartSelect
         inputId="purchase_variant_id"
         name="purchase[variant_id]"
-        onChange={(option) => onChange(option?.value ?? null)}
+        onChange={handleChange}
         options={variantOptions}
         value={selectedVariant}
       />
-    </>
+    </div>
   );
 }
 
@@ -50,7 +54,7 @@ function useProductVariants(
   const [variants, setVariants] = useState<SelectOption<number>[]>(initialVariants);
 
   useEffect(() => {
-    if (!productId) return;
+    if (!productId) return undefined;
     return loadVariants(path, productId, setVariants);
   }, [productId, path]);
 
@@ -69,7 +73,8 @@ function loadVariants(
   fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
-      return (await response.json()) as ProductVariantsResponse;
+      const body: ProductVariantsResponse = await response.json();
+      return body;
     })
     .then((body) => onLoad(body.variants ?? []))
     .catch((error: unknown) => {

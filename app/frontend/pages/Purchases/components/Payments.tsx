@@ -10,9 +10,9 @@ type PaymentsProps = {
 
 export default function Payments({ newPayment, payments, purchase }: PaymentsProps) {
   return (
-    <div className="table-card">
+    <div className="table_card">
       <h3>Payments</h3>
-      <table className="thead-static">
+      <table className="thead_static">
         <thead>
           <tr>
             <th>Date</th>
@@ -91,13 +91,13 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
         <td>
           <div className="flex flex-wrap gap-2">
             <button
-              className="btn-rounded btn-lightblue"
+              className="btn_rounded btn_lightblue"
               form={`payment_${payment.id}_inline`}
               type="submit"
             >
               Update
             </button>
-            <button className="btn-rounded btn-red" onClick={destroyPayment} type="button">
+            <button className="btn_rounded btn_red" onClick={destroyPayment} type="button">
               Remove
             </button>
           </div>
@@ -157,7 +157,7 @@ function NewPaymentRow({
           />
         </td>
         <td>
-          <button className="btn-rounded" form="new_payment_inline" type="submit">
+          <button className="btn_rounded" form="new_payment_inline" type="submit">
             Add payment
           </button>
         </td>

@@ -2,11 +2,14 @@
 
 require "rails_helper"
 
-describe "Purchase editing", js: true do
-  before { sign_in_as_admin }
+describe "Purchase editing", :js do
+  before do
+    sign_in_as_admin
+    create(:warehouse, is_default: true)
+  end
+
   after { log_out }
 
-  let!(:warehouse) { create(:warehouse, is_default: true) }
   let!(:supplier) { create(:supplier) }
 
   it "shows the existing variant pre-selected when loading the edit form" do
@@ -17,6 +20,18 @@ describe "Purchase editing", js: true do
     visit edit_purchase_path(purchase)
 
     expect(page).to have_text(variant.title)
+  end
+
+  it "saves the edit form without changes", :aggregate_failures do
+    purchase = create(:purchase, supplier:, item_price: BigDecimal(15), amount: 2)
+
+    visit edit_purchase_path(purchase)
+
+    click_button "Update Purchase"
+
+    expect(page).to have_current_path(purchase_path(purchase.reload))
+    expect(page).to have_content("Purchase was successfully updated")
+    expect(purchase.amount).to eq(2)
   end
 
   it "auto-selects the first variant when switching to a new product" do
