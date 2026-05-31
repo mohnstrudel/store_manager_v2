@@ -9,7 +9,7 @@ type SmartSelectProps<
   "classNamePrefix" | "styles" | "theme" | "getOptionLabel" | "getOptionValue"
 >;
 
-export const reactSelectStyles: StylesConfig<unknown, boolean, GroupBase<unknown>> = {
+export const reactSelectStyles: StylesConfig<any, any, any> = {
   control: (base, state) => ({
     ...base,
     boxSizing: "border-box",
@@ -172,11 +172,5 @@ export default function SmartSelect<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>,
 >(props: SmartSelectProps<Option, IsMulti, Group>) {
-  return (
-    <Select
-      {...props}
-      classNamePrefix="rs"
-      styles={reactSelectStyles as StylesConfig<Option, IsMulti, Group>}
-    />
-  );
+  return <Select {...props} classNamePrefix="rs" styles={reactSelectStyles} />;
 }

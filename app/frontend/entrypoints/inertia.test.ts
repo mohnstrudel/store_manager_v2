@@ -2,9 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppLayout from "@/layouts/AppLayout";
 import { enableInertiaNavigationBridge } from "./inertia";
 
+type CreateInertiaAppOptions = {
+  layout: () => typeof AppLayout;
+};
+
 const mocks = vi.hoisted(() => ({
-  createInertiaApp: vi.fn(),
-  visit: vi.fn(),
+  createInertiaApp: vi.fn<(options: CreateInertiaAppOptions) => unknown>(),
+  visit: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
 vi.mock("@inertiajs/react", () => ({
@@ -15,7 +19,7 @@ vi.mock("@inertiajs/react", () => ({
 }));
 
 vi.mock("@/lib/resolvePage", () => ({
-  resolvePage: vi.fn(),
+  resolvePage: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
 describe("Inertia navigation bridge", () => {

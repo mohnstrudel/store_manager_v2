@@ -14,11 +14,7 @@ vi.mock("@inertiajs/react", () => ({
 describe("Pagination", () => {
   it("renders first pages, current page, last page, previous, and next links", () => {
     render(
-      <Pagination
-        pagination={{ current_page: 6, total_pages: 10 }}
-        params={{ q: "makima" }}
-        path="/items"
-      />,
+      <Pagination pagination={{ current_page: 6, total_pages: 10 }} path="/items" query="makima" />,
     );
 
     expect(screen.getByRole("link", { name: "Previous" })).toHaveAttribute(

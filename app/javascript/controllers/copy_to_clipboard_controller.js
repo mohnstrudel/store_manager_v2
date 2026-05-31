@@ -30,7 +30,7 @@ export default class CopyToClipboard extends Controller {
   }
 
   showSuccessContent() {
-    this.targets.element.classList.add("btn-amber");
+    this.targets.element.classList.add("btn_amber");
     if (this.hasIconTarget) {
       this.iconTarget.textContent = "👍";
     }
@@ -40,7 +40,7 @@ export default class CopyToClipboard extends Controller {
   }
 
   resetContent() {
-    this.targets.element.classList.remove("btn-amber");
+    this.targets.element.classList.remove("btn_amber");
     if (this.hasIconTarget) {
       this.iconTarget.textContent = "📋";
     }

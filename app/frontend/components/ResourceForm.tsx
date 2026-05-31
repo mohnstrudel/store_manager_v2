@@ -31,7 +31,7 @@ export default function ResourceForm({
   );
 
   return (
-    <Form action={action} disableWhileProcessing method={method}>
+    <Form className="flex flex-col gap-6" action={action} disableWhileProcessing method={method}>
       {typeof children === "function" ? (
         (props) => (
           <>

@@ -8,7 +8,7 @@ export default function SearchResultsEmpty({ seed = "" }: SearchResultsEmptyProp
   const icon = iconForSeed(seed);
 
   return (
-    <div className="search-results--empty flex flex-col justify-center items-center h-100">
+    <div className="search_results_empty flex flex-col justify-center items-center h-100">
       <i className="icn text-[180px]">{icon}</i>
       <h2 className="text-center">Nothing found</h2>
     </div>

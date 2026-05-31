@@ -19,10 +19,27 @@ describe("ZoomableThumbnail", () => {
     });
   });
 
-  it("renders an empty placeholder without an image", () => {
+  it("renders a fallback placeholder without an image", () => {
     render(<ZoomableThumbnail alt="Pikachu" src={null} />);
 
-    expect(screen.getByText("—")).toBeInTheDocument();
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Image unavailable for Pikachu" })).toBeInTheDocument();
+    expect(screen.getByText("Image unavailable")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Pikachu" })).not.toBeInTheDocument();
+  });
+
+  it("replaces a broken image with the fallback placeholder", async () => {
+    render(<ZoomableThumbnail alt="Pikachu" src="/thumb.png" />);
+
+    const image = screen.getByRole("img", { name: "Pikachu" });
+    fireEvent.error(image);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("img", { name: "Image unavailable for Pikachu" }),
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Image unavailable")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Pikachu" })).not.toBeInTheDocument();
   });
 });

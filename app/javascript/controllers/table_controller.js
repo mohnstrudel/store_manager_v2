@@ -19,7 +19,7 @@ export default class extends Controller {
   shouldIgnoreClick(event) {
     return Boolean(
       event.target.closest(".actions") ||
-      event.target.closest(".no-events")
+      event.target.closest(".no_events")
     )
   }
 

@@ -56,14 +56,14 @@ export default class extends Controller {
   }
 
   #buildBreadcrumbs(trail) {
-    const separator = '<span class="breadcrumb-separator" aria-hidden="true">↦</span>'
+    const separator = '<span class="breadcrumb_separator" aria-hidden="true">↦</span>'
 
     return trail.map((item, index) => {
       const isLast = index === trail.length - 1
 
       if (isLast) {
         // Current page is not a link
-        return `<li class="breadcrumb-current">${this.#escapeHtml(item.name)}</li>`
+        return `<li class="breadcrumb_current">${this.#escapeHtml(item.name)}</li>`
       } else {
         const opacity = this.#calculateOpacity(index, trail.length)
         return `

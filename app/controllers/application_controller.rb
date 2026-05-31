@@ -14,26 +14,11 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def pagination_props(collection)
-    {
-      current_page: collection.current_page,
-      total_pages: collection.total_pages,
-      total_count: collection.total_count,
-      limit: collection.limit_value
-    }
+  def inertia_errors(model_errors)
+    {errors: model_errors.to_hash(true).transform_values(&:to_sentence)}
   end
 
-  def media_props(media)
-    return unless media.image.attached?
-
-    {
-      id: media.id,
-      alt: media.alt.to_s,
-      position: media.position,
-      preview_url: url_for(media.image.representation(:preview)),
-      thumb_url: url_for(media.image.representation(:thumb))
-    }
-  end
+  public
 
   if Rails.env.development?
     before_action do

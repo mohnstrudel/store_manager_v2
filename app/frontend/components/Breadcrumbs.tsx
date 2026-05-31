@@ -53,12 +53,12 @@ function BreadcrumbItem({
   return (
     <>
       {index > 0 ? (
-        <span className="breadcrumb-separator" aria-hidden="true">
+        <span className="breadcrumb_separator" aria-hidden="true">
           ↦
         </span>
       ) : null}
       <li
-        className={isLast ? "breadcrumb-current" : undefined}
+        className={isLast ? "breadcrumb_current" : undefined}
         style={breadcrumbOpacityStyle(index, total)}
       >
         {isLast ? (
@@ -136,7 +136,8 @@ function readTrail() {
     const stored = window.sessionStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
 
-    return JSON.parse(stored) as Breadcrumb[];
+    const parsed: unknown = JSON.parse(stored);
+    return isBreadcrumbTrail(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -146,4 +147,19 @@ function saveTrail(trail: Breadcrumb[]) {
   if (typeof window === "undefined") return;
 
   window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail));
+}
+
+function isBreadcrumbTrail(value: unknown): value is Breadcrumb[] {
+  return Array.isArray(value) && value.every(isBreadcrumb);
+}
+
+function isBreadcrumb(value: unknown): value is Breadcrumb {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "name" in value &&
+    "url" in value &&
+    typeof (value as { name?: unknown }).name === "string" &&
+    typeof (value as { url?: unknown }).url === "string"
+  );
 }

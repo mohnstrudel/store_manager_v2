@@ -11,7 +11,7 @@ let inertiaNavigationBridgeEnabled = false;
 
 enableInertiaNavigationBridge();
 
-createInertiaApp({
+void createInertiaApp({
   defaults: {
     visitOptions: (_href, options) => ({ ...options, viewTransition: true }),
   },
@@ -42,7 +42,8 @@ export function enableInertiaNavigationBridge() {
         return;
       }
 
-      const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a[href]");
+      const link =
+        event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
       if (!link || link.target || link.hasAttribute("download") || link.dataset.inertia === "false")
         return;
       if (link.closest("#app")) return;

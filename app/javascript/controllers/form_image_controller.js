@@ -17,27 +17,27 @@ export default class extends Controller {
 
       // Make the image look like it was "removed"
       this.imageTarget.classList.add("opacity-50", "saturate-40");
-      this.containerTarget.classList.add("rectangle-with-x");
+      this.containerTarget.classList.add("rectangle_with_x");
 
       // Set _destroy to 1 to mark for deletion
       this.hiddenInputTarget.value = "1";
 
       this.removeButtonTarget.textContent = "Keep";
-      this.removeButtonTarget.classList.remove("btn-red");
-      this.removeButtonTarget.classList.add("btn-green");
+      this.removeButtonTarget.classList.remove("btn_red");
+      this.removeButtonTarget.classList.add("btn_green");
       this.removeButtonTarget.title = "Undo removal";
     } else {
       this.isRemoved = false;
 
       this.imageTarget.classList.remove("opacity-50", "saturate-40");
-      this.containerTarget.classList.remove("rectangle-with-x");
+      this.containerTarget.classList.remove("rectangle_with_x");
 
       // Set _destroy back to 0 to keep
       this.hiddenInputTarget.value = "0";
 
       this.removeButtonTarget.innerHTML = this.removeButtonTargetOriginalContent;
-      this.removeButtonTarget.classList.remove("btn-green");
-      this.removeButtonTarget.classList.add("btn-red");
+      this.removeButtonTarget.classList.remove("btn_green");
+      this.removeButtonTarget.classList.add("btn_red");
       this.removeButtonTarget.title = "Remove";
     }
   }

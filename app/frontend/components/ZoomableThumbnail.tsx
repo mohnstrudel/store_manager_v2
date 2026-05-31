@@ -1,3 +1,4 @@
+import { PhotoIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
 type ZoomableThumbnailProps = {
@@ -5,16 +6,27 @@ type ZoomableThumbnailProps = {
   src: string | null;
 };
 
-export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
+type LoadState = "loading" | "loaded" | "failed";
 
-  if (!src) {
-    return null;
+export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) {
+  const [loadState, setLoadState] = useState<LoadState>(src ? "loading" : "failed");
+
+  if (loadState === "failed") {
+    return (
+      <div
+        aria-label={`Image unavailable for ${alt}`}
+        className="mx-auto flex h-[120px] w-[100px] flex-col items-center justify-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 text-center text-xs font-medium leading-tight text-gray-400 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-500"
+        role="img"
+      >
+        <PhotoIcon className="h-5 w-5 shrink-0" />
+        <span>Image unavailable</span>
+      </div>
+    );
   }
 
   return (
-    <div className="relative flex items-center justify-center mx-auto w-[100px] h-[120px] overflow-visible">
-      {!isLoaded && (
+    <div className="relative mx-auto flex h-[120px] w-[100px] items-center justify-center overflow-visible">
+      {loadState === "loading" && (
         <div
           aria-hidden="true"
           className="absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse"
@@ -22,10 +34,13 @@ export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) 
       )}
       <img
         alt={alt}
-        className={`block rounded-md w-[100px] h-[120px] object-cover object-center transition-transform duration-150 ease-out zoomable ${isLoaded ? "" : "opacity-0 is-loading"}`}
+        className={`block h-[120px] w-[100px] rounded-md object-cover object-center transition-transform duration-150 ease-out zoomable ${
+          loadState === "loaded" ? "" : "opacity-0 is-loading"
+        }`}
         loading="lazy"
-        onLoad={() => setIsLoaded(true)}
-        src={src}
+        onError={() => setLoadState("failed")}
+        onLoad={() => setLoadState("loaded")}
+        src={src ?? ""}
       />
     </div>
   );

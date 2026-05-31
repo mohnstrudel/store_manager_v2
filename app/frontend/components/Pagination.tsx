@@ -9,7 +9,7 @@ type PaginationProps = {
   className?: string;
   label?: string;
   pagination: PaginationMeta;
-  params?: Record<string, string | number | null | undefined>;
+  query?: string;
   path: string;
 };
 
@@ -17,7 +17,7 @@ export default function Pagination({
   className = "",
   label = "Pagination",
   pagination,
-  params = {},
+  query,
   path,
 }: PaginationProps) {
   const { current_page, total_pages } = pagination;
@@ -29,40 +29,48 @@ export default function Pagination({
     <nav aria-label={label} className={`pagination ${className}`}>
       {current_page > 1 && (
         <Link
-          className="pagination-previous"
-          href={hrefForPage(path, current_page - 1, params)}
+          className="pagination_previous"
+          href={hrefForPage(path, current_page - 1, query)}
           rel="prev"
           prefetch
         >
           Previous
         </Link>
       )}
-      <div className="pagination-pages">
-        {pages.map((page, index) =>
-          page === "gap" ? (
-            <span className="pagination-gap" key={`gap-${index}`}>
-              …
-            </span>
-          ) : page === current_page ? (
-            <span aria-current="page" className="pagination-link is-current" key={page}>
-              {page}
-            </span>
-          ) : (
+      <div className="pagination_pages">
+        {pages.map((item) => {
+          if (item.type === "gap") {
+            return (
+              <span className="pagination_gap" key={item.key}>
+                …
+              </span>
+            );
+          }
+
+          if (item.page === current_page) {
+            return (
+              <span aria-current="page" className="pagination_link is_current" key={item.page}>
+                {item.page}
+              </span>
+            );
+          }
+
+          return (
             <Link
-              className="pagination-link"
-              href={hrefForPage(path, page, params)}
-              key={page}
+              className="pagination_link"
+              href={hrefForPage(path, item.page, query)}
+              key={item.page}
               prefetch
             >
-              {page}
+              {item.page}
             </Link>
-          ),
-        )}
+          );
+        })}
       </div>
       {current_page < total_pages && (
         <Link
-          className="pagination-next"
-          href={hrefForPage(path, current_page + 1, params)}
+          className="pagination_next"
+          href={hrefForPage(path, current_page + 1, query)}
           rel="next"
           prefetch
         >
@@ -84,29 +92,43 @@ function visiblePageItems(currentPage: number, totalPages: number) {
   pages.add(currentPage);
   pages.add(totalPages);
 
-  return Array.from(pages)
-    .sort((left, right) => left - right)
-    .flatMap((page, index, sortedPages) => {
-      if (index === 0 || page === sortedPages[index - 1] + 1) return [page];
+  const sortedPages: number[] = [];
 
-      return ["gap" as const, page];
+  pages.forEach((page) => {
+    const insertAt = sortedPages.findIndex((existingPage) => existingPage > page);
+
+    if (insertAt === -1) {
+      sortedPages.push(page);
+      return;
+    }
+
+    sortedPages.splice(insertAt, 0, page);
+  });
+
+  const visiblePages: Array<{ type: "page"; page: number } | { type: "gap"; key: string }> = [];
+
+  sortedPages.forEach((page, index) => {
+    if (index === 0 || page === sortedPages[index - 1] + 1) {
+      visiblePages.push({ type: "page", page });
+      return;
+    }
+
+    visiblePages.push({
+      type: "gap",
+      key: `gap-${sortedPages[index - 1]}-${page}`,
     });
+    visiblePages.push({ type: "page", page });
+  });
+
+  return visiblePages;
 }
 
-function hrefForPage(
-  path: string,
-  page: number,
-  params: Record<string, string | number | null | undefined>,
-) {
+function hrefForPage(path: string, page: number, query?: string) {
   const searchParams = new URLSearchParams();
 
   searchParams.set("page", String(page));
 
-  Object.entries(params).forEach(([key, value]) => {
-    if (value === null || value === undefined || value === "") return;
-
-    searchParams.set(key, String(value));
-  });
+  if (query) searchParams.set("q", query);
 
   return `${path}?${searchParams.toString()}`;
 }

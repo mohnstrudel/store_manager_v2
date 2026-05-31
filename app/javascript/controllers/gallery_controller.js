@@ -98,11 +98,11 @@ export default class extends Controller {
 
   showThumbImage(image) {
     image.classList.remove("hidden")
-    image.closest(".gallery-thumb__frame")?.classList.remove("loading")
+    image.closest(".gallery_thumb__frame")?.classList.remove("loading")
   }
 
   hideThumbLoader(image) {
-    image.closest(".gallery-thumb__frame")?.classList.remove("loading")
+    image.closest(".gallery_thumb__frame")?.classList.remove("loading")
   }
 
   startMainLoading() {

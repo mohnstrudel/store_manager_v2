@@ -1,4 +1,5 @@
 import type { GroupBase, Props as SelectProps } from "react-select";
+import FormControl from "./FormControl";
 import SmartSelect from "./SmartSelect";
 
 type FormSmartSelectProps<
@@ -27,10 +28,13 @@ export default function FormSmartSelect<
   ...props
 }: FormSmartSelectProps<Option, IsMulti, Group>) {
   return (
-    <div className={className}>
-      <label htmlFor={inputId}>{label}</label>
-      <SmartSelect inputId={inputId} {...props} />
-      {error && <p className="text-error mt-2">{error}</p>}
-    </div>
+    <FormControl className={className} error={error} htmlFor={inputId} label={label}>
+      <SmartSelect
+        aria-describedby={error ? `${inputId}_error` : undefined}
+        aria-invalid={!!error}
+        inputId={inputId}
+        {...props}
+      />
+    </FormControl>
   );
 }

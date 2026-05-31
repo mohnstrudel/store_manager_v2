@@ -16,7 +16,7 @@ export default class extends Controller {
   removeProduct(event) {
     event.preventDefault();
 
-    const field = event.currentTarget.closest(".sales-form__product_fields");
+    const field = event.currentTarget.closest(".sales_form__product_fields");
     if (!field) return;
 
     if (this.isPersistedField(field)) {
@@ -32,7 +32,7 @@ export default class extends Controller {
   }
 
   get saleItemFields() {
-    return Array.from(this.containerTarget.querySelectorAll(".sales-form__product_fields"));
+    return Array.from(this.containerTarget.querySelectorAll(".sales_form__product_fields"));
   }
 
   isPersistedField(field) {

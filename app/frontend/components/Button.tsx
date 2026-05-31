@@ -13,8 +13,8 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const variantClass = {
-    primary: "btn-blue",
-    danger: "btn-red btn-rounded",
+    primary: "btn_blue",
+    danger: "btn_red btn_rounded",
     default: "",
   }[variant];
 

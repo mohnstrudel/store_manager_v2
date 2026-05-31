@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 
 type PageHeaderProps = {
-  actions?: ReactNode;
   className?: string;
   subtitle?: ReactNode;
   title: ReactNode;
+  children?: ReactNode;
 };
 
-export default function PageHeader({ actions, className = "", subtitle, title }: PageHeaderProps) {
+export default function PageHeader({ children, className = "", subtitle, title }: PageHeaderProps) {
   return (
     <header className={`nav_header ${className}`}>
       <div className="flex gap-4">
@@ -17,7 +17,7 @@ export default function PageHeader({ actions, className = "", subtitle, title }:
         </hgroup>
       </div>
 
-      {actions ? <menu className="nav_menu">{actions}</menu> : null}
+      {children ? <menu className="nav_menu">{children}</menu> : null}
     </header>
   );
 }

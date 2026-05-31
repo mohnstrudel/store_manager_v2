@@ -30,12 +30,12 @@ export default class extends Controller {
 
   remove(event) {
     event.preventDefault()
-    event.currentTarget.closest(".store-info-fields")?.remove()
+    event.currentTarget.closest(".store_info_fields")?.remove()
     this.refreshButtonState()
   }
 
   toggleDestroy(event) {
-    const field = event.target.closest(".store-info-fields")
+    const field = event.target.closest(".store_info_fields")
     const hiddenInput = field.querySelector("input[name$='[_destroy]']")
     const checkbox = event.target
 
@@ -99,7 +99,7 @@ export default class extends Controller {
   }
 
   get storeInfoFields() {
-    return Array.from(this.containerTarget.querySelectorAll(".store-info-fields"))
+    return Array.from(this.containerTarget.querySelectorAll(".store_info_fields"))
   }
 
   get usedStoreNames() {

@@ -4,11 +4,12 @@ import { router, Link } from "@inertiajs/react";
 type SearchBarProps = {
   initialQuery: string;
   path: string;
-  reloadOnly: string[];
+  resourceName: string;
 };
 
-export default function SearchBar({ initialQuery, path, reloadOnly }: SearchBarProps) {
+export default function SearchBar({ initialQuery, path, resourceName }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
+  const reloadOnly = [resourceName, "pagination", "search"];
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,12 +29,12 @@ export default function SearchBar({ initialQuery, path, reloadOnly }: SearchBarP
         type="search"
         value={query}
       />
-      <button className="mt-2 lg:mt-0 lg:ml-2 btn-rounded" type="submit">
+      <button className="mt-2 lg:mt-0 lg:ml-2 btn_rounded" type="submit">
         <i className="icn">🔎</i>
         Search
       </button>
       {initialQuery && (
-        <Link className="mt-2 lg:mt-0 lg:ml-2 btn-rounded btn-red" href={path} prefetch>
+        <Link className="mt-2 lg:mt-0 lg:ml-2 btn_rounded btn_red" href={path} prefetch>
           <i className="icn">❎</i>
           Exit
         </Link>

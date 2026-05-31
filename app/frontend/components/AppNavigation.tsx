@@ -87,7 +87,7 @@ const primaryLinks: NavLink[] = [
   },
 ];
 
-type DropdownLink = NavLink | { divider: true };
+type DropdownLink = NavLink | { divider: true; key: string };
 
 const dropdownLinks: DropdownLink[] = [
   {
@@ -102,7 +102,7 @@ const dropdownLinks: DropdownLink[] = [
     component: "ShippingCompanies/Index",
     pageProps: { shippingCompanies: [] },
   },
-  { divider: true },
+  { divider: true, key: "divider-suppliers" },
   { href: "/brands", label: "Brands", component: "Brands/Index", pageProps: { brands: [] } },
   {
     href: "/franchises",
@@ -110,7 +110,7 @@ const dropdownLinks: DropdownLink[] = [
     component: "Franchises/Index",
     pageProps: { franchises: [] },
   },
-  { divider: true },
+  { divider: true, key: "divider-brands" },
   {
     href: "/versions",
     label: "Versions",
@@ -119,7 +119,7 @@ const dropdownLinks: DropdownLink[] = [
   },
   { href: "/colors", label: "Colors", component: "Colors/Index", pageProps: { colors: [] } },
   { href: "/sizes", label: "Sizes", component: "Sizes/Index", pageProps: { sizes: [] } },
-  { divider: true },
+  { divider: true, key: "divider-sections" },
 ];
 
 export default function AppNavigation() {
@@ -195,9 +195,9 @@ export default function AppNavigation() {
                   <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                 </button>
                 <ul>
-                  {dropdownLinks.map((link, index) =>
+                  {dropdownLinks.map((link) =>
                     "divider" in link ? (
-                      <li aria-hidden="true" className="pb-3" key={`divider-${index}`} />
+                      <li aria-hidden="true" className="pb-3" key={link.key} />
                     ) : (
                       <li key={link.href}>
                         <Link

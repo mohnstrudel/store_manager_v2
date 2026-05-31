@@ -83,13 +83,13 @@ export default class extends Controller {
 
   showLoadedImage() {
     this.hidePlaceholder()
-    this.imgTarget.classList.remove("hidden", "loading", "not-found")
+    this.imgTarget.classList.remove("hidden", "loading", "not_found")
     this.imgTarget.style.height = "fit-content"
   }
 
   showLoading() {
     this.hidePlaceholder()
-    this.imgTarget.classList.remove("hidden", "not-found")
+    this.imgTarget.classList.remove("hidden", "not_found")
     this.imgTarget.classList.add("loading")
     this.imgTarget.style.height = "100%"
   }
@@ -97,7 +97,7 @@ export default class extends Controller {
   showFallback() {
     this.showPlaceholder()
     this.imgTarget.classList.remove("loading")
-    this.imgTarget.classList.add("hidden", "not-found")
+    this.imgTarget.classList.add("hidden", "not_found")
   }
 
   isImageAlreadyLoaded() {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type CopyToClipboardButtonProps = {
   className?: string;
@@ -13,17 +13,17 @@ export default function CopyToClipboardButton({
 }: CopyToClipboardButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  async function copy() {
+  const copy = useCallback(async () => {
     if (!text) return;
 
     await navigator.clipboard.writeText(text);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 800);
-  }
+  }, [text]);
 
   return (
     <button
-      className={`btn-rounded no-events cursor-pointer transition-all ease-out ${copied ? "btn-amber" : ""} ${className}`}
+      className={`btn_rounded no_events cursor-pointer transition-all ease-out ${copied ? "btn_amber" : ""} ${className}`}
       data-copy-to-clipboard-text-value={text}
       onClick={copy}
       title="Copy to clipboard"

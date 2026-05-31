@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { rowNavigationProps } from "./rowNavigation";
 
 const mocks = vi.hoisted(() => ({
-  prefetch: vi.fn(),
-  visit: vi.fn(),
+  prefetch: vi.fn<(...args: unknown[]) => unknown>(),
+  visit: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
 vi.mock("@inertiajs/react", () => ({

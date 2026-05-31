@@ -1,3 +1,5 @@
+import FormControl from "./FormControl";
+
 type FormInputProps = {
   className?: string;
   defaultValue?: string | number;
@@ -24,8 +26,7 @@ export default function FormInput({
   const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
 
   return (
-    <div className={className}>
-      <label htmlFor={id}>{label}</label>
+    <FormControl className={className} error={error} htmlFor={id} label={label}>
       <input
         aria-describedby={error ? `${id}_error` : undefined}
         aria-invalid={!!error}
@@ -37,11 +38,6 @@ export default function FormInput({
         step={step}
         type={type}
       />
-      {error && (
-        <p className="text-error mt-2" id={`${id}_error`}>
-          {error}
-        </p>
-      )}
-    </div>
+    </FormControl>
   );
 }

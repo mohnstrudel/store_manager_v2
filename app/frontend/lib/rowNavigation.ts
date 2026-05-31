@@ -9,6 +9,10 @@ function prefetch(path: string) {
   router.prefetch(path, { method: "get" });
 }
 
+export function stopRowNavigation(event: { stopPropagation(): void }) {
+  event.stopPropagation();
+}
+
 export function rowNavigationProps(path: string) {
   return {
     tabIndex: 0 as const,
