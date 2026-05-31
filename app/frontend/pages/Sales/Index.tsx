@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 import SyncModal from "@/components/SyncModal";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
+import { useModalVisibility } from "@/lib/useModalVisibility";
 import Table from "./components/Table";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
 
@@ -17,23 +17,7 @@ type IndexProps = {
 };
 
 export default function Index({ sales, pagination, search, last_sync_time }: IndexProps) {
-  const [syncOpen, setSyncOpen] = useState(false);
-  const openSync = useCallback(() => setSyncOpen(true), []);
-  const closeSync = useCallback(() => setSyncOpen(false), []);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setSyncOpen(false);
-      }
-    }
-
-    if (!syncOpen) return undefined;
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [syncOpen]);
+  const { close: closeSync, isOpen: syncOpen, open: openSync } = useModalVisibility();
 
   return (
     <>

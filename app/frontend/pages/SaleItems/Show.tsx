@@ -1,6 +1,7 @@
 import { router, Link } from "@inertiajs/react";
-import { type ChangeEvent, type MouseEvent, useCallback, useState } from "react";
+import { type MouseEvent, useCallback } from "react";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import MoveToWarehouseForm from "@/pages/Purchases/components/MoveToWarehouseForm";
 import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
 
@@ -17,25 +18,11 @@ export default function Show({
   warehouse_move_path,
   warehouses,
 }: ShowProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const clearSelectedIds = useCallback(() => setSelectedIds([]), []);
-
-  const togglePurchaseItem = useCallback((purchaseItemId: number) => {
-    setSelectedIds((current) =>
-      current.includes(purchaseItemId)
-        ? current.filter((selectedId) => selectedId !== purchaseItemId)
-        : [...current, purchaseItemId],
-    );
-  }, []);
-
-  const handleTogglePurchaseItem = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const purchaseItemId = Number(event.currentTarget.dataset.purchaseItemId);
-      if (Number.isNaN(purchaseItemId)) return;
-      togglePurchaseItem(purchaseItemId);
-    },
-    [togglePurchaseItem],
-  );
+  const {
+    clearSelectedIds,
+    selectedIds,
+    toggleSelectedIdFromDataAttribute,
+  } = useWarehouseMoveSelection();
 
   const handleUnlinkPurchaseItem = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -119,7 +106,7 @@ export default function Show({
                       <input
                         checked={selectedIds.includes(purchaseItem.id)}
                         data-purchase-item-id={purchaseItem.id}
-                        onChange={handleTogglePurchaseItem}
+                        onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
                         onClick={stopRowNavigation}
                         type="checkbox"
                       />

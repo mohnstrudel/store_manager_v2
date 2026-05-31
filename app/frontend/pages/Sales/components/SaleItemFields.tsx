@@ -19,16 +19,11 @@ export default function SaleItemFields({
   productOptions,
   saleItem,
 }: SaleItemFieldsProps) {
-  const [productId, setProductId] = useState<number | null>(saleItem.product_id);
+  const saleItemFields = useSaleItemFieldState(saleItem, productOptions);
   const prefix = `sale_items[${index}]`;
-  const productLabel = productOptions.find((o) => o.value === productId)?.label ?? "New product";
   const handleRemove = useCallback(
     () => onRemove(saleItem.clientKey),
     [onRemove, saleItem.clientKey],
-  );
-  const handleProductChange = useCallback(
-    (option: SelectOption<number> | null) => setProductId(option?.value ?? null),
-    [],
   );
 
   const actions = useMemo(
@@ -47,18 +42,18 @@ export default function SaleItemFields({
     <NestedFormContainer
       actions={actions}
       className="sales_form__product_fields"
-      title={productLabel}
+      title={saleItemFields.productLabel}
     >
       {saleItem.id && <input defaultValue={saleItem.id} name={`${prefix}[id]`} type="hidden" />}
       {!saleItem.id && <input defaultValue="0" name={`${prefix}[_destroy]`} type="hidden" />}
 
       <FormSmartSelect
-        defaultValue={toSelectedOption(productOptions, productId)}
+        defaultValue={toSelectedOption(productOptions, saleItemFields.productId)}
         inputId={`sale_item_${index}_product_id`}
         isClearable
         label="Product"
         name={`${prefix}[product_id]`}
-        onChange={handleProductChange}
+        onChange={saleItemFields.selectProduct}
         options={productOptions}
       />
 
@@ -80,4 +75,19 @@ export default function SaleItemFields({
       />
     </NestedFormContainer>
   );
+}
+
+function useSaleItemFieldState(
+  saleItem: SaleItemFormRecord & { clientKey: string },
+  productOptions: SelectOption<number>[],
+) {
+  const [productId, setProductId] = useState<number | null>(saleItem.product_id);
+  const productLabel =
+    productOptions.find((option) => option.value === productId)?.label ?? "New product";
+  const selectProduct = useCallback(
+    (option: SelectOption<number> | null) => setProductId(option?.value ?? null),
+    [],
+  );
+
+  return { productId, productLabel, selectProduct };
 }
