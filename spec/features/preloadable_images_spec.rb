@@ -20,11 +20,11 @@ RSpec.describe "Preloadable images", :js do
     visit purchases_path
 
     expect(page).to have_css("[data-controller='preloadable-img']")
-    expect(page).to have_no_css(".preloadable-img__img.loading", wait: 10)
+    expect(page).to have_no_css(".preloadable_img__img.loading", wait: 10)
 
     image_state = page.evaluate_script(<<~JS)
       (() => {
-        const image = document.querySelector(".preloadable-img__img")
+        const image = document.querySelector(".preloadable_img__img")
 
         return {
           hidden: image.classList.contains("hidden"),
@@ -65,7 +65,7 @@ RSpec.describe "Preloadable images", :js do
 
     loading_state = page.evaluate_script(<<~JS)
       (() => {
-        const image = document.querySelector(".preloadable-img__img")
+        const image = document.querySelector(".preloadable_img__img")
 
         return {
           hidden: image.classList.contains("hidden"),
@@ -90,7 +90,7 @@ RSpec.describe "Preloadable images", :js do
       })()
     JS
 
-    expect(page).to have_no_css(".preloadable-img__img.loading")
+    expect(page).to have_no_css(".preloadable_img__img.loading")
   end
   # rubocop:enable RSpec/MultipleExpectations
 

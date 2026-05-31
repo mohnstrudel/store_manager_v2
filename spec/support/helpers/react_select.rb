@@ -8,8 +8,8 @@ module Helpers
     def choose_react_select(option_text, from:)
       container_xpath = react_select_container_xpath(from)
       find(:xpath, "#{container_xpath}//div[contains(@class, 'rs__control')]", match: :first, visible: :all).click
-      # Re-query after the React re-render that opens the menu
-      find(:xpath, "#{container_xpath}//div[contains(@class, 'rs__option') and normalize-space(.)=#{option_text.inspect}]", match: :first, visible: :all).click
+      send_keys(option_text)
+      send_keys(:enter)
     end
 
     # Add a tag to a react-select creatable multi field identified by its label text.
@@ -46,7 +46,7 @@ module Helpers
     end
 
     def react_select_container_xpath(label_text)
-      %(//label[contains(normalize-space(.), #{label_text.inspect})]/following-sibling::div[1])
+      %(.//label[contains(normalize-space(.), #{label_text.inspect})]/following-sibling::div[1])
     end
   end
 end

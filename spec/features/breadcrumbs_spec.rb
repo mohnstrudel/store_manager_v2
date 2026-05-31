@@ -106,9 +106,9 @@ feature "Breadcrumbs navigation", :js do
       breadcrumbs = page.all("li")
       expect(breadcrumbs.length).to be >= 2
 
-      # Current page (last breadcrumb) has class breadcrumb-current without inline opacity
+      # Current page (last breadcrumb) has class breadcrumb_current without inline opacity
       last_breadcrumb = breadcrumbs.last
-      expect(last_breadcrumb[:class]).to include("breadcrumb-current")
+      expect(last_breadcrumb[:class]).to include("breadcrumb_current")
 
       # Previous breadcrumbs should have inline opacity styles
       if breadcrumbs.length > 1

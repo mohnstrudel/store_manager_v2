@@ -17,18 +17,18 @@ RSpec.describe "Index table shells", :js do
   it "keeps the sales index table direct inside the bordered shell" do
     visit sales_path
 
-    within ".section-border-base" do
+    within ".section_border_base" do
       expect(page).to have_css("table[role='grid']")
-      expect(page).not_to have_css(".table-card")
+      expect(page).not_to have_css(".table_card")
     end
   end
 
   it "keeps the purchases index table direct inside the bordered shell" do
     visit purchases_path
 
-    within ".section-border-base" do
+    within ".section_border_base" do
       expect(page).to have_css("table[role='grid']")
-      expect(page).not_to have_css(".table-card")
+      expect(page).not_to have_css(".table_card")
     end
   end
 end

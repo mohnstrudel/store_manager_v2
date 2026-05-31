@@ -39,8 +39,8 @@ RSpec.describe "Mobile support", :js do
         const viewportWidth = window.innerWidth;
         const allowedOverflowSelector = [
           "table",
-          ".table-card",
-          ".section-border-base",
+          ".table_card",
+          ".section_border_base",
           "trix-toolbar .trix-button-row"
         ].join(", ");
 

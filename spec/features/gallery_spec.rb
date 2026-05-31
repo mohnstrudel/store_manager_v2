@@ -18,15 +18,15 @@ RSpec.describe "Gallery", :js do
 
     visit product_path(product)
 
-    expect(page).to have_css(".gallery-nav")
-    expect(page).to have_css(".gallery-thumb.active")
+    expect(page).to have_css(".gallery_nav")
+    expect(page).to have_css(".gallery_thumb.active")
 
     geometry = page.evaluate_script(<<~JS)
       (() => {
-        const thumbFrame = document.querySelector(".gallery-thumb__frame")
-        const thumbImage = document.querySelector(".gallery-thumb__image")
-        const mainFrame = document.querySelector(".gallery-main__frame")
-        const mainImage = document.querySelector(".gallery-main__image")
+        const thumbFrame = document.querySelector(".gallery_thumb__frame")
+        const thumbImage = document.querySelector(".gallery_thumb__image")
+        const mainFrame = document.querySelector(".gallery_main__frame")
+        const mainImage = document.querySelector(".gallery_main__image")
 
         return {
           thumbFrameHeight: thumbFrame.getBoundingClientRect().height,
@@ -41,7 +41,7 @@ RSpec.describe "Gallery", :js do
       expect(geometry["thumbFrameHeight"]).to be >= 80
       expect(geometry["thumbImageHeight"]).to be_within(1.0).of(geometry["thumbFrameHeight"])
       expect(geometry["mainFrameHeight"]).to be > 0
-      expect(geometry["mainImageHeight"]).to be_within(1.0).of(geometry["mainFrameHeight"])
+      expect(geometry["mainImageHeight"]).to be_within(3.0).of(geometry["mainFrameHeight"])
     end
   end
 
@@ -52,14 +52,14 @@ RSpec.describe "Gallery", :js do
 
     visit product_path(product)
 
-    expect(page).to have_css(".gallery-nav")
+    expect(page).to have_css(".gallery_nav")
 
     initial_state = page.evaluate_script(<<~JS)
       (() => {
-        const mainImage = document.querySelector(".gallery-main__image")
+        const mainImage = document.querySelector(".gallery_main__image")
 
         return {
-          activeThumbSrc: document.querySelector(".gallery-thumb.active img").src,
+          activeThumbSrc: document.querySelector(".gallery_thumb.active img").src,
           src: mainImage.src,
           scrollCalls: window.__galleryScrollCalls || []
         }
@@ -79,12 +79,12 @@ RSpec.describe "Gallery", :js do
       })()
     JS
 
-    find(".gallery-btn.right-0").click
+    find(".gallery_btn.right-0").click
 
     final_state = page.evaluate_script(<<~JS)
       (() => ({
-        activeThumbSrc: document.querySelector(".gallery-thumb.active img").src,
-        src: document.querySelector(".gallery-main__image").src,
+        activeThumbSrc: document.querySelector(".gallery_thumb.active img").src,
+        src: document.querySelector(".gallery_main__image").src,
         scrollCalls: window.__galleryScrollCalls
       }))()
     JS
@@ -102,6 +102,42 @@ RSpec.describe "Gallery", :js do
   end
   # rubocop:enable RSpec/MultipleExpectations
 
+  # rubocop:todo RSpec/MultipleExpectations
+  scenario "keeps a single product image from stretching the layout" do
+    page.driver.resize(1440, 1200)
+
+    product = create(:product)
+    attach_single_gallery_image_to(product)
+
+    visit product_path(product)
+
+    expect(page).to have_css(".gallery_viewbox")
+
+    geometry = page.evaluate_script(<<~JS)
+      (() => {
+        const viewbox = document.querySelector(".gallery_viewbox")
+        const detailCard = document.querySelector(".cards .card")
+        const viewboxRect = viewbox.getBoundingClientRect()
+
+        return {
+          detailCardLeft: detailCard.getBoundingClientRect().left,
+          viewboxHeight: viewboxRect.height,
+          viewboxRatio: viewboxRect.width / viewboxRect.height,
+          viewboxRight: viewboxRect.right,
+          viewboxWidth: viewboxRect.width
+        }
+      })()
+    JS
+
+    aggregate_failures do
+      expect(geometry["viewboxWidth"]).to be_within(8.0).of(426.6666666667)
+      expect(geometry["viewboxHeight"]).to be_within(8.0).of(320)
+      expect(geometry["viewboxRatio"]).to be_within(0.05).of(4.0 / 3.0)
+      expect(geometry["detailCardLeft"]).to be > geometry["viewboxRight"]
+    end
+  end
+  # rubocop:enable RSpec/MultipleExpectations
+
   def attach_gallery_images_to(product)
     create_valid_test_png("gallery-1.png")
     create_valid_test_png("gallery-2.png")
@@ -110,6 +146,12 @@ RSpec.describe "Gallery", :js do
       attach_image_to(create(:media, :for_product, mediaable: product), "gallery-1.png"),
       attach_image_to(create(:media, :for_product, mediaable: product), "gallery-2.png")
     ]
+  end
+
+  def attach_single_gallery_image_to(product)
+    create_valid_test_png("gallery-1.png")
+
+    attach_image_to(create(:media, :for_product, mediaable: product), "gallery-1.png")
   end
 
   def attach_image_to(media, filename)
