@@ -112,96 +112,78 @@ export default function ImageGallery({ media }: ImageGalleryProps) {
   const mainIsLoaded = mainLoadState.imageId === current.id && mainLoadState.state === "loaded";
   const mainIsFailed = mainLoadState.imageId === current.id && mainLoadState.state === "failed";
   const mainIsLoading = !mainIsLoaded && !mainIsFailed;
+  const mainImageClassName = hasMultipleImages
+    ? "w-full h-full object-contain object-center"
+    : "max-h-160 max-w-160";
+  const mainImage = (
+    <img
+      alt={current.alt || ""}
+      className={`gallery_main__image ${mainImageClassName} ${mainIsLoaded ? "" : "hidden"}`}
+      key={current.preview_url}
+      onError={handleMainError}
+      onLoad={handleMainLoad}
+      ref={mainImageRef}
+      src={current.preview_url}
+    />
+  );
 
   if (!hasMultipleImages) {
     return (
-      <div className="grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-auto">
-        <div className="gallery_viewbox flex relative w-full h-80 aspect-[4/3] max-w-full items-center overflow-hidden rounded-lg hover:overflow-visible lg:w-auto">
-          <div className={`gallery_main__frame w-full min-h-0 ${mainIsLoading ? "loading" : ""}`}>
-            <img
-              alt={current.alt || ""}
-              className={`gallery_main__image w-full h-full object-contain object-center ${
-                mainIsLoaded ? "" : "hidden"
-              }`}
-              key={current.preview_url}
-              onError={handleMainError}
-              onLoad={handleMainLoad}
-              ref={mainImageRef}
-              src={current.preview_url}
-            />
-          </div>
-        </div>
+      <div
+        className={`gallery_viewbox mx-8 overflow-hidden rounded-lg border border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 ${mainIsLoading ? "animate-pulse" : ""}`}
+      >
+        {mainImage}
       </div>
     );
   }
 
   return (
-    <div
-      className={`grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-150 lg:h-150 ${
-        hasMultipleImages ? "lg:flex-row" : ""
-      }`}
-    >
-      {hasMultipleImages && (
-        <div className="gallery_nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
-          {media.map((item, index) => (
-            <button
-              className={`gallery_thumb ${index === selectedIndex ? "active" : ""}`}
-              aria-label={item.alt || ""}
-              data-index={index}
-              key={item.id}
-              onClick={handleThumbClick}
-              ref={(element) => {
-                thumbButtonRefs.current[index] = element;
-              }}
-              type="button"
+    <div className="grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-150 lg:h-150 lg:flex-row">
+      <div className="gallery_nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
+        {media.map((item, index) => (
+          <button
+            className={`gallery_thumb ${index === selectedIndex ? "active" : ""}`}
+            aria-label={item.alt || ""}
+            data-index={index}
+            key={item.id}
+            onClick={handleThumbClick}
+            ref={(element) => {
+              thumbButtonRefs.current[index] = element;
+            }}
+            type="button"
+          >
+            <div
+              className={`gallery_thumb__frame ${
+                (thumbLoadStates[item.id] || "loading") === "loading" ? "loading" : ""
+              }`}
             >
-              <div
-                className={`gallery_thumb__frame ${
-                  (thumbLoadStates[item.id] || "loading") === "loading" ? "loading" : ""
+              <img
+                alt={item.alt || ""}
+                className={`gallery_thumb__image w-full h-full object-cover object-center ${
+                  thumbLoadStates[item.id] === "loaded" ? "" : "hidden"
                 }`}
-              >
-                <img
-                  alt={item.alt || ""}
-                  className={`gallery_thumb__image w-full h-full object-cover object-center ${
-                    thumbLoadStates[item.id] === "loaded" ? "" : "hidden"
-                  }`}
-                  data-image-id={item.id}
-                  onError={handleThumbError}
-                  onLoad={handleThumbLoad}
-                  ref={(element) => {
-                    thumbImageRefs.current[index] = element;
-                  }}
-                  src={item.thumb_url}
-                />
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+                data-image-id={item.id}
+                onError={handleThumbError}
+                onLoad={handleThumbLoad}
+                ref={(element) => {
+                  thumbImageRefs.current[index] = element;
+                }}
+                src={item.thumb_url}
+              />
+            </div>
+          </button>
+        ))}
+      </div>
 
       <div className="gallery_viewbox flex relative w-full h-80 max-h-full items-center overflow-hidden rounded-lg hover:overflow-visible lg:h-full">
-        {hasMultipleImages && (
-          <>
-            <button className="gallery_btn left-0" onClick={prev} type="button">
-              ←
-            </button>
-            <button className="gallery_btn right-0" onClick={next} type="button">
-              →
-            </button>
-          </>
-        )}
+        <button className="gallery_btn left-0" onClick={prev} type="button">
+          ←
+        </button>
+        <button className="gallery_btn right-0" onClick={next} type="button">
+          →
+        </button>
         <div className={`gallery_main__frame w-full ${mainIsLoading ? "loading" : ""}`}>
-          <img
-            alt={current.alt || ""}
-            className={`gallery_main__image w-full h-full object-contain object-center ${
-              mainIsLoaded ? "" : "hidden"
-            }`}
-            key={current.preview_url}
-            onError={handleMainError}
-            onLoad={handleMainLoad}
-            ref={mainImageRef}
-            src={current.preview_url}
-          />
+          {mainImage}
         </div>
       </div>
     </div>

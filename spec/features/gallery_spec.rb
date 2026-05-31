@@ -117,6 +117,7 @@ RSpec.describe "Gallery", :js do
       (() => {
         const viewbox = document.querySelector(".gallery_viewbox")
         const detailCard = document.querySelector(".cards .card")
+        const mainImage = document.querySelector(".gallery_main__image")
         const viewboxRect = viewbox.getBoundingClientRect()
 
         return {
@@ -124,15 +125,19 @@ RSpec.describe "Gallery", :js do
           viewboxHeight: viewboxRect.height,
           viewboxRatio: viewboxRect.width / viewboxRect.height,
           viewboxRight: viewboxRect.right,
-          viewboxWidth: viewboxRect.width
+          viewboxWidth: viewboxRect.width,
+          mainImageWidth: mainImage.getBoundingClientRect().width,
+          mainImageHeight: mainImage.getBoundingClientRect().height
         }
       })()
     JS
 
     aggregate_failures do
-      expect(geometry["viewboxWidth"]).to be_within(8.0).of(426.6666666667)
-      expect(geometry["viewboxHeight"]).to be_within(8.0).of(320)
-      expect(geometry["viewboxRatio"]).to be_within(0.05).of(4.0 / 3.0)
+      expect(geometry["viewboxWidth"]).to be_within(1.0).of(3)
+      expect(geometry["viewboxHeight"]).to be_within(1.0).of(4)
+      expect(geometry["viewboxRatio"]).to be_within(0.05).of(0.75)
+      expect(geometry["mainImageWidth"]).to be_within(1.0).of(1)
+      expect(geometry["mainImageHeight"]).to be_within(1.0).of(2)
       expect(geometry["detailCardLeft"]).to be > geometry["viewboxRight"]
     end
   end
@@ -149,7 +154,7 @@ RSpec.describe "Gallery", :js do
   end
 
   def attach_single_gallery_image_to(product)
-    create_valid_test_png("gallery-1.png")
+    create_valid_tall_test_png("gallery-1.png")
 
     attach_image_to(create(:media, :for_product, mediaable: product), "gallery-1.png")
   end
@@ -168,8 +173,23 @@ RSpec.describe "Gallery", :js do
     Rails.root.join("tmp", filename).binwrite(Base64.decode64(valid_test_png_base64))
   end
 
+  def create_valid_tall_test_png(filename)
+    Rails.root.join("tmp", filename).binwrite(Base64.decode64(valid_tall_test_png_base64))
+  end
+
   def valid_test_png_base64
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aW1cAAAAASUVORK5CYII="
+  end
+
+  def valid_tall_test_png_base64
+    [
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAACAQAAAACx+ouKAAAAIGNIUk0AAHomAACAhAAA+gAAAIDo",
+      "AAB1MAAA6mAAADqYAAAXcJy6UTwAAAACYktHRAAB3YoTpAAAAAd0SU1FB+oFHxMgOvZ5usQAAAAl",
+      "dEVYdGRhdGU6Y3JlYXRlADIwMjYtMDUtMzFUMTk6MzI6NTgrMDA6MDBBl2Z8AAAAJXRFWHRkYXRl",
+      "Om1vZGlmeQAyMDI2LTA1LTMxVDE5OjMyOjU4KzAwOjAwMMrewAAAACh0RVh0ZGF0ZTp0aW1lc3Rh",
+      "bXAAMjAyNi0wNS0zMVQxOTozMjo1OCswMDowMGff/x8AAAAMSURBVAjXY2hgaAAAAgQBARwRMr8A",
+      "AAAASUVORK5CYII=",
+    ].join
   end
 
 end

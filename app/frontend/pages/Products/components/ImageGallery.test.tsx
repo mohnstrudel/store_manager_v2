@@ -102,16 +102,26 @@ describe("ImageGallery", () => {
   it("renders a single image without carousel controls", () => {
     const { container } = render(<ImageGallery media={[media[0]]} />);
 
-    expect(screen.getByRole("img", { name: "Front" })).toHaveClass("gallery_main__image");
+    expect(screen.getByRole("img", { name: "Front" })).toHaveClass(
+      "gallery_main__image",
+      "max-h-160",
+      "max-w-160",
+    );
     expect(screen.queryByRole("button", { name: "←" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "→" })).not.toBeInTheDocument();
-    expect(container.querySelector(".gallery_viewbox")).toHaveClass("aspect-[4/3]", "h-80");
-    expect(container.querySelector(".gallery_main__frame")).toHaveClass("loading");
+    expect(container.querySelector(".gallery_viewbox")).toHaveClass(
+      "mx-8",
+      "overflow-hidden",
+      "rounded-lg",
+      "bg-gray-50",
+    );
+    expect(container.querySelector(".gallery_main__frame")).toBeNull();
+    expect(container.querySelector(".gallery_viewbox")).toHaveClass("animate-pulse");
     expect(screen.getByAltText("Front")).toHaveClass("hidden");
 
     fireEvent.load(screen.getByAltText("Front"));
 
-    expect(container.querySelector(".gallery_main__frame")).not.toHaveClass("loading");
+    expect(container.querySelector(".gallery_viewbox")).not.toHaveClass("animate-pulse");
     expect(screen.getByAltText("Front")).not.toHaveClass("hidden");
   });
 });
