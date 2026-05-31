@@ -1,6 +1,6 @@
 import { router, Link } from "@inertiajs/react";
-import type { ChangeEvent, MouseEvent } from "react";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { useCallback, type ChangeEvent } from "react";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import PaymentProgressBar from "@/pages/Purchases/components/PaymentProgressBar";
 import type { PaymentProgress } from "@/pages/Purchases/types";
 
@@ -25,14 +25,13 @@ type IndexProps = {
 };
 
 export default function Index({ warehouses }: IndexProps) {
-  function stopRowNavigation(event: MouseEvent | ChangeEvent<HTMLSelectElement>) {
-    event.stopPropagation();
-  }
-
-  function updatePosition(warehouse: WarehouseRecord, event: ChangeEvent<HTMLSelectElement>) {
+  const handlePositionChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
     stopRowNavigation(event);
-    router.patch(warehouse.position_path, { position: event.target.value });
-  }
+    const positionPath = event.currentTarget.dataset.positionPath;
+    if (!positionPath) return;
+
+    router.patch(positionPath, { position: event.currentTarget.value });
+  }, []);
 
   return (
     <>
@@ -50,7 +49,7 @@ export default function Index({ warehouses }: IndexProps) {
         </menu>
       </header>
 
-      <section className="section-border-base section-wide">
+      <section className="section_border_base section_wide">
         <table role="grid">
           <thead>
             <tr>
@@ -69,8 +68,9 @@ export default function Index({ warehouses }: IndexProps) {
                 <td>
                   <select
                     aria-label={`Position for ${warehouse.name}`}
+                    data-position-path={warehouse.position_path}
                     name="position"
-                    onChange={(event) => updatePosition(warehouse, event)}
+                    onChange={handlePositionChange}
                     onClick={stopRowNavigation}
                     value={warehouse.position}
                   >

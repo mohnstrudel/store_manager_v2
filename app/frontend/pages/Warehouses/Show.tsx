@@ -1,8 +1,8 @@
 import { router, Link } from "@inertiajs/react";
-import { type MouseEvent, useState } from "react";
+import { useCallback, useState, type ChangeEvent } from "react";
 import Button from "@/components/Button";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
@@ -38,18 +38,24 @@ export default function Show({
   warehouses,
 }: ShowProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const clearSelectedIds = useCallback(() => setSelectedIds([]), []);
 
-  function togglePurchaseItem(purchaseItemId: number) {
+  const togglePurchaseItem = useCallback((purchaseItemId: number) => {
     setSelectedIds((current) =>
       current.includes(purchaseItemId)
         ? current.filter((selectedId) => selectedId !== purchaseItemId)
         : [...current, purchaseItemId],
     );
-  }
+  }, []);
 
-  function stopRowNavigation(event: MouseEvent) {
-    event.stopPropagation();
-  }
+  const handleTogglePurchaseItem = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const purchaseItemId = Number(event.currentTarget.dataset.purchaseItemId);
+      if (Number.isNaN(purchaseItemId)) return;
+      togglePurchaseItem(purchaseItemId);
+    },
+    [togglePurchaseItem],
+  );
 
   function destroyWarehouse() {
     if (window.confirm("Are you sure?")) {
@@ -79,10 +85,10 @@ export default function Show({
         </menu>
       </header>
 
-      <div className="section-wide flex flex-col gap-8">
+      <div className="section_wide flex flex-col gap-8">
         {total_purchase_items > 0 && (
           <div className="flex flex-col gap-4">
-            <div className="table-card">
+            <div className="table_card">
               <div className="flex justify-between align-center">
                 <h3>Number of Items: {pagination.total_count}</h3>
                 <div className="w-full max-w-45 px-3 mt-4 text-center lg:w-45">
@@ -94,13 +100,13 @@ export default function Show({
                 <SearchBar
                   initialQuery={search.q}
                   path={`/warehouses/${warehouse.id}`}
-                  reloadOnly={["purchase_items", "pagination", "search"]}
+                  resourceName="purchase_items"
                 />
-                <div className="pagination-top">
+                <div className="pagination_top">
                   <Pagination
                     pagination={pagination}
-                    params={{ q: search.q }}
                     path={`/warehouses/${warehouse.id}`}
+                    query={search.q}
                   />
                 </div>
               </div>
@@ -109,7 +115,7 @@ export default function Show({
                 <>
                   <MoveToWarehouseForm
                     movePath={warehouse_move_path}
-                    onMoved={() => setSelectedIds([])}
+                    onMoved={clearSelectedIds}
                     selectedIds={selectedIds}
                     warehouses={warehouses}
                   />
@@ -139,10 +145,11 @@ export default function Show({
                           key={item.id}
                           {...rowNavigationProps(item.path)}
                         >
-                          <td className="no-events text-center">
+                          <td className="no_events text-center">
                             <input
                               checked={selectedIds.includes(item.id)}
-                              onChange={() => togglePurchaseItem(item.id)}
+                              data-purchase-item-id={item.id}
+                              onChange={handleTogglePurchaseItem}
                               onClick={stopRowNavigation}
                               type="checkbox"
                             />
@@ -150,22 +157,22 @@ export default function Show({
                           <td className="max-w-md">
                             {item.title}
                             {item.variant_title && <> → {item.variant_title}</>}
-                            <div className="cursor-text no-events font-mono text-sm text-gray-500 dark:text-gray-400">
+                            <div className="cursor-text no_events font-mono text-sm text-gray-500 dark:text-gray-400">
                               {item.sku}
                             </div>
                             {item.sale_path && (
                               <Link
-                                className="no-events text-sm mt-3"
+                                className="no_events text-sm mt-3"
                                 href={item.sale_path}
                                 onClick={stopRowNavigation}
                                 title="Open sales page"
                                 prefetch
                               >
                                 {item.sale_store_type === "shopify" && (
-                                  <span className="inline-block icon-shopify w-4 h-4" />
+                                  <span className="inline-block icon_shopify w-4 h-4" />
                                 )}
                                 {item.sale_store_type === "woo" && (
-                                  <span className="inline-block icon-woo w-5 h-5" />
+                                  <span className="inline-block icon_woo w-5 h-5" />
                                 )}
                                 {item.sale_title}
                               </Link>
@@ -177,7 +184,7 @@ export default function Show({
                                 <li>
                                   <div className="inline-flex gap-2">
                                     <CopyToClipboardButton
-                                      className="text-xs btn-xs mb-3 self-start"
+                                      className="text-xs btn_xs mb-3 self-start"
                                       text={item.sale_summary}
                                     />
                                     {item.sale_summary}
@@ -191,7 +198,7 @@ export default function Show({
                                 <li className="mt-2">
                                   <div className="inline-flex items-center gap-2">
                                     <CopyToClipboardButton
-                                      className="text-xs btn-xs"
+                                      className="text-xs btn_xs"
                                       text={item.customer_email}
                                     />
                                     {item.customer_email}
@@ -200,7 +207,7 @@ export default function Show({
                               </ul>
                             )}
                           </td>
-                          <td className="max-w-3xs no-events cursor-text">
+                          <td className="max-w-3xs no_events cursor-text">
                             <div className="flex flex-col items-center gap-2 text-center">
                               {item.tracking_number ? (
                                 <span className="text-sm font-mono cursor-text">
@@ -208,7 +215,7 @@ export default function Show({
                                 </span>
                               ) : null}
                               <Link
-                                className="btn-xs btn-rounded"
+                                className="btn_xs btn_rounded"
                                 href={item.tracking_edit_path}
                                 onClick={stopRowNavigation}
                                 prefetch
@@ -223,7 +230,7 @@ export default function Show({
                                 <div>{item.shipping_company_name}</div>
                               )}
                               <Link
-                                className="btn-xs btn-rounded no-events"
+                                className="btn_xs btn_rounded no_events"
                                 href={item.shipping_company_edit_path}
                                 onClick={stopRowNavigation}
                                 prefetch
@@ -239,11 +246,11 @@ export default function Show({
                       ))}
                     </tbody>
                   </table>
-                  <div className="pagination-bottom">
+                  <div className="pagination_bottom">
                     <Pagination
                       pagination={pagination}
-                      params={{ q: search.q }}
                       path={`/warehouses/${warehouse.id}`}
+                      query={search.q}
                     />
                   </div>
                 </>

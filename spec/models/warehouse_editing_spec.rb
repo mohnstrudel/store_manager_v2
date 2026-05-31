@@ -18,7 +18,7 @@ RSpec.describe Warehouse do
 
       aggregate_failures do
         expect(warehouse).not_to be_persisted
-        expect(warehouse.errors[:is_default]).to include("conflict")
+        expect(warehouse.errors[:is_default]).to include("another default warehouse already exists")
         expect(existing_default.reload.is_default).to be(true)
       end
     end
@@ -77,7 +77,7 @@ RSpec.describe Warehouse do
       aggregate_failures do
         expect(warehouse.reload.is_default).to be(false)
         expect(existing_default.reload.is_default).to be(true)
-        expect(warehouse.errors[:is_default]).to include("conflict")
+        expect(warehouse.errors[:is_default]).to include("another default warehouse already exists")
       end
     end
     # rubocop:enable RSpec/MultipleExpectations

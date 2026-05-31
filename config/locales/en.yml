@@ -50,7 +50,7 @@ en:
             base:
               destroy_blocked: "Error. Please select and move out all purchased products before deleting the warehouse"
             is_default:
-              conflict: "conflict"
+              conflict: "another default warehouse already exists"
   views:
     pagination:
       first: "First"

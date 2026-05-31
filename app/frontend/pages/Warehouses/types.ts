@@ -1,4 +1,4 @@
-import type { MediaRecord } from "@/pages/Products/types";
+import type { MediaFormData, MediaRecord } from "@/pages/Products/types";
 import type { PaginationMeta, PaymentProgress, WarehouseOption } from "@/pages/Purchases/types";
 
 export type WarehouseShowRecord = {
@@ -40,3 +40,25 @@ export type WarehousePurchaseItemRecord = {
 };
 
 export type { PaginationMeta, WarehouseOption };
+
+export type WarehouseFormRecord = {
+  id: number | null;
+  path: string;
+  name: string;
+  external_name_en: string;
+  external_name_de: string;
+  desc_en: string;
+  desc_de: string;
+  cbm: string;
+  container_tracking_number: string;
+  courier_tracking_url: string;
+  is_default: boolean;
+  position: number;
+  media: MediaFormData[];
+  transition_ids: number[];
+};
+
+export type WarehouseFormOptions = {
+  positions: number[];
+  transition_destinations: WarehouseOption[];
+};

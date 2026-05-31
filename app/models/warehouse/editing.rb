@@ -8,10 +8,11 @@ module Warehouse::Editing
 
   def create_from_form!(attributes, new_media_images:)
     transaction do
-      assign_attributes(attributes)
+      assign_attributes(form_attributes(attributes))
       validate_default_warehouse_choice!
       save!
       add_new_media_from_form!(new_media_images)
+      sync_transitions!(transition_ids_for(attributes))
     end
   end
 
@@ -21,7 +22,7 @@ module Warehouse::Editing
         sync_transitions!(transition_ids)
         TRANSITIONS_UPDATED
       else
-        assign_attributes(attributes)
+        assign_attributes(form_attributes(attributes))
         validate_default_warehouse_choice!
         save!
         update_media_from_form!(media_attributes)
@@ -44,6 +45,14 @@ module Warehouse::Editing
 
   def transitions_only_update?(attributes)
     attributes.one? { |key, _value| key.to_s == "to_warehouse_ids" }
+  end
+
+  def form_attributes(attributes)
+    attributes.except(:to_warehouse_ids, "to_warehouse_ids")
+  end
+
+  def transition_ids_for(attributes)
+    attributes[:to_warehouse_ids] || attributes["to_warehouse_ids"]
   end
 
   def validate_default_warehouse_choice!
