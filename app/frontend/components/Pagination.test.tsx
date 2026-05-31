@@ -44,4 +44,26 @@ describe("Pagination", () => {
       "/items?page=7&q=makima",
     );
   });
+
+  it("omits the previous link on the first page", () => {
+    render(<Pagination pagination={{ current_page: 1, total_pages: 3 }} path="/items" />);
+
+    expect(screen.queryByRole("link", { name: "Previous" })).not.toBeInTheDocument();
+    expect(screen.getByText("1")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Next" })).toHaveAttribute("href", "/items?page=2");
+  });
+
+  it("omits the next link on the last page", () => {
+    render(<Pagination pagination={{ current_page: 3, total_pages: 3 }} path="/items" />);
+
+    expect(screen.getByRole("link", { name: "Previous" })).toHaveAttribute("href", "/items?page=2");
+    expect(screen.getByText("3")).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByRole("link", { name: "Next" })).not.toBeInTheDocument();
+  });
+
+  it("does not render when there is only one page", () => {
+    render(<Pagination pagination={{ current_page: 1, total_pages: 1 }} path="/items" />);
+
+    expect(screen.queryByRole("navigation", { name: "Pagination" })).not.toBeInTheDocument();
+  });
 });
