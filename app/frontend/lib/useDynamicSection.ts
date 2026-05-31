@@ -2,12 +2,19 @@ import { useId, useRef, useState } from "react";
 
 export type SectionRow<T> = T & { clientKey: string };
 
-export function useDynamicSection<T extends object>(initial: T[], factory: () => T) {
+export function useDynamicSection<T extends object>(
+  initial: T[],
+  factory: () => T,
+  options?: { keyForInitial?: (item: T, index: number) => string },
+) {
   const uid = useId();
   const seq = useRef(0);
 
   const [items, setItems] = useState<SectionRow<T>[]>(() =>
-    initial.map((item, index) => ({ ...item, clientKey: `${uid}-${index}` })),
+    initial.map((item, index) => ({
+      ...item,
+      clientKey: options?.keyForInitial?.(item, index) ?? `${uid}-${index}`,
+    })),
   );
 
   function add() {
@@ -16,8 +23,18 @@ export function useDynamicSection<T extends object>(initial: T[], factory: () =>
   }
 
   function remove(clientKey: string) {
-    setItems((current) => current.filter((i) => i.clientKey !== clientKey));
+    setItems((current) => current.filter((item) => item.clientKey !== clientKey));
   }
 
-  return { items, add, remove };
+  function removeAt(index: number) {
+    setItems((current) => current.filter((_, currentIndex) => currentIndex !== index));
+  }
+
+  function update(clientKey: string, changes: Partial<T>) {
+    setItems((current) =>
+      current.map((item) => (item.clientKey === clientKey ? { ...item, ...changes } : item)),
+    );
+  }
+
+  return { add, items, remove, removeAt, update };
 }

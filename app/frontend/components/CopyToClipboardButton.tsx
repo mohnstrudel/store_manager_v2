@@ -11,15 +11,7 @@ export default function CopyToClipboardButton({
   label = "Copy",
   text,
 }: CopyToClipboardButtonProps) {
-  const [copied, setCopied] = useState(false);
-
-  const copy = useCallback(async () => {
-    if (!text) return;
-
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 800);
-  }, [text]);
+  const { copied, copy } = useClipboardCopy(text);
 
   return (
     <button
@@ -33,4 +25,18 @@ export default function CopyToClipboardButton({
       <span className="text-nowrap">{copied ? "Done" : label}</span>
     </button>
   );
+}
+
+function useClipboardCopy(text: string) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = useCallback(async () => {
+    if (!text) return;
+
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 800);
+  }, [text]);
+
+  return { copied, copy };
 }

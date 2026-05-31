@@ -1,5 +1,6 @@
 import { router, Link } from "@inertiajs/react";
 import { useCallback, type MouseEvent } from "react";
+import { useCloseOnEscape } from "@/lib/useCloseOnEscape";
 
 type SyncModalProps = {
   id: string;
@@ -20,6 +21,7 @@ export default function SyncModal({
   pullPath,
   title,
 }: SyncModalProps) {
+  useCloseOnEscape(true, onClose);
   const handleClose = useCallback(() => onClose(), [onClose]);
   const handleBackdropClick = useCallback(
     (event: MouseEvent<HTMLDialogElement>) => {

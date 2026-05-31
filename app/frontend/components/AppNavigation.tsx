@@ -1,18 +1,24 @@
 import { Bars3Icon } from "@heroicons/react/24/outline";
-import { router, usePage, Link } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import type { PageProps } from "@/types/inertia";
+import { useNavigationDropdown } from "@/lib/useNavigationDropdown";
 
 const emptyPagination = { current_page: 1, total_pages: 1, total_count: 0, limit: 50 };
 const emptySearch = { q: "" };
 
-type NavLink = {
+type NavigationLink = {
   href: string;
   label: string;
   component: string;
   pageProps: Record<string, unknown>;
 };
 
-const primaryLinks: NavLink[] = [
+type NavigationDivider = {
+  divider: true;
+  key: string;
+};
+
+const primaryLinks: NavigationLink[] = [
   {
     href: "/",
     label: "Dashboard",
@@ -87,9 +93,7 @@ const primaryLinks: NavLink[] = [
   },
 ];
 
-type DropdownLink = NavLink | { divider: true; key: string };
-
-const dropdownLinks: DropdownLink[] = [
+const overflowLinks: Array<NavigationLink | NavigationDivider> = [
   {
     href: "/suppliers",
     label: "Suppliers",
@@ -122,129 +126,200 @@ const dropdownLinks: DropdownLink[] = [
   { divider: true, key: "divider-sections" },
 ];
 
+const usersLink: NavigationLink = {
+  href: "/users",
+  label: "Users",
+  component: "Users/Index",
+  pageProps: { users: [] },
+};
+
 export default function AppNavigation() {
   const { auth } = usePage<PageProps>().props;
-  const user = auth?.user ?? null;
-  const isGuest = user?.role === "guest";
+  const user = auth.user;
 
   return (
     <header className="container mx-auto pt-2 px-4 lg:px-0">
       <nav
-        className="flex flex-col items-stretch gap-3 relative lg:flex-row lg:items-center"
-        role="navigation-main"
+        className="navigation-main relative flex flex-col items-stretch gap-3 lg:flex-row lg:items-center"
+        aria-label="Main navigation"
       >
-        <ul className="flex w-full items-center justify-between lg:w-auto" role="navigation-logo">
-          <li className="text-gray-700 dark:text-gray-500">
-            <i className="icn text-2xl mr-2" aria-hidden="true">
-              😸
-            </i>
-            <strong className="align-text-bottom">StoreMate</strong>
-          </li>
-        </ul>
-
-        <ul className="text-sm flex flex-wrap items-center gap-2 lg:flex-nowrap lg:whitespace-nowrap">
-          {isGuest ? (
-            <li>
-              <button onClick={logOut} type="button">
-                Log Out
-              </button>
-            </li>
-          ) : (
-            <>
-              {primaryLinks.slice(0, 2).map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    component={link.component}
-                    pageProps={instantPageProps(link.pageProps)}
-                    prefetch
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-              <li aria-hidden="true" className="hidden lg:block lg:ml-6" />
-              {primaryLinks.slice(2, 5).map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    component={link.component}
-                    pageProps={instantPageProps(link.pageProps)}
-                    prefetch
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-              <li aria-hidden="true" className="hidden lg:block lg:ml-6" />
-              {primaryLinks.slice(5).map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    component={link.component}
-                    pageProps={instantPageProps(link.pageProps)}
-                    prefetch
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-
-              <nav className="ml-0 lg:ml-6" role="navigation-dropdown">
-                <button type="button">
-                  <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-                </button>
-                <ul>
-                  {dropdownLinks.map((link) =>
-                    "divider" in link ? (
-                      <li aria-hidden="true" className="pb-3" key={link.key} />
-                    ) : (
-                      <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          component={link.component}
-                          pageProps={instantPageProps(link.pageProps)}
-                          prefetch
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    ),
-                  )}
-                  {user?.role === "admin" ? (
-                    <li>
-                      <Link
-                        href="/users"
-                        component="Users/Index"
-                        pageProps={instantPageProps({ users: [] })}
-                        prefetch
-                      >
-                        Users
-                      </Link>
-                    </li>
-                  ) : null}
-                  <li>
-                    <button onClick={logOut} type="button">
-                      Log Out
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </>
-          )}
-        </ul>
+        <NavigationBrand />
+        <NavigationActions user={user} />
       </nav>
     </header>
   );
 }
 
-function logOut() {
+function NavigationBrand() {
+  return (
+    <ul className="navigation-logo flex w-full items-center justify-between lg:w-auto">
+      <li className="text-gray-700 dark:text-gray-500">
+        <i className="icn mr-2 text-2xl" aria-hidden="true">
+          😸
+        </i>
+        <strong className="align-text-bottom">StoreMate</strong>
+      </li>
+    </ul>
+  );
+}
+
+function NavigationActions({ user }: { user: PageProps["auth"]["user"] }) {
+  if (user?.role === "guest") {
+    return <GuestNavigationActions />;
+  }
+
+  return <AuthenticatedNavigationActions user={user} />;
+}
+
+function GuestNavigationActions() {
+  return (
+    <ul className="navigation-links text-sm flex flex-wrap items-center gap-2 lg:flex-nowrap lg:whitespace-nowrap">
+      <li>
+        <button onClick={() => logOut()} type="button">
+          Log Out
+        </button>
+      </li>
+    </ul>
+  );
+}
+
+function AuthenticatedNavigationActions({ user }: { user: PageProps["auth"]["user"] }) {
+  const { closeDropdown, dropdownRef, isOpen, toggleDropdown } = useNavigationDropdown();
+
+  return (
+    <ul className="navigation-links text-sm flex flex-wrap items-center gap-2 lg:flex-nowrap lg:whitespace-nowrap">
+      <NavigationPrimaryLinks onSelect={closeDropdown} />
+      <NavigationOverflowMenu
+        closeDropdown={closeDropdown}
+        dropdownRef={dropdownRef}
+        isOpen={isOpen}
+        onToggle={toggleDropdown}
+        user={user}
+      />
+    </ul>
+  );
+}
+
+function NavigationPrimaryLinks({ onSelect }: { onSelect?: () => void }) {
+  return (
+    <>
+      <NavigationLinkGroup links={primaryLinks.slice(0, 2)} onSelect={onSelect} />
+      <NavigationSeparator />
+      <NavigationLinkGroup links={primaryLinks.slice(2, 5)} onSelect={onSelect} />
+      <NavigationSeparator />
+      <NavigationLinkGroup links={primaryLinks.slice(5)} onSelect={onSelect} />
+    </>
+  );
+}
+
+function NavigationOverflowMenu({
+  closeDropdown,
+  dropdownRef,
+  isOpen,
+  onToggle,
+  user,
+}: {
+  closeDropdown: () => void;
+  dropdownRef: ReturnType<typeof useNavigationDropdown>["dropdownRef"];
+  isOpen: boolean;
+  onToggle: () => void;
+  user: PageProps["auth"]["user"];
+}) {
+  return (
+    <li className="navigation-dropdown ml-0 lg:ml-6" data-open={isOpen} ref={dropdownRef}>
+      <button
+        aria-controls="navigation-dropdown-links"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-label="More navigation links"
+        onClick={onToggle}
+        type="button"
+      >
+        <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+      </button>
+      <ul aria-hidden={!isOpen} id="navigation-dropdown-links">
+        <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />
+        {user?.role === "admin" ? <NavigationLinkItem link={usersLink} onSelect={closeDropdown} /> : null}
+        <li>
+          <button onClick={() => logOut(closeDropdown)} type="button">
+            Log Out
+          </button>
+        </li>
+      </ul>
+    </li>
+  );
+}
+
+function NavigationLinkGroup({
+  links,
+  onSelect,
+}: {
+  links: NavigationLink[];
+  onSelect?: () => void;
+}) {
+  return (
+    <>
+      {links.map((link) => (
+        <NavigationLinkItem key={link.href} link={link} onSelect={onSelect} />
+      ))}
+    </>
+  );
+}
+
+function NavigationDropdownItems({
+  items,
+  onSelect,
+}: {
+  items: Array<NavigationLink | NavigationDivider>;
+  onSelect?: () => void;
+}) {
+  return (
+    <>
+      {items.map((item) =>
+        "divider" in item ? (
+          <NavigationSeparator key={item.key} className="pb-3" />
+        ) : (
+          <NavigationLinkItem key={item.href} link={item} onSelect={onSelect} />
+        ),
+      )}
+    </>
+  );
+}
+
+function NavigationLinkItem({
+  link,
+  onSelect,
+}: {
+  link: NavigationLink;
+  onSelect?: () => void;
+}) {
+  return (
+    <li>
+      <Link
+        href={link.href}
+        component={link.component}
+        onClick={onSelect}
+        pageProps={withSharedPageProps(link.pageProps)}
+        prefetch
+      >
+        {link.label}
+      </Link>
+    </li>
+  );
+}
+
+function NavigationSeparator({ className = "hidden lg:block lg:ml-6" }: { className?: string }) {
+  return <li aria-hidden="true" className={className} />;
+}
+
+function logOut(onLoggedOut?: () => void) {
   if (!window.confirm("Are you sure you want to log out?")) return;
 
+  onLoggedOut?.();
   router.post("/log_out");
 }
 
-function instantPageProps(pageProps: Record<string, unknown>) {
+function withSharedPageProps(pageProps: Record<string, unknown>) {
   return (_currentProps: Record<string, unknown>, sharedProps: Record<string, unknown>) => ({
     ...sharedProps,
     ...pageProps,

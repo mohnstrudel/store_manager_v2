@@ -300,75 +300,65 @@
 @layer components {
 
   /* Navigation */
-  nav[role="navigation-main"] ul {
+  .navigation-main ul {
     @apply flex items-center;
   }
 
-  nav[role="navigation-main"] {
+  .navigation-main {
     @apply justify-between items-center gap-3;
   }
 
-  nav[role="navigation-main"] > ul {
+  .navigation-main > ul {
     @apply w-auto;
   }
 
-  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) {
+  .navigation-main > ul:not(.navigation-logo) {
     @apply flex-wrap items-center justify-start gap-2 w-full;
   }
 
-  nav[role="navigation-main"] a {
+  .navigation-main a {
     @apply rounded-sm uppercase lg:normal-case tracking-wide lg:tracking-normal text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 lg:border-0 lg:bg-transparent lg:dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 
-  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] a {
+  .navigation-main > ul:not(.navigation-logo) > .navigation-dropdown a {
     @apply text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 
-  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] > button {
-    @apply p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 cursor-pointer;
+  .navigation-main > ul:not(.navigation-logo) > .navigation-dropdown > button {
+    @apply inline-flex items-center justify-center p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 cursor-pointer;
   }
 
-  nav[role="navigation-main"] {
+  .navigation-main {
     @apply lg:justify-between;
   }
 
-  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) {
+  .navigation-main > ul:not(.navigation-logo) {
     @apply lg:ml-0 lg:w-auto lg:flex-nowrap lg:justify-start;
   }
 
-  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] a {
+  .navigation-main > ul:not(.navigation-logo) > .navigation-dropdown a {
     @apply border-0 bg-transparent dark:bg-transparent;
   }
 
-  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] > button {
-    @apply p-1 bg-transparent lg:p-2 lg:rounded-sm lg:hover:bg-gray-100 lg:dark:hover:bg-gray-700;
-  }
-
-  nav[role="navigation-main"] > ul:not([role="navigation-logo"]) > nav[role="navigation-dropdown"] {
-    @apply absolute right-0 top-0 lg:relative lg:right-auto lg:top-auto;
-  }
-
-  nav[role="navigation-dropdown"] {
+  .navigation-main > ul:not(.navigation-logo) > .navigation-dropdown {
     @apply relative;
   }
 
-  nav[role="navigation-dropdown"]>button {
-    @apply p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 cursor-pointer;
-  }
-
-  nav[role="navigation-dropdown"]:hover>button {
+  .navigation-dropdown > button:hover,
+  .navigation-dropdown[data-open="true"] > button {
     @apply bg-gray-100 dark:bg-gray-700;
   }
 
-  nav[role="navigation-dropdown"] ul {
-    @apply flex flex-col items-start absolute right-0 top-full w-50 pt-5 pr-4 pb-7 pl-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg opacity-0 invisible transition-all duration-150 z-228;
+  .navigation-dropdown > ul {
+    @apply flex flex-col items-start absolute right-0 top-full w-50 pt-5 pr-4 pb-7 pl-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg opacity-0 invisible pointer-events-none transition-all duration-150 z-228;
   }
 
-  nav[role="navigation-dropdown"]:hover ul {
-    @apply opacity-100 visible text-left;
+  .navigation-dropdown[data-open="true"] > ul,
+  .navigation-dropdown:hover > ul {
+    @apply opacity-100 visible pointer-events-auto text-left;
   }
 
-  nav[role="navigation-dropdown"] li a {
+  .navigation-dropdown > ul li a {
     @apply w-full items-center justify-start;
   }
 
