@@ -1,8 +1,8 @@
-import { useCallback, useState } from "react";
 import { Link } from "@inertiajs/react";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
+import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import IndexTable from "./components/IndexTable";
 import MoveToWarehouseForm from "./components/MoveToWarehouseForm";
 import type { PaginationMeta, PurchaseIndexRecord, WarehouseOption } from "./types";
@@ -22,15 +22,7 @@ export default function Index({
   search,
   warehouses,
 }: IndexProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const clearSelectedIds = useCallback(() => setSelectedIds([]), []);
-  const togglePurchase = useCallback((purchaseId: number) => {
-    setSelectedIds((current) =>
-      current.includes(purchaseId)
-        ? current.filter((selectedId) => selectedId !== purchaseId)
-        : [...current, purchaseId],
-    );
-  }, []);
+  const { clearSelectedIds, selectedIds, toggleSelectedId } = useWarehouseMoveSelection();
   const paginationBottom = (
     <div className="pagination_bottom">
       <Pagination pagination={pagination} path="/purchases" query={search.q} />
@@ -65,7 +57,7 @@ export default function Index({
         {purchases.length > 0 ? (
           <>
             <IndexTable
-              onTogglePurchase={togglePurchase}
+              onTogglePurchase={toggleSelectedId}
               purchases={purchases}
               selectedIds={selectedIds}
             />

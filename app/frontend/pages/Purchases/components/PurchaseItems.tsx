@@ -1,7 +1,8 @@
 import { router, Link } from "@inertiajs/react";
-import { type MouseEvent, useState } from "react";
+import { type MouseEvent } from "react";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import MoveToWarehouseForm from "./MoveToWarehouseForm";
 import PaymentProgressBar from "./PaymentProgressBar";
 import type { PurchaseItemRecord, PurchaseShowRecord, WarehouseOption } from "../types";
@@ -26,17 +27,13 @@ export default function PurchaseItems({
   purchaseItems,
   warehouses,
 }: PurchaseItemsProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const {
+    clearSelectedIds,
+    selectedIds,
+    toggleSelectedIdFromDataAttribute,
+  } = useWarehouseMoveSelection();
 
   if (purchaseItems.length === 0) return null;
-
-  function togglePurchaseItem(purchaseItemId: number) {
-    setSelectedIds((current) =>
-      current.includes(purchaseItemId)
-        ? current.filter((selectedId) => selectedId !== purchaseItemId)
-        : [...current, purchaseItemId],
-    );
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -68,7 +65,7 @@ export default function PurchaseItems({
 
         <MoveToWarehouseForm
           movePath={movePath}
-          onMoved={() => setSelectedIds([])}
+          onMoved={clearSelectedIds}
           purchaseId={purchase.id}
           redirectToSaleItem
           selectedIds={selectedIds}
@@ -97,7 +94,8 @@ export default function PurchaseItems({
                 <td className="no_events text-center">
                   <input
                     checked={selectedIds.includes(purchaseItem.id)}
-                    onChange={() => togglePurchaseItem(purchaseItem.id)}
+                    data-purchase-item-id={purchaseItem.id}
+                    onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
                     onClick={stopRowNavigation}
                     type="checkbox"
                   />
