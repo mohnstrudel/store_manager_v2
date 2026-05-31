@@ -1,6 +1,6 @@
 # Codex Rails Architecture Guide
 
-Use this document as a reusable architecture brief for Codex on other Rails projects. It is based on a close reading of a production-style Rails app that organizes the whole stack around domain ownership, request context, server-rendered views, and thin async wrappers.
+Use this document as a reusable backend architecture brief for Codex on other Rails projects. It is based on a close reading of a production-style Rails app that organizes the backend around domain ownership, request context, backend responses, and thin async wrappers. For React or browser-side UI work, use [codex-frontend-architecture.md](/Users/geny/Developer/store_manager_v2/.codex/codex-frontend-architecture.md) instead.
 
 ## AGENTS.md Snippet
 
@@ -26,17 +26,17 @@ Design Rails apps around domain ownership and request-scoped boundaries, with do
 - Keep routes and controller namespaces aligned with access surfaces and workflows: private, public, account settings, personal settings, nested child resources, and state transitions.
 - Keep controllers thin. Let controllers load records through scoped relations, compose named scopes, and call model commands.
 - Use controller concerns for loading context, scoping records, and request policy. Keep business rules out of controller concerns.
-- Prefer server-rendered HTML as the source of truth in Rails apps like this. Use Turbo Frames and Turbo Streams for incremental updates instead of pushing domain behavior into JavaScript.
+- Prefer backend-rendered responses as the source of truth in Rails apps like this. Keep incremental update logic at the edge instead of pushing domain behavior into client-side code.
 - Organize view partials by screen and display variant. Put markup and presentation branching in views and helpers, not in models.
 - Keep JSON at the edge with Jbuilder partials or another explicit rendering layer. Do not let controllers hand-build JSON hashes for large responses.
 - Keep helpers presentation-only: HTML wrappers, labels, button helpers, route helpers, and display formatting.
 - Allow domain-owned external representations inside model namespaces when they are true product interfaces, such as exports, notification payloads, prompts for LLMs, or webhook payload generation.
-- Keep Stimulus controllers focused on interaction, navigation, pagination, forms, and progressive enhancement. Do not move domain state machines into front-end code.
+- Keep browser-side interaction code focused on interaction, navigation, pagination, forms, and progressive enhancement. Do not move domain state machines into client-side code.
 - Keep jobs thin. Jobs should usually call one model command, subsystem object, or mailer entry point.
 - Let domain models or model-adjacent collaborators decide recipients, payloads, and workflow behavior; let mailers and views handle rendering.
 - Accept callbacks when they are local to one capability and maintain that same concept's read models, ledgers, broadcasts, or fan-out. Do not ban callbacks reflexively.
 - If a technical subsystem is user-visible, model it as a domain abstraction. Storage quotas, notification bundles, import/export manifests, or search indexes may belong in `app/models` even if they touch infrastructure.
-- Keep tests aligned with ownership. Test model capabilities at the domain seam, controller behavior with integration tests, and HTML, JSON, or Turbo output at the edge.
+- Keep tests aligned with ownership. Test model capabilities at the domain seam, controller behavior with integration tests, and HTML, JSON, or response output at the edge.
 - Use `fresh_when`, `etag`, and fragment caching at the edges for expensive read paths.
 ```
 
@@ -51,7 +51,7 @@ Before refactoring a Rails codebase, check these first:
 - Do not remove callbacks that are maintaining adjacent read models, events, broadcasts, or ledgers unless they are actually surprising or unsafe.
 - Do not treat every non-ActiveRecord object in `app/models` as misplaced. It may be a form object, payload builder, workflow object, or query subsystem.
 - Do not push product-facing representations such as exports, prompts, or webhook payloads into views/helpers if they are reused as domain interfaces.
-- Do not move server-rendered interaction flows into JavaScript when Turbo and partial rendering already express them cleanly.
+- Do not move backend-rendered interaction flows into JavaScript when partial rendering already expresses them cleanly.
 - Do not rebuild tenancy or authorization filters ad hoc in controllers if a scoped entry relation can own them.
 - Do not turn thin jobs into detached workflow containers; keep the job as transport unless the workflow truly belongs in a named model-layer object.
 - Do not collapse rich capability tests into generic object tests when the model already owns the concept.
@@ -82,15 +82,15 @@ Before refactoring a Rails codebase, check these first:
 - Load records through access-scoped associations such as `Current.user.boards` or `Current.user.accessible_cards`.
 - Compose named relations rather than embedding SQL or large branching trees in controllers.
 - Keep state transitions explicit with focused endpoints such as `publish`, `close`, `triage`, `pin`, or `activate`.
-- Support multiple formats only at the edge: `html`, `json`, and `turbo_stream` responses can coexist, but they should call the same domain operations.
+- Support multiple formats only at the edge: `html` and `json` responses can coexist, but they should call the same domain operations.
 
 ## View and API Rules
 
 - Use nested partial trees to reflect display variants such as preview, detail, tray, menu, or public view.
 - Put conditional presentation and HTML-building helpers in helpers, not in the model layer.
-- Use Turbo Frames and Turbo Stream templates for partial page refreshes.
+- Use explicit response templates for partial page refreshes.
 - Keep JSON rendering in explicit templates or serializers so the response shape remains discoverable and cacheable.
-- If the app is server-rendered, let JavaScript enhance the UI rather than define the core business flow.
+- If the app is backend-rendered, let client-side code enhance the UI rather than define the core business flow.
 
 ## Async and Workflow Rules
 

@@ -68,7 +68,7 @@ Use this file for the non-obvious model-layer rules in this repo.
 - repeated read shape -> named scope on the owning model
 - controller or job needs one clear domain action -> call the model method directly before inventing a service
 - non-CRUD endpoint is really its own resource -> add a small nested controller under `app/controllers/<parent>/...`
-- collection-level command or Turbo endpoint is its own concept -> add a small collection resource controller under `app/controllers/<parent>/...`
+- collection-level command or endpoint is its own concept -> add a small collection resource controller under `app/controllers/<parent>/...`
 - child create, update, or destroy action can stand alone -> give it its own nested endpoint instead of folding it into parent nested attributes
 - parent and children truly must submit together -> keep the form composite, but isolate translation and rehydration in narrow model-area form objects
 - several small controllers share the same loading seam -> add a scoped controller concern instead of repeating lookups

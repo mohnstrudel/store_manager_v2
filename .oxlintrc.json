@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "style": "off",
+    "nursery": "off",
+    "pedantic": "off",
+    "perf": "off",
+    "restriction": "off"
+  },
+  "env": {
+    "browser": true,
+    "vitest": true
+  },
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "react-perf", "import", "vitest"],
+  "settings": {
+    "react": {
+      "version": "19.2.6"
+    }
+  },
+  "rules": {
+    "eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "eslint/no-underscore-dangle": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn"
+  }
+}

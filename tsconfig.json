@@ -12,9 +12,8 @@
     "skipLibCheck": true,
     "ignoreDeprecations": "6.0",
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["app/frontend/*"]
+      "@/*": ["./app/frontend/*"]
     }
   },
   "include": ["app/frontend/**/*.ts", "app/frontend/**/*.tsx"],

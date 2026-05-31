@@ -4,10 +4,10 @@ Use this file for the repo-specific view organization pattern.
 
 ## Core Rules
 
-- Keep root templates small: `index.html.slim`, `show.html.slim`, `new.html.slim`, `edit.html.slim`.
+- Keep root templates small: `index`, `show`, `new`, and `edit`.
 - Organize by screen first: `index/`, `show/`, `form/`, and resource-local shared folders such as `items/` only when needed.
 - Keep only truly cross-resource fragments in `app/views/_shared`.
-- Keep endpoint-owned `*.turbo_stream.*` templates at the resource root.
+- Keep endpoint-owned response templates at the resource root.
 
 ## Default Baseline
 
@@ -15,18 +15,18 @@ Use this when the resource is simple:
 
 ```text
 app/views/<resource>/
-  edit.html.slim
-  index.html.slim
-  new.html.slim
-  show.html.slim
+  edit.html.*
+  index.html.*
+  new.html.*
+  show.html.*
   form/
-    _form.html.slim
+    _form.html.*
   index/
-    _resource.html.slim
-    _table.html.slim
+    _resource.html.*
+    _table.html.*
   show/
-    _details.html.slim
-    _related_records.html.slim
+    _details.html.*
+    _related_records.html.*
 ```
 
 ## Expand When Needed

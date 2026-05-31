@@ -1,15 +1,16 @@
 # Store Manager V2
 
-Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify sync.
+Rails app with Tailwind CSS, RSpec, a React frontend, and Shopify sync.
 
 ## Repo-specific notes
 
 - `Current` is intentionally small in [app/models/current.rb](/Users/geny/Developer/store_manager_v2/app/models/current.rb): it stores `session` and delegates `user`. Do not assume a broader request context.
-- Follow the existing Slim + Turbo patterns in [app/views](/Users/geny/Developer/store_manager_v2/app/views).
+- Use `rails-domain-architecture` for backend/domain work and `frontend-architecture` for React pages, shared components, hooks, and browser-side interaction work.
+- Follow the existing view patterns in [app/views](/Users/geny/Developer/store_manager_v2/app/views) and the existing frontend patterns in [app/frontend](/Users/geny/Developer/store_manager_v2/app/frontend).
 - Do not add presenters by default. If view code is mostly Ruby and very little markup, first decide whether it is screen-only logic that belongs in a helper or edge template, or a durable domain representation that should stay near the model in `app/models/<model>/...`.
 - In this repo, presentation preparation is usually a helper or partial concern, not a presenter layer. If a template starts building small screen-only view structures, move that setup to a helper before inventing a presenter object.
-- In this repo, Stimulus controllers should stay small and literal. Let the server render initial structure and prepared view data; let Stimulus own only interaction state, DOM toggles, and loading transitions for one widget.
-- For UI and Stimulus work, browser-level feature specs are part of the implementation, not a polish step. The agent cannot truly see what the user sees, so tests are the main way to lock in visible behavior such as loading skeletons, dialog open or close flows, and geometry stability.
+- Keep browser-side interaction code small and literal. Let the server render initial structure and prepared view data; let the client-side widget own only interaction state, DOM toggles, and loading transitions for one widget.
+- For UI and browser-interaction work, browser-level feature specs are part of the implementation, not a polish step. The agent cannot truly see what the user sees, so tests are the main way to lock in visible behavior such as loading skeletons, dialog open or close flows, and geometry stability.
 - Tailwind styles are centralized under [app/assets/tailwind/application.css](/Users/geny/Developer/store_manager_v2/app/assets/tailwind/application.css) and related files. Prefer extending those over long inline utility strings.
 - RSpec already mixes fixtures and `FactoryBot` in [spec/rails_helper.rb](/Users/geny/Developer/store_manager_v2/spec/rails_helper.rb). Reuse the nearest pattern and avoid churn in spec helpers.
 - Route Shopify Admin GraphQL work through [app/services/shopify/api/client.rb](/Users/geny/Developer/store_manager_v2/app/services/shopify/api/client.rb) and the query/mutation objects under [app/services/shopify/graphql](/Users/geny/Developer/store_manager_v2/app/services/shopify/graphql).
@@ -31,13 +32,13 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - When a side-effect action becomes its own concept, prefer a small nested resource controller over adding another member or collection action to a broad controller.
 - Prefer real write routes for command-style actions. A pull, move, link, or confirmation flow should usually become a `POST`, `PATCH`, or `DELETE` resource endpoint, not a `GET`.
 - Collection-level workflows can also become small resource controllers. Do not reserve this pattern only for member actions.
-- Inline Turbo edit flows can also be resourceful. Prefer a small singular nested controller over `edit_*`, `cancel_*`, and `update_*` actions on the parent controller.
+- Inline edit flows can also be resourceful. Prefer a small singular nested controller over `edit_*`, `cancel_*`, and `update_*` actions on the parent controller.
 - Keep jobs thin and move aggregate-local workflow to model-area collaborators.
 - Order methods top-down by dependency: put the main public method first, then place the helper it calls immediately below it, and continue that pattern through the file.
 - If a method is reused across parsers, jobs, imports, sync flows, and some views, treat it as a domain representation and keep it near the model rather than moving it to helpers.
-- If a method exists only for one screen, dropdown, widget, or response format, move it to helpers, partials, Jbuilder, or Turbo templates.
+- If a method exists only for one screen, dropdown, widget, or response format, move it to helpers, partials, Jbuilder, or response templates.
 - If a partial starts building small collections of screen-only view data, prefer a helper method over adding presenters. Use presenters only if the repo explicitly adopts that pattern, which it currently does not.
-- If one widget owns one DOM node's loading or selection lifecycle, prefer one focused Stimulus controller to own that node end-to-end instead of splitting responsibility across multiple controllers.
+- If one widget owns one DOM node's loading or selection lifecycle, prefer one focused browser-side module to own that node end-to-end instead of splitting responsibility across multiple modules.
 - Prefer obvious JavaScript method names over abstract mini-framework patterns. Optimize for code that reads clearly in one pass.
 - When a UI change is risky because it is visual or interaction-heavy, add or update a browser-driven feature spec that exercises the real page. Do not rely only on reading the code and assuming the UI is correct.
 - Stable cross-process title builders should usually become instance-oriented methods in a capability such as `app/models/product/titling.rb`, not class methods that take a `product` argument.
@@ -57,13 +58,13 @@ Rails app with Slim views, Tailwind CSS, Turbo responses, RSpec, and Shopify syn
 - request setup, params, or response concerns: controller or controller concern
 - repeated parent loading across several small controllers: `app/controllers/concerns/<resource>_scoped.rb`
 - repeated request helpers shared by one namespaced controller family: controller concern
-- collection-level command or Turbo endpoint: small controller under `app/controllers/<resource>/...` plus a collection resource route
+- collection-level command or endpoint: small controller under `app/controllers/<resource>/...` plus a collection resource route
 - child resource with standalone create, update, or destroy behavior: nested controller plus a small edge form, not a default nested-attributes parent form
 - true one-submit parent/children screen: composite form plus narrow form payload and rehydration objects
 - async transport, retries, scheduling, or pagination: `app/jobs/...`
-- screen-only rendering behavior: helper, partial, Turbo template, or view subtree
+- screen-only rendering behavior: helper, partial, response template, or view subtree
 - controller or job only needs one domain action: add or call a named model method before inventing a service
-- route-consuming helper or shared button: use the real route helper or correct polymorphic path shape with the correct `turbo_method`; do not guess from the old route layout
+- route-consuming helper or shared button: use the real route helper or correct polymorphic path shape with the correct HTTP verb; do not guess from the old route layout
 - one controller alone is too big: prefer private methods, another controller, or domain extraction before creating a single-use controller concern
 
 ## Skills
@@ -71,16 +72,18 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
 
 ### Available skills
 - rails-domain-architecture: Design or refactor this Rails app toward a model-centric architecture that keeps domain logic, associations, scopes, callbacks, state transitions, and test ownership close to the owning models. Use when planning Rails file layout, deciding between models, concerns, query objects, and services, organizing scopes, extracting capabilities into `app/models/<model>/`, designing request boundaries, or building reusable testing strategies for rich Rails domains. (file: /Users/geny/Developer/store_manager_v2/.codex/skills/rails-domain-architecture/SKILL.md)
+- frontend-architecture: Design or refactor the React and browser-side UI in this Rails app toward small page components, reusable UI pieces, explicit props, and focused interaction boundaries. Use when planning `app/frontend` layout, page composition, shared components, hooks, browser-side widgets, or frontend test strategy. (file: /Users/geny/Developer/store_manager_v2/.codex/skills/frontend-architecture/SKILL.md)
 - shopify: Use for Shopify Admin API work in this repo. The important local rule is that GraphQL calls go through the shared client and query or mutation objects, with sync logic kept in jobs and parser or serializer layers. (file: /Users/geny/Developer/store_manager_v2/.codex/skills/shopify/SKILL.md)
 - commit: Use when asked to write a git commit for this repo. The repo-specific guidance is the Conventional Commit format, common scopes, and avoiding attribution footers. (file: /Users/geny/Developer/store_manager_v2/.codex/skills/commit/SKILL.md)
 
 ### Default entry point
-- Start with `rails-domain-architecture` for almost every product change in this repo. It is the default router for new models, controllers, views, jobs, tests, and refactors.
+- Start with `rails-domain-architecture` for backend/domain work in this repo. It is the default router for models, controllers, request flows, jobs, backend tests, and refactors.
+- Start with `frontend-architecture` for React pages, shared components, hooks, browser-side widgets, and frontend tests.
 - For new model or domain behavior, first read `references/task-router.md`, then `references/principles.md`.
 - For new controller, route, or request flow, first read `references/task-router.md`, then `references/full-stack-architecture.md`.
-- For new view, partial tree, form, helper, or Turbo response, first read `references/task-router.md`, then `references/full-stack-architecture.md` and `references/screen-first-view-pattern.md`.
+- For new backend view, partial tree, form, or helper work, first read `references/task-router.md`, then `references/full-stack-architecture.md` and `references/screen-first-view-pattern.md`.
 - For new jobs, recurring work, or async orchestration, first read `references/task-router.md`, then `references/jobs-architecture.md`.
-- For testing guidance or when moving ownership seams, read `references/testing-architecture.md`.
+- For backend testing guidance or when moving ownership seams, read `references/testing-architecture.md`.
 - Add `shopify` together with `rails-domain-architecture` when the task touches Shopify Admin API, sync jobs, parsers, or GraphQL objects.
 - Use `commit` only when the user asks for a commit message or a git commit.
 

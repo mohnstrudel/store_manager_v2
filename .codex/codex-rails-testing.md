@@ -1,6 +1,7 @@
 # Codex Rails Testing Guide
 
 Use this document as a reusable testing brief for Codex on other Rails projects. It is based on a Rails app whose tests closely mirror domain ownership, request boundaries, and server-rendered behavior.
+Frontend component and browser-level UI testing live in [codex-frontend-testing.md](/Users/geny/Developer/store_manager_v2/.codex/codex-frontend-testing.md).
 
 ## AGENTS.md Snippet
 
@@ -13,8 +14,8 @@ Design tests around domain ownership and request boundaries, not around arbitrar
 - Prefer testing public behavior over private implementation. Assert scopes, commands, side effects, events, fan-out, and rendered responses.
 - Keep model capability tests close to the owning concept. If a model is split into capability modules, give those capabilities focused test files too.
 - Use `ActionDispatch::IntegrationTest` for controllers so routing, auth, tenancy, params, and rendering are exercised together.
-- Test HTML, JSON, and Turbo Stream responses as first-class contracts when the app supports them.
-- Use `assert_select` for HTML, `parsed_body` for JSON, and Turbo assertions for stream updates and broadcasts.
+- Test HTML, JSON, and other edge-response formats as first-class contracts when the app supports them.
+- Use `assert_select` for HTML and `parsed_body` for JSON.
 - Use system tests sparingly for the highest-risk end-to-end flows such as signup, auth, uploads, drag-and-drop, or navigation handoffs.
 - Keep jobs thin and test them semantically: outcome, queue choice, idempotency, retry/discard behavior, checkpointing, and concurrency-sensitive behavior when relevant.
 - If domain behavior depends on request context, set `Current` explicitly in tests and treat that context as part of the contract.
@@ -32,7 +33,7 @@ Design tests around domain ownership and request boundaries, not around arbitrar
 
 - The test suite mirrors model ownership. A capability module can be a real public API, so it deserves its own tests.
 - Controller tests are mostly request tests, not isolated controller-unit tests.
-- Edge rendering is part of the contract, so HTML, JSON, and Turbo Stream outputs are asserted directly.
+- Edge rendering is part of the contract, so HTML, JSON, and other edge-response outputs are asserted directly.
 - Time, tenancy, `Current`, and async delivery are treated as architectural inputs, not incidental setup.
 - The suite prefers real persistence inside the application boundary and stubs only external systems.
 
@@ -54,45 +55,10 @@ Design tests around domain ownership and request boundaries, not around arbitrar
 - Test forbidden and not-found paths when access changes.
 - Use controller concern tests for request mechanics such as timezone, platform, ETag variation, and forgery handling.
 
-## Inertia + React Testing (three-layer strategy)
-
-The app is migrating from Slim + Hotwire to Inertia + React gradually. During and after the migration, three test layers work together — none replaces the others.
-
-**Vitest** — component unit tests (fast, no Rails, jsdom)
-- Test each page component: given these props, does the component render correctly?
-- Mock `usePage()` from `@inertiajs/react` to inject props; never hit the Rails server.
-- Cover: conditional rendering, user interactions, local state, hook logic, utility functions.
-- Location: `app/frontend/pages/<Resource>/<Page>.test.tsx`, shared components alongside source.
-- Do NOT use Vitest to test authorization, prop serialization, or HTTP status — those belong in request specs.
-
-**RSpec request specs** — controller → Inertia contract
-- Test the Rails side: given this authenticated request, does the controller produce the right Inertia response?
-- Assert: HTTP status, `render_component("Resource/Page")`, key props via `expect_inertia.to have_props(...)`.
-- Catches: Pundit policy missing, wrong prop keys, DB query errors in controllers, `inertia_share` gaps.
-- `have_props` uses `==` after `deep_symbolize_keys` — nested `hash_including` matchers don't work; use exact symbol-keyed hashes.
-- Include `inertia_rails/rspec` via `spec/support/inertia.rb` (already wired).
-- Write one request spec per Inertia controller covering: index, show, new, create (valid + invalid), edit, update, destroy, and auth/authorization paths.
-
-**Cuprite feature specs** — full browser end-to-end
-- Only for genuinely high-risk flows where the Vitest + request spec combination leaves real risk uncovered.
-- Triggers: file uploads, dialogs, multi-step forms, navigation handoffs, drag-and-drop.
-- Simple CRUD on a single text field does NOT need a Cuprite spec.
-
-**What each layer catches that the others miss:**
-
-| Bug | Vitest | Request | Cuprite |
-|---|---|---|---|
-| Pundit policy missing | ✗ | ✓ | ✓ |
-| Wrong prop key from Rails | ✗ | ✓ | ✓ |
-| Component renders wrong UI for props | ✓ | ✗ | ✓ |
-| Flash not appearing after redirect | ✗ | ✓ | ✓ |
-| Dialog doesn't close on submit | ✗ | ✗ | ✓ |
-
-## View, Helper, and Turbo Tests (Slim / Hotwire pages)
+## View, Helper, and Edge Tests
 
 - Use helper tests for presentation-specific logic and sanitization.
 - Use `assert_select` for meaningful HTML fragments rather than broad body-string matches when possible.
-- Use Turbo assertions for replacements, removals, inserts, and broadcasts.
 - Keep most rendering coverage below the system-test layer.
 
 ## Job and Mailer Tests
@@ -121,5 +87,5 @@ The app is migrating from Slim + Hotwire to Inertia + React gradually. During an
 - Do not test controller internals when a real request test expresses the contract better.
 - Do not stub Active Record relations or callbacks so heavily that domain behavior disappears.
 - Do not ignore time, tenancy, access loss, or `Current` state in tests for context-sensitive features.
-- Do not push all rendering checks into brittle system tests when helper, integration, or Turbo tests are more direct.
+- Do not push all rendering checks into brittle system tests when helper, integration, or edge tests are more direct.
 - Do not skip negative-path tests for drafts, inactive users, cancelled accounts, or inaccessible records; those states often define the real architecture.
