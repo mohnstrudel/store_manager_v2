@@ -1,38 +1,204 @@
-# Codex Frontend Architecture Guide
-
-Use this document as a reusable architecture brief for Codex on the React and browser-side parts of this repo. It is based on a production-style frontend that organizes UI work around pages, shared components, local state, and explicit backend-provided data contracts. For backend domain work, use the Rails architecture guide instead.
-
-## AGENTS.md Snippet
-
-```md
 # Frontend Architecture
 
-Design frontend code around page boundaries, shared components, client-side state, and explicit server data contracts.
+Components should describe feature behavior, not implementation details.
 
-- Treat `app/frontend/pages` as the composition root for screen-level UI.
-- Keep reusable UI pieces in `app/frontend/components` and browser helpers in `app/frontend/lib`.
-- Keep hooks, utilities, and state management small and single-purpose.
-- Prefer composition and explicit props over deep, cross-cutting abstractions.
-- Treat backend payloads as a contract. If the page needs a new prop, route helper, or response field, coordinate that seam explicitly.
-- Keep browser interaction code literal and close to the widget that owns it.
-- For risky UI changes, add focused component tests or browser-level feature coverage that exercise visible behavior.
+- Prefer intention-revealing code.
+- Extract behaviors into custom hooks when logic represents a distinct behavior, lifecycle, synchronization process, or external integration.
+- Use domain language for business concepts and user actions.
+- Separate decisions from execution by extracting complex conditions into named predicates.
+- Push complexity down into hooks, utilities, and child components.
+- Keep state minimal; derive values whenever possible.
+- Keep page components small and focused on composition.
+- Organize page-owned UI by screen sections.
+- Keep one-screen-only components close to the page that owns them.
+- Move components to shared folders only when reuse is real.
+- The top level of a component should read like a feature description.
+- A reader should understand the feature before understanding the implementation.
+
+## Component Structure
+
+Prefer:
+
+```tsx
+function ProductPage() {
+  useTrackProductView(productId);
+  useRestoreDraft();
+  useSyncFiltersWithUrl(filters);
+
+  return (
+    <ProductLayout>
+      <Header />
+      <ProductDetails />
+      <RelatedProducts />
+    </ProductLayout>
+  );
+}
 ```
 
-## Core Rules
+Over:
 
-- Use this guide for React pages, shared components, hooks, client-side utilities, and browser interaction widgets.
-- Keep backend/domain rules out of UI components unless the contract itself changes.
-- Page components should mainly compose data, layout, and local interaction state.
-- Shared components should be reusable across pages without knowing backend persistence details.
-- Keep client-side state local to the component or hook that owns the interaction.
-- Prefer explicit props and small helper functions over heavy abstraction layers.
-- Use the frontend testing guide for component tests and browser-level UI coverage.
-- If a frontend change needs new backend data or routes, coordinate with the backend Rails guide separately rather than importing backend placement rules into the component layer.
+```tsx
+function ProductPage() {
+  useEffect(...);
+  useEffect(...);
+  useEffect(...);
 
-## What Codex Often Gets Wrong
+  // hundreds of lines of logic and rendering
+}
+```
 
-- Do not move backend domain rules into React just because the UI needs them.
-- Do not create a shared component for a one-screen-only pattern unless the reuse is real.
-- Do not overgeneralize page components into framework-like abstractions.
-- Do not hide backend contract changes inside component code; update the backend seam explicitly.
-- Do not skip visible-behavior tests when the UI is risky or interaction-heavy.
+Prefer:
+
+```tsx
+useRestoreDraft();
+useTrackProductView();
+useSyncFiltersWithUrl();
+```
+
+Over:
+
+```tsx
+useEffect(...);
+useEffect(...);
+useEffect(...);
+```
+
+Prefer:
+
+```tsx
+if (shouldRestoreDraft(user)) {
+  restoreDraft();
+}
+```
+
+Over:
+
+```tsx
+if (
+  user &&
+  user.settings &&
+  !user.settings.disabled &&
+  localStorage.getItem(...)
+) {
+  ...
+}
+```
+
+Prefer:
+
+```tsx
+applyCoupon();
+submitOrder();
+restoreDraft();
+```
+
+Over:
+
+```tsx
+processData();
+handleResponse();
+updateState();
+```
+
+Prefer:
+
+```tsx
+const isSelected = selectedId === product.id;
+```
+
+Over:
+
+```tsx
+const [isSelected, setIsSelected] = useState(false);
+```
+
+## Component File Hierarchy
+
+When a component lives in one file, keep the file readable top-down:
+
+1. Imports.
+1. Public props and shared types needed to understand the component API.
+1. The exported/main component.
+1. Supporting section components in the order they render.
+1. Custom hooks used by the main component.
+1. Helper predicates, formatters, factories, and small utilities.
+
+Prefer:
+
+```tsx
+type ProductFormProps = { ... };
+
+export default function ProductForm(props: ProductFormProps) {
+  return (
+    <>
+      <IdentityFields />
+      <DetailsFields />
+      <ImageGallery />
+    </>
+  );
+}
+
+function IdentityFields() {}
+function DetailsFields() {}
+function ImageGallery() {}
+
+function useProductFormState() {}
+
+function shouldShowPurchase() {}
+function formatTitle() {}
+```
+
+Over placing helper components or utilities above the main component unless they are required to understand the public API.
+
+## Screen Organization
+
+Prefer screen-first organization.
+
+Keep page-owned UI close to the page.
+
+```text
+pages/products/Show.tsx
+pages/products/Show/
+  Header.tsx
+  Gallery.tsx
+  Details.tsx
+  RelatedProducts.tsx
+```
+
+Expand into subfolders when a section becomes a small subsystem.
+
+```text
+pages/products/Show/
+  Details/
+    Details.tsx
+    PriceSection.tsx
+    InventorySection.tsx
+```
+
+Keep components page-local until reuse is real.
+
+Prefer:
+
+```text
+pages/products/Show/Gallery.tsx
+```
+
+Over:
+
+```text
+components/Gallery.tsx
+```
+
+unless the component is genuinely shared across screens or resources.
+
+## Avoid
+
+- Large imperative `useEffect` blocks.
+- Technical names such as `handleData`, `processResponse`, `updateState`.
+- Mixing business rules with implementation details.
+- Storing derived state.
+- Deep abstraction layers without a clear behavioral boundary.
+- Moving components to shared folders just because they were extracted.
+- Tiny wrapper components that hide obvious JSX.
+- Putting helper components or utilities above the main component when the file could read top-down.
+- Splitting one screen across many distant files without a clear ownership boundary.

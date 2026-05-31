@@ -1,34 +1,111 @@
-# Codex Frontend Testing Guide
-
-Use this document for component and browser-level test strategy for the React and browser-side parts of this repo. It is based on a frontend that relies on small page components, shared UI pieces, and visible interaction contracts.
-
-## AGENTS.md Snippet
-
-```md
 # Frontend Testing
 
-Test frontend code at the narrowest seam that still reflects user-visible behavior.
-
-- Use Vitest and Testing Library for page components, shared components, and local utilities.
-- Mock backend bridges such as `@inertiajs/react` or other data adapters when the component only needs props or navigation helpers.
-- Keep page tests next to the page source and shared component tests next to the component source.
-- Use browser-level feature specs for high-risk flows such as dialogs, drag and drop, file uploads, geometry-sensitive layouts, or multi-step client-side interactions.
-- Treat open/closed state, loading indicators, repeated actions, and visible state changes as first-class assertions.
-- If a frontend change also changes the backend response contract, add the matching backend request or integration test separately.
-```
+Test the narrowest seam that still verifies user-visible behavior.
 
 ## Core Rules
 
-- Test page components as component-level UI contracts, not as mini integration tests.
-- Mock the data bridge at the edge so component tests stay fast and deterministic.
-- Keep tests close to source: page tests beside pages, shared component tests beside shared components.
-- Use browser-level feature specs for the user-visible risks that unit tests cannot cover well.
-- Prefer a focused browser-level feature spec over guesswork when the UI detail itself is the risky part.
-- If the frontend change also changes backend props, routes, or response shape, add the matching backend test separately.
+- Test behavior, not implementation details.
+- Assert what the user can see, do, or observe.
+- Prefer component tests by default.
+- Use browser-level tests when the risk exists in the browser, not in the component.
+- Mock data providers, navigation adapters, and backend bridges at the edge.
+- If a frontend change also modifies backend contracts, add the matching backend test separately.
+
+### Prefer
+
+tsx expect(screen.getByText("Saved")).toBeVisible(); expect(button).toBeDisabled(); expect(dialog).not.toBeVisible();
+
+Over:
+
+tsx expect(setState).toHaveBeenCalled(); expect(hookResult.current.isOpen).toBe(false); expect(component.state.loading).toBe(true);
+
+Test outcomes, not implementation mechanics.
+
+---
+
+### Prefer component tests
+
+Most UI behavior should be verified with component tests.
+
+Examples:
+
+- Rendering
+- Conditional UI
+- Loading states
+- Empty states
+- Validation messages
+- User interactions
+- Button behavior
+- Local state transitions
+
+### Good
+
+tsx await user.click(saveButton);  expect(screen.getByText("Saved")).toBeVisible();
+
+### Avoid
+
+tsx expect(mockSave).toHaveBeenCalledTimes(1);
+
+unless the callback invocation itself is the behavior being tested.
+
+---
+
+### Use browser-level tests for browser risks
+
+Use browser-level tests when correctness depends on actual browser behavior.
+
+Examples:
+
+- Dialogs
+- Drag and drop
+- File uploads
+- Keyboard navigation
+- Focus management
+- Scrolling
+- Layout-sensitive behavior
+- Multi-step workflows
+- Complex client-side interactions
+
+### Good
+
+text User uploads a file and sees a preview.
+
+### Bad
+
+text Verify upload callback was called.
+
+when the visual upload flow is the real risk.
+
+---
+
+### Mock at the boundary
+
+Mock:
+
+- Inertia
+- Navigation adapters
+- API clients
+- Backend bridges
+
+Do not recreate backend integration inside component tests.
+
+Keep component tests fast and deterministic.
+
+---
 
 ## What Codex Often Gets Wrong
 
-- Do not use browser tests for simple component rendering that a unit test already covers well.
-- Do not stop at component tests when the visible interaction is what is actually risky.
-- Do not let backend request specs substitute for component-level UI coverage.
-- Do not add brittle screenshot tooling before trying a focused browser-level feature spec.
+- Testing implementation details instead of user-visible behavior.
+- Asserting hook internals, state variables, or callback wiring when visible outcomes can be asserted instead.
+- Using browser tests for behavior already covered by a component test.
+- Avoiding browser tests when the browser itself is the risk.
+- Letting backend request specs substitute for UI coverage.
+- Adding brittle screenshot-based assertions before writing focused behavior tests.
+
+## Rule of Thumb
+
+Choose the smallest test that can prove the behavior.
+
+If a component test can prove it, use a component test.
+
+If only a real browser can prove it, use a browser-level test.
