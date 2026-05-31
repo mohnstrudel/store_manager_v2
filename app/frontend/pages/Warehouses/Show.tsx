@@ -1,8 +1,8 @@
 import { router, Link } from "@inertiajs/react";
-import { useCallback, useState, type ChangeEvent } from "react";
 import Button from "@/components/Button";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
@@ -37,25 +37,11 @@ export default function Show({
   warehouse_move_path,
   warehouses,
 }: ShowProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const clearSelectedIds = useCallback(() => setSelectedIds([]), []);
-
-  const togglePurchaseItem = useCallback((purchaseItemId: number) => {
-    setSelectedIds((current) =>
-      current.includes(purchaseItemId)
-        ? current.filter((selectedId) => selectedId !== purchaseItemId)
-        : [...current, purchaseItemId],
-    );
-  }, []);
-
-  const handleTogglePurchaseItem = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const purchaseItemId = Number(event.currentTarget.dataset.purchaseItemId);
-      if (Number.isNaN(purchaseItemId)) return;
-      togglePurchaseItem(purchaseItemId);
-    },
-    [togglePurchaseItem],
-  );
+  const {
+    clearSelectedIds,
+    selectedIds,
+    toggleSelectedIdFromDataAttribute,
+  } = useWarehouseMoveSelection();
 
   function destroyWarehouse() {
     if (window.confirm("Are you sure?")) {
@@ -149,7 +135,7 @@ export default function Show({
                             <input
                               checked={selectedIds.includes(item.id)}
                               data-purchase-item-id={item.id}
-                              onChange={handleTogglePurchaseItem}
+                              onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
                               onClick={stopRowNavigation}
                               type="checkbox"
                             />
