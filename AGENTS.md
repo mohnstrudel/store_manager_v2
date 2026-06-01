@@ -9,6 +9,8 @@
 
 Before declaring work complete:
 
+- Lint every changed file relevant to the work.
+- For frontend changes, run the relevant oxlint command, including React performance rules.
 - Run relevant tests.
 - Update affected tests when behavior changes.
 - Do not leave failing tests.

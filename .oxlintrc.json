@@ -6,7 +6,7 @@
     "style": "off",
     "nursery": "off",
     "pedantic": "off",
-    "perf": "off",
+    "perf": "error",
     "restriction": "off"
   },
   "env": {
@@ -23,7 +23,19 @@
       "version": "19.2.6"
     }
   },
+  "overrides": [
+    {
+      "files": ["**/*.test.tsx", "**/*.test.ts"],
+      "rules": {
+        "react-perf/jsx-no-new-object-as-prop": "off",
+        "react-perf/jsx-no-new-array-as-prop": "off",
+        "react-perf/jsx-no-new-function-as-prop": "off",
+        "react-perf/jsx-no-jsx-as-prop": "off"
+      }
+    }
+  ],
   "rules": {
+    "import/no-unassigned-import": ["warn", { "allow": ["**/*.css"] }],
     "eslint/no-unused-vars": [
       "error",
       {
