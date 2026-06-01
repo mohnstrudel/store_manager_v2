@@ -95,7 +95,8 @@ describe("Products/Show", () => {
       "href",
       "https://shopify.example/products/1",
     );
-    expect(screen.getByText("featured, synced")).toBeInTheDocument();
+    expect(screen.getByText("featured")).toBeInTheDocument();
+    expect(screen.getByText("synced")).toBeInTheDocument();
     expect(screen.getByText("A very electric mouse.")).toBeInTheDocument();
   });
 

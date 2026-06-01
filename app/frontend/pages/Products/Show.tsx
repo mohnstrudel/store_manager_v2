@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import { ChevronDoubleDownIcon } from "@heroicons/react/20/solid";
 import ImageGallery from "./components/ImageGallery";
@@ -178,7 +179,14 @@ function ShopifyTags({ product }: ProductProps) {
     <>
       <h5>Tags</h5>
       <p className="flex flex-wrap gap-1 gap-y-2">
-        {product.shopify_info.tag_list.map((tag) => <span className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200/50 rounded py-0.5 px-2" key={tag}>{tag}</span>)}
+        {product.shopify_info.tag_list.map((tag) => (
+          <span
+            className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200/50 rounded py-0.5 px-2"
+            key={tag}
+          >
+            {tag}
+          </span>
+        ))}
       </p>
     </>
   );
@@ -202,13 +210,15 @@ function CopyStoreIdButton({ storeId }: { storeId: string }) {
 }
 
 function ProductDescription({ html }: { html: string }) {
+  const dangerousHtml = useMemo(() => ({ __html: html }), [html]);
+
   if (!html) return null;
 
   return (
     <div className="card w-full pt-8 pr-12 pb-12 pl-6">
       <div
         className="rich_text columns-2 gap-x-20 font-nunito subpixel-antialiased break-words leading-[1.75]"
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={dangerousHtml}
       />
     </div>
   );

@@ -32,14 +32,14 @@ export type MediaRecord = {
 };
 
 export type ShopifyInfo = {
-  store_id: string;
-  id_short: string;
+  store_id: string | null;
+  id_short: string | null;
   tag_list: string[];
   product_url: string | null;
 };
 
 export type WooInfo = {
-  store_id: string;
+  store_id: string | null;
   product_url: string | null;
 };
 

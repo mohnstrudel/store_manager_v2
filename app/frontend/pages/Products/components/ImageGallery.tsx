@@ -102,11 +102,23 @@ function GalleryThumbnail({
   const selectedClassName = index === gallery.selectedIndex ? "active" : "";
   const visibleClassName = loadState === "loaded" ? "" : "hidden";
 
+  const handleClick = useCallback(() => {
+    gallery.selectImage(index);
+  }, [gallery, index]);
+
+  const handleError = useCallback(() => {
+    gallery.markThumbnailFailed(image.id);
+  }, [gallery, image.id]);
+
+  const handleLoad = useCallback(() => {
+    gallery.markThumbnailLoaded(image.id);
+  }, [gallery, image.id]);
+
   return (
     <button
       aria-label={image.alt || ""}
       className={`gallery_thumb ${selectedClassName}`}
-      onClick={() => gallery.selectImage(index)}
+      onClick={handleClick}
       ref={gallery.setThumbnailButtonRef(index)}
       type="button"
     >
@@ -114,8 +126,8 @@ function GalleryThumbnail({
         <img
           alt={image.alt || ""}
           className={`gallery_thumb__image w-full h-full object-cover object-center ${visibleClassName}`}
-          onError={() => gallery.markThumbnailFailed(image.id)}
-          onLoad={() => gallery.markThumbnailLoaded(image.id)}
+          onError={handleError}
+          onLoad={handleLoad}
           ref={gallery.setThumbnailImageRef(index)}
           src={image.thumb_url}
         />
