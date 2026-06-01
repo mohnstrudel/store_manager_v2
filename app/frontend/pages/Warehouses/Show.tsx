@@ -1,8 +1,9 @@
 import { Link, router } from "@inertiajs/react";
-import { type FormEvent, useState } from "react";
+import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
 import Button from "@/components/Button";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import FormError from "@/components/FormError";
+import TipMark from "@/components/TipMark";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
@@ -173,9 +174,9 @@ export default function Show({
                                     />
                                     {item.sale_summary}
                                     {item.sale_note && (
-                                      <span className="text-yellow-600 ml-2">
-                                        * {item.sale_note}
-                                      </span>
+                                      <TipMark starClassName="text-xl leading-0">
+                                        {item.sale_note}
+                                      </TipMark>
                                     )}
                                   </div>
                                 </li>
@@ -286,7 +287,16 @@ function InlineTrackingNumberEditor({
   const [error, setError] = useState("");
   const [trackingNumber, setTrackingNumber] = useState(item.tracking_number || "");
 
-  function submitTrackingNumber(event: FormEvent<HTMLFormElement>) {
+  const handleTrackingError = useCallback((errors: Record<string, string>) => {
+    setError(trackingNumberError(errors));
+  }, []);
+
+  const handleTrackingSuccess = useCallback(() => {
+    setError("");
+    setIsEditing(false);
+  }, []);
+
+  const submitTrackingNumber = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
     router.patch(
@@ -297,14 +307,24 @@ function InlineTrackingNumberEditor({
       },
       {
         preserveScroll: true,
-        onError: (errors) => setError(trackingNumberError(errors)),
-        onSuccess: () => {
-          setError("");
-          setIsEditing(false);
-        },
+        onError: handleTrackingError,
+        onSuccess: handleTrackingSuccess,
       },
     );
-  }
+  }, [handleTrackingError, handleTrackingSuccess, item.tracking_update_path, returnTo, trackingNumber]);
+
+  const handleTrackingChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setError("");
+    setTrackingNumber(event.target.value);
+  }, []);
+
+  const startEditingTracking = useCallback(() => {
+    setIsEditing(true);
+  }, []);
+
+  const cancelEditingTracking = useCallback(() => {
+    setIsEditing(false);
+  }, []);
 
   if (isEditing) {
     return (
@@ -323,16 +343,13 @@ function InlineTrackingNumberEditor({
           autoFocus
           className="border rounded px-2 py-1 text-sm w-full"
           id={`purchase_item_${item.id}_tracking_number`}
-          onChange={(event) => {
-            setError("");
-            setTrackingNumber(event.target.value);
-          }}
+          onChange={handleTrackingChange}
           placeholder="Enter tracking number"
           type="text"
           value={trackingNumber}
         />
         <FormError>{error}</FormError>
-        <InlineEditorActions onCancel={() => setIsEditing(false)} />
+        <InlineEditorActions onCancel={cancelEditingTracking} />
       </form>
     );
   }
@@ -347,7 +364,7 @@ function InlineTrackingNumberEditor({
       {item.tracking_number ? (
         <span className="text-sm font-mono cursor-text">{item.tracking_number}</span>
       ) : null}
-      <button className="btn_xs btn_rounded" onClick={() => setIsEditing(true)} type="button">
+      <button className="btn_xs btn_rounded" onClick={startEditingTracking} type="button">
         {item.tracking_number ? "Edit" : "Add"}
       </button>
     </div>
@@ -369,7 +386,16 @@ function InlineShippingCompanyEditor({
     item.shipping_company_id ? String(item.shipping_company_id) : "",
   );
 
-  function submitShippingCompany(event: FormEvent<HTMLFormElement>) {
+  const handleShippingCompanyError = useCallback((errors: Record<string, string>) => {
+    setError(shippingCompanyError(errors));
+  }, []);
+
+  const handleShippingCompanySuccess = useCallback(() => {
+    setError("");
+    setIsEditing(false);
+  }, []);
+
+  const submitShippingCompany = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
     router.patch(
@@ -380,14 +406,24 @@ function InlineShippingCompanyEditor({
       },
       {
         preserveScroll: true,
-        onError: (errors) => setError(shippingCompanyError(errors)),
-        onSuccess: () => {
-          setError("");
-          setIsEditing(false);
-        },
+        onError: handleShippingCompanyError,
+        onSuccess: handleShippingCompanySuccess,
       },
     );
-  }
+  }, [handleShippingCompanyError, handleShippingCompanySuccess, item.shipping_company_update_path, returnTo, shippingCompanyId]);
+
+  const handleShippingCompanyChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    setError("");
+    setShippingCompanyId(event.target.value);
+  }, []);
+
+  const startEditingShippingCompany = useCallback(() => {
+    setIsEditing(true);
+  }, []);
+
+  const cancelEditingShippingCompany = useCallback(() => {
+    setIsEditing(false);
+  }, []);
 
   if (isEditing) {
     return (
@@ -405,10 +441,7 @@ function InlineShippingCompanyEditor({
           autoFocus
           className="border rounded px-2 py-1 text-sm w-full min-w-35"
           id={`purchase_item_${item.id}_shipping_company_id`}
-          onChange={(event) => {
-            setError("");
-            setShippingCompanyId(event.target.value);
-          }}
+          onChange={handleShippingCompanyChange}
           value={shippingCompanyId}
         >
           <option value="">Select a shipping company</option>
@@ -419,7 +452,7 @@ function InlineShippingCompanyEditor({
           ))}
         </select>
         <FormError>{error}</FormError>
-        <InlineEditorActions onCancel={() => setIsEditing(false)} />
+        <InlineEditorActions onCancel={cancelEditingShippingCompany} />
       </form>
     );
   }
@@ -434,7 +467,7 @@ function InlineShippingCompanyEditor({
       {item.shipping_company_name && <div>{item.shipping_company_name}</div>}
       <button
         className="btn_xs btn_rounded no_events"
-        onClick={() => setIsEditing(true)}
+        onClick={startEditingShippingCompany}
         type="button"
       >
         {item.shipping_company_name ? "Edit" : "Add"}

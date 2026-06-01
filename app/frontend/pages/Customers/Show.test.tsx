@@ -63,12 +63,11 @@ describe("Customers/Show", () => {
     expect(
       screen.getByRole("img", { name: "Image unavailable for Twin Peaks Cherry Pie" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Twin Peaks Cherry Pie HSCM#1958" }),
-    ).toHaveAttribute("href", "/sales/10");
-    expect(screen.getByText("Twin Peaks Cherry Pie")).toHaveClass(
-      "group-hover:text-blue-600",
+    expect(screen.getByRole("link", { name: "Twin Peaks Cherry Pie HSCM#1958" })).toHaveAttribute(
+      "href",
+      "/sales/10",
     );
+    expect(screen.getByText("Twin Peaks Cherry Pie")).toHaveClass("group-hover:text-blue-600");
     expect(screen.getByText("Completed")).toBeInTheDocument();
   });
 });

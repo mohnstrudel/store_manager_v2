@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "@inertiajs/react";
 import TipMark from "@/components/TipMark";
 import type { SaleAddressRecord, SaleShowRecord } from "../types";
@@ -11,6 +11,14 @@ type TabKey = "shipping" | "billing";
 
 export default function Details({ sale }: DetailsProps) {
   const [tab, setTab] = useState<TabKey>("shipping");
+
+  const showShippingTab = useCallback(() => {
+    setTab("shipping");
+  }, []);
+
+  const showBillingTab = useCallback(() => {
+    setTab("billing");
+  }, []);
 
   return (
     <div className="cards items-start">
@@ -57,7 +65,7 @@ export default function Details({ sale }: DetailsProps) {
             aria-selected={tab === "shipping"}
             className="tab_btn"
             data-tab-panel="shipping"
-            onClick={() => setTab("shipping")}
+            onClick={showShippingTab}
             type="button"
           >
             Shipping
@@ -66,7 +74,7 @@ export default function Details({ sale }: DetailsProps) {
             aria-selected={tab === "billing"}
             className="tab_btn"
             data-tab-panel="billing"
-            onClick={() => setTab("billing")}
+            onClick={showBillingTab}
             type="button"
           >
             Billing

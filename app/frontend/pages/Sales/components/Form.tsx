@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useDynamicSection } from "@/lib/useDynamicSection";
 import { toSelectedOption } from "@/lib/selectOptions";
 import DynamicNestedForm from "@/components/DynamicNestedForm";
@@ -20,6 +20,8 @@ type SaleFormProps = {
 type PageErrors = Record<string, string | undefined>;
 type SaleFormState = ReturnType<typeof useSaleFormState>;
 
+const emptyErrors: PageErrors = {};
+
 function titleize(str: string): string {
   return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -31,6 +33,21 @@ function newSaleItem(): SaleItemFormRecord {
 export default function SaleForm({ isNew, options, sale, submitLabel }: SaleFormProps) {
   const form = useSaleFormState(sale);
 
+  const renderFields = useCallback(({ errors }: { errors?: Record<string, string | undefined> }) => {
+    const pageErrors = (errors as PageErrors | undefined) ?? emptyErrors;
+
+    return (
+      <>
+        <SaleStatusField options={options} sale={sale} />
+        <SaleCustomerField errors={pageErrors} form={form} options={options} />
+        <SaleNoteField sale={sale} />
+        <SaleTotalsFields sale={sale} />
+        <SaleAddressSections sale={sale} />
+        <SaleItemsSection form={form} options={options} />
+      </>
+    );
+  }, [form, options, sale]);
+
   return (
     <ResourceForm
       action={isNew ? "/sales" : sale.path}
@@ -38,20 +55,7 @@ export default function SaleForm({ isNew, options, sale, submitLabel }: SaleForm
       method={isNew ? "post" : "patch"}
       submitLabel={submitLabel}
     >
-      {({ errors }) => {
-        const pageErrors = (errors ?? {}) as PageErrors;
-
-        return (
-          <>
-            <SaleStatusField options={options} sale={sale} />
-            <SaleCustomerField errors={pageErrors} form={form} options={options} />
-            <SaleNoteField sale={sale} />
-            <SaleTotalsFields sale={sale} />
-            <SaleAddressSections sale={sale} />
-            <SaleItemsSection form={form} options={options} />
-          </>
-        );
-      }}
+      {renderFields}
     </ResourceForm>
   );
 }

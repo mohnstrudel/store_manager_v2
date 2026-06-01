@@ -1,12 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import Show from "./Show";
 import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
 
 const inertia = vi.hoisted(() => ({
   nextErrors: null as Record<string, string> | null,
+  writeText: vi.fn<(...args: unknown[]) => Promise<void>>(),
   patch: vi.fn<(...args: unknown[]) => void>((...args: unknown[]) => {
     if (inertia.nextErrors) {
       callOnError(args[2], inertia.nextErrors);
@@ -41,13 +42,28 @@ vi.mock("@inertiajs/react", () => ({
 }));
 
 describe("Warehouses/Show", () => {
+  beforeEach(() => {
+    inertia.patch.mockClear();
+    inertia.visit.mockClear();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: inertia.writeText },
+    });
+  });
+
   it("edits item tracking and shipping inline from the warehouse page", async () => {
     const user = userEvent.setup();
 
     render(
       <Show
         pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
-        purchase_items={[makePurchaseItem()]}
+        purchase_items={[
+          makePurchaseItem({
+            sale_note: "Handle with care",
+            sale_path: "/sales/1",
+            sale_summary: "Patricia Morales Ponce, Calle Mirador de la Sierra 20",
+          }),
+        ]}
         search={{ q: "" }}
         selected_id={null}
         shipping_companies={[{ id: 3, name: "Skyline" }]}
@@ -84,6 +100,35 @@ describe("Warehouses/Show", () => {
       },
       expect.objectContaining({ preserveScroll: true }),
     );
+    expect(inertia.visit).not.toHaveBeenCalled();
+
+    expect(screen.getByText("Handle with care")).toHaveClass("cursor-text");
+  });
+
+  it("keeps copy buttons from triggering the warehouse row navigation", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Show
+        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        purchase_items={[
+          makePurchaseItem({
+            sale_path: "/sales/1",
+            sale_summary: "Patricia Morales Ponce, Calle Mirador de la Sierra 20",
+          }),
+        ]}
+        search={{ q: "" }}
+        selected_id={null}
+        shipping_companies={[{ id: 3, name: "Skyline" }]}
+        total_purchase_items={1}
+        warehouse={makeWarehouse()}
+        warehouse_move_path="/purchase_items/move"
+        warehouses={[{ id: 1, name: "Warehouse A" }]}
+      />,
+    );
+
+    await user.click(screen.getAllByRole("button", { name: /Copy/ })[0]);
+
     expect(inertia.visit).not.toHaveBeenCalled();
   });
 

@@ -1,3 +1,4 @@
+import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
@@ -88,6 +89,11 @@ function PurchaseItemRow({
     "Unlink this purchase item?",
   );
 
+  const handleUnlinkClick = useCallback((event: MouseEvent) => {
+    event.stopPropagation();
+    unlinkPurchaseItem();
+  }, [unlinkPurchaseItem]);
+
   return (
     <li className="mt-4">
       <div className="w-fit flex items-center gap-2">
@@ -108,10 +114,7 @@ function PurchaseItemRow({
 
         <button
           className="btn_xs btn_red btn_rounded"
-          onClick={(event) => {
-            event.stopPropagation();
-            unlinkPurchaseItem();
-          }}
+          onClick={handleUnlinkClick}
           type="button"
         >
           <i className="icn">✂︎</i>
@@ -150,8 +153,8 @@ function PurchaseItemRow({
                   </tr>
                 </thead>
                 <tbody>
-                  {purchaseItem.warehouse_movements.slice(1).map((movement, index) => (
-                    <tr className="cursor-auto" key={`${purchaseItem.id}-${index}`}>
+                  {purchaseItem.warehouse_movements.slice(1).map((movement) => (
+                    <tr className="cursor-auto" key={`${purchaseItem.id}-${movement.moved_in}`}>
                       <td className="pr-2 text_muted whitespace-nowrap">{movement.moved_in}</td>
                       <td>{movement.warehouse_name}</td>
                     </tr>

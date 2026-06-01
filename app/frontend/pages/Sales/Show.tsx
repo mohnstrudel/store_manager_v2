@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ChevronDoubleDownIcon } from "@heroicons/react/20/solid";
 import { BuildingStorefrontIcon } from "@heroicons/react/24/outline";
 import { Link } from "@inertiajs/react";
@@ -11,9 +12,11 @@ type ShowProps = {
 };
 
 export default function Show({ sale }: ShowProps) {
+  const title = useMemo(() => <SaleTitle sale={sale} />, [sale]);
+
   return (
     <>
-      <PageHeader title={<SaleTitle sale={sale} />}>
+      <PageHeader title={title}>
         <SaleActions sale={sale} />
       </PageHeader>
 
@@ -71,11 +74,7 @@ function SaleActions({ sale }: ShowProps) {
       )}
       {sale.shop_admin_url && (
         <li>
-          <a
-            href={sale.shop_admin_url}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
+          <a href={sale.shop_admin_url} rel="noopener noreferrer" target="_blank">
             <BuildingStorefrontIcon height={20} width={20} />
             Go to {storeAdminLabel(sale)}
           </a>

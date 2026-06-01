@@ -1,3 +1,4 @@
+import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
@@ -18,11 +19,8 @@ export default function Show({
   warehouse_move_path,
   warehouses,
 }: ShowProps) {
-  const {
-    clearSelectedIds,
-    selectedIds,
-    toggleSelectedIdFromDataAttribute,
-  } = useWarehouseMoveSelection();
+  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
+    useWarehouseMoveSelection();
 
   return (
     <>
@@ -129,23 +127,21 @@ export default function Show({
   );
 }
 
-function PurchaseItemUnlinkButton({
-  purchaseItem,
-}: {
-  purchaseItem: SaleItemPurchaseItemRecord;
-}) {
+function PurchaseItemUnlinkButton({ purchaseItem }: { purchaseItem: SaleItemPurchaseItemRecord }) {
   const unlinkPurchaseItem = useConfirmedDestroy(
     purchaseItem.unlink_path,
     "Unlink this purchase item?",
   );
 
+  const handleUnlinkClick = useCallback((event: MouseEvent) => {
+    event.stopPropagation();
+    unlinkPurchaseItem();
+  }, [unlinkPurchaseItem]);
+
   return (
     <button
       className="no_events btn_red btn_rounded"
-      onClick={(event) => {
-        event.stopPropagation();
-        unlinkPurchaseItem();
-      }}
+      onClick={handleUnlinkClick}
       type="button"
     >
       <i className="icn">✂︎</i>

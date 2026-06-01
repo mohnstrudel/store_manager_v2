@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { useCallback, useState, type ChangeEvent } from "react";
 import { usePage } from "@inertiajs/react";
 import Button from "@/components/Button";
 import FormControl from "@/components/FormControl";
@@ -334,11 +334,15 @@ function TransitionDestinationRow({
   onRemove: (clientKey: string) => void;
   row: TransitionRow;
 }) {
-  function selectDestination(event: ChangeEvent<HTMLSelectElement>) {
+  const selectDestination = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
     onChange(row.clientKey, {
       toWarehouseId: event.target.value ? Number(event.target.value) : null,
     });
-  }
+  }, [onChange, row.clientKey]);
+
+  const handleRemove = useCallback(() => {
+    onRemove(row.clientKey);
+  }, [onRemove, row.clientKey]);
 
   return (
     <tr>
@@ -358,7 +362,7 @@ function TransitionDestinationRow({
         </select>
       </td>
       <td>
-        <Button onClick={() => onRemove(row.clientKey)} type="button" variant="danger">
+        <Button onClick={handleRemove} type="button" variant="danger">
           Remove
         </Button>
       </td>
