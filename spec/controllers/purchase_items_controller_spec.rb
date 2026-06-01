@@ -10,6 +10,28 @@ describe PurchaseItemsController do
   before { sign_in_as_admin }
   after { log_out }
 
+  describe "GET #edit" do
+    let(:purchase_item) { create(:purchase_item) }
+
+    it "renders the Inertia edit component with form props" do
+      get :edit, params: {id: purchase_item.id}
+
+      aggregate_failures do
+        expect(response).to have_http_status(:ok)
+        expect_inertia.to render_component("PurchaseItems/Edit")
+        expect(inertia.props[:purchase_item][:id]).to eq(purchase_item.id)
+        expect(inertia.props[:purchase_item][:redirect_to_sale_item]).to be false
+        expect(inertia.props[:options].keys).to contain_exactly("warehouses", "purchases", "sale_items", "shipping_companies")
+      end
+    end
+
+    it "sets redirect_to_sale_item when param is present" do
+      get :edit, params: {id: purchase_item.id, redirect_to_sale_item: "1"}
+
+      expect(inertia.props[:purchase_item][:redirect_to_sale_item]).to be true
+    end
+  end
+
   describe "GET #show" do
     let(:purchase_item) { create(:purchase_item) }
     let(:media) { create(:media, :for_purchase_item, mediaable: purchase_item) }

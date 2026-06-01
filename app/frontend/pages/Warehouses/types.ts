@@ -33,13 +33,19 @@ export type WarehousePurchaseItemRecord = {
   sale_note: string;
   customer_email: string;
   tracking_number: string;
-  tracking_edit_path: string;
+  tracking_update_path: string;
+  shipping_company_id: number | null;
   shipping_company_name: string;
-  shipping_company_edit_path: string;
+  shipping_company_update_path: string;
   payment_progress: PaymentProgress;
 };
 
 export type { PaginationMeta, WarehouseOption };
+
+export type ShippingCompanyOption = {
+  id: number;
+  name: string;
+};
 
 export type WarehouseFormRecord = {
   id: number | null;

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_19_124500) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_01_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -230,12 +230,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_124500) do
     t.decimal "shipping_cost", precision: 8, scale: 2, default: "0.0", null: false
     t.string "tracking_number"
     t.datetime "updated_at", null: false
+    t.datetime "warehouse_arrived_at", null: false
     t.bigint "warehouse_id", null: false
     t.integer "weight"
     t.integer "width"
     t.index ["purchase_id"], name: "index_purchase_items_on_purchase_id"
     t.index ["sale_item_id"], name: "index_purchase_items_on_sale_item_id"
     t.index ["shipping_company_id"], name: "index_purchase_items_on_shipping_company_id"
+    t.index ["warehouse_id", "warehouse_arrived_at", "id"], name: "index_purchase_items_on_warehouse_arrival"
     t.index ["warehouse_id"], name: "index_purchase_items_on_warehouse_id"
   end
 

@@ -80,6 +80,21 @@ RSpec.describe PurchaseItem do
     end
   end
 
+  describe ".ordered_by_current_warehouse_entry" do
+    it "keeps warehouse rows ordered by when items entered the current warehouse" do
+      warehouse = create(:warehouse)
+      first_item = create(:purchase_item, warehouse:, warehouse_arrived_at: 4.minutes.ago)
+      second_item = create(:purchase_item, warehouse_arrived_at: 10.minutes.ago)
+
+      second_item.move_to_warehouse!(warehouse.id)
+      first_item.update!(shipping_company: create(:shipping_company), tracking_number: "TRACK-1")
+
+      expect(warehouse.purchase_items.ordered_by_current_warehouse_entry).to eq(
+        [second_item, first_item]
+      )
+    end
+  end
+
   describe "#move_to_warehouse!" do
     it "updates the warehouse_id" do
       purchase_item = create(:purchase_item)
@@ -88,6 +103,31 @@ RSpec.describe PurchaseItem do
       purchase_item.move_to_warehouse!(destination.id)
 
       expect(purchase_item.reload.warehouse_id).to eq(destination.id)
+    end
+
+    it "refreshes the warehouse arrival timestamp" do
+      purchase_item = create(:purchase_item, warehouse_arrived_at: 1.day.ago)
+      destination = create(:warehouse)
+
+      expect {
+        purchase_item.move_to_warehouse!(destination.id)
+      }.to change { purchase_item.reload.warehouse_arrived_at }
+    end
+  end
+
+  describe "#current_warehouse_arrived_at" do
+    it "uses the latest movement into the current warehouse from audit history" do
+      origin = create(:warehouse)
+      destination = create(:warehouse)
+      purchase_item = create(:purchase_item, warehouse: origin)
+
+      purchase_item.audits.last.update!(created_at: 3.days.ago)
+      purchase_item.move_to_warehouse!(destination.id)
+      purchase_item.audits.last.update!(created_at: 2.days.ago)
+      purchase_item.move_to_warehouse!(origin.id)
+      purchase_item.audits.last.update!(created_at: 1.day.ago)
+
+      expect(purchase_item.reload.current_warehouse_arrived_at.to_i).to eq(1.day.ago.to_i)
     end
   end
 end

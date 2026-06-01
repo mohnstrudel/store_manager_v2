@@ -1,6 +1,8 @@
-import { Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
+import { type FormEvent, useState } from "react";
 import Button from "@/components/Button";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+import FormError from "@/components/FormError";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
@@ -12,6 +14,7 @@ import MoveToWarehouseForm from "@/pages/Purchases/components/MoveToWarehouseFor
 import PaymentProgressBar from "@/pages/Purchases/components/PaymentProgressBar";
 import type {
   PaginationMeta,
+  ShippingCompanyOption,
   WarehouseOption,
   WarehousePurchaseItemRecord,
   WarehouseShowRecord,
@@ -22,6 +25,7 @@ type ShowProps = {
   purchase_items: WarehousePurchaseItemRecord[];
   search: { q: string };
   selected_id: number | null;
+  shipping_companies: ShippingCompanyOption[];
   total_purchase_items: number;
   warehouse: WarehouseShowRecord;
   warehouse_move_path: string;
@@ -33,16 +37,14 @@ export default function Show({
   purchase_items,
   search,
   selected_id,
+  shipping_companies,
   total_purchase_items,
   warehouse,
   warehouse_move_path,
   warehouses,
 }: ShowProps) {
-  const {
-    clearSelectedIds,
-    selectedIds,
-    toggleSelectedIdFromDataAttribute,
-  } = useWarehouseMoveSelection();
+  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
+    useWarehouseMoveSelection();
   const destroyWarehouse = useConfirmedDestroy(warehouse.destroy_path);
 
   return (
@@ -78,7 +80,7 @@ export default function Show({
                 </div>
               </div>
 
-              <div className="search -mt-2">
+              <div className="page_search -mt-2">
                 <SearchBar
                   initialQuery={search.q}
                   path={`/warehouses/${warehouse.id}`}
@@ -190,36 +192,17 @@ export default function Show({
                             )}
                           </td>
                           <td className="max-w-3xs no_events cursor-text">
-                            <div className="flex flex-col items-center gap-2 text-center">
-                              {item.tracking_number ? (
-                                <span className="text-sm font-mono cursor-text">
-                                  {item.tracking_number}
-                                </span>
-                              ) : null}
-                              <Link
-                                className="btn_xs btn_rounded"
-                                href={item.tracking_edit_path}
-                                onClick={stopRowNavigation}
-                                prefetch
-                              >
-                                {item.tracking_number ? "Edit" : "Add"}
-                              </Link>
-                            </div>
+                            <InlineTrackingNumberEditor
+                              item={item}
+                              returnTo={`/warehouses/${warehouse.id}`}
+                            />
                           </td>
                           <td>
-                            <div className="flex flex-col items-center gap-2 text-center">
-                              {item.shipping_company_name && (
-                                <div>{item.shipping_company_name}</div>
-                              )}
-                              <Link
-                                className="btn_xs btn_rounded no_events"
-                                href={item.shipping_company_edit_path}
-                                onClick={stopRowNavigation}
-                                prefetch
-                              >
-                                {item.shipping_company_name ? "Edit" : "Add"}
-                              </Link>
-                            </div>
+                            <InlineShippingCompanyEditor
+                              item={item}
+                              returnTo={`/warehouses/${warehouse.id}`}
+                              shippingCompanies={shipping_companies}
+                            />
                           </td>
                           <td className="w-full max-w-45 lg:w-45">
                             <PaymentProgressBar progress={item.payment_progress} />
@@ -290,4 +273,202 @@ export default function Show({
       </Button>
     </>
   );
+}
+
+function InlineTrackingNumberEditor({
+  item,
+  returnTo,
+}: {
+  item: WarehousePurchaseItemRecord;
+  returnTo: string;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState(item.tracking_number || "");
+
+  function submitTrackingNumber(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    router.patch(
+      item.tracking_update_path,
+      {
+        purchase_item: { tracking_number: trackingNumber },
+        return_to: returnTo,
+      },
+      {
+        preserveScroll: true,
+        onError: (errors) => setError(trackingNumberError(errors)),
+        onSuccess: () => {
+          setError("");
+          setIsEditing(false);
+        },
+      },
+    );
+  }
+
+  if (isEditing) {
+    return (
+      <form
+        className="flex flex-col w-full gap-2 no_events"
+        onAuxClick={stopInlineEditorNavigation}
+        onClick={stopInlineEditorNavigation}
+        onKeyDown={stopInlineEditorNavigation}
+        onSubmit={submitTrackingNumber}
+      >
+        <label className="sr-only" htmlFor={`purchase_item_${item.id}_tracking_number`}>
+          Tracking number
+        </label>
+        <input
+          autoComplete="off"
+          autoFocus
+          className="border rounded px-2 py-1 text-sm w-full"
+          id={`purchase_item_${item.id}_tracking_number`}
+          onChange={(event) => {
+            setError("");
+            setTrackingNumber(event.target.value);
+          }}
+          placeholder="Enter tracking number"
+          type="text"
+          value={trackingNumber}
+        />
+        <FormError>{error}</FormError>
+        <InlineEditorActions onCancel={() => setIsEditing(false)} />
+      </form>
+    );
+  }
+
+  return (
+    <div
+      className="flex flex-col items-center gap-2 text-center"
+      onAuxClick={stopInlineEditorNavigation}
+      onClick={stopInlineEditorNavigation}
+      onKeyDown={stopInlineEditorNavigation}
+    >
+      {item.tracking_number ? (
+        <span className="text-sm font-mono cursor-text">{item.tracking_number}</span>
+      ) : null}
+      <button className="btn_xs btn_rounded" onClick={() => setIsEditing(true)} type="button">
+        {item.tracking_number ? "Edit" : "Add"}
+      </button>
+    </div>
+  );
+}
+
+function InlineShippingCompanyEditor({
+  item,
+  returnTo,
+  shippingCompanies,
+}: {
+  item: WarehousePurchaseItemRecord;
+  returnTo: string;
+  shippingCompanies: ShippingCompanyOption[];
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState("");
+  const [shippingCompanyId, setShippingCompanyId] = useState(
+    item.shipping_company_id ? String(item.shipping_company_id) : "",
+  );
+
+  function submitShippingCompany(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    router.patch(
+      item.shipping_company_update_path,
+      {
+        purchase_item: { shipping_company_id: shippingCompanyId },
+        return_to: returnTo,
+      },
+      {
+        preserveScroll: true,
+        onError: (errors) => setError(shippingCompanyError(errors)),
+        onSuccess: () => {
+          setError("");
+          setIsEditing(false);
+        },
+      },
+    );
+  }
+
+  if (isEditing) {
+    return (
+      <form
+        className="flex flex-col w-full gap-2 no_events"
+        onAuxClick={stopInlineEditorNavigation}
+        onClick={stopInlineEditorNavigation}
+        onKeyDown={stopInlineEditorNavigation}
+        onSubmit={submitShippingCompany}
+      >
+        <label className="sr-only" htmlFor={`purchase_item_${item.id}_shipping_company_id`}>
+          Shipping company
+        </label>
+        <select
+          autoFocus
+          className="border rounded px-2 py-1 text-sm w-full min-w-35"
+          id={`purchase_item_${item.id}_shipping_company_id`}
+          onChange={(event) => {
+            setError("");
+            setShippingCompanyId(event.target.value);
+          }}
+          value={shippingCompanyId}
+        >
+          <option value="">Select a shipping company</option>
+          {shippingCompanies.map((shippingCompany) => (
+            <option key={shippingCompany.id} value={shippingCompany.id}>
+              {shippingCompany.name}
+            </option>
+          ))}
+        </select>
+        <FormError>{error}</FormError>
+        <InlineEditorActions onCancel={() => setIsEditing(false)} />
+      </form>
+    );
+  }
+
+  return (
+    <div
+      className="flex flex-col items-center gap-2 text-center"
+      onAuxClick={stopInlineEditorNavigation}
+      onClick={stopInlineEditorNavigation}
+      onKeyDown={stopInlineEditorNavigation}
+    >
+      {item.shipping_company_name && <div>{item.shipping_company_name}</div>}
+      <button
+        className="btn_xs btn_rounded no_events"
+        onClick={() => setIsEditing(true)}
+        type="button"
+      >
+        {item.shipping_company_name ? "Edit" : "Add"}
+      </button>
+    </div>
+  );
+}
+
+function InlineEditorActions({ onCancel }: { onCancel: () => void }) {
+  return (
+    <div className="flex gap-1 justify-center">
+      <button className="btn_rounded btn_xs btn_green" type="submit">
+        Save
+      </button>
+      <button className="btn_red btn_xs btn_rounded" onClick={onCancel} type="button">
+        Exit
+      </button>
+    </div>
+  );
+}
+
+function stopInlineEditorNavigation(event: { stopPropagation(): void }) {
+  event.stopPropagation();
+}
+
+function trackingNumberError(errors: Record<string, string>) {
+  return (
+    errors.tracking_number ||
+    errors.shipping_company_id ||
+    errors.base ||
+    "Could not save tracking number"
+  );
+}
+
+function shippingCompanyError(errors: Record<string, string>) {
+  return errors.shipping_company_id || errors.base || "Could not save shipping company";
 }

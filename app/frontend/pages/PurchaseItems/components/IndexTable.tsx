@@ -87,7 +87,7 @@ export default function IndexTable({ purchaseItems }: IndexTableProps) {
               <div className="font-mono text-sm">{purchaseItem.shipping_cost}</div>
             </td>
             <td>{purchaseItem.updated_at}</td>
-            <td className="actions text-right">
+            <td className="table_actions text-right">
               <Link href={purchaseItem.edit_path} onClick={stopRowNavigation} prefetch>
                 <i className="icn">✏</i>
                 Edit

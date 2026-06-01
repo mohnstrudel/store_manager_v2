@@ -26,7 +26,7 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
       <thead>
         <tr>
           <th />
-          <th>Image</th>
+          <th className="text-center">Image</th>
           <th>Product</th>
           <th>Order Reference</th>
           <th>Supplier</th>
@@ -83,7 +83,7 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
             <td className="w-full max-w-45 lg:w-45">
               <PaymentProgressBar progress={purchase.payment_progress} />
             </td>
-            <td className="actions">
+            <td className="table_actions">
               <Link
                 className="no_events"
                 href={purchase.edit_path}

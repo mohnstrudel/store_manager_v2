@@ -1,10 +1,40 @@
-import type { MediaRecord } from "@/pages/Products/types";
+import type { MediaFormData, MediaRecord } from "@/pages/Products/types";
 
 export type WarehouseMovementRecord = {
   id: number;
   moved_in: string;
   warehouse_name: string;
   warehouse_path: string | null;
+};
+
+export type SelectOption = {
+  value: number;
+  label: string;
+};
+
+export type PurchaseItemFormRecord = {
+  id: number | null;
+  path: string;
+  purchase_id: number | null;
+  sale_item_id: number | null;
+  warehouse_id: number | null;
+  shipping_company_id: number | null;
+  length: string;
+  width: string;
+  height: string;
+  weight: string;
+  expenses: string;
+  shipping_cost: string;
+  tracking_number: string;
+  media: MediaFormData[];
+  redirect_to_sale_item: boolean;
+};
+
+export type PurchaseItemFormOptions = {
+  warehouses: SelectOption[];
+  purchases: SelectOption[];
+  sale_items: SelectOption[];
+  shipping_companies: SelectOption[];
 };
 
 export type PurchaseItemShowRecord = {

@@ -23,6 +23,22 @@ module PurchaseItemHelper
     }
   end
 
+  def purchase_item_edit_props(purchase_item, redirect_to_sale_item: false)
+    {
+      purchase_item: purchase_item_form_record(purchase_item, redirect_to_sale_item:),
+      options: purchase_item_form_options(purchase_item)
+    }
+  end
+
+  def purchase_item_new_props(purchase_item, warehouse:)
+    {
+      purchase_item: purchase_item_new_record(purchase_item, warehouse:),
+      options: purchase_item_form_options(purchase_item),
+      form_action: warehouse_items_path(warehouse),
+      cancel_path: warehouse_path(warehouse)
+    }
+  end
+
   def purchase_item_show_props(purchase_item)
     {
       id: purchase_item.id,
@@ -59,5 +75,72 @@ module PurchaseItemHelper
         }
       end
     }
+  end
+
+  private
+
+  def purchase_item_new_record(purchase_item, warehouse:)
+    {
+      id: nil,
+      path: "",
+      purchase_id: nil,
+      sale_item_id: nil,
+      warehouse_id: warehouse.id,
+      shipping_company_id: nil,
+      length: "",
+      width: "",
+      height: "",
+      weight: "",
+      expenses: "",
+      shipping_cost: "",
+      tracking_number: "",
+      media: [],
+      redirect_to_sale_item: false
+    }
+  end
+
+  def purchase_item_form_record(purchase_item, redirect_to_sale_item:)
+    {
+      id: purchase_item.id,
+      path: purchase_item_path(purchase_item),
+      purchase_id: purchase_item.purchase_id,
+      sale_item_id: purchase_item.sale_item_id,
+      warehouse_id: purchase_item.warehouse_id,
+      shipping_company_id: purchase_item.shipping_company_id,
+      length: purchase_item.length.to_s,
+      width: purchase_item.width.to_s,
+      height: purchase_item.height.to_s,
+      weight: purchase_item.weight.to_s,
+      expenses: purchase_item.expenses.to_s,
+      shipping_cost: purchase_item.shipping_cost.to_s,
+      tracking_number: purchase_item.tracking_number.to_s,
+      media: purchase_item_media_form_props(purchase_item),
+      redirect_to_sale_item:
+    }
+  end
+
+  def purchase_item_form_options(purchase_item)
+    {
+      warehouses: Warehouse.order(:name).map { |w| {value: w.id, label: w.name} },
+      purchases: Purchase.for_form_select.map { |p| {value: p.id, label: p.full_title} },
+      sale_items: SaleItem.for_edit_linking(purchase_item).map { |si| {value: si.id, label: si.build_title_for_select} },
+      shipping_companies: ShippingCompany.order(:name).map { |sc| {value: sc.id, label: sc.name} }
+    }
+  end
+
+  def purchase_item_media_form_props(purchase_item)
+    purchase_item.media.filter_map do |media|
+      next unless media.image.attached?
+
+      {
+        id: media.id,
+        alt: media.alt,
+        position: media.position,
+        preview_url: url_for(media.image.representation(:preview)),
+        thumb_url: url_for(media.image.representation(:thumb)),
+        image_blob_id: nil,
+        _destroy: false
+      }
+    end
   end
 end

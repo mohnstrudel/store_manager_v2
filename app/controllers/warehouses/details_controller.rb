@@ -8,7 +8,7 @@ module Warehouses
       @purchase_items = @warehouse
         .purchase_items
         .for_warehouse_details
-        .order(updated_at: :desc)
+        .ordered_by_current_warehouse_entry
         .page(params[:page])
       @total_purchase_items = @warehouse.purchase_items.size
       @purchase_items = @purchase_items.search(params[:q]) if params[:q].present?

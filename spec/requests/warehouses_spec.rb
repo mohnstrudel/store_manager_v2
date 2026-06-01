@@ -49,6 +49,34 @@ RSpec.describe "Warehouses" do
     end
   end
 
+  describe "GET /warehouses/:id" do
+    it "renders the show component with inline tracking and shipping edit props" do
+      warehouse = create(:warehouse, name: "Warehouse A")
+      shipping_company = create(:shipping_company, name: "Skyline")
+      purchase_item = create(
+        :purchase_item,
+        warehouse: warehouse,
+        shipping_company: shipping_company,
+        tracking_number: "TRACK-1"
+      )
+
+      get warehouse_path(warehouse)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Warehouses/Show")
+
+      item_props = inertia.props[:purchase_items].first
+      expect(item_props[:id]).to eq(purchase_item.id)
+      expect(item_props[:tracking_update_path]).to eq(purchase_item_tracking_number_path(purchase_item))
+      expect(item_props[:shipping_company_id]).to eq(shipping_company.id)
+      expect(item_props[:shipping_company_update_path]).to eq(purchase_item_shipping_company_path(purchase_item))
+      expect(inertia.props[:shipping_companies]).to include(
+        id: shipping_company.id,
+        name: "Skyline"
+      )
+    end
+  end
+
   describe "POST /warehouses" do
     it "creates a warehouse and redirects to show" do
       expect {

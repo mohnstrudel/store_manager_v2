@@ -76,7 +76,7 @@ export default function IndexTable({ onPositionChange, warehouses }: IndexTableP
                 <PaymentProgressBar onlyDebt progress={warehouse.payment_progress} />
               ) : null}
             </td>
-            <td className="actions text-right">
+            <td className="table_actions text-right">
               <Link href={warehouse.edit_path} onClick={stopRowNavigation} prefetch>
                 <i className="icn">✏</i>
                 Edit

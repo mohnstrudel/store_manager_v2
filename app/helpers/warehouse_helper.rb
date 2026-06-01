@@ -33,6 +33,9 @@ module WarehouseHelper
       selected_id: selected_id,
       total_purchase_items: total_purchase_items,
       warehouses: Warehouse.order(name: :asc).map { |w| {id: w.id, name: w.name} },
+      shipping_companies: ShippingCompany.ordered.map { |shipping_company|
+        {id: shipping_company.id, name: shipping_company.name}
+      },
       warehouse_move_path: warehouse_move_path(warehouse_id: warehouse.id)
     }
   end
@@ -132,9 +135,10 @@ module WarehouseHelper
       sale_note: sale&.note,
       customer_email: sale&.customer&.email,
       tracking_number: item.tracking_number,
-      tracking_edit_path: edit_purchase_item_tracking_number_path(item),
+      tracking_update_path: purchase_item_tracking_number_path(item),
       shipping_company_name: item.shipping_company&.name,
-      shipping_company_edit_path: edit_purchase_item_shipping_company_path(item),
+      shipping_company_id: item.shipping_company_id,
+      shipping_company_update_path: purchase_item_shipping_company_path(item),
       payment_progress: {
         progress: item.purchase.progress.to_f,
         paid: format_money(item.purchase.item_paid),

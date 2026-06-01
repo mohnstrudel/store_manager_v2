@@ -29,7 +29,9 @@ class PurchaseItemsController < ApplicationController
 
   # GET /purchase_items/1/edit
   def edit
-    prepare_edit_form
+    redirect_to_sale_item = params[:redirect_to_sale_item].present?
+    render inertia: "PurchaseItems/Edit",
+      props: helpers.purchase_item_edit_props(@purchase_item, redirect_to_sale_item:)
   end
 
   # PATCH/PUT /purchase_items/1
@@ -46,8 +48,7 @@ class PurchaseItemsController < ApplicationController
 
     redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
   rescue ActiveRecord::RecordInvalid
-    prepare_edit_form
-    render :edit, status: :unprocessable_content
+    redirect_to edit_purchase_item_path(@purchase_item), inertia: inertia_errors(@purchase_item.errors)
   end
 
   # DELETE /purchase_items/1
@@ -64,17 +65,6 @@ class PurchaseItemsController < ApplicationController
 
   def set_purchase_item
     @purchase_item = PurchaseItem.with_media.find(params[:id])
-  end
-
-  def prepare_edit_form
-    @sale_items = SaleItem.for_edit_linking(@purchase_item)
-    prepare_form_options
-  end
-
-  def prepare_form_options
-    @purchases = Purchase.for_form_select
-    @shipping_companies = ShippingCompany.order(:name)
-    @warehouse_options = Warehouse.order(:name)
   end
 
   # Only allow a list of trusted parameters through.

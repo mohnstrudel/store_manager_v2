@@ -103,8 +103,8 @@ Rails.application.routes.draw do
       end
 
       resource :sale_item_link, only: :destroy, path: "unlink"
-      resource :tracking_number, only: %i[show edit update]
-      resource :shipping_company, only: %i[show edit update]
+      resource :tracking_number, only: :update
+      resource :shipping_company, only: :update
     end
   end
 
