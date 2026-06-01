@@ -257,12 +257,9 @@ function NavigationOverflowMenu({
           />
         ) : null}
         <li>
-          <a
-            className="navigation-dropdown_link"
-            onClick={handleLogOut}
-          >
+          <button className="navigation-dropdown_link" onClick={handleLogOut} type="button">
             Log Out
-          </a>
+          </button>
         </li>
       </ul>
     </li>
