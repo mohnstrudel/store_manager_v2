@@ -1,0 +1,42 @@
+@layer components {
+/* Progress Widget */
+  .progress_container {
+    @apply w-full h-4 rounded-full overflow-hidden relative;
+  }
+
+  .progress_amount {
+    @apply text-right leading-[1.1] px-1 font-black text-sm text-shadow-xs text-gray-100;
+  }
+
+  /* "Removed" overlay */
+  .rectangle_with_x {
+    @apply relative;
+  }
+
+  .rectangle_with_x::before,
+  .rectangle_with_x::after {
+    @apply absolute w-full h-2 bg-red-900 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10;
+    content: '';
+  }
+
+  .rectangle_with_x::before {
+    @apply rotate-45;
+  }
+
+  .rectangle_with_x::after {
+    @apply -rotate-45;
+  }
+
+  trix-toolbar .trix-button:not(:first-child) {
+    @apply border-l! border-gray-300/80! dark:border-gray-600/60!;
+  }
+
+  trix-toolbar .trix-button-group {
+    @apply border border-gray-300/80! dark:border-gray-600/60!;
+  }
+
+  trix-toolbar .trix-button.trix-active,
+  trix-editor .trix-button.trix-active {
+    @apply bg-sky-100! dark:bg-sky-800!;
+  }
+}

@@ -1,0 +1,14 @@
+@layer components {
+/* Tabs */
+  .tab_bar {
+    @apply w-full inline-flex items-stretch gap-1 p-1 bg-gray-200/50 dark:bg-gray-800 rounded-full mt-1 mb-4;
+  }
+
+  .tab_btn {
+    @apply w-full flex items-center justify-center rounded-full px-4 py-1 bg-transparent dark:bg-transparent hover:bg-transparent dark:hover:bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-150 text-sm font-medium;
+  }
+
+  .tab_btn[aria-selected="true"] {
+    @apply shadow-sm bg-white/80 dark:bg-gray-700 text-gray-600 dark:text-gray-200;
+  }
+}

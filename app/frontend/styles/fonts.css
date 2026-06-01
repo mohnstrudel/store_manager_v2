@@ -1,0 +1,41 @@
+@font-face {
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/sf-mono-regular-webfont.woff2") format("woff2");
+  font-family: "SF Mono";
+}
+
+@font-face {
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/noto-emoji-400.woff2") format("woff2");
+  font-family: "Noto Emoji";
+}
+
+@font-face {
+  font-style: normal;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  src: url("/fonts/BricolageGrotesque-var.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  font-display: auto;
+  font-optical-sizing: auto;
+}
+
+@font-face {
+  font-style: normal;
+  font-weight: 200 900;
+  src: url("/fonts/nunito-v.woff2") format("woff2");
+  font-family: "Nunito";
+  font-display: auto;
+  font-optical-sizing: auto;
+}
+
+@font-face {
+  font-style: italic;
+  font-weight: 200 900;
+  src: url("/fonts/nunito-iv.woff2") format("woff2");
+  font-family: "Nunito";
+  font-display: auto;
+  font-optical-sizing: auto;
+}

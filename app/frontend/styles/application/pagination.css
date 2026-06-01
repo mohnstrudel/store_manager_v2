@@ -1,0 +1,41 @@
+@layer components {
+/* Pagination */
+  .pagination {
+    @apply flex items-center justify-start lg:justify-center self-end text-center gap-2;
+  }
+
+  .pagination_top {
+    @apply flex justify-start lg:justify-end min-w-0 lg:min-w-4/10;
+  }
+
+  .pagination_bottom {
+    @apply flex justify-start lg:justify-center items-center py-4 lg:py-8 w-full h-full;
+  }
+
+  .pagination a {
+    @apply whitespace-nowrap;
+  }
+
+  .pagination_previous,
+  .pagination_next {
+    @apply min-w-24;
+  }
+
+  .pagination_pages {
+    @apply flex items-center gap-1;
+  }
+
+  .pagination_link {
+    font-weight: 480;
+    font-stretch: 98%;
+    @apply inline-flex items-center justify-center min-w-9 gap-1.5 px-2 py-1.5 rounded-sm;
+  }
+
+  .pagination_link.is_current {
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-default;
+  }
+
+  .pagination_gap {
+    @apply inline-flex items-center justify-center min-w-6 text-gray-500 dark:text-gray-400;
+  }
+}
