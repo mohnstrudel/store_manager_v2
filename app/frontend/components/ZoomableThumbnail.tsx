@@ -1,5 +1,5 @@
 import { PhotoIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type ZoomableThumbnailProps = {
   alt: string;
@@ -10,6 +10,14 @@ type LoadState = "loading" | "loaded" | "failed";
 
 export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) {
   const [loadState, setLoadState] = useState<LoadState>(src ? "loading" : "failed");
+
+  const handleError = useCallback(() => {
+    setLoadState("failed");
+  }, []);
+
+  const handleLoad = useCallback(() => {
+    setLoadState("loaded");
+  }, []);
 
   if (loadState === "failed") {
     return (
@@ -34,11 +42,12 @@ export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) 
       )}
       <img
         alt={alt}
-        className={`block h-[120px] w-[90px] rounded-md object-cover object-top transition-transform duration-150 ease-out zoomable ${loadState === "loaded" ? "" : "opacity-0 is-loading"
-          }`}
+        className={`block h-[120px] w-[90px] rounded-md object-cover object-top transition-transform duration-150 ease-out zoomable ${
+          loadState === "loaded" ? "" : "opacity-0 is-loading"
+        }`}
         loading="lazy"
-        onError={() => setLoadState("failed")}
-        onLoad={() => setLoadState("loaded")}
+        onError={handleError}
+        onLoad={handleLoad}
         src={src ?? ""}
       />
     </div>

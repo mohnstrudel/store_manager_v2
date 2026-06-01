@@ -15,7 +15,12 @@ export default function New({ email_address }: SignInProps) {
     <>
       <h1 className="text-3xl lg:text-5xl mb-6">Sign in with your email</h1>
 
-      <Form action="/session" method="post" className="flex flex-col gap-6 my-8" disableWhileProcessing>
+      <Form
+        action="/session"
+        method="post"
+        className="flex flex-col gap-6 my-8"
+        disableWhileProcessing
+      >
         <FormInput
           autoComplete="username"
           autoFocus

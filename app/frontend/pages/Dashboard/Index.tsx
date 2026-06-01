@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { router, Link } from "@inertiajs/react";
 import type { ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
@@ -57,6 +58,10 @@ export default function Index({
 }
 
 function WebhookWarning({ lastOrdersPullPath }: { lastOrdersPullPath: string }) {
+  const confirmWebhookActive = useCallback(() => {
+    router.post(lastOrdersPullPath);
+  }, [lastOrdersPullPath]);
+
   return (
     <article
       id="webhook-error"
@@ -86,7 +91,7 @@ function WebhookWarning({ lastOrdersPullPath }: { lastOrdersPullPath: string }) 
           Afterward, hide this notification using this button:
           <button
             className="btn_rounded btn_red bg-red-200/60 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900/70 text-sm ml-2"
-            onClick={() => router.post(lastOrdersPullPath)}
+            onClick={confirmWebhookActive}
             type="button"
           >
             Confirm Woo Webhook Active

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, type MouseEvent } from "react";
 
 type CopyToClipboardButtonProps = {
   className?: string;
@@ -13,11 +13,19 @@ export default function CopyToClipboardButton({
 }: CopyToClipboardButtonProps) {
   const { copied, copy } = useClipboardCopy(text);
 
+  const handleClick = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      void copy();
+    },
+    [copy],
+  );
+
   return (
     <button
       className={`btn_rounded no_events cursor-pointer transition-all ease-out ${copied ? "btn_amber" : ""} ${className}`}
       data-copy-to-clipboard-text-value={text}
-      onClick={copy}
+      onClick={handleClick}
       title="Copy to clipboard"
       type="button"
     >

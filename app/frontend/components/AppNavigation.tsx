@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link, router, usePage } from "@inertiajs/react";
 import type { PageProps } from "@/types/inertia";
@@ -172,10 +173,14 @@ function NavigationActions({ user }: { user: PageProps["auth"]["user"] }) {
 }
 
 function GuestNavigationActions() {
+  const handleLogOut = useCallback(() => {
+    logOut();
+  }, []);
+
   return (
     <ul className="navigation-links text-sm flex flex-wrap items-center gap-2 lg:flex-nowrap lg:whitespace-nowrap">
       <li>
-        <button onClick={() => logOut()} type="button">
+        <button onClick={handleLogOut} type="button">
           Log Out
         </button>
       </li>
@@ -225,6 +230,10 @@ function NavigationOverflowMenu({
   onToggle: () => void;
   user: PageProps["auth"]["user"];
 }) {
+  const handleLogOut = useCallback(() => {
+    logOut(closeDropdown);
+  }, [closeDropdown]);
+
   return (
     <li className="navigation-dropdown ml-0 lg:ml-6" data-open={isOpen} ref={dropdownRef}>
       <button
@@ -241,12 +250,19 @@ function NavigationOverflowMenu({
       <ul className="navigation-dropdown_menu" aria-hidden={!isOpen} id="navigation-dropdown-links">
         <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />
         {user?.role === "admin" ? (
-          <NavigationLinkItem className="navigation-dropdown_link" link={usersLink} onSelect={closeDropdown} />
+          <NavigationLinkItem
+            className="navigation-dropdown_link"
+            link={usersLink}
+            onSelect={closeDropdown}
+          />
         ) : null}
         <li>
-          <button onClick={() => logOut(closeDropdown)} type="button">
+          <a
+            className="navigation-dropdown_link"
+            onClick={handleLogOut}
+          >
             Log Out
-          </button>
+          </a>
         </li>
       </ul>
     </li>

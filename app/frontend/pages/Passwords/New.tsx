@@ -15,7 +15,12 @@ export default function New({ email_address }: ForgotPasswordProps) {
     <>
       <h1 className="text-3xl lg:text-5xl mb-6">Forgot your password?</h1>
 
-      <Form action="/passwords" method="post" className="flex flex-col gap-6 my-8" disableWhileProcessing>
+      <Form
+        action="/passwords"
+        method="post"
+        className="flex flex-col gap-6 my-8"
+        disableWhileProcessing
+      >
         <FormInput
           autoComplete="username"
           autoFocus

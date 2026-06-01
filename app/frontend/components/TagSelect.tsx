@@ -11,6 +11,11 @@ type TagSelectProps<
   "classNamePrefix" | "styles" | "theme" | "getOptionLabel" | "getOptionValue"
 >;
 
+const tagSelectClassNames = {
+  control: () => "!h-auto",
+  valueContainer: () => "!flex-wrap !overflow-visible !h-auto !items-start !p-2 !gap-1",
+};
+
 export default function TagSelect<
   Option,
   IsMulti extends boolean = false,
@@ -21,10 +26,7 @@ export default function TagSelect<
       {...props}
       classNamePrefix="rs"
       styles={reactSelectStyles}
-      classNames={{
-        control: () => "!h-auto",
-        valueContainer: () => "!flex-wrap !overflow-visible !h-auto !items-start !p-2 !gap-1",
-      }}
+      classNames={tagSelectClassNames}
     />
   );
 }

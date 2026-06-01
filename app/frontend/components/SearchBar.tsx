@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { useCallback, useMemo, type ChangeEvent, type FormEvent, useState } from "react";
 import { router, Link } from "@inertiajs/react";
 
 type SearchBarProps = {
@@ -9,12 +9,16 @@ type SearchBarProps = {
 
 export default function SearchBar({ initialQuery, path, resourceName }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
-  const reloadOnly = [resourceName, "pagination", "search"];
+  const reloadOnly = useMemo(() => [resourceName, "pagination", "search"], [resourceName]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     router.get(path, { q: query || undefined }, { only: reloadOnly, preserveState: true });
-  }
+  }, [path, query, reloadOnly]);
+
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+  }, []);
 
   return (
     <form
@@ -24,7 +28,7 @@ export default function SearchBar({ initialQuery, path, resourceName }: SearchBa
       <input
         className={initialQuery ? "border-2" : "border"}
         name="q"
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={handleChange}
         placeholder="Find what you need..."
         type="search"
         value={query}
