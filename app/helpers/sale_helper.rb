@@ -125,6 +125,7 @@ module SaleHelper
   def sale_customer_props(customer)
     {
       id: customer.id,
+      path: customer_path(customer),
       first_name: customer.first_name,
       last_name: customer.last_name,
       full_name: customer.full_name,

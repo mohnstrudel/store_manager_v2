@@ -20,6 +20,9 @@ export type SaleRecord = {
   id: number;
   path: string;
   store_id: string;
+  sale_identifier: string;
+  sold_product_name: string;
+  product_thumb_url: string | null;
   store_type: "shopify" | "woo" | null;
   status: string;
   active: boolean;

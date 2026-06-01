@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import Show from "./Show";
+
+const deletePurchaseItem = vi.hoisted(() => vi.fn<(...args: unknown[]) => unknown>());
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
@@ -11,7 +13,7 @@ vi.mock("@inertiajs/react", () => ({
     </a>
   ),
   router: {
-    delete: vi.fn<(...args: unknown[]) => unknown>(),
+    delete: deletePurchaseItem,
     post: vi.fn<(...args: unknown[]) => unknown>(),
     visit: vi.fn<(...args: unknown[]) => unknown>(),
   },
@@ -42,6 +44,7 @@ const sale = {
   billing_differs_from_shipping: true,
   customer: {
     id: 2,
+    path: "/customers/2",
     first_name: "Dale",
     last_name: "Cooper",
     full_name: "Dale Cooper",
@@ -101,6 +104,10 @@ const sale = {
 };
 
 describe("Sales/Show", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders the sale details and purchase controls", async () => {
     const user = userEvent.setup();
     vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -113,6 +120,11 @@ describe("Sales/Show", () => {
     expect(screen.getByRole("link", { name: /Go to Shopify/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Edit/ })).toBeInTheDocument();
     expect(screen.getByText("Leave at the door")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dale Cooper" })).toHaveAttribute(
+      "href",
+      "/customers/2",
+    );
+    expect(screen.getByText("Billing address differs from shipping.")).toBeInTheDocument();
     expect(screen.getByText("Pikachu Figure")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Unlink/ })).toBeInTheDocument();
 
@@ -120,5 +132,17 @@ describe("Sales/Show", () => {
 
     expect(screen.getByText("456 Side St")).toBeInTheDocument();
     expect(screen.getByText("Paris")).toBeInTheDocument();
+  });
+
+  it("unlinks a purchase item after confirmation", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    render(<Show sale={sale} />);
+
+    await user.click(screen.getByRole("button", { name: /Unlink/ }));
+
+    expect(window.confirm).toHaveBeenCalledWith("Unlink this purchase item?");
+    expect(deletePurchaseItem).toHaveBeenCalledWith("/purchase_items/101/unlink");
   });
 });

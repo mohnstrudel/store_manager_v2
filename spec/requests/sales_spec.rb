@@ -247,6 +247,7 @@ RSpec.describe "Sales" do
 
       sale_props = inertia.props[:sale]
       expect(sale_props[:id]).to eq(sale.id)
+      expect(sale_props[:customer][:path]).to eq(customer_path(customer))
       expect(sale_props[:customer][:shopify_id_short]).to eq("9341147185481")
       expect(sale_props[:shipping_address][:city]).to eq("Bremerhaven")
       expect(sale_props[:billing_address][:city]).to eq("Paris")

@@ -43,6 +43,9 @@ describe("Customers/Show", () => {
       id: 10,
       path: "/sales/10",
       store_id: "1001",
+      sale_identifier: "HSCM#1958",
+      sold_product_name: "Twin Peaks Cherry Pie",
+      product_thumb_url: null,
       store_type: "shopify" as const,
       status: "completed",
       active: false,
@@ -57,6 +60,15 @@ describe("Customers/Show", () => {
     render(<Show active_sales={[]} completed_sales={[sale]} customer={customer} />);
 
     expect(screen.getByRole("heading", { name: "Completed Sales" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Image unavailable for Twin Peaks Cherry Pie" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Twin Peaks Cherry Pie HSCM#1958" }),
+    ).toHaveAttribute("href", "/sales/10");
+    expect(screen.getByText("Twin Peaks Cherry Pie")).toHaveClass(
+      "group-hover:text-blue-600",
+    );
     expect(screen.getByText("Completed")).toBeInTheDocument();
   });
 });

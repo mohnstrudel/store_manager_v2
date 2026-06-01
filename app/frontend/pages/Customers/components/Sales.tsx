@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { SaleRecord } from "../types";
 
 type SalesProps = {
@@ -15,7 +16,8 @@ export default function Sales({ heading, sales }: SalesProps) {
       <table>
         <thead>
           <tr>
-            <th>Store ID</th>
+            <th className="text-center">Image</th>
+            <th>Sale</th>
             <th>Status</th>
             <th>Price, $</th>
             <th>Country</th>
@@ -30,15 +32,34 @@ export default function Sales({ heading, sales }: SalesProps) {
         <tbody>
           {sales.map((sale) => (
             <tr key={sale.id}>
+              <td className="text-center">
+                <ZoomableThumbnail
+                  alt={sale.sold_product_name || `Sale ${saleIdentifier(sale)}`}
+                  key={`${sale.id}-${sale.product_thumb_url ?? "missing"}`}
+                  src={sale.product_thumb_url}
+                />
+              </td>
               <td>
-                <Link href={sale.path} prefetch>
+                <Link
+                  aria-label={saleLinkLabel(sale)}
+                  className="link group no-underline inline-flex items-start gap-2 p-0 bg-transparent hover:bg-transparent"
+                  href={sale.path}
+                  prefetch
+                >
                   {sale.store_type === "shopify" && (
-                    <span className="inline-block icon_shopify w-5 h-5 mr-1 -mb-1" />
+                    <span aria-hidden="true" className="inline-block icon_shopify w-5 h-5 mt-0.5" />
                   )}
                   {sale.store_type === "woo" && (
-                    <span className="inline-block icon_woo w-8 h-8 mr-2 -mb-3" />
+                    <span aria-hidden="true" className="inline-block icon_woo w-8 h-8 -mt-1" />
                   )}
-                  {sale.store_id || sale.id}
+                  <span className="min-w-0">
+                    <span className="block max-w-xl font-semibold leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      {sale.sold_product_name || "No sold product"}
+                    </span>
+                    <span className="mt-1 block font-mono text-sm text-gray-500">
+                      {saleIdentifier(sale)}
+                    </span>
+                  </span>
                 </Link>
               </td>
               <td>
@@ -68,4 +89,14 @@ export default function Sales({ heading, sales }: SalesProps) {
       </table>
     </section>
   );
+}
+
+function saleLinkLabel(sale: SaleRecord) {
+  return [sale.sold_product_name || "No sold product", saleIdentifier(sale)]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function saleIdentifier(sale: SaleRecord) {
+  return String(sale.sale_identifier || sale.store_id || sale.id);
 }

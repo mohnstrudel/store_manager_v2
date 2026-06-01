@@ -48,6 +48,23 @@ RSpec.describe "Customers" do
       expect(customer_props[:id]).to eq(customer.id)
       expect(customer_props[:email]).to eq(customer.email)
     end
+
+    it "renders customer sale links with shop identity and sold product names" do
+      customer = create(:customer)
+      sale = create(:sale, customer:, status: "completed", shopify_name: "HSCM#1958")
+      sale_item = create(:sale_item, sale:)
+
+      get customer_path(customer)
+
+      sale_props = inertia.props[:completed_sales].first
+      expect(sale_props).to include(
+        path: sale_path(sale),
+        sale_identifier: "HSCM#1958",
+        sold_product_name: sale_item.title,
+        product_thumb_url: nil,
+        store_type: "shopify"
+      )
+    end
   end
 
   describe "GET /customers/new" do

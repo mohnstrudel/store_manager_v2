@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Link } from "@inertiajs/react";
+import TipMark from "@/components/TipMark";
 import type { SaleAddressRecord, SaleShowRecord } from "../types";
 
 type DetailsProps = {
@@ -28,7 +30,13 @@ export default function Details({ sale }: DetailsProps) {
           </>
         )}
         <h5>Customer</h5>
-        {sale.customer.full_name ? <p>{sale.customer.full_name}</p> : null}
+        {sale.customer.full_name ? (
+          <p>
+            <Link className="link" href={sale.customer.path} prefetch>
+              {sale.customer.full_name}
+            </Link>
+          </p>
+        ) : null}
         <h5>Note</h5>
         {sale.note ? <p>{sale.note}</p> : null}
         <h5>Total, $</h5>
@@ -63,7 +71,9 @@ export default function Details({ sale }: DetailsProps) {
           >
             Billing
             {sale.billing_differs_from_shipping && (
-              <span className="text-yellow-600 text-xl leading-0"> *</span>
+              <TipMark starClassName="text-xl leading-0">
+                Billing address differs from shipping.
+              </TipMark>
             )}
           </button>
         </div>

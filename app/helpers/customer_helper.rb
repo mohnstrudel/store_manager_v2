@@ -30,7 +30,7 @@ module CustomerHelper
   end
 
   def customer_sale_props(sale)
-    store_type = if sale.shopify_info&.store_id.present?
+    store_type = if sale.shopify_info&.store_id.present? || sale.shopify_name.present? || sale.shopify_id.present?
       "shopify"
     elsif sale.woo_info&.store_id.present?
       "woo"
@@ -48,6 +48,9 @@ module CustomerHelper
       id: sale.id,
       path: sale_path(sale),
       store_id: store_id,
+      sale_identifier: sale.shop_identifier.presence || sale.id.to_s,
+      sold_product_name: customer_sale_product_name(sale),
+      product_thumb_url: customer_sale_product_thumb_url(sale),
       store_type: store_type,
       status: sale.status,
       active: sale.active?,
@@ -58,5 +61,22 @@ module CustomerHelper
       created_at: format_date(sale.shop_created_at.presence || sale.created_at),
       updated_at: format_date(sale.shop_updated_at.presence || sale.updated_at)
     }
+  end
+
+  private
+
+  def customer_sale_product_name(sale)
+    titles = sale.sale_items.map(&:title).compact_blank
+    return "" if titles.empty?
+    return titles.first if titles.one?
+
+    "#{titles.first} + #{titles.size - 1} more"
+  end
+
+  def customer_sale_product_thumb_url(sale)
+    first_item = sale.sale_items.first
+    return unless first_item&.product
+
+    thumb_url(first_item.product)
   end
 end

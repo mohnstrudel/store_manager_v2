@@ -128,6 +128,7 @@ export type SaleFormOptions = {
 
 export type SaleCustomerRecord = {
   id: number;
+  path: string;
   first_name: string;
   last_name: string;
   full_name: string;
