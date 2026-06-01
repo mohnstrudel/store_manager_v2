@@ -1,3 +1,4 @@
+import "@/styles/application.css";
 import { createInertiaApp, router } from "@inertiajs/react";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
