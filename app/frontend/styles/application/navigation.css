@@ -1,5 +1,5 @@
 @layer components {
-/* Navigation */
+  /* Navigation */
   .navigation-main ul {
     @apply flex items-center;
   }
@@ -21,7 +21,7 @@
   }
 
   .navigation-dropdown_link {
-    @apply text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700;
+    @apply inline-flex w-full items-center justify-start rounded-none border-0 bg-transparent p-2 text-left text-gray-500 shadow-none dark:bg-transparent dark:text-gray-400 hover:bg-transparent hover:text-gray-900 dark:hover:bg-transparent dark:hover:text-gray-100;
   }
 
   .navigation-dropdown_button {
@@ -36,10 +36,6 @@
     @apply lg:ml-0 lg:w-auto lg:flex-nowrap lg:justify-start;
   }
 
-  .navigation-dropdown_link {
-    @apply border-0 bg-transparent dark:bg-transparent;
-  }
-
   .navigation-links > .navigation-dropdown {
     @apply relative;
   }
@@ -50,16 +46,16 @@
   }
 
   .navigation-dropdown_menu {
-    @apply flex flex-col items-start absolute right-0 top-full w-50 pt-5 pr-4 pb-7 pl-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg opacity-0 invisible pointer-events-none transition-all duration-150 z-228;
+    @apply flex flex-col items-start absolute right-0 top-full w-50 pt-5 pr-4 pb-7 pl-4 bg-white dark:bg-gray-900/80 dark:backdrop-blur-lg border border-gray-200 dark:border-gray-700/50 rounded-lg opacity-0 invisible pointer-events-none transition-all duration-150 z-228;
+  }
+
+  .navigation-dropdown_menu > li {
+    @apply w-full;
   }
 
   .navigation-dropdown[data-open="true"] > .navigation-dropdown_menu,
   .navigation-dropdown:hover > .navigation-dropdown_menu {
     @apply opacity-100 visible pointer-events-auto text-left;
-  }
-
-  .navigation-dropdown_link {
-    @apply w-full items-center justify-start;
   }
 
   .nav_header {

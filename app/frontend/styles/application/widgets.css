@@ -1,5 +1,5 @@
 @layer components {
-/* Progress Widget */
+  /* Progress Widget */
   .progress_container {
     @apply w-full h-4 rounded-full overflow-hidden relative;
   }
@@ -16,7 +16,7 @@
   .rectangle_with_x::before,
   .rectangle_with_x::after {
     @apply absolute w-full h-2 bg-red-900 rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10;
-    content: '';
+    content: "";
   }
 
   .rectangle_with_x::before {

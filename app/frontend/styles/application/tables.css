@@ -1,5 +1,5 @@
 @layer base {
-/* Tables */
+  /* Tables */
   table {
     @apply w-full min-w-min border-collapse table-auto text-left border-b mt-3;
   }

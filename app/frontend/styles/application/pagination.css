@@ -1,5 +1,5 @@
 @layer components {
-/* Pagination */
+  /* Pagination */
   .pagination {
     @apply flex items-center justify-start lg:justify-center self-end text-center gap-2;
   }

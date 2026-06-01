@@ -1,5 +1,5 @@
 @layer components {
-/* Dialogs */
+  /* Dialogs */
   body:has(dialog[open]) {
     overflow: hidden;
   }

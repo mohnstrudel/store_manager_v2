@@ -1,5 +1,5 @@
 @layer components {
-/* Cards */
+  /* Cards */
   .cards {
     @apply flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6;
   }

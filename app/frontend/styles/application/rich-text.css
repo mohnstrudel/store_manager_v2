@@ -1,5 +1,5 @@
 @layer components {
-/* Rich text content (product descriptions) */
+  /* Rich text content (product descriptions) */
   .rich_text {
     text-rendering: optimizeSpeed;
 
@@ -32,7 +32,9 @@
       margin-bottom: 0.6em;
     }
 
-    & h4, & h5, & h6 {
+    & h4,
+    & h5,
+    & h6 {
       font-weight: 600;
       line-height: 1.5;
       margin-top: 1.5em;
@@ -68,7 +70,8 @@
       padding-left: 1em;
     }
 
-    & ul, & ol {
+    & ul,
+    & ol {
       margin-top: 1.25em;
       margin-bottom: 1.25em;
       padding-left: 2.625em;
@@ -94,7 +97,9 @@
 
     & pre {
       @apply bg-gray-100 dark:bg-gray-800 rounded-md overflow-x-auto;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+        monospace;
       font-size: 0.875em;
       line-height: 1.714;
       margin-top: 1.714em;
@@ -105,7 +110,9 @@
 
     & code {
       @apply bg-gray-100 dark:bg-gray-800 rounded;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+        monospace;
       font-size: 0.875em;
       padding: 0.2em 0.4em;
     }
