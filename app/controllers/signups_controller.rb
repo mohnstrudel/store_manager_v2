@@ -6,7 +6,7 @@ class SignupsController < ApplicationController
 
   def new
     @user = User.new
-    render "users/new"
+    render inertia: "Signups/New", props: {email_address: params[:email_address]}
   end
 
   def create
@@ -16,7 +16,7 @@ class SignupsController < ApplicationController
       start_new_session_for @user
       redirect_to noop_path, notice: "Account for #{@user.email_address} was successfully created"
     else
-      render "users/new", status: :unprocessable_content
+      redirect_to new_sign_up_path, inertia: inertia_errors(@user.errors)
     end
   end
 

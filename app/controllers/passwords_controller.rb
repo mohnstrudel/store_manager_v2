@@ -7,9 +7,11 @@ class PasswordsController < ApplicationController
   skip_after_action :verify_authorized
 
   def new
+    render inertia: "Passwords/New", props: {email_address: params[:email_address]}
   end
 
   def edit
+    render inertia: "Passwords/Edit", props: {token: params[:token]}
   end
 
   def create
@@ -31,7 +33,7 @@ class PasswordsController < ApplicationController
   private
 
   def set_user_by_token
-    @user = User.find_by!(password_reset_token: params[:token])
+    @user = User.find_by_password_reset_token!(params[:token])
   rescue ActiveSupport::MessageVerifier::InvalidSignature
     redirect_to new_password_path, alert: "Password reset link is invalid or has expired"
   end

@@ -8,6 +8,7 @@ class SessionsController < ApplicationController
   skip_after_action :verify_authorized, only: %i[new create destroy]
 
   def new
+    render inertia: "Sessions/New", props: {email_address: params[:email_address]}
   end
 
   def create

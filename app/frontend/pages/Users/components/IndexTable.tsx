@@ -41,7 +41,7 @@ export default function IndexTable({ users }: IndexTableProps) {
             <td>{user.role}</td>
             <td>{user.created_at}</td>
             <td>{user.updated_at}</td>
-            <td className="actions text-right">
+            <td className="table_actions text-right">
               <Link href={user.edit_path} onClick={stopRowNavigation} prefetch>
                 <i className="icn">✏</i>
                 Edit

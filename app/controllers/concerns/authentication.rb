@@ -67,7 +67,7 @@ module Authentication
   end
 
   def choose_layout
-    authenticated? ? "application" : "unauthenticated"
+    "application"
   end
 
   def set_sentry_user
