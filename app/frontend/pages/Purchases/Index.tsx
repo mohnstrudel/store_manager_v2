@@ -1,7 +1,6 @@
 import { Link } from "@inertiajs/react";
-import Pagination from "@/components/Pagination";
-import SearchBar from "@/components/SearchBar";
-import SearchResultsEmpty from "@/components/SearchResultsEmpty";
+import PageHeader from "@/components/PageHeader";
+import SearchableIndexSection from "@/components/SearchableIndexSection";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import IndexTable from "./components/IndexTable";
 import MoveToWarehouseForm from "./components/MoveToWarehouseForm";
@@ -23,58 +22,37 @@ export default function Index({
   warehouses,
 }: IndexProps) {
   const { clearSelectedIds, selectedIds, toggleSelectedId } = useWarehouseMoveSelection();
-  const paginationBottom = (
-    <div className="pagination_bottom">
-      <Pagination pagination={pagination} path="/purchases" query={search.q} />
-    </div>
-  );
 
   return (
     <>
-      <header className="nav_header">
-        <hgroup>
-          <h1>Purchases</h1>
-        </hgroup>
+      <PageHeader title="Purchases">
+        <li>
+          <Link href="/purchases/new" prefetch>
+            <i className="icn">🐣</i>
+            Add New Record
+          </Link>
+        </li>
+      </PageHeader>
 
-        <menu className="nav_menu">
-          <li>
-            <Link href="/purchases/new" prefetch>
-              <i className="icn">🐣</i>
-              Add New Record
-            </Link>
-          </li>
-        </menu>
-      </header>
-
-      <section className="section_border_base section_wide">
-        <div className="search">
-          <SearchBar initialQuery={search.q} path="/purchases" resourceName="purchases" />
-          <div className="pagination_top">
-            <Pagination pagination={pagination} path="/purchases" query={search.q} />
-          </div>
-        </div>
-
-        {purchases.length > 0 ? (
-          <>
-            <IndexTable
-              onTogglePurchase={toggleSelectedId}
-              purchases={purchases}
-              selectedIds={selectedIds}
-            />
-            {paginationBottom}
-            <MoveToWarehouseForm
-              movePath={move_path}
-              onMoved={clearSelectedIds}
-              selectedIds={selectedIds}
-              warehouses={warehouses}
-            />
-          </>
-        ) : search.q ? (
-          <SearchResultsEmpty seed={search.q} />
-        ) : null}
-
-        {purchases.length === 0 && paginationBottom}
-      </section>
+      <SearchableIndexSection
+        hasResults={purchases.length > 0}
+        pagination={pagination}
+        path="/purchases"
+        query={search.q}
+        resourceName="purchases"
+      >
+        <IndexTable
+          onTogglePurchase={toggleSelectedId}
+          purchases={purchases}
+          selectedIds={selectedIds}
+        />
+        <MoveToWarehouseForm
+          movePath={move_path}
+          onMoved={clearSelectedIds}
+          selectedIds={selectedIds}
+          warehouses={warehouses}
+        />
+      </SearchableIndexSection>
     </>
   );
 }

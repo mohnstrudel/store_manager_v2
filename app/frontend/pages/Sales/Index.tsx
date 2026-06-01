@@ -1,9 +1,8 @@
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+import PageHeader from "@/components/PageHeader";
+import SearchableIndexSection from "@/components/SearchableIndexSection";
 import SyncModal from "@/components/SyncModal";
-import Pagination from "@/components/Pagination";
-import SearchBar from "@/components/SearchBar";
-import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import { useModalVisibility } from "@/lib/useModalVisibility";
 import Table from "./components/Table";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
@@ -21,24 +20,20 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
 
   return (
     <>
-      <header className="nav_header">
-        <h1>Sales</h1>
-
-        <menu className="nav_menu">
-          <li>
-            <button className="btn_rounded" onClick={openSync} type="button">
-              <ArrowPathIcon height={20} width={20} />
-              Store Sync
-            </button>
-          </li>
-          <li>
-            <Link href="/sales/new" prefetch>
-              <i className="icn">🐣</i>
-              Add New Record
-            </Link>
-          </li>
-        </menu>
-      </header>
+      <PageHeader title="Sales">
+        <li>
+          <button className="btn_rounded" onClick={openSync} type="button">
+            <ArrowPathIcon height={20} width={20} />
+            Store Sync
+          </button>
+        </li>
+        <li>
+          <Link href="/sales/new" prefetch>
+            <i className="icn">🐣</i>
+            Add New Record
+          </Link>
+        </li>
+      </PageHeader>
 
       {syncOpen && (
         <SyncModal
@@ -51,26 +46,16 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
         />
       )}
 
-      <div className="section_border_base section_wide">
-        <div className="search">
-          <SearchBar initialQuery={search.q} path="/sales" resourceName="sales" />
-          <div className="pagination_top">
-            <Pagination pagination={pagination} path="/sales" query={search.q} />
-          </div>
-        </div>
-
-        {sales.length > 0 ? (
-          <Table sales={sales} />
-        ) : search.q ? (
-          <SearchResultsEmpty seed={search.q} />
-        ) : null}
-
-        {sales.length > 0 && (
-          <div className="pagination_bottom">
-            <Pagination pagination={pagination} path="/sales" query={search.q} />
-          </div>
-        )}
-      </div>
+      <SearchableIndexSection
+        hasResults={sales.length > 0}
+        pagination={pagination}
+        path="/sales"
+        query={search.q}
+        resourceName="sales"
+        showBottomPagination={sales.length > 0}
+      >
+        <Table sales={sales} />
+      </SearchableIndexSection>
     </>
   );
 }

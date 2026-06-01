@@ -1,7 +1,7 @@
+import type { ReactNode } from "react";
+import PageHeader from "@/components/PageHeader";
+import SearchableIndexSection from "@/components/SearchableIndexSection";
 import { rowNavigationProps } from "@/lib/rowNavigation";
-import Pagination from "@/components/Pagination";
-import SearchBar from "@/components/SearchBar";
-import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import type { PaginationMeta } from "@/pages/Purchases/types";
 
 type DebtRecord = {
@@ -34,85 +34,88 @@ type DebtsProps = {
 export default function Debts({ debts, pagination, search, unpaid_purchases }: DebtsProps) {
   return (
     <>
-      <header>
-        <h1>Debts</h1>
-      </header>
+      <PageHeader title="Debts" />
 
       <div className="section_wide flex flex-col gap-8">
-        <div className="table_card">
-          <div className="search">
-            <SearchBar initialQuery={search.q} path="/debts" resourceName="debts" />
-            <div className="pagination_top">
-              <Pagination pagination={pagination} path="/debts" query={search.q} />
-            </div>
-          </div>
-          {debts.length > 0 ? (
-            <>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Variant</th>
-                    <th>Sold</th>
-                    <th>Purchased</th>
-                    <th>Debt</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {debts.map((debt) => (
-                    <tr
-                      className="hoverable"
-                      key={`${debt.id}-${debt.row_id}`}
-                      {...rowNavigationProps(debt.path)}
-                    >
-                      <td>{debt.title}</td>
-                      <td>{debt.variant_name}</td>
-                      <td>{debt.sold_amount}</td>
-                      <td>{debt.purchased_amount}</td>
-                      <td>{debt.debt}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="pagination_bottom">
-                <Pagination pagination={pagination} path="/debts" query={search.q} />
-              </div>
-            </>
-          ) : search.q ? (
-            <SearchResultsEmpty seed={search.q} />
-          ) : null}
-        </div>
+        <SearchableIndexSection
+          className="table_card"
+          hasResults={debts.length > 0}
+          pagination={pagination}
+          path="/debts"
+          query={search.q}
+          resourceName="debts"
+          showBottomPagination={debts.length > 0}
+        >
+          <DebtsTable debts={debts} />
+        </SearchableIndexSection>
 
         {unpaid_purchases.length > 0 && (
-          <div className="table_card">
-            <h3>Purchases Without Payments</h3>
-            <table role="grid">
-              <thead>
-                <tr>
-                  <th>Purchased Ago</th>
-                  <th>Supplier</th>
-                  <th className="text-right">Cost</th>
-                  <th>Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {unpaid_purchases.map((purchase) => (
-                  <tr
-                    className="hoverable"
-                    key={purchase.id}
-                    {...rowNavigationProps(purchase.path)}
-                  >
-                    <td className="no-wrap">{purchase.purchased_ago}</td>
-                    <td>{purchase.supplier_title}</td>
-                    <td className="font-mono text-right">{purchase.item_price}</td>
-                    <td>{purchase.amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <UnpaidPurchasesSection unpaidPurchases={unpaid_purchases} />
         )}
       </div>
     </>
+  );
+}
+
+function DebtsTable({ debts }: { debts: DebtRecord[] }) {
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Variant</th>
+          <th>Sold</th>
+          <th>Purchased</th>
+          <th>Debt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {debts.map((debt) => (
+          <ClickableRow key={`${debt.id}-${debt.row_id}`} path={debt.path}>
+            <td>{debt.title}</td>
+            <td>{debt.variant_name}</td>
+            <td>{debt.sold_amount}</td>
+            <td>{debt.purchased_amount}</td>
+            <td>{debt.debt}</td>
+          </ClickableRow>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function UnpaidPurchasesSection({ unpaidPurchases }: { unpaidPurchases: UnpaidPurchaseRecord[] }) {
+  return (
+    <section className="table_card">
+      <h3>Purchases Without Payments</h3>
+      <table role="grid">
+        <thead>
+          <tr>
+            <th>Purchased Ago</th>
+            <th>Supplier</th>
+            <th className="text-right">Cost</th>
+            <th>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {unpaidPurchases.map((purchase) => (
+            <ClickableRow key={purchase.id} path={purchase.path}>
+              <td className="no-wrap">{purchase.purchased_ago}</td>
+              <td>{purchase.supplier_title}</td>
+              <td className="font-mono text-right">{purchase.item_price}</td>
+              <td>{purchase.amount}</td>
+            </ClickableRow>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function ClickableRow({ children, path }: { children: ReactNode; path: string }) {
+  return (
+    <tr className="hoverable" {...rowNavigationProps(path)}>
+      {children}
+    </tr>
   );
 }

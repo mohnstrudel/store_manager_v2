@@ -1,7 +1,6 @@
 import { Link } from "@inertiajs/react";
-import Pagination from "@/components/Pagination";
 import PageHeader from "@/components/PageHeader";
-import SearchBar from "@/components/SearchBar";
+import SearchableIndexSection from "@/components/SearchableIndexSection";
 import Table from "./components/Table";
 import { CustomerRecord, PaginationMeta } from "./types";
 
@@ -23,20 +22,15 @@ export default function Index({ customers, pagination, search }: IndexProps) {
         </li>
       </PageHeader>
 
-      <div className="section_border_base section_wide">
-        <div className="search">
-          <SearchBar initialQuery={search.q} path="/customers" resourceName="customers" />
-          <div className="pagination_top">
-            <Pagination pagination={pagination} path="/customers" query={search.q} />
-          </div>
-        </div>
-
-        <Table customers={customers} searchQuery={search.q} />
-
-        <div className="pagination_bottom">
-          <Pagination pagination={pagination} path="/customers" query={search.q} />
-        </div>
-      </div>
+      <SearchableIndexSection
+        hasResults={customers.length > 0}
+        pagination={pagination}
+        path="/customers"
+        query={search.q}
+        resourceName="customers"
+      >
+        <Table customers={customers} />
+      </SearchableIndexSection>
     </>
   );
 }
