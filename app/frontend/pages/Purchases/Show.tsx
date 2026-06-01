@@ -1,5 +1,7 @@
-import { router, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
+import PageHeader from "@/components/PageHeader";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import Details from "./components/Details";
 import Payments from "./components/Payments";
 import PurchaseItems from "./components/PurchaseItems";
@@ -28,47 +30,73 @@ export default function Show({
   warehouse_move_path,
   warehouses,
 }: ShowProps) {
-  function destroyPurchase() {
-    if (window.confirm("Are you sure?")) {
-      router.delete(purchase.destroy_path);
-    }
-  }
+  const destroyPurchase = useConfirmedDestroy(purchase.destroy_path);
 
   return (
     <>
-      <header className="nav_header">
-        <div className="flex gap-4">
-          <hgroup>
-            <h1>
-              <i className="icn mr-2">💰</i>
-              Purchase {purchase.id}
-            </h1>
-          </hgroup>
-        </div>
-        <menu className="nav_menu">
-          <li>
-            <Link href={purchase.edit_path} prefetch>
-              <i className="icn">✏</i>
-              Edit
-            </Link>
-          </li>
-        </menu>
-      </header>
+      <PageHeader title={<PurchaseTitle id={purchase.id} />}>
+        <li>
+          <Link href={purchase.edit_path} prefetch>
+            <i className="icn">✏</i>
+            Edit
+          </Link>
+        </li>
+      </PageHeader>
 
       <div className="section_wide flex flex-col gap-8">
-        <PurchaseItems
-          movePath={warehouse_move_path}
+        <PurchaseActivity
+          newPayment={new_payment}
+          payments={payments}
           purchase={purchase}
           purchaseItems={purchase_items}
+          warehouseMovePath={warehouse_move_path}
           warehouses={warehouses}
         />
-        <Details purchase={purchase} />
-        <Payments newPayment={new_payment} payments={payments} purchase={purchase} />
       </div>
 
       <Button className="w-full h-12 mt-16" onClick={destroyPurchase} variant="danger">
         Destroy this purchase
       </Button>
+    </>
+  );
+}
+
+function PurchaseTitle({ id }: { id: number }) {
+  return (
+    <>
+      <i className="icn mr-2">💰</i>
+      Purchase {id}
+    </>
+  );
+}
+
+type PurchaseActivityProps = {
+  newPayment: NewPaymentRecord;
+  payments: PaymentRecord[];
+  purchase: PurchaseShowRecord;
+  purchaseItems: PurchaseItemRecord[];
+  warehouseMovePath: string;
+  warehouses: WarehouseOption[];
+};
+
+function PurchaseActivity({
+  newPayment,
+  payments,
+  purchase,
+  purchaseItems,
+  warehouseMovePath,
+  warehouses,
+}: PurchaseActivityProps) {
+  return (
+    <>
+      <PurchaseItems
+        movePath={warehouseMovePath}
+        purchase={purchase}
+        purchaseItems={purchaseItems}
+        warehouses={warehouses}
+      />
+      <Details purchase={purchase} />
+      <Payments newPayment={newPayment} payments={payments} purchase={purchase} />
     </>
   );
 }

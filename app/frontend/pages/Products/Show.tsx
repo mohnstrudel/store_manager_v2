@@ -1,10 +1,13 @@
-import { Link, router } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import { ChevronDoubleDownIcon } from "@heroicons/react/20/solid";
 import ImageGallery from "./components/ImageGallery";
 import ProductVariants from "./components/ProductVariants";
 import SalesSection from "./components/SalesSection";
 import PurchasesSection from "./components/PurchasesSection";
+import Button from "@/components/Button";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+import PageHeader from "@/components/PageHeader";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import {
   type ProductShowRecord,
   type PurchaseRecord,
@@ -28,157 +31,222 @@ export default function Show({
   purchases,
   variants,
 }: ShowProps) {
+  const destroyProduct = useConfirmedDestroy(product.path);
+
+  return (
+    <>
+      <PageHeader subtitle={product.full_title} title={product.title}>
+        <ProductActions product={product} />
+      </PageHeader>
+
+      <div className="section_wide flex flex-col gap-8">
+        <ProductOverview product={product} />
+        <ProductDescription html={product.description_html} />
+        <ProductActivity
+          activeSales={active_sales}
+          completedSales={completed_sales}
+          purchases={purchases}
+          variants={variants}
+        />
+      </div>
+
+      <DestroyProductButton onDestroy={destroyProduct} />
+    </>
+  );
+}
+
+type ProductProps = {
+  product: ProductShowRecord;
+};
+
+function ProductActions({ product }: ProductProps) {
+  return (
+    <>
+      {canFetchFromShopify(product) && (
+        <li>
+          <Link className="btn_rounded" href={product.shopify_pull_path} method="post">
+            <ChevronDoubleDownIcon height={20} width={20} />
+            Fetch
+          </Link>
+        </li>
+      )}
+      <li>
+        <Link href={product.new_purchase_path} prefetch>
+          <i className="icn">💰</i>
+          New Purchase
+        </Link>
+      </li>
+      <li>
+        <Link href={product.edit_path} prefetch>
+          <i className="icn">✏</i>
+          Edit
+        </Link>
+      </li>
+    </>
+  );
+}
+
+function ProductOverview({ product }: ProductProps) {
+  return (
+    <div className="cards">
+      <ImageGallery media={product.media} />
+      <ProductDetailsCard product={product} />
+      <StoreIdentifiersCard product={product} />
+    </div>
+  );
+}
+
+function ProductDetailsCard({ product }: ProductProps) {
+  return (
+    <div className="card grow">
+      <h5>Title</h5>
+      <p>{product.title}</p>
+      <h5>Franchise</h5>
+      <p>{product.franchise.title}</p>
+      <h5>Version</h5>
+      <p>{formatList(product.versions.map((version) => version.value))}</p>
+      <h5>Brand</h5>
+      <p>{formatList(product.brands.map((brand) => brand.title))}</p>
+      <h5>Size</h5>
+      <p>{formatList(product.sizes.map((size) => size.value))}</p>
+      <h5>Shape</h5>
+      <p>{product.shape}</p>
+      <h5>Color</h5>
+      <p>{formatList(product.colors.map((color) => color.value))}</p>
+    </div>
+  );
+}
+
+function StoreIdentifiersCard({ product }: ProductProps) {
+  return (
+    <div className="card">
+      <h5>ID</h5>
+      <p>{product.id}</p>
+      <h5>Created At</h5>
+      <TimestampColumns columns={product.created_at_columns} />
+      <h5>Updated At</h5>
+      <TimestampColumns columns={product.updated_at_columns} />
+      <h5>Woo ID</h5>
+      <WooIdentifier product={product} />
+      <h5>Shopify ID</h5>
+      <ShopifyIdentifier product={product} />
+      <ShopifyTags product={product} />
+    </div>
+  );
+}
+
+function WooIdentifier({ product }: ProductProps) {
+  const wooInfo = product.woo_info;
+
+  if (!wooInfo?.store_id) return <p>-</p>;
+
+  return (
+    <>
+      <p>
+        {wooInfo.product_url ? (
+          <ExternalStoreLink href={wooInfo.product_url}>{wooInfo.store_id}</ExternalStoreLink>
+        ) : (
+          wooInfo.store_id
+        )}
+      </p>
+      <CopyStoreIdButton storeId={wooInfo.store_id} />
+    </>
+  );
+}
+
+function ShopifyIdentifier({ product }: ProductProps) {
+  const shopifyInfo = product.shopify_info;
+
+  if (!shopifyInfo?.id_short) return <p>-</p>;
+
+  return (
+    <>
+      <p className="flex gap-2">
+        <ExternalStoreLink href={shopifyInfo.product_url ?? "#"}>
+          {shopifyInfo.id_short}
+        </ExternalStoreLink>
+      </p>
+      <CopyStoreIdButton storeId={shopifyInfo.id_short} />
+    </>
+  );
+}
+
+function ShopifyTags({ product }: ProductProps) {
+  if (!product.shopify_info || product.shopify_info.tag_list.length === 0) return null;
+
+  return (
+    <>
+      <h5>Tags</h5>
+      <p className="max-w-min">{product.shopify_info.tag_list.join(", ")}</p>
+    </>
+  );
+}
+
+type ExternalStoreLinkProps = {
+  children: string;
+  href: string;
+};
+
+function ExternalStoreLink({ children, href }: ExternalStoreLinkProps) {
+  return (
+    <a className="link" href={href} rel="noopener noreferrer" target="_blank">
+      {children}
+    </a>
+  );
+}
+
+function CopyStoreIdButton({ storeId }: { storeId: string }) {
+  return <CopyToClipboardButton className="text-xs btn_xs" text={storeId} />;
+}
+
+function ProductDescription({ html }: { html: string }) {
+  if (!html) return null;
+
+  return (
+    <div className="card w-full pt-8 pr-12 pb-12 pl-6">
+      <div
+        className="rich_text columns-2 gap-x-20 font-nunito subpixel-antialiased break-words leading-[1.75]"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  );
+}
+
+type ProductActivityProps = {
+  activeSales: SaleItemRecord[];
+  completedSales: SaleItemRecord[];
+  purchases: PurchaseRecord[];
+  variants: VariantRecord[];
+};
+
+function ProductActivity({
+  activeSales,
+  completedSales,
+  purchases,
+  variants,
+}: ProductActivityProps) {
   const hasVariants = variants.length > 0;
 
   return (
     <>
-      <header className="nav_header">
-        <div className="flex gap-4">
-          <hgroup>
-            <h1>{product.title}</h1>
-            <h2>{product.full_title}</h2>
-          </hgroup>
-        </div>
-        <menu className="nav_menu">
-          {product.can_pull_from_shopify && product.shopify_linked && (
-            <li>
-              <Link className="btn_rounded" href={product.shopify_pull_path} method="post">
-                <ChevronDoubleDownIcon height={20} width={20} />
-                Fetch
-              </Link>
-            </li>
-          )}
-          <li>
-            <Link href={product.new_purchase_path} prefetch>
-              <i className="icn">💰</i>
-              New Purchase
-            </Link>
-          </li>
-          <li>
-            <Link href={product.edit_path} prefetch>
-              <i className="icn">✏</i>
-              Edit
-            </Link>
-          </li>
-        </menu>
-      </header>
-
-      <div className="section_wide flex flex-col gap-8">
-        <div className="cards">
-          <ImageGallery media={product.media} />
-
-          <div className="card grow">
-            <h5>Title</h5>
-            <p>{product.title}</p>
-            <h5>Franchise</h5>
-            <p>{product.franchise.title}</p>
-            <h5>Version</h5>
-            <p>{formatList(product.versions.map((v) => v.value))}</p>
-            <h5>Brand</h5>
-            <p>{formatList(product.brands.map((b) => b.title))}</p>
-            <h5>Size</h5>
-            <p>{formatList(product.sizes.map((s) => s.value))}</p>
-            <h5>Shape</h5>
-            <p>{product.shape}</p>
-            <h5>Color</h5>
-            <p>{formatList(product.colors.map((c) => c.value))}</p>
-          </div>
-
-          <div className="card">
-            <h5>ID</h5>
-            <p>{product.id}</p>
-            <h5>Created At</h5>
-            <TimestampColumns columns={product.created_at_columns} />
-            <h5>Updated At</h5>
-            <TimestampColumns columns={product.updated_at_columns} />
-            <h5>Woo ID</h5>
-            {product.woo_info?.store_id ? (
-              <>
-                <p>
-                  {product.woo_info.product_url ? (
-                    <a
-                      className="link"
-                      href={product.woo_info.product_url}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      {product.woo_info.store_id}
-                    </a>
-                  ) : (
-                    product.woo_info.store_id
-                  )}
-                </p>
-                <CopyToClipboardButton
-                  className="text-xs btn_xs"
-                  text={product.woo_info.store_id}
-                />
-              </>
-            ) : (
-              <p>-</p>
-            )}
-            <h5>Shopify ID</h5>
-            {product.shopify_info?.id_short ? (
-              <>
-                <p className="flex gap-2">
-                  <a
-                    className="link"
-                    href={product.shopify_info.product_url ?? "#"}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {product.shopify_info.id_short}
-                  </a>
-                </p>
-                <CopyToClipboardButton
-                  className="text-xs btn_xs"
-                  text={product.shopify_info.id_short}
-                />
-              </>
-            ) : (
-              <p>-</p>
-            )}
-            {product.shopify_info && product.shopify_info.tag_list.length > 0 && (
-              <>
-                <h5>Tags</h5>
-                <p className="max-w-min">{product.shopify_info.tag_list.join(", ")}</p>
-              </>
-            )}
-          </div>
-        </div>
-
-        {product.description_html && (
-          <div className="card w-full pt-8 pr-12 pb-12 pl-6">
-            <div
-              className="rich_text columns-2 gap-x-20 font-nunito subpixel-antialiased break-words leading-[1.75]"
-              dangerouslySetInnerHTML={{ __html: product.description_html }}
-            />
-          </div>
-        )}
-
-        <ProductVariants variants={variants} />
-
-        <SalesSection hasVariants={hasVariants} sales={active_sales} title="Active Sales" />
-
-        <SalesSection hasVariants={hasVariants} sales={completed_sales} title="Completed Sales" />
-
-        <PurchasesSection purchases={purchases} />
-      </div>
-
-      <div className="mt-16">
-        <button
-          className="btn_red w-full h-12 btn_rounded"
-          onClick={() => {
-            if (confirm("Are you sure?")) {
-              router.delete(product.path);
-            }
-          }}
-          type="button"
-        >
-          Destroy this product
-        </button>
-      </div>
+      <ProductVariants variants={variants} />
+      <SalesSection hasVariants={hasVariants} sales={activeSales} title="Active Sales" />
+      <SalesSection hasVariants={hasVariants} sales={completedSales} title="Completed Sales" />
+      <PurchasesSection purchases={purchases} />
     </>
   );
+}
+
+function DestroyProductButton({ onDestroy }: { onDestroy: () => void }) {
+  return (
+    <Button className="w-full h-12 mt-16" onClick={onDestroy} variant="danger">
+      Destroy this product
+    </Button>
+  );
+}
+
+function canFetchFromShopify(product: ProductShowRecord) {
+  return product.can_pull_from_shopify && product.shopify_linked;
 }
 
 function formatList(values: string[]) {
