@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
@@ -32,9 +33,11 @@ export default function Show({
 }: ShowProps) {
   const destroyPurchase = useConfirmedDestroy(purchase.destroy_path);
 
+  const title = useMemo(() => <PurchaseTitle id={purchase.id} />, [purchase.id]);
+
   return (
     <>
-      <PageHeader title={<PurchaseTitle id={purchase.id} />}>
+      <PageHeader title={title}>
         <li>
           <Link href={purchase.edit_path} prefetch>
             <i className="icn">✏</i>

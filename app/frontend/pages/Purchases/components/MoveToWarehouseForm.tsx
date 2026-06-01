@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { type FormEvent, useState } from "react";
+import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
 import type { WarehouseOption } from "../types";
 
 type MoveToWarehouseFormProps = {
@@ -24,9 +24,11 @@ export default function MoveToWarehouseForm({
   const [destinationId, setDestinationId] = useState("");
   const visible = selectedIds.length > 0;
 
-  if (!visible) return null;
+  const handleDestinationChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    setDestinationId(event.target.value);
+  }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!destinationId) return;
 
@@ -40,7 +42,9 @@ export default function MoveToWarehouseForm({
       },
       { onSuccess: onMoved },
     );
-  }
+  }, [destinationId, movePath, onMoved, purchaseId, redirectToSaleItem, selectedIds]);
+
+  if (!visible) return null;
 
   return (
     <div
@@ -56,7 +60,7 @@ export default function MoveToWarehouseForm({
       >
         <select
           className="select"
-          onChange={(event) => setDestinationId(event.target.value)}
+          onChange={handleDestinationChange}
           value={destinationId}
         >
           <option value="">Select a warehouse</option>

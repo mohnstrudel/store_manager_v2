@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { usePage } from "@inertiajs/react";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
@@ -24,6 +24,19 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
   const [variantId, setVariantId] = useState<number | null>(purchase.variant_id);
   const [warehouseId, setWarehouseId] = useState<number | null>(purchase.warehouse_id);
 
+  const selectProduct = useCallback((option: (typeof options.products)[number] | null) => {
+    setProductId(option?.value ?? null);
+    setVariantId(null);
+  }, []);
+
+  const selectSupplier = useCallback((option: (typeof options.suppliers)[number] | null) => {
+    setSupplierId(option?.value ?? null);
+  }, []);
+
+  const selectWarehouse = useCallback((option: (typeof options.warehouses)[number] | null) => {
+    setWarehouseId(option?.value ?? null);
+  }, []);
+
   return (
     <ResourceForm
       action={purchase.path || "/purchases"}
@@ -37,10 +50,7 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
           inputId="purchase_product_id"
           label="Product"
           name="purchase[product_id]"
-          onChange={(option) => {
-            setProductId(option?.value ?? null);
-            setVariantId(null);
-          }}
+          onChange={selectProduct}
           options={options.products}
           value={toSelectedOption(options.products, productId)}
         />
@@ -50,7 +60,7 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
           inputId="purchase_supplier_id"
           label="Supplier"
           name="purchase[supplier_id]"
-          onChange={(option) => setSupplierId(option?.value ?? null)}
+          onChange={selectSupplier}
           options={options.suppliers}
           value={toSelectedOption(options.suppliers, supplierId)}
         />
@@ -104,7 +114,7 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
           inputId="purchase_warehouse_id"
           label="Initial warehouse"
           name="purchase[warehouse_id]"
-          onChange={(option) => setWarehouseId(option?.value ?? null)}
+          onChange={selectWarehouse}
           options={options.warehouses}
           value={toSelectedOption(options.warehouses, warehouseId)}
         />

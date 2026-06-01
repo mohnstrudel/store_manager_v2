@@ -19,7 +19,13 @@ describe("Purchases/components/Payments", () => {
     const user = userEvent.setup();
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
-    render(<Payments newPayment={makeNewPayment()} payments={[makePayment()]} purchase={makePurchase()} />);
+    render(
+      <Payments
+        newPayment={makeNewPayment()}
+        payments={[makePayment()]}
+        purchase={makePurchase()}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Remove" }));
 

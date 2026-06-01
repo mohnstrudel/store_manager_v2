@@ -19,17 +19,19 @@ type FormProps = {
 
 type PageErrors = Record<string, string | undefined>;
 
-export default function Form({ action, cancelHref, method, options, purchase_item, submitLabel }: FormProps) {
+export default function Form({
+  action,
+  cancelHref,
+  method,
+  options,
+  purchase_item,
+  submitLabel,
+}: FormProps) {
   const { errors = {} } = usePage().props as { errors?: PageErrors };
   const [media, setMedia] = useState(() => purchase_item.media);
 
   return (
-    <ResourceForm
-      action={action}
-      cancelHref={cancelHref}
-      method={method}
-      submitLabel={submitLabel}
-    >
+    <ResourceForm action={action} cancelHref={cancelHref} method={method} submitLabel={submitLabel}>
       <PurchaseItemLinkingFields errors={errors} options={options} purchase_item={purchase_item} />
       <PurchaseItemDimensionFields errors={errors} purchase_item={purchase_item} />
       <PurchaseItemShippingFields errors={errors} options={options} purchase_item={purchase_item} />
@@ -155,7 +157,10 @@ function PurchaseItemShippingFields({
         name="purchase_item[tracking_number]"
       />
       <FormSmartSelect<SelectOption>
-        defaultValue={toSelectedOption(options.shipping_companies, purchase_item.shipping_company_id)}
+        defaultValue={toSelectedOption(
+          options.shipping_companies,
+          purchase_item.shipping_company_id,
+        )}
         error={errors.shipping_company ?? errors.shipping_company_id}
         inputId="purchase_item_shipping_company_id"
         isClearable

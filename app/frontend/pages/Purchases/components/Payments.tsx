@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { type FormEvent, useState } from "react";
+import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
@@ -45,13 +45,21 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
   const [value, setValue] = useState(payment.value);
   const destroyPayment = useConfirmedDestroy(payment.destroy_path, "Remove this payment?");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     router.patch(payment.update_path, {
       payment: { payment_date: paymentDate, value },
       return_to: purchasePath,
     });
-  }
+  }, [payment.update_path, paymentDate, purchasePath, value]);
+
+  const updateDate = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setPaymentDate(event.target.value);
+  }, []);
+
+  const updateValue = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+  }, []);
 
   return (
     <>
@@ -65,7 +73,7 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
           <input
             form={`payment_${payment.id}_inline`}
             id={`payment_${payment.id}_date`}
-            onChange={(event) => setPaymentDate(event.target.value)}
+            onChange={updateDate}
             type="date"
             value={paymentDate}
           />
@@ -77,7 +85,7 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
           <input
             form={`payment_${payment.id}_inline`}
             id={`payment_${payment.id}_amount`}
-            onChange={(event) => setValue(event.target.value)}
+            onChange={updateValue}
             placeholder="Amount"
             step="any"
             type="number"
@@ -113,13 +121,21 @@ function NewPaymentRow({
   const [paymentDate, setPaymentDate] = useState(newPayment.payment_date);
   const [value, setValue] = useState(newPayment.value);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     router.post(newPayment.create_path, {
       payment: { payment_date: paymentDate, value },
       return_to: purchasePath,
     });
-  }
+  }, [newPayment.create_path, paymentDate, purchasePath, value]);
+
+  const updateDate = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setPaymentDate(event.target.value);
+  }, []);
+
+  const updateValue = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+  }, []);
 
   return (
     <>
@@ -133,7 +149,7 @@ function NewPaymentRow({
           <input
             form="new_payment_inline"
             id="payment_date"
-            onChange={(event) => setPaymentDate(event.target.value)}
+            onChange={updateDate}
             type="date"
             value={paymentDate}
           />
@@ -145,7 +161,7 @@ function NewPaymentRow({
           <input
             form="new_payment_inline"
             id="payment_amount"
-            onChange={(event) => setValue(event.target.value)}
+            onChange={updateValue}
             placeholder="What did you pay in total?"
             step="any"
             type="number"

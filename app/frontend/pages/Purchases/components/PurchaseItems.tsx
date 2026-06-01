@@ -1,3 +1,4 @@
+import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
@@ -20,11 +21,8 @@ export default function PurchaseItems({
   purchaseItems,
   warehouses,
 }: PurchaseItemsProps) {
-  const {
-    clearSelectedIds,
-    selectedIds,
-    toggleSelectedIdFromDataAttribute,
-  } = useWarehouseMoveSelection();
+  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
+    useWarehouseMoveSelection();
 
   if (purchaseItems.length === 0) return null;
 
@@ -113,6 +111,11 @@ function PurchaseItemRow({
     "Unlink this purchase item?",
   );
 
+  const handleUnlinkClick = useCallback((event: MouseEvent) => {
+    event.stopPropagation();
+    unlinkPurchaseItem();
+  }, [unlinkPurchaseItem]);
+
   return (
     <tr className="hoverable" {...rowNavigationProps(purchaseItem.path)}>
       <td className="no_events text-center">
@@ -169,10 +172,7 @@ function PurchaseItemRow({
           {purchaseItem.sale_path && (
             <button
               className="no_events btn_red btn_rounded"
-              onClick={(event) => {
-                event.stopPropagation();
-                unlinkPurchaseItem();
-              }}
+              onClick={handleUnlinkClick}
               type="button"
             >
               <i className="icn">✂︎</i>

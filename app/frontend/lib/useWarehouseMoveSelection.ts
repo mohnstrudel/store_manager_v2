@@ -16,13 +16,12 @@ export function useWarehouseMoveSelection(initialSelectedIds: number[] = []) {
   }, []);
 
   const toggleSelectedIdFromDataAttribute = useCallback(
-    (attributeName: string) =>
-      (event: ChangeEvent<HTMLInputElement>) => {
-        const selectedId = Number(event.currentTarget.dataset[attributeName]);
-        if (Number.isNaN(selectedId)) return;
+    (attributeName: string) => (event: ChangeEvent<HTMLInputElement>) => {
+      const selectedId = Number(event.currentTarget.dataset[attributeName]);
+      if (Number.isNaN(selectedId)) return;
 
-        toggleSelectedId(selectedId);
-      },
+      toggleSelectedId(selectedId);
+    },
     [toggleSelectedId],
   );
 

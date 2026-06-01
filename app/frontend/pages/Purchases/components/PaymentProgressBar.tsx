@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { PaymentProgress } from "../types";
 
 type PaymentProgressBarProps = {
@@ -11,6 +12,8 @@ export default function PaymentProgressBar({
 }: PaymentProgressBarProps) {
   const percentage = Math.round(progress.progress);
 
+  const progressStyle = useMemo(() => ({ width: `${progress.progress}%` }), [progress.progress]);
+
   return (
     <>
       <div
@@ -19,7 +22,7 @@ export default function PaymentProgressBar({
         {progress.progress > 0 && progress.progress <= 100 && (
           <div
             className="rounded-full h-full bg-lime-700/80"
-            style={{ width: `${progress.progress}%` }}
+            style={progressStyle}
           >
             <p className="progress_amount">{percentage}%</p>
           </div>
