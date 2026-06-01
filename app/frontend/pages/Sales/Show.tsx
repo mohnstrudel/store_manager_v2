@@ -72,7 +72,6 @@ function SaleActions({ sale }: ShowProps) {
       {sale.shop_admin_url && (
         <li>
           <a
-            className="no_events"
             href={sale.shop_admin_url}
             rel="noopener noreferrer"
             target="_blank"

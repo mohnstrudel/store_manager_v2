@@ -58,7 +58,7 @@ type SearchAndPaginationProps = {
 
 function SearchAndPagination({ pagination, path, query, resourceName }: SearchAndPaginationProps) {
   return (
-    <div className="search">
+    <div className="page_search">
       <SearchBar initialQuery={query} path={path} resourceName={resourceName} />
       <div className="pagination_top">
         <Pagination pagination={pagination} path={path} query={query} />

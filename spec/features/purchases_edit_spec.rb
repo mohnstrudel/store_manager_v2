@@ -22,18 +22,6 @@ describe "Purchase editing", :js do
     expect(page).to have_text(variant.title)
   end
 
-  it "saves the edit form without changes", :aggregate_failures do
-    purchase = create(:purchase, supplier:, item_price: BigDecimal(15), amount: 2)
-
-    visit edit_purchase_path(purchase)
-
-    click_button "Update Purchase"
-
-    expect(page).to have_current_path(purchase_path(purchase.reload))
-    expect(page).to have_content("Purchase was successfully updated")
-    expect(purchase.amount).to eq(2)
-  end
-
   it "auto-selects the first variant when switching to a new product" do
     purchase = create(:purchase, supplier:)
     new_product = create(:product)

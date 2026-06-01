@@ -106,7 +106,7 @@ export default function Show({
                     <td className="font-mono text-right">{purchaseItem.weight}</td>
                     <td className="font-mono text-right">{purchaseItem.expenses}</td>
                     <td className="font-mono text-right">{purchaseItem.shipping_cost}</td>
-                    <td className="actions">
+                    <td className="table_actions">
                       <PurchaseItemUnlinkButton purchaseItem={purchaseItem} />
                       <Link
                         className="no_events"

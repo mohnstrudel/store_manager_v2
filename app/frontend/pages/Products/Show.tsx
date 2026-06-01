@@ -119,7 +119,7 @@ function ProductDetailsCard({ product }: ProductProps) {
 
 function StoreIdentifiersCard({ product }: ProductProps) {
   return (
-    <div className="card">
+    <div className="card w-min">
       <h5>ID</h5>
       <p>{product.id}</p>
       <h5>Created At</h5>
@@ -177,7 +177,9 @@ function ShopifyTags({ product }: ProductProps) {
   return (
     <>
       <h5>Tags</h5>
-      <p className="max-w-min">{product.shopify_info.tag_list.join(", ")}</p>
+      <p className="flex flex-wrap gap-1 gap-y-2">
+        {product.shopify_info.tag_list.map((tag) => <span className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200/50 rounded py-0.5 px-2" key={tag}>{tag}</span>)}
+      </p>
     </>
   );
 }

@@ -223,3 +223,113 @@ need inside component code.
 - Using browser tests for behavior already covered by a component test.
 - Skipping browser tests when the browser itself is the risk.
 - Letting backend request specs substitute for UI coverage.
+
+## CSS Architecture
+
+Use Tailwind as a styling primitive, not as the main UI language.
+
+CSS classes should describe UI concepts and reusable visual patterns. JSX should stay readable without decoding long utility chains.
+
+### Core Rules
+
+- Prefer semantic class names over long Tailwind utility chains.
+- Use `@apply` for repeated visual patterns.
+- Use raw Tailwind utilities inline only for small, local, one-off adjustments.
+- Keep styles grouped by UI concept: buttons, forms, tables, navigation, dialogs, gallery, rich text.
+- Extract a class when the same utility combination appears more than once or represents a named UI concept.
+- Do not extract a class only to rename one obvious utility.
+- Prefer domain/UI names over generic names.
+- Keep third-party component styling isolated.
+- Keep global element styles minimal and predictable.
+- Avoid deeply coupled selectors that depend on fragile DOM structure.
+
+### Prefer
+
+```html
+<div class="gallery_main__frame">
+  <img class="gallery_main__image" />
+</div>
+```
+
+Over:
+
+```html
+<div class="flex items-center justify-center w-full h-full min-h-80 rounded-lg bg-gray-50 border">
+  <img class="h-full w-full object-contain" />
+</div>
+```
+
+### Prefer
+
+```css
+.gallery_main__frame {
+  @apply flex items-center justify-center w-full h-full min-h-80 lg:min-h-full rounded-lg bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800;
+}
+```
+
+when the class represents a real UI concept.
+
+### Use inline utilities for local variation
+
+```tsx
+<ProductCard className="mt-4" />
+```
+
+This is fine when the style is local and does not create a reusable pattern.
+
+### Naming
+
+Prefer:
+
+```css
+.gallery_thumb
+.gallery_thumb__frame
+.dialog_content
+.pagination_link
+.form_section_item
+.empty_state
+```
+
+Over:
+
+```css
+.wrapper
+.container
+.inner
+.box
+.content
+```
+
+Generic names are acceptable only when the surrounding block gives them clear meaning.
+
+### State Classes
+
+Prefer explicit state names:
+
+```css
+.is_current
+.is_selected
+.is_loading
+.is_active
+.has_error
+```
+
+Over vague modifiers:
+
+```css
+.active
+.selected
+.loading
+```
+
+unless the selector is already scoped to a specific component.
+
+### Avoid
+
+- Long utility chains directly in JSX.
+- Repeating the same `@apply` groups across multiple classes.
+- Generic class names without UI meaning.
+- Styling through fragile selectors like `> div`, `:first-child`, or deep descendant chains when a named class would be clearer.
+- Duplicated class definitions.
+- Arbitrary values when a Tailwind token is available.
+- Large global base styles that make every element behave like a component.

@@ -29,7 +29,7 @@ export default function Table({ suppliers }: TableProps) {
             <td>{supplier.title}</td>
             <td>{supplier.created_at}</td>
             <td>{supplier.updated_at}</td>
-            <td className="actions text-right">
+            <td className="table_actions text-right">
               <div className="flex flex-wrap justify-end gap-3">
                 <Link href={`/suppliers/${supplier.id}`} onClick={stopRowNavigation} prefetch>
                   <i className="icn">📄</i>

@@ -17,12 +17,6 @@ gem "pg", "~> 1.6"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 7.1.x"
 
-# Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
-gem "importmap-rails"
-
-# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
-gem "stimulus-rails"
-
 # Use Redis adapter to run Action Cable in production
 gem "redis"
 
@@ -69,7 +63,6 @@ gem "tailwindcss-rails"
 gem "vite_rails"
 gem "inertia_rails"
 gem "inline_svg"
-gem "rails_heroicon"
 
 gem "aws-sdk-s3", require: false
 gem "shopify_app"

@@ -43,7 +43,7 @@ export default function IndexTable({ products }: IndexTableProps) {
             </td>
             <td>{product.woo_store_id || "—"}</td>
             <td>{product.shopify_id_short || "—"}</td>
-            <td className="actions text-right" onClick={stopRowNavigation}>
+            <td className="table_actions text-right" onClick={stopRowNavigation}>
               <Link href={product.edit_path} prefetch>
                 <i className="icn">✏</i>
                 Edit

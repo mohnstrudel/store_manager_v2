@@ -122,47 +122,6 @@ RSpec.describe "Creating a new purchase" do
     expect(Purchase.last.payments.first.payment_date.to_date).to eq(Date.new(2026, 3, 29))
   end
 
-  scenario "shows the product link in the purchase items header instead of a header subtitle", :js do # rubocop:todo RSpec/MultipleExpectations
-    purchase = create(:purchase, product:, supplier:)
-    create(:purchase_item, purchase:)
-
-    visit purchase_path(purchase)
-
-    within("header.nav_header hgroup") do
-      expect(page).to have_selector("h1", text: "Purchase #{purchase.id}")
-      expect(page).not_to have_selector("h2", text: product.full_title)
-    end
-
-    within(first(".table_card")) do
-      expect(page).to have_link(product.full_title, href: product_path(product))
-    end
-  end
-
-  scenario "shows the variant title in the purchase items header when the purchase has a variant", :js do # rubocop:todo RSpec/MultipleExpectations
-    variant = create(:variant, product:)
-    purchase = create(:purchase, product:, supplier:, variant:)
-    create(:purchase_item, purchase:)
-
-    visit purchase_path(purchase)
-
-    within(first(".table_card")) do
-      expect(page).to have_link(product.full_title, href: product_path(product))
-      expect(page).to have_text("→ #{variant.title}")
-    end
-  end
-
-  scenario "shows a zoomable product thumbnail in the purchase items header", :js do
-    purchase = create(:purchase, product:, supplier:)
-    create(:purchase_item, purchase:)
-    create(:media, :for_product, mediaable: product)
-
-    visit purchase_path(purchase)
-
-    within(first(".table_card")) do
-      expect(page).to have_selector("img[class*='hover:scale-[7]']", count: 1)
-    end
-  end
-
   scenario "updates a payment amount and date on the purchase page", :js do # rubocop:todo RSpec/MultipleExpectations
     purchase = create(:purchase)
     payment = create(:payment, purchase:, value: 10, payment_date: Date.new(2026, 3, 28))

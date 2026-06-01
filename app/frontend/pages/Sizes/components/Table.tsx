@@ -25,7 +25,7 @@ export default function Table({ sizes }: TableProps) {
             <td>{size.value}</td>
             <td>{size.created_at}</td>
             <td>{size.updated_at}</td>
-            <td className="actions text-right">
+            <td className="table_actions text-right">
               <div className="flex flex-wrap justify-end gap-3">
                 <Link href={`/sizes/${size.id}`} onClick={stopRowNavigation} prefetch>
                   <i className="icn">📄</i>

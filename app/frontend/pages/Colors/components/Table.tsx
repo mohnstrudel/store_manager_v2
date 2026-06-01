@@ -25,7 +25,7 @@ export default function Table({ colors }: TableProps) {
             <td>{color.value}</td>
             <td>{color.created_at}</td>
             <td>{color.updated_at}</td>
-            <td className="actions text-right">
+            <td className="table_actions text-right">
               <div className="flex flex-wrap justify-end gap-3">
                 <Link href={`/colors/${color.id}`} onClick={stopRowNavigation} prefetch>
                   <i className="icn">📄</i>

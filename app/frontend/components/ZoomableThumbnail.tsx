@@ -15,7 +15,7 @@ export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) 
     return (
       <div
         aria-label={`Image unavailable for ${alt}`}
-        className="mx-auto flex h-[120px] w-[100px] flex-col items-center justify-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 text-center text-xs font-medium leading-tight text-gray-400 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-500"
+        className="mx-auto flex h-24 w-22 flex-col items-center justify-center gap-1 rounded-md border border-gray-200/80 bg-gray-50/80 px-2 text-center text-xs font-medium leading-tight text-gray-400/80 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-500"
         role="img"
       >
         <PhotoIcon className="h-5 w-5 shrink-0" />
@@ -25,7 +25,7 @@ export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) 
   }
 
   return (
-    <div className="relative mx-auto flex h-[120px] w-[100px] items-center justify-center overflow-visible">
+    <div className="relative mx-auto flex h-[120px] w-[90px] items-center justify-center overflow-visible">
       {loadState === "loading" && (
         <div
           aria-hidden="true"
@@ -34,9 +34,8 @@ export default function ZoomableThumbnail({ alt, src }: ZoomableThumbnailProps) 
       )}
       <img
         alt={alt}
-        className={`block h-[120px] w-[100px] rounded-md object-cover object-center transition-transform duration-150 ease-out zoomable ${
-          loadState === "loaded" ? "" : "opacity-0 is-loading"
-        }`}
+        className={`block h-[120px] w-[90px] rounded-md object-cover object-top transition-transform duration-150 ease-out zoomable ${loadState === "loaded" ? "" : "opacity-0 is-loading"
+          }`}
         loading="lazy"
         onError={() => setLoadState("failed")}
         onLoad={() => setLoadState("loaded")}

@@ -228,6 +228,7 @@ function NavigationOverflowMenu({
   return (
     <li className="navigation-dropdown ml-0 lg:ml-6" data-open={isOpen} ref={dropdownRef}>
       <button
+        className="navigation-dropdown_button"
         aria-controls="navigation-dropdown-links"
         aria-expanded={isOpen}
         aria-haspopup="menu"
@@ -237,9 +238,11 @@ function NavigationOverflowMenu({
       >
         <Bars3Icon className="h-5 w-5" aria-hidden="true" />
       </button>
-      <ul aria-hidden={!isOpen} id="navigation-dropdown-links">
+      <ul className="navigation-dropdown_menu" aria-hidden={!isOpen} id="navigation-dropdown-links">
         <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />
-        {user?.role === "admin" ? <NavigationLinkItem link={usersLink} onSelect={closeDropdown} /> : null}
+        {user?.role === "admin" ? (
+          <NavigationLinkItem className="navigation-dropdown_link" link={usersLink} onSelect={closeDropdown} />
+        ) : null}
         <li>
           <button onClick={() => logOut(closeDropdown)} type="button">
             Log Out
@@ -279,7 +282,12 @@ function NavigationDropdownItems({
         "divider" in item ? (
           <NavigationSeparator key={item.key} className="pb-3" />
         ) : (
-          <NavigationLinkItem key={item.href} link={item} onSelect={onSelect} />
+          <NavigationLinkItem
+            className="navigation-dropdown_link"
+            key={item.href}
+            link={item}
+            onSelect={onSelect}
+          />
         ),
       )}
     </>
@@ -287,9 +295,11 @@ function NavigationDropdownItems({
 }
 
 function NavigationLinkItem({
+  className,
   link,
   onSelect,
 }: {
+  className?: string;
   link: NavigationLink;
   onSelect?: () => void;
 }) {
@@ -300,6 +310,7 @@ function NavigationLinkItem({
         component={link.component}
         onClick={onSelect}
         pageProps={withSharedPageProps(link.pageProps)}
+        className={className}
         prefetch
       >
         {link.label}

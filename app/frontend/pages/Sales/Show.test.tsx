@@ -134,6 +134,25 @@ describe("Sales/Show", () => {
     expect(screen.getByText("Paris")).toBeInTheDocument();
   });
 
+  it("hides the link-with-purchases action when can_link_purchase_items is false", () => {
+    render(<Show sale={{ ...sale, can_link_purchase_items: false }} />);
+
+    expect(screen.queryByRole("link", { name: /Link with purchases/ })).toBeNull();
+  });
+
+  it("shows an unavailable image placeholder when a sale item has no product thumbnail", () => {
+    render(
+      <Show
+        sale={{
+          ...sale,
+          sale_items: [{ ...sale.sale_items[0], product_thumb_url: null }],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Image unavailable")).toBeInTheDocument();
+  });
+
   it("unlinks a purchase item after confirmation", async () => {
     const user = userEvent.setup();
     vi.spyOn(window, "confirm").mockReturnValue(true);

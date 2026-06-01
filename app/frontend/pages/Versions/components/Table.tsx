@@ -29,7 +29,7 @@ export default function Table({ versions }: TableProps) {
             <td>{version.value}</td>
             <td>{version.created_at}</td>
             <td>{version.updated_at}</td>
-            <td className="actions text-right">
+            <td className="table_actions text-right">
               <div className="flex flex-wrap justify-end gap-3">
                 <Link href={`/versions/${version.id}`} onClick={stopRowNavigation} prefetch>
                   <i className="icn">📄</i>

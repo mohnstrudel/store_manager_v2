@@ -106,6 +106,61 @@ describe("Products/Show", () => {
     expect(screen.getByTestId("Completed Sales")).toHaveAttribute("data-has-variants", "true");
   });
 
+  it("renders timestamp columns from created_at_columns and updated_at_columns", () => {
+    renderShow({
+      product: makeProduct({
+        created_at_columns: [
+          { key: "local", label: "StoreMate", value: "19. Apr '26" },
+          { key: "shopify", label: "Shopify", value: "20. Apr '26" },
+        ],
+        updated_at_columns: [
+          { key: "local", label: "StoreMate", value: "21. Apr '26" },
+          { key: "shopify", label: "Shopify", value: "22. Apr '26" },
+        ],
+      }),
+    });
+
+    expect(screen.getByText("19. Apr '26")).toBeInTheDocument();
+    expect(screen.getByText("20. Apr '26")).toBeInTheDocument();
+    expect(screen.getByText("21. Apr '26")).toBeInTheDocument();
+    expect(screen.getByText("22. Apr '26")).toBeInTheDocument();
+  });
+
+  it("renders copy buttons for woo and shopify store IDs when present", () => {
+    renderShow({
+      product: makeProduct({
+        woo_info: { store_id: "99000", product_url: "https://woo.example/products/1" },
+        shopify_info: {
+          store_id: "gid://shopify/Product/10166608396617",
+          id_short: "10166608396617",
+          tag_list: [],
+          product_url: "https://shopify.example/products/1",
+        },
+      }),
+    });
+
+    expect(screen.getByText("Copy 99000")).toBeInTheDocument();
+    expect(screen.getByText("Copy 10166608396617")).toBeInTheDocument();
+  });
+
+  it("does not render copy buttons when store IDs are absent", () => {
+    renderShow({
+      product: makeProduct({
+        woo_info: { store_id: null, product_url: null },
+        shopify_info: {
+          store_id: null,
+          id_short: null,
+          tag_list: [],
+          product_url: null,
+        },
+        shopify_linked: false,
+        can_pull_from_shopify: false,
+      }),
+    });
+
+    expect(screen.queryByText(/^Copy/)).toBeNull();
+  });
+
   it("does not render the Shopify fetch action when the product cannot be pulled", () => {
     renderShow({
       product: makeProduct({ can_pull_from_shopify: false }),

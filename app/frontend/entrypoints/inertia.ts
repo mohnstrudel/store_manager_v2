@@ -8,7 +8,9 @@ const appElement = document.getElementById("app");
 
 const initialPage = appElement?.dataset.page ? JSON.parse(appElement.dataset.page) : undefined;
 let inertiaNavigationBridgeEnabled = false;
+let autocorrectDisablerEnabled = false;
 
+enableAutocorrectDisabler();
 enableInertiaNavigationBridge();
 
 void createInertiaApp({
@@ -20,8 +22,29 @@ void createInertiaApp({
   resolve: resolvePage,
   setup({ el, App, props }) {
     createRoot(el).render(createElement(App, props));
+    disableAutocorrectAfterRender(el);
   },
 });
+
+export function disableAutocorrect(root: ParentNode = document) {
+  root.querySelectorAll("input, textarea").forEach((element) => {
+    element.setAttribute("autocomplete", "off");
+    element.setAttribute("autocorrect", "off");
+    element.setAttribute("autocapitalize", "off");
+    element.setAttribute("spellcheck", "false");
+  });
+}
+
+export function enableAutocorrectDisabler() {
+  if (autocorrectDisablerEnabled) return;
+
+  autocorrectDisablerEnabled = true;
+  router.on("navigate", () => disableAutocorrectAfterRender());
+}
+
+function disableAutocorrectAfterRender(root: ParentNode = document) {
+  requestAnimationFrame(() => disableAutocorrect(root));
+}
 
 export function enableInertiaNavigationBridge() {
   if (inertiaNavigationBridgeEnabled) return;

@@ -16,6 +16,14 @@ RSpec.describe "Inertia index pages" do
         last_orders_pull_path: last_orders_pull_path
       )
     end
+
+    it "passes sales_hook_disabled from Config to the dashboard props" do
+      allow(Config).to receive(:sales_hook_disabled?).and_return(true)
+
+      get root_path
+
+      expect(inertia.props[:sales_hook_disabled]).to be(true)
+    end
   end
 
   describe "GET /noop" do
