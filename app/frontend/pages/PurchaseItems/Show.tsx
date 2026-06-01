@@ -1,6 +1,7 @@
-import { router, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import ImageGallery from "@/pages/Products/components/ImageGallery";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import type { PurchaseItemShowRecord } from "./types";
 
 type ShowProps = {
@@ -8,11 +9,7 @@ type ShowProps = {
 };
 
 export default function Show({ purchase_item }: ShowProps) {
-  function destroyPurchaseItem() {
-    if (window.confirm("Are you sure?")) {
-      router.delete(purchase_item.destroy_path);
-    }
-  }
+  const destroyPurchaseItem = useConfirmedDestroy(purchase_item.destroy_path);
 
   return (
     <>

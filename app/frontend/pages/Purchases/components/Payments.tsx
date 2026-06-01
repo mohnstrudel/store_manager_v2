@@ -1,5 +1,6 @@
 import { router } from "@inertiajs/react";
 import { type FormEvent, useState } from "react";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
 type PaymentsProps = {
@@ -42,6 +43,7 @@ export default function Payments({ newPayment, payments, purchase }: PaymentsPro
 function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchasePath: string }) {
   const [paymentDate, setPaymentDate] = useState(payment.payment_date);
   const [value, setValue] = useState(payment.value);
+  const destroyPayment = useConfirmedDestroy(payment.destroy_path, "Remove this payment?");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,12 +51,6 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
       payment: { payment_date: paymentDate, value },
       return_to: purchasePath,
     });
-  }
-
-  function destroyPayment() {
-    if (window.confirm("Remove this payment?")) {
-      router.delete(payment.destroy_path);
-    }
   }
 
   return (

@@ -1,6 +1,6 @@
-import { router, Link } from "@inertiajs/react";
-import { type MouseEvent, useCallback } from "react";
+import { Link } from "@inertiajs/react";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import MoveToWarehouseForm from "@/pages/Purchases/components/MoveToWarehouseForm";
 import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
@@ -23,16 +23,6 @@ export default function Show({
     selectedIds,
     toggleSelectedIdFromDataAttribute,
   } = useWarehouseMoveSelection();
-
-  const handleUnlinkPurchaseItem = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    const unlinkPath = event.currentTarget.dataset.unlinkPath;
-    if (!unlinkPath) return;
-
-    if (window.confirm("Are you sure?")) {
-      router.delete(unlinkPath);
-    }
-  }, []);
 
   return (
     <>
@@ -117,15 +107,7 @@ export default function Show({
                     <td className="font-mono text-right">{purchaseItem.expenses}</td>
                     <td className="font-mono text-right">{purchaseItem.shipping_cost}</td>
                     <td className="actions">
-                      <button
-                        className="no_events btn_red btn_rounded"
-                        data-unlink-path={purchaseItem.unlink_path}
-                        onClick={handleUnlinkPurchaseItem}
-                        type="button"
-                      >
-                        <i className="icn">✂︎</i>
-                        Unlink
-                      </button>
+                      <PurchaseItemUnlinkButton purchaseItem={purchaseItem} />
                       <Link
                         className="no_events"
                         href={purchaseItem.edit_path}
@@ -144,5 +126,30 @@ export default function Show({
         )}
       </div>
     </>
+  );
+}
+
+function PurchaseItemUnlinkButton({
+  purchaseItem,
+}: {
+  purchaseItem: SaleItemPurchaseItemRecord;
+}) {
+  const unlinkPurchaseItem = useConfirmedDestroy(
+    purchaseItem.unlink_path,
+    "Unlink this purchase item?",
+  );
+
+  return (
+    <button
+      className="no_events btn_red btn_rounded"
+      onClick={(event) => {
+        event.stopPropagation();
+        unlinkPurchaseItem();
+      }}
+      type="button"
+    >
+      <i className="icn">✂︎</i>
+      Unlink
+    </button>
   );
 }

@@ -1,5 +1,6 @@
-import { router, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 
 type UserRecord = {
   id: number;
@@ -18,11 +19,7 @@ type ShowProps = {
 };
 
 export default function Show({ user }: ShowProps) {
-  function destroyUser() {
-    if (window.confirm("Are you sure?")) {
-      router.delete(user.destroy_path);
-    }
-  }
+  const destroyUser = useConfirmedDestroy(user.destroy_path);
 
   return (
     <>

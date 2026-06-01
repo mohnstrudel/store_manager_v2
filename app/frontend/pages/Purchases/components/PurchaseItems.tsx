@@ -1,7 +1,7 @@
-import { router, Link } from "@inertiajs/react";
-import { type MouseEvent } from "react";
+import { Link } from "@inertiajs/react";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import MoveToWarehouseForm from "./MoveToWarehouseForm";
 import PaymentProgressBar from "./PaymentProgressBar";
@@ -13,13 +13,6 @@ type PurchaseItemsProps = {
   purchaseItems: PurchaseItemRecord[];
   warehouses: WarehouseOption[];
 };
-
-function unlinkPurchaseItem(purchaseItem: PurchaseItemRecord, event: MouseEvent) {
-  event.stopPropagation();
-  if (window.confirm("Are you sure?")) {
-    router.delete(purchaseItem.unlink_path);
-  }
-}
 
 export default function PurchaseItems({
   movePath,
@@ -86,88 +79,117 @@ export default function PurchaseItems({
           </thead>
           <tbody>
             {purchaseItems.map((purchaseItem) => (
-              <tr
-                className="hoverable"
+              <PurchaseItemRow
                 key={purchaseItem.id}
-                {...rowNavigationProps(purchaseItem.path)}
-              >
-                <td className="no_events text-center">
-                  <input
-                    checked={selectedIds.includes(purchaseItem.id)}
-                    data-purchase-item-id={purchaseItem.id}
-                    onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
-                    onClick={stopRowNavigation}
-                    type="checkbox"
-                  />
-                </td>
-                <td>{purchaseItem.id}</td>
-                <td>
-                  <Link
-                    className="link no_events"
-                    href={purchaseItem.warehouse_path}
-                    onClick={stopRowNavigation}
-                    prefetch
-                  >
-                    {purchaseItem.warehouse_name}
-                  </Link>
-                </td>
-                <td>
-                  {purchaseItem.sale_path && (
-                    <Link
-                      className="link no_events"
-                      href={purchaseItem.sale_path}
-                      onClick={stopRowNavigation}
-                      prefetch
-                    >
-                      {purchaseItem.sale_title}
-                    </Link>
-                  )}
-                </td>
-                <td>
-                  {purchaseItem.sale_path && (
-                    <div className="flex flex-col items-start gap-2 text-sm">
-                      <CopyToClipboardButton
-                        className="text-xs btn_xs"
-                        label="Copy address"
-                        text={purchaseItem.sale_address}
-                      />
-                      <CopyToClipboardButton
-                        className="text-xs btn_xs"
-                        label="Copy email"
-                        text={purchaseItem.customer_email}
-                      />
-                    </div>
-                  )}
-                </td>
-                <td className="font-mono text-right">{purchaseItem.shipping_cost}</td>
-                <td className="actions">
-                  <div className="flex justify-end">
-                    {purchaseItem.sale_path && (
-                      <button
-                        className="no_events btn_red btn_rounded"
-                        onClick={(event) => unlinkPurchaseItem(purchaseItem, event)}
-                        type="button"
-                      >
-                        <i className="icn">✂︎</i>
-                        Unlink
-                      </button>
-                    )}
-                    <Link
-                      className="no_events"
-                      href={purchaseItem.edit_path}
-                      onClick={stopRowNavigation}
-                      prefetch
-                    >
-                      <i className="icn">✏</i>
-                      Edit
-                    </Link>
-                  </div>
-                </td>
-              </tr>
+                purchaseItem={purchaseItem}
+                selectedIds={selectedIds}
+                toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
+              />
             ))}
           </tbody>
         </table>
       </div>
     </div>
+  );
+}
+
+type ToggleSelectedIdFromDataAttribute = ReturnType<
+  typeof useWarehouseMoveSelection
+>["toggleSelectedIdFromDataAttribute"];
+
+type PurchaseItemRowProps = {
+  purchaseItem: PurchaseItemRecord;
+  selectedIds: number[];
+  toggleSelectedIdFromDataAttribute: ToggleSelectedIdFromDataAttribute;
+};
+
+function PurchaseItemRow({
+  purchaseItem,
+  selectedIds,
+  toggleSelectedIdFromDataAttribute,
+}: PurchaseItemRowProps) {
+  const unlinkPurchaseItem = useConfirmedDestroy(
+    purchaseItem.unlink_path,
+    "Unlink this purchase item?",
+  );
+
+  return (
+    <tr className="hoverable" {...rowNavigationProps(purchaseItem.path)}>
+      <td className="no_events text-center">
+        <input
+          checked={selectedIds.includes(purchaseItem.id)}
+          data-purchase-item-id={purchaseItem.id}
+          onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
+          onClick={stopRowNavigation}
+          type="checkbox"
+        />
+      </td>
+      <td>{purchaseItem.id}</td>
+      <td>
+        <Link
+          className="link no_events"
+          href={purchaseItem.warehouse_path}
+          onClick={stopRowNavigation}
+          prefetch
+        >
+          {purchaseItem.warehouse_name}
+        </Link>
+      </td>
+      <td>
+        {purchaseItem.sale_path && (
+          <Link
+            className="link no_events"
+            href={purchaseItem.sale_path}
+            onClick={stopRowNavigation}
+            prefetch
+          >
+            {purchaseItem.sale_title}
+          </Link>
+        )}
+      </td>
+      <td>
+        {purchaseItem.sale_path && (
+          <div className="flex flex-col items-start gap-2 text-sm">
+            <CopyToClipboardButton
+              className="text-xs btn_xs"
+              label="Copy address"
+              text={purchaseItem.sale_address}
+            />
+            <CopyToClipboardButton
+              className="text-xs btn_xs"
+              label="Copy email"
+              text={purchaseItem.customer_email}
+            />
+          </div>
+        )}
+      </td>
+      <td className="font-mono text-right">{purchaseItem.shipping_cost}</td>
+      <td className="actions">
+        <div className="flex justify-end">
+          {purchaseItem.sale_path && (
+            <button
+              className="no_events btn_red btn_rounded"
+              onClick={(event) => {
+                event.stopPropagation();
+                unlinkPurchaseItem();
+              }}
+              type="button"
+            >
+              <i className="icn">✂︎</i>
+              Unlink
+            </button>
+          )}
+          <Link
+            className="no_events"
+            href={purchaseItem.edit_path}
+            onClick={stopRowNavigation}
+            prefetch
+          >
+            <i className="icn">✏</i>
+            Edit
+          </Link>
+        </div>
+      </td>
+    </tr>
   );
 }

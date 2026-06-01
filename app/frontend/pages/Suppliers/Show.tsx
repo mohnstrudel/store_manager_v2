@@ -1,6 +1,7 @@
-import { router, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import Details from "./components/Details";
 import Purchases from "./components/Purchases";
 import { PurchaseRecord, SupplierRecord } from "./types";
@@ -11,11 +12,7 @@ type ShowProps = {
 };
 
 export default function Show({ purchases, supplier }: ShowProps) {
-  function destroySupplier() {
-    if (window.confirm("Are you sure?")) {
-      router.delete(`/suppliers/${supplier.id}`);
-    }
-  }
+  const destroySupplier = useConfirmedDestroy(`/suppliers/${supplier.id}`);
 
   return (
     <>

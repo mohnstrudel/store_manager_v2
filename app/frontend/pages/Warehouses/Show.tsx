@@ -1,6 +1,7 @@
-import { router, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import Pagination from "@/components/Pagination";
@@ -42,12 +43,7 @@ export default function Show({
     selectedIds,
     toggleSelectedIdFromDataAttribute,
   } = useWarehouseMoveSelection();
-
-  function destroyWarehouse() {
-    if (window.confirm("Are you sure?")) {
-      router.delete(warehouse.destroy_path);
-    }
-  }
+  const destroyWarehouse = useConfirmedDestroy(warehouse.destroy_path);
 
   return (
     <>

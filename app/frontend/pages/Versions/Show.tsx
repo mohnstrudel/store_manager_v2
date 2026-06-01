@@ -1,6 +1,7 @@
-import { router, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import Details from "./components/Details";
 import Products from "./components/Products";
 import { ProductRecord, VersionRecord } from "./types";
@@ -11,11 +12,7 @@ type ShowProps = {
 };
 
 export default function Show({ products, version }: ShowProps) {
-  function destroyVersion() {
-    if (window.confirm("Are you sure?")) {
-      router.delete(`/versions/${version.id}`);
-    }
-  }
+  const destroyVersion = useConfirmedDestroy(`/versions/${version.id}`);
 
   return (
     <>
