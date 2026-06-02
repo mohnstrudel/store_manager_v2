@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link, router, usePage } from "@inertiajs/react";
+import routes from "@/lib/routes";
 import type { PageProps } from "@/types/inertia";
 import { useNavigationDropdown } from "@/lib/useNavigationDropdown";
 
@@ -21,12 +22,12 @@ type NavigationDivider = {
 
 const primaryLinks: NavigationLink[] = [
   {
-    href: "/",
+    href: routes.dashboard.index.path(),
     label: "Dashboard",
     component: "Dashboard/Index",
     pageProps: {
-      debts_path: "/debts",
-      last_orders_pull_path: "/pull-last-orders",
+      debts_path: routes.dashboardDebts.show.path(),
+      last_orders_pull_path: routes.dashboardLastOrdersPulls.create.path(),
       sale_debts: [],
       sale_debts_count: 0,
       sales_hook_disabled: false,
@@ -35,7 +36,7 @@ const primaryLinks: NavigationLink[] = [
     },
   },
   {
-    href: "/debts",
+    href: routes.dashboardDebts.show.path(),
     label: "Debts",
     component: "Dashboard/Debts",
     pageProps: {
@@ -46,7 +47,7 @@ const primaryLinks: NavigationLink[] = [
     },
   },
   {
-    href: "/sales",
+    href: routes.sales.list.path(),
     label: "Sales",
     component: "Sales/Index",
     pageProps: {
@@ -58,7 +59,7 @@ const primaryLinks: NavigationLink[] = [
     },
   },
   {
-    href: "/purchases",
+    href: routes.purchases.list.path(),
     label: "Purchases",
     component: "Purchases/Index",
     pageProps: {
@@ -66,17 +67,17 @@ const primaryLinks: NavigationLink[] = [
       pagination: emptyPagination,
       search: emptySearch,
       warehouses: [],
-      move_path: "/purchases/move",
+      move_path: routes.purchasesMoves.create.path(),
     },
   },
   {
-    href: "/warehouses",
+    href: routes.warehouses.index.path(),
     label: "Warehouses",
     component: "Warehouses/Index",
     pageProps: { warehouses: [] },
   },
   {
-    href: "/products",
+    href: routes.products.list.path(),
     label: "Products",
     component: "Products/Index",
     pageProps: {
@@ -87,7 +88,7 @@ const primaryLinks: NavigationLink[] = [
     },
   },
   {
-    href: "/customers",
+    href: routes.customers.list.path(),
     label: "Customers",
     component: "Customers/Index",
     pageProps: { customers: [], pagination: emptyPagination, search: emptySearch },
@@ -96,39 +97,54 @@ const primaryLinks: NavigationLink[] = [
 
 const overflowLinks: Array<NavigationLink | NavigationDivider> = [
   {
-    href: "/suppliers",
+    href: routes.suppliers.index.path(),
     label: "Suppliers",
     component: "Suppliers/Index",
     pageProps: { suppliers: [] },
   },
   {
-    href: "/shipping_companies",
+    href: routes.shippingCompanies.index.path(),
     label: "Shipping Companies",
     component: "ShippingCompanies/Index",
     pageProps: { shippingCompanies: [] },
   },
   { divider: true, key: "divider-suppliers" },
-  { href: "/brands", label: "Brands", component: "Brands/Index", pageProps: { brands: [] } },
   {
-    href: "/franchises",
+    href: routes.brands.index.path(),
+    label: "Brands",
+    component: "Brands/Index",
+    pageProps: { brands: [] },
+  },
+  {
+    href: routes.franchises.index.path(),
     label: "Franchises",
     component: "Franchises/Index",
     pageProps: { franchises: [] },
   },
   { divider: true, key: "divider-brands" },
   {
-    href: "/versions",
+    href: routes.versions.index.path(),
     label: "Versions",
     component: "Versions/Index",
     pageProps: { versions: [] },
   },
-  { href: "/colors", label: "Colors", component: "Colors/Index", pageProps: { colors: [] } },
-  { href: "/sizes", label: "Sizes", component: "Sizes/Index", pageProps: { sizes: [] } },
+  {
+    href: routes.colors.index.path(),
+    label: "Colors",
+    component: "Colors/Index",
+    pageProps: { colors: [] },
+  },
+  {
+    href: routes.sizes.index.path(),
+    label: "Sizes",
+    component: "Sizes/Index",
+    pageProps: { sizes: [] },
+  },
   { divider: true, key: "divider-sections" },
 ];
 
 const usersLink: NavigationLink = {
-  href: "/users",
+  href: routes.users.index.path(),
   label: "Users",
   component: "Users/Index",
   pageProps: { users: [] },
@@ -340,7 +356,7 @@ function logOut(onLoggedOut?: () => void) {
   if (!window.confirm("Are you sure you want to log out?")) return;
 
   onLoggedOut?.();
-  router.post("/log_out");
+  router.post(routes.sessions.destroy.path());
 }
 
 function withSharedPageProps(pageProps: Record<string, unknown>) {

@@ -3,6 +3,7 @@ import { Form, Link, usePage } from "@inertiajs/react";
 import AuthLayout from "@/layouts/AuthLayout";
 import FormInput from "@/components/FormInput";
 import Button from "@/components/Button";
+import routes from "@/lib/routes";
 
 type SignUpProps = {
   email_address?: string | null;
@@ -16,7 +17,7 @@ export default function New({ email_address }: SignUpProps) {
       <h1 className="text-3xl lg:text-5xl mb-6">Create new account</h1>
 
       <Form
-        action="/sign_up"
+        action={routes.signups.create.path()}
         method="post"
         className="flex flex-col gap-6 my-8"
         disableWhileProcessing
@@ -48,10 +49,10 @@ export default function New({ email_address }: SignUpProps) {
       </Form>
 
       <div className="space-x-4">
-        <Link className="link" href="/sign_in">
+        <Link className="link" href={routes.sessions.new.path()}>
           Already have an account?
         </Link>
-        <Link className="link" href="/passwords/new">
+        <Link className="link" href={routes.passwords.new.path()}>
           Forgot password?
         </Link>
       </div>

@@ -11,8 +11,9 @@ import {
   type Ref,
 } from "react";
 import FormSectionHeading from "./FormSectionHeading";
+import routes from "@/lib/routes";
 
-const DEFAULT_UPLOAD_URL = "/media/uploads";
+const DEFAULT_UPLOAD_URL = routes.mediaUploads.create.path();
 
 export type ImageUploaderMedia = {
   id: number | null;

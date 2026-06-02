@@ -3,6 +3,7 @@ import { Form, usePage } from "@inertiajs/react";
 import AuthLayout from "@/layouts/AuthLayout";
 import FormInput from "@/components/FormInput";
 import Button from "@/components/Button";
+import routes from "@/lib/routes";
 
 type ResetPasswordProps = {
   token: string;
@@ -16,7 +17,7 @@ export default function Edit({ token }: ResetPasswordProps) {
       <h1 className="text-3xl lg:text-5xl mb-6">Reset your password</h1>
 
       <Form
-        action={`/passwords/${token}`}
+        action={routes.passwords.update.path({ token })}
         method="put"
         className="flex flex-col gap-6 my-8"
         disableWhileProcessing

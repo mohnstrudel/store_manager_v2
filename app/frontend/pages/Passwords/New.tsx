@@ -3,6 +3,7 @@ import { Form, Link, usePage } from "@inertiajs/react";
 import AuthLayout from "@/layouts/AuthLayout";
 import FormInput from "@/components/FormInput";
 import Button from "@/components/Button";
+import routes from "@/lib/routes";
 
 type ForgotPasswordProps = {
   email_address?: string | null;
@@ -16,7 +17,7 @@ export default function New({ email_address }: ForgotPasswordProps) {
       <h1 className="text-3xl lg:text-5xl mb-6">Forgot your password?</h1>
 
       <Form
-        action="/passwords"
+        action={routes.passwords.create.path()}
         method="post"
         className="flex flex-col gap-6 my-8"
         disableWhileProcessing
@@ -38,10 +39,10 @@ export default function New({ email_address }: ForgotPasswordProps) {
       </Form>
 
       <div className="space-x-4">
-        <Link className="link" href="/sign_up/new">
+        <Link className="link" href={routes.signups.new.path()}>
           Create new account
         </Link>
-        <Link className="link" href="/sign_in">
+        <Link className="link" href={routes.sessions.new.path()}>
           Already have an account?
         </Link>
       </div>
