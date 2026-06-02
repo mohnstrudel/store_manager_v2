@@ -38,6 +38,7 @@ vi.mock("@inertiajs/react", async () => {
       const [data, setDataState] = React.useState(initialData);
       const [errors, setErrors] = React.useState<Record<string, string>>({});
       let optimisticCallback: ((props: unknown) => unknown) | null = null;
+      let transformPayload: ((data: TData) => unknown) | null = null;
 
       const form = {
         clearErrors: (...fields: string[]) => {
@@ -55,9 +56,17 @@ vi.mock("@inertiajs/react", async () => {
           optimisticCallback = callback;
           return form;
         },
+        transform: (callback: (data: TData) => unknown) => {
+          transformPayload = callback;
+        },
         patch: (path: string, options: Record<string, (...args: unknown[]) => unknown>) => {
           options.onBefore?.();
-          inertia.patch(path, data, options, optimisticCallback);
+          inertia.patch(
+            path,
+            transformPayload ? transformPayload(data) : data,
+            options,
+            optimisticCallback,
+          );
 
           if (inertia.nextErrors) {
             setErrors(inertia.nextErrors);
@@ -114,8 +123,7 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    // Both tracking and shipping show "Edit" — tracking is first in DOM
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
     await user.clear(screen.getByLabelText("Tracking number"));
     await user.type(screen.getByLabelText("Tracking number"), "TRACK-99");
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -132,8 +140,7 @@ describe("Warehouses/Show", () => {
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
     expect(document.getElementById("10")).toHaveClass("bg-lime-100/80");
 
-    // Tracking closed: both tracking and shipping show "Edit" — shipping is second in DOM
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[1]);
+    await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
@@ -168,8 +175,7 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    // Tracking has a value → "Edit"; shipping is empty → "Add" (unique)
-    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
 
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
     await waitFor(() => {
@@ -196,8 +202,7 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    // Tracking is first Edit button in DOM
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
 
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
     expect(screen.queryByLabelText("Shipping company")).not.toBeInTheDocument();
@@ -220,8 +225,7 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    // Tracking "Edit" is unique (shipping shows "Add")
-    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
     await user.type(screen.getByLabelText("Tracking number"), "-updated");
     // Tracking Save is first in DOM (before auto-opened shipping Save)
     await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
@@ -247,13 +251,13 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
     await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
     expect(screen.getByText("Shipping company is required")).toBeInTheDocument();
 
-    // Exit tracking — shipping stays open from auto-open, leaving one unique "Edit" for tracking
+    // Exit tracking — shipping stays open from auto-open; tracking cell becomes clickable again
     await user.click(screen.getAllByRole("button", { name: "Exit" })[0]);
-    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
 
     expect(screen.queryByText("Shipping company is required")).not.toBeInTheDocument();
   });
@@ -304,8 +308,8 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[1]);
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
 
     expect(screen.queryByText("Could not save tracking number")).not.toBeInTheDocument();
     expect(screen.queryByText("Could not save shipping company")).not.toBeInTheDocument();
@@ -332,7 +336,7 @@ describe("Warehouses/Show", () => {
 
     inertia.nextErrors = { tracking_number: "Tracking number can't be blank" };
 
-    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
     await user.clear(screen.getByLabelText("Tracking number"));
     await user.click(screen.getByRole("button", { name: "Save" }));
 

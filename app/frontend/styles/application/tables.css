@@ -44,4 +44,10 @@
   table select:not([multiple], [size]) {
     @apply hover:bg-gray-100 dark:hover:bg-gray-700;
   }
+
+  .inline_cell_display {
+    @apply w-full min-h-8 flex items-center justify-center text-center cursor-pointer rounded px-1 transition-colors duration-100;
+    @apply hover:bg-blue-50/70 hover:ring-1 hover:ring-blue-200/60;
+    @apply dark:hover:bg-blue-900/20 dark:hover:ring-blue-800/40;
+  }
 }

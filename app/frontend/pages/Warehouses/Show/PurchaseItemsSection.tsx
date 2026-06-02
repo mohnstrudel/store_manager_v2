@@ -249,7 +249,7 @@ function PurchaseItemRow({
       <td className="max-w-xs">
         <PurchaseItemCustomer item={item} />
       </td>
-      <td className="max-w-3xs no_events cursor-text">
+      <td className="max-w-3xs">
         <InlineTrackingNumberEditor
           item={item}
           isOpen={isTrackingOpen}
