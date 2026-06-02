@@ -35,7 +35,7 @@ RSpec.describe "Purchase item inline updates" do
 
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Warehouses/Show")
-      expect(inertia.props[:errors][:shipping_company_id]).to eq("Shipping company can't be blank")
+      expect(inertia.props[:errors][:shipping_company_id]).to eq("can't be blank")
     end
   end
 

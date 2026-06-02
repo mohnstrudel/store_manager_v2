@@ -9,38 +9,6 @@ RSpec.describe PurchaseItems::ShippingCompaniesController, type: :controller do
   before { sign_in_as_admin }
   after { log_out }
 
-  describe "GET #edit" do
-    let(:purchase_item) { create(:purchase_item) }
-    let(:shipping_company) { create(:shipping_company) }
-
-    before do
-      purchase_item.update!(shipping_company: shipping_company)
-    end
-
-    it "returns the edit form partial" do
-      get :edit, params: {purchase_item_id: purchase_item.id}
-
-      expect(response).to be_successful
-      expect(response.body).to include("id=\"#{dom_id(purchase_item, :shipping_company)}\"")
-    end
-  end
-
-  describe "GET #show" do
-    let(:purchase_item) { create(:purchase_item) }
-    let(:shipping_company) { create(:shipping_company) }
-
-    before do
-      purchase_item.update!(shipping_company: shipping_company)
-    end
-
-    it "returns the show partial" do
-      get :show, params: {purchase_item_id: purchase_item.id}
-
-      expect(response).to be_successful
-      expect(response.body).to include("id=\"#{dom_id(purchase_item, :shipping_company)}\"")
-    end
-  end
-
   describe "PATCH #update" do
     let(:purchase_item) { create(:purchase_item) }
     let(:shipping_company) { create(:shipping_company, name: "Old Company") }

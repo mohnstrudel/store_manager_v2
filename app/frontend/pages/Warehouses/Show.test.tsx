@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,38 +8,76 @@ import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
 const inertia = vi.hoisted(() => ({
   nextErrors: null as Record<string, string> | null,
   writeText: vi.fn<(...args: unknown[]) => Promise<void>>(),
-  patch: vi.fn<(...args: unknown[]) => void>((...args: unknown[]) => {
-    if (inertia.nextErrors) {
-      callOnError(args[2], inertia.nextErrors);
-      inertia.nextErrors = null;
-    } else {
-      callOnSuccess(args[2]);
-    }
-  }),
+  patch: vi.fn<(...args: unknown[]) => void>(),
   visit: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({
-    children,
-    href,
-    prefetch: _prefetch,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-    prefetch?: boolean;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    patch: inertia.patch,
-    prefetch: vi.fn<(...args: unknown[]) => unknown>(),
-    visit: inertia.visit,
-  },
-}));
+vi.mock("@inertiajs/react", async () => {
+  const React = await vi.importActual<typeof import("react")>("react");
+
+  return {
+    Link: ({
+      children,
+      href,
+      prefetch: _prefetch,
+      ...props
+    }: {
+      children: ReactNode;
+      href: string;
+      prefetch?: boolean;
+    }) => (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    ),
+    router: {
+      prefetch: vi.fn<(...args: unknown[]) => unknown>(),
+      visit: inertia.visit,
+    },
+    useForm: <TData extends Record<string, unknown>>(initialData: TData) => {
+      const [data, setDataState] = React.useState(initialData);
+      const [errors, setErrors] = React.useState<Record<string, string>>({});
+      let optimisticCallback: ((props: unknown) => unknown) | null = null;
+
+      const form = {
+        clearErrors: (...fields: string[]) => {
+          setErrors((currentErrors) => {
+            if (fields.length === 0) return {};
+
+            return Object.fromEntries(
+              Object.entries(currentErrors).filter(([field]) => !fields.includes(field)),
+            );
+          });
+        },
+        data,
+        errors,
+        optimistic: (callback: (props: unknown) => unknown) => {
+          optimisticCallback = callback;
+          return form;
+        },
+        patch: (path: string, options: Record<string, (...args: unknown[]) => unknown>) => {
+          options.onBefore?.();
+          inertia.patch(path, data, options, optimisticCallback);
+
+          if (inertia.nextErrors) {
+            setErrors(inertia.nextErrors);
+            options.onError?.(inertia.nextErrors);
+            inertia.nextErrors = null;
+          } else {
+            options.onSuccess?.();
+          }
+        },
+        setData: (update: TData | ((data: TData) => TData)) => {
+          setDataState((currentData) =>
+            typeof update === "function" ? (update as (data: TData) => TData)(currentData) : update,
+          );
+        },
+      };
+
+      return form;
+    },
+  };
+});
 
 describe("Warehouses/Show", () => {
   beforeEach(() => {
@@ -62,6 +100,8 @@ describe("Warehouses/Show", () => {
             sale_note: "Handle with care",
             sale_path: "/sales/1",
             sale_summary: "Patricia Morales Ponce, Calle Mirador de la Sierra 20",
+            shipping_company_id: 3,
+            shipping_company_name: "Skyline",
           }),
         ]}
         search={{ q: "" }}
@@ -74,7 +114,8 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Edit" }));
+    // Both tracking and shipping show "Edit" — tracking is first in DOM
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
     await user.clear(screen.getByLabelText("Tracking number"));
     await user.type(screen.getByLabelText("Tracking number"), "TRACK-99");
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -86,9 +127,13 @@ describe("Warehouses/Show", () => {
         return_to: "/warehouses/1",
       },
       expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
     );
+    expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
+    expect(document.getElementById("10")).toHaveClass("bg-lime-100/80");
 
-    await user.click(screen.getAllByRole("button", { name: "Add" })[0]);
+    // Tracking closed: both tracking and shipping show "Edit" — shipping is second in DOM
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[1]);
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
@@ -99,10 +144,118 @@ describe("Warehouses/Show", () => {
         return_to: "/warehouses/1",
       },
       expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
     );
     expect(inertia.visit).not.toHaveBeenCalled();
 
     expect(screen.getByText("Handle with care")).toHaveClass("cursor-text");
+  });
+
+  it("auto-opens the shipping editor when starting to edit tracking with no shipping company", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Show
+        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        purchase_items={[makePurchaseItem({ shipping_company_id: null })]}
+        search={{ q: "" }}
+        selected_id={null}
+        shipping_companies={[{ id: 3, name: "Skyline" }]}
+        total_purchase_items={1}
+        warehouse={makeWarehouse()}
+        warehouse_move_path="/purchase_items/move"
+        warehouses={[{ id: 1, name: "Warehouse A" }]}
+      />,
+    );
+
+    // Tracking has a value → "Edit"; shipping is empty → "Add" (unique)
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+
+    expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
+    });
+  });
+
+  it("does not auto-open the shipping editor when tracking already has a shipping company", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Show
+        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        purchase_items={[
+          makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" }),
+        ]}
+        search={{ q: "" }}
+        selected_id={null}
+        shipping_companies={[{ id: 3, name: "Skyline" }]}
+        total_purchase_items={1}
+        warehouse={makeWarehouse()}
+        warehouse_move_path="/purchase_items/move"
+        warehouses={[{ id: 1, name: "Warehouse A" }]}
+      />,
+    );
+
+    // Tracking is first Edit button in DOM
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+
+    expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Shipping company")).not.toBeInTheDocument();
+  });
+
+  it("shows a shipping required error and does not submit when saving tracking without a shipping company", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Show
+        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        purchase_items={[makePurchaseItem({ shipping_company_id: null })]}
+        search={{ q: "" }}
+        selected_id={null}
+        shipping_companies={[{ id: 3, name: "Skyline" }]}
+        total_purchase_items={1}
+        warehouse={makeWarehouse()}
+        warehouse_move_path="/purchase_items/move"
+        warehouses={[{ id: 1, name: "Warehouse A" }]}
+      />,
+    );
+
+    // Tracking "Edit" is unique (shipping shows "Add")
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.type(screen.getByLabelText("Tracking number"), "-updated");
+    // Tracking Save is first in DOM (before auto-opened shipping Save)
+    await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
+
+    expect(screen.getByText("Shipping company is required")).toBeInTheDocument();
+    expect(inertia.patch).not.toHaveBeenCalled();
+  });
+
+  it("clears the shipping required error when the user cancels tracking editing", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Show
+        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        purchase_items={[makePurchaseItem({ shipping_company_id: null })]}
+        search={{ q: "" }}
+        selected_id={null}
+        shipping_companies={[{ id: 3, name: "Skyline" }]}
+        total_purchase_items={1}
+        warehouse={makeWarehouse()}
+        warehouse_move_path="/purchase_items/move"
+        warehouses={[{ id: 1, name: "Warehouse A" }]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
+    expect(screen.getByText("Shipping company is required")).toBeInTheDocument();
+
+    // Exit tracking — shipping stays open from auto-open, leaving one unique "Edit" for tracking
+    await user.click(screen.getAllByRole("button", { name: "Exit" })[0]);
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+
+    expect(screen.queryByText("Shipping company is required")).not.toBeInTheDocument();
   });
 
   it("keeps copy buttons from triggering the warehouse row navigation", async () => {
@@ -132,13 +285,15 @@ describe("Warehouses/Show", () => {
     expect(inertia.visit).not.toHaveBeenCalled();
   });
 
-  it("keeps validation errors inside the React inline editor", async () => {
+  it("opens inline editors without validation errors before submitting", async () => {
     const user = userEvent.setup();
 
     render(
       <Show
         pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
-        purchase_items={[makePurchaseItem({ shipping_company_id: null, tracking_number: "" })]}
+        purchase_items={[
+          makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" }),
+        ]}
         search={{ q: "" }}
         selected_id={null}
         shipping_companies={[{ id: 3, name: "Skyline" }]}
@@ -149,14 +304,40 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    inertia.nextErrors = { shipping_company_id: "Shipping company can't be blank" };
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[1]);
 
-    await user.click(screen.getAllByRole("button", { name: "Add" })[0]);
-    await user.type(screen.getByLabelText("Tracking number"), "TRACK-99");
+    expect(screen.queryByText("Could not save tracking number")).not.toBeInTheDocument();
+    expect(screen.queryByText("Could not save shipping company")).not.toBeInTheDocument();
+  });
+
+  it("keeps server-side tracking validation errors inside the inline editor", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Show
+        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        purchase_items={[
+          makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" }),
+        ]}
+        search={{ q: "" }}
+        selected_id={null}
+        shipping_companies={[{ id: 3, name: "Skyline" }]}
+        total_purchase_items={1}
+        warehouse={makeWarehouse()}
+        warehouse_move_path="/purchase_items/move"
+        warehouses={[{ id: 1, name: "Warehouse A" }]}
+      />,
+    );
+
+    inertia.nextErrors = { tracking_number: "Tracking number can't be blank" };
+
+    await user.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await user.clear(screen.getByLabelText("Tracking number"));
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(screen.getByText("Shipping company can't be blank")).toBeInTheDocument();
-    expect(screen.getByLabelText("Tracking number")).toHaveValue("TRACK-99");
+    expect(screen.getByText("Tracking number can't be blank")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
     expect(inertia.visit).not.toHaveBeenCalled();
   });
 });
@@ -205,36 +386,4 @@ function makePurchaseItem(
     variant_title: "",
     ...overrides,
   };
-}
-
-function callOnSuccess(options: unknown) {
-  if (!hasOnSuccessCallback(options)) return;
-
-  options.onSuccess();
-}
-
-function callOnError(options: unknown, errors: Record<string, string>) {
-  if (!hasOnErrorCallback(options)) return;
-
-  options.onError(errors);
-}
-
-function hasOnSuccessCallback(options: unknown): options is { onSuccess: () => void } {
-  return (
-    typeof options === "object" &&
-    options !== null &&
-    "onSuccess" in options &&
-    typeof options.onSuccess === "function"
-  );
-}
-
-function hasOnErrorCallback(
-  options: unknown,
-): options is { onError: (errors: Record<string, string>) => void } {
-  return (
-    typeof options === "object" &&
-    options !== null &&
-    "onError" in options &&
-    typeof options.onError === "function"
-  );
 }

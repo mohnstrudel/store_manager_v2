@@ -141,6 +141,35 @@ describe("Warehouses/Components/Form", () => {
     expect(screen.getByLabelText("Position").parentElement).toHaveClass("field_with_errors");
   });
 
+  it("preserves transition rows and shows errors when re-rendered after a failed submit", async () => {
+    const user = userEvent.setup();
+
+    const { rerender } = render(
+      <Form
+        isNew
+        options={options}
+        submitLabel="Create Warehouse"
+        warehouse={makeWarehouse({ transition_ids: [] })}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Add Transition" }));
+    await user.selectOptions(screen.getByLabelText("Destination Warehouse 1"), "20");
+
+    pageErrors = { name: "can't be blank" };
+    rerender(
+      <Form
+        isNew
+        options={options}
+        submitLabel="Create Warehouse"
+        warehouse={makeWarehouse({ transition_ids: [] })}
+      />,
+    );
+
+    expect(screen.getByText("can't be blank")).toBeInTheDocument();
+    expect(screen.getByLabelText("Destination Warehouse 1")).toHaveValue("20");
+  });
+
   it("adds, changes, and removes transition notification rows", async () => {
     const user = userEvent.setup();
 
