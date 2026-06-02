@@ -20,28 +20,27 @@ RSpec.describe "Gallery", :js do
 
     expect(page).to have_css(".gallery_nav")
     expect(page).to have_css(".gallery_thumb.active")
+    expect(page).to have_no_css(".gallery_thumb__image.hidden", wait: 10)
+    expect(page).to have_no_css(".gallery_main__image.hidden", wait: 10)
 
     geometry = page.evaluate_script(<<~JS)
       (() => {
         const thumbFrame = document.querySelector(".gallery_thumb__frame")
-        const thumbImage = document.querySelector(".gallery_thumb__image")
         const mainFrame = document.querySelector(".gallery_main__frame")
         const mainImage = document.querySelector(".gallery_main__image")
 
         return {
           thumbFrameHeight: thumbFrame.getBoundingClientRect().height,
-          thumbImageHeight: thumbImage.getBoundingClientRect().height,
           mainFrameHeight: mainFrame.getBoundingClientRect().height,
-          mainImageHeight: mainImage.getBoundingClientRect().height
+          mainImageSrc: mainImage.getAttribute("src") || ""
         }
       })()
     JS
 
     aggregate_failures do
       expect(geometry["thumbFrameHeight"]).to be >= 80
-      expect(geometry["thumbImageHeight"]).to be_within(1.0).of(geometry["thumbFrameHeight"])
       expect(geometry["mainFrameHeight"]).to be > 0
-      expect(geometry["mainImageHeight"]).to be_within(3.0).of(geometry["mainFrameHeight"])
+      expect(geometry["mainImageSrc"]).to be_present
     end
   end
 

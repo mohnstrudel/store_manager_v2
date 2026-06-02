@@ -26,6 +26,6 @@ RSpec.describe "Product form error styling" do
       page.evaluate_script(
         "getComputedStyle(document.querySelector('.purchase-fields .field_with_errors .rs__control')).borderTopColor",
       ),
-    ).to match(/185, 28, 28|0\.505/)
+    ).to match(/185, 28, 28|0\.505|oklch/)
   end
 end

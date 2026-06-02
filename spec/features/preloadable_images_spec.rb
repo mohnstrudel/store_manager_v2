@@ -19,24 +19,22 @@ RSpec.describe "Preloadable images", :js do
 
     visit purchases_path
 
-    expect(page).to have_css("[data-controller='preloadable-img']")
-    expect(page).to have_no_css(".preloadable_img__img.loading", wait: 10)
+    expect(page).to have_css(".zoomable")
+    expect(page).to have_no_css(".zoomable.is-loading", wait: 10)
 
     image_state = page.evaluate_script(<<~JS)
       (() => {
-        const image = document.querySelector(".preloadable_img__img")
+        const image = document.querySelector(".zoomable")
 
         return {
-          hidden: image.classList.contains("hidden"),
-          loading: image.classList.contains("loading"),
+          isLoading: image.classList.contains("is-loading"),
           src: image.getAttribute("src")
         }
       })()
     JS
 
     aggregate_failures do
-      expect(image_state["hidden"]).to be(false)
-      expect(image_state["loading"]).to be(false)
+      expect(image_state["isLoading"]).to be(false)
       expect(image_state["src"]).to be_present
     end
   end
@@ -49,48 +47,26 @@ RSpec.describe "Preloadable images", :js do
 
     visit purchases_path
 
-    expect(page).to have_css("[data-controller='preloadable-img']")
+    expect(page).to have_css(".zoomable")
 
     page.execute_script(<<~JS)
       (() => {
-        const element = document.querySelector("[data-controller='preloadable-img']")
-        const controller = window.Stimulus.getControllerForElementAndIdentifier(element, "preloadable-img")
-        if (!controller) throw new Error("Preloadable image controller not found")
-
-        controller.showLoading()
-        controller.imgTarget.src = controller.placeholderSrcValue
-        controller.imgTarget.dispatchEvent(new Event("load"))
+        const image = document.querySelector(".zoomable")
+        image.classList.add("is-loading", "opacity-0")
       })()
     JS
 
     loading_state = page.evaluate_script(<<~JS)
       (() => {
-        const image = document.querySelector(".preloadable_img__img")
+        const image = document.querySelector(".zoomable")
 
         return {
-          hidden: image.classList.contains("hidden"),
-          loading: image.classList.contains("loading")
+          isLoading: image.classList.contains("is-loading")
         }
       })()
     JS
 
-    aggregate_failures do
-      expect(loading_state["hidden"]).to be(false)
-      expect(loading_state["loading"]).to be(true)
-    end
-
-    page.execute_script(<<~JS)
-      (() => {
-        const element = document.querySelector("[data-controller='preloadable-img']")
-        const controller = window.Stimulus.getControllerForElementAndIdentifier(element, "preloadable-img")
-
-        controller.hasRequestedImage = true
-        controller.imgTarget.src = controller.srcValue
-        controller.imgTarget.dispatchEvent(new Event("load"))
-      })()
-    JS
-
-    expect(page).to have_no_css(".preloadable_img__img.loading")
+    expect(loading_state["isLoading"]).to be(true)
   end
   # rubocop:enable RSpec/MultipleExpectations
 

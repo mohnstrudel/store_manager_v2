@@ -6,7 +6,7 @@ describe "GET /sales" do
   before { sign_in_as_admin }
   after { log_out }
 
-  it "shows warehouse buttons instead of sale status on the index page" do
+  it "shows warehouse buttons instead of sale status on the index page", :js do
     sale = create(:sale, status: Sale.active_status_names.first)
     product = create(:product)
     sale_item = create(:sale_item, sale:, product:)

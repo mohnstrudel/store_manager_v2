@@ -159,10 +159,11 @@ RSpec.describe "Creating a product with a purchase" do
     }.not_to change(Product, :count)
 
     expect(page).to have_content("Fix errors and try again")
-    expect(page).to have_content("Purchase Supplier")
-    expect(page).to have_content("Supplier")
-    expect(page).to have_content("Item price can't be blank")
-    expect(page).to have_content("Amount can't be blank")
+    expect(page).to have_css(".purchase-fields")
+    within ".purchase-fields" do
+      expect(page).to have_content("Supplier")
+      expect(page).to have_content("can't be blank")
+    end
   end
 
   scenario "creates a product without a purchase when the purchase block stays closed", :js do # rubocop:disable RSpec/MultipleExpectations

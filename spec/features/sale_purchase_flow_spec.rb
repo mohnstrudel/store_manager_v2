@@ -20,6 +20,7 @@ feature "Link sales with purchases flow" do
 
     click_on "Add New Record"
 
+    choose_react_select(product.title, from: "Product")
     choose_react_select(supplier.title, from: "Supplier")
 
     fill_in "Amount", with: 5
@@ -27,6 +28,7 @@ feature "Link sales with purchases flow" do
 
     click_on "Create Purchase"
 
+    expect(page).to have_css("#payment_amount", wait: 10)
     fill_in "payment_amount", with: "250"
     click_button "Add payment"
 
@@ -40,11 +42,12 @@ feature "Link sales with purchases flow" do
     # Set an active status so the sale will be visible in the list
     choose "Processing"
 
+    choose_react_select(customer.email, from: "Customer")
     fill_in "Total", with: 100
 
     click_button "Add Product"
-    scroll_to("div[data-controller='sale-items']")
-    slim_select "Select a product", product.title
+    expect(page).to have_css(".sales_form__product_fields")
+    choose_react_select(product.title, from: "Product")
     fill_in "sale_items[0][qty]", with: 1
     fill_in "sale_items[0][price]", with: "100.00"
 
