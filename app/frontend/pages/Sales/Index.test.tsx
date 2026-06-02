@@ -77,6 +77,14 @@ describe("Sales/Index", () => {
     expect(screen.getByRole("searchbox")).toHaveValue("dale");
   });
 
+  it("shows purchase item warehouse links instead of sale status text", () => {
+    render(<Index {...defaultProps} />);
+
+    const warehouseLink = screen.getByRole("link", { name: /Berlin Hub/ });
+    expect(warehouseLink).toHaveAttribute("href", "/purchase_items/101");
+    expect(screen.queryByText("Processing")).not.toBeInTheDocument();
+  });
+
   it("renders an empty state when a search has no matches", () => {
     render(
       <Index

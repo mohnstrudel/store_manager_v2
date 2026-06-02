@@ -123,9 +123,9 @@ function StoreIdentifiersCard({ product }: ProductProps) {
     <div className="card w-min">
       <h5>ID</h5>
       <p>{product.id}</p>
-      <h5>Created At</h5>
+      <h5>Created&nbsp;At</h5>
       <TimestampColumns columns={product.created_at_columns} />
-      <h5>Updated At</h5>
+      <h5>Updated&nbsp;At</h5>
       <TimestampColumns columns={product.updated_at_columns} />
       <h5>Woo ID</h5>
       <WooIdentifier product={product} />
@@ -181,7 +181,7 @@ function ShopifyTags({ product }: ProductProps) {
       <p className="flex flex-wrap gap-1 gap-y-2">
         {product.shopify_info.tag_list.map((tag) => (
           <span
-            className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200/50 rounded py-0.5 px-2"
+            className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200/50 dark:hover:bg-gray-800 rounded py-0.5 px-2"
             key={tag}
           >
             {tag}
@@ -272,7 +272,7 @@ function TimestampColumns({ columns }: { columns: TimestampColumn[] }) {
     <div className="grid grid-flow-col auto-cols-max gap-6">
       {columns.map((column) => (
         <div className="flex flex-col gap-1" key={column.key}>
-          <span className="mt-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400">
+          <span className="my-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400">
             {column.label}
           </span>
           <span className="text-sm">{column.value}</span>

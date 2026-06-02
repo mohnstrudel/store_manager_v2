@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import SearchableIndexSection from "@/components/SearchableIndexSection";
+import SearchableTableSection from "@/components/SearchableTableSection";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import IndexTable from "./components/IndexTable";
 import MoveToWarehouseForm from "./components/MoveToWarehouseForm";
@@ -34,7 +34,7 @@ export default function Index({
         </li>
       </PageHeader>
 
-      <SearchableIndexSection
+      <SearchableTableSection
         hasResults={purchases.length > 0}
         pagination={pagination}
         path="/purchases"
@@ -52,7 +52,7 @@ export default function Index({
           selectedIds={selectedIds}
           warehouses={warehouses}
         />
-      </SearchableIndexSection>
+      </SearchableTableSection>
     </>
   );
 }

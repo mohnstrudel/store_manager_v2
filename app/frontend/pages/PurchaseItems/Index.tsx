@@ -1,5 +1,5 @@
 import PageHeader from "@/components/PageHeader";
-import SearchableIndexSection from "@/components/SearchableIndexSection";
+import SearchableTableSection from "@/components/SearchableTableSection";
 import type { PaginationMeta } from "@/pages/Purchases/types";
 import IndexTable, { type PurchaseItemRecord } from "./components/IndexTable";
 
@@ -14,7 +14,7 @@ export default function Index({ pagination, purchase_items, search }: IndexProps
     <>
       <PageHeader title="Purchase Items" />
 
-      <SearchableIndexSection
+      <SearchableTableSection
         hasResults={purchase_items.length > 0}
         pagination={pagination}
         path="/purchase_items"
@@ -23,7 +23,7 @@ export default function Index({ pagination, purchase_items, search }: IndexProps
         showBottomPagination={purchase_items.length > 0}
       >
         <IndexTable purchaseItems={purchase_items} />
-      </SearchableIndexSection>
+      </SearchableTableSection>
     </>
   );
 }

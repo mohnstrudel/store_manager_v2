@@ -8,7 +8,7 @@ type PaginationMeta = {
   total_pages: number;
 };
 
-type SearchableIndexSectionProps = {
+type SearchableTableSectionProps = {
   children: ReactNode;
   className?: string;
   hasResults: boolean;
@@ -19,7 +19,7 @@ type SearchableIndexSectionProps = {
   showBottomPagination?: boolean;
 };
 
-export default function SearchableIndexSection({
+export default function SearchableTableSection({
   children,
   className = "section_border_base section_wide",
   hasResults,
@@ -28,7 +28,7 @@ export default function SearchableIndexSection({
   query,
   resourceName,
   showBottomPagination = true,
-}: SearchableIndexSectionProps) {
+}: SearchableTableSectionProps) {
   return (
     <section className={className}>
       <SearchAndPagination

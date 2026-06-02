@@ -8,6 +8,14 @@
     @apply text-right leading-[1.1] px-1 font-black text-sm text-shadow-xs text-gray-100;
   }
 
+  .flash_toast_region {
+    @apply fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-5xl -translate-x-1/2 pointer-events-none lg:top-8;
+  }
+
+  .flash_toast {
+    @apply pointer-events-auto h-auto mx-auto rounded-xl flex flex-col justify-between items-center gap-3 p-4 text-center shadow-xl backdrop-blur-md lg:h-24 lg:flex-row lg:gap-0 lg:p-8 lg:text-left;
+  }
+
   /* "Removed" overlay */
   .rectangle_with_x {
     @apply relative;

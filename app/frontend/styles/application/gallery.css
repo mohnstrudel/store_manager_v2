@@ -18,15 +18,19 @@
   }
 
   .gallery_thumb__image {
-    @apply h-full w-full object-cover object-center;
+    @apply self-stretch w-full object-cover object-center;
   }
 
   .gallery_main__frame {
-    @apply flex items-center justify-center w-full h-full min-h-80 lg:min-h-full rounded-lg bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800;
+    @apply self-stretch flex items-center justify-center w-full min-h-80 lg:min-h-full rounded-lg bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800;
   }
 
   .gallery_main__image {
     @apply h-full w-full object-contain;
+  }
+
+  .gallery_main__frame .gallery_main__image {
+    @apply self-stretch;
   }
 
   .gallery_thumb img:hover {

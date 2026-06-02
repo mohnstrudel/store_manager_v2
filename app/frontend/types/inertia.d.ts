@@ -9,8 +9,18 @@ export interface PageProps {
     } | null;
   };
   flash: {
-    notice: string | null;
-    alert: string | null;
+    notice: FlashMessage | null;
+    alert: FlashMessage | null;
   };
   csrf_token: string;
 }
+
+export type FlashMessage =
+  | string
+  | {
+      message: string;
+      link?: {
+        label: string;
+        href: string;
+      };
+    };

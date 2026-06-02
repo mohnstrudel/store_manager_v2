@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
-import SearchableIndexSection from "@/components/SearchableIndexSection";
+import SearchableTableSection from "@/components/SearchableTableSection";
 import { rowNavigationProps } from "@/lib/rowNavigation";
 import type { PaginationMeta } from "@/pages/Purchases/types";
 
@@ -37,7 +37,7 @@ export default function Debts({ debts, pagination, search, unpaid_purchases }: D
       <PageHeader title="Debts" />
 
       <div className="section_wide flex flex-col gap-8">
-        <SearchableIndexSection
+        <SearchableTableSection
           className="table_card"
           hasResults={debts.length > 0}
           pagination={pagination}
@@ -47,7 +47,7 @@ export default function Debts({ debts, pagination, search, unpaid_purchases }: D
           showBottomPagination={debts.length > 0}
         >
           <DebtsTable debts={debts} />
-        </SearchableIndexSection>
+        </SearchableTableSection>
 
         {unpaid_purchases.length > 0 && (
           <UnpaidPurchasesSection unpaidPurchases={unpaid_purchases} />

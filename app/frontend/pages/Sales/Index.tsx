@@ -1,7 +1,7 @@
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import SearchableIndexSection from "@/components/SearchableIndexSection";
+import SearchableTableSection from "@/components/SearchableTableSection";
 import SyncModal from "@/components/SyncModal";
 import { useModalVisibility } from "@/lib/useModalVisibility";
 import Table from "./components/Table";
@@ -46,7 +46,7 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
         />
       )}
 
-      <SearchableIndexSection
+      <SearchableTableSection
         hasResults={sales.length > 0}
         pagination={pagination}
         path="/sales"
@@ -55,7 +55,7 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
         showBottomPagination={sales.length > 0}
       >
         <Table sales={sales} />
-      </SearchableIndexSection>
+      </SearchableTableSection>
     </>
   );
 }
