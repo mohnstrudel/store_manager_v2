@@ -7,16 +7,8 @@ description: Design or refactor the backend side of Ruby on Rails codebases towa
 
 ## Quick Start
 
-- In this repo, treat `rails-domain-architecture` as the default starting skill for backend and domain work. Add narrower skills such as `shopify` only when the task clearly touches that subsystem.
+- In this repo, treat `rails-domain-architecture` as the default starting skill for backend and domain work.
 - For React pages, shared components, hooks, browser-side widgets, and frontend tests, switch to `frontend-architecture` instead of trying to force the backend skill to fit.
-- Read `references/task-router.md` first for the smallest useful reference set.
-- Read `references/principles.md` before proposing a new Rails architecture or refactoring an existing one.
-- Read `references/full-stack-architecture.md` when the task spans routes, controllers, views, helpers, jobs, mailers, channels, or request context.
-- Read `references/jobs-architecture.md` when the task is about Active Job, recurring work, queue design, retries, or moving logic into or out of background jobs.
-- Read `references/screen-first-view-pattern.md` for backend view organization, including both the simple CRUD baseline and the expanded screen-first shape.
-- Read `references/testing-architecture.md` when the task is about backend test strategy, test placement, fixtures, system vs integration coverage, or preserving architecture during refactors.
-- Start by identifying the request boundary, owning model, and whether the work is domain capability, cross-cutting concern, query subsystem, or orchestration.
-- Treat legacy file placement as evidence, not architecture to preserve.
 
 ## Default Workflow
 
@@ -28,7 +20,7 @@ description: Design or refactor the backend side of Ruby on Rails codebases towa
 6. Keep scopes composable, relation-returning, and named after business concepts.
 7. Use named preload scopes for repeated read shapes.
 8. Keep controllers thin: load the starting relation, compose named scopes, and call model commands.
-9. Keep rendering at the edge: helpers for presentation, partials for HTML, Jbuilder or serializers for JSON, and response templates for incremental updates.
+9. Keep rendering at the edge: helpers for presentation, Jbuilder or serializers for JSON.
 9a. If the change is frontend UI work, switch to `frontend-architecture` so backend rules do not bleed into component design.
 9b. For risky browser-side or visual work that still touches backend contracts, add focused feature specs that encode the rendered behavior.
 10. Keep jobs thin and let model-adjacent objects own workflow rules.
@@ -38,17 +30,10 @@ description: Design or refactor the backend side of Ruby on Rails codebases towa
 14. Preserve deliberate advanced model patterns: concern contracts, association-proxy APIs, event fan-out, lifecycle gates, and domain-owned representations.
 15. Favor business verbs such as `publish`, `move_to`, `link_inventory`, or `sync_store_references` over form-shaped names such as `process_form` or `handle_update`.
 16. Reach for a service object only when ownership is genuinely cross-aggregate, infrastructure-heavy, or not naturally expressible as one model-facing API.
-17. Keep small params normalization in controllers, but when one form starts needing several normalization helpers or failed-submit rebuilding, extract narrow form objects such as `FormPayload` or `FormRehydrator` under the owning model namespace instead of growing a generic service layer.
 18. When a non-CRUD controller action starts to feel like its own concept, prefer a small nested resource controller before adding another member or collection action to a broad controller.
 19. Use controller scoping concerns such as `ProductScoped` or `SaleScoped` for repeated boundary loading when several small controllers share the same resource seam.
 19a. “Shared” includes a namespaced controller family; do not create one-off concerns just to split one broad controller.
 20. Treat command-style endpoints as write resources: prefer `POST`, `PATCH`, or `DELETE` resource routes over `GET` links for actions such as pulls, links, moves, or webhook confirmations.
-21. Collection-level workflows can also be first-class controllers; extraction is not only for member actions.
-22. After extracting a controller concept, update the route consumers too: helpers, shared buttons, UI widgets, and feature specs should follow the new route shape instead of reconstructing paths by guesswork.
-23. In JavaScript, prefer obvious method names over generic `render`, `sync`, or option-heavy helpers when the widget is small.
-24. For UI refactors that still depend on backend responses, cover the user-visible contract at the widget seam.
-25. Do not make nested attributes the default way to model child-resource editing. When a child entity has its own create, update, or destroy lifecycle, prefer a small child-resource request surface over one giant parent form.
-26. Keep composite parent-plus-children forms as explicit exceptions. Use them only when the screen is truly one atomic submit and splitting the child interactions into separate endpoints would make the UX or invariants worse.
 
 ## Placement Heuristics
 
@@ -57,7 +42,6 @@ description: Design or refactor the backend side of Ruby on Rails codebases towa
 - Use `app/models/<subsystem>/` objects when the subsystem has its own lifecycle, persistence, params, or backend.
 - Use controller concerns for request setup, scoping, and policy, not for domain rules.
 - Use namespaced controllers and base controllers to separate public, private, settings, and workflow surfaces.
-- Use helpers and view partials for presentation decisions.
 - Keep existing project conventions when they are already strong; do not preserve weak or mixed legacy placement just because it already exists.
 
 ## Deliverables
@@ -69,7 +53,3 @@ description: Design or refactor the backend side of Ruby on Rails codebases towa
 - Prefer business names such as `active`, `archived`, `awaiting_review`, and `preloaded` over transport-layer names.
 - Add or preserve tests at the same ownership seam as the code: capability, request, edge rendering, or async transport.
 - For legacy refactors, propose explicit target files under `app/models/<model>/...` rather than vague “extract helper object” guidance.
-
-## References
-
-Use `references/task-router.md` first, then only the reference that matches the task: model principles, full-stack request flow, jobs, screen-first views, or testing.
