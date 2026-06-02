@@ -7,8 +7,6 @@ ruby "4.0.5"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.x.x"
-
-# The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
 # Use postgresql as the database for Active Record
@@ -58,10 +56,9 @@ gem "kaminari"
 gem "friendly_id"
 
 gem "slim-rails"
-gem "requestjs-rails"
+
 gem "vite_rails"
 gem "inertia_rails"
-gem "inline_svg"
 
 gem "aws-sdk-s3", require: false
 gem "shopify_app"
