@@ -93,7 +93,7 @@ class ProductsController < ApplicationController
     raw = params[:media]
     return [] if raw.blank?
 
-    raw_values = raw.is_a?(Array) ? raw : raw.to_unsafe_h.values
+    raw_values = raw.is_a?(Array) ? raw : raw.values
     raw_values.filter_map do |attrs|
       attrs = attrs.to_unsafe_h.symbolize_keys
       next if attrs[:id].blank? && attrs[:image_blob_id].blank?

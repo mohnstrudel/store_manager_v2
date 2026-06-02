@@ -156,9 +156,9 @@ RSpec.describe "Purchases" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Purchases/New")
       expect(inertia.props[:errors]).to include(
-        supplier_id: "Supplier can't be blank",
-        item_price: "Item price can't be blank",
-        amount: "Amount can't be blank"
+        supplier_id: "can't be blank",
+        item_price: "can't be blank",
+        amount: "can't be blank"
       )
     end
   end
@@ -212,9 +212,9 @@ RSpec.describe "Purchases" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Purchases/Edit")
       expect(inertia.props[:errors]).to include(
-        supplier_id: "Supplier can't be blank",
-        item_price: "Item price can't be blank",
-        amount: "Amount can't be blank"
+        supplier_id: "can't be blank",
+        item_price: "can't be blank",
+        amount: "can't be blank"
       )
     end
   end

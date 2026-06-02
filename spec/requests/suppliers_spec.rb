@@ -118,7 +118,7 @@ RSpec.describe "Suppliers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Suppliers/New")
       expect_inertia.to have_props(
-        errors: {title: "Title can't be blank"},
+        errors: {title: "can't be blank"},
         supplier: {created_at: nil, id: nil, updated_at: nil, title: ""}
       )
     end
@@ -167,7 +167,7 @@ RSpec.describe "Suppliers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Suppliers/Edit")
       expect_inertia.to have_props(
-        errors: {title: "Title can't be blank"},
+        errors: {title: "can't be blank"},
         supplier: {
           created_at: formatted_time(supplier.created_at),
           id: supplier.id,

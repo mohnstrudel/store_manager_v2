@@ -172,7 +172,7 @@ RSpec.describe "Warehouses" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Warehouses/Edit")
       expect(inertia.props[:errors]).to be_present
-      expect(inertia.props[:errors][:is_default]).to eq("Is default another default warehouse already exists")
+      expect(inertia.props[:errors][:is_default]).to eq("another default warehouse already exists")
     end
   end
 end

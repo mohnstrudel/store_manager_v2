@@ -99,7 +99,7 @@ RSpec.describe "Franchises" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Franchises/New")
       expect_inertia.to have_props(
-        errors: {title: "Title can't be blank"},
+        errors: {title: "can't be blank"},
         franchise: {created_at: nil, id: nil, updated_at: nil, title: ""}
       )
     end
@@ -147,7 +147,7 @@ RSpec.describe "Franchises" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Franchises/Edit")
       expect_inertia.to have_props(
-        errors: {title: "Title can't be blank"},
+        errors: {title: "can't be blank"},
         franchise: {
           created_at: formatted_time(franchise.created_at),
           id: franchise.id,

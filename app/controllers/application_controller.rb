@@ -15,7 +15,7 @@ class ApplicationController < ActionController::Base
   private
 
   def inertia_errors(model_errors)
-    {errors: model_errors.to_hash(true).transform_values(&:to_sentence)}
+    {errors: model_errors.to_hash.transform_values(&:to_sentence)}
   end
 
   public

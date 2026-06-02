@@ -100,7 +100,7 @@ RSpec.describe "Versions" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Versions/New")
       expect_inertia.to have_props(
-        errors: {value: "Value can't be blank"},
+        errors: {value: "can't be blank"},
         version: {created_at: nil, id: nil, updated_at: nil, value: ""}
       )
     end
@@ -148,7 +148,7 @@ RSpec.describe "Versions" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Versions/Edit")
       expect_inertia.to have_props(
-        errors: {value: "Value can't be blank"},
+        errors: {value: "can't be blank"},
         version: {
           created_at: formatted_time(version.created_at),
           id: version.id,

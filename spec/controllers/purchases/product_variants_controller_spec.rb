@@ -15,7 +15,7 @@ RSpec.describe Purchases::ProductVariantsController, type: :controller do
 
       expect(response).to be_successful
       expect(response.parsed_body.fetch("variants")).to include(
-        {"id" => variant.id, "title" => variant.title}
+        {"value" => variant.id, "label" => variant.title}
       )
     end
   end

@@ -101,7 +101,7 @@ RSpec.describe "Colors" do
       expect_inertia.to render_component("Colors/New")
       expect_inertia.to have_props(
         color: {created_at: nil, id: nil, updated_at: nil, value: ""},
-        errors: {value: "Value can't be blank"}
+        errors: {value: "can't be blank"}
       )
     end
   end
@@ -154,7 +154,7 @@ RSpec.describe "Colors" do
           updated_at: formatted_time(color.updated_at),
           value: color.value
         },
-        errors: {value: "Value can't be blank"}
+        errors: {value: "can't be blank"}
       )
     end
   end

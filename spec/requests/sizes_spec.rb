@@ -99,7 +99,7 @@ RSpec.describe "Sizes" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Sizes/New")
       expect_inertia.to have_props(
-        errors: {value: "Value can't be blank"},
+        errors: {value: "can't be blank"},
         size: {id: nil, value: "", created_at: nil, updated_at: nil}
       )
     end
@@ -147,7 +147,7 @@ RSpec.describe "Sizes" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Sizes/Edit")
       expect_inertia.to have_props(
-        errors: {value: "Value can't be blank"},
+        errors: {value: "can't be blank"},
         size: {
           id: size.id,
           value: size.value,

@@ -13,15 +13,16 @@ module MediaFormHandling
     media_params = media_form_params_for(record)[:media]
     return [] if media_params.blank?
 
-    media_params.to_h.values.map do |attrs|
-      attrs = attrs.with_indifferent_access
+    raw_values = media_params.is_a?(Array) ? media_params : media_params.to_h.values
+    raw_values.map do |attrs|
+      attrs = attrs.is_a?(ActionController::Parameters) ? attrs.to_unsafe_h.with_indifferent_access : attrs.with_indifferent_access
 
       {
         id: attrs[:id].presence,
         alt: attrs[:alt],
         position: attrs[:position],
         _destroy: attrs[:_destroy],
-        image: attrs[:image]
+        image: attrs[:image_blob_id].presence || attrs[:image]
       }.compact
     end
   end
@@ -35,7 +36,8 @@ module MediaFormHandling
         :alt,
         :position,
         :_destroy,
-        :image
+        :image,
+        :image_blob_id
       ]],
       new_images: []
     ) || ActionController::Parameters.new

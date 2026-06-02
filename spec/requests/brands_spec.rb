@@ -101,7 +101,7 @@ RSpec.describe "Brands" do
       expect_inertia.to render_component("Brands/New")
       expect_inertia.to have_props(
         brand: {created_at: nil, id: nil, updated_at: nil, title: ""},
-        errors: {title: "Title can't be blank"}
+        errors: {title: "can't be blank"}
       )
     end
   end
@@ -154,7 +154,7 @@ RSpec.describe "Brands" do
           updated_at: formatted_time(brand.updated_at),
           title: brand.title
         },
-        errors: {title: "Title can't be blank"}
+        errors: {title: "can't be blank"}
       )
     end
   end

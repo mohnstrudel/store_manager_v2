@@ -114,7 +114,7 @@ RSpec.describe "ShippingCompanies" do
 
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ShippingCompanies/New")
-      expect(inertia.props[:errors]).to include(tracking_url: "Tracking url can't be blank")
+      expect(inertia.props[:errors]).to include(tracking_url: "can't be blank")
     end
 
     it "redirects to the created shipping company", :aggregate_failures do
@@ -134,7 +134,7 @@ RSpec.describe "ShippingCompanies" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ShippingCompanies/New")
       expect_inertia.to have_props(
-        errors: {tracking_url: "Tracking url can't be blank"},
+        errors: {tracking_url: "can't be blank"},
         shippingCompany: {
           created_at: nil,
           id: nil,
@@ -198,7 +198,7 @@ RSpec.describe "ShippingCompanies" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ShippingCompanies/Edit")
       expect_inertia.to have_props(
-        errors: {tracking_url: "Tracking url can't be blank"},
+        errors: {tracking_url: "can't be blank"},
         shippingCompany: {
           created_at: formatted_time(shipping_company.created_at),
           id: shipping_company.id,
