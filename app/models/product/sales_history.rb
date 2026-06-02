@@ -4,11 +4,7 @@ module Product::SalesHistory
   extend ActiveSupport::Concern
 
   def active_sale_items
-    sale_items
-      .for_history
-      .includes(purchase_items: :warehouse)
-      .active
-      .order(created_at: :asc)
+    sale_items.for_history.active.order(created_at: :asc)
   end
 
   def completed_sale_items

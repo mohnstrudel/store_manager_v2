@@ -137,6 +137,7 @@ module ProductHelper
 
   def product_sale_item_props(sale_item, product)
     sale = sale_item.sale
+    purchase_item = sale_item.purchase_items.first
     store_type, store_id = product_sale_info_for_sale(sale)
 
     {
@@ -152,8 +153,8 @@ module ProductHelper
       price: format_money(sale_item.price),
       qty: sale_item.qty,
       status: sale.status,
-      warehouse: sale_item.purchase_items.first&.warehouse&.name.presence || "",
-      purchase_item_path: sale_item.purchase_items.first ? purchase_item_path(sale_item.purchase_items.first) : nil
+      warehouse: purchase_item&.warehouse&.name.presence || "",
+      purchase_item_path: purchase_item ? purchase_item_path(purchase_item) : nil
     }
   end
 

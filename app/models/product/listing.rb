@@ -14,7 +14,14 @@ module Product::Listing
     }
 
     scope :for_details, -> {
-      includes(
+      with_rich_text_description_and_embeds.includes(
+        :franchise,
+        :shopify_info,
+        :woo_info,
+        :brands,
+        :sizes,
+        :versions,
+        :colors,
         media: {image_attachment: :blob},
         purchases: [:product, :supplier, variant: [:version, :color, :size]],
         purchase_items: [:warehouse, :purchase],
