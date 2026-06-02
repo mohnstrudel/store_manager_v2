@@ -20,6 +20,9 @@ importers:
       '@inertiajs/react':
         specifier: ^3.1.1
         version: 3.1.1(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@js-from-routes/client':
+        specifier: ^1.0.4
+        version: 1.0.4
       '@rails/activestorage':
         specifier: ^8.1.300
         version: 8.1.300
@@ -331,6 +334,12 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@js-from-routes/client@1.0.4':
+    resolution: {integrity: sha512-XZks4jIEdVYfcaau1AxIXcSw8j196+JsWeX6h1ip+v7Hn2pYJ8wHr+wLG1hq8S4cSiIN6rS+n/pzTbw2J6y08g==}
+
+  '@js-from-routes/core@1.0.3':
+    resolution: {integrity: sha512-rUYNMTYFKRoo4w28BJOAderskjhYOtkLgj00x14FNjGu5PYurnimjYQp70H34PTtWRXIqJKprGHr15VOZZzPiw==}
 
   '@napi-rs/wasm-runtime@1.1.4':
     resolution: {integrity: sha512-3NQNNgA1YSlJb/kMH1ildASP9HW7/7kYnRI2szWJaofaS1hWmbGI4H+d3+22aGzXXN9IJ+n+GiFVcGipJP18ow==}
@@ -2086,6 +2095,12 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@js-from-routes/client@1.0.4':
+    dependencies:
+      '@js-from-routes/core': 1.0.3
+
+  '@js-from-routes/core@1.0.3': {}
 
   '@napi-rs/wasm-runtime@1.1.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:

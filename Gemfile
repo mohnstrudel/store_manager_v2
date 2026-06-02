@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "4.0.2"
+ruby "4.0.5"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.x.x"
@@ -99,6 +99,7 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "parallel_tests"
   gem "dotenv"
+  gem "js_from_routes", "~> 4.0"
 end
 
 group :development do
@@ -123,7 +124,6 @@ group :development do
   gem "prosopite"
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
-  gem "rubycritic", require: false
   gem "letter_opener"
   gem "rails-mcp-server"
   gem "ruby-lsp"
@@ -137,5 +137,4 @@ group :test do
   gem "shoulda-matchers"
   gem "rails-controller-testing"
   gem "vcr"
-  gem "simplecov", require: false
 end
