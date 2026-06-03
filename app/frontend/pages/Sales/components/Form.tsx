@@ -6,8 +6,8 @@ import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
-import AddressFields from "./AddressFields";
-import SaleItemFields from "./SaleItemFields";
+import AddressFields from "./Form/AddressFields";
+import SaleItemFields from "./Form/SaleItemFields";
 import type { SaleFormOptions, SaleFormRecord, SaleItemFormRecord } from "../types";
 
 type SaleFormProps = {

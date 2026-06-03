@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
-import PurchasedSoldRatio from "./PurchasedSoldRatio";
+import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleIndexRecord } from "../types";
 
 type TableProps = {

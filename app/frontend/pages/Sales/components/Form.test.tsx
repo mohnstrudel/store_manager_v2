@@ -57,11 +57,11 @@ vi.mock("@/components/SmartSelect", () => ({
   },
 }));
 
-vi.mock("./AddressFields", () => ({
+vi.mock("./Form/AddressFields", () => ({
   default: ({ title }: { title: string }) => <div data-testid={`address-fields-${title}`} />,
 }));
 
-vi.mock("./SaleItemFields", () => ({
+vi.mock("./Form/SaleItemFields", () => ({
   default: ({ saleItem }: { saleItem: SaleItemFormRecord & { clientKey: string } }) => (
     <div data-testid="sale-item-fields">{saleItem.product_id ?? "New product"}</div>
   ),

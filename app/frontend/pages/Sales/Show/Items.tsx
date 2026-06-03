@@ -3,7 +3,7 @@ import { Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
-import PurchasedSoldRatio from "./PurchasedSoldRatio";
+import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {

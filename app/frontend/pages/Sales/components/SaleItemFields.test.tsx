@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import SaleItemFields from "./SaleItemFields";
+import SaleItemFields from "./Form/SaleItemFields";
 import type { SaleItemFormRecord, SelectOption } from "../types";
 
 type SmartSelectMockProps = {

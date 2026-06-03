@@ -4,7 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
 import SyncModal from "@/components/SyncModal";
 import { useModalVisibility } from "@/lib/useModalVisibility";
-import Table from "./components/Table";
+import Table from "./Index/Table";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
 
 type IndexProps = {

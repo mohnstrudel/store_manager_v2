@@ -4,7 +4,7 @@ import FormInput from "@/components/FormInput";
 import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import { toSelectedOption } from "@/lib/selectOptions";
-import type { SaleItemFormRecord, SelectOption } from "../types";
+import type { SaleItemFormRecord, SelectOption } from "../../types";
 
 type SaleItemFieldsProps = {
   index: number;
