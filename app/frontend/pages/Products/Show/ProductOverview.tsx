@@ -64,12 +64,14 @@ function WooIdentifier({ product }: ProductOverviewProps) {
     <>
       <p>
         {wooInfo.product_url ? (
-          <ExternalStoreLink href={wooInfo.product_url}>{wooInfo.store_id}</ExternalStoreLink>
+          <a className="link" href={wooInfo.product_url} rel="noopener noreferrer" target="_blank">
+            {wooInfo.store_id}
+          </a>
         ) : (
           wooInfo.store_id
         )}
       </p>
-      <CopyStoreIdButton storeId={wooInfo.store_id} />
+      <CopyToClipboardButton className="text-xs btn_xs" text={wooInfo.store_id} />
     </>
   );
 }
@@ -82,11 +84,16 @@ function ShopifyIdentifier({ product }: ProductOverviewProps) {
   return (
     <>
       <p className="flex gap-2">
-        <ExternalStoreLink href={shopifyInfo.product_url ?? "#"}>
+        <a
+          className="link"
+          href={shopifyInfo.product_url ?? "#"}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
           {shopifyInfo.id_short}
-        </ExternalStoreLink>
+        </a>
       </p>
-      <CopyStoreIdButton storeId={shopifyInfo.id_short} />
+      <CopyToClipboardButton className="text-xs btn_xs" text={shopifyInfo.id_short} />
     </>
   );
 }
@@ -109,23 +116,6 @@ function ShopifyTags({ product }: ProductOverviewProps) {
       </p>
     </>
   );
-}
-
-type ExternalStoreLinkProps = {
-  children: string;
-  href: string;
-};
-
-function ExternalStoreLink({ children, href }: ExternalStoreLinkProps) {
-  return (
-    <a className="link" href={href} rel="noopener noreferrer" target="_blank">
-      {children}
-    </a>
-  );
-}
-
-function CopyStoreIdButton({ storeId }: { storeId: string }) {
-  return <CopyToClipboardButton className="text-xs btn_xs" text={storeId} />;
 }
 
 function TimestampColumns({ columns }: { columns: TimestampColumn[] }) {

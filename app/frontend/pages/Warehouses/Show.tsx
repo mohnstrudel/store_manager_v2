@@ -36,7 +36,9 @@ export default function WarehouseShow(props: ShowProps) {
         <WarehouseDetails warehouse={warehouse} />
       </div>
 
-      <DestroyWarehouseButton onDestroy={destroyWarehouse} />
+      <Button className="w-full h-12 mt-16" onClick={destroyWarehouse} variant="danger">
+        Destroy this warehouse
+      </Button>
     </>
   );
 }
@@ -62,13 +64,5 @@ function WarehouseHeader({ warehouse }: { warehouse: WarehouseShowRecord }) {
         </li>
       </menu>
     </header>
-  );
-}
-
-function DestroyWarehouseButton({ onDestroy }: { onDestroy: () => void }) {
-  return (
-    <Button className="w-full h-12 mt-16" onClick={onDestroy} variant="danger">
-      Destroy this warehouse
-    </Button>
   );
 }
