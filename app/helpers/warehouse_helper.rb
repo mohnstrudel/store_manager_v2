@@ -135,10 +135,8 @@ module WarehouseHelper
       sale_note: sale&.note,
       customer_email: sale&.customer&.email,
       tracking_number: item.tracking_number,
-      tracking_update_path: purchase_item_tracking_number_path(item),
       shipping_company_name: item.shipping_company&.name,
       shipping_company_id: item.shipping_company_id,
-      shipping_company_update_path: purchase_item_shipping_company_path(item),
       payment_progress: {
         progress: item.purchase.progress.to_f,
         paid: format_money(item.purchase.item_paid),

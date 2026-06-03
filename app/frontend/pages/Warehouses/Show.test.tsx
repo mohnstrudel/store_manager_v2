@@ -16,6 +16,7 @@ vi.mock("@inertiajs/react", async () => {
   const React = await vi.importActual<typeof import("react")>("react");
 
   return {
+    usePage: () => ({ url: "/warehouses/1" }),
     Link: ({
       children,
       href,
@@ -138,7 +139,7 @@ describe("Warehouses/Show", () => {
       expect.any(Function),
     );
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
-    expect(document.getElementById("10")).toHaveClass("bg-lime-100/80");
+    expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass("bg-lime-100/80");
 
     await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
@@ -382,11 +383,9 @@ function makePurchaseItem(
     sale_title: "",
     shipping_company_id: null,
     shipping_company_name: "",
-    shipping_company_update_path: "/purchase_items/10/shipping_company",
     sku: "SKU-10",
     title: "Jacket",
     tracking_number: "TRACK-1",
-    tracking_update_path: "/purchase_items/10/tracking_number",
     variant_title: "",
     ...overrides,
   };

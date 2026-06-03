@@ -67,9 +67,9 @@ RSpec.describe "Warehouses" do
 
       item_props = inertia.props[:purchase_items].first
       expect(item_props[:id]).to eq(purchase_item.id)
-      expect(item_props[:tracking_update_path]).to eq(purchase_item_tracking_number_path(purchase_item))
+      expect(item_props[:tracking_number]).to eq("TRACK-1")
       expect(item_props[:shipping_company_id]).to eq(shipping_company.id)
-      expect(item_props[:shipping_company_update_path]).to eq(purchase_item_shipping_company_path(purchase_item))
+      expect(item_props[:shipping_company_name]).to eq("Skyline")
       expect(inertia.props[:shipping_companies]).to include(
         id: shipping_company.id,
         name: "Skyline"

@@ -33,10 +33,8 @@ export type WarehousePurchaseItemRecord = {
   sale_note: string;
   customer_email: string;
   tracking_number: string;
-  tracking_update_path: string;
   shipping_company_id: number | null;
   shipping_company_name: string;
-  shipping_company_update_path: string;
   payment_progress: PaymentProgress;
 };
 

@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { type ChangeEvent, useCallback, useEffect, useState } from "react";
+import { type ChangeEvent, useCallback, useRef } from "react";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
@@ -68,12 +68,9 @@ export function PurchaseItemsSection({
             />
             <PurchaseItemsTable
               purchaseItems={purchase_items}
-              recentlySavedItemId={section.recentlySavedItemId}
-              returnTo={warehousePath}
               selectedId={selected_id}
               selectedIds={section.selectedIds}
               shippingCompanies={shipping_companies}
-              onPurchaseItemSaved={section.markPurchaseItemAsSaved}
               onToggleSelectedId={section.togglePurchaseItemSelection}
             />
             <div className="pagination_bottom">
@@ -132,21 +129,15 @@ function PurchaseItemsEmptyState({ search }: { search: { q: string } }) {
 
 function PurchaseItemsTable({
   purchaseItems,
-  recentlySavedItemId,
-  returnTo,
   selectedId,
   selectedIds,
   shippingCompanies,
-  onPurchaseItemSaved,
   onToggleSelectedId,
 }: {
   purchaseItems: WarehousePurchaseItemRecord[];
-  recentlySavedItemId: number | null;
-  returnTo: string;
   selectedId: number | null;
   selectedIds: number[];
   shippingCompanies: ShippingCompanyOption[];
-  onPurchaseItemSaved: (itemId: number) => void;
   onToggleSelectedId: (event: ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
@@ -169,12 +160,9 @@ function PurchaseItemsTable({
           <PurchaseItemRow
             item={item}
             key={item.id}
-            returnTo={returnTo}
             shippingCompanies={shippingCompanies}
-            isSaved={recentlySavedItemId === item.id}
             isSelected={selectedId === item.id}
             isSelectionChecked={selectedIds.includes(item.id)}
-            onPurchaseItemSaved={onPurchaseItemSaved}
             onToggleSelectedId={onToggleSelectedId}
           />
         ))}
@@ -195,42 +183,26 @@ function PaymentProgressLegend() {
 
 function PurchaseItemRow({
   item,
-  isSaved,
   isSelected,
   isSelectionChecked,
-  returnTo,
   shippingCompanies,
-  onPurchaseItemSaved,
   onToggleSelectedId,
 }: {
   item: WarehousePurchaseItemRecord;
-  isSaved: boolean;
   isSelected: boolean;
   isSelectionChecked: boolean;
-  returnTo: string;
   shippingCompanies: ShippingCompanyOption[];
-  onPurchaseItemSaved: (itemId: number) => void;
   onToggleSelectedId: (event: ChangeEvent<HTMLInputElement>) => void;
 }) {
-  const [isTrackingOpen, setTrackingOpen] = useState(false);
-  const [isShippingOpen, setShippingOpen] = useState(false);
-  const closeTrackingEditor = useCallback(() => {
-    setTrackingOpen(false);
+  const shippingRef = useRef<{ open(): void }>(null);
+  const openShipping = useCallback(() => {
+    shippingRef.current?.open();
   }, []);
-  const openTrackingEditor = useCallback(() => {
-    setTrackingOpen(true);
-    if (!item.shipping_company_id) setShippingOpen(true);
-  }, [item.shipping_company_id]);
-  const closeShippingEditor = useCallback(() => {
-    setShippingOpen(false);
-  }, []);
-  const openShippingEditor = useCallback(() => {
-    setShippingOpen(true);
-  }, []);
+  const trackingAutoOpenShipping = item.shipping_company_id ? undefined : openShipping;
 
   return (
     <tr
-      className={purchaseItemRowClassName({ isSaved, isSelected })}
+      className={purchaseItemRowClassName({ isSelected })}
       id={String(item.id)}
       {...rowNavigationProps(item.path)}
     >
@@ -249,27 +221,15 @@ function PurchaseItemRow({
       <td className="max-w-xs">
         <PurchaseItemCustomer item={item} />
       </td>
-      <td className="max-w-3xs">
-        <InlineTrackingNumberEditor
-          item={item}
-          isOpen={isTrackingOpen}
-          onClose={closeTrackingEditor}
-          onOpen={openTrackingEditor}
-          onSaved={onPurchaseItemSaved}
-          returnTo={returnTo}
-        />
-      </td>
-      <td>
-        <InlineShippingCompanyEditor
-          item={item}
-          isOpen={isShippingOpen}
-          onClose={closeShippingEditor}
-          onOpen={openShippingEditor}
-          onSaved={onPurchaseItemSaved}
-          returnTo={returnTo}
-          shippingCompanies={shippingCompanies}
-        />
-      </td>
+      <InlineTrackingNumberEditor
+        item={item}
+        onAutoOpenShipping={trackingAutoOpenShipping}
+      />
+      <InlineShippingCompanyEditor
+        ref={shippingRef}
+        item={item}
+        shippingCompanies={shippingCompanies}
+      />
       <td className="w-full max-w-45 lg:w-45">
         <PaymentProgressBar progress={item.payment_progress} />
       </td>
@@ -345,43 +305,15 @@ function PurchaseItemCustomer({ item }: { item: WarehousePurchaseItemRecord }) {
 function usePurchaseItemsSection() {
   const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
     useWarehouseMoveSelection();
-  const { markPurchaseItemAsSaved, recentlySavedItemId } = useRecentlySavedPurchaseItem();
 
   return {
     clearSelectedIds,
-    markPurchaseItemAsSaved,
-    recentlySavedItemId,
     selectedIds,
     togglePurchaseItemSelection: toggleSelectedIdFromDataAttribute("purchaseItemId"),
   };
 }
 
-function useRecentlySavedPurchaseItem() {
-  const [saved, setSaved] = useState<{ id: number } | null>(null);
 
-  const markPurchaseItemAsSaved = useCallback((itemId: number) => {
-    setSaved({ id: itemId });
-  }, []);
-
-  useEffect(() => {
-    if (!saved) return undefined;
-
-    const timeout = window.setTimeout(() => setSaved(null), 2400);
-
-    return () => window.clearTimeout(timeout);
-  }, [saved]);
-
-  return { markPurchaseItemAsSaved, recentlySavedItemId: saved?.id ?? null };
-}
-
-function purchaseItemRowClassName({
-  isSaved,
-  isSelected,
-}: {
-  isSaved: boolean;
-  isSelected: boolean;
-}) {
-  return ["hoverable", isSelected ? "selected" : "", isSaved ? "bg-lime-100/80 dark:bg-lime-900/30" : ""]
-    .filter(Boolean)
-    .join(" ");
+function purchaseItemRowClassName({ isSelected }: { isSelected: boolean }) {
+  return ["hoverable", isSelected ? "selected" : ""].filter(Boolean).join(" ");
 }
