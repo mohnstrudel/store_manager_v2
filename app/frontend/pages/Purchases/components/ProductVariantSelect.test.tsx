@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import ProductVariantSelect from "./ProductVariantSelect";
+import ProductVariantSelect from "./Form/ProductVariantSelect";
 import { type SelectOption } from "../types";
 
 vi.mock("@/components/SmartSelect", () => ({

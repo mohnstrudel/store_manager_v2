@@ -2,7 +2,7 @@ import { useCallback, type ChangeEvent } from "react";
 import { Link } from "@inertiajs/react";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
-import PaymentProgressBar from "./PaymentProgressBar";
+import PaymentProgressBar from "../components/PaymentProgressBar";
 import type { PurchaseIndexRecord } from "../types";
 
 type IndexTableProps = {

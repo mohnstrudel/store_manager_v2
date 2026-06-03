@@ -4,12 +4,12 @@ import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "./MoveToWarehouseForm";
-import PaymentProgressBar from "./PaymentProgressBar";
-import { InlineShippingCompanyEditor } from "./InlineShippingCompanyEditor";
-import { InlineShippingCostEditor } from "./InlineShippingCostEditor";
-import { InlineTrackingNumberEditor } from "./InlineTrackingNumberEditor";
+import MoveToWarehouseForm from "../components/MoveToWarehouseForm";
+import PaymentProgressBar from "../components/PaymentProgressBar";
+import { InlineShippingCompanyEditor } from "../components/InlineShippingCompanyEditor";
+import { InlineTrackingNumberEditor } from "../components/InlineTrackingNumberEditor";
 import type { PurchaseItemRecord, PurchaseShowRecord, ShippingCompanyOption, WarehouseOption } from "../types";
+import { InlineShippingCostEditor } from "./InlineShippingCostEditor";
 
 type PurchaseItemsProps = {
   movePath: string;

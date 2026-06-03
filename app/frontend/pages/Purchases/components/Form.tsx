@@ -5,7 +5,7 @@ import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
 import { toSelectedOption } from "@/lib/selectOptions";
-import ProductVariantSelect from "./ProductVariantSelect";
+import ProductVariantSelect from "./Form/ProductVariantSelect";
 import { type PurchaseFormOptions, type PurchaseFormRecord } from "../types";
 
 type PurchaseFormProps = {

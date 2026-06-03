@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import Payments from "./Payments";
+import Payments from "../Show/Payments";
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
 const deletePayment = vi.hoisted(() => vi.fn<(...args: unknown[]) => unknown>());

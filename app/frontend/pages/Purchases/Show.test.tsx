@@ -26,7 +26,7 @@ vi.mock("@inertiajs/react", () => ({
   },
 }));
 
-vi.mock("./components/PurchaseItems", () => ({
+vi.mock("./Show/PurchaseItems", () => ({
   default: ({
     movePath,
     purchaseItems,
@@ -45,13 +45,13 @@ vi.mock("./components/PurchaseItems", () => ({
   ),
 }));
 
-vi.mock("./components/Details", () => ({
+vi.mock("./Show/Details", () => ({
   default: ({ purchase }: { purchase: PurchaseShowRecord }) => (
     <section data-testid="purchase-details">Details for {purchase.product_title}</section>
   ),
 }));
 
-vi.mock("./components/Payments", () => ({
+vi.mock("./Show/Payments", () => ({
   default: ({
     newPayment,
     payments,

@@ -3,9 +3,9 @@ import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
-import Details from "./components/Details";
-import Payments from "./components/Payments";
-import PurchaseItems from "./components/PurchaseItems";
+import Details from "./Show/Details";
+import Payments from "./Show/Payments";
+import PurchaseItems from "./Show/PurchaseItems";
 import type {
   NewPaymentRecord,
   PaymentRecord,
@@ -50,15 +50,15 @@ export default function Show({
       </PageHeader>
 
       <div className="section_wide flex flex-col gap-8">
-        <PurchaseActivity
-          newPayment={new_payment}
-          payments={payments}
+        <PurchaseItems
+          movePath={warehouse_move_path}
           purchase={purchase}
           purchaseItems={purchase_items}
           shippingCompanies={shipping_companies}
-          warehouseMovePath={warehouse_move_path}
           warehouses={warehouses}
         />
+        <Details purchase={purchase} />
+        <Payments newPayment={new_payment} payments={payments} purchase={purchase} />
       </div>
 
       <Button className="w-full h-12 mt-16" onClick={destroyPurchase} variant="danger">
@@ -73,40 +73,6 @@ function PurchaseTitle({ id }: { id: number }) {
     <>
       <i className="icn mr-2">💰</i>
       Purchase {id}
-    </>
-  );
-}
-
-type PurchaseActivityProps = {
-  newPayment: NewPaymentRecord;
-  payments: PaymentRecord[];
-  purchase: PurchaseShowRecord;
-  purchaseItems: PurchaseItemRecord[];
-  shippingCompanies: ShippingCompanyOption[];
-  warehouseMovePath: string;
-  warehouses: WarehouseOption[];
-};
-
-function PurchaseActivity({
-  newPayment,
-  payments,
-  purchase,
-  purchaseItems,
-  shippingCompanies,
-  warehouseMovePath,
-  warehouses,
-}: PurchaseActivityProps) {
-  return (
-    <>
-      <PurchaseItems
-        movePath={warehouseMovePath}
-        purchase={purchase}
-        purchaseItems={purchaseItems}
-        shippingCompanies={shippingCompanies}
-        warehouses={warehouses}
-      />
-      <Details purchase={purchase} />
-      <Payments newPayment={newPayment} payments={payments} purchase={purchase} />
     </>
   );
 }

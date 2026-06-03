@@ -9,7 +9,7 @@ import {
   type SetStateAction,
 } from "react";
 import SmartSelect from "@/components/SmartSelect";
-import { type SelectOption } from "../types";
+import { type SelectOption } from "../../types";
 
 type ProductVariantSelectProps = {
   initialVariants: SelectOption<number>[];
