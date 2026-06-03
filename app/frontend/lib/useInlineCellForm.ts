@@ -1,98 +1,116 @@
-import { useForm } from "@inertiajs/react";
-import { useEffect, useEffectEvent, type ChangeEvent } from "react";
+import type { PathHelper } from "@js-from-routes/client";
+import { useForm, usePage } from "@inertiajs/react";
+import { useCallback, useEffect, useEffectEvent, useState, type ChangeEvent } from "react";
 import { replaceById } from "./replaceById";
+import { useRecentlySaved } from "./useRecentlySaved";
 
 type InlineCellFormConfig<TRecord extends { id: number }> = {
-  isOpen: boolean;
-  /** Row being edited; the initial value and id are read from it. */
-  record: TRecord;
+  editedRecord: TRecord;
   /** Attribute being edited, e.g. "tracking_number". Must exist on the record. */
-  field: keyof TRecord & string;
-  returnTo: string;
-  updatePath: string;
-  /** Strong-params wrapper key, e.g. "purchase_item". */
-  param: string;
-  /** Page prop holding the rows to update, e.g. "purchase_items". */
-  collection: string;
-  /** Optimistic change applied to the row while the request is in flight. */
-  toRecordPatch: (value: string) => Partial<TRecord>;
-  /** Reads a field error. Defaults to `errors[field] || errors.base`. */
+  attributeName: keyof TRecord & string;
+  /** The js-from-routes PATCH helper. Provides the URL, param key, and collection name. */
+  route: PathHelper;
+  /** Maps the new form value to the record state for the optimistic update.
+   *  Defaults to `{ [attributeName]: newValue }`. Override when the optimistic
+   *  row needs extra fields or type coercion (e.g. id + display name). */
+  mapNewValueToState?: (newValue: string) => Partial<TRecord>;
+  /** Defaults to the current page URL. Override only when saving should return elsewhere. */
+  returnTo?: string;
+  /** Reads a field error. Defaults to `errors[attributeName] || errors.base`. */
   errorFrom?: (errors: Record<string, string>) => string;
-  onClose: () => void;
-  onOpen: () => void;
-  onSaved: () => void;
+  /** Side effect called when the user opens the editor (not via ref). */
+  onOpen?: () => void;
 };
 
 /**
- * Drives a single editable table cell that patches one field via Inertia.
+ * Drives a single editable table cell that patches one attribute via Inertia.
  *
- * Bakes in the conventions every inline cell follows: the form starts from
- * `record[field]`, the request payload is `{ [param]: { [field]: value },
- * return_to }`, and the optimistic update replaces that record inside one page
- * collection. The caller only describes the field-specific bits — the optimistic
- * change and, when a field needs more than its own error, a custom error reader.
+ * Manages open state and derives the endpoint URL, strong-params key, and page
+ * collection from the js-from-routes helper. Returns `open`, `close`, and
+ * `openSilently` so callers don't manage their own useState / useCallback.
+ * `openSilently` is for `useImperativeHandle` — it sets state without triggering
+ * the `onOpen` side effect, preventing cascade when siblings open each other.
  */
 export function useInlineCellForm<TRecord extends { id: number }>({
-  collection,
-  errorFrom,
-  field,
-  isOpen,
-  onClose,
-  onOpen,
-  onSaved,
-  param,
-  record,
+  editedRecord,
+  attributeName,
+  route,
+  mapNewValueToState,
   returnTo,
-  toRecordPatch,
-  updatePath,
+  errorFrom,
+  onOpen: onOpenEffect,
 }: InlineCellFormConfig<TRecord>) {
-  const recordId = record.id;
-  const persistedValue = String(record[field] ?? "");
-  const form = useForm({ value: persistedValue, return_to: returnTo });
+  const { isSaved, markAsSaved } = useRecentlySaved();
+  const page = usePage();
+  const resolvedReturnTo = returnTo ?? page.url;
+  const { collection, param, idParamName } = parseRoute(route.pathTemplate);
+  const updatePath = route.path({ [idParamName]: editedRecord.id });
+  const resolvedMapToState: (newValue: string) => Partial<TRecord> =
+    mapNewValueToState ??
+    ((newValue: string): any => Object.fromEntries([[attributeName, newValue]]));
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openSilently = useCallback(() => setIsOpen(true), []);
+
+  const open = useCallback(() => {
+    setIsOpen(true);
+    onOpenEffect?.();
+  }, [onOpenEffect]);
+
+  const close = useCallback(() => setIsOpen(false), []);
+
+  const recordId = editedRecord.id;
+  const persistedValue = String(editedRecord[attributeName] ?? "");
+  const form = useForm({ value: persistedValue, return_to: resolvedReturnTo });
 
   const syncToPersistedValue = useEffectEvent(() => {
-    form.setData({ value: persistedValue, return_to: returnTo });
+    form.setData({ value: persistedValue, return_to: resolvedReturnTo });
   });
 
   useEffect(() => {
     if (isOpen) return;
     syncToPersistedValue();
-  }, [isOpen, persistedValue, returnTo]);
+  }, [isOpen, persistedValue, resolvedReturnTo]);
 
-  const readError = errorFrom ?? defaultErrorReader(field);
+  const readError = errorFrom ?? defaultErrorReader(attributeName);
 
   const onChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const nextValue = event.target.value;
     form.clearErrors();
-    form.setData((data) => ({ ...data, value: nextValue }));
+    form.setData((data) => ({ ...data, value: event.target.value }));
   };
 
   const save = () => {
-    const editedValue = form.data.value;
+    const newValue = form.data.value;
     form.transform(() => ({
-      [param]: { [field]: editedValue },
+      [param]: { [attributeName]: newValue },
       return_to: form.data.return_to,
     }));
     form
       .optimistic<Record<string, TRecord[]>>((props) => ({
-        [collection]: replaceById(props[collection], recordId, toRecordPatch(editedValue)),
+        [collection]: replaceById(props[collection], recordId, resolvedMapToState(newValue)),
       }))
       .patch(updatePath, {
         only: [collection],
         preserveScroll: true,
         onBefore: () => {
           form.clearErrors();
-          onClose();
+          close();
         },
-        onError: () => onOpen(),
+        onError: () => open(),
         onSuccess: () => {
           form.clearErrors();
-          onSaved();
+          markAsSaved();
         },
       });
   };
 
   return {
+    isOpen,
+    isSaved,
+    open,
+    close,
+    openSilently,
     value: form.data.value,
     error: readError(form.errors),
     onChange,
@@ -100,10 +118,22 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   };
 }
 
-function defaultErrorReader(field: string) {
-  const label = field.replace(/_id$/, "").replace(/_/g, " ");
+function parseRoute(pathTemplate: string) {
+  const parts = pathTemplate.split("/").filter(Boolean);
+  const collection = parts[0];
+  const namedIdPart = parts.find((p) => p.startsWith(":") && p.endsWith("_id"));
+  if (namedIdPart) {
+    const idParamName = namedIdPart.slice(1);
+    return { collection, param: idParamName.replace(/_id$/, ""), idParamName };
+  }
+  const param = collection.replace(/s$/, "");
+  return { collection, param, idParamName: "id" };
+}
+
+function defaultErrorReader(attributeName: string) {
+  const label = attributeName.replace(/_id$/, "").replace(/_/g, " ");
   return (errors: Record<string, string>) => {
     if (Object.keys(errors).length === 0) return "";
-    return errors[field] || errors.base || `Could not save ${label}`;
+    return errors[attributeName] || errors.base || `Could not save ${label}`;
   };
 }

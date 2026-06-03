@@ -7,8 +7,49 @@ import {
 } from "react";
 
 /**
- * Closed state of an editable table cell: shows the current value and opens the
- * editor on click or keyboard activation, without triggering row navigation.
+ * The <td> container shared by both the display and edit states. Keeping one
+ * stable element prevents style flickering when toggling between states.
+ *
+ * Pass `onOpen` only when in the closed state — it wires the whole-cell click
+ * to open the editor and stops the click from triggering row navigation.
+ */
+export function InlineCellTd({
+  children,
+  className = "",
+  isSaved = false,
+  onOpen,
+}: {
+  children: ReactNode;
+  className?: string;
+  isSaved?: boolean;
+  onOpen?: () => void;
+}) {
+  const handleClick = useCallback(
+    (event: MouseEvent<HTMLTableCellElement>) => {
+      event.stopPropagation();
+      onOpen?.();
+    },
+    [onOpen],
+  );
+
+  const tdClassName = [
+    "inline_editable",
+    className,
+    isSaved ? "bg-lime-100/80 dark:bg-lime-900/30" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <td className={tdClassName} onAuxClick={stopRowEvents} onClick={handleClick}>
+      {children}
+    </td>
+  );
+}
+
+/**
+ * Closed state content: displays the current value and exposes keyboard
+ * activation to open the editor. Render this inside InlineCellTd.
  */
 export function InlineCellTrigger({
   ariaLabel,
@@ -19,14 +60,6 @@ export function InlineCellTrigger({
   children: ReactNode;
   onOpen: () => void;
 }) {
-  const openFromClick = useCallback(
-    (event: MouseEvent<HTMLDivElement>) => {
-      event.stopPropagation();
-      onOpen();
-    },
-    [onOpen],
-  );
-
   const openFromKeyboard = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
       event.stopPropagation();
@@ -39,23 +72,26 @@ export function InlineCellTrigger({
   );
 
   return (
-    <div
-      aria-label={ariaLabel}
-      className="inline_cell_display"
-      onAuxClick={stopRowEvents}
-      onClick={openFromClick}
-      onKeyDown={openFromKeyboard}
-      role="button"
-      tabIndex={0}
-    >
-      {children}
-    </div>
+    <>
+      <div
+        aria-label={ariaLabel}
+        className="inline_cell_display"
+        onKeyDown={openFromKeyboard}
+        role="button"
+        tabIndex={0}
+      >
+        {children}
+      </div>
+      <button className="btn_rounded btn_xs mt-2" onClick={onOpen} onKeyDown={stopRowEvents} type="button">
+        Edit
+      </button>
+    </>
   );
 }
 
 /**
- * Open state of an editable table cell: wraps the field(s) in a form with Save
- * and Exit actions, and keeps interactions from bubbling to the table row.
+ * Open state content: wraps the field(s) in a form with Save and Exit actions,
+ * and keeps interactions from bubbling to the table row. Render inside InlineCellTd.
  */
 export function InlineCellForm({
   children,
@@ -74,12 +110,20 @@ export function InlineCellForm({
     [onSave],
   );
 
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLFormElement>) => {
+      event.stopPropagation();
+      if (event.key === "Escape") onCancel();
+    },
+    [onCancel],
+  );
+
   return (
     <form
-      className="flex flex-col w-full gap-2"
+      className="flex flex-col gap-2 justify-self-center"
       onAuxClick={stopRowEvents}
       onClick={stopRowEvents}
-      onKeyDown={stopRowEvents}
+      onKeyDown={handleKeyDown}
       onSubmit={submit}
     >
       {children}

@@ -31,7 +31,7 @@ export default function SaleItemFields({
       saleItem.id ? (
         <DestroyCheckbox defaultChecked={saleItem._destroy} name={`${prefix}[_destroy]`} />
       ) : (
-        <button className="btn_rounded btn_red" onClick={handleRemove} type="button">
+        <button className="btn_rounded btn_red text-sm" onClick={handleRemove} type="button">
           Cancel
         </button>
       ),

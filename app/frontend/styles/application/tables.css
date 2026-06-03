@@ -45,9 +45,13 @@
     @apply hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 
-  .inline_cell_display {
-    @apply w-full min-h-8 flex items-center justify-center text-center cursor-pointer rounded px-1 transition-colors duration-100;
-    @apply hover:bg-blue-50/70 hover:ring-1 hover:ring-blue-200/60;
-    @apply dark:hover:bg-blue-900/20 dark:hover:ring-blue-800/40;
+  .inline_editable {
+    @apply cursor-pointer transition-colors duration-100;
+    @apply hover:bg-sky-50/70 hover:ring-sky-200/60;
+    @apply dark:hover:bg-sky-900/20 dark:hover:ring-sky-800/40;
+  }
+
+  .inline_editable:hover button {
+    @apply text-sky-700 bg-sky-100 hover:bg-sky-200/76 dark:text-sky-300 dark:bg-sky-900/50 dark:hover:bg-sky-900;
   }
 }
