@@ -8,7 +8,7 @@ import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import SmartSelect from "@/components/SmartSelect";
 import { toSelectedOption } from "@/lib/selectOptions";
-import { type SelectOption, type VariantFormData } from "../types";
+import { type SelectOption, type VariantFormData } from "../../types";
 
 type VariantFieldsProps = {
   colors: SelectOption<number>[];

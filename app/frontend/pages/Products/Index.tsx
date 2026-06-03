@@ -5,7 +5,7 @@ import SearchableTableSection from "@/components/SearchableTableSection";
 import SyncModal from "@/components/SyncModal";
 import { useModalVisibility } from "@/lib/useModalVisibility";
 import { type PaginationMeta, type ProductIndexRecord } from "./types";
-import IndexTable from "./components/IndexTable";
+import IndexTable from "./Index/Table";
 
 type IndexProps = {
   products: ProductIndexRecord[];

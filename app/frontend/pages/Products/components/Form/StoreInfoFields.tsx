@@ -4,7 +4,7 @@ import FormControl from "@/components/FormControl";
 import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import TagSelect from "@/components/TagSelect";
-import { type SelectOption, type StoreInfoFormData } from "../types";
+import { type SelectOption, type StoreInfoFormData } from "../../types";
 
 type StoreOption = SelectOption<string>;
 const EMPTY_ERRORS: Record<string, string | undefined> = {};

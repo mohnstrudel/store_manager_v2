@@ -3,7 +3,7 @@ import FormRow from "@/components/FormRow";
 import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import { toSelectedOption } from "@/lib/selectOptions";
-import { type PurchaseFormData, type SelectOption } from "../types";
+import { type PurchaseFormData, type SelectOption } from "../../types";
 
 type PurchaseFieldsProps = {
   errors?: Record<string, string | undefined>;

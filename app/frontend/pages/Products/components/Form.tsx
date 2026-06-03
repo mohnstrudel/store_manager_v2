@@ -9,10 +9,10 @@ import ImageUploader from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
 import { toSelectedOption } from "@/lib/selectOptions";
 import { type SectionRow, useDynamicSection } from "@/lib/useDynamicSection";
-import TiptapEditor from "./TiptapEditor";
-import VariantFields from "./VariantFields";
-import StoreInfoFields from "./StoreInfoFields";
-import PurchaseFields from "./PurchaseFields";
+import TiptapEditor from "./Form/TiptapEditor";
+import VariantFields from "./Form/VariantFields";
+import StoreInfoFields from "./Form/StoreInfoFields";
+import PurchaseFields from "./Form/PurchaseFields";
 import {
   type FormOptions,
   type MediaFormData,

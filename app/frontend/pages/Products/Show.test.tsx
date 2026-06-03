@@ -33,13 +33,13 @@ vi.mock("./components/ImageGallery", () => ({
   ),
 }));
 
-vi.mock("./components/ProductVariants", () => ({
+vi.mock("./Show/ProductVariants", () => ({
   default: ({ variants }: { variants: VariantRecord[] }) => (
     <div data-testid="product-variants">Variants: {variants.length}</div>
   ),
 }));
 
-vi.mock("./components/SalesSection", () => ({
+vi.mock("./Show/SalesSection", () => ({
   default: ({
     hasVariants,
     sales,
@@ -55,7 +55,7 @@ vi.mock("./components/SalesSection", () => ({
   ),
 }));
 
-vi.mock("./components/PurchasesSection", () => ({
+vi.mock("./Show/PurchasesSection", () => ({
   default: ({ purchases }: { purchases: PurchaseRecord[] }) => (
     <div data-testid="purchases">Purchases: {purchases.length}</div>
   ),

@@ -114,7 +114,7 @@ vi.mock("@/components/SmartSelect", () => ({
   },
 }));
 
-vi.mock("./TiptapEditor", () => ({
+vi.mock("./Form/TiptapEditor", () => ({
   default: ({ defaultValue, name }: { defaultValue: string; name: string }) => (
     <>
       <input data-testid="description-input" name={name} type="hidden" value={defaultValue} />
@@ -123,7 +123,7 @@ vi.mock("./TiptapEditor", () => ({
   ),
 }));
 
-vi.mock("./VariantFields", () => ({
+vi.mock("./Form/VariantFields", () => ({
   default: ({
     errors = {},
     index,
@@ -149,7 +149,7 @@ vi.mock("./VariantFields", () => ({
   ),
 }));
 
-vi.mock("./StoreInfoFields", () => ({
+vi.mock("./Form/StoreInfoFields", () => ({
   default: ({
     errors = {},
     index,
@@ -176,7 +176,7 @@ vi.mock("./StoreInfoFields", () => ({
   ),
 }));
 
-vi.mock("./PurchaseFields", () => ({
+vi.mock("./Form/PurchaseFields", () => ({
   default: ({
     errors = {},
     purchase,
