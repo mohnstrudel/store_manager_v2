@@ -2,7 +2,7 @@ import { router } from "@inertiajs/react";
 import { useCallback, type ChangeEvent } from "react";
 import ResourceIndexPage from "@/components/ResourceIndexPage";
 import { stopRowNavigation } from "@/lib/rowNavigation";
-import IndexTable, { type WarehouseRecord } from "./components/IndexTable";
+import IndexTable, { type WarehouseRecord } from "./Index/Table";
 
 type IndexProps = {
   warehouses: WarehouseRecord[];
