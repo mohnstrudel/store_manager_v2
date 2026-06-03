@@ -19,6 +19,7 @@ describe PurchaseItemPolicy do
     it { is_expected.to permit_action(:edit_shipping_company) }
     it { is_expected.to permit_action(:cancel_edit_shipping_company) }
     it { is_expected.to permit_action(:update_shipping_company) }
+    it { is_expected.to permit_action(:update_shipping_cost) }
   end
 
   context "when user is manager" do
@@ -32,6 +33,7 @@ describe PurchaseItemPolicy do
     it { is_expected.to forbid_action(:edit_shipping_company) }
     it { is_expected.to forbid_action(:cancel_edit_shipping_company) }
     it { is_expected.to forbid_action(:update_shipping_company) }
+    it { is_expected.to forbid_action(:update_shipping_cost) }
   end
 
   context "when user is support" do
@@ -45,6 +47,7 @@ describe PurchaseItemPolicy do
     it { is_expected.to forbid_action(:edit_shipping_company) }
     it { is_expected.to forbid_action(:cancel_edit_shipping_company) }
     it { is_expected.to forbid_action(:update_shipping_company) }
+    it { is_expected.to forbid_action(:update_shipping_cost) }
   end
 
   context "when user is guest" do
@@ -58,5 +61,6 @@ describe PurchaseItemPolicy do
     it { is_expected.to forbid_action(:edit_shipping_company) }
     it { is_expected.to forbid_action(:cancel_edit_shipping_company) }
     it { is_expected.to forbid_action(:update_shipping_company) }
+    it { is_expected.to forbid_action(:update_shipping_cost) }
   end
 end

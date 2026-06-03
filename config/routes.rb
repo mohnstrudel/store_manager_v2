@@ -107,6 +107,7 @@ Rails.application.routes.draw do
         resource :sale_item_link, only: :destroy, path: "unlink"
         resource :tracking_number, only: :update
         resource :shipping_company, only: :update
+        resource :shipping_cost, only: :update
       end
     end
 

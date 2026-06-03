@@ -11,6 +11,7 @@ import type {
   PaymentRecord,
   PurchaseItemRecord,
   PurchaseShowRecord,
+  ShippingCompanyOption,
   WarehouseOption,
 } from "./types";
 
@@ -19,6 +20,7 @@ type ShowProps = {
   payments: PaymentRecord[];
   purchase: PurchaseShowRecord;
   purchase_items: PurchaseItemRecord[];
+  shipping_companies: ShippingCompanyOption[];
   warehouse_move_path: string;
   warehouses: WarehouseOption[];
 };
@@ -28,6 +30,7 @@ export default function Show({
   payments,
   purchase,
   purchase_items,
+  shipping_companies,
   warehouse_move_path,
   warehouses,
 }: ShowProps) {
@@ -52,6 +55,7 @@ export default function Show({
           payments={payments}
           purchase={purchase}
           purchaseItems={purchase_items}
+          shippingCompanies={shipping_companies}
           warehouseMovePath={warehouse_move_path}
           warehouses={warehouses}
         />
@@ -78,6 +82,7 @@ type PurchaseActivityProps = {
   payments: PaymentRecord[];
   purchase: PurchaseShowRecord;
   purchaseItems: PurchaseItemRecord[];
+  shippingCompanies: ShippingCompanyOption[];
   warehouseMovePath: string;
   warehouses: WarehouseOption[];
 };
@@ -87,6 +92,7 @@ function PurchaseActivity({
   payments,
   purchase,
   purchaseItems,
+  shippingCompanies,
   warehouseMovePath,
   warehouses,
 }: PurchaseActivityProps) {
@@ -96,6 +102,7 @@ function PurchaseActivity({
         movePath={warehouseMovePath}
         purchase={purchase}
         purchaseItems={purchaseItems}
+        shippingCompanies={shippingCompanies}
         warehouses={warehouses}
       />
       <Details purchase={purchase} />

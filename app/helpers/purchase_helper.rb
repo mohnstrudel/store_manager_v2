@@ -15,7 +15,8 @@ module PurchaseHelper
       payments: payments.map { |payment| payment_props(payment, purchase:) },
       new_payment: unsaved_payment_props(new_payment, purchase:),
       warehouses: Warehouse.order(name: :asc).map { |warehouse| purchase_warehouse_props(warehouse) },
-      warehouse_move_path: warehouse_move_path
+      warehouse_move_path: warehouse_move_path,
+      shipping_companies: ShippingCompany.ordered.map { |sc| { id: sc.id, name: sc.name } }
     }
   end
 
@@ -73,12 +74,15 @@ module PurchaseHelper
       edit_path: edit_purchase_item_path(purchase_item),
       unlink_path: purchase_item_sale_item_link_path(purchase_item),
       warehouse_name: purchase_item.warehouse.name,
-      warehouse_path: warehouse_path(purchase_item.warehouse),
+      warehouse_path: warehouse_path(purchase_item.warehouse, selected: purchase_item.id, anchor: purchase_item.id),
       sale_title: purchase_item.sale&.select_title,
       sale_path: purchase_item.sale ? sale_path(purchase_item.sale) : nil,
       sale_address: purchase_item.sale ? sale_address_for_clipboard(purchase_item.sale) : "",
       customer_email: purchase_item.sale&.customer&.email,
-      shipping_cost: format_money(purchase_item.shipping_cost)
+      tracking_number: purchase_item.tracking_number.to_s,
+      shipping_company_id: purchase_item.shipping_company_id,
+      shipping_company_name: purchase_item.shipping_company&.name.to_s,
+      shipping_cost: purchase_item.shipping_cost.to_i.to_s
     }
   end
 

@@ -1,4 +1,4 @@
-import { useCallback, type MouseEvent } from "react";
+import { useCallback, useRef, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
@@ -6,12 +6,16 @@ import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import MoveToWarehouseForm from "./MoveToWarehouseForm";
 import PaymentProgressBar from "./PaymentProgressBar";
-import type { PurchaseItemRecord, PurchaseShowRecord, WarehouseOption } from "../types";
+import { InlineShippingCompanyEditor } from "./InlineShippingCompanyEditor";
+import { InlineShippingCostEditor } from "./InlineShippingCostEditor";
+import { InlineTrackingNumberEditor } from "./InlineTrackingNumberEditor";
+import type { PurchaseItemRecord, PurchaseShowRecord, ShippingCompanyOption, WarehouseOption } from "../types";
 
 type PurchaseItemsProps = {
   movePath: string;
   purchase: PurchaseShowRecord;
   purchaseItems: PurchaseItemRecord[];
+  shippingCompanies: ShippingCompanyOption[];
   warehouses: WarehouseOption[];
 };
 
@@ -19,6 +23,7 @@ export default function PurchaseItems({
   movePath,
   purchase,
   purchaseItems,
+  shippingCompanies,
   warehouses,
 }: PurchaseItemsProps) {
   const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
@@ -68,10 +73,10 @@ export default function PurchaseItems({
             <tr>
               <th />
               <th>ID</th>
-              <th>Warehouse</th>
-              <th>Sale</th>
-              <th>Customer</th>
-              <th className="text-right">Shipping</th>
+              <th>Purchased Item</th>
+              <th className="text-center">Tracking</th>
+              <th className="text-center">Shipping Co.</th>
+              <th className="text-center">Cost</th>
               <th className="text-right">Actions</th>
             </tr>
           </thead>
@@ -81,6 +86,7 @@ export default function PurchaseItems({
                 key={purchaseItem.id}
                 purchaseItem={purchaseItem}
                 selectedIds={selectedIds}
+                shippingCompanies={shippingCompanies}
                 toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
               />
             ))}
@@ -98,14 +104,59 @@ type ToggleSelectedIdFromDataAttribute = ReturnType<
 type PurchaseItemRowProps = {
   purchaseItem: PurchaseItemRecord;
   selectedIds: number[];
+  shippingCompanies: ShippingCompanyOption[];
   toggleSelectedIdFromDataAttribute: ToggleSelectedIdFromDataAttribute;
 };
 
 function PurchaseItemRow({
   purchaseItem,
   selectedIds,
+  shippingCompanies,
   toggleSelectedIdFromDataAttribute,
 }: PurchaseItemRowProps) {
+  const trackingRef = useRef<{ open(): void }>(null);
+  const shippingRef = useRef<{ open(): void }>(null);
+  const shippingCostRef = useRef<{ open(): void }>(null);
+  const openTracking = useCallback(() => {
+    trackingRef.current?.open();
+  }, []);
+  const openShipping = useCallback(() => {
+    shippingRef.current?.open();
+  }, []);
+  const openShippingCost = useCallback(() => {
+    shippingCostRef.current?.open();
+  }, []);
+
+  // When all three fields are blank, clicking any one opens all three.
+  const isBlankRow =
+    !purchaseItem.tracking_number &&
+    !purchaseItem.shipping_company_id &&
+    parseFloat(purchaseItem.shipping_cost) === 0;
+
+  // Tracking: open shipping when no company; also open cost when the whole row is blank.
+  const trackingAutoOpen = useCallback(() => {
+    if (purchaseItem.shipping_company_id) return;
+
+    openShipping();
+    if (isBlankRow) openShippingCost();
+  }, [isBlankRow, openShipping, openShippingCost, purchaseItem.shipping_company_id]);
+
+  // Shipping: open tracking + cost when blank row.
+  const shippingAutoOpen = useCallback(() => {
+    if (!isBlankRow) return;
+
+    openTracking();
+    openShippingCost();
+  }, [isBlankRow, openShippingCost, openTracking]);
+
+  // Cost: open tracking + shipping when blank row.
+  const costAutoOpen = useCallback(() => {
+    if (!isBlankRow) return;
+
+    openTracking();
+    openShipping();
+  }, [isBlankRow, openShipping, openTracking]);
+
   const unlinkPurchaseItem = useConfirmedDestroy(
     purchaseItem.unlink_path,
     "Unlink this purchase item?",
@@ -117,7 +168,7 @@ function PurchaseItemRow({
   }, [unlinkPurchaseItem]);
 
   return (
-    <tr className="hoverable" {...rowNavigationProps(purchaseItem.path)}>
+    <tr className="hoverable" id={String(purchaseItem.id)} {...rowNavigationProps(purchaseItem.path)}>
       <td className="no_events text-center">
         <input
           checked={selectedIds.includes(purchaseItem.id)}
@@ -129,44 +180,70 @@ function PurchaseItemRow({
       </td>
       <td>{purchaseItem.id}</td>
       <td>
-        <Link
-          className="link no_events"
-          href={purchaseItem.warehouse_path}
-          onClick={stopRowNavigation}
-          prefetch
-        >
-          {purchaseItem.warehouse_name}
-        </Link>
+        <div className="flex flex-col gap-2">
+          <span>
+            <span className="text-gray-500">
+              <i className="icn">📦</i>&nbsp;Status:
+            </span>
+            <Link
+              className="link no_events ml-2"
+              href={purchaseItem.warehouse_path}
+              onClick={stopRowNavigation}
+              prefetch
+            >
+              {purchaseItem.warehouse_name}
+            </Link>
+          </span>
+          {purchaseItem.sale_path && (
+            <span>
+              <span className="text-gray-500">
+                <i className="icn">🛒</i>&nbsp;Sale:
+              </span>
+              <Link
+                className="link no_events ml-2"
+                href={purchaseItem.sale_path}
+                onClick={stopRowNavigation}
+                prefetch
+              >
+                {purchaseItem.sale_title}
+              </Link>
+            </span>
+          )}
+          {purchaseItem.sale_path && (
+            <span className="flex items-center gap-2">
+              <span className="text-gray-500">
+                <i className="icn">🙂</i>&nbsp;Customer:
+              </span>
+              <CopyToClipboardButton
+                className="text-xs btn_xs"
+                label="Copy address"
+                text={purchaseItem.sale_address}
+              />
+              <CopyToClipboardButton
+                className="text-xs btn_xs"
+                label="Copy email"
+                text={purchaseItem.customer_email}
+              />
+            </span>
+          )}
+        </div>
       </td>
-      <td>
-        {purchaseItem.sale_path && (
-          <Link
-            className="link no_events"
-            href={purchaseItem.sale_path}
-            onClick={stopRowNavigation}
-            prefetch
-          >
-            {purchaseItem.sale_title}
-          </Link>
-        )}
-      </td>
-      <td>
-        {purchaseItem.sale_path && (
-          <div className="flex flex-col items-start gap-2 text-sm">
-            <CopyToClipboardButton
-              className="text-xs btn_xs"
-              label="Copy address"
-              text={purchaseItem.sale_address}
-            />
-            <CopyToClipboardButton
-              className="text-xs btn_xs"
-              label="Copy email"
-              text={purchaseItem.customer_email}
-            />
-          </div>
-        )}
-      </td>
-      <td className="font-mono text-right">{purchaseItem.shipping_cost}</td>
+      <InlineTrackingNumberEditor
+        ref={trackingRef}
+        item={purchaseItem}
+        onAutoOpen={trackingAutoOpen}
+      />
+      <InlineShippingCompanyEditor
+        ref={shippingRef}
+        item={purchaseItem}
+        onAutoOpen={shippingAutoOpen}
+        shippingCompanies={shippingCompanies}
+      />
+      <InlineShippingCostEditor
+        ref={shippingCostRef}
+        item={purchaseItem}
+        onAutoOpen={costAutoOpen}
+      />
       <td className="table_actions">
         <div className="flex justify-end">
           {purchaseItem.sale_path && (

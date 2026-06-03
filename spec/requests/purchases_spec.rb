@@ -29,8 +29,9 @@ RSpec.describe "Purchases" do
   describe "GET /purchases/:id" do
     it "renders the show Inertia component with items and payments" do
       warehouse = create(:warehouse, name: "Main Stock")
+      shipping_company = create(:shipping_company, name: "Skyline")
       purchase = create(:purchase)
-      purchase_item = create(:purchase_item, purchase:, warehouse:)
+      purchase_item = create(:purchase_item, purchase:, warehouse:, shipping_company:)
       payment = create(:payment, purchase:, value: 12)
 
       get purchase_path(purchase)
@@ -42,6 +43,10 @@ RSpec.describe "Purchases" do
       expect(purchase_props[:id]).to eq(purchase.id)
       expect(inertia.props[:purchase_items].first[:id]).to eq(purchase_item.id)
       expect(inertia.props[:purchase_items].first[:warehouse_name]).to eq("Main Stock")
+      expect(inertia.props[:shipping_companies]).to include(
+        id: shipping_company.id,
+        name: "Skyline"
+      )
       expect(inertia.props[:payments].first[:id]).to eq(payment.id)
     end
   end

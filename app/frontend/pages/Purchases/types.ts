@@ -60,6 +60,11 @@ export type PurchaseShowRecord = {
   payment_progress: PaymentProgress;
 };
 
+export type ShippingCompanyOption = {
+  id: number;
+  name: string;
+};
+
 export type PurchaseItemRecord = {
   id: number;
   path: string;
@@ -71,6 +76,9 @@ export type PurchaseItemRecord = {
   sale_path: string | null;
   sale_address: string;
   customer_email: string;
+  tracking_number: string;
+  shipping_company_id: number | null;
+  shipping_company_name: string;
   shipping_cost: string;
 };
 

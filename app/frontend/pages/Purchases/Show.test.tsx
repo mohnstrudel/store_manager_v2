@@ -8,6 +8,7 @@ import type {
   PaymentRecord,
   PurchaseItemRecord,
   PurchaseShowRecord,
+  ShippingCompanyOption,
   WarehouseOption,
 } from "./types";
 
@@ -29,14 +30,17 @@ vi.mock("./components/PurchaseItems", () => ({
   default: ({
     movePath,
     purchaseItems,
+    shippingCompanies,
     warehouses,
   }: {
     movePath: string;
     purchaseItems: PurchaseItemRecord[];
+    shippingCompanies: ShippingCompanyOption[];
     warehouses: WarehouseOption[];
   }) => (
     <section data-testid="purchase-items">
-      Items: {purchaseItems.length}, warehouses: {warehouses.length}, move: {movePath}
+      Items: {purchaseItems.length}, warehouses: {warehouses.length}, shipping_companies:{" "}
+      {shippingCompanies.length}, move: {movePath}
     </section>
   ),
 }));
@@ -75,7 +79,7 @@ describe("Purchases/Show", () => {
       "/purchases/55/edit",
     );
     expect(screen.getByTestId("purchase-items")).toHaveTextContent(
-      "Items: 1, warehouses: 1, move: /purchase_items/move",
+      "Items: 1, warehouses: 1, shipping_companies: 1, move: /purchase_items/move",
     );
     expect(screen.getByTestId("purchase-details")).toHaveTextContent("Details for Pikachu Figure");
     expect(screen.getByTestId("payments")).toHaveTextContent("Payments: 1, new: 10.00");
@@ -98,6 +102,7 @@ function renderShow({
   payments = [makePayment()],
   purchase = makePurchase(),
   purchaseItems = [makePurchaseItem()],
+  shippingCompanies = [{ id: 1, name: "Fast Ship" }],
   warehouseMovePath = "/purchase_items/move",
   warehouses = [{ id: 1, name: "Berlin Hub" }],
 }: {
@@ -105,6 +110,7 @@ function renderShow({
   payments?: PaymentRecord[];
   purchase?: PurchaseShowRecord;
   purchaseItems?: PurchaseItemRecord[];
+  shippingCompanies?: ShippingCompanyOption[];
   warehouseMovePath?: string;
   warehouses?: WarehouseOption[];
 } = {}) {
@@ -114,6 +120,7 @@ function renderShow({
       payments={payments}
       purchase={purchase}
       purchase_items={purchaseItems}
+      shipping_companies={shippingCompanies}
       warehouse_move_path={warehouseMovePath}
       warehouses={warehouses}
     />,
@@ -157,7 +164,10 @@ function makePurchaseItem(): PurchaseItemRecord {
     sale_path: "/sales/1",
     sale_address: "Berlin",
     customer_email: "dale@fbi.gov",
-    shipping_cost: "5.00",
+    tracking_number: "",
+    shipping_company_id: null,
+    shipping_company_name: "",
+    shipping_cost: "5",
   };
 }
 

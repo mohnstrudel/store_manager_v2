@@ -54,4 +54,19 @@ RSpec.describe "Purchase item inline updates" do
       expect(purchase_item.reload.shipping_company).to eq(shipping_company)
     end
   end
+
+  describe "PATCH /purchase_items/:purchase_item_id/shipping_cost" do
+    it "updates the shipping cost and redirects to the requested return path" do
+      warehouse = create(:warehouse)
+      purchase_item = create(:purchase_item, warehouse: warehouse, shipping_cost: 5)
+
+      patch purchase_item_shipping_cost_path(purchase_item), params: {
+        purchase_item: {shipping_cost: "12"},
+        return_to: warehouse_path(warehouse)
+      }
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(purchase_item.reload.shipping_cost).to eq(BigDecimal("12"))
+    end
+  end
 end
