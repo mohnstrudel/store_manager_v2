@@ -1,10 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ImageGallery from "./ImageGallery";
-import { type MediaRecord } from "../types";
+import ImageGallery, { type ImageGalleryMedia } from "./ImageGallery";
 
-const media: MediaRecord[] = [
+const media: ImageGalleryMedia[] = [
   {
     id: 1,
     alt: "Front",

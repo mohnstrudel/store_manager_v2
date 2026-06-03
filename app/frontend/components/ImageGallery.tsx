@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type RefCallback, type RefObject } from "react";
-import { type MediaRecord } from "../types";
+
+export type ImageGalleryMedia = {
+  id: number;
+  alt: string;
+  position?: number;
+  preview_url: string;
+  thumb_url: string;
+};
 
 type ImageGalleryProps = {
-  media: MediaRecord[];
+  media: ImageGalleryMedia[];
 };
 
 type LoadState = "loading" | "loaded" | "failed";
@@ -13,7 +20,7 @@ type MainLoadState = {
 };
 
 type ImageGalleryBehavior = {
-  current: MediaRecord | null;
+  current: ImageGalleryMedia | null;
   hasMultipleImages: boolean;
   mainImageRef: RefObject<HTMLImageElement | null>;
   mainIsLoaded: boolean;
@@ -32,7 +39,7 @@ type ImageGalleryBehavior = {
 };
 
 type GalleryWithCurrentImage = ImageGalleryBehavior & {
-  current: MediaRecord;
+  current: ImageGalleryMedia;
 };
 
 export default function ImageGallery({ media }: ImageGalleryProps) {
@@ -62,7 +69,7 @@ function CarouselImageGallery({
   media,
 }: {
   gallery: GalleryWithCurrentImage;
-  media: MediaRecord[];
+  media: ImageGalleryMedia[];
 }) {
   return (
     <div className="grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-150 lg:h-150 lg:flex-row">
@@ -77,7 +84,7 @@ function ThumbnailNavigation({
   media,
 }: {
   gallery: GalleryWithCurrentImage;
-  media: MediaRecord[];
+  media: ImageGalleryMedia[];
 }) {
   return (
     <div className="gallery_nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
@@ -94,7 +101,7 @@ function GalleryThumbnail({
   index,
 }: {
   gallery: GalleryWithCurrentImage;
-  image: MediaRecord;
+  image: ImageGalleryMedia;
   index: number;
 }) {
   const loadState = gallery.thumbnailLoadStates[image.id] ?? "loading";
@@ -178,7 +185,7 @@ function GalleryMainImage({
   );
 }
 
-function useImageGallery(media: MediaRecord[]): ImageGalleryBehavior {
+function useImageGallery(media: ImageGalleryMedia[]): ImageGalleryBehavior {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [thumbnailLoadStates, setThumbnailLoadStates] = useState<Record<number, LoadState>>({});
   const [mainLoadState, setMainLoadState] = useState<MainLoadState>({
@@ -318,7 +325,7 @@ function useScrollSelectedThumbnailIntoView(
 }
 
 function useMarkCachedMainImageLoaded(
-  current: MediaRecord | null,
+  current: ImageGalleryMedia | null,
   mainImageRef: RefObject<HTMLImageElement | null>,
   markMainImageLoaded: () => void,
 ) {
@@ -331,7 +338,7 @@ function useMarkCachedMainImageLoaded(
 }
 
 function useMarkCachedThumbnailImagesLoaded(
-  media: MediaRecord[],
+  media: ImageGalleryMedia[],
   markThumbnailLoaded: (imageId: number) => void,
   thumbnailImageRefs: RefObject<(HTMLImageElement | null)[]>,
 ) {

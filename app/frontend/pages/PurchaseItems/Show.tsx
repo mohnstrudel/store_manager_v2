@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
-import ImageGallery from "@/pages/Products/components/ImageGallery";
+import ImageGallery from "@/components/ImageGallery";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import type { PurchaseItemShowRecord } from "./types";
 

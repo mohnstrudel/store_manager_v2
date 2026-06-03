@@ -1,4 +1,4 @@
-import ImageGallery from "@/pages/Products/components/ImageGallery";
+import ImageGallery from "@/components/ImageGallery";
 import type { WarehouseShowRecord } from "../types";
 
 export function WarehouseDetails({ warehouse }: { warehouse: WarehouseShowRecord }) {

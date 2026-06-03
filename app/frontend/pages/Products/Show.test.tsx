@@ -27,7 +27,7 @@ vi.mock("@inertiajs/react", () => ({
   },
 }));
 
-vi.mock("./components/ImageGallery", () => ({
+vi.mock("@/components/ImageGallery", () => ({
   default: ({ media }: { media: ProductShowRecord["media"] }) => (
     <div data-testid="image-gallery">Images: {media.length}</div>
   ),
