@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class ProductsController < ApplicationController
-  before_action :set_product, only: %i[show edit update destroy]
+  before_action :set_product, only: %i[show destroy]
+  before_action :set_product_for_edit, only: %i[edit update]
 
   def index
     @products = Product.listed.search_by(params[:q]).page(params[:page])
@@ -87,6 +88,10 @@ class ProductsController < ApplicationController
 
   def set_product
     @product = Product.for_details.friendly.find(params.expect(:id))
+  end
+
+  def set_product_for_edit
+    @product = Product.for_edit.friendly.find(params.expect(:id))
   end
 
   def extract_media_attributes

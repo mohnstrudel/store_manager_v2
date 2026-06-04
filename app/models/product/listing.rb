@@ -38,6 +38,15 @@ module Product::Listing
       )
     }
 
+    scope :for_edit, -> {
+      with_rich_text_description_and_embeds.includes(
+        :brands,
+        :variants,
+        media: {image_attachment: :blob},
+        store_infos: [:tags]
+      )
+    }
+
     scope :for_media_sync, -> {
       includes(media: [:image_attachment, :image_blob, :shopify_info])
     }
