@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import HelloIndex from "../pages/Hello/Index";
+import DashboardIndex from "../pages/Dashboard/Index";
 import SizesIndex from "../pages/Sizes/Index";
 import { resolvePage } from "./resolvePage";
 
 describe("Inertia page resolution", () => {
   it("returns the page component default export", async () => {
-    await expect(resolvePage("Hello/Index")).resolves.toBe(HelloIndex);
+    await expect(resolvePage("Dashboard/Index")).resolves.toBe(DashboardIndex);
     await expect(resolvePage("Sizes/Index")).resolves.toBe(SizesIndex);
   });
 
