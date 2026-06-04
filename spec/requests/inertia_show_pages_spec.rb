@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Inertia show pages" do
+RSpec.describe "Inertia show pages", :aggregate_failures do
   before { sign_in_as_admin }
 
   it "renders purchase item show" do
@@ -24,8 +24,30 @@ RSpec.describe "Inertia show pages" do
     get purchase_item_path(purchase_item)
 
     movements = inertia.props[:purchase_item][:warehouse_movements]
-    warehouse_names = movements.map { |m| m[:warehouse_name] }
+    warehouse_names = movements.pluck(:warehouse_name)
     expect(warehouse_names).to include("Warehouse One", "Warehouse Two")
+  end
+
+  it "preloads purchase item audits for purchase show movement history" do
+    purchase = create(:purchase)
+    first_warehouse = create(:warehouse)
+    second_warehouse = create(:warehouse)
+    purchase_items = create_list(:purchase_item, 2, purchase:, warehouse: first_warehouse)
+    purchase_items.each { |purchase_item| purchase_item.move_to_warehouse!(second_warehouse.id) }
+    audit_queries = []
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+      audit_queries << payload[:sql] if payload[:sql].match?(/\ASELECT .* FROM "audits"/)
+    end
+
+    begin
+      get purchase_path(purchase)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+
+    expect(response).to have_http_status(:ok)
+    expect(audit_queries.size).to eq(1)
   end
 
   it "renders sale item show" do

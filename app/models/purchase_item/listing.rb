@@ -10,6 +10,7 @@ module PurchaseItem::Listing
 
     scope :for_purchase_details, -> {
       includes(
+        :audits,
         :warehouse,
         :shipping_company,
         :sale_item,
