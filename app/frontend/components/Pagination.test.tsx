@@ -4,7 +4,16 @@ import { describe, expect, it, vi } from "vitest";
 import Pagination from "./Pagination";
 
 vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
+  Link: ({
+    children,
+    href,
+    prefetch: _prefetch,
+    ...props
+  }: {
+    children: ReactNode;
+    href: string;
+    prefetch?: boolean;
+  }) => (
     <a href={href} {...props}>
       {children}
     </a>
