@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type ComponentRef, type ReactNode } from "react";
 import { Form, Link } from "@inertiajs/react";
 import Button from "@/components/Button";
+import ErrorNotice from "@/components/ErrorNotice";
 
 type InertiaFormRef = ComponentRef<typeof Form>;
 
@@ -61,12 +62,13 @@ export default function ResourceForm({
       onBefore={onBefore}
     >
       {(serverProps) => {
-        const errors: Record<string, string> = {
-          ...(serverProps.errors as Record<string, string>),
-          ...clientErrors,
-        };
+        const serverErrors = serverProps.errors as Record<string, string>;
+        const errors: Record<string, string> = { ...serverErrors, ...clientErrors };
+        const hasErrors =
+          Object.keys(serverErrors).length > 0 || Object.keys(clientErrors).length > 0;
         return (
           <>
+            {hasErrors && <ErrorNotice clientErrors={clientErrors} />}
             {typeof children === "function"
               ? children({ errors, processing: serverProps.processing })
               : children}

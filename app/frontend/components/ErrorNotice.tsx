@@ -1,8 +1,17 @@
 import { usePage } from "@inertiajs/react";
 
-export default function ErrorNotice() {
-  const { errors } = usePage().props as { errors: Record<string, string | undefined> };
-  const entries = Object.entries(errors ?? {}).filter(([attribute, value]) => {
+type ErrorNoticeProps = {
+  errors?: Record<string, string | undefined>;
+  clientErrors?: Record<string, string>;
+};
+
+export default function ErrorNotice({ errors: propErrors, clientErrors }: ErrorNoticeProps = {}) {
+  const { errors } = usePage().props as {
+    errors: Record<string, string | undefined>;
+  };
+  const baseErrors = propErrors ?? errors;
+  const currentErrors = clientErrors ? { ...baseErrors, ...clientErrors } : baseErrors;
+  const entries = Object.entries(currentErrors ?? {}).filter(([attribute, value]) => {
     if (attribute.includes(".") || attribute.includes("[") || attribute.includes("]")) return false;
     return !!value;
   });
@@ -10,7 +19,7 @@ export default function ErrorNotice() {
   if (entries.length === 0) return null;
 
   return (
-    <article className="h-fit mx-auto bg-red-100 rounded-xl mb-8 text-center text-red-700 lg:text-left dark:bg-red-800/60 dark:text-red-300">
+    <article className="h-fit w-full bg-red-100 rounded-xl mb-8 text-center text-red-700 lg:text-left dark:bg-red-800/60 dark:text-red-300">
       <header className="p-0 flex flex-col justify-between items-center gap-2 border-b-4 border-red-800/5 dark:border-red-950/30 lg:p-8 lg:h-24 lg:flex-row lg:gap-0">
         <i className="icn text-2xl lg:text-3xl">🚨</i>
         <p className="text-base font-semibold lg:text-lg">Fix errors and try again</p>
