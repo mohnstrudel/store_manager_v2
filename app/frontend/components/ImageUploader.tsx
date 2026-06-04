@@ -169,14 +169,14 @@ function SortableImageCard({
         <button
           ref={handleRef as Ref<HTMLButtonElement>}
           aria-label="Drag to reorder"
-          className="backdrop-blur-xs peer/drag absolute top-1 left-1 z-10 p-0.5 rounded hover:bg-blue-600/80 bg-black/30 text-white cursor-grab active:cursor-grabbing touch-none"
+          className="image_card__drag_handle peer/drag"
           type="button"
         >
           <ArrowsRightLeftIcon className="w-8 h-8" />
         </button>
         <button
           aria-label="Remove image"
-          className="backdrop-blur-xs absolute top-1 right-1 z-10 p-0.5 rounded bg-black/30 text-white hover:bg-red-600/80 transition-colors"
+          className="image_card__remove_btn"
           data-testid="image-remove-btn"
           onClick={removeImage}
           type="button"
@@ -184,14 +184,11 @@ function SortableImageCard({
           <XMarkIcon className="w-8 h-8" />
         </button>
         {isPendingImage(image) && (
-          <span
-            className="absolute bottom-1 left-1 z-10 rounded bg-blue-600/90 px-2 py-1 text-xs font-medium text-white"
-            data-testid="image-pending-badge"
-          >
+          <span className="image_card__pending_badge" data-testid="image-pending-badge">
             Pending
           </span>
         )}
-        <div className="overflow-hidden rounded bg-gray-400 dark:bg-gray-600 border border-gray-200 dark:border-gray-700 peer-hover/drag:shadow-xl peer-hover/drag:shadow-gray-300 dark:peer-hover/drag:shadow-gray-800 transition-shadow">
+        <div className="image_card__frame">
           <img alt={image.alt} src={image.preview_url} />
         </div>
       </div>
@@ -216,6 +213,12 @@ function UploadProgressList({ uploading }: { uploading: UploadingFile[] }) {
       ))}
     </div>
   );
+}
+
+function UploadProgress({ progress }: { progress: number }) {
+  const progressStyle = useMemo(() => ({ width: `${progress}%` }), [progress]);
+
+  return <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={progressStyle} />;
 }
 
 function ImageFileInput({
@@ -315,12 +318,6 @@ function useImageUploader(
   };
 }
 
-function UploadProgress({ progress }: { progress: number }) {
-  const progressStyle = useMemo(() => ({ width: `${progress}%` }), [progress]);
-
-  return <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={progressStyle} />;
-}
-
 function uploadFile(
   uploadUrl: string,
   file: File,
@@ -332,7 +329,9 @@ function uploadFile(
     formData.append("file", file);
 
     xhr.upload.addEventListener("progress", (event) => {
-      if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
+      if (!event.lengthComputable) return;
+      const uploadPercentage = Math.round((event.loaded / event.total) * 100);
+      onProgress(uploadPercentage);
     });
 
     xhr.addEventListener("load", () => {

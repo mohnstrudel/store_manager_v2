@@ -27,4 +27,28 @@
   .preloadable_img__img.hidden {
     @apply hidden;
   }
+
+  /* Image Uploader Card */
+  .image_card__drag_handle {
+    @apply backdrop-blur-xs absolute top-1 left-1 z-10 p-0.5 rounded
+           bg-black/30 text-white cursor-grab active:cursor-grabbing touch-none
+           hover:bg-blue-600/80;
+  }
+
+  .image_card__remove_btn {
+    @apply backdrop-blur-xs absolute top-1 right-1 z-10 p-0.5 rounded
+           bg-black/30 text-white transition-colors hover:bg-red-600/80;
+  }
+
+  .image_card__pending_badge {
+    @apply absolute bottom-1 left-1 z-10 rounded bg-blue-600/90
+           px-2 py-1 text-xs font-medium text-white;
+  }
+
+  .image_card__frame {
+    @apply overflow-hidden rounded bg-gray-400 dark:bg-gray-600
+           border border-gray-200 dark:border-gray-700 transition-shadow
+           peer-hover/drag:shadow-xl peer-hover/drag:shadow-gray-300
+           dark:peer-hover/drag:shadow-gray-800;
+  }
 }
