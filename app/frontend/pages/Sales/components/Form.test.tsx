@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -121,23 +121,27 @@ describe("Sales/Components/Form", () => {
     pageErrors = {};
   });
 
-  it("renders the sale form sections with the correct shell configuration", () => {
-    const { container } = render(
-      <Form
-        isNew={false}
-        options={{ ...options, status_names: ["processing", "completed"] }}
-        sale={makeSale({
-          customer_id: 1,
-          discount_total: "5",
-          note: "Gift wrap",
-          path: "/sales/12",
-          sale_items: [{ id: 9, product_id: 2, qty: "1", price: "20", _destroy: false }],
-          shipping_total: "3",
-          total: "28",
-        })}
-        submitLabel="Update Sale"
-      />,
-    );
+  it("renders the sale form sections with the correct shell configuration", async () => {
+    let container!: HTMLElement;
+
+    await act(async () => {
+      ({ container } = render(
+        <Form
+          isNew={false}
+          options={{ ...options, status_names: ["processing", "completed"] }}
+          sale={makeSale({
+            customer_id: 1,
+            discount_total: "5",
+            note: "Gift wrap",
+            path: "/sales/12",
+            sale_items: [{ id: 9, product_id: 2, qty: "1", price: "20", _destroy: false }],
+            shipping_total: "3",
+            total: "28",
+          })}
+          submitLabel="Update Sale"
+        />,
+      ));
+    });
     const form = container.querySelector("form");
 
     expect(form).toHaveAttribute("action", "/sales/12");

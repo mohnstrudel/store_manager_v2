@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -9,7 +9,9 @@ import ImageUploader from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
 import { toSelectedOption } from "@/lib/selectOptions";
 import { type SectionRow, useDynamicSection } from "@/lib/useDynamicSection";
-import TiptapEditor from "./Form/TiptapEditor";
+
+const TiptapEditor = lazy(() => import("./Form/TiptapEditor"));
+const TIPTAP_FALLBACK = <TiptapSkeleton />;
 import VariantFields from "./Form/VariantFields";
 import StoreInfoFields from "./Form/StoreInfoFields";
 import PurchaseFields from "./Form/PurchaseFields";
@@ -199,8 +201,19 @@ function ProductDescriptionField({
   return (
     <div>
       <label htmlFor="product[description]">Description</label>
-      <TiptapEditor defaultValue={product.description_html} name="product[description]" />
+      <Suspense fallback={TIPTAP_FALLBACK}>
+        <TiptapEditor defaultValue={product.description_html} name="product[description]" />
+      </Suspense>
       {errors.description && <p className="text_error mt-2">{errors.description}</p>}
+    </div>
+  );
+}
+
+function TiptapSkeleton() {
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+      <div className="h-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 animate-pulse" />
+      <div className="min-h-48 animate-pulse bg-white dark:bg-gray-900" />
     </div>
   );
 }

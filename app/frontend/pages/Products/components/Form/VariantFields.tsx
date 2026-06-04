@@ -1,12 +1,17 @@
-import { useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormControl from "@/components/FormControl";
 import FormError from "@/components/FormError";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import NestedFormContainer from "@/components/NestedFormContainer";
-import FormSmartSelect from "@/components/FormSmartSelect";
-import SmartSelect from "@/components/SmartSelect";
+import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
+
+import type SmartSelectType from "@/components/SmartSelect";
+const SmartSelect = lazy(
+  () => import("@/components/SmartSelect"),
+) as unknown as typeof SmartSelectType;
+const SELECT_FALLBACK = <SelectSkeleton />;
 import { toSelectedOption } from "@/lib/selectOptions";
 import { type SelectOption, type VariantFormData } from "../../types";
 
@@ -74,14 +79,16 @@ export default function VariantFields({
           htmlFor={`variant-${index}-size`}
           label="Size"
         >
-          <SmartSelect
-            isClearable
-            inputId={`variant-${index}-size`}
-            options={sizes}
-            name={`variants[${index}][size_id]`}
-            defaultValue={toSelectedOption(sizes, variantFields.sizeId)}
-            onChange={variantFields.selectSize}
-          />
+          <Suspense fallback={SELECT_FALLBACK}>
+            <SmartSelect
+              isClearable
+              inputId={`variant-${index}-size`}
+              options={sizes}
+              name={`variants[${index}][size_id]`}
+              defaultValue={toSelectedOption(sizes, variantFields.sizeId)}
+              onChange={variantFields.selectSize}
+            />
+          </Suspense>
           <FormError inline>{sizeError}</FormError>
           <FormError inline>{combinationError}</FormError>
         </FormControl>
@@ -242,3 +249,4 @@ function generateVariantTitle(
 
   return parts.length > 0 ? parts.join(" | ") : "Base Model";
 }
+

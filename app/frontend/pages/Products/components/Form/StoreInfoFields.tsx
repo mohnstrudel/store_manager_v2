@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormControl from "@/components/FormControl";
 import NestedFormContainer from "@/components/NestedFormContainer";
-import FormSmartSelect from "@/components/FormSmartSelect";
-import TagSelect from "@/components/TagSelect";
+import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
+
+const TagSelect = lazy(() => import("@/components/TagSelect"));
+const SELECT_FALLBACK = <SelectSkeleton />;
 import { type SelectOption, type StoreInfoFormData } from "../../types";
 
 type StoreOption = SelectOption<string>;
@@ -76,14 +78,16 @@ export default function StoreInfoFields({
         options={storeInfoFields.storeNameOptions}
       />
       <FormControl className="w-full h-fit" error={tagListError} label="Tags">
-        <TagSelect
-          delimiter=", "
-          isMulti
-          inputId={`store-info-${index}-tag-list`}
-          name={`store_infos[${index}][tag_list]`}
-          placeholder="Add tags..."
-          defaultValue={storeInfoFields.tagOptions}
-        />
+        <Suspense fallback={SELECT_FALLBACK}>
+          <TagSelect
+            delimiter=", "
+            isMulti
+            inputId={`store-info-${index}-tag-list`}
+            name={`store_infos[${index}][tag_list]`}
+            placeholder="Add tags..."
+            defaultValue={storeInfoFields.tagOptions}
+          />
+        </Suspense>
       </FormControl>
     </NestedFormContainer>
   );
@@ -137,3 +141,4 @@ function useStoreInfoFieldState(storeInfo: StoreInfoFormData, storeNames: string
     title,
   };
 }
+

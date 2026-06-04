@@ -1,6 +1,6 @@
 import CreatableSelect, { type CreatableProps } from "react-select/creatable";
 import { type GroupBase } from "react-select";
-import { reactSelectStyles } from "./SmartSelect";
+import { reactSelectStyles } from "@/lib/reactSelectStyles";
 
 type TagSelectProps<
   Option,

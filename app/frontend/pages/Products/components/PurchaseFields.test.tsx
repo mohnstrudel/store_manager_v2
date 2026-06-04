@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import PurchaseFields from "./Form/PurchaseFields";
 import { type PurchaseFormData } from "../types";
@@ -53,8 +53,10 @@ function renderPurchase(purchase: PurchaseFormData, props: Record<string, unknow
 }
 
 describe("PurchaseFields", () => {
-  it("renders named hidden inputs for supplier_id and warehouse_id selects", () => {
-    renderPurchase(makePurchase({ supplier_id: 1, warehouse_id: 10 }));
+  it("renders named hidden inputs for supplier_id and warehouse_id selects", async () => {
+    await act(async () => {
+      renderPurchase(makePurchase({ supplier_id: 1, warehouse_id: 10 }));
+    });
 
     expect(screen.getAllByRole("combobox")).toHaveLength(2);
     expect(document.querySelector('input[name="purchase[supplier_id]"]')).toHaveValue("1");

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -271,30 +271,32 @@ describe("Products/Components/Form", () => {
     resourceFormProps = null;
   });
 
-  it("renders the shell with nested errors and hidden form fields", () => {
+  it("renders the shell with nested errors and hidden form fields", async () => {
     pageErrors = {
       franchise: "Franchise must exist",
       "variants.0.sku": "has already been taken",
       "purchase.0.item_price": "can't be blank",
     };
 
-    render(
-      <Form
-        isNew
-        options={options}
-        product={makeProduct({
-          store_infos: [
-            makeStoreInfo({
-              id: 1,
-              store_name: "shopify",
-              tag_list: "featured",
-            }),
-          ],
-        })}
-        purchase={makePurchase()}
-        submitLabel="Create Product"
-      />,
-    );
+    await act(async () => {
+      render(
+        <Form
+          isNew
+          options={options}
+          product={makeProduct({
+            store_infos: [
+              makeStoreInfo({
+                id: 1,
+                store_name: "shopify",
+                tag_list: "featured",
+              }),
+            ],
+          })}
+          purchase={makePurchase()}
+          submitLabel="Create Product"
+        />,
+      );
+    });
 
     expect(resourceFormProps).toEqual({
       action: "/products",

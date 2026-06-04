@@ -1,6 +1,9 @@
+import { lazy, Suspense } from "react";
 import type { GroupBase, Props as SelectProps } from "react-select";
 import FormControl from "./FormControl";
-import SmartSelect from "./SmartSelect";
+
+const SmartSelect = lazy(() => import("./SmartSelect"));
+const SELECT_FALLBACK = <SelectSkeleton />;
 
 type FormSmartSelectProps<
   Option,
@@ -29,12 +32,20 @@ export default function FormSmartSelect<
 }: FormSmartSelectProps<Option, IsMulti, Group>) {
   return (
     <FormControl className={className} error={error} htmlFor={inputId} label={label}>
-      <SmartSelect
-        aria-describedby={error ? `${inputId}_error` : undefined}
-        aria-invalid={!!error}
-        inputId={inputId}
-        {...props}
-      />
+      <Suspense fallback={SELECT_FALLBACK}>
+        <SmartSelect
+          aria-describedby={error ? `${inputId}_error` : undefined}
+          aria-invalid={!!error}
+          inputId={inputId}
+          {...(props as any)}
+        />
+      </Suspense>
     </FormControl>
+  );
+}
+
+export function SelectSkeleton() {
+  return (
+    <div className="h-10 w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 animate-pulse" />
   );
 }

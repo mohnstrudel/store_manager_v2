@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -8,7 +10,13 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from "react";
-import SmartSelect from "@/components/SmartSelect";
+
+import type SmartSelectType from "@/components/SmartSelect";
+const SmartSelect = lazy(
+  () => import("@/components/SmartSelect"),
+) as unknown as typeof SmartSelectType;
+import { SelectSkeleton } from "@/components/FormSmartSelect";
+const SELECT_FALLBACK = <SelectSkeleton />;
 import { type SelectOption } from "../../types";
 
 type ProductVariantSelectProps = {
@@ -52,13 +60,15 @@ export default function ProductVariantSelect({
   return (
     <div>
       <label htmlFor="purchase_variant_id">Variant</label>
-      <SmartSelect
-        inputId="purchase_variant_id"
-        name="purchase[variant_id]"
-        onChange={selectVariant}
-        options={variantOptions}
-        value={selectedVariant}
-      />
+      <Suspense fallback={SELECT_FALLBACK}>
+        <SmartSelect
+          inputId="purchase_variant_id"
+          name="purchase[variant_id]"
+          onChange={selectVariant}
+          options={variantOptions}
+          value={selectedVariant}
+        />
+      </Suspense>
     </div>
   );
 }
@@ -222,3 +232,4 @@ function loadVariants(
 
   return () => controller.abort();
 }
+
