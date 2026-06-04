@@ -19,7 +19,7 @@ RSpec.describe "Gallery", :js do
     visit product_path(product)
 
     expect(page).to have_css(".gallery_nav")
-    expect(page).to have_css(".gallery_thumb.active")
+    expect(page).to have_css(".gallery_thumb[data-active]")
     expect(page).to have_no_css(".gallery_thumb__image.hidden", wait: 10)
     expect(page).to have_no_css(".gallery_main__image.hidden", wait: 10)
 
@@ -58,7 +58,7 @@ RSpec.describe "Gallery", :js do
         const mainImage = document.querySelector(".gallery_main__image")
 
         return {
-          activeThumbSrc: document.querySelector(".gallery_thumb.active img").src,
+          activeThumbSrc: document.querySelector(".gallery_thumb[data-active] img").src,
           src: mainImage.src,
           scrollCalls: window.__galleryScrollCalls || []
         }
@@ -70,7 +70,7 @@ RSpec.describe "Gallery", :js do
         window.__galleryScrollCalls = []
         Element.prototype.scrollIntoView = function(options) {
           window.__galleryScrollCalls.push({
-            active: this.classList.contains("active"),
+            active: this.hasAttribute("data-active"),
             className: this.className,
             options
           })
@@ -82,7 +82,7 @@ RSpec.describe "Gallery", :js do
 
     final_state = page.evaluate_script(<<~JS)
       (() => ({
-        activeThumbSrc: document.querySelector(".gallery_thumb.active img").src,
+        activeThumbSrc: document.querySelector(".gallery_thumb[data-active] img").src,
         src: document.querySelector(".gallery_main__image").src,
         scrollCalls: window.__galleryScrollCalls
       }))()
@@ -91,7 +91,7 @@ RSpec.describe "Gallery", :js do
     aggregate_failures do
       expect(final_state["activeThumbSrc"]).not_to eq(initial_state["activeThumbSrc"])
       expect(final_state["src"]).not_to eq(initial_state["src"])
-      expect(final_state["scrollCalls"].last["active"]).to eq(true)
+      expect(final_state["scrollCalls"].last["active"]).to be(true)
       expect(final_state["scrollCalls"].last["options"]).to include(
         "behavior" => "smooth",
         "block" => "nearest",
@@ -187,8 +187,7 @@ RSpec.describe "Gallery", :js do
       "dEVYdGRhdGU6Y3JlYXRlADIwMjYtMDUtMzFUMTk6MzI6NTgrMDA6MDBBl2Z8AAAAJXRFWHRkYXRl",
       "Om1vZGlmeQAyMDI2LTA1LTMxVDE5OjMyOjU4KzAwOjAwMMrewAAAACh0RVh0ZGF0ZTp0aW1lc3Rh",
       "bXAAMjAyNi0wNS0zMVQxOTozMjo1OCswMDowMGff/x8AAAAMSURBVAjXY2hgaAAAAgQBARwRMr8A",
-      "AAAASUVORK5CYII=",
+      "AAAASUVORK5CYII="
     ].join
   end
-
 end
