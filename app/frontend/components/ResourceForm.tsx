@@ -1,15 +1,21 @@
-import type { ComponentProps } from "react";
+import { useCallback, useRef, useState, type ComponentRef, type ReactNode } from "react";
 import { Form, Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 
-type InertiaFormProps = ComponentProps<typeof Form>;
+type InertiaFormRef = ComponentRef<typeof Form>;
+
+export type ResourceFormRenderProps = {
+  errors: Record<string, string>;
+  processing: boolean;
+};
 
 type ResourceFormProps = {
   action: string;
   cancelHref: string;
-  children: InertiaFormProps["children"];
+  children: ReactNode | ((props: ResourceFormRenderProps) => ReactNode);
   method: "post" | "patch" | "put";
   submitLabel: string;
+  validate?: (formData: FormData) => Record<string, string> | null;
 };
 
 export default function ResourceForm({
@@ -18,7 +24,22 @@ export default function ResourceForm({
   children,
   method,
   submitLabel,
+  validate,
 }: ResourceFormProps) {
+  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<InertiaFormRef>(null);
+
+  const onBefore = useCallback((): false | undefined => {
+    if (!validate || !formRef.current) return undefined;
+    const errors = validate(formRef.current.getFormData());
+    if (errors) {
+      setClientErrors(errors);
+      return false;
+    }
+    setClientErrors({});
+    return undefined;
+  }, [validate]);
+
   const actions = (
     <div className="flex flex-col gap-4 items-start justify-start mt-14 lg:flex-row lg:items-center">
       <Button className="w-full lg:w-fit" type="submit" variant="primary">
@@ -31,20 +52,28 @@ export default function ResourceForm({
   );
 
   return (
-    <Form className="flex flex-col gap-6" action={action} disableWhileProcessing method={method}>
-      {typeof children === "function" ? (
-        (props) => (
+    <Form
+      ref={formRef}
+      className="flex flex-col gap-6"
+      action={action}
+      disableWhileProcessing
+      method={method}
+      onBefore={onBefore}
+    >
+      {(serverProps) => {
+        const errors: Record<string, string> = {
+          ...(serverProps.errors as Record<string, string>),
+          ...clientErrors,
+        };
+        return (
           <>
-            {children(props)}
+            {typeof children === "function"
+              ? children({ errors, processing: serverProps.processing })
+              : children}
             {actions}
           </>
-        )
-      ) : (
-        <>
-          {children}
-          {actions}
-        </>
-      )}
+        );
+      }}
     </Form>
   );
 }
