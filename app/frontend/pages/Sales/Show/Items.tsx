@@ -4,7 +4,7 @@ import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
-import type { SaleShowSaleItemRecord } from "../types";
+import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {
   saleItems: SaleShowSaleItemRecord[];
@@ -26,38 +26,7 @@ export default function Items({ saleItems }: ItemsProps) {
         </thead>
         <tbody>
           {saleItems.map((saleItem) => (
-            <tr className="cursor-default" key={saleItem.id}>
-              <td>
-                <ZoomableThumbnail
-                  alt={saleItem.title}
-                  key={`${saleItem.id}-${saleItem.product_thumb_url ?? "missing"}`}
-                  src={saleItem.product_thumb_url}
-                />
-              </td>
-              <td>
-                <Link
-                  className="link no-underline font-semibold"
-                  href={saleItem.product_path}
-                  prefetch
-                >
-                  {saleItem.title}
-                </Link>
-                {saleItem.purchase_items.length > 0 ? (
-                  <PurchaseItems purchaseItems={saleItem.purchase_items} />
-                ) : (
-                  <mark className="block uppercase tracking-wide text-xs w-fit mt-2 -ml-1">
-                    <span className="font-semibold">NO PURCHASE</span>
-                  </mark>
-                )}
-              </td>
-              <td className="text-right font-mono">{saleItem.price ?? ""}</td>
-              <td className="text-center">
-                <PurchasedSoldRatio
-                  purchased={saleItem.purchase_items.length}
-                  sold={saleItem.qty}
-                />
-              </td>
-            </tr>
+            <SaleItemRow key={saleItem.id} saleItem={saleItem} />
           ))}
         </tbody>
       </table>
@@ -65,34 +34,61 @@ export default function Items({ saleItems }: ItemsProps) {
   );
 }
 
-function PurchaseItems({
-  purchaseItems,
-}: {
-  purchaseItems: SaleShowSaleItemRecord["purchase_items"];
-}) {
+function SaleItemRow({ saleItem }: { saleItem: SaleShowSaleItemRecord }) {
+  const hasPurchaseItems = saleItem.purchase_items.length > 0;
+
   return (
-    <menu>
-      {purchaseItems.map((purchaseItem) => (
-        <PurchaseItemRow key={purchaseItem.id} purchaseItem={purchaseItem} />
-      ))}
-    </menu>
+    <tr className="cursor-default">
+      <td>
+        <ZoomableThumbnail
+          alt={saleItem.title}
+          key={`${saleItem.id}-${saleItem.product_thumb_url ?? "missing"}`}
+          src={saleItem.product_thumb_url}
+        />
+      </td>
+      <td>
+        <Link className="link no-underline font-semibold" href={saleItem.product_path} prefetch>
+          {saleItem.title}
+        </Link>
+        {hasPurchaseItems ? (
+          <menu>
+            {saleItem.purchase_items.map((purchaseItem) => (
+              <PurchaseItemRow key={purchaseItem.id} purchaseItem={purchaseItem} />
+            ))}
+          </menu>
+        ) : (
+          <mark className="block uppercase tracking-wide text-xs w-fit mt-2 -ml-1">
+            <span className="font-semibold">NO PURCHASE</span>
+          </mark>
+        )}
+      </td>
+      <td className="text-right font-mono">{saleItem.price ?? ""}</td>
+      <td className="text-center">
+        <PurchasedSoldRatio
+          purchased={saleItem.purchase_items.length}
+          sold={saleItem.qty}
+        />
+      </td>
+    </tr>
   );
 }
 
-function PurchaseItemRow({
-  purchaseItem,
-}: {
-  purchaseItem: SaleShowSaleItemRecord["purchase_items"][number];
-}) {
+function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemRecord }) {
+  const hasMovementHistory = purchaseItem.warehouse_movements.length > 1;
+  const previousMovements = purchaseItem.warehouse_movements.slice(1);
+  const summaryCursor = hasMovementHistory ? "cursor-pointer" : "cursor-default";
+
   const unlinkPurchaseItem = useConfirmedDestroy(
     purchaseItem.unlink_path,
     "Unlink this purchase item?",
   );
-
-  const handleUnlinkClick = useCallback((event: MouseEvent) => {
-    event.stopPropagation();
-    unlinkPurchaseItem();
-  }, [unlinkPurchaseItem]);
+  const handleUnlinkClick = useCallback(
+    (event: MouseEvent) => {
+      event.stopPropagation();
+      unlinkPurchaseItem();
+    },
+    [unlinkPurchaseItem],
+  );
 
   return (
     <li className="mt-4">
@@ -124,9 +120,7 @@ function PurchaseItemRow({
 
       {purchaseItem.warehouse_movements.length > 0 && (
         <details className="my-2 group">
-          <summary
-            className={`w-fit flex items-center gap-2 ${purchaseItem.warehouse_movements.length === 1 ? "cursor-default" : "cursor-pointer"}`}
-          >
+          <summary className={`w-fit flex items-center gap-2 ${summaryCursor}`}>
             <span>
               <span className="text-gray-500">
                 <i className="icn">📦</i>&nbsp;Status:
@@ -136,14 +130,14 @@ function PurchaseItemRow({
               </Link>
             </span>
 
-            {purchaseItem.warehouse_movements.length > 1 && (
+            {hasMovementHistory && (
               <span className="text-xs btn_rounded w-5 h-5 p-0 btn_lightblue flex items-center justify-center transition-transform origin-center group-open:-rotate-90">
                 <ChevronLeftIcon className="h-4 w-4" />
               </span>
             )}
           </summary>
 
-          {purchaseItem.warehouse_movements.length > 1 && (
+          {hasMovementHistory && (
             <div className="border max-w-2/3 border-gray-100 dark:border-gray-600/40 rounded-sm my-3">
               <table className="text-sm my-0">
                 <thead>
@@ -153,7 +147,7 @@ function PurchaseItemRow({
                   </tr>
                 </thead>
                 <tbody>
-                  {purchaseItem.warehouse_movements.slice(1).map((movement) => (
+                  {previousMovements.map((movement) => (
                     <tr className="cursor-auto" key={`${purchaseItem.id}-${movement.moved_in}`}>
                       <td className="pr-2 text_muted whitespace-nowrap">{movement.moved_in}</td>
                       <td>{movement.warehouse_name}</td>
