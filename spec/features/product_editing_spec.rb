@@ -28,8 +28,8 @@ RSpec.describe "Editing a product" do
     expect(error[:class]).to include("absolute")
     expect(
       page.evaluate_script(
-        "getComputedStyle(document.querySelector('.variant-fields input[name=\"variants[0][sku]\"]')).borderTopColor",
-      ),
+        "getComputedStyle(document.querySelector('.variant-fields input[name=\"variants[0][sku]\"]')).borderTopColor"
+      )
     ).to match(/185, 28, 28|0\.505|oklch/)
     expect(page).not_to have_content("Variants 0 sku")
   end
@@ -57,8 +57,8 @@ RSpec.describe "Editing a product" do
 
     expect(
       page.evaluate_script(
-        "getComputedStyle(document.querySelector('.variant-fields .form_section_item_header')).alignItems",
-      ),
+        "getComputedStyle(document.querySelector('.variant-fields .form_section_item_header')).alignItems"
+      )
     ).to eq("center")
   end
 end

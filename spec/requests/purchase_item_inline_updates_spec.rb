@@ -66,7 +66,7 @@ RSpec.describe "Purchase item inline updates" do
       }
 
       expect(response).to redirect_to(warehouse_path(warehouse))
-      expect(purchase_item.reload.shipping_cost).to eq(BigDecimal("12"))
+      expect(purchase_item.reload.shipping_cost).to eq(BigDecimal(12))
     end
   end
 end

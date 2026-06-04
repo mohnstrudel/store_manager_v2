@@ -56,7 +56,7 @@ RSpec.describe "Inertia index pages" do
 
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Users/Index")
-      expect(inertia.props[:users].map { |props| props[:email_address] }).to include(user.email_address)
+      expect(inertia.props[:users].pluck(:email_address)).to include(user.email_address)
     end
   end
 

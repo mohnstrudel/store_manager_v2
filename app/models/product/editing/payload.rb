@@ -7,7 +7,7 @@ class Product::Editing::Payload
 
   def product_attributes
     attributes = product_params.to_h.symbolize_keys
-    attributes[:brand_ids] = Array(attributes[:brand_ids]).reject(&:blank?) if attributes.key?(:brand_ids)
+    attributes[:brand_ids] = Array(attributes[:brand_ids]).compact_blank if attributes.key?(:brand_ids)
     attributes
   end
 

@@ -24,5 +24,4 @@ RSpec.feature "Warehouse forms", :js do
     expect(page).to have_content("Warehouse was successfully created")
     expect(created_warehouse.from_transitions.where(to_warehouse: destination)).to exist
   end
-
 end

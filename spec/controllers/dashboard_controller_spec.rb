@@ -65,7 +65,8 @@ describe DashboardController do
 
   describe "Purchase model optimizations" do
     let!(:purchase) { create(:purchase) }
-    let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase, shipping_cost: 5.0) }
+
+    before { create_list(:purchase_item, 3, purchase: purchase, shipping_cost: 5.0) }
 
     it "calculates shipping_total correctly" do
       purchase.reload

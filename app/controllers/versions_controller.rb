@@ -14,7 +14,7 @@ class VersionsController < ApplicationController
 
   # GET /versions/1 or /versions/1.json
   def show
-    @version = Version.includes(:products).find(params[:id])
+    @version = Version.includes(:products).find(params.expect(:id))
 
     render inertia: "Versions/Show", props: {
       version: helpers.version_props(@version),
@@ -76,12 +76,11 @@ class VersionsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_version
-    @version = Version.find(params[:id])
+    @version = Version.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.
   def version_params
     params.fetch(:version, {}).permit(:value)
   end
-
 end

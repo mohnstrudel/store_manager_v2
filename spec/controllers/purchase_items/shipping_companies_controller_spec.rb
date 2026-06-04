@@ -2,8 +2,9 @@
 
 require "rails_helper"
 
-RSpec.describe PurchaseItems::ShippingCompaniesController, type: :controller do
+RSpec.describe PurchaseItems::ShippingCompaniesController do
   include ActionView::RecordIdentifier
+
   render_views
 
   before { sign_in_as_admin }

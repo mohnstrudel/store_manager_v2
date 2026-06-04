@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Warehouses::ItemsController, type: :controller do
+RSpec.describe Warehouses::ItemsController do
   before { sign_in_as_admin }
   after { log_out }
 

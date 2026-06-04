@@ -37,6 +37,5 @@ module Shopify
 
       store_info.destroy!
     end
-
   end
 end

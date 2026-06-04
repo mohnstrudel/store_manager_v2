@@ -17,6 +17,7 @@
     "typeAware": true,
     "typeCheck": true
   },
+  "ignorePatterns": ["app/frontend/api/**/*"],
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "react-perf", "import", "vitest"],
   "settings": {
     "react": {

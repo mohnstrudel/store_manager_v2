@@ -10,6 +10,6 @@ module ProductScoped
   private
 
   def set_product
-    @product = Product.for_details.friendly.find(params[:product_id])
+    @product = Product.for_details.friendly.find(params.expect(:product_id))
   end
 end

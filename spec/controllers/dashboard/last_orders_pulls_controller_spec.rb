@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Dashboard::LastOrdersPullsController, type: :controller do
+RSpec.describe Dashboard::LastOrdersPullsController do
   before { sign_in_as_admin }
   after { log_out }
 

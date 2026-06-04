@@ -38,7 +38,7 @@ RSpec.describe "ShippingCompanies" do
         purchase = create(
           :purchase,
           amount: 1,
-          item_price: BigDecimal("10"),
+          item_price: BigDecimal(10),
           product:,
           purchase_date: Time.zone.local(2026, 5, 19, 12, 0, 0)
         )

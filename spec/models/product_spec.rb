@@ -28,7 +28,7 @@ RSpec.describe Product do
   describe "associations" do
     it { is_expected.to belong_to(:franchise) }
     it { is_expected.to validate_presence_of(:shape) }
-    it { is_expected.to validate_inclusion_of(:shape).in_array(Product.shape_options) }
+    it { is_expected.to validate_inclusion_of(:shape).in_array(described_class.shape_options) }
 
     it { is_expected.to have_many(:variants).dependent(:destroy).autosave(true).inverse_of(:product) }
     it { is_expected.to have_many(:product_brands).dependent(:destroy).inverse_of(:product) }

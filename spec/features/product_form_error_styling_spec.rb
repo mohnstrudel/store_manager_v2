@@ -24,8 +24,8 @@ RSpec.describe "Product form error styling" do
     expect(error_wrapper.find(".text_error", visible: :all)[:class]).to include("absolute")
     expect(
       page.evaluate_script(
-        "getComputedStyle(document.querySelector('.purchase-fields .field_with_errors .rs__control')).borderTopColor",
-      ),
+        "getComputedStyle(document.querySelector('.purchase-fields .field_with_errors .rs__control')).borderTopColor"
+      )
     ).to match(/185, 28, 28|0\.505|oklch/)
   end
 end

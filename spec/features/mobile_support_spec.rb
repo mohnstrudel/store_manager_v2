@@ -29,7 +29,7 @@ RSpec.describe "Mobile support", :js do
     if allow_table_scroll
       expect(page).to have_css("table")
     else
-      expect(overflow_free).to eq(true), "#{label} still overflows horizontally"
+      expect(overflow_free).to be(true), "#{label} still overflows horizontally"
     end
   end
 
@@ -111,7 +111,7 @@ RSpec.describe "Mobile support", :js do
       })()
     JS
 
-    expect(mobile_nav_layout["burgerButtonVisible"]).to eq(true)
+    expect(mobile_nav_layout["burgerButtonVisible"]).to be(true)
     expect(mobile_nav_layout["burgerButtonRadius"]).to eq("4px")
     expect(page).to have_css("li.navigation-dropdown")
     expect(page).to have_link("Suppliers", visible: :all)

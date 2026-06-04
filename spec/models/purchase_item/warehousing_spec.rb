@@ -8,7 +8,7 @@ RSpec.describe PurchaseItem do
       origin = create(:warehouse)
       destination = create(:warehouse)
       purchase_items = create_list(:purchase_item, 3, warehouse: origin)
-      allow(PurchaseItem).to receive(:notify_order_status_change!)
+      allow(described_class).to receive(:notify_order_status_change!)
 
       moved_count = described_class.move_to_warehouse!(
         purchase_item_ids: purchase_items.map(&:id),
@@ -19,7 +19,7 @@ RSpec.describe PurchaseItem do
       purchase_items.each do |purchase_item|
         expect(purchase_item.reload.warehouse_id).to eq(destination.id)
       end
-      expect(PurchaseItem).to have_received(:notify_order_status_change!).with(
+      expect(described_class).to have_received(:notify_order_status_change!).with(
         purchase_item_ids: purchase_items.map(&:id),
         from_id: origin.id,
         to_id: destination.id
@@ -33,7 +33,7 @@ RSpec.describe PurchaseItem do
       items_from_origin_one = create_list(:purchase_item, 2, warehouse: origin_one)
       items_from_origin_two = create_list(:purchase_item, 1, warehouse: origin_two)
       all_items = items_from_origin_one + items_from_origin_two
-      allow(PurchaseItem).to receive(:notify_order_status_change!)
+      allow(described_class).to receive(:notify_order_status_change!)
 
       moved_count = described_class.move_to_warehouse!(
         purchase_item_ids: all_items.map(&:id),
@@ -41,12 +41,12 @@ RSpec.describe PurchaseItem do
       )
 
       expect(moved_count).to eq(3)
-      expect(PurchaseItem).to have_received(:notify_order_status_change!).with(
+      expect(described_class).to have_received(:notify_order_status_change!).with(
         purchase_item_ids: items_from_origin_one.map(&:id),
         from_id: origin_one.id,
         to_id: destination.id
       )
-      expect(PurchaseItem).to have_received(:notify_order_status_change!).with(
+      expect(described_class).to have_received(:notify_order_status_change!).with(
         purchase_item_ids: items_from_origin_two.map(&:id),
         from_id: origin_two.id,
         to_id: destination.id

@@ -14,7 +14,7 @@ class FranchisesController < ApplicationController
 
   # GET /franchises/1 or /franchises/1.json
   def show
-    @franchise = Franchise.includes(:products).find(params[:id])
+    @franchise = Franchise.includes(:products).find(params.expect(:id))
 
     render inertia: "Franchises/Show", props: {
       franchise: helpers.franchise_props(@franchise),
@@ -76,12 +76,11 @@ class FranchisesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_franchise
-    @franchise = Franchise.find(params[:id])
+    @franchise = Franchise.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.
   def franchise_params
     params.fetch(:franchise, {}).permit(:title)
   end
-
 end

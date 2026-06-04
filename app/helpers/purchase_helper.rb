@@ -9,14 +9,16 @@ module PurchaseHelper
   end
 
   def purchase_show_props(purchase, purchase_items:, payments:, new_payment:)
+    all_warehouses = Warehouse.order(name: :asc).to_a
+    warehouses_by_id = all_warehouses.index_by(&:id)
     {
       purchase: purchase_record_props(purchase),
-      purchase_items: purchase_items.map { |purchase_item| purchase_item_props(purchase_item) },
+      purchase_items: purchase_items.map { |purchase_item| purchase_item_props(purchase_item, warehouses_by_id:) },
       payments: payments.map { |payment| payment_props(payment, purchase:) },
       new_payment: unsaved_payment_props(new_payment, purchase:),
-      warehouses: Warehouse.order(name: :asc).map { |warehouse| purchase_warehouse_props(warehouse) },
+      warehouses: all_warehouses.map { |warehouse| purchase_warehouse_props(warehouse) },
       warehouse_move_path: warehouse_move_path,
-      shipping_companies: ShippingCompany.ordered.map { |sc| { id: sc.id, name: sc.name } }
+      shipping_companies: ShippingCompany.ordered.map { |sc| {id: sc.id, name: sc.name} }
     }
   end
 
@@ -25,8 +27,8 @@ module PurchaseHelper
       id: purchase.id,
       path: purchase_path(purchase),
       edit_path: edit_purchase_path(purchase),
-      product_title: purchase.product.full_title,
-      product_thumb_url: thumb_url(purchase.product),
+      product_title: purchase_product_title(purchase),
+      product_thumb_url: purchase_product_thumb_url(purchase),
       variant_title: purchase.variant&.title,
       order_reference: purchase.order_reference,
       supplier_title: purchase.supplier.title,
@@ -48,10 +50,10 @@ module PurchaseHelper
       path: purchase_path(purchase),
       edit_path: edit_purchase_path(purchase),
       destroy_path: purchase_path(purchase),
-      product_path: product_path(purchase.product),
-      product_title: purchase.product.full_title,
-      product_image_url: purchase.product.image.presence,
-      product_thumb_url: thumb_url(purchase.product),
+      product_path: purchase_product_path(purchase),
+      product_title: purchase_product_title(purchase),
+      product_image_url: purchase_product_image_url(purchase),
+      product_thumb_url: purchase_product_thumb_url(purchase),
       variant_title: purchase.variant&.title,
       amount: purchase.amount.to_i,
       item_price: format_money(purchase.item_price),
@@ -67,7 +69,7 @@ module PurchaseHelper
     }
   end
 
-  def purchase_item_props(purchase_item)
+  def purchase_item_props(purchase_item, warehouses_by_id: nil)
     {
       id: purchase_item.id,
       path: purchase_item_path(purchase_item),
@@ -75,7 +77,7 @@ module PurchaseHelper
       unlink_path: purchase_item_sale_item_link_path(purchase_item),
       warehouse_name: purchase_item.warehouse.name,
       warehouse_path: warehouse_path(purchase_item.warehouse, selected: purchase_item.id, anchor: purchase_item.id),
-      warehouse_movements: purchase_item.warehouse_movements.sort_by(&:moved_in).reverse.drop(1).map { |m|
+      warehouse_movements: purchase_item.warehouse_movements(warehouses_by_id:).sort_by(&:moved_in).reverse.drop(1).map { |m|
         {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
       },
       sale_title: purchase_item.sale&.select_title,
@@ -129,7 +131,7 @@ module PurchaseHelper
     {
       id: purchase.id,
       path: purchase.persisted? ? purchase_path(purchase) : "",
-      product_id: purchase.product_id,
+      product_id: purchase_display_product(purchase)&.id,
       variant_id: purchase.variant_id,
       supplier_id: purchase.supplier_id,
       order_reference: purchase.order_reference.to_s,
@@ -137,7 +139,7 @@ module PurchaseHelper
       amount: purchase.amount.to_s,
       warehouse_id: purchase.warehouse_id,
       payment_value: purchase.payment_value.to_s,
-      variant_options: purchase_variant_options(purchase.product)
+      variant_options: purchase_variant_options(purchase_display_product(purchase))
     }
   end
 

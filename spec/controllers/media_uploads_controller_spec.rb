@@ -22,7 +22,7 @@ RSpec.describe MediaUploadsController do
         }.to change(ActiveStorage::Blob, :count).by(1)
 
         expect(response).to have_http_status(:ok)
-        body = JSON.parse(response.body)
+        body = response.parsed_body
         expect(body["signed_id"]).to be_present
         expect(ActiveStorage::Blob.find_signed(body["signed_id"])).to be_a(ActiveStorage::Blob)
       end
@@ -32,7 +32,7 @@ RSpec.describe MediaUploadsController do
       it "returns 422" do
         post :create, params: {}
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

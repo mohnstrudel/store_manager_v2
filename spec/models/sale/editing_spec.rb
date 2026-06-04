@@ -22,7 +22,7 @@ RSpec.describe Sale do
         expect(sale).to be_persisted
         expect(sale.customer_id).to eq(customer.id)
         expect(sale.status).to eq("processing")
-        expect(sale.total).to eq(BigDecimal("100"))
+        expect(sale.total).to eq(BigDecimal(100))
         expect(sale).to have_received(:link_purchase_items!)
       end
     end

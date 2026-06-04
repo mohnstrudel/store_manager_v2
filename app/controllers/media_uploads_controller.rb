@@ -3,7 +3,7 @@
 class MediaUploadsController < ApplicationController
   def create
     file = params[:file]
-    return render json: {error: "No file"}, status: :unprocessable_entity if file.blank?
+    return render json: {error: "No file"}, status: :unprocessable_content if file.blank?
 
     blob = ActiveStorage::Blob.create_and_upload!(
       io: file,

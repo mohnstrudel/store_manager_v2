@@ -69,8 +69,8 @@ RSpec.describe Product::Shopify::Media::Upsert do
   end
 
   after do
-    existing_file.close! if existing_file
-    new_file.close! if new_file
+    existing_file&.close!
+    new_file&.close!
   end
 
   describe "#call" do

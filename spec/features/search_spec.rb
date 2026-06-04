@@ -2,8 +2,15 @@
 
 require "rails_helper"
 
-describe "Search works across products, sales, purchases, and debts", js: true do
-  before { sign_in_as_admin }
+describe "Search works across products, sales, purchases, and debts", :js do
+  before {
+    sign_in_as_admin
+    create(:sale_item, sale: sale_cooper, product: asuka, variant: nil)
+    create(:sale_item, sale: sale_cooper, product: batman, variant: nil)
+    create(:sale_item, sale: sale_cooper, product: guts, variant: nil)
+    create(:sale_item, sale: sale_palmer, product: batman, variant: nil)
+  }
+
   after { log_out }
 
   let!(:warehouse) { create(:warehouse, is_default: true) }
@@ -53,13 +60,6 @@ describe "Search works across products, sales, purchases, and debts", js: true d
       supplier: supplier_agk,
       order_reference: "123"
     )
-  end
-
-  before do
-    create(:sale_item, sale: sale_cooper, product: asuka, variant: nil)
-    create(:sale_item, sale: sale_cooper, product: batman, variant: nil)
-    create(:sale_item, sale: sale_cooper, product: guts, variant: nil)
-    create(:sale_item, sale: sale_palmer, product: batman, variant: nil)
   end
 
   it "shows the expected products and supplier debts on the index" do

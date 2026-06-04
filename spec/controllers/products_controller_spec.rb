@@ -17,10 +17,10 @@ RSpec.describe ProductsController do
       aggregate_failures do
         expect(response).to have_http_status(:ok)
         expect_inertia.to render_component("Products/Show")
-        expect(inertia.props[:product][:media].map { |item| item[:id] }).to match_array(
+        expect(inertia.props[:product][:media].pluck(:id)).to match_array(
           media.map(&:id)
         )
-        expect(inertia.props[:product][:media].map { |item| item[:alt] }).to match_array(
+        expect(inertia.props[:product][:media].pluck(:alt)).to match_array(
           media.map(&:alt)
         )
       end

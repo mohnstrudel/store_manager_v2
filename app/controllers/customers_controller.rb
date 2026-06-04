@@ -69,11 +69,10 @@ class CustomersController < ApplicationController
   private
 
   def set_customer
-    @customer = Customer.includes(:shopify_info, :woo_info).find(params[:id])
+    @customer = Customer.includes(:shopify_info, :woo_info).find(params.expect(:id))
   end
 
   def customer_params
     params.fetch(:customer, {}).permit(:email, :first_name, :last_name, :phone)
   end
-
 end

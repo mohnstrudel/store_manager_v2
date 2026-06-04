@@ -32,7 +32,7 @@ RSpec.describe "Products" do
       get products_path, params: {q: "Pikachu"}
 
       expect_inertia.to have_props(search: {q: "Pikachu"})
-      expect(inertia.props[:products].map { |p| p[:id] }).to eq([matching.id])
+      expect(inertia.props[:products].pluck(:id)).to eq([matching.id])
     end
   end
 
@@ -99,7 +99,7 @@ RSpec.describe "Products" do
       expect(product_props[:variants].first[:color_id]).to be_nil
 
       options = inertia.props[:options]
-      expect(options[:franchises].map { |f| f[:value] }).to include(franchise.id)
+      expect(options[:franchises].pluck(:value)).to include(franchise.id)
       expect(options[:shapes]).to eq(Product.shape_options)
     end
   end
@@ -194,16 +194,16 @@ RSpec.describe "Products" do
       purchase = created_product.purchases.last
 
       expect(response).to redirect_to(product_path(created_product))
-      expect(created_product.brands).to match_array([brand])
+      expect(created_product.brands).to contain_exactly(brand)
       expect(created_product.description.body.to_html).to include("Product description")
-      expect(created_product.sizes).to match_array([size])
-      expect(created_product.versions).to match_array([version])
-      expect(created_product.colors).to match_array([color])
+      expect(created_product.sizes).to contain_exactly(size)
+      expect(created_product.versions).to contain_exactly(version)
+      expect(created_product.colors).to contain_exactly(color)
       expect(created_product.store_infos.shopify.first.tag_list).to eq(["featured", "new"])
       expect(purchase.supplier).to eq(supplier)
       expect(purchase.purchase_items.count).to eq(2)
       expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
-      expect(purchase.payments.pluck(:value)).to eq([BigDecimal("30")])
+      expect(purchase.payments.pluck(:value)).to eq([BigDecimal(30)])
     end
 
     it "redirects to new with errors when title is blank" do
@@ -403,7 +403,7 @@ RSpec.describe "Products" do
         product: {title: "Just Title Update", franchise_id: product.franchise_id, shape: product.shape}
       }
 
-      expect(shopify_info.reload.tag_list).to match_array(["original", "tags"])
+      expect(shopify_info.reload.tag_list).to contain_exactly("original", "tags")
     end
   end
 

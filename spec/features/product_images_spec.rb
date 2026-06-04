@@ -83,5 +83,4 @@ RSpec.describe "Product Image Management" do
     expect(product.media.count).to eq(2) # 1 remaining + 1 new
     expect(product.media.pluck(:id)).not_to include(media1.id)
   end
-
 end

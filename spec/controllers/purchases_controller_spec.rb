@@ -6,6 +6,20 @@ RSpec.describe PurchasesController do
   before { sign_in_as_admin }
   after { log_out }
 
+  describe "GET #show" do
+    it "renders purchases even when the product association is missing" do
+      purchase = create(:purchase)
+      purchase.update_columns(product_id: nil) # rubocop:disable Rails/SkipsModelValidations
+      purchase.reload
+
+      expect {
+        get :show, params: {id: purchase.to_param}
+      }.not_to raise_error
+
+      expect(response).to be_successful
+    end
+  end
+
   describe "POST #create" do
     let(:supplier) { create(:supplier) }
     let(:product) { create(:product) }
@@ -31,6 +45,31 @@ RSpec.describe PurchasesController do
       expect(response).to redirect_to(purchase_path(purchase))
       expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
       expect(purchase.payments.pluck(:value)).to eq([BigDecimal(20)])
+    end
+
+    it "rejects a purchase without a product" do
+      purchase_count = Purchase.count
+      payment_count = Payment.count
+
+      post :create, params: {
+        purchase: {
+          product_id: "",
+          supplier_id: supplier.id,
+          amount: 2,
+          item_price: "10.00",
+          warehouse_id: warehouse.id
+        },
+        initial_payment: {
+          value: "20.00"
+        }
+      }
+
+      aggregate_failures do
+        expect(Purchase.count).to eq(purchase_count)
+        expect(Payment.count).to eq(payment_count)
+      end
+
+      expect(response).to redirect_to(new_purchase_path)
     end
   end
 

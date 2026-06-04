@@ -28,6 +28,7 @@ RSpec.describe Purchase do
   describe "Validations" do
     it { is_expected.to validate_presence_of(:amount) }
     it { is_expected.to validate_presence_of(:item_price) }
+    it { is_expected.to validate_presence_of(:product_id) }
     it { is_expected.to validate_presence_of(:supplier_id) }
 
     context "when amount is not present" do
@@ -38,6 +39,12 @@ RSpec.describe Purchase do
 
     context "when item_price is not present" do
       before { purchase.item_price = nil }
+
+      it { is_expected.not_to be_valid }
+    end
+
+    context "when product_id is not present" do
+      before { purchase.product_id = nil }
 
       it { is_expected.not_to be_valid }
     end
@@ -221,7 +228,7 @@ RSpec.describe Purchase do
     end
 
     it "returns all records when query is blank" do
-      expect(described_class.search_by("")).to match_array([purchase, other_purchase])
+      expect(described_class.search_by("")).to contain_exactly(purchase, other_purchase)
     end
 
     it "returns empty result for non-matching query" do

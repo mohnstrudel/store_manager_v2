@@ -14,7 +14,7 @@ class SizesController < ApplicationController
 
   # GET /sizes/1 or /sizes/1.json
   def show
-    @size = Size.includes(:products).find(params[:id])
+    @size = Size.includes(:products).find(params.expect(:id))
 
     render inertia: "Sizes/Show", props: {
       size: helpers.size_props(@size),
@@ -76,12 +76,11 @@ class SizesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_size
-    @size = Size.find(params[:id])
+    @size = Size.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.
   def size_params
     params.fetch(:size, {}).permit(:value)
   end
-
 end

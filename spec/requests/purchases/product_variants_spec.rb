@@ -23,7 +23,7 @@ RSpec.describe "GET /purchases/product_variants" do
 
     get product_variants_path, params: {product_id: product.id}, as: :json
 
-    returned_ids = response.parsed_body["variants"].map { _1["value"] }
+    returned_ids = response.parsed_body["variants"].pluck("value")
     expect(returned_ids).not_to include(other_variant.id)
   end
 end

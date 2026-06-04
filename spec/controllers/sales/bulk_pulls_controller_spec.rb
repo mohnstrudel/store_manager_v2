@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Sales::BulkPullsController, type: :controller do
+RSpec.describe Sales::BulkPullsController do
   before { sign_in_as_admin }
   after { log_out }
 

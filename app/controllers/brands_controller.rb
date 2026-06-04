@@ -14,7 +14,7 @@ class BrandsController < ApplicationController
 
   # GET /brands/1 or /brands/1.json
   def show
-    @brand = Brand.includes(:products).find(params[:id])
+    @brand = Brand.includes(:products).find(params.expect(:id))
 
     render inertia: "Brands/Show", props: {
       brand: helpers.brand_props(@brand),
@@ -76,12 +76,11 @@ class BrandsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_brand
-    @brand = Brand.find(params[:id])
+    @brand = Brand.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.
   def brand_params
     params.fetch(:brand, {}).permit(:title)
   end
-
 end

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "GET /_inertia_smoke", type: :request do
+RSpec.describe "GET /_inertia_smoke" do
   before { sign_in_as_admin }
 
   it "renders the Hello/Index Inertia component" do

@@ -19,7 +19,7 @@ RSpec.describe "Warehouses" do
       expect(warehouse_props[:path]).to eq("")
       expect(warehouse_props[:position]).to eq(1)
       expect(inertia.props[:options][:positions]).to eq([1, 2])
-      expect(inertia.props[:options][:transition_destinations].map { |option| option[:id] }).to include(
+      expect(inertia.props[:options][:transition_destinations].pluck(:id)).to include(
         destination.id
       )
     end
@@ -43,7 +43,7 @@ RSpec.describe "Warehouses" do
       expect(warehouse_props[:media].first[:id]).to eq(media.id)
       expect(warehouse_props[:transition_ids]).to eq([destination.id])
       expect(inertia.props[:options][:positions]).to eq([1, 2])
-      expect(inertia.props[:options][:transition_destinations].map { |option| option[:id] }).to eq(
+      expect(inertia.props[:options][:transition_destinations].pluck(:id)).to eq(
         [destination.id]
       )
     end

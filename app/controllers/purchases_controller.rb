@@ -37,7 +37,7 @@ class PurchasesController < ApplicationController
   def new
     @purchase = Purchase.new
 
-    @purchase.product = Product.friendly.find(params[:product]) if params[:product].present?
+    @purchase.product = Product.friendly.find(params.expect(:product)) if params[:product].present?
     @purchase.warehouse_id = @default_warehouse_id
 
     render inertia: "Purchases/New", props: helpers.purchase_form_props(
@@ -111,11 +111,11 @@ class PurchasesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_purchase_for_show
-    @purchase = Purchase.for_details.friendly.find(params[:id])
+    @purchase = Purchase.for_details.friendly.find(params.expect(:id))
   end
 
   def set_purchase
-    @purchase = Purchase.friendly.find(params[:id])
+    @purchase = Purchase.friendly.find(params.expect(:id))
   end
 
   def set_default_warehouse_id

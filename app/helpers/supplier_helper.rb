@@ -25,7 +25,7 @@ module SupplierHelper
       item_price: format_money(purchase.item_price),
       path: purchase_path(purchase),
       purchased_ago: time_ago_in_words(purchase.date),
-      title: purchase.product.full_title,
+      title: purchase_product_title(purchase),
       variant: purchase.variant&.title.to_s
     }
   end

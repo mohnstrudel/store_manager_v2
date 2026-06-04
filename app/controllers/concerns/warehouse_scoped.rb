@@ -10,6 +10,6 @@ module WarehouseScoped
   private
 
   def set_warehouse
-    @warehouse = Warehouse.find(params[:warehouse_id])
+    @warehouse = Warehouse.find(params.expect(:warehouse_id))
   end
 end

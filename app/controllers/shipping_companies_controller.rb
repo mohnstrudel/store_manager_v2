@@ -76,12 +76,11 @@ class ShippingCompaniesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_shipping_company
-    @shipping_company = ShippingCompany.find(params[:id])
+    @shipping_company = ShippingCompany.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.
   def shipping_company_params
     params.fetch(:shipping_company, {}).permit(:name, :tracking_url)
   end
-
 end

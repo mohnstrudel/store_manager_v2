@@ -3,7 +3,7 @@
 require "rails_helper"
 require "stringio"
 
-RSpec.describe Webhooks::OrderUpdatesController, type: :controller do
+RSpec.describe Webhooks::OrderUpdatesController do
   describe "#verify_webhook" do
     let(:secret) { "test_secret" }
     let(:payload) { "{\"test\":\"data\"}" }

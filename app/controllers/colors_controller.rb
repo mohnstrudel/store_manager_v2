@@ -14,7 +14,7 @@ class ColorsController < ApplicationController
 
   # GET /colors/1 or /colors/1.json
   def show
-    @color = Color.includes(:products).find(params[:id])
+    @color = Color.includes(:products).find(params.expect(:id))
 
     render inertia: "Colors/Show", props: {
       color: helpers.color_props(@color),
@@ -76,12 +76,11 @@ class ColorsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_color
-    @color = Color.find(params[:id])
+    @color = Color.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.
   def color_params
     params.expect(color: [:value])
   end
-
 end

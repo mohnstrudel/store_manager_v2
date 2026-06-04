@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Purchases::ProductVariantsController, type: :controller do
+RSpec.describe Purchases::ProductVariantsController do
   before { sign_in_as_admin }
   after { log_out }
 

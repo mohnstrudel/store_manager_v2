@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ShopifyApp.configure do |config|
   config.api_version = "2025-10"
   # Consult this page for more scope options:

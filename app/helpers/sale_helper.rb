@@ -33,11 +33,11 @@ module SaleHelper
         id: sale.id,
         path: sale.persisted? ? sale_path(sale) : "",
         status: sale.status,
-      customer_id: sale.customer_id,
-      note: sale.note,
-      total: sale.total.to_s,
-      discount_total: sale.discount_total.to_s,
-      shipping_total: sale.shipping_total.to_s,
+        customer_id: sale.customer_id,
+        note: sale.note,
+        total: sale.total.to_s,
+        discount_total: sale.discount_total.to_s,
+        shipping_total: sale.shipping_total.to_s,
         shipping_address: sale_address_form_props(sale.shipping_address),
         billing_address: sale_address_form_props(sale.billing_address),
         sale_items: sale.sale_items.map { |item| sale_form_item_props(item) }
@@ -155,7 +155,7 @@ module SaleHelper
 
   def sale_address_form_props(address)
     Sale::Addresses::ADDRESS_ATTRIBUTES.index_with { |attr|
-      address ? address.public_send(attr) : nil
+      address&.public_send(attr)
     }
   end
 

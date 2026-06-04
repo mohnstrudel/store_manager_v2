@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory :warehouse_transition do
-    association :notification
-    association :from_warehouse, factory: :warehouse
-    association :to_warehouse, factory: :warehouse
+    notification
+    from_warehouse factory: %i[warehouse]
+    to_warehouse factory: %i[warehouse]
   end
 end

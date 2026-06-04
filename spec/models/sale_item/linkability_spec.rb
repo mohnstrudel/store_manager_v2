@@ -59,7 +59,6 @@ RSpec.describe SaleItem::Linkability do
       expect(SaleItem.linkable_for(purchase_without_variant)).to include(matching_product_base_item)
       expect(SaleItem.linkable_for(purchase_without_variant)).not_to include(matching_variant_item, wrong_variant_item)
     end
-
   end
 
   describe ".for_edit_linking" do

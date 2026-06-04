@@ -2,11 +2,11 @@
 
 FactoryBot.define do
   factory(:store_info) do
-    association :storable, factory: :product
+    storable factory: %i[product]
     store_name { :not_assigned }
 
     trait :for_variant do
-      association :storable, factory: :variant
+      storable factory: %i[variant]
     end
 
     trait :shopify do
@@ -35,7 +35,7 @@ FactoryBot.define do
 
     trait :with_store_product_id do
       with_store_id
-      association :storable, factory: :product
+      storable factory: %i[product]
     end
 
     trait :with_checksum do

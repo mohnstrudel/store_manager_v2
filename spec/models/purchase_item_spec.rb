@@ -70,7 +70,7 @@ describe PurchaseItem do
     end
 
     it "returns all purchase items when the query is blank" do
-      expect(described_class.search_by("")).to match_array([matching_purchase_item, other_purchase_item])
+      expect(described_class.search_by("")).to contain_exactly(matching_purchase_item, other_purchase_item)
     end
 
     it "returns no purchase items when nothing matches" do

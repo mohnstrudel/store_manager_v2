@@ -64,7 +64,7 @@ class PurchaseItemsController < ApplicationController
   private
 
   def set_purchase_item
-    @purchase_item = PurchaseItem.with_media.find(params[:id])
+    @purchase_item = PurchaseItem.with_media.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.

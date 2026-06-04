@@ -54,6 +54,7 @@ class Purchase < ApplicationRecord
 
   validates :amount, presence: true
   validates :item_price, presence: true
+  validates :product_id, presence: true
   validates :supplier_id, presence: true
 
   db_belongs_to :supplier, inverse_of: :purchases

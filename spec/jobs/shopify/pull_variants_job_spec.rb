@@ -21,6 +21,7 @@ RSpec.describe Shopify::PullVariantsJob do
       }
     ]
   end
+
   describe ".queue_as" do
     it "enqueues on the default queue" do
       expect {

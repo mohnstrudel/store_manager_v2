@@ -30,7 +30,7 @@ RSpec.describe "Customers" do
       get customers_path, params: {q: "dale"}
 
       expect_inertia.to have_props(search: {q: "dale"})
-      expect(inertia.props[:customers].map { |c| c[:id] }).to eq([dale.id])
+      expect(inertia.props[:customers].pluck(:id)).to eq([dale.id])
     end
   end
 

@@ -3,6 +3,7 @@
 class ApplicationController < ActionController::Base
   include Authentication
   include Authorization
+
   inertia_share do
     {
       breadcrumb: helpers.breadcrumb_title,

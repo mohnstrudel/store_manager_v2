@@ -80,13 +80,16 @@ wait_for_background_commands() {
 }
 
 run backend-rubocop bin/bundle exec rubocop --format quiet --force-exclusion --cache-root "$RUBOCOP_CACHE_ROOT"
-run backend-rspec bin/rspec --format progress --no-profile
+run backend-parallel-db bin/bundle exec rake parallel:create parallel:prepare
+
+run_in_background backend-rspec bin/rspec --exclude-pattern 'spec/features/**/*_spec.rb' --format progress --no-profile
+run_in_background backend-feature-rspec env PARALLEL_RSPEC_SKIP_SETUP=1 bin/parallel-rspec --test-options '--format progress --no-profile' spec/features
 
 run_in_background frontend-lint pnpm exec oxlint app/frontend --quiet --format unix
 run_in_background frontend-lint-perf pnpm exec oxlint app/frontend -D perf --quiet --format unix
 run_in_background frontend-format pnpm exec oxfmt --list-different app/frontend .oxlintrc.json .oxfmtrc.json config/vite.json package.json tsconfig.json vite.config.ts
 run_in_background frontend-typecheck pnpm exec tsc --noEmit --pretty false
-run_in_background frontend-vitest pnpm exec vitest run --silent=passed-only
+run_in_background frontend-vitest pnpm exec vitest run --reporter=github-actions --silent=passed-only
 wait_for_background_commands
 
 if [ -n "$failed_commands" ]; then

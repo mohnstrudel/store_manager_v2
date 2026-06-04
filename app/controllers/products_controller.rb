@@ -86,7 +86,7 @@ class ProductsController < ApplicationController
   private
 
   def set_product
-    @product = Product.for_details.friendly.find(params[:id])
+    @product = Product.for_details.friendly.find(params.expect(:id))
   end
 
   def extract_media_attributes

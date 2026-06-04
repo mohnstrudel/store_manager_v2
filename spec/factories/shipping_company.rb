@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :shipping_company do
     name { "Shipping Company #{SecureRandom.alphanumeric(8)}" }

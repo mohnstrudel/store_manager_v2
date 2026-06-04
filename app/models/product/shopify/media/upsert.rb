@@ -61,10 +61,10 @@ module Product::Shopify::Media
       return true if blob.blank?
 
       !blob.service.exist?(blob.key)
-    rescue StandardError => e
+    rescue => e
       Rails.logger.warn(
         "[Product::Shopify::Media::Upsert] Falling back to reattach missing image " \
-        "for media=#{media.id || 'new'}: #{e.class}: #{e.message}"
+        "for media=#{media.id || "new"}: #{e.class}: #{e.message}"
       )
       true
     end

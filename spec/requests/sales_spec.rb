@@ -24,7 +24,7 @@ RSpec.describe "Sales" do
       )
 
       sales = inertia.props[:sales]
-      expect(sales.map { |item| item[:id] }).to eq([sale.id])
+      expect(sales.pluck(:id)).to eq([sale.id])
       expect(sales.first[:customer_name]).to eq(sale.customer.full_name)
     end
 
@@ -35,7 +35,7 @@ RSpec.describe "Sales" do
       get sales_path, params: {q: "HSCM"}
 
       expect_inertia.to have_props(search: {q: "HSCM"})
-      expect(inertia.props[:sales].map { |item| item[:id] }).to eq([matching.id])
+      expect(inertia.props[:sales].pluck(:id)).to eq([matching.id])
     end
   end
 
