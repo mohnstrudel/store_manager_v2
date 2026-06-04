@@ -10,7 +10,9 @@
     "lint:fix:all": "oxlint app/frontend --fix-dangerously",
     "format": "oxfmt app/frontend .oxlintrc.json .oxfmtrc.json config/vite.json package.json tsconfig.json vite.config.ts",
     "format:check": "oxfmt --check app/frontend .oxlintrc.json .oxfmtrc.json config/vite.json package.json tsconfig.json vite.config.ts",
-    "typecheck": "oxlint app/frontend"
+    "typecheck": "oxlint app/frontend",
+    "build": "vite build",
+    "heroku-postbuild": "pnpm build"
   },
   "dependencies": {
     "@dnd-kit/helpers": "^0.4.0",
