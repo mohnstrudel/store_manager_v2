@@ -2,7 +2,7 @@
 
 export RUBOCOP_CACHE_ROOT="${RUBOCOP_CACHE_ROOT:-tmp/rubocop_cache}"
 TEST_LOG_DIR="${TEST_LOG_DIR:-tmp/test-logs}"
-TEST_LOG_TAIL="${TEST_LOG_TAIL:-200}"
+TEST_LOG_TAIL="${TEST_LOG_TAIL:-80}"
 
 failed_commands=""
 background_labels=""
