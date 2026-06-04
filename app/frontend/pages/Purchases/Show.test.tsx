@@ -160,6 +160,7 @@ function makePurchaseItem(): PurchaseItemRecord {
     unlink_path: "/purchase_items/1/unlink",
     warehouse_name: "Berlin Hub",
     warehouse_path: "/warehouses/1",
+    warehouse_movements: [],
     sale_title: "Sale 1",
     sale_path: "/sales/1",
     sale_address: "Berlin",

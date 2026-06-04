@@ -1,5 +1,6 @@
 import { useCallback, useRef, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
+import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
@@ -114,58 +115,23 @@ function PurchaseItemRow({
   shippingCompanies,
   toggleSelectedIdFromDataAttribute,
 }: PurchaseItemRowProps) {
-  const trackingRef = useRef<{ open(): void }>(null);
-  const shippingRef = useRef<{ open(): void }>(null);
-  const shippingCostRef = useRef<{ open(): void }>(null);
-  const openTracking = useCallback(() => {
-    trackingRef.current?.open();
-  }, []);
-  const openShipping = useCallback(() => {
-    shippingRef.current?.open();
-  }, []);
-  const openShippingCost = useCallback(() => {
-    shippingCostRef.current?.open();
-  }, []);
+  const { trackingRef, shippingRef, shippingCostRef, trackingAutoOpen, shippingAutoOpen, costAutoOpen } =
+    useInlineEditorCascade(purchaseItem);
 
-  // When all three fields are blank, clicking any one opens all three.
-  const isBlankRow =
-    !purchaseItem.tracking_number &&
-    !purchaseItem.shipping_company_id &&
-    parseFloat(purchaseItem.shipping_cost) === 0;
-
-  // Tracking: open shipping when no company; also open cost when the whole row is blank.
-  const trackingAutoOpen = useCallback(() => {
-    if (purchaseItem.shipping_company_id) return;
-
-    openShipping();
-    if (isBlankRow) openShippingCost();
-  }, [isBlankRow, openShipping, openShippingCost, purchaseItem.shipping_company_id]);
-
-  // Shipping: open tracking + cost when blank row.
-  const shippingAutoOpen = useCallback(() => {
-    if (!isBlankRow) return;
-
-    openTracking();
-    openShippingCost();
-  }, [isBlankRow, openShippingCost, openTracking]);
-
-  // Cost: open tracking + shipping when blank row.
-  const costAutoOpen = useCallback(() => {
-    if (!isBlankRow) return;
-
-    openTracking();
-    openShipping();
-  }, [isBlankRow, openShipping, openTracking]);
+  const hasMovementHistory = purchaseItem.warehouse_movements.length > 0;
+  const summaryCursor = hasMovementHistory ? "cursor-pointer" : "cursor-default";
 
   const unlinkPurchaseItem = useConfirmedDestroy(
     purchaseItem.unlink_path,
     "Unlink this purchase item?",
   );
-
-  const handleUnlinkClick = useCallback((event: MouseEvent) => {
-    event.stopPropagation();
-    unlinkPurchaseItem();
-  }, [unlinkPurchaseItem]);
+  const handleUnlinkClick = useCallback(
+    (event: MouseEvent) => {
+      event.stopPropagation();
+      unlinkPurchaseItem();
+    },
+    [unlinkPurchaseItem],
+  );
 
   return (
     <tr className="hoverable" id={String(purchaseItem.id)} {...rowNavigationProps(purchaseItem.path)}>
@@ -181,19 +147,48 @@ function PurchaseItemRow({
       <td>{purchaseItem.id}</td>
       <td>
         <div className="flex flex-col gap-2">
-          <span>
-            <span className="text-gray-500">
-              <i className="icn">📦</i>&nbsp;Status:
-            </span>
-            <Link
-              className="link no_events ml-2"
-              href={purchaseItem.warehouse_path}
-              onClick={stopRowNavigation}
-              prefetch
-            >
-              {purchaseItem.warehouse_name}
-            </Link>
-          </span>
+          <details className="group" onClick={stopRowNavigation}>
+            <summary className={`w-fit flex items-center gap-2 ${summaryCursor}`}>
+              <span>
+                <span className="text-gray-500">
+                  <i className="icn">📦</i>&nbsp;Status:
+                </span>
+                <Link
+                  className="link no_events ml-2"
+                  href={purchaseItem.warehouse_path}
+                  onClick={stopRowNavigation}
+                  prefetch
+                >
+                  {purchaseItem.warehouse_name}
+                </Link>
+              </span>
+              {hasMovementHistory && (
+                <span className="text-xs btn_rounded w-5 h-5 p-0 btn_lightblue flex items-center justify-center transition-transform origin-center group-open:-rotate-90">
+                  <ChevronLeftIcon className="h-4 w-4" />
+                </span>
+              )}
+            </summary>
+            {hasMovementHistory && (
+              <div className="border max-w-9/10 border-gray-100 dark:border-gray-600/40 rounded-sm my-3">
+                <table className="text-sm my-0">
+                  <thead>
+                    <tr className="cursor-auto">
+                      <th>Moved in</th>
+                      <th>Warehouse</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {purchaseItem.warehouse_movements.map((movement) => (
+                      <tr className="cursor-auto" key={`${purchaseItem.id}-${movement.moved_in}`}>
+                        <td className="pr-2 text_muted whitespace-nowrap">{movement.moved_in}</td>
+                        <td>{movement.warehouse_name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </details>
           {purchaseItem.sale_path && (
             <span>
               <span className="text-gray-500">
@@ -269,4 +264,42 @@ function PurchaseItemRow({
       </td>
     </tr>
   );
+}
+
+function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
+  const trackingRef = useRef<{ open(): void }>(null);
+  const shippingRef = useRef<{ open(): void }>(null);
+  const shippingCostRef = useRef<{ open(): void }>(null);
+  const openTracking = useCallback(() => { trackingRef.current?.open(); }, []);
+  const openShipping = useCallback(() => { shippingRef.current?.open(); }, []);
+  const openShippingCost = useCallback(() => { shippingCostRef.current?.open(); }, []);
+
+  // When all three fields are blank, clicking any one opens all three.
+  const isBlankRow =
+    !purchaseItem.tracking_number &&
+    !purchaseItem.shipping_company_id &&
+    parseFloat(purchaseItem.shipping_cost) === 0;
+
+  // Tracking: open shipping when no company; also open cost when the whole row is blank.
+  const trackingAutoOpen = useCallback(() => {
+    if (purchaseItem.shipping_company_id) return;
+    openShipping();
+    if (isBlankRow) openShippingCost();
+  }, [isBlankRow, openShipping, openShippingCost, purchaseItem.shipping_company_id]);
+
+  // Shipping: open tracking + cost when blank row.
+  const shippingAutoOpen = useCallback(() => {
+    if (!isBlankRow) return;
+    openTracking();
+    openShippingCost();
+  }, [isBlankRow, openShippingCost, openTracking]);
+
+  // Cost: open tracking + shipping when blank row.
+  const costAutoOpen = useCallback(() => {
+    if (!isBlankRow) return;
+    openTracking();
+    openShipping();
+  }, [isBlankRow, openShipping, openTracking]);
+
+  return { costAutoOpen, shippingAutoOpen, shippingCostRef, shippingRef, trackingAutoOpen, trackingRef };
 }

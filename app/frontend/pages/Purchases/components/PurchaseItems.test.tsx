@@ -349,6 +349,7 @@ function makePurchaseItem(
     unlink_path: "/purchase_items/10/unlink",
     warehouse_name: "Warehouse A",
     warehouse_path: "/warehouses/1",
+    warehouse_movements: [],
     sale_title: "",
     sale_path: null,
     sale_address: "",
