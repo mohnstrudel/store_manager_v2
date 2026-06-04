@@ -74,14 +74,12 @@ describe "Moving purchased products between warehouses" do
       visit purchase_path(purchase)
 
       # Verify that we have purchased products in the original warehouse
-      within(first("table tbody")) do
-        expect(page).to have_css("tr", count: 3)
-      end
+      expect(page).to have_css("tr.hoverable", count: 3)
       expect(page).to have_text(warehouse_from.name, count: 3)
 
       # Select 2 out of 3 purchased products
-      find("tbody tr:nth-child(1) input[type='checkbox']").check
-      find("tbody tr:nth-child(2) input[type='checkbox']").check
+      find("tbody tr.hoverable:nth-of-type(1) input[type='checkbox']").check
+      find("tbody tr.hoverable:nth-of-type(2) input[type='checkbox']").check
 
       # Enable the form to be visible in the test environment
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
@@ -94,9 +92,7 @@ describe "Moving purchased products between warehouses" do
       expect(page).to have_content("Success! 2 purchased products moved to: #{warehouse_to.name}")
 
       # Verify we have the same amount of purchased products
-      within(first("table tbody")) do
-        expect(page).to have_css("tr", count: 3)
-      end
+      expect(page).to have_css("tr.hoverable", count: 3)
 
       # Verify the moved purchases are no longer in the original warehouse
       # 1 time in the notice, 2 inside the table
