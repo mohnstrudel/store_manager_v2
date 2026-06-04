@@ -3,7 +3,8 @@
 class PurchaseItemsController < ApplicationController
   include MediaFormHandling
 
-  before_action :set_purchase_item, only: %i[show edit update destroy]
+  before_action :set_purchase_item_for_show, only: :show
+  before_action :set_purchase_item, only: %i[edit update destroy]
 
   # GET /warehouse_products
   def index
@@ -62,6 +63,10 @@ class PurchaseItemsController < ApplicationController
   end
 
   private
+
+  def set_purchase_item_for_show
+    @purchase_item = PurchaseItem.for_show.find(params.expect(:id))
+  end
 
   def set_purchase_item
     @purchase_item = PurchaseItem.with_media.find(params.expect(:id))

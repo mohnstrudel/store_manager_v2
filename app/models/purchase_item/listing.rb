@@ -8,6 +8,18 @@ module PurchaseItem::Listing
 
     scope :with_media, -> { includes(media: {image_attachment: :blob}) }
 
+    scope :for_show, -> {
+      includes(
+        :audits,
+        :warehouse,
+        :shipping_company,
+        :sale,
+        :sale_item,
+        purchase: [:supplier, :product, :variant],
+        media: {image_attachment: :blob}
+      )
+    }
+
     scope :for_purchase_details, -> {
       includes(
         :audits,
