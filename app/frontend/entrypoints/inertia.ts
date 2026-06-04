@@ -18,7 +18,7 @@ void createInertiaApp({
   defaults: {
     visitOptions: (_href, options) => ({ ...options, viewTransition: true }),
   },
-  progress: { showSpinner: false },
+  progress: { showSpinner: false, delay: 200 },
   layout: () => AppLayout,
   page: initialPage,
   resolve: resolvePage,
