@@ -25,6 +25,10 @@ module Sale::Listing
       )
     }
 
+    scope :for_edit, -> {
+      includes(:sale_items, :shipping_address, :billing_address)
+    }
+
     scope :for_details, -> {
       includes(
         :customer,

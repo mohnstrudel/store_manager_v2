@@ -86,7 +86,7 @@ class SalesController < ApplicationController
   end
 
   def set_sale
-    @sale = Sale.friendly.find(params.expect(:id))
+    @sale = Sale.for_edit.friendly.find(params.expect(:id))
   end
 
   def append_sale_item_errors(record)
