@@ -45,7 +45,7 @@ module PurchaseItem::Warehousing
     update!(warehouse_id:)
   end
 
-  def warehouse_movements
+  def warehouse_movements(warehouses_by_id: nil)
     movement_data = audits.each_with_object([]) do |audit, rows|
       moved_warehouse_id = moved_warehouse_id_for(audit)
       next if moved_warehouse_id.blank?
@@ -53,7 +53,7 @@ module PurchaseItem::Warehousing
       rows << {moved_in: audit.created_at, warehouse_id: moved_warehouse_id}
     end
 
-    warehouses_by_id = Warehouse
+    warehouses_by_id ||= Warehouse
       .where(id: movement_data.pluck(:warehouse_id))
       .index_by(&:id)
 
