@@ -1,13 +1,9 @@
 import "@/styles/application.css";
-import "nprogress/nprogress.css";
 import { createInertiaApp, router } from "@inertiajs/react";
-import NProgress from "nprogress";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import AppLayout from "@/layouts/AppLayout";
 import { resolvePage } from "@/lib/resolvePage";
-
-NProgress.configure({ showSpinner: false });
 
 const appElement = document.getElementById("app");
 
@@ -15,7 +11,6 @@ const initialPage = appElement?.dataset.page ? JSON.parse(appElement.dataset.pag
 let inertiaNavigationBridgeEnabled = false;
 let autocorrectDisablerEnabled = false;
 
-enableProgressBar();
 enableAutocorrectDisabler();
 enableInertiaNavigationBridge();
 
@@ -23,6 +18,7 @@ void createInertiaApp({
   defaults: {
     visitOptions: (_href, options) => ({ ...options, viewTransition: true }),
   },
+  progress: { showSpinner: false },
   layout: () => AppLayout,
   page: initialPage,
   resolve: resolvePage,
@@ -50,34 +46,6 @@ export function enableAutocorrectDisabler() {
 
 function disableAutocorrectAfterRender(root: ParentNode = document) {
   requestAnimationFrame(() => disableAutocorrect(root));
-}
-
-export function enableProgressBar() {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  router.on("start", () => {
-    timeout = setTimeout(() => NProgress.start(), 250);
-  });
-
-  router.on("progress", (event) => {
-    if (NProgress.isStarted() && event.detail.progress?.percentage) {
-      NProgress.set((event.detail.progress.percentage / 100) * 0.9);
-    }
-  });
-
-  router.on("finish", (event) => {
-    if (timeout) clearTimeout(timeout);
-    if (!NProgress.isStarted()) return;
-
-    if (event.detail.visit.completed) {
-      NProgress.done();
-    } else if (event.detail.visit.interrupted) {
-      NProgress.set(0);
-    } else if (event.detail.visit.cancelled) {
-      NProgress.done();
-      NProgress.remove();
-    }
-  });
 }
 
 export function enableInertiaNavigationBridge() {
