@@ -24,6 +24,7 @@ vi.mock("@inertiajs/react", () => ({
       {typeof children === "function" ? children({ errors: pageErrors }) : children}
     </form>
   ),
+  usePage: () => ({ props: { errors: pageErrors } }),
 }));
 
 const size = { id: null, value: "", created_at: null, updated_at: null };
@@ -46,6 +47,7 @@ describe("Sizes/New", () => {
 
     render(<New size={size} />);
 
-    expect(screen.getByText("can't be blank")).toBeInTheDocument();
+    expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
+    expect(screen.getAllByText("can't be blank").length).toBeGreaterThan(0);
   });
 });
