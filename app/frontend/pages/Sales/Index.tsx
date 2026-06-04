@@ -11,12 +11,13 @@ type IndexProps = {
   sales: SaleIndexRecord[];
   pagination: PaginationMeta;
   search: { q: string };
-  last_sync_at: string | null;
   last_sync_time: string | null;
 };
 
 export default function Index({ sales, pagination, search, last_sync_time }: IndexProps) {
   const { close: closeSync, isOpen: syncOpen, open: openSync } = useModalVisibility();
+  const hasSales = sales.length > 0;
+  const lastSyncLabel = last_sync_time ? `Last sync: ${last_sync_time}` : null;
 
   return (
     <>
@@ -39,7 +40,7 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
         <SyncModal
           fetchLimitedLabel="Fetch Last 100 Sales"
           id="sales-index-sync-modal"
-          lastSyncAt={last_sync_time ? `Last sync: ${last_sync_time}` : null}
+          lastSyncAt={lastSyncLabel}
           onClose={closeSync}
           pullPath="/sales/pull"
           title="Sales Synchronization"
@@ -47,12 +48,12 @@ export default function Index({ sales, pagination, search, last_sync_time }: Ind
       )}
 
       <SearchableTableSection
-        hasResults={sales.length > 0}
+        hasResults={hasSales}
         pagination={pagination}
         path="/sales"
         query={search.q}
         resourceName="sales"
-        showBottomPagination={sales.length > 0}
+        showBottomPagination={hasSales}
       >
         <Table sales={sales} />
       </SearchableTableSection>
