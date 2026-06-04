@@ -29,6 +29,9 @@ Rails.application.configure do
   # Apache or NGINX already handles this.
   config.public_file_server.enabled = ENV["RAILS_SERVE_STATIC_FILES"].present?
 
+  # Assets are precompiled at deploy time; no runtime compilation needed.
+  config.assets.compile = false
+
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
 
