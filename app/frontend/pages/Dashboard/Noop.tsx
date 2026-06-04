@@ -5,8 +5,17 @@ export default function Noop() {
     <>
       <PageHeader title="Dashboard" />
 
-      <section className="section_border_base section_wide text-center">
-        <p className="text-gray-600 dark:text-gray-300">Nothing else needs your attention here.</p>
+      <section className="pt-10 flex flex-grow flex-col max-w-120 text-gray-600 dark:text-gray-300">
+        <h2>Access Required</h2>
+        <p className="text-lg pt-4">
+          There is currently no content available because you do not have the required permissions.
+        </p>
+        <p className="text-lg pt-4">
+          If you believe you should have access, please contact the administrator.
+        </p>
+        <p className="text-lg pt-4">
+          Once access has been granted, the relevant content and functionality will become available.
+        </p>
       </section>
     </>
   );

@@ -7,7 +7,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">
       <AppNavigation />
-      <main className="container mx-auto mt-4 mb-24 px-4 lg:mt-8 lg:mb-60 lg:px-0">
+      <main className="flex flex-col flex-grow container mx-auto mt-4 mb-24 px-4 lg:mt-8 lg:mb-60 lg:px-0">
         <FlashMessages />
         <Breadcrumbs />
         {children}
