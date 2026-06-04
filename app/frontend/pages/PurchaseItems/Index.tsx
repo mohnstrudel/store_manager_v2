@@ -10,17 +10,19 @@ type IndexProps = {
 };
 
 export default function Index({ pagination, purchase_items, search }: IndexProps) {
+  const hasPurchaseItems = purchase_items.length > 0;
+
   return (
     <>
       <PageHeader title="Purchase Items" />
 
       <SearchableTableSection
-        hasResults={purchase_items.length > 0}
+        hasResults={hasPurchaseItems}
         pagination={pagination}
         path="/purchase_items"
         query={search.q}
         resourceName="purchase_items"
-        showBottomPagination={purchase_items.length > 0}
+        showBottomPagination={hasPurchaseItems}
       >
         <IndexTable purchaseItems={purchase_items} />
       </SearchableTableSection>
