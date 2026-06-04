@@ -21,7 +21,7 @@
   }
 
   .zoomable:hover {
-    @apply scale-300 backdrop-blur-sm shadow-lg bg-white/45 dark:bg-gray-900/45 z-20;
+    @apply scale-300 backdrop-blur-sm shadow-lg bg-white/45 dark:bg-gray-900/45 z-30;
   }
 
   .preloadable_img__img.hidden {
