@@ -46,10 +46,26 @@ type ToolbarButtonConfig = {
 
 const TOOLBAR_GROUPS: ToolbarButtonConfig[][] = [
   [
-    { action: "bold", isActive: (editor) => editor.isActive("bold"), label: "B" },
-    { action: "italic", isActive: (editor) => editor.isActive("italic"), label: "I" },
-    { action: "underline", isActive: (editor) => editor.isActive("underline"), label: "U" },
-    { action: "strike", isActive: (editor) => editor.isActive("strike"), label: "S̶" },
+    {
+      action: "bold",
+      isActive: (editor) => editor.isActive("bold"),
+      label: "B",
+    },
+    {
+      action: "italic",
+      isActive: (editor) => editor.isActive("italic"),
+      label: "I",
+    },
+    {
+      action: "underline",
+      isActive: (editor) => editor.isActive("underline"),
+      label: "U",
+    },
+    {
+      action: "strike",
+      isActive: (editor) => editor.isActive("strike"),
+      label: "S̶",
+    },
   ],
   [
     {
@@ -64,7 +80,11 @@ const TOOLBAR_GROUPS: ToolbarButtonConfig[][] = [
     },
   ],
   [
-    { action: "bullet-list", isActive: (editor) => editor.isActive("bulletList"), label: "• List" },
+    {
+      action: "bullet-list",
+      isActive: (editor) => editor.isActive("bulletList"),
+      label: "• List",
+    },
     {
       action: "ordered-list",
       isActive: (editor) => editor.isActive("orderedList"),
@@ -89,8 +109,16 @@ const TOOLBAR_GROUPS: ToolbarButtonConfig[][] = [
     },
   ],
   [
-    { action: "link", isActive: (editor) => editor.isActive("link"), label: "Link" },
-    { action: "unlink", isDisabled: (editor) => !editor.isActive("link"), label: "Unlink" },
+    {
+      action: "link",
+      isActive: (editor) => editor.isActive("link"),
+      label: "Link",
+    },
+    {
+      action: "unlink",
+      isDisabled: (editor) => !editor.isActive("link"),
+      label: "Unlink",
+    },
   ],
   [
     { action: "undo", label: "↩" },

@@ -17,14 +17,22 @@ export function InlineTrackingNumberEditor({
   const [shippingError, setShippingError] = useState("");
   const requiresShippingCompany = !item.shipping_company_id;
 
-  const { isOpen, isSaved, open, close, error: serverError, onChange, save, value } =
-    useInlineCellForm({
-      editedRecord: item,
-      attributeName: "tracking_number",
-      route: routes.purchaseItemsTrackingNumbers.update,
-      errorFrom: trackingNumberError,
-      onOpen: !item.shipping_company_id ? onAutoOpenShipping : undefined,
-    });
+  const {
+    isOpen,
+    isSaved,
+    open,
+    close,
+    error: serverError,
+    onChange,
+    save,
+    value,
+  } = useInlineCellForm({
+    editedRecord: item,
+    attributeName: "tracking_number",
+    route: routes.purchaseItemsTrackingNumbers.update,
+    errorFrom: trackingNumberError,
+    onOpen: !item.shipping_company_id ? onAutoOpenShipping : undefined,
+  });
 
   const error = requiresShippingCompany ? shippingError : serverError;
 
@@ -42,7 +50,11 @@ export function InlineTrackingNumberEditor({
   }, [close]);
 
   return (
-    <InlineCellTd className="text-center max-w-56" isSaved={isSaved} onOpen={isOpen ? undefined : open}>
+    <InlineCellTd
+      className="text-center max-w-56"
+      isSaved={isSaved}
+      onOpen={isOpen ? undefined : open}
+    >
       {isOpen ? (
         <InlineCellForm onCancel={cancelEditing} onSave={saveTrackingNumber}>
           <label className="sr-only" htmlFor={`purchase_item_${item.id}_tracking_number`}>

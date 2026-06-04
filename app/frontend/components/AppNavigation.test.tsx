@@ -66,7 +66,9 @@ describe("AppNavigation", () => {
 
     render(<AppNavigation />);
 
-    const toggle = screen.getByRole("button", { name: "More navigation links" });
+    const toggle = screen.getByRole("button", {
+      name: "More navigation links",
+    });
 
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
     expect(screen.getByText("StoreMate")).toBeInTheDocument();

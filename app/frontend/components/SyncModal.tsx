@@ -24,7 +24,10 @@ export default function SyncModal({
   title,
 }: SyncModalProps) {
   const { closeModal, closeWhenBackdropIsClicked } = useSyncModalDismissal(onClose);
-  const { fetchEverything, fetchRecentRecords } = useStoreSyncActions({ onClose, pullPath });
+  const { fetchEverything, fetchRecentRecords } = useStoreSyncActions({
+    onClose,
+    pullPath,
+  });
 
   return (
     <dialog id={id} onClick={closeWhenBackdropIsClicked} open>
@@ -61,7 +64,7 @@ function SyncModalHeader({ lastSyncAt, onClose, title }: SyncModalHeaderProps) {
         onClick={onClose}
         type="button"
       >
-        ❌
+        <i className="icn">❌</i>
       </button>
     </header>
   );

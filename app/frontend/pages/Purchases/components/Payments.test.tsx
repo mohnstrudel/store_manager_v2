@@ -47,7 +47,12 @@ function makePurchase(): PurchaseShowRecord {
     order_reference: "PO-55",
     paid: "50.00",
     path: "/purchases/55",
-    payment_progress: { debt: "160.00", paid: "50.00", price: "210.00", progress: 25 },
+    payment_progress: {
+      debt: "160.00",
+      paid: "50.00",
+      price: "210.00",
+      progress: 25,
+    },
     product_image_url: null,
     product_path: "/products/1",
     product_thumb_url: null,

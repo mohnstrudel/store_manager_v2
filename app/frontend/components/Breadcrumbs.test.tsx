@@ -98,7 +98,10 @@ describe("Breadcrumbs", () => {
         { name: "Four", url: "/four" },
       ]),
     );
-    pageState = { props: { breadcrumb: "📦 Product" }, url: "/products/5?tab=all#top" };
+    pageState = {
+      props: { breadcrumb: "📦 Product" },
+      url: "/products/5?tab=all#top",
+    };
 
     render(<Breadcrumbs />);
 

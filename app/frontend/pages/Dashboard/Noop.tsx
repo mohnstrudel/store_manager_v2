@@ -14,7 +14,8 @@ export default function Noop() {
           If you believe you should have access, please contact the administrator.
         </p>
         <p className="text-lg pt-4">
-          Once access has been granted, the relevant content and functionality will become available.
+          Once access has been granted, the relevant content and functionality will become
+          available.
         </p>
       </section>
     </>

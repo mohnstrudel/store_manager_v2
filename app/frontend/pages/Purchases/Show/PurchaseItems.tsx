@@ -9,7 +9,12 @@ import MoveToWarehouseForm from "../components/MoveToWarehouseForm";
 import PaymentProgressBar from "../components/PaymentProgressBar";
 import { InlineShippingCompanyEditor } from "../components/InlineShippingCompanyEditor";
 import { InlineTrackingNumberEditor } from "../components/InlineTrackingNumberEditor";
-import type { PurchaseItemRecord, PurchaseShowRecord, ShippingCompanyOption, WarehouseOption } from "../types";
+import type {
+  PurchaseItemRecord,
+  PurchaseShowRecord,
+  ShippingCompanyOption,
+  WarehouseOption,
+} from "../types";
 import { InlineShippingCostEditor } from "./InlineShippingCostEditor";
 
 type PurchaseItemsProps = {
@@ -32,28 +37,38 @@ export default function PurchaseItems({
 
   if (purchaseItems.length === 0) return null;
 
+  const productSummary = (
+    <>
+      {purchase.product_thumb_url && (
+        <img
+          alt={purchase.product_title}
+          className="rounded h-7 w-7 shrink-0 object-cover transition-transform duration-150 ease-out hover:scale-[7] hover:z-990 hover:shadow"
+          src={purchase.product_thumb_url}
+        />
+      )}
+      <span>
+        {purchase.product_title}
+        {purchase.variant_title && <span> → {purchase.variant_title}</span>}
+      </span>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <div className="table_card">
         <div className="flex justify-between align-center flex-wrap">
           <h3>
-            <Link
-              className="inline-flex items-center gap-3 font-semibold"
-              href={purchase.product_path}
-              prefetch
-            >
-              {purchase.product_thumb_url && (
-                <img
-                  alt={purchase.product_title}
-                  className="rounded h-7 w-7 shrink-0 object-cover transition-transform duration-150 ease-out hover:scale-[7] hover:z-990 hover:shadow"
-                  src={purchase.product_thumb_url}
-                />
-              )}
-              <span>
-                {purchase.product_title}
-                {purchase.variant_title && <span> → {purchase.variant_title}</span>}
-              </span>
-            </Link>
+            {purchase.product_path ? (
+              <Link
+                className="inline-flex items-center gap-3 font-semibold"
+                href={purchase.product_path}
+                prefetch
+              >
+                {productSummary}
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-3 font-semibold">{productSummary}</span>
+            )}
           </h3>
           <div className="w-full max-w-45 px-3 mt-4 text-center lg:w-45">
             <PaymentProgressBar progress={purchase.payment_progress} />
@@ -115,8 +130,14 @@ function PurchaseItemRow({
   shippingCompanies,
   toggleSelectedIdFromDataAttribute,
 }: PurchaseItemRowProps) {
-  const { trackingRef, shippingRef, shippingCostRef, trackingAutoOpen, shippingAutoOpen, costAutoOpen } =
-    useInlineEditorCascade(purchaseItem);
+  const {
+    trackingRef,
+    shippingRef,
+    shippingCostRef,
+    trackingAutoOpen,
+    shippingAutoOpen,
+    costAutoOpen,
+  } = useInlineEditorCascade(purchaseItem);
 
   const hasMovementHistory = purchaseItem.warehouse_movements.length > 0;
   const summaryCursor = hasMovementHistory ? "cursor-pointer" : "cursor-default";
@@ -134,7 +155,11 @@ function PurchaseItemRow({
   );
 
   return (
-    <tr className="hoverable" id={String(purchaseItem.id)} {...rowNavigationProps(purchaseItem.path)}>
+    <tr
+      className="hoverable"
+      id={String(purchaseItem.id)}
+      {...rowNavigationProps(purchaseItem.path)}
+    >
       <td className="no_events text-center">
         <input
           checked={selectedIds.includes(purchaseItem.id)}
@@ -146,7 +171,7 @@ function PurchaseItemRow({
       </td>
       <td>{purchaseItem.id}</td>
       <td>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 my-4">
           <details className="group" onClick={stopRowNavigation}>
             <summary className={`w-fit flex items-center gap-2 ${summaryCursor}`}>
               <span>
@@ -169,7 +194,7 @@ function PurchaseItemRow({
               )}
             </summary>
             {hasMovementHistory && (
-              <div className="border max-w-9/10 border-gray-100 dark:border-gray-600/40 rounded-sm my-3">
+              <div className="border max-w-9/10 border-gray-200/80 dark:border-gray-600/40 rounded-sm my-3">
                 <table className="text-sm my-0">
                   <thead>
                     <tr className="cursor-auto">
@@ -270,9 +295,15 @@ function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
   const trackingRef = useRef<{ open(): void }>(null);
   const shippingRef = useRef<{ open(): void }>(null);
   const shippingCostRef = useRef<{ open(): void }>(null);
-  const openTracking = useCallback(() => { trackingRef.current?.open(); }, []);
-  const openShipping = useCallback(() => { shippingRef.current?.open(); }, []);
-  const openShippingCost = useCallback(() => { shippingCostRef.current?.open(); }, []);
+  const openTracking = useCallback(() => {
+    trackingRef.current?.open();
+  }, []);
+  const openShipping = useCallback(() => {
+    shippingRef.current?.open();
+  }, []);
+  const openShippingCost = useCallback(() => {
+    shippingCostRef.current?.open();
+  }, []);
 
   // When all three fields are blank, clicking any one opens all three.
   const isBlankRow =
@@ -301,5 +332,12 @@ function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
     openShipping();
   }, [isBlankRow, openShipping, openTracking]);
 
-  return { costAutoOpen, shippingAutoOpen, shippingCostRef, shippingRef, trackingAutoOpen, trackingRef };
+  return {
+    costAutoOpen,
+    shippingAutoOpen,
+    shippingCostRef,
+    shippingRef,
+    trackingAutoOpen,
+    trackingRef,
+  };
 }

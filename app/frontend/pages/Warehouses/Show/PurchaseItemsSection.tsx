@@ -221,10 +221,7 @@ function PurchaseItemRow({
       <td className="max-w-xs">
         <PurchaseItemCustomer item={item} />
       </td>
-      <InlineTrackingNumberEditor
-        item={item}
-        onAutoOpenShipping={trackingAutoOpenShipping}
-      />
+      <InlineTrackingNumberEditor item={item} onAutoOpenShipping={trackingAutoOpenShipping} />
       <InlineShippingCompanyEditor
         ref={shippingRef}
         item={item}
@@ -312,7 +309,6 @@ function usePurchaseItemsSection() {
     togglePurchaseItemSelection: toggleSelectedIdFromDataAttribute("purchaseItemId"),
   };
 }
-
 
 function purchaseItemRowClassName({ isSelected }: { isSelected: boolean }) {
   return ["hoverable", isSelected ? "selected" : ""].filter(Boolean).join(" ");

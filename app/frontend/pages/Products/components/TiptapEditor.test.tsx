@@ -136,7 +136,9 @@ describe("TiptapEditor", () => {
 
     expect(prompt).toHaveBeenCalledWith("Enter URL", "");
     expect(editorMocks.chain.extendMarkRange).toHaveBeenCalledWith("link");
-    expect(editorMocks.chain.setLink).toHaveBeenCalledWith({ href: "https://example.com" });
+    expect(editorMocks.chain.setLink).toHaveBeenCalledWith({
+      href: "https://example.com",
+    });
     expect(editorMocks.chain.run).toHaveBeenCalled();
   });
 });

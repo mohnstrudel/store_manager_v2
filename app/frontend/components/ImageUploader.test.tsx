@@ -60,7 +60,11 @@ class FakeXMLHttpRequest {
   send = vi.fn<() => void>(() => {
     this.upload.dispatch(
       "progress",
-      new ProgressEvent("progress", { lengthComputable: true, loaded: 1, total: 1 }),
+      new ProgressEvent("progress", {
+        lengthComputable: true,
+        loaded: 1,
+        total: 1,
+      }),
     );
     queueMicrotask(() => this.listeners.dispatch("load", new Event("load")));
   });

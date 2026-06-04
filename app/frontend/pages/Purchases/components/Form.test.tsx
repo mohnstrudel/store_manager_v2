@@ -94,12 +94,7 @@ describe("Purchases/Components/Form", () => {
 
   it("renders the form shell with correct action and method", () => {
     const { container } = render(
-      <Form
-        isNew
-        options={options}
-        purchase={makePurchase()}
-        submitLabel="Create Purchase"
-      />,
+      <Form isNew options={options} purchase={makePurchase()} submitLabel="Create Purchase" />,
     );
     const form = container.querySelector("form");
 
@@ -133,6 +128,16 @@ describe("Purchases/Components/Form", () => {
     expect(screen.getByText("Supplier must exist")).toBeInTheDocument();
   });
 
+  it("shows server-side product error", () => {
+    pageErrors = { product_id: "Product must exist" };
+
+    render(
+      <Form isNew options={options} purchase={makePurchase()} submitLabel="Create Purchase" />,
+    );
+
+    expect(screen.getByText("Product must exist")).toBeInTheDocument();
+  });
+
   it("hides the payment field on edit", () => {
     render(
       <Form
@@ -143,8 +148,6 @@ describe("Purchases/Components/Form", () => {
       />,
     );
 
-    expect(
-      screen.queryByLabelText("What did you pay in total?"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("What did you pay in total?")).not.toBeInTheDocument();
   });
 });

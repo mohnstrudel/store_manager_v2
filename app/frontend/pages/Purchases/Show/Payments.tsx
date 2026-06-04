@@ -45,13 +45,16 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
   const [value, setValue] = useState(payment.value);
   const destroyPayment = useConfirmedDestroy(payment.destroy_path, "Remove this payment?");
 
-  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    router.patch(payment.update_path, {
-      payment: { payment_date: paymentDate, value },
-      return_to: purchasePath,
-    });
-  }, [payment.update_path, paymentDate, purchasePath, value]);
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      router.patch(payment.update_path, {
+        payment: { payment_date: paymentDate, value },
+        return_to: purchasePath,
+      });
+    },
+    [payment.update_path, paymentDate, purchasePath, value],
+  );
 
   const updateDate = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setPaymentDate(event.target.value);
@@ -121,13 +124,16 @@ function NewPaymentRow({
   const [paymentDate, setPaymentDate] = useState(newPayment.payment_date);
   const [value, setValue] = useState(newPayment.value);
 
-  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    router.post(newPayment.create_path, {
-      payment: { payment_date: paymentDate, value },
-      return_to: purchasePath,
-    });
-  }, [newPayment.create_path, paymentDate, purchasePath, value]);
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      router.post(newPayment.create_path, {
+        payment: { payment_date: paymentDate, value },
+        return_to: purchasePath,
+      });
+    },
+    [newPayment.create_path, paymentDate, purchasePath, value],
+  );
 
   const updateDate = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setPaymentDate(event.target.value);

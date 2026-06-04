@@ -64,7 +64,9 @@ describe("Warehouses/Index", () => {
 
     expect(screen.getByRole("heading", { name: "Warehouses" })).toBeInTheDocument();
     expect(
-      screen.getByRole("columnheader", { name: "Name + External Name for Clients" }),
+      screen.getByRole("columnheader", {
+        name: "Name + External Name for Clients",
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "External Name" })).not.toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Products" })).toBeInTheDocument();

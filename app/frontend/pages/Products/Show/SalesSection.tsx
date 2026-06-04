@@ -61,7 +61,7 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
                 {item.purchase_item_path && (
                   <div className="mt-1">
                     <Link
-                      className="no_events btn_rounded text-xs"
+                      className="no_events text-xs"
                       href={item.purchase_item_path}
                       onClick={stopRowNavigation}
                       prefetch

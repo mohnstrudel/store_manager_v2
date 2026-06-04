@@ -38,11 +38,12 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
   const validate = useCallback(
     (formData: FormData) =>
       validatePurchaseForm({
+        product_id: productId,
         supplier_id: supplierId,
         item_price: getFormString(formData, "purchase[item_price]"),
         amount: getFormString(formData, "purchase[amount]"),
       }),
-    [supplierId],
+    [productId, supplierId],
   );
 
   return (
@@ -57,6 +58,7 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
         <>
           <FormRow>
             <FormSmartSelect
+              error={errors.product_id}
               isClearable
               inputId="purchase_product_id"
               label="Product"

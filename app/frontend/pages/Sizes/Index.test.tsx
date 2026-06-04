@@ -17,7 +17,12 @@ describe("Sizes/Index", () => {
     render(
       <Index
         sizes={[
-          { id: 1, value: "1:6", created_at: "19. May '26 16:18", updated_at: "19. May '26 16:18" },
+          {
+            id: 1,
+            value: "1:6",
+            created_at: "19. May '26 16:18",
+            updated_at: "19. May '26 16:18",
+          },
         ]}
       />,
     );

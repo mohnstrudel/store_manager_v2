@@ -82,7 +82,12 @@ export function InlineCellTrigger({
       >
         {children}
       </div>
-      <button className="btn_rounded btn_xs mt-2" onClick={onOpen} onKeyDown={stopRowEvents} type="button">
+      <button
+        className="btn_rounded btn_xs mt-2"
+        onClick={onOpen}
+        onKeyDown={stopRowEvents}
+        type="button"
+      >
         Edit
       </button>
     </>

@@ -104,7 +104,12 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[
           makePurchaseItem({
             sale_note: "Handle with care",
@@ -139,7 +144,9 @@ describe("Warehouses/Show", () => {
       expect.any(Function),
     );
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass("bg-lime-100/80");
+    expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass(
+      "bg-lime-100/80",
+    );
 
     await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
@@ -164,7 +171,12 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[makePurchaseItem({ shipping_company_id: null })]}
         search={{ q: "" }}
         selected_id={null}
@@ -189,9 +201,17 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[
-          makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" }),
+          makePurchaseItem({
+            shipping_company_id: 3,
+            shipping_company_name: "Skyline",
+          }),
         ]}
         search={{ q: "" }}
         selected_id={null}
@@ -214,7 +234,12 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[makePurchaseItem({ shipping_company_id: null })]}
         search={{ q: "" }}
         selected_id={null}
@@ -240,7 +265,12 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[makePurchaseItem({ shipping_company_id: null })]}
         search={{ q: "" }}
         selected_id={null}
@@ -268,7 +298,12 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[
           makePurchaseItem({
             sale_path: "/sales/1",
@@ -295,9 +330,17 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[
-          makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" }),
+          makePurchaseItem({
+            shipping_company_id: 3,
+            shipping_company_name: "Skyline",
+          }),
         ]}
         search={{ q: "" }}
         selected_id={null}
@@ -321,9 +364,17 @@ describe("Warehouses/Show", () => {
 
     render(
       <Show
-        pagination={{ current_page: 1, limit: 25, total_count: 1, total_pages: 1 }}
+        pagination={{
+          current_page: 1,
+          limit: 25,
+          total_count: 1,
+          total_pages: 1,
+        }}
         purchase_items={[
-          makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" }),
+          makePurchaseItem({
+            shipping_company_id: 3,
+            shipping_company_name: "Skyline",
+          }),
         ]}
         search={{ q: "" }}
         selected_id={null}

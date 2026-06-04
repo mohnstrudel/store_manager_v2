@@ -61,7 +61,9 @@ describe("Customers/Show", () => {
 
     expect(screen.getByRole("heading", { name: "Completed Sales" })).toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: "Image unavailable for Twin Peaks Cherry Pie" }),
+      screen.getByRole("img", {
+        name: "Image unavailable for Twin Peaks Cherry Pie",
+      }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Twin Peaks Cherry Pie HSCM#1958" })).toHaveAttribute(
       "href",

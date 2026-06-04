@@ -63,9 +63,13 @@ export default function Show({ purchase_item }: ShowProps) {
             </p>
             <h5>Product</h5>
             <p>
-              <Link className="link" href={purchase_item.product_path} prefetch>
-                {purchase_item.product_title}
-              </Link>
+              {purchase_item.product_path ? (
+                <Link className="link" href={purchase_item.product_path} prefetch>
+                  {purchase_item.product_title}
+                </Link>
+              ) : (
+                purchase_item.product_title
+              )}
             </p>
             <h5>Current Warehouse</h5>
             <p>

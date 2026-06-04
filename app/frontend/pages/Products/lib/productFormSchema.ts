@@ -18,7 +18,11 @@ const VariantSchema = z
     }
     for (const field of ["purchase_cost", "selling_price", "weight"] as const) {
       if (!nonNegativeNumber.safeParse(data[field]).success) {
-        ctx.addIssue({ code: "custom", path: [field], message: msg.notNegative });
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: msg.notNegative,
+        });
       }
     }
   });
@@ -39,10 +43,18 @@ const PurchaseSchema = z
       data.supplier_id !== null || data.item_price.trim() !== "" || data.amount.trim() !== "";
     if (!anyFilled) return;
     if (data.supplier_id === null) {
-      ctx.addIssue({ code: "custom", path: ["supplier_id"], message: msg.blank });
+      ctx.addIssue({
+        code: "custom",
+        path: ["supplier_id"],
+        message: msg.blank,
+      });
     }
     if (!data.item_price.trim()) {
-      ctx.addIssue({ code: "custom", path: ["item_price"], message: msg.blank });
+      ctx.addIssue({
+        code: "custom",
+        path: ["item_price"],
+        message: msg.blank,
+      });
     }
     if (!data.amount.trim()) {
       ctx.addIssue({ code: "custom", path: ["amount"], message: msg.blank });

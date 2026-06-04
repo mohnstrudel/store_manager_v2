@@ -106,7 +106,12 @@ describe("PurchaseItems inline editors", () => {
     render(
       <PurchaseItems
         {...defaultProps}
-        purchaseItems={[makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" })]}
+        purchaseItems={[
+          makePurchaseItem({
+            shipping_company_id: 3,
+            shipping_company_name: "Skyline",
+          }),
+        ]}
       />,
     );
 
@@ -125,7 +130,9 @@ describe("PurchaseItems inline editors", () => {
       expect.any(Function),
     );
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass("bg-lime-100/80");
+    expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass(
+      "bg-lime-100/80",
+    );
   });
 
   it("edits shipping company inline", async () => {
@@ -151,7 +158,9 @@ describe("PurchaseItems inline editors", () => {
       expect.objectContaining({ preserveScroll: true }),
       expect.any(Function),
     );
-    expect(screen.getByRole("button", { name: "Edit shipping company" }).closest("td")).toHaveClass("bg-lime-100/80");
+    expect(screen.getByRole("button", { name: "Edit shipping company" }).closest("td")).toHaveClass(
+      "bg-lime-100/80",
+    );
   });
 
   it("edits shipping cost inline", async () => {
@@ -179,7 +188,9 @@ describe("PurchaseItems inline editors", () => {
       expect.any(Function),
     );
     expect(screen.queryByLabelText("Shipping cost")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit shipping cost" }).closest("td")).toHaveClass("bg-lime-100/80");
+    expect(screen.getByRole("button", { name: "Edit shipping cost" }).closest("td")).toHaveClass(
+      "bg-lime-100/80",
+    );
   });
 
   it("auto-opens the shipping editor when editing tracking with no company (non-blank row)", async () => {
@@ -208,7 +219,13 @@ describe("PurchaseItems inline editors", () => {
     render(
       <PurchaseItems
         {...defaultProps}
-        purchaseItems={[makePurchaseItem({ tracking_number: "", shipping_company_id: null, shipping_cost: "0" })]}
+        purchaseItems={[
+          makePurchaseItem({
+            tracking_number: "",
+            shipping_company_id: null,
+            shipping_cost: "0",
+          }),
+        ]}
       />,
     );
 
@@ -227,7 +244,13 @@ describe("PurchaseItems inline editors", () => {
     render(
       <PurchaseItems
         {...defaultProps}
-        purchaseItems={[makePurchaseItem({ tracking_number: "", shipping_company_id: null, shipping_cost: "0" })]}
+        purchaseItems={[
+          makePurchaseItem({
+            tracking_number: "",
+            shipping_company_id: null,
+            shipping_cost: "0",
+          }),
+        ]}
       />,
     );
 
@@ -246,7 +269,13 @@ describe("PurchaseItems inline editors", () => {
     render(
       <PurchaseItems
         {...defaultProps}
-        purchaseItems={[makePurchaseItem({ tracking_number: "", shipping_company_id: null, shipping_cost: "0" })]}
+        purchaseItems={[
+          makePurchaseItem({
+            tracking_number: "",
+            shipping_company_id: null,
+            shipping_cost: "0",
+          }),
+        ]}
       />,
     );
 
@@ -265,7 +294,12 @@ describe("PurchaseItems inline editors", () => {
     render(
       <PurchaseItems
         {...defaultProps}
-        purchaseItems={[makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" })]}
+        purchaseItems={[
+          makePurchaseItem({
+            shipping_company_id: 3,
+            shipping_company_name: "Skyline",
+          }),
+        ]}
       />,
     );
 
@@ -299,7 +333,12 @@ describe("PurchaseItems inline editors", () => {
     render(
       <PurchaseItems
         {...defaultProps}
-        purchaseItems={[makePurchaseItem({ shipping_company_id: 3, shipping_company_name: "Skyline" })]}
+        purchaseItems={[
+          makePurchaseItem({
+            shipping_company_id: 3,
+            shipping_company_name: "Skyline",
+          }),
+        ]}
       />,
     );
 
@@ -311,6 +350,23 @@ describe("PurchaseItems inline editors", () => {
 
     expect(screen.getByText("Tracking number can't be blank")).toBeInTheDocument();
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+  });
+
+  it("renders the purchase heading without a product link when the product is missing", () => {
+    render(
+      <PurchaseItems
+        {...defaultProps}
+        purchase={{
+          ...makePurchase(),
+          product_path: null,
+          product_title: "Unknown product",
+        }}
+        purchaseItems={[makePurchaseItem()]}
+      />,
+    );
+
+    expect(screen.getByText("Unknown product")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Unknown product" })).not.toBeInTheDocument();
   });
 });
 
@@ -335,13 +391,16 @@ function makePurchase(): PurchaseShowRecord {
     supplier_path: "/suppliers/1",
     order_reference: "REF-1",
     date: "01 Jan 2026",
-    payment_progress: { debt: "$10.00", paid: "$0.00", price: "$10.00", progress: 0 },
+    payment_progress: {
+      debt: "$10.00",
+      paid: "$0.00",
+      price: "$10.00",
+      progress: 0,
+    },
   };
 }
 
-function makePurchaseItem(
-  overrides: Partial<PurchaseItemRecord> = {},
-): PurchaseItemRecord {
+function makePurchaseItem(overrides: Partial<PurchaseItemRecord> = {}): PurchaseItemRecord {
   return {
     id: 10,
     path: "/purchase_items/10",

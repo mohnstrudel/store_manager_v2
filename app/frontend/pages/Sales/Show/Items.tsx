@@ -64,10 +64,7 @@ function SaleItemRow({ saleItem }: { saleItem: SaleShowSaleItemRecord }) {
       </td>
       <td className="text-right font-mono">{saleItem.price ?? ""}</td>
       <td className="text-center">
-        <PurchasedSoldRatio
-          purchased={saleItem.purchase_items.length}
-          sold={saleItem.qty}
-        />
+        <PurchasedSoldRatio purchased={saleItem.purchase_items.length} sold={saleItem.qty} />
       </td>
     </tr>
   );
@@ -108,11 +105,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
           </Link>
         </div>
 
-        <button
-          className="btn_xs btn_red btn_rounded"
-          onClick={handleUnlinkClick}
-          type="button"
-        >
+        <button className="btn_xs btn_red btn_rounded" onClick={handleUnlinkClick} type="button">
           <i className="icn">✂︎</i>
           Unlink
         </button>
@@ -138,7 +131,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
           </summary>
 
           {hasMovementHistory && (
-            <div className="border max-w-2/3 border-gray-100 dark:border-gray-600/40 rounded-sm my-3">
+            <div className="border max-w-2/3 border-gray-200/80 dark:border-gray-600/40 rounded-sm my-3">
               <table className="text-sm my-0">
                 <thead>
                   <tr className="cursor-auto">

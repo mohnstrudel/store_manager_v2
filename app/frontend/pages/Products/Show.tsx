@@ -7,7 +7,12 @@ import SalesSection from "./Show/SalesSection";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
-import { type ProductShowRecord, type PurchaseRecord, type SaleItemRecord, type VariantRecord } from "./types";
+import {
+  type ProductShowRecord,
+  type PurchaseRecord,
+  type SaleItemRecord,
+  type VariantRecord,
+} from "./types";
 
 type ShowProps = {
   active_sales: SaleItemRecord[];
@@ -38,11 +43,7 @@ export default function Show({
         <ProductDescription html={product.description_html} />
         {hasVariants && <ProductVariants variants={variants} />}
         <SalesSection hasVariants={hasVariants} sales={active_sales} title="Active Sales" />
-        <SalesSection
-          hasVariants={hasVariants}
-          sales={completed_sales}
-          title="Completed Sales"
-        />
+        <SalesSection hasVariants={hasVariants} sales={completed_sales} title="Completed Sales" />
         <PurchasesSection purchases={purchases} />
       </div>
 

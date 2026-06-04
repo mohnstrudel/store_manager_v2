@@ -57,10 +57,7 @@ function SingleGallery() {
   const { current, loaded } = useGallery();
   const isLoading = !loaded.has(current.id);
   return (
-    <div
-      className="gallery_viewbox gallery_viewbox--single"
-      data-loading={isLoading || undefined}
-    >
+    <div className="gallery_viewbox gallery_viewbox--single" data-loading={isLoading || undefined}>
       <GalleryMainImage />
     </div>
   );
@@ -93,10 +90,7 @@ function GalleryThumbnail({ index, image }: { index: number; image: ImageGallery
   const isActive = index === selectedIndex;
   const isLoading = !loaded.has(image.id);
   const handleClick = useCallback(() => selectImage(index), [selectImage, index]);
-  const handleLoadOrError = useCallback(
-    () => markLoaded(image.id),
-    [markLoaded, image.id],
-  );
+  const handleLoadOrError = useCallback(() => markLoaded(image.id), [markLoaded, image.id]);
 
   return (
     <button
@@ -141,10 +135,7 @@ function CarouselStage() {
 
 function GalleryMainImage() {
   const { current, markLoaded, registerImage } = useGallery();
-  const handleLoadOrError = useCallback(
-    () => markLoaded(current.id),
-    [markLoaded, current.id],
-  );
+  const handleLoadOrError = useCallback(() => markLoaded(current.id), [markLoaded, current.id]);
 
   return (
     <img

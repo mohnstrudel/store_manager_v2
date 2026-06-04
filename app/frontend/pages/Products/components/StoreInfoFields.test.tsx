@@ -67,7 +67,13 @@ vi.mock("@/components/TagSelect", () => ({
 const storeNames = ["shopify", "woo"];
 
 function makeStoreInfo(overrides: Partial<StoreInfoFormData> = {}): StoreInfoFormData {
-  return { id: null, store_name: "", tag_list: "", _destroy: false, ...overrides };
+  return {
+    id: null,
+    store_name: "",
+    tag_list: "",
+    _destroy: false,
+    ...overrides,
+  };
 }
 
 function renderStoreInfo(storeInfo: StoreInfoFormData, props: Record<string, unknown> = {}) {

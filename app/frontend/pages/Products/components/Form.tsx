@@ -1,6 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import { getFormString } from "@/lib/formSchema";
-import { validateProductForm } from "../lib/productFormSchema";
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -23,6 +21,7 @@ import {
   type StoreInfoFormData,
   type VariantFormData,
 } from "../types";
+import { validateProductFormSubmission } from "../lib/productFormValidation";
 
 type ProductFormProps = {
   isNew: boolean;
@@ -96,11 +95,11 @@ export default function ProductForm({
 
   const validate = useCallback(
     (formData: FormData) =>
-      validateProductForm({
-        title: getFormString(formData, "product[title]"),
-        variants: form.variants.items,
-        showPurchase: form.showPurchase,
+      validateProductFormSubmission({
+        formData,
         initialPurchase: form.initialPurchase,
+        showPurchase: form.showPurchase,
+        variants: form.variants.items,
       }),
     [form.variants.items, form.showPurchase, form.initialPurchase],
   );

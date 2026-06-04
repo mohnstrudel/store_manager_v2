@@ -25,7 +25,9 @@ type TransitionRow = {
 };
 
 function validate(formData: FormData) {
-  return validateWarehouseForm({ name: getFormString(formData, "warehouse[name]") });
+  return validateWarehouseForm({
+    name: getFormString(formData, "warehouse[name]"),
+  });
 }
 
 export default function Form({ isNew, options, submitLabel, warehouse }: WarehouseFormProps) {
@@ -45,14 +47,14 @@ export default function Form({ isNew, options, submitLabel, warehouse }: Warehou
           <WarehouseExternalNamesFields errors={errors} warehouse={warehouse} />
           <WarehouseDescriptionFields errors={errors} warehouse={warehouse} />
           <WarehouseTrackingFields errors={errors} warehouse={warehouse} />
-            <WarehouseImagesSection form={form} />
-            <TransitionNotificationsSection
-              destinations={options.transition_destinations}
-              onAdd={form.transitionRows.add}
-              onChange={form.transitionRows.update}
-              onRemove={form.transitionRows.remove}
-              rows={form.transitionRows.items}
-            />
+          <WarehouseImagesSection form={form} />
+          <TransitionNotificationsSection
+            destinations={options.transition_destinations}
+            onAdd={form.transitionRows.add}
+            onChange={form.transitionRows.update}
+            onRemove={form.transitionRows.remove}
+            rows={form.transitionRows.items}
+          />
         </>
       )}
     </ResourceForm>

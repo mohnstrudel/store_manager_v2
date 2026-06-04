@@ -148,7 +148,12 @@ function makePurchase(): PurchaseShowRecord {
     supplier_path: "/suppliers/1",
     order_reference: "PO-55",
     date: "20 May 2026",
-    payment_progress: { progress: 25, paid: "50.00", price: "210.00", debt: "160.00" },
+    payment_progress: {
+      progress: 25,
+      paid: "50.00",
+      price: "210.00",
+      debt: "160.00",
+    },
   };
 }
 

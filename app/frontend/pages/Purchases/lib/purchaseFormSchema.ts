@@ -2,16 +2,20 @@ import { z } from "zod";
 import { zodErrorsToRecord } from "@/lib/formSchema";
 import { msg } from "@/lib/validationMessages";
 
+const requiredNumber = z
+  .number()
+  .nullable()
+  .refine((v) => v !== null, msg.blank);
+
 const PurchaseFormSchema = z.object({
-  supplier_id: z
-    .number()
-    .nullable()
-    .refine((v) => v !== null, msg.blank),
+  product_id: requiredNumber,
+  supplier_id: requiredNumber,
   item_price: z.string().min(1, msg.blank),
   amount: z.string().min(1, msg.blank),
 });
 
 type ValidateInput = {
+  product_id: number | null;
   supplier_id: number | null;
   item_price: string;
   amount: string;

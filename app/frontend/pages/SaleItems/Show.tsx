@@ -133,17 +133,16 @@ function PurchaseItemUnlinkButton({ purchaseItem }: { purchaseItem: SaleItemPurc
     "Unlink this purchase item?",
   );
 
-  const handleUnlinkClick = useCallback((event: MouseEvent) => {
-    event.stopPropagation();
-    unlinkPurchaseItem();
-  }, [unlinkPurchaseItem]);
+  const handleUnlinkClick = useCallback(
+    (event: MouseEvent) => {
+      event.stopPropagation();
+      unlinkPurchaseItem();
+    },
+    [unlinkPurchaseItem],
+  );
 
   return (
-    <button
-      className="no_events btn_red btn_rounded"
-      onClick={handleUnlinkClick}
-      type="button"
-    >
+    <button className="no_events btn_red btn_rounded" onClick={handleUnlinkClick} type="button">
       <i className="icn">✂︎</i>
       Unlink
     </button>

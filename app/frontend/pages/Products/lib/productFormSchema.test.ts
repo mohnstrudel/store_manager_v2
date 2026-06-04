@@ -105,7 +105,11 @@ describe("validateProductForm", () => {
     const errors = validateProductForm({
       ...baseInput,
       showPurchase: true,
-      initialPurchase: makePurchase({ supplier_id: 1, item_price: "50", amount: "5" }),
+      initialPurchase: makePurchase({
+        supplier_id: 1,
+        item_price: "50",
+        amount: "5",
+      }),
     });
     expect(errors).toBeNull();
   });

@@ -5,7 +5,12 @@ import routes from "@/lib/routes";
 import type { PageProps } from "@/types/inertia";
 import { useNavigationDropdown } from "@/lib/useNavigationDropdown";
 
-const emptyPagination = { current_page: 1, total_pages: 1, total_count: 0, limit: 50 };
+const emptyPagination = {
+  current_page: 1,
+  total_pages: 1,
+  total_count: 0,
+  limit: 50,
+};
 const emptySearch = { q: "" };
 
 type NavigationLink = {
@@ -91,7 +96,11 @@ const primaryLinks: NavigationLink[] = [
     href: routes.customers.list.path(),
     label: "Customers",
     component: "Customers/Index",
-    pageProps: { customers: [], pagination: emptyPagination, search: emptySearch },
+    pageProps: {
+      customers: [],
+      pagination: emptyPagination,
+      search: emptySearch,
+    },
   },
 ];
 

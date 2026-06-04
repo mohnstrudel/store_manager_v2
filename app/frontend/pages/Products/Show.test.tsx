@@ -130,7 +130,10 @@ describe("Products/Show", () => {
   it("renders copy buttons for woo and shopify store IDs when present", () => {
     renderShow({
       product: makeProduct({
-        woo_info: { store_id: "99000", product_url: "https://woo.example/products/1" },
+        woo_info: {
+          store_id: "99000",
+          product_url: "https://woo.example/products/1",
+        },
         shopify_info: {
           store_id: "gid://shopify/Product/10166608396617",
           id_short: "10166608396617",
@@ -221,7 +224,13 @@ function makeProduct(overrides: Partial<ProductShowRecord> = {}): ProductShowRec
     shape: "Figure",
     description_html: "<p>A very electric mouse.</p>",
     media: [
-      { id: 1, alt: "Front", position: 1, preview_url: "/front.jpg", thumb_url: "/front.jpg" },
+      {
+        id: 1,
+        alt: "Front",
+        position: 1,
+        preview_url: "/front.jpg",
+        thumb_url: "/front.jpg",
+      },
     ],
     shopify_info: {
       store_id: "gid://shopify/Product/1",

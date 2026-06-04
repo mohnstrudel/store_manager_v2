@@ -15,7 +15,12 @@ vi.mock("@inertiajs/react", () => ({
   },
 }));
 
-const pagination = { current_page: 1, total_pages: 1, total_count: 1, limit: 50 };
+const pagination = {
+  current_page: 1,
+  total_pages: 1,
+  total_count: 1,
+  limit: 50,
+};
 
 const customers = [
   {

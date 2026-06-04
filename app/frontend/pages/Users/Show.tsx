@@ -37,8 +37,8 @@ export default function Show({ user }: ShowProps) {
         </menu>
       </header>
 
-      <main>
-        <table className="vertical" role="grid">
+      <section className="section_wide section_border_base">
+        <table>
           <thead>
             <tr>
               <th>ID</th>
@@ -62,7 +62,7 @@ export default function Show({ user }: ShowProps) {
             </tr>
           </tbody>
         </table>
-      </main>
+      </section>
 
       <Button className="w-full h-12 mt-16" onClick={destroyUser} variant="danger">
         Destroy this user

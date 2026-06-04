@@ -33,7 +33,9 @@ export default function FlashMessages() {
       <article
         className={[
           FLASH_KIND[toast.kind].articleClassName,
-          toast.phase === "visible" ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-4 scale-95",
+          toast.phase === "visible"
+            ? "opacity-100 translate-y-0 scale-100"
+            : "opacity-0 -translate-y-4 scale-95",
           "transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none",
         ].join(" ")}
         role="status"
@@ -112,7 +114,7 @@ function useFlashToast(
 
     const timeout = window.setTimeout(() => {
       setToast((current) =>
-        current && current.token === toastToken ? {...current, phase: "visible"} : current,
+        current && current.token === toastToken ? { ...current, phase: "visible" } : current,
       );
     }, TOAST_ENTER_DELAY);
 
@@ -124,7 +126,7 @@ function useFlashToast(
 
     const timeout = window.setTimeout(() => {
       setToast((current) =>
-        current && current.token === toastToken ? {...current, phase: "leaving"} : current,
+        current && current.token === toastToken ? { ...current, phase: "leaving" } : current,
       );
     }, AUTO_DISMISS_DELAY);
 
@@ -156,11 +158,11 @@ function flashMessageText(flash: FlashMessage | null) {
   return typeof flash === "string" ? flash : flash?.message;
 }
 
-function getActiveFlash(flash: {alert: FlashMessage | null; notice: FlashMessage | null}) {
+function getActiveFlash(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
   return flash.alert || flash.notice;
 }
 
-function getActiveFlashKind(flash: {alert: FlashMessage | null; notice: FlashMessage | null}) {
+function getActiveFlashKind(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
   if (flash.alert) return "alert" as const;
   if (flash.notice) return "notice" as const;
 

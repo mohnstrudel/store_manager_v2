@@ -17,7 +17,12 @@ vi.mock("@inertiajs/react", () => ({
   },
 }));
 
-const pagination = { current_page: 1, total_pages: 1, total_count: 1, limit: 50 };
+const pagination = {
+  current_page: 1,
+  total_pages: 1,
+  total_count: 1,
+  limit: 50,
+};
 
 const products = [
   {
@@ -34,7 +39,12 @@ const products = [
   },
 ];
 
-const defaultProps = { products, pagination, search: { q: "" }, last_sync_at: null };
+const defaultProps = {
+  products,
+  pagination,
+  search: { q: "" },
+  last_sync_at: null,
+};
 
 describe("Products/Index", () => {
   it("renders the products table and new product link", () => {

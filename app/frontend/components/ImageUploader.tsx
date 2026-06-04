@@ -274,7 +274,10 @@ function useImageUploader(
       const uploadPromises = imagesToUpload.map((file, index) =>
         uploadFile(uploadUrl, file, (progress) =>
           setUploading((current) => updateUploadProgress(current, index, progress)),
-        ).then((signedId) => ({ previewUrl: URL.createObjectURL(file), signedId })),
+        ).then((signedId) => ({
+          previewUrl: URL.createObjectURL(file),
+          signedId,
+        })),
       );
 
       void Promise.allSettled(uploadPromises).then((results) => {

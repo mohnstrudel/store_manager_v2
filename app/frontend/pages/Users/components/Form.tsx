@@ -21,10 +21,7 @@ type UserFormProps = {
 };
 
 const UserFormSchema = z.object({
-  email_address: z
-    .string()
-    .min(1, msg.blank)
-    .email(msg.invalid),
+  email_address: z.string().min(1, msg.blank).email(msg.invalid),
 });
 
 function validate(formData: FormData) {

@@ -40,7 +40,10 @@ describe("FlashMessages", () => {
   });
 
   it("renders route flash as a top-sliding toast with the regular flash layout", () => {
-    flashState.flash = { alert: null, notice: "Tracking number was successfully updated" };
+    flashState.flash = {
+      alert: null,
+      notice: "Tracking number was successfully updated",
+    };
 
     render(<FlashMessages />);
 
@@ -68,7 +71,10 @@ describe("FlashMessages", () => {
   });
 
   it("animates out before auto-dismissing the active flash message", () => {
-    flashState.flash = { alert: "Could not save shipping company", notice: null };
+    flashState.flash = {
+      alert: "Could not save shipping company",
+      notice: null,
+    };
 
     render(<FlashMessages />);
 

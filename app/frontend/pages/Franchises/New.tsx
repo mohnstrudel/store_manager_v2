@@ -10,12 +10,7 @@ export default function New({ franchise }: NewProps) {
   return (
     <>
       <PageHeader className="mb-8" title="New Franchise" />
-      <Form
-        franchise={franchise}
-        method="post"
-        submitLabel="Create Franchise"
-        url="/franchises"
-      />
+      <Form franchise={franchise} method="post" submitLabel="Create Franchise" url="/franchises" />
     </>
   );
 }

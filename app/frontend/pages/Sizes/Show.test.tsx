@@ -19,7 +19,13 @@ describe("Sizes/Show", () => {
   it("renders size details and linked products", () => {
     render(
       <Show
-        products={[{ id: 10, full_title: "Studio Ghibli — Spirited Away", path: "/products/10" }]}
+        products={[
+          {
+            id: 10,
+            full_title: "Studio Ghibli — Spirited Away",
+            path: "/products/10",
+          },
+        ]}
         size={{
           id: 1,
           value: "1:6",

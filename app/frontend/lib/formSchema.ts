@@ -1,9 +1,7 @@
 import { z } from "zod";
 import { msg } from "./validationMessages";
 
-export const nonNegativeNumber = z.coerce
-  .number({ error: msg.notANumber })
-  .min(0, msg.notNegative);
+export const nonNegativeNumber = z.coerce.number({ error: msg.notANumber }).min(0, msg.notNegative);
 
 export function getFormString(formData: FormData, key: string): string {
   const value = formData.get(key);

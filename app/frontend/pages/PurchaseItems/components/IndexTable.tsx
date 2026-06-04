@@ -7,7 +7,7 @@ export type PurchaseItemRecord = {
   edit_path: string;
   purchase_path: string;
   purchase_title: string;
-  product_path: string;
+  product_path: string | null;
   product_title: string;
   variant_title: string;
   warehouse_name: string;
@@ -53,9 +53,13 @@ export default function IndexTable({ purchaseItems }: IndexTableProps) {
               </Link>
             </td>
             <td>
-              <Link href={purchaseItem.product_path} onClick={stopRowNavigation} prefetch>
-                {purchaseItem.product_title}
-              </Link>
+              {purchaseItem.product_path ? (
+                <Link href={purchaseItem.product_path} onClick={stopRowNavigation} prefetch>
+                  {purchaseItem.product_title}
+                </Link>
+              ) : (
+                purchaseItem.product_title
+              )}
               {hasVariantTitle(purchaseItem) ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   {purchaseItem.variant_title}

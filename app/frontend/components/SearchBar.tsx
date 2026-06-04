@@ -11,10 +11,13 @@ export default function SearchBar({ initialQuery, path, resourceName }: SearchBa
   const [query, setQuery] = useState(initialQuery);
   const reloadOnly = useMemo(() => [resourceName, "pagination", "search"], [resourceName]);
 
-  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    router.get(path, { q: query || undefined }, { only: reloadOnly, preserveState: true });
-  }, [path, query, reloadOnly]);
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      router.get(path, { q: query || undefined }, { only: reloadOnly, preserveState: true });
+    },
+    [path, query, reloadOnly],
+  );
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);

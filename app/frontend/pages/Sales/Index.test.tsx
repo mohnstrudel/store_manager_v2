@@ -17,7 +17,12 @@ vi.mock("@inertiajs/react", () => ({
   },
 }));
 
-const pagination = { current_page: 1, total_pages: 1, total_count: 1, limit: 50 };
+const pagination = {
+  current_page: 1,
+  total_pages: 1,
+  total_count: 1,
+  limit: 50,
+};
 
 const sales = [
   {
@@ -33,7 +38,12 @@ const sales = [
         purchased_count: 1,
         product_thumb_url: null,
         purchase_items: [
-          { id: 101, path: "/purchase_items/101", warehouse_name: "Berlin Hub", expenses: "9.99" },
+          {
+            id: 101,
+            path: "/purchase_items/101",
+            warehouse_name: "Berlin Hub",
+            expenses: "9.99",
+          },
         ],
       },
     ],

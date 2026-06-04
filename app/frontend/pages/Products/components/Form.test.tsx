@@ -283,7 +283,13 @@ describe("Products/Components/Form", () => {
         isNew
         options={options}
         product={makeProduct({
-          store_infos: [makeStoreInfo({ id: 1, store_name: "shopify", tag_list: "featured" })],
+          store_infos: [
+            makeStoreInfo({
+              id: 1,
+              store_name: "shopify",
+              tag_list: "featured",
+            }),
+          ],
         })}
         purchase={makePurchase()}
         submitLabel="Create Product"

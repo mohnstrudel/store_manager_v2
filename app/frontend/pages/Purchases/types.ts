@@ -28,7 +28,7 @@ export type PurchaseIndexRecord = {
   edit_path: string;
   product_title: string;
   product_thumb_url: string | null;
-  variant_title: string;
+  variant_title: string | null;
   order_reference: string;
   supplier_title: string;
   amount: number;
@@ -42,11 +42,11 @@ export type PurchaseShowRecord = {
   path: string;
   edit_path: string;
   destroy_path: string;
-  product_path: string;
+  product_path: string | null;
   product_title: string;
   product_image_url: string | null;
   product_thumb_url: string | null;
-  variant_title: string;
+  variant_title: string | null;
   amount: number;
   item_price: string;
   cost_total: string;

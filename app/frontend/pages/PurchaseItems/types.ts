@@ -49,7 +49,7 @@ export type PurchaseItemShowRecord = {
   supplier_title: string;
   supplier_path: string;
   product_title: string;
-  product_path: string;
+  product_path: string | null;
   warehouse_name: string;
   warehouse_path: string;
   expenses: string;

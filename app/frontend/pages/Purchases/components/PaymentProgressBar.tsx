@@ -20,10 +20,7 @@ export default function PaymentProgressBar({
         className={`progress_container relative z-10 ${progress.progress >= 100 ? "" : "bg-slate-200/50 dark:bg-slate-700/40"}`}
       >
         {progress.progress > 0 && progress.progress <= 100 && (
-          <div
-            className="rounded-full h-full bg-lime-700/80"
-            style={progressStyle}
-          >
+          <div className="rounded-full h-full bg-lime-700/80" style={progressStyle}>
             <p className="progress_amount">{percentage}%</p>
           </div>
         )}

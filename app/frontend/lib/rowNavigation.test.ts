@@ -21,6 +21,8 @@ describe("rowNavigationProps", () => {
     props.onFocus();
 
     expect(mocks.prefetch).toHaveBeenCalledTimes(2);
-    expect(mocks.prefetch).toHaveBeenCalledWith("/products/1", { method: "get" });
+    expect(mocks.prefetch).toHaveBeenCalledWith("/products/1", {
+      method: "get",
+    });
   });
 });

@@ -205,7 +205,10 @@ function loadVariants(
 
   const url = `${path}?${new URLSearchParams({ product_id: String(productId) })}`;
 
-  fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal })
+  fetch(url, {
+    headers: { Accept: "application/json" },
+    signal: controller.signal,
+  })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
       const body: ProductVariantsResponse = await response.json();

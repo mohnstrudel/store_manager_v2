@@ -143,19 +143,30 @@ describe("VariantFields", () => {
 
   describe("errors", () => {
     it("shows SKU error when errors include 'sku'", () => {
-      renderVariant(makeVariant(), { errors: { "variants.0.sku": "has already been taken" } });
+      renderVariant(makeVariant(), {
+        errors: { "variants.0.sku": "has already been taken" },
+      });
       expect(screen.getByText("has already been taken")).toBeInTheDocument();
     });
 
     it("shows combination error under the Size field", () => {
-      renderVariant(makeVariant(), { errors: { "variants.0.base": "Combination already exists" } });
+      renderVariant(makeVariant(), {
+        errors: { "variants.0.base": "Combination already exists" },
+      });
       expect(screen.getByText("Combination already exists")).toBeInTheDocument();
     });
   });
 
   describe("native fields", () => {
     it("renders uncontrolled inputs and react-select hidden fields with names", () => {
-      renderVariant(makeVariant({ sku: "SKU-1", size_id: 1, version_id: 10, color_id: 100 }));
+      renderVariant(
+        makeVariant({
+          sku: "SKU-1",
+          size_id: 1,
+          version_id: 10,
+          color_id: 100,
+        }),
+      );
 
       expect(document.querySelector('input[name="variants[0][sku]"]')).toHaveValue("SKU-1");
       expect(document.querySelector('input[name="variants[0][size_id]"]')).toHaveValue("1");

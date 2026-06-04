@@ -28,21 +28,24 @@ export default function MoveToWarehouseForm({
     setDestinationId(event.target.value);
   }, []);
 
-  const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!destinationId) return;
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!destinationId) return;
 
-    router.post(
-      movePath,
-      {
-        destination_id: destinationId,
-        purchase_id: purchaseId,
-        redirect_to_sale_item: redirectToSaleItem || undefined,
-        selected_items_ids: selectedIds,
-      },
-      { onSuccess: onMoved },
-    );
-  }, [destinationId, movePath, onMoved, purchaseId, redirectToSaleItem, selectedIds]);
+      router.post(
+        movePath,
+        {
+          destination_id: destinationId,
+          purchase_id: purchaseId,
+          redirect_to_sale_item: redirectToSaleItem || undefined,
+          selected_items_ids: selectedIds,
+        },
+        { onSuccess: onMoved },
+      );
+    },
+    [destinationId, movePath, onMoved, purchaseId, redirectToSaleItem, selectedIds],
+  );
 
   if (!visible) return null;
 
@@ -58,11 +61,7 @@ export default function MoveToWarehouseForm({
         className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4"
         onSubmit={handleSubmit}
       >
-        <select
-          className="select"
-          onChange={handleDestinationChange}
-          value={destinationId}
-        >
+        <select className="select" onChange={handleDestinationChange} value={destinationId}>
           <option value="">Select a warehouse</option>
           {warehouses.map((warehouse) => (
             <option key={warehouse.id} value={warehouse.id}>
