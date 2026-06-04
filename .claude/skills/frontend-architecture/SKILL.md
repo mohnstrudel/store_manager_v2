@@ -42,6 +42,14 @@ should understand the feature before understanding the implementation.
 8. Push implementation details into hooks, utilities, adapters, or child components.
 9. Add or update tests at the right level: component test by default;
    browser-level test only when the risk lives in the browser itself.
+10. Before calling the task done, run the full verification gate:
+    ```bash
+    npm run lint              # oxlint default rules
+    npm run lint:perf         # react-perf rules
+    npx tsc --noEmit          # type check
+    npx vitest run app/frontend  # full component test suite
+    ```
+    All four must pass cleanly. Fix any failures before reporting done.
 
 ## Component Structure
 
@@ -86,6 +94,66 @@ if (shouldRestoreDraft(user)) {
 ```
 
 Over inline compound conditions.
+
+Prefer named intermediate values over inline expressions in JSX. Any
+non-obvious derivation should be named so the JSX reads as a feature
+description, not a computation:
+
+```tsx
+// Prefer
+const thumbnailIsLoading = !loaded.has(image.id);
+const thumbnailIsActive = index === selectedIndex;
+
+return (
+  <div data-loading={thumbnailIsLoading || undefined}>
+    <button data-active={thumbnailIsActive || undefined}>
+```
+
+Over:
+
+```tsx
+// Avoid
+return (
+  <div data-loading={!loaded.has(image.id) || undefined}>
+    <button data-active={index === selectedIndex || undefined}>
+```
+
+The name describes *what it means*, not how it is computed. This applies equally
+to conditions, derived flags, computed class names, and any other expression
+where a reader would have to pause and evaluate instead of just reading.
+
+The same principle applies to `useEffect`. Pass a named function so the call
+site declares the purpose without requiring the reader to parse the body:
+
+```tsx
+// Prefer — intent is visible at the call site
+useEffect(scrollSelectedThumbnailIntoView, [selectedIndex, thumbnailButtonRefs]);
+
+function scrollSelectedThumbnailIntoView() {
+  const selectedThumbnail = thumbnailButtonRefs.current[selectedIndex];
+  if (!selectedThumbnail) return;
+  // ...
+}
+```
+
+Over:
+
+```tsx
+// Avoid — must read the body to understand why this effect exists
+useEffect(() => {
+  const selectedThumbnail = thumbnailButtonRefs.current[selectedIndex];
+  if (!selectedThumbnail) return;
+  // ...
+}, [selectedIndex, thumbnailButtonRefs]);
+```
+
+Define the named function *after* the `useEffect` call. Function declarations
+are hoisted, so this works — and it keeps the hook readable top-down: intent
+first, implementation second.
+
+Note: `|| undefined` is the conventional way to make a boolean React prop
+omit the attribute entirely when false — CSS `[data-x]` selectors need absence,
+not `data-x="false"`.
 
 Prefer domain verbs (`applyCoupon`, `submitOrder`, `restoreDraft`) over
 technical names (`processData`, `handleResponse`, `updateState`).
