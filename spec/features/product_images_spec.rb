@@ -56,7 +56,7 @@ RSpec.describe "Product Image Management" do
 
     visit edit_product_path(product)
 
-    all("[data-testid='image-remove-btn']").first.click
+    find("[data-testid='image-remove-btn']", match: :first).click
 
     click_button "Update Product"
 
@@ -73,7 +73,7 @@ RSpec.describe "Product Image Management" do
 
     attach_new_images(first_image_path)
 
-    all("[data-testid='image-remove-btn']").first.click
+    find("[data-testid='image-remove-btn']", match: :first).click
 
     click_button "Update Product"
 

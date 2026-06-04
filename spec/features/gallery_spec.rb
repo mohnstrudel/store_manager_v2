@@ -111,6 +111,7 @@ RSpec.describe "Gallery", :js do
     visit product_path(product)
 
     expect(page).to have_css(".gallery_viewbox")
+    expect(page).to have_no_css(".gallery_viewbox[data-loading]", wait: 10)
 
     geometry = page.evaluate_script(<<~JS)
       (() => {
