@@ -11,12 +11,19 @@ vi.mock("@inertiajs/react", () => ({
       {children}
     </a>
   ),
-  Form: ({ children, action, method }: { children: ReactNode; action: string; method: string }) => (
+  Form: ({
+    children,
+    action,
+    method,
+  }: {
+    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
+    action: string;
+    method: string;
+  }) => (
     <form action={action} method={method}>
-      {children}
+      {typeof children === "function" ? children({ errors: pageErrors }) : children}
     </form>
   ),
-  usePage: () => ({ props: { errors: pageErrors } }),
 }));
 
 const emptyCustomer = {

@@ -1,7 +1,6 @@
-import { usePage, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
-import FormInput from "@/components/FormInput";
-import ResourceForm from "@/components/ResourceForm";
+import Form from "./components/Form";
 import { ColorRecord } from "./types";
 
 type EditProps = {
@@ -9,8 +8,6 @@ type EditProps = {
 };
 
 export default function Edit({ color }: EditProps) {
-  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
-
   return (
     <>
       <PageHeader className="mb-8" title="Edit Color">
@@ -21,20 +18,7 @@ export default function Edit({ color }: EditProps) {
           </Link>
         </li>
       </PageHeader>
-
-      <ResourceForm
-        action={`/colors/${color.id}`}
-        cancelHref="/colors"
-        method="patch"
-        submitLabel="Update Color"
-      >
-        <FormInput
-          defaultValue={color.value}
-          error={errors.value}
-          label="Value"
-          name="color[value]"
-        />
-      </ResourceForm>
+      <Form color={color} method="patch" submitLabel="Update Color" url={`/colors/${color.id}`} />
     </>
   );
 }

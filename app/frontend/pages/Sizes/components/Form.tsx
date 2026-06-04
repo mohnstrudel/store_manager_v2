@@ -1,4 +1,5 @@
-import { usePage } from "@inertiajs/react";
+import { getFormString } from "@/lib/formSchema";
+import { msg } from "@/lib/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { SizeRecord } from "../types";
@@ -10,12 +11,27 @@ type SizeFormProps = {
   url: string;
 };
 
-export default function Form({ method, size, submitLabel, url }: SizeFormProps) {
-  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+function validate(formData: FormData) {
+  return getFormString(formData, "size[value]").trim() ? null : { value: msg.blank };
+}
 
+export default function Form({ method, size, submitLabel, url }: SizeFormProps) {
   return (
-    <ResourceForm action={url} cancelHref="/sizes" method={method} submitLabel={submitLabel}>
-      <FormInput defaultValue={size.value} error={errors.value} label="Value" name="size[value]" />
+    <ResourceForm
+      action={url}
+      cancelHref="/sizes"
+      method={method}
+      submitLabel={submitLabel}
+      validate={validate}
+    >
+      {({ errors }) => (
+        <FormInput
+          defaultValue={size.value}
+          error={errors.value}
+          label="Value"
+          name="size[value]"
+        />
+      )}
     </ResourceForm>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { usePage } from "@inertiajs/react";
+import { getFormString } from "@/lib/formSchema";
+import { msg } from "@/lib/validationMessages";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
@@ -17,7 +18,14 @@ type FormProps = {
   submitLabel: string;
 };
 
-type PageErrors = Record<string, string | undefined>;
+function validate(formData: FormData) {
+  const trackingNumber = getFormString(formData, "purchase_item[tracking_number]");
+  const shippingCompanyId = getFormString(formData, "purchase_item[shipping_company_id]");
+  if (trackingNumber.trim() && !shippingCompanyId.trim()) {
+    return { shipping_company_id: msg.mustExist };
+  }
+  return null;
+}
 
 export default function Form({
   action,
@@ -27,22 +35,39 @@ export default function Form({
   purchase_item,
   submitLabel,
 }: FormProps) {
-  const { errors = {} } = usePage().props as { errors?: PageErrors };
   const [media, setMedia] = useState(() => purchase_item.media);
 
   return (
-    <ResourceForm action={action} cancelHref={cancelHref} method={method} submitLabel={submitLabel}>
-      <PurchaseItemLinkingFields errors={errors} options={options} purchase_item={purchase_item} />
-      <PurchaseItemDimensionFields errors={errors} purchase_item={purchase_item} />
-      <PurchaseItemShippingFields errors={errors} options={options} purchase_item={purchase_item} />
-      <ImageUploader
-        fieldNamePrefix="purchase_item[media]"
-        imageFieldName="image"
-        media={media}
-        onMediaChange={setMedia}
-      />
-      {purchase_item.redirect_to_sale_item && (
-        <input name="purchase_item[redirect_to_sale_item]" type="hidden" value="1" />
+    <ResourceForm
+      action={action}
+      cancelHref={cancelHref}
+      method={method}
+      submitLabel={submitLabel}
+      validate={validate}
+    >
+      {({ errors }) => (
+        <>
+          <PurchaseItemLinkingFields
+            errors={errors}
+            options={options}
+            purchase_item={purchase_item}
+          />
+          <PurchaseItemDimensionFields errors={errors} purchase_item={purchase_item} />
+          <PurchaseItemShippingFields
+            errors={errors}
+            options={options}
+            purchase_item={purchase_item}
+          />
+          <ImageUploader
+            fieldNamePrefix="purchase_item[media]"
+            imageFieldName="image"
+            media={media}
+            onMediaChange={setMedia}
+          />
+          {purchase_item.redirect_to_sale_item && (
+            <input name="purchase_item[redirect_to_sale_item]" type="hidden" value="1" />
+          )}
+        </>
       )}
     </ResourceForm>
   );
@@ -53,7 +78,7 @@ function PurchaseItemLinkingFields({
   options,
   purchase_item,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   options: PurchaseItemFormOptions;
   purchase_item: PurchaseItemFormRecord;
 }) {
@@ -61,7 +86,7 @@ function PurchaseItemLinkingFields({
     <FormRow>
       <FormSmartSelect<SelectOption>
         defaultValue={toSelectedOption(options.warehouses, purchase_item.warehouse_id)}
-        error={errors.warehouse ?? errors.warehouse_id}
+        error={errors.warehouse || errors.warehouse_id}
         inputId="purchase_item_warehouse_id"
         isClearable
         label="Warehouse"
@@ -70,7 +95,7 @@ function PurchaseItemLinkingFields({
       />
       <FormSmartSelect<SelectOption>
         defaultValue={toSelectedOption(options.purchases, purchase_item.purchase_id)}
-        error={errors.purchase ?? errors.purchase_id}
+        error={errors.purchase || errors.purchase_id}
         inputId="purchase_item_purchase_id"
         isClearable
         label="Purchase"
@@ -79,7 +104,7 @@ function PurchaseItemLinkingFields({
       />
       <FormSmartSelect<SelectOption>
         defaultValue={toSelectedOption(options.sale_items, purchase_item.sale_item_id)}
-        error={errors.sale_item ?? errors.sale_item_id}
+        error={errors.sale_item || errors.sale_item_id}
         inputId="purchase_item_sale_item_id"
         isClearable
         label="Sale Item"
@@ -94,7 +119,7 @@ function PurchaseItemDimensionFields({
   errors,
   purchase_item,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   purchase_item: PurchaseItemFormRecord;
 }) {
   return (
@@ -132,7 +157,7 @@ function PurchaseItemShippingFields({
   options,
   purchase_item,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   options: PurchaseItemFormOptions;
   purchase_item: PurchaseItemFormRecord;
 }) {
@@ -161,7 +186,7 @@ function PurchaseItemShippingFields({
           options.shipping_companies,
           purchase_item.shipping_company_id,
         )}
-        error={errors.shipping_company ?? errors.shipping_company_id}
+        error={errors.shipping_company || errors.shipping_company_id}
         inputId="purchase_item_shipping_company_id"
         isClearable
         label="Shipping Company"

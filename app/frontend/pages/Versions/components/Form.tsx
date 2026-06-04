@@ -1,4 +1,5 @@
-import { usePage } from "@inertiajs/react";
+import { getFormString } from "@/lib/formSchema";
+import { msg } from "@/lib/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { VersionRecord } from "../types";
@@ -10,17 +11,27 @@ type VersionFormProps = {
   version: VersionRecord;
 };
 
-export default function Form({ method, submitLabel, url, version }: VersionFormProps) {
-  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+function validate(formData: FormData) {
+  return getFormString(formData, "version[value]").trim() ? null : { value: msg.blank };
+}
 
+export default function Form({ method, submitLabel, url, version }: VersionFormProps) {
   return (
-    <ResourceForm action={url} cancelHref="/versions" method={method} submitLabel={submitLabel}>
-      <FormInput
-        defaultValue={version.value}
-        error={errors.value}
-        label="Value"
-        name="version[value]"
-      />
+    <ResourceForm
+      action={url}
+      cancelHref="/versions"
+      method={method}
+      submitLabel={submitLabel}
+      validate={validate}
+    >
+      {({ errors }) => (
+        <FormInput
+          defaultValue={version.value}
+          error={errors.value}
+          label="Value"
+          name="version[value]"
+        />
+      )}
     </ResourceForm>
   );
 }

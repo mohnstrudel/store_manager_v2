@@ -1,4 +1,5 @@
-import { usePage } from "@inertiajs/react";
+import { getFormString } from "@/lib/formSchema";
+import { msg } from "@/lib/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { SupplierRecord } from "../types";
@@ -10,17 +11,27 @@ type SupplierFormProps = {
   url: string;
 };
 
-export default function Form({ method, submitLabel, supplier, url }: SupplierFormProps) {
-  const { errors = {} } = usePage().props as { errors?: Record<string, string> };
+function validate(formData: FormData) {
+  return getFormString(formData, "supplier[title]").trim() ? null : { title: msg.blank };
+}
 
+export default function Form({ method, submitLabel, supplier, url }: SupplierFormProps) {
   return (
-    <ResourceForm action={url} cancelHref="/suppliers" method={method} submitLabel={submitLabel}>
-      <FormInput
-        defaultValue={supplier.title}
-        error={errors.title}
-        label="Title"
-        name="supplier[title]"
-      />
+    <ResourceForm
+      action={url}
+      cancelHref="/suppliers"
+      method={method}
+      submitLabel={submitLabel}
+      validate={validate}
+    >
+      {({ errors }) => (
+        <FormInput
+          defaultValue={supplier.title}
+          error={errors.title}
+          label="Title"
+          name="supplier[title]"
+        />
+      )}
     </ResourceForm>
   );
 }

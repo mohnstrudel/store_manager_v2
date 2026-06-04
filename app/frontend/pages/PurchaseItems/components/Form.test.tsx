@@ -6,10 +6,6 @@ import type { PurchaseItemFormOptions, PurchaseItemFormRecord } from "../types";
 
 let pageErrors: Record<string, string> = {};
 
-vi.mock("@inertiajs/react", () => ({
-  usePage: () => ({ props: { errors: pageErrors } }),
-}));
-
 vi.mock("@/components/ResourceForm", () => ({
   default: ({
     action,
@@ -17,15 +13,17 @@ vi.mock("@/components/ResourceForm", () => ({
     children,
     method,
     submitLabel,
+    validate: _validate,
   }: {
     action: string;
     cancelHref: string;
-    children: ReactNode;
+    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
     method: string;
     submitLabel: string;
+    validate?: unknown;
   }) => (
     <form action={action} data-cancel-href={cancelHref} data-method={method}>
-      {children}
+      {typeof children === "function" ? children({ errors: pageErrors }) : children}
       <button type="submit">{submitLabel}</button>
     </form>
   ),
