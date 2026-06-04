@@ -75,6 +75,9 @@ module PurchaseHelper
       unlink_path: purchase_item_sale_item_link_path(purchase_item),
       warehouse_name: purchase_item.warehouse.name,
       warehouse_path: warehouse_path(purchase_item.warehouse, selected: purchase_item.id, anchor: purchase_item.id),
+      warehouse_movements: purchase_item.warehouse_movements.sort_by(&:moved_in).reverse.drop(1).map { |m|
+        {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
+      },
       sale_title: purchase_item.sale&.select_title,
       sale_path: purchase_item.sale ? sale_path(purchase_item.sale) : nil,
       sale_address: purchase_item.sale ? sale_address_for_clipboard(purchase_item.sale) : "",

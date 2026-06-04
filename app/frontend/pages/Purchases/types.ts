@@ -65,6 +65,11 @@ export type ShippingCompanyOption = {
   name: string;
 };
 
+export type WarehouseMovementRecord = {
+  moved_in: string;
+  warehouse_name: string;
+};
+
 export type PurchaseItemRecord = {
   id: number;
   path: string;
@@ -72,6 +77,7 @@ export type PurchaseItemRecord = {
   unlink_path: string;
   warehouse_name: string;
   warehouse_path: string;
+  warehouse_movements: WarehouseMovementRecord[];
   sale_title: string;
   sale_path: string | null;
   sale_address: string;
