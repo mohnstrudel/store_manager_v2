@@ -1,4 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
+import { getFormString } from "@/lib/formSchema";
+import { validateProductForm } from "../lib/productFormSchema";
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -29,9 +31,6 @@ type ProductFormProps = {
   purchase?: PurchaseFormData;
   submitLabel: string;
 };
-
-type PageErrors = Record<string, string | undefined>;
-const EMPTY_PAGE_ERRORS: PageErrors = {};
 
 type ProductFormSections = ReturnType<typeof useProductFormSections>;
 type StoreInfoRow = SectionRow<StoreInfoFormData>;
@@ -72,7 +71,7 @@ function newStoreInfo(): StoreInfoFormData {
   };
 }
 
-function shouldShowPurchase(purchase: PurchaseFormData, errors: PageErrors) {
+function shouldShowPurchase(purchase: PurchaseFormData, errors: Record<string, string>) {
   const hasPurchaseValues = [
     purchase.supplier_id,
     purchase.order_reference,
@@ -95,33 +94,41 @@ export default function ProductForm({
 }: ProductFormProps) {
   const form = useProductFormSections(product, purchase, options);
 
+  const validate = useCallback(
+    (formData: FormData) =>
+      validateProductForm({
+        title: getFormString(formData, "product[title]"),
+        variants: form.variants.items,
+        showPurchase: form.showPurchase,
+        initialPurchase: form.initialPurchase,
+      }),
+    [form.variants.items, form.showPurchase, form.initialPurchase],
+  );
+
   return (
     <ResourceForm
       action={isNew ? "/products" : product.path}
       cancelHref={isNew ? "/products" : product.path}
       method={isNew ? "post" : "patch"}
       submitLabel={submitLabel}
+      validate={validate}
     >
-      {({ errors }) => {
-        const pageErrors = (errors ?? EMPTY_PAGE_ERRORS) as PageErrors;
-
-        return (
-          <>
-            <ProductIdentityFields
-              errors={pageErrors}
-              options={options}
-              product={product}
-              selectedBrands={form.selectedBrands}
-              selectedFranchise={form.selectedFranchise}
-            />
-            <ProductDescriptionField errors={pageErrors} product={product} />
-            <ProductVariantsSection errors={pageErrors} form={form} options={options} />
-            <ProductStoreInfoSection errors={pageErrors} form={form} options={options} />
-            <ImageUploader media={form.media} onMediaChange={form.setMedia} />
-            {isNew && <InitialPurchaseSection errors={pageErrors} form={form} options={options} />}
-          </>
-        );
-      }}
+      {({ errors }) => (
+        <>
+          <ProductIdentityFields
+            errors={errors}
+            options={options}
+            product={product}
+            selectedBrands={form.selectedBrands}
+            selectedFranchise={form.selectedFranchise}
+          />
+          <ProductDescriptionField errors={errors} product={product} />
+          <ProductVariantsSection errors={errors} form={form} options={options} />
+          <ProductStoreInfoSection errors={errors} form={form} options={options} />
+          <ImageUploader media={form.media} onMediaChange={form.setMedia} />
+          {isNew && <InitialPurchaseSection errors={errors} form={form} options={options} />}
+        </>
+      )}
     </ResourceForm>
   );
 }
@@ -133,7 +140,7 @@ function ProductIdentityFields({
   selectedBrands,
   selectedFranchise,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   options: FormOptions;
   product: ProductFormRecord;
   selectedBrands: FormOptions["brands"];
@@ -144,7 +151,7 @@ function ProductIdentityFields({
       <FormSmartSelect
         className="lg:w-2/3"
         defaultValue={selectedFranchise}
-        error={errors.franchise ?? errors.franchise_id}
+        error={errors.franchise || errors.franchise_id}
         inputId="product_franchise_id"
         isClearable
         label="Franchise"
@@ -187,7 +194,7 @@ function ProductDescriptionField({
   errors,
   product,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   product: ProductFormRecord;
 }) {
   return (
@@ -204,7 +211,7 @@ function ProductVariantsSection({
   form,
   options,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   form: ProductFormSections;
   options: FormOptions;
 }) {
@@ -231,7 +238,7 @@ function ProductStoreInfoSection({
   form,
   options,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   form: ProductFormSections;
   options: FormOptions;
 }) {
@@ -261,7 +268,7 @@ function InitialPurchaseSection({
   form,
   options,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   form: ProductFormSections;
   options: FormOptions;
 }) {

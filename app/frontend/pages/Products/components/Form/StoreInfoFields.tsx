@@ -7,7 +7,7 @@ import TagSelect from "@/components/TagSelect";
 import { type SelectOption, type StoreInfoFormData } from "../../types";
 
 type StoreOption = SelectOption<string>;
-const EMPTY_ERRORS: Record<string, string | undefined> = {};
+const EMPTY_ERRORS: Record<string, string> = {};
 
 function toTagOptions(tagString: string): { value: string; label: string }[] {
   return tagString
@@ -22,7 +22,7 @@ function capitalize(value: string): string {
 }
 
 type StoreInfoFieldsProps = {
-  errors?: Record<string, string | undefined>;
+  errors?: Record<string, string>;
   index: number;
   onRemove: (index: number) => void;
   storeInfo: StoreInfoFormData;

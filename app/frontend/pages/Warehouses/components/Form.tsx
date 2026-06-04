@@ -1,5 +1,4 @@
 import { useCallback, useState, type ChangeEvent } from "react";
-import { usePage } from "@inertiajs/react";
 import Button from "@/components/Button";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -8,6 +7,8 @@ import FormSectionHeading from "@/components/FormSectionHeading";
 import ImageUploader from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
 import { useDynamicSection } from "@/lib/useDynamicSection";
+import { getFormString } from "@/lib/formSchema";
+import { validateWarehouseForm } from "../lib/warehouseFormSchema";
 import type { WarehouseFormOptions, WarehouseFormRecord, WarehouseOption } from "../types";
 
 type WarehouseFormProps = {
@@ -17,15 +18,17 @@ type WarehouseFormProps = {
   warehouse: WarehouseFormRecord;
 };
 
-type PageErrors = Record<string, string | undefined>;
 type WarehouseFormState = ReturnType<typeof useWarehouseFormState>;
 type TransitionRow = {
   clientKey: string;
   toWarehouseId: number | null;
 };
 
+function validate(formData: FormData) {
+  return validateWarehouseForm({ name: getFormString(formData, "warehouse[name]") });
+}
+
 export default function Form({ isNew, options, submitLabel, warehouse }: WarehouseFormProps) {
-  const { errors = {} } = usePage().props as { errors?: PageErrors };
   const form = useWarehouseFormState(warehouse);
 
   return (
@@ -34,19 +37,24 @@ export default function Form({ isNew, options, submitLabel, warehouse }: Warehou
       cancelHref={isNew ? "/warehouses" : warehouse.path}
       method={isNew ? "post" : "patch"}
       submitLabel={submitLabel}
+      validate={validate}
     >
-      <WarehouseIdentityFields errors={errors} options={options} warehouse={warehouse} />
-      <WarehouseExternalNamesFields errors={errors} warehouse={warehouse} />
-      <WarehouseDescriptionFields errors={errors} warehouse={warehouse} />
-      <WarehouseTrackingFields errors={errors} warehouse={warehouse} />
-      <WarehouseImagesSection form={form} />
-      <TransitionNotificationsSection
-        destinations={options.transition_destinations}
-        onAdd={form.transitionRows.add}
-        onChange={form.transitionRows.update}
-        onRemove={form.transitionRows.remove}
-        rows={form.transitionRows.items}
-      />
+      {({ errors }) => (
+        <>
+          <WarehouseIdentityFields errors={errors} options={options} warehouse={warehouse} />
+          <WarehouseExternalNamesFields errors={errors} warehouse={warehouse} />
+          <WarehouseDescriptionFields errors={errors} warehouse={warehouse} />
+          <WarehouseTrackingFields errors={errors} warehouse={warehouse} />
+            <WarehouseImagesSection form={form} />
+            <TransitionNotificationsSection
+              destinations={options.transition_destinations}
+              onAdd={form.transitionRows.add}
+              onChange={form.transitionRows.update}
+              onRemove={form.transitionRows.remove}
+              rows={form.transitionRows.items}
+            />
+        </>
+      )}
     </ResourceForm>
   );
 }
@@ -56,7 +64,7 @@ function WarehouseIdentityFields({
   options,
   warehouse,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   options: WarehouseFormOptions;
   warehouse: WarehouseFormRecord;
 }) {
@@ -100,7 +108,7 @@ function WarehouseExternalNamesFields({
   errors,
   warehouse,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   warehouse: WarehouseFormRecord;
 }) {
   return (
@@ -125,7 +133,7 @@ function WarehouseDescriptionFields({
   errors,
   warehouse,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   warehouse: WarehouseFormRecord;
 }) {
   return (
@@ -150,7 +158,7 @@ function WarehouseTrackingFields({
   errors,
   warehouse,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   warehouse: WarehouseFormRecord;
 }) {
   return (
@@ -334,11 +342,14 @@ function TransitionDestinationRow({
   onRemove: (clientKey: string) => void;
   row: TransitionRow;
 }) {
-  const selectDestination = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    onChange(row.clientKey, {
-      toWarehouseId: event.target.value ? Number(event.target.value) : null,
-    });
-  }, [onChange, row.clientKey]);
+  const selectDestination = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      onChange(row.clientKey, {
+        toWarehouseId: event.target.value ? Number(event.target.value) : null,
+      });
+    },
+    [onChange, row.clientKey],
+  );
 
   const handleRemove = useCallback(() => {
     onRemove(row.clientKey);

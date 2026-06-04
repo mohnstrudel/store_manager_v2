@@ -6,13 +6,13 @@ import { toSelectedOption } from "@/lib/selectOptions";
 import { type PurchaseFormData, type SelectOption } from "../../types";
 
 type PurchaseFieldsProps = {
-  errors?: Record<string, string | undefined>;
+  errors?: Record<string, string>;
   purchase: PurchaseFormData;
   suppliers: SelectOption<number>[];
   warehouses: SelectOption<number>[];
 };
 
-const EMPTY_ERRORS: Record<string, string | undefined> = {};
+const EMPTY_ERRORS: Record<string, string> = {};
 
 export default function PurchaseFields({
   errors = EMPTY_ERRORS,

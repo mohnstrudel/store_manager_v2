@@ -12,7 +12,7 @@ import { type SelectOption, type VariantFormData } from "../../types";
 
 type VariantFieldsProps = {
   colors: SelectOption<number>[];
-  errors?: Record<string, string | undefined>;
+  errors?: Record<string, string>;
   index: number;
   onRemove: (index: number) => void;
   sizes: SelectOption<number>[];
@@ -215,7 +215,7 @@ function useVariantFieldState(variant: VariantFormData) {
   };
 }
 
-const EMPTY_ERRORS: Record<string, string | undefined> = {};
+const EMPTY_ERRORS: Record<string, string> = {};
 
 function generateVariantTitle(
   variant: VariantFormData,

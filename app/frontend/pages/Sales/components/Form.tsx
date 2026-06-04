@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useDynamicSection } from "@/lib/useDynamicSection";
+import { validateSaleForm } from "../lib/saleFormSchema";
 import { toSelectedOption } from "@/lib/selectOptions";
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormInput from "@/components/FormInput";
@@ -17,10 +18,7 @@ type SaleFormProps = {
   submitLabel: string;
 };
 
-type PageErrors = Record<string, string | undefined>;
 type SaleFormState = ReturnType<typeof useSaleFormState>;
-
-const emptyErrors: PageErrors = {};
 
 function titleize(str: string): string {
   return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -33,20 +31,10 @@ function newSaleItem(): SaleItemFormRecord {
 export default function SaleForm({ isNew, options, sale, submitLabel }: SaleFormProps) {
   const form = useSaleFormState(sale);
 
-  const renderFields = useCallback(({ errors }: { errors?: Record<string, string | undefined> }) => {
-    const pageErrors = (errors as PageErrors | undefined) ?? emptyErrors;
-
-    return (
-      <>
-        <SaleStatusField options={options} sale={sale} />
-        <SaleCustomerField errors={pageErrors} form={form} options={options} />
-        <SaleNoteField sale={sale} />
-        <SaleTotalsFields sale={sale} />
-        <SaleAddressSections sale={sale} />
-        <SaleItemsSection form={form} options={options} />
-      </>
-    );
-  }, [form, options, sale]);
+  const validate = useCallback(
+    () => validateSaleForm({ customer_id: form.customerId }),
+    [form.customerId],
+  );
 
   return (
     <ResourceForm
@@ -54,8 +42,18 @@ export default function SaleForm({ isNew, options, sale, submitLabel }: SaleForm
       cancelHref="/sales"
       method={isNew ? "post" : "patch"}
       submitLabel={submitLabel}
+      validate={validate}
     >
-      {renderFields}
+      {({ errors }) => (
+        <>
+          <SaleStatusField options={options} sale={sale} />
+          <SaleCustomerField errors={errors} form={form} options={options} />
+          <SaleNoteField sale={sale} />
+          <SaleTotalsFields sale={sale} />
+          <SaleAddressSections sale={sale} />
+          <SaleItemsSection form={form} options={options} />
+        </>
+      )}
     </ResourceForm>
   );
 }
@@ -106,14 +104,14 @@ function SaleCustomerField({
   form,
   options,
 }: {
-  errors: PageErrors;
+  errors: Record<string, string>;
   form: SaleFormState;
   options: SaleFormOptions;
 }) {
   return (
     <FormSmartSelect
       defaultValue={toSelectedOption(options.customers, form.customerId)}
-      error={errors.customer ?? errors.customer_id}
+      error={errors.customer || errors.customer_id}
       inputId="sale_customer_id"
       isClearable
       label="Customer"

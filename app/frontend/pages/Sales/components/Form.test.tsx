@@ -24,12 +24,14 @@ vi.mock("@/components/ResourceForm", () => ({
     children,
     method,
     submitLabel,
+    validate: _validate,
   }: {
     action: string;
     cancelHref: string;
     children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
     method: string;
     submitLabel: string;
+    validate?: unknown;
   }) => (
     <form action={action} data-cancel-href={cancelHref} data-method={method}>
       {typeof children === "function" ? children({ errors: pageErrors }) : children}
