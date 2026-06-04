@@ -1,5 +1,5 @@
-import { Link } from "@inertiajs/react";
 import { type PurchaseRecord } from "../types";
+import { rowNavigationProps } from "@/lib/rowNavigation";
 
 type PurchasesSectionProps = {
   purchases: PurchaseRecord[];
@@ -30,12 +30,8 @@ export default function PurchasesSection({ purchases }: PurchasesSectionProps) {
         </thead>
         <tbody>
           {purchases.map((purchase) => (
-            <tr className="hoverable" key={purchase.id}>
-              <td>
-                <Link href={purchase.path} prefetch>
-                  {purchase.supplier}
-                </Link>
-              </td>
+            <tr className="hoverable" key={purchase.id} {...rowNavigationProps(purchase.path)}>
+              <td>{purchase.supplier}</td>
               <td className="font-mono text-sm">{purchase.order_reference}</td>
               <td>{purchase.variant_title ?? ""}</td>
               <td>{purchase.created_at}</td>
