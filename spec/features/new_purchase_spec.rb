@@ -58,6 +58,20 @@ RSpec.describe "Creating a new purchase" do
     expect(page).to have_button("Create Purchase")
   end
 
+  scenario "requires a product before saving", :js do
+    visit new_purchase_path
+
+    choose_react_select(supplier.title, from: "Supplier")
+    find("#purchase_amount").set(5)
+    find("#purchase_item_price").set(10)
+
+    expect {
+      click_button "Create Purchase"
+    }.not_to change(Purchase, :count)
+
+    expect(page).to have_css("#purchase_product_id_error", text: "can't be blank")
+  end
+
   scenario "keeps the product react select working after an invalid submit", :js do
     visit new_purchase_path
 
