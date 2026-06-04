@@ -1,9 +1,7 @@
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useCallback, useState } from "react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { Underline } from "@tiptap/extension-underline";
 import { TextAlign } from "@tiptap/extension-text-align";
-import { Link } from "@tiptap/extension-link";
 
 type ToolbarAction =
   | "bold"
@@ -214,10 +212,9 @@ function useTiptapDescriptionEditor(defaultValue: string) {
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3, 4] },
+        link: { openOnClick: false },
       }),
-      Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Link.configure({ openOnClick: false }),
     ],
     content: defaultValue,
     onUpdate({ editor: currentEditor }) {
