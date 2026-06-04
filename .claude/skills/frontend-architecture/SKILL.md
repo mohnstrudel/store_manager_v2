@@ -30,6 +30,62 @@ should understand the feature before understanding the implementation.
 - Keep state minimal; derive values whenever possible.
 - Keep page components small and focused on composition.
 
+## Convention over Configuration
+
+Prefer a design where the common case just works, and callers only supply what
+genuinely varies. This reduces API surface and keeps call sites readable.
+
+### Component API
+
+Give optional props sensible defaults. Callers should not need to configure
+behavior that should be conventional:
+
+```tsx
+// Prefer — callers pass only what varies
+<ImageGallery media={product.media} />
+
+// Avoid — caller forced to configure what should be a default
+<ImageGallery media={product.media} layout="carousel" loadingStyle="pulse" />
+```
+
+A config prop that controls structural branching (`layout: "single" | "carousel"`)
+is a sign the component is doing two things. Either make the convention work for
+both cases (CSS scoping, data-attributes) or split into two components.
+
+### CSS as convention
+
+State-driven appearance belongs in CSS, not in JS config props or computed class
+strings. Communicate state via `data-*` attributes and let CSS select on them:
+
+```tsx
+// Prefer — CSS owns the appearance, JS owns the state
+<div className="gallery_main__frame" data-loading={isLoading || undefined}>
+
+// Avoid — JS computes appearance from configuration
+<div className={`gallery_main__frame ${isLoading ? "loading" : ""}`}>
+```
+
+Layout variation between modes (single vs. carousel) belongs in CSS scoping:
+
+```css
+/* convention: parent class scopes the variant */
+.gallery_viewbox--single .gallery_main__image { @apply max-h-160 max-w-160; }
+```
+
+Rather than a `layout` prop that branches inline class strings inside the
+component.
+
+### Prop-drilling vs. context
+
+When a behavior object would be threaded unchanged through three or more
+component levels, use React Context instead. Context is the conventional
+channel for shared subtree state; prop-drilling at that depth is
+configuration leaking through seams that don't care about it.
+
+Use props for per-item identity (`index`, `image`) — values that genuinely
+differ per instance. Use context for shared behavior (`selectImage`,
+`markLoaded`, `loaded`) — values that every consumer in the subtree needs.
+
 ## Default Workflow
 
 1. Identify the boundary: page, shared component, custom hook, utility, or browser widget.
