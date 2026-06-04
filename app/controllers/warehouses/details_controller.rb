@@ -3,7 +3,7 @@
 module Warehouses
   class DetailsController < ApplicationController
     def show
-      @warehouse = Warehouse.for_details.find(params[:id])
+      @warehouse = Warehouse.for_details.find(params.expect(:id))
       @selected_id = params[:selected].presence&.to_i
       @purchase_items = @warehouse
         .purchase_items
@@ -24,7 +24,7 @@ module Warehouses
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :warehouse
     end
   end

@@ -24,7 +24,7 @@ module Products
       "Product is being pushed to Shopify"
     end
 
-    def authorize_resourse
+    def authorize_resource
       authorize :product, :push_to_shopify?
     end
   end

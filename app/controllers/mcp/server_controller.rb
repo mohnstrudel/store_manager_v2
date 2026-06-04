@@ -5,7 +5,7 @@ module Mcp
     skip_before_action :verify_authenticity_token
     skip_before_action :require_authentication
     skip_before_action :set_sentry_user
-    skip_before_action :authorize_resourse
+    skip_before_action :authorize_resource
     skip_after_action :verify_authorized
 
     PROTOCOL_VERSION = "2024-11-05"

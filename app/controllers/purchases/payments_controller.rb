@@ -32,16 +32,16 @@ module Purchases
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :payment, :create?
     end
 
     def set_purchase
-      @purchase = Purchase.for_details.friendly.find(params[:purchase_id])
+      @purchase = Purchase.for_details.friendly.find(params.expect(:purchase_id))
     end
 
     def set_payment
-      @payment = @purchase.payments.find(params[:id])
+      @payment = @purchase.payments.find(params.expect(:id))
     end
 
     def payment_params

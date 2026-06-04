@@ -17,7 +17,7 @@ module Products
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :product, :pull_from_shopify?
     end
   end

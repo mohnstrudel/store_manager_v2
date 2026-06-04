@@ -3,7 +3,7 @@
 class PasswordsController < ApplicationController
   allow_unauthenticated_access
   before_action :set_user_by_token, only: %i[edit update]
-  skip_before_action :authorize_resourse
+  skip_before_action :authorize_resource
   skip_after_action :verify_authorized
 
   def new
@@ -33,7 +33,10 @@ class PasswordsController < ApplicationController
   private
 
   def set_user_by_token
-    @user = User.find_by_password_reset_token!(params[:token])
+    # Rails generates this token-aware finder; `find_by!` cannot validate signed reset tokens.
+    # rubocop:disable Rails/DynamicFindBy
+    @user = User.find_by_password_reset_token!(params.expect(:token))
+    # rubocop:enable Rails/DynamicFindBy
   rescue ActiveSupport::MessageVerifier::InvalidSignature
     redirect_to new_password_path, alert: "Password reset link is invalid or has expired"
   end

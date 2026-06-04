@@ -28,7 +28,7 @@ module Warehouses
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :purchase_item
     end
 

@@ -22,7 +22,7 @@ class SignupsController < ApplicationController
 
   private
 
-  def authorize_resourse
+  def authorize_resource
     authorize :user
   end
 

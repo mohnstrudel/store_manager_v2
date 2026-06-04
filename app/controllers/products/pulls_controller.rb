@@ -14,7 +14,7 @@ module Products
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :product, :pull?
     end
   end

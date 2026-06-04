@@ -21,7 +21,7 @@ module PurchaseItems
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :purchase_item, :unlink?
     end
   end

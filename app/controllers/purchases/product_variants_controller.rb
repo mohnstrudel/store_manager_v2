@@ -3,7 +3,7 @@
 module Purchases
   class ProductVariantsController < ApplicationController
     def show
-      product = Product.find(params[:product_id])
+      product = Product.find(params.expect(:product_id))
       variants = product.fetch_variants_with_title
 
       render json: {
@@ -13,7 +13,7 @@ module Purchases
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :purchase, :product_variants?
     end
   end

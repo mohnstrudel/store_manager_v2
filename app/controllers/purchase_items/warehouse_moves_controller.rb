@@ -12,13 +12,13 @@ module PurchaseItems
 
       return if moved_count.zero?
 
-      flash_movement_notice(moved_count, Warehouse.find(params[:destination_id]))
+      flash_movement_notice(moved_count, Warehouse.find(params.expect(:destination_id)))
       redirect_to redirect_target
     end
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :purchase_item, :move?
     end
 
