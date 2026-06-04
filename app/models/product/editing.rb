@@ -36,7 +36,10 @@ module Product::Editing
   def build_initial_purchase(purchase_attributes, creating)
     return unless creating && purchase_attributes.present?
 
-    Purchase.new(purchase_attributes.merge(product: self))
+    # Don't set product: self here — that would add the unsaved purchase to
+    # self.purchases via inverse_of, causing spurious autosave validation errors.
+    # The product is assigned explicitly in the transaction after save.
+    Purchase.new(purchase_attributes)
   end
 
   def assign_product_attributes(attributes)
@@ -157,11 +160,16 @@ module Product::Editing
   end
 
   def validate_initial_purchase
-    return unless initial_purchase.present?
+    return if initial_purchase.blank?
 
     initial_purchase.valid?
-    bubble_record_errors("purchase", [initial_purchase])
-    errors.add(:initial_purchase, :invalid) if initial_purchase.errors.any?
+    # product_id is nil until the product is saved; skip that error here
+    relevant_errors = initial_purchase.errors.reject { |e| e.attribute == :product_id }
+    relevant_errors.each do |error|
+      nested_attribute = (error.attribute == :base) ? "base" : error.attribute
+      errors.add("purchase.0.#{nested_attribute}", error.message)
+    end
+    errors.add(:initial_purchase, :invalid) if relevant_errors.any?
   end
 
   def active_editing_store_infos
@@ -205,7 +213,7 @@ module Product::Editing
   def bubble_record_errors(prefix, records)
     records.each_with_index do |record, index|
       record.errors.each do |error|
-        nested_attribute = error.attribute == :base ? "base" : error.attribute
+        nested_attribute = (error.attribute == :base) ? "base" : error.attribute
         errors.add("#{prefix}.#{index}.#{nested_attribute}", error.message)
       end
     end
