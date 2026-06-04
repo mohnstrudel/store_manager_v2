@@ -9,17 +9,21 @@ type IndexProps = {
 };
 
 export default function Index({ warehouses }: IndexProps) {
-  const handlePositionChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+  const onPositionChange = useWarehousePositionChange();
+
+  return (
+    <ResourceIndexPage newPath="/warehouses/new" title="Warehouses">
+      <IndexTable onPositionChange={onPositionChange} warehouses={warehouses} />
+    </ResourceIndexPage>
+  );
+}
+
+function useWarehousePositionChange() {
+  return useCallback((event: ChangeEvent<HTMLSelectElement>) => {
     stopRowNavigation(event);
     const positionPath = event.currentTarget.dataset.positionPath;
     if (!positionPath) return;
 
     router.patch(positionPath, { position: event.currentTarget.value });
   }, []);
-
-  return (
-    <ResourceIndexPage newPath="/warehouses/new" title="Warehouses">
-      <IndexTable onPositionChange={handlePositionChange} warehouses={warehouses} />
-    </ResourceIndexPage>
-  );
 }
