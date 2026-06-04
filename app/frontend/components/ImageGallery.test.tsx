@@ -46,15 +46,15 @@ describe("ImageGallery", () => {
     const firstThumb = screen.getByRole("button", { name: "Front" });
     const secondThumb = screen.getByRole("button", { name: "Side" });
 
-    expect(firstThumb).toHaveClass("active");
-    expect(secondThumb).not.toHaveClass("active");
+    expect(firstThumb).toHaveAttribute("data-active");
+    expect(secondThumb).not.toHaveAttribute("data-active");
 
     expect(scrollIntoView).not.toHaveBeenCalled();
 
     await user.click(secondThumb);
 
-    expect(firstThumb).not.toHaveClass("active");
-    expect(secondThumb).toHaveClass("active");
+    expect(firstThumb).not.toHaveAttribute("data-active");
+    expect(secondThumb).toHaveAttribute("data-active");
     expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: "smooth",
       block: "nearest",
@@ -69,7 +69,7 @@ describe("ImageGallery", () => {
 
     await user.click(screen.getByRole("button", { name: "→" }));
 
-    expect(screen.getByRole("button", { name: "Side" })).toHaveClass("active");
+    expect(screen.getByRole("button", { name: "Side" })).toHaveAttribute("data-active");
     expect(document.querySelector(".gallery_main__image")).toHaveAttribute(
       "src",
       "/side-preview.png",
@@ -84,43 +84,31 @@ describe("ImageGallery", () => {
     const mainFrame = container.querySelector(".gallery_main__frame");
     const mainImage = container.querySelector(".gallery_main__frame img");
 
-    expect(thumbFrame).toHaveClass("loading");
-    expect(thumbImage).toHaveClass("hidden");
-    expect(mainFrame).toHaveClass("loading");
-    expect(mainImage).toHaveClass("hidden");
+    expect(thumbFrame).toHaveAttribute("data-loading");
+    expect(mainFrame).toHaveAttribute("data-loading");
 
     fireEvent.load(thumbImage!);
     fireEvent.load(mainImage!);
 
-    expect(thumbFrame).not.toHaveClass("loading");
-    expect(thumbImage).not.toHaveClass("hidden");
-    expect(mainFrame).not.toHaveClass("loading");
-    expect(mainImage).not.toHaveClass("hidden");
+    expect(thumbFrame).not.toHaveAttribute("data-loading");
+    expect(mainFrame).not.toHaveAttribute("data-loading");
   });
 
   it("renders a single image without carousel controls", () => {
     const { container } = render(<ImageGallery media={[media[0]]} />);
 
-    expect(screen.getByRole("img", { name: "Front" })).toHaveClass(
-      "gallery_main__image",
-      "max-h-160",
-      "max-w-160",
-    );
+    expect(screen.getByRole("img", { name: "Front" })).toHaveClass("gallery_main__image");
     expect(screen.queryByRole("button", { name: "←" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "→" })).not.toBeInTheDocument();
     expect(container.querySelector(".gallery_viewbox")).toHaveClass(
-      "mx-8",
-      "overflow-hidden",
-      "rounded-lg",
-      "bg-gray-50",
+      "gallery_viewbox",
+      "gallery_viewbox--single",
     );
     expect(container.querySelector(".gallery_main__frame")).toBeNull();
-    expect(container.querySelector(".gallery_viewbox")).toHaveClass("animate-pulse");
-    expect(screen.getByAltText("Front")).toHaveClass("hidden");
+    expect(container.querySelector(".gallery_viewbox")).toHaveAttribute("data-loading");
 
     fireEvent.load(screen.getByAltText("Front"));
 
-    expect(container.querySelector(".gallery_viewbox")).not.toHaveClass("animate-pulse");
-    expect(screen.getByAltText("Front")).not.toHaveClass("hidden");
+    expect(container.querySelector(".gallery_viewbox")).not.toHaveAttribute("data-loading");
   });
 });
