@@ -1,6 +1,6 @@
 import { createInertiaApp, router } from "@inertiajs/react";
 import { createElement } from "react";
-import { createRoot } from "react-dom/client";
+import { hydrateRoot } from "react-dom/client";
 import AppLayout from "@/layouts/AppLayout";
 import { resolvePage } from "@/lib/resolvePage";
 
@@ -22,7 +22,7 @@ void createInertiaApp({
   page: initialPage,
   resolve: resolvePage,
   setup({ el, App, props }) {
-    createRoot(el).render(createElement(App, props));
+    hydrateRoot(el, createElement(App, props));
     disableAutocorrectAfterRender(el);
   },
 });

@@ -26,9 +26,7 @@ vi.mock("@inertiajs/react", () => ({
 }));
 
 vi.mock("react-dom/client", () => ({
-  createRoot: () => ({
-    render: vi.fn<() => void>(),
-  }),
+  hydrateRoot: vi.fn<() => void>(),
 }));
 
 vi.mock("@/lib/resolvePage", () => ({
