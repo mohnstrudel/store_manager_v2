@@ -8,10 +8,11 @@ import type { PurchaseItemRecord } from "../types";
 type TrackingNumberEditorProps = {
   item: PurchaseItemRecord;
   onAutoOpen?: () => void;
+  autoFocus?: boolean;
 };
 
 export const InlineTrackingNumberEditor = forwardRef<{ open(): void }, TrackingNumberEditorProps>(
-  function InlineTrackingNumberEditor({ item, onAutoOpen }, ref) {
+  function InlineTrackingNumberEditor({ item, onAutoOpen, autoFocus = true }, ref) {
     const [shippingError, setShippingError] = useState("");
     const requiresShippingCompany = !item.shipping_company_id;
 
@@ -63,7 +64,7 @@ export const InlineTrackingNumberEditor = forwardRef<{ open(): void }, TrackingN
             </label>
             <input
               autoComplete="off"
-              autoFocus
+              autoFocus={autoFocus}
               className="border rounded px-2 py-1 text-sm w-full"
               id={`purchase_item_${item.id}_tracking_number`}
               onChange={onChange}

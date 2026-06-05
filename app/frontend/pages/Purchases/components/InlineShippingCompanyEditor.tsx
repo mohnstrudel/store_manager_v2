@@ -9,10 +9,14 @@ type ShippingCompanyEditorProps = {
   item: PurchaseItemRecord;
   onAutoOpen?: () => void;
   shippingCompanies: ShippingCompanyOption[];
+  autoFocus?: boolean;
 };
 
 export const InlineShippingCompanyEditor = forwardRef<{ open(): void }, ShippingCompanyEditorProps>(
-  function InlineShippingCompanyEditor({ item, onAutoOpen, shippingCompanies }, ref) {
+  function InlineShippingCompanyEditor(
+    { item, onAutoOpen, shippingCompanies, autoFocus = true },
+    ref,
+  ) {
     const { isOpen, isSaved, open, close, openSilently, error, onChange, save, value } =
       useInlineCellForm({
         editedRecord: item,
@@ -39,7 +43,7 @@ export const InlineShippingCompanyEditor = forwardRef<{ open(): void }, Shipping
               Shipping company
             </label>
             <select
-              autoFocus
+              autoFocus={autoFocus}
               className="border rounded px-2 py-1 text-sm w-full min-w-35"
               id={`purchase_item_${item.id}_shipping_company_id`}
               onChange={onChange}

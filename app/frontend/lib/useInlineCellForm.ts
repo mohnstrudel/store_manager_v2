@@ -14,6 +14,8 @@ type InlineCellFormConfig<TRecord extends { id: number }> = {
    *  Defaults to `{ [attributeName]: newValue }`. Override when the optimistic
    *  row needs extra fields or type coercion (e.g. id + display name). */
   mapNewValueToState?: (newValue: string) => Partial<TRecord>;
+  /** Normalizes the submitted form value before patching and optimistic updates. */
+  normalizeValueForSave?: (value: string) => string;
   /** Defaults to the current page URL. Override only when saving should return elsewhere. */
   returnTo?: string;
   /** Reads a field error. Defaults to `errors[attributeName] || errors.base`. */
@@ -36,6 +38,7 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   attributeName,
   route,
   mapNewValueToState,
+  normalizeValueForSave,
   returnTo,
   errorFrom,
   onOpen: onOpenEffect,
@@ -81,7 +84,7 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   };
 
   const save = () => {
-    const newValue = form.data.value;
+    const newValue = normalizeValueForSave ? normalizeValueForSave(form.data.value) : form.data.value;
     form.transform(() => ({
       [param]: { [attributeName]: newValue },
       return_to: form.data.return_to,

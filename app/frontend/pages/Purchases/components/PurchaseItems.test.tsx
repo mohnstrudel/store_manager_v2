@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -146,6 +146,7 @@ describe("PurchaseItems inline editors", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
+    expect(screen.getByLabelText("Shipping company")).toHaveFocus();
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
@@ -174,6 +175,7 @@ describe("PurchaseItems inline editors", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Edit shipping cost" }));
+    expect(screen.getByLabelText("Shipping cost")).toHaveFocus();
     await user.clear(screen.getByLabelText("Shipping cost"));
     await user.type(screen.getByLabelText("Shipping cost"), "20.00");
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -207,6 +209,7 @@ describe("PurchaseItems inline editors", () => {
     await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
 
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tracking number")).toHaveFocus();
     await waitFor(() => {
       expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
     });
@@ -235,7 +238,10 @@ describe("PurchaseItems inline editors", () => {
       expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
       expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
       expect(screen.getByLabelText("Shipping cost")).toBeInTheDocument();
+      expect(screen.getByLabelText("Tracking number")).toHaveFocus();
     });
+
+    expect(screen.getByLabelText("Shipping cost")).toHaveDisplayValue("");
   });
 
   it("opens all three editors when clicking shipping company on a blank row", async () => {
@@ -260,7 +266,10 @@ describe("PurchaseItems inline editors", () => {
       expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
       expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
       expect(screen.getByLabelText("Shipping cost")).toBeInTheDocument();
+      expect(screen.getByLabelText("Tracking number")).toHaveFocus();
     });
+
+    expect(screen.getByLabelText("Shipping cost")).toHaveDisplayValue("");
   });
 
   it("opens all three editors when clicking shipping cost on a blank row", async () => {
@@ -285,7 +294,28 @@ describe("PurchaseItems inline editors", () => {
       expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
       expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
       expect(screen.getByLabelText("Shipping cost")).toBeInTheDocument();
+      expect(screen.getByLabelText("Tracking number")).toHaveFocus();
     });
+
+    const shippingCostInput = screen.getByLabelText("Shipping cost");
+    expect(shippingCostInput).toHaveDisplayValue("");
+
+    const shippingCostForm = shippingCostInput.closest("form");
+    if (!shippingCostForm) {
+      throw new Error("Expected shipping cost editor form");
+    }
+
+    await user.click(within(shippingCostForm).getByRole("button", { name: "Save" }));
+
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/shipping_cost",
+      {
+        purchase_item: { shipping_cost: "0" },
+        return_to: "/purchases/1",
+      },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
   });
 
   it("does not auto-open shipping editor when tracking already has a company", async () => {

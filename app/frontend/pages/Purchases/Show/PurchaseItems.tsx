@@ -1,4 +1,4 @@
-import { useCallback, useRef, type MouseEvent } from "react";
+import { useCallback, useRef, useState, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
@@ -131,6 +131,7 @@ function PurchaseItemRow({
   toggleSelectedIdFromDataAttribute,
 }: PurchaseItemRowProps) {
   const {
+    focusTarget,
     trackingRef,
     shippingRef,
     shippingCostRef,
@@ -251,17 +252,20 @@ function PurchaseItemRow({
       <InlineTrackingNumberEditor
         ref={trackingRef}
         item={purchaseItem}
+        autoFocus={focusTarget === "tracking"}
         onAutoOpen={trackingAutoOpen}
       />
       <InlineShippingCompanyEditor
         ref={shippingRef}
         item={purchaseItem}
+        autoFocus={focusTarget === "shipping_company"}
         onAutoOpen={shippingAutoOpen}
         shippingCompanies={shippingCompanies}
       />
       <InlineShippingCostEditor
         ref={shippingCostRef}
         item={purchaseItem}
+        autoFocus={focusTarget === "shipping_cost"}
         onAutoOpen={costAutoOpen}
       />
       <td className="table_actions">
@@ -295,6 +299,9 @@ function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
   const trackingRef = useRef<{ open(): void }>(null);
   const shippingRef = useRef<{ open(): void }>(null);
   const shippingCostRef = useRef<{ open(): void }>(null);
+  const [focusTarget, setFocusTarget] = useState<
+    "tracking" | "shipping_company" | "shipping_cost" | null
+  >(null);
   const openTracking = useCallback(() => {
     trackingRef.current?.open();
   }, []);
@@ -313,6 +320,7 @@ function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
 
   // Tracking: open shipping when no company; also open cost when the whole row is blank.
   const trackingAutoOpen = useCallback(() => {
+    setFocusTarget("tracking");
     if (purchaseItem.shipping_company_id) return;
     openShipping();
     if (isBlankRow) openShippingCost();
@@ -320,20 +328,30 @@ function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
 
   // Shipping: open tracking + cost when blank row.
   const shippingAutoOpen = useCallback(() => {
-    if (!isBlankRow) return;
+    if (!isBlankRow) {
+      setFocusTarget("shipping_company");
+      return;
+    }
+    setFocusTarget("tracking");
     openTracking();
     openShippingCost();
   }, [isBlankRow, openShippingCost, openTracking]);
 
   // Cost: open tracking + shipping when blank row.
   const costAutoOpen = useCallback(() => {
-    if (!isBlankRow) return;
+    if (!isBlankRow) {
+      setFocusTarget("shipping_cost");
+      return;
+    }
+    setFocusTarget("tracking");
     openTracking();
     openShipping();
   }, [isBlankRow, openShipping, openTracking]);
 
   return {
     costAutoOpen,
+    isBlankRow,
+    focusTarget,
     shippingAutoOpen,
     shippingCostRef,
     shippingRef,

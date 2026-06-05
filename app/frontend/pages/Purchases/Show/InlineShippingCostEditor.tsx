@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState, type ChangeEvent } from "react";
 import FormError from "@/components/FormError";
 import { InlineCellForm, InlineCellTd, InlineCellTrigger } from "@/components/InlineCellEditor";
 import { useInlineCellForm } from "@/lib/useInlineCellForm";
@@ -8,19 +8,36 @@ import type { PurchaseItemRecord } from "../types";
 type ShippingCostEditorProps = {
   item: PurchaseItemRecord;
   onAutoOpen?: () => void;
+  autoFocus?: boolean;
 };
 
 export const InlineShippingCostEditor = forwardRef<{ open(): void }, ShippingCostEditorProps>(
-  function InlineShippingCostEditor({ item, onAutoOpen }, ref) {
+  function InlineShippingCostEditor({ item, onAutoOpen, autoFocus = true }, ref) {
+    const [hideDefaultZero, setHideDefaultZero] = useState(true);
     const { isOpen, isSaved, open, close, openSilently, error, onChange, save, value } =
       useInlineCellForm({
         editedRecord: item,
         attributeName: "shipping_cost",
         route: routes.purchaseItemsShippingCosts.update,
+        normalizeValueForSave: normalizeShippingCostValue,
         onOpen: onAutoOpen,
       });
 
     useImperativeHandle(ref, () => ({ open: openSilently }));
+
+    useEffect(() => {
+      if (!isOpen) setHideDefaultZero(true);
+    }, [isOpen]);
+
+    const handleChange = useCallback(
+      (event: ChangeEvent<HTMLInputElement>) => {
+        setHideDefaultZero(false);
+        onChange(event);
+      },
+      [onChange],
+    );
+
+    const displayValue = hideDefaultZero && value === "0" ? "" : value;
 
     return (
       <InlineCellTd
@@ -34,14 +51,14 @@ export const InlineShippingCostEditor = forwardRef<{ open(): void }, ShippingCos
               Shipping cost
             </label>
             <input
-              autoFocus
+              autoFocus={autoFocus}
               className="border rounded px-2 py-1 text-sm w-full"
               id={`purchase_item_${item.id}_shipping_cost`}
               min="0"
-              onChange={onChange}
+              onChange={handleChange}
               step="1"
               type="number"
-              value={value}
+              value={displayValue}
             />
             <FormError>{error}</FormError>
           </InlineCellForm>
@@ -56,3 +73,7 @@ export const InlineShippingCostEditor = forwardRef<{ open(): void }, ShippingCos
     );
   },
 );
+
+function normalizeShippingCostValue(value: string) {
+  return value.trim() === "" ? "0" : value;
+}
