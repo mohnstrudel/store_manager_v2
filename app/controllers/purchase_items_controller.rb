@@ -14,6 +14,8 @@ class PurchaseItemsController < ApplicationController
       .page(params[:page])
     @purchase_items = @purchase_items.search(params[:q]) if params[:q].present?
 
+    return unless stale?(etag: [@purchase_items, request.inertia?], last_modified: @purchase_items.maximum(:updated_at))
+
     render inertia: "PurchaseItems/Index", props: {
       purchase_items: @purchase_items.map { |purchase_item| helpers.purchase_item_index_props(purchase_item) },
       pagination: helpers.pagination_props(@purchase_items),

@@ -7,6 +7,8 @@ class VersionsController < ApplicationController
   def index
     @versions = Version.order(:value)
 
+    return unless stale?(etag: [@versions, request.inertia?], last_modified: @versions.maximum(:updated_at))
+
     render inertia: "Versions/Index", props: {
       versions: @versions.map { |version| helpers.version_props(version) }
     }

@@ -8,6 +8,9 @@ class WarehousesController < ApplicationController
   # GET /warehouses
   def index
     @warehouses = Warehouse.for_listing.order(:position)
+
+    return unless stale?(etag: [@warehouses, request.inertia?], last_modified: @warehouses.maximum(:updated_at))
+
     render inertia: "Warehouses/Index", props: {
       warehouses: @warehouses.map { |warehouse| helpers.warehouse_listing_props(warehouse, @warehouses.size) }
     }

@@ -7,6 +7,8 @@ class ProductsController < ApplicationController
   def index
     @products = Product.listed.search_by(params[:q]).page(params[:page])
 
+    return unless stale?(etag: [@products, request.inertia?], last_modified: @products.maximum(:updated_at))
+
     render inertia: "Products/Index", props: {
       products: @products.map { |product| helpers.index_product_props(product) },
       pagination: helpers.pagination_props(@products),

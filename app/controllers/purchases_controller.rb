@@ -13,12 +13,15 @@ class PurchasesController < ApplicationController
   def index
     @purchases = Purchase.for_listing.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
+    @warehouses = Warehouse.order(name: :asc)
+
+    return unless stale?(etag: [@purchases, @warehouses, request.inertia?], last_modified: @purchases.maximum(:updated_at))
 
     render inertia: "Purchases/Index", props: {
       purchases: @purchases.map { |purchase| helpers.purchase_index_props(purchase) },
       pagination: helpers.pagination_props(@purchases),
       search: {q: params[:q].to_s},
-      warehouses: Warehouse.order(name: :asc).map { |warehouse| helpers.purchase_warehouse_props(warehouse) },
+      warehouses: @warehouses.map { |warehouse| helpers.purchase_warehouse_props(warehouse) },
       move_path: move_path
     }
   end

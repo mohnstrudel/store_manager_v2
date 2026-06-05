@@ -7,6 +7,8 @@ class ShippingCompaniesController < ApplicationController
   def index
     @shipping_companies = ShippingCompany.order(:name)
 
+    return unless stale?(etag: [@shipping_companies, request.inertia?], last_modified: @shipping_companies.maximum(:updated_at))
+
     render inertia: "ShippingCompanies/Index", props: {
       shippingCompanies: @shipping_companies.map { |shipping_company| helpers.shipping_company_props(shipping_company) }
     }

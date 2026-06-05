@@ -5,6 +5,9 @@ class UsersController < ApplicationController
 
   def index
     @users = User.all
+
+    return unless stale?(etag: [@users, request.inertia?], last_modified: @users.maximum(:updated_at))
+
     render inertia: "Users/Index", props: {
       users: @users.map { |user| helpers.user_props(user) }
     }

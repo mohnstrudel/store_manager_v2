@@ -7,6 +7,8 @@ class ColorsController < ApplicationController
   def index
     @colors = Color.order(:value)
 
+    return unless stale?(etag: [@colors, request.inertia?], last_modified: @colors.maximum(:updated_at))
+
     render inertia: "Colors/Index", props: {
       colors: @colors.map { |color| helpers.color_props(color) }
     }

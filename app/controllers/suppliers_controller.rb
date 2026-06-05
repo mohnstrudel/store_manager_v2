@@ -7,6 +7,8 @@ class SuppliersController < ApplicationController
   def index
     @suppliers = Supplier.order(:title)
 
+    return unless stale?(etag: [@suppliers, request.inertia?], last_modified: @suppliers.maximum(:updated_at))
+
     render inertia: "Suppliers/Index", props: {
       suppliers: @suppliers.map { |supplier| helpers.supplier_props(supplier) }
     }

@@ -13,6 +13,8 @@ class SalesController < ApplicationController
       .search_by(params[:q])
       .page(params[:page])
 
+    return unless stale?(etag: [@sales, request.inertia?], last_modified: @sales.maximum(:updated_at))
+
     render inertia: "Sales/Index", props: {
       sales: @sales.map { |sale| helpers.sale_listing_props(sale) },
       pagination: helpers.pagination_props(@sales),

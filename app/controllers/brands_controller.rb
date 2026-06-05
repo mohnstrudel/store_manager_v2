@@ -7,6 +7,8 @@ class BrandsController < ApplicationController
   def index
     @brands = Brand.order(:title)
 
+    return unless stale?(etag: [@brands, request.inertia?], last_modified: @brands.maximum(:updated_at))
+
     render inertia: "Brands/Index", props: {
       brands: @brands.map { |brand| helpers.brand_props(brand) }
     }

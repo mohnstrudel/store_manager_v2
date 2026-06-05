@@ -7,6 +7,8 @@ class SizesController < ApplicationController
   def index
     @sizes = Size.order(:value)
 
+    return unless stale?(etag: [@sizes, request.inertia?], last_modified: @sizes.maximum(:updated_at))
+
     render inertia: "Sizes/Index", props: {
       sizes: @sizes.map { |size| helpers.size_props(size) }
     }

@@ -9,6 +9,8 @@ class CustomersController < ApplicationController
     @customers = @customers.search(params[:q]) if params[:q].present?
     @customers = @customers.for_listing.page(params[:page])
 
+    return unless stale?(etag: [@customers, request.inertia?], last_modified: @customers.maximum(:updated_at))
+
     render inertia: "Customers/Index", props: {
       customers: @customers.map { |customer| helpers.customer_props(customer) },
       pagination: helpers.pagination_props(@customers),
