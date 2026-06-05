@@ -53,6 +53,7 @@ preload_app!
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
+plugin :inertia_ssr
 
 # Router keepalive idle timeout + 5 seconds
 # https://devcenter.heroku.com/articles/http-routing#keepalives
