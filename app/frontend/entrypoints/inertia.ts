@@ -12,6 +12,7 @@ let autocorrectDisablerEnabled = false;
 
 enableAutocorrectDisabler();
 enableInertiaNavigationBridge();
+loadFonts();
 
 void createInertiaApp({
   defaults: {
@@ -83,4 +84,11 @@ export function enableInertiaNavigationBridge() {
       viewTransition: true,
     });
   });
+}
+
+function loadFonts() {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "/fonts.css";
+  document.head.appendChild(link);
 }
