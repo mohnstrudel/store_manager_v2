@@ -51,6 +51,7 @@ export default function IndexTable({ onPositionChange, warehouses }: IndexTableP
                 name="position"
                 onChange={onPositionChange}
                 onClick={stopRowNavigation}
+                suppressHydrationWarning
                 value={warehouse.position}
               >
                 {warehouse.positions.map((position) => (

@@ -89,6 +89,7 @@ function SaleStatusOption({
         defaultChecked={currentStatus === statusName}
         id={inputId}
         name="sale[status]"
+        suppressHydrationWarning
         type="radio"
         value={statusName}
       />

@@ -33,6 +33,7 @@ export default function SearchBar({ initialQuery, path, resourceName }: SearchBa
         name="q"
         onChange={handleChange}
         placeholder="Find what you need..."
+        suppressHydrationWarning
         type="search"
         value={query}
       />
