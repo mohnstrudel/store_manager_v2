@@ -13,7 +13,7 @@ export default function PageHeader({ children, className = "", subtitle, title }
       <div className="flex gap-4">
         <hgroup>
           <h1>{title}</h1>
-          {subtitle ? <h4>{subtitle}</h4> : null}
+          {subtitle ? <h3>{subtitle}</h3> : null}
         </hgroup>
       </div>
 
