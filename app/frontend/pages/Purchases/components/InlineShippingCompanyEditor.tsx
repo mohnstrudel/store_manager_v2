@@ -10,13 +10,16 @@ type ShippingCompanyEditorProps = {
   onAutoOpen?: () => void;
   shippingCompanies: ShippingCompanyOption[];
   autoFocus?: boolean;
+  onBulkSave?: () => void;
 };
 
-export const InlineShippingCompanyEditor = forwardRef<{ open(): void }, ShippingCompanyEditorProps>(
-  function InlineShippingCompanyEditor(
-    { item, onAutoOpen, shippingCompanies, autoFocus = true },
-    ref,
-  ) {
+export const InlineShippingCompanyEditor = forwardRef<
+  { open(): void; save(): void },
+  ShippingCompanyEditorProps
+>(function InlineShippingCompanyEditor(
+  { item, onAutoOpen, shippingCompanies, autoFocus = true, onBulkSave },
+  ref,
+) {
     const { isOpen, isSaved, open, close, openSilently, error, onChange, save, value } =
       useInlineCellForm({
         editedRecord: item,
@@ -29,7 +32,7 @@ export const InlineShippingCompanyEditor = forwardRef<{ open(): void }, Shipping
         onOpen: onAutoOpen,
       });
 
-    useImperativeHandle(ref, () => ({ open: openSilently }));
+    useImperativeHandle(ref, () => ({ open: openSilently, save }));
 
     return (
       <InlineCellTd
@@ -38,7 +41,7 @@ export const InlineShippingCompanyEditor = forwardRef<{ open(): void }, Shipping
         onOpen={isOpen ? undefined : open}
       >
         {isOpen ? (
-          <InlineCellForm onCancel={close} onSave={save}>
+          <InlineCellForm onCancel={close} onSave={onBulkSave ?? save}>
             <label className="sr-only" htmlFor={`purchase_item_${item.id}_shipping_company_id`}>
               Shipping company
             </label>
@@ -65,8 +68,7 @@ export const InlineShippingCompanyEditor = forwardRef<{ open(): void }, Shipping
         )}
       </InlineCellTd>
     );
-  },
-);
+});
 
 function shippingCompanyName(shippingCompanies: ShippingCompanyOption[], id: string) {
   return shippingCompanies.find((sc) => String(sc.id) === id)?.name || "";

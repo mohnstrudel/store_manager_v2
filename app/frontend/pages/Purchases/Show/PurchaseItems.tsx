@@ -131,6 +131,7 @@ function PurchaseItemRow({
   toggleSelectedIdFromDataAttribute,
 }: PurchaseItemRowProps) {
   const {
+    bulkSave,
     focusTarget,
     trackingRef,
     shippingRef,
@@ -253,6 +254,7 @@ function PurchaseItemRow({
         item={purchaseItem}
         autoFocus={focusTarget === "tracking"}
         onAutoOpen={trackingAutoOpen}
+        onBulkSave={bulkSave}
       />
       <InlineShippingCompanyEditor
         ref={shippingRef}
@@ -260,12 +262,14 @@ function PurchaseItemRow({
         autoFocus={focusTarget === "shipping_company"}
         onAutoOpen={shippingAutoOpen}
         shippingCompanies={shippingCompanies}
+        onBulkSave={bulkSave}
       />
       <InlineShippingCostEditor
         ref={shippingCostRef}
         item={purchaseItem}
         autoFocus={focusTarget === "shipping_cost"}
         onAutoOpen={costAutoOpen}
+        onBulkSave={bulkSave}
       />
       <td className="table_actions">
         <div className="flex justify-end">
@@ -295,9 +299,9 @@ function PurchaseItemRow({
 }
 
 function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
-  const trackingRef = useRef<{ open(): void }>(null);
-  const shippingRef = useRef<{ open(): void }>(null);
-  const shippingCostRef = useRef<{ open(): void }>(null);
+  const trackingRef = useRef<{ open(): void; save(): void }>(null);
+  const shippingRef = useRef<{ open(): void; save(): void }>(null);
+  const shippingCostRef = useRef<{ open(): void; save(): void }>(null);
   const [focusTarget, setFocusTarget] = useState<
     "tracking" | "shipping_company" | "shipping_cost" | null
   >(null);
@@ -347,7 +351,15 @@ function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
     openShipping();
   }, [isBlankRow, openShipping, openTracking]);
 
+  // When all three opened together (blank row), saving any one saves all.
+  const bulkSave = useCallback(() => {
+    trackingRef.current?.save();
+    shippingRef.current?.save();
+    shippingCostRef.current?.save();
+  }, []);
+
   return {
+    bulkSave: isBlankRow ? bulkSave : undefined,
     costAutoOpen,
     isBlankRow,
     focusTarget,

@@ -9,10 +9,13 @@ type TrackingNumberEditorProps = {
   item: PurchaseItemRecord;
   onAutoOpen?: () => void;
   autoFocus?: boolean;
+  onBulkSave?: () => void;
 };
 
-export const InlineTrackingNumberEditor = forwardRef<{ open(): void }, TrackingNumberEditorProps>(
-  function InlineTrackingNumberEditor({ item, onAutoOpen, autoFocus = true }, ref) {
+export const InlineTrackingNumberEditor = forwardRef<
+  { open(): void; save(): void },
+  TrackingNumberEditorProps
+>(function InlineTrackingNumberEditor({ item, onAutoOpen, autoFocus = true, onBulkSave }, ref) {
     const [shippingError, setShippingError] = useState("");
     const requiresShippingCompany = !item.shipping_company_id;
 
@@ -34,7 +37,7 @@ export const InlineTrackingNumberEditor = forwardRef<{ open(): void }, TrackingN
       onOpen: onAutoOpen,
     });
 
-    useImperativeHandle(ref, () => ({ open: openSilently }));
+    useImperativeHandle(ref, () => ({ open: openSilently, save }));
 
     const error = requiresShippingCompany ? shippingError : serverError;
 
@@ -58,7 +61,7 @@ export const InlineTrackingNumberEditor = forwardRef<{ open(): void }, TrackingN
         onOpen={isOpen ? undefined : open}
       >
         {isOpen ? (
-          <InlineCellForm onCancel={cancelEditing} onSave={saveTrackingNumber}>
+          <InlineCellForm onCancel={cancelEditing} onSave={onBulkSave ?? saveTrackingNumber}>
             <label className="sr-only" htmlFor={`purchase_item_${item.id}_tracking_number`}>
               Tracking number
             </label>

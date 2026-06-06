@@ -9,10 +9,13 @@ type ShippingCostEditorProps = {
   item: PurchaseItemRecord;
   onAutoOpen?: () => void;
   autoFocus?: boolean;
+  onBulkSave?: () => void;
 };
 
-export const InlineShippingCostEditor = forwardRef<{ open(): void }, ShippingCostEditorProps>(
-  function InlineShippingCostEditor({ item, onAutoOpen, autoFocus = true }, ref) {
+export const InlineShippingCostEditor = forwardRef<
+  { open(): void; save(): void },
+  ShippingCostEditorProps
+>(function InlineShippingCostEditor({ item, onAutoOpen, autoFocus = true, onBulkSave }, ref) {
     const [hideDefaultZero, setHideDefaultZero] = useState(true);
     const { isOpen, isSaved, open, close, openSilently, error, onChange, save, value } =
       useInlineCellForm({
@@ -23,7 +26,7 @@ export const InlineShippingCostEditor = forwardRef<{ open(): void }, ShippingCos
         onOpen: onAutoOpen,
       });
 
-    useImperativeHandle(ref, () => ({ open: openSilently }));
+    useImperativeHandle(ref, () => ({ open: openSilently, save }));
 
     useEffect(() => {
       if (!isOpen) setHideDefaultZero(true);
@@ -46,7 +49,7 @@ export const InlineShippingCostEditor = forwardRef<{ open(): void }, ShippingCos
         onOpen={isOpen ? undefined : open}
       >
         {isOpen ? (
-          <InlineCellForm onCancel={close} onSave={save}>
+          <InlineCellForm onCancel={close} onSave={onBulkSave ?? save}>
             <label className="sr-only" htmlFor={`purchase_item_${item.id}_shipping_cost`}>
               Shipping cost
             </label>
@@ -71,8 +74,7 @@ export const InlineShippingCostEditor = forwardRef<{ open(): void }, ShippingCos
         )}
       </InlineCellTd>
     );
-  },
-);
+});
 
 function normalizeShippingCostValue(value: string) {
   return value.trim() === "" ? "0" : value;

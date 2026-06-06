@@ -307,12 +307,127 @@ describe("PurchaseItems inline editors", () => {
 
     await user.click(within(shippingCostForm).getByRole("button", { name: "Save" }));
 
+    expect(inertia.patch).toHaveBeenCalledTimes(3);
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/tracking_number",
+      { purchase_item: { tracking_number: "" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/shipping_company",
+      { purchase_item: { shipping_company_id: "" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
     expect(inertia.patch).toHaveBeenCalledWith(
       "/purchase_items/10/shipping_cost",
-      {
-        purchase_item: { shipping_cost: "0" },
-        return_to: "/purchases/1",
-      },
+      { purchase_item: { shipping_cost: "0" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
+  });
+
+  it("bulk-saves all three when saving tracking number on a blank row", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[
+          makePurchaseItem({
+            tracking_number: "",
+            shipping_company_id: null,
+            shipping_cost: "0",
+          }),
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+      expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
+      expect(screen.getByLabelText("Shipping cost")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByLabelText("Tracking number"), "TRACK-42");
+    await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
+
+    const trackingForm = screen.getByLabelText("Tracking number").closest("form");
+    if (!trackingForm) throw new Error("Expected tracking number editor form");
+
+    await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
+
+    expect(inertia.patch).toHaveBeenCalledTimes(3);
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/tracking_number",
+      { purchase_item: { tracking_number: "TRACK-42" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/shipping_company",
+      { purchase_item: { shipping_company_id: "3" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/shipping_cost",
+      { purchase_item: { shipping_cost: "0" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
+  });
+
+  it("bulk-saves all three when saving shipping company on a blank row", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[
+          makePurchaseItem({
+            tracking_number: "",
+            shipping_company_id: null,
+            shipping_cost: "0",
+          }),
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+      expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
+      expect(screen.getByLabelText("Shipping cost")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
+
+    const shippingForm = screen.getByLabelText("Shipping company").closest("form");
+    if (!shippingForm) throw new Error("Expected shipping company editor form");
+
+    await user.click(within(shippingForm).getByRole("button", { name: "Save" }));
+
+    expect(inertia.patch).toHaveBeenCalledTimes(3);
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/tracking_number",
+      { purchase_item: { tracking_number: "" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/shipping_company",
+      { purchase_item: { shipping_company_id: "3" }, return_to: "/purchases/1" },
+      expect.objectContaining({ preserveScroll: true }),
+      expect.any(Function),
+    );
+    expect(inertia.patch).toHaveBeenCalledWith(
+      "/purchase_items/10/shipping_cost",
+      { purchase_item: { shipping_cost: "0" }, return_to: "/purchases/1" },
       expect.objectContaining({ preserveScroll: true }),
       expect.any(Function),
     );
