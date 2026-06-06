@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import type SmartSelectType from "@/components/SmartSelect";
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- React.lazy erases generic type params; cast is required to preserve Option inference in JSX
 const SmartSelect = lazy(
   () => import("@/components/SmartSelect"),
 ) as unknown as typeof SmartSelectType;

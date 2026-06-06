@@ -2,7 +2,9 @@ import { lazy, Suspense } from "react";
 import type { GroupBase, Props as SelectProps } from "react-select";
 import FormControl from "./FormControl";
 
-const SmartSelect = lazy(() => import("./SmartSelect"));
+import type SmartSelectType from "./SmartSelect";
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- React.lazy erases generic type params; cast is required to preserve Option inference in JSX
+const SmartSelect = lazy(() => import("./SmartSelect")) as unknown as typeof SmartSelectType;
 const SELECT_FALLBACK = <SelectSkeleton />;
 
 type FormSmartSelectProps<
@@ -37,7 +39,7 @@ export default function FormSmartSelect<
           aria-describedby={error ? `${inputId}_error` : undefined}
           aria-invalid={!!error}
           inputId={inputId}
-          {...(props as any)}
+          {...props}
         />
       </Suspense>
     </FormControl>
