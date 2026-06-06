@@ -60,10 +60,26 @@ describe("Inertia navigation bridge", () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
-  it("leaves React subtree links for Inertia Link to handle", () => {
+  it("intercepts plain <a> links inside the React subtree", () => {
     enableInertiaNavigationBridge();
     document.body.innerHTML = '<div id="app"><a href="/products">Products</a></div>';
 
+    const event = clickEvent();
+    document.querySelector("a")!.dispatchEvent(event);
+
+    expect(mocks.visit).toHaveBeenCalledWith("/products", {
+      method: "get",
+      viewTransition: true,
+    });
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it("does not intercept links already handled by React (event.defaultPrevented)", () => {
+    enableInertiaNavigationBridge();
+    document.body.innerHTML = '<div id="app"><a href="/products">Products</a></div>';
+
+    // Simulate Inertia <Link> calling event.preventDefault() in its onClick
+    document.querySelector("a")!.addEventListener("click", (e) => e.preventDefault());
     document.querySelector("a")!.dispatchEvent(clickEvent());
 
     expect(mocks.visit).not.toHaveBeenCalled();
