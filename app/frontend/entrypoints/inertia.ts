@@ -52,35 +52,35 @@ export function enableInertiaNavigationBridge() {
 
   inertiaNavigationBridgeEnabled = true;
 
-  document.addEventListener(
-    "click",
-    (event) => {
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) {
-        return;
-      }
+  // Bubbling phase runs after React's synthetic event handlers, so Inertia <Link>
+  // components that call event.preventDefault() are already handled and skipped
+  // via the defaultPrevented guard. Plain <a href> tags inside the app (which have
+  // no React onClick) reach this handler and get routed through Inertia instead of
+  // triggering a full page reload.
+  document.addEventListener("click", (event) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
 
-      const link =
-        event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
-      if (!link || link.target || link.hasAttribute("download") || link.dataset.inertia === "false")
-        return;
-      if (link.closest("#app")) return;
+    const link =
+      event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+    if (!link || link.target || link.hasAttribute("download") || link.dataset.inertia === "false")
+      return;
 
-      const url = new URL(link.href, window.location.href);
-      if (url.origin !== window.location.origin) return;
+    const url = new URL(link.href, window.location.href);
+    if (url.origin !== window.location.origin) return;
 
-      event.preventDefault();
-      router.visit(`${url.pathname}${url.search}${url.hash}`, {
-        method: "get",
-        viewTransition: true,
-      });
-    },
-    { capture: true },
-  );
+    event.preventDefault();
+    router.visit(`${url.pathname}${url.search}${url.hash}`, {
+      method: "get",
+      viewTransition: true,
+    });
+  });
 }
