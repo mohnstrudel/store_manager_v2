@@ -104,7 +104,7 @@ Rails.application.routes.draw do
           resource :warehouse_move, only: :create, path: "move"
         end
 
-        resource :sale_item_link, only: :destroy, path: "unlink"
+        resource :sale_item_link, only: %i[create destroy]
         resource :tracking_number, only: :update
         resource :shipping_company, only: :update
         resource :shipping_cost, only: :update
