@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { usePage } from "@inertiajs/react";
 import type { PageProps } from "@/types/inertia";
 
@@ -15,19 +15,22 @@ export function useBreadcrumbTrail() {
   const currentUrl = normalizeUrl(page.url);
   const breadcrumb = page.props.breadcrumb;
 
-  const trail = useMemo(() => createTrail(currentUrl, breadcrumb), [currentUrl, breadcrumb]);
+  // Initial state matches SSR output: just the current page (no sessionStorage on server).
+  const [trail, setTrail] = useState<Breadcrumb[]>(() =>
+    breadcrumb ? [{ name: breadcrumb, url: currentUrl }] : [],
+  );
 
-  useEffect(() => {
-    saveTrail(trail);
-  }, [trail]);
+  useEffect(function syncTrail() {
+    if (!breadcrumb) {
+      setTrail([]);
+      return;
+    }
+    const fullTrail = buildTrail(readTrail(), breadcrumb, currentUrl);
+    setTrail(fullTrail);
+    saveTrail(fullTrail);
+  }, [currentUrl, breadcrumb]);
 
   return trail;
-}
-
-function createTrail(currentUrl: string, breadcrumb: string | null) {
-  if (!breadcrumb) return [];
-
-  return buildTrail(readTrail(), breadcrumb, currentUrl);
 }
 
 function buildTrail(previousTrail: Breadcrumb[], breadcrumb: string, currentUrl: string) {
