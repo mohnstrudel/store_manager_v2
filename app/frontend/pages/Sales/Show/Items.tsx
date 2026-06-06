@@ -2,7 +2,7 @@ import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
@@ -75,10 +75,9 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
   const previousMovements = purchaseItem.warehouse_movements.slice(1);
   const summaryCursor = hasMovementHistory ? "cursor-pointer" : "cursor-default";
 
-  const unlinkPurchaseItem = useConfirmedDestroy(
-    purchaseItem.unlink_path,
-    "Unlink this purchase item?",
-  );
+  const unlinkPurchaseItem = useConfirmAction("delete", purchaseItem.unlink_path, {
+    message: "Unlink this purchase item?",
+  });
   const handleUnlinkClick = useCallback(
     (event: MouseEvent) => {
       event.stopPropagation();

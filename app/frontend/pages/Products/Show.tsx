@@ -6,7 +6,7 @@ import PurchasesSection from "./Show/PurchasesSection";
 import SalesSection from "./Show/SalesSection";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import {
   type ProductShowRecord,
   type PurchaseRecord,
@@ -29,7 +29,7 @@ export default function Show({
   purchases,
   variants,
 }: ShowProps) {
-  const destroyProduct = useConfirmedDestroy(product.path);
+  const destroyProduct = useConfirmAction("delete", product.path);
   const hasVariants = variants.length > 0;
 
   return (

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import Details from "./Show/Details";
 import Payments from "./Show/Payments";
 import PurchaseItems from "./Show/PurchaseItems";
@@ -34,7 +34,7 @@ export default function Show({
   warehouse_move_path,
   warehouses,
 }: ShowProps) {
-  const destroyPurchase = useConfirmedDestroy(purchase.destroy_path);
+  const destroyPurchase = useConfirmAction("delete", purchase.destroy_path);
 
   const title = useMemo(() => <PurchaseTitle id={purchase.id} />, [purchase.id]);
 

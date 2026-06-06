@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import Details from "./components/Details";
 import Sales from "./components/Sales";
 import { CustomerDetailRecord, SaleRecord } from "./types";
@@ -15,7 +15,7 @@ type ShowProps = {
 export default function Show({ active_sales, completed_sales, customer }: ShowProps) {
   const editPath = customer.path ? `${customer.path}/edit` : "#";
   const destroyPath = customer.path || "#";
-  const destroyCustomer = useConfirmedDestroy(destroyPath);
+  const destroyCustomer = useConfirmAction("delete", destroyPath);
   const title =
     customer.full_name ||
     customer.email ||

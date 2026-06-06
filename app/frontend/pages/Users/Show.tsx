@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 
 type UserRecord = {
   id: number;
@@ -19,7 +19,7 @@ type ShowProps = {
 };
 
 export default function Show({ user }: ShowProps) {
-  const destroyUser = useConfirmedDestroy(user.destroy_path);
+  const destroyUser = useConfirmAction("delete", user.destroy_path);
 
   return (
     <>

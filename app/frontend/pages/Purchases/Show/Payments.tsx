@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
 type PaymentsProps = {
@@ -43,7 +43,7 @@ export default function Payments({ newPayment, payments, purchase }: PaymentsPro
 function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchasePath: string }) {
   const [paymentDate, setPaymentDate] = useState(payment.payment_date);
   const [value, setValue] = useState(payment.value);
-  const destroyPayment = useConfirmedDestroy(payment.destroy_path, "Remove this payment?");
+  const destroyPayment = useConfirmAction("delete", payment.destroy_path, { message: "Remove this payment?" });
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {

@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import Details from "./components/Details";
 import Products from "./components/Products";
 import { ColorRecord, ProductRecord } from "./types";
@@ -12,7 +12,7 @@ type ShowProps = {
 };
 
 export default function Show({ color, products }: ShowProps) {
-  const destroyColor = useConfirmedDestroy(`/colors/${color.id}`);
+  const destroyColor = useConfirmAction("delete", `/colors/${color.id}`);
 
   return (
     <>

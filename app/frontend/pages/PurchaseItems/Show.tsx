@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import ImageGallery from "@/components/ImageGallery";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import type { PurchaseItemShowRecord } from "./types";
 
 type ShowProps = {
@@ -9,7 +9,7 @@ type ShowProps = {
 };
 
 export default function Show({ purchase_item }: ShowProps) {
-  const destroyPurchaseItem = useConfirmedDestroy(purchase_item.destroy_path);
+  const destroyPurchaseItem = useConfirmAction("delete", purchase_item.destroy_path);
 
   return (
     <>

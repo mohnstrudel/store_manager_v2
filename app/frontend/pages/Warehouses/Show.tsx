@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import { PurchaseItemsSection } from "./Show/PurchaseItemsSection";
 import { WarehouseDetails } from "./Show/WarehouseDetails";
 import type {
@@ -25,7 +25,7 @@ type ShowProps = {
 
 export default function WarehouseShow(props: ShowProps) {
   const { warehouse } = props;
-  const destroyWarehouse = useConfirmedDestroy(warehouse.destroy_path);
+  const destroyWarehouse = useConfirmAction("delete", warehouse.destroy_path);
 
   return (
     <>

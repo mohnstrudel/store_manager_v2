@@ -3,7 +3,7 @@ import { Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import MoveToWarehouseForm from "../components/MoveToWarehouseForm";
 import PaymentProgressBar from "../components/PaymentProgressBar";
@@ -143,10 +143,9 @@ function PurchaseItemRow({
   const hasMovementHistory = purchaseItem.warehouse_movements.length > 0;
   const summaryCursor = hasMovementHistory ? "cursor-pointer" : "cursor-default";
 
-  const unlinkPurchaseItem = useConfirmedDestroy(
-    purchaseItem.unlink_path,
-    "Unlink this purchase item?",
-  );
+  const unlinkPurchaseItem = useConfirmAction("delete", purchaseItem.unlink_path, {
+    message: "Unlink this purchase item?",
+  });
   const handleUnlinkClick = useCallback(
     (event: MouseEvent) => {
       event.stopPropagation();

@@ -1,7 +1,7 @@
 import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
 import MoveToWarehouseForm from "@/pages/Purchases/components/MoveToWarehouseForm";
 import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
@@ -128,10 +128,9 @@ export default function Show({
 }
 
 function PurchaseItemUnlinkButton({ purchaseItem }: { purchaseItem: SaleItemPurchaseItemRecord }) {
-  const unlinkPurchaseItem = useConfirmedDestroy(
-    purchaseItem.unlink_path,
-    "Unlink this purchase item?",
-  );
+  const unlinkPurchaseItem = useConfirmAction("delete", purchaseItem.unlink_path, {
+    message: "Unlink this purchase item?",
+  });
 
   const handleUnlinkClick = useCallback(
     (event: MouseEvent) => {

@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmedDestroy } from "@/lib/useConfirmedDestroy";
+import { useConfirmAction } from "@/lib/useConfirmAction";
 import Details from "./components/Details";
 import Products from "./components/Products";
 import { BrandRecord, ProductRecord } from "./types";
@@ -12,7 +12,7 @@ type ShowProps = {
 };
 
 export default function Show({ brand, products }: ShowProps) {
-  const destroyBrand = useConfirmedDestroy(`/brands/${brand.id}`);
+  const destroyBrand = useConfirmAction("delete", `/brands/${brand.id}`);
 
   return (
     <>
