@@ -1,12 +1,12 @@
 import { router } from "@inertiajs/react";
 import { useCallback, useEffect, useRef } from "react";
 
-type PostMethod = (url: string, data?: Record<string, unknown>) => void;
+type RouterData = Parameters<typeof router.post>[1];
 
 export function useConfirmAction(
   method: "delete" | "post" | "patch" | "put",
   path: string,
-  options: { data?: Record<string, unknown>; message?: string } = {},
+  options: { data?: RouterData; message?: string } = {},
 ) {
   const { data, message = "Are you sure?" } = options;
   const dataRef = useRef(data);
@@ -19,7 +19,7 @@ export function useConfirmAction(
       if (method === "delete") {
         router.delete(path);
       } else {
-        (router[method] as PostMethod)(path, dataRef.current);
+        router[method](path, dataRef.current);
       }
     }
   }, [message, method, path]);
