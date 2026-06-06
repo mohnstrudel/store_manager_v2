@@ -120,12 +120,38 @@ module PurchaseItemHelper
   end
 
   def purchase_item_form_options(purchase_item)
+    product_id = purchase_item.purchase&.product_id
+
     {
-      warehouses: Warehouse.order(:name).map { |w| {value: w.id, label: w.name} },
-      purchases: Purchase.for_form_select.map { |p| {value: p.id, label: p.full_title} },
-      sale_items: SaleItem.for_edit_linking(purchase_item).map { |si| {value: si.id, label: si.build_title_for_select} },
-      shipping_companies: ShippingCompany.order(:name).map { |sc| {value: sc.id, label: sc.name} }
+      warehouses: Rails.cache.fetch(["pif/warehouses", Warehouse.maximum(:updated_at)]) {
+        Warehouse.order(:name).pluck(:id, :name).map { |id, name| {value: id, label: name} }
+      },
+      purchases: Rails.cache.fetch(["pif/purchases", Purchase.maximum(:updated_at)]) {
+        purchase_options_for_select
+      },
+      sale_items: Rails.cache.fetch(["pif/sale_items", product_id, SaleItem.maximum(:updated_at)]) {
+        SaleItem.for_edit_linking(purchase_item).map { |si| {value: si.id, label: si.build_title_for_select} }
+      },
+      shipping_companies: Rails.cache.fetch(["pif/shipping_companies", ShippingCompany.maximum(:updated_at)]) {
+        ShippingCompany.order(:name).pluck(:id, :name).map { |id, name| {value: id, label: name} }
+      }
     }
+  end
+
+  def purchase_options_for_select
+    Purchase
+      .joins("LEFT OUTER JOIN products ON products.id = purchases.product_id")
+      .joins("INNER JOIN suppliers ON suppliers.id = purchases.supplier_id")
+      .order(purchase_date: :desc, created_at: :desc)
+      .pluck(
+        "purchases.id",
+        "suppliers.title",
+        "products.full_title",
+        Arel.sql("COALESCE(purchases.purchase_date, purchases.created_at)")
+      )
+      .map { |id, supplier_title, product_full_title, date|
+        {value: id, label: "#{supplier_title} | #{product_full_title} | #{date&.strftime("%Y-%m-%d")}"}
+      }
   end
 
   def purchase_item_media_form_props(purchase_item)

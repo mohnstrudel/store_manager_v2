@@ -61,8 +61,12 @@ Rails.application.configure do
   # Prepend all log lines with the following tags.
   config.log_tags = [:request_id]
 
-  # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  # Use Redis as the cache store (same instance as Sidekiq/ActionCable via REDIS_URL).
+  # Heroku Redis requires ssl_params to accept the rediss:// TLS URL.
+  config.cache_store = :redis_cache_store, {
+    url: ENV.fetch("REDIS_URL"),
+    ssl_params: {verify_mode: OpenSSL::SSL::VERIFY_NONE}
+  }
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_name_prefix = "store_manager_v2_production"
