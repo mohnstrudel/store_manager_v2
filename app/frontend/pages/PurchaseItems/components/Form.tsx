@@ -102,15 +102,6 @@ function PurchaseItemLinkingFields({
         name="purchase_item[purchase_id]"
         options={options.purchases}
       />
-      <FormSmartSelect<SelectOption>
-        defaultValue={toSelectedOption(options.sale_items, purchase_item.sale_item_id)}
-        error={errors.sale_item || errors.sale_item_id}
-        inputId="purchase_item_sale_item_id"
-        isClearable
-        label="Sale Item"
-        name="purchase_item[sale_item_id]"
-        options={options.sale_items}
-      />
     </FormRow>
   );
 }

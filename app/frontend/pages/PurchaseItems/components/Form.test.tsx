@@ -81,12 +81,6 @@ const options: PurchaseItemFormOptions = {
     { value: 10, label: "Supplier A | Product X | 2024-01-01" },
     { value: 11, label: "Supplier B | Product Y | 2024-02-01" },
   ],
-  sale_items: [
-    {
-      value: 100,
-      label: "1 | Active | Product X | buyer@example.com | Sale ID: 5",
-    },
-  ],
   shipping_companies: [
     { value: 20, label: "DHL" },
     { value: 21, label: "FedEx" },

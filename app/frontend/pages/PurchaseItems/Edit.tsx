@@ -2,14 +2,16 @@ import { Link } from "@inertiajs/react";
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
 import Form from "./components/Form";
-import type { PurchaseItemFormOptions, PurchaseItemFormRecord } from "./types";
+import SaleItemsTable from "./components/SaleItemsTable";
+import type { PurchaseItemFormOptions, PurchaseItemFormRecord, SaleItemTableRow } from "./types";
 
 type EditProps = {
   options: PurchaseItemFormOptions;
   purchase_item: PurchaseItemFormRecord;
+  sale_items_table: SaleItemTableRow[];
 };
 
-export default function Edit({ options, purchase_item }: EditProps) {
+export default function Edit({ options, purchase_item, sale_items_table }: EditProps) {
   return (
     <>
       <ErrorNotice />
@@ -22,6 +24,8 @@ export default function Edit({ options, purchase_item }: EditProps) {
           </Link>
         </li>
       </PageHeader>
+
+      <SaleItemsTable rows={sale_items_table} />
 
       <Form
         action={purchase_item.path}

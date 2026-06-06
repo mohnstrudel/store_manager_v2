@@ -66,16 +66,23 @@ RSpec.describe SaleItem::Linkability do
     let(:other_product) { create(:product) }
     let(:purchase_item) { create(:purchase_item, purchase: create(:purchase, product:)) }
     let!(:same_product_active) { create(:sale_item, product:, sale: create(:sale, status: Sale.active_status_names.first)) }
-    let!(:same_product_completed) { create(:sale_item, product:, sale: create(:sale, status: Sale.completed_status_names.first)) }
-    let!(:other_product_active) { create(:sale_item, product: other_product, sale: create(:sale, status: Sale.active_status_names.first)) }
-    let!(:cancelled_item) { create(:sale_item, product:, sale: create(:sale, status: Sale.cancelled_status_names.first)) }
+    let!(:same_product_cancelled) { create(:sale_item, product:, sale: create(:sale, status: Sale.cancelled_status_names.first)) }
+    let!(:other_product_item) { create(:sale_item, product: other_product, sale: create(:sale, status: Sale.active_status_names.first)) }
+    let!(:fully_linked_item) { create(:sale_item, product:, qty: 1, purchase_items_count: 1, sale: create(:sale, status: Sale.active_status_names.first)) }
 
-    it "prioritizes sale items with the same product" do
+    it "returns linkable sale items for the same product regardless of status" do
       result = SaleItem.for_edit_linking(purchase_item)
 
-      expect(result.first(2)).to include(same_product_active, same_product_completed)
-      expect(result).to include(other_product_active)
-      expect(result).not_to include(cancelled_item)
+      expect(result).to include(same_product_active, same_product_cancelled)
+      expect(result).not_to include(other_product_item, fully_linked_item)
+    end
+
+    it "always includes the currently linked sale item even if at capacity" do
+      linked_purchase_item = create(:purchase_item, purchase: create(:purchase, product:), sale_item: fully_linked_item)
+
+      result = SaleItem.for_edit_linking(linked_purchase_item)
+
+      expect(result).to include(fully_linked_item)
     end
   end
 

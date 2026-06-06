@@ -21,7 +21,8 @@ describe PurchaseItemsController do
         expect_inertia.to render_component("PurchaseItems/Edit")
         expect(inertia.props[:purchase_item][:id]).to eq(purchase_item.id)
         expect(inertia.props[:purchase_item][:redirect_to_sale_item]).to be false
-        expect(inertia.props[:options].keys).to contain_exactly("warehouses", "purchases", "sale_items", "shipping_companies")
+        expect(inertia.props[:options].keys).to contain_exactly("warehouses", "purchases", "shipping_companies")
+        expect(inertia.props[:sale_items_table]).to be_an(Array)
       end
     end
 

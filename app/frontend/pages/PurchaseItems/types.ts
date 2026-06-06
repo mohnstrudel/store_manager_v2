@@ -12,6 +12,28 @@ export type SelectOption = {
   label: string;
 };
 
+export type SaleItemTableRow = {
+  slot_key: string;
+  sale_item_id: number;
+  sale_label: string;
+  sale_path: string;
+  warehouse: string | null;
+  warehouse_path: string | null;
+  linked_purchase_item: {
+    id: number;
+    path: string;
+    purchase_id: number;
+    purchase_path: string;
+    supplier_title: string;
+    purchase_date: string;
+    item_price: string | null;
+  } | null;
+  is_current: boolean;
+  is_available: boolean;
+  link_path: string;
+  unlink_path: string;
+};
+
 export type PurchaseItemFormRecord = {
   id: number | null;
   path: string;
@@ -33,7 +55,6 @@ export type PurchaseItemFormRecord = {
 export type PurchaseItemFormOptions = {
   warehouses: SelectOption[];
   purchases: SelectOption[];
-  sale_items: SelectOption[];
   shipping_companies: SelectOption[];
 };
 

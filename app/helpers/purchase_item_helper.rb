@@ -26,7 +26,8 @@ module PurchaseItemHelper
   def purchase_item_edit_props(purchase_item, redirect_to_sale_item: false)
     {
       purchase_item: purchase_item_form_record(purchase_item, redirect_to_sale_item:),
-      options: purchase_item_form_options(purchase_item)
+      options: purchase_item_form_options(purchase_item),
+      sale_items_table: purchase_item_sale_items_table_data(purchase_item)
     }
   end
 
@@ -120,8 +121,6 @@ module PurchaseItemHelper
   end
 
   def purchase_item_form_options(purchase_item)
-    product_id = purchase_item.purchase&.product_id
-
     {
       warehouses: Rails.cache.fetch(["pif/warehouses", Warehouse.maximum(:updated_at)]) {
         Warehouse.order(:name).pluck(:id, :name).map { |id, name| {value: id, label: name} }
@@ -129,28 +128,73 @@ module PurchaseItemHelper
       purchases: Rails.cache.fetch(["pif/purchases", Purchase.maximum(:updated_at)]) {
         purchase_options_for_select
       },
-      sale_items: Rails.cache.fetch(["pif/sale_items", product_id, SaleItem.maximum(:updated_at)]) {
-        SaleItem.for_edit_linking(purchase_item).map { |si| {value: si.id, label: si.build_title_for_select} }
-      },
       shipping_companies: Rails.cache.fetch(["pif/shipping_companies", ShippingCompany.maximum(:updated_at)]) {
         ShippingCompany.order(:name).pluck(:id, :name).map { |id, name| {value: id, label: name} }
       }
     }
   end
 
+  def purchase_item_sale_items_table_data(purchase_item)
+    SaleItem.for_linking_table(purchase_item).flat_map do |si|
+      customer = si.sale.customer
+      customer_name = [customer&.first_name, customer&.last_name].compact.join(" ").presence
+      identifier = si.sale.shop_identifier.presence || "##{si.sale_id}"
+      sale_label = ["Sale #{identifier}", customer_name, customer&.email].compact.join(" | ")
+
+      base = {
+        sale_item_id: si.id,
+        sale_label:,
+        sale_path: sale_path(si.sale),
+        link_path: purchase_item_sale_item_link_path(purchase_item),
+        unlink_path: purchase_item_sale_item_link_path(purchase_item)
+      }
+
+      actual_linked = si.purchase_items.size
+      available_count = [(si.qty || actual_linked).to_i - actual_linked, 0].max
+
+      available_rows = available_count.times.map.with_index { |_, i|
+        base.merge(
+          slot_key: "#{si.id}-available-#{i}",
+          warehouse: nil,
+          warehouse_path: nil,
+          linked_purchase_item: nil,
+          is_current: false,
+          is_available: true
+        )
+      }
+
+      linked_rows = si.purchase_items.map { |pi|
+        base.merge(
+          slot_key: "#{si.id}-pi-#{pi.id}",
+          warehouse: pi.warehouse&.name,
+          warehouse_path: pi.warehouse ? warehouse_path(pi.warehouse) : nil,
+          linked_purchase_item: {
+            id: pi.id,
+            path: edit_purchase_item_path(pi),
+            purchase_id: pi.purchase_id,
+            purchase_path: purchase_path(pi.purchase),
+            supplier_title: pi.purchase.supplier.title,
+            purchase_date: format_date(pi.purchase.date),
+            item_price: format_money(pi.purchase.item_price)
+          },
+          is_current: pi.id == purchase_item.id,
+          is_available: false
+        )
+      }
+
+      available_rows + linked_rows
+    end
+  end
+
   def purchase_options_for_select
     Purchase
-      .joins("LEFT OUTER JOIN products ON products.id = purchases.product_id")
-      .joins("INNER JOIN suppliers ON suppliers.id = purchases.supplier_id")
+      .joins(:supplier)
+      .left_outer_joins(:product)
       .order(purchase_date: :desc, created_at: :desc)
-      .pluck(
-        "purchases.id",
-        "suppliers.title",
-        "products.full_title",
-        Arel.sql("COALESCE(purchases.purchase_date, purchases.created_at)")
-      )
-      .map { |id, supplier_title, product_full_title, date|
-        {value: id, label: "#{supplier_title} | #{product_full_title} | #{date&.strftime("%Y-%m-%d")}"}
+      .pluck(:id, "suppliers.title", "products.full_title",
+        Arel.sql("COALESCE(purchases.purchase_date, purchases.created_at)"))
+      .map { |id, supplier, product, date|
+        {value: id, label: "#{supplier} | #{product} | #{date&.strftime("%Y-%m-%d")}"}
       }
   end
 
