@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
-import type { WarehouseOption } from "../types";
+import type { WarehouseOption } from "@/types/warehouse";
 
 type MoveToWarehouseFormProps = {
   fixed?: boolean;
