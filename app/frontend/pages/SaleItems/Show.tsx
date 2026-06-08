@@ -1,9 +1,9 @@
 import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
-import { useConfirmAction } from "@/lib/useConfirmAction";
-import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "@/pages/Purchases/components/MoveToWarehouseForm";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import { useConfirmAction } from "@/utils/useConfirmAction";
+import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
 
 type ShowProps = {

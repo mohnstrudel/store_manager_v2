@@ -1,4 +1,4 @@
-import type { WarehouseOption } from "@/pages/Purchases/types";
+import type { WarehouseOption } from "@/types/warehouse";
 
 export type SaleItemShowRecord = {
   id: number;

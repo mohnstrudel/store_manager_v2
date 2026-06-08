@@ -1,25 +1,11 @@
-export type PaginationMeta = {
-  current_page: number;
-  total_pages: number;
-  total_count: number;
-  limit: number;
-};
-
-export type WarehouseOption = {
-  id: number;
-  name: string;
-};
+export type { PaginationMeta } from "@/types/pagination";
+import type { PaymentProgress } from "@/types/payment";
+export type { PaymentProgress };
+export type { WarehouseOption } from "@/types/warehouse";
 
 export type SelectOption<Value extends string | number = string | number> = {
   value: Value;
   label: string;
-};
-
-export type PaymentProgress = {
-  progress: number;
-  paid: string;
-  price: string;
-  debt: string;
 };
 
 export type PurchaseIndexRecord = {

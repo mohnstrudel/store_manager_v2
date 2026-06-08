@@ -1,9 +1,6 @@
-export type PaginationMeta = {
-  current_page: number;
-  total_pages: number;
-  total_count: number;
-  limit: number;
-};
+export type { PaginationMeta } from "@/types/pagination";
+import type { MediaRecord, MediaFormData } from "@/types/media";
+export type { MediaRecord, MediaFormData };
 
 export type VariantSummary = {
   id: number;
@@ -21,14 +18,6 @@ export type ProductIndexRecord = {
   woo_store_id: string;
   shopify_id_short: string;
   new_purchase_path: string;
-};
-
-export type MediaRecord = {
-  id: number;
-  alt: string;
-  position: number;
-  preview_url: string;
-  thumb_url: string;
 };
 
 export type ShopifyInfo = {
@@ -157,16 +146,6 @@ export type StoreInfoFormData = {
   store_name: string;
   tag_list: string;
   _destroy: boolean;
-};
-
-export type MediaFormData = {
-  id: number | null;
-  alt: string;
-  position: number;
-  preview_url: string;
-  thumb_url: string;
-  _destroy: boolean;
-  image_blob_id?: string;
 };
 
 export type PurchaseFormData = {

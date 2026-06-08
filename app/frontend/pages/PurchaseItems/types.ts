@@ -1,4 +1,4 @@
-import type { MediaFormData, MediaRecord } from "@/pages/Products/types";
+import type { MediaFormData, MediaRecord } from "@/types/media";
 
 export type WarehouseMovementRecord = {
   id: number;
