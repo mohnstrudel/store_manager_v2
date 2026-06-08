@@ -22,5 +22,6 @@ export type FlashMessage =
       link?: {
         label: string;
         href: string;
+        suffix?: string;
       };
     };

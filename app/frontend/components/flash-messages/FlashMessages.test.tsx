@@ -2,18 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { act } from "react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { FlashMessage } from "@/types/inertia";
 import FlashMessages from "./FlashMessages";
 
 const flashState = vi.hoisted(() => ({
   flash: {
-    alert: null as null | string,
-    notice: null as
-      | null
-      | string
-      | {
-          message: string;
-          link: { href: string; label: string };
-        },
+    alert: null as FlashMessage | null,
+    notice: null as FlashMessage | null,
   },
 }));
 
@@ -47,7 +42,8 @@ describe("FlashMessages", () => {
 
     render(<FlashMessages />);
 
-    expect(screen.getByRole("status")).toHaveClass("flash_toast", "pointer-events-auto");
+    expect(screen.getByRole("status")).toHaveClass("flash_toast");
+    expect(screen.getByRole("status")).toHaveAttribute("data-kind", "notice");
     expect(screen.getByText("Tracking number was successfully updated")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
   });
@@ -68,6 +64,25 @@ describe("FlashMessages", () => {
       "href",
       "/warehouses/2",
     );
+  });
+
+  it("renders linked flash with suffix text after the link", () => {
+    flashState.flash = {
+      alert: null,
+      notice: {
+        message: "Success! Visit",
+        link: { href: "/jobs/statuses", label: "jobs statuses dashboard", suffix: "to track synchronization progress" },
+      },
+    };
+
+    render(<FlashMessages />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Success! Visit");
+    expect(screen.getByRole("link", { name: "jobs statuses dashboard" })).toHaveAttribute(
+      "href",
+      "/jobs/statuses",
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("to track synchronization progress");
   });
 
   it("animates out before auto-dismissing the active flash message", () => {

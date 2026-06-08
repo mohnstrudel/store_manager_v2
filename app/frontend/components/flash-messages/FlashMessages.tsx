@@ -7,16 +7,8 @@ const AUTO_DISMISS_DELAY = 5000;
 const TOAST_EXIT_DURATION = 300;
 const TOAST_ENTER_DELAY = 0;
 const FLASH_KIND = {
-  alert: {
-    articleClassName:
-      "flash_toast pointer-events-auto bg-red-100 text-red-700 dark:bg-red-800/60 dark:text-red-300",
-    icon: "🚨",
-  },
-  notice: {
-    articleClassName:
-      "flash_toast pointer-events-auto bg-lime-100 text-lime-700 dark:bg-lime-800/70 dark:text-lime-300/90",
-    icon: "🙏",
-  },
+  alert: { icon: "🚨" },
+  notice: { icon: "🙏" },
 };
 
 export default function FlashMessages() {
@@ -32,12 +24,13 @@ export default function FlashMessages() {
     <div aria-live="polite" className="flash_toast_region" id="flash-messages">
       <article
         className={[
-          FLASH_KIND[toast.kind].articleClassName,
+          "flash_toast",
           toast.phase === "visible"
             ? "opacity-100 translate-y-0 scale-100"
             : "opacity-0 -translate-y-4 scale-95",
           "transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none",
         ].join(" ")}
+        data-kind={toast.kind}
         role="status"
       >
         <i aria-hidden="true" className="icn text-2xl lg:text-3xl">
@@ -66,6 +59,7 @@ function FlashMessageContent({ flash }: { flash: FlashMessage }) {
           <Link className="link" href={flash.link.href}>
             {flash.link.label}
           </Link>
+          {flash.link.suffix ? ` ${flash.link.suffix}` : null}
         </>
       ) : null}
     </p>
