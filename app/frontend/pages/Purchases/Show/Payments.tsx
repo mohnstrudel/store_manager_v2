@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
-import { useConfirmAction } from "@/lib/useConfirmAction";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
 type PaymentsProps = {

@@ -1,5 +1,5 @@
 import { type PurchaseRecord } from "../types";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps } from "@/utils/rowNavigation";
 
 type PurchasesSectionProps = {
   purchases: PurchaseRecord[];

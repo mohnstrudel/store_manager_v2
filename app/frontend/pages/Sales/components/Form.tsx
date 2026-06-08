@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import { useDynamicSection } from "@/lib/useDynamicSection";
-import { validateSaleForm } from "../lib/saleFormSchema";
-import { toSelectedOption } from "@/lib/selectOptions";
+import { useDynamicSection } from "@/utils/useDynamicSection";
+import { validateSaleForm } from "./saleFormSchema";
+import { toSelectedOption } from "@/utils/selectOptions";
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";

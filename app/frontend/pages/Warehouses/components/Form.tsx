@@ -6,9 +6,9 @@ import FormRow from "@/components/FormRow";
 import FormSectionHeading from "@/components/FormSectionHeading";
 import ImageUploader from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
-import { useDynamicSection } from "@/lib/useDynamicSection";
-import { getFormString } from "@/lib/formSchema";
-import { validateWarehouseForm } from "../lib/warehouseFormSchema";
+import { useDynamicSection } from "@/utils/useDynamicSection";
+import { getFormString } from "@/utils/formSchema";
+import { validateWarehouseForm } from "./warehouseFormSchema";
 import type { WarehouseFormOptions, WarehouseFormRecord, WarehouseOption } from "../types";
 
 type WarehouseFormProps = {

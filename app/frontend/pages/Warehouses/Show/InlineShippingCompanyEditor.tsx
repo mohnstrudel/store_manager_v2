@@ -1,8 +1,7 @@
 import { forwardRef, useImperativeHandle } from "react";
 import FormError from "@/components/FormError";
-import { InlineCellForm, InlineCellTd, InlineCellTrigger } from "@/components/InlineCellEditor";
-import { useInlineCellForm } from "@/lib/useInlineCellForm";
-import routes from "@/lib/routes";
+import { InlineCellForm, InlineCellTd, InlineCellTrigger, useInlineCellForm } from "@/components/inline-cell-editing";
+import routes from "@/utils/routes";
 import type { ShippingCompanyOption, WarehousePurchaseItemRecord } from "../types";
 
 type ShippingCompanyEditorProps = {

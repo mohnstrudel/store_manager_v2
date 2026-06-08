@@ -11,7 +11,7 @@ import {
   type Ref,
 } from "react";
 import FormSectionHeading from "./FormSectionHeading";
-import routes from "@/lib/routes";
+import routes from "@/utils/routes";
 
 const DEFAULT_UPLOAD_URL = routes.mediaUploads.create.path();
 

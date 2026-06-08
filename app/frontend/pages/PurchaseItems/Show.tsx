@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import ImageGallery from "@/components/ImageGallery";
-import { useConfirmAction } from "@/lib/useConfirmAction";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 import type { PurchaseItemShowRecord } from "./types";
 
 type ShowProps = {

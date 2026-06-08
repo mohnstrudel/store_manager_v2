@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState, type MouseEvent } from "react";
 import { Link, useForm, usePage } from "@inertiajs/react";
-import routes from "@/lib/routes";
+import routes from "@/utils/routes";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
-import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
-import { useConfirmAction } from "@/lib/useConfirmAction";
-import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "../components/MoveToWarehouseForm";
-import PaymentProgressBar from "../components/PaymentProgressBar";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import { useConfirmAction } from "@/utils/useConfirmAction";
+import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
+import PaymentProgressBar from "@/components/PaymentProgressBar";
 import { InlineShippingCompanyEditor } from "../components/InlineShippingCompanyEditor";
 import { InlineTrackingNumberEditor } from "../components/InlineTrackingNumberEditor";
 import type {

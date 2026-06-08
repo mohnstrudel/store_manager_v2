@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { router, Link } from "@inertiajs/react";
 import type { ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps } from "@/utils/rowNavigation";
 
 type SaleDebtRecord = {
   id: number;

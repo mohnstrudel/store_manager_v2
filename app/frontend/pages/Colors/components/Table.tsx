@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { ColorRecord } from "../types";
 
 type TableProps = {

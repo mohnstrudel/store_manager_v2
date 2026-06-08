@@ -1,7 +1,7 @@
 import type { MouseEvent, ReactNode } from "react";
-import Breadcrumbs from "@/components/Breadcrumbs";
-import FlashMessages from "@/components/FlashMessages";
-import AppNavigation from "@/components/AppNavigation";
+import Breadcrumbs from "@/components/breadcrumbs/Breadcrumbs";
+import FlashMessages from "@/components/flash-messages/FlashMessages";
+import AppNavigation from "@/components/app-navigation/AppNavigation";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (

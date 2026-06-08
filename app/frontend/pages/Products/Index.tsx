@@ -3,9 +3,9 @@ import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
 import SyncModal from "@/components/SyncModal";
-import { useModalVisibility } from "@/lib/useModalVisibility";
+import { useModalVisibility } from "@/utils/useModalVisibility";
 import { type PaginationMeta, type ProductIndexRecord } from "./types";
-import IndexTable from "./Index/Table";
+import IndexTable from "./components/IndexTable";
 
 type IndexProps = {
   products: ProductIndexRecord[];

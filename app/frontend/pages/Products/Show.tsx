@@ -6,7 +6,7 @@ import PurchasesSection from "./Show/PurchasesSection";
 import SalesSection from "./Show/SalesSection";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmAction } from "@/lib/useConfirmAction";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 import {
   type ProductShowRecord,
   type PurchaseRecord,

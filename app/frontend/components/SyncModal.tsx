@@ -1,6 +1,6 @@
 import { router, Link } from "@inertiajs/react";
 import { useCallback, type MouseEvent } from "react";
-import { useCloseOnEscape } from "@/lib/useCloseOnEscape";
+import { useCloseOnEscape } from "@/utils/useCloseOnEscape";
 
 type SyncModalProps = {
   id: string;

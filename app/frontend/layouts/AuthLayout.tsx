@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { ReactNode } from "react";
-import FlashMessages from "@/components/FlashMessages";
+import FlashMessages from "@/components/flash-messages/FlashMessages";
 
 // Layout for unauthenticated screens: sign in, sign up, password reset
 export default function AuthLayout({ children }: { children: ReactNode }) {

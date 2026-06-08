@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import AuthLayout from "./AuthLayout";
 
-vi.mock("@/components/FlashMessages", () => ({
+vi.mock("@/components/flash-messages/FlashMessages", () => ({
   default: () => <div data-testid="flash-messages" />,
 }));
 

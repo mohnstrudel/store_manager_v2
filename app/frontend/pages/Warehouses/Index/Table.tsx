@@ -1,9 +1,9 @@
 import { Link } from "@inertiajs/react";
 import type { ChangeEvent } from "react";
 import TipMark from "@/components/TipMark";
-import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
-import PaymentProgressBar from "@/pages/Purchases/components/PaymentProgressBar";
-import type { PaymentProgress } from "@/pages/Purchases/types";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import PaymentProgressBar from "@/components/PaymentProgressBar";
+import type { PaymentProgress } from "@/types/payment";
 
 export type WarehouseRecord = {
   id: number;

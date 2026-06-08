@@ -3,7 +3,7 @@ import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormInput from "@/components/FormInput";
 import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
-import { toSelectedOption } from "@/lib/selectOptions";
+import { toSelectedOption } from "@/utils/selectOptions";
 import type { SaleItemFormRecord, SelectOption } from "../../types";
 
 type SaleItemFieldsProps = {

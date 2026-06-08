@@ -5,10 +5,10 @@ import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import TipMark from "@/components/TipMark";
-import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
-import { useWarehouseMoveSelection } from "@/lib/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "@/pages/Purchases/components/MoveToWarehouseForm";
-import PaymentProgressBar from "@/pages/Purchases/components/PaymentProgressBar";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
+import PaymentProgressBar from "@/components/PaymentProgressBar";
 import type {
   PaginationMeta,
   ShippingCompanyOption,

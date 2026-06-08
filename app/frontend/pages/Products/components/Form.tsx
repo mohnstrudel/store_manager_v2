@@ -7,8 +7,8 @@ import FormSectionHeading from "@/components/FormSectionHeading";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ImageUploader from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
-import { toSelectedOption } from "@/lib/selectOptions";
-import { type SectionRow, useDynamicSection } from "@/lib/useDynamicSection";
+import { toSelectedOption } from "@/utils/selectOptions";
+import { type SectionRow, useDynamicSection } from "@/utils/useDynamicSection";
 
 const TiptapEditor = lazy(() => import("./Form/TiptapEditor"));
 const TIPTAP_FALLBACK = <TiptapSkeleton />;
@@ -23,7 +23,7 @@ import {
   type StoreInfoFormData,
   type VariantFormData,
 } from "../types";
-import { validateProductFormSubmission } from "../lib/productFormValidation";
+import { validateProductFormSubmission } from "./productFormValidation";
 
 type ProductFormProps = {
   isNew: boolean;

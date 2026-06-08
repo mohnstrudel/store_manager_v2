@@ -2,7 +2,7 @@ import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
-import { useConfirmAction } from "@/lib/useConfirmAction";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 

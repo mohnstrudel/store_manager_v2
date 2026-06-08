@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmAction } from "@/lib/useConfirmAction";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./components/Details";
 import Sales from "./components/Sales";
 import { CustomerDetailRecord, SaleRecord } from "./types";

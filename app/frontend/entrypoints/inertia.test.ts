@@ -24,7 +24,7 @@ vi.mock("@inertiajs/react", () => ({
   },
 }));
 
-vi.mock("@/lib/resolvePage", () => ({
+vi.mock("@/utils/resolvePage", () => ({
   resolvePage: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 

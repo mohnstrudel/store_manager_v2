@@ -1,6 +1,6 @@
 import { createInertiaApp, router } from "@inertiajs/react";
 import AppLayout from "@/layouts/AppLayout";
-import { resolvePage } from "@/lib/resolvePage";
+import { resolvePage } from "@/utils/resolvePage";
 
 const appElement = document.getElementById("app");
 

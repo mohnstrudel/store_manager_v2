@@ -1,6 +1,6 @@
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
-import type { PaginationMeta } from "@/pages/Purchases/types";
+import type { PaginationMeta } from "@/types/pagination";
 import IndexTable, { type PurchaseItemRecord } from "./components/IndexTable";
 
 type IndexProps = {

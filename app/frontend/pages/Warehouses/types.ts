@@ -1,5 +1,7 @@
-import type { MediaFormData, MediaRecord } from "@/pages/Products/types";
-import type { PaginationMeta, PaymentProgress, WarehouseOption } from "@/pages/Purchases/types";
+import type { MediaFormData, MediaRecord } from "@/types/media";
+import type { PaymentProgress } from "@/types/payment";
+import type { PaginationMeta } from "@/types/pagination";
+import type { WarehouseOption } from "@/types/warehouse";
 
 export type WarehouseShowRecord = {
   id: number;

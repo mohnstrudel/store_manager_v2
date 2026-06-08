@@ -2,7 +2,7 @@ import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
-import { toSelectedOption } from "@/lib/selectOptions";
+import { toSelectedOption } from "@/utils/selectOptions";
 import { type PurchaseFormData, type SelectOption } from "../../types";
 
 type PurchaseFieldsProps = {

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-import { useConfirmAction } from "@/lib/useConfirmAction";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./Show/Details";
 import Payments from "./Show/Payments";
 import PurchaseItems from "./Show/PurchaseItems";

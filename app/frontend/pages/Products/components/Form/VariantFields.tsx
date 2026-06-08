@@ -13,7 +13,7 @@ const SmartSelect = lazy(
   () => import("@/components/SmartSelect"),
 ) as unknown as typeof SmartSelectType;
 const SELECT_FALLBACK = <SelectSkeleton />;
-import { toSelectedOption } from "@/lib/selectOptions";
+import { toSelectedOption } from "@/utils/selectOptions";
 import { type SelectOption, type VariantFormData } from "../../types";
 
 type VariantFieldsProps = {

@@ -1,4 +1,4 @@
-import { rowNavigationProps } from "@/lib/rowNavigation";
+import { rowNavigationProps } from "@/utils/rowNavigation";
 import { PurchaseItemRecord } from "../types";
 
 type PurchaseItemsProps = {

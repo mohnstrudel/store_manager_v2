@@ -3,7 +3,7 @@ import { Form, Link } from "@inertiajs/react";
 import AuthLayout from "@/layouts/AuthLayout";
 import FormInput from "@/components/FormInput";
 import Button from "@/components/Button";
-import routes from "@/lib/routes";
+import routes from "@/utils/routes";
 
 type SignUpProps = {
   email_address?: string | null;

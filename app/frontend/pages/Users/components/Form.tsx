@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { getFormString, zodErrorsToRecord } from "@/lib/formSchema";
-import { msg } from "@/lib/validationMessages";
+import { getFormString, zodErrorsToRecord } from "@/utils/formSchema";
+import { msg } from "@/utils/validationMessages";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";

@@ -3,9 +3,9 @@ import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
-import { getFormString } from "@/lib/formSchema";
-import { toSelectedOption } from "@/lib/selectOptions";
-import { validatePurchaseForm } from "../lib/purchaseFormSchema";
+import { getFormString } from "@/utils/formSchema";
+import { toSelectedOption } from "@/utils/selectOptions";
+import { validatePurchaseForm } from "./purchaseFormSchema";
 import ProductVariantSelect from "./Form/ProductVariantSelect";
 import { type PurchaseFormOptions, type PurchaseFormRecord } from "../types";
 

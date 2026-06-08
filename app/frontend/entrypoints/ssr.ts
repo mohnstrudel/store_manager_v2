@@ -3,7 +3,7 @@ import createServer from "@inertiajs/react/server";
 import { createElement } from "react";
 import ReactDOMServer from "react-dom/server";
 import AppLayout from "@/layouts/AppLayout";
-import { resolvePage } from "@/lib/resolvePage";
+import { resolvePage } from "@/utils/resolvePage";
 
 createServer((page) =>
   createInertiaApp({

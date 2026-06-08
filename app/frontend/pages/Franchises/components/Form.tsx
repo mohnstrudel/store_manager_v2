@@ -1,5 +1,5 @@
-import { getFormString } from "@/lib/formSchema";
-import { msg } from "@/lib/validationMessages";
+import { getFormString } from "@/utils/formSchema";
+import { msg } from "@/utils/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
 import { FranchiseRecord } from "../types";
