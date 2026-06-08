@@ -26,8 +26,7 @@ module PurchaseItem::Shipping
     return if delta.zero?
 
     purchase.with_lock do
-      purchase.shipping_total += delta
-      purchase.save!
+      purchase.update_column(:shipping_total, purchase.shipping_total + delta)
     end
   end
 end

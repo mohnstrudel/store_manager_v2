@@ -69,4 +69,41 @@ RSpec.describe "Purchase item inline updates" do
       expect(purchase_item.reload.shipping_cost).to eq(BigDecimal(12))
     end
   end
+
+  describe "PATCH /purchase_items/:purchase_item_id/shipping_details" do
+    it "updates all three shipping fields and redirects to the requested return path" do
+      warehouse = create(:warehouse)
+      shipping_company = create(:shipping_company)
+      purchase_item = create(:purchase_item, warehouse: warehouse)
+
+      patch purchase_item_shipping_details_path(purchase_item), params: {
+        purchase_item: {
+          tracking_number: "TRACK-99",
+          shipping_company_id: shipping_company.id,
+          shipping_cost: "15"
+        },
+        return_to: warehouse_path(warehouse)
+      }
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      purchase_item.reload
+      expect(purchase_item.tracking_number).to eq("TRACK-99")
+      expect(purchase_item.shipping_company).to eq(shipping_company)
+      expect(purchase_item.shipping_cost).to eq(BigDecimal(15))
+    end
+
+    it "redirects with Inertia errors when tracking is set but shipping company is blank" do
+      warehouse = create(:warehouse)
+      purchase_item = create(:purchase_item, warehouse: warehouse)
+
+      patch purchase_item_shipping_details_path(purchase_item), params: {
+        purchase_item: {tracking_number: "TRACK-1", shipping_company_id: nil, shipping_cost: "0"},
+        return_to: warehouse_path(warehouse)
+      }
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      follow_redirect!
+      expect(inertia.props[:errors][:shipping_company_id]).to eq("can't be blank")
+    end
+  end
 end

@@ -9,13 +9,14 @@ type TrackingNumberEditorProps = {
   item: PurchaseItemRecord;
   onAutoOpen?: () => void;
   autoFocus?: boolean;
+  bulkError?: string;
   onBulkSave?: () => void;
 };
 
 export const InlineTrackingNumberEditor = forwardRef<
-  { open(): void; save(): void },
+  { open(): void; close(): void; getValue(): string },
   TrackingNumberEditorProps
->(function InlineTrackingNumberEditor({ item, onAutoOpen, autoFocus = true, onBulkSave }, ref) {
+>(function InlineTrackingNumberEditor({ item, onAutoOpen, autoFocus = true, bulkError, onBulkSave }, ref) {
     const [shippingError, setShippingError] = useState("");
     const requiresShippingCompany = !item.shipping_company_id;
 
@@ -37,9 +38,9 @@ export const InlineTrackingNumberEditor = forwardRef<
       onOpen: onAutoOpen,
     });
 
-    useImperativeHandle(ref, () => ({ open: openSilently, save }));
+    useImperativeHandle(ref, () => ({ open: openSilently, close, getValue: () => value }));
 
-    const error = requiresShippingCompany ? shippingError : serverError;
+    const error = bulkError || (requiresShippingCompany ? shippingError : serverError);
 
     const saveTrackingNumber = useCallback(() => {
       if (requiresShippingCompany) {

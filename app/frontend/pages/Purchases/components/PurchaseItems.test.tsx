@@ -307,24 +307,15 @@ describe("PurchaseItems inline editors", () => {
 
     await user.click(within(shippingCostForm).getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledTimes(3);
+    expect(inertia.patch).toHaveBeenCalledOnce();
     expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/tracking_number",
-      { purchase_item: { tracking_number: "" }, return_to: "/purchases/1" },
+      "/purchase_items/10/shipping_details",
+      {
+        purchase_item: { tracking_number: "", shipping_company_id: null, shipping_cost: "0" },
+        return_to: "/purchases/1",
+      },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
-    );
-    expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/shipping_company",
-      { purchase_item: { shipping_company_id: "" }, return_to: "/purchases/1" },
-      expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
-    );
-    expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/shipping_cost",
-      { purchase_item: { shipping_cost: "0" }, return_to: "/purchases/1" },
-      expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
+      null,
     );
   });
 
@@ -360,24 +351,15 @@ describe("PurchaseItems inline editors", () => {
 
     await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledTimes(3);
+    expect(inertia.patch).toHaveBeenCalledOnce();
     expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/tracking_number",
-      { purchase_item: { tracking_number: "TRACK-42" }, return_to: "/purchases/1" },
+      "/purchase_items/10/shipping_details",
+      {
+        purchase_item: { tracking_number: "TRACK-42", shipping_company_id: "3", shipping_cost: "0" },
+        return_to: "/purchases/1",
+      },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
-    );
-    expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/shipping_company",
-      { purchase_item: { shipping_company_id: "3" }, return_to: "/purchases/1" },
-      expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
-    );
-    expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/shipping_cost",
-      { purchase_item: { shipping_cost: "0" }, return_to: "/purchases/1" },
-      expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
+      null,
     );
   });
 
@@ -412,24 +394,15 @@ describe("PurchaseItems inline editors", () => {
 
     await user.click(within(shippingForm).getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledTimes(3);
+    expect(inertia.patch).toHaveBeenCalledOnce();
     expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/tracking_number",
-      { purchase_item: { tracking_number: "" }, return_to: "/purchases/1" },
+      "/purchase_items/10/shipping_details",
+      {
+        purchase_item: { tracking_number: "", shipping_company_id: "3", shipping_cost: "0" },
+        return_to: "/purchases/1",
+      },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
-    );
-    expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/shipping_company",
-      { purchase_item: { shipping_company_id: "3" }, return_to: "/purchases/1" },
-      expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
-    );
-    expect(inertia.patch).toHaveBeenCalledWith(
-      "/purchase_items/10/shipping_cost",
-      { purchase_item: { shipping_cost: "0" }, return_to: "/purchases/1" },
-      expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
+      null,
     );
   });
 
@@ -495,6 +468,51 @@ describe("PurchaseItems inline editors", () => {
 
     expect(screen.getByText("Tracking number can't be blank")).toBeInTheDocument();
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+  });
+
+  it("shows shipping company error in the shipping company editor on bulk save failure", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[
+          makePurchaseItem({
+            tracking_number: "",
+            shipping_company_id: null,
+            shipping_cost: "0",
+          }),
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await waitFor(() => {
+      expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+    });
+    await user.type(screen.getByLabelText("Tracking number"), "TRACK-1");
+
+    inertia.nextErrors = { shipping_company_id: "can't be blank" };
+
+    const trackingForm = screen.getByLabelText("Tracking number").closest("form");
+    if (!trackingForm) throw new Error("Expected tracking form");
+    await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
+
+    // Error appears under the shipping company editor — that's the blank field
+    const shippingForm = screen.getByLabelText("Shipping company").closest("form");
+    if (!shippingForm) throw new Error("Expected shipping company editor form");
+    expect(within(shippingForm).getByText("Shipping company is required")).toBeInTheDocument();
+
+    // Tracking editor shows no error — the user filled it in correctly
+    expect(within(trackingForm).queryByRole("alert")).not.toBeInTheDocument();
+
+    // Tracking input preserves the value the user typed before saving
+    expect(screen.getByLabelText("Tracking number")).toHaveValue("TRACK-1");
+
+    // All three editors remain open
+    expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
+    expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
+    expect(screen.getByLabelText("Shipping cost")).toBeInTheDocument();
   });
 
   it("renders the purchase heading without a product link when the product is missing", () => {

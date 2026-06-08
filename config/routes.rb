@@ -108,6 +108,7 @@ Rails.application.routes.draw do
         resource :tracking_number, only: :update
         resource :shipping_company, only: :update
         resource :shipping_cost, only: :update
+        resource :shipping_details, only: :update
       end
     end
 

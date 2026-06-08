@@ -77,6 +77,7 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
             form={`payment_${payment.id}_inline`}
             id={`payment_${payment.id}_date`}
             onChange={updateDate}
+            suppressHydrationWarning
             type="date"
             value={paymentDate}
           />
@@ -91,6 +92,7 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
             onChange={updateValue}
             placeholder="Amount"
             step="any"
+            suppressHydrationWarning
             type="number"
             value={value}
           />
@@ -156,6 +158,7 @@ function NewPaymentRow({
             form="new_payment_inline"
             id="payment_date"
             onChange={updateDate}
+            suppressHydrationWarning
             type="date"
             value={paymentDate}
           />
@@ -170,6 +173,7 @@ function NewPaymentRow({
             onChange={updateValue}
             placeholder="What did you pay in total?"
             step="any"
+            suppressHydrationWarning
             type="number"
             value={value}
           />

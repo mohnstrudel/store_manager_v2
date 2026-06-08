@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type MouseEvent } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
+import routes from "@/lib/routes";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
@@ -131,6 +132,7 @@ function PurchaseItemRow({
   toggleSelectedIdFromDataAttribute,
 }: PurchaseItemRowProps) {
   const {
+    bulkErrors,
     bulkSave,
     focusTarget,
     trackingRef,
@@ -253,6 +255,7 @@ function PurchaseItemRow({
         ref={trackingRef}
         item={purchaseItem}
         autoFocus={focusTarget === "tracking"}
+        bulkError={bulkErrors.tracking_number}
         onAutoOpen={trackingAutoOpen}
         onBulkSave={bulkSave}
       />
@@ -260,6 +263,7 @@ function PurchaseItemRow({
         ref={shippingRef}
         item={purchaseItem}
         autoFocus={focusTarget === "shipping_company"}
+        bulkError={bulkErrors.shipping_company_id}
         onAutoOpen={shippingAutoOpen}
         shippingCompanies={shippingCompanies}
         onBulkSave={bulkSave}
@@ -298,13 +302,19 @@ function PurchaseItemRow({
   );
 }
 
+type EditorRef = { open(): void; close(): void; getValue(): string };
+
 function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
-  const trackingRef = useRef<{ open(): void; save(): void }>(null);
-  const shippingRef = useRef<{ open(): void; save(): void }>(null);
-  const shippingCostRef = useRef<{ open(): void; save(): void }>(null);
+  const trackingRef = useRef<EditorRef>(null);
+  const shippingRef = useRef<EditorRef>(null);
+  const shippingCostRef = useRef<EditorRef>(null);
   const [focusTarget, setFocusTarget] = useState<
     "tracking" | "shipping_company" | "shipping_cost" | null
   >(null);
+  const [bulkErrors, setBulkErrors] = useState({ tracking_number: "", shipping_company_id: "" });
+  const bulkForm = useForm({});
+  const page = usePage();
+
   const openTracking = useCallback(() => {
     trackingRef.current?.open();
   }, []);
@@ -351,14 +361,51 @@ function useInlineEditorCascade(purchaseItem: PurchaseItemRecord) {
     openShipping();
   }, [isBlankRow, openShipping, openTracking]);
 
-  // When all three opened together (blank row), saving any one saves all.
+  // When all three are open together (blank row), saving any one submits all three in
+  // a single request, so the server validates tracking + shipping company together.
+  // useForm.patch (not router.patch) is required so onError fires on redirect-with-errors.
   const bulkSave = useCallback(() => {
-    trackingRef.current?.save();
-    shippingRef.current?.save();
-    shippingCostRef.current?.save();
-  }, []);
+    const tracking = trackingRef.current?.getValue() ?? "";
+    const company = shippingRef.current?.getValue() ?? "";
+    const rawCost = shippingCostRef.current?.getValue() ?? "";
+    const cost = rawCost.trim() === "" ? "0" : rawCost;
+
+    setBulkErrors({ tracking_number: "", shipping_company_id: "" });
+
+    bulkForm.transform(() => ({
+      purchase_item: {
+        tracking_number: tracking,
+        shipping_company_id: company || null,
+        shipping_cost: cost,
+      },
+      return_to: page.url,
+    }));
+
+    bulkForm.patch(
+      routes.purchaseItemsShippingDetails.update.path({ purchase_item_id: purchaseItem.id }),
+      {
+        only: ["purchase_items"],
+        preserveScroll: true,
+        onSuccess: () => {
+          trackingRef.current?.close();
+          shippingRef.current?.close();
+          shippingCostRef.current?.close();
+        },
+        onError: (errors) => {
+          const errs = errors as Record<string, string>;
+          setBulkErrors({
+            tracking_number: errs.tracking_number || "",
+            shipping_company_id: errs.shipping_company_id
+              ? "Shipping company is required"
+              : errs.base || "",
+          });
+        },
+      },
+    );
+  }, [bulkForm, purchaseItem.id, page.url]);
 
   return {
+    bulkErrors: isBlankRow ? bulkErrors : { tracking_number: "", shipping_company_id: "" },
     bulkSave: isBlankRow ? bulkSave : undefined,
     costAutoOpen,
     isBlankRow,

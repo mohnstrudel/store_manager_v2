@@ -13,7 +13,7 @@ type ShippingCostEditorProps = {
 };
 
 export const InlineShippingCostEditor = forwardRef<
-  { open(): void; save(): void },
+  { open(): void; close(): void; getValue(): string },
   ShippingCostEditorProps
 >(function InlineShippingCostEditor({ item, onAutoOpen, autoFocus = true, onBulkSave }, ref) {
     const [hideDefaultZero, setHideDefaultZero] = useState(true);
@@ -26,7 +26,7 @@ export const InlineShippingCostEditor = forwardRef<
         onOpen: onAutoOpen,
       });
 
-    useImperativeHandle(ref, () => ({ open: openSilently, save }));
+    useImperativeHandle(ref, () => ({ open: openSilently, close, getValue: () => value }));
 
     useEffect(() => {
       if (!isOpen) setHideDefaultZero(true);

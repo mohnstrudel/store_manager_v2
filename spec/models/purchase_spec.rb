@@ -28,7 +28,6 @@ RSpec.describe Purchase do
   describe "Validations" do
     it { is_expected.to validate_presence_of(:amount) }
     it { is_expected.to validate_presence_of(:item_price) }
-    it { is_expected.to validate_presence_of(:product_id) }
     it { is_expected.to validate_presence_of(:supplier_id) }
 
     context "when amount is not present" do
@@ -43,16 +42,36 @@ RSpec.describe Purchase do
       it { is_expected.not_to be_valid }
     end
 
-    context "when product_id is not present" do
-      before { purchase.product_id = nil }
-
-      it { is_expected.not_to be_valid }
-    end
-
     context "when supplier_id is not present" do
       before { purchase.supplier_id = nil }
 
       it { is_expected.not_to be_valid }
+    end
+
+    describe "product or variant presence (on create)" do
+      let(:supplier) { create(:supplier) }
+      subject(:purchase) { Purchase.new(amount: 10, item_price: BigDecimal("100.0"), supplier:) }
+
+      context "when neither product nor variant is set" do
+        it { is_expected.not_to be_valid }
+
+        it "adds an error on base" do
+          purchase.valid?
+          expect(purchase.errors[:base]).to include("must have a product or variant")
+        end
+      end
+
+      context "when only variant_id is present" do
+        before { purchase.variant = create(:variant) }
+
+        it { is_expected.to be_valid }
+      end
+
+      context "when only product_id is present" do
+        before { purchase.product = create(:product) }
+
+        it { is_expected.to be_valid }
+      end
     end
   end
 

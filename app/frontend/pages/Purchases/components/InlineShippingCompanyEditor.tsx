@@ -10,17 +10,18 @@ type ShippingCompanyEditorProps = {
   onAutoOpen?: () => void;
   shippingCompanies: ShippingCompanyOption[];
   autoFocus?: boolean;
+  bulkError?: string;
   onBulkSave?: () => void;
 };
 
 export const InlineShippingCompanyEditor = forwardRef<
-  { open(): void; save(): void },
+  { open(): void; close(): void; getValue(): string },
   ShippingCompanyEditorProps
 >(function InlineShippingCompanyEditor(
-  { item, onAutoOpen, shippingCompanies, autoFocus = true, onBulkSave },
+  { item, onAutoOpen, shippingCompanies, autoFocus = true, bulkError, onBulkSave },
   ref,
 ) {
-    const { isOpen, isSaved, open, close, openSilently, error, onChange, save, value } =
+    const { isOpen, isSaved, open, close, openSilently, error: serverError, onChange, save, value } =
       useInlineCellForm({
         editedRecord: item,
         attributeName: "shipping_company_id",
@@ -32,7 +33,7 @@ export const InlineShippingCompanyEditor = forwardRef<
         onOpen: onAutoOpen,
       });
 
-    useImperativeHandle(ref, () => ({ open: openSilently, save }));
+    useImperativeHandle(ref, () => ({ open: openSilently, close, getValue: () => value }));
 
     return (
       <InlineCellTd
@@ -59,7 +60,7 @@ export const InlineShippingCompanyEditor = forwardRef<
                 </option>
               ))}
             </select>
-            <FormError>{error}</FormError>
+            <FormError>{bulkError || serverError}</FormError>
           </InlineCellForm>
         ) : (
           <InlineCellTrigger ariaLabel="Edit shipping company" onOpen={open}>
