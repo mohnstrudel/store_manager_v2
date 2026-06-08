@@ -163,8 +163,12 @@ module Product::Editing
     return if initial_purchase.blank?
 
     initial_purchase.valid?
-    # product_id is nil until the product is saved; skip that error here
-    relevant_errors = initial_purchase.errors.reject { |e| e.attribute == :product_id }
+    # product_id and product_or_variant_present errors are irrelevant here —
+    # the product is assigned explicitly in the transaction after save.
+    relevant_errors = initial_purchase.errors.reject { |e|
+      e.attribute == :product_id ||
+        (e.attribute == :base && e.message == "must have a product or variant")
+    }
     relevant_errors.each do |error|
       nested_attribute = (error.attribute == :base) ? "base" : error.attribute
       errors.add("purchase.0.#{nested_attribute}", error.message)
