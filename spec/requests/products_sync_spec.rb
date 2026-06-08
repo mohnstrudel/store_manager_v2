@@ -19,7 +19,7 @@ RSpec.describe "Products Sync API" do
 
         expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 100)
         expect(response).to redirect_to(products_path)
-        expect(flash[:notice]).to include("Success! Visit")
+        expect(flash[:notice]).to include(message: "Success! Visit")
       end
     end
 
@@ -32,7 +32,7 @@ RSpec.describe "Products Sync API" do
 
         expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: nil)
         expect(response).to redirect_to(products_path)
-        expect(flash[:notice]).to include("Success! Visit")
+        expect(flash[:notice]).to include(message: "Success! Visit")
       end
     end
   end

@@ -37,8 +37,8 @@ RSpec.describe Sales::BulkPullsController do
 
       post :create
 
-      expect(flash[:notice]).to include("Success! Visit")
-      expect(flash[:notice]).to include("jobs statuses dashboard")
+      expect(flash[:notice]).to include(message: "Success! Visit")
+      expect(flash[:notice]).to include(link: hash_including(label: "jobs statuses dashboard"))
     end
   end
 end
