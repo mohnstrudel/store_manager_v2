@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { zodErrorsToRecord } from "@/lib/formSchema";
-import { msg } from "@/lib/validationMessages";
+import { zodErrorsToRecord } from "@/utils/formSchema";
+import { msg } from "@/utils/validationMessages";
 
 const requiredNumber = z
   .number()

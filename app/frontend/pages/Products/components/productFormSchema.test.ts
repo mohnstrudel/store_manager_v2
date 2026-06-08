@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { msg } from "@/lib/validationMessages";
+import { msg } from "@/utils/validationMessages";
 import { validateProductForm } from "./productFormSchema";
 import type { PurchaseFormData, VariantFormData } from "../types";
 
