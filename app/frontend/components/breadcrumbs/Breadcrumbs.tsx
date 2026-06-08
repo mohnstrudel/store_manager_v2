@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { useBreadcrumbTrail } from "@/lib/useBreadcrumbTrail";
+import { useBreadcrumbTrail } from "./useBreadcrumbTrail";
 
 type Breadcrumb = {
   name: string;

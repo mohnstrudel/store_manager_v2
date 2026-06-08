@@ -25,7 +25,7 @@ vi.mock("@inertiajs/react", () => ({
   ),
 }));
 
-vi.mock("@/lib/useFlash", () => ({
+vi.mock("./useFlash", () => ({
   useFlash: () => flashState.flash,
 }));
 

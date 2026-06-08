@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { useFlash } from "@/lib/useFlash";
+import { useFlash } from "./useFlash";
 import type { FlashMessage } from "@/types/inertia";
 
 const AUTO_DISMISS_DELAY = 5000;

@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link, router, usePage } from "@inertiajs/react";
-import routes from "@/lib/routes";
+import routes from "@/utils/routes";
 import type { PageProps } from "@/types/inertia";
-import { useNavigationDropdown } from "@/lib/useNavigationDropdown";
+import { useNavigationDropdown } from "./useNavigationDropdown";
 
 const emptyPagination = {
   current_page: 1,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useCloseOnEscape } from "@/lib/useCloseOnEscape";
+import { useCloseOnEscape } from "@/utils/useCloseOnEscape";
 
 export function useNavigationDropdown() {
   const [isOpen, setIsOpen] = useState(false);

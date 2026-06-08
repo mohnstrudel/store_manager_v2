@@ -1,7 +1,7 @@
 import type { PathHelper } from "@js-from-routes/client";
 import { useForm, usePage } from "@inertiajs/react";
 import { useCallback, useEffect, useEffectEvent, useState, type ChangeEvent } from "react";
-import { replaceById } from "./replaceById";
+import { replaceById } from "@/utils/replaceById";
 import { useRecentlySaved } from "./useRecentlySaved";
 
 type InlineCellFormConfig<TRecord extends { id: number }> = {
@@ -84,7 +84,9 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   };
 
   const save = () => {
-    const newValue = normalizeValueForSave ? normalizeValueForSave(form.data.value) : form.data.value;
+    const newValue = normalizeValueForSave
+      ? normalizeValueForSave(form.data.value)
+      : form.data.value;
     form.transform(() => ({
       [param]: { [attributeName]: newValue },
       return_to: form.data.return_to,
