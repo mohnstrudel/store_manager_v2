@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
-import { rowNavigationProps, stopRowNavigation } from "@/lib/rowNavigation";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import type { ProductIndexRecord } from "../types";
 
 type IndexTableProps = {
