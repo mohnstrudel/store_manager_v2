@@ -1,6 +1,4 @@
 import { createInertiaApp, router } from "@inertiajs/react";
-import { createElement } from "react";
-import { hydrateRoot } from "react-dom/client";
 import AppLayout from "@/layouts/AppLayout";
 import { resolvePage } from "@/lib/resolvePage";
 
@@ -22,10 +20,6 @@ void createInertiaApp({
   layout: () => AppLayout,
   page: initialPage,
   resolve: resolvePage,
-  setup({ el, App, props }) {
-    hydrateRoot(el, createElement(App, props));
-    disableAutocorrectAfterRender(el);
-  },
 });
 
 export function disableAutocorrect(root: ParentNode = document) {

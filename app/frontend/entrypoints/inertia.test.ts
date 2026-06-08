@@ -8,7 +8,6 @@ import {
 
 type CreateInertiaAppOptions = {
   layout: () => typeof AppLayout;
-  setup: (props: { el: HTMLElement; App: () => null; props: Record<string, never> }) => void;
 };
 
 const mocks = vi.hoisted(() => ({
@@ -23,10 +22,6 @@ vi.mock("@inertiajs/react", () => ({
     on: mocks.on,
     visit: mocks.visit,
   },
-}));
-
-vi.mock("react-dom/client", () => ({
-  hydrateRoot: vi.fn<() => void>(),
 }));
 
 vi.mock("@/lib/resolvePage", () => ({
@@ -130,16 +125,6 @@ describe("autocorrect disabler", () => {
     expect(document.querySelector("input")).toHaveAttribute("autocomplete", "off");
   });
 
-  it("disables browser text helpers after the initial Inertia render", () => {
-    const options = mocks.createInertiaApp.mock.calls[0][0];
-    const el = document.createElement("div");
-    el.innerHTML = "<textarea></textarea>";
-
-    options.setup({ el, App: () => null, props: {} });
-    vi.runOnlyPendingTimers();
-
-    expect(el.querySelector("textarea")).toHaveAttribute("spellcheck", "false");
-  });
 });
 
 function clickEvent() {
