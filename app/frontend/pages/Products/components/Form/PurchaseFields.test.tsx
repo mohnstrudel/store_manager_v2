@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import PurchaseFields from "./Form/PurchaseFields";
-import { type PurchaseFormData } from "../types";
+import PurchaseFields from "./PurchaseFields";
+import { type PurchaseFormData } from "../../types";
 
 type MockOption = {
   value: number;

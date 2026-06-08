@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import StoreInfoFields from "./Form/StoreInfoFields";
-import { type StoreInfoFormData } from "../types";
+import StoreInfoFields from "./StoreInfoFields";
+import { type StoreInfoFormData } from "../../types";
 
 type MockOption = {
   value: string;
