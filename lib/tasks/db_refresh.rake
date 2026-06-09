@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :db do
   desc "Prepare DB for development by re-creating and populating the database"
   task refresh: :environment do

@@ -11,7 +11,7 @@ module Sales
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :sale, :link_purchase_items?
     end
   end

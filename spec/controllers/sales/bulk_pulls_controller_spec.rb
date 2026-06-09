@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Sales::BulkPullsController, type: :controller do
+RSpec.describe Sales::BulkPullsController do
   before { sign_in_as_admin }
   after { log_out }
 
@@ -37,8 +37,8 @@ RSpec.describe Sales::BulkPullsController, type: :controller do
 
       post :create
 
-      expect(flash[:notice]).to include("Success! Visit")
-      expect(flash[:notice]).to include("jobs statuses dashboard")
+      expect(flash[:notice]).to include(message: "Success! Visit")
+      expect(flash[:notice]).to include(link: hash_including(label: "jobs statuses dashboard"))
     end
   end
 end

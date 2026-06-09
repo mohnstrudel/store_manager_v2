@@ -6,7 +6,12 @@ module Sales
     before_action :set_sale_item, only: %i[show destroy]
 
     def show
-      render "sale_items/show"
+      render inertia: "SaleItems/Show", props: {
+        sale_item: helpers.sale_item_props(@sale_item),
+        purchase_items: @sale_item.purchase_items.map { |purchase_item| helpers.sale_item_purchase_item_props(purchase_item) },
+        warehouses: Warehouse.order(name: :asc).map { |warehouse| helpers.purchase_warehouse_props(warehouse) },
+        warehouse_move_path: warehouse_move_path
+      }
     end
 
     def destroy
@@ -19,16 +24,16 @@ module Sales
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :sale_item
     end
 
     def set_sale
-      @sale = Sale.friendly.find(params[:sale_id])
+      @sale = Sale.friendly.find(params.expect(:sale_id))
     end
 
     def set_sale_item
-      @sale_item = sale_items_scope.find(params[:id])
+      @sale_item = sale_items_scope.find(params.expect(:id))
     end
 
     def sale_items_scope

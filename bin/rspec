@@ -3,9 +3,6 @@
 
 if ENV["PARALLEL_TEST_GROUPS"] || ENV["TEST_ENV_NUMBER"]
   ENV["DISABLE_SIMPLECOV"] = "1"
-  require_relative "../config/boot"
-  load Gem.bin_path("rspec-core", "rspec")
-else
-  require_relative "../config/boot"
-  load Gem.bin_path("rspec-core", "rspec")
 end
+require_relative "../config/boot"
+load Gem.bin_path("rspec-core", "rspec")

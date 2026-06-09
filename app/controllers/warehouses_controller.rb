@@ -1,40 +1,45 @@
 # frozen_string_literal: true
 
 class WarehousesController < ApplicationController
-  include ActionView::Helpers::OutputSafetyHelper
   include MediaFormHandling
 
   before_action :set_warehouse, only: %i[edit update destroy]
-  before_action :prepare_new_form, only: :new
-  before_action :prepare_edit_form, only: :edit
 
   # GET /warehouses
   def index
     @warehouses = Warehouse.for_listing.order(:position)
+
+    return unless stale?(etag: [@warehouses, request.inertia?], last_modified: @warehouses.maximum(:updated_at))
+
+    render inertia: "Warehouses/Index", props: {
+      warehouses: @warehouses.map { |warehouse| helpers.warehouse_listing_props(warehouse, @warehouses.size) }
+    }
   end
 
   # GET /warehouses/new
   def new
     @warehouse = Warehouse.new
+    render inertia: "Warehouses/New", props: helpers.warehouse_new_props(@warehouse)
   end
 
   # GET /warehouses/1/edit
   def edit
+    render inertia: "Warehouses/Edit", props: helpers.warehouse_edit_props(@warehouse)
   end
 
   # POST /warehouses
   def create
-    @warehouse = Warehouse.new(warehouse_params)
+    attributes = warehouse_params.to_h
+    @warehouse = Warehouse.new(attributes.except("to_warehouse_ids"))
 
     @warehouse.create_from_form!(
-      warehouse_params.to_h,
+      attributes,
       new_media_images: media_new_images_for(@warehouse)
     )
 
     redirect_to @warehouse, notice: "Warehouse was successfully created"
   rescue ActiveRecord::RecordInvalid
-    prepare_form_state(action: :new)
-    render :new, status: :unprocessable_content
+    redirect_to new_warehouse_path, inertia: inertia_errors(@warehouse.errors)
   end
 
   # PATCH/PUT /warehouses/1
@@ -52,8 +57,8 @@ class WarehousesController < ApplicationController
       redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
     end
   rescue ActiveRecord::RecordInvalid
-    prepare_form_state(action: :edit)
-    render :edit, status: :unprocessable_content
+    @warehouse.reload
+    redirect_to edit_warehouse_path(@warehouse), inertia: inertia_errors(@warehouse.errors)
   end
 
   # DELETE /warehouses/1
@@ -63,7 +68,7 @@ class WarehousesController < ApplicationController
     @warehouse.destroy_if_empty!
     redirect_to warehouses_url, notice: "Warehouse #{warehouse_name} was successfully destroyed", status: :see_other
   rescue ActiveRecord::RecordInvalid
-    flash[:error] = @warehouse.errors.full_messages.to_sentence
+    flash[:alert] = @warehouse.errors.full_messages.to_sentence
     redirect_to @warehouse
   end
 
@@ -71,7 +76,7 @@ class WarehousesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_warehouse
-    @warehouse = Warehouse.find(params[:id])
+    @warehouse = Warehouse.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.
@@ -89,38 +94,5 @@ class WarehousesController < ApplicationController
         :position,
         to_warehouse_ids: []]
     )
-  end
-
-  def prepare_new_form
-    @warehouse = Warehouse.new
-    prepare_form_state(action: :new)
-  end
-
-  def prepare_edit_form
-    prepare_form_state(action: :edit)
-  end
-
-  def prepare_form_state(action:)
-    @positions_count = (action == :new) ? Warehouse.count + 1 : Warehouse.count
-    warehouse = @warehouse || Warehouse.new
-    @transition_destinations = Warehouse.where.not(id: warehouse.id).order(:name)
-    @warehouse_transitions = WarehouseTransition.where(from_warehouse: warehouse).includes(:to_warehouse)
-    replace_default_warehouse_conflict_error!
-  end
-
-  def default_warehouse_error_message(current_default)
-    safe_join([
-      "change the current default warehouse \"",
-      view_context.link_to(current_default.name, warehouse_path(current_default), class: "link"),
-      "\" before setting a new one"
-    ])
-  end
-
-  def replace_default_warehouse_conflict_error!
-    blocking_default = @warehouse.blocking_default_warehouse
-    return unless blocking_default
-
-    @warehouse.errors.delete(:is_default)
-    @warehouse.errors.add(:is_default, default_warehouse_error_message(blocking_default))
   end
 end

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe PurchaseItems::WarehouseMovesController, type: :controller do
+RSpec.describe PurchaseItems::WarehouseMovesController do
   before { sign_in_as_admin }
   after { log_out }
 
@@ -36,6 +36,20 @@ RSpec.describe PurchaseItems::WarehouseMovesController, type: :controller do
         purchase_item_ids: purchase_items.map(&:id),
         from_id: from_warehouse.id,
         to_id: to_warehouse.id
+      )
+    end
+
+    it "flashes the destination warehouse link" do
+      post :create, params: valid_params
+
+      expect(flash[:notice]).to eq(
+        {
+          message: "Success! 3 purchased products moved to:",
+          link: {
+            label: to_warehouse.name,
+            href: warehouse_path(to_warehouse)
+          }
+        }
       )
     end
   end

@@ -5,16 +5,16 @@ module Authorization
   include Pundit::Authorization
 
   included do
-    before_action :authorize_resourse
+    before_action :authorize_resource
     after_action :verify_authorized
     rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
   end
 
   private
 
-  def authorize_resourse
-    resourse = controller_name.singularize.to_sym
-    authorize resourse
+  def authorize_resource
+    resource = controller_name.singularize.to_sym
+    authorize resource
   end
 
   def user_not_authorized

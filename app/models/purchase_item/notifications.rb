@@ -7,7 +7,7 @@ module PurchaseItem::Notifications
     def notify_order_status!(purchase_item_ids:)
       return if purchase_item_ids.blank?
 
-      for_notifications.where(id: purchase_item_ids).each do |purchase_item|
+      for_notifications.where(id: purchase_item_ids).find_each do |purchase_item|
         data = notification_data_for(purchase_item)
         next unless data
 
@@ -31,7 +31,7 @@ module PurchaseItem::Notifications
       transition = WarehouseTransition.active_for_notification(from_id:, to_id:)
       return unless transition
 
-      for_notifications.where(id: purchase_item_ids).each do |purchase_item|
+      for_notifications.where(id: purchase_item_ids).find_each do |purchase_item|
         data = notification_data_for(purchase_item)
         next unless data
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Sidekiq.configure_server do |config|
   config.redis = {ssl_params: {verify_mode: OpenSSL::SSL::VERIFY_NONE}}
   Sidekiq::Status.configure_server_middleware config, expiration: 120.minutes.to_i

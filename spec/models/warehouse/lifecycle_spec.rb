@@ -9,7 +9,7 @@ RSpec.describe Warehouse do
 
       expect {
         warehouse.destroy_if_empty!
-      }.to change(Warehouse, :count).by(-1)
+      }.to change(described_class, :count).by(-1)
     end
 
     it "raises a validation error when the warehouse still has purchase items" do

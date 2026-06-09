@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Purchases::ProductVariantsController, type: :controller do
+RSpec.describe Purchases::ProductVariantsController do
   before { sign_in_as_admin }
   after { log_out }
 
@@ -10,14 +10,13 @@ RSpec.describe Purchases::ProductVariantsController, type: :controller do
     let(:product) { create(:product) }
     let!(:variant) { create(:variant, product:) }
 
-    it "loads the product variants for the turbo stream response" do
-      get :show, params: {product_id: product.id, target: "purchase_variant_id"}, format: :turbo_stream
+    it "returns the product variants for the dynamic purchase form select" do
+      get :show, params: {product_id: product.id}
 
       expect(response).to be_successful
-      expect(assigns[:product]).to eq(product)
-      expect(assigns[:target]).to eq("purchase_variant_id")
-      expect(assigns[:variants]).to eq(product.fetch_variants_with_title)
-      expect(response.media_type).to eq(Mime[:turbo_stream].to_s)
+      expect(response.parsed_body.fetch("variants")).to include(
+        {"value" => variant.id, "label" => variant.title}
+      )
     end
   end
 end

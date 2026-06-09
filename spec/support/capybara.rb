@@ -50,7 +50,7 @@ module BrowserStorageHelpers
     return unless Capybara.current_session.driver.respond_to?(:browser)
 
     page.execute_script("window.sessionStorage.clear(); window.localStorage.clear();")
-  rescue StandardError
+  rescue
     # Storage cleanup is best-effort; some pages or drivers disallow access.
   end
 end

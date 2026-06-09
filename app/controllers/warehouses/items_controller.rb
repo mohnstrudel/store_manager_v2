@@ -7,9 +7,8 @@ module Warehouses
 
     def new
       @purchase_item = PurchaseItem.new(warehouse: @warehouse)
-      prepare_form_options
-
-      render "purchase_items/new"
+      render inertia: "PurchaseItems/New",
+        props: helpers.purchase_item_new_props(@purchase_item, warehouse: @warehouse)
     end
 
     def create
@@ -23,20 +22,14 @@ module Warehouses
       redirect_to @purchase_item.warehouse,
         notice: "Purchase item was successfully created"
     rescue ActiveRecord::RecordInvalid
-      prepare_form_options
-      render "purchase_items/new", status: :unprocessable_content
+      redirect_to new_warehouse_item_path(@warehouse),
+        inertia: inertia_errors(@purchase_item.errors)
     end
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :purchase_item
-    end
-
-    def prepare_form_options
-      @purchases = Purchase.for_form_select
-      @shipping_companies = ShippingCompany.order(:name)
-      @warehouse_options = Warehouse.order(:name)
     end
 
     def purchase_item_params

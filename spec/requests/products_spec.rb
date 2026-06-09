@@ -2,209 +2,57 @@
 
 require "rails_helper"
 
-RSpec.describe "Products API" do
-  let(:franchise) { create(:franchise) }
-  let(:brand) { create(:brand) }
+RSpec.describe "Products" do
+  before { sign_in_as_admin }
 
-  before do
-    sign_in_as_admin
-  end
-
-  describe "description field" do
-    it "stores HTML content in the database" do
-      html_description = "<p>This is a <strong>premium</strong> collectible figure.</p>"
-      product = create(:product, franchise:, description: html_description)
-
-      expect(product.description.body.to_html.strip).to eq(html_description)
-    end
-
-    it "allows updating description with HTML" do
-      product = create(:product, franchise:)
-      html_description = "<p>Updated <em>description</em> with formatting.</p>"
-
-      product.update(description: html_description)
-
-      expect(product.reload.description.body.to_html.strip).to eq(html_description)
-    end
-
-    it "allows products without descriptions" do
-      product = create(:product, franchise:, description: nil)
-
-      expect(product.description.body).to be_blank
-    end
-  end
-
-  describe "PATCH/PUT /products/:id with store_infos" do
-    let(:product) { create(:product) }
-
-    context "when updating existing store_infos" do
-      it "updates store_info tags" do
-        # Setup
-        shopify_info = product.store_infos.shopify.first
-        update_params = {
-          title: "Updated Product",
-          franchise_id: product.franchise_id,
-          shape: product.shape
-        }
-        store_infos_params = {
-          "0" => {
-            id: shopify_info.id,
-            tag_list: "shopify-tag"
-          }
-        }
-
-        # Exercise
-        patch product_path(product), params: {product: update_params, store_infos: store_infos_params}
-
-        # Verification
-        shopify_info.reload
-        expect(shopify_info.tag_list).to eq(["shopify-tag"])
-      end
-
-      it "updates multiple store_infos tags simultaneously" do
-        # Setup
-        shopify_info = product.store_infos.shopify.first
-        woo_info = product.store_infos.woo.first
-        update_params = {
-          title: "Updated Product",
-          franchise_id: product.franchise_id,
-          shape: product.shape
-        }
-        store_infos_params = {
-          "0" => {
-            id: shopify_info.id,
-            tag_list: "shopify-tag"
-          },
-          "1" => {
-            id: woo_info.id,
-            tag_list: "woo-tag"
-          }
-        }
-
-        # Exercise
-        patch product_path(product), params: {product: update_params, store_infos: store_infos_params}
-
-        # Verification
-        shopify_info.reload
-        woo_info.reload
-        expect(shopify_info.tag_list).to eq(["shopify-tag"])
-        expect(woo_info.tag_list).to eq(["woo-tag"])
-      end
-    end
-
-    context "when adding new store_infos to existing product" do
-      it "adds new store_info to product without existing ones" do
-        # Setup
-        product_without_stores = create(:product)
-        product_without_stores.store_infos.destroy_all
-        update_params = {
-          title: "Updated Product",
-          franchise_id: product_without_stores.franchise_id,
-          shape: product_without_stores.shape
-        }
-        store_infos_params = {
-          "0" => {
-            store_name: "shopify",
-            tag_list: "new-store"
-          }
-        }
-
-        # Exercise
-        patch product_path(product_without_stores), params: {product: update_params, store_infos: store_infos_params}
-
-        # Verification
-        product_without_stores.reload
-        expect(product_without_stores.store_infos.shopify.count).to eq(1)
-        expect(product_without_stores.store_infos.shopify.first.tag_list).to eq(["new-store"])
-      end
-
-      it "does not add duplicate store_name" do
-        # Setup - product already has shopify store_info from factory
-        update_params = {
-          title: "Updated Product",
-          franchise_id: product.franchise_id,
-          shape: product.shape
-        }
-        store_infos_params = {
-          "0" => {
-            store_name: "shopify",
-            tag_list: "duplicate-shopify"
-          }
-        }
-
-        # Exercise
-        patch product_path(product), params: {product: update_params, store_infos: store_infos_params}
-
-        # Verification
-        expect(response).to have_http_status(:unprocessable_content)
-        product.reload
-        expect(product.store_infos.shopify.count).to eq(1)
-      end
-    end
-
-    context "when updating product without store_infos params" do
-      it "updates product without affecting existing store_infos" do
-        # Setup
-        original_shopify_count = product.store_infos.shopify.count
-        original_woo_count = product.store_infos.woo.count
-        update_params = {
-          title: "Updated Title",
-          franchise_id: product.franchise_id,
-          shape: product.shape
-        }
-
-        # Exercise
-        patch product_path(product), params: {product: update_params}
-
-        # Verification
-        product.reload
-        expect(product.title).to eq("Updated Title")
-        expect(product.store_infos.shopify.count).to eq(original_shopify_count)
-        expect(product.store_infos.woo.count).to eq(original_woo_count)
-      end
-    end
-
-    context "when updating with empty store_infos" do
-      it "does not create or modify store_infos" do
-        # Setup
-        product_without_stores = create(:product)
-        product_without_stores.store_infos.destroy_all
-        update_params = {
-          title: "Updated Product",
-          franchise_id: product_without_stores.franchise_id,
-          shape: product_without_stores.shape
-        }
-
-        # Exercise
-        patch product_path(product_without_stores), params: {product: update_params, store_infos: {}}
-
-        # Verification
-        product_without_stores.reload
-        expect(product_without_stores.store_infos.count).to eq(0)
-      end
-    end
-  end
-
-  describe "GET /products/:id includes store_infos" do
-    it "preloads store_infos with tags" do
-      # Setup
+  describe "GET /products" do
+    it "renders the index Inertia component with pagination and search" do
       product = create(:product)
-      shopify_info = product.store_infos.shopify.first
-      shopify_info.update(tag_list: "featured, new")
 
-      # Exercise
-      get product_path(product)
+      get products_path
 
-      # Verification
-      expect(response).to be_successful
-      expect(assigns(:product)).to eq(product)
-      expect(assigns(:product).store_infos).to be_loaded
-      expect(assigns(:product).store_infos.first.tags).to be_loaded
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/Index")
+      expect_inertia.to have_props(
+        pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50},
+        search: {q: ""},
+        last_sync_at: nil
+      )
+
+      first_props = inertia.props[:products].first
+      expect(first_props[:id]).to eq(product.id)
+      expect(first_props[:full_title]).to eq(product.full_title)
+      expect(first_props[:path]).to eq(product_path(product))
+    end
+
+    it "filters products by search query" do
+      matching = create(:product, title: "Pikachu")
+      _other = create(:product, title: "Charmander")
+
+      get products_path, params: {q: "Pikachu"}
+
+      expect_inertia.to have_props(search: {q: "Pikachu"})
+      expect(inertia.props[:products].pluck(:id)).to eq([matching.id])
     end
   end
 
   describe "GET /products/:id" do
-    it "renders the product show page sections for sales and purchases" do
+    it "renders the show Inertia component with product data" do
+      product = create(:product)
+
+      get product_path(product)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/Show")
+
+      product_props = inertia.props[:product]
+      expect(product_props[:id]).to eq(product.id)
+      expect(product_props[:title]).to eq(product.title)
+      expect(product_props[:full_title]).to eq(product.full_title)
+      expect(product_props[:franchise][:title]).to eq(product.franchise.title)
+    end
+
+    it "includes active sales, completed sales, and purchases in props" do
       product = create(:product)
       variant = create(:variant, product:)
       active_sale = create(:sale, status: "processing")
@@ -216,216 +64,443 @@ RSpec.describe "Products API" do
 
       get product_path(product)
 
-      aggregate_failures do
-        expect(response).to be_successful
-        expect(response.body).to include("Active Sales")
-        expect(response.body).to include("Completed Sales")
-        expect(response.body).to include("Purchases")
-      end
+      expect(response).to have_http_status(:ok)
+      expect(inertia.props[:active_sales].length).to eq(1)
+      expect(inertia.props[:completed_sales].length).to eq(1)
+      expect(inertia.props[:purchases].length).to eq(1)
+    end
+
+    it "includes store_infos tags in the show props" do
+      product = create(:product)
+      shopify_info = product.store_infos.shopify.first
+      shopify_info.update(tag_list: "featured, new")
+
+      get product_path(product)
+
+      product_props = inertia.props[:product]
+      expect(product_props[:shopify_info][:tag_list]).to include("featured", "new")
     end
   end
 
-  describe "tags on store_infos" do
-    let(:product) { create(:product) }
+  describe "GET /products/new" do
+    it "renders the new Inertia component with form options" do
+      franchise = create(:franchise)
 
-    it "creates store_info with comma-separated tags" do
-      # Setup
-      shopify_info = product.store_infos.shopify.first
-      update_params = {
-        title: "Updated Product",
-        franchise_id: product.franchise_id,
-        shape: product.shape
-      }
-      store_infos_params = {
-        "0" => {
-          id: shopify_info.id,
-          tag_list: "rare, limited, exclusive"
-        }
-      }
+      get new_product_path
 
-      # Exercise
-      patch product_path(product), params: {product: update_params, store_infos: store_infos_params}
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/New")
 
-      # Verification
-      shopify_info.reload
-      expect(shopify_info.tag_list).to eq(["rare", "limited", "exclusive"])
-      expect(shopify_info.tags.count).to eq(3)
-    end
+      product_props = inertia.props[:product]
+      expect(product_props[:id]).to be_nil
+      expect(product_props[:variants].length).to eq(1)
+      expect(product_props[:variants].first[:size_id]).to be_nil
+      expect(product_props[:variants].first[:version_id]).to be_nil
+      expect(product_props[:variants].first[:color_id]).to be_nil
 
-    it "creates store_info with single tag" do
-      # Setup
-      product_without_stores = create(:product)
-      product_without_stores.store_infos.destroy_all
-      update_params = {
-        title: "Updated Product",
-        franchise_id: product_without_stores.franchise_id,
-        shape: product_without_stores.shape
-      }
-      store_infos_params = {
-        "0" => {
-          store_name: "shopify",
-          tag_list: "featured"
-        }
-      }
-
-      # Exercise
-      patch product_path(product_without_stores), params: {product: update_params, store_infos: store_infos_params}
-
-      # Verification
-      product_without_stores.reload
-      shopify_info = product_without_stores.store_infos.shopify.first
-      expect(shopify_info.tag_list).to eq(["featured"])
-    end
-
-    it "updates tags by replacing existing ones" do
-      # Setup
-      shopify_info = product.store_infos.shopify.first
-      shopify_info.update(tag_list: "old, tags")
-
-      update_params = {
-        title: "Updated Product",
-        franchise_id: product.franchise_id,
-        shape: product.shape
-      }
-      store_infos_params = {
-        "0" => {
-          id: shopify_info.id,
-          tag_list: "new, tags"
-        }
-      }
-
-      # Exercise
-      patch product_path(product), params: {product: update_params, store_infos: store_infos_params}
-
-      # Verification
-      shopify_info.reload
-      expect(shopify_info.tag_list).to contain_exactly("new", "tags")
-      expect(shopify_info.tag_list).not_to include("old")
-    end
-
-    it "clears tags when empty string is provided" do
-      # Setup
-      shopify_info = product.store_infos.shopify.first
-      shopify_info.update(tag_list: "some, tags")
-
-      update_params = {
-        title: "Updated Product",
-        franchise_id: product.franchise_id,
-        shape: product.shape
-      }
-      store_infos_params = {
-        "0" => {
-          id: shopify_info.id,
-          tag_list: ""
-        }
-      }
-
-      # Exercise
-      patch product_path(product), params: {product: update_params, store_infos: store_infos_params}
-
-      # Verification
-      shopify_info.reload
-      expect(shopify_info.tag_list).to be_empty
-    end
-
-    it "persists tags through product updates without touching store_infos" do
-      # Setup
-      shopify_info = product.store_infos.shopify.first
-      original_tags = ["original", "tags"]
-      shopify_info.update(tag_list: original_tags)
-
-      update_params = {
-        title: "Just Title Update",
-        franchise_id: product.franchise_id,
-        shape: product.shape
-      }
-
-      # Exercise
-      patch product_path(product), params: {product: update_params}
-
-      # Verification
-      shopify_info.reload
-      expect(shopify_info.tag_list).to match_array(original_tags)
+      options = inertia.props[:options]
+      expect(options[:franchises].pluck(:value)).to include(franchise.id)
+      expect(options[:shapes]).to eq(Product.shape_options)
     end
   end
 
-  describe "PATCH/PUT /products/:id with variants" do
+  describe "GET /products/:id/edit" do
+    it "renders the edit Inertia component with product data and options" do
+      product = create(:product)
+
+      get edit_product_path(product)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/Edit")
+
+      product_props = inertia.props[:product]
+      expect(product_props[:id]).to eq(product.id)
+      expect(product_props[:title]).to eq(product.title)
+      expect(product_props[:franchise_id]).to eq(product.franchise_id)
+
+      expect(inertia.props[:options]).to be_a(Hash)
+    end
+  end
+
+  describe "POST /products" do
+    let(:franchise) { create(:franchise) }
+
+    it "creates a product and redirects to show" do
+      expect {
+        post products_path, params: {
+          product: {
+            title: "New Figure",
+            franchise_id: franchise.id,
+            shape: "Statue"
+          }
+        }
+      }.to change(Product, :count).by(1)
+
+      expect(response).to redirect_to(product_path(Product.last))
+      expect(flash[:notice]).to eq("Product was successfully created")
+    end
+
+    it "creates a product with nested variants, store infos, and an initial purchase" do
+      brand = create(:brand, title: "Featured Brand")
+      size = create(:size, value: "Large")
+      version = create(:version, value: "Deluxe")
+      color = create(:color, value: "Red")
+      supplier = create(:supplier)
+      warehouse = create(:warehouse, is_default: true)
+
+      expect {
+        post products_path, params: {
+          product: {
+            title: "Nested Product",
+            description: "<p>Product description</p>",
+            franchise_id: franchise.id,
+            shape: "Bust",
+            brand_ids: [brand.id]
+          },
+          variants: {
+            "0" => {
+              sku: "nested-product-variant",
+              size_id: size.id,
+              version_id: version.id,
+              color_id: color.id,
+              purchase_cost: "9.99",
+              selling_price: "19.99",
+              weight: "1.5",
+              _destroy: "0"
+            }
+          },
+          store_infos: {
+            "0" => {
+              store_name: "shopify",
+              tag_list: "featured, new",
+              _destroy: "0"
+            }
+          },
+          purchase: {
+            supplier_id: supplier.id,
+            order_reference: "PO-42",
+            item_price: "15",
+            amount: "2",
+            warehouse_id: warehouse.id,
+            payment_value: "30"
+          }
+        }
+      }.to change(Product, :count).by(1)
+        .and change(Variant, :count).by(2)
+        .and change(StoreInfo, :count).by(1)
+        .and change(Purchase, :count).by(1)
+
+      created_product = Product.find_by!(title: "Nested Product")
+      purchase = created_product.purchases.last
+
+      expect(response).to redirect_to(product_path(created_product))
+      expect(created_product.brands).to contain_exactly(brand)
+      expect(created_product.description.body.to_html).to include("Product description")
+      expect(created_product.sizes).to contain_exactly(size)
+      expect(created_product.versions).to contain_exactly(version)
+      expect(created_product.colors).to contain_exactly(color)
+      expect(created_product.store_infos.shopify.first.tag_list).to eq(["featured", "new"])
+      expect(purchase.supplier).to eq(supplier)
+      expect(purchase.purchase_items.count).to eq(2)
+      expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
+      expect(purchase.payments.pluck(:value)).to eq([BigDecimal(30)])
+    end
+
+    it "redirects to new with errors when title is blank" do
+      post products_path, params: {
+        product: {title: "", franchise_id: franchise.id, shape: "Statue"}
+      }
+
+      expect(response).to redirect_to(new_product_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/New")
+      expect(inertia.props[:errors]).to be_present
+    end
+
+    it "redirects to new with errors when the product is submitted blank", :aggregate_failures do
+      post products_path, params: {
+        product: {title: "", franchise_id: "", shape: Product.default_shape}
+      }
+
+      expect(response).to redirect_to(new_product_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/New")
+      expect(inertia.props[:errors]).to be_present
+    end
+  end
+
+  describe "PATCH /products/:id" do
     let(:product) { create(:product) }
-    let(:color) { create(:color, value: "Red") }
 
-    before do
-      product.colors << color
-      product.build_new_variants
-      product.save
-    end
+    it "accepts submitting the edit form without changes", :aggregate_failures do
+      original_title = product.title
 
-    context "when updating variant SKU" do
-      it "updates variant SKU" do
-        variant = product.variants.find { |current| current.color_id.present? }
-        update_params = {
+      patch product_path(product), params: {
+        product: {
           title: product.title,
           franchise_id: product.franchise_id,
           shape: product.shape
         }
-        variants_params = {
-          "0" => {
-            id: variant.id,
-            sku: "NEW-SKU-123"
-          }
-        }
+      }
 
-        patch product_path(product), params: {product: update_params, variants: variants_params}
-
-        variant.reload
-        expect(variant.sku).to eq("NEW-SKU-123")
-      end
+      expect(response).to redirect_to(product_path(product.reload))
+      expect(product.title).to eq(original_title)
     end
 
-    context "when destroying variant without sales or purchases" do
-      it "destroys the variant" do
-        variant = product.variants.find { |current| current.color_id.present? }
-        update_params = {
-          title: product.title,
+    it "updates the product and redirects to show", :aggregate_failures do
+      patch product_path(product), params: {
+        product: {
+          title: "Updated Product",
           franchise_id: product.franchise_id,
           shape: product.shape
         }
-        variants_params = {
-          "0" => {
-            id: variant.id,
-            _destroy: "1"
-          }
-        }
+      }
 
-        expect {
-          patch product_path(product), params: {product: update_params, variants: variants_params}
-        }.to change { product.variants.count }.by(-1)
-      end
+      expect(response).to redirect_to(product_path(product.reload))
+      expect(product.title).to eq("Updated Product")
     end
 
-    context "when destroying variant with sale_items" do
-      let(:sale) { create(:sale) }
-      let!(:sale_item) { SaleItem.create!(product: product, variant: product.variants.first, sale: sale, qty: 1) }
+    it "redirects to edit with errors when title is blank" do
+      patch product_path(product), params: {
+        product: {title: "", franchise_id: product.franchise_id, shape: "Statue"}
+      }
 
-      it "soft deletes the variant by setting deactivated_at" do
-        variant = product.variants.first
-        update_params = {
-          title: product.title,
-          franchise_id: product.franchise_id,
-          shape: product.shape
+      expect(response).to redirect_to(edit_product_path(product))
+
+      follow_redirect!
+
+      expect_inertia.to render_component("Products/Edit")
+      expect(inertia.props[:errors]).to be_present
+    end
+
+    it "updates store_info tags" do
+      shopify_info = product.store_infos.shopify.first
+
+      patch product_path(product), params: {
+        product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+        store_infos: {"0" => {id: shopify_info.id, tag_list: "shopify-tag"}}
+      }
+
+      expect(response).to redirect_to(product_path(product))
+      expect(shopify_info.reload.tag_list).to eq(["shopify-tag"])
+    end
+
+    it "updates multiple store_infos tags simultaneously" do
+      shopify_info = product.store_infos.shopify.first
+      woo_info = product.store_infos.woo.first
+
+      patch product_path(product), params: {
+        product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+        store_infos: {
+          "0" => {id: shopify_info.id, tag_list: "shopify-tag"},
+          "1" => {id: woo_info.id, tag_list: "woo-tag"}
         }
-        variants_params = {
+      }
+
+      expect(shopify_info.reload.tag_list).to eq(["shopify-tag"])
+      expect(woo_info.reload.tag_list).to eq(["woo-tag"])
+    end
+
+    it "adds a new store_info to a product that has none" do
+      product_no_stores = create(:product)
+      product_no_stores.store_infos.destroy_all
+
+      patch product_path(product_no_stores), params: {
+        product: {title: product_no_stores.title, franchise_id: product_no_stores.franchise_id, shape: product_no_stores.shape},
+        store_infos: {"0" => {store_name: "shopify", tag_list: "new-store"}}
+      }
+
+      product_no_stores.reload
+      expect(product_no_stores.store_infos.shopify.count).to eq(1)
+      expect(product_no_stores.store_infos.shopify.first.tag_list).to eq(["new-store"])
+    end
+
+    it "redirects with duplicate store_name error" do
+      patch product_path(product), params: {
+        product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+        store_infos: {"0" => {store_name: "shopify", tag_list: "duplicate"}}
+      }
+
+      expect(response).to redirect_to(edit_product_path(product))
+      expect(product.store_infos.shopify.count).to eq(1)
+    end
+
+    it "does not affect store_infos when no store_infos params provided" do
+      original_count = product.store_infos.count
+
+      patch product_path(product), params: {
+        product: {title: "New Title", franchise_id: product.franchise_id, shape: product.shape}
+      }
+
+      product.reload
+      expect(product.title).to eq("New Title")
+      expect(product.store_infos.count).to eq(original_count)
+    end
+
+    it "updates variant SKU" do
+      variant = product.variants.first
+
+      patch product_path(product), params: {
+        product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+        variants: {"0" => {id: variant.id, sku: "NEW-SKU-123"}}
+      }
+
+      expect(variant.reload.sku).to eq("NEW-SKU-123")
+    end
+
+    it "updates product editing with nested variants and store infos in the submitted form shape" do
+      variant = product.variants.first
+      shopify_info = product.store_infos.shopify.first
+
+      patch product_path(product), params: {
+        product: {
+          title: "Updated Title",
+          franchise_id: product.franchise_id,
+          shape: product.shape,
+          description: "<p>Updated body</p>",
+          brand_ids: product.brand_ids
+        },
+        variants: {
           "0" => {
             id: variant.id,
-            _destroy: "1"
+            sku: "UPDATED-SKU",
+            size_id: variant.size_id,
+            version_id: variant.version_id,
+            color_id: variant.color_id,
+            purchase_cost: variant.purchase_cost,
+            selling_price: variant.selling_price,
+            weight: variant.weight,
+            _destroy: "0"
+          }
+        },
+        store_infos: {
+          "0" => {
+            id: shopify_info.id,
+            store_name: shopify_info.store_name,
+            tag_list: "refreshed-tag",
+            _destroy: "0"
           }
         }
+      }
 
-        patch product_path(product), params: {product: update_params, variants: variants_params}
+      expect(response).to redirect_to(product_path(product.reload))
+      expect(variant.reload.sku).to eq("UPDATED-SKU")
+      expect(shopify_info.reload.tag_list).to eq(["refreshed-tag"])
+      expect(product.reload.description.body.to_html).to include("Updated body")
+    end
 
-        variant.reload
-        expect(variant.deactivated_at).to be_present
-        expect(Variant.exists?(variant.id)).to be true
-      end
+    it "persists tags through product updates that omit store_infos" do
+      shopify_info = product.store_infos.shopify.first
+      shopify_info.update(tag_list: "original, tags")
+
+      patch product_path(product), params: {
+        product: {title: "Just Title Update", franchise_id: product.franchise_id, shape: product.shape}
+      }
+
+      expect(shopify_info.reload.tag_list).to contain_exactly("original", "tags")
+    end
+  end
+
+  describe "POST /products — base variant" do
+    let(:franchise) { create(:franchise) }
+
+    it "creates a base variant automatically when no variants are submitted" do
+      post products_path, params: {
+        product: {title: "No Variants Product", franchise_id: franchise.id, shape: "Statue"}
+      }
+
+      created = Product.find_by!(title: "No Variants Product")
+      expect(created.base_variant).to be_present
+      expect(created.base_variant.size_id).to be_nil
+      expect(created.base_variant.version_id).to be_nil
+      expect(created.base_variant.color_id).to be_nil
+    end
+
+    it "creates a base variant even when a blank variant form is removed before submit" do
+      post products_path, params: {
+        product: {title: "Removed Blank Variant", franchise_id: franchise.id, shape: "Statue"},
+        variants: {}
+      }
+
+      created = Product.find_by!(title: "Removed Blank Variant")
+      expect(created.base_variant).to be_present
+    end
+  end
+
+  describe "PATCH /products/:id — variant lifecycle" do
+    let(:product) { create(:product) }
+
+    it "hard destroys a variant without sales when _destroy is true" do
+      variant = product.variants.find { |v| v.base_model? }
+      variant_id = variant.id
+
+      expect {
+        patch product_path(product), params: {
+          product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+          variants: {"0" => {id: variant.id, _destroy: true}}
+        }
+      }.to change(Variant, :count).by(-1)
+
+      expect(Variant.exists?(variant_id)).to be false
+    end
+
+    it "deactivates a variant with sales when _destroy is true" do
+      variant = product.variants.find { |v| v.base_model? }
+      sale = create(:sale)
+      SaleItem.create!(product:, variant:, sale:, qty: 1)
+
+      patch product_path(product), params: {
+        product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+        variants: {"0" => {id: variant.id, _destroy: true}}
+      }
+
+      expect(variant.reload.deactivated_at).to be_present
+      expect(Variant.exists?(variant.id)).to be true
+    end
+  end
+
+  describe "DELETE /products/:id" do
+    it "destroys the product and redirects to index" do
+      product = create(:product)
+
+      expect {
+        delete product_path(product)
+      }.to change(Product, :count).by(-1)
+
+      expect(response).to redirect_to(products_path)
+    end
+  end
+
+  describe "ActionText description" do
+    let(:franchise) { create(:franchise) }
+
+    it "stores HTML content in the description" do
+      html = "<p>This is a <strong>premium</strong> collectible.</p>"
+      product = create(:product, franchise:, description: html)
+
+      expect(product.description.body.to_html.strip).to eq(html)
+    end
+
+    it "allows updating description with HTML via the controller" do
+      product = create(:product, franchise:)
+      html = "<p>Updated <em>description</em>.</p>"
+
+      patch product_path(product), params: {
+        product: {
+          title: product.title,
+          franchise_id: product.franchise_id,
+          shape: product.shape,
+          description: html
+        }
+      }
+
+      expect(product.reload.description.body.to_html.strip).to eq(html)
     end
   end
 end

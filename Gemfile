@@ -3,12 +3,10 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "4.0.2"
+ruby "4.0.5"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.x.x"
-
-# The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
 # Use postgresql as the database for Active Record
@@ -16,15 +14,6 @@ gem "pg", "~> 1.6"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 7.1.x"
-
-# Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
-gem "importmap-rails"
-
-# Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
-gem "turbo-rails"
-
-# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
-gem "stimulus-rails"
 
 # Use Redis adapter to run Action Cable in production
 gem "redis"
@@ -67,10 +56,9 @@ gem "kaminari"
 gem "friendly_id"
 
 gem "slim-rails"
-gem "requestjs-rails"
-gem "tailwindcss-rails"
-gem "inline_svg"
-gem "rails_heroicon"
+
+gem "vite_rails"
+gem "inertia_rails"
 
 gem "aws-sdk-s3", require: false
 gem "shopify_app"
@@ -108,6 +96,7 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "parallel_tests"
   gem "dotenv"
+  gem "js_from_routes", "~> 4.0"
 end
 
 group :development do
@@ -132,7 +121,6 @@ group :development do
   gem "prosopite"
   # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
-  gem "rubycritic", require: false
   gem "letter_opener"
   gem "rails-mcp-server"
   gem "ruby-lsp"
@@ -146,5 +134,4 @@ group :test do
   gem "shoulda-matchers"
   gem "rails-controller-testing"
   gem "vcr"
-  gem "simplecov", require: false
 end

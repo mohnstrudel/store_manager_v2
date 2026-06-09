@@ -7,10 +7,7 @@ module Products
     def create
       enqueue_push_job
 
-      respond_to do |format|
-        format.turbo_stream { flash.now[:notice] = notice_message }
-        format.html { redirect_back_or_to product_path(@product), notice: notice_message }
-      end
+      redirect_back_or_to product_path(@product), notice: notice_message
     end
 
     private
@@ -27,7 +24,7 @@ module Products
       "Product is being pushed to Shopify"
     end
 
-    def authorize_resourse
+    def authorize_resource
       authorize :product, :push_to_shopify?
     end
   end

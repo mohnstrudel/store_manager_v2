@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Dashboard::DebtsController, type: :controller do
+RSpec.describe Dashboard::DebtsController do
   before { sign_in_as_admin }
   after { log_out }
 

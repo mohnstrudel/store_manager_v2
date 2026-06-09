@@ -1,8 +1,0 @@
-= render "_shared/notice"
-= render "_shared/nav-index", model: @purchases
-
-section.section-border-base.section-wide data-controller="table move-items"
-  .search
-    = render partial: "_shared/search-form", locals: {path: purchases_path}
-    .pagination-top = paginate @purchases
-  = render "purchases/index/table", purchases: @purchases

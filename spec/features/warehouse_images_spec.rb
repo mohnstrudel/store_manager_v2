@@ -22,7 +22,8 @@ RSpec.describe "Warehouse Image Management" do
   scenario "adds multiple warehouse images", :js do # rubocop:todo RSpec/MultipleExpectations
     visit edit_warehouse_path(warehouse)
 
-    attach_file("warehouse[new_images][]", [first_image_path, second_image_path], visible: false)
+    find('[data-testid="new-images-input"]', visible: false).set([first_image_path, second_image_path])
+    expect(page).to have_css('[data-testid="image-pending-badge"]', count: 2, wait: 15)
 
     click_button "Update Warehouse"
 

@@ -8,7 +8,6 @@ RSpec.describe "Product Image Management" do
     create_test_image("test1.jpg")
     create_test_image("test2.jpg")
     create_test_image("test3.jpg")
-    create_test_image("replacement.jpg")
   }
 
   after {
@@ -16,20 +15,23 @@ RSpec.describe "Product Image Management" do
     cleanup_test_image("test1.jpg")
     cleanup_test_image("test2.jpg")
     cleanup_test_image("test3.jpg")
-    cleanup_test_image("replacement.jpg")
   }
 
   let!(:product) { create(:product) }
   let(:first_image_path) { Rails.root.join("tmp/test1.jpg") }
   let(:second_image_path) { Rails.root.join("tmp/test2.jpg") }
   let(:third_image_path) { Rails.root.join("tmp/test3.jpg") }
-  let(:replacement_image_path) { Rails.root.join("tmp/replacement.jpg") }
+
+  def attach_new_images(*paths)
+    find("[data-testid='new-images-input']", visible: false).set(paths.map(&:to_s))
+    # Wait for all uploads to finish — each successful upload renders a pending badge
+    expect(page).to have_css("[data-testid='image-pending-badge']", count: paths.size, wait: 15)
+  end
 
   scenario "adds three new images to a product", :js do # rubocop:todo RSpec/MultipleExpectations
     visit edit_product_path(product)
 
-    # Find the new_images file input and attach 3 images
-    attach_file("product[new_images][]", [first_image_path, second_image_path, third_image_path], visible: false)
+    attach_new_images(first_image_path, second_image_path, third_image_path)
 
     click_button "Update Product"
 
@@ -37,25 +39,15 @@ RSpec.describe "Product Image Management" do
     expect(product.reload.media.count).to eq(3)
   end
 
-  scenario "changes positions of existing images", :js do # rubocop:todo RSpec/MultipleExpectations
-    # Create 3 images with positions 0, 1, 2
-    media1 = create(:media, :for_product, mediaable: product, position: 0)
-    create(:media, :for_product, mediaable: product, position: 1)
-    create(:media, :for_product, mediaable: product, position: 2)
-
+  scenario "adds a single new image to a product", :js do # rubocop:todo RSpec/MultipleExpectations
     visit edit_product_path(product)
 
-    # Change position of first image to 2
-    first_input = all("input[name^='product[media]'][type='number']").first
-    first_input.set(2)
+    attach_new_images(first_image_path)
 
     click_button "Update Product"
 
     expect(page).to have_content("Product was successfully updated")
-
-    # Reload and verify positions changed
-    product.reload
-    expect(product.media.find(media1.id).position).to eq(2)
+    expect(product.reload.media.count).to eq(1)
   end
 
   scenario "removes an image", :js do # rubocop:todo RSpec/MultipleExpectations
@@ -64,8 +56,7 @@ RSpec.describe "Product Image Management" do
 
     visit edit_product_path(product)
 
-    # Click the Remove button on the first image
-    first("button[data-form-image-target='removeButton']").click
+    find("[data-testid='image-remove-btn']", match: :first).click
 
     click_button "Update Product"
 
@@ -74,51 +65,22 @@ RSpec.describe "Product Image Management" do
     expect(product.media.pluck(:id)).not_to include(media1.id)
   end
 
-  scenario "replaces an image", :js do # rubocop:todo RSpec/MultipleExpectations
-    media1 = create(:media, :for_product, mediaable: product, position: 0)
-
-    visit edit_product_path(product)
-
-    # Click Replace button and attach new file
-    all("button[data-form-image-target='replaceButton']").first.click
-    attach_file("product[media][0][image]", replacement_image_path, visible: false)
-
-    click_button "Update Product"
-
-    expect(page).to have_content("Product was successfully updated")
-
-    # Verify image was replaced (filename changes)
-    media1.reload
-    expect(media1.image.filename.to_s).to eq("replacement.jpg")
-  end
-
-  scenario "handles complex workflow: add, remove, replace, and reorder", :js do # rubocop:todo RSpec/MultipleExpectations
-    # Start with 2 existing images
+  scenario "adds a new image and removes an existing one in the same save", :js do # rubocop:todo RSpec/MultipleExpectations
     media1 = create(:media, :for_product, mediaable: product, position: 0)
     create(:media, :for_product, mediaable: product, position: 1)
 
     visit edit_product_path(product)
 
-    # Add new image
-    attach_file("product[new_images][]", first_image_path, visible: false)
+    attach_new_images(first_image_path)
 
-    # Remove first existing image
-    first("button[data-form-image-target='removeButton']").click
-
-    # Replace second image
-    all("button[data-form-image-target='replaceButton']").first.click
-    attach_file("product[media][1][image]", replacement_image_path, visible: false)
-
-    # Change position of remaining image
-    all("input[name^='product[media]'][type='number']").first.set(5)
+    find("[data-testid='image-remove-btn']", match: :first).click
 
     click_button "Update Product"
 
     expect(page).to have_content("Product was successfully updated")
 
-    # Verify final state
     product.reload
     expect(product.media.count).to eq(2) # 1 remaining + 1 new
-    expect(product.media.pluck(:id)).not_to include(media1.id) # First removed
+    expect(product.media.pluck(:id)).not_to include(media1.id)
   end
 end

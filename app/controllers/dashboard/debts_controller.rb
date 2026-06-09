@@ -7,7 +7,7 @@ module Dashboard
     def show
       @unpaid_purchases = Purchase.unpaid.includes(:supplier)
       @debts = if params[:q].present?
-        search_query = params[:q].downcase
+        search_query = params.expect(:q).downcase
         sale_debts.select do |product|
           product.full_title&.downcase&.include?(search_query) ||
             product.variants.any? do |variant|
@@ -19,12 +19,16 @@ module Dashboard
       end
       @debts = Kaminari.paginate_array(@debts).page(params[:page]).per(25)
 
-      render "dashboard/debts"
+      render inertia: "Dashboard/Debts", props: helpers.dashboard_debts_props(
+        @debts,
+        unpaid_purchases: @unpaid_purchases,
+        search: {q: params[:q].to_s}
+      )
     end
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :dashboard, :debts?
     end
   end

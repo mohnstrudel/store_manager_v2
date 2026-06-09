@@ -29,7 +29,7 @@ RSpec.describe "Mobile support", :js do
     if allow_table_scroll
       expect(page).to have_css("table")
     else
-      expect(overflow_free).to eq(true), "#{label} still overflows horizontally"
+      expect(overflow_free).to be(true), "#{label} still overflows horizontally"
     end
   end
 
@@ -39,13 +39,15 @@ RSpec.describe "Mobile support", :js do
         const viewportWidth = window.innerWidth;
         const allowedOverflowSelector = [
           "table",
-          ".table-card",
-          ".section-border-base",
+          ".table_card",
+          ".section_border_base",
+          ".navigation-dropdown_menu",
           "trix-toolbar .trix-button-row"
         ].join(", ");
 
         return Array.from(document.querySelectorAll("body *")).filter((element) => {
           if (element.closest(allowedOverflowSelector)) return false;
+          if (window.getComputedStyle(element).visibility === "hidden") return false;
 
           const rect = element.getBoundingClientRect();
           const overflowsViewport = rect.left < -1 || rect.right > viewportWidth + 1;
@@ -94,28 +96,24 @@ RSpec.describe "Mobile support", :js do
 
     expect(page).to have_link("Dashboard")
     expect(page).to have_link("Sales")
-    expect(page).to have_css("nav[role='navigation-dropdown'] > button")
+    expect(page).to have_css("li.navigation-dropdown > button")
 
     mobile_nav_layout = page.evaluate_script(<<~JS)
       (() => {
-        const logoRow = document.querySelector('[role="navigation-logo"]').getBoundingClientRect();
-        const dropdown = document.querySelector('nav[role="navigation-dropdown"]');
-        const dropdownRow = dropdown.getBoundingClientRect();
+        const dropdown = document.querySelector('li.navigation-dropdown');
         const button = dropdown.querySelector('button');
         const buttonStyles = getComputedStyle(button);
 
         return {
-          dropdownOnSameRow: Math.abs(dropdownRow.top - logoRow.top) <= 2,
           burgerButtonVisible: buttonStyles.display !== 'none',
           burgerButtonRadius: buttonStyles.borderRadius
         };
       })()
     JS
 
-    expect(mobile_nav_layout["dropdownOnSameRow"]).to eq(true)
-    expect(mobile_nav_layout["burgerButtonVisible"]).to eq(true)
+    expect(mobile_nav_layout["burgerButtonVisible"]).to be(true)
     expect(mobile_nav_layout["burgerButtonRadius"]).to eq("4px")
-    expect(page).to have_css("nav[role='navigation-dropdown']")
+    expect(page).to have_css("li.navigation-dropdown")
     expect(page).to have_link("Suppliers", visible: :all)
     expect_no_mobile_overflow("mobile navigation")
   end

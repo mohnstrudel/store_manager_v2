@@ -6,7 +6,16 @@ module PurchaseItem::Warehousing
   NOTHING_MOVED = 0
   WarehouseMovement = Data.define(:moved_in, :warehouse)
 
+  included do
+    before_validation :set_initial_warehouse_arrived_at, on: :create
+    before_update :refresh_warehouse_arrived_at, if: :will_save_change_to_warehouse_id?
+  end
+
   class_methods do
+    def ordered_by_current_warehouse_entry
+      order(warehouse_arrived_at: :desc, id: :desc)
+    end
+
     def move_to_warehouse!(purchase_item_ids:, warehouse_id:)
       warehouse_id = warehouse_id.to_i
       purchase_items = where(id: purchase_item_ids).to_a
@@ -36,7 +45,7 @@ module PurchaseItem::Warehousing
     update!(warehouse_id:)
   end
 
-  def warehouse_movements
+  def warehouse_movements(warehouses_by_id: nil)
     movement_data = audits.each_with_object([]) do |audit, rows|
       moved_warehouse_id = moved_warehouse_id_for(audit)
       next if moved_warehouse_id.blank?
@@ -44,7 +53,7 @@ module PurchaseItem::Warehousing
       rows << {moved_in: audit.created_at, warehouse_id: moved_warehouse_id}
     end
 
-    warehouses_by_id = Warehouse
+    warehouses_by_id ||= Warehouse
       .where(id: movement_data.pluck(:warehouse_id))
       .index_by(&:id)
 
@@ -56,7 +65,22 @@ module PurchaseItem::Warehousing
     end
   end
 
+  def current_warehouse_arrived_at
+    warehouse_movements
+      .select { |movement| movement.warehouse&.id == warehouse_id }
+      .map(&:moved_in)
+      .max || created_at || Time.current
+  end
+
   private
+
+  def set_initial_warehouse_arrived_at
+    self.warehouse_arrived_at ||= current_warehouse_arrived_at
+  end
+
+  def refresh_warehouse_arrived_at
+    self.warehouse_arrived_at = Time.current
+  end
 
   def moved_warehouse_id_for(audit)
     change = audit.audited_changes["warehouse_id"]

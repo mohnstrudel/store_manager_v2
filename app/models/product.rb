@@ -40,7 +40,6 @@ class Product < ApplicationRecord
   audited associated_with: :franchise
   has_associated_audits
 
-  broadcasts_refreshes
   friendly_id :find_slug_candidate, use: :slugged
   paginates_per 50
 

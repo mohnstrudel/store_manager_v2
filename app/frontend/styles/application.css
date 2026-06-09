@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@import "./application/theme";
+@import "./application/base";
+@import "./application/buttons";
+@import "./application/forms";
+@import "./application/tables";
+@import "./application/icons";
+@import "./application/navigation";
+@import "./application/pagination";
+@import "./application/images";
+@import "./application/layout";
+@import "./application/cards";
+@import "./application/gallery";
+@import "./application/dialogs";
+@import "./application/widgets";
+@import "./application/tabs";
+@import "./application/breadcrumbs";
+@import "./application/rich-text";

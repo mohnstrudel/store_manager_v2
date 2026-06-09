@@ -55,6 +55,7 @@ class Purchase < ApplicationRecord
   validates :amount, presence: true
   validates :item_price, presence: true
   validates :supplier_id, presence: true
+  validate :product_or_variant_present, on: :create
 
   db_belongs_to :supplier, inverse_of: :purchases
 
@@ -69,4 +70,10 @@ class Purchase < ApplicationRecord
   has_many :sizes, through: :variant
   has_many :versions, through: :variant
   has_many :colors, through: :variant
+
+  private
+
+  def product_or_variant_present
+    errors.add(:base, "must have a product or variant") unless product_id? || variant_id?
+  end
 end

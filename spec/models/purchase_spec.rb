@@ -47,6 +47,32 @@ RSpec.describe Purchase do
 
       it { is_expected.not_to be_valid }
     end
+
+    describe "product or variant presence (on create)" do
+      let(:supplier) { create(:supplier) }
+      subject(:purchase) { Purchase.new(amount: 10, item_price: BigDecimal("100.0"), supplier:) }
+
+      context "when neither product nor variant is set" do
+        it { is_expected.not_to be_valid }
+
+        it "adds an error on base" do
+          purchase.valid?
+          expect(purchase.errors[:base]).to include("must have a product or variant")
+        end
+      end
+
+      context "when only variant_id is present" do
+        before { purchase.variant = create(:variant) }
+
+        it { is_expected.to be_valid }
+      end
+
+      context "when only product_id is present" do
+        before { purchase.product = create(:product) }
+
+        it { is_expected.to be_valid }
+      end
+    end
   end
 
   describe "Associations" do
@@ -221,7 +247,7 @@ RSpec.describe Purchase do
     end
 
     it "returns all records when query is blank" do
-      expect(described_class.search_by("")).to match_array([purchase, other_purchase])
+      expect(described_class.search_by("")).to contain_exactly(purchase, other_purchase)
     end
 
     it "returns empty result for non-matching query" do

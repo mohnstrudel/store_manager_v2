@@ -14,7 +14,7 @@ module Dashboard
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :dashboard, :pull_last_orders?
     end
   end

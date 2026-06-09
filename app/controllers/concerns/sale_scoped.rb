@@ -10,6 +10,6 @@ module SaleScoped
   private
 
   def set_sale
-    @sale = Sale.friendly.find(params[:sale_id])
+    @sale = Sale.friendly.find(params.expect(:sale_id))
   end
 end

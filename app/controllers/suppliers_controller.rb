@@ -6,20 +6,34 @@ class SuppliersController < ApplicationController
   # GET /suppliers or /suppliers.json
   def index
     @suppliers = Supplier.order(:title)
+
+    return unless stale?(etag: [@suppliers, request.inertia?], last_modified: @suppliers.maximum(:updated_at))
+
+    render inertia: "Suppliers/Index", props: {
+      suppliers: @suppliers.map { |supplier| helpers.supplier_props(supplier) }
+    }
   end
 
   # GET /suppliers/1 or /suppliers/1.json
   def show
     @purchases = @supplier.purchases.for_supplier_details
+
+    render inertia: "Suppliers/Show", props: {
+      purchases: @purchases.map { |purchase| helpers.supplier_purchase_props(purchase) },
+      supplier: helpers.supplier_props(@supplier)
+    }
   end
 
   # GET /suppliers/new
   def new
     @supplier = Supplier.new
+
+    render inertia: "Suppliers/New", props: helpers.supplier_form_props(@supplier)
   end
 
   # GET /suppliers/1/edit
   def edit
+    render inertia: "Suppliers/Edit", props: helpers.supplier_form_props(@supplier)
   end
 
   # POST /suppliers or /suppliers.json
@@ -31,7 +45,7 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully created" }
         format.json { render :show, status: :created, location: @supplier }
       else
-        format.html { render :new, status: :unprocessable_content }
+        format.html { redirect_to new_supplier_url, inertia: inertia_errors(@supplier.errors) }
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -44,7 +58,7 @@ class SuppliersController < ApplicationController
         format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated" }
         format.json { render :show, status: :ok, location: @supplier }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html { redirect_to edit_supplier_url(@supplier.reload), inertia: inertia_errors(@supplier.errors) }
         format.json { render json: @supplier.errors, status: :unprocessable_content }
       end
     end
@@ -64,7 +78,7 @@ class SuppliersController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_supplier
-    @supplier = Supplier.friendly.find(params[:id])
+    @supplier = Supplier.friendly.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.

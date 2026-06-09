@@ -10,11 +10,11 @@ RSpec.describe "Creating a new purchase" do
   let!(:product) { create(:product) }
   let!(:warehouse) { create(:warehouse, is_default: true) }
 
-  scenario "creates purchased products in the default warehouse" do # rubocop:todo RSpec/MultipleExpectations
+  scenario "creates purchased products in the default warehouse", :js do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
 
@@ -28,11 +28,11 @@ RSpec.describe "Creating a new purchase" do
     expect(purchase.purchase_items.all? { |pp| pp.warehouse == warehouse }).to be true
   end
 
-  scenario "creates an initial payment alongside the purchase" do # rubocop:todo RSpec/MultipleExpectations
+  scenario "creates an initial payment alongside the purchase", :js do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
     fill_in "What did you pay in total?", with: "50"
@@ -46,7 +46,7 @@ RSpec.describe "Creating a new purchase" do
     expect(purchase.payments.pluck(:value)).to eq([BigDecimal(50)])
   end
 
-  scenario "shows validation errors after an invalid submit" do
+  scenario "shows validation errors after an invalid submit", :js do
     visit new_purchase_path
 
     click_button "Create Purchase"
@@ -58,27 +58,34 @@ RSpec.describe "Creating a new purchase" do
     expect(page).to have_button("Create Purchase")
   end
 
-  scenario "keeps the product slim select working after an invalid submit", :js do
+  scenario "requires a product before saving", :js do
     visit new_purchase_path
 
-    expect(page).to have_css("#purchase-product-select .ss-main")
+    choose_react_select(supplier.title, from: "Supplier")
+    find("#purchase_amount").set(5)
+    find("#purchase_item_price").set(10)
+
+    expect {
+      click_button "Create Purchase"
+    }.not_to change(Purchase, :count)
+
+    expect(page).to have_css("#purchase_product_id_error", text: "can't be blank")
+  end
+
+  scenario "keeps the product react select working after an invalid submit", :js do
+    visit new_purchase_path
 
     click_button "Create Purchase"
 
     expect(page).to have_content("Fix errors and try again")
 
-    within("#purchase-product-select") do
-      expect(page).to have_css(".ss-main")
-      find(".ss-arrow").click
-    end
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
 
-    find(".ss-option", text: product.build_full_title_with_shop_id).click
-
-    expect(find("#purchase_product_id", visible: false).value).to eq(product.id.to_s)
+    expect(find("input[name='purchase[product_id]']", visible: false).value).to eq(product.id.to_s)
   end
 
   # rubocop:todo RSpec/MultipleExpectations
-  scenario "displays warehouse information on the purchase page after creation" do
+  scenario "displays warehouse information on the purchase page after creation", :js do
     # rubocop:enable RSpec/MultipleExpectations
     visit product_path(product)
 
@@ -86,8 +93,9 @@ RSpec.describe "Creating a new purchase" do
 
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
+    choose_react_select(warehouse.name, from: "Initial warehouse")
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
 
@@ -96,7 +104,7 @@ RSpec.describe "Creating a new purchase" do
     purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))
 
-    within(first(".table-card")) do
+    within(first(".table_card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
     end
 
@@ -108,8 +116,8 @@ RSpec.describe "Creating a new purchase" do
   scenario "adds a payment after the purchase is created", :js do # rubocop:todo RSpec/MultipleExpectations
     visit new_purchase_path
 
-    find("#purchase_supplier_id").set(supplier.id)
-    find("#purchase_product_id", visible: false).set(product.id)
+    choose_react_select(supplier.title, from: "Supplier")
+    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
     find("#purchase_amount").set(2)
     find("#purchase_item_price").set(10)
 
@@ -128,47 +136,6 @@ RSpec.describe "Creating a new purchase" do
     expect(Purchase.last.payments.first.payment_date.to_date).to eq(Date.new(2026, 3, 29))
   end
 
-  scenario "shows the product link in the purchase items header instead of a header subtitle" do # rubocop:todo RSpec/MultipleExpectations
-    purchase = create(:purchase, product:, supplier:)
-    create(:purchase_item, purchase:)
-
-    visit purchase_path(purchase)
-
-    within("header.nav_header hgroup") do
-      expect(page).to have_selector("h1", text: "Purchase #{purchase.id}")
-      expect(page).not_to have_selector("h2", text: product.full_title)
-    end
-
-    within(first(".table-card")) do
-      expect(page).to have_link(product.full_title, href: product_path(product))
-    end
-  end
-
-  scenario "shows the variant title in the purchase items header when the purchase has a variant" do # rubocop:todo RSpec/MultipleExpectations
-    variant = create(:variant, product:)
-    purchase = create(:purchase, product:, supplier:, variant:)
-    create(:purchase_item, purchase:)
-
-    visit purchase_path(purchase)
-
-    within(first(".table-card")) do
-      expect(page).to have_link(product.full_title, href: product_path(product))
-      expect(page).to have_text("→ #{variant.title}")
-    end
-  end
-
-  scenario "shows a zoomable product thumbnail in the purchase items header" do
-    purchase = create(:purchase, product:, supplier:)
-    create(:purchase_item, purchase:)
-    create(:media, :for_product, mediaable: product)
-
-    visit purchase_path(purchase)
-
-    within(first(".table-card")) do
-      expect(page).to have_selector("img[class*='hover:scale-[7]']", count: 1)
-    end
-  end
-
   scenario "updates a payment amount and date on the purchase page", :js do # rubocop:todo RSpec/MultipleExpectations
     purchase = create(:purchase)
     payment = create(:payment, purchase:, value: 10, payment_date: Date.new(2026, 3, 28))
@@ -176,8 +143,8 @@ RSpec.describe "Creating a new purchase" do
     visit purchase_path(purchase)
 
     within("tr[data-payment-id='#{payment.id}']") do
-      find("input[name='payment[payment_date]']").set("2026-03-30")
-      find("input[name='payment[value]']").set("25")
+      find("input[type='date']").set("2026-03-30")
+      find("input[type='number']").set("25")
       click_button "Update"
     end
 

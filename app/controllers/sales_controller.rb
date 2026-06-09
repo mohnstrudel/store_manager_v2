@@ -3,7 +3,6 @@
 class SalesController < ApplicationController
   before_action :set_sale_for_show, only: :show
   before_action :set_sale, only: %i[edit update destroy]
-  before_action :prepare_form_options, only: %i[new edit]
 
   # GET /sales
   def index
@@ -13,21 +12,34 @@ class SalesController < ApplicationController
       .ordered_by_shop_created_at
       .search_by(params[:q])
       .page(params[:page])
+
+    return unless stale?(etag: [@sales, request.inertia?], last_modified: @sales.maximum(:updated_at))
+
+    render inertia: "Sales/Index", props: {
+      sales: @sales.map { |sale| helpers.sale_listing_props(sale) },
+      pagination: helpers.pagination_props(@sales),
+      search: {q: params[:q].to_s},
+      last_sync_at: helpers.format_last_fetched_at(Config.shopify_sales_sync_at),
+      last_sync_time: Config.shopify_sales_sync_time
+    }
   end
 
   # GET /sales/1
   def show
-    @sale_items = @sale.sale_items
+    render inertia: "Sales/Show", props: {
+      sale: helpers.sale_showing_props(@sale)
+    }
   end
 
   # GET /sales/new
   def new
     @sale = Sale.new
-    @sale_items = []
+    render inertia: "Sales/New", props: helpers.sale_form_props(@sale)
   end
 
   # GET /sales/1/edit
   def edit
+    render inertia: "Sales/Edit", props: helpers.sale_form_props(@sale)
   end
 
   # POST /sales
@@ -43,7 +55,8 @@ class SalesController < ApplicationController
     )
     redirect_to @sale, notice: "Sale was successfully created"
   rescue ActiveRecord::RecordInvalid => e
-    handle_failed_submit(:new, payload, e.record)
+    append_sale_item_errors(e.record)
+    redirect_to new_sale_url, inertia: inertia_errors(@sale.errors)
   end
 
   # PATCH/PUT /sales/1
@@ -58,7 +71,8 @@ class SalesController < ApplicationController
     )
     redirect_to @sale, notice: "Sale was successfully updated"
   rescue ActiveRecord::RecordInvalid => e
-    handle_failed_submit(:edit, payload, e.record)
+    append_sale_item_errors(e.record)
+    redirect_to edit_sale_url(@sale), inertia: inertia_errors(@sale.errors)
   end
 
   # DELETE /sales/1
@@ -69,26 +83,12 @@ class SalesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
   def set_sale_for_show
-    @sale = Sale.for_details.friendly.find(params[:id])
+    @sale = Sale.for_details.friendly.find(params.expect(:id))
   end
 
   def set_sale
-    @sale = Sale.friendly.find(params[:id])
-  end
-
-  def prepare_form_options
-    @customer_options = Customer.order(:email)
-    @product_shop_options = Product.with_store_references
-  end
-
-  def handle_failed_submit(template, payload, record)
-    @sale.assign_attributes(payload.sale_attributes)
-    append_sale_item_errors(record)
-    @sale_items = payload.rebuild_submitted_sale_items(sale: @sale, invalid_record: record)
-    prepare_form_options
-    render template, status: :unprocessable_content
+    @sale = Sale.for_edit.friendly.find(params.expect(:id))
   end
 
   def append_sale_item_errors(record)

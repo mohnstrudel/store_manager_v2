@@ -32,4 +32,12 @@ class PurchaseItemPolicy < ApplicationPolicy
   def update_shipping_company?
     admin?
   end
+
+  def update_shipping_cost?
+    admin?
+  end
+
+  def update_shipping_details?
+    admin?
+  end
 end

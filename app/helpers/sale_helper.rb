@@ -1,6 +1,55 @@
 # frozen_string_literal: true
 
 module SaleHelper
+  def sale_listing_props(sale)
+    sale_base_props(sale).merge(
+      customer_name: sale.customer.full_name,
+      customer_email: sale.customer.email,
+      sale_items: sale.sale_items.map { |item| sale_index_item_props(item) }
+    )
+  end
+
+  def sale_showing_props(sale)
+    sale_base_props(sale).merge(
+      edit_path: edit_sale_path(sale),
+      can_link_purchase_items: (sale.active? || sale.completed?) && sale.unlinked_sale_items?,
+      link_purchase_items_path: sale_purchase_item_link_path(sale),
+      pull_path: sale_pull_path(sale),
+      shop_admin_url: sale_shop_link(sale),
+      customer: sale_customer_props(sale.customer),
+      shipping_address: sale_address_props(sale.shipping_address),
+      billing_address: sale_address_props(sale.billing_address),
+      billing_differs_from_shipping: sale.billing_differs_from_shipping?,
+      note: sale.note,
+      discount_total: format_money(sale.discount_total),
+      shipping_total: format_money(sale.shipping_total),
+      sale_items: sale.sale_items.map { |item| sale_show_item_props(item) }
+    )
+  end
+
+  def sale_form_props(sale)
+    {
+      sale: {
+        id: sale.id,
+        path: sale.persisted? ? sale_path(sale) : "",
+        status: sale.status,
+        customer_id: sale.customer_id,
+        note: sale.note,
+        total: sale.total.to_s,
+        discount_total: sale.discount_total.to_s,
+        shipping_total: sale.shipping_total.to_s,
+        shipping_address: sale_address_form_props(sale.shipping_address),
+        billing_address: sale_address_form_props(sale.billing_address),
+        sale_items: sale.sale_items.map { |item| sale_form_item_props(item) }
+      },
+      options: {
+        customers: Customer.order(:email).map { |c| {value: c.id, label: c.name_and_email} },
+        products: Product.with_store_references.map { |p| {value: p.id, label: p.build_full_title_with_shop_id} },
+        status_names: Sale.status_names
+      }
+    }
+  end
+
   def sale_summary_for_warehouse(sale)
     address = sale.shipping_address
 
@@ -28,36 +77,135 @@ module SaleHelper
     ].compact_blank.join("\n")
   end
 
-  def format_sale_status(status)
-    status_title = status.titleize
-
-    if Sale.active_status_names.include? status
-      content_tag(:span, status_title, class: "text-lime-700")
-    else
-      content_tag(:span, status_title, class: "text-red-900")
-    end
+  def sale_item_props(sale_item)
+    {
+      id: sale_item.id,
+      title: format_show_page_title(sale_item),
+      qty: sale_item.qty.to_i,
+      price: format_money(sale_item.price),
+      product_path: product_path(sale_item.product),
+      sale_path: sale_path(sale_item.sale)
+    }
   end
 
-  def shop_admin_link(sale)
-    return if sale.blank?
+  def sale_item_purchase_item_props(purchase_item)
+    {
+      id: purchase_item.id,
+      path: purchase_item_path(purchase_item),
+      edit_path: edit_purchase_item_path(purchase_item, redirect_to_sale_item: true),
+      unlink_path: purchase_item_sale_item_link_path(purchase_item),
+      warehouse_name: purchase_item.warehouse.name,
+      size: format_item_size(purchase_item),
+      weight: purchase_item.weight.to_s,
+      expenses: format_money(purchase_item.expenses),
+      shipping_cost: format_money(purchase_item.shipping_cost)
+    }
+  end
 
-    platform = sale.shopify_info&.store_id&.present? ? "Shopify" : "WooCommerce"
-    link_to sale_shop_link(sale), class: "no-events", target: "_blank", rel: "noopener noreferrer" do
-      concat tag.svg(
-        xmlns: "http://www.w3.org/2000/svg",
-        fill: "none",
-        viewBox: "0 0 24 24",
-        stroke_width: "1.5",
-        stroke: "currentColor",
-        class: "size-5"
-      ) {
-        tag.path(
-          stroke_linecap: "round",
-          stroke_linejoin: "round",
-          d: "M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
-        )
+  private
+
+  def sale_base_props(sale)
+    {
+      id: sale.id,
+      path: sale_path(sale),
+      status: sale.status,
+      active: sale.active?,
+      completed: sale.completed?,
+      total: format_money(sale.total),
+      created_at: format_date(sale.shop_created_at.presence || sale.created_at),
+      updated_at: format_date(sale.shop_updated_at.presence || sale.updated_at),
+      shopify_name: sale.shopify_name,
+      shopify_id: sale.shopify_id,
+      shopify_id_short: sale.shopify_info&.id_short,
+      woo_store_id: sale.woo_store_id,
+      shop_identifier: sale.shop_identifier
+    }
+  end
+
+  def sale_customer_props(customer)
+    {
+      id: customer.id,
+      path: customer_path(customer),
+      first_name: customer.first_name,
+      last_name: customer.last_name,
+      full_name: customer.full_name,
+      email: customer.email,
+      shopify_id_short: customer.shopify_info&.id_short,
+      shop_admin_url: customer_shop_link(customer)
+    }
+  end
+
+  def sale_address_props(address)
+    return nil unless address
+
+    {
+      address_1: address.address_1,
+      address_2: address.address_2,
+      city: address.city,
+      company: address.company,
+      country: address.country,
+      email: address.email,
+      first_name: address.first_name,
+      last_name: address.last_name,
+      phone: address.phone,
+      postcode: address.postcode,
+      state: address.state
+    }
+  end
+
+  def sale_address_form_props(address)
+    Sale::Addresses::ADDRESS_ATTRIBUTES.index_with { |attr|
+      address&.public_send(attr)
+    }
+  end
+
+  def sale_index_item_props(item)
+    {
+      id: item.id,
+      title: item.title,
+      qty: item.qty,
+      purchased_count: item.purchase_items.size,
+      product_thumb_url: thumb_url(item.product),
+      purchase_items: item.purchase_items.map { |pi|
+        {
+          id: pi.id,
+          path: purchase_item_path(pi),
+          warehouse_name: pi.warehouse.name,
+          expenses: format_money(pi.expenses)
+        }
       }
-      concat " Go to #{platform}"
-    end
+    }
+  end
+
+  def sale_show_item_props(item)
+    {
+      id: item.id,
+      title: item.title,
+      price: format_money(item.price),
+      qty: item.qty,
+      product_path: product_path(item.product),
+      product_thumb_url: thumb_url(item.product),
+      purchase_items: item.purchase_items.map { |pi| sale_show_purchase_item_props(pi) }
+    }
+  end
+
+  def sale_show_purchase_item_props(pi)
+    {
+      id: pi.id,
+      path: purchase_path(pi.purchase),
+      supplier_title: pi.purchase.supplier.title,
+      purchase_date: format_date(pi.purchase.date),
+      item_price: format_money(pi.purchase.item_price),
+      unlink_path: purchase_item_sale_item_link_path(pi),
+      current_warehouse_name: pi.warehouse.name,
+      current_warehouse_path: warehouse_path(pi.warehouse, selected: pi.id, anchor: pi.id),
+      warehouse_movements: pi.warehouse_movements.sort_by(&:moved_in).reverse.map { |m|
+        {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
+      }
+    }
+  end
+
+  def sale_form_item_props(item)
+    {id: item.id, product_id: item.product_id, qty: item.qty.to_s, price: item.price.to_s, _destroy: false}
   end
 end

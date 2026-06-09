@@ -17,91 +17,129 @@ RSpec.describe "Gallery", :js do
     attach_gallery_images_to(product)
 
     visit product_path(product)
-    mark_gallery_images_as_loaded
 
-    expect(page).to have_css("[data-controller='gallery']")
-    expect(page).to have_no_css(".gallery-thumb__frame.loading")
-    expect(page).to have_no_css(".gallery-main__frame.loading")
+    expect(page).to have_css(".gallery_nav")
+    expect(page).to have_css(".gallery_thumb[data-active]")
+    expect(page).to have_no_css(".gallery_thumb__image.hidden", wait: 10)
+    expect(page).to have_no_css(".gallery_main__image.hidden", wait: 10)
 
     geometry = page.evaluate_script(<<~JS)
       (() => {
-        const thumbFrame = document.querySelector(".gallery-thumb__frame")
-        const thumbImage = document.querySelector(".gallery-thumb__image")
-        const mainFrame = document.querySelector(".gallery-main__frame")
-        const mainImage = document.querySelector(".gallery-main__image")
+        const thumbFrame = document.querySelector(".gallery_thumb__frame")
+        const mainFrame = document.querySelector(".gallery_main__frame")
+        const mainImage = document.querySelector(".gallery_main__image")
 
         return {
           thumbFrameHeight: thumbFrame.getBoundingClientRect().height,
-          thumbImageHeight: thumbImage.getBoundingClientRect().height,
           mainFrameHeight: mainFrame.getBoundingClientRect().height,
-          mainImageHeight: mainImage.getBoundingClientRect().height
+          mainImageSrc: mainImage.getAttribute("src") || ""
         }
       })()
     JS
 
     aggregate_failures do
       expect(geometry["thumbFrameHeight"]).to be >= 80
-      expect(geometry["thumbImageHeight"]).to be_within(1.0).of(geometry["thumbFrameHeight"])
       expect(geometry["mainFrameHeight"]).to be > 0
-      expect(geometry["mainImageHeight"]).to be_within(1.0).of(geometry["mainFrameHeight"])
+      expect(geometry["mainImageSrc"]).to be_present
     end
   end
 
   # rubocop:todo RSpec/MultipleExpectations
-  scenario "shows a visible loading state while switching gallery images" do
+  scenario "tracks the active preview and scrolls it into view while switching images" do
     product = create(:product)
     attach_gallery_images_to(product)
 
     visit product_path(product)
-    mark_gallery_images_as_loaded
 
-    expect(page).to have_css("[data-controller='gallery']")
-    expect(page).to have_no_css(".gallery-main__frame.loading")
+    expect(page).to have_css(".gallery_nav")
 
     initial_state = page.evaluate_script(<<~JS)
       (() => {
-        const mainFrame = document.querySelector(".gallery-main__frame")
-        const mainImage = document.querySelector("[data-gallery-target='main']")
+        const mainImage = document.querySelector(".gallery_main__image")
 
         return {
-          height: mainFrame.getBoundingClientRect().height,
-          src: mainImage.src
+          activeThumbSrc: document.querySelector(".gallery_thumb[data-active] img").src,
+          src: mainImage.src,
+          scrollCalls: window.__galleryScrollCalls || []
         }
       })()
     JS
 
     page.execute_script(<<~JS)
       (() => {
-        const element = document.querySelector("[data-controller='gallery']")
-        const controller = window.Stimulus.getControllerForElementAndIdentifier(element, "gallery")
-        if (!controller) throw new Error("Gallery controller not found")
-
-        controller.loadCurrentImage = function() {
-          const selectedSlide = this.currentSlide
-          if (!selectedSlide) return
-
-          this.startMainLoading()
-
-          setTimeout(() => {
-            this.mainTarget.src = selectedSlide.dataset.preview
-            this.mainTarget.alt = selectedSlide.dataset.alt || this.mainTarget.alt
-            this.finishMainLoading()
-          }, 300)
+        window.__galleryScrollCalls = []
+        Element.prototype.scrollIntoView = function(options) {
+          window.__galleryScrollCalls.push({
+            active: this.hasAttribute("data-active"),
+            className: this.className,
+            options
+          })
         }
       })()
     JS
 
-    find(".gallery-btn.right-0").click
+    find(".gallery_btn.right-0").click
 
-    expect(page).to have_css(".gallery-main__frame.loading")
+    final_state = page.evaluate_script(<<~JS)
+      (() => ({
+        activeThumbSrc: document.querySelector(".gallery_thumb[data-active] img").src,
+        src: document.querySelector(".gallery_main__image").src,
+        scrollCalls: window.__galleryScrollCalls
+      }))()
+    JS
 
-    loading_height = page.evaluate_script("document.querySelector('.gallery-main__frame').getBoundingClientRect().height")
-    expect(loading_height).to be_within(1.0).of(initial_state["height"])
+    aggregate_failures do
+      expect(final_state["activeThumbSrc"]).not_to eq(initial_state["activeThumbSrc"])
+      expect(final_state["src"]).not_to eq(initial_state["src"])
+      expect(final_state["scrollCalls"].last["active"]).to be(true)
+      expect(final_state["scrollCalls"].last["options"]).to include(
+        "behavior" => "smooth",
+        "block" => "nearest",
+        "inline" => "start"
+      )
+    end
+  end
+  # rubocop:enable RSpec/MultipleExpectations
 
-    expect(page).to have_no_css(".gallery-main__frame.loading")
+  # rubocop:todo RSpec/MultipleExpectations
+  scenario "keeps a single product image from stretching the layout" do
+    page.driver.resize(1440, 1200)
 
-    final_src = page.evaluate_script("document.querySelector('[data-gallery-target=\"main\"]').src")
-    expect(final_src).not_to eq(initial_state["src"])
+    product = create(:product)
+    attach_single_gallery_image_to(product)
+
+    visit product_path(product)
+
+    expect(page).to have_css(".gallery_viewbox")
+    expect(page).to have_no_css(".gallery_viewbox[data-loading]", wait: 10)
+
+    geometry = page.evaluate_script(<<~JS)
+      (() => {
+        const viewbox = document.querySelector(".gallery_viewbox")
+        const detailCard = document.querySelector(".cards .card")
+        const mainImage = document.querySelector(".gallery_main__image")
+        const viewboxRect = viewbox.getBoundingClientRect()
+
+        return {
+          detailCardLeft: detailCard.getBoundingClientRect().left,
+          viewboxHeight: viewboxRect.height,
+          viewboxRatio: viewboxRect.width / viewboxRect.height,
+          viewboxRight: viewboxRect.right,
+          viewboxWidth: viewboxRect.width,
+          mainImageWidth: mainImage.getBoundingClientRect().width,
+          mainImageHeight: mainImage.getBoundingClientRect().height
+        }
+      })()
+    JS
+
+    aggregate_failures do
+      expect(geometry["viewboxWidth"]).to be_within(1.0).of(3)
+      expect(geometry["viewboxHeight"]).to be_within(1.0).of(4)
+      expect(geometry["viewboxRatio"]).to be_within(0.05).of(0.75)
+      expect(geometry["mainImageWidth"]).to be_within(1.0).of(1)
+      expect(geometry["mainImageHeight"]).to be_within(1.0).of(2)
+      expect(geometry["detailCardLeft"]).to be > geometry["viewboxRight"]
+    end
   end
   # rubocop:enable RSpec/MultipleExpectations
 
@@ -113,6 +151,12 @@ RSpec.describe "Gallery", :js do
       attach_image_to(create(:media, :for_product, mediaable: product), "gallery-1.png"),
       attach_image_to(create(:media, :for_product, mediaable: product), "gallery-2.png")
     ]
+  end
+
+  def attach_single_gallery_image_to(product)
+    create_valid_tall_test_png("gallery-1.png")
+
+    attach_image_to(create(:media, :for_product, mediaable: product), "gallery-1.png")
   end
 
   def attach_image_to(media, filename)
@@ -129,28 +173,22 @@ RSpec.describe "Gallery", :js do
     Rails.root.join("tmp", filename).binwrite(Base64.decode64(valid_test_png_base64))
   end
 
+  def create_valid_tall_test_png(filename)
+    Rails.root.join("tmp", filename).binwrite(Base64.decode64(valid_tall_test_png_base64))
+  end
+
   def valid_test_png_base64
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aW1cAAAAASUVORK5CYII="
   end
 
-  def mark_gallery_images_as_loaded
-    page.execute_script(<<~JS)
-      (() => {
-        document.querySelectorAll(".gallery-thumb__image").forEach((image) => {
-          image.classList.remove("hidden")
-          image.closest(".gallery-thumb__frame")?.classList.remove("loading")
-          image.dispatchEvent(new Event("load"))
-        })
-
-        const mainImage = document.querySelector(".gallery-main__image")
-        const mainFrame = document.querySelector(".gallery-main__frame")
-
-        if (mainImage && mainFrame) {
-          mainImage.classList.remove("hidden")
-          mainFrame.classList.remove("loading")
-          mainImage.dispatchEvent(new Event("load"))
-        }
-      })()
-    JS
+  def valid_tall_test_png_base64
+    [
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAACAQAAAACx+ouKAAAAIGNIUk0AAHomAACAhAAA+gAAAIDo",
+      "AAB1MAAA6mAAADqYAAAXcJy6UTwAAAACYktHRAAB3YoTpAAAAAd0SU1FB+oFHxMgOvZ5usQAAAAl",
+      "dEVYdGRhdGU6Y3JlYXRlADIwMjYtMDUtMzFUMTk6MzI6NTgrMDA6MDBBl2Z8AAAAJXRFWHRkYXRl",
+      "Om1vZGlmeQAyMDI2LTA1LTMxVDE5OjMyOjU4KzAwOjAwMMrewAAAACh0RVh0ZGF0ZTp0aW1lc3Rh",
+      "bXAAMjAyNi0wNS0zMVQxOTozMjo1OCswMDowMGff/x8AAAAMSURBVAjXY2hgaAAAAgQBARwRMr8A",
+      "AAAASUVORK5CYII="
+    ].join
   end
 end

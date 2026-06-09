@@ -4,6 +4,21 @@ module PurchaseItems
   class SaleItemLinksController < ApplicationController
     include PurchaseItemScoped
 
+    def create
+      target = SaleItem.find(params.expect(:sale_item_id))
+
+      ApplicationRecord.transaction do
+        if (pi_to_unlink_id = params[:purchase_item_to_unlink_id])
+          target.purchase_items.find(pi_to_unlink_id).update!(sale_item_id: nil)
+        end
+        @purchase_item.link_to_sale_item!(target.id)
+      end
+
+      redirect_to edit_purchase_item_path(@purchase_item),
+        notice: "Sale item linked successfully.",
+        status: :see_other
+    end
+
     def destroy
       sale_item = @purchase_item.sale_item
       target_path = sale_item_path(sale_item.sale, sale_item) if sale_item
@@ -15,14 +30,13 @@ module PurchaseItems
       else
         redirect_to target_path,
           alert: "Something went wrong. Try again later or contact the administrators",
-          status: :see_other,
-          turbolinks: false
+          status: :see_other
       end
     end
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :purchase_item, :unlink?
     end
   end

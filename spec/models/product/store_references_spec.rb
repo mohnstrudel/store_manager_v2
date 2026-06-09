@@ -45,7 +45,7 @@ RSpec.describe Product do
       relation = described_class.with_store_references.where(id: [older.id, newer.id]).to_a
 
       aggregate_failures do
-        expect(relation.map(&:id)).to eq([older.id, newer.id].sort_by { |id| Product.find(id).full_title })
+        expect(relation.map(&:id)).to eq([older.id, newer.id].sort_by { |id| described_class.find(id).full_title })
         expect(relation.first.association(:shopify_info).loaded?).to be true
         expect(relation.first.association(:woo_info).loaded?).to be true
       end

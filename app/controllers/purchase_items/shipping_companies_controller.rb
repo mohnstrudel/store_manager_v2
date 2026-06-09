@@ -4,30 +4,22 @@ module PurchaseItems
   class ShippingCompaniesController < ApplicationController
     include PurchaseItemScoped
 
-    def show
-      render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_show")
-    end
-
-    def edit
-      render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
-    end
-
     def update
       if @purchase_item.update(shipping_company_id: params[:purchase_item][:shipping_company_id])
-        render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_show")
+        redirect_to return_path, notice: "Shipping company was successfully updated"
       else
-        render turbo_stream: turbo_replace_purchase_item(:shipping_company, "inline_shipping_company_edit")
+        redirect_to return_path, inertia: inertia_errors(@purchase_item.errors)
       end
     end
 
     private
 
-    def authorize_resourse
-      if action_name == "update"
-        authorize :purchase_item, :update_shipping_company?
-      else
-        authorize :purchase_item, :edit_shipping_company?
-      end
+    def authorize_resource
+      authorize :purchase_item, :update_shipping_company?
+    end
+
+    def return_path
+      params[:return_to].presence || purchase_item_path(@purchase_item)
     end
   end
 end

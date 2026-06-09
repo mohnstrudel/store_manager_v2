@@ -17,7 +17,7 @@ module Webhooks
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :webhook, :sale_status?
     end
   end

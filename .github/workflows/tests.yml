@@ -1,10 +1,10 @@
-name: Rspec
+name: Tests
 
 on: [pull_request]
 
 jobs:
   test:
-    name: Run tests
+    name: Backend tests
     runs-on: ubuntu-latest
 
     env:
@@ -34,10 +34,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Install libvips
         run: >-
@@ -56,3 +68,26 @@ jobs:
           bundle exec rails assets:precompile
 
       - run: bundle exec rspec
+
+  frontend:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run frontend tests
+        run: pnpm test:run

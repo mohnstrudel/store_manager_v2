@@ -38,7 +38,6 @@
 # Misc
 .DS_Store
 /__debug
-/node_modules
 .zed
 .env
 .kilocode
@@ -47,3 +46,19 @@ coverage
 doc/
 plans
 opencode.json
+
+# Vite Ruby
+/public/vite*
+# Vite uses dotenv and suggests to ignore local-only env files. See
+# https://vitejs.dev/guide/env-and-mode.html#env-files
+*.local
+
+# pnpm — lock file is committed; npm lock file must not be
+node_modules/
+package-lock.json
+.pnpm-store/
+
+# Claude Code local state — not version-controlled
+.claude/memory/**
+.claude/worktrees/**
+.claude/plans/**

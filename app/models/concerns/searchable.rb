@@ -52,6 +52,7 @@ module Searchable
 
   included do
     include PgSearch::Model
+
     class_attribute :searchable_store_id_associations, default: []
   end
 end

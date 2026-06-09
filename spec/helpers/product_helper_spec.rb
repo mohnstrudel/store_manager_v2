@@ -20,14 +20,14 @@ RSpec.describe ProductHelper do
       updated_columns = helper.product_timestamp_columns(product, :updated_at)
 
       aggregate_failures do
-        expect(created_columns.map { |column| column[:key] }).to eq(%w[created shopify])
-        expect(created_columns.map { |column| column[:label] }).to eq(["StoreMate", "Shopify"])
+        expect(created_columns.pluck(:key)).to eq(%w[created shopify])
+        expect(created_columns.pluck(:label)).to eq(["StoreMate", "Shopify"])
         expect(created_columns.map { |column| column[:value].to_date }).to eq(
           [Date.new(2026, 4, 19), Date.new(2026, 4, 20)]
         )
 
-        expect(updated_columns.map { |column| column[:key] }).to eq(%w[updated shopify])
-        expect(updated_columns.map { |column| column[:label] }).to eq(["StoreMate", "Shopify"])
+        expect(updated_columns.pluck(:key)).to eq(%w[updated shopify])
+        expect(updated_columns.pluck(:label)).to eq(["StoreMate", "Shopify"])
         expect(updated_columns.map { |column| column[:value].to_date }).to eq(
           [Date.new(2026, 4, 21), Date.new(2026, 4, 22)]
         )

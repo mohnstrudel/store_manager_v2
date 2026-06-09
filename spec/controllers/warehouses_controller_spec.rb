@@ -62,7 +62,7 @@ describe WarehousesController do
       expect(WarehouseTransition.where(to_warehouse: unused_warehouse)).to be_empty
     end
 
-    it "re-renders the form when another default warehouse already exists" do
+    it "redirects to the edit page when another default warehouse already exists" do
       create(:warehouse, :default, name: "Default Warehouse")
 
       patch :update, params: {
@@ -73,9 +73,7 @@ describe WarehousesController do
       }
 
       aggregate_failures do
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response).to render_template(:edit)
-        expect(assigns(:positions_count)).to eq(Warehouse.count)
+        expect(response).to redirect_to(edit_warehouse_path(warehouse))
         expect(warehouse.reload.is_default).to be(false)
       end
     end
@@ -90,7 +88,7 @@ describe WarehousesController do
 
       aggregate_failures do
         expect(response).to redirect_to(warehouse)
-        expect(flash[:error]).to include("move out all purchased products")
+        expect(flash[:alert]).to include("move out all purchased products")
       end
     end
   end

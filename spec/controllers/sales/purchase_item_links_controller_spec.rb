@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Sales::PurchaseItemLinksController, type: :controller do
+RSpec.describe Sales::PurchaseItemLinksController do
   before { sign_in_as_admin }
   after { log_out }
 

@@ -4,6 +4,23 @@ class ApplicationController < ActionController::Base
   include Authentication
   include Authorization
 
+  inertia_share do
+    {
+      breadcrumb: helpers.breadcrumb_title,
+      auth: {user: current_user&.slice(:id, :email_address, :role)},
+      flash: {notice: flash.notice, alert: flash.alert},
+      csrf_token: form_authenticity_token
+    }
+  end
+
+  private
+
+  def inertia_errors(model_errors)
+    {errors: model_errors.to_hash.transform_values(&:to_sentence)}
+  end
+
+  public
+
   if Rails.env.development?
     before_action do
       ActiveStorage::Current.url_options = {host: "http://localhost:3000"}

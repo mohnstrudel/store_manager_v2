@@ -14,7 +14,7 @@ RSpec.describe Product, ".find_or_create_shopify_placeholder!" do
       expect(product.title).to include("[BROKEN SHOPIFY PRODUCT]")
       expect(product.base_variant.sku).to start_with("broken-shopify-")
       expect(product.franchise.title).to eq("Broken Shopify Products")
-      expect(product.shape).to eq(Product.default_shape)
+      expect(product.shape).to eq(described_class.default_shape)
     end
 
     it "reuses the same placeholder on repeated calls" do
@@ -22,7 +22,7 @@ RSpec.describe Product, ".find_or_create_shopify_placeholder!" do
       second_product = described_class.find_or_create_shopify_placeholder!(store_id:)
 
       expect(second_product).to eq(first_product)
-      expect(Product.where(id: first_product.id).count).to eq(1)
+      expect(described_class.where(id: first_product.id).count).to eq(1)
     end
   end
 end

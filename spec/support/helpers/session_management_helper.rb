@@ -29,7 +29,7 @@ module Helpers
     end
 
     def feature_test?
-      @is_feature ||= defined?(page) && page.driver.respond_to?(:browser)
+      @is_feature ||= defined?(page) && page.driver.is_a?(Capybara::Cuprite::Driver)
     end
 
     def sign_in_browser_as_admin

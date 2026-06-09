@@ -133,7 +133,7 @@ RSpec.describe Customer do
     end
 
     it "returns all customers when the query is blank" do
-      expect(described_class.search_by("")).to match_array([matching_customer, other_customer])
+      expect(described_class.search_by("")).to contain_exactly(matching_customer, other_customer)
     end
 
     it "returns no customers when nothing matches" do

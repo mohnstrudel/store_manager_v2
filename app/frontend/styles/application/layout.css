@@ -1,0 +1,32 @@
+@layer components {
+  /* Sections & layout helpers */
+  .section_border_base,
+  .table_card,
+  .form_section_item {
+    @apply border border-gray-200/80 dark:border-gray-800 rounded-xl overflow-x-auto lg:overflow-visible;
+  }
+
+  .section_wide {
+    @apply mt-4 mx-0 px-0 lg:-mx-8;
+  }
+
+  .table_actions {
+    @apply text-right;
+  }
+
+  .table_actions a:not(:first-child) {
+    @apply ml-2;
+  }
+
+  .page_search {
+    @apply px-4 lg:px-8 pt-4 lg:pt-7 pb-2 lg:pb-0 mb-4 lg:mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-0;
+  }
+
+  .page_search form {
+    @apply w-full max-w-none;
+  }
+
+  .progress_end {
+    @apply bg-lime-600! dark:bg-lime-500!;
+  }
+}

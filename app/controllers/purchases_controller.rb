@@ -5,6 +5,7 @@ class PurchasesController < ApplicationController
 
   before_action :set_default_warehouse_id, only: %i[new edit]
   before_action :set_purchase_for_show, only: :show
+  before_action :prepare_purchase_show_state, only: :show
   before_action :set_purchase, only: %i[edit update destroy]
   before_action :prepare_form_options, only: %i[new edit]
 
@@ -12,25 +13,54 @@ class PurchasesController < ApplicationController
   def index
     @purchases = Purchase.for_listing.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
+    @warehouses = Warehouse.order(name: :asc)
+
+    return unless stale?(etag: [@purchases, @warehouses, request.inertia?], last_modified: @purchases.maximum(:updated_at))
+
+    render inertia: "Purchases/Index", props: {
+      purchases: @purchases.map { |purchase| helpers.purchase_index_props(purchase) },
+      pagination: helpers.pagination_props(@purchases),
+      search: {q: params[:q].to_s},
+      warehouses: @warehouses.map { |warehouse| helpers.purchase_warehouse_props(warehouse) },
+      move_path: move_path
+    }
   end
 
   # GET /purchases/1 or /purchases/1.json
   def show
-    prepare_purchase_show_state
+    render inertia: "Purchases/Show", props: helpers.purchase_show_props(
+      @purchase,
+      purchase_items: @purchase_items,
+      payments: @payments,
+      new_payment: @new_payment
+    )
   end
 
   # GET /purchases/new
   def new
     @purchase = Purchase.new
-    @initial_payment_value = nil
-    if params[:product]
-      product = Product.friendly.find(params[:product])
-      @purchase.product = product
-    end
+
+    @purchase.product = Product.friendly.find(params.expect(:product)) if params[:product].present?
+    @purchase.warehouse_id = @default_warehouse_id
+
+    render inertia: "Purchases/New", props: helpers.purchase_form_props(
+      @purchase,
+      products: @product_options,
+      suppliers: @suppliers,
+      warehouses: @warehouse_options
+    )
   end
 
   # GET /purchases/1/edit
   def edit
+    @purchase.warehouse_id = @default_warehouse_id
+
+    render inertia: "Purchases/Edit", props: helpers.purchase_form_props(
+      @purchase,
+      products: @product_options,
+      suppliers: @suppliers,
+      warehouses: @warehouse_options
+    )
   end
 
   # POST /purchases or /purchases.json
@@ -48,9 +78,7 @@ class PurchasesController < ApplicationController
       format.json { render :show, status: :created, location: @purchase }
     rescue ActiveRecord::RecordInvalid => e
       append_initial_payment_errors(@purchase, e.record)
-      prepare_form_options
-      @initial_payment_value = payload.initial_payment_value
-      format.html { render :new, status: :unprocessable_content }
+      format.html { redirect_to new_purchase_url, inertia: inertia_errors(@purchase.errors) }
       format.json { render json: @purchase.errors, status: :unprocessable_content }
     end
   end
@@ -64,9 +92,10 @@ class PurchasesController < ApplicationController
         format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
         format.json { render :show, status: :ok, location: @purchase }
       else
-        prepare_form_options
-        format.html { render :edit, status: :unprocessable_content }
-        format.json { render json: @purchase.errors, status: :unprocessable_content }
+        errors = @purchase.errors.dup
+        @purchase.reload
+        format.html { redirect_to edit_purchase_url(@purchase), inertia: inertia_errors(errors) }
+        format.json { render json: errors, status: :unprocessable_content }
       end
     end
   end
@@ -85,11 +114,11 @@ class PurchasesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_purchase_for_show
-    @purchase = Purchase.for_details.friendly.find(params[:id])
+    @purchase = Purchase.for_details.friendly.find(params.expect(:id))
   end
 
   def set_purchase
-    @purchase = Purchase.friendly.find(params[:id])
+    @purchase = Purchase.friendly.find(params.expect(:id))
   end
 
   def set_default_warehouse_id

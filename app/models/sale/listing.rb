@@ -25,15 +25,21 @@ module Sale::Listing
       )
     }
 
+    scope :for_edit, -> {
+      includes(:sale_items, :shipping_address, :billing_address)
+    }
+
     scope :for_details, -> {
       includes(
+        :customer,
         :shopify_info,
         :woo_info,
         :shipping_address,
         :billing_address,
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
-          {purchase_items: [:warehouse, purchase: :supplier]}
+          {purchase_items: [:warehouse, {purchase: :supplier}]},
+          {variant: [:version, :color, :size]}
         ]
       )
     }

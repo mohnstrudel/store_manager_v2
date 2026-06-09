@@ -3,20 +3,38 @@
 class PurchaseItemsController < ApplicationController
   include MediaFormHandling
 
-  before_action :set_purchase_item, only: %i[show edit update destroy]
+  before_action :set_purchase_item_for_show, only: :show
+  before_action :set_purchase_item, only: %i[edit update destroy]
 
   # GET /warehouse_products
   def index
-    @purchase_items = PurchaseItem.all
+    @purchase_items = PurchaseItem
+      .ordered_by_updated_date
+      .includes(:warehouse, :shipping_company, purchase: [:supplier, :variant, :product], sale: :customer)
+      .page(params[:page])
+    @purchase_items = @purchase_items.search(params[:q]) if params[:q].present?
+
+    return unless stale?(etag: [@purchase_items, request.inertia?], last_modified: @purchase_items.maximum(:updated_at))
+
+    render inertia: "PurchaseItems/Index", props: {
+      purchase_items: @purchase_items.map { |purchase_item| helpers.purchase_item_index_props(purchase_item) },
+      pagination: helpers.pagination_props(@purchase_items),
+      search: {q: params[:q].to_s}
+    }
   end
 
   # GET /purchase_items/1
   def show
+    render inertia: "PurchaseItems/Show", props: {
+      purchase_item: helpers.purchase_item_show_props(@purchase_item)
+    }
   end
 
   # GET /purchase_items/1/edit
   def edit
-    prepare_edit_form
+    redirect_to_sale_item = params[:redirect_to_sale_item].present?
+    render inertia: "PurchaseItems/Edit",
+      props: helpers.purchase_item_edit_props(@purchase_item, redirect_to_sale_item:)
   end
 
   # PATCH/PUT /purchase_items/1
@@ -33,8 +51,7 @@ class PurchaseItemsController < ApplicationController
 
     redirect_to path, notice: "Purchase item was successfully updated", status: :see_other
   rescue ActiveRecord::RecordInvalid
-    prepare_edit_form
-    render :edit, status: :unprocessable_content
+    redirect_to edit_purchase_item_path(@purchase_item), inertia: inertia_errors(@purchase_item.errors)
   end
 
   # DELETE /purchase_items/1
@@ -44,25 +61,17 @@ class PurchaseItemsController < ApplicationController
 
     redirect_to warehouse,
       notice: "Purchase item was successfully destroyed",
-      status: :see_other,
-      turbolinks: false
+      status: :see_other
   end
 
   private
 
+  def set_purchase_item_for_show
+    @purchase_item = PurchaseItem.for_show.find(params.expect(:id))
+  end
+
   def set_purchase_item
-    @purchase_item = PurchaseItem.with_media.find(params[:id])
-  end
-
-  def prepare_edit_form
-    @sale_items = SaleItem.for_edit_linking(@purchase_item)
-    prepare_form_options
-  end
-
-  def prepare_form_options
-    @purchases = Purchase.for_form_select
-    @shipping_companies = ShippingCompany.order(:name)
-    @warehouse_options = Warehouse.order(:name)
+    @purchase_item = PurchaseItem.with_media.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.

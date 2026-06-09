@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :db do
   desc "Fill our database with real data from Shopify"
   task fill: :environment do

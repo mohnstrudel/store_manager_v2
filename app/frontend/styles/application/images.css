@@ -1,0 +1,54 @@
+@layer components {
+  /* Preloadable images */
+  .preloadable_img__container {
+    @apply flex justify-center items-center;
+  }
+
+  .preloadable_img__img {
+    @apply block rounded-md min-h-fit max-h-full object-contain object-center transition-transform;
+  }
+
+  .preloadable_img__img.loading {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700 w-200 h-100 mx-auto;
+  }
+
+  .preloadable_img__img.not_found {
+    @apply w-full h-full;
+  }
+
+  .zoomable {
+    @apply duration-150 ease-out;
+  }
+
+  .zoomable:hover {
+    @apply scale-300 backdrop-blur-sm shadow-lg bg-white/45 dark:bg-gray-900/45 z-30;
+  }
+
+  .preloadable_img__img.hidden {
+    @apply hidden;
+  }
+
+  /* Image Uploader Card */
+  .image_card__drag_handle {
+    @apply backdrop-blur-xs absolute top-1 left-1 z-10 p-0.5 rounded
+           bg-black/30 text-white cursor-grab active:cursor-grabbing touch-none
+           hover:bg-blue-600/80;
+  }
+
+  .image_card__remove_btn {
+    @apply backdrop-blur-xs absolute top-1 right-1 z-10 p-0.5 rounded
+           bg-black/30 text-white transition-colors hover:bg-red-600/80;
+  }
+
+  .image_card__pending_badge {
+    @apply absolute bottom-1 left-1 z-10 rounded bg-blue-600/90
+           px-2 py-1 text-xs font-medium text-white;
+  }
+
+  .image_card__frame {
+    @apply overflow-hidden rounded bg-gray-400 dark:bg-gray-600
+           border border-gray-200 dark:border-gray-700 transition-shadow
+           peer-hover/drag:shadow-xl peer-hover/drag:shadow-gray-300
+           dark:peer-hover/drag:shadow-gray-800;
+  }
+}

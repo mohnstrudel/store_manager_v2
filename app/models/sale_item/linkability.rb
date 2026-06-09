@@ -29,14 +29,22 @@ module SaleItem::Linkability
     end
 
     def for_edit_linking(purchase_item)
-      statuses = Sale.active_status_names + Sale.completed_status_names
       purchase_product_id = purchase_item.purchase&.product_id
+      return none unless purchase_product_id
 
-      for_linking
-        .joins(:sale)
-        .where(sales: {status: statuses})
-        .in_order_of(:product_id, [purchase_product_id], filter: false)
-        .order(:id)
+      available = for_linking.linkable.where(product_id: purchase_product_id)
+      currently_linked = purchase_item.sale_item_id ? for_linking.where(id: purchase_item.sale_item_id) : none
+
+      available.or(currently_linked).order(:id)
+    end
+
+    def for_linking_table(purchase_item)
+      purchase_product_id = purchase_item.purchase&.product_id
+      return none unless purchase_product_id
+
+      where(product_id: purchase_product_id)
+        .includes(:shopify_info, :woo_info, sale: [:customer, :woo_info], purchase_items: [:warehouse, {purchase: :supplier}])
+        .order(purchase_items_count: :asc, id: :asc)
     end
   end
 

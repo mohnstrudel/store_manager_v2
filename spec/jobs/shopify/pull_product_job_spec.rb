@@ -39,6 +39,7 @@ RSpec.describe Shopify::PullProductJob do
       }
     }
   end
+
   describe ".queue_as" do
     it "enqueues on the default queue" do
       expect {
@@ -195,5 +196,4 @@ RSpec.describe Shopify::PullProductJob do
       end
     end
   end
-
 end

@@ -9,16 +9,6 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 require "rspec/rails"
 # Add additional requires below this line. Rails is not loaded until this point!
 
-tailwind_build = Rails.root.join("app/assets/builds/tailwind.css")
-tailwind_sources = Dir[Rails.root.join("app/assets/tailwind/**/*.css").to_s]
-tailwind_missing_or_stale =
-  !tailwind_build.exist? ||
-  tailwind_sources.any? { |source| File.mtime(source) > tailwind_build.mtime }
-
-if tailwind_missing_or_stale
-  system({"RAILS_ENV" => "test"}, Rails.root.join("bin/rails").to_s, "tailwindcss:build", exception: true)
-end
-
 Rails.root.glob("spec/support/**/*.rb").each { |f| require f }
 
 # Checks for pending migrations and applies them before tests are run.
@@ -38,7 +28,7 @@ end
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_paths = ["#{Rails.root.join("spec/fixtures")}"]
+  config.fixture_paths = [Rails.root.join("spec/fixtures").to_s]
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -71,6 +61,7 @@ RSpec.configure do |config|
 
   # Custom helper to test custom selects
   config.include Helpers::SlimSelect, type: :feature
+  config.include Helpers::ReactSelect, type: :feature
 
   # Custom helper to test session management
   config.include Helpers::SessionManagement, type: :controller

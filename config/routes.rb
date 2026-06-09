@@ -6,11 +6,14 @@ require "sidekiq-status/web"
 Rails.application.routes.draw do
   # System
   get "up", to: "rails/health#show", as: :rails_health_chec
-  root "dashboard#index"
 
   # Operations
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"
+  end
+
+  if Rails.env.local?
+    get "/_inertia_smoke", to: "smoke#index"
   end
 
   mount ShopifyApp::Engine, at: "shopify_app"
@@ -23,100 +26,109 @@ Rails.application.routes.draw do
   # MCP endpoint (unauthenticated, for external agents)
   post "mcp", to: "mcp/server#handle"
 
-  # Authentication
-  resources :passwords, param: :token
+  defaults export: true do
+    root "dashboard#index"
 
-  resources :users, except: %i[new create]
-  resource :sign_up, only: %i[new create], controller: :signups
+    # Authentication
+    resources :passwords, param: :token
 
-  resource :session, except: %i[new destroy]
-  get "sign_in", to: "sessions#new", as: :sign_in
-  post "log_out", to: "sessions#destroy", as: :log_out
+    resources :users, except: %i[new create]
+    resource :sign_up, only: %i[new create], controller: :signups
 
-  # Dashboard
-  get "debts", to: "dashboard/debts#show"
-  get "debts/:page", to: "dashboard/debts#show"
-  get "noop", to: "dashboard#noop", as: :noop
+    resource :session, except: %i[new destroy]
+    get "sign_in", to: "sessions#new", as: :sign_in
+    post "log_out", to: "sessions#destroy", as: :log_out
 
-  scope module: :dashboard do
-    resource :last_orders_pull, only: :create, path: "pull-last-orders"
-  end
+    # Dashboard
+    get "debts", to: "dashboard/debts#show"
+    get "debts/:page", to: "dashboard/debts#show"
+    get "noop", to: "dashboard#noop", as: :noop
 
-  # Inventory
-  resources :products do
-    scope module: :products do
-      resource :shopify_push, only: :create
-      resource :shopify_pull, only: :create
+    scope module: :dashboard do
+      resource :last_orders_pull, only: :create, path: "pull-last-orders"
+    end
+
+    # Media
+    post "media/uploads", to: "media_uploads#create", as: :media_uploads
+
+    # Inventory
+    resources :products do
+      scope module: :products do
+        resource :shopify_push, only: :create
+        resource :shopify_pull, only: :create
+
+        collection do
+          resource :products_pull, only: :create, path: "pull", controller: :pulls
+        end
+      end
 
       collection do
-        resource :products_pull, only: :create, path: "pull", controller: :pulls
+        get "page/:page", action: :index
       end
     end
 
-    collection do
-      get "page/:page", action: :index
-    end
-  end
+    resources :sales do
+      scope module: :sales do
+        resources :items, only: %i[show destroy], controller: :items
+        resource :purchase_item_link, only: :create, path: "link_purchase_items"
+        resource :pull, only: :create
 
-  resources :sales do
-    scope module: :sales do
-      resources :items, only: %i[show destroy], controller: :items
-      resource :purchase_item_link, only: :create, path: "link_purchase_items"
-      resource :pull, only: :create
+        collection do
+          resource :sales_bulk_pull, only: :create, path: "pull", controller: :bulk_pulls
+        end
+      end
 
       collection do
-        resource :sales_bulk_pull, only: :create, path: "pull", controller: :bulk_pulls
+        get "page/:page", action: :index
       end
     end
 
-    collection do
-      get "page/:page", action: :index
-    end
-  end
+    resources :purchases do
+      scope module: :purchases do
+        resources :payments, only: %i[create update destroy]
 
-  resources :purchases do
-    scope module: :purchases do
-      resources :payments, only: %i[create update destroy]
+        collection do
+          resource :move, only: :create
+          resource :product_variants, only: :show
+        end
+      end
 
       collection do
-        resource :move, only: :create
-        resource :product_variants, only: :show
+        get "page/:page", action: :index
       end
     end
 
-    collection do
-      get "page/:page", action: :index
-    end
-  end
+    resources :purchase_items, except: %i[new create] do
+      scope module: :purchase_items do
+        collection do
+          resource :warehouse_move, only: :create, path: "move"
+        end
 
-  resources :purchase_items, except: %i[new create] do
-    scope module: :purchase_items do
-      collection do
-        resource :warehouse_move, only: :create, path: "move"
+        resource :sale_item_link, only: %i[create destroy]
+        resource :tracking_number, only: :update
+        resource :shipping_company, only: :update
+        resource :shipping_cost, only: :update
+        resource :shipping_details, only: :update
       end
-
-      resource :sale_item_link, only: :destroy, path: "unlink"
-      resource :tracking_number, only: %i[show edit update]
-      resource :shipping_company, only: %i[show edit update]
     end
-  end
 
-  resources :warehouses, except: :show do
-    scope module: :warehouses do
-      resources :items, only: %i[new create], controller: :items
-      resource :position, only: :update, path: "change_position"
+    resources :warehouses, except: :show do
+      scope module: :warehouses do
+        resources :items, only: %i[new create], controller: :items
+        resource :position, only: :update, path: "change_position"
+      end
     end
-  end
 
-  get "warehouses/:id", to: "warehouses/details#show"
-  get "warehouses/:id/page/:page", to: "warehouses/details#show"
+    get "warehouses/:id", to: "warehouses/details#show"
+    get "warehouses/:id/page/:page", to: "warehouses/details#show"
 
-  resources :customers do
-    collection do
-      get "page/:page", action: :index
+    resources :customers do
+      collection do
+        get "page/:page", action: :index
+      end
     end
-  end
 
-  # Reference data
-  resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
+    # Reference data
+    resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
+  end
 end

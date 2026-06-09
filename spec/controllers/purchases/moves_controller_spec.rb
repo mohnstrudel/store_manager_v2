@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Purchases::MovesController, type: :controller do
+RSpec.describe Purchases::MovesController do
   before { sign_in_as_admin }
   after { log_out }
 

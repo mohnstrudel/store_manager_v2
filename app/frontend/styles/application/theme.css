@@ -1,0 +1,49 @@
+/* === Theme variables === */
+@theme {
+  --font-icn:
+    "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: "Bricolage Grotesque", sans-serif;
+  --font-nunito: "Nunito", sans-serif;
+  --icon-chevron: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22currentColor%22%20class%3D%22size-6%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22m19.5%208.25-7.5%207.5-7.5-7.5%22%2F%3E%3C%2Fsvg%3E);
+  --icon-chevron-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='oklch(70.7% .022 261.325)' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
+}
+
+:root {
+  --react-select-bg: #ffffff;
+  --react-select-menu-bg: #ffffff;
+  --react-select-text: #111827;
+  --react-select-muted: #6b7280;
+  --react-select-placeholder: #6b7280;
+  --react-select-border: rgb(209 213 219 / 0.8);
+  --react-select-outline: rgb(209 213 219);
+  --react-select-chip-bg: #2563eb;
+  --react-select-chip-text: #ffffff;
+  --react-select-chip-remove-hover: rgb(255 255 255 / 0.14);
+  --react-select-option-hover: #f3f4f6;
+  --react-select-option-active: #e5e7eb;
+  --react-select-option-selected: #dbeafe;
+  --react-select-shadow: rgb(15 23 42 / 0.08);
+  --react-select-disabled-bg: rgb(3 7 18 / 0.1);
+  --react-select-disabled-text: #9ca3af;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --react-select-bg: #1f2937;
+    --react-select-menu-bg: #1f2937;
+    --react-select-text: #e5e7eb;
+    --react-select-muted: #9ca3af;
+    --react-select-placeholder: #9ca3af;
+    --react-select-border: rgb(75 85 99 / 0.8);
+    --react-select-outline: rgb(107 114 128);
+    --react-select-chip-bg: #1d4ed8;
+    --react-select-chip-text: #f9fafb;
+    --react-select-chip-remove-hover: rgb(255 255 255 / 0.12);
+    --react-select-option-hover: rgb(55 65 81);
+    --react-select-option-active: rgb(75 85 99);
+    --react-select-option-selected: rgb(30 64 175 / 0.4);
+    --react-select-shadow: rgb(0 0 0 / 0.36);
+    --react-select-disabled-bg: rgb(31 41 55 / 0.7);
+    --react-select-disabled-text: #6b7280;
+  }
+}

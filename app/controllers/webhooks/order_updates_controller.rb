@@ -16,7 +16,7 @@ module Webhooks
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :webhook, :process_order?
     end
   end

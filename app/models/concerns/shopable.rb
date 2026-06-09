@@ -71,5 +71,4 @@ module Shopable
       store_info&.storable
     end
   end
-
 end

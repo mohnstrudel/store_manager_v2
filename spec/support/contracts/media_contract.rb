@@ -11,12 +11,10 @@
 RSpec.shared_examples "valid media contract" do
   # The including spec must define `parsed_media` as a let
 
-  # rubocop:disable RSpec/MultipleExpectations
   it "has a non-empty array of media items" do
     expect(parsed_media).to be_an(Array)
     expect(parsed_media).not_to be_empty
   end
-  # rubocop:enable RSpec/MultipleExpectations
 
   context "with a media item" do
     let(:media_item) { parsed_media.first }

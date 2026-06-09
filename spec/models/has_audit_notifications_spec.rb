@@ -14,8 +14,7 @@ describe HasAuditNotifications do
         true
       end
     end)
-    allow(Rails.env).to receive(:production?).and_return(true)
-    allow(Rails.env).to receive(:staging?).and_return(false)
+    allow(Rails.env).to receive_messages(production?: true, staging?: false)
   end
 
   let(:dummy) { DummyModel.new(email: "test@example.com") }

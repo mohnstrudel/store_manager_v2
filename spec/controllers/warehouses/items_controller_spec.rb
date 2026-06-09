@@ -2,19 +2,23 @@
 
 require "rails_helper"
 
-RSpec.describe Warehouses::ItemsController, type: :controller do
+RSpec.describe Warehouses::ItemsController do
   before { sign_in_as_admin }
   after { log_out }
 
   let(:warehouse) { create(:warehouse) }
 
   describe "GET #new" do
-    it "renders the purchase item form in warehouse context" do
+    it "renders the Inertia new component with warehouse-scoped form props" do
       get :new, params: {warehouse_id: warehouse.id}
 
-      expect(response).to be_successful
-      expect(assigns[:warehouse]).to eq(warehouse)
-      expect(assigns[:purchase_item]).to be_a_new(PurchaseItem)
+      aggregate_failures do
+        expect(response).to have_http_status(:ok)
+        expect_inertia.to render_component("PurchaseItems/New")
+        expect(inertia.props[:purchase_item][:warehouse_id]).to eq(warehouse.id)
+        expect(inertia.props[:form_action]).to end_with("/warehouses/#{warehouse.id}/items")
+        expect(inertia.props[:cancel_path]).to end_with("/warehouses/#{warehouse.id}")
+      end
     end
   end
 

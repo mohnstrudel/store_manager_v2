@@ -1,29 +1,8 @@
 # frozen_string_literal: true
 
 module BreadcrumbsHelper
-  # Renders meta tag with breadcrumb data for the current page
-  # Used by the Stimulus breadcrumbs controller to update the trail
-  #
-  # The meta tag serves as a bridge between server-side and client-side:
-  # - Server determines the breadcrumb name (e.g., @product.title)
-  # - Client (Stimulus) reads this meta tag to update the trail in sessionStorage
-  #
-  # Example output:
-  #   <meta name="breadcrumb" content="Test Product" data-url="/products/123">
-  #
-  def breadcrumb_meta_tag
-    breadcrumb_title = determine_breadcrumb_title
-    return if breadcrumb_title.blank?
-
-    tag.meta(
-      name: "breadcrumb",
-      content: breadcrumb_title,
-      data: {url: request.path}
-    )
-  end
-
-  def breadcrumbs
-    render "shared/breadcrumbs"
+  def breadcrumb_title
+    determine_breadcrumb_title.presence
   end
 
   private

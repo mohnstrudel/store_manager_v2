@@ -3,8 +3,6 @@
 require "rails_helper"
 
 RSpec.describe ProductsController do
-  render_views
-
   before { sign_in_as_admin }
   after { log_out }
 
@@ -12,15 +10,19 @@ RSpec.describe ProductsController do
     let(:product) { create(:product) }
     let(:media) { create_list(:media, 2, :for_product, mediaable: product) }
 
-    it "renders the shared gallery for product media" do
+    it "renders the Inertia show component with product media" do
       media
       get :show, params: {id: product.to_param}
 
       aggregate_failures do
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include('data-controller="gallery"')
-        expect(response.body).to include('data-gallery-target="main"')
-        expect(response.body).to include('data-gallery-target="slide"')
+        expect_inertia.to render_component("Products/Show")
+        expect(inertia.props[:product][:media].pluck(:id)).to match_array(
+          media.map(&:id)
+        )
+        expect(inertia.props[:product][:media].pluck(:alt)).to match_array(
+          media.map(&:alt)
+        )
       end
     end
   end
@@ -28,7 +30,7 @@ RSpec.describe ProductsController do
   describe "PATCH #update" do
     let(:product) { create(:product, title: "Original Title") }
 
-    it "keeps submitted attributes after a failed update" do # rubocop:disable RSpec/MultipleExpectations
+    it "redirects back with errors after a failed update" do
       patch :update, params: {
         id: product.to_param,
         product: {
@@ -38,10 +40,16 @@ RSpec.describe ProductsController do
         }
       }
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response).to render_template(:edit)
-      expect(assigns(:product).title).to eq("")
-      expect(assigns(:product).errors[:title]).to include("can't be blank")
+      expect(response).to redirect_to(edit_product_path(product))
+
+      get :edit, params: {id: product.to_param}
+
+      aggregate_failures do
+        expect(response).to have_http_status(:ok)
+        expect_inertia.to render_component("Products/Edit")
+        expect(inertia.props[:errors]).to be_present
+        expect(inertia.props[:errors][:title]).to include("can't be blank")
+      end
     end
   end
 
@@ -85,7 +93,7 @@ RSpec.describe ProductsController do
       end
     end
 
-    it "rebuilds the submitted purchase when creation fails" do
+    it "redirects to new with errors when creation fails" do
       post :create, params: {
         product: {
           title: "Broken Purchase Product",
@@ -101,14 +109,14 @@ RSpec.describe ProductsController do
       }
 
       aggregate_failures do
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response).to render_template(:new)
-        expect(assigns(:product).errors[:initial_purchase]).to include("is invalid")
-        expect(assigns(:purchase)).to be_present
-        expect(assigns(:purchase).amount).to eq(2)
-        expect(assigns(:purchase).item_price).to eq(BigDecimal(15))
-        expect(assigns(:purchase).payment_value).to eq(BigDecimal(30))
-        expect(assigns(:purchase).warehouse_id).to eq(warehouse.id)
+        expect(response).to redirect_to(new_product_path)
+
+        get :new
+
+        expect(response).to have_http_status(:ok)
+        expect_inertia.to render_component("Products/New")
+        expect(inertia.props[:errors]).to be_present
+        expect(inertia.props[:errors][:initial_purchase]).to include("is invalid")
       end
     end
   end

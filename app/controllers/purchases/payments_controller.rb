@@ -13,8 +13,7 @@ module Purchases
         redirect_to return_path, notice: "Payment was successfully created", status: :see_other
       else
         @new_payment = @payment
-        prepare_purchase_show_state
-        render "purchases/show", status: :unprocessable_content
+        render_purchase_show_error
       end
     end
 
@@ -22,8 +21,7 @@ module Purchases
       if @payment.update(payment_params)
         redirect_to return_path, notice: "Payment was successfully updated", status: :see_other
       else
-        prepare_purchase_show_state
-        render "purchases/show", status: :unprocessable_content
+        render_purchase_show_error
       end
     end
 
@@ -34,16 +32,16 @@ module Purchases
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :payment, :create?
     end
 
     def set_purchase
-      @purchase = Purchase.for_details.friendly.find(params[:purchase_id])
+      @purchase = Purchase.for_details.friendly.find(params.expect(:purchase_id))
     end
 
     def set_payment
-      @payment = @purchase.payments.find(params[:id])
+      @payment = @purchase.payments.find(params.expect(:id))
     end
 
     def payment_params
@@ -54,6 +52,16 @@ module Purchases
 
     def return_path
       params[:return_to].presence || purchase_path(@purchase)
+    end
+
+    def render_purchase_show_error
+      prepare_purchase_show_state
+      render inertia: "Purchases/Show", props: helpers.purchase_show_props(
+        @purchase,
+        purchase_items: @purchase_items,
+        payments: @payments,
+        new_payment: @new_payment
+      ), status: :unprocessable_content
     end
   end
 end

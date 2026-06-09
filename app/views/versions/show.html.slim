@@ -1,9 +1,0 @@
-= render "_shared/notice"
-
-= render "_shared/nav-show", model: @version
-
-.section-wide.flex.flex-col.gap-8.mt-8
-  = render "versions/show/details", version: @version
-  = render "versions/show/products", products: @version.products
-
-= destroy_btn_for @version

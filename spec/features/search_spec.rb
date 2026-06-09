@@ -2,8 +2,15 @@
 
 require "rails_helper"
 
-describe "Search works across products, sales, purchases, and debts", js: true do
-  before { sign_in_as_admin }
+describe "Search works across products, sales, purchases, and debts", :js do
+  before {
+    sign_in_as_admin
+    create(:sale_item, sale: sale_cooper, product: asuka, variant: nil)
+    create(:sale_item, sale: sale_cooper, product: batman, variant: nil)
+    create(:sale_item, sale: sale_cooper, product: guts, variant: nil)
+    create(:sale_item, sale: sale_palmer, product: batman, variant: nil)
+  }
+
   after { log_out }
 
   let!(:warehouse) { create(:warehouse, is_default: true) }
@@ -53,13 +60,6 @@ describe "Search works across products, sales, purchases, and debts", js: true d
       supplier: supplier_agk,
       order_reference: "123"
     )
-  end
-
-  before do
-    create(:sale_item, sale: sale_cooper, product: asuka, variant: nil)
-    create(:sale_item, sale: sale_cooper, product: batman, variant: nil)
-    create(:sale_item, sale: sale_cooper, product: guts, variant: nil)
-    create(:sale_item, sale: sale_palmer, product: batman, variant: nil)
   end
 
   it "shows the expected products and supplier debts on the index" do
@@ -140,31 +140,28 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     fill_in "q", with: batman.title
     click_button "Search"
 
-    batman_selector = "tr[data-table-id-param='#{batman.id}']"
     sold_amount_selector = "td:nth-child(3)"
     sold_amount = 6
 
-    within batman_selector do
+    within find("tr.hoverable", text: batman.full_title) do
       expect(page).to have_text(batman.full_title)
       expect(find(sold_amount_selector)).to have_text(sold_amount)
     end
 
     # Open the row, then edit the product assignment
-    find(batman_selector).click
+    find("tr.hoverable", text: batman.full_title).click
     find(:link, "Edit").click
-    # Click on the franchise dropdown select
-    find("div[aria-expanded='false']", text: "Studio Ghibli").click
-    # Select the new franchise
-    find("div[aria-selected='false']", text: dc_comics.title).click
-    scroll_to("input[type=submit]")
-    find("input[type=submit]").click
+    # Change the franchise via react-select
+    choose_react_select(dc_comics.title, from: "Franchise")
+    scroll_to("button[type=submit]")
+    find("button[type=submit]").click
 
     visit debts_path
 
     fill_in "q", with: dc_comics.title
     click_button "Search"
 
-    within batman_selector do
+    within find("tr.hoverable", text: Product.find(batman.id).full_title) do
       expect(page).to have_text(Product.find(batman.id).full_title)
       expect(find(sold_amount_selector)).to have_text(sold_amount)
     end
@@ -179,20 +176,17 @@ describe "Search works across products, sales, purchases, and debts", js: true d
     click_button "Search"
 
     # Open the purchase row, then edit the product relation
-    find("tr[data-table-url-param='/purchases/#{purchase_batman.friendly_id}']").click
+    find("tr.hoverable", text: purchase_batman.order_reference).click
     find("a[href='/purchases/#{purchase_batman.friendly_id}/edit']", text: "Edit").click
 
-    # Click on the products dropdown select
-    # and select a different product
-    slim_select(batman.build_full_title_with_shop_id, asuka.build_full_title_with_shop_id)
+    # Click on the products dropdown select and select a different product
+    choose_react_select(asuka.build_full_title_with_shop_id, from: "Product")
 
-    scroll_to("label[for='purchase_variant'] ~ div")
     # Select a variant for the new product
-    find("#purchase-variant-select:last-child").click
-    find("div[aria-selected='false']", text: asuka_variant.title).click
+    choose_react_select(asuka_variant.title, from: "Variant")
 
-    scroll_to("input[type=submit]")
-    find("input[type=submit]").click
+    scroll_to("button[type=submit]")
+    find("button[type=submit]").click
 
     visit purchases_path
 

@@ -1,0 +1,58 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "oxlint app/frontend",
+    "lint:perf": "oxlint app/frontend -D perf",
+    "lint:fix": "oxlint app/frontend --fix",
+    "lint:fix:all": "oxlint app/frontend --fix-dangerously",
+    "format": "oxfmt app/frontend .oxlintrc.json .oxfmtrc.json config/vite.json package.json tsconfig.json vite.config.ts",
+    "format:check": "oxfmt --check app/frontend .oxlintrc.json .oxfmtrc.json config/vite.json package.json tsconfig.json vite.config.ts",
+    "typecheck": "oxlint app/frontend",
+    "build": "vite build",
+    "heroku-postbuild": "pnpm build"
+  },
+  "dependencies": {
+    "@dnd-kit/helpers": "^0.4.0",
+    "@dnd-kit/react": "^0.4.0",
+    "@heroicons/react": "^2.2.0",
+    "@inertiajs/react": "^3.1.1",
+    "@js-from-routes/client": "^1.0.4",
+    "@rails/activestorage": "^8.1.300",
+    "@tiptap/extension-link": "^3.23.4",
+    "@tiptap/extension-text-align": "^3.23.4",
+    "@tiptap/extension-underline": "^3.23.4",
+    "@tiptap/react": "^3.23.4",
+    "@tiptap/starter-kit": "^3.23.4",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-select": "^5.10.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@inertiajs/vite": "^3.3.0",
+    "@tailwindcss/vite": "^4.3.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^25.9.0",
+    "@types/rails__activestorage": "^8.0.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "jsdom": "^29.1.1",
+    "oxfmt": "^0.52.0",
+    "oxlint": "^1.67.0",
+    "oxlint-tsgolint": "^0.23.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13",
+    "vite-plugin-ruby": "^5.2.2",
+    "vitest": "^4.1.6"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "packageManager": "pnpm@11.1.3"
+}

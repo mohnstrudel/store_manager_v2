@@ -21,7 +21,7 @@
 #
 require "rails_helper"
 
-RSpec.describe Warehouse, type: :model do
+RSpec.describe Warehouse do
   describe "validations" do
     it "validates presence of name" do
       warehouse = described_class.new(name: nil)

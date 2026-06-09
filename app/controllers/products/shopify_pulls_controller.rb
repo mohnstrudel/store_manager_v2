@@ -12,15 +12,12 @@ module Products
         "Product has not been published to Shopify yet"
       end
 
-      respond_to do |format|
-        format.turbo_stream { flash.now[:notice] = notice }
-        format.html { redirect_back_or_to product_path(@product), notice: }
-      end
+      redirect_back_or_to product_path(@product), notice:
     end
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :product, :pull_from_shopify?
     end
   end

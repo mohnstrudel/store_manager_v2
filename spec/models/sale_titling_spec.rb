@@ -40,5 +40,11 @@ RSpec.describe Sale do
 
       expect(sale.full_title).to include("woo-123")
     end
+
+    it "does not raise when the customer is missing" do
+      sale = build(:sale, customer: nil, woo_store_id: nil)
+
+      expect(sale.full_title).to eq("")
+    end
   end
 end

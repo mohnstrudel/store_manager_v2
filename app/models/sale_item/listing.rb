@@ -19,7 +19,8 @@ module SaleItem::Listing
     scope :for_history, -> {
       includes(
         :product,
-        sale: [:customer, :shopify_info, :woo_info],
+        purchase_items: :warehouse,
+        sale: [:customer, :shopify_info, :woo_info, :shipping_address],
         variant: [:version, :color, :size]
       )
     }

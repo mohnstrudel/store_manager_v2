@@ -6,53 +6,9 @@ html
     meta[name="viewport" content="width=device-width,initial-scale=1"]
     = csrf_meta_tags
     = csp_meta_tag
-    = stylesheet_link_tag "tailwind", "actiontext", "data-turbo-track": "reload"
-    = javascript_importmap_tags
-    = turbo_refresh_method_tag :morph
-    = turbo_refresh_scroll_tag :preserve
-    = breadcrumb_meta_tag
+    = vite_react_refresh_tag
+    = vite_client_tag
+    = vite_stylesheet_tag "application"
+    = vite_typescript_tag "inertia"
   body.flex.flex-col.min-h-screen
-    header.container.mx-auto.pt-2.px-4.lg:px-0
-      nav.flex.flex-col.items-stretch.gap-3.relative.lg:flex-row.lg:items-center role="navigation-main"
-        ul.flex.w-full.items-center.justify-between.lg:w-auto role="navigation-logo"
-          li.text-gray-700.dark:text-gray-500
-            i.icn.text-2xl.mr-2 😸
-            strong.align-text-bottom StoreMate
-        ul.text-sm.flex.flex-wrap.items-center.gap-2.lg:flex-nowrap.lg:whitespace-nowrap
-          - if current_user.guest?
-            li = link_to "Log Out", log_out_path, method: :post, data: {confirm: "Are you sure you want to log out?", turbo_method: :post}, type: "button"
-          - else
-            li = link_to "Dashboard", root_path, type: "button"
-            li = link_to "Debts", debts_path, type: "button"
-            .hidden.lg:block.lg:ml-6
-            li = link_to "Sales", sales_path, type: "button"
-            li = link_to "Purchases", purchases_path, type: "button"
-            li = link_to "Warehouses", warehouses_path, type: "button"
-            .hidden.lg:block.lg:ml-6
-            li = link_to "Products", products_path, type: "button"
-            li = link_to "Customers", customers_path, type: "button"
-
-          - unless current_user.guest?
-            nav.ml-0.lg:ml-6 role="navigation-dropdown"
-              button
-                = heroicon "bars-2", variant: "mini"
-              ul
-                li = link_to "Suppliers", suppliers_path, type: "button"
-                li = link_to "Shipping Companies", shipping_companies_path, type: "button"
-                .pb-3
-                li = link_to "Brands", brands_path, type: "button"
-                li = link_to "Franchises", franchises_path, type: "button"
-                .pb-3
-                li = link_to "Versions", versions_path, type: "button"
-                li = link_to "Colors", colors_path, type: "button"
-                li = link_to "Sizes", sizes_path, type: "button"
-                .pb-3
-                - if current_user.admin?
-                  li = link_to "Users", users_path, type: "button"
-                li = link_to "Log Out", log_out_path, method: :post, data: {confirm: "Are you sure you want to log out?", turbo_method: :post}, type: "button"
-    main.container.mx-auto.mt-4.mb-24.px-4.lg:mt-8.lg:mb-60.lg:px-0
-      = breadcrumbs
-      = yield
-    footer.container.mx-auto.text-center.mb-8.px-4.lg:px-0
-      a.no-underline.hover:bg-transparent href="" onclick="window.scrollTo({top: 0}); return false;" class="link"
-        i.icn.text-3xl.text-gray-500 😸
+    = yield

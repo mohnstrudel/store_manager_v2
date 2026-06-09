@@ -385,28 +385,25 @@ RSpec.describe MediaFormHandling do
     before { sign_in_as_admin }
     after { log_out }
 
-    def create_test_image(filename: "test.jpg", content_type: "image/jpeg")
-      tempfile = Tempfile.new(["test", ".jpg"])
-      tempfile.write("\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9")
-      tempfile.rewind
-
-      # Create an UploadedFile that has both content_type and tempfile
-      # This ensures it passes the image_like? check
-      Rack::Test::UploadedFile.new(tempfile.path, content_type, original_filename: filename)
+    def create_test_blob(filename: "test.jpg", content_type: "image/jpeg")
+      ActiveStorage::Blob.create_and_upload!(
+        io: StringIO.new("\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9"),
+        filename:,
+        content_type:
+      )
     end
 
     describe "POST #create with new images" do
       let(:franchise) { create(:franchise) }
 
       it "attaches new images to the product" do
+        blob1 = create_test_blob
+        blob2 = create_test_blob(filename: "test2.jpg")
         initial_count = Media.count
+
         post :create, params: {
-          product: {
-            title: "Test Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
-          }
+          product: {title: "Test Product", franchise_id: franchise.id, shape: Product.default_shape},
+          media: {"0" => {image_blob_id: blob1.signed_id}, "1" => {image_blob_id: blob2.signed_id}}
         }
 
         expect(Media.count - initial_count).to eq(2)
@@ -414,12 +411,7 @@ RSpec.describe MediaFormHandling do
 
       it "responds with redirect on product creation" do
         post :create, params: {
-          product: {
-            title: "Test Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
-          }
+          product: {title: "Test Product", franchise_id: franchise.id, shape: Product.default_shape}
         }
 
         expect(response).to have_http_status(:redirect)
@@ -427,26 +419,19 @@ RSpec.describe MediaFormHandling do
 
       it "creates the product with images" do
         post :create, params: {
-          product: {
-            title: "Test Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
-          }
+          product: {title: "Test Product", franchise_id: franchise.id, shape: Product.default_shape}
         }
 
-        created_product = Product.find_by(title: "Test Product")
-        expect(created_product).not_to be_nil
+        expect(Product.find_by(title: "Test Product")).not_to be_nil
       end
 
       it "attaches correct number of images to product" do
+        blob1 = create_test_blob
+        blob2 = create_test_blob(filename: "test2.jpg")
+
         post :create, params: {
-          product: {
-            title: "Test Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image, create_test_image(filename: "test2.jpg")]
-          }
+          product: {title: "Test Product", franchise_id: franchise.id, shape: Product.default_shape},
+          media: {"0" => {image_blob_id: blob1.signed_id}, "1" => {image_blob_id: blob2.signed_id}}
         }
 
         created_product = Product.find_by(title: "Test Product")
@@ -458,29 +443,20 @@ RSpec.describe MediaFormHandling do
         create(:media, :for_product, mediaable: existing_product, position: 3)
 
         post :create, params: {
-          product: {
-            title: "Another Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image]
-          }
+          product: {title: "Another Product", franchise_id: franchise.id, shape: Product.default_shape}
         }
 
-        new_product = Product.find_by(title: "Another Product")
-        expect(new_product).not_to be_nil
+        expect(Product.find_by(title: "Another Product")).not_to be_nil
       end
 
       it "positions new product image at position 0" do
+        blob = create_test_blob
         existing_product = create(:product)
         create(:media, :for_product, mediaable: existing_product, position: 3)
 
         post :create, params: {
-          product: {
-            title: "Another Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image]
-          }
+          product: {title: "Another Product", franchise_id: franchise.id, shape: Product.default_shape},
+          media: {"0" => {image_blob_id: blob.signed_id}}
         }
 
         new_product = Product.find_by(title: "Another Product")
@@ -492,12 +468,7 @@ RSpec.describe MediaFormHandling do
         create(:media, :for_product, mediaable: existing_product, position: 3)
 
         post :create, params: {
-          product: {
-            title: "Another Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image]
-          }
+          product: {title: "Another Product", franchise_id: franchise.id, shape: Product.default_shape}
         }
 
         expect(existing_product.reload.media.count).to eq(1)
@@ -508,12 +479,7 @@ RSpec.describe MediaFormHandling do
         create(:media, :for_product, mediaable: existing_product, position: 3)
 
         post :create, params: {
-          product: {
-            title: "Another Product",
-            franchise_id: franchise.id,
-            shape: Product.default_shape,
-            new_images: [create_test_image]
-          }
+          product: {title: "Another Product", franchise_id: franchise.id, shape: Product.default_shape}
         }
 
         expect(existing_product.media.first.position).to eq(3)
@@ -527,29 +493,20 @@ RSpec.describe MediaFormHandling do
       it "updates media alt text" do
         patch :update, params: {
           id: product.id,
-          product: {
-            title: product.title,
-            franchise_id: product.franchise_id,
-            shape: product.shape,
-            media: {
-              "0" => {id: first_media.id.to_s, alt: "Updated alt"}
-            }
-          }
+          product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+          media: {"0" => {id: first_media.id.to_s, alt: "Updated alt"}}
         }
 
         expect(first_media.reload.alt).to eq("Updated alt")
       end
 
       it "adds new images during update" do
+        blob = create_test_blob(filename: "new.jpg")
+
         patch :update, params: {
           id: product.id,
-          product: {
-            title: product.title,
-            franchise_id: product.franchise_id,
-            shape: product.shape,
-            media: {},
-            new_images: [create_test_image(filename: "new.jpg")]
-          }
+          product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+          media: {"0" => {id: first_media.id.to_s}, "1" => {image_blob_id: blob.signed_id}}
         }
 
         expect(product.media.count).to eq(2)

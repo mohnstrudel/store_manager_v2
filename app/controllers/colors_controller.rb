@@ -6,20 +6,34 @@ class ColorsController < ApplicationController
   # GET /colors or /colors.json
   def index
     @colors = Color.order(:value)
+
+    return unless stale?(etag: [@colors, request.inertia?], last_modified: @colors.maximum(:updated_at))
+
+    render inertia: "Colors/Index", props: {
+      colors: @colors.map { |color| helpers.color_props(color) }
+    }
   end
 
   # GET /colors/1 or /colors/1.json
   def show
-    @color = Color.includes(:products).find(params[:id])
+    @color = Color.includes(:products).find(params.expect(:id))
+
+    render inertia: "Colors/Show", props: {
+      color: helpers.color_props(@color),
+      products: @color.products.map { |product| helpers.product_props(product) }
+    }
   end
 
   # GET /colors/new
   def new
     @color = Color.new
+
+    render inertia: "Colors/New", props: helpers.color_form_props(@color)
   end
 
   # GET /colors/1/edit
   def edit
+    render inertia: "Colors/Edit", props: helpers.color_form_props(@color)
   end
 
   # POST /colors or /colors.json
@@ -31,7 +45,7 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully created" }
         format.json { render :show, status: :created, location: @color }
       else
-        format.html { render :new, status: :unprocessable_content }
+        format.html { redirect_to new_color_url, inertia: inertia_errors(@color.errors) }
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -44,7 +58,7 @@ class ColorsController < ApplicationController
         format.html { redirect_to color_url(@color), notice: "Color was successfully updated" }
         format.json { render :show, status: :ok, location: @color }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html { redirect_to edit_color_url(@color), inertia: inertia_errors(@color.errors) }
         format.json { render json: @color.errors, status: :unprocessable_content }
       end
     end
@@ -64,7 +78,7 @@ class ColorsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_color
-    @color = Color.find(params[:id])
+    @color = Color.find(params.expect(:id))
   end
 
   # Only allow a list of trusted parameters through.

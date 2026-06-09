@@ -18,7 +18,7 @@ module Sales
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :sale, :pull?
     end
   end

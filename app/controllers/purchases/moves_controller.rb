@@ -7,15 +7,15 @@ module Purchases
     def create
       moved_count = Purchase.friendly
         .where(id: purchase_ids_for_movement)
-        .sum { |purchase| purchase.move_to_warehouse!(params[:destination_id]) }
+        .sum { |purchase| purchase.move_to_warehouse!(params.expect(:destination_id)) }
 
-      flash_movement_notice(moved_count, Warehouse.find(params[:destination_id]))
+      flash_movement_notice(moved_count, Warehouse.find(params.expect(:destination_id)))
       redirect_after_purchase_move
     end
 
     private
 
-    def authorize_resourse
+    def authorize_resource
       authorize :purchase, :move?
     end
 
@@ -25,7 +25,7 @@ module Purchases
 
     def redirect_after_purchase_move
       if params[:purchase_id].present?
-        redirect_to purchase_path(Purchase.friendly.find(params[:purchase_id]))
+        redirect_to purchase_path(Purchase.friendly.find(params.expect(:purchase_id)))
       else
         redirect_to purchases_path
       end

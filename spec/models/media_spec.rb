@@ -14,7 +14,7 @@
 #
 require "rails_helper"
 
-RSpec.describe Media, type: :model do
+RSpec.describe Media do
   describe "associations" do
     it { is_expected.to belong_to(:mediaable).inverse_of(:media) }
     it { is_expected.to have_many(:store_infos).dependent(:destroy) }
@@ -44,7 +44,7 @@ RSpec.describe Media, type: :model do
       let!(:media3) { create(:media, :for_product, mediaable: product, position: 3) }
 
       it "orders by position ascending" do
-        expect(Media.ordered).to eq([media2, media1, media3])
+        expect(described_class.ordered).to eq([media2, media1, media3])
       end
     end
   end

@@ -24,8 +24,9 @@ module Warehouses
           expect(assigns(:warehouse)).to eq(warehouse)
           expect(assigns(:purchase_items)).to include(matching_item)
           expect(assigns(:purchase_items)).not_to include(other_item)
-          expect(response.body).to include('data-controller="gallery"')
-          expect(response.body).to include('data-gallery-target="main"')
+          expect_inertia.to render_component("Warehouses/Show")
+          expect(inertia.props[:warehouse][:id]).to eq(warehouse.id)
+          expect(inertia.props[:warehouse][:media].first[:id]).to eq(media.id)
         end
       end
     end

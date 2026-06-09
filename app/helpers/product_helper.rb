@@ -33,6 +33,239 @@ module ProductHelper
     end
   end
 
+  def product_props(product)
+    {
+      id: product.id,
+      full_title: product.full_title,
+      path: product_path(product)
+    }
+  end
+
+  def index_product_props(product)
+    {
+      id: product.id,
+      title: product.title,
+      full_title: product.full_title,
+      path: product_path(product),
+      edit_path: edit_product_path(product),
+      thumb_url: thumb_url(product),
+      variants: product.variants.reject(&:base_model?).map { |variant|
+        {
+          id: variant.id,
+          title: variant.title
+        }
+      },
+      woo_store_id: product.woo_info&.store_id,
+      shopify_id_short: product.shopify_info&.id_short,
+      new_purchase_path: new_purchase_path(product:)
+    }
+  end
+
+  def show_product_props(product, can_pull_from_shopify:)
+    {
+      id: product.id,
+      title: product.title,
+      full_title: product.full_title,
+      path: product_path(product),
+      edit_path: edit_product_path(product),
+      franchise: {id: product.franchise_id, title: product.franchise.title},
+      brands: product.brands.map { |brand| {id: brand.id, title: brand.title} },
+      sizes: product.sizes.map { |size| {id: size.id, value: size.value} },
+      versions: product.versions.map { |version| {id: version.id, value: version.value} },
+      colors: product.colors.map { |color| {id: color.id, value: color.value} },
+      shape: product.shape,
+      description_html: product.description.body&.to_html,
+      media: product.media.filter_map { |media| media_props(media) },
+      shopify_info: shopify_info_props(product),
+      woo_info: woo_info_props(product),
+      created_at_columns: product_timestamp_columns_props(product, :created_at),
+      updated_at_columns: product_timestamp_columns_props(product, :updated_at),
+      shopify_linked: product.shopify_linked?,
+      can_pull_from_shopify: can_pull_from_shopify,
+      shopify_pull_path: product_shopify_pull_path(product),
+      new_purchase_path: new_purchase_path(product:)
+    }
+  end
+
+  def product_timestamp_columns_props(product, attribute)
+    product_timestamp_columns(product, attribute).map do |column|
+      {
+        key: column[:key],
+        label: column[:label],
+        value: format_date(column[:value])
+      }
+    end
+  end
+
+  def shopify_info_props(product)
+    info = product.shopify_info
+    return nil unless info
+
+    {
+      store_id: info.store_id,
+      id_short: info.id_short,
+      tag_list: info.tag_list,
+      product_url: product.build_shopify_url
+    }
+  end
+
+  def woo_info_props(product)
+    info = product.woo_info
+    return nil unless info
+
+    {
+      store_id: info.store_id,
+      product_url: info.product_url
+    }
+  end
+
+  def variant_props(variant, sales_sums, purchase_sums)
+    {
+      id: variant.id,
+      title: variant.title,
+      types_name: variant.types_name,
+      weight: variant.weight.to_f,
+      purchase_cost: variant.purchase_cost.to_f,
+      selling_price: variant.selling_price.to_f,
+      deactivated: variant.deactivated?,
+      active_sales_count: sales_sums[variant.id].to_i,
+      purchases_count: purchase_sums[variant.id].to_i,
+      shopify_id_short: variant.shopify_info&.id_short,
+      woo_store_id: variant.woo_info&.store_id
+    }
+  end
+
+  def product_sale_item_props(sale_item, product)
+    sale = sale_item.sale
+    purchase_item = sale_item.purchase_items.first
+    store_type, store_id = product_sale_info_for_sale(sale)
+
+    {
+      id: sale_item.id,
+      sale_path: sale_path(sale),
+      store_type: store_type,
+      store_id: store_id.presence || "",
+      customer_name: sale.customer.full_name,
+      customer_email: sale.customer.email,
+      country: sale.shipping_address&.country.presence || "",
+      date: format_date(sale.woo_created_at.presence || sale_item.created_at),
+      variant_title: product.variants.any? ? sale_item.variant&.title : nil,
+      price: format_money(sale_item.price),
+      qty: sale_item.qty,
+      status: sale.status,
+      warehouse: purchase_item&.warehouse&.name.presence || "",
+      purchase_item_path: purchase_item ? purchase_item_path(purchase_item) : nil
+    }
+  end
+
+  def product_sale_info_for_sale(sale)
+    return [nil, nil] unless sale
+
+    if sale.shopify_info&.store_id.present?
+      ["shopify", sale.shopify_info.id_short]
+    elsif sale.woo_info&.store_id.present?
+      ["woo", sale.woo_info.store_id]
+    else
+      [nil, sale.shopify_name.presence || sale.woo_store_id]
+    end
+  end
+
+  def purchase_props(purchase)
+    {
+      id: purchase.id,
+      path: purchase_path(purchase),
+      supplier: purchase.supplier.title,
+      order_reference: purchase.order_reference.to_s,
+      variant_title: purchase.variant&.title,
+      item_price: format_money(purchase.item_price),
+      amount: purchase.amount,
+      created_at: format_date(purchase.created_at),
+      warehouses: purchase.purchase_items.map { |purchase_item|
+        {
+          id: purchase_item.id,
+          name: purchase_item.warehouse&.name
+        }
+      }
+    }
+  end
+
+  def product_form_props(product)
+    {
+      product: form_product_props(product),
+      options: form_options_props
+    }
+  end
+
+  def form_product_props(product)
+    {
+      id: product.id,
+      title: product.title,
+      description_html: product.description.body&.to_html,
+      franchise_id: product.franchise_id,
+      shape: product.shape,
+      brand_ids: product.brand_ids,
+      path: product.persisted? ? product_path(product) : "",
+      variants: product.variants.map { |variant| form_variant_props(variant) },
+      store_infos: product.store_infos.map { |store_info| form_store_info_props(store_info) },
+      media: product.media.filter_map { |media| media_props(media) }
+    }
+  end
+
+  def form_variant_props(variant)
+    {
+      id: variant.id,
+      sku: variant.sku,
+      size_id: variant.size_id,
+      version_id: variant.version_id,
+      color_id: variant.color_id,
+      purchase_cost: variant.purchase_cost.to_s,
+      selling_price: variant.selling_price.to_s,
+      weight: variant.weight.to_s,
+      deactivated: variant.deactivated?,
+      has_sales_or_purchases: variant.persisted? ? variant.has_sales_or_purchases? : false,
+      _destroy: false
+    }
+  end
+
+  def form_store_info_props(store_info)
+    {
+      id: store_info.id,
+      store_name: store_info.store_name,
+      tag_list: store_info.tag_list.join(", "),
+      _destroy: false
+    }
+  end
+
+  def form_options_props
+    {
+      franchises: Franchise.order(:title).map { |franchise| select_option(franchise.id, franchise.title) },
+      brands: Brand.order(:title).map { |brand| select_option(brand.id, brand.title) },
+      shapes: Product.shape_options,
+      sizes: Size.order(:value).map { |size| select_option(size.id, size.value) },
+      versions: Version.order(:value).map { |version| select_option(version.id, version.value) },
+      colors: Color.order(:value).map { |color| select_option(color.id, color.value) },
+      suppliers: Supplier.order(:title).map { |supplier| select_option(supplier.id, supplier.title) },
+      warehouses: Warehouse.order(:name).map { |warehouse| select_option(warehouse.id, warehouse.name) },
+      store_names: StoreInfo.assignable_store_names
+    }
+  end
+
+  def select_option(value, label)
+    {value:, label:}
+  end
+
+  def default_purchase_props
+    default_warehouse = Warehouse.find_by(is_default: true)
+    {
+      supplier_id: nil,
+      order_reference: "",
+      item_price: "",
+      amount: "",
+      warehouse_id: default_warehouse&.id,
+      payment_value: ""
+    }
+  end
+
   def product_row_class(record_id, selected_id:, hoverable: false, **extra_classes)
     class_names(extra_classes.merge(hoverable:, selected: selected_id == record_id))
   end
@@ -41,7 +274,8 @@ module ProductHelper
     errors = []
 
     product.errors.each do |error|
-      next if %i[variants store_infos purchase].include?(error.attribute)
+      next if nested_product_error?(error.attribute)
+      next if %i[variants store_infos purchase initial_purchase].include?(error.attribute)
 
       errors << {label: error.attribute.to_s.humanize, message: error.message}
     end
@@ -67,6 +301,11 @@ module ProductHelper
     end
 
     errors
+  end
+
+  def nested_product_error?(attribute)
+    attribute = attribute.to_s
+    attribute.include?(".") || attribute.include?("[") || attribute.include?("]")
   end
 
   def purchase_section_expanded?(purchase)

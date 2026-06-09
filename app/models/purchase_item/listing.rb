@@ -8,25 +8,44 @@ module PurchaseItem::Listing
 
     scope :with_media, -> { includes(media: {image_attachment: :blob}) }
 
+    scope :for_show, -> {
+      includes(
+        :audits,
+        :warehouse,
+        :shipping_company,
+        :sale,
+        :sale_item,
+        purchase: [:supplier, :product, :variant],
+        media: {image_attachment: :blob}
+      )
+    }
+
     scope :for_purchase_details, -> {
-      includes(:warehouse, :sale_item, purchase: :payments, sale: [:customer, :shopify_info, :woo_info])
+      includes(
+        :audits,
+        :warehouse,
+        :shipping_company,
+        :sale_item,
+        purchase: :payments,
+        sale: [:customer, :shopify_info, :woo_info, :shipping_address]
+      )
     }
 
     scope :for_warehouse_details, -> {
       includes(
         :shipping_company,
-        sale: :customer,
+        sale: [:customer, :shipping_address],
         purchase: [
           :payments,
           :purchase_items,
-          :variant,
+          {variant: [:size, :version, :color]},
           {product: :variants}
         ]
       )
     }
 
     scope :for_shipping_details, -> {
-      includes(:product, :purchase, variant: [:color, :size, :version])
+      includes(:product, :purchase)
     }
 
     scope :for_notifications, -> {

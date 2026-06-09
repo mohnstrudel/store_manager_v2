@@ -5,6 +5,10 @@ module FormattingHelper
     value.presence || "-"
   end
 
+  def formatted_timestamp(time)
+    time&.strftime("%-d. %b '%y %H:%M")
+  end
+
   def format_date(date)
     date&.strftime("%-d. %b ’%y")
   end
@@ -57,7 +61,7 @@ module FormattingHelper
     ratio = "#{purchased} / #{sold}"
 
     if purchased_count >= sold_count
-      content_tag(:mark, ratio, class: "mark-gray mr-1.5")
+      content_tag(:mark, ratio, class: "mark_gray mr-1.5")
     else
       content_tag(:mark, ratio, class: "mr-1.5")
     end
