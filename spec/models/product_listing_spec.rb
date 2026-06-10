@@ -4,14 +4,22 @@ require "rails_helper"
 
 RSpec.describe Product do
   describe ".listed" do
-    it "eager loads the listing associations and orders newest first" do
-      older = create(:product)
-      newer = create(:product)
+    it "sorts published products before unpublished, then by created_at desc" do
+      unpublished_newer = create(:product)
+      unpublished_older = create(:product, created_at: 1.day.ago)
+      published = create(:product, published_at: 1.week.ago)
 
-      relation = described_class.listed.where(id: [older.id, newer.id]).to_a
+      relation = described_class.listed.where(id: [unpublished_newer.id, unpublished_older.id, published.id]).to_a
+
+      expect(relation.map(&:id)).to eq([published.id, unpublished_newer.id, unpublished_older.id])
+    end
+
+    it "eager loads the listing associations" do
+      product = create(:product, published_at: 1.day.ago)
+
+      relation = described_class.listed.where(id: product.id).to_a
 
       aggregate_failures do
-        expect(relation.first.id).to eq(newer.id)
         expect(relation.first.association(:shopify_info).loaded?).to be true
         expect(relation.first.association(:woo_info).loaded?).to be true
         expect(relation.first.association(:variants).loaded?).to be true

@@ -10,7 +10,7 @@ module Product::Listing
         :woo_info,
         variants: [:version, :color, :size],
         media: {image_attachment: :blob}
-      ).order(created_at: :desc)
+      ).order(Product.arel_table[:published_at].desc.nulls_last, created_at: :desc)
     }
 
     scope :for_details, -> {

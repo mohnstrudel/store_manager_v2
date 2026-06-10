@@ -15,6 +15,7 @@ RSpec.describe Product::Shopify::Importer do
         brand: "Light and Dust Studio",
         sku: "TEST-SKU-001",
         tags: [],
+        published_at: 2.days.ago.iso8601,
         store_info: {
           ext_created_at: 1.day.ago.iso8601,
           ext_updated_at: 1.hour.ago.iso8601
@@ -38,6 +39,7 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.shape).to eq("Statue")
       expect(product.brands.first.title).to eq("Light and Dust Studio")
       expect(product.sizes.first.value).to eq("1:4")
+      expect(product.published_at).to be_within(1.second).of(2.days.ago)
     end
 
     it "enqueues sync jobs for variants and media" do # rubocop:todo RSpec/MultipleExpectations

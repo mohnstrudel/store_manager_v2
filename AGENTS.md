@@ -4,6 +4,7 @@
 
 - For Rails domain work, use `rails-domain-architecture` SKILL.md.
 - For frontend work, use `frontend-architecture` SKILL.md.
+- For adding or changing an inline table-cell editor, use `inline-cell-editor` SKILL.md.
 
 ## Completion
 
