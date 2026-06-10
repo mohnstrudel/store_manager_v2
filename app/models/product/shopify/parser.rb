@@ -32,6 +32,7 @@ class Product::Shopify::Parser
       shape: parsed_title[:shape],
       size: parsed_title[:size],
       sku: parsed_sku,
+      published_at: payload["publishedAt"],
       store_id: payload["id"],
       store_info: {
         ext_created_at: payload["createdAt"],

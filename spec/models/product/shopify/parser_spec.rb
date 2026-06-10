@@ -28,6 +28,7 @@ RSpec.describe Product::Shopify::Parser do
           "tags" => ["statue", "premium", "exclusive"],
           "createdAt" => "2024-01-01T00:00:00Z",
           "updatedAt" => "2024-01-15T00:00:00Z",
+          "publishedAt" => "2024-01-10T00:00:00Z",
           "variants" => {
             "edges" => [
               {
@@ -109,6 +110,7 @@ RSpec.describe Product::Shopify::Parser do
         expect(result).to include(
           store_id: "gid://shopify/Product/12345",
           store_link: "stellar-blade-eve-statue",
+          published_at: "2024-01-10T00:00:00Z",
           title: "Eve",
           franchise: "Stellar Blade",
           size: "1:4",

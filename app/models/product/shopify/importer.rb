@@ -32,7 +32,8 @@ class Product::Shopify::Importer
         title: parsed[:title],
         franchise: Franchise.find_or_create_by(title: parsed[:franchise]),
         shape: parsed[:shape].presence || Product.default_shape,
-        description: normalize_description_html(parsed[:description])
+        description: normalize_description_html(parsed[:description]),
+        published_at: parsed[:published_at]
       )
       assign_brand
       assign_size

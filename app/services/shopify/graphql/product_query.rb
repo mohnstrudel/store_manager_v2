@@ -17,6 +17,7 @@ module Shopify
         tags
         createdAt
         updatedAt
+        publishedAt
         media(first: 20) {
           nodes {
             ... on MediaImage {

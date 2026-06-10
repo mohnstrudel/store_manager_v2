@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_01_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -207,6 +207,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_120000) do
     t.bigint "franchise_id", null: false
     t.string "full_title"
     t.string "image"
+    t.datetime "published_at"
     t.string "shape", default: "Statue", null: false
     t.string "shopify_id"
     t.string "slug"
@@ -214,6 +215,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_120000) do
     t.datetime "updated_at", null: false
     t.string "woo_id"
     t.index ["franchise_id"], name: "index_products_on_franchise_id"
+    t.index ["published_at"], name: "index_products_on_published_at"
     t.index ["shopify_id"], name: "index_products_on_shopify_id"
     t.index ["slug"], name: "index_products_on_slug", unique: true
     t.check_constraint "shape::text = ANY (ARRAY['Statue'::character varying, 'Bust'::character varying]::text[])", name: "products_shape_allowed_values"

@@ -7,6 +7,7 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
+#  published_at :datetime
 #  shape        :string           default("Statue"), not null
 #  slug         :string
 #  title        :string
