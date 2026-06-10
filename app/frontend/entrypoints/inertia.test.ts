@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createInertiaApp, router } from "@inertiajs/react";
 import AppLayout from "@/layouts/AppLayout";
 import {
   disableAutocorrect,
@@ -6,39 +7,29 @@ import {
   enableInertiaNavigationBridge,
 } from "./inertia";
 
-type CreateInertiaAppOptions = {
-  layout: () => typeof AppLayout;
-};
-
-const mocks = vi.hoisted(() => ({
-  createInertiaApp: vi.fn<(options: CreateInertiaAppOptions) => unknown>(),
-  on: vi.fn<(event: string, callback: () => void) => () => void>(),
-  visit: vi.fn<(...args: unknown[]) => unknown>(),
-}));
-
-vi.mock("@inertiajs/react", () => ({
-  createInertiaApp: mocks.createInertiaApp,
-  router: {
-    on: mocks.on,
-    visit: mocks.visit,
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("@/utils/resolvePage", () => ({
   resolvePage: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
+// Captured at module scope: createInertiaApp and router.on("navigate") run at
+// import time of "./inertia", before mockReset clears call history for test 1.
+const createInertiaAppOptions = vi.mocked(createInertiaApp).mock.calls[0]?.[0] as
+  | { layout: () => typeof AppLayout }
+  | undefined;
+const navigateHandler = vi
+  .mocked(router.on)
+  .mock.calls.find(([event]) => event === "navigate")?.[1] as (() => void) | undefined;
+
 describe("Inertia navigation bridge", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
-    mocks.visit.mockClear();
   });
 
   it("uses AppLayout as the default persistent layout", () => {
-    expect(mocks.createInertiaApp).toHaveBeenCalled();
-
-    const options = mocks.createInertiaApp.mock.calls[0][0];
-    expect(options.layout()).toBe(AppLayout);
+    expect(createInertiaAppOptions).toBeDefined();
+    expect(createInertiaAppOptions?.layout()).toBe(AppLayout);
   });
 
   it("visits same-origin layout links through Inertia with view transitions", () => {
@@ -48,7 +39,7 @@ describe("Inertia navigation bridge", () => {
     const event = clickEvent();
     document.querySelector("a")!.dispatchEvent(event);
 
-    expect(mocks.visit).toHaveBeenCalledWith("/products?q=foo#top", {
+    expect(router.visit).toHaveBeenCalledWith("/products?q=foo#top", {
       method: "get",
       viewTransition: true,
     });
@@ -62,7 +53,7 @@ describe("Inertia navigation bridge", () => {
     const event = clickEvent();
     document.querySelector("a")!.dispatchEvent(event);
 
-    expect(mocks.visit).toHaveBeenCalledWith("/products", {
+    expect(router.visit).toHaveBeenCalledWith("/products", {
       method: "get",
       viewTransition: true,
     });
@@ -77,7 +68,7 @@ describe("Inertia navigation bridge", () => {
     document.querySelector("a")!.addEventListener("click", (e) => e.preventDefault());
     document.querySelector("a")!.dispatchEvent(clickEvent());
 
-    expect(mocks.visit).not.toHaveBeenCalled();
+    expect(router.visit).not.toHaveBeenCalled();
   });
 
   it("does not intercept opted-out links", () => {
@@ -86,7 +77,7 @@ describe("Inertia navigation bridge", () => {
 
     document.querySelector("a")!.dispatchEvent(clickEvent());
 
-    expect(mocks.visit).not.toHaveBeenCalled();
+    expect(router.visit).not.toHaveBeenCalled();
   });
 });
 
@@ -117,14 +108,12 @@ describe("autocorrect disabler", () => {
   it("reruns after Inertia navigations", () => {
     enableAutocorrectDisabler();
 
-    const navigateHandler = findNavigateHandler();
     document.body.innerHTML = "<input>";
     navigateHandler?.();
     vi.runOnlyPendingTimers();
 
     expect(document.querySelector("input")).toHaveAttribute("autocomplete", "off");
   });
-
 });
 
 function clickEvent() {
@@ -140,8 +129,4 @@ function expectTextHelpersDisabled(element: Element | null) {
   expect(element).toHaveAttribute("autocorrect", "off");
   expect(element).toHaveAttribute("autocapitalize", "off");
   expect(element).toHaveAttribute("spellcheck", "false");
-}
-
-function findNavigateHandler() {
-  return mocks.on.mock.calls.find(([event]) => event === "navigate")?.[1];
 }

@@ -1,17 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
 import { rowNavigationProps } from "./rowNavigation";
 
-const mocks = vi.hoisted(() => ({
-  prefetch: vi.fn<(...args: unknown[]) => unknown>(),
-  visit: vi.fn<(...args: unknown[]) => unknown>(),
-}));
-
-vi.mock("@inertiajs/react", () => ({
-  router: {
-    prefetch: mocks.prefetch,
-    visit: mocks.visit,
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("rowNavigationProps", () => {
   it("prefetches row destinations on hover and focus", () => {
@@ -20,8 +11,8 @@ describe("rowNavigationProps", () => {
     props.onMouseEnter();
     props.onFocus();
 
-    expect(mocks.prefetch).toHaveBeenCalledTimes(2);
-    expect(mocks.prefetch).toHaveBeenCalledWith("/products/1", {
+    expect(router.prefetch).toHaveBeenCalledTimes(2);
+    expect(router.prefetch).toHaveBeenCalledWith("/products/1", {
       method: "get",
     });
   });

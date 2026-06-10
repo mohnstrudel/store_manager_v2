@@ -1,13 +1,10 @@
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { mockPageProps } from "@/test/mocks/inertia";
 import New from "./New";
 import type { SaleAddressFormRecord, SaleFormOptions, SaleFormRecord } from "./types";
 
-let pageErrors: Record<string, string> = {};
-
-vi.mock("@inertiajs/react", () => ({
-  usePage: () => ({ props: { errors: pageErrors } }),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("./components/Form", () => ({
   default: () => <div data-testid="sale-form" />,
@@ -48,10 +45,6 @@ const sale: SaleFormRecord = {
 };
 
 describe("Sales/New", () => {
-  beforeEach(() => {
-    pageErrors = {};
-  });
-
   it("renders the form without an error notice when there are no errors", () => {
     render(<New options={options} sale={sale} />);
 
@@ -60,7 +53,7 @@ describe("Sales/New", () => {
   });
 
   it("shows the error notice with field errors when validation fails", () => {
-    pageErrors = { customer: "can't be blank", status: "is invalid" };
+    mockPageProps({ errors: { customer: "can't be blank", status: "is invalid" } });
 
     render(<New options={options} sale={sale} />);
 

@@ -1,6 +1,11 @@
 import { forwardRef, useImperativeHandle } from "react";
 import FormError from "@/components/FormError";
-import { InlineCellForm, InlineCellTd, InlineCellTrigger, useInlineCellForm } from "@/components/inline-cell-editing";
+import {
+  InlineCellForm,
+  InlineCellTd,
+  InlineCellTrigger,
+  useInlineCellForm,
+} from "@/components/inline-cell-editing";
 import routes from "@/utils/routes";
 import type { ShippingCompanyOption, WarehousePurchaseItemRecord } from "../types";
 

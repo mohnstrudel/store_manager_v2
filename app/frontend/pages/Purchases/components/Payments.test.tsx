@@ -1,18 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
 import Payments from "../Show/Payments";
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
-const deletePayment = vi.hoisted(() => vi.fn<(...args: unknown[]) => unknown>());
-
-vi.mock("@inertiajs/react", () => ({
-  router: {
-    delete: deletePayment,
-    patch: vi.fn<(...args: unknown[]) => unknown>(),
-    post: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Purchases/components/Payments", () => {
   it("removes a payment after confirmation", async () => {
@@ -30,7 +23,7 @@ describe("Purchases/components/Payments", () => {
     await user.click(screen.getByRole("button", { name: "Remove" }));
 
     expect(window.confirm).toHaveBeenCalledWith("Remove this payment?");
-    expect(deletePayment).toHaveBeenCalledWith("/payments/1");
+    expect(router.delete).toHaveBeenCalledWith("/payments/1");
   });
 });
 

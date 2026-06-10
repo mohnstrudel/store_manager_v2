@@ -1,24 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Pagination from "./Pagination";
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({
-    children,
-    href,
-    prefetch: _prefetch,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-    prefetch?: boolean;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Pagination", () => {
   it("renders first pages, current page, last page, previous, and next links", () => {

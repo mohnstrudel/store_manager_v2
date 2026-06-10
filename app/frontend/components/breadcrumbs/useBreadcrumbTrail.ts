@@ -20,15 +20,18 @@ export function useBreadcrumbTrail() {
     breadcrumb ? [{ name: breadcrumb, url: currentUrl }] : [],
   );
 
-  useEffect(function syncTrail() {
-    if (!breadcrumb) {
-      setTrail([]);
-      return;
-    }
-    const fullTrail = buildTrail(readTrail(), breadcrumb, currentUrl);
-    setTrail(fullTrail);
-    saveTrail(fullTrail);
-  }, [currentUrl, breadcrumb]);
+  useEffect(
+    function syncTrail() {
+      if (!breadcrumb) {
+        setTrail([]);
+        return;
+      }
+      const fullTrail = buildTrail(readTrail(), breadcrumb, currentUrl);
+      setTrail(fullTrail);
+      saveTrail(fullTrail);
+    },
+    [currentUrl, breadcrumb],
+  );
 
   return trail;
 }

@@ -1,19 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Show from "./Show";
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    delete: vi.fn<(...args: unknown[]) => unknown>(),
-    visit: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Sizes/Show", () => {
   it("renders size details and linked products", () => {

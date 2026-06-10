@@ -1,64 +1,22 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPageProps } from "@/test/mocks/inertia";
 import AppNavigation from "./AppNavigation";
 
-const page = vi.hoisted(() => ({
-  props: {
-    auth: {
-      user: {
-        id: 1,
-        email_address: "admin@example.com",
-        role: "admin",
-      },
-    },
-    flash: { notice: null, alert: null },
-    csrf_token: "token",
-  },
-}));
-
-vi.mock("@inertiajs/react", () => ({
-  Link: ({
-    children,
-    href,
-    component: _component,
-    pageProps: _pageProps,
-    prefetch: _prefetch,
-    onClick,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-    component?: string;
-    pageProps?: Record<string, unknown>;
-    prefetch?: boolean;
-    onClick?: (event: { preventDefault(): void }) => void;
-  }) => (
-    <a
-      href={href}
-      {...props}
-      onClick={(event) => {
-        event.preventDefault();
-        onClick?.(event);
-      }}
-    >
-      {children}
-    </a>
-  ),
-  router: {
-    post: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-  usePage: () => page,
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("AppNavigation", () => {
   beforeEach(() => {
-    page.props.auth.user = {
-      id: 1,
-      email_address: "admin@example.com",
-      role: "admin",
-    };
+    mockPageProps({
+      auth: {
+        user: {
+          id: 1,
+          email_address: "admin@example.com",
+          role: "admin",
+        },
+      },
+    });
   });
 
   it("renders the main navigation and opens and dismisses the overflow menu", async () => {
@@ -106,11 +64,15 @@ describe("AppNavigation", () => {
   });
 
   it("renders a guest-only navigation", () => {
-    page.props.auth.user = {
-      id: 1,
-      email_address: "guest@example.com",
-      role: "guest",
-    };
+    mockPageProps({
+      auth: {
+        user: {
+          id: 1,
+          email_address: "guest@example.com",
+          role: "guest",
+        },
+      },
+    });
 
     render(<AppNavigation />);
 

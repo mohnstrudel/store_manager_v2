@@ -1,23 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
 import Show from "./Show";
 
-const deletePurchaseItem = vi.hoisted(() => vi.fn<(...args: unknown[]) => unknown>());
-
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    delete: deletePurchaseItem,
-    post: vi.fn<(...args: unknown[]) => unknown>(),
-    visit: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 const sale = {
   id: 1,
@@ -104,10 +91,6 @@ const sale = {
 };
 
 describe("Sales/Show", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it("renders the sale details and purchase controls", async () => {
     const user = userEvent.setup();
     vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -162,6 +145,6 @@ describe("Sales/Show", () => {
     await user.click(screen.getByRole("button", { name: /Unlink/ }));
 
     expect(window.confirm).toHaveBeenCalledWith("Unlink this purchase item?");
-    expect(deletePurchaseItem).toHaveBeenCalledWith("/purchase_items/101/unlink");
+    expect(router.delete).toHaveBeenCalledWith("/purchase_items/101/unlink");
   });
 });

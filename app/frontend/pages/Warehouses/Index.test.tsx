@@ -1,29 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Index from "./Index";
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({
-    children,
-    href,
-    prefetch: _prefetch,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-    prefetch?: boolean;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    patch: vi.fn<(...args: unknown[]) => unknown>(),
-    prefetch: vi.fn<(...args: unknown[]) => unknown>(),
-    visit: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 const warehouses = [
   {

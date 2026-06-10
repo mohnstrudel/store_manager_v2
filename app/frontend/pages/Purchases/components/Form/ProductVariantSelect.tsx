@@ -233,4 +233,3 @@ function loadVariants(
 
   return () => controller.abort();
 }
-

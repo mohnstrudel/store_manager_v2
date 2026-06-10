@@ -1,91 +1,12 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
+import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
 import PurchaseItems from "../Show/PurchaseItems";
 import type { PurchaseItemRecord, PurchaseShowRecord } from "../types";
 
-const inertia = vi.hoisted(() => ({
-  nextErrors: null as Record<string, string> | null,
-  patch: vi.fn<(...args: unknown[]) => void>(),
-  visit: vi.fn<(...args: unknown[]) => unknown>(),
-}));
-
-vi.mock("@inertiajs/react", async () => {
-  const React = await vi.importActual<typeof import("react")>("react");
-
-  return {
-    usePage: () => ({ url: "/purchases/1" }),
-    Link: ({
-      children,
-      href,
-      prefetch: _prefetch,
-      ...props
-    }: {
-      children: ReactNode;
-      href: string;
-      prefetch?: boolean;
-    }) => (
-      <a href={href} {...props}>
-        {children}
-      </a>
-    ),
-    router: {
-      prefetch: vi.fn<(...args: unknown[]) => unknown>(),
-      visit: inertia.visit,
-    },
-    useForm: <TData extends Record<string, unknown>>(initialData: TData) => {
-      const [data, setDataState] = React.useState(initialData);
-      const [errors, setErrors] = React.useState<Record<string, string>>({});
-      let optimisticCallback: ((props: unknown) => unknown) | null = null;
-      let transformPayload: ((data: TData) => unknown) | null = null;
-
-      const form = {
-        clearErrors: (...fields: string[]) => {
-          setErrors((currentErrors) => {
-            if (fields.length === 0) return {};
-            return Object.fromEntries(
-              Object.entries(currentErrors).filter(([field]) => !fields.includes(field)),
-            );
-          });
-        },
-        data,
-        errors,
-        optimistic: (callback: (props: unknown) => unknown) => {
-          optimisticCallback = callback;
-          return form;
-        },
-        transform: (callback: (data: TData) => unknown) => {
-          transformPayload = callback;
-        },
-        patch: (path: string, options: Record<string, (...args: unknown[]) => unknown>) => {
-          options.onBefore?.();
-          inertia.patch(
-            path,
-            transformPayload ? transformPayload(data) : data,
-            options,
-            optimisticCallback,
-          );
-
-          if (inertia.nextErrors) {
-            setErrors(inertia.nextErrors);
-            options.onError?.(inertia.nextErrors);
-            inertia.nextErrors = null;
-          } else {
-            options.onSuccess?.();
-          }
-        },
-        setData: (update: TData | ((data: TData) => TData)) => {
-          setDataState((currentData) =>
-            typeof update === "function" ? (update as (data: TData) => TData)(currentData) : update,
-          );
-        },
-      };
-
-      return form;
-    },
-  };
-});
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 const defaultProps = {
   movePath: "/purchase_items/move",
@@ -96,8 +17,7 @@ const defaultProps = {
 
 describe("PurchaseItems inline editors", () => {
   beforeEach(() => {
-    inertia.patch.mockClear();
-    inertia.visit.mockClear();
+    mockPage({ url: "/purchases/1" });
   });
 
   it("edits tracking number inline", async () => {
@@ -120,14 +40,13 @@ describe("PurchaseItems inline editors", () => {
     await user.type(screen.getByLabelText("Tracking number"), "TRACK-99");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/tracking_number",
       {
         purchase_item: { tracking_number: "TRACK-99" },
         return_to: "/purchases/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
     );
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass(
@@ -150,14 +69,13 @@ describe("PurchaseItems inline editors", () => {
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/shipping_company",
       {
         purchase_item: { shipping_company_id: "3" },
         return_to: "/purchases/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
     );
     expect(screen.getByRole("button", { name: "Edit shipping company" }).closest("td")).toHaveClass(
       "bg-lime-100/80",
@@ -180,14 +98,13 @@ describe("PurchaseItems inline editors", () => {
     await user.type(screen.getByLabelText("Shipping cost"), "20.00");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/shipping_cost",
       {
         purchase_item: { shipping_cost: "20" },
         return_to: "/purchases/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
     );
     expect(screen.queryByLabelText("Shipping cost")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Edit shipping cost" }).closest("td")).toHaveClass(
@@ -307,15 +224,14 @@ describe("PurchaseItems inline editors", () => {
 
     await user.click(within(shippingCostForm).getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledOnce();
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledOnce();
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/shipping_details",
       {
         purchase_item: { tracking_number: "", shipping_company_id: null, shipping_cost: "0" },
         return_to: "/purchases/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      null,
     );
   });
 
@@ -351,15 +267,18 @@ describe("PurchaseItems inline editors", () => {
 
     await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledOnce();
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledOnce();
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/shipping_details",
       {
-        purchase_item: { tracking_number: "TRACK-42", shipping_company_id: "3", shipping_cost: "0" },
+        purchase_item: {
+          tracking_number: "TRACK-42",
+          shipping_company_id: "3",
+          shipping_cost: "0",
+        },
         return_to: "/purchases/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      null,
     );
   });
 
@@ -394,15 +313,14 @@ describe("PurchaseItems inline editors", () => {
 
     await user.click(within(shippingForm).getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledOnce();
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledOnce();
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/shipping_details",
       {
         purchase_item: { tracking_number: "", shipping_company_id: "3", shipping_cost: "0" },
         return_to: "/purchases/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      null,
     );
   });
 
@@ -442,7 +360,7 @@ describe("PurchaseItems inline editors", () => {
     await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
 
     expect(screen.getByText("Shipping company is required")).toBeInTheDocument();
-    expect(inertia.patch).not.toHaveBeenCalled();
+    expect(router.patch).not.toHaveBeenCalled();
   });
 
   it("keeps server-side tracking errors visible in the editor", async () => {
@@ -460,7 +378,7 @@ describe("PurchaseItems inline editors", () => {
       />,
     );
 
-    inertia.nextErrors = { tracking_number: "Tracking number can't be blank" };
+    nextFormErrors.mockReturnValueOnce({ tracking_number: "Tracking number can't be blank" });
 
     await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
     await user.clear(screen.getByLabelText("Tracking number"));
@@ -492,7 +410,7 @@ describe("PurchaseItems inline editors", () => {
     });
     await user.type(screen.getByLabelText("Tracking number"), "TRACK-1");
 
-    inertia.nextErrors = { shipping_company_id: "can't be blank" };
+    nextFormErrors.mockReturnValueOnce({ shipping_company_id: "can't be blank" });
 
     const trackingForm = screen.getByLabelText("Tracking number").closest("form");
     if (!trackingForm) throw new Error("Expected tracking form");

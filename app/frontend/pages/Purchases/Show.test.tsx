@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
 import Show from "./Show";
 import type {
   NewPaymentRecord,
@@ -12,19 +12,7 @@ import type {
   WarehouseOption,
 } from "./types";
 
-const deletePurchase = vi.hoisted(() => vi.fn<(...args: unknown[]) => unknown>());
-
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    delete: deletePurchase,
-    post: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("./Show/PurchaseItems", () => ({
   default: ({
@@ -66,10 +54,6 @@ vi.mock("./Show/Payments", () => ({
 }));
 
 describe("Purchases/Show", () => {
-  beforeEach(() => {
-    deletePurchase.mockClear();
-  });
-
   it("renders the purchase header, edit action, and page sections", () => {
     renderShow();
 
@@ -93,7 +77,7 @@ describe("Purchases/Show", () => {
     await user.click(screen.getByRole("button", { name: "Destroy this purchase" }));
 
     expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
-    expect(deletePurchase).toHaveBeenCalledWith("/purchases/55");
+    expect(router.delete).toHaveBeenCalledWith("/purchases/55");
   });
 });
 

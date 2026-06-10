@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { act } from "react";
-import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FlashMessage } from "@/types/inertia";
 import FlashMessages from "./FlashMessages";
@@ -12,13 +11,7 @@ const flashState = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("./useFlash", () => ({
   useFlash: () => flashState.flash,
@@ -71,7 +64,11 @@ describe("FlashMessages", () => {
       alert: null,
       notice: {
         message: "Success! Visit",
-        link: { href: "/jobs/statuses", label: "jobs statuses dashboard", suffix: "to track synchronization progress" },
+        link: {
+          href: "/jobs/statuses",
+          label: "jobs statuses dashboard",
+          suffix: "to track synchronization progress",
+        },
       },
     };
 

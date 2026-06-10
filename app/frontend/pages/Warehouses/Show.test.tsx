@@ -1,101 +1,21 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
+import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
 import Show from "./Show";
 import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
 
-const inertia = vi.hoisted(() => ({
-  nextErrors: null as Record<string, string> | null,
-  writeText: vi.fn<(...args: unknown[]) => Promise<void>>(),
-  patch: vi.fn<(...args: unknown[]) => void>(),
-  visit: vi.fn<(...args: unknown[]) => unknown>(),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
-vi.mock("@inertiajs/react", async () => {
-  const React = await vi.importActual<typeof import("react")>("react");
-
-  return {
-    usePage: () => ({ url: "/warehouses/1" }),
-    Link: ({
-      children,
-      href,
-      prefetch: _prefetch,
-      ...props
-    }: {
-      children: ReactNode;
-      href: string;
-      prefetch?: boolean;
-    }) => (
-      <a href={href} {...props}>
-        {children}
-      </a>
-    ),
-    router: {
-      prefetch: vi.fn<(...args: unknown[]) => unknown>(),
-      visit: inertia.visit,
-    },
-    useForm: <TData extends Record<string, unknown>>(initialData: TData) => {
-      const [data, setDataState] = React.useState(initialData);
-      const [errors, setErrors] = React.useState<Record<string, string>>({});
-      let optimisticCallback: ((props: unknown) => unknown) | null = null;
-      let transformPayload: ((data: TData) => unknown) | null = null;
-
-      const form = {
-        clearErrors: (...fields: string[]) => {
-          setErrors((currentErrors) => {
-            if (fields.length === 0) return {};
-
-            return Object.fromEntries(
-              Object.entries(currentErrors).filter(([field]) => !fields.includes(field)),
-            );
-          });
-        },
-        data,
-        errors,
-        optimistic: (callback: (props: unknown) => unknown) => {
-          optimisticCallback = callback;
-          return form;
-        },
-        transform: (callback: (data: TData) => unknown) => {
-          transformPayload = callback;
-        },
-        patch: (path: string, options: Record<string, (...args: unknown[]) => unknown>) => {
-          options.onBefore?.();
-          inertia.patch(
-            path,
-            transformPayload ? transformPayload(data) : data,
-            options,
-            optimisticCallback,
-          );
-
-          if (inertia.nextErrors) {
-            setErrors(inertia.nextErrors);
-            options.onError?.(inertia.nextErrors);
-            inertia.nextErrors = null;
-          } else {
-            options.onSuccess?.();
-          }
-        },
-        setData: (update: TData | ((data: TData) => TData)) => {
-          setDataState((currentData) =>
-            typeof update === "function" ? (update as (data: TData) => TData)(currentData) : update,
-          );
-        },
-      };
-
-      return form;
-    },
-  };
-});
+const writeText = vi.fn<(...args: unknown[]) => Promise<void>>();
 
 describe("Warehouses/Show", () => {
   beforeEach(() => {
-    inertia.patch.mockClear();
-    inertia.visit.mockClear();
+    mockPage({ url: "/warehouses/1" });
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
-      value: { writeText: inertia.writeText },
+      value: { writeText },
     });
   });
 
@@ -134,14 +54,13 @@ describe("Warehouses/Show", () => {
     await user.type(screen.getByLabelText("Tracking number"), "TRACK-99");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/tracking_number",
       {
         purchase_item: { tracking_number: "TRACK-99" },
         return_to: "/warehouses/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
     );
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass(
@@ -152,16 +71,15 @@ describe("Warehouses/Show", () => {
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(inertia.patch).toHaveBeenCalledWith(
+    expect(router.patch).toHaveBeenCalledWith(
       "/purchase_items/10/shipping_company",
       {
         purchase_item: { shipping_company_id: "3" },
         return_to: "/warehouses/1",
       },
       expect.objectContaining({ preserveScroll: true }),
-      expect.any(Function),
     );
-    expect(inertia.visit).not.toHaveBeenCalled();
+    expect(router.visit).not.toHaveBeenCalled();
 
     expect(screen.getByText("Handle with care")).toHaveClass("cursor-text");
   });
@@ -257,7 +175,7 @@ describe("Warehouses/Show", () => {
     await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
 
     expect(screen.getByText("Shipping company is required")).toBeInTheDocument();
-    expect(inertia.patch).not.toHaveBeenCalled();
+    expect(router.patch).not.toHaveBeenCalled();
   });
 
   it("clears the shipping required error when the user cancels tracking editing", async () => {
@@ -322,7 +240,7 @@ describe("Warehouses/Show", () => {
 
     await user.click(screen.getAllByRole("button", { name: /Copy/ })[0]);
 
-    expect(inertia.visit).not.toHaveBeenCalled();
+    expect(router.visit).not.toHaveBeenCalled();
   });
 
   it("opens inline editors without validation errors before submitting", async () => {
@@ -386,7 +304,7 @@ describe("Warehouses/Show", () => {
       />,
     );
 
-    inertia.nextErrors = { tracking_number: "Tracking number can't be blank" };
+    nextFormErrors.mockReturnValueOnce({ tracking_number: "Tracking number can't be blank" });
 
     await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
     await user.clear(screen.getByLabelText("Tracking number"));
@@ -394,7 +312,7 @@ describe("Warehouses/Show", () => {
 
     expect(screen.getByText("Tracking number can't be blank")).toBeInTheDocument();
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
-    expect(inertia.visit).not.toHaveBeenCalled();
+    expect(router.visit).not.toHaveBeenCalled();
   });
 });
 

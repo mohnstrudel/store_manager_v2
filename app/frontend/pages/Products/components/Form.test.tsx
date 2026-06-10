@@ -2,6 +2,8 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { usePage } from "@inertiajs/react";
+import { mockPageProps } from "@/test/mocks/inertia";
 import Form from "./Form";
 import {
   type FormOptions,
@@ -20,7 +22,6 @@ type SmartSelectMockProps = {
   options?: SelectOption[];
 };
 
-let pageErrors: Record<string, string> = {};
 let resourceFormProps: {
   action: string;
   cancelHref: string;
@@ -28,24 +29,10 @@ let resourceFormProps: {
   submitLabel: string;
 } | null = null;
 
-vi.mock("@inertiajs/react", () => ({
-  Form: ({
-    action,
-    children,
-    method,
-  }: {
-    action: string;
-    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-    method: string;
-  }) => (
-    <form action={action} data-method={method}>
-      {typeof children === "function" ? children({ errors: pageErrors }) : children}
-    </form>
-  ),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("@/components/ResourceForm", () => ({
-  default: ({
+  default: function ResourceFormStub({
     action,
     cancelHref,
     children,
@@ -59,12 +46,13 @@ vi.mock("@/components/ResourceForm", () => ({
     method: string;
     submitLabel: string;
     validate?: unknown;
-  }) => {
+  }) {
+    const errors = (usePage().props.errors ?? {}) as Record<string, string>;
     resourceFormProps = { action, cancelHref, method, submitLabel };
 
     return (
       <form data-testid="resource-form">
-        {typeof children === "function" ? children({ errors: pageErrors }) : children}
+        {typeof children === "function" ? children({ errors }) : children}
         <button type="submit">{submitLabel}</button>
       </form>
     );
@@ -267,16 +255,17 @@ function makePurchase(overrides: Partial<PurchaseFormData> = {}): PurchaseFormDa
 
 describe("Products/Components/Form", () => {
   beforeEach(() => {
-    pageErrors = {};
     resourceFormProps = null;
   });
 
   it("renders the shell with nested errors and hidden form fields", async () => {
-    pageErrors = {
-      franchise: "Franchise must exist",
-      "variants.0.sku": "has already been taken",
-      "purchase.0.item_price": "can't be blank",
-    };
+    mockPageProps({
+      errors: {
+        franchise: "Franchise must exist",
+        "variants.0.sku": "has already been taken",
+        "purchase.0.item_price": "can't be blank",
+      },
+    });
 
     await act(async () => {
       render(

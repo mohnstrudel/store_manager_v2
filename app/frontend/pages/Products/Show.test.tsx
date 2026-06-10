@@ -1,31 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
 import Show from "./Show";
 import type { ProductShowRecord, PurchaseRecord, SaleItemRecord, VariantRecord } from "./types";
 
-const deleteProduct = vi.hoisted(() => vi.fn<(...args: unknown[]) => unknown>());
-
-vi.mock("@inertiajs/react", () => ({
-  Link: ({
-    children,
-    href,
-    method,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-    method?: string;
-  }) => (
-    <a data-method={method} href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    delete: deleteProduct,
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("@/components/ImageGallery", () => ({
   default: ({ media }: { media: ProductShowRecord["media"] }) => (
@@ -66,10 +46,6 @@ vi.mock("@/components/CopyToClipboardButton", () => ({
 }));
 
 describe("Products/Show", () => {
-  beforeEach(() => {
-    deleteProduct.mockClear();
-  });
-
   it("renders product details, store identifiers, and page actions", () => {
     renderShow();
 
@@ -181,7 +157,7 @@ describe("Products/Show", () => {
     await user.click(screen.getByRole("button", { name: "Destroy this product" }));
 
     expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
-    expect(deleteProduct).toHaveBeenCalledWith("/products/1");
+    expect(router.delete).toHaveBeenCalledWith("/products/1");
   });
 });
 

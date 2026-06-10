@@ -15,6 +15,7 @@ export default mergeConfig(
     test: {
       environment: "jsdom",
       globals: true,
+      mockReset: true,
       setupFiles: ["app/frontend/test/setup.ts"],
       include: ["app/frontend/**/*.test.{ts,tsx}"],
     },

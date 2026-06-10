@@ -141,4 +141,3 @@ function useStoreInfoFieldState(storeInfo: StoreInfoFormData, storeNames: string
     title,
   };
 }
-
