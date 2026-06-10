@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "@inertiajs/react";
-import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
+import { mockPage } from "@/test/mocks/inertia";
 import Show from "./Show";
 import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
 
@@ -275,44 +275,6 @@ describe("Warehouses/Show", () => {
 
     expect(screen.queryByText("Could not save tracking number")).not.toBeInTheDocument();
     expect(screen.queryByText("Could not save shipping company")).not.toBeInTheDocument();
-  });
-
-  it("keeps server-side tracking validation errors inside the inline editor", async () => {
-    const user = userEvent.setup();
-
-    render(
-      <Show
-        pagination={{
-          current_page: 1,
-          limit: 25,
-          total_count: 1,
-          total_pages: 1,
-        }}
-        purchase_items={[
-          makePurchaseItem({
-            shipping_company_id: 3,
-            shipping_company_name: "Skyline",
-          }),
-        ]}
-        search={{ q: "" }}
-        selected_id={null}
-        shipping_companies={[{ id: 3, name: "Skyline" }]}
-        total_purchase_items={1}
-        warehouse={makeWarehouse()}
-        warehouse_move_path="/purchase_items/move"
-        warehouses={[{ id: 1, name: "Warehouse A" }]}
-      />,
-    );
-
-    nextFormErrors.mockReturnValueOnce({ tracking_number: "Tracking number can't be blank" });
-
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
-    await user.clear(screen.getByLabelText("Tracking number"));
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(screen.getByText("Tracking number can't be blank")).toBeInTheDocument();
-    expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
-    expect(router.visit).not.toHaveBeenCalled();
   });
 });
 

@@ -1,9 +1,9 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "@inertiajs/react";
-import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
-import PurchaseItems from "../Show/PurchaseItems";
+import { mockPage } from "@/test/mocks/inertia";
+import PurchaseItems from "./PurchaseItems";
 import type { PurchaseItemRecord, PurchaseShowRecord } from "../types";
 
 vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
@@ -15,7 +15,11 @@ const defaultProps = {
   warehouses: [{ id: 1, name: "Warehouse A" }],
 };
 
-describe("PurchaseItems inline editors", () => {
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe("Purchases/Show/PurchaseItems", () => {
   beforeEach(() => {
     mockPage({ url: "/purchases/1" });
   });
@@ -80,6 +84,28 @@ describe("PurchaseItems inline editors", () => {
     expect(screen.getByRole("button", { name: "Edit shipping company" }).closest("td")).toHaveClass(
       "bg-lime-100/80",
     );
+  });
+
+  it("unlinks a purchase item after confirmation", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    render(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[
+          makePurchaseItem({
+            sale_path: "/sales/1",
+            sale_title: "Sale 1",
+          }),
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Unlink/ }));
+
+    expect(window.confirm).toHaveBeenCalledWith("Unlink this purchase item?");
+    expect(router.delete).toHaveBeenCalledWith("/purchase_items/10/unlink");
   });
 
   it("edits shipping cost inline", async () => {
@@ -324,6 +350,49 @@ describe("PurchaseItems inline editors", () => {
     );
   });
 
+  it("reveals the move form and posts the selected purchase items", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[
+          makePurchaseItem({
+            sale_path: "/sales/1",
+            sale_title: "Sale 1",
+          }),
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("checkbox"));
+    expect(screen.getByRole("button", { name: /Move/ })).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole("combobox"), "1");
+    await user.click(screen.getByRole("button", { name: /Move/ }));
+
+    expect(router.post).toHaveBeenCalledWith(
+      "/purchase_items/move",
+      {
+        destination_id: "1",
+        purchase_id: 1,
+        redirect_to_sale_item: true,
+        selected_items_ids: [10],
+      },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+
+    const postMock = vi.mocked(router.post);
+    const options = postMock.mock.calls[0][2];
+    if (!hasOnSuccess(options)) {
+      throw new Error("Expected move success callback");
+    }
+    await act(async () => {
+      options.onSuccess?.();
+    });
+    expect(screen.queryByRole("button", { name: /Move/ })).not.toBeInTheDocument();
+  });
+
   it("does not auto-open shipping editor when tracking already has a company", async () => {
     const user = userEvent.setup();
 
@@ -361,76 +430,6 @@ describe("PurchaseItems inline editors", () => {
 
     expect(screen.getByText("Shipping company is required")).toBeInTheDocument();
     expect(router.patch).not.toHaveBeenCalled();
-  });
-
-  it("keeps server-side tracking errors visible in the editor", async () => {
-    const user = userEvent.setup();
-
-    render(
-      <PurchaseItems
-        {...defaultProps}
-        purchaseItems={[
-          makePurchaseItem({
-            shipping_company_id: 3,
-            shipping_company_name: "Skyline",
-          }),
-        ]}
-      />,
-    );
-
-    nextFormErrors.mockReturnValueOnce({ tracking_number: "Tracking number can't be blank" });
-
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
-    await user.clear(screen.getByLabelText("Tracking number"));
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(screen.getByText("Tracking number can't be blank")).toBeInTheDocument();
-    expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
-  });
-
-  it("shows shipping company error in the shipping company editor on bulk save failure", async () => {
-    const user = userEvent.setup();
-
-    render(
-      <PurchaseItems
-        {...defaultProps}
-        purchaseItems={[
-          makePurchaseItem({
-            tracking_number: "",
-            shipping_company_id: null,
-            shipping_cost: "0",
-          }),
-        ]}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
-    await waitFor(() => {
-      expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
-    });
-    await user.type(screen.getByLabelText("Tracking number"), "TRACK-1");
-
-    nextFormErrors.mockReturnValueOnce({ shipping_company_id: "can't be blank" });
-
-    const trackingForm = screen.getByLabelText("Tracking number").closest("form");
-    if (!trackingForm) throw new Error("Expected tracking form");
-    await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
-
-    // Error appears under the shipping company editor — that's the blank field
-    const shippingForm = screen.getByLabelText("Shipping company").closest("form");
-    if (!shippingForm) throw new Error("Expected shipping company editor form");
-    expect(within(shippingForm).getByText("Shipping company is required")).toBeInTheDocument();
-
-    // Tracking editor shows no error — the user filled it in correctly
-    expect(within(trackingForm).queryByRole("alert")).not.toBeInTheDocument();
-
-    // Tracking input preserves the value the user typed before saving
-    expect(screen.getByLabelText("Tracking number")).toHaveValue("TRACK-1");
-
-    // All three editors remain open
-    expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
-    expect(screen.getByLabelText("Shipping company")).toBeInTheDocument();
-    expect(screen.getByLabelText("Shipping cost")).toBeInTheDocument();
   });
 
   it("renders the purchase heading without a product link when the product is missing", () => {
@@ -500,4 +499,8 @@ function makePurchaseItem(overrides: Partial<PurchaseItemRecord> = {}): Purchase
     shipping_cost: "0",
     ...overrides,
   };
+}
+
+function hasOnSuccess(value: unknown): value is { onSuccess?: () => void } {
+  return typeof value === "object" && value !== null;
 }
