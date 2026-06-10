@@ -261,6 +261,11 @@ function formatTitle() {}
 Over placing helper components or utilities above the main component unless
 they are required to understand the public API.
 
+Private helper components, predicates, and formatters may stay in the same file
+when they remain readable and page-owned. Split a section out when it has
+multiple behaviors, shared ownership, or has become a named subsystem in the
+screen.
+
 ## Screen Organization
 
 Keep page-owned UI close to the page. Keep components page-local until reuse is real.
@@ -317,6 +322,38 @@ expect(hookResult.current.isOpen).toBe(false);
 
 Mock at the boundary only: Inertia, navigation adapters, API clients, backend
 bridges. Do not recreate backend integration inside component tests.
+
+**Server-error paths (`onError`) belong in Capybara, not component tests.**
+
+When a component uses Inertia's `useForm` and its `onError` callback, the path
+where the server returns validation errors requires a Cuprite spec. `onError`
+fires through Inertia's redirect-with-errors cycle — a full Rails/HTTP/browser
+round-trip. A component test can only simulate it with `nextFormErrors`, which
+tests the stub's behavior, not the real Inertia flow. The stub can pass even if
+the component never actually wires up `onError` correctly.
+
+```ruby
+# Do: Cuprite spec that submits to Rails and gets a real onError response
+scenario "shows server errors without a full-page reload", :js do
+  visit purchase_path(purchase)
+  within(find_field("Tracking number").ancestor("form")) { click_button "Save" }
+  expect(page).to have_text("Shipping company is required")
+  expect(page).to have_current_path(purchase_path(purchase))  # stayed on page
+end
+```
+
+```tsx
+// Don't: component test simulating the onError round-trip via nextFormErrors
+nextFormErrors.mockReturnValueOnce({ shipping_company_id: "can't be blank" });
+await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
+expect(within(shippingForm).getByText("Shipping company is required")).toBeInTheDocument();
+```
+
+Client-side validation errors (checked before any request fires) are still fine
+in component tests — they never reach the server and are pure UI logic.
+
+When helper parts are extracted only to keep a file readable, tests should
+usually target the public section behavior rather than each private helper.
 
 If a frontend change also modifies a backend contract, add the matching backend test separately.
 
