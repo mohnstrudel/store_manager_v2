@@ -2,6 +2,7 @@ import { getFormString } from "@/utils/formSchema";
 import { msg } from "@/utils/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
+import routes from "@/utils/routes";
 import { ColorRecord } from "../types";
 
 type ColorFormProps = {
@@ -19,7 +20,7 @@ export default function Form({ color, method, submitLabel, url }: ColorFormProps
   return (
     <ResourceForm
       action={url}
-      cancelHref="/colors"
+      cancelHref={routes.colors.index.path()}
       method={method}
       submitLabel={submitLabel}
       validate={validate}
