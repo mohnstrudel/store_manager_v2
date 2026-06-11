@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getFormString, zodErrorsToRecord } from "@/utils/formSchema";
+import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -31,11 +32,15 @@ function validate(formData: FormData) {
   return result.success ? null : zodErrorsToRecord(result.error);
 }
 
-export default function Form({ canEditRole, roleOptions, user }: UserFormProps) {
+export default function Form({
+  canEditRole,
+  roleOptions,
+  user,
+}: UserFormProps) {
   return (
     <ResourceForm
-      action={`/users/${user.id}`}
-      cancelHref={user.path}
+      action={routes.users.update.path({ id: user.id })}
+      cancelHref={routes.users.show.path({ id: user.id })}
       method="patch"
       submitLabel="Update User"
       validate={validate}
