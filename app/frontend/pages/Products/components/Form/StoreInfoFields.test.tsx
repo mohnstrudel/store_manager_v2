@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import StoreInfoFields from "./StoreInfoFields";
-import { type StoreInfoFormData } from "../../types";
+import { makeStoreInfoForm } from "../../test/factories";
 
 type MockOption = {
   value: string;
@@ -66,58 +67,41 @@ vi.mock("@/components/TagSelect", () => ({
 
 const storeNames = ["shopify", "woo"];
 
-function makeStoreInfo(overrides: Partial<StoreInfoFormData> = {}): StoreInfoFormData {
-  return {
-    id: null,
-    store_name: "",
-    tag_list: "",
-    _destroy: false,
-    ...overrides,
-  };
-}
-
-function renderStoreInfo(storeInfo: StoreInfoFormData, props: Record<string, unknown> = {}) {
-  const onRemove = vi.fn<(index: number) => void>();
-  const result = render(
-    <StoreInfoFields
-      index={0}
-      onRemove={onRemove}
-      storeInfo={storeInfo}
-      storeNames={storeNames}
-      {...props}
-    />,
-  );
-  return { ...result, onRemove };
-}
-
-describe("StoreInfoFields", () => {
+describe("Products/components/Form/StoreInfoFields", () => {
   describe("title", () => {
     it("shows 'New Store Info' for a new store info", () => {
-      renderStoreInfo(makeStoreInfo());
+      renderStoreInfo(makeStoreInfoForm());
+
       expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("New Store Info");
     });
 
     it("shows capitalized store_name as title for existing store info", () => {
-      renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
+      renderStoreInfo(makeStoreInfoForm({ id: 1, store_name: "shopify" }));
+
       expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("Shopify");
     });
   });
 
   describe("controls", () => {
-    it("shows Cancel button for new store info and calls onRemove on click", () => {
-      const { onRemove } = renderStoreInfo(makeStoreInfo());
-      fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    it("shows Cancel button for new store info and calls onRemove on click", async () => {
+      const user = userEvent.setup();
+      const { onRemove } = renderStoreInfo(makeStoreInfoForm());
+
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+
       expect(onRemove).toHaveBeenCalled();
     });
 
     it("shows Mark for deletion checkbox for existing store info", () => {
-      renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
+      renderStoreInfo(makeStoreInfoForm({ id: 1, store_name: "shopify" }));
+
       expect(screen.getByLabelText("Mark for deletion")).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Cancel" })).not.toBeInTheDocument();
     });
 
     it("renders Rails-style destroy inputs with the red checkbox styling", () => {
-      renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
+      renderStoreInfo(makeStoreInfoForm({ id: 1, store_name: "shopify" }));
+
       const checkbox = screen.getByLabelText("Mark for deletion");
 
       expect(
@@ -130,22 +114,27 @@ describe("StoreInfoFields", () => {
       expect(checkbox).not.toHaveClass("h-4");
     });
 
-    it("applies opacity-50 class when marked for deletion", () => {
-      const { container } = renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
-      fireEvent.click(screen.getByLabelText("Mark for deletion"));
+    it("applies opacity-50 class when marked for deletion", async () => {
+      const user = userEvent.setup();
+      const { container } = renderStoreInfo(makeStoreInfoForm({ id: 1, store_name: "shopify" }));
+
+      await user.click(screen.getByLabelText("Mark for deletion"));
+
       expect(container.firstChild).toHaveClass("opacity-50");
     });
   });
 
   describe("Store select", () => {
     it("renders a named select bridge for new store info", () => {
-      renderStoreInfo(makeStoreInfo());
+      renderStoreInfo(makeStoreInfoForm());
+
       expect(screen.getByRole("combobox")).toBeInTheDocument();
       expect(document.querySelector('input[name="store_infos[0][store_name]"]')).toHaveValue("");
     });
 
     it("renders a disabled select and a hidden store_name for existing store info", () => {
-      renderStoreInfo(makeStoreInfo({ id: 1, store_name: "shopify" }));
+      renderStoreInfo(makeStoreInfoForm({ id: 1, store_name: "shopify" }));
+
       expect(screen.getByRole("combobox")).toBeDisabled();
       expect(document.querySelector('input[name="store_infos[0][store_name]"]')).toHaveValue(
         "shopify",
@@ -155,7 +144,8 @@ describe("StoreInfoFields", () => {
 
   describe("tags", () => {
     it("renders existing tags from the tag_list string", () => {
-      renderStoreInfo(makeStoreInfo({ tag_list: "featured, new-arrival" }));
+      renderStoreInfo(makeStoreInfoForm({ tag_list: "featured, new-arrival" }));
+
       expect(screen.getByText("featured")).toBeInTheDocument();
       expect(screen.getByText("new-arrival")).toBeInTheDocument();
       expect(document.querySelector('input[name="store_infos[0][tag_list]"]')).toHaveValue(
@@ -164,3 +154,20 @@ describe("StoreInfoFields", () => {
     });
   });
 });
+
+function renderStoreInfo(
+  storeInfo: ReturnType<typeof makeStoreInfoForm>,
+  props: Record<string, unknown> = {},
+) {
+  const onRemove = vi.fn<(index: number) => void>();
+  const result = render(
+    <StoreInfoFields
+      index={0}
+      onRemove={onRemove}
+      storeInfo={storeInfo}
+      storeNames={storeNames}
+      {...props}
+    />,
+  );
+  return { ...result, onRemove };
+}

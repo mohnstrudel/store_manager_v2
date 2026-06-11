@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import PurchaseFields from "./PurchaseFields";
-import { type PurchaseFormData } from "../../types";
+import { makePurchaseForm } from "../../test/factories";
 
 type MockOption = {
   value: number;
@@ -34,28 +34,10 @@ vi.mock("@/components/SmartSelect", () => ({
 const suppliers = [{ value: 1, label: "Moon Supply" }];
 const warehouses = [{ value: 10, label: "Main Warehouse" }];
 
-function makePurchase(overrides: Partial<PurchaseFormData> = {}): PurchaseFormData {
-  return {
-    supplier_id: null,
-    order_reference: "",
-    item_price: "",
-    amount: "",
-    warehouse_id: null,
-    payment_value: "",
-    ...overrides,
-  };
-}
-
-function renderPurchase(purchase: PurchaseFormData, props: Record<string, unknown> = {}) {
-  render(
-    <PurchaseFields purchase={purchase} suppliers={suppliers} warehouses={warehouses} {...props} />,
-  );
-}
-
-describe("PurchaseFields", () => {
+describe("Products/components/Form/PurchaseFields", () => {
   it("renders named hidden inputs for supplier_id and warehouse_id selects", async () => {
     await act(async () => {
-      renderPurchase(makePurchase({ supplier_id: 1, warehouse_id: 10 }));
+      renderPurchase(makePurchaseForm({ supplier_id: 1, warehouse_id: 10 }));
     });
 
     expect(screen.getAllByRole("combobox")).toHaveLength(2);
@@ -65,7 +47,7 @@ describe("PurchaseFields", () => {
 
   it("renders ordinary purchase fields as uncontrolled named inputs", () => {
     renderPurchase(
-      makePurchase({
+      makePurchaseForm({
         order_reference: "PO-1",
         item_price: "12.50",
         amount: "2",
@@ -80,8 +62,17 @@ describe("PurchaseFields", () => {
   });
 
   it("does not render the warehouse select when there are no warehouses", () => {
-    render(<PurchaseFields purchase={makePurchase()} suppliers={suppliers} warehouses={[]} />);
+    render(<PurchaseFields purchase={makePurchaseForm()} suppliers={suppliers} warehouses={[]} />);
 
     expect(screen.getAllByRole("combobox")).toHaveLength(1);
   });
 });
+
+function renderPurchase(
+  purchase: ReturnType<typeof makePurchaseForm>,
+  props: Record<string, unknown> = {},
+) {
+  render(
+    <PurchaseFields purchase={purchase} suppliers={suppliers} warehouses={warehouses} {...props} />,
+  );
+}

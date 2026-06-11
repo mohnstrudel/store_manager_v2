@@ -89,9 +89,8 @@ vi.mock("@tiptap/extension-link", () => ({
   default: { configure: () => "link" },
 }));
 
-describe("TiptapEditor", () => {
+describe("Products/components/Form/TiptapEditor", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     latestOptions = null;
   });
 
