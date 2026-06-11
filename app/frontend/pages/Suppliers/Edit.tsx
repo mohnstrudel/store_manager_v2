@@ -1,5 +1,6 @@
 import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import Form from "./components/Form";
 import { SupplierRecord } from "./types";
 
@@ -8,11 +9,13 @@ type EditProps = {
 };
 
 export default function Edit({ supplier }: EditProps) {
+  const currentSupplierPath = routes.suppliers.show.path({ id: supplier.id! });
+
   return (
     <>
       <PageHeader className="mb-8" title="Edit Supplier">
         <li>
-          <Link href={`/suppliers/${supplier.id}`} prefetch>
+          <Link href={currentSupplierPath} prefetch>
             <i className="icn">📄</i>
             View Supplier Page
           </Link>
@@ -23,7 +26,7 @@ export default function Edit({ supplier }: EditProps) {
         method="patch"
         submitLabel="Update Supplier"
         supplier={supplier}
-        url={`/suppliers/${supplier.id}`}
+        url={currentSupplierPath}
       />
     </>
   );

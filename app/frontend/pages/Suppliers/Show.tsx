@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./components/Details";
 import Purchases from "./components/Purchases";
@@ -12,13 +13,15 @@ type ShowProps = {
 };
 
 export default function Show({ purchases, supplier }: ShowProps) {
-  const destroySupplier = useConfirmAction("delete", `/suppliers/${supplier.id}`);
+  const currentSupplierPath = routes.suppliers.show.path({ id: supplier.id! });
+  const currentEditPath = routes.suppliers.edit.path({ id: supplier.id! });
+  const destroySupplier = useConfirmAction("delete", currentSupplierPath);
 
   return (
     <>
       <PageHeader subtitle={`Supplier ${supplier.id}`} title={supplier.title}>
         <li>
-          <Link href={`/suppliers/${supplier.id}/edit`} prefetch>
+          <Link href={currentEditPath} prefetch>
             <i className="icn">✏</i>
             Edit
           </Link>
@@ -30,7 +33,11 @@ export default function Show({ purchases, supplier }: ShowProps) {
         <Purchases purchases={purchases} />
       </div>
 
-      <Button className="w-full h-12 mt-16" onClick={destroySupplier} variant="danger">
+      <Button
+        className="w-full h-12 mt-16"
+        onClick={destroySupplier}
+        variant="danger"
+      >
         Destroy this supplier
       </Button>
     </>
