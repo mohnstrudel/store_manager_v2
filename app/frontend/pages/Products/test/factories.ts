@@ -1,4 +1,14 @@
-import type { ProductShowRecord, PurchaseRecord, SaleItemRecord, VariantRecord } from "../types";
+import type {
+  ProductFormRecord,
+  ProductIndexRecord,
+  ProductShowRecord,
+  PurchaseFormData,
+  PurchaseRecord,
+  SaleItemRecord,
+  StoreInfoFormData,
+  VariantFormData,
+  VariantRecord,
+} from "../types";
 
 export function makeProduct(overrides: Partial<ProductShowRecord> = {}): ProductShowRecord {
   return {
@@ -85,6 +95,81 @@ export function makePurchase(overrides: Partial<PurchaseRecord> = {}): PurchaseR
     amount: 2,
     created_at: "2 days ago",
     warehouses: [{ id: 1, name: "Tokyo" }],
+    ...overrides,
+  };
+}
+
+// ── Form factories (ProductFormRecord and its nested types) ───────────────────
+
+export function makeProductIndexRecord(
+  overrides: Partial<ProductIndexRecord> = {},
+): ProductIndexRecord {
+  return {
+    id: 1,
+    title: "Pikachu",
+    full_title: "Pokémon — Pikachu | Nendoroid",
+    path: "/products/1",
+    edit_path: "/products/1/edit",
+    thumb_url: null,
+    variants: [{ id: 10, title: "1/6 Scale" }],
+    woo_store_id: "WOO-1",
+    shopify_id_short: "SHOP-1",
+    new_purchase_path: "/purchases/new?product=1",
+    ...overrides,
+  };
+}
+
+export function makeVariantForm(overrides: Partial<VariantFormData> = {}): VariantFormData {
+  return {
+    id: null,
+    sku: "SKU-001",
+    size_id: null,
+    version_id: null,
+    color_id: null,
+    purchase_cost: "10",
+    selling_price: "20",
+    weight: "0.5",
+    deactivated: false,
+    has_sales_or_purchases: false,
+    _destroy: false,
+    ...overrides,
+  };
+}
+
+export function makeStoreInfoForm(overrides: Partial<StoreInfoFormData> = {}): StoreInfoFormData {
+  return {
+    id: null,
+    store_name: "",
+    tag_list: "",
+    _destroy: false,
+    ...overrides,
+  };
+}
+
+export function makePurchaseForm(overrides: Partial<PurchaseFormData> = {}): PurchaseFormData {
+  return {
+    supplier_id: null,
+    order_reference: "",
+    item_price: "",
+    amount: "",
+    warehouse_id: null,
+    payment_value: "",
+    ...overrides,
+  };
+}
+
+export function makeProductForm(overrides: Partial<ProductFormRecord> = {}): ProductFormRecord {
+  return {
+    id: null,
+    title: "Test Product",
+    description_html: "<p>Product description</p>",
+    franchise_id: null,
+    shape: "Bust",
+    brand_ids: [],
+    path: "/products",
+    variants: [makeVariantForm()],
+    store_infos: [],
+    media: [],
     ...overrides,
   };
 }
