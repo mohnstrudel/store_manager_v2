@@ -357,6 +357,61 @@ usually target the public section behavior rather than each private helper.
 
 If a frontend change also modifies a backend contract, add the matching backend test separately.
 
+## Test structure
+
+`## Testing` decides at which level to test; this section decides how a component test file is built.
+
+**File placement and seams**
+
+Colocate `Component.test.tsx` next to `Component.tsx`.
+
+A page test renders the page's **real** page-owned children. Never `vi.mock` a page's own children.
+
+A child component gets its own colocated test file when it has logic: conditional rendering, formatting branches, interaction handlers, or empty-state returns. Trivial children (plain markup over props with no branches) are covered through the page test and need no own file.
+
+The page test owns: one smoke assertion per section confirming it renders with its data, page-level behavior (header, actions, destructive flows), and conditional section presence. Branch-level detail lives in the child's own file.
+
+**describe/it structure**
+
+One top-level `describe` named after the component path from `pages/`: `"Products/Show"`, `"Products/Show/SalesSection"`.
+
+Nested `describe` per UI section or feature. Conditional state gets a `"when …"` describe (the RSpec `context` analog): `describe("when the product cannot be pulled from Shopify")`.
+
+`it` names behavior in third-person present: `"renders…"`, `"hides…"`, `"destroys…"`. No "should".
+
+**One behavior per `it`.** If you want a blank line between expectation groups, split into separate `it`s instead. Soft cap: ~4 expectations per `it`.
+
+Arrange–act–assert separated by blank lines. `const user = userEvent.setup()` is the first statement of any interacting test.
+
+**Factories**
+
+One shared module per page domain: `pages/<Domain>/test/factories.ts` (not matched by the vitest `**/*.test.*` include pattern).
+
+Each factory: `makeX(overrides: Partial<T> = {}): T`, typed from the domain's `types.ts`. Defaults are a fully valid "happy" record — tests override only what the scenario needs. Lists of records must override `id` explicitly to avoid duplicate-key warnings.
+
+**Render helpers**
+
+Each test file defines a local `renderX(overrides = {})` whose defaults come from the factories. Helpers and local factories live *below* the `describe` block — the file reads behavior-first, plumbing second.
+
+**Mocking policy**
+
+Mock only boundaries:
+
+- `vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"))` for Inertia.
+- Per-test `vi.spyOn` for browser APIs (`window.confirm`, etc.). Never at module or `describe` scope — `mockReset: true` in vitest config wipes module-scope setup between tests.
+
+Shared leaf components are mockable only when they bring heavy or browser-bound behavior. `@/components/ImageGallery` is the canonical example. `CopyToClipboardButton` is fine real — clipboard only fires on click.
+
+Never mock the page's own children. Never mock utilities (`rowNavigation`, formatters).
+
+**Queries and assertions**
+
+Prefer `getByRole` with `name`. Use `within()` scoped to a heading-anchored section when the page has multiple instances of the same structure. `data-testid` only inside mock stubs.
+
+Assert the signal the user reads. When both a text signal and a CSS class signal a state (e.g. deactivated row: `"(Deactivated)"` text + `opacity-50`), assert the text only. A class assertion is allowed only when the class is the sole user-visible signal (e.g. icon-only spans like `.icon_shopify` where there is no text to query).
+
+Empty-state component that returns `null`: `expect(container).toBeEmptyDOMElement()`. Absence: `expect(screen.queryBy…).not.toBeInTheDocument()`.
+
 ## Frontend / Backend Boundary
 
 Frontend code may compose UI, local interaction state, browser behavior, and backend-provided props.
