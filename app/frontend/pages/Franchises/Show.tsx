@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./components/Details";
 import Products from "./components/Products";
@@ -12,13 +13,24 @@ type ShowProps = {
 };
 
 export default function Show({ franchise, products }: ShowProps) {
-  const destroyFranchise = useConfirmAction("delete", `/franchises/${franchise.id}`);
+  const currentFranchisePath =
+    franchise.id === null
+      ? routes.franchises.index.path()
+      : routes.franchises.show.path({ id: franchise.id });
+  const currentEditPath =
+    franchise.id === null
+      ? routes.franchises.new.path()
+      : routes.franchises.edit.path({ id: franchise.id });
+  const destroyFranchise = useConfirmAction("delete", currentFranchisePath);
 
   return (
     <>
-      <PageHeader subtitle={`Franchise ${franchise.id}`} title={franchise.title}>
+      <PageHeader
+        subtitle={`Franchise ${franchise.id}`}
+        title={franchise.title}
+      >
         <li>
-          <Link href={`/franchises/${franchise.id}/edit`} prefetch>
+          <Link href={currentEditPath} prefetch>
             <i className="icn">✏</i>
             Edit
           </Link>
@@ -30,7 +42,11 @@ export default function Show({ franchise, products }: ShowProps) {
         <Products products={products} />
       </div>
 
-      <Button className="w-full h-12 mt-16" onClick={destroyFranchise} variant="danger">
+      <Button
+        className="w-full h-12 mt-16"
+        onClick={destroyFranchise}
+        variant="danger"
+      >
         Destroy this franchise
       </Button>
     </>

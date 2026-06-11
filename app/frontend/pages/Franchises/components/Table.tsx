@@ -1,5 +1,6 @@
 import { Link } from "@inertiajs/react";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import routes from "@/utils/routes";
 import { FranchiseRecord } from "../types";
 
 type TableProps = {
@@ -19,34 +20,49 @@ export default function Table({ franchises }: TableProps) {
         </tr>
       </thead>
       <tbody>
-        {franchises.map((franchise) => (
-          <tr
-            className="hoverable"
-            key={franchise.id}
-            {...rowNavigationProps(`/franchises/${franchise.id}`)}
-          >
-            <td>{franchise.id}</td>
-            <td>{franchise.title}</td>
-            <td>{franchise.created_at}</td>
-            <td>{franchise.updated_at}</td>
-            <td className="table_actions text-right">
-              <div className="flex flex-wrap justify-end gap-3">
-                <Link href={`/franchises/${franchise.id}`} onClick={stopRowNavigation} prefetch>
-                  <i className="icn">📄</i>
-                  Show
-                </Link>
-                <Link
-                  href={`/franchises/${franchise.id}/edit`}
-                  onClick={stopRowNavigation}
-                  prefetch
-                >
-                  <i className="icn">✏</i>
-                  Edit
-                </Link>
-              </div>
-            </td>
-          </tr>
-        ))}
+        {franchises.map((franchise) => {
+          const currentFranchisePath =
+            franchise.id === null
+              ? routes.franchises.index.path()
+              : routes.franchises.show.path({ id: franchise.id });
+          const currentEditPath =
+            franchise.id === null
+              ? routes.franchises.new.path()
+              : routes.franchises.edit.path({ id: franchise.id });
+
+          return (
+            <tr
+              className="hoverable"
+              key={franchise.id}
+              {...rowNavigationProps(currentFranchisePath)}
+            >
+              <td>{franchise.id}</td>
+              <td>{franchise.title}</td>
+              <td>{franchise.created_at}</td>
+              <td>{franchise.updated_at}</td>
+              <td className="table_actions text-right">
+                <div className="flex flex-wrap justify-end gap-3">
+                  <Link
+                    href={currentFranchisePath}
+                    onClick={stopRowNavigation}
+                    prefetch
+                  >
+                    <i className="icn">📄</i>
+                    Show
+                  </Link>
+                  <Link
+                    href={currentEditPath}
+                    onClick={stopRowNavigation}
+                    prefetch
+                  >
+                    <i className="icn">✏</i>
+                    Edit
+                  </Link>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

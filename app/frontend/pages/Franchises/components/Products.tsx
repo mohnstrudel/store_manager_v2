@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import routes from "@/utils/routes";
 import { ProductRecord } from "../types";
 
 type ProductsProps = {
@@ -23,7 +24,10 @@ export default function Products({ products }: ProductsProps) {
             <tr key={product.id}>
               <td className="text-gray-500">{product.id}</td>
               <td>
-                <Link href={product.path} prefetch>
+                <Link
+                  href={routes.products.show.path({ id: product.id })}
+                  prefetch
+                >
                   {product.full_title}
                 </Link>
               </td>
