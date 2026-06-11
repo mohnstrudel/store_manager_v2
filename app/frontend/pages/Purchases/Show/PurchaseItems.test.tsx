@@ -4,15 +4,41 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "@inertiajs/react";
 import { mockPage } from "@/test/mocks/inertia";
 import PurchaseItems from "./PurchaseItems";
-import type { PurchaseItemRecord, PurchaseShowRecord } from "../types";
+import {
+  makePurchaseItem,
+  makePurchaseShow,
+  makeShippingCompanyOption,
+  makeWarehouseOption,
+} from "../test/factories";
 
 vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 const defaultProps = {
   movePath: "/purchase_items/move",
-  purchase: makePurchase(),
-  shippingCompanies: [{ id: 3, name: "Skyline" }],
-  warehouses: [{ id: 1, name: "Warehouse A" }],
+  purchase: makePurchaseShow({
+    amount: 1,
+    cost_total: "$10.00",
+    date: "01 Jan 2026",
+    debt: "$10.00",
+    id: 1,
+    item_price: "$10.00",
+    order_reference: "REF-1",
+    paid: "$0.00",
+    path: "/purchases/1",
+    payment_progress: {
+      debt: "$10.00",
+      paid: "$0.00",
+      price: "$10.00",
+      progress: 0,
+    },
+    product_image_url: null,
+    product_title: "Blue Widget",
+    shipping_total: "$0.00",
+    supplier_title: "Supplier A",
+    variant_title: "",
+  }),
+  shippingCompanies: [makeShippingCompanyOption()],
+  warehouses: [makeWarehouseOption({ name: "Warehouse A" })],
 };
 
 afterEach(() => {
@@ -437,7 +463,28 @@ describe("Purchases/Show/PurchaseItems", () => {
       <PurchaseItems
         {...defaultProps}
         purchase={{
-          ...makePurchase(),
+          ...makePurchaseShow({
+            amount: 1,
+            cost_total: "$10.00",
+            date: "01 Jan 2026",
+            debt: "$10.00",
+            id: 1,
+            item_price: "$10.00",
+            order_reference: "REF-1",
+            paid: "$0.00",
+            path: "/purchases/1",
+            payment_progress: {
+              debt: "$10.00",
+              paid: "$0.00",
+              price: "$10.00",
+              progress: 0,
+            },
+            product_image_url: null,
+            product_title: "Blue Widget",
+            shipping_total: "$0.00",
+            supplier_title: "Supplier A",
+            variant_title: "",
+          }),
           product_path: null,
           product_title: "Unknown product",
         }}
@@ -449,57 +496,6 @@ describe("Purchases/Show/PurchaseItems", () => {
     expect(screen.queryByRole("link", { name: "Unknown product" })).not.toBeInTheDocument();
   });
 });
-
-function makePurchase(): PurchaseShowRecord {
-  return {
-    id: 1,
-    path: "/purchases/1",
-    edit_path: "/purchases/1/edit",
-    destroy_path: "/purchases/1",
-    product_path: "/products/1",
-    product_title: "Blue Widget",
-    product_image_url: null,
-    product_thumb_url: null,
-    variant_title: "",
-    amount: 1,
-    item_price: "$10.00",
-    cost_total: "$10.00",
-    shipping_total: "$0.00",
-    paid: "$0.00",
-    debt: "$10.00",
-    supplier_title: "Supplier A",
-    supplier_path: "/suppliers/1",
-    order_reference: "REF-1",
-    date: "01 Jan 2026",
-    payment_progress: {
-      debt: "$10.00",
-      paid: "$0.00",
-      price: "$10.00",
-      progress: 0,
-    },
-  };
-}
-
-function makePurchaseItem(overrides: Partial<PurchaseItemRecord> = {}): PurchaseItemRecord {
-  return {
-    id: 10,
-    path: "/purchase_items/10",
-    edit_path: "/purchase_items/10/edit",
-    unlink_path: "/purchase_items/10/unlink",
-    warehouse_name: "Warehouse A",
-    warehouse_path: "/warehouses/1",
-    warehouse_movements: [],
-    sale_title: "",
-    sale_path: null,
-    sale_address: "",
-    customer_email: "",
-    tracking_number: "TRACK-1",
-    shipping_company_id: null,
-    shipping_company_name: "",
-    shipping_cost: "0",
-    ...overrides,
-  };
-}
 
 function hasOnSuccess(value: unknown): value is { onSuccess?: () => void } {
   return typeof value === "object" && value !== null;

@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
+import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import Form from "./Form";
-import type { PurchaseFormOptions, PurchaseFormRecord } from "../types";
+import { makePurchaseForm, makePurchaseFormOptions } from "../test/factories";
 
 vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -13,91 +14,87 @@ vi.mock("./Form/ProductVariantSelect", () => ({
   default: () => <div data-testid="product-variant-select" />,
 }));
 
-const options: PurchaseFormOptions = {
-  product_variants_path: "/products/:product_id/variants",
-  products: [{ value: 1, label: "Moon Statue" }],
-  suppliers: [{ value: 10, label: "Acme Supplies" }],
-  warehouses: [{ value: 20, label: "Main Warehouse" }],
-};
-
-function makePurchase(overrides: Partial<PurchaseFormRecord> = {}): PurchaseFormRecord {
-  return {
-    id: null,
-    path: "",
-    product_id: null,
-    variant_id: null,
-    supplier_id: null,
-    order_reference: "",
-    item_price: "",
-    amount: "",
-    warehouse_id: null,
-    payment_value: "",
-    variant_options: [],
-    ...overrides,
-  };
-}
-
 describe("Purchases/Components/Form", () => {
   beforeEach(() => {
     mockPageProps({});
   });
 
-  it("renders the form shell with correct action and method", () => {
-    const { container } = render(
-      <Form isNew options={options} purchase={makePurchase()} submitLabel="Create Purchase" />,
-    );
-    const form = container.querySelector("form");
+  describe("form shell", () => {
+    it("configures action, method, and labels for a new purchase", () => {
+      renderForm({ isNew: true, submitLabel: "Create Purchase" });
 
-    expect(form).toHaveAttribute("action", "/purchases");
-    expect(form).toHaveAttribute("data-method", "post");
-    expect(screen.getByRole("button", { name: "Create Purchase" })).toBeInTheDocument();
+      expect(lastCapturedProps()).toEqual(
+        expect.objectContaining({
+          action: "/purchases",
+          cancelHref: "/purchases",
+          method: "post",
+          submitLabel: "Create Purchase",
+        }),
+      );
+      expect(screen.getByRole("button", { name: "Create Purchase" })).toBeInTheDocument();
+    });
+
+    it("configures action, method, and labels for an existing purchase", () => {
+      renderForm({
+        isNew: false,
+        purchase: makePurchaseForm({ id: 5, path: "/purchases/5" }),
+        submitLabel: "Update Purchase",
+      });
+
+      expect(lastCapturedProps()).toEqual(
+        expect.objectContaining({
+          action: "/purchases/5",
+          cancelHref: "/purchases",
+          method: "patch",
+          submitLabel: "Update Purchase",
+        }),
+      );
+    });
   });
 
-  it("uses purchase path and patch for edit", () => {
-    const { container } = render(
-      <Form
-        isNew={false}
-        options={options}
-        purchase={makePurchase({ id: 5, path: "/purchases/5" })}
-        submitLabel="Update Purchase"
-      />,
-    );
-    const form = container.querySelector("form");
+  describe("error routing", () => {
+    it("shows server-side supplier error", () => {
+      mockPageProps({ errors: { supplier_id: "Supplier must exist" } });
 
-    expect(form).toHaveAttribute("action", "/purchases/5");
-    expect(form).toHaveAttribute("data-method", "patch");
+      renderForm();
+
+      expect(screen.getByText("Supplier must exist")).toBeInTheDocument();
+    });
+
+    it("shows server-side product error", () => {
+      mockPageProps({ errors: { product_id: "Product must exist" } });
+
+      renderForm();
+
+      expect(screen.getByText("Product must exist")).toBeInTheDocument();
+    });
   });
 
-  it("shows server-side supplier error", () => {
-    mockPageProps({ errors: { supplier_id: "Supplier must exist" } });
+  describe("field sections", () => {
+    it("hides the payment field on edit", () => {
+      renderForm({
+        isNew: false,
+        purchase: makePurchaseForm({ path: "/purchases/5" }),
+        submitLabel: "Update Purchase",
+      });
 
-    render(
-      <Form isNew options={options} purchase={makePurchase()} submitLabel="Create Purchase" />,
-    );
-
-    expect(screen.getByText("Supplier must exist")).toBeInTheDocument();
-  });
-
-  it("shows server-side product error", () => {
-    mockPageProps({ errors: { product_id: "Product must exist" } });
-
-    render(
-      <Form isNew options={options} purchase={makePurchase()} submitLabel="Create Purchase" />,
-    );
-
-    expect(screen.getByText("Product must exist")).toBeInTheDocument();
-  });
-
-  it("hides the payment field on edit", () => {
-    render(
-      <Form
-        isNew={false}
-        options={options}
-        purchase={makePurchase({ path: "/purchases/5" })}
-        submitLabel="Update Purchase"
-      />,
-    );
-
-    expect(screen.queryByLabelText("What did you pay in total?")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("What did you pay in total?")).not.toBeInTheDocument();
+    });
   });
 });
+
+function renderForm({
+  isNew = true,
+  options = makePurchaseFormOptions(),
+  purchase = makePurchaseForm(),
+  submitLabel = "Create Purchase",
+}: {
+  isNew?: boolean;
+  options?: ReturnType<typeof makePurchaseFormOptions>;
+  purchase?: ReturnType<typeof makePurchaseForm>;
+  submitLabel?: string;
+} = {}) {
+  return render(
+    <Form isNew={isNew} options={options} purchase={purchase} submitLabel={submitLabel} />,
+  );
+}
