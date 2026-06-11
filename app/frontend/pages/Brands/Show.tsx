@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./components/Details";
 import Products from "./components/Products";
@@ -12,13 +13,17 @@ type ShowProps = {
 };
 
 export default function Show({ brand, products }: ShowProps) {
-  const destroyBrand = useConfirmAction("delete", `/brands/${brand.id}`);
+  const currentBrandPath =
+    brand.id === null ? routes.brands.index.path() : routes.brands.show.path({ id: brand.id });
+  const currentEditPath =
+    brand.id === null ? routes.brands.new.path() : routes.brands.edit.path({ id: brand.id });
+  const destroyBrand = useConfirmAction("delete", currentBrandPath);
 
   return (
     <>
       <PageHeader subtitle={`Brand ${brand.id}`} title={brand.title}>
         <li>
-          <Link href={`/brands/${brand.id}/edit`} prefetch>
+          <Link href={currentEditPath} prefetch>
             <i className="icn">✏</i>
             Edit
           </Link>

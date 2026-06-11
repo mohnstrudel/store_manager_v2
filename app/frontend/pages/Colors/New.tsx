@@ -11,7 +11,12 @@ export default function New({ color }: NewProps) {
   return (
     <>
       <PageHeader className="mb-8" title="New Color" />
-      <Form color={color} method="post" submitLabel="Create Color" url={routes.colors.create.path()} />
+      <Form
+        color={color}
+        method="post"
+        submitLabel="Create Color"
+        url={routes.colors.create.path()}
+      />
     </>
   );
 }

@@ -22,9 +22,13 @@ export default function Table({ colors }: TableProps) {
       <tbody>
         {colors.map((color) => {
           const showPath =
-            color.id === null ? routes.colors.index.path() : routes.colors.show.path({ id: color.id });
+            color.id === null
+              ? routes.colors.index.path()
+              : routes.colors.show.path({ id: color.id });
           const editPath =
-            color.id === null ? routes.colors.new.path() : routes.colors.edit.path({ id: color.id });
+            color.id === null
+              ? routes.colors.new.path()
+              : routes.colors.edit.path({ id: color.id });
 
           return (
             <tr className="hoverable" key={color.id} {...rowNavigationProps(showPath)}>
