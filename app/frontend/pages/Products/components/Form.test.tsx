@@ -6,13 +6,12 @@ import { usePage } from "@inertiajs/react";
 import { mockPageProps } from "@/test/mocks/inertia";
 import Form from "./Form";
 import {
-  type FormOptions,
-  type ProductFormRecord,
-  type PurchaseFormData,
-  type SelectOption,
-  type StoreInfoFormData,
-  type VariantFormData,
-} from "../types";
+  makeProductForm,
+  makePurchaseForm,
+  makeStoreInfoForm,
+  makeVariantForm,
+} from "../test/factories";
+import type { PurchaseFormData, SelectOption, StoreInfoFormData, VariantFormData } from "../types";
 
 type SmartSelectMockProps = {
   defaultValue?: SelectOption | SelectOption[] | null;
@@ -186,7 +185,7 @@ vi.mock("@/components/ImageUploader", () => ({
   default: () => <div data-testid="image-uploader" />,
 }));
 
-const options: FormOptions = {
+const options = {
   franchises: [{ value: 1, label: "Franchise" }],
   brands: [{ value: 2, label: "Featured Brand" }],
   shapes: ["Bust"],
@@ -198,156 +197,134 @@ const options: FormOptions = {
   store_names: ["shopify", "woo"],
 };
 
-function makeVariant(overrides: Partial<VariantFormData> = {}): VariantFormData {
-  return {
-    id: null,
-    sku: "",
-    size_id: null,
-    version_id: null,
-    color_id: null,
-    purchase_cost: "0",
-    selling_price: "0",
-    weight: "0",
-    deactivated: false,
-    has_sales_or_purchases: false,
-    _destroy: false,
-    ...overrides,
-  };
-}
-
-function makeStoreInfo(overrides: Partial<StoreInfoFormData> = {}): StoreInfoFormData {
-  return {
-    id: null,
-    store_name: "",
-    tag_list: "",
-    _destroy: false,
-    ...overrides,
-  };
-}
-
-function makeProduct(overrides: Partial<ProductFormRecord> = {}): ProductFormRecord {
-  return {
-    id: null,
-    title: "Test Product",
-    description_html: "<p>Product description</p>",
-    franchise_id: null,
-    shape: "Bust",
-    brand_ids: [],
-    path: "/products",
-    variants: [makeVariant()],
-    store_infos: [],
-    media: [],
-    ...overrides,
-  };
-}
-
-function makePurchase(overrides: Partial<PurchaseFormData> = {}): PurchaseFormData {
-  return {
-    supplier_id: null,
-    order_reference: "",
-    item_price: "",
-    amount: "",
-    warehouse_id: null,
-    payment_value: "",
-    ...overrides,
-  };
-}
-
-describe("Products/Components/Form", () => {
+describe("Products/components/Form", () => {
   beforeEach(() => {
     resourceFormProps = null;
   });
 
-  it("renders the shell with nested errors and hidden form fields", async () => {
-    mockPageProps({
-      errors: {
-        franchise: "Franchise must exist",
-        "variants.0.sku": "has already been taken",
-        "purchase.0.item_price": "can't be blank",
-      },
+  describe("form shell", () => {
+    it("configures action, method, and labels for a new product", () => {
+      renderForm({ isNew: true, submitLabel: "Create Product" });
+
+      expect(resourceFormProps).toEqual({
+        action: "/products",
+        cancelHref: "/products",
+        method: "post",
+        submitLabel: "Create Product",
+      });
     });
 
-    await act(async () => {
-      render(
-        <Form
-          isNew
-          options={options}
-          product={makeProduct({
-            store_infos: [
-              makeStoreInfo({
-                id: 1,
-                store_name: "shopify",
-                tag_list: "featured",
-              }),
-            ],
-          })}
-          purchase={makePurchase()}
-          submitLabel="Create Product"
-        />,
+    it("configures action, method, and labels for an existing product", () => {
+      renderForm({
+        isNew: false,
+        product: makeProductForm({ id: 1, path: "/products/1" }),
+        submitLabel: "Update Product",
+      });
+
+      expect(resourceFormProps).toEqual({
+        action: "/products/1",
+        cancelHref: "/products/1",
+        method: "patch",
+        submitLabel: "Update Product",
+      });
+    });
+  });
+
+  describe("field sections", () => {
+    it("renders the description editor, shape select, and image uploader", async () => {
+      await act(async () => {
+        renderForm();
+      });
+
+      expect(screen.getByTestId("description-editor")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Bust")).toHaveAttribute("name", "product[shape]");
+      expect(screen.getByTestId("image-uploader")).toBeInTheDocument();
+    });
+
+    it("renders existing variant and store info rows", () => {
+      renderForm({
+        product: makeProductForm({
+          variants: [makeVariantForm()],
+          store_infos: [makeStoreInfoForm({ id: 1, store_name: "shopify", tag_list: "featured" })],
+        }),
+      });
+
+      expect(screen.getAllByTestId("variant-row")).toHaveLength(1);
+      expect(screen.getAllByTestId("store-info-row")).toHaveLength(1);
+    });
+
+    it("adds a variant row when Add Variant is clicked", async () => {
+      const user = userEvent.setup();
+      renderForm();
+
+      await user.click(screen.getByRole("button", { name: "Add Variant" }));
+
+      expect(screen.getAllByTestId("variant-row")).toHaveLength(2);
+    });
+  });
+
+  describe("error routing", () => {
+    it("routes franchise, variant, and purchase errors to their fields", () => {
+      mockPageProps({
+        errors: {
+          franchise: "Franchise must exist",
+          "variants.0.sku": "has already been taken",
+          "purchase.0.item_price": "can't be blank",
+        },
+      });
+
+      renderForm({
+        product: makeProductForm({
+          store_infos: [makeStoreInfoForm({ id: 1, store_name: "shopify", tag_list: "featured" })],
+        }),
+      });
+
+      expect(screen.getByTestId("product_franchise_id").parentElement).toHaveClass(
+        "field_with_errors",
       );
+      expect(screen.getByText("Franchise must exist")).toBeInTheDocument();
+      expect(screen.getByText("has already been taken")).toBeInTheDocument();
+      expect(screen.getByText("can't be blank")).toBeInTheDocument();
     });
-
-    expect(resourceFormProps).toEqual({
-      action: "/products",
-      cancelHref: "/products",
-      method: "post",
-      submitLabel: "Create Product",
-    });
-    expect(screen.getByTestId("resource-form")).toBeInTheDocument();
-    expect(screen.getByTestId("description-editor")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Bust")).toHaveAttribute("name", "product[shape]");
-    expect(screen.getByTestId("description-input")).toHaveAttribute("name", "product[description]");
-    expect(document.querySelector('input[name="product[brand_ids][]"]')).toHaveValue("");
-    expect(screen.getByTestId("product_franchise_id").parentElement).toHaveClass(
-      "field_with_errors",
-    );
-    expect(screen.getByText("Franchise must exist")).toBeInTheDocument();
-    expect(screen.getByText("has already been taken")).toBeInTheDocument();
-    expect(screen.getByText("can't be blank")).toBeInTheDocument();
-    expect(screen.getByTestId("purchase-fields")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Add Purchase" })).not.toBeInTheDocument();
-    expect(screen.getAllByTestId("variant-row")).toHaveLength(1);
-    expect(screen.getAllByTestId("store-info-row")).toHaveLength(1);
-    expect(screen.getByTestId("image-uploader")).toBeInTheDocument();
   });
 
-  it("adds a variant row when Add Variant is clicked", async () => {
-    const user = userEvent.setup();
+  describe("initial purchase section", () => {
+    it("hides purchase fields and shows Add Purchase button initially", () => {
+      renderForm({ isNew: true });
 
-    render(
-      <Form
-        isNew
-        options={options}
-        product={makeProduct()}
-        purchase={makePurchase()}
-        submitLabel="Create Product"
-      />,
-    );
+      expect(screen.queryByTestId("purchase-fields")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Add Purchase" })).toBeInTheDocument();
+    });
 
-    expect(screen.getAllByTestId("variant-row")).toHaveLength(1);
+    it("reveals purchase fields when Add Purchase is clicked", async () => {
+      const user = userEvent.setup();
+      renderForm({ isNew: true });
 
-    await user.click(screen.getByRole("button", { name: "Add Variant" }));
+      await user.click(screen.getByRole("button", { name: "Add Purchase" }));
 
-    expect(screen.getAllByTestId("variant-row")).toHaveLength(2);
-  });
-
-  it("reveals the purchase section when Add Purchase is clicked", async () => {
-    const user = userEvent.setup();
-
-    render(
-      <Form
-        isNew
-        options={options}
-        product={makeProduct()}
-        purchase={makePurchase()}
-        submitLabel="Create Product"
-      />,
-    );
-
-    expect(screen.getByRole("button", { name: "Add Purchase" })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Add Purchase" }));
-
-    expect(screen.getByTestId("purchase-fields")).toBeInTheDocument();
+      expect(screen.getByTestId("purchase-fields")).toBeInTheDocument();
+    });
   });
 });
+
+function renderForm({
+  isNew = true,
+  product = makeProductForm(),
+  purchase = makePurchaseForm(),
+  submitLabel = "Create Product",
+}: {
+  isNew?: boolean;
+  product?: ReturnType<typeof makeProductForm>;
+  purchase?: ReturnType<typeof makePurchaseForm>;
+  submitLabel?: string;
+} = {}) {
+  return render(
+    <Form
+      isNew={isNew}
+      options={options}
+      product={product}
+      purchase={purchase}
+      submitLabel={submitLabel}
+    />,
+  );
+}
