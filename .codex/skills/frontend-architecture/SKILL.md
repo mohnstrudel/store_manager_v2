@@ -23,6 +23,8 @@ ad hoc local path builders.
 - Import routes from `@/utils/routes` for runtime frontend code.
 - Prefer generated helpers such as `routes.sizes.show.path({ id })` over inline
   strings like `"/sizes/123"` or page-local `paths.ts` helpers.
+- If Rails already sends a path in page props, use that value directly instead of
+  rebuilding the same URL in the frontend.
 - Check `app/frontend/api/*` before inventing route helpers; Rails-backed pages
   in this app usually already have generated route objects available.
 - Only introduce local path helpers when the route is truly frontend-only and
