@@ -4,33 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import VariantFields from "./VariantFields";
 import { makeVariantForm } from "../../test/factories";
 
-type MockOption = {
-  value: number;
-  label: string;
-};
-
-type SmartSelectMockProps = {
-  defaultValue: MockOption | null;
-  isClearable?: boolean;
-  name: string;
-  options: MockOption[];
-};
-
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({ defaultValue, name, options, isClearable = false }: SmartSelectMockProps) => (
-    <>
-      <input name={name} type="hidden" value={defaultValue?.value ?? ""} />
-      <select defaultValue={defaultValue != null ? String(defaultValue.value) : ""}>
-        {isClearable && <option value="">—</option>}
-        {options.map((o) => (
-          <option key={o.value} value={String(o.value)}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </>
-  ),
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 const sizes = [{ value: 1, label: "Large" }];
 const versions = [{ value: 10, label: "Deluxe" }];

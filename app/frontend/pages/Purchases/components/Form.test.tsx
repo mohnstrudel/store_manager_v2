@@ -2,17 +2,7 @@ import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Form from "./Form";
-import type { PurchaseFormOptions, PurchaseFormRecord, SelectOption } from "../types";
-
-type SmartSelectMockProps = {
-  error?: string;
-  inputId?: string;
-  label?: string;
-  name?: string;
-  onChange?: (option: SelectOption<number> | null) => void;
-  options?: SelectOption<number>[];
-  value?: SelectOption<number> | null;
-};
+import type { PurchaseFormOptions, PurchaseFormRecord } from "../types";
 
 let pageErrors: Record<string, string> = {};
 
@@ -39,25 +29,7 @@ vi.mock("@/components/ResourceForm", () => ({
   ),
 }));
 
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({ inputId, label, name, options = [], value }: SmartSelectMockProps) => (
-    <select
-      aria-label={label ?? inputId}
-      data-testid={inputId ?? name}
-      id={inputId}
-      name={name}
-      value={value?.value ?? ""}
-      onChange={() => {}}
-    >
-      <option value="">Select...</option>
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
-  ),
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 vi.mock("./Form/ProductVariantSelect", () => ({
   default: () => <div data-testid="product-variant-select" />,

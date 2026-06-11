@@ -1,38 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import SaleItemFields from "./Form/SaleItemFields";
-import type { SaleItemFormRecord, SelectOption } from "../types";
+import type { SaleItemFormRecord } from "../types";
+// oxlint-disable-next-line import/no-unassigned-import
+import "@/components/SmartSelect";
 
-type SmartSelectMockProps = {
-  defaultValue: SelectOption<number> | null;
-  name: string;
-  onChange?: (option: SelectOption<number> | null) => void;
-  options: SelectOption<number>[];
-};
-
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({ defaultValue, name, onChange, options }: SmartSelectMockProps) => (
-    <>
-      <input name={name} type="hidden" value={defaultValue?.value ?? ""} />
-      <select
-        defaultValue={defaultValue != null ? String(defaultValue.value) : ""}
-        onChange={(event) => {
-          const selected = options.find(
-            (option) => String(option.value) === event.currentTarget.value,
-          );
-          onChange?.(selected ?? null);
-        }}
-      >
-        <option value="">Select...</option>
-        {options.map((option) => (
-          <option key={option.value} value={String(option.value)}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </>
-  ),
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 const productOptions = [
   { value: 1, label: "Moon Statue" },

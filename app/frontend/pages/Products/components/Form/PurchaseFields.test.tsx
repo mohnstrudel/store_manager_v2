@@ -2,34 +2,10 @@ import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import PurchaseFields from "./PurchaseFields";
 import { makePurchaseForm } from "../../test/factories";
+// oxlint-disable-next-line import/no-unassigned-import
+import "@/components/SmartSelect";
 
-type MockOption = {
-  value: number;
-  label: string;
-};
-
-type SmartSelectMockProps = {
-  defaultValue: MockOption | null;
-  isClearable?: boolean;
-  name: string;
-  options: MockOption[];
-};
-
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({ defaultValue, name, options, isClearable = false }: SmartSelectMockProps) => (
-    <>
-      <input name={name} type="hidden" value={defaultValue?.value ?? ""} />
-      <select defaultValue={defaultValue != null ? String(defaultValue.value) : ""}>
-        {isClearable && <option value="">—</option>}
-        {options.map((o) => (
-          <option key={o.value} value={String(o.value)}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </>
-  ),
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 const suppliers = [{ value: 1, label: "Moon Supply" }];
 const warehouses = [{ value: 10, label: "Main Warehouse" }];

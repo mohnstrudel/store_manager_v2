@@ -4,53 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 import StoreInfoFields from "./StoreInfoFields";
 import { makeStoreInfoForm } from "../../test/factories";
 
-type MockOption = {
-  value: string;
-  label: string;
-};
-
-type SmartSelectMockProps = {
-  defaultValue: MockOption | null;
-  isClearable?: boolean;
-  isDisabled?: boolean;
-  name: string;
-  options: MockOption[];
-};
-
 type TagSelectMockProps = {
-  defaultValue: MockOption[];
+  defaultValue: { value: string; label: string }[];
   delimiter?: string;
   name: string;
 };
 
-const optionKey = (option: MockOption) => option.value;
-
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({
-    defaultValue,
-    isDisabled = false,
-    name,
-    options,
-    isClearable = false,
-  }: SmartSelectMockProps) => {
-    return (
-      <>
-        <input name={name} type="hidden" value={defaultValue?.value ?? ""} />
-        <select
-          defaultValue={defaultValue != null ? optionKey(defaultValue) : ""}
-          disabled={isDisabled}
-        >
-          {isClearable && <option value="">—</option>}
-          {options.map((o) => (
-            <option key={optionKey(o)} value={optionKey(o)}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </>
-    );
-  },
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 vi.mock("@/components/TagSelect", () => ({
   default: ({ defaultValue, delimiter = ",", name }: TagSelectMockProps) => (

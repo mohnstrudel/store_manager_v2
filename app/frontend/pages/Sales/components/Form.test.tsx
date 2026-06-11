@@ -4,16 +4,10 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Form from "./Form";
 import type { SaleFormOptions, SaleFormRecord, SaleItemFormRecord } from "../types";
+// oxlint-disable-next-line import/no-unassigned-import
+import "@/components/SmartSelect";
 
-type SmartSelectMockProps = {
-  defaultValue?:
-    | { label: string; value: number | string }
-    | { label: string; value: number | string }[]
-    | null;
-  inputId?: string;
-  name?: string;
-  options?: Array<{ label: string; value: number | string }>;
-};
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 let pageErrors: Record<string, string> = {};
 
@@ -40,24 +34,7 @@ vi.mock("@/components/ResourceForm", () => ({
   ),
 }));
 
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({ defaultValue = null, inputId, name, options = [] }: SmartSelectMockProps) => {
-    const selectedValue = Array.isArray(defaultValue)
-      ? String(defaultValue[0]?.value ?? "")
-      : String(defaultValue?.value ?? "");
-
-    return (
-      <select data-testid={inputId ?? name} defaultValue={selectedValue} id={inputId} name={name}>
-        <option value="">Select...</option>
-        {options.map((option) => (
-          <option key={String(option.value)} value={String(option.value)}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    );
-  },
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 vi.mock("./Form/AddressFields", () => ({
   default: ({ title }: { title: string }) => <div data-testid={`address-fields-${title}`} />,

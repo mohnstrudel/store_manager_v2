@@ -4,39 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import ProductVariantSelect from "./Form/ProductVariantSelect";
 import { type SelectOption } from "../types";
 
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({
-    inputId,
-    name,
-    onChange,
-    options = [],
-    value,
-  }: {
-    inputId: string;
-    name: string;
-    onChange?: (option: SelectOption<number> | null) => void;
-    options?: SelectOption<number>[];
-    value?: SelectOption<number> | null;
-  }) => (
-    <select
-      aria-label="Variant"
-      data-testid={inputId ?? name}
-      onChange={(event) => {
-        const nextValue = Number(event.target.value);
-        const option = options.find((item) => item.value === nextValue) ?? null;
-        onChange?.(option);
-      }}
-      value={value?.value ?? ""}
-    >
-      <option value="">Select a variant</option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  ),
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 const initialVariants: SelectOption<number>[] = [
   { value: 101, label: "First variant" },

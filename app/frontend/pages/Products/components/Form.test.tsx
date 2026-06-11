@@ -11,15 +11,7 @@ import {
   makeStoreInfoForm,
   makeVariantForm,
 } from "../test/factories";
-import type { PurchaseFormData, SelectOption, StoreInfoFormData, VariantFormData } from "../types";
-
-type SmartSelectMockProps = {
-  defaultValue?: SelectOption | SelectOption[] | null;
-  inputId?: string;
-  isMulti?: boolean;
-  name?: string;
-  options?: SelectOption[];
-};
+import type { PurchaseFormData, StoreInfoFormData, VariantFormData } from "../types";
 
 let resourceFormProps: {
   action: string;
@@ -58,50 +50,7 @@ vi.mock("@/components/ResourceForm", () => ({
   },
 }));
 
-vi.mock("@/components/SmartSelect", () => ({
-  default: ({
-    defaultValue = null,
-    inputId,
-    isMulti = false,
-    name,
-    options = [],
-  }: SmartSelectMockProps) => {
-    const selectedValues = Array.isArray(defaultValue)
-      ? defaultValue.map((option) => String(option.value))
-      : defaultValue
-        ? [String(defaultValue.value)]
-        : [];
-    const hiddenInputs = !name ? null : isMulti ? (
-      selectedValues.length > 0 ? (
-        selectedValues.map((selectedValue) => (
-          <input key={selectedValue} name={name} type="hidden" value={selectedValue} />
-        ))
-      ) : (
-        <input name={name} type="hidden" value="" />
-      )
-    ) : (
-      <input name={name} type="hidden" value={selectedValues[0] ?? ""} />
-    );
-
-    return (
-      <>
-        {hiddenInputs}
-        <select
-          data-testid={inputId ?? name}
-          defaultValue={isMulti ? selectedValues : (selectedValues[0] ?? "")}
-          multiple={isMulti}
-        >
-          {!isMulti && <option value="">—</option>}
-          {options.map((option) => (
-            <option key={String(option.value)} value={String(option.value)}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </>
-    );
-  },
-}));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 vi.mock("./Form/TiptapEditor", () => ({
   default: ({ defaultValue, name }: { defaultValue: string; name: string }) => (
