@@ -1,9 +1,8 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { usePage } from "@inertiajs/react";
+import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
+import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import Form from "./Form";
 import {
   makeProductForm,
@@ -13,42 +12,8 @@ import {
 } from "../test/factories";
 import type { PurchaseFormData, StoreInfoFormData, VariantFormData } from "../types";
 
-let resourceFormProps: {
-  action: string;
-  cancelHref: string;
-  method: string;
-  submitLabel: string;
-} | null = null;
-
 vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
-vi.mock("@/components/ResourceForm", () => ({
-  default: function ResourceFormStub({
-    action,
-    cancelHref,
-    children,
-    method,
-    submitLabel,
-    validate: _validate,
-  }: {
-    action: string;
-    cancelHref: string;
-    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-    method: string;
-    submitLabel: string;
-    validate?: unknown;
-  }) {
-    const errors = (usePage().props.errors ?? {}) as Record<string, string>;
-    resourceFormProps = { action, cancelHref, method, submitLabel };
-
-    return (
-      <form data-testid="resource-form">
-        {typeof children === "function" ? children({ errors }) : children}
-        <button type="submit">{submitLabel}</button>
-      </form>
-    );
-  },
-}));
+vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
@@ -147,20 +112,16 @@ const options = {
 };
 
 describe("Products/components/Form", () => {
-  beforeEach(() => {
-    resourceFormProps = null;
-  });
-
   describe("form shell", () => {
     it("configures action, method, and labels for a new product", () => {
       renderForm({ isNew: true, submitLabel: "Create Product" });
 
-      expect(resourceFormProps).toEqual({
+      expect(lastCapturedProps()).toEqual(expect.objectContaining({
         action: "/products",
         cancelHref: "/products",
         method: "post",
         submitLabel: "Create Product",
-      });
+      }));
     });
 
     it("configures action, method, and labels for an existing product", () => {
@@ -170,12 +131,12 @@ describe("Products/components/Form", () => {
         submitLabel: "Update Product",
       });
 
-      expect(resourceFormProps).toEqual({
+      expect(lastCapturedProps()).toEqual(expect.objectContaining({
         action: "/products/1",
         cancelHref: "/products/1",
         method: "patch",
         submitLabel: "Update Product",
-      });
+      }));
     });
   });
 

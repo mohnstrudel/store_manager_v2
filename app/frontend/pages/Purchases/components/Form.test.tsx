@@ -1,33 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPageProps } from "@/test/mocks/inertia";
 import Form from "./Form";
 import type { PurchaseFormOptions, PurchaseFormRecord } from "../types";
 
-let pageErrors: Record<string, string> = {};
-
-vi.mock("@/components/ResourceForm", () => ({
-  default: ({
-    action,
-    cancelHref,
-    children,
-    method,
-    submitLabel,
-    validate: _validate,
-  }: {
-    action: string;
-    cancelHref: string;
-    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-    method: string;
-    submitLabel: string;
-    validate?: unknown;
-  }) => (
-    <form action={action} data-cancel-href={cancelHref} data-method={method}>
-      {typeof children === "function" ? children({ errors: pageErrors }) : children}
-      <button type="submit">{submitLabel}</button>
-    </form>
-  ),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
+vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
@@ -61,7 +39,7 @@ function makePurchase(overrides: Partial<PurchaseFormRecord> = {}): PurchaseForm
 
 describe("Purchases/Components/Form", () => {
   beforeEach(() => {
-    pageErrors = {};
+    mockPageProps({});
   });
 
   it("renders the form shell with correct action and method", () => {
@@ -91,7 +69,7 @@ describe("Purchases/Components/Form", () => {
   });
 
   it("shows server-side supplier error", () => {
-    pageErrors = { supplier_id: "Supplier must exist" };
+    mockPageProps({ errors: { supplier_id: "Supplier must exist" } });
 
     render(
       <Form isNew options={options} purchase={makePurchase()} submitLabel="Create Purchase" />,
@@ -101,7 +79,7 @@ describe("Purchases/Components/Form", () => {
   });
 
   it("shows server-side product error", () => {
-    pageErrors = { product_id: "Product must exist" };
+    mockPageProps({ errors: { product_id: "Product must exist" } });
 
     render(
       <Form isNew options={options} purchase={makePurchase()} submitLabel="Create Purchase" />,

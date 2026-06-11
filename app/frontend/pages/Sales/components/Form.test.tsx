@@ -1,39 +1,14 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPageProps } from "@/test/mocks/inertia";
 import Form from "./Form";
 import type { SaleFormOptions, SaleFormRecord, SaleItemFormRecord } from "../types";
 // oxlint-disable-next-line import/no-unassigned-import
 import "@/components/SmartSelect";
 
-vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
-
-let pageErrors: Record<string, string> = {};
-
-vi.mock("@/components/ResourceForm", () => ({
-  default: ({
-    action,
-    cancelHref,
-    children,
-    method,
-    submitLabel,
-    validate: _validate,
-  }: {
-    action: string;
-    cancelHref: string;
-    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-    method: string;
-    submitLabel: string;
-    validate?: unknown;
-  }) => (
-    <form action={action} data-cancel-href={cancelHref} data-method={method}>
-      {typeof children === "function" ? children({ errors: pageErrors }) : children}
-      <button type="submit">{submitLabel}</button>
-    </form>
-  ),
-}));
-
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
+vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 vi.mock("./Form/AddressFields", () => ({
@@ -95,7 +70,7 @@ function makeSale(overrides: Partial<SaleFormRecord> = {}): SaleFormRecord {
 
 describe("Sales/Components/Form", () => {
   beforeEach(() => {
-    pageErrors = {};
+    mockPageProps({});
   });
 
   it("renders the sale form sections with the correct shell configuration", async () => {
@@ -134,7 +109,7 @@ describe("Sales/Components/Form", () => {
   });
 
   it("shows customer validation errors on the select field", () => {
-    pageErrors = { customer: "Customer must exist" };
+    mockPageProps({ errors: { customer: "Customer must exist" } });
 
     render(<Form isNew options={options} sale={makeSale()} submitLabel="Create Sale" />);
 

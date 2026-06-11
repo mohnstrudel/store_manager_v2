@@ -1,34 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPageProps } from "@/test/mocks/inertia";
 import Form from "./Form";
 import type { WarehouseFormOptions, WarehouseFormRecord } from "../types";
 
-let pageErrors: Record<string, string> = {};
-
-vi.mock("@/components/ResourceForm", () => ({
-  default: ({
-    action,
-    cancelHref,
-    children,
-    method,
-    submitLabel,
-    validate: _validate,
-  }: {
-    action: string;
-    cancelHref: string;
-    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-    method: string;
-    submitLabel: string;
-    validate?: unknown;
-  }) => (
-    <form action={action} data-cancel-href={cancelHref} data-method={method}>
-      {typeof children === "function" ? children({ errors: pageErrors }) : children}
-      <button type="submit">{submitLabel}</button>
-    </form>
-  ),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
+vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/ImageUploader", () => ({
   default: ({
@@ -88,7 +66,7 @@ function makeWarehouse(overrides: Partial<WarehouseFormRecord> = {}): WarehouseF
 
 describe("Warehouses/Components/Form", () => {
   beforeEach(() => {
-    pageErrors = {};
+    mockPageProps({});
   });
 
   it("renders the warehouse form sections with the correct shell configuration", () => {
@@ -122,7 +100,7 @@ describe("Warehouses/Components/Form", () => {
   });
 
   it("shows validation errors on matching fields", () => {
-    pageErrors = { name: "can't be blank", position: "is invalid" };
+    mockPageProps({ errors: { name: "can't be blank", position: "is invalid" } });
 
     render(
       <Form
@@ -154,7 +132,7 @@ describe("Warehouses/Components/Form", () => {
     await user.click(screen.getByRole("button", { name: "Add Transition" }));
     await user.selectOptions(screen.getByLabelText("Destination Warehouse 1"), "20");
 
-    pageErrors = { name: "can't be blank" };
+    mockPageProps({ errors: { name: "can't be blank" } });
     rerender(
       <Form
         isNew

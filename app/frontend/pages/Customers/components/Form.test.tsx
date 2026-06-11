@@ -1,48 +1,15 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { usePage } from "@inertiajs/react";
+import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
+import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import Form from "./Form";
 import { makeCustomer } from "../test/factories";
 import type { CustomerRecord } from "../types";
 
-type ResourceFormProps = {
-  action: string;
-  cancelHref: string;
-  children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-  method: string;
-  submitLabel: string;
-};
-
-let resourceFormProps: Omit<ResourceFormProps, "children"> | null = null;
-
 vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
-vi.mock("@/components/ResourceForm", () => ({
-  default: function ResourceFormStub({
-    action,
-    cancelHref,
-    children,
-    method,
-    submitLabel,
-  }: ResourceFormProps) {
-    const errors = (usePage().props.errors ?? {}) as Record<string, string>;
-    resourceFormProps = { action, cancelHref, method, submitLabel };
-
-    return (
-      <form data-testid="resource-form">
-        {typeof children === "function" ? children({ errors }) : children}
-        <button type="submit">{submitLabel}</button>
-      </form>
-    );
-  },
-}));
+vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 describe("Customers/components/Form", () => {
-  beforeEach(() => {
-    resourceFormProps = null;
-  });
 
   describe("form shell", () => {
     it("configures action, method, and labels for a new customer", () => {
@@ -64,23 +31,23 @@ describe("Customers/components/Form", () => {
         url: "/customers",
       });
 
-      expect(resourceFormProps).toEqual({
+      expect(lastCapturedProps()).toEqual(expect.objectContaining({
         action: "/customers",
         cancelHref: "/customers",
         method: "post",
         submitLabel: "Create Customer",
-      });
+      }));
     });
 
     it("configures action, method, and labels for an existing customer", () => {
       renderForm();
 
-      expect(resourceFormProps).toEqual({
+      expect(lastCapturedProps()).toEqual(expect.objectContaining({
         action: "/customers/1",
         cancelHref: "/customers",
         method: "patch",
         submitLabel: "Update Customer",
-      });
+      }));
     });
   });
 

@@ -1,33 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPageProps } from "@/test/mocks/inertia";
 import Form from "./Form";
 import type { PurchaseItemFormOptions, PurchaseItemFormRecord } from "../types";
 
-let pageErrors: Record<string, string> = {};
-
-vi.mock("@/components/ResourceForm", () => ({
-  default: ({
-    action,
-    cancelHref,
-    children,
-    method,
-    submitLabel,
-    validate: _validate,
-  }: {
-    action: string;
-    cancelHref: string;
-    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-    method: string;
-    submitLabel: string;
-    validate?: unknown;
-  }) => (
-    <form action={action} data-cancel-href={cancelHref} data-method={method}>
-      {typeof children === "function" ? children({ errors: pageErrors }) : children}
-      <button type="submit">{submitLabel}</button>
-    </form>
-  ),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
+vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/ImageUploader", () => ({
   default: ({
@@ -119,7 +97,7 @@ function makePurchaseItem(overrides: Partial<PurchaseItemFormRecord> = {}): Purc
 
 describe("PurchaseItems/Components/Form", () => {
   beforeEach(() => {
-    pageErrors = {};
+    mockPageProps({});
   });
 
   it("renders the form with correct shell configuration and field values", () => {
@@ -193,7 +171,7 @@ describe("PurchaseItems/Components/Form", () => {
   });
 
   it("shows validation errors on matching fields", () => {
-    pageErrors = { length: "is not a number", warehouse_id: "must exist" };
+    mockPageProps({ errors: { length: "is not a number", warehouse_id: "must exist" } });
 
     render(
       <Form
