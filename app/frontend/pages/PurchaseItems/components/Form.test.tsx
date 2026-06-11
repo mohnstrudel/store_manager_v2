@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
+import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import Form from "./Form";
-import type { PurchaseItemFormOptions, PurchaseItemFormRecord } from "../types";
+import { makePurchaseItemFormOptions, makePurchaseItemFormRecord } from "../test/factories";
 
 vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -42,7 +43,7 @@ vi.mock("@/components/FormSmartSelect", () => ({
   }) => (
     <div data-error={error}>
       <label htmlFor={inputId}>{label}</label>
-      <select id={inputId} name={name} defaultValue={defaultValue?.value ?? ""}>
+      <select defaultValue={defaultValue?.value ?? ""} id={inputId} name={name}>
         {defaultValue && <option value={defaultValue.value}>{defaultValue.label}</option>}
       </select>
       {error && <span>{error}</span>}
@@ -50,141 +51,114 @@ vi.mock("@/components/FormSmartSelect", () => ({
   ),
 }));
 
-const options: PurchaseItemFormOptions = {
-  warehouses: [
-    { value: 1, label: "Main Warehouse" },
-    { value: 2, label: "Secondary Warehouse" },
-  ],
-  purchases: [
-    { value: 10, label: "Supplier A | Product X | 2024-01-01" },
-    { value: 11, label: "Supplier B | Product Y | 2024-02-01" },
-  ],
-  shipping_companies: [
-    { value: 20, label: "DHL" },
-    { value: 21, label: "FedEx" },
-  ],
-};
-
-function makePurchaseItem(overrides: Partial<PurchaseItemFormRecord> = {}): PurchaseItemFormRecord {
-  return {
-    id: 42,
-    path: "/purchase_items/42",
-    purchase_id: 10,
-    sale_item_id: null,
-    warehouse_id: 1,
-    shipping_company_id: 20,
-    length: "30",
-    width: "20",
-    height: "15",
-    weight: "2.5",
-    expenses: "100.00",
-    shipping_cost: "25.00",
-    tracking_number: "TRK-001",
-    media: [
-      {
-        id: 1,
-        alt: "Item photo",
-        position: 0,
-        preview_url: "/item.png",
-        thumb_url: "/item-thumb.png",
-        _destroy: false,
-      },
-    ],
-    redirect_to_sale_item: false,
-    ...overrides,
-  };
-}
-
 describe("PurchaseItems/Components/Form", () => {
   beforeEach(() => {
     mockPageProps({});
   });
 
-  it("renders the form with correct shell configuration and field values", () => {
-    const { container } = render(
-      <Form
-        action="/purchase_items/42"
-        cancelHref="/purchase_items/42"
-        method="patch"
-        options={options}
-        purchase_item={makePurchaseItem()}
-        submitLabel="Update Purchase Item"
-      />,
-    );
-    const form = container.querySelector("form");
+  describe("form shell", () => {
+    it("configures action, method, and labels for an existing purchase item", () => {
+      renderForm({
+        action: "/purchase_items/42",
+        cancelHref: "/purchase_items/42",
+        method: "patch",
+        submitLabel: "Update Purchase Item",
+      });
 
-    expect(form).toHaveAttribute("action", "/purchase_items/42");
-    expect(form).toHaveAttribute("data-cancel-href", "/purchase_items/42");
-    expect(form).toHaveAttribute("data-method", "patch");
-    expect(screen.getByLabelText("Warehouse")).toHaveValue("1");
-    expect(screen.getByLabelText("Purchase")).toHaveValue("10");
-    expect(screen.getByLabelText("Length, cm")).toHaveValue("30");
-    expect(screen.getByLabelText("Width, cm")).toHaveValue("20");
-    expect(screen.getByLabelText("Height, cm")).toHaveValue("15");
-    expect(screen.getByLabelText("Weight, kg")).toHaveValue("2.5");
-    expect(screen.getByLabelText("Expenses")).toHaveValue("100.00");
-    expect(screen.getByLabelText("Shipping")).toHaveValue("25.00");
-    expect(screen.getByLabelText("Tracking Number")).toHaveValue("TRK-001");
-    expect(screen.getByLabelText("Shipping Company")).toHaveValue("20");
-    expect(screen.getByTestId("image-uploader")).toHaveAttribute(
-      "data-field-name-prefix",
-      "purchase_item[media]",
-    );
-    expect(screen.getByTestId("image-uploader")).toHaveAttribute("data-image-field-name", "image");
-    expect(screen.getByTestId("image-uploader")).toHaveAttribute("data-media-count", "1");
+      expect(lastCapturedProps()).toEqual(
+        expect.objectContaining({
+          action: "/purchase_items/42",
+          cancelHref: "/purchase_items/42",
+          method: "patch",
+          submitLabel: "Update Purchase Item",
+        }),
+      );
+    });
   });
 
-  it("does not include redirect_to_sale_item hidden field when flag is false", () => {
-    const { container } = render(
-      <Form
-        action="/purchase_items/42"
-        cancelHref="/purchase_items/42"
-        method="patch"
-        options={options}
-        purchase_item={makePurchaseItem({ redirect_to_sale_item: false })}
-        submitLabel="Update Purchase Item"
-      />,
-    );
+  describe("field sections", () => {
+    it("renders linking, dimensions, shipping fields, and media uploader", () => {
+      renderForm();
 
-    expect(
-      container.querySelector('input[name="purchase_item[redirect_to_sale_item]"]'),
-    ).toBeNull();
+      expect(screen.getByLabelText("Warehouse")).toHaveValue("1");
+      expect(screen.getByLabelText("Purchase")).toHaveValue("10");
+      expect(screen.getByLabelText("Length, cm")).toHaveValue("30");
+      expect(screen.getByLabelText("Width, cm")).toHaveValue("20");
+      expect(screen.getByLabelText("Height, cm")).toHaveValue("15");
+      expect(screen.getByLabelText("Weight, kg")).toHaveValue("2.5");
+      expect(screen.getByLabelText("Expenses")).toHaveValue("100.00");
+      expect(screen.getByLabelText("Shipping")).toHaveValue("25.00");
+      expect(screen.getByLabelText("Tracking Number")).toHaveValue("TRK-001");
+      expect(screen.getByLabelText("Shipping Company")).toHaveValue("20");
+      expect(screen.getByTestId("image-uploader")).toHaveAttribute(
+        "data-field-name-prefix",
+        "purchase_item[media]",
+      );
+      expect(screen.getByTestId("image-uploader")).toHaveAttribute(
+        "data-image-field-name",
+        "image",
+      );
+      expect(screen.getByTestId("image-uploader")).toHaveAttribute("data-media-count", "1");
+    });
+
+    it("omits the redirect_to_sale_item hidden field when the flag is false", () => {
+      const { container } = renderForm({
+        purchase_item: makePurchaseItemFormRecord({ redirect_to_sale_item: false }),
+      });
+
+      expect(
+        container.querySelector('input[name="purchase_item[redirect_to_sale_item]"]'),
+      ).toBeNull();
+    });
+
+    it("includes the redirect_to_sale_item hidden field when the flag is true", () => {
+      const { container } = renderForm({
+        purchase_item: makePurchaseItemFormRecord({ redirect_to_sale_item: true }),
+      });
+
+      const hiddenInput = container.querySelector(
+        'input[name="purchase_item[redirect_to_sale_item]"]',
+      );
+      expect(hiddenInput).not.toBeNull();
+      expect(hiddenInput).toHaveAttribute("value", "1");
+    });
   });
 
-  it("includes redirect_to_sale_item hidden field when flag is true", () => {
-    const { container } = render(
-      <Form
-        action="/purchase_items/42"
-        cancelHref="/purchase_items/42"
-        method="patch"
-        options={options}
-        purchase_item={makePurchaseItem({ redirect_to_sale_item: true })}
-        submitLabel="Update Purchase Item"
-      />,
-    );
+  describe("error routing", () => {
+    it("shows validation errors on matching fields", () => {
+      mockPageProps({ errors: { length: "is not a number", warehouse_id: "must exist" } });
 
-    const hiddenInput = container.querySelector(
-      'input[name="purchase_item[redirect_to_sale_item]"]',
-    );
-    expect(hiddenInput).not.toBeNull();
-    expect(hiddenInput).toHaveAttribute("value", "1");
-  });
+      renderForm();
 
-  it("shows validation errors on matching fields", () => {
-    mockPageProps({ errors: { length: "is not a number", warehouse_id: "must exist" } });
-
-    render(
-      <Form
-        action="/purchase_items/42"
-        cancelHref="/purchase_items/42"
-        method="patch"
-        options={options}
-        purchase_item={makePurchaseItem()}
-        submitLabel="Update Purchase Item"
-      />,
-    );
-
-    expect(screen.getByText("is not a number")).toBeInTheDocument();
-    expect(screen.getByText("must exist")).toBeInTheDocument();
+      expect(screen.getByText("is not a number")).toBeInTheDocument();
+      expect(screen.getByText("must exist")).toBeInTheDocument();
+    });
   });
 });
+
+function renderForm({
+  action = "/purchase_items/42",
+  cancelHref = "/purchase_items/42",
+  method = "patch",
+  options = makePurchaseItemFormOptions(),
+  purchase_item = makePurchaseItemFormRecord(),
+  submitLabel = "Update Purchase Item",
+}: {
+  action?: string;
+  cancelHref?: string;
+  method?: "post" | "patch";
+  options?: ReturnType<typeof makePurchaseItemFormOptions>;
+  purchase_item?: ReturnType<typeof makePurchaseItemFormRecord>;
+  submitLabel?: string;
+} = {}) {
+  return render(
+    <Form
+      action={action}
+      cancelHref={cancelHref}
+      method={method}
+      options={options}
+      purchase_item={purchase_item}
+      submitLabel={submitLabel}
+    />,
+  );
+}
