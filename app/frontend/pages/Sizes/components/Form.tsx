@@ -2,6 +2,7 @@ import { getFormString } from "@/utils/formSchema";
 import { msg } from "@/utils/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
+import routes from "@/utils/routes";
 import { SizeRecord } from "../types";
 
 type SizeFormProps = {
@@ -19,7 +20,7 @@ export default function Form({ method, size, submitLabel, url }: SizeFormProps) 
   return (
     <ResourceForm
       action={url}
-      cancelHref="/sizes"
+      cancelHref={routes.sizes.index.path()}
       method={method}
       submitLabel={submitLabel}
       validate={validate}

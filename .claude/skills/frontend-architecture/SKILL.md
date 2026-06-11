@@ -15,6 +15,19 @@ Use this skill for frontend design and refactoring work in `app/frontend`.
 If the task needs new backend data, routes, route helpers, or persisted
 behavior, coordinate that seam with `rails-domain-architecture`.
 
+## Routing Convention
+
+Frontend routes should come from the shared `js-from-routes` helpers, not from
+ad hoc local path builders.
+
+- Import routes from `@/utils/routes` for runtime frontend code.
+- Prefer generated helpers such as `routes.sizes.show.path({ id })` over inline
+  strings like `"/sizes/123"` or page-local `paths.ts` helpers.
+- Check `app/frontend/api/*` before inventing route helpers; Rails-backed pages
+  in this app usually already have generated route objects available.
+- Only introduce local path helpers when the route is truly frontend-only and
+  cannot come from Rails.
+
 ## Core Principle
 
 Components should describe feature behavior, not implementation details.
