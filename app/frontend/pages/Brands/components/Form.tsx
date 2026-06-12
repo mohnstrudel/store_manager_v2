@@ -2,6 +2,7 @@ import { getFormString } from "@/utils/formSchema";
 import { msg } from "@/utils/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
+import routes from "@/utils/routes";
 import { BrandRecord } from "../types";
 
 type BrandFormProps = {
@@ -19,7 +20,7 @@ export default function Form({ brand, method, submitLabel, url }: BrandFormProps
   return (
     <ResourceForm
       action={url}
-      cancelHref="/brands"
+      cancelHref={routes.brands.index.path()}
       method={method}
       submitLabel={submitLabel}
       validate={validate}

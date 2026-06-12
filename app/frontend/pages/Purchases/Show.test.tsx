@@ -1,8 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { router } from "@inertiajs/react";
 import Show from "./Show";
+import {
+  makeNewPayment,
+  makePayment,
+  makePurchaseItem,
+  makePurchaseShow,
+  makeShippingCompanyOption,
+  makeWarehouseOption,
+} from "./test/factories";
 import type {
   NewPaymentRecord,
   PaymentRecord,
@@ -12,19 +20,7 @@ import type {
   WarehouseOption,
 } from "./types";
 
-const deletePurchase = vi.hoisted(() => vi.fn<(...args: unknown[]) => unknown>());
-
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    delete: deletePurchase,
-    post: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("./Show/PurchaseItems", () => ({
   default: ({
@@ -66,10 +62,6 @@ vi.mock("./Show/Payments", () => ({
 }));
 
 describe("Purchases/Show", () => {
-  beforeEach(() => {
-    deletePurchase.mockClear();
-  });
-
   it("renders the purchase header, edit action, and page sections", () => {
     renderShow();
 
@@ -93,18 +85,18 @@ describe("Purchases/Show", () => {
     await user.click(screen.getByRole("button", { name: "Destroy this purchase" }));
 
     expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
-    expect(deletePurchase).toHaveBeenCalledWith("/purchases/55");
+    expect(router.delete).toHaveBeenCalledWith("/purchases/55");
   });
 });
 
 function renderShow({
   newPayment = makeNewPayment(),
   payments = [makePayment()],
-  purchase = makePurchase(),
+  purchase = makePurchaseShow(),
   purchaseItems = [makePurchaseItem()],
-  shippingCompanies = [{ id: 1, name: "Fast Ship" }],
+  shippingCompanies = [makeShippingCompanyOption({ id: 1, name: "Fast Ship" })],
   warehouseMovePath = "/purchase_items/move",
-  warehouses = [{ id: 1, name: "Berlin Hub" }],
+  warehouses = [makeWarehouseOption()],
 }: {
   newPayment?: NewPaymentRecord;
   payments?: PaymentRecord[];
@@ -125,74 +117,4 @@ function renderShow({
       warehouses={warehouses}
     />,
   );
-}
-
-function makePurchase(): PurchaseShowRecord {
-  return {
-    id: 55,
-    path: "/purchases/55",
-    edit_path: "/purchases/55/edit",
-    destroy_path: "/purchases/55",
-    product_path: "/products/1",
-    product_title: "Pikachu Figure",
-    product_image_url: null,
-    product_thumb_url: null,
-    variant_title: "Default",
-    amount: 2,
-    item_price: "100.00",
-    cost_total: "200.00",
-    shipping_total: "10.00",
-    paid: "50.00",
-    debt: "160.00",
-    supplier_title: "Acme Imports",
-    supplier_path: "/suppliers/1",
-    order_reference: "PO-55",
-    date: "20 May 2026",
-    payment_progress: {
-      progress: 25,
-      paid: "50.00",
-      price: "210.00",
-      debt: "160.00",
-    },
-  };
-}
-
-function makePurchaseItem(): PurchaseItemRecord {
-  return {
-    id: 1,
-    path: "/purchase_items/1",
-    edit_path: "/purchase_items/1/edit",
-    unlink_path: "/purchase_items/1/unlink",
-    warehouse_name: "Berlin Hub",
-    warehouse_path: "/warehouses/1",
-    warehouse_movements: [],
-    sale_title: "Sale 1",
-    sale_path: "/sales/1",
-    sale_address: "Berlin",
-    customer_email: "dale@fbi.gov",
-    tracking_number: "",
-    shipping_company_id: null,
-    shipping_company_name: "",
-    shipping_cost: "5",
-  };
-}
-
-function makePayment(): PaymentRecord {
-  return {
-    id: 1,
-    update_path: "/payments/1",
-    destroy_path: "/payments/1",
-    payment_date: "20 May 2026",
-    value: "50.00",
-    errors: [],
-  };
-}
-
-function makeNewPayment(): NewPaymentRecord {
-  return {
-    create_path: "/payments",
-    payment_date: "21 May 2026",
-    value: "10.00",
-    errors: [],
-  };
 }

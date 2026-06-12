@@ -1,36 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { msg } from "@/utils/validationMessages";
 import { validateProductFormSubmission } from "./productFormValidation";
-import type { PurchaseFormData, VariantFormData } from "../types";
+import { makePurchaseForm, makeVariantForm } from "../test/factories";
 
-function makeVariant(overrides: Partial<VariantFormData> = {}): VariantFormData {
-  return {
-    id: null,
-    sku: "",
-    size_id: null,
-    version_id: null,
-    color_id: null,
-    purchase_cost: "0",
-    selling_price: "0",
-    weight: "0",
-    deactivated: false,
-    has_sales_or_purchases: false,
-    _destroy: false,
-    ...overrides,
-  };
-}
-
-function makePurchase(overrides: Partial<PurchaseFormData> = {}): PurchaseFormData {
-  return {
-    supplier_id: null,
-    order_reference: "",
-    item_price: "",
-    amount: "",
-    warehouse_id: null,
-    payment_value: "",
-    ...overrides,
-  };
-}
+const makeVariant = makeVariantForm;
+const makePurchase = makePurchaseForm;
 
 function makeFormData(entries: [string, string][]): FormData {
   const formData = new FormData();

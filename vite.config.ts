@@ -6,7 +6,12 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
-  plugins: [RubyPlugin(), react(), inertia({ ssr: { entry: "entrypoints/ssr.ts" } }), tailwindcss()],
+  plugins: [
+    RubyPlugin(),
+    react(),
+    inertia({ ssr: { entry: "entrypoints/ssr.ts" } }),
+    tailwindcss(),
+  ],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("app/frontend", import.meta.url)),

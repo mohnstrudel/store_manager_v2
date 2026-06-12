@@ -1,64 +1,47 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { mockPageProps } from "@/test/mocks/inertia";
 import New from "./New";
+import { makeCustomer } from "./test/factories";
+import type { CustomerRecord } from "./types";
 
-let pageErrors: Record<string, string> = {};
-
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  Form: ({
-    children,
-    action,
-    method,
-  }: {
-    children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
-    action: string;
-    method: string;
-  }) => (
-    <form action={action} method={method}>
-      {typeof children === "function" ? children({ errors: pageErrors }) : children}
-    </form>
-  ),
-  usePage: () => ({ props: { errors: pageErrors } }),
-}));
-
-const emptyCustomer = {
-  id: null,
-  woo_store_id: "",
-  full_name: "",
-  first_name: "",
-  last_name: "",
-  email: "",
-  phone: "",
-  created_at: null,
-  updated_at: null,
-  path: "/customers/new",
-};
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Customers/New", () => {
-  beforeEach(() => {
-    pageErrors = {};
-  });
-
   it("renders the form", () => {
-    render(<New customer={emptyCustomer} />);
+    renderNew();
 
     expect(screen.getByRole("heading", { name: "New Customer" })).toBeInTheDocument();
     expect(screen.getByLabelText("First name")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create Customer" })).toBeInTheDocument();
   });
 
   it("renders field validation errors", () => {
-    pageErrors = { first_name: "can't be blank" };
+    mockPageProps({ errors: { first_name: "can't be blank" } });
 
-    render(<New customer={emptyCustomer} />);
+    renderNew();
 
     expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
     expect(screen.getAllByText("can't be blank").length).toBeGreaterThan(0);
   });
 });
+
+function renderNew({
+  customer = makeCustomer({
+    id: null,
+    first_name: "",
+    last_name: "",
+    full_name: "",
+    email: "",
+    phone: "",
+    woo_store_id: "",
+    created_at: null,
+    updated_at: null,
+    path: "/customers/new",
+  }),
+}: {
+  customer?: CustomerRecord;
+} = {}) {
+  return render(<New customer={customer} />);
+}

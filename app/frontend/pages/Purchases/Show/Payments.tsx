@@ -43,7 +43,9 @@ export default function Payments({ newPayment, payments, purchase }: PaymentsPro
 function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchasePath: string }) {
   const [paymentDate, setPaymentDate] = useState(payment.payment_date);
   const [value, setValue] = useState(payment.value);
-  const destroyPayment = useConfirmAction("delete", payment.destroy_path, { message: "Remove this payment?" });
+  const destroyPayment = useConfirmAction("delete", payment.destroy_path, {
+    message: "Remove this payment?",
+  });
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {

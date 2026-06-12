@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./components/Details";
 import Products from "./components/Products";
@@ -12,13 +13,15 @@ type ShowProps = {
 };
 
 export default function Show({ products, version }: ShowProps) {
-  const destroyVersion = useConfirmAction("delete", `/versions/${version.id}`);
+  const currentVersionPath = routes.versions.show.path({ id: version.id! });
+  const currentEditPath = routes.versions.edit.path({ id: version.id! });
+  const destroyVersion = useConfirmAction("delete", currentVersionPath);
 
   return (
     <>
       <PageHeader subtitle={`Version ${version.id}`} title={version.value}>
         <li>
-          <Link href={`/versions/${version.id}/edit`} prefetch>
+          <Link href={currentEditPath} prefetch>
             <i className="icn">✏</i>
             Edit
           </Link>
@@ -30,7 +33,11 @@ export default function Show({ products, version }: ShowProps) {
         <Products products={products} />
       </div>
 
-      <Button className="w-full h-12 mt-16" onClick={destroyVersion} variant="danger">
+      <Button
+        className="w-full h-12 mt-16"
+        onClick={destroyVersion}
+        variant="danger"
+      >
         Destroy this version
       </Button>
     </>

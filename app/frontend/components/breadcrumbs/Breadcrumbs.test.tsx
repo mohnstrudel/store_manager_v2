@@ -1,35 +1,16 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockPage } from "@/test/mocks/inertia";
 import Breadcrumbs from "./Breadcrumbs";
 
-type PageState = {
-  props: { breadcrumb: string | null };
-  url: string;
-};
-
-let pageState: PageState = {
-  props: { breadcrumb: null },
-  url: "/",
-};
-
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  usePage: () => pageState,
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Breadcrumbs", () => {
   beforeEach(() => {
-    pageState = { props: { breadcrumb: null }, url: "/" };
     window.sessionStorage.clear();
   });
 
   it("renders nothing when the trail is empty", () => {
-    pageState = { props: { breadcrumb: null }, url: "/" };
     const { container } = render(<Breadcrumbs />);
     expect(container.firstChild).toBeNull();
   });
@@ -44,8 +25,7 @@ describe("Breadcrumbs", () => {
         { name: "Four", url: "/four" },
       ]),
     );
-    pageState = { props: { breadcrumb: "Five" }, url: "/five" };
-
+    mockPage({ url: "/five", props: { breadcrumb: "Five" } });
     render(<Breadcrumbs />);
 
     await waitFor(() => {
@@ -61,8 +41,7 @@ describe("Breadcrumbs", () => {
       "breadcrumb_trail",
       JSON.stringify([{ name: "Products", url: "/products" }]),
     );
-    pageState = { props: { breadcrumb: "Pikachu" }, url: "/products/1" };
-
+    mockPage({ url: "/products/1", props: { breadcrumb: "Pikachu" } });
     render(<Breadcrumbs />);
 
     await waitFor(() => {
@@ -77,8 +56,7 @@ describe("Breadcrumbs", () => {
       "breadcrumb_trail",
       JSON.stringify([{ name: "Pikachu", url: "/products/1" }]),
     );
-    pageState = { props: { breadcrumb: "Pikachu" }, url: "/products/1" };
-
+    mockPage({ url: "/products/1", props: { breadcrumb: "Pikachu" } });
     render(<Breadcrumbs />);
 
     await waitFor(() => {
@@ -98,11 +76,7 @@ describe("Breadcrumbs", () => {
         { name: "Four", url: "/four" },
       ]),
     );
-    pageState = {
-      props: { breadcrumb: "📦 Product" },
-      url: "/products/5?tab=all#top",
-    };
-
+    mockPage({ url: "/products/5?tab=all#top", props: { breadcrumb: "📦 Product" } });
     render(<Breadcrumbs />);
 
     expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toBeInTheDocument();

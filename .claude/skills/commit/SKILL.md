@@ -11,10 +11,6 @@ Write commits in this format:
 type(scope): Description
 ```
 
-## Rules
-
-- Use the `ai` scope only for changes that are actually about AI behavior, AI tooling, or AI-specific repo features. Do not use `ai` just because Codex made the change.
-
 ## Common scopes
 
-`shopify`, `woo`, `media`, `rubocop`, `spec`, `ai`
+`shopify`, `woo`, `media`, `rubocop`, `spec`

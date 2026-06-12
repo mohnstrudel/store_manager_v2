@@ -1,36 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { msg } from "@/utils/validationMessages";
 import { validateProductForm } from "./productFormSchema";
-import type { PurchaseFormData, VariantFormData } from "../types";
+import { makePurchaseForm, makeVariantForm } from "../test/factories";
 
-function makeVariant(overrides: Partial<VariantFormData> = {}): VariantFormData {
-  return {
-    id: null,
-    sku: "SKU-001",
-    size_id: null,
-    version_id: null,
-    color_id: null,
-    purchase_cost: "10",
-    selling_price: "20",
-    weight: "0.5",
-    deactivated: false,
-    has_sales_or_purchases: false,
-    _destroy: false,
-    ...overrides,
-  };
-}
-
-function makePurchase(overrides: Partial<PurchaseFormData> = {}): PurchaseFormData {
-  return {
-    supplier_id: null,
-    order_reference: "",
-    item_price: "",
-    amount: "",
-    warehouse_id: null,
-    payment_value: "",
-    ...overrides,
-  };
-}
+const makeVariant = makeVariantForm;
+const makePurchase = makePurchaseForm;
 
 const baseInput = {
   title: "Moon Statue",

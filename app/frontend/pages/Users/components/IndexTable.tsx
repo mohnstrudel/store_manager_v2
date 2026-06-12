@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 export type UserRecord = {
@@ -34,7 +35,11 @@ export default function IndexTable({ users }: IndexTableProps) {
       </thead>
       <tbody>
         {users.map((user) => (
-          <tr className="hoverable" key={user.id} {...rowNavigationProps(user.path)}>
+          <tr
+            className="hoverable"
+            key={user.id}
+            {...rowNavigationProps(routes.users.show.path({ id: user.id }))}
+          >
             <td>{user.email_address}</td>
             <td>{user.first_name}</td>
             <td>{user.last_name}</td>
@@ -42,7 +47,11 @@ export default function IndexTable({ users }: IndexTableProps) {
             <td>{user.created_at}</td>
             <td>{user.updated_at}</td>
             <td className="table_actions text-right">
-              <Link href={user.edit_path} onClick={stopRowNavigation} prefetch>
+              <Link
+                href={routes.users.edit.path({ id: user.id })}
+                onClick={stopRowNavigation}
+                prefetch
+              >
                 <i className="icn">✏</i>
                 Edit
               </Link>

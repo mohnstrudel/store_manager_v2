@@ -1,64 +1,39 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import userEvent from "@testing-library/user-event";
+import { router } from "@inertiajs/react";
 import { describe, expect, it, vi } from "vitest";
 import Show from "./Show";
+import { makeCustomerDetail, makeCustomerSale } from "./test/factories";
+import type { CustomerDetailRecord, SaleRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    delete: vi.fn<(...args: unknown[]) => unknown>(),
-    visit: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
-
-const customer = {
-  id: 1,
-  first_name: "Dale",
-  last_name: "Cooper",
-  full_name: "Dale Cooper",
-  email: "dale@fbi.gov",
-  phone: "+1555000",
-  woo_store_id: "WOO-1",
-  shopify_id: "",
-  shopify_id_short: "",
-  created_at: "19. May '26 10:00",
-  updated_at: "19. May '26 10:00",
-  path: "/customers/1",
-};
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Customers/Show", () => {
   it("renders customer details and heading", () => {
-    render(<Show active_sales={[]} completed_sales={[]} customer={customer} />);
+    renderShow();
 
     expect(screen.getByRole("heading", { name: "Dale Cooper" })).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "dale@fbi.gov" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute("href", "/customers/1/edit");
   });
 
   it("renders sales when present", () => {
-    const sale = {
-      id: 10,
-      path: "/sales/10",
-      store_id: "1001",
-      sale_identifier: "HSCM#1958",
-      sold_product_name: "Twin Peaks Cherry Pie",
-      product_thumb_url: null,
-      store_type: "shopify" as const,
-      status: "completed",
-      active: false,
-      total: "100",
-      country: "DE",
-      city: "Berlin",
-      note: "",
-      created_at: "19. May '26",
-      updated_at: "19. May '26",
-    };
+    renderShow({
+      active_sales: [
+        makeCustomerSale({
+          active: true,
+          id: 9,
+          path: "/sales/9",
+          sale_identifier: "HSCM#1957",
+          sold_product_name: "Twin Peaks Coffee",
+          status: "active",
+          total: "50.00",
+        }),
+      ],
+      completed_sales: [makeCustomerSale()],
+    });
 
-    render(<Show active_sales={[]} completed_sales={[sale]} customer={customer} />);
-
+    expect(screen.getByRole("heading", { name: "Active Sales" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Completed Sales" })).toBeInTheDocument();
     expect(
       screen.getByRole("img", {
@@ -72,4 +47,48 @@ describe("Customers/Show", () => {
     expect(screen.getByText("Twin Peaks Cherry Pie")).toHaveClass("group-hover:text-blue-600");
     expect(screen.getByText("Completed")).toBeInTheDocument();
   });
+
+  it("hides the sales sections when there are no sales", () => {
+    renderShow({ active_sales: [], completed_sales: [] });
+
+    expect(screen.queryByRole("heading", { name: "Active Sales" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Completed Sales" })).not.toBeInTheDocument();
+  });
+
+  describe("destroy", () => {
+    it("destroys the customer after confirmation", async () => {
+      const user = userEvent.setup();
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      renderShow();
+
+      await user.click(screen.getByRole("button", { name: "Destroy this customer" }));
+
+      expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
+      expect(router.delete).toHaveBeenCalledWith("/customers/1");
+    });
+
+    it("does not destroy the customer when confirmation is dismissed", async () => {
+      const user = userEvent.setup();
+      vi.spyOn(window, "confirm").mockReturnValue(false);
+      renderShow();
+
+      await user.click(screen.getByRole("button", { name: "Destroy this customer" }));
+
+      expect(router.delete).not.toHaveBeenCalled();
+    });
+  });
 });
+
+function renderShow({
+  active_sales = [],
+  completed_sales = [],
+  customer = makeCustomerDetail(),
+}: {
+  active_sales?: SaleRecord[];
+  completed_sales?: SaleRecord[];
+  customer?: CustomerDetailRecord;
+} = {}) {
+  return render(
+    <Show active_sales={active_sales} completed_sales={completed_sales} customer={customer} />,
+  );
+}

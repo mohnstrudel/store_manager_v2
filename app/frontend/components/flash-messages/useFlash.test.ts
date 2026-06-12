@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@inertiajs/react", () => ({
-  usePage: () => ({
-    props: {},
-  }),
-}));
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 import { useFlash } from "./useFlash";
 

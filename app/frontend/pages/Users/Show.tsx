@@ -1,5 +1,6 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
+import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 
 type UserRecord = {
@@ -19,7 +20,9 @@ type ShowProps = {
 };
 
 export default function Show({ user }: ShowProps) {
-  const destroyUser = useConfirmAction("delete", user.destroy_path);
+  const currentUserPath = routes.users.show.path({ id: user.id });
+  const currentEditPath = routes.users.edit.path({ id: user.id });
+  const destroyUser = useConfirmAction("delete", currentUserPath);
 
   return (
     <>
@@ -29,7 +32,7 @@ export default function Show({ user }: ShowProps) {
         </hgroup>
         <menu className="nav_menu">
           <li>
-            <Link href={user.edit_path} prefetch>
+            <Link href={currentEditPath} prefetch>
               <i className="icn">✏</i>
               Edit
             </Link>
@@ -64,7 +67,11 @@ export default function Show({ user }: ShowProps) {
         </table>
       </section>
 
-      <Button className="w-full h-12 mt-16" onClick={destroyUser} variant="danger">
+      <Button
+        className="w-full h-12 mt-16"
+        onClick={destroyUser}
+        variant="danger"
+      >
         Destroy this user
       </Button>
     </>

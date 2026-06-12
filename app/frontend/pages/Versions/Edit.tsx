@@ -1,5 +1,6 @@
 import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import Form from "./components/Form";
 import { VersionRecord } from "./types";
 
@@ -8,11 +9,13 @@ type EditProps = {
 };
 
 export default function Edit({ version }: EditProps) {
+  const currentVersionPath = routes.versions.show.path({ id: version.id! });
+
   return (
     <>
       <PageHeader className="mb-8" title="Edit Version">
         <li>
-          <Link href={`/versions/${version.id}`} prefetch>
+          <Link href={currentVersionPath} prefetch>
             <i className="icn">📄</i>
             View Version Page
           </Link>
@@ -22,7 +25,7 @@ export default function Edit({ version }: EditProps) {
       <Form
         method="patch"
         submitLabel="Update Version"
-        url={`/versions/${version.id}`}
+        url={currentVersionPath}
         version={version}
       />
     </>

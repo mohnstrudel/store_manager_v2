@@ -1,4 +1,5 @@
 import { getFormString } from "@/utils/formSchema";
+import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
@@ -12,14 +13,21 @@ type FranchiseFormProps = {
 };
 
 function validate(formData: FormData) {
-  return getFormString(formData, "franchise[title]").trim() ? null : { title: msg.blank };
+  return getFormString(formData, "franchise[title]").trim()
+    ? null
+    : { title: msg.blank };
 }
 
-export default function Form({ franchise, method, submitLabel, url }: FranchiseFormProps) {
+export default function Form({
+  franchise,
+  method,
+  submitLabel,
+  url,
+}: FranchiseFormProps) {
   return (
     <ResourceForm
       action={url}
-      cancelHref="/franchises"
+      cancelHref={routes.franchises.index.path()}
       method={method}
       submitLabel={submitLabel}
       validate={validate}

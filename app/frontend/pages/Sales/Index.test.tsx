@@ -1,94 +1,38 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Index from "./Index";
+import { makePagination, makeSaleIndexRecord } from "./test/factories";
+import type { PaginationMeta, SaleIndexRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    get: vi.fn<(...args: unknown[]) => unknown>(),
-    post: vi.fn<(...args: unknown[]) => unknown>(),
-    visit: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
-
-const pagination = {
-  current_page: 1,
-  total_pages: 1,
-  total_count: 1,
-  limit: 50,
-};
-
-const sales = [
-  {
-    id: 1,
-    path: "/sales/1",
-    customer_name: "Dale Cooper",
-    customer_email: "dale@fbi.gov",
-    sale_items: [
-      {
-        id: 11,
-        title: "Pikachu Figure",
-        qty: 2,
-        purchased_count: 1,
-        product_thumb_url: null,
-        purchase_items: [
-          {
-            id: 101,
-            path: "/purchase_items/101",
-            warehouse_name: "Berlin Hub",
-            expenses: "9.99",
-          },
-        ],
-      },
-    ],
-    total: "1060",
-    created_at: "20. May '26 10:00",
-    updated_at: "20. May '26 11:00",
-    active: true,
-    completed: false,
-    shopify_name: "HSCM#1746",
-    shopify_id: "gid://shopify/Order/7383283466569",
-    shopify_id_short: "7383283466569",
-    woo_store_id: "WOO-1",
-  },
-];
-
-const defaultProps = {
-  sales,
-  pagination,
-  search: { q: "" },
-  last_sync_at: "Last fetched at 20 May at 10:00",
-  last_sync_time: "20.05 at 10:00",
-};
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Sales/Index", () => {
-  it("renders the sales table and sync button", () => {
-    render(<Index {...defaultProps} />);
+  it("renders the sales heading and add new record link", () => {
+    renderIndex();
 
     expect(screen.getByRole("heading", { name: "Sales" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Store Sync" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add New Record/ })).toHaveAttribute(
       "href",
       "/sales/new",
     );
+  });
+
+  it("renders the sale customer and product title in the table", () => {
+    renderIndex();
+
     expect(screen.getByText("Dale Cooper")).toBeInTheDocument();
     expect(screen.getByText("Pikachu Figure")).toBeInTheDocument();
   });
 
   it("renders a search form with the current query", () => {
-    render(<Index {...defaultProps} search={{ q: "dale" }} />);
+    renderIndex({ search: { q: "dale" } });
 
     expect(screen.getByRole("searchbox")).toHaveValue("dale");
   });
 
   it("shows purchase item warehouse links instead of sale status text", () => {
-    render(<Index {...defaultProps} />);
+    renderIndex();
 
     const warehouseLink = screen.getByRole("link", { name: /Berlin Hub/ });
     expect(warehouseLink).toHaveAttribute("href", "/purchase_items/101");
@@ -96,22 +40,25 @@ describe("Sales/Index", () => {
   });
 
   it("renders an empty state when a search has no matches", () => {
-    render(
-      <Index
-        {...defaultProps}
-        pagination={{ ...pagination, total_count: 0 }}
-        sales={[]}
-        search={{ q: "missing sale" }}
-      />,
-    );
+    renderIndex({
+      pagination: makePagination({ total_count: 0 }),
+      sales: [],
+      search: { q: "missing sale" },
+    });
 
     expect(screen.getByText("Nothing found")).toBeInTheDocument();
   });
 
   describe("Store Sync dialog", () => {
-    it("opens and closes the dialog", async () => {
+    it("renders the Store Sync button", () => {
+      renderIndex();
+
+      expect(screen.getByRole("button", { name: "Store Sync" })).toBeInTheDocument();
+    });
+
+    it("opens the dialog when Store Sync is clicked", async () => {
       const user = userEvent.setup();
-      render(<Index {...defaultProps} />);
+      renderIndex();
 
       await user.click(screen.getByRole("button", { name: "Store Sync" }));
 
@@ -119,10 +66,41 @@ describe("Sales/Index", () => {
       expect(screen.getByRole("button", { name: "Fetch Everything" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Fetch Last 100 Sales" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Track Jobs Progress" })).toBeInTheDocument();
+    });
 
+    it("shows the last sync time when last_sync_time is provided", async () => {
+      const user = userEvent.setup();
+      renderIndex({ last_sync_time: "20.05 at 10:00" });
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
+
+      expect(screen.getByText("Last sync: 20.05 at 10:00")).toBeInTheDocument();
+    });
+
+    it("closes the dialog when Close is clicked", async () => {
+      const user = userEvent.setup();
+      renderIndex();
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
       await user.click(screen.getByRole("button", { name: "Close" }));
 
       expect(screen.queryByText("Sales Synchronization")).not.toBeInTheDocument();
     });
   });
 });
+
+function renderIndex({
+  sales = [makeSaleIndexRecord()],
+  pagination = makePagination(),
+  search = { q: "" },
+  last_sync_time = "20.05 at 10:00",
+}: {
+  sales?: SaleIndexRecord[];
+  pagination?: PaginationMeta;
+  search?: { q: string };
+  last_sync_time?: string | null;
+} = {}) {
+  return render(
+    <Index last_sync_time={last_sync_time} pagination={pagination} sales={sales} search={search} />,
+  );
+}

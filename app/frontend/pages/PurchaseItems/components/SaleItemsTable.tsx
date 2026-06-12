@@ -38,9 +38,7 @@ function SaleItemRow({ row }: { row: SaleItemTableRow }) {
         {row.is_current ? (
           <span className="opacity-50">Current</span>
         ) : row.linked_purchase_item ? (
-          <a href={row.linked_purchase_item.path}>
-            Purchase Item #{row.linked_purchase_item.id}
-          </a>
+          <a href={row.linked_purchase_item.path}>Purchase Item #{row.linked_purchase_item.id}</a>
         ) : (
           <span className="text-lime-600 dark:text-lime-500/85">Available</span>
         )}
@@ -68,7 +66,9 @@ function ItemCell({ row }: { row: SaleItemTableRow }) {
               <i className="icn">📦</i>&nbsp;Status:
             </span>
             {row.warehouse_path ? (
-              <a className="link ml-2" href={row.warehouse_path}>{row.warehouse}</a>
+              <a className="link ml-2" href={row.warehouse_path}>
+                {row.warehouse}
+              </a>
             ) : (
               <span className="ml-2">{row.warehouse}</span>
             )}
@@ -80,7 +80,8 @@ function ItemCell({ row }: { row: SaleItemTableRow }) {
               <i className="icn">💰</i>&nbsp;Purchase:
             </span>
             <a className="link ml-2" href={row.linked_purchase_item.purchase_path}>
-              #{row.linked_purchase_item.purchase_id} {row.linked_purchase_item.supplier_title}, {row.linked_purchase_item.purchase_date}
+              #{row.linked_purchase_item.purchase_id} {row.linked_purchase_item.supplier_title},{" "}
+              {row.linked_purchase_item.purchase_date}
               {row.linked_purchase_item.item_price && `, $${row.linked_purchase_item.item_price}`}
             </a>
           </span>
@@ -95,17 +96,23 @@ function ActionCell({ row }: { row: SaleItemTableRow }) {
     data: { sale_item_id: row.sale_item_id },
   });
   const relink = useConfirmAction("post", row.link_path, {
-    data: { sale_item_id: row.sale_item_id, purchase_item_to_unlink_id: row.linked_purchase_item?.id },
+    data: {
+      sale_item_id: row.sale_item_id,
+      purchase_item_to_unlink_id: row.linked_purchase_item?.id,
+    },
     message: `Unlink Purchase Item #${row.linked_purchase_item?.id} and link this one instead?`,
   });
   const unlink = useConfirmAction("delete", row.unlink_path, {
     message: "Unlink this sale item?",
   });
 
-  const stop = useCallback((action: () => void) => (e: MouseEvent) => {
-    e.stopPropagation();
-    action();
-  }, []);
+  const stop = useCallback(
+    (action: () => void) => (e: MouseEvent) => {
+      e.stopPropagation();
+      action();
+    },
+    [],
+  );
 
   if (row.is_current) {
     return (

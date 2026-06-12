@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./components/Details";
 import Products from "./components/Products";
@@ -12,13 +13,17 @@ type ShowProps = {
 };
 
 export default function Show({ products, size }: ShowProps) {
-  const destroySize = useConfirmAction("delete", `/sizes/${size.id}`);
+  const currentSizePath =
+    size.id === null ? routes.sizes.index.path() : routes.sizes.show.path({ id: size.id });
+  const currentEditPath =
+    size.id === null ? routes.sizes.new.path() : routes.sizes.edit.path({ id: size.id });
+  const destroySize = useConfirmAction("delete", currentSizePath);
 
   return (
     <>
       <PageHeader subtitle={`Size ${size.id}`} title={size.value}>
         <li>
-          <Link href={`/sizes/${size.id}/edit`} prefetch>
+          <Link href={currentEditPath} prefetch>
             <i className="icn">✏</i>
             Edit
           </Link>

@@ -1,6 +1,11 @@
 import { forwardRef, useImperativeHandle } from "react";
 import FormError from "@/components/FormError";
-import { InlineCellForm, InlineCellTd, InlineCellTrigger, useInlineCellForm } from "@/components/inline-cell-editing";
+import {
+  InlineCellForm,
+  InlineCellTd,
+  InlineCellTrigger,
+  useInlineCellForm,
+} from "@/components/inline-cell-editing";
 import routes from "@/utils/routes";
 import type { PurchaseItemRecord, ShippingCompanyOption } from "../types";
 
@@ -20,54 +25,63 @@ export const InlineShippingCompanyEditor = forwardRef<
   { item, onAutoOpen, shippingCompanies, autoFocus = true, bulkError, onBulkSave },
   ref,
 ) {
-    const { isOpen, isSaved, open, close, openSilently, error: serverError, onChange, save, value } =
-      useInlineCellForm({
-        editedRecord: item,
-        attributeName: "shipping_company_id",
-        route: routes.purchaseItemsShippingCompanies.update,
-        mapNewValueToState: (shippingCompanyId) => ({
-          shipping_company_id: shippingCompanyId ? Number(shippingCompanyId) : null,
-          shipping_company_name: shippingCompanyName(shippingCompanies, shippingCompanyId),
-        }),
-        onOpen: onAutoOpen,
-      });
+  const {
+    isOpen,
+    isSaved,
+    open,
+    close,
+    openSilently,
+    error: serverError,
+    onChange,
+    save,
+    value,
+  } = useInlineCellForm({
+    editedRecord: item,
+    attributeName: "shipping_company_id",
+    route: routes.purchaseItemsShippingCompanies.update,
+    mapNewValueToState: (shippingCompanyId) => ({
+      shipping_company_id: shippingCompanyId ? Number(shippingCompanyId) : null,
+      shipping_company_name: shippingCompanyName(shippingCompanies, shippingCompanyId),
+    }),
+    onOpen: onAutoOpen,
+  });
 
-    useImperativeHandle(ref, () => ({ open: openSilently, close, getValue: () => value }));
+  useImperativeHandle(ref, () => ({ open: openSilently, close, getValue: () => value }));
 
-    return (
-      <InlineCellTd
-        className="text-center min-w-32"
-        isSaved={isSaved}
-        onOpen={isOpen ? undefined : open}
-      >
-        {isOpen ? (
-          <InlineCellForm onCancel={close} onSave={onBulkSave ?? save}>
-            <label className="sr-only" htmlFor={`purchase_item_${item.id}_shipping_company_id`}>
-              Shipping company
-            </label>
-            <select
-              autoFocus={autoFocus}
-              className="border rounded px-2 py-1 text-sm w-full min-w-35"
-              id={`purchase_item_${item.id}_shipping_company_id`}
-              onChange={onChange}
-              value={value}
-            >
-              <option value="">Select a shipping company</option>
-              {shippingCompanies.map((sc) => (
-                <option key={sc.id} value={sc.id}>
-                  {sc.name}
-                </option>
-              ))}
-            </select>
-            <FormError>{bulkError || serverError}</FormError>
-          </InlineCellForm>
-        ) : (
-          <InlineCellTrigger ariaLabel="Edit shipping company" onOpen={open}>
-            {item.shipping_company_name ? <div>{item.shipping_company_name}</div> : null}
-          </InlineCellTrigger>
-        )}
-      </InlineCellTd>
-    );
+  return (
+    <InlineCellTd
+      className="text-center min-w-32"
+      isSaved={isSaved}
+      onOpen={isOpen ? undefined : open}
+    >
+      {isOpen ? (
+        <InlineCellForm onCancel={close} onSave={onBulkSave ?? save}>
+          <label className="sr-only" htmlFor={`purchase_item_${item.id}_shipping_company_id`}>
+            Shipping company
+          </label>
+          <select
+            autoFocus={autoFocus}
+            className="border rounded px-2 py-1 text-sm w-full min-w-35"
+            id={`purchase_item_${item.id}_shipping_company_id`}
+            onChange={onChange}
+            value={value}
+          >
+            <option value="">Select a shipping company</option>
+            {shippingCompanies.map((sc) => (
+              <option key={sc.id} value={sc.id}>
+                {sc.name}
+              </option>
+            ))}
+          </select>
+          <FormError>{bulkError || serverError}</FormError>
+        </InlineCellForm>
+      ) : (
+        <InlineCellTrigger ariaLabel="Edit shipping company" onOpen={open}>
+          {item.shipping_company_name ? <div>{item.shipping_company_name}</div> : null}
+        </InlineCellTrigger>
+      )}
+    </InlineCellTd>
+  );
 });
 
 function shippingCompanyName(shippingCompanies: ShippingCompanyOption[], id: string) {

@@ -15,6 +15,21 @@ Use this skill for frontend design and refactoring work in `app/frontend`.
 If the task needs new backend data, routes, route helpers, or persisted
 behavior, coordinate that seam with `rails-domain-architecture`.
 
+## Routing Convention
+
+Frontend routes should come from the shared `js-from-routes` helpers, not from
+ad hoc local path builders.
+
+- Import routes from `@/utils/routes` for runtime frontend code.
+- Prefer generated helpers such as `routes.sizes.show.path({ id })` over inline
+  strings like `"/sizes/123"` or page-local `paths.ts` helpers.
+- If Rails already sends a path in page props, use that value directly instead of
+  rebuilding the same URL in the frontend.
+- Check `app/frontend/api/*` before inventing route helpers; Rails-backed pages
+  in this app usually already have generated route objects available.
+- Only introduce local path helpers when the route is truly frontend-only and
+  cannot come from Rails.
+
 ## Core Principle
 
 Components should describe feature behavior, not implementation details.
@@ -261,6 +276,11 @@ function formatTitle() {}
 Over placing helper components or utilities above the main component unless
 they are required to understand the public API.
 
+Private helper components, predicates, and formatters may stay in the same file
+when they remain readable and page-owned. Split a section out when it has
+multiple behaviors, shared ownership, or has become a named subsystem in the
+screen.
+
 ## Screen Organization
 
 Keep page-owned UI close to the page. Keep components page-local until reuse is real.
@@ -318,7 +338,94 @@ expect(hookResult.current.isOpen).toBe(false);
 Mock at the boundary only: Inertia, navigation adapters, API clients, backend
 bridges. Do not recreate backend integration inside component tests.
 
+**Server-error paths (`onError`) belong in Capybara, not component tests.**
+
+When a component uses Inertia's `useForm` and its `onError` callback, the path
+where the server returns validation errors requires a Cuprite spec. `onError`
+fires through Inertia's redirect-with-errors cycle — a full Rails/HTTP/browser
+round-trip. A component test can only simulate it with `nextFormErrors`, which
+tests the stub's behavior, not the real Inertia flow. The stub can pass even if
+the component never actually wires up `onError` correctly.
+
+```ruby
+# Do: Cuprite spec that submits to Rails and gets a real onError response
+scenario "shows server errors without a full-page reload", :js do
+  visit purchase_path(purchase)
+  within(find_field("Tracking number").ancestor("form")) { click_button "Save" }
+  expect(page).to have_text("Shipping company is required")
+  expect(page).to have_current_path(purchase_path(purchase))  # stayed on page
+end
+```
+
+```tsx
+// Don't: component test simulating the onError round-trip via nextFormErrors
+nextFormErrors.mockReturnValueOnce({ shipping_company_id: "can't be blank" });
+await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
+expect(within(shippingForm).getByText("Shipping company is required")).toBeInTheDocument();
+```
+
+Client-side validation errors (checked before any request fires) are still fine
+in component tests — they never reach the server and are pure UI logic.
+
+When helper parts are extracted only to keep a file readable, tests should
+usually target the public section behavior rather than each private helper.
+
 If a frontend change also modifies a backend contract, add the matching backend test separately.
+
+## Test structure
+
+`## Testing` decides at which level to test; this section decides how a component test file is built.
+
+**File placement and seams**
+
+Colocate `Component.test.tsx` next to `Component.tsx`.
+
+A page test renders the page's **real** page-owned children. Never `vi.mock` a page's own children.
+
+A child component gets its own colocated test file when it has logic: conditional rendering, formatting branches, interaction handlers, or empty-state returns. Trivial children (plain markup over props with no branches) are covered through the page test and need no own file.
+
+The page test owns: one smoke assertion per section confirming it renders with its data, page-level behavior (header, actions, destructive flows), and conditional section presence. Branch-level detail lives in the child's own file.
+
+**describe/it structure**
+
+One top-level `describe` named after the component path from `pages/`: `"Products/Show"`, `"Products/Show/SalesSection"`.
+
+Nested `describe` per UI section or feature. Conditional state gets a `"when …"` describe (the RSpec `context` analog): `describe("when the product cannot be pulled from Shopify")`.
+
+`it` names behavior in third-person present: `"renders…"`, `"hides…"`, `"destroys…"`. No "should".
+
+**One behavior per `it`.** If you want a blank line between expectation groups, split into separate `it`s instead. Soft cap: ~4 expectations per `it`.
+
+Arrange–act–assert separated by blank lines. `const user = userEvent.setup()` is the first statement of any interacting test.
+
+**Factories**
+
+One shared module per page domain: `pages/<Domain>/test/factories.ts` (not matched by the vitest `**/*.test.*` include pattern).
+
+Each factory: `makeX(overrides: Partial<T> = {}): T`, typed from the domain's `types.ts`. Defaults are a fully valid "happy" record — tests override only what the scenario needs. Lists of records must override `id` explicitly to avoid duplicate-key warnings.
+
+**Render helpers**
+
+Each test file defines a local `renderX(overrides = {})` whose defaults come from the factories. Helpers and local factories live *below* the `describe` block — the file reads behavior-first, plumbing second.
+
+**Mocking policy**
+
+Mock only boundaries:
+
+- `vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"))` for Inertia.
+- Per-test `vi.spyOn` for browser APIs (`window.confirm`, etc.). Never at module or `describe` scope — `mockReset: true` in vitest config wipes module-scope setup between tests.
+
+Shared leaf components are mockable only when they bring heavy or browser-bound behavior. `@/components/ImageGallery` is the canonical example. `CopyToClipboardButton` is fine real — clipboard only fires on click.
+
+Never mock the page's own children. Never mock utilities (`rowNavigation`, formatters).
+
+**Queries and assertions**
+
+Prefer `getByRole` with `name`. Use `within()` scoped to a heading-anchored section when the page has multiple instances of the same structure. `data-testid` only inside mock stubs.
+
+Assert the signal the user reads. When both a text signal and a CSS class signal a state (e.g. deactivated row: `"(Deactivated)"` text + `opacity-50`), assert the text only. A class assertion is allowed only when the class is the sole user-visible signal (e.g. icon-only spans like `.icon_shopify` where there is no text to query).
+
+Empty-state component that returns `null`: `expect(container).toBeEmptyDOMElement()`. Absence: `expect(screen.queryBy…).not.toBeInTheDocument()`.
 
 ## Frontend / Backend Boundary
 

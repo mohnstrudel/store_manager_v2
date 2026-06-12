@@ -1,41 +1,66 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Index from "./Index";
+import { makePagination, makePurchaseIndexRecord, makeWarehouseOption } from "./test/factories";
+import type { PaginationMeta, PurchaseIndexRecord, WarehouseOption } from "./types";
 
-vi.mock("@inertiajs/react", () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-  router: {
-    get: vi.fn<(...args: unknown[]) => unknown>(),
-    post: vi.fn<(...args: unknown[]) => unknown>(),
-    visit: vi.fn<(...args: unknown[]) => unknown>(),
-  },
-}));
-
-const pagination = {
-  current_page: 1,
-  total_pages: 2,
-  total_count: 50,
-  limit: 50,
-};
+vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Purchases/Index", () => {
-  it("keeps pagination visible even when the list is empty", () => {
-    render(
-      <Index
-        move_path="/purchases/move"
-        pagination={pagination}
-        purchases={[]}
-        search={{ q: "" }}
-        warehouses={[]}
-      />,
-    );
+  it("renders the purchases heading and add new record link", () => {
+    renderIndex();
 
     expect(screen.getByRole("heading", { name: "Purchases" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Add New Record/ })).toHaveAttribute(
+      "href",
+      "/purchases/new",
+    );
+  });
+
+  it("renders the purchase product and supplier in the table", () => {
+    renderIndex();
+
+    expect(screen.getByText(/Pikachu Figure/)).toBeInTheDocument();
+    expect(screen.getByText("Acme Imports")).toBeInTheDocument();
+  });
+
+  it("renders a search form with the current query", () => {
+    renderIndex({ search: { q: "pikachu" } });
+
+    expect(screen.getByRole("searchbox")).toHaveValue("pikachu");
+  });
+
+  it("keeps pagination visible even when the list is empty", () => {
+    renderIndex({
+      pagination: makePagination(),
+      purchases: [],
+      warehouses: [],
+    });
+
     expect(screen.getAllByRole("navigation", { name: "Pagination" })).toHaveLength(2);
   });
 });
+
+function renderIndex({
+  move_path = "/purchases/move",
+  pagination = makePagination(),
+  purchases = [makePurchaseIndexRecord()],
+  search = { q: "" },
+  warehouses = [makeWarehouseOption()],
+}: {
+  move_path?: string;
+  pagination?: PaginationMeta;
+  purchases?: PurchaseIndexRecord[];
+  search?: { q: string };
+  warehouses?: WarehouseOption[];
+} = {}) {
+  return render(
+    <Index
+      move_path={move_path}
+      pagination={pagination}
+      purchases={purchases}
+      search={search}
+      warehouses={warehouses}
+    />,
+  );
+}

@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import Details from "./components/Details";
 import Products from "./components/Products";
@@ -12,13 +13,17 @@ type ShowProps = {
 };
 
 export default function Show({ color, products }: ShowProps) {
-  const destroyColor = useConfirmAction("delete", `/colors/${color.id}`);
+  const currentColorPath =
+    color.id === null ? routes.colors.index.path() : routes.colors.show.path({ id: color.id });
+  const currentEditPath =
+    color.id === null ? routes.colors.new.path() : routes.colors.edit.path({ id: color.id });
+  const destroyColor = useConfirmAction("delete", currentColorPath);
 
   return (
     <>
       <PageHeader subtitle={`Color ${color.id}`} title={color.value}>
         <li>
-          <Link href={`/colors/${color.id}/edit`} prefetch>
+          <Link href={currentEditPath} prefetch>
             <i className="icn">✏</i>
             Edit
           </Link>

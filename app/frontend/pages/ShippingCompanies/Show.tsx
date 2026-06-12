@@ -12,7 +12,10 @@ type ShowProps = {
 };
 
 export default function Show({ purchaseItems, shippingCompany }: ShowProps) {
-  const destroyShippingCompany = useConfirmAction("delete", `/shipping_companies/${shippingCompany.id}`);
+  const destroyShippingCompany = useConfirmAction(
+    "delete",
+    `/shipping_companies/${shippingCompany.id}`,
+  );
 
   return (
     <>

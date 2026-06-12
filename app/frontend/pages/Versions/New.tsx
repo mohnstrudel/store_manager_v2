@@ -1,4 +1,5 @@
 import PageHeader from "@/components/PageHeader";
+import routes from "@/utils/routes";
 import Form from "./components/Form";
 import { VersionRecord } from "./types";
 
@@ -11,7 +12,12 @@ export default function New({ version }: NewProps) {
     <>
       <PageHeader className="mb-8" title="New Version" />
 
-      <Form method="post" submitLabel="Create Version" url="/versions" version={version} />
+      <Form
+        method="post"
+        submitLabel="Create Version"
+        url={routes.versions.create.path()}
+        version={version}
+      />
     </>
   );
 }
