@@ -133,6 +133,41 @@ describe("PurchaseItems/components/Form", () => {
       expect(screen.getByText("must exist")).toBeInTheDocument();
     });
   });
+
+  describe("validate", () => {
+    it("returns null when tracking number is empty", () => {
+      renderForm();
+      const { validate } = lastCapturedProps()!;
+
+      const formData = new FormData();
+      formData.set("purchase_item[tracking_number]", "");
+      formData.set("purchase_item[shipping_company_id]", "");
+
+      expect(validate!(formData)).toBeNull();
+    });
+
+    it("returns null when tracking number and shipping company are both present", () => {
+      renderForm();
+      const { validate } = lastCapturedProps()!;
+
+      const formData = new FormData();
+      formData.set("purchase_item[tracking_number]", "TRK-123");
+      formData.set("purchase_item[shipping_company_id]", "5");
+
+      expect(validate!(formData)).toBeNull();
+    });
+
+    it("returns a shipping_company_id error when tracking number is set but company is missing", () => {
+      renderForm();
+      const { validate } = lastCapturedProps()!;
+
+      const formData = new FormData();
+      formData.set("purchase_item[tracking_number]", "TRK-123");
+      formData.set("purchase_item[shipping_company_id]", "");
+
+      expect(validate!(formData)).toEqual({ shipping_company_id: expect.any(String) });
+    });
+  });
 });
 
 function renderForm({

@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Index from "./Index";
-import { makePagination, makePurchaseIndexRecord, makeWarehouseOption } from "./test/factories";
+import { makePagination } from "@/test/factories";
+import { makePurchaseIndexRecord, makeWarehouseOption } from "./test/factories";
 import type { PaginationMeta, PurchaseIndexRecord, WarehouseOption } from "./types";
 
 describe("Purchases/Index", () => {
@@ -30,7 +31,7 @@ describe("Purchases/Index", () => {
 
   it("keeps pagination visible even when the list is empty", () => {
     renderIndex({
-      pagination: makePagination(),
+      pagination: makePagination({ total_pages: 2 }),
       purchases: [],
       warehouses: [],
     });
