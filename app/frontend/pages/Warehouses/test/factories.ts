@@ -1,6 +1,5 @@
 import type { WarehouseRecord } from "../Index/Table";
 import type {
-  PaginationMeta,
   WarehouseFormOptions,
   WarehouseFormRecord,
   WarehousePurchaseItemRecord,
@@ -117,12 +116,3 @@ export function makeWarehouseFormOptions(
   };
 }
 
-export function makePagination(overrides: Partial<PaginationMeta> = {}): PaginationMeta {
-  return {
-    current_page: 1,
-    total_pages: 1,
-    total_count: 1,
-    limit: 25,
-    ...overrides,
-  };
-}

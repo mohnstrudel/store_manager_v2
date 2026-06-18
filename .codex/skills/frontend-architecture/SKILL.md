@@ -400,18 +400,20 @@ Arrange–act–assert separated by blank lines. `const user = userEvent.setup()
 
 **Factories**
 
-One shared module per page domain: `pages/<Domain>/test/factories.ts` (not matched by the vitest `**/*.test.*` include pattern).
+Two levels:
+
+- **Shared** (`app/frontend/test/factories.ts`): cross-domain factories for types that appear in every page — `makePagination`, `makeList`. Always import these from `@/test/factories`. Never duplicate them locally.
+- **Domain** (`pages/<Domain>/test/factories.ts`): one module per page domain, not matched by the vitest `**/*.test.*` include pattern.
 
 Each factory: `makeX(overrides: Partial<T> = {}): T`, typed from the domain's `types.ts`. Defaults are a fully valid "happy" record — tests override only what the scenario needs. Lists of records must override `id` explicitly to avoid duplicate-key warnings.
 
+When a domain factory needs a cross-domain type (e.g. `PaginationMeta`), import it from `@/types/pagination` directly — not from a local re-export.
+
 **Render helpers**
 
-Each test file defines a local `renderX(overrides = {})` whose defaults come from the factories. Helpers and local factories live *below* the `describe` block — the file reads behavior-first, plumbing second.
+Default: render inline. Only extract a `renderX(overrides = {})` helper when the same render setup appears **more than twice** in that file, or when the inline call would genuinely obscure the behavior under test.
 
-Extract a local `renderX` helper only when the same render setup is reused more
-than two times in that file, or when the inline render would otherwise obscure
-the behavior under test. For one-off or twice-used setups, prefer rendering
-inline so the test keeps its setup visible.
+When a `renderX` helper IS warranted, its defaults come from the factories. Helpers and local factories live *below* the `describe` block so the file reads behavior-first, plumbing second.
 
 **Mocking policy**
 

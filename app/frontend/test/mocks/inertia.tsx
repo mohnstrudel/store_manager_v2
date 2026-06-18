@@ -128,6 +128,7 @@ export const Form = forwardRef<FormRef, FormStubProps>(function Form(
   ref,
 ) {
   const formRef = useRef<HTMLFormElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const errors = (usePage().props.errors ?? {}) as Record<string, string>;
   const slot: FormSlot = { errors, processing: false };
 

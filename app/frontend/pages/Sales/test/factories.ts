@@ -1,5 +1,4 @@
 import type {
-  PaginationMeta,
   SaleAddressFormRecord,
   SaleAddressRecord,
   SaleCustomerRecord,
@@ -14,16 +13,6 @@ import type {
   SaleShowRecord,
   SaleShowSaleItemRecord,
 } from "../types";
-
-export function makePagination(overrides: Partial<PaginationMeta> = {}): PaginationMeta {
-  return {
-    current_page: 1,
-    total_pages: 1,
-    total_count: 1,
-    limit: 50,
-    ...overrides,
-  };
-}
 
 export function makeSaleIndexPurchaseItem(
   overrides: Partial<SaleIndexPurchaseItemRecord> = {},
