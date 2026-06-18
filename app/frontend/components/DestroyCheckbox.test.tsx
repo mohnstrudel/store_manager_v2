@@ -13,6 +13,7 @@ describe("DestroyCheckbox", () => {
   it("includes a hidden input with value 0 for the unchecked state", () => {
     const { container } = render(<DestroyCheckbox defaultChecked={false} name="item[_destroy]" />);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const hidden = container.querySelector('input[type="hidden"]') as HTMLInputElement;
 
     expect(hidden).not.toBeNull();
