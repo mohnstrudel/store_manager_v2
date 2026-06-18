@@ -4,7 +4,7 @@ import FormControl from "@/components/FormControl";
 import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
 
-const TagSelect = lazy(() => import("@/components/TagSelect"));
+const TagSelect = lazy(() => import("./TagSelect"));
 const SELECT_FALLBACK = <SelectSkeleton />;
 import { type SelectOption, type StoreInfoFormData } from "../../types";
 
