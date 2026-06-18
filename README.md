@@ -111,7 +111,7 @@ For a Rails reader, this is the main contrast:
 | --- | --- | --- |
 | Main organizing question | "What kind of object is this?" | "Which business concept is responsible for this rule?" |
 | How business rules are usually grouped | Split by object type such as form, query, presenter, or service | Grouped near the business area that owns the rule |
-| How screen logic is usually grouped | Often in presenters, decorators, or screen-focused service objects | Usually kept in helpers, partials, and Turbo templates |
+| How screen logic is usually grouped | Often in presenters, decorators, or screen-focused service objects | Usually kept in Inertia page props, React page components, and small helpers |
 | How external integrations are usually grouped | Often coordinated by top-level services | Parsers and importers live near the business area they update; low-level API clients stay in `app/services` |
 | What becomes easier | Finding all objects of the same technical kind | Tracing one feature end to end in a Rails codebase |
 | What becomes harder | Understanding one business feature across many folders | Keeping model folders focused and not turning them into catch-all buckets |
@@ -263,27 +263,30 @@ job fetches payload
 
 ### 5. Screens and interactions
 
-The UI is server-rendered Rails with Hotwire.
+The UI now runs through `inertia_rails`, with Rails controllers rendering Inertia pages and React owning the browser-side screen tree.
 
 Key pieces:
 
-- Slim templates in `app/views`
-- Turbo for incremental updates
-- Stimulus controllers in `app/javascript/controllers`
-- Tailwind CSS via `tailwindcss-rails`
+- Rails controllers call `render inertia: "...", props: ...`
+- React pages, layouts, components, and tests live in `app/frontend`
+- `@inertiajs/react` owns links, forms, visits, shared page props, and client-side navigation
+- Vite Ruby builds the frontend entrypoints, including Inertia SSR
+- Tailwind CSS is compiled through the Vite Tailwind plugin
 
 The UI rules are:
 
-- let the server render the initial structure and prepared view data
-- organize views by resource and then by screen subtree when a page gets large
-- keep screen-only wording, branching, and small view-data shaping at the edge in helpers, partials, and Turbo templates
-- keep Stimulus focused on interaction state, DOM toggles, and loading transitions for one widget
+- let Rails load records, authorize requests, and prepare page props
+- keep screen wording, branching, and view-data shaping at the Inertia boundary, usually in helpers and focused prop builders
+- organize React pages by resource under `app/frontend/pages`, then split large screens into local components and hooks
+- use shared React components from `app/frontend/components` when behavior repeats across screens
+- use generated `js-from-routes` helpers from `app/frontend/api` instead of hand-written path strings
 
 One practical rule matters a lot here: UI tests are part of the design.
 
-Because the application uses Stimulus, CSS state, and server-rendered HTML together, risky UI work should usually include a focused browser-level feature spec. That is how we lock in behavior the code alone cannot guarantee, such as:
+Because the application combines Rails-prepared props, Inertia navigation, React component state, and CSS, risky UI work should usually include focused component or browser-level coverage. That is how we lock in behavior the code alone cannot guarantee, such as:
 
-- loading skeletons appearing and disappearing at the right time
+- Inertia form submissions and validation errors
+- client-side navigation and shared layout behavior
 - dialog open and close behavior
 - image or gallery state transitions
 - geometry staying stable while assets load
@@ -495,12 +498,12 @@ The app currently integrates with:
 ```text
 app/
   controllers/   user actions and responses
+  frontend/      Inertia React pages, layouts, components, API route helpers, and entrypoints
   jobs/          background work
   models/        business rules and records
   policies/      Pundit authorization
   services/      API and infrastructure adapters
-  views/         Slim + Turbo UI
-  javascript/    Stimulus controllers
+  views/         Rails layout shell for Inertia
 ```
 
 ### Models layout
@@ -515,28 +518,28 @@ app/models/product/titling.rb
 app/models/product/shopify/importer.rb
 ```
 
-### Views layout
+### Frontend layout
 
-Views are mostly resource-oriented first, then screen-oriented inside each resource:
+Inertia pages are mostly resource-oriented first, then screen-oriented inside each resource:
 
 ```text
-app/views/<resource>/
-  index.html.slim
-  show.html.slim
-  form/_form.html.slim
-  index/*
-  show/*
-  turbo_stream/*
+app/frontend/
+  entrypoints/       Vite entrypoints for Inertia and SSR
+  layouts/           shared page layouts
+  pages/<resource>/  Inertia page components and local screen pieces
+  components/        shared React components
+  api/               generated js-from-routes helpers
+  types/             shared frontend types
 ```
 
 Examples:
 
-- `app/views/products/index/*`
-- `app/views/products/show/*`
-- `app/views/sales/items/*`
-- `app/views/purchases/form/*`
+- `app/frontend/pages/Products/*`
+- `app/frontend/pages/Purchases/Show/*`
+- `app/frontend/pages/Sales/Show/*`
+- `app/frontend/components/*`
 
-Helpers are the default place for small screen-only preparation.
+Helpers are still the default place for small server-side page-prop preparation.
 
 ### Where to put new code
 
@@ -550,8 +553,8 @@ Helpers are the default place for small screen-only preparation.
 | background retries, scheduling, pagination | `app/jobs/...` | Jobs should call one clear model method or importer. |
 | store API or GraphQL client code | `app/services/shopify/...` or another explicit integration folder | Keep low-level API code separate from business behavior. |
 | parser, importer, payload builder tied to one business area | `app/models/<model>/<integration>/...` | Keep store-specific translation near the business area it updates. |
-| screen-only rendering logic | helper, partial, Turbo template, or view subtree | Do not move screen wording or screen branching into models by default. |
-| small screen-only view-data shaping for one partial or widget | helper | Prefer a helper over a presenter; keep it mechanical and presentation-only. |
+| screen-only rendering logic | Inertia page component, local React component or hook, or focused helper | Do not move screen wording or screen branching into models by default. |
+| small screen-only view-data shaping for one page or widget | helper or focused page-prop builder | Prefer simple edge code over a presenter; keep it mechanical and presentation-only. |
 | coordination across several business areas or infrastructure-heavy logic | explicit folder under `app/models/<name>/` or another clear boundary | Reach for this only when a direct model API would be unnatural. |
 
 ### Naming bias
@@ -666,7 +669,7 @@ Examples in this repo:
 | Jobs | Sidekiq + `sidekiq-status` |
 | Auth | custom sessions + `bcrypt` |
 | Authorization | Pundit |
-| UI | Hotwire, Stimulus, Slim, Tailwind CSS |
+| UI | Inertia Rails, React, Vite Ruby, Tailwind CSS |
 | Storage | Active Storage, S3-compatible object storage |
 | Integrations | Shopify, WooCommerce |
 | Testing | RSpec, FactoryBot, Capybara, Cuprite, Shoulda Matchers |
@@ -698,7 +701,7 @@ mise exec -- bin/dev
 
 - Rails web server on port `3000`
 - Sidekiq worker
-- Tailwind watcher
+- Vite dev server for React, Inertia, and Tailwind assets
 
 ### Run tests
 
