@@ -16,8 +16,9 @@ import type {
   WarehousePurchaseItemRecord,
   WarehouseShowRecord,
 } from "../types";
-import { InlineShippingCompanyEditor } from "./InlineShippingCompanyEditor";
-import { InlineTrackingNumberEditor } from "./InlineTrackingNumberEditor";
+import { type InlineCellEditorHandle } from "@/components/inline-cell-editing";
+import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
+import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
 
 type PurchaseItemsSectionProps = {
   pagination: PaginationMeta;
@@ -194,7 +195,7 @@ function PurchaseItemRow({
   shippingCompanies: ShippingCompanyOption[];
   onToggleSelectedId: (event: ChangeEvent<HTMLInputElement>) => void;
 }) {
-  const shippingRef = useRef<{ open(): void }>(null);
+  const shippingRef = useRef<InlineCellEditorHandle>(null);
   const openShipping = useCallback(() => {
     shippingRef.current?.open();
   }, []);
@@ -221,7 +222,7 @@ function PurchaseItemRow({
       <td className="max-w-xs">
         <PurchaseItemCustomer item={item} />
       </td>
-      <InlineTrackingNumberEditor item={item} onAutoOpenShipping={trackingAutoOpenShipping} />
+      <InlineTrackingNumberEditor item={item} onAutoOpen={trackingAutoOpenShipping} />
       <InlineShippingCompanyEditor
         ref={shippingRef}
         item={item}
