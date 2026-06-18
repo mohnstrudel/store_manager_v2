@@ -659,7 +659,7 @@ Examples in this repo:
 
 | Category | Technology |
 | --- | --- |
-| Language | Ruby 4.0 |
+| Language | Ruby 4.0.5 |
 | Framework | Rails 8.x |
 | Database | PostgreSQL |
 | Search | `pg_search` |
@@ -677,7 +677,7 @@ Examples in this repo:
 
 ### Requirements
 
-- Ruby 4.0
+- Ruby 4.0.5 and Node 24, pinned in `mise.toml`
 - PostgreSQL
 - Redis
 
