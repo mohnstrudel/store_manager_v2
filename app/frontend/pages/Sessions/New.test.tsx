@@ -4,8 +4,6 @@ import { mockPageProps } from "@/test/mocks/inertia";
 import routes from "@/utils/routes";
 import New from "./New";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("@/components/flash-messages/FlashMessages", () => ({
   default: () => <div data-testid="flash-messages" />,
 }));

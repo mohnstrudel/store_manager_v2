@@ -1,12 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { router } from "@inertiajs/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Table from "./Table";
 import { makeBrand } from "../test/factories";
 import type { BrandRecord } from "../types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Brands/components/Table", () => {
   it("renders brand rows with show and edit links", () => {

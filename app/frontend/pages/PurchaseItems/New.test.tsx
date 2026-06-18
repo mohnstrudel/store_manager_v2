@@ -4,8 +4,6 @@ import { mockPageProps } from "@/test/mocks/inertia";
 import New from "./New";
 import { makePurchaseItemFormOptions, makePurchaseItemFormRecord } from "./test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("./components/Form", () => ({
   default: () => <div data-testid="purchase-item-form" />,
 }));

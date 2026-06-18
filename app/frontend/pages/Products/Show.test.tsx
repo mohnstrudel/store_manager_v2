@@ -6,8 +6,6 @@ import Show from "./Show";
 import { makeProduct, makePurchase, makeSaleItem, makeVariant } from "./test/factories";
 import type { ProductShowRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("@/components/ImageGallery", () => ({
   default: ({ media }: { media: ProductShowRecord["media"] }) => (
     <div data-testid="image-gallery">Images: {media.length}</div>

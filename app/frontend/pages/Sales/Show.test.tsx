@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Show from "./Show";
 import { makeSaleShow } from "./test/factories";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Sales/Show", () => {
   it("renders the Shopify sale title and composed sections", () => {

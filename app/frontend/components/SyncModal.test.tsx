@@ -4,8 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 import { router } from "@inertiajs/react";
 import SyncModal from "./SyncModal";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("SyncModal", () => {
   it("closes when escape is pressed", () => {
     const onClose = vi.fn<() => void>();

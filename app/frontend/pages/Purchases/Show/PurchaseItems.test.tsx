@@ -11,8 +11,6 @@ import {
   makeWarehouseOption,
 } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 const defaultProps = {
   movePath: "/purchase_items/move",
   purchase: makePurchaseShow({

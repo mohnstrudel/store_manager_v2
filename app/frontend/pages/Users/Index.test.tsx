@@ -1,23 +1,16 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Index from "./Index";
 import { makeUser } from "./test/factories";
 import type { UserRecord } from "./components/IndexTable";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Users/Index", () => {
   it("renders the user heading and table row", () => {
     renderIndex();
 
     expect(screen.getByRole("heading", { name: "Users" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("cell", { name: "ash@example.com" })
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
-      "href",
-      "/users/1/edit"
-    );
+    expect(screen.getByRole("cell", { name: "ash@example.com" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute("href", "/users/1/edit");
   });
 });
 

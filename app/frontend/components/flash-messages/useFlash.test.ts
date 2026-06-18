@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
+import { describe, expect, it } from "vitest";
 
 import { useFlash } from "./useFlash";
 

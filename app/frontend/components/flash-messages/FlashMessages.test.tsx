@@ -11,8 +11,6 @@ const flashState = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("./useFlash", () => ({
   useFlash: () => flashState.flash,
 }));

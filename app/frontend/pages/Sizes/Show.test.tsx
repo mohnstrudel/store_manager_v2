@@ -6,8 +6,6 @@ import Show from "./Show";
 import { makeSize, makeSizeProduct } from "./test/factories";
 import type { ProductRecord, SizeRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Sizes/Show", () => {
   it("renders size details and linked products", () => {
     renderShow();

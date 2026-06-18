@@ -8,8 +8,6 @@ import {
   makeSaleItemTableRow,
 } from "./test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("./components/Form", () => ({
   default: () => <div data-testid="purchase-item-form" />,
 }));

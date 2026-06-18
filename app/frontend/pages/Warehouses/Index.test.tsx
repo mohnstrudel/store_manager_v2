@@ -1,10 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Index from "./Index";
 import { makeWarehouseRecord } from "./test/factories";
 import type { WarehouseRecord } from "./Index/Table";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Warehouses/Index", () => {
   it("renders the heading, column headers, and warehouse rows", () => {
@@ -25,9 +23,7 @@ describe("Warehouses/Index", () => {
     expect(
       screen.getByRole("columnheader", { name: "Name + External Name for Clients" }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("columnheader", { name: "External Name" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "External Name" })).not.toBeInTheDocument();
   });
 
   it("marks the default warehouse with a tip indicator", () => {

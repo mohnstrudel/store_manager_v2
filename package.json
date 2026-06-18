@@ -12,7 +12,8 @@
     "format:check": "oxfmt --check app/frontend .oxlintrc.json .oxfmtrc.json config/vite.json package.json tsconfig.json vite.config.ts",
     "typecheck": "oxlint app/frontend",
     "build": "vite build",
-    "heroku-postbuild": "pnpm build"
+    "heroku-postbuild": "pnpm build",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@dnd-kit/helpers": "^0.4.0",
@@ -42,6 +43,8 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint-plugin-testing-library": "^7.16.2",
     "jsdom": "^29.1.1",
     "oxfmt": "^0.52.0",
     "oxlint": "^1.69.0",

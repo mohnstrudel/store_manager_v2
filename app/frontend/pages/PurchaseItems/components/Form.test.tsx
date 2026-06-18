@@ -5,7 +5,6 @@ import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import Form from "./Form";
 import { makePurchaseItemFormOptions, makePurchaseItemFormRecord } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/ImageUploader", () => ({
@@ -51,7 +50,7 @@ vi.mock("@/components/FormSmartSelect", () => ({
   ),
 }));
 
-describe("PurchaseItems/Components/Form", () => {
+describe("PurchaseItems/components/Form", () => {
   beforeEach(() => {
     mockPageProps({});
   });

@@ -8,6 +8,9 @@ export default mergeConfig(
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "app/frontend"),
+        // Global Inertia mock — every test file gets the shared double without
+        // needing vi.mock("@inertiajs/react", …). See app/frontend/test/mocks/inertia.tsx.
+        "@inertiajs/react": path.resolve(__dirname, "app/frontend/test/mocks/inertia.tsx"),
       },
     },
   }),
@@ -18,6 +21,11 @@ export default mergeConfig(
       mockReset: true,
       setupFiles: ["app/frontend/test/setup.ts"],
       include: ["app/frontend/**/*.test.{ts,tsx}"],
+      coverage: {
+        provider: "v8",
+        include: ["app/frontend/**"],
+        exclude: ["app/frontend/api/**", "app/frontend/test/**", "app/frontend/entrypoints/**"],
+      },
     },
   }),
 );

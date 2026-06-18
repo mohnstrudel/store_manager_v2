@@ -5,8 +5,6 @@ import { router } from "@inertiajs/react";
 import Show from "./Show";
 import { makePurchaseItemShowRecord, makeWarehouseMovementRecord } from "./test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("@/components/ImageGallery", () => ({
   default: ({ media }: { media: { length: number }[] }) => (
     <div data-testid="image-gallery">Images: {media.length}</div>

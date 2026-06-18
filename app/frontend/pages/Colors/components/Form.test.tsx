@@ -6,11 +6,9 @@ import Form from "./Form";
 import { makeColor } from "../test/factories";
 import type { ColorRecord } from "../types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 describe("Colors/components/Form", () => {
-
   describe("form shell", () => {
     it("configures action, method, and labels for a new color", () => {
       renderForm({

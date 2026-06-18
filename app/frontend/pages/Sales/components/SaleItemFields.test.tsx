@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import SaleItemFields from "./Form/SaleItemFields";
 import type { SaleItemFormRecord } from "../types";
@@ -26,7 +26,7 @@ function makeSaleItem(
   };
 }
 
-function renderSaleItem(saleItem: SaleItemFormRecord & { clientKey: string }) {
+async function renderSaleItem(saleItem: SaleItemFormRecord & { clientKey: string }) {
   const onRemove = vi.fn<(clientKey: string) => void>();
   const result = render(
     <SaleItemFields
@@ -36,13 +36,13 @@ function renderSaleItem(saleItem: SaleItemFormRecord & { clientKey: string }) {
       saleItem={saleItem}
     />,
   );
-
+  await act(async () => {});
   return { ...result, onRemove };
 }
 
 describe("SaleItemFields", () => {
-  it("renders a new sale item with cancel controls and Rails destroy bridge", () => {
-    const { onRemove } = renderSaleItem(makeSaleItem());
+  it("renders a new sale item with cancel controls and Rails destroy bridge", async () => {
+    const { onRemove } = await renderSaleItem(makeSaleItem());
 
     expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("New product");
     expect(document.querySelector('input[name="sale_items[0][_destroy]"]')).toHaveValue("0");
@@ -52,8 +52,8 @@ describe("SaleItemFields", () => {
     expect(onRemove).toHaveBeenCalledWith("sale-item-1");
   });
 
-  it("renders an existing sale item with id and destroy checkbox", () => {
-    renderSaleItem(makeSaleItem({ id: 10, product_id: 1, qty: "2", price: "19.99" }));
+  it("renders an existing sale item with id and destroy checkbox", async () => {
+    await renderSaleItem(makeSaleItem({ id: 10, product_id: 1, qty: "2", price: "19.99" }));
 
     expect(screen.getByRole("heading", { level: 4 })).toHaveTextContent("Moon Statue");
     expect(document.querySelector('input[name="sale_items[0][id]"]')).toHaveValue("10");
@@ -62,8 +62,8 @@ describe("SaleItemFields", () => {
     expect(document.querySelector('input[name="sale_items[0][price]"]')).toHaveValue(19.99);
   });
 
-  it("updates the displayed title when a product is selected", () => {
-    renderSaleItem(makeSaleItem());
+  it("updates the displayed title when a product is selected", async () => {
+    await renderSaleItem(makeSaleItem());
 
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "2" } });
 

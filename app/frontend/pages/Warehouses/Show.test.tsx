@@ -11,8 +11,6 @@ import {
 } from "./test/factories";
 import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("@/components/ImageGallery", () => ({
   default: () => <div data-testid="image-gallery" />,
 }));

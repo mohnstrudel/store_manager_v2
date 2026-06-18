@@ -7,8 +7,6 @@ import {
   enableInertiaNavigationBridge,
 } from "./inertia";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("@/utils/resolvePage", () => ({
   resolvePage: vi.fn<(...args: unknown[]) => unknown>(),
 }));

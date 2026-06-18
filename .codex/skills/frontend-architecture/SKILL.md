@@ -408,11 +408,16 @@ Each factory: `makeX(overrides: Partial<T> = {}): T`, typed from the domain's `t
 
 Each test file defines a local `renderX(overrides = {})` whose defaults come from the factories. Helpers and local factories live *below* the `describe` block — the file reads behavior-first, plumbing second.
 
+Extract a local `renderX` helper only when the same render setup is reused more
+than two times in that file, or when the inline render would otherwise obscure
+the behavior under test. For one-off or twice-used setups, prefer rendering
+inline so the test keeps its setup visible.
+
 **Mocking policy**
 
 Mock only boundaries:
 
-- `vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"))` for Inertia.
+- Inertia is mocked globally via `vitest.config.ts` resolve alias — no per-file `vi.mock` needed. Import helpers directly: `import { mockPageProps, nextFormErrors, router } from "@/test/mocks/inertia"`.
 - Per-test `vi.spyOn` for browser APIs (`window.confirm`, etc.). Never at module or `describe` scope — `mockReset: true` in vitest config wipes module-scope setup between tests.
 
 Shared leaf components are mockable only when they bring heavy or browser-bound behavior. `@/components/ImageGallery` is the canonical example. `CopyToClipboardButton` is fine real — clipboard only fires on click.

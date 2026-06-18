@@ -4,7 +4,6 @@ import { mockPageProps } from "@/test/mocks/inertia";
 import New from "./New";
 import { makeWarehouseFormOptions, makeWarehouseFormRecord } from "./test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/ImageUploader", () => ({

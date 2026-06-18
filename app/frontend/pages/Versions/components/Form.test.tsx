@@ -10,17 +10,13 @@ import type { VersionRecord } from "../types";
 type ResourceFormProps = {
   action: string;
   cancelHref: string;
-  children:
-    | ReactNode
-    | ((props: { errors: Record<string, string> }) => ReactNode);
+  children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
   method: string;
   submitLabel: string;
   validate?: (formData: FormData) => Record<string, string> | null;
 };
 
 let resourceFormProps: Omit<ResourceFormProps, "children"> | null = null;
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("@/components/ResourceForm", () => ({
   default: function ResourceFormStub({
@@ -89,19 +85,14 @@ describe("Versions/components/Form", () => {
       renderForm();
 
       expect(screen.getByLabelText("Value")).toHaveValue("Classic");
-      expect(
-        screen.getByRole("button", { name: "Update Version" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Update Version" })).toBeInTheDocument();
     });
 
     it("shows validation errors on the value field", () => {
       renderForm({ pageErrors: { value: "can't be blank" } });
 
       expect(screen.getByText("can't be blank")).toBeInTheDocument();
-      expect(screen.getByLabelText("Value")).toHaveAttribute(
-        "aria-invalid",
-        "true"
-      );
+      expect(screen.getByLabelText("Value")).toHaveAttribute("aria-invalid", "true");
     });
   });
 
@@ -141,12 +132,5 @@ function renderForm({
 } = {}) {
   mockPageProps({ errors: pageErrors });
 
-  return render(
-    <Form
-      method={method}
-      submitLabel={submitLabel}
-      url={url}
-      version={version}
-    />
-  );
+  return render(<Form method={method} submitLabel={submitLabel} url={url} version={version} />);
 }

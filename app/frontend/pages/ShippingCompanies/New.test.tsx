@@ -1,11 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import New from "./New";
 import { makeShippingCompany } from "./test/factories";
 import type { ShippingCompanyRecord } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("ShippingCompanies/New", () => {
   it("renders the form", () => {

@@ -1,8 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { router } from "@inertiajs/react";
 import { rowNavigationProps } from "./rowNavigation";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("rowNavigationProps", () => {
   it("prefetches row destinations on hover and focus", () => {

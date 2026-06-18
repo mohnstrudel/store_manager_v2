@@ -9,8 +9,6 @@ import {
   makeWarehouseOption,
 } from "./test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("SaleItems/Show", () => {
   it("renders the sale item heading, product and sale links, and linked purchase item rows", () => {
     renderShow();

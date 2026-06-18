@@ -10,17 +10,13 @@ import type { UserFormValues } from "./Form";
 type ResourceFormProps = {
   action: string;
   cancelHref: string;
-  children:
-    | ReactNode
-    | ((props: { errors: Record<string, string> }) => ReactNode);
+  children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
   method: string;
   submitLabel: string;
   validate?: (formData: FormData) => Record<string, string> | null;
 };
 
 let resourceFormProps: Omit<ResourceFormProps, "children"> | null = null;
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("@/components/ResourceForm", () => ({
   default: function ResourceFormStub({
@@ -69,27 +65,20 @@ describe("Users/components/Form", () => {
       expect(screen.getByLabelText("Email")).toHaveValue("ash@example.com");
       expect(screen.getByLabelText("First Name")).toHaveValue("Ash");
       expect(screen.getByLabelText("Last Name")).toHaveValue("Ketchum");
-      expect(
-        screen.getByRole("combobox", { name: "Role" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("combobox", { name: "Role" })).toBeInTheDocument();
     });
 
     it("hides the role field when editing a restricted user", () => {
       renderForm({ canEditRole: false });
 
-      expect(
-        screen.queryByRole("combobox", { name: "Role" })
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("combobox", { name: "Role" })).not.toBeInTheDocument();
     });
 
     it("shows validation errors on the email field", () => {
       renderForm({ pageErrors: { email_address: "can't be blank" } });
 
       expect(screen.getByText("can't be blank")).toBeInTheDocument();
-      expect(screen.getByLabelText("Email")).toHaveAttribute(
-        "aria-invalid",
-        "true"
-      );
+      expect(screen.getByLabelText("Email")).toHaveAttribute("aria-invalid", "true");
     });
   });
 
@@ -127,7 +116,5 @@ function renderForm({
 } = {}) {
   mockPageProps({ errors: pageErrors });
 
-  return render(
-    <Form canEditRole={canEditRole} roleOptions={roleOptions} user={user} />
-  );
+  return render(<Form canEditRole={canEditRole} roleOptions={roleOptions} user={user} />);
 }

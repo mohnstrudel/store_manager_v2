@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import Edit from "./Edit";
 import { makeWarehouseFormOptions, makeWarehouseFormRecord } from "./test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/ImageUploader", () => ({
@@ -25,5 +24,7 @@ describe("Warehouses/Edit", () => {
 });
 
 function renderEdit() {
-  return render(<Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()} />);
+  return render(
+    <Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()} />,
+  );
 }

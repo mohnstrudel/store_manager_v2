@@ -20,8 +20,6 @@ import type {
   WarehouseOption,
 } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("./Show/PurchaseItems", () => ({
   default: ({
     movePath,

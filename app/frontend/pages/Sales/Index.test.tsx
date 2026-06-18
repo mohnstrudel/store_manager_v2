@@ -1,11 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Index from "./Index";
 import { makePagination, makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Sales/Index", () => {
   it("renders the sales heading and add new record link", () => {

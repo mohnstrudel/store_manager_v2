@@ -1,10 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import AppNavigation from "./AppNavigation";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("AppNavigation", () => {
   beforeEach(() => {

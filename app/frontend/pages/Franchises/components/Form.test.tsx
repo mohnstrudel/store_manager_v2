@@ -6,11 +6,9 @@ import Form from "./Form";
 import { makeFranchise } from "../test/factories";
 import type { FranchiseRecord } from "../types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 describe("Franchises/components/Form", () => {
-
   describe("form shell", () => {
     it("configures action, method, and labels for a new franchise", () => {
       renderForm({
@@ -52,19 +50,14 @@ describe("Franchises/components/Form", () => {
       renderForm();
 
       expect(screen.getByLabelText("Title")).toHaveValue("Pokemon");
-      expect(
-        screen.getByRole("button", { name: "Update Franchise" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Update Franchise" })).toBeInTheDocument();
     });
 
     it("shows validation errors on the title field", () => {
       renderForm({ pageErrors: { title: "can't be blank" } });
 
       expect(screen.getByText("can't be blank")).toBeInTheDocument();
-      expect(screen.getByLabelText("Title")).toHaveAttribute(
-        "aria-invalid",
-        "true"
-      );
+      expect(screen.getByLabelText("Title")).toHaveAttribute("aria-invalid", "true");
     });
   });
 
@@ -104,12 +97,5 @@ function renderForm({
 } = {}) {
   mockPageProps({ errors: pageErrors });
 
-  return render(
-    <Form
-      franchise={franchise}
-      method={method}
-      submitLabel={submitLabel}
-      url={url}
-    />
-  );
+  return render(<Form franchise={franchise} method={method} submitLabel={submitLabel} url={url} />);
 }

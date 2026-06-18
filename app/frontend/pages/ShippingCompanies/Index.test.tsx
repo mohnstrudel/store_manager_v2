@@ -1,10 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Index from "./Index";
 import { makeShippingCompany } from "./test/factories";
 import type { ShippingCompanyRecord } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("ShippingCompanies/Index", () => {
   it("renders the heading, add link, and table row", () => {

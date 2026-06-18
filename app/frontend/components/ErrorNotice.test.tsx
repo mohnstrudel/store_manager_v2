@@ -1,8 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import ErrorNotice from "./ErrorNotice";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("ErrorNotice", () => {
   it("renders a full-width notice for client and server errors", () => {

@@ -9,8 +9,6 @@ import {
   makeSaleShowSaleItem,
 } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Sales/Show/Items", () => {
   it("renders nothing without sale items", () => {
     const { container } = render(<Items saleItems={[]} />);

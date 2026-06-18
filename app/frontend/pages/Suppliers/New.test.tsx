@@ -1,23 +1,17 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import New from "./New";
 import { makeSupplier } from "./test/factories";
 import type { SupplierRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Suppliers/New", () => {
   it("renders the form", () => {
     renderNew();
 
-    expect(
-      screen.getByRole("heading", { name: "New Supplier" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "New Supplier" })).toBeInTheDocument();
     expect(screen.getByLabelText("Title")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Create Supplier" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create Supplier" })).toBeInTheDocument();
   });
 
   it("renders field validation errors", () => {

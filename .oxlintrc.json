@@ -32,7 +32,16 @@
         "react-perf/jsx-no-new-array-as-prop": "off",
         "react-perf/jsx-no-new-function-as-prop": "off",
         "react-perf/jsx-no-jsx-as-prop": "off",
-        "typescript/unbound-method": "off"
+        "typescript/unbound-method": "off",
+        "vitest/no-focused-tests": "error",
+        "vitest/no-disabled-tests": "warn",
+        "vitest/no-identical-title": "error",
+        "vitest/no-conditional-expect": "error",
+        "vitest/no-standalone-expect": "error",
+        "vitest/valid-expect": "error",
+        "vitest/no-duplicate-hooks": "error",
+        "vitest/prefer-hooks-on-top": "warn",
+        "vitest/max-expects": ["warn", { "max": 4 }]
       }
     },
     {

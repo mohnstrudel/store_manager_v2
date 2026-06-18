@@ -5,8 +5,6 @@ import Index from "./Index";
 import { makeProductIndexRecord } from "./test/factories";
 import type { ProductIndexRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Products/Index", () => {
   it("renders the product heading and add new record link", () => {
     renderIndex();
