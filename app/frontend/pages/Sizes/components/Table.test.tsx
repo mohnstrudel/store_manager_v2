@@ -4,11 +4,11 @@ import { router } from "@inertiajs/react";
 import { describe, expect, it } from "vitest";
 import Table from "./Table";
 import { makeSize } from "../test/factories";
-import type { SizeRecord } from "../types";
+
 
 describe("Sizes/components/Table", () => {
   it("renders size rows with show and edit links", () => {
-    renderTable();
+        render(<Table sizes={[makeSize()]}/>);
 
     expect(screen.getByRole("cell", { name: "1:6" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Show/ })).toHaveAttribute("href", "/sizes/1");
@@ -17,7 +17,7 @@ describe("Sizes/components/Table", () => {
 
   it("navigates to the size page when a row is clicked", async () => {
     const user = userEvent.setup();
-    renderTable();
+        render(<Table sizes={[makeSize()]}/>);
     const sizeRow = screen.getByRole("cell", { name: "1:6" }).closest("tr");
 
     expect(sizeRow).not.toBeNull();
@@ -27,6 +27,4 @@ describe("Sizes/components/Table", () => {
   });
 });
 
-function renderTable({ sizes = [makeSize()] }: { sizes?: SizeRecord[] } = {}) {
-  return render(<Table sizes={sizes} />);
-}
+

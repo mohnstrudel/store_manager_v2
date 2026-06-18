@@ -10,7 +10,7 @@ vi.mock("./components/Form", () => ({
 
 describe("Sales/New", () => {
   it("renders the form without an error notice when there are no errors", () => {
-    renderNew();
+        render(<New options={makeSaleFormOptions({ customers: [], products: [] })} sale={makeSaleForm()}/>);
 
     expect(screen.queryByText("Fix errors and try again")).not.toBeInTheDocument();
     expect(screen.getByTestId("sale-form")).toBeInTheDocument();
@@ -19,7 +19,7 @@ describe("Sales/New", () => {
   it("shows the error notice with field errors when validation fails", () => {
     mockPageProps({ errors: { customer: "can't be blank", status: "is invalid" } });
 
-    renderNew();
+        render(<New options={makeSaleFormOptions({ customers: [], products: [] })} sale={makeSaleForm()}/>);
 
     expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
     expect(screen.getByText("can't be blank")).toBeInTheDocument();
@@ -27,8 +27,4 @@ describe("Sales/New", () => {
   });
 });
 
-function renderNew() {
-  return render(
-    <New options={makeSaleFormOptions({ customers: [], products: [] })} sale={makeSaleForm()} />,
-  );
-}
+

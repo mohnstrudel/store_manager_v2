@@ -11,7 +11,7 @@ vi.mock("@/components/ImageUploader", () => ({
 
 describe("Warehouses/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-    renderEdit();
+        render(<Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()}/>);
 
     expect(screen.getByRole("heading", { name: "Edit Warehouse" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Warehouse Page/ })).toHaveAttribute(
@@ -23,8 +23,4 @@ describe("Warehouses/Edit", () => {
   });
 });
 
-function renderEdit() {
-  return render(
-    <Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()} />,
-  );
-}
+

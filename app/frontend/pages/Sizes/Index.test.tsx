@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Index from "./Index";
 import { makeSize } from "./test/factories";
-import type { SizeRecord } from "./types";
+
 
 describe("Sizes/Index", () => {
   it("renders the sizes table and new-record link", () => {
-    renderIndex();
+        render(<Index sizes={[makeSize()]}/>);
 
     expect(screen.getByRole("heading", { name: "Sizes" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add New Record/ })).toHaveAttribute(
@@ -17,6 +17,4 @@ describe("Sizes/Index", () => {
   });
 });
 
-function renderIndex({ sizes = [makeSize()] }: { sizes?: SizeRecord[] } = {}) {
-  return render(<Index sizes={sizes} />);
-}
+

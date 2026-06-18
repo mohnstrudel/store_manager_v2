@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Products from "./Products";
 import { makeFranchiseProduct } from "../test/factories";
-import type { ProductRecord } from "../types";
+
 
 describe("Franchises/components/Products", () => {
   it("renders linked products", () => {
-    renderProducts();
+        render(<Products products={[makeFranchiseProduct()]}/>);
 
     expect(
       screen.getByRole("heading", { name: "Products" })
@@ -17,7 +17,7 @@ describe("Franchises/components/Products", () => {
   });
 
   it("hides the section when there are no products", () => {
-    renderProducts({ products: [] });
+        render(<Products products={[]}/>);
 
     expect(
       screen.queryByRole("heading", { name: "Products" })
@@ -25,8 +25,4 @@ describe("Franchises/components/Products", () => {
   });
 });
 
-function renderProducts({
-  products = [makeFranchiseProduct()],
-}: { products?: ProductRecord[] } = {}) {
-  return render(<Products products={products} />);
-}
+

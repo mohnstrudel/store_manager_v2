@@ -2,11 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import Edit from "./Edit";
-import {
-  makePurchaseItemFormOptions,
-  makePurchaseItemFormRecord,
-  makeSaleItemTableRow,
-} from "./test/factories";
+import { makePurchaseItemFormOptions, makePurchaseItemFormRecord, makeSaleItemTableRow } from "./test/factories";
+
 
 vi.mock("./components/Form", () => ({
   default: () => <div data-testid="purchase-item-form" />,
@@ -20,7 +17,7 @@ vi.mock("./components/SaleItemsTable", () => ({
 
 describe("PurchaseItems/Edit", () => {
   it("renders the page header, view link, related sale items, and form", () => {
-    renderEdit();
+        render(<Edit options={makePurchaseItemFormOptions()} purchase_item={makePurchaseItemFormRecord()} sale_items_table={[makeSaleItemTableRow()]}/>);
 
     expect(screen.getByRole("heading", { name: "Edit Purchase Item 42" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Purchase Item/ })).toHaveAttribute(
@@ -34,19 +31,11 @@ describe("PurchaseItems/Edit", () => {
   it("shows the error notice when page errors are present", () => {
     mockPageProps({ errors: { base: "Something went wrong" } });
 
-    renderEdit();
+        render(<Edit options={makePurchaseItemFormOptions()} purchase_item={makePurchaseItemFormRecord()} sale_items_table={[makeSaleItemTableRow()]}/>);
 
     expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
   });
 });
 
-function renderEdit() {
-  return render(
-    <Edit
-      options={makePurchaseItemFormOptions()}
-      purchase_item={makePurchaseItemFormRecord()}
-      sale_items_table={[makeSaleItemTableRow()]}
-    />,
-  );
-}
+

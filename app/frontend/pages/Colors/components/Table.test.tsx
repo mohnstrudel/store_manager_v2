@@ -4,11 +4,11 @@ import { router } from "@inertiajs/react";
 import { describe, expect, it } from "vitest";
 import Table from "./Table";
 import { makeColor } from "../test/factories";
-import type { ColorRecord } from "../types";
+
 
 describe("Colors/components/Table", () => {
   it("renders color rows with show and edit links", () => {
-    renderTable();
+        render(<Table colors={[makeColor()]}/>);
 
     expect(screen.getByRole("cell", { name: "Azure" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Show/ })).toHaveAttribute("href", "/colors/1");
@@ -17,7 +17,7 @@ describe("Colors/components/Table", () => {
 
   it("navigates to the color page when a row is clicked", async () => {
     const user = userEvent.setup();
-    renderTable();
+        render(<Table colors={[makeColor()]}/>);
     const colorRow = screen.getByRole("cell", { name: "Azure" }).closest("tr");
 
     expect(colorRow).not.toBeNull();
@@ -27,6 +27,4 @@ describe("Colors/components/Table", () => {
   });
 });
 
-function renderTable({ colors = [makeColor()] }: { colors?: ColorRecord[] } = {}) {
-  return render(<Table colors={colors} />);
-}
+

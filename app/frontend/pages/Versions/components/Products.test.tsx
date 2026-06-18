@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Products from "./Products";
 import { makeVersionProduct } from "../test/factories";
-import type { ProductRecord } from "../types";
+
 
 describe("Versions/components/Products", () => {
   it("renders linked products", () => {
-    renderProducts();
+        render(<Products products={[makeVersionProduct()]}/>);
 
     expect(screen.getByRole("heading", { name: "Products" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Pokemon - Pikachu" })).toHaveAttribute(
@@ -16,16 +16,10 @@ describe("Versions/components/Products", () => {
   });
 
   it("hides the section when there are no products", () => {
-    renderProducts({ products: [] });
+        render(<Products products={[]}/>);
 
     expect(screen.queryByRole("heading", { name: "Products" })).not.toBeInTheDocument();
   });
 });
 
-function renderProducts({
-  products = [makeVersionProduct()],
-}: {
-  products?: ProductRecord[];
-} = {}) {
-  return render(<Products products={products} />);
-}
+

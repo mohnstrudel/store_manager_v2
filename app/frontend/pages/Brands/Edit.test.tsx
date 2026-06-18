@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Edit from "./Edit";
 import { makeBrand } from "./test/factories";
-import type { BrandRecord } from "./types";
+
 
 describe("Brands/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-    renderEdit();
+        render(<Edit brand={makeBrand()}/>);
 
     expect(screen.getByRole("heading", { name: "Edit Brand" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Brand Page/ })).toHaveAttribute(
@@ -18,6 +18,4 @@ describe("Brands/Edit", () => {
   });
 });
 
-function renderEdit({ brand = makeBrand() }: { brand?: BrandRecord } = {}) {
-  return render(<Edit brand={brand} />);
-}
+

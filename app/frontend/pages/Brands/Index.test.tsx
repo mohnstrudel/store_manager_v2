@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Index from "./Index";
 import { makeBrand } from "./test/factories";
-import type { BrandRecord } from "./types";
+
 
 describe("Brands/Index", () => {
   it("renders the brands table and new-record link", () => {
-    renderIndex();
+        render(<Index brands={[makeBrand()]}/>);
 
     expect(screen.getByRole("heading", { name: "Brands" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add New Record/ })).toHaveAttribute(
@@ -17,6 +17,4 @@ describe("Brands/Index", () => {
   });
 });
 
-function renderIndex({ brands = [makeBrand()] }: { brands?: BrandRecord[] } = {}) {
-  return render(<Index brands={brands} />);
-}
+
