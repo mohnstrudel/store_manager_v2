@@ -12,14 +12,13 @@ export default function Button({
   type = "button",
   ...props
 }: ButtonProps) {
-  const variantClass = {
-    primary: "btn_blue",
-    danger: "btn_red btn_rounded",
-    default: "",
-  }[variant];
-
   return (
-    <button className={`${variantClass} ${className}`} type={type} {...props}>
+    <button
+      className={className}
+      data-variant={variant === "default" ? undefined : variant}
+      type={type}
+      {...props}
+    >
       {children}
     </button>
   );
