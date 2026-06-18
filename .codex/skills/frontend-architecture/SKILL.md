@@ -317,11 +317,19 @@ Choose the **narrowest seam that still verifies user-visible behavior**.
 - Validation messages, button behavior, local state transitions
 - User interactions
 
-**Browser-level tests (Cuprite) only when the browser is the risk:**
+**Browser-level tests (Cuprite) when the browser is the risk:**
 
 - Dialogs, drag and drop, file uploads
 - Keyboard navigation, focus management, scrolling
-- Layout-sensitive behavior, multi-step workflows
+- Layout-sensitive behavior, multi-step workflows, several components coordinating in one DOM
+
+Cuprite specs are slow, so reserve them. Decide with one question: **would a
+component test still pass even if this behavior were broken?** Component tests
+render in jsdom and mock Inertia, navigation, and API clients — so when
+correctness depends on what those mocks stand in for (the real Inertia
+round-trip, real focus/layout/scroll, or components wiring together in one live
+DOM), only a Cuprite spec catches a regression. Otherwise the component test is
+enough. Cover that one path, not the whole screen.
 
 Assert **outcomes**, not mechanics:
 
