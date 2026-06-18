@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import Index from "./Index";
-import { makePagination, makeSaleIndexRecord } from "./test/factories";
+import { makePagination } from "@/test/factories";
+import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
 
 describe("Sales/Index", () => {

@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "@inertiajs/react";
 import { mockPage } from "@/test/mocks/inertia";
 import { PurchaseItemsSection } from "./PurchaseItemsSection";
+import { makePagination } from "@/test/factories";
 import {
-  makePagination,
   makeWarehousePurchaseItem,
   makeWarehouseShowRecord,
 } from "../test/factories";
