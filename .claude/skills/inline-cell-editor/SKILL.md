@@ -1,17 +1,11 @@
 ---
 name: inline-cell-editor
-description: >-
-  Add or change an inline table-cell editor in this Rails + Inertia + React
-  app. Covers the local backend resource pattern, js-from-routes contract,
-  shared React shell/hook, sibling editor coordination, and verification.
+description: Add or change an inline table-cell editor in this Rails + Inertia + React app. Covers the local backend resource pattern, js-from-routes contract, shared React shell/hook, sibling editor coordination, and verification.
 ---
 
 # Inline Cell Editor
 
-Use this skill when a table cell displays a persisted value and turns into a
-small edit form in place. In this app, inline editors are write resources:
-one edited attribute gets one nested route, one small controller, one policy
-method, and one React editor composed from the shared shell and hook.
+Use this skill when a table cell displays a persisted value and turns into a small edit form in place. In this app, inline editors are write resources: one edited attribute gets one nested route, one small controller, one policy method, and one React editor composed from the shared shell and hook.
 
 Current examples:
 
@@ -27,8 +21,7 @@ Current examples:
 
 ### 1. Add a singular nested route
 
-Use a singular `resource` under the owning collection. Do not add broad member
-actions to `PurchaseItemsController`.
+Use a singular `resource` under the owning collection. Do not add broad member actions to `PurchaseItemsController`.
 
 ```ruby
 # config/routes.rb
@@ -48,14 +41,11 @@ This generates a route like:
 PATCH /purchase_items/:purchase_item_id/your_field
 ```
 
-After changing routes, regenerate the JsFromRoutes files under
-`app/frontend/api`. They are generated files; do not hand-edit them. The React
-editor should import the generated helper through `@/lib/routes`.
+After changing routes, regenerate the JsFromRoutes files under `app/frontend/api`. They are generated files; do not hand-edit them. The React editor should import the generated helper through `@/lib/routes`.
 
 ### 2. Add one controller for the field
 
-Keep the controller boring: load the purchase item, update exactly one
-attribute, redirect back, and pass validation errors through Inertia.
+Keep the controller boring: load the purchase item, update exactly one attribute, redirect back, and pass validation errors through Inertia.
 
 ```ruby
 # app/controllers/purchase_items/your_fields_controller.rb
@@ -89,15 +79,10 @@ end
 
 Local details that matter:
 
-- `PurchaseItemScoped` loads `@purchase_item` from `params[:purchase_item_id]`
-  with `PurchaseItem.with_media`.
-- `ApplicationController#inertia_errors` returns `{ errors: ... }` for Inertia
-  redirect props.
-- The app's authorization concern currently calls `authorize_resourse`; use that
-  spelling in overrides unless the concern itself is refactored in the same
-  change.
-- Controllers redirect; they do not render partials, JSON, or inline-specific
-  responses.
+- `PurchaseItemScoped` loads `@purchase_item` from `params[:purchase_item_id]` with `PurchaseItem.with_media`.
+- `ApplicationController#inertia_errors` returns `{ errors: ... }` for Inertia redirect props.
+- The app's authorization concern currently calls `authorize_resourse`; use that spelling in overrides unless the concern itself is refactored in the same change.
+- Controllers redirect; they do not render partials, JSON, or inline-specific responses.
 
 ### 3. Add a granular policy method
 
@@ -108,22 +93,15 @@ def update_your_field?
 end
 ```
 
-Prefer one policy method per editable attribute. It keeps field-level unlocks
-explicit and avoids hiding permissions in a generic `update?`.
+Prefer one policy method per editable attribute. It keeps field-level unlocks explicit and avoids hiding permissions in a generic `update?`.
 
 ### 4. Put domain rules on the model
 
-The controller should only assign the requested attribute. Validations,
-callbacks, derived totals, and cross-field requirements belong on the owning
-model or a model concern.
+The controller should only assign the requested attribute. Validations, callbacks, derived totals, and cross-field requirements belong on the owning model or a model concern.
 
-Use `app/models/purchase_item/<capability>.rb` when the behavior is a coherent
-PurchaseItem capability. Example: shipping cost affects purchase totals through
-`PurchaseItem::Shipping`.
+Use `app/models/purchase_item/<capability>.rb` when the behavior is a coherent PurchaseItem capability. Example: shipping cost affects purchase totals through `PurchaseItem::Shipping`.
 
-For simple validations, it is fine to keep the rule directly in
-`app/models/purchase_item.rb`, as the tracking-number requirement currently
-does:
+For simple validations, it is fine to keep the rule directly in `app/models/purchase_item.rb`, as the tracking-number requirement currently does:
 
 ```ruby
 validates :shipping_company_id,
@@ -131,14 +109,11 @@ validates :shipping_company_id,
   if: -> { tracking_number.present? }
 ```
 
-Do not duplicate backend validation rules in React. The frontend may do
-pre-submit convenience checks only when they improve the editing flow.
+Do not duplicate backend validation rules in React. The frontend may do pre-submit convenience checks only when they improve the editing flow.
 
 ### 5. Add the value to page props and TypeScript types
 
-Expose the displayed value and any denormalized display fields already needed
-by the table row. Do not add per-field update path props for new editors; the
-frontend gets update paths from JsFromRoutes.
+Expose the displayed value and any denormalized display fields already needed by the table row. Do not add per-field update path props for new editors; the frontend gets update paths from JsFromRoutes.
 
 Purchase page records live in:
 
@@ -172,14 +147,11 @@ shipping_company_name: string;
 
 Every inline editor should compose:
 
-- `InlineCellTd`, `InlineCellTrigger`, and `InlineCellForm` from
-  `@/components/InlineCellEditor`.
+- `InlineCellTd`, `InlineCellTrigger`, and `InlineCellForm` from `@/components/InlineCellEditor`.
 - `useInlineCellForm` from `@/lib/useInlineCellForm`.
 - A generated route helper from `@/lib/routes`.
 
-The hook owns open/closed state, Inertia form state, default `return_to`,
-payload shape, optimistic row replacement, error reopening, and saved
-highlighting. Do not reimplement that in the editor.
+The hook owns open/closed state, Inertia form state, default `return_to`, payload shape, optimistic row replacement, error reopening, and saved highlighting. Do not reimplement that in the editor.
 
 ```tsx
 import { forwardRef, useImperativeHandle } from "react";
@@ -241,8 +213,7 @@ export const InlineYourFieldEditor = forwardRef<
 
 - `editedRecord`: the row record. It must have `id`.
 - `attributeName`: the exact backend attribute being patched.
-- `route`: a generated JsFromRoutes PATCH helper such as
-  `routes.purchaseItemsTrackingNumbers.update`.
+- `route`: a generated JsFromRoutes PATCH helper such as `routes.purchaseItemsTrackingNumbers.update`.
 - `mapNewValueToState`: optional optimistic state mapper.
 - `returnTo`: optional; defaults to `usePage().url`.
 - `errorFrom`: optional custom server-error reader.
@@ -254,13 +225,11 @@ The hook derives:
 - strong-param key from the route, usually `purchase_item`.
 - page collection from the route, usually `purchase_items`.
 - payload shape: `{ purchase_item: { your_field: value }, return_to }`.
-- Inertia options: optimistic update, `preserveScroll`, close before request,
-  reopen on error, mark saved on success.
+- Inertia options: optimistic update, `preserveScroll`, close before request, reopen on error, mark saved on success.
 
 ### Use `mapNewValueToState` for type coercion or denormalized fields
 
-Inputs and selects emit strings. If the row stores a number, `null`, formatted
-money, or a display label, map it explicitly for the optimistic row update.
+Inputs and selects emit strings. If the row stores a number, `null`, formatted money, or a display label, map it explicitly for the optimistic row update.
 
 ```tsx
 mapNewValueToState: (shippingCompanyId) => ({
@@ -277,9 +246,7 @@ The default error reader is enough for normal fields:
 errors[attributeName] || errors.base || "Could not save <label>"
 ```
 
-Pass `errorFrom` when the model reports another field's error for this save.
-Tracking number does this because saving a tracking number without a shipping
-company produces a `shipping_company_id` error.
+Pass `errorFrom` when the model reports another field's error for this save. Tracking number does this because saving a tracking number without a shipping company produces a `shipping_company_id` error.
 
 ```tsx
 function trackingNumberError(errors: Record<string, string>) {
@@ -296,10 +263,7 @@ function trackingNumberError(errors: Record<string, string>) {
 
 ### Keep pre-submit UX checks local
 
-Small client-side guards are allowed when they prevent a confusing round trip,
-but they must stay in the editor, not in the shared hook. Tracking number is the
-model example: if no shipping company exists, show a local error and do not
-submit.
+Small client-side guards are allowed when they prevent a confusing round trip, but they must stay in the editor, not in the shared hook. Tracking number is the model example: if no shipping company exists, show a local error and do not submit.
 
 ```tsx
 const saveTrackingNumber = useCallback(() => {
@@ -313,9 +277,7 @@ const saveTrackingNumber = useCallback(() => {
 
 ### Coordinate sibling editors through refs when needed
 
-If opening one editor should open another, expose `openSilently` through a ref.
-Use `openSilently` for sibling auto-open so the second editor does not trigger
-its own `onOpen` side effect and create a cascade.
+If opening one editor should open another, expose `openSilently` through a ref. Use `openSilently` for sibling auto-open so the second editor does not trigger its own `onOpen` side effect and create a cascade.
 
 ```tsx
 const shippingRef = useRef<{ open(): void }>(null);
@@ -364,14 +326,11 @@ expect(purchase_item.reload.your_field).to eq("new value")
 
 ### Component tests
 
-Add focused coverage to the page/component test where the editor appears, usually
-`app/frontend/pages/Warehouses/Show.test.tsx` or
-`app/frontend/pages/Purchases/Show.test.tsx`.
+Add focused coverage to the page/component test where the editor appears, usually `app/frontend/pages/Warehouses/Show.test.tsx` or `app/frontend/pages/Purchases/Show.test.tsx`.
 
 Cover the behavior users and Inertia care about:
 
-- open by accessible button name, e.g.
-  `screen.getByRole("button", { name: "Edit your field" })`;
+- open by accessible button name, e.g. `screen.getByRole("button", { name: "Edit your field" })`;
 - edit by accessible label;
 - PATCH path and payload;
 - `return_to` defaults to the current page URL;
@@ -381,39 +340,26 @@ Cover the behavior users and Inertia care about:
 - local pre-submit checks do not call `patch`;
 - sibling auto-open behavior, if present.
 
-Avoid snapshot-heavy tests. Inline editors are interaction contracts, not static
-markup.
+Avoid snapshot-heavy tests. Inline editors are interaction contracts, not static markup.
 
 ## Invariants
 
-- One inline field equals one singular nested route, one small controller, and
-  one granular policy method.
+- One inline field equals one singular nested route, one small controller, and one granular policy method.
 - Controllers update exactly the intended attribute and redirect every time.
 - Use `return_to`; default frontend return path is `usePage().url`.
-- Use generated route helpers from `@/lib/routes`; do not pass update paths as
-  page props for new editors.
-- Use `InlineCellTd` as the stable `<td>` wrapper so display and edit states do
-  not flicker or break row navigation.
-- Use `InlineCellTrigger` and `InlineCellForm` with children. Do not pass JSX or
-  inline render functions as props.
-- Keep domain validation and side effects in `PurchaseItem` or
-  `app/models/purchase_item/*`.
+- Use generated route helpers from `@/lib/routes`; do not pass update paths as page props for new editors.
+- Use `InlineCellTd` as the stable `<td>` wrapper so display and edit states do not flicker or break row navigation.
+- Use `InlineCellTrigger` and `InlineCellForm` with children. Do not pass JSX or inline render functions as props.
+- Keep domain validation and side effects in `PurchaseItem` or `app/models/purchase_item/*`.
 - Keep client-only pre-submit checks local to the specific editor.
-- Use `mapNewValueToState` for optimistic type conversion and denormalized row
-  fields.
+- Use `mapNewValueToState` for optimistic type conversion and denormalized row fields.
 - Use `openSilently` for sibling editor coordination.
 
 ## Practical Limits
 
-- Do not create another per-resource wrapper around `useInlineCellForm` unless
-  the call sites become noisy again. The hook now derives the route, param,
-  collection, update path, return path, open state, and saved state; wrappers are
-  only worth it when they remove real repeated decisions.
-- Do not put backend route/path knowledge into helpers just for inline editors.
-  JsFromRoutes is the frontend route contract.
-- Do not make the shared hook understand field-specific business rules. Once a
-  rule mentions shipping company, tracking number, money formatting, or another
-  domain noun, it belongs in the editor or backend model.
+- Do not create another per-resource wrapper around `useInlineCellForm` unless the call sites become noisy again. The hook now derives the route, param, collection, update path, return path, open state, and saved state; wrappers are only worth it when they remove real repeated decisions.
+- Do not put backend route/path knowledge into helpers just for inline editors. JsFromRoutes is the frontend route contract.
+- Do not make the shared hook understand field-specific business rules. Once a rule mentions shipping company, tracking number, money formatting, or another domain noun, it belongs in the editor or backend model.
 
 ## Verification
 
@@ -427,8 +373,7 @@ pnpm test:run <changed frontend test files>
 mise exec -- bundle exec rspec spec/requests/purchase_item_inline_updates_spec.rb
 ```
 
-Also run any directly affected model or policy specs when domain rules or
-authorization change, for example:
+Also run any directly affected model or policy specs when domain rules or authorization change, for example:
 
 ```bash
 mise exec -- bundle exec rspec spec/models/purchase_item_shipping_spec.rb spec/policies/purchase_item_policy_spec.rb

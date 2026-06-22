@@ -1,44 +1,30 @@
 ---
 name: frontend-architecture
-description: >-
-  Use for React, browser-side UI, page composition, shared components, hooks,
-  local state, frontend refactors, browser widgets, and frontend test strategy
-  in this Rails app. Do not use for backend models, controllers, jobs,
-  persistence rules, or domain workflows; use `rails-domain-architecture`
-  instead.
+description: Use for React, browser-side UI, page composition, shared components, hooks, local state, frontend refactors, browser widgets, and frontend test strategy in this Rails app. Do not use for backend models, controllers, jobs, persistence rules, or domain workflows; use `rails-domain-architecture` instead.
 ---
 
 # Frontend Architecture Skill
 
 Use this skill for frontend design and refactoring work in `app/frontend`.
 
-If the task needs new backend data, routes, route helpers, or persisted
-behavior, coordinate that seam with `rails-domain-architecture`.
+If the task needs new backend data, routes, route helpers, or persisted behavior, coordinate that seam with `rails-domain-architecture`.
 
 ## Routing Convention
 
-Frontend routes should come from the shared `js-from-routes` helpers, not from
-ad hoc local path builders.
+Frontend routes should come from the shared `js-from-routes` helpers, not from ad hoc local path builders.
 
 - Import routes from `@/utils/routes` for runtime frontend code.
-- Prefer generated helpers such as `routes.sizes.show.path({ id })` over inline
-  strings like `"/sizes/123"` or page-local `paths.ts` helpers.
-- If Rails already sends a path in page props, use that value directly instead of
-  rebuilding the same URL in the frontend.
-- Check `app/frontend/api/*` before inventing route helpers; Rails-backed pages
-  in this app usually already have generated route objects available.
-- Only introduce local path helpers when the route is truly frontend-only and
-  cannot come from Rails.
+- Prefer generated helpers such as `routes.sizes.show.path({ id })` over inline strings like `"/sizes/123"` or page-local `paths.ts` helpers.
+- If Rails already sends a path in page props, use that value directly instead of rebuilding the same URL in the frontend.
+- Check `app/frontend/api/*` before inventing route helpers; Rails-backed pages in this app usually already have generated route objects available.
+- Only introduce local path helpers when the route is truly frontend-only and cannot come from Rails.
 
 ## Core Principle
 
-Components should describe feature behavior, not implementation details.
-The top level of a component should read like a feature description - a reader
-should understand the feature before understanding the implementation.
+Components should describe feature behavior, not implementation details. The top level of a component should read like a feature description - a reader should understand the feature before understanding the implementation.
 
 - Prefer intention-revealing code.
-- Extract behaviors into custom hooks when logic represents a distinct
-  behavior, lifecycle, synchronization process, or external integration.
+- Extract behaviors into custom hooks when logic represents a distinct behavior, lifecycle, synchronization process, or external integration.
 - Use domain language for business concepts and user actions.
 - Separate decisions from execution by extracting complex conditions into named predicates.
 - Push complexity down into hooks, utilities, and child components.
@@ -47,13 +33,11 @@ should understand the feature before understanding the implementation.
 
 ## Convention over Configuration
 
-Prefer a design where the common case just works, and callers only supply what
-genuinely varies. This reduces API surface and keeps call sites readable.
+Prefer a design where the common case just works, and callers only supply what genuinely varies. This reduces API surface and keeps call sites readable.
 
 ### Component API
 
-Give optional props sensible defaults. Callers should not need to configure
-behavior that should be conventional:
+Give optional props sensible defaults. Callers should not need to configure behavior that should be conventional:
 
 ```tsx
 // Prefer — callers pass only what varies
@@ -63,14 +47,11 @@ behavior that should be conventional:
 <ImageGallery media={product.media} layout="carousel" loadingStyle="pulse" />
 ```
 
-A config prop that controls structural branching (`layout: "single" | "carousel"`)
-is a sign the component is doing two things. Either make the convention work for
-both cases (CSS scoping, data-attributes) or split into two components.
+A config prop that controls structural branching (`layout: "single" | "carousel"`) is a sign the component is doing two things. Either make the convention work for both cases (CSS scoping, data-attributes) or split into two components.
 
 ### CSS as convention
 
-State-driven appearance belongs in CSS, not in JS config props or computed class
-strings. Communicate state via `data-*` attributes and let CSS select on them:
+State-driven appearance belongs in CSS, not in JS config props or computed class strings. Communicate state via `data-*` attributes and let CSS select on them:
 
 ```tsx
 // Prefer — CSS owns the appearance, JS owns the state
@@ -87,19 +68,13 @@ Layout variation between modes (single vs. carousel) belongs in CSS scoping:
 .gallery_viewbox--single .gallery_main__image { @apply max-h-160 max-w-160; }
 ```
 
-Rather than a `layout` prop that branches inline class strings inside the
-component.
+Rather than a `layout` prop that branches inline class strings inside the component.
 
 ### Prop-drilling vs. context
 
-When a behavior object would be threaded unchanged through three or more
-component levels, use React Context instead. Context is the conventional
-channel for shared subtree state; prop-drilling at that depth is
-configuration leaking through seams that don't care about it.
+When a behavior object would be threaded unchanged through three or more component levels, use React Context instead. Context is the conventional channel for shared subtree state; prop-drilling at that depth is configuration leaking through seams that don't care about it.
 
-Use props for per-item identity (`index`, `image`) — values that genuinely
-differ per instance. Use context for shared behavior (`selectImage`,
-`markLoaded`, `loaded`) — values that every consumer in the subtree needs.
+Use props for per-item identity (`index`, `image`) — values that genuinely differ per instance. Use context for shared behavior (`selectImage`, `markLoaded`, `loaded`) — values that every consumer in the subtree needs.
 
 ## Default Workflow
 
@@ -111,16 +86,8 @@ differ per instance. Use context for shared behavior (`selectImage`,
 6. Separate decision-making from execution with named predicates.
 7. Keep state minimal; derive values when possible.
 8. Push implementation details into hooks, utilities, adapters, or child components.
-9. Add or update tests at the right level: component test by default;
-   browser-level test only when the risk lives in the browser itself.
-10. Before calling the task done, run the full verification gate:
-    ```bash
-    npm run lint              # oxlint default rules
-    npm run lint:perf         # react-perf rules
-    npx tsc --noEmit          # type check
-    npx vitest run app/frontend  # full component test suite
-    ```
-    All four must pass cleanly. Fix any failures before reporting done.
+9. Add or update tests at the right level: component test by default; browser-level test only when the risk lives in the browser itself.
+10. Before calling the task done, run the full verification gate: ```bash npm run lint              # oxlint default rules npm run lint:perf         # react-perf rules npx tsc --noEmit          # type check npx vitest run app/frontend  # full component test suite ``` All four must pass cleanly. Fix any failures before reporting done.
 
 ## Component Structure
 
@@ -166,9 +133,7 @@ if (shouldRestoreDraft(user)) {
 
 Over inline compound conditions.
 
-Prefer named intermediate values over inline expressions in JSX. Any
-non-obvious derivation should be named so the JSX reads as a feature
-description, not a computation:
+Prefer named intermediate values over inline expressions in JSX. Any non-obvious derivation should be named so the JSX reads as a feature description, not a computation:
 
 ```tsx
 // Prefer
@@ -189,12 +154,9 @@ return (
     <button data-active={index === selectedIndex || undefined}>
 ```
 
-The name describes *what it means*, not how it is computed. This applies equally
-to conditions, derived flags, computed class names, and any other expression
-where a reader would have to pause and evaluate instead of just reading.
+The name describes *what it means*, not how it is computed. This applies equally to conditions, derived flags, computed class names, and any other expression where a reader would have to pause and evaluate instead of just reading.
 
-The same principle applies to `useEffect`. Pass a named function so the call
-site declares the purpose without requiring the reader to parse the body:
+The same principle applies to `useEffect`. Pass a named function so the call site declares the purpose without requiring the reader to parse the body:
 
 ```tsx
 // Prefer — intent is visible at the call site
@@ -218,16 +180,11 @@ useEffect(() => {
 }, [selectedIndex, thumbnailButtonRefs]);
 ```
 
-Define the named function *after* the `useEffect` call. Function declarations
-are hoisted, so this works — and it keeps the hook readable top-down: intent
-first, implementation second.
+Define the named function *after* the `useEffect` call. Function declarations are hoisted, so this works — and it keeps the hook readable top-down: intent first, implementation second.
 
-Note: `|| undefined` is the conventional way to make a boolean React prop
-omit the attribute entirely when false — CSS `[data-x]` selectors need absence,
-not `data-x="false"`.
+Note: `|| undefined` is the conventional way to make a boolean React prop omit the attribute entirely when false — CSS `[data-x]` selectors need absence, not `data-x="false"`.
 
-Prefer domain verbs (`applyCoupon`, `submitOrder`, `restoreDraft`) over
-technical names (`processData`, `handleResponse`, `updateState`).
+Prefer domain verbs (`applyCoupon`, `submitOrder`, `restoreDraft`) over technical names (`processData`, `handleResponse`, `updateState`).
 
 Prefer derived values:
 
@@ -273,13 +230,9 @@ function shouldShowPurchase() {}
 function formatTitle() {}
 ```
 
-Over placing helper components or utilities above the main component unless
-they are required to understand the public API.
+Over placing helper components or utilities above the main component unless they are required to understand the public API.
 
-Private helper components, predicates, and formatters may stay in the same file
-when they remain readable and page-owned. Split a section out when it has
-multiple behaviors, shared ownership, or has become a named subsystem in the
-screen.
+Private helper components, predicates, and formatters may stay in the same file when they remain readable and page-owned. Split a section out when it has multiple behaviors, shared ownership, or has become a named subsystem in the screen.
 
 ## Screen Organization
 
@@ -304,8 +257,7 @@ pages/products/Show/
     InventorySection.tsx
 ```
 
-Prefer `pages/products/Show/Gallery.tsx` over `components/Gallery.tsx` unless
-the component is genuinely shared across screens or resources.
+Prefer `pages/products/Show/Gallery.tsx` over `components/Gallery.tsx` unless the component is genuinely shared across screens or resources.
 
 ## Testing
 
@@ -323,13 +275,7 @@ Choose the **narrowest seam that still verifies user-visible behavior**.
 - Keyboard navigation, focus management, scrolling
 - Layout-sensitive behavior, multi-step workflows, several components coordinating in one DOM
 
-Cuprite specs are slow, so reserve them. Decide with one question: **would a
-component test still pass even if this behavior were broken?** Component tests
-render in jsdom and mock Inertia, navigation, and API clients — so when
-correctness depends on what those mocks stand in for (the real Inertia
-round-trip, real focus/layout/scroll, or components wiring together in one live
-DOM), only a Cuprite spec catches a regression. Otherwise the component test is
-enough. Cover that one path, not the whole screen.
+Cuprite specs are slow, so reserve them. Decide with one question: **would a component test still pass even if this behavior were broken?** Component tests render in jsdom and mock Inertia, navigation, and API clients — so when correctness depends on what those mocks stand in for (the real Inertia round-trip, real focus/layout/scroll, or components wiring together in one live DOM), only a Cuprite spec catches a regression. Otherwise the component test is enough. Cover that one path, not the whole screen.
 
 Assert **outcomes**, not mechanics:
 
@@ -343,17 +289,11 @@ expect(mockSave).toHaveBeenCalledTimes(1);
 expect(hookResult.current.isOpen).toBe(false);
 ```
 
-Mock at the boundary only: Inertia, navigation adapters, API clients, backend
-bridges. Do not recreate backend integration inside component tests.
+Mock at the boundary only: Inertia, navigation adapters, API clients, backend bridges. Do not recreate backend integration inside component tests.
 
 **Server-error paths (`onError`) belong in Capybara, not component tests.**
 
-When a component uses Inertia's `useForm` and its `onError` callback, the path
-where the server returns validation errors requires a Cuprite spec. `onError`
-fires through Inertia's redirect-with-errors cycle — a full Rails/HTTP/browser
-round-trip. A component test can only simulate it with `nextFormErrors`, which
-tests the stub's behavior, not the real Inertia flow. The stub can pass even if
-the component never actually wires up `onError` correctly.
+When a component uses Inertia's `useForm` and its `onError` callback, the path where the server returns validation errors requires a Cuprite spec. `onError` fires through Inertia's redirect-with-errors cycle — a full Rails/HTTP/browser round-trip. A component test can only simulate it with `nextFormErrors`, which tests the stub's behavior, not the real Inertia flow. The stub can pass even if the component never actually wires up `onError` correctly.
 
 ```ruby
 # Do: Cuprite spec that submits to Rails and gets a real onError response
@@ -372,11 +312,9 @@ await user.click(within(trackingForm).getByRole("button", { name: "Save" }));
 expect(within(shippingForm).getByText("Shipping company is required")).toBeInTheDocument();
 ```
 
-Client-side validation errors (checked before any request fires) are still fine
-in component tests — they never reach the server and are pure UI logic.
+Client-side validation errors (checked before any request fires) are still fine in component tests — they never reach the server and are pure UI logic.
 
-When helper parts are extracted only to keep a file readable, tests should
-usually target the public section behavior rather than each private helper.
+When helper parts are extracted only to keep a file readable, tests should usually target the public section behavior rather than each private helper.
 
 If a frontend change also modifies a backend contract, add the matching backend test separately.
 
@@ -446,9 +384,7 @@ Empty-state component that returns `null`: `expect(container).toBeEmptyDOMElemen
 
 Frontend code may compose UI, local interaction state, browser behavior, and backend-provided props.
 
-Do not move backend domain rules into React. If the UI needs new backend data
-or behavior, update the backend contract explicitly instead of hiding that
-need inside component code.
+Do not move backend domain rules into React. If the UI needs new backend data or behavior, update the backend contract explicitly instead of hiding that need inside component code.
 
 ## Avoid
 
@@ -464,8 +400,7 @@ need inside component code.
 - Putting helper components or utilities above the main component when the file could read top-down.
 - Splitting one screen across many distant files without a clear ownership boundary.
 - Backend contract changes hidden inside frontend code.
-- Testing implementation details (hook internals, state variables, callback
-  wiring) when visible outcomes can be asserted instead.
+- Testing implementation details (hook internals, state variables, callback wiring) when visible outcomes can be asserted instead.
 - Using browser tests for behavior already covered by a component test.
 - Skipping browser tests when the browser itself is the risk.
 - Letting backend request specs substitute for UI coverage.
