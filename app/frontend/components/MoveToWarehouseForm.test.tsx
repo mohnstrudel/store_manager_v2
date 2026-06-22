@@ -5,6 +5,8 @@ import { router } from "@inertiajs/react";
 import MoveToWarehouseForm from "./MoveToWarehouseForm";
 import type { WarehouseOption } from "@/types/warehouse";
 
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
+
 afterEach(() => {
   vi.restoreAllMocks();
 });

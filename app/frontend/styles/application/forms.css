@@ -20,7 +20,7 @@
     @apply -mt-2 mb-4;
   }
 
-  input,
+  input:not(.rs__input),
   select,
   .ss-main,
   textarea,
