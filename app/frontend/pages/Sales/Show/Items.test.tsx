@@ -11,6 +11,8 @@ import {
 } from "../test/factories";
 import type { SaleShowSaleItemRecord } from "../types";
 
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
+
 const warehouses: WarehouseOption[] = [
   { id: 1, name: "Berlin Hub" },
   { id: 2, name: "Paris Hub" },

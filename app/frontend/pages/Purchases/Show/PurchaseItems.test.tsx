@@ -11,6 +11,8 @@ import {
   makeWarehouseOption,
 } from "../test/factories";
 
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
+
 const defaultProps = {
   movePath: "/purchase_items/move",
   purchase: makePurchaseShow({
