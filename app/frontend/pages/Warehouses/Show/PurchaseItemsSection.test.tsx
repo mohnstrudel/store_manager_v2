@@ -5,10 +5,7 @@ import { router } from "@inertiajs/react";
 import { mockPage } from "@/test/mocks/inertia";
 import { PurchaseItemsSection } from "./PurchaseItemsSection";
 import { makePagination } from "@/test/factories";
-import {
-  makeWarehousePurchaseItem,
-  makeWarehouseShowRecord,
-} from "../test/factories";
+import { makeWarehousePurchaseItem, makeWarehouseShowRecord } from "../test/factories";
 import type { WarehousePurchaseItemRecord } from "../types";
 
 const writeText = vi.fn<(...args: unknown[]) => Promise<void>>();

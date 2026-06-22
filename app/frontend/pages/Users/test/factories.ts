@@ -1,9 +1,7 @@
 import type { UserFormValues } from "../components/Form";
 import type { UserRecord as IndexUserRecord } from "../components/IndexTable";
 
-export function makeUserForm(
-  overrides: Partial<UserFormValues> = {}
-): UserFormValues {
+export function makeUserForm(overrides: Partial<UserFormValues> = {}): UserFormValues {
   return {
     id: 1,
     email_address: "ash@example.com",
@@ -15,9 +13,7 @@ export function makeUserForm(
   };
 }
 
-export function makeUser(
-  overrides: Partial<IndexUserRecord> = {}
-): IndexUserRecord {
+export function makeUser(overrides: Partial<IndexUserRecord> = {}): IndexUserRecord {
   return {
     id: 1,
     email_address: "ash@example.com",

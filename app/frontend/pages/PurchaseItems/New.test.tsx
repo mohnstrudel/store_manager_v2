@@ -10,7 +10,14 @@ vi.mock("./components/Form", () => ({
 
 describe("PurchaseItems/New", () => {
   it("renders the page header, back link, and form", () => {
-        render(<New cancel_path="/warehouses/1" form_action="/purchase_items" options={makePurchaseItemFormOptions()} purchase_item={makePurchaseItemFormRecord({ id: null, path: "" })}/>);
+    render(
+      <New
+        cancel_path="/warehouses/1"
+        form_action="/purchase_items"
+        options={makePurchaseItemFormOptions()}
+        purchase_item={makePurchaseItemFormRecord({ id: null, path: "" })}
+      />,
+    );
 
     expect(screen.getByRole("heading", { name: "New Purchase Item" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Back to Warehouse/ })).toHaveAttribute(
@@ -23,11 +30,16 @@ describe("PurchaseItems/New", () => {
   it("shows the error notice when page errors are present", () => {
     mockPageProps({ errors: { base: "Something went wrong" } });
 
-        render(<New cancel_path="/warehouses/1" form_action="/purchase_items" options={makePurchaseItemFormOptions()} purchase_item={makePurchaseItemFormRecord({ id: null, path: "" })}/>);
+    render(
+      <New
+        cancel_path="/warehouses/1"
+        form_action="/purchase_items"
+        options={makePurchaseItemFormOptions()}
+        purchase_item={makePurchaseItemFormRecord({ id: null, path: "" })}
+      />,
+    );
 
     expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
   });
 });
-
-

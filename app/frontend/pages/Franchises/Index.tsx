@@ -9,10 +9,7 @@ type IndexProps = {
 
 export default function Index({ franchises }: IndexProps) {
   return (
-    <ResourceIndexPage
-      newPath={routes.franchises.new.path()}
-      title="Franchises"
-    >
+    <ResourceIndexPage newPath={routes.franchises.new.path()} title="Franchises">
       <Table franchises={franchises} />
     </ResourceIndexPage>
   );

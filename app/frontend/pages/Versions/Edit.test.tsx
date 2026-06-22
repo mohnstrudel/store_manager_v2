@@ -3,10 +3,9 @@ import { describe, expect, it } from "vitest";
 import Edit from "./Edit";
 import { makeVersion } from "./test/factories";
 
-
 describe("Versions/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-        render(<Edit version={makeVersion()}/>);
+    render(<Edit version={makeVersion()} />);
 
     expect(screen.getByRole("heading", { name: "Edit Version" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Version Page/ })).toHaveAttribute(
@@ -17,5 +16,3 @@ describe("Versions/Edit", () => {
     expect(screen.getByRole("button", { name: "Update Version" })).toBeInTheDocument();
   });
 });
-
-

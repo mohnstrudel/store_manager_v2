@@ -13,7 +13,14 @@ const warehouses = [{ value: 10, label: "Main Warehouse" }];
 describe("Products/components/Form/PurchaseFields", () => {
   it("renders named hidden inputs for supplier_id and warehouse_id selects", async () => {
     await act(async () => {
-            render(<PurchaseFields purchase={makePurchaseForm({ supplier_id: 1, warehouse_id: 10 })} suppliers={suppliers} warehouses={warehouses} {...{}}/>);
+      render(
+        <PurchaseFields
+          purchase={makePurchaseForm({ supplier_id: 1, warehouse_id: 10 })}
+          suppliers={suppliers}
+          warehouses={warehouses}
+          {...{}}
+        />,
+      );
     });
 
     expect(screen.getAllByRole("combobox")).toHaveLength(2);
@@ -22,12 +29,19 @@ describe("Products/components/Form/PurchaseFields", () => {
   });
 
   it("renders ordinary purchase fields as uncontrolled named inputs", () => {
-        render(<PurchaseFields purchase={makePurchaseForm({
-        order_reference: "PO-1",
-        item_price: "12.50",
-        amount: "2",
-        payment_value: "25",
-    })} suppliers={suppliers} warehouses={warehouses} {...{}}/>);
+    render(
+      <PurchaseFields
+        purchase={makePurchaseForm({
+          order_reference: "PO-1",
+          item_price: "12.50",
+          amount: "2",
+          payment_value: "25",
+        })}
+        suppliers={suppliers}
+        warehouses={warehouses}
+        {...{}}
+      />,
+    );
 
     expect(document.querySelector('input[name="purchase[order_reference]"]')).toHaveValue("PO-1");
     expect(document.querySelector('input[name="purchase[item_price]"]')).toHaveValue("12.50");
@@ -41,5 +55,3 @@ describe("Products/components/Form/PurchaseFields", () => {
     expect(screen.getAllByRole("combobox")).toHaveLength(1);
   });
 });
-
-

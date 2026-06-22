@@ -12,7 +12,12 @@ vi.mock("@/components/ImageUploader", () => ({
 
 describe("Warehouses/New", () => {
   it("renders the heading and form", () => {
-        render(<New options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord({ id: null, path: "" })}/>);
+    render(
+      <New
+        options={makeWarehouseFormOptions()}
+        warehouse={makeWarehouseFormRecord({ id: null, path: "" })}
+      />,
+    );
 
     expect(screen.getByRole("heading", { name: "New Warehouse" })).toBeInTheDocument();
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
@@ -22,11 +27,14 @@ describe("Warehouses/New", () => {
   it("renders field validation errors", () => {
     mockPageProps({ errors: { name: "can't be blank" } });
 
-        render(<New options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord({ id: null, path: "" })}/>);
+    render(
+      <New
+        options={makeWarehouseFormOptions()}
+        warehouse={makeWarehouseFormRecord({ id: null, path: "" })}
+      />,
+    );
 
     expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
     expect(screen.getAllByText("can't be blank").length).toBeGreaterThan(0);
   });
 });
-
-

@@ -13,17 +13,10 @@ type VersionFormProps = {
 };
 
 function validate(formData: FormData) {
-  return getFormString(formData, "version[value]").trim()
-    ? null
-    : { value: msg.blank };
+  return getFormString(formData, "version[value]").trim() ? null : { value: msg.blank };
 }
 
-export default function Form({
-  method,
-  submitLabel,
-  url,
-  version,
-}: VersionFormProps) {
+export default function Form({ method, submitLabel, url, version }: VersionFormProps) {
   return (
     <ResourceForm
       action={url}

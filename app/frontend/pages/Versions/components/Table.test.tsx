@@ -5,10 +5,9 @@ import { describe, expect, it } from "vitest";
 import Table from "./Table";
 import { makeVersion } from "../test/factories";
 
-
 describe("Versions/components/Table", () => {
   it("renders version rows with show and edit links", () => {
-        render(<Table versions={[makeVersion()]}/>);
+    render(<Table versions={[makeVersion()]} />);
 
     expect(screen.getByRole("cell", { name: "Classic" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Show/ })).toHaveAttribute("href", "/versions/1");
@@ -17,7 +16,7 @@ describe("Versions/components/Table", () => {
 
   it("navigates to the version page when a row is clicked", async () => {
     const user = userEvent.setup();
-        render(<Table versions={[makeVersion()]}/>);
+    render(<Table versions={[makeVersion()]} />);
     const versionRow = screen.getByRole("cell", { name: "Classic" }).closest("tr");
 
     expect(versionRow).not.toBeNull();
@@ -26,5 +25,3 @@ describe("Versions/components/Table", () => {
     expect(router.visit).toHaveBeenCalledWith("/versions/1");
   });
 });
-
-

@@ -81,9 +81,7 @@ describe("Dashboard/Index", () => {
   it("shows the webhook warning when sales_hook_disabled is true", () => {
     render(<Index {...defaultProps} sales_hook_disabled />);
 
-    expect(
-      screen.getByText("The WooCommerce Sales Webhook is Deactivated"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("The WooCommerce Sales Webhook is Deactivated")).toBeInTheDocument();
   });
 
   it("hides the webhook warning when sales_hook_disabled is false", () => {

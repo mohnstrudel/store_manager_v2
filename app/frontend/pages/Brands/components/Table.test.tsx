@@ -5,10 +5,9 @@ import { describe, expect, it } from "vitest";
 import Table from "./Table";
 import { makeBrand } from "../test/factories";
 
-
 describe("Brands/components/Table", () => {
   it("renders brand rows with show and edit links", () => {
-        render(<Table brands={[makeBrand()]}/>);
+    render(<Table brands={[makeBrand()]} />);
 
     expect(screen.getByRole("cell", { name: "Moonbow" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Show/ })).toHaveAttribute("href", "/brands/1");
@@ -17,7 +16,7 @@ describe("Brands/components/Table", () => {
 
   it("navigates to the brand page when a row is clicked", async () => {
     const user = userEvent.setup();
-        render(<Table brands={[makeBrand()]}/>);
+    render(<Table brands={[makeBrand()]} />);
     const brandRow = screen.getByRole("cell", { name: "Moonbow" }).closest("tr");
 
     expect(brandRow).not.toBeNull();
@@ -26,5 +25,3 @@ describe("Brands/components/Table", () => {
     expect(router.visit).toHaveBeenCalledWith("/brands/1");
   });
 });
-
-

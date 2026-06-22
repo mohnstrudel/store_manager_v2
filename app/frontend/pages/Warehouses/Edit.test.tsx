@@ -11,7 +11,7 @@ vi.mock("@/components/ImageUploader", () => ({
 
 describe("Warehouses/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-        render(<Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()}/>);
+    render(<Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()} />);
 
     expect(screen.getByRole("heading", { name: "Edit Warehouse" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Warehouse Page/ })).toHaveAttribute(
@@ -22,5 +22,3 @@ describe("Warehouses/Edit", () => {
     expect(screen.getByRole("button", { name: "Update Warehouse" })).toBeInTheDocument();
   });
 });
-
-

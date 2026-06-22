@@ -3,10 +3,9 @@ import { describe, expect, it } from "vitest";
 import Edit from "./Edit";
 import { makeBrand } from "./test/factories";
 
-
 describe("Brands/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-        render(<Edit brand={makeBrand()}/>);
+    render(<Edit brand={makeBrand()} />);
 
     expect(screen.getByRole("heading", { name: "Edit Brand" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Brand Page/ })).toHaveAttribute(
@@ -17,5 +16,3 @@ describe("Brands/Edit", () => {
     expect(screen.getByRole("button", { name: "Update Brand" })).toBeInTheDocument();
   });
 });
-
-

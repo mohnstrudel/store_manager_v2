@@ -8,9 +8,7 @@ describe("Passwords/New", () => {
     render(<New />);
 
     expect(screen.getByRole("heading", { name: "Forgot your password?" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Email reset instructions" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Email reset instructions" })).toBeInTheDocument();
   });
 
   it("renders the email address field", () => {
@@ -22,9 +20,7 @@ describe("Passwords/New", () => {
   it("prefills the email address when provided", () => {
     render(<New email_address="user@example.com" />);
 
-    expect(screen.getByRole("textbox", { name: "Email address" })).toHaveValue(
-      "user@example.com",
-    );
+    expect(screen.getByRole("textbox", { name: "Email address" })).toHaveValue("user@example.com");
   });
 
   it("posts to the passwords create route", () => {

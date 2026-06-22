@@ -5,10 +5,7 @@ import { router } from "@inertiajs/react";
 import { mockPage } from "@/test/mocks/inertia";
 import Show from "./Show";
 import { makePagination } from "@/test/factories";
-import {
-  makeWarehousePurchaseItem,
-  makeWarehouseShowRecord,
-} from "./test/factories";
+import { makeWarehousePurchaseItem, makeWarehouseShowRecord } from "./test/factories";
 import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
 
 vi.mock("@/components/ImageGallery", () => ({

@@ -29,30 +29,18 @@ export default function Table({ versions }: TableProps) {
           });
 
           return (
-            <tr
-              className="hoverable"
-              key={version.id}
-              {...rowNavigationProps(currentVersionPath)}
-            >
+            <tr className="hoverable" key={version.id} {...rowNavigationProps(currentVersionPath)}>
               <td>{version.id}</td>
               <td>{version.value}</td>
               <td>{version.created_at}</td>
               <td>{version.updated_at}</td>
               <td className="table_actions text-right">
                 <div className="flex flex-wrap justify-end gap-3">
-                  <Link
-                    href={currentVersionPath}
-                    onClick={stopRowNavigation}
-                    prefetch
-                  >
+                  <Link href={currentVersionPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">📄</i>
                     Show
                   </Link>
-                  <Link
-                    href={currentEditPath}
-                    onClick={stopRowNavigation}
-                    prefetch
-                  >
+                  <Link href={currentEditPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">✏</i>
                     Edit
                   </Link>

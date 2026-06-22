@@ -4,9 +4,7 @@ import TagSelect from "./TagSelect";
 
 describe("TagSelect", () => {
   it("renders a combobox with the rs class prefix applied", () => {
-    const { container } = render(
-      <TagSelect options={[{ value: "tag-1", label: "Tag A" }]} />,
-    );
+    const { container } = render(<TagSelect options={[{ value: "tag-1", label: "Tag A" }]} />);
 
     expect(container.querySelector(".rs__control")).toBeInTheDocument();
   });

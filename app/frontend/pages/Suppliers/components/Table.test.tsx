@@ -5,10 +5,9 @@ import { describe, expect, it } from "vitest";
 import Table from "./Table";
 import { makeSupplier } from "../test/factories";
 
-
 describe("Suppliers/components/Table", () => {
   it("renders supplier rows with show and edit links", () => {
-        render(<Table suppliers={[makeSupplier()]}/>);
+    render(<Table suppliers={[makeSupplier()]} />);
 
     expect(screen.getByRole("cell", { name: "GoodSmile" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Show/ })).toHaveAttribute("href", "/suppliers/1");
@@ -17,7 +16,7 @@ describe("Suppliers/components/Table", () => {
 
   it("navigates to the supplier page when a row is clicked", async () => {
     const user = userEvent.setup();
-        render(<Table suppliers={[makeSupplier()]}/>);
+    render(<Table suppliers={[makeSupplier()]} />);
     const supplierRow = screen.getByRole("cell", { name: "GoodSmile" }).closest("tr");
 
     expect(supplierRow).not.toBeNull();
@@ -26,5 +25,3 @@ describe("Suppliers/components/Table", () => {
     expect(router.visit).toHaveBeenCalledWith("/suppliers/1");
   });
 });
-
-

@@ -30,4 +30,3 @@ describe("Products/New", () => {
     expect(screen.getByRole("button", { name: "Create Product" })).toBeInTheDocument();
   });
 });
-

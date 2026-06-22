@@ -13,17 +13,10 @@ type SupplierFormProps = {
 };
 
 function validate(formData: FormData) {
-  return getFormString(formData, "supplier[title]").trim()
-    ? null
-    : { title: msg.blank };
+  return getFormString(formData, "supplier[title]").trim() ? null : { title: msg.blank };
 }
 
-export default function Form({
-  method,
-  submitLabel,
-  supplier,
-  url,
-}: SupplierFormProps) {
+export default function Form({ method, submitLabel, supplier, url }: SupplierFormProps) {
   return (
     <ResourceForm
       action={url}

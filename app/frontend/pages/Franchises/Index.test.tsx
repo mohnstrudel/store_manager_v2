@@ -3,10 +3,9 @@ import { describe, expect, it } from "vitest";
 import Index from "./Index";
 import { makeFranchise } from "./test/factories";
 
-
 describe("Franchises/Index", () => {
   it("renders the franchise heading, add link, and table row", () => {
-        render(<Index franchises={[makeFranchise()]}/>);
+    render(<Index franchises={[makeFranchise()]} />);
 
     expect(screen.getByRole("heading", { name: "Franchises" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add New Record/ })).toHaveAttribute(
@@ -21,5 +20,3 @@ describe("Franchises/Index", () => {
     );
   });
 });
-
-

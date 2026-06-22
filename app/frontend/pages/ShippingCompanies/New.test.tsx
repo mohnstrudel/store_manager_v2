@@ -4,16 +4,19 @@ import { mockPageProps } from "@/test/mocks/inertia";
 import New from "./New";
 import { makeShippingCompany } from "./test/factories";
 
-
 describe("ShippingCompanies/New", () => {
   it("renders the form", () => {
-        render(<New shippingCompany={makeShippingCompany({
-        id: null,
-        name: "",
-        tracking_url: null,
-        created_at: null,
-        updated_at: null,
-    })}/>);
+    render(
+      <New
+        shippingCompany={makeShippingCompany({
+          id: null,
+          name: "",
+          tracking_url: null,
+          created_at: null,
+          updated_at: null,
+        })}
+      />,
+    );
 
     expect(screen.getByRole("heading", { name: "New Shipping Company" })).toBeInTheDocument();
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
@@ -24,17 +27,19 @@ describe("ShippingCompanies/New", () => {
   it("renders field validation errors", () => {
     mockPageProps({ errors: { tracking_url: "can't be blank" } });
 
-        render(<New shippingCompany={makeShippingCompany({
-        id: null,
-        name: "",
-        tracking_url: null,
-        created_at: null,
-        updated_at: null,
-    })}/>);
+    render(
+      <New
+        shippingCompany={makeShippingCompany({
+          id: null,
+          name: "",
+          tracking_url: null,
+          created_at: null,
+          updated_at: null,
+        })}
+      />,
+    );
 
     expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
     expect(screen.getAllByText("can't be blank").length).toBeGreaterThan(0);
   });
 });
-
-

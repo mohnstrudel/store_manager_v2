@@ -23,4 +23,3 @@ describe("Customers/New", () => {
     expect(screen.getAllByText("can't be blank").length).toBeGreaterThan(0);
   });
 });
-

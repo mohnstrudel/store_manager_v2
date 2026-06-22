@@ -33,11 +33,7 @@ export default function Show({ purchases, supplier }: ShowProps) {
         <Purchases purchases={purchases} />
       </div>
 
-      <Button
-        className="w-full h-12 mt-16"
-        onClick={destroySupplier}
-        variant="danger"
-      >
+      <Button className="w-full h-12 mt-16" onClick={destroySupplier} variant="danger">
         Destroy this supplier
       </Button>
     </>

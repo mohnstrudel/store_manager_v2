@@ -33,7 +33,10 @@ describe("rowNavigationProps", () => {
       const props = rowNavigationProps("/products/1");
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-      props.onClick({ metaKey: false, ctrlKey: false } as unknown as MouseEvent<HTMLTableRowElement>);
+      props.onClick({
+        metaKey: false,
+        ctrlKey: false,
+      } as unknown as MouseEvent<HTMLTableRowElement>);
 
       expect(router.visit).toHaveBeenCalledWith("/products/1");
     });
@@ -42,7 +45,10 @@ describe("rowNavigationProps", () => {
       const props = rowNavigationProps("/products/1");
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-      props.onClick({ metaKey: true, ctrlKey: false } as unknown as MouseEvent<HTMLTableRowElement>);
+      props.onClick({
+        metaKey: true,
+        ctrlKey: false,
+      } as unknown as MouseEvent<HTMLTableRowElement>);
 
       expect(window.open).toHaveBeenCalledWith("/products/1", "_blank", "noopener,noreferrer");
     });
@@ -51,7 +57,10 @@ describe("rowNavigationProps", () => {
       const props = rowNavigationProps("/products/1");
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-      props.onClick({ metaKey: false, ctrlKey: true } as unknown as MouseEvent<HTMLTableRowElement>);
+      props.onClick({
+        metaKey: false,
+        ctrlKey: true,
+      } as unknown as MouseEvent<HTMLTableRowElement>);
 
       expect(window.open).toHaveBeenCalledWith("/products/1", "_blank", "noopener,noreferrer");
     });

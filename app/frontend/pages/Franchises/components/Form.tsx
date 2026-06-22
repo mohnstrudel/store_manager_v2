@@ -13,17 +13,10 @@ type FranchiseFormProps = {
 };
 
 function validate(formData: FormData) {
-  return getFormString(formData, "franchise[title]").trim()
-    ? null
-    : { title: msg.blank };
+  return getFormString(formData, "franchise[title]").trim() ? null : { title: msg.blank };
 }
 
-export default function Form({
-  franchise,
-  method,
-  submitLabel,
-  url,
-}: FranchiseFormProps) {
+export default function Form({ franchise, method, submitLabel, url }: FranchiseFormProps) {
   return (
     <ResourceForm
       action={url}

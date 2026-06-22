@@ -3,10 +3,9 @@ import { describe, expect, it } from "vitest";
 import Edit from "./Edit";
 import { makeUserForm } from "./test/factories";
 
-
 describe("Users/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-        render(<Edit is_admin={false} role_options={[["Manager", "manager"]]} user={makeUserForm()}/>);
+    render(<Edit is_admin={false} role_options={[["Manager", "manager"]]} user={makeUserForm()} />);
 
     expect(screen.getByRole("heading", { name: "Edit User" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View User Page/ })).toHaveAttribute(
@@ -20,5 +19,3 @@ describe("Users/Edit", () => {
     expect(screen.getByRole("button", { name: "Update User" })).toBeInTheDocument();
   });
 });
-
-
