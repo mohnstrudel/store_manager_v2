@@ -21,9 +21,7 @@ RSpec.describe "Editing a product" do
 
     expect(page).to have_current_path(edit_product_path(product))
     expect(page).to have_content("Fix errors and try again")
-    within all(".variant-fields").first do
-      expect(page).to have_content("has already been taken")
-    end
+    expect(page).to have_css(".variant-fields", text: "has already been taken")
     error = find(".variant-fields .text_error", text: "has already been taken", visible: :all)
     expect(error[:class]).to include("absolute")
     expect(
