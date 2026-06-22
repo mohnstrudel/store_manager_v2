@@ -69,8 +69,12 @@ export default function MoveToWarehouseForm({
         className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4"
         onSubmit={handleSubmit}
       >
+        <label className="sr-only" htmlFor="warehouse-destination">
+          Destination warehouse
+        </label>
         <SmartSelect
           className="flex-1"
+          inputId="warehouse-destination"
           menuPlacement="top"
           onChange={handleDestinationChange}
           options={warehouseOptions}
