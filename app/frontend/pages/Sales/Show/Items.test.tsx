@@ -63,6 +63,15 @@ describe("Sales/Show/Items", () => {
     expect(screen.getByText("NO PURCHASE")).toBeInTheDocument();
   });
 
+  it("hides the checkbox column when no sale items have linked purchases", () => {
+    renderItems([
+      makeSaleShowSaleItem({ purchase_items: [] }),
+      makeSaleShowSaleItem({ id: 12, purchase_items: [] }),
+    ]);
+
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  });
+
   it("renders warehouse movement history when the purchase item has prior moves", () => {
     renderItems([
       makeSaleShowSaleItem({

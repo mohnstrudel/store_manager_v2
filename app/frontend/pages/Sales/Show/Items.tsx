@@ -18,6 +18,7 @@ type ItemsProps = {
 
 type SelectionProps = {
   selectedIds: number[];
+  showPurchaseColumn: boolean;
   toggleSelectedIdFromDataAttribute: (
     attributeName: string,
   ) => (event: ChangeEvent<HTMLInputElement>) => void;
@@ -28,6 +29,8 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
     useWarehouseMoveSelection();
 
   if (saleItems.length === 0) return null;
+
+  const showPurchaseColumn = saleItems.some((si) => si.purchase_items.length > 0);
 
   return (
     <div className="table_card full_width">
@@ -42,8 +45,8 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
       <table>
         <thead>
           <tr>
-            <th />
-            <th className="text-center">Image</th>
+            {showPurchaseColumn && <th />}
+            <th className="text-center w-[106px] lg:w-[114px]">Image</th>
             <th>Product</th>
             <th className="text-right">Price, $</th>
             <th className="text-center">Purchased / Sold</th>
@@ -55,6 +58,7 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
               key={saleItem.id}
               saleItem={saleItem}
               selectedIds={selectedIds}
+              showPurchaseColumn={showPurchaseColumn}
               toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
             />
           ))}
@@ -67,24 +71,27 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
 function SaleItemRow({
   saleItem,
   selectedIds,
+  showPurchaseColumn,
   toggleSelectedIdFromDataAttribute,
 }: { saleItem: SaleShowSaleItemRecord } & SelectionProps) {
   const hasPurchaseItems = saleItem.purchase_items.length > 0;
 
   return (
     <tr className="cursor-default">
-      <td className="text-center align-center pt-4">
-        {saleItem.purchase_items.map((purchaseItem) => (
-          <div key={purchaseItem.id} className="mt-4 first:mt-0">
-            <input
-              checked={selectedIds.includes(purchaseItem.id)}
-              data-purchase-item-id={purchaseItem.id}
-              onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
-              type="checkbox"
-            />
-          </div>
-        ))}
-      </td>
+      {showPurchaseColumn && (
+        <td className="text-center align-center pt-4">
+          {saleItem.purchase_items.map((purchaseItem) => (
+            <div key={purchaseItem.id} className="mt-4 first:mt-0">
+              <input
+                checked={selectedIds.includes(purchaseItem.id)}
+                data-purchase-item-id={purchaseItem.id}
+                onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
+                type="checkbox"
+              />
+            </div>
+          ))}
+        </td>
+      )}
       <td>
         <ZoomableThumbnail
           alt={saleItem.title}
