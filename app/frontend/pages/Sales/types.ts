@@ -1,3 +1,5 @@
+import type { WarehouseOption } from "@/types/warehouse";
+
 export type SelectOption<Value extends string | number = string | number> = {
   value: Value;
   label: string;
@@ -140,6 +142,8 @@ export type SaleCustomerRecord = {
 export type SaleShowRecord = {
   id: number;
   path: string;
+  warehouses: WarehouseOption[];
+  warehouse_move_path: string;
   edit_path: string;
   pull_path: string;
   link_purchase_items_path: string;

@@ -19,7 +19,12 @@ export default function Show({ sale }: ShowProps) {
       </PageHeader>
 
       <div className="section_wide flex flex-col gap-8 mt-8">
-        <Items saleItems={sale.sale_items} />
+        <Items
+          saleId={sale.id}
+          saleItems={sale.sale_items}
+          warehouseMovePath={sale.warehouse_move_path}
+          warehouses={sale.warehouses}
+        />
         <Details sale={sale} />
       </div>
     </>

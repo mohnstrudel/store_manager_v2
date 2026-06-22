@@ -176,6 +176,11 @@ export function makeSaleShow(overrides: Partial<SaleShowRecord> = {}): SaleShowR
     woo_store_id: "WOO-1",
     shop_identifier: "HSCM#1746",
     billing_differs_from_shipping: true,
+    warehouses: [
+      { id: 1, name: "Berlin Hub" },
+      { id: 2, name: "Paris Hub" },
+    ],
+    warehouse_move_path: "/purchase_items/move",
     customer: makeSaleCustomer(),
     shipping_address: makeSaleAddress(),
     billing_address: makeSaleAddress({

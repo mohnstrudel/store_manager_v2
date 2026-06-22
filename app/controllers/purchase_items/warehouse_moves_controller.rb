@@ -23,6 +23,7 @@ module PurchaseItems
     end
 
     def redirect_target
+      return sale_path(params[:sale_id]) if params[:sale_id].present?
       return purchase_path(params[:purchase_id]) if params[:purchase_id].present?
       return selected_sale_item if redirect_to_sale_item?
 

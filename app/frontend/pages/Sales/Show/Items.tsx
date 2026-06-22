@@ -1,23 +1,48 @@
-import { useCallback, type MouseEvent } from "react";
+import { useCallback, type ChangeEvent, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { useConfirmAction } from "@/utils/useConfirmAction";
+import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+import type { WarehouseOption } from "@/types/warehouse";
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {
+  saleId: number;
   saleItems: SaleShowSaleItemRecord[];
+  warehouseMovePath: string;
+  warehouses: WarehouseOption[];
 };
 
-export default function Items({ saleItems }: ItemsProps) {
+type SelectionProps = {
+  selectedIds: number[];
+  toggleSelectedIdFromDataAttribute: (
+    attributeName: string,
+  ) => (event: ChangeEvent<HTMLInputElement>) => void;
+};
+
+export default function Items({ saleId, saleItems, warehouseMovePath, warehouses }: ItemsProps) {
+  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
+    useWarehouseMoveSelection();
+
   if (saleItems.length === 0) return null;
 
   return (
     <div className="table_card full_width">
+      <MoveToWarehouseForm
+        movePath={warehouseMovePath}
+        onMoved={clearSelectedIds}
+        saleId={saleId}
+        selectedIds={selectedIds}
+        warehouses={warehouses}
+      />
+
       <table>
         <thead>
           <tr>
+            <th />
             <th className="text-center">Image</th>
             <th>Product</th>
             <th className="text-right">Price, $</th>
@@ -26,7 +51,12 @@ export default function Items({ saleItems }: ItemsProps) {
         </thead>
         <tbody>
           {saleItems.map((saleItem) => (
-            <SaleItemRow key={saleItem.id} saleItem={saleItem} />
+            <SaleItemRow
+              key={saleItem.id}
+              saleItem={saleItem}
+              selectedIds={selectedIds}
+              toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
+            />
           ))}
         </tbody>
       </table>
@@ -34,11 +64,27 @@ export default function Items({ saleItems }: ItemsProps) {
   );
 }
 
-function SaleItemRow({ saleItem }: { saleItem: SaleShowSaleItemRecord }) {
+function SaleItemRow({
+  saleItem,
+  selectedIds,
+  toggleSelectedIdFromDataAttribute,
+}: { saleItem: SaleShowSaleItemRecord } & SelectionProps) {
   const hasPurchaseItems = saleItem.purchase_items.length > 0;
 
   return (
     <tr className="cursor-default">
+      <td className="text-center align-center pt-4">
+        {saleItem.purchase_items.map((purchaseItem) => (
+          <div key={purchaseItem.id} className="mt-4 first:mt-0">
+            <input
+              checked={selectedIds.includes(purchaseItem.id)}
+              data-purchase-item-id={purchaseItem.id}
+              onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
+              type="checkbox"
+            />
+          </div>
+        ))}
+      </td>
       <td>
         <ZoomableThumbnail
           alt={saleItem.title}

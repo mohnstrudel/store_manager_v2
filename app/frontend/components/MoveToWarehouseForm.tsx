@@ -8,6 +8,7 @@ type MoveToWarehouseFormProps = {
   onMoved?: () => void;
   purchaseId?: number;
   redirectToSaleItem?: boolean;
+  saleId?: number;
   selectedIds: number[];
   warehouses: WarehouseOption[];
 };
@@ -18,6 +19,7 @@ export default function MoveToWarehouseForm({
   onMoved,
   purchaseId,
   redirectToSaleItem = false,
+  saleId,
   selectedIds,
   warehouses,
 }: MoveToWarehouseFormProps) {
@@ -39,12 +41,13 @@ export default function MoveToWarehouseForm({
           destination_id: destinationId,
           purchase_id: purchaseId,
           redirect_to_sale_item: redirectToSaleItem || undefined,
+          sale_id: saleId,
           selected_items_ids: selectedIds,
         },
         { onSuccess: onMoved },
       );
     },
-    [destinationId, movePath, onMoved, purchaseId, redirectToSaleItem, selectedIds],
+    [destinationId, movePath, onMoved, purchaseId, redirectToSaleItem, saleId, selectedIds],
   );
 
   if (!visible) return null;
@@ -73,7 +76,7 @@ export default function MoveToWarehouseForm({
           <i className="icn">🚚</i>
           Move
           {selectedIds.length > 0 && (
-            <span className="text-nowrap -ml-1"> {selectedIds.length}</span>
+            <span className="text-nowrap -ml-1">&nbsp;{selectedIds.length}</span>
           )}
         </button>
       </form>

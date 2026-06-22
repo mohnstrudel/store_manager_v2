@@ -255,6 +255,8 @@ RSpec.describe "Sales" do
       expect(sale_props[:sale_items].first[:purchase_items].first[:current_warehouse_name]).to eq(
         "Berlin Hub"
       )
+      expect(sale_props[:warehouse_move_path]).to eq(warehouse_move_path)
+      expect(sale_props[:warehouses]).to include(a_hash_including(id: warehouse.id, name: "Berlin Hub"))
     end
   end
 end
