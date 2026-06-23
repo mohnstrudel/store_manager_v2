@@ -1,7 +1,7 @@
 // Canonical test double for "@inertiajs/react".
 //
-// Activate per test file with:
-//   vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
+// Applied globally via vitest.config.ts resolve.alias — no per-file vi.mock call needed.
+// Every test file that imports from "@inertiajs/react" automatically gets this module.
 //
 // Assert navigation via the shared router mock:
 //   import { router } from "@inertiajs/react";
@@ -19,7 +19,16 @@
 // overrides reset automatically before each test. Apply helpers in beforeEach
 // or per test, never at module/describe scope.
 
-import { useState, type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type AnchorHTMLAttributes,
+  type FormEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { vi } from "vitest";
 
 // Structural match of @inertiajs/core's Page type (transitive dep, not directly importable).
@@ -103,22 +112,41 @@ export function Link({
 
 type FormSlot = { errors: Record<string, string>; processing: boolean };
 
+type FormRef = { getFormData: () => FormData };
+
 type FormStubProps = {
   action: string;
   children: ReactNode | ((slot: FormSlot) => ReactNode);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  disableWhileProcessing?: boolean;
   method?: string;
+  onBefore?: () => false | undefined;
 };
 
-export function Form({ action, children, method }: FormStubProps) {
+export const Form = forwardRef<FormRef, FormStubProps>(function Form(
+  { action, children, method, onBefore },
+  ref,
+) {
+  const formRef = useRef<HTMLFormElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const errors = (usePage().props.errors ?? {}) as Record<string, string>;
   const slot: FormSlot = { errors, processing: false };
 
+  useImperativeHandle(ref, () => ({
+    getFormData: () => new FormData(formRef.current ?? undefined),
+  }));
+
   return (
-    <form action={action} data-method={method}>
+    <form ref={formRef} action={action} data-method={method} onSubmit={handleSubmit}>
       {typeof children === "function" ? children(slot) : children}
     </form>
   );
-}
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (onBefore?.() === false) return;
+  }
+});
 
 // vi.fn with a default impl so mockReset restores () => null between tests.
 // Usage: nextFormErrors.mockReturnValueOnce({ field: "message" })

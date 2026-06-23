@@ -1,10 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Index from "./Index";
-import { makeCustomer, makePagination } from "./test/factories";
+import { makePagination } from "@/test/factories";
+import { makeCustomer } from "./test/factories";
 import type { CustomerRecord, PaginationMeta } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Customers/Index", () => {
   it("renders the customers table and new-record link", () => {

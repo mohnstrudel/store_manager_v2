@@ -6,7 +6,6 @@ import Form from "./Form";
 import { makeShippingCompany } from "../test/factories";
 import type { ShippingCompanyRecord } from "../types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 describe("ShippingCompanies/components/Form", () => {
@@ -53,9 +52,7 @@ describe("ShippingCompanies/components/Form", () => {
 
       expect(screen.getByLabelText("Name")).toHaveValue("DHL");
       expect(screen.getByLabelText("Tracking URL")).toHaveValue("https://dhl.com/track");
-      expect(
-        screen.getByRole("button", { name: "Update Shipping Company" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Update Shipping Company" })).toBeInTheDocument();
     });
 
     it("shows validation errors on the tracking URL field", () => {

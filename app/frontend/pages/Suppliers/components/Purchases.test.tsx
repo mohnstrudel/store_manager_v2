@@ -1,20 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { router } from "@inertiajs/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Purchases from "./Purchases";
 import { makeSupplierPurchase } from "../test/factories";
 import type { PurchaseRecord } from "../types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Suppliers/components/Purchases", () => {
   it("renders linked purchases", () => {
     renderPurchases();
 
-    expect(
-      screen.getByRole("heading", { name: "Purchases" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Purchases" })).toBeInTheDocument();
     expect(screen.getByText("Pokemon - Pikachu")).toBeInTheDocument();
   });
 
@@ -32,9 +28,7 @@ describe("Suppliers/components/Purchases", () => {
   it("hides the section when there are no purchases", () => {
     renderPurchases({ purchases: [] });
 
-    expect(
-      screen.queryByRole("heading", { name: "Purchases" })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Purchases" })).not.toBeInTheDocument();
   });
 });
 

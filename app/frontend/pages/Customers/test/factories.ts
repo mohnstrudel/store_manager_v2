@@ -1,11 +1,17 @@
-import type { CustomerDetailRecord, CustomerRecord, PaginationMeta, SaleRecord } from "../types";
+import type { CustomerDetailRecord, CustomerRecord, SaleRecord } from "../types";
 
-export function makePagination(overrides: Partial<PaginationMeta> = {}): PaginationMeta {
+export function makeCustomerForm(overrides: Partial<CustomerRecord> = {}): CustomerRecord {
   return {
-    current_page: 1,
-    total_pages: 1,
-    total_count: 1,
-    limit: 50,
+    id: null,
+    first_name: "",
+    last_name: "",
+    full_name: "",
+    email: "",
+    phone: "",
+    woo_store_id: "",
+    created_at: null,
+    updated_at: null,
+    path: "/customers/new",
     ...overrides,
   };
 }

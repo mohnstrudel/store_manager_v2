@@ -6,21 +6,16 @@ import Show from "./Show";
 import { makeFranchise, makeFranchiseProduct } from "./test/factories";
 import type { FranchiseRecord, ProductRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Franchises/Show", () => {
   it("renders the franchise details and linked products", () => {
     renderShow();
 
-    expect(
-      screen.getByRole("heading", { name: "Pokemon" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Products" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Pokemon - Pikachu" })
-    ).toHaveAttribute("href", "/products/10");
+    expect(screen.getByRole("heading", { name: "Pokemon" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Products" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Pokemon - Pikachu" })).toHaveAttribute(
+      "href",
+      "/products/10",
+    );
   });
 
   it("links to the edit page", () => {
@@ -28,16 +23,14 @@ describe("Franchises/Show", () => {
 
     expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
       "href",
-      "/franchises/1/edit"
+      "/franchises/1/edit",
     );
   });
 
   it("hides the products section when there are no linked products", () => {
     renderShow({ products: [] });
 
-    expect(
-      screen.queryByRole("heading", { name: "Products" })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Products" })).not.toBeInTheDocument();
   });
 
   describe("destroy", () => {
@@ -46,9 +39,7 @@ describe("Franchises/Show", () => {
       vi.spyOn(window, "confirm").mockReturnValue(true);
       renderShow();
 
-      await user.click(
-        screen.getByRole("button", { name: "Destroy this franchise" })
-      );
+      await user.click(screen.getByRole("button", { name: "Destroy this franchise" }));
 
       expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
       expect(router.delete).toHaveBeenCalledWith("/franchises/1");
@@ -59,9 +50,7 @@ describe("Franchises/Show", () => {
       vi.spyOn(window, "confirm").mockReturnValue(false);
       renderShow();
 
-      await user.click(
-        screen.getByRole("button", { name: "Destroy this franchise" })
-      );
+      await user.click(screen.getByRole("button", { name: "Destroy this franchise" }));
 
       expect(router.delete).not.toHaveBeenCalled();
     });

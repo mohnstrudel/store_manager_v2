@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormControl from "@/components/FormControl";
 import FormError from "@/components/FormError";
@@ -6,15 +6,11 @@ import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
-
-import type SmartSelectType from "@/components/SmartSelect";
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- React.lazy erases generic type params; cast is required to preserve Option inference in JSX
-const SmartSelect = lazy(
-  () => import("@/components/SmartSelect"),
-) as unknown as typeof SmartSelectType;
-const SELECT_FALLBACK = <SelectSkeleton />;
+import SmartSelect from "@/components/lazySmartSelect";
 import { toSelectedOption } from "@/utils/selectOptions";
 import { type SelectOption, type VariantFormData } from "../../types";
+
+const SELECT_FALLBACK = <SelectSkeleton />;
 
 type VariantFieldsProps = {
   colors: SelectOption<number>[];

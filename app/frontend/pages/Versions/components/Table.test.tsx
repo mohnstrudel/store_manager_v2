@@ -1,34 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { router } from "@inertiajs/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Table from "./Table";
 import { makeVersion } from "../test/factories";
-import type { VersionRecord } from "../types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Versions/components/Table", () => {
   it("renders version rows with show and edit links", () => {
-    renderTable();
+    render(<Table versions={[makeVersion()]} />);
 
     expect(screen.getByRole("cell", { name: "Classic" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Show/ })).toHaveAttribute(
-      "href",
-      "/versions/1"
-    );
-    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
-      "href",
-      "/versions/1/edit"
-    );
+    expect(screen.getByRole("link", { name: /Show/ })).toHaveAttribute("href", "/versions/1");
+    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute("href", "/versions/1/edit");
   });
 
   it("navigates to the version page when a row is clicked", async () => {
     const user = userEvent.setup();
-    renderTable();
-    const versionRow = screen
-      .getByRole("cell", { name: "Classic" })
-      .closest("tr");
+    render(<Table versions={[makeVersion()]} />);
+    const versionRow = screen.getByRole("cell", { name: "Classic" }).closest("tr");
 
     expect(versionRow).not.toBeNull();
     await user.click(versionRow!);
@@ -36,9 +25,3 @@ describe("Versions/components/Table", () => {
     expect(router.visit).toHaveBeenCalledWith("/versions/1");
   });
 });
-
-function renderTable({
-  versions = [makeVersion()],
-}: { versions?: VersionRecord[] } = {}) {
-  return render(<Table versions={versions} />);
-}

@@ -23,7 +23,8 @@ export default function CopyToClipboardButton({
 
   return (
     <button
-      className={`btn_rounded no_events cursor-pointer transition-all ease-out ${copied ? "btn_amber" : ""} ${className}`}
+      className={`btn_rounded no_events cursor-pointer transition-all ease-out ${className}`}
+      data-copied={copied || undefined}
       data-copy-to-clipboard-text-value={text}
       onClick={handleClick}
       title="Copy to clipboard"

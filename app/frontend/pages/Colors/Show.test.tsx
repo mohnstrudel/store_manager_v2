@@ -6,8 +6,6 @@ import Show from "./Show";
 import { makeColor, makeColorProduct } from "./test/factories";
 import type { ColorRecord, ProductRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Colors/Show", () => {
   it("renders color details and linked products", () => {
     renderShow();

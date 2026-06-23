@@ -8,13 +8,15 @@
 
 ## Completion
 
-Before declaring work complete:
+Before declaring work complete, run the **full** suite — not just files touched in the current task:
 
-- Lint every changed file relevant to the work.
-- For frontend changes, run the relevant oxlint command, including React performance rules.
-- Run relevant tests.
-- Update affected tests when behavior changes.
-- Do not leave failing tests.
+- `PARALLEL_TEST_PROCESSORS=6 mise exec -- bin/parallel-rspec` — all RSpec examples must pass.
+- `mise exec -- pnpm exec vitest run` — all Vitest tests must pass.
+- `mise exec -- pnpm exec oxlint app/frontend` — zero errors (warnings are pre-existing and acceptable).
+- `mise exec -- pnpm exec oxfmt --check app/frontend …` — no formatting violations.
+- `mise exec -- pnpm exec tsc --noEmit` — zero type errors.
+
+Do not stop until every check above is green. Update any affected tests when behaviour changes.
 
 ## Safety
 

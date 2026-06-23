@@ -33,11 +33,7 @@ export default function Show({ products, version }: ShowProps) {
         <Products products={products} />
       </div>
 
-      <Button
-        className="w-full h-12 mt-16"
-        onClick={destroyVersion}
-        variant="danger"
-      >
+      <Button className="w-full h-12 mt-16" onClick={destroyVersion} variant="danger">
         Destroy this version
       </Button>
     </>

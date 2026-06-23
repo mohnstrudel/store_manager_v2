@@ -24,10 +24,7 @@ export default function Products({ products }: ProductsProps) {
             <tr key={product.id}>
               <td className="text-gray-500">{product.id}</td>
               <td>
-                <Link
-                  href={routes.products.show.path({ id: product.id })}
-                  prefetch
-                >
+                <Link href={routes.products.show.path({ id: product.id })} prefetch>
                   {product.full_title}
                 </Link>
               </td>

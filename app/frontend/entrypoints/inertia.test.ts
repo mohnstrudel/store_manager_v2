@@ -7,17 +7,17 @@ import {
   enableInertiaNavigationBridge,
 } from "./inertia";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 vi.mock("@/utils/resolvePage", () => ({
   resolvePage: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
 // Captured at module scope: createInertiaApp and router.on("navigate") run at
 // import time of "./inertia", before mockReset clears call history for test 1.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const createInertiaAppOptions = vi.mocked(createInertiaApp).mock.calls[0]?.[0] as
   | { layout: () => typeof AppLayout }
   | undefined;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const navigateHandler = vi
   .mocked(router.on)
   .mock.calls.find(([event]) => event === "navigate")?.[1] as (() => void) | undefined;

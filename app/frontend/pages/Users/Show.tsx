@@ -67,11 +67,7 @@ export default function Show({ user }: ShowProps) {
         </table>
       </section>
 
-      <Button
-        className="w-full h-12 mt-16"
-        onClick={destroyUser}
-        variant="danger"
-      >
+      <Button className="w-full h-12 mt-16" onClick={destroyUser} variant="danger">
         Destroy this user
       </Button>
     </>

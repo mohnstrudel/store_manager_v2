@@ -1,6 +1,9 @@
 import { router } from "@inertiajs/react";
-import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
+import { useCallback, type FormEvent, useState } from "react";
 import type { WarehouseOption } from "@/types/warehouse";
+import SmartSelect from "@/components/SmartSelect";
+
+type WarehouseSelectOption = { value: number; label: string };
 
 type MoveToWarehouseFormProps = {
   fixed?: boolean;
@@ -8,6 +11,7 @@ type MoveToWarehouseFormProps = {
   onMoved?: () => void;
   purchaseId?: number;
   redirectToSaleItem?: boolean;
+  saleId?: number;
   selectedIds: number[];
   warehouses: WarehouseOption[];
 };
@@ -18,33 +22,37 @@ export default function MoveToWarehouseForm({
   onMoved,
   purchaseId,
   redirectToSaleItem = false,
+  saleId,
   selectedIds,
   warehouses,
 }: MoveToWarehouseFormProps) {
-  const [destinationId, setDestinationId] = useState("");
+  const [destination, setDestination] = useState<WarehouseSelectOption | null>(null);
   const visible = selectedIds.length > 0;
 
-  const handleDestinationChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    setDestinationId(event.target.value);
+  const warehouseOptions = warehouses.map((w) => ({ value: w.id, label: w.name }));
+
+  const handleDestinationChange = useCallback((option: WarehouseSelectOption | null) => {
+    setDestination(option);
   }, []);
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!destinationId) return;
+      if (!destination) return;
 
       router.post(
         movePath,
         {
-          destination_id: destinationId,
+          destination_id: String(destination.value),
           purchase_id: purchaseId,
           redirect_to_sale_item: redirectToSaleItem || undefined,
+          sale_id: saleId,
           selected_items_ids: selectedIds,
         },
         { onSuccess: onMoved },
       );
     },
-    [destinationId, movePath, onMoved, purchaseId, redirectToSaleItem, selectedIds],
+    [destination, movePath, onMoved, purchaseId, redirectToSaleItem, saleId, selectedIds],
   );
 
   if (!visible) return null;
@@ -61,19 +69,23 @@ export default function MoveToWarehouseForm({
         className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4"
         onSubmit={handleSubmit}
       >
-        <select className="select" onChange={handleDestinationChange} value={destinationId}>
-          <option value="">Select a warehouse</option>
-          {warehouses.map((warehouse) => (
-            <option key={warehouse.id} value={warehouse.id}>
-              {warehouse.name}
-            </option>
-          ))}
-        </select>
+        <label className="sr-only" htmlFor="warehouse-destination">
+          Destination warehouse
+        </label>
+        <SmartSelect
+          className="flex-1"
+          inputId="warehouse-destination"
+          menuPlacement="top"
+          onChange={handleDestinationChange}
+          options={warehouseOptions}
+          placeholder="Select a warehouse"
+          value={destination}
+        />
         <button className="btn_rounded btn_blue h-11 w-full lg:w-auto" type="submit">
           <i className="icn">🚚</i>
           Move
           {selectedIds.length > 0 && (
-            <span className="text-nowrap -ml-1"> {selectedIds.length}</span>
+            <span className="text-nowrap -ml-1">&nbsp;{selectedIds.length}</span>
           )}
         </button>
       </form>

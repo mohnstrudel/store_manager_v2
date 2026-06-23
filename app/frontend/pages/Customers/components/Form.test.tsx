@@ -3,51 +3,42 @@ import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import Form from "./Form";
-import { makeCustomer } from "../test/factories";
+import { makeCustomer, makeCustomerForm } from "../test/factories";
 import type { CustomerRecord } from "../types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 describe("Customers/components/Form", () => {
-
   describe("form shell", () => {
     it("configures action, method, and labels for a new customer", () => {
       renderForm({
-        customer: makeCustomer({
-          id: null,
-          first_name: "",
-          last_name: "",
-          full_name: "",
-          email: "",
-          phone: "",
-          woo_store_id: "",
-          created_at: null,
-          updated_at: null,
-          path: "/customers/new",
-        }),
+        customer: makeCustomerForm(),
         method: "post",
         submitLabel: "Create Customer",
         url: "/customers",
       });
 
-      expect(lastCapturedProps()).toEqual(expect.objectContaining({
-        action: "/customers",
-        cancelHref: "/customers",
-        method: "post",
-        submitLabel: "Create Customer",
-      }));
+      expect(lastCapturedProps()).toEqual(
+        expect.objectContaining({
+          action: "/customers",
+          cancelHref: "/customers",
+          method: "post",
+          submitLabel: "Create Customer",
+        }),
+      );
     });
 
     it("configures action, method, and labels for an existing customer", () => {
       renderForm();
 
-      expect(lastCapturedProps()).toEqual(expect.objectContaining({
-        action: "/customers/1",
-        cancelHref: "/customers",
-        method: "patch",
-        submitLabel: "Update Customer",
-      }));
+      expect(lastCapturedProps()).toEqual(
+        expect.objectContaining({
+          action: "/customers/1",
+          cancelHref: "/customers",
+          method: "patch",
+          submitLabel: "Update Customer",
+        }),
+      );
     });
   });
 

@@ -1,18 +1,10 @@
+import { forwardRef, useCallback, useEffect, useState, type ChangeEvent } from "react";
 import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useState,
-  type ChangeEvent,
-} from "react";
-import FormError from "@/components/FormError";
-import {
-  InlineCellForm,
-  InlineCellTd,
-  InlineCellTrigger,
+  InlineCellEditor,
+  type InlineCellEditorHandle,
   useInlineCellForm,
 } from "@/components/inline-cell-editing";
+import { purchaseItemResource } from "@/components/purchase-item-cells/resource";
 import routes from "@/utils/routes";
 import type { PurchaseItemRecord } from "../types";
 
@@ -23,69 +15,61 @@ type ShippingCostEditorProps = {
   onBulkSave?: () => void;
 };
 
-export const InlineShippingCostEditor = forwardRef<
-  { open(): void; close(): void; getValue(): string },
-  ShippingCostEditorProps
->(function InlineShippingCostEditor({ item, onAutoOpen, autoFocus = true, onBulkSave }, ref) {
-  const [hideDefaultZero, setHideDefaultZero] = useState(true);
-  const { isOpen, isSaved, open, close, openSilently, error, onChange, save, value } =
-    useInlineCellForm({
+export const InlineShippingCostEditor = forwardRef<InlineCellEditorHandle, ShippingCostEditorProps>(
+  function InlineShippingCostEditor({ item, onAutoOpen, autoFocus = true, onBulkSave }, ref) {
+    const [hideDefaultZero, setHideDefaultZero] = useState(true);
+    const form = useInlineCellForm({
       editedRecord: item,
       attributeName: "shipping_cost",
       route: routes.purchaseItemsShippingCosts.update,
+      ...purchaseItemResource,
       normalizeValueForSave: normalizeShippingCostValue,
       onOpen: onAutoOpen,
     });
 
-  useImperativeHandle(ref, () => ({ open: openSilently, close, getValue: () => value }));
+    useEffect(() => {
+      if (!form.isOpen) setHideDefaultZero(true);
+    }, [form.isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) setHideDefaultZero(true);
-  }, [isOpen]);
+    const { onChange } = form;
+    const handleChange = useCallback(
+      (event: ChangeEvent<HTMLInputElement>) => {
+        setHideDefaultZero(false);
+        onChange(event);
+      },
+      [onChange],
+    );
 
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setHideDefaultZero(false);
-      onChange(event);
-    },
-    [onChange],
-  );
+    const inputValue = hideDefaultZero && form.value === "0" ? "" : form.value;
+    const fieldId = `purchase_item_${item.id}_shipping_cost`;
 
-  const displayValue = hideDefaultZero && value === "0" ? "" : value;
-
-  return (
-    <InlineCellTd
-      className="text-center min-w-24"
-      isSaved={isSaved}
-      onOpen={isOpen ? undefined : open}
-    >
-      {isOpen ? (
-        <InlineCellForm onCancel={close} onSave={onBulkSave ?? save}>
-          <label className="sr-only" htmlFor={`purchase_item_${item.id}_shipping_cost`}>
-            Shipping cost
-          </label>
-          <input
-            autoFocus={autoFocus}
-            className="border rounded px-2 py-1 text-sm w-full"
-            id={`purchase_item_${item.id}_shipping_cost`}
-            min="0"
-            onChange={handleChange}
-            step="1"
-            type="number"
-            value={displayValue}
-          />
-          <FormError>{error}</FormError>
-        </InlineCellForm>
-      ) : (
-        <InlineCellTrigger ariaLabel="Edit shipping cost" onOpen={open}>
-          {Number(item.shipping_cost) > 0 ? (
-            <span className="font-mono text-sm">{item.shipping_cost}</span>
-          ) : null}
-        </InlineCellTrigger>
-      )}
-    </InlineCellTd>
-  );
-});
+    return (
+      <InlineCellEditor
+        ref={ref}
+        ariaLabel="Edit shipping cost"
+        displayClassName="font-mono text-sm"
+        displayValue={Number(item.shipping_cost) > 0 ? item.shipping_cost : ""}
+        error={form.error}
+        fieldId={fieldId}
+        fieldLabel="Shipping cost"
+        form={form}
+        onSave={onBulkSave ?? form.save}
+        tdClassName="text-center min-w-24"
+      >
+        <input
+          autoFocus={autoFocus}
+          className="border rounded px-2 py-1 text-sm w-full"
+          id={fieldId}
+          min="0"
+          onChange={handleChange}
+          step="1"
+          type="number"
+          value={inputValue}
+        />
+      </InlineCellEditor>
+    );
+  },
+);
 
 function normalizeShippingCostValue(value: string) {
   return value.trim() === "" ? "0" : value;

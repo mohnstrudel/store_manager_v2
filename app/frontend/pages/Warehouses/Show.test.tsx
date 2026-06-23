@@ -4,14 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "@inertiajs/react";
 import { mockPage } from "@/test/mocks/inertia";
 import Show from "./Show";
-import {
-  makePagination,
-  makeWarehousePurchaseItem,
-  makeWarehouseShowRecord,
-} from "./test/factories";
+import { makePagination } from "@/test/factories";
+import { makeWarehousePurchaseItem, makeWarehouseShowRecord } from "./test/factories";
 import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("@/components/ImageGallery", () => ({
   default: () => <div data-testid="image-gallery" />,

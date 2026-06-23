@@ -3,9 +3,9 @@ type Option<Value extends string | number> = {
   label: string;
 };
 
-export function toSelectedOption<Value extends string | number, O extends Option<Value>>(
-  options: O[],
+export function toSelectedOption<Value extends string | number>(
+  options: Option<Value>[],
   value: Value | null,
-): O | null {
+): Option<Value> | null {
   return options.find((option) => option.value === value) ?? null;
 }

@@ -1,14 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import Edit from "./Edit";
 import { makeSize } from "./test/factories";
-import type { SizeRecord } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Sizes/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-    renderEdit();
+    render(<Edit size={makeSize()} />);
 
     expect(screen.getByRole("heading", { name: "Edit Size" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Size Page/ })).toHaveAttribute(
@@ -19,7 +16,3 @@ describe("Sizes/Edit", () => {
     expect(screen.getByRole("button", { name: "Update Size" })).toBeInTheDocument();
   });
 });
-
-function renderEdit({ size = makeSize() }: { size?: SizeRecord } = {}) {
-  return render(<Edit size={size} />);
-}

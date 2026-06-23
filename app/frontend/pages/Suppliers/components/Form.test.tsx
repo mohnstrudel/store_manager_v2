@@ -10,17 +10,13 @@ import type { SupplierRecord } from "../types";
 type ResourceFormProps = {
   action: string;
   cancelHref: string;
-  children:
-    | ReactNode
-    | ((props: { errors: Record<string, string> }) => ReactNode);
+  children: ReactNode | ((props: { errors: Record<string, string> }) => ReactNode);
   method: string;
   submitLabel: string;
   validate?: (formData: FormData) => Record<string, string> | null;
 };
 
 let resourceFormProps: Omit<ResourceFormProps, "children"> | null = null;
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("@/components/ResourceForm", () => ({
   default: function ResourceFormStub({
@@ -89,19 +85,14 @@ describe("Suppliers/components/Form", () => {
       renderForm();
 
       expect(screen.getByLabelText("Title")).toHaveValue("GoodSmile");
-      expect(
-        screen.getByRole("button", { name: "Update Supplier" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Update Supplier" })).toBeInTheDocument();
     });
 
     it("shows validation errors on the title field", () => {
       renderForm({ pageErrors: { title: "can't be blank" } });
 
       expect(screen.getByText("can't be blank")).toBeInTheDocument();
-      expect(screen.getByLabelText("Title")).toHaveAttribute(
-        "aria-invalid",
-        "true"
-      );
+      expect(screen.getByLabelText("Title")).toHaveAttribute("aria-invalid", "true");
     });
   });
 
@@ -141,12 +132,5 @@ function renderForm({
 } = {}) {
   mockPageProps({ errors: pageErrors });
 
-  return render(
-    <Form
-      method={method}
-      submitLabel={submitLabel}
-      supplier={supplier}
-      url={url}
-    />
-  );
+  return render(<Form method={method} submitLabel={submitLabel} supplier={supplier} url={url} />);
 }

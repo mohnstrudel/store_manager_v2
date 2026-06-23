@@ -12,7 +12,6 @@ import {
 } from "../test/factories";
 import type { PurchaseFormData, StoreInfoFormData, VariantFormData } from "../types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
@@ -113,46 +112,48 @@ const options = {
 
 describe("Products/components/Form", () => {
   describe("form shell", () => {
-    it("configures action, method, and labels for a new product", () => {
-      renderForm({ isNew: true, submitLabel: "Create Product" });
+    it("configures action, method, and labels for a new product", async () => {
+      await renderForm({ isNew: true, submitLabel: "Create Product" });
 
-      expect(lastCapturedProps()).toEqual(expect.objectContaining({
-        action: "/products",
-        cancelHref: "/products",
-        method: "post",
-        submitLabel: "Create Product",
-      }));
+      expect(lastCapturedProps()).toEqual(
+        expect.objectContaining({
+          action: "/products",
+          cancelHref: "/products",
+          method: "post",
+          submitLabel: "Create Product",
+        }),
+      );
     });
 
-    it("configures action, method, and labels for an existing product", () => {
-      renderForm({
+    it("configures action, method, and labels for an existing product", async () => {
+      await renderForm({
         isNew: false,
         product: makeProductForm({ id: 1, path: "/products/1" }),
         submitLabel: "Update Product",
       });
 
-      expect(lastCapturedProps()).toEqual(expect.objectContaining({
-        action: "/products/1",
-        cancelHref: "/products/1",
-        method: "patch",
-        submitLabel: "Update Product",
-      }));
+      expect(lastCapturedProps()).toEqual(
+        expect.objectContaining({
+          action: "/products/1",
+          cancelHref: "/products/1",
+          method: "patch",
+          submitLabel: "Update Product",
+        }),
+      );
     });
   });
 
   describe("field sections", () => {
     it("renders the description editor, shape select, and image uploader", async () => {
-      await act(async () => {
-        renderForm();
-      });
+      await renderForm();
 
       expect(screen.getByTestId("description-editor")).toBeInTheDocument();
       expect(screen.getByDisplayValue("Bust")).toHaveAttribute("name", "product[shape]");
       expect(screen.getByTestId("image-uploader")).toBeInTheDocument();
     });
 
-    it("renders existing variant and store info rows", () => {
-      renderForm({
+    it("renders existing variant and store info rows", async () => {
+      await renderForm({
         product: makeProductForm({
           variants: [makeVariantForm()],
           store_infos: [makeStoreInfoForm({ id: 1, store_name: "shopify", tag_list: "featured" })],
@@ -165,7 +166,7 @@ describe("Products/components/Form", () => {
 
     it("adds a variant row when Add Variant is clicked", async () => {
       const user = userEvent.setup();
-      renderForm();
+      await renderForm();
 
       await user.click(screen.getByRole("button", { name: "Add Variant" }));
 
@@ -174,7 +175,7 @@ describe("Products/components/Form", () => {
   });
 
   describe("error routing", () => {
-    it("routes franchise, variant, and purchase errors to their fields", () => {
+    it("routes franchise, variant, and purchase errors to their fields", async () => {
       mockPageProps({
         errors: {
           franchise: "Franchise must exist",
@@ -183,7 +184,7 @@ describe("Products/components/Form", () => {
         },
       });
 
-      renderForm({
+      await renderForm({
         product: makeProductForm({
           store_infos: [makeStoreInfoForm({ id: 1, store_name: "shopify", tag_list: "featured" })],
         }),
@@ -199,8 +200,8 @@ describe("Products/components/Form", () => {
   });
 
   describe("initial purchase section", () => {
-    it("hides purchase fields and shows Add Purchase button initially", () => {
-      renderForm({ isNew: true });
+    it("hides purchase fields and shows Add Purchase button initially", async () => {
+      await renderForm({ isNew: true });
 
       expect(screen.queryByTestId("purchase-fields")).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Add Purchase" })).toBeInTheDocument();
@@ -208,7 +209,7 @@ describe("Products/components/Form", () => {
 
     it("reveals purchase fields when Add Purchase is clicked", async () => {
       const user = userEvent.setup();
-      renderForm({ isNew: true });
+      await renderForm({ isNew: true });
 
       await user.click(screen.getByRole("button", { name: "Add Purchase" }));
 
@@ -217,7 +218,7 @@ describe("Products/components/Form", () => {
   });
 });
 
-function renderForm({
+async function renderForm({
   isNew = true,
   product = makeProductForm(),
   purchase = makePurchaseForm(),
@@ -228,7 +229,7 @@ function renderForm({
   purchase?: ReturnType<typeof makePurchaseForm>;
   submitLabel?: string;
 } = {}) {
-  return render(
+  const result = render(
     <Form
       isNew={isNew}
       options={options}
@@ -237,4 +238,6 @@ function renderForm({
       submitLabel={submitLabel}
     />,
   );
+  await act(async () => {});
+  return result;
 }

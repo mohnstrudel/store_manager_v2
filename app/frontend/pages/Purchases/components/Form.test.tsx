@@ -5,7 +5,6 @@ import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import Form from "./Form";
 import { makePurchaseForm, makePurchaseFormOptions } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
@@ -14,7 +13,7 @@ vi.mock("./Form/ProductVariantSelect", () => ({
   default: () => <div data-testid="product-variant-select" />,
 }));
 
-describe("Purchases/Components/Form", () => {
+describe("Purchases/components/Form", () => {
   beforeEach(() => {
     mockPageProps({});
   });

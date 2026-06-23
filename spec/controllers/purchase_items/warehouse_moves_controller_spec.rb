@@ -52,5 +52,13 @@ RSpec.describe PurchaseItems::WarehouseMovesController do
         }
       )
     end
+
+    it "redirects to the sale when sale_id is given" do
+      sale = create(:sale)
+
+      post :create, params: valid_params.merge(sale_id: sale.id)
+
+      expect(response).to redirect_to(sale_path(sale.id))
+    end
   end
 end

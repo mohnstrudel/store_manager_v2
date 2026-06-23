@@ -1,4 +1,3 @@
-import type { PaginationMeta } from "@/types/pagination";
 import type {
   PurchaseItemFormOptions,
   PurchaseItemFormRecord,
@@ -6,16 +5,6 @@ import type {
   SaleItemTableRow,
   WarehouseMovementRecord,
 } from "../types";
-
-export function makePagination(overrides: Partial<PaginationMeta> = {}): PaginationMeta {
-  return {
-    current_page: 1,
-    total_pages: 1,
-    total_count: 1,
-    limit: 50,
-    ...overrides,
-  };
-}
 
 export function makePurchaseItemFormOptions(
   overrides: Partial<PurchaseItemFormOptions> = {},

@@ -32,11 +32,7 @@ function validate(formData: FormData) {
   return result.success ? null : zodErrorsToRecord(result.error);
 }
 
-export default function Form({
-  canEditRole,
-  roleOptions,
-  user,
-}: UserFormProps) {
+export default function Form({ canEditRole, roleOptions, user }: UserFormProps) {
   return (
     <ResourceForm
       action={routes.users.update.path({ id: user.id })}

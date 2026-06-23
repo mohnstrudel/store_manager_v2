@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import SaleActions from "./SaleActions";
 import { makeSaleShow } from "../test/factories";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Sales/Show/SaleActions", () => {
   it("renders purchase-linking, fetch, admin, and edit actions for a Shopify sale", () => {

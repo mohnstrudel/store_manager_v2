@@ -1,8 +1,6 @@
 import type { PurchaseRecord, SupplierRecord } from "../types";
 
-export function makeSupplier(
-  overrides: Partial<SupplierRecord> = {}
-): SupplierRecord {
+export function makeSupplier(overrides: Partial<SupplierRecord> = {}): SupplierRecord {
   return {
     id: 1,
     title: "GoodSmile",
@@ -12,9 +10,7 @@ export function makeSupplier(
   };
 }
 
-export function makeSupplierPurchase(
-  overrides: Partial<PurchaseRecord> = {}
-): PurchaseRecord {
+export function makeSupplierPurchase(overrides: Partial<PurchaseRecord> = {}): PurchaseRecord {
   return {
     id: 1,
     amount: 2,

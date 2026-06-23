@@ -6,11 +6,9 @@ import Form from "./Form";
 import { makeBrand } from "../test/factories";
 import type { BrandRecord } from "../types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 describe("Brands/components/Form", () => {
-
   describe("form shell", () => {
     it("configures action, method, and labels for a new brand", () => {
       renderForm({

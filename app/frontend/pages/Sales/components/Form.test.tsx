@@ -9,7 +9,6 @@ import Form from "./Form";
 import { makeSaleForm, makeSaleFormOptions, makeSaleItemForm } from "../test/factories";
 import type { SaleItemFormRecord } from "../types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
@@ -23,14 +22,14 @@ vi.mock("./Form/SaleItemFields", () => ({
   ),
 }));
 
-describe("Sales/Components/Form", () => {
+describe("Sales/components/Form", () => {
   beforeEach(() => {
     mockPageProps({});
   });
 
   describe("form shell", () => {
-    it("configures action, method, and labels for a new sale", () => {
-      renderForm({ isNew: true, submitLabel: "Create Sale" });
+    it("configures action, method, and labels for a new sale", async () => {
+      await renderForm({ isNew: true, submitLabel: "Create Sale" });
 
       expect(lastCapturedProps()).toEqual(
         expect.objectContaining({
@@ -42,8 +41,8 @@ describe("Sales/Components/Form", () => {
       );
     });
 
-    it("configures action, method, and labels for an existing sale", () => {
-      renderForm({
+    it("configures action, method, and labels for an existing sale", async () => {
+      await renderForm({
         isNew: false,
         sale: makeSaleForm({ path: "/sales/12" }),
         submitLabel: "Update Sale",
@@ -62,21 +61,19 @@ describe("Sales/Components/Form", () => {
 
   describe("field sections", () => {
     it("renders sale status, totals, address sections, and existing sale items", async () => {
-      await act(async () => {
-        renderForm({
-          isNew: false,
-          options: makeSaleFormOptions({ status_names: ["processing", "completed"] }),
-          sale: makeSaleForm({
-            customer_id: 1,
-            discount_total: "5",
-            note: "Gift wrap",
-            path: "/sales/12",
-            sale_items: [makeSaleItemForm({ id: 9, product_id: 2, qty: "1", price: "20" })],
-            shipping_total: "3",
-            total: "28",
-          }),
-          submitLabel: "Update Sale",
-        });
+      await renderForm({
+        isNew: false,
+        options: makeSaleFormOptions({ status_names: ["processing", "completed"] }),
+        sale: makeSaleForm({
+          customer_id: 1,
+          discount_total: "5",
+          note: "Gift wrap",
+          path: "/sales/12",
+          sale_items: [makeSaleItemForm({ id: 9, product_id: 2, qty: "1", price: "20" })],
+          shipping_total: "3",
+          total: "28",
+        }),
+        submitLabel: "Update Sale",
       });
 
       expect(screen.getByRole("radio", { name: "Processing" })).toBeChecked();
@@ -91,7 +88,7 @@ describe("Sales/Components/Form", () => {
 
     it("adds a sale item row when Add Product is clicked", async () => {
       const user = userEvent.setup();
-      renderForm();
+      await renderForm();
 
       expect(screen.queryByTestId("sale-item-fields")).not.toBeInTheDocument();
 
@@ -102,10 +99,10 @@ describe("Sales/Components/Form", () => {
   });
 
   describe("error routing", () => {
-    it("shows customer validation errors on the select field", () => {
+    it("shows customer validation errors on the select field", async () => {
       mockPageProps({ errors: { customer: "Customer must exist" } });
 
-      renderForm();
+      await renderForm();
 
       const customerField = screen.getByLabelText("Customer");
 
@@ -115,7 +112,7 @@ describe("Sales/Components/Form", () => {
   });
 });
 
-function renderForm({
+async function renderForm({
   isNew = true,
   options = makeSaleFormOptions(),
   sale = makeSaleForm(),
@@ -126,5 +123,9 @@ function renderForm({
   sale?: ReturnType<typeof makeSaleForm>;
   submitLabel?: string;
 } = {}) {
-  return render(<Form isNew={isNew} options={options} sale={sale} submitLabel={submitLabel} />);
+  const result = render(
+    <Form isNew={isNew} options={options} sale={sale} submitLabel={submitLabel} />,
+  );
+  await act(async () => {});
+  return result;
 }

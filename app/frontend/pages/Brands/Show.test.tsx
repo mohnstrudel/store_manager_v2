@@ -6,8 +6,6 @@ import Show from "./Show";
 import { makeBrand, makeBrandProduct } from "./test/factories";
 import type { BrandRecord, ProductRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Brands/Show", () => {
   it("renders brand details and linked products", () => {
     renderShow();

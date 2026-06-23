@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
+import { router } from "@inertiajs/react";
 import Index from "./Index";
 import { makeWarehouseRecord } from "./test/factories";
 import type { WarehouseRecord } from "./Index/Table";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Warehouses/Index", () => {
   it("renders the heading, column headers, and warehouse rows", () => {
@@ -25,9 +25,7 @@ describe("Warehouses/Index", () => {
     expect(
       screen.getByRole("columnheader", { name: "Name + External Name for Clients" }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("columnheader", { name: "External Name" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "External Name" })).not.toBeInTheDocument();
   });
 
   it("marks the default warehouse with a tip indicator", () => {
@@ -50,6 +48,36 @@ describe("Warehouses/Index", () => {
         "New purchases go to this warehouse by default. Change it on the edit page.",
       ),
     ).not.toBeInTheDocument();
+  });
+
+  describe("position select", () => {
+    it("patches the position path when a new position is selected", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        warehouses: [makeWarehouseRecord({ position: 1, positions: [1, 2] })],
+      });
+
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: "Position for Main Warehouse" }),
+        "2",
+      );
+
+      expect(router.patch).toHaveBeenCalledWith("/warehouses/1/position", { position: "2" });
+    });
+
+    it("does nothing when position_path is empty", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        warehouses: [makeWarehouseRecord({ position: 1, positions: [1, 2], position_path: "" })],
+      });
+
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: "Position for Main Warehouse" }),
+        "2",
+      );
+
+      expect(router.patch).not.toHaveBeenCalled();
+    });
   });
 });
 

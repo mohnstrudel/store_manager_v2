@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import Edit from "./Edit";
 import { makeWarehouseFormOptions, makeWarehouseFormRecord } from "./test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
 vi.mock("@/components/ImageUploader", () => ({
@@ -12,7 +11,7 @@ vi.mock("@/components/ImageUploader", () => ({
 
 describe("Warehouses/Edit", () => {
   it("renders the edit heading, view link, and populated form", () => {
-    renderEdit();
+    render(<Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()} />);
 
     expect(screen.getByRole("heading", { name: "Edit Warehouse" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View Warehouse Page/ })).toHaveAttribute(
@@ -23,7 +22,3 @@ describe("Warehouses/Edit", () => {
     expect(screen.getByRole("button", { name: "Update Warehouse" })).toBeInTheDocument();
   });
 });
-
-function renderEdit() {
-  return render(<Edit options={makeWarehouseFormOptions()} warehouse={makeWarehouseFormRecord()} />);
-}

@@ -1,19 +1,18 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { VariantRecord } from "../types";
 import ProductVariants from "./ProductVariants";
 import { makeVariant } from "../test/factories";
 
 describe("Products/Show/ProductVariants", () => {
   it("renders nothing without variants", () => {
-    const { container } = render(<ProductVariants variants={[]} />);
+    const { container } = renderProductVariants([]);
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it("renders id, title, type, and counts for each variant", () => {
-    render(
-      <ProductVariants variants={[makeVariant({ active_sales_count: 5, purchases_count: 3 })]} />,
-    );
+    renderProductVariants([makeVariant({ active_sales_count: 5, purchases_count: 3 })]);
 
     const row = screen.getByRole("row", { name: /Default/ });
 
@@ -25,7 +24,7 @@ describe("Products/Show/ProductVariants", () => {
 
   describe("formatting", () => {
     it("formats weight in kg and money with two decimals", () => {
-      render(<ProductVariants variants={[makeVariant()]} />);
+      renderProductVariants();
 
       const row = screen.getByRole("row", { name: /Default/ });
 
@@ -35,11 +34,7 @@ describe("Products/Show/ProductVariants", () => {
     });
 
     it("renders '-' for zero weight and zero costs", () => {
-      render(
-        <ProductVariants
-          variants={[makeVariant({ weight: 0, purchase_cost: 0, selling_price: 0 })]}
-        />,
-      );
+      renderProductVariants([makeVariant({ weight: 0, purchase_cost: 0, selling_price: 0 })]);
 
       const cells = screen.getAllByRole("cell", { name: "-" });
 
@@ -49,13 +44,13 @@ describe("Products/Show/ProductVariants", () => {
 
   describe("store id", () => {
     it("prefers the shopify short id over the woo store id", () => {
-      render(<ProductVariants variants={[makeVariant()]} />);
+      renderProductVariants();
 
       expect(screen.getByRole("cell", { name: "SHOP-V1" })).toBeInTheDocument();
     });
 
     it("falls back to the woo store id when shopify id is absent", () => {
-      render(<ProductVariants variants={[makeVariant({ shopify_id_short: "" })]} />);
+      renderProductVariants([makeVariant({ shopify_id_short: "" })]);
 
       expect(screen.getByRole("cell", { name: "WOO-V1" })).toBeInTheDocument();
     });
@@ -63,9 +58,13 @@ describe("Products/Show/ProductVariants", () => {
 
   describe("when the variant is deactivated", () => {
     it("marks the variant title with '(Deactivated)'", () => {
-      render(<ProductVariants variants={[makeVariant({ deactivated: true })]} />);
+      renderProductVariants([makeVariant({ deactivated: true })]);
 
       expect(screen.getByText("(Deactivated)")).toBeInTheDocument();
     });
   });
 });
+
+function renderProductVariants(variants: VariantRecord[] = [makeVariant()]) {
+  return render(<ProductVariants variants={variants} />);
+}

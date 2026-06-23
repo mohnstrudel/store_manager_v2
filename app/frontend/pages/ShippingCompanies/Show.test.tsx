@@ -6,8 +6,6 @@ import Show from "./Show";
 import { makeShippingCompany, makeShippingCompanyPurchaseItem } from "./test/factories";
 import type { PurchaseItemRecord, ShippingCompanyRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("ShippingCompanies/Show", () => {
   it("renders shipping company details and linked purchase items", () => {
     renderShow();

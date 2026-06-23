@@ -1,9 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { mockPage } from "@/test/mocks/inertia";
 import Breadcrumbs from "./Breadcrumbs";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Breadcrumbs", () => {
   beforeEach(() => {

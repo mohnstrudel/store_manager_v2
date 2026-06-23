@@ -6,8 +6,6 @@ import Show from "./Show";
 import { makeCustomerDetail, makeCustomerSale } from "./test/factories";
 import type { CustomerDetailRecord, SaleRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Customers/Show", () => {
   it("renders customer details and heading", () => {
     renderShow();

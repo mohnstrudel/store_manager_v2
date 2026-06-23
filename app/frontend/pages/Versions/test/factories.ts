@@ -1,8 +1,6 @@
 import type { ProductRecord, VersionRecord } from "../types";
 
-export function makeVersion(
-  overrides: Partial<VersionRecord> = {}
-): VersionRecord {
+export function makeVersion(overrides: Partial<VersionRecord> = {}): VersionRecord {
   return {
     id: 1,
     value: "Classic",
@@ -12,9 +10,7 @@ export function makeVersion(
   };
 }
 
-export function makeVersionProduct(
-  overrides: Partial<ProductRecord> = {}
-): ProductRecord {
+export function makeVersionProduct(overrides: Partial<ProductRecord> = {}): ProductRecord {
   return {
     id: 10,
     full_title: "Pokemon - Pikachu",

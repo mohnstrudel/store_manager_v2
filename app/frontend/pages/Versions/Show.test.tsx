@@ -6,15 +6,11 @@ import Show from "./Show";
 import { makeVersion, makeVersionProduct } from "./test/factories";
 import type { ProductRecord, VersionRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Versions/Show", () => {
   it("renders version details and linked products", () => {
     renderShow();
 
-    expect(
-      screen.getByRole("heading", { name: "Classic" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Classic" })).toBeInTheDocument();
     expect(screen.getByText("Products")).toBeInTheDocument();
     expect(screen.getByText("Pokemon - Pikachu")).toBeInTheDocument();
   });
@@ -22,10 +18,7 @@ describe("Versions/Show", () => {
   it("links to the edit page", () => {
     renderShow();
 
-    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
-      "href",
-      "/versions/1/edit"
-    );
+    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute("href", "/versions/1/edit");
   });
 
   it("hides the products section when there are no products", () => {
@@ -40,9 +33,7 @@ describe("Versions/Show", () => {
       vi.spyOn(window, "confirm").mockReturnValue(true);
       renderShow();
 
-      await user.click(
-        screen.getByRole("button", { name: "Destroy this version" })
-      );
+      await user.click(screen.getByRole("button", { name: "Destroy this version" }));
 
       expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
       expect(router.delete).toHaveBeenCalledWith("/versions/1");
@@ -53,9 +44,7 @@ describe("Versions/Show", () => {
       vi.spyOn(window, "confirm").mockReturnValue(false);
       renderShow();
 
-      await user.click(
-        screen.getByRole("button", { name: "Destroy this version" })
-      );
+      await user.click(screen.getByRole("button", { name: "Destroy this version" }));
 
       expect(router.delete).not.toHaveBeenCalled();
     });

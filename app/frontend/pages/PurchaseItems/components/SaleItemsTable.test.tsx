@@ -5,9 +5,7 @@ import { router } from "@inertiajs/react";
 import SaleItemsTable from "./SaleItemsTable";
 import { makeSaleItemTableRow } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
-describe("PurchaseItems/Components/SaleItemsTable", () => {
+describe("PurchaseItems/components/SaleItemsTable", () => {
   it("renders nothing without related sale item rows", () => {
     const { container } = render(<SaleItemsTable rows={[]} />);
 

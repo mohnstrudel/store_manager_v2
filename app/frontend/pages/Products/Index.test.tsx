@@ -1,11 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { makePagination } from "@/test/factories";
+import type { PaginationMeta } from "@/types/pagination";
 import Index from "./Index";
 import { makeProductIndexRecord } from "./test/factories";
 import type { ProductIndexRecord } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 describe("Products/Index", () => {
   it("renders the product heading and add new record link", () => {
@@ -81,10 +81,6 @@ describe("Products/Index", () => {
   });
 });
 
-function makePagination(overrides: Record<string, unknown> = {}) {
-  return { current_page: 1, total_pages: 1, total_count: 1, limit: 50, ...overrides };
-}
-
 function renderIndex({
   products = [makeProductIndexRecord()],
   pagination = makePagination(),
@@ -92,7 +88,7 @@ function renderIndex({
   last_sync_at = null,
 }: {
   products?: ProductIndexRecord[];
-  pagination?: ReturnType<typeof makePagination>;
+  pagination?: PaginationMeta;
   search?: { q: string };
   last_sync_at?: string | null;
 } = {}) {

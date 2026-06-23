@@ -4,14 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "@inertiajs/react";
 import { mockPage } from "@/test/mocks/inertia";
 import { PurchaseItemsSection } from "./PurchaseItemsSection";
-import {
-  makePagination,
-  makeWarehousePurchaseItem,
-  makeWarehouseShowRecord,
-} from "../test/factories";
+import { makePagination } from "@/test/factories";
+import { makeWarehousePurchaseItem, makeWarehouseShowRecord } from "../test/factories";
 import type { WarehousePurchaseItemRecord } from "../types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 const writeText = vi.fn<(...args: unknown[]) => Promise<void>>();
 
@@ -53,9 +48,9 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
       expect.objectContaining({ preserveScroll: true }),
     );
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Edit tracking number" }).closest("td"),
-    ).toHaveClass("bg-lime-100/80");
+    expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass(
+      "bg-lime-100/80",
+    );
 
     await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
@@ -71,7 +66,7 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
     );
     expect(router.visit).not.toHaveBeenCalled();
 
-    expect(screen.getByText("Handle with care")).toHaveClass("cursor-text");
+    expect(screen.getByText("Handle with care")).toHaveClass("tip_mark__tooltip");
   });
 
   it("auto-opens the shipping editor when starting to edit tracking with no shipping company", async () => {

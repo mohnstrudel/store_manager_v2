@@ -1,5 +1,4 @@
 import {
-  lazy,
   Suspense,
   useCallback,
   useEffect,
@@ -10,15 +9,11 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from "react";
-
-import type SmartSelectType from "@/components/SmartSelect";
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- React.lazy erases generic type params; cast is required to preserve Option inference in JSX
-const SmartSelect = lazy(
-  () => import("@/components/SmartSelect"),
-) as unknown as typeof SmartSelectType;
+import SmartSelect from "@/components/lazySmartSelect";
 import { SelectSkeleton } from "@/components/FormSmartSelect";
-const SELECT_FALLBACK = <SelectSkeleton />;
 import { type SelectOption } from "../../types";
+
+const SELECT_FALLBACK = <SelectSkeleton />;
 
 type ProductVariantSelectProps = {
   initialVariants: SelectOption<number>[];

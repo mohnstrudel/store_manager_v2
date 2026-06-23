@@ -2,34 +2,25 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { router } from "@inertiajs/react";
+import type { SaleItemRecord } from "../types";
 import SalesSection from "./SalesSection";
 import { makeSaleItem } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Products/Show/SalesSection", () => {
   it("renders nothing without sales", () => {
-    const { container } = render(
-      <SalesSection hasVariants={false} sales={[]} title="Active Sales" />,
-    );
+    const { container } = renderSalesSection({ sales: [] });
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it("renders the title and sales count in the header", () => {
-    render(
-      <SalesSection
-        hasVariants={false}
-        sales={[makeSaleItem({ id: 1 }), makeSaleItem({ id: 2 })]}
-        title="Active Sales"
-      />,
-    );
+    renderSalesSection({ sales: [makeSaleItem({ id: 1 }), makeSaleItem({ id: 2 })] });
 
     expect(screen.getByRole("heading", { name: /Active Sales.*2/ })).toBeInTheDocument();
   });
 
   it("renders customer, date, price, and quantity for each sale", () => {
-    render(<SalesSection hasVariants={false} sales={[makeSaleItem()]} title="Active Sales" />);
+    renderSalesSection();
 
     expect(screen.getByRole("cell", { name: /Ash Ketchum/ })).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "19 May 2026" })).toBeInTheDocument();
@@ -38,38 +29,20 @@ describe("Products/Show/SalesSection", () => {
   });
 
   it("capitalizes the sale status", () => {
-    render(
-      <SalesSection
-        hasVariants={false}
-        sales={[makeSaleItem({ status: "active" })]}
-        title="Active Sales"
-      />,
-    );
+    renderSalesSection({ sales: [makeSaleItem({ status: "active" })] });
 
     expect(screen.getByText("Active")).toBeInTheDocument();
   });
 
   describe("store icons", () => {
     it("shows the shopify icon for shopify sales", () => {
-      render(
-        <SalesSection
-          hasVariants={false}
-          sales={[makeSaleItem({ store_type: "shopify" })]}
-          title="Active Sales"
-        />,
-      );
+      renderSalesSection({ sales: [makeSaleItem({ store_type: "shopify" })] });
 
       expect(document.querySelector(".icon_shopify")).toBeInTheDocument();
     });
 
     it("shows the woo icon for woo sales", () => {
-      render(
-        <SalesSection
-          hasVariants={false}
-          sales={[makeSaleItem({ store_type: "woo" })]}
-          title="Active Sales"
-        />,
-      );
+      renderSalesSection({ sales: [makeSaleItem({ store_type: "woo" })] });
 
       expect(document.querySelector(".icon_woo")).toBeInTheDocument();
     });
@@ -77,20 +50,17 @@ describe("Products/Show/SalesSection", () => {
 
   describe("variant column", () => {
     it("shows the variant column when the product has variants", () => {
-      render(
-        <SalesSection
-          hasVariants={true}
-          sales={[makeSaleItem({ variant_title: "Red Edition" })]}
-          title="Active Sales"
-        />,
-      );
+      renderSalesSection({
+        hasVariants: true,
+        sales: [makeSaleItem({ variant_title: "Red Edition" })],
+      });
 
       expect(screen.getByRole("columnheader", { name: "Variant?" })).toBeInTheDocument();
       expect(screen.getByRole("cell", { name: "Red Edition" })).toBeInTheDocument();
     });
 
     it("hides the variant column when the product has no variants", () => {
-      render(<SalesSection hasVariants={false} sales={[makeSaleItem()]} title="Active Sales" />);
+      renderSalesSection();
 
       expect(screen.queryByRole("columnheader", { name: "Variant?" })).not.toBeInTheDocument();
     });
@@ -99,7 +69,7 @@ describe("Products/Show/SalesSection", () => {
   describe("row navigation", () => {
     it("visits the sale when the row is clicked", async () => {
       const user = userEvent.setup();
-      render(<SalesSection hasVariants={false} sales={[makeSaleItem()]} title="Active Sales" />);
+      renderSalesSection();
 
       await user.click(screen.getByRole("row", { name: /Ash Ketchum/ }));
 
@@ -109,13 +79,9 @@ describe("Products/Show/SalesSection", () => {
 
   describe("purchase item link", () => {
     it("links to the purchase item labeled with its warehouse", () => {
-      render(
-        <SalesSection
-          hasVariants={false}
-          sales={[makeSaleItem({ purchase_item_path: "/purchase_items/1", warehouse: "Tokyo" })]}
-          title="Active Sales"
-        />,
-      );
+      renderSalesSection({
+        sales: [makeSaleItem({ purchase_item_path: "/purchase_items/1", warehouse: "Tokyo" })],
+      });
 
       expect(screen.getByRole("link", { name: /Tokyo/ })).toHaveAttribute(
         "href",
@@ -124,26 +90,18 @@ describe("Products/Show/SalesSection", () => {
     });
 
     it("labels the link 'Purchase Item' when warehouse is empty", () => {
-      render(
-        <SalesSection
-          hasVariants={false}
-          sales={[makeSaleItem({ purchase_item_path: "/purchase_items/1", warehouse: "" })]}
-          title="Active Sales"
-        />,
-      );
+      renderSalesSection({
+        sales: [makeSaleItem({ purchase_item_path: "/purchase_items/1", warehouse: "" })],
+      });
 
       expect(screen.getByRole("link", { name: /Purchase Item/ })).toBeInTheDocument();
     });
 
     it("does not navigate the row when the purchase item link is clicked", async () => {
       const user = userEvent.setup();
-      render(
-        <SalesSection
-          hasVariants={false}
-          sales={[makeSaleItem({ purchase_item_path: "/purchase_items/1" })]}
-          title="Active Sales"
-        />,
-      );
+      renderSalesSection({
+        sales: [makeSaleItem({ purchase_item_path: "/purchase_items/1" })],
+      });
 
       await user.click(screen.getByRole("link", { name: /Tokyo/ }));
 
@@ -151,3 +109,17 @@ describe("Products/Show/SalesSection", () => {
     });
   });
 });
+
+type RenderSalesSectionOptions = {
+  hasVariants?: boolean;
+  sales?: SaleItemRecord[];
+  title?: string;
+};
+
+function renderSalesSection({
+  hasVariants = false,
+  sales = [makeSaleItem()],
+  title = "Active Sales",
+}: RenderSalesSectionOptions = {}) {
+  return render(<SalesSection hasVariants={hasVariants} sales={sales} title={title} />);
+}

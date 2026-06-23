@@ -6,15 +6,11 @@ import Show from "./Show";
 import { makeSupplier, makeSupplierPurchase } from "./test/factories";
 import type { PurchaseRecord, SupplierRecord } from "./types";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 describe("Suppliers/Show", () => {
   it("renders supplier details and linked purchases", () => {
     renderShow();
 
-    expect(
-      screen.getByRole("heading", { name: "GoodSmile" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "GoodSmile" })).toBeInTheDocument();
     expect(screen.getByText("Purchases")).toBeInTheDocument();
     expect(screen.getByText("Pokemon - Pikachu")).toBeInTheDocument();
   });
@@ -22,10 +18,7 @@ describe("Suppliers/Show", () => {
   it("links to the edit page", () => {
     renderShow();
 
-    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
-      "href",
-      "/suppliers/1/edit"
-    );
+    expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute("href", "/suppliers/1/edit");
   });
 
   it("hides the purchases section when there are no purchases", () => {
@@ -40,9 +33,7 @@ describe("Suppliers/Show", () => {
       vi.spyOn(window, "confirm").mockReturnValue(true);
       renderShow();
 
-      await user.click(
-        screen.getByRole("button", { name: "Destroy this supplier" })
-      );
+      await user.click(screen.getByRole("button", { name: "Destroy this supplier" }));
 
       expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
       expect(router.delete).toHaveBeenCalledWith("/suppliers/1");
@@ -53,9 +44,7 @@ describe("Suppliers/Show", () => {
       vi.spyOn(window, "confirm").mockReturnValue(false);
       renderShow();
 
-      await user.click(
-        screen.getByRole("button", { name: "Destroy this supplier" })
-      );
+      await user.click(screen.getByRole("button", { name: "Destroy this supplier" }));
 
       expect(router.delete).not.toHaveBeenCalled();
     });

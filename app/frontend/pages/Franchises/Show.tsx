@@ -25,10 +25,7 @@ export default function Show({ franchise, products }: ShowProps) {
 
   return (
     <>
-      <PageHeader
-        subtitle={`Franchise ${franchise.id}`}
-        title={franchise.title}
-      >
+      <PageHeader subtitle={`Franchise ${franchise.id}`} title={franchise.title}>
         <li>
           <Link href={currentEditPath} prefetch>
             <i className="icn">✏</i>
@@ -42,11 +39,7 @@ export default function Show({ franchise, products }: ShowProps) {
         <Products products={products} />
       </div>
 
-      <Button
-        className="w-full h-12 mt-16"
-        onClick={destroyFranchise}
-        variant="danger"
-      >
+      <Button className="w-full h-12 mt-16" onClick={destroyFranchise} variant="danger">
         Destroy this franchise
       </Button>
     </>

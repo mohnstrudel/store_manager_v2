@@ -20,8 +20,7 @@ RSpec.describe "Product form error styling" do
       click_button "Create Product"
     }.not_to change(Product, :count)
 
-    error_wrapper = all(".purchase-fields .field_with_errors").first
-    expect(error_wrapper.find(".text_error", visible: :all)[:class]).to include("absolute")
+    expect(page).to have_css(".purchase-fields .field_with_errors .text_error.absolute", visible: :all)
     expect(
       page.evaluate_script(
         "getComputedStyle(document.querySelector('.purchase-fields .field_with_errors .rs__control')).borderTopColor"

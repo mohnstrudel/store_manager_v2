@@ -5,8 +5,6 @@ import { router } from "@inertiajs/react";
 import Payments from "./Payments";
 import { makeNewPayment, makePayment, makePurchaseShow } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
-
 afterEach(() => {
   vi.restoreAllMocks();
 });

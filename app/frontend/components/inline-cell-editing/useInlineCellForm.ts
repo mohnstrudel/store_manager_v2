@@ -8,8 +8,14 @@ type InlineCellFormConfig<TRecord extends { id: number }> = {
   editedRecord: TRecord;
   /** Attribute being edited, e.g. "tracking_number". Must exist on the record. */
   attributeName: keyof TRecord & string;
-  /** The js-from-routes PATCH helper. Provides the URL, param key, and collection name. */
+  /** The js-from-routes PATCH helper. Provides the URL. */
   route: PathHelper;
+  /** Inertia page prop holding the collection, e.g. "purchase_items". */
+  collection: string;
+  /** Strong-params root key for the PATCH body, e.g. "purchase_item". */
+  paramKey: string;
+  /** Route param naming the record id, e.g. "purchase_item_id" or "id". */
+  idParam: string;
   /** Maps the new form value to the record state for the optimistic update.
    *  Defaults to `{ [attributeName]: newValue }`. Override when the optimistic
    *  row needs extra fields or type coercion (e.g. id + display name). */
@@ -37,6 +43,9 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   editedRecord,
   attributeName,
   route,
+  collection,
+  paramKey,
+  idParam,
   mapNewValueToState,
   normalizeValueForSave,
   returnTo,
@@ -46,11 +55,11 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   const { isSaved, markAsSaved } = useRecentlySaved();
   const page = usePage();
   const resolvedReturnTo = returnTo ?? page.url;
-  const { collection, param, idParamName } = parseRoute(route.pathTemplate);
-  const updatePath = route.path({ [idParamName]: editedRecord.id });
+  const updatePath = route.path({ [idParam]: editedRecord.id });
   const resolvedMapToState: (newValue: string) => Partial<TRecord> =
     mapNewValueToState ??
-    ((newValue: string): any => Object.fromEntries([[attributeName, newValue]]));
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- a single-key patch is a valid Partial<TRecord> for the edited attribute
+    ((newValue: string) => ({ [attributeName]: newValue }) as Partial<TRecord>);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -88,7 +97,7 @@ export function useInlineCellForm<TRecord extends { id: number }>({
       ? normalizeValueForSave(form.data.value)
       : form.data.value;
     form.transform(() => ({
-      [param]: { [attributeName]: newValue },
+      [paramKey]: { [attributeName]: newValue },
       return_to: form.data.return_to,
     }));
     form
@@ -121,18 +130,6 @@ export function useInlineCellForm<TRecord extends { id: number }>({
     onChange,
     save,
   };
-}
-
-function parseRoute(pathTemplate: string) {
-  const parts = pathTemplate.split("/").filter(Boolean);
-  const collection = parts[0];
-  const namedIdPart = parts.find((p) => p.startsWith(":") && p.endsWith("_id"));
-  if (namedIdPart) {
-    const idParamName = namedIdPart.slice(1);
-    return { collection, param: idParamName.replace(/_id$/, ""), idParamName };
-  }
-  const param = collection.replace(/s$/, "");
-  return { collection, param, idParamName: "id" };
 }
 
 function defaultErrorReader(attributeName: string) {

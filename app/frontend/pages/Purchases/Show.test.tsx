@@ -11,6 +11,7 @@ import {
   makeShippingCompanyOption,
   makeWarehouseOption,
 } from "./test/factories";
+
 import type {
   NewPaymentRecord,
   PaymentRecord,
@@ -19,8 +20,6 @@ import type {
   ShippingCompanyOption,
   WarehouseOption,
 } from "./types";
-
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
 
 vi.mock("./Show/PurchaseItems", () => ({
   default: ({
@@ -63,7 +62,17 @@ vi.mock("./Show/Payments", () => ({
 
 describe("Purchases/Show", () => {
   it("renders the purchase header, edit action, and page sections", () => {
-    renderShow();
+    render(
+      <Show
+        new_payment={makeNewPayment()}
+        payments={[makePayment()]}
+        purchase={makePurchaseShow()}
+        purchase_items={[makePurchaseItem()]}
+        shipping_companies={[makeShippingCompanyOption({ id: 1, name: "Fast Ship" })]}
+        warehouse_move_path={"/purchase_items/move"}
+        warehouses={[makeWarehouseOption()]}
+      />,
+    );
 
     expect(screen.getByRole("heading", { name: /Purchase 55/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
@@ -80,7 +89,17 @@ describe("Purchases/Show", () => {
   it("destroys the purchase after confirmation", async () => {
     const user = userEvent.setup();
     vi.spyOn(window, "confirm").mockReturnValue(true);
-    renderShow();
+    render(
+      <Show
+        new_payment={makeNewPayment()}
+        payments={[makePayment()]}
+        purchase={makePurchaseShow()}
+        purchase_items={[makePurchaseItem()]}
+        shipping_companies={[makeShippingCompanyOption({ id: 1, name: "Fast Ship" })]}
+        warehouse_move_path={"/purchase_items/move"}
+        warehouses={[makeWarehouseOption()]}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Destroy this purchase" }));
 
@@ -88,33 +107,3 @@ describe("Purchases/Show", () => {
     expect(router.delete).toHaveBeenCalledWith("/purchases/55");
   });
 });
-
-function renderShow({
-  newPayment = makeNewPayment(),
-  payments = [makePayment()],
-  purchase = makePurchaseShow(),
-  purchaseItems = [makePurchaseItem()],
-  shippingCompanies = [makeShippingCompanyOption({ id: 1, name: "Fast Ship" })],
-  warehouseMovePath = "/purchase_items/move",
-  warehouses = [makeWarehouseOption()],
-}: {
-  newPayment?: NewPaymentRecord;
-  payments?: PaymentRecord[];
-  purchase?: PurchaseShowRecord;
-  purchaseItems?: PurchaseItemRecord[];
-  shippingCompanies?: ShippingCompanyOption[];
-  warehouseMovePath?: string;
-  warehouses?: WarehouseOption[];
-} = {}) {
-  return render(
-    <Show
-      new_payment={newPayment}
-      payments={payments}
-      purchase={purchase}
-      purchase_items={purchaseItems}
-      shipping_companies={shippingCompanies}
-      warehouse_move_path={warehouseMovePath}
-      warehouses={warehouses}
-    />,
-  );
-}

@@ -40,19 +40,11 @@ export default function Table({ suppliers }: TableProps) {
               <td>{supplier.updated_at}</td>
               <td className="table_actions text-right">
                 <div className="flex flex-wrap justify-end gap-3">
-                  <Link
-                    href={currentSupplierPath}
-                    onClick={stopRowNavigation}
-                    prefetch
-                  >
+                  <Link href={currentSupplierPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">📄</i>
                     Show
                   </Link>
-                  <Link
-                    href={currentEditPath}
-                    onClick={stopRowNavigation}
-                    prefetch
-                  >
+                  <Link href={currentEditPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">✏</i>
                     Edit
                   </Link>

@@ -1,18 +1,12 @@
-import { lazy, Suspense } from "react";
-import type { GroupBase, Props as SelectProps } from "react-select";
+import { Suspense } from "react";
+import type { Props as SelectProps } from "react-select";
 import FormControl from "./FormControl";
+import SmartSelect from "./lazySmartSelect";
 
-import type SmartSelectType from "./SmartSelect";
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- React.lazy erases generic type params; cast is required to preserve Option inference in JSX
-const SmartSelect = lazy(() => import("./SmartSelect")) as unknown as typeof SmartSelectType;
 const SELECT_FALLBACK = <SelectSkeleton />;
 
-type FormSmartSelectProps<
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>,
-> = Omit<
-  SelectProps<Option, IsMulti, Group>,
+type FormSmartSelectProps<Option, IsMulti extends boolean = false> = Omit<
+  SelectProps<Option, IsMulti>,
   "classNamePrefix" | "styles" | "theme" | "getOptionLabel" | "getOptionValue" | "inputId"
 > & {
   className?: string;
@@ -21,17 +15,13 @@ type FormSmartSelectProps<
   label: string;
 };
 
-export default function FormSmartSelect<
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>,
->({
+export default function FormSmartSelect<Option, IsMulti extends boolean = false>({
   className = "",
   error,
   inputId,
   label,
   ...props
-}: FormSmartSelectProps<Option, IsMulti, Group>) {
+}: FormSmartSelectProps<Option, IsMulti>) {
   return (
     <FormControl className={className} error={error} htmlFor={inputId} label={label}>
       <Suspense fallback={SELECT_FALLBACK}>

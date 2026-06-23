@@ -11,7 +11,7 @@ import {
   makeWarehouseOption,
 } from "../test/factories";
 
-vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 const defaultProps = {
   movePath: "/purchase_items/move",

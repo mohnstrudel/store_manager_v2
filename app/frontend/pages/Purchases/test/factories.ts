@@ -9,17 +9,6 @@ import type {
   ShippingCompanyOption,
   WarehouseOption,
 } from "../types";
-import type { PaginationMeta } from "../types";
-
-export function makePagination(overrides: Partial<PaginationMeta> = {}): PaginationMeta {
-  return {
-    current_page: 1,
-    total_pages: 2,
-    total_count: 50,
-    limit: 50,
-    ...overrides,
-  };
-}
 
 export function makeWarehouseOption(overrides: Partial<WarehouseOption> = {}): WarehouseOption {
   return {

@@ -23,6 +23,8 @@ module SaleHelper
       note: sale.note,
       discount_total: format_money(sale.discount_total),
       shipping_total: format_money(sale.shipping_total),
+      warehouses: Warehouse.order(name: :asc).map { |w| purchase_warehouse_props(w) },
+      warehouse_move_path: warehouse_move_path,
       sale_items: sale.sale_items.map { |item| sale_show_item_props(item) }
     )
   end

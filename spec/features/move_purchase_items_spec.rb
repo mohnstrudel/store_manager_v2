@@ -26,7 +26,7 @@ describe "Moving purchased products between warehouses" do
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
       # Select where to move products
-      find("select.select").select(warehouse_to.name)
+      choose_react_select(warehouse_to.name, from: "Destination warehouse")
 
       click_button "Move"
 
@@ -52,7 +52,7 @@ describe "Moving purchased products between warehouses" do
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
       # Select where to move purchases
-      find("select.select").select(warehouse_to.name)
+      choose_react_select(warehouse_to.name, from: "Destination warehouse")
 
       click_button "Move"
 
@@ -85,7 +85,7 @@ describe "Moving purchased products between warehouses" do
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")
 
       # Select where to move products
-      find("select.select").select(warehouse_to.name)
+      choose_react_select(warehouse_to.name, from: "Destination warehouse")
 
       click_button "Move"
 
