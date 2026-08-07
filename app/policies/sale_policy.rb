@@ -16,4 +16,8 @@ class SalePolicy < ApplicationPolicy
   def link_purchase_items?
     admin?
   end
+
+  def view_profitability?
+    admin?
+  end
 end

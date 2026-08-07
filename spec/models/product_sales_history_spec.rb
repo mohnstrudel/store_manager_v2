@@ -158,4 +158,38 @@ RSpec.describe Product do
       )
     end
   end
+
+  describe "#variant_purchase_cost_totals" do
+    let(:product) { create(:product) }
+    let(:primary_variant) { create(:variant, product:) }
+    let(:secondary_variant) { create(:variant, product:) }
+
+    before do
+      primary_purchase = create(:purchase, product:, variant: primary_variant, item_price: BigDecimal("10"))
+      create(:purchase_item, :with_direct_expense, purchase: primary_purchase, shipping_cost: BigDecimal("2"), direct_expense_amount: BigDecimal("1"))
+      create(:purchase_item, purchase: primary_purchase, shipping_cost: BigDecimal("3"), expenses: BigDecimal("0"))
+
+      secondary_purchase = create(:purchase, product:, variant: secondary_variant, item_price: BigDecimal("20"))
+      create(:purchase_item, :with_direct_expense, purchase: secondary_purchase, shipping_cost: BigDecimal("5"), direct_expense_amount: BigDecimal("2"))
+    end
+
+    it "sums item price, shipping cost, and direct expenses per variant" do
+      expect(product.variant_purchase_cost_totals).to eq(
+        primary_variant.id => {cost: BigDecimal("26"), units: 2},
+        secondary_variant.id => {cost: BigDecimal("27"), units: 1}
+      )
+    end
+
+    it "counts one unit per purchase item so the cost can be averaged back" do
+      totals = product.variant_purchase_cost_totals.fetch(primary_variant.id)
+
+      expect(totals[:cost] / totals[:units]).to eq(BigDecimal("13"))
+    end
+
+    it "omits variants without linked purchase items" do
+      untouched_variant = create(:variant, product:)
+
+      expect(product.variant_purchase_cost_totals).not_to have_key(untouched_variant.id)
+    end
+  end
 end

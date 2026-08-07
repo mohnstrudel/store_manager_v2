@@ -4,35 +4,55 @@
 #
 # Table name: sales
 #
-#  id                 :bigint           not null, primary key
-#  cancel_reason      :string
-#  cancelled_at       :datetime
-#  closed             :boolean          default(FALSE)
-#  closed_at          :datetime
-#  confirmed          :boolean          default(FALSE)
-#  discount_total     :decimal(8, 2)
-#  financial_status   :string
-#  fulfillment_status :string
-#  note               :string
-#  return_status      :string
-#  shipping_total     :decimal(8, 2)
-#  shopify_created_at :datetime
-#  shopify_name       :string
-#  shopify_updated_at :datetime
-#  slug               :string
-#  status             :string
-#  total              :decimal(8, 2)
-#  woo_created_at     :datetime
-#  woo_updated_at     :datetime
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
-#  customer_id        :bigint           not null
-#  shopify_id         :string
-#  woo_id             :string
+#  id                    :bigint           not null, primary key
+#  cancel_reason         :string
+#  cancelled_at          :datetime
+#  closed                :boolean          default(FALSE)
+#  closed_at             :datetime
+#  confirmed             :boolean          default(FALSE)
+#  discount_total        :decimal(8, 2)
+#  expected_revenue      :decimal(8, 2)
+#  financial_status      :string
+#  fulfillment_status    :string
+#  net_payment           :decimal(8, 2)
+#  note                  :string
+#  outstanding_revenue   :decimal(8, 2)
+#  payment_due           :datetime
+#  payment_gateway_names :string           default([]), not null, is an Array
+#  payment_overdue       :boolean          default(FALSE), not null
+#  payment_terms_name    :string
+#  payment_terms_type    :string
+#  received_revenue      :decimal(8, 2)
+#  refunded_revenue      :decimal(8, 2)
+#  return_status         :string
+#  shipping_total        :decimal(8, 2)
+#  shopify_created_at    :datetime
+#  shopify_name          :string
+#  shopify_updated_at    :datetime
+#  slug                  :string
+#  status                :string
+#  total                 :decimal(8, 2)
+#  woo_created_at        :datetime
+#  woo_updated_at        :datetime
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  customer_id           :bigint           not null
+#  shopify_id            :string
+#  woo_id                :string
 #
 require "rails_helper"
 
 RSpec.describe Sale do
+  describe "#partially_paid?" do
+    it "requires both received and outstanding money" do
+      aggregate_failures do
+        expect(build(:sale, received_revenue: 30, outstanding_revenue: 70)).to be_partially_paid
+        expect(build(:sale, received_revenue: 0, outstanding_revenue: 100)).not_to be_partially_paid
+        expect(build(:sale, received_revenue: 100, outstanding_revenue: 0)).not_to be_partially_paid
+      end
+    end
+  end
+
   describe "addresses" do
     it "upserts shipping and billing address snapshots", :aggregate_failures do
       sale = create(:sale)
@@ -116,6 +136,54 @@ RSpec.describe Sale do
     end
   end
 
+  describe "#follow_up_payment?" do
+    it "is false for a sale with no payment plan at all" do
+      sale = create(:sale)
+
+      expect(sale.follow_up_payment?).to be false
+    end
+
+    it "is false for the plan's originating sale" do
+      origin = create(:sale, shopify_store_id: "gid://shopify/Order/900")
+      create_plan(
+        external_origin_order_id: "900",
+        parts: [{sequence: 1, provider_part_id: "part-1", external_order_id: "900"}]
+      )
+
+      expect(origin.follow_up_payment?).to be false
+    end
+
+    it "is true for a later part of the plan, not the origin" do
+      origin = create(:sale, shopify_store_id: "gid://shopify/Order/900")
+      follow_up = create(:sale, shopify_store_id: "gid://shopify/Order/901")
+      create_plan(
+        external_origin_order_id: "900",
+        parts: [
+          {sequence: 1, provider_part_id: "part-1", external_order_id: "900"},
+          {sequence: 2, provider_part_id: "part-2", external_order_id: "901"}
+        ]
+      )
+
+      expect(origin.follow_up_payment?).to be false
+      expect(follow_up.follow_up_payment?).to be true
+    end
+
+    it "is false for every schedule of a Shopify payment_terms plan, whose schedules all belong to one order" do
+      sale = create(:sale, shopify_store_id: "gid://shopify/Order/950")
+      create_plan(
+        provider: "shopify",
+        kind: "payment_terms",
+        external_origin_order_id: "950",
+        parts: [
+          {sequence: 1, provider_part_id: "sched-1", external_order_id: "950"},
+          {sequence: 2, provider_part_id: "sched-2", external_order_id: "950"}
+        ]
+      )
+
+      expect(sale.follow_up_payment?).to be false
+    end
+  end
+
   describe "auditing" do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true
@@ -170,5 +238,20 @@ RSpec.describe Sale do
     it "returns no sales when nothing matches" do
       expect(described_class.search_by("nonexistent")).to be_empty
     end
+  end
+
+  def create_plan(parts:, provider: "seal", kind: "installments", external_origin_order_id:, external_id: "subscription-1")
+    SalePaymentPlan.reconcile!(
+      attributes: {
+        provider:,
+        external_id:,
+        external_origin_order_id:,
+        kind:,
+        status: "active",
+        expected_parts: parts.size,
+        synced_at: Time.current
+      },
+      parts:
+    )
   end
 end
