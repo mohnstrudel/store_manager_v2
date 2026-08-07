@@ -1,0 +1,33 @@
+@layer components {
+  .payment_plan_marker {
+    @apply flex flex-col gap-1 text-xs font-semibold mb-2;
+  }
+
+  .payment_plan_marker[data-follow-up] {
+    @apply text-gray-600 dark:text-gray-300;
+  }
+
+  .payment_plan_marker__line {
+    @apply flex flex-wrap items-baseline gap-x-2;
+  }
+
+  .plan_progress_bar__track {
+    @apply flex gap-1;
+  }
+
+  .plan_progress_bar__segment {
+    @apply h-4 flex-1 rounded-sm bg-slate-200 dark:bg-slate-700/40;
+  }
+
+  .plan_progress_bar__segment[data-filled] {
+    @apply bg-lime-700/80;
+  }
+
+  .plan_progress_bar__segment[data-current] {
+    @apply mx-1 outline-2 outline-dotted outline-offset-2 outline-gray-500 dark:outline-gray-400;
+  }
+
+  .plan_progress_bar__caption {
+    @apply pt-1 text-sm font-semibold text-center text-gray-600 dark:text-gray-300;
+  }
+}

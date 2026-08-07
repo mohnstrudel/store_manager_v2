@@ -1,12 +1,18 @@
 import { useCallback, type ChangeEvent, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import Amount from "@/components/Amount";
+import DetailsChevron from "@/components/DetailsChevron";
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
+import MetricLabel from "@/components/profitability/MetricLabel";
+import {
+  financialMetricHints,
+  metricScopeNotes,
+  withScope,
+} from "@/components/profitability/metricLabels";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
 import type { WarehouseOption } from "@/types/warehouse";
-import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {
@@ -18,6 +24,7 @@ type ItemsProps = {
 
 type SelectionProps = {
   selectedIds: number[];
+  showProfitabilityColumns: boolean;
   showPurchaseColumn: boolean;
   toggleSelectedIdFromDataAttribute: (
     attributeName: string,
@@ -31,6 +38,7 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
   if (saleItems.length === 0) return null;
 
   const showPurchaseColumn = saleItems.some((si) => si.purchase_items.length > 0);
+  const showProfitabilityColumns = saleItems.some((si) => si.profitability !== null);
 
   return (
     <div className="table_card full_width">
@@ -48,8 +56,34 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
             {showPurchaseColumn && <th />}
             <th className="text-center w-[106px] lg:w-[114px]">Image</th>
             <th>Product</th>
-            <th className="text-right">Price, $</th>
-            <th className="text-center">Purchased / Sold</th>
+            {showProfitabilityColumns && (
+              <>
+                <th className="text-right">
+                  <MetricLabel
+                    anchor="revenue"
+                    hint={withScope(financialMetricHints.revenue, metricScopeNotes.line)}
+                  >
+                    Revenue
+                  </MetricLabel>
+                </th>
+                <th className="text-right">
+                  <MetricLabel
+                    anchor="cogs"
+                    hint={withScope(financialMetricHints.cogs, metricScopeNotes.line)}
+                  >
+                    COGS
+                  </MetricLabel>
+                </th>
+                <th className="text-right">
+                  <MetricLabel
+                    anchor="netProfit"
+                    hint={withScope(financialMetricHints.netProfit, metricScopeNotes.line)}
+                  >
+                    Net Profit
+                  </MetricLabel>
+                </th>
+              </>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -58,6 +92,7 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
               key={saleItem.id}
               saleItem={saleItem}
               selectedIds={selectedIds}
+              showProfitabilityColumns={showProfitabilityColumns}
               showPurchaseColumn={showPurchaseColumn}
               toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
             />
@@ -71,10 +106,13 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
 function SaleItemRow({
   saleItem,
   selectedIds,
+  showProfitabilityColumns,
   showPurchaseColumn,
   toggleSelectedIdFromDataAttribute,
 }: { saleItem: SaleShowSaleItemRecord } & SelectionProps) {
   const hasPurchaseItems = saleItem.purchase_items.length > 0;
+  const missingPurchasesCount = Math.max(0, saleItem.qty - saleItem.purchase_items.length);
+  const profitability = saleItem.profitability;
 
   return (
     <tr className="cursor-default">
@@ -103,22 +141,34 @@ function SaleItemRow({
         <Link className="link no-underline font-semibold" href={saleItem.product_path} prefetch>
           {saleItem.title}
         </Link>
-        {hasPurchaseItems ? (
+        {hasPurchaseItems && (
           <menu>
             {saleItem.purchase_items.map((purchaseItem) => (
               <PurchaseItemRow key={purchaseItem.id} purchaseItem={purchaseItem} />
             ))}
           </menu>
-        ) : (
+        )}
+        {missingPurchasesCount > 0 && (
           <mark className="block uppercase tracking-wide text-xs w-fit mt-2 -ml-1">
-            <span className="font-semibold">NO PURCHASE</span>
+            <span className="font-semibold">
+              MISSING {missingPurchasesCount} PURCHASE{missingPurchasesCount === 1 ? "" : "S"}
+            </span>
           </mark>
         )}
       </td>
-      <td className="text-right font-mono">{saleItem.price ?? ""}</td>
-      <td className="text-center">
-        <PurchasedSoldRatio purchased={saleItem.purchase_items.length} sold={saleItem.qty} />
-      </td>
+      {showProfitabilityColumns && (
+        <>
+          <td className="text-right">
+            <Amount value={profitability?.expected_revenue ?? null} />
+          </td>
+          <td className="text-right">
+            <Amount value={profitability?.purchase_cost ?? null} />
+          </td>
+          <td className="text-right">
+            <Amount value={profitability?.expected_final_profit ?? null} />
+          </td>
+        </>
+      )}
     </tr>
   );
 }
@@ -150,7 +200,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
             {purchaseItem.supplier_title}, {purchaseItem.purchase_date}
             {purchaseItem.item_price && (
               <>
-                {", $"}
+                {", "}
                 {purchaseItem.item_price}
               </>
             )}
@@ -175,11 +225,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
               </Link>
             </span>
 
-            {hasMovementHistory && (
-              <span className="text-xs btn_rounded w-5 h-5 p-0 btn_lightblue flex items-center justify-center transition-transform origin-center group-open:-rotate-90">
-                <ChevronLeftIcon className="h-4 w-4" />
-              </span>
-            )}
+            {hasMovementHistory && <DetailsChevron />}
           </summary>
 
           {hasMovementHistory && (

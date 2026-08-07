@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import Index from "./Index";
-import { makePagination } from "@/test/factories";
+import { makePagination, makeSalePaymentPlan } from "@/test/factories";
 import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
 
@@ -24,6 +24,19 @@ describe("Sales/Index", () => {
     expect(screen.getByText("Pikachu Figure")).toBeInTheDocument();
   });
 
+  it("renders a paginated row when plan context is missing", () => {
+    const saleWithoutPlanContext = {
+      ...makeSaleIndexRecord(),
+      payment_plans: undefined,
+    };
+
+    expect(() => {
+      // @ts-expect-error A stale partial response can omit this field at runtime.
+      renderIndex({ sales: [saleWithoutPlanContext] });
+    }).not.toThrow();
+    expect(screen.getByText("Dale Cooper")).toBeInTheDocument();
+  });
+
   it("renders a search form with the current query", () => {
     renderIndex({ search: { q: "dale" } });
 
@@ -36,6 +49,83 @@ describe("Sales/Index", () => {
     const warehouseLink = screen.getByRole("link", { name: /Berlin Hub/ });
     expect(warehouseLink).toHaveAttribute("href", "/purchase_items/101");
     expect(screen.queryByText("Processing")).not.toBeInTheDocument();
+  });
+
+  describe("payment plan affiliation", () => {
+    it("marks the originating sale and states the position of its follow-up payment", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            payment_plans: [makeSalePaymentPlan({ collected_parts: 2 })],
+          }),
+          makeSaleIndexRecord({
+            id: 2,
+            payment_plans: [
+              makeSalePaymentPlan({
+                collected_parts: 3,
+                is_origin_sale: false,
+                sale_part_number: 2,
+                origin_sale: { path: "/sales/1", identifier: "HSCM#1746" },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(screen.getByText("Payment plan · 2 of 8 collected")).toBeInTheDocument();
+      expect(screen.getByText("Payment 2 of 8")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Original sale HSCM#1746" })).toHaveAttribute(
+        "href",
+        "/sales/1",
+      );
+    });
+
+    it("subordinates the follow-up row and leaves ordinary rows alone", () => {
+      const { container } = renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            payment_plans: [makeSalePaymentPlan({ collected_parts: 2 })],
+          }),
+          makeSaleIndexRecord({
+            id: 2,
+            payment_plans: [
+              makeSalePaymentPlan({
+                is_origin_sale: false,
+                sale_part_number: 2,
+                origin_sale: { path: "/sales/1", identifier: "HSCM#1746" },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows[0]).not.toHaveAttribute("data-follow-up");
+      expect(rows[1]).toHaveAttribute("data-follow-up");
+    });
+
+    it("shows a deposit projection without rendering one of one", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            payment_plans: [
+              makeSalePaymentPlan({
+                kind: "deposit",
+                expected_parts: 1,
+                collected_parts: 1,
+                deposit_percent: 30,
+                projected_total: "1 020 EUR",
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(
+        screen.getByText(/30% deposit collected · Projected total 1\s020 EUR/),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/1 of 1/)).not.toBeInTheDocument();
+    });
   });
 
   it("renders an empty state when a search has no matches", () => {

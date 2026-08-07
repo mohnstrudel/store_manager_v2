@@ -60,6 +60,9 @@ export function makeCustomerSale(overrides: Partial<SaleRecord> = {}): SaleRecor
     note: "",
     created_at: "19. May '26",
     updated_at: "19. May '26",
+    payment_plans: [],
+    partially_paid: false,
+    is_follow_up_payment: false,
     ...overrides,
   };
 }
