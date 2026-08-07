@@ -79,7 +79,7 @@ describe "Moving purchased products between warehouses" do
 
       # Select 2 out of 3 purchased products
       find("tbody tr.hoverable:nth-of-type(1) input[type='checkbox']").check
-      find("tbody tr.hoverable:nth-of-type(2) input[type='checkbox']").check
+        all("tbody tr.hoverable input[type='checkbox']")[1].check
 
       # Enable the form to be visible in the test environment
       page.execute_script("document.querySelector('.move_to_warehouse__form').style.position = 'static';")

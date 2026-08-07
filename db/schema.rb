@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_stat_statements"
 
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.text "body"
@@ -106,6 +107,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.index ["shopify_id"], name: "index_customers_on_shopify_id"
   end
 
+  create_table "expense_rates", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.decimal "rate_percent", precision: 5, scale: 2, null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_expense_rates_on_name", unique: true
+  end
+
   create_table "franchises", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "title"
@@ -121,17 +130,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.index ["slug", "sluggable_type", "scope"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type_and_scope", unique: true
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
-  end
-
-  create_table "images", force: :cascade do |t|
-    t.string "alt"
-    t.datetime "created_at", null: false
-    t.integer "imageable_id", null: false
-    t.string "imageable_type", null: false
-    t.integer "position", default: 0, null: false
-    t.datetime "updated_at", null: false
-    t.index ["imageable_type", "imageable_id"], name: "index_images_on_imageable_type_and_imageable_id"
-    t.index ["position"], name: "index_images_on_position"
   end
 
   create_table "media", force: :cascade do |t|
@@ -152,6 +150,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["event_type", "status"], name: "index_notifications_on_event_type_and_status"
+  end
+
+  create_table "operational_expenses", force: :cascade do |t|
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.bigint "expense_rate_id"
+    t.date "incurred_on", null: false
+    t.string "note"
+    t.datetime "updated_at", null: false
+    t.index ["expense_rate_id"], name: "index_operational_expenses_on_expense_rate_id"
+    t.index ["incurred_on"], name: "index_operational_expenses_on_incurred_on"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -207,6 +217,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.bigint "franchise_id", null: false
     t.string "full_title"
     t.string "image"
+    t.boolean "non_catalog", default: false, null: false
     t.datetime "published_at"
     t.string "shape", default: "Statue", null: false
     t.string "shopify_id"
@@ -218,7 +229,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.index ["published_at"], name: "index_products_on_published_at"
     t.index ["shopify_id"], name: "index_products_on_shopify_id"
     t.index ["slug"], name: "index_products_on_slug", unique: true
-    t.check_constraint "shape::text = ANY (ARRAY['Statue'::character varying, 'Bust'::character varying]::text[])", name: "products_shape_allowed_values"
+    t.check_constraint "shape::text = ANY (ARRAY['Statue'::character varying::text, 'Bust'::character varying::text])", name: "products_shape_allowed_values"
+  end
+
+  create_table "purchase_expenses", force: :cascade do |t|
+    t.decimal "amount", precision: 8, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.string "description", null: false
+    t.bigint "purchase_item_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["purchase_item_id"], name: "index_purchase_expenses_on_purchase_item_id"
   end
 
   create_table "purchase_items", force: :cascade do |t|
@@ -226,17 +246,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.decimal "expenses", precision: 8, scale: 2
     t.integer "height"
     t.integer "length"
+    t.bigint "product_id"
     t.bigint "purchase_id"
     t.bigint "sale_item_id"
     t.bigint "shipping_company_id"
     t.decimal "shipping_cost", precision: 8, scale: 2, default: "0.0", null: false
     t.string "tracking_number"
     t.datetime "updated_at", null: false
+    t.bigint "variant_id"
     t.datetime "warehouse_arrived_at", null: false
     t.bigint "warehouse_id", null: false
     t.integer "weight"
     t.integer "width"
+    t.index ["purchase_id", "product_id", "variant_id"], name: "index_purchase_items_on_purchase_and_identity"
     t.index ["purchase_id"], name: "index_purchase_items_on_purchase_id"
+    t.index ["sale_item_id", "product_id", "variant_id"], name: "index_purchase_items_on_sale_item_and_identity"
     t.index ["sale_item_id"], name: "index_purchase_items_on_sale_item_id"
     t.index ["shipping_company_id"], name: "index_purchase_items_on_shipping_company_id"
     t.index ["warehouse_id", "warehouse_arrived_at", "id"], name: "index_purchase_items_on_warehouse_arrival"
@@ -258,6 +282,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.string "synced"
     t.datetime "updated_at", null: false
     t.bigint "variant_id"
+    t.index ["id", "product_id", "variant_id"], name: "index_purchases_on_id_and_product_and_variant", unique: true
     t.index ["payments_count"], name: "index_purchases_on_payments_count"
     t.index ["product_id"], name: "index_purchases_on_product_id"
     t.index ["slug"], name: "index_purchases_on_slug", unique: true
@@ -287,20 +312,67 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
 
   create_table "sale_items", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.decimal "expected_revenue", precision: 8, scale: 2
+    t.bigint "origin_sale_item_id"
+    t.decimal "outstanding_revenue", precision: 8, scale: 2
     t.decimal "price", precision: 8, scale: 2
     t.bigint "product_id", null: false
     t.integer "purchase_items_count", default: 0, null: false
     t.integer "qty"
+    t.decimal "received_revenue", precision: 8, scale: 2
+    t.decimal "refunded_revenue", precision: 8, scale: 2
     t.bigint "sale_id", null: false
     t.string "shopify_id"
     t.datetime "updated_at", null: false
     t.bigint "variant_id"
     t.string "woo_id"
+    t.index ["id", "product_id", "variant_id"], name: "index_sale_items_on_id_and_product_and_variant", unique: true
+    t.index ["origin_sale_item_id"], name: "index_sale_items_on_origin_sale_item_id"
     t.index ["product_id"], name: "index_sale_items_on_product_id"
     t.index ["sale_id"], name: "index_sale_items_on_sale_id"
     t.index ["shopify_id"], name: "index_sale_items_on_shopify_id"
     t.index ["variant_id"], name: "index_sale_items_on_variant_id"
     t.index ["woo_id"], name: "index_sale_items_on_woo_id", unique: true
+  end
+
+  create_table "sale_payment_parts", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.decimal "amount", precision: 12, scale: 2
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.datetime "due_at"
+    t.string "external_order_id"
+    t.datetime "provider_completed_at"
+    t.string "provider_part_id"
+    t.bigint "sale_id"
+    t.bigint "sale_payment_plan_id", null: false
+    t.integer "sequence", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_order_id"], name: "index_sale_payment_parts_on_external_order_id"
+    t.index ["sale_id"], name: "index_sale_payment_parts_on_sale_id"
+    t.index ["sale_payment_plan_id", "provider_part_id"], name: "idx_on_sale_payment_plan_id_provider_part_id_788c63a32a", unique: true, where: "(provider_part_id IS NOT NULL)"
+    t.index ["sale_payment_plan_id", "sequence"], name: "index_sale_payment_parts_on_sale_payment_plan_id_and_sequence", unique: true
+    t.index ["sale_payment_plan_id"], name: "index_sale_payment_parts_on_sale_payment_plan_id"
+  end
+
+  create_table "sale_payment_plans", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.decimal "deposit_percent", precision: 5, scale: 2
+    t.integer "expected_parts", null: false
+    t.string "external_id", null: false
+    t.string "external_origin_order_id"
+    t.string "kind", null: false
+    t.datetime "next_due_at"
+    t.bigint "origin_sale_id"
+    t.decimal "projected_total", precision: 12, scale: 2
+    t.string "provider", null: false
+    t.string "status"
+    t.datetime "synced_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_origin_order_id"], name: "index_sale_payment_plans_on_external_origin_order_id"
+    t.index ["origin_sale_id"], name: "index_sale_payment_plans_on_origin_sale_id"
+    t.index ["provider", "external_id"], name: "index_sale_payment_plans_on_provider_and_external_id", unique: true
   end
 
   create_table "sales", force: :cascade do |t|
@@ -312,9 +384,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.datetime "created_at", null: false
     t.bigint "customer_id", null: false
     t.decimal "discount_total", precision: 8, scale: 2
+    t.decimal "expected_revenue", precision: 8, scale: 2
     t.string "financial_status"
     t.string "fulfillment_status"
+    t.decimal "net_payment", precision: 8, scale: 2
     t.string "note"
+    t.decimal "outstanding_revenue", precision: 8, scale: 2
+    t.datetime "payment_due"
+    t.string "payment_gateway_names", default: [], null: false, array: true
+    t.boolean "payment_overdue", default: false, null: false
+    t.string "payment_terms_name"
+    t.string "payment_terms_type"
+    t.decimal "received_revenue", precision: 8, scale: 2
+    t.decimal "refunded_revenue", precision: 8, scale: 2
     t.string "return_status"
     t.decimal "shipping_total", precision: 8, scale: 2
     t.datetime "shopify_created_at"
@@ -457,7 +539,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
     t.index ["color_id"], name: "index_variants_on_color_id"
     t.index ["deactivated_at"], name: "index_variants_on_deactivated_at"
     t.index ["product_id"], name: "index_variants_on_product_id"
-    t.index ["shopify_id"], name: "index_variants_on_shopify_id", unique: true, where: "(shopify_id IS NOT NULL)"
+    t.index ["shopify_id"], name: "index_variants_on_shopify_id"
     t.index ["size_id"], name: "index_variants_on_size_id"
     t.index ["sku"], name: "index_variants_on_sku"
     t.index ["version_id"], name: "index_variants_on_version_id"
@@ -502,6 +584,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "operational_expenses", "expense_rates"
   add_foreign_key "payments", "purchases"
   add_foreign_key "product_brands", "brands"
   add_foreign_key "product_brands", "products"
@@ -512,8 +595,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
   add_foreign_key "product_versions", "products"
   add_foreign_key "product_versions", "versions"
   add_foreign_key "products", "franchises"
+  add_foreign_key "purchase_expenses", "purchase_items"
   add_foreign_key "purchase_items", "purchases"
+  add_foreign_key "purchase_items", "purchases", column: ["purchase_id", "product_id", "variant_id"], primary_key: ["id", "product_id", "variant_id"], name: "fk_purchase_items_purchase_identity", deferrable: :deferred, validate: false
   add_foreign_key "purchase_items", "sale_items"
+  add_foreign_key "purchase_items", "sale_items", column: ["sale_item_id", "product_id", "variant_id"], primary_key: ["id", "product_id", "variant_id"], name: "fk_purchase_items_sale_item_identity", deferrable: :deferred, validate: false
   add_foreign_key "purchase_items", "shipping_companies"
   add_foreign_key "purchase_items", "warehouses"
   add_foreign_key "purchases", "products"
@@ -521,8 +607,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_144604) do
   add_foreign_key "purchases", "variants"
   add_foreign_key "sale_addresses", "sales"
   add_foreign_key "sale_items", "products"
+  add_foreign_key "sale_items", "sale_items", column: "origin_sale_item_id"
   add_foreign_key "sale_items", "sales"
   add_foreign_key "sale_items", "variants"
+  add_foreign_key "sale_payment_parts", "sale_payment_plans"
+  add_foreign_key "sale_payment_parts", "sales"
+  add_foreign_key "sale_payment_plans", "sales", column: "origin_sale_id"
   add_foreign_key "sales", "customers"
   add_foreign_key "sessions", "users"
   add_foreign_key "taggings", "tags"

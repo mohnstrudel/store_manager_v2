@@ -25,10 +25,11 @@ module PurchaseItem::Listing
         :audits,
         :warehouse,
         :shipping_company,
+        :purchase_expenses,
         :sale_item,
         purchase: :payments,
         sale: [:customer, :shopify_info, :woo_info, :shipping_address]
-      )
+      ).ordered_by_updated_date
     }
 
     scope :for_warehouse_details, -> {

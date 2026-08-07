@@ -38,12 +38,10 @@ module Warehouses
           :width,
           :height,
           :weight,
-          :expenses,
           :shipping_cost,
           :tracking_number,
           :warehouse_id,
           :purchase_id,
-          :sale_item_id,
           :redirect_to_sale_item,
           :shipping_company_id]
       )

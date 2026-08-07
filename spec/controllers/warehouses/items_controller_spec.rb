@@ -43,6 +43,22 @@ RSpec.describe Warehouses::ItemsController do
       }.to change(PurchaseItem, :count).by(1)
 
       expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(PurchaseItem.last.expenses).to eq(BigDecimal("0"))
+    end
+
+    it "does not accept direct SaleItem assignment" do
+      sale_item = create(:sale_item, product: purchase.product, variant: purchase.variant)
+
+      post :create, params: {
+        warehouse_id: warehouse.id,
+        purchase_item: {
+          warehouse_id: warehouse.id,
+          purchase_id: purchase.id,
+          sale_item_id: sale_item.id
+        }
+      }
+
+      expect(PurchaseItem.last.sale_item_id).to be_nil
     end
   end
 end

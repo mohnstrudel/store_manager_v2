@@ -6,7 +6,7 @@ module Purchase::Warehousing
   def move_to_warehouse!(warehouse_id)
     if purchase_items.exists?
       PurchaseItem.move_to_warehouse!(
-        purchase_item_ids: purchase_items.pluck(:id),
+        purchase_item_ids: purchase_items.order(:id).pluck(:id),
         warehouse_id:
       )
     else
@@ -15,10 +15,7 @@ module Purchase::Warehousing
   end
 
   def link_with_sales
-    linked_purchase_item_ids = link_purchase_items
-    PurchaseItem.notify_order_status!(
-      purchase_item_ids: linked_purchase_item_ids
-    )
+    link_purchase_items
   end
 
   private

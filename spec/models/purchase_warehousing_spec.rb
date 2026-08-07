@@ -75,12 +75,12 @@ RSpec.describe Purchase do
       purchase.link_with_sales
     end
 
-    it "sends notifications for linked purchase items" do
+    it "leaves notification scheduling to the exact-link command" do
       allow(purchase).to receive(:link_purchase_items).and_return([purchase_item1.id, purchase_item2.id])
       allow(PurchaseItem).to receive(:notify_order_status!)
       purchase.link_with_sales
 
-      expect(PurchaseItem).to have_received(:notify_order_status!).with(purchase_item_ids: [purchase_item1.id, purchase_item2.id])
+      expect(PurchaseItem).not_to have_received(:notify_order_status!)
     end
 
     it "does nothing when purchase has no purchase_items" do
@@ -90,7 +90,7 @@ RSpec.describe Purchase do
 
       purchase.link_with_sales
 
-      expect(PurchaseItem).to have_received(:notify_order_status!).with(purchase_item_ids: [])
+      expect(PurchaseItem).not_to have_received(:notify_order_status!)
     end
   end
 end

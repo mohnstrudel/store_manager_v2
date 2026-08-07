@@ -45,7 +45,10 @@ module Sales
     end
 
     def unlink_purchase_items
-      @sale_item.purchase_items.find_each { |purchase_item| purchase_item.update!(sale_item_id: nil) }
+      PurchaseItem.link_exact!(
+        assignments: [],
+        unlink_purchase_items: @sale_item.purchase_items.to_a
+      )
     end
 
     def redirect_path
