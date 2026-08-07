@@ -37,6 +37,7 @@ Before planning behavior-bearing frontend work or a structural refactor that aff
 2. Start from the authoritative state source and one behavior owner. Derive only deterministic UI values; do not infer domain facts from names, IDs, adjacent props, or event payloads.
 3. Place code by ownership and cohesion:
    - Pages own composition and the page contract.
+   - Page-local modules own independently meaningful page subsystems; reuse is not required for a file boundary.
    - Components own cohesive interaction and presentation.
    - Hooks own a distinct behavior, lifecycle, synchronization process, or external integration; do not extract a hook merely to shorten a component.
    - Providers own behavior shared by one subtree with a clear lifetime; prop depth alone does not justify Context.
@@ -61,5 +62,6 @@ Before planning behavior-bearing frontend work or a structural refactor that aff
 - Structural refactors must also preserve frontend-only behavior: accessibility, focus, scroll position, request and invalidation timing, and stale-state visibility.
 - Keep one writer and named commands for behavior-bearing state. Use effects for synchronization, not as a hidden second write path.
 - Prefer the simplest inspectable state representation. Do not add global state, Context, reducers, adapters, or compatibility layers without a distinct owner and responsibility.
-- Do not extract for file length or hypothetical reuse. A component variant is valid when variants share one owner, contract, and lifecycle; split them when those meanings diverge.
+- Do not extract solely for file length or hypothetical reuse, but do not keep independent feature contracts in one file. Split by ownership and cohesion; inline wrappers that add no decision, lifecycle, protocol, or stable visual unit.
+- A component variant is valid when variants share one owner, contract, and lifecycle; split them when those meanings diverge.
 - Use props for values that vary by instance and a provider for behavior genuinely shared by a subtree. Choose based on ownership and lifetime, not a fixed component-depth rule.
