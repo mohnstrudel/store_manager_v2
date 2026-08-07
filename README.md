@@ -116,7 +116,7 @@ Detailed, task-specific guidance lives in [`AGENTS.md`](AGENTS.md) and the skill
 - `frontend-architecture/SKILL.md` — Inertia + React UI work
 - `inline-cell-editor/SKILL.md` — adding or changing inline table-cell editors
 
-These live under both `.claude/skills/` and `.codex/skills/`.
+These live in `.agents/skills/`; `.claude/skills/` and `.codex/skills/` are symlinks to that canonical directory.
 
 ---
 

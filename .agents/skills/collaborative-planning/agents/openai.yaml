@@ -1,0 +1,4 @@
+interface:
+  display_name: "Collaborative Planning"
+  short_description: "Plan changes collaboratively"
+  default_prompt: "Use $collaborative-planning to turn this task into an approved implementation plan."
