@@ -1,0 +1,319 @@
+import type { ReactNode } from "react";
+import PageHeader from "@/components/PageHeader";
+
+type GlossaryEntry = {
+  id: string;
+  aliasIds?: string[];
+  term: string;
+  // Only where the app labels this figure with a word the term does not already
+  // say. A label that repeats the heading tells the reader nothing.
+  shownAs?: { labels: string[]; where: string }[];
+  definition: ReactNode;
+  example?: ReactNode;
+  watchFor?: ReactNode;
+};
+
+type GlossarySection = {
+  id: string;
+  title: string;
+  entries: GlossaryEntry[];
+};
+
+export const sections: GlossarySection[] = [
+  {
+    id: "money-from-customers",
+    title: "Money from customers",
+    entries: [
+      {
+        id: "revenue",
+        aliasIds: ["monthlyRevenue"],
+        term: "Revenue",
+        shownAs: [{ labels: ["Total"], where: "on a sale's details card" }],
+        definition: "The full value of a customer's order, whether or not they have paid yet.",
+        watchFor: "A cancelled order drops out of Revenue everywhere and shows no profit card.",
+      },
+      {
+        id: "received",
+        term: "Received",
+        definition: "Money already collected from the customer.",
+      },
+      {
+        id: "outstanding",
+        term: "Outstanding",
+        definition: "Money billed to the customer that has not been collected yet.",
+      },
+      {
+        id: "refunded",
+        term: "Refunded",
+        definition:
+          "Money returned to the customer after the order was billed, shown separately without reducing Revenue.",
+      },
+      {
+        id: "paymentPlan",
+        term: "Payment plan",
+        definition:
+          "A set of customer orders that together bill and collect one contract value over time.",
+      },
+      {
+        id: "deposit",
+        term: "Deposit",
+        definition:
+          "The first customer charge in a payment plan, billed before the rest of the job and carrying the whole job's cost.",
+      },
+      {
+        id: "payment",
+        term: "Payment",
+        definition:
+          "One charge to a customer within a larger payment plan, rather than a stand-alone order.",
+        watchFor:
+          "“Payments” on a purchase are payments to a supplier, and “Paid” is their total; they are not customer charges.",
+      },
+      {
+        id: "projectedTotal",
+        term: "Projected total",
+        shownAs: [{ labels: ["Projected"], where: "in the Revenue row on a sale card" }],
+        definition:
+          "The full contract value of a payment plan, including customer charges not billed yet.",
+        example:
+          "A custom order starts with a 30% deposit: the deposit order's Revenue covers that charge, while Projected total covers the whole job.",
+      },
+      {
+        id: "projectedRemainder",
+        term: "Projected remainder",
+        definition:
+          "The part of a payment plan's contract value still to be collected across the plan.",
+      },
+    ],
+  },
+  {
+    id: "what-the-goods-cost",
+    title: "What the goods cost",
+    entries: [
+      {
+        id: "cogs",
+        term: "COGS",
+        definition:
+          "The landed cost of the goods sold: purchase price, inbound shipping, and direct expenses.",
+        example:
+          "Goods bought for 30 € with 5 € inbound shipping and a 20 € rush fee carry COGS of 55 €.",
+        watchFor:
+          "A sale line with no purchase item linked shows no cost, so COGS is missing and every profit figure under it is too high.",
+      },
+      {
+        id: "merchandise",
+        term: "Merchandise cost",
+        shownAs: [{ labels: ["Merchandise"], where: "on a product" }],
+        definition:
+          "What the goods themselves cost, including inbound shipping but before direct expenses booked on top.",
+      },
+      {
+        id: "directExpenses",
+        term: "Direct expenses",
+        shownAs: [{ labels: ["Direct"], where: "on a product" }],
+        definition:
+          "Ad-hoc costs booked on a specific purchase item, such as extra tax or damaged packaging.",
+      },
+    ],
+  },
+  {
+    id: "overheads",
+    title: "Overheads",
+    entries: [
+      {
+        id: "opEx",
+        aliasIds: ["estimatedOpEx", "projectedOpEx"],
+        term: "OpEx",
+        shownAs: [
+          { labels: ["Estimated OpEx"], where: "on the OpEx Rates page" },
+          { labels: ["Projected"], where: "in the OpEx row on a sale card" },
+        ],
+        definition:
+          "General business costs such as rent and payroll, estimated for a sale or product as a percentage of Revenue.",
+        watchFor:
+          "Today's OpEx rates are also applied to past months, so editing a rate recalculates their Estimated OpEx and Comparison; recorded Actual OpEx does not change.",
+      },
+      {
+        id: "opExRates",
+        term: "OpEx rates",
+        definition: "The overhead percentages used to estimate OpEx from Revenue.",
+      },
+      {
+        id: "opExRecords",
+        aliasIds: ["actualOpEx", "comparison"],
+        term: "OpEx records",
+        shownAs: [{ labels: ["Actual OpEx", "Comparison"], where: "on the OpEx Rates page" }],
+        definition:
+          "Operating costs recorded for a month as money actually spent, rather than estimated from Revenue.",
+        watchFor:
+          "The “OpEx” navigation item opens these recorded costs; “OpEx” on a sale or product card is an estimate.",
+      },
+    ],
+  },
+  {
+    id: "profit",
+    title: "Profit",
+    entries: [
+      {
+        id: "netProfit",
+        term: "Net profit",
+        definition:
+          "Revenue minus COGS and estimated OpEx: what one order should earn once the customer pays in full.",
+        watchFor:
+          "On a payment plan this reads one charge on its own, so a deposit carrying the whole job's cost can show a loss. Projected net profit reads the same job as a finished deal.",
+      },
+      {
+        id: "profitInHand",
+        term: "Profit in hand",
+        shownAs: [{ labels: ["In hand"], where: "on a product" }],
+        definition:
+          "Received minus COGS and estimated OpEx: the profit left from the money collected so far.",
+        watchFor:
+          "A loss here on a part-paid order is expected and moves toward Net profit as the customer pays; this figure alone does not mean anything is wrong.",
+      },
+      {
+        id: "projectedNetProfit",
+        term: "Projected net profit",
+        shownAs: [{ labels: ["Projected"], where: "in the Net Profit row on a sale card" }],
+        definition:
+          "Projected total minus COGS and OpEx estimated on the full contract value: what the whole payment plan should earn.",
+      },
+    ],
+  },
+  {
+    id: "stock-and-suppliers",
+    title: "Stock and suppliers",
+    entries: [
+      {
+        id: "invested",
+        term: "Invested",
+        definition:
+          "The landed cost of every unit received into a warehouse for this product, sold or unsold.",
+        watchFor:
+          "A purchase not yet received is not counted, so Invested can be lower than the value ordered.",
+      },
+      {
+        id: "unsoldStockValue",
+        term: "Unsold stock value",
+        shownAs: [{ labels: ["Unsold"], where: "on a product" }],
+        definition: "The landed cost of the units in the warehouse that have not been sold.",
+      },
+      {
+        id: "listCost",
+        term: "List cost",
+        definition:
+          "A variant's hand-entered reference price, not a record of what was actually spent.",
+        watchFor: "It has no connection to Total landed cost, which is what was actually spent.",
+      },
+      {
+        id: "variantPurchaseCostTotal",
+        term: "Total landed cost",
+        definition:
+          "The purchase price, shipping, and direct expenses on this variant's own purchase items.",
+        watchFor:
+          "Purchases tied only to the product rather than to a variant are missing here but counted in Invested, so the two rarely match.",
+      },
+      {
+        id: "variantTheoreticalProfit",
+        term: "Theoretical profit",
+        definition:
+          "A per-unit estimate using the selling price, average landed cost across every purchase of the variant, and OpEx charged on the selling price.",
+        watchFor: "It describes no actual sale, so use it as a planning estimate only.",
+      },
+      {
+        id: "supplierDebt",
+        term: "Supplier debt",
+        shownAs: [{ labels: ["Debt"], where: "on the suppliers list" }],
+        definition: "Money still owed to a supplier on a purchase.",
+      },
+      {
+        id: "unitShortfall",
+        term: "Unit shortfall",
+        definition: "The number of units sold beyond the number bought for one product or variant.",
+      },
+      {
+        id: "productsShort",
+        term: "Products short",
+        definition: "The number of product rows on the dashboard that have a Unit shortfall.",
+      },
+    ],
+  },
+];
+
+export default function Show() {
+  return (
+    <>
+      <PageHeader title="Money glossary" />
+
+      <div className="flex max-w-3xl flex-col gap-10">
+        <p className="text-gray-600 dark:text-gray-300">
+          This page explains what each money figure means and when it can mislead you. Where the app
+          labels a figure with a different word, the entry names that word too.
+        </p>
+
+        <nav aria-label="Glossary sections">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+            {sections.map((section) => (
+              <li key={section.id}>
+                <a className="link" href={`#${section.id}`}>
+                  {section.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {sections.map((section) => (
+          <section aria-labelledby={section.id} className="flex flex-col gap-6" key={section.id}>
+            <h2 className="scroll-mt-24 text-xl font-semibold" id={section.id}>
+              {section.title}
+            </h2>
+            <dl className="flex flex-col gap-8">
+              {section.entries.map((entry) => (
+                <GlossaryEntryItem entry={entry} key={entry.id} />
+              ))}
+            </dl>
+          </section>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function GlossaryEntryItem({ entry }: { entry: GlossaryEntry }) {
+  return (
+    <div className="scroll-mt-24" id={entry.id}>
+      <dt className="text-lg font-semibold">
+        {entry.aliasIds?.map((aliasId) => (
+          <span aria-hidden="true" className="scroll-mt-24" id={aliasId} key={aliasId} />
+        ))}
+        {entry.term}
+      </dt>
+      <dd className="mt-1 flex flex-col gap-2 text-base">
+        {entry.shownAs && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Shown as {shownAsText(entry.shownAs)}
+          </p>
+        )}
+        <p>{entry.definition}</p>
+        {entry.example && (
+          <p className="text-gray-600 dark:text-gray-300">
+            <span className="font-medium text-gray-900 dark:text-gray-100">Example: </span>
+            {entry.example}
+          </p>
+        )}
+        {entry.watchFor && (
+          <p className="border-l-2 border-amber-400 pl-3 dark:border-amber-500">
+            <span className="font-semibold">Watch for: </span>
+            {entry.watchFor}
+          </p>
+        )}
+      </dd>
+    </div>
+  );
+}
+
+function shownAsText(shownAs: NonNullable<GlossaryEntry["shownAs"]>): string {
+  return shownAs
+    .map(({ labels, where }) => `${labels.map((label) => `“${label}”`).join(" and ")} ${where}`)
+    .join("; ");
+}
