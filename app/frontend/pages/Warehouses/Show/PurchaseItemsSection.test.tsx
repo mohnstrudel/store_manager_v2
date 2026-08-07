@@ -66,7 +66,7 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
     );
     expect(router.visit).not.toHaveBeenCalled();
 
-    expect(screen.getByText("Handle with care")).toHaveClass("tip_mark__tooltip");
+    expect(screen.getByLabelText("More information")).toHaveTextContent("*");
   });
 
   it("auto-opens the shipping editor when starting to edit tracking with no shipping company", async () => {

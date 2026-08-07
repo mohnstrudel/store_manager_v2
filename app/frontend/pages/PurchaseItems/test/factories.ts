@@ -40,7 +40,6 @@ export function makePurchaseItemFormRecord(
     width: "20",
     height: "15",
     weight: "2.5",
-    expenses: "100.00",
     shipping_cost: "25.00",
     tracking_number: "TRK-001",
     media: [
