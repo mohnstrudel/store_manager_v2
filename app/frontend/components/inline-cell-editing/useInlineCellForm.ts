@@ -24,6 +24,8 @@ type InlineCellFormConfig<TRecord extends { id: number }> = {
   normalizeValueForSave?: (value: string) => string;
   /** Defaults to the current page URL. Override only when saving should return elsewhere. */
   returnTo?: string;
+  /** Inertia props to reload after save. Defaults to the edited collection only. */
+  reloadProps?: string[];
   /** Reads a field error. Defaults to `errors[attributeName] || errors.base`. */
   errorFrom?: (errors: Record<string, string>) => string;
   /** Side effect called when the user opens the editor (not via ref). */
@@ -49,6 +51,7 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   mapNewValueToState,
   normalizeValueForSave,
   returnTo,
+  reloadProps,
   errorFrom,
   onOpen: onOpenEffect,
 }: InlineCellFormConfig<TRecord>) {
@@ -105,7 +108,7 @@ export function useInlineCellForm<TRecord extends { id: number }>({
         [collection]: replaceById(props[collection], recordId, resolvedMapToState(newValue)),
       }))
       .patch(updatePath, {
-        only: [collection],
+        only: reloadProps ?? [collection],
         preserveScroll: true,
         onBefore: () => {
           form.clearErrors();

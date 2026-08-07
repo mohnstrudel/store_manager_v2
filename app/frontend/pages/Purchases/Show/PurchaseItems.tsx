@@ -77,30 +77,33 @@ export default function PurchaseItems({
           warehouses={warehouses}
         />
 
-        <table>
-          <thead>
-            <tr>
-              <th />
-              <th>ID</th>
-              <th>Purchased Item</th>
-              <th className="text-center">Tracking</th>
-              <th className="text-center">Shipping Co.</th>
-              <th className="text-center">Cost</th>
-              <th className="text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {purchaseItems.map((purchaseItem) => (
-              <PurchaseItemRow
-                key={purchaseItem.id}
-                purchaseItem={purchaseItem}
-                selectedIds={selectedIds}
-                shippingCompanies={shippingCompanies}
-                toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-hidden rounded-b-xl">
+          <table>
+            <thead>
+              <tr>
+                <th />
+                <th>ID</th>
+                <th>Purchased Item</th>
+                <th className="text-center">Tracking</th>
+                <th className="text-center">Shipping Co.</th>
+                <th className="text-center">Cost</th>
+                <th className="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchaseItems.map((purchaseItem) => (
+                <PurchaseItemRow
+                  key={purchaseItem.id}
+                  purchaseItem={purchaseItem}
+                  purchasePath={purchase.path}
+                  selectedIds={selectedIds}
+                  shippingCompanies={shippingCompanies}
+                  toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

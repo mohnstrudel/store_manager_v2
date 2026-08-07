@@ -5,6 +5,7 @@ import {
   useInlineCellForm,
 } from "@/components/inline-cell-editing";
 import { purchaseItemResource } from "@/components/purchase-item-cells/resource";
+import { isEmptyValue } from "@/utils/emptyValue";
 import routes from "@/utils/routes";
 import type { PurchaseItemRecord } from "../types";
 
@@ -48,7 +49,7 @@ export const InlineShippingCostEditor = forwardRef<InlineCellEditorHandle, Shipp
         ref={ref}
         ariaLabel="Edit shipping cost"
         displayClassName="font-mono text-sm"
-        displayValue={Number(item.shipping_cost) > 0 ? item.shipping_cost : ""}
+        displayValue={isEmptyValue(Number(item.shipping_cost)) ? "" : item.shipping_cost}
         error={form.error}
         fieldId={fieldId}
         fieldLabel="Shipping cost"

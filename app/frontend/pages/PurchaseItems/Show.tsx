@@ -1,6 +1,12 @@
 import { Link } from "@inertiajs/react";
 import Button from "@/components/Button";
+import Field from "@/components/Field";
 import ImageGallery from "@/components/ImageGallery";
+import {
+  financialMetricHints,
+  metricScopeNotes,
+  withScope,
+} from "@/components/profitability/metricLabels";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import type { PurchaseItemShowRecord } from "./types";
 
@@ -54,15 +60,13 @@ export default function Show({ purchase_item }: ShowProps) {
       <div className="section_wide">
         <div className="cards">
           <ImageGallery media={purchase_item.media} />
-          <div className="card grow">
-            <h5>Supplier</h5>
-            <p>
+          <dl className="card grow">
+            <Field label="Supplier" value={purchase_item.supplier_title}>
               <Link className="link" href={purchase_item.supplier_path} prefetch>
                 {purchase_item.supplier_title}
               </Link>
-            </p>
-            <h5>Product</h5>
-            <p>
+            </Field>
+            <Field label="Product" value={purchase_item.product_title}>
               {purchase_item.product_path ? (
                 <Link className="link" href={purchase_item.product_path} prefetch>
                   {purchase_item.product_title}
@@ -70,36 +74,31 @@ export default function Show({ purchase_item }: ShowProps) {
               ) : (
                 purchase_item.product_title
               )}
-            </p>
-            <h5>Current Warehouse</h5>
-            <p>
+            </Field>
+            <Field label="Current Warehouse" value={purchase_item.warehouse_name}>
               <Link className="link" href={purchase_item.warehouse_path} prefetch>
                 {purchase_item.warehouse_name}
               </Link>
-            </p>
-            <h5>Expenses</h5>
-            <p className="font-mono">{purchase_item.expenses}</p>
-            <h5>Shipping</h5>
-            <p className="font-mono">{purchase_item.shipping_cost}</p>
-            <h5>Tracking Number</h5>
-            <p>{purchase_item.tracking_number}</p>
-            <h5>Shipping Company</h5>
-            <p>{purchase_item.shipping_company_name}</p>
-          </div>
-          <div className="card">
-            <h5>Length, cm</h5>
-            <p>{purchase_item.length}</p>
-            <h5>Width, cm</h5>
-            <p>{purchase_item.width}</p>
-            <h5>Height, cm</h5>
-            <p>{purchase_item.height}</p>
-            <h5>Weight, kg</h5>
-            <p>{purchase_item.weight}</p>
-            <h5>Created at</h5>
-            <p>{purchase_item.created_at}</p>
-            <h5>Updated at</h5>
-            <p>{purchase_item.updated_at}</p>
-          </div>
+            </Field>
+            <Field
+              anchor="directExpenses"
+              className="font-mono"
+              hint={withScope(financialMetricHints.directExpenses, metricScopeNotes.purchaseItem)}
+              label="Direct expenses"
+              value={purchase_item.expenses}
+            />
+            <Field className="font-mono" label="Shipping" value={purchase_item.shipping_cost} />
+            <Field label="Tracking Number" value={purchase_item.tracking_number} />
+            <Field label="Shipping Company" value={purchase_item.shipping_company_name} />
+          </dl>
+          <dl className="card">
+            <Field label="Length, cm" value={purchase_item.length} />
+            <Field label="Width, cm" value={purchase_item.width} />
+            <Field label="Height, cm" value={purchase_item.height} />
+            <Field label="Weight, kg" value={purchase_item.weight} />
+            <Field label="Created at" value={purchase_item.created_at} />
+            <Field label="Updated at" value={purchase_item.updated_at} />
+          </dl>
           {purchase_item.warehouse_movements.length > 0 && (
             <div className="card">
               <table className="vertical thead_static" role="grid">
@@ -118,9 +117,7 @@ export default function Show({ purchase_item }: ShowProps) {
                           <Link className="link" href={movement.warehouse_path} prefetch>
                             {movement.warehouse_name}
                           </Link>
-                        ) : (
-                          "-"
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                   ))}

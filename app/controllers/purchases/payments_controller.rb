@@ -2,8 +2,6 @@
 
 module Purchases
   class PaymentsController < ApplicationController
-    include PurchaseShowState
-
     before_action :set_purchase
     before_action :set_payment, only: %i[update destroy]
 
@@ -12,8 +10,7 @@ module Purchases
       if @payment.save
         redirect_to return_path, notice: "Payment was successfully created", status: :see_other
       else
-        @new_payment = @payment
-        render_purchase_show_error
+        redirect_to failure_path, inertia: inertia_errors(@payment.errors)
       end
     end
 
@@ -21,7 +18,7 @@ module Purchases
       if @payment.update(payment_params)
         redirect_to return_path, notice: "Payment was successfully updated", status: :see_other
       else
-        render_purchase_show_error
+        redirect_to failure_path, inertia: inertia_errors(@payment.errors)
       end
     end
 
@@ -37,7 +34,7 @@ module Purchases
     end
 
     def set_purchase
-      @purchase = Purchase.for_details.friendly.find(params.expect(:purchase_id))
+      @purchase = Purchase.friendly.find(params.expect(:purchase_id))
     end
 
     def set_payment
@@ -54,14 +51,8 @@ module Purchases
       params[:return_to].presence || purchase_path(@purchase)
     end
 
-    def render_purchase_show_error
-      prepare_purchase_show_state
-      render inertia: "Purchases/Show", props: helpers.purchase_show_props(
-        @purchase,
-        purchase_items: @purchase_items,
-        payments: @payments,
-        new_payment: @new_payment
-      ), status: :unprocessable_content
+    def failure_path
+      purchase_path(@purchase)
     end
   end
 end

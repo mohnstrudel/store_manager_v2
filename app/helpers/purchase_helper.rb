@@ -59,6 +59,7 @@ module PurchaseHelper
       item_price: format_money(purchase.item_price),
       cost_total: format_money(purchase.cost_total),
       shipping_total: format_money(purchase.shipping_total),
+      expenses_total: format_money(purchase.expenses_total),
       paid: format_money(purchase.paid),
       debt: format_money(purchase.debt),
       supplier_title: purchase.supplier.title,
@@ -87,7 +88,9 @@ module PurchaseHelper
       tracking_number: purchase_item.tracking_number.to_s,
       shipping_company_id: purchase_item.shipping_company_id,
       shipping_company_name: purchase_item.shipping_company&.name.to_s,
-      shipping_cost: purchase_item.shipping_cost.to_i.to_s
+      shipping_cost: purchase_item.shipping_cost.to_i.to_s,
+      purchase_expenses: purchase_item.purchase_expenses.for_display.map { |expense| purchase_expense_props(expense, purchase_item:) },
+      new_purchase_expense: unsaved_purchase_expense_props(purchase_item:)
     }
   end
 
@@ -97,8 +100,7 @@ module PurchaseHelper
       update_path: purchase_payment_path(purchase, payment),
       destroy_path: purchase_payment_path(purchase, payment, return_to: purchase_path(purchase)),
       payment_date: payment.payment_date&.to_date&.iso8601,
-      value: payment.value.to_s,
-      errors: payment.errors.full_messages
+      value: decimal_field_value(payment.value)
     }
   end
 
@@ -106,8 +108,7 @@ module PurchaseHelper
     {
       create_path: purchase_payments_path(purchase),
       payment_date: (payment.payment_date&.to_date || Time.zone.today).iso8601,
-      value: payment.value.to_s,
-      errors: payment.errors.full_messages
+      value: decimal_field_value(payment.value)
     }
   end
 
@@ -135,11 +136,32 @@ module PurchaseHelper
       variant_id: purchase.variant_id,
       supplier_id: purchase.supplier_id,
       order_reference: purchase.order_reference.to_s,
-      item_price: purchase.item_price.to_s,
+      item_price: decimal_field_value(purchase.item_price),
       amount: purchase.amount.to_s,
       warehouse_id: purchase.warehouse_id,
-      payment_value: purchase.payment_value.to_s,
-      variant_options: purchase_variant_options(purchase_display_product(purchase))
+      payment_value: decimal_field_value(purchase.payment_value),
+      variant_availability: variant_availability_props(
+        purchase_display_product(purchase),
+        current_variant: purchase.variant
+      )
+    }
+  end
+
+  def purchase_expense_props(expense, purchase_item:)
+    {
+      id: expense.id,
+      description: expense.description.to_s,
+      amount: compact_decimal_field_value(expense.amount),
+      update_path: purchase_item_expense_path(purchase_item, expense),
+      destroy_path: purchase_item_expense_path(purchase_item, expense, return_to: purchase_path(purchase_item.purchase))
+    }
+  end
+
+  def unsaved_purchase_expense_props(purchase_item:)
+    {
+      description: "",
+      amount: "",
+      create_path: purchase_item_expenses_path(purchase_item)
     }
   end
 
@@ -147,15 +169,8 @@ module PurchaseHelper
     {
       products: select_option_props(products) { |product| product.build_full_title_with_shop_id },
       suppliers: select_option_props(suppliers) { |supplier| supplier.title },
-      warehouses: select_option_props(warehouses) { |warehouse| warehouse.name },
-      product_variants_path: product_variants_path
+      warehouses: select_option_props(warehouses) { |warehouse| warehouse.name }
     }
-  end
-
-  def purchase_variant_options(product)
-    return [] unless product
-
-    select_option_props(product.fetch_variants_with_title) { |variant| variant.title }
   end
 
   private

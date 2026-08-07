@@ -155,12 +155,6 @@ function PurchaseItemShippingFields({
   return (
     <FormRow>
       <FormInput
-        defaultValue={purchase_item.expenses}
-        error={errors.expenses}
-        label="Expenses"
-        name="purchase_item[expenses]"
-      />
-      <FormInput
         defaultValue={purchase_item.shipping_cost}
         error={errors.shipping_cost}
         label="Shipping"

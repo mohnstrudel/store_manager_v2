@@ -24,6 +24,17 @@ RSpec.describe Payment do
     it { is_expected.to belong_to(:purchase).touch(true) }
   end
 
+  describe ".chronological" do
+    it "orders payments by payment date and creation time" do
+      purchase = create(:purchase)
+      newest = create(:payment, purchase:, payment_date: Date.new(2026, 5, 2), created_at: 2.hours.ago)
+      first = create(:payment, purchase:, payment_date: Date.new(2026, 5, 1), created_at: 1.hour.ago)
+      second = create(:payment, purchase:, payment_date: Date.new(2026, 5, 1), created_at: Time.current)
+
+      expect(purchase.payments.chronological).to eq([first, second, newest])
+    end
+  end
+
   describe "Configuration and Extensions" do
     describe "auditing" do
       it "is audited" do

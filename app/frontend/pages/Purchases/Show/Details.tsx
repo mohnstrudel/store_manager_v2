@@ -1,4 +1,10 @@
 import { Link } from "@inertiajs/react";
+import Field from "@/components/Field";
+import {
+  financialMetricHints,
+  metricScopeNotes,
+  withScope,
+} from "@/components/profitability/metricLabels";
 import type { PurchaseShowRecord } from "../types";
 
 type DetailsProps = {
@@ -12,39 +18,38 @@ export default function Details({ purchase }: DetailsProps) {
         <img className="product" src={purchase.product_image_url} alt={purchase.product_title} />
       )}
 
-      <div className="card flex grow">
+      <dl className="card flex grow">
         <div className="flex-1">
-          <h5>ID</h5>
-          <p>{purchase.id}</p>
-          <h5>Qty</h5>
-          <p>{purchase.amount}</p>
-          <h5>Unit price, $</h5>
-          <p className="font-mono">{purchase.item_price}</p>
-          <h5>Total price</h5>
-          <p className="font-mono">{purchase.cost_total}</p>
-          <h5>Shipping</h5>
-          <p className="font-mono">{purchase.shipping_total}</p>
+          <Field label="ID" value={purchase.id} />
+          <Field label="Qty" value={purchase.amount} />
+          <Field className="font-mono" label="Unit price" value={purchase.item_price} />
+          <Field className="font-mono" label="Total price" value={purchase.cost_total} />
+          <Field className="font-mono" label="Shipping" value={purchase.shipping_total} />
+          <Field
+            anchor="directExpenses"
+            className="font-mono"
+            hint={withScope(financialMetricHints.directExpenses, metricScopeNotes.purchase)}
+            label="Direct expenses"
+            value={purchase.expenses_total}
+          />
         </div>
         <div className="flex-1">
-          <h5>Paid</h5>
-          <p className="font-mono">{purchase.paid || "0"}</p>
-          <h5>Debt</h5>
-          <p className="font-mono">-{purchase.debt}</p>
+          <Field className="font-mono" label="Paid" value={purchase.paid} />
+          <Field className="font-mono" label="Supplier debt" value={purchase.debt}>
+            -{purchase.debt}
+          </Field>
         </div>
-      </div>
+      </dl>
 
-      <div className="card">
-        <h5>Supplier</h5>
-        <p>
+      <dl className="card">
+        <Field label="Supplier" value={purchase.supplier_title}>
           <Link className="link" href={purchase.supplier_path} prefetch>
             {purchase.supplier_title}
           </Link>
-        </p>
-        <h5>Order reference</h5>
-        <p>{purchase.order_reference}</p>
-        <h5>Date</h5>
-        <p>{purchase.date}</p>
-      </div>
+        </Field>
+        <Field label="Order reference" value={purchase.order_reference} />
+        <Field label="Date" value={purchase.date} />
+      </dl>
     </div>
   );
 }
