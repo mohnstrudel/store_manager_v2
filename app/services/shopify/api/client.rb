@@ -126,15 +126,19 @@ module Shopify
           query: Shopify::Graphql::OrderQuery.by_id,
           variables: {id: order_id}
         )
+        log_query_cost(response, operation: "order")
         handle_query_errors(response, resource_name: "order")
-        response.body.dig("data", "order")
+
+        order = response.body.dig("data", "order")
+        report_truncated_line_items([order])
+        order
       end
 
       # Fetch orders with pagination.
       #
       # @param cursor [String, nil] The pagination cursor
       # @param batch_size [Integer] The number of items to fetch
-      # @return [Hash] Hash with :items, :has_next_page, and :end_cursor keys
+      # @return [Hash] Hash with :items, :has_next_page, :end_cursor, and :query_cost keys
       def fetch_orders(cursor:, batch_size:)
         response = graphql_client.query(
           query: Shopify::Graphql::OrderQuery.list,
@@ -143,9 +147,12 @@ module Shopify
             after: cursor
           }
         )
+        query_cost = log_query_cost(response, operation: "orders")
         handle_query_errors(response, resource_name: "orders")
 
-        extract_pagination(response.body["data"], resource_name: "orders")
+        page = extract_pagination(response.body["data"], resource_name: "orders")
+        report_truncated_line_items(page[:items])
+        page.merge(query_cost:)
       end
 
       # Attach media to a product.
@@ -212,6 +219,53 @@ module Shopify
       end
 
       private
+
+      # Record what a GraphQL call spent from the Shopify query budget.
+      #
+      # @param response [Object] The response object from the API client
+      # @param operation [String] The name of the operation being measured
+      # @return [Hash, nil] The measured cost, or nil when Shopify reported none
+      def log_query_cost(response, operation:)
+        cost = response.body.dig("extensions", "cost")
+        return if cost.blank?
+
+        throttle = cost["throttleStatus"] || {}
+        measured = {
+          requested: cost["requestedQueryCost"],
+          actual: cost["actualQueryCost"],
+          available: throttle["currentlyAvailable"],
+          maximum: throttle["maximumAvailable"],
+          restore_rate: throttle["restoreRate"]
+        }
+
+        Rails.logger.info(
+          "Shopify #{operation} query cost: requested=#{measured[:requested]} " \
+          "actual=#{measured[:actual]} available=#{measured[:available]}/#{measured[:maximum]} " \
+          "restore_rate=#{measured[:restore_rate]}"
+        )
+
+        measured
+      end
+
+      # Report orders whose line items did not fit the requested page.
+      #
+      # @param orders [Array<Hash, nil>] The fetched order payloads
+      def report_truncated_line_items(orders)
+        truncated_ids = Array(orders).filter_map do |order|
+          order["id"] if order&.dig("lineItems", "pageInfo", "hasNextPage")
+        end
+        return if truncated_ids.empty?
+
+        message = "Shopify line items truncated for #{truncated_ids.size} order(s): #{truncated_ids.join(", ")}"
+
+        Rails.logger.error(message)
+        Sentry.capture_message(
+          message,
+          level: :error,
+          tags: {api: "shopify", operation: "lineItems"},
+          extra: {order_ids: truncated_ids}
+        )
+      end
 
       # Handle errors from a query response.
       #

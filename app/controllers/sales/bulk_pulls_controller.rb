@@ -10,6 +10,7 @@ module Sales
       Config.update_shopify_sales_sync_time
 
       Shopify::PullSalesJob.perform_later(limit:)
+      Seal::SyncPaymentPlansJob.perform_later
       Woo::PullSalesJob.set(wait: 90.seconds).perform_later(limit:)
 
       set_jobs_status_notice!

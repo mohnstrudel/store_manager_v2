@@ -3,7 +3,10 @@
 require "rails_helper"
 
 RSpec.describe Sales::BulkPullsController do
-  before { sign_in_as_admin }
+  before do
+    sign_in_as_admin
+    allow(Seal::SyncPaymentPlansJob).to receive(:perform_later)
+  end
   after { log_out }
 
   describe "POST #create" do
@@ -17,6 +20,7 @@ RSpec.describe Sales::BulkPullsController do
       expect(Config).to have_received(:update_shopify_sales_sync_time)
       expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: nil)
       expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
+      expect(Seal::SyncPaymentPlansJob).to have_received(:perform_later)
     end
 
     it "passes the limit parameter through to jobs" do
@@ -28,6 +32,7 @@ RSpec.describe Sales::BulkPullsController do
 
       expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: "100")
       expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
+      expect(Seal::SyncPaymentPlansJob).to have_received(:perform_later)
     end
 
     it "sets a flash notice with the jobs dashboard link" do

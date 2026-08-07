@@ -5,7 +5,7 @@ module Product::Listing
 
   included do
     scope :listed, -> {
-      includes(
+      where(non_catalog: false).includes(
         :shopify_info,
         :woo_info,
         variants: [:version, :color, :size],

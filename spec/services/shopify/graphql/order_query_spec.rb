@@ -71,6 +71,25 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       expect(described_class::SALE_FIELDS).to include("variantTitle")
     end
 
+    it "asks whether line items were truncated" do
+      aggregate_failures do
+        expect(described_class::SALE_FIELDS).to include("lineItems(first: 10)")
+        expect(described_class::SALE_FIELDS).to match(
+          /lineItems\(first: 10\) \{\s*pageInfo \{\s*hasNextPage\s*\}/
+        )
+      end
+    end
+
+    it "includes complete payment-term schedule fields" do
+      aggregate_failures do
+        expect(described_class::SALE_FIELDS).to include("paymentSchedules(first: 250)")
+        expect(described_class::SALE_FIELDS).to include("balanceDue")
+        expect(described_class::SALE_FIELDS).to include("totalBalance")
+        expect(described_class::SALE_FIELDS).to include("completedAt")
+        expect(described_class::SALE_FIELDS).to include("issuedAt")
+      end
+    end
+
     it "includes minimal product reference fields for sale item linking" do
       expect(described_class::SALE_FIELDS).to include("id")
       expect(described_class::SALE_FIELDS).to include("product {")

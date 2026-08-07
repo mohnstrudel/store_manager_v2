@@ -22,8 +22,10 @@ class Sale::Shopify::Importer
     ActiveRecord::Base.transaction do
       sale.update!(sale_attributes)
       sale.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
+      reconcile_payment_plans!
       update_addresses!
       update_or_create_sale_items!
+      sale.allocate_revenue_to_items!
     end
 
     handle_post_import_actions
@@ -60,11 +62,21 @@ class Sale::Shopify::Importer
     end
   end
 
+  def reconcile_payment_plans!
+    SalePaymentPlan.reconcile_sale!(sale)
+    return if parsed[:payment_plan].blank?
+
+    snapshot = parsed[:payment_plan]
+    SalePaymentPlan.reconcile!(
+      attributes: snapshot.fetch(:attributes).merge(synced_at: Time.current),
+      parts: snapshot.fetch(:parts)
+    )
+  end
+
   def handle_post_import_actions
     return unless should_link_items?
 
-    linked_ids = sale.link_with_purchase_items
-    PurchaseItem.notify_order_status!(purchase_item_ids: linked_ids)
+    sale.link_with_purchase_items
   end
 
   def should_link_items?

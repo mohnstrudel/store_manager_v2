@@ -54,20 +54,57 @@ class Sale::Shopify::SaleItemImporter
   def sale_item_attributes
     {
       price: parsed[:price],
+      expected_revenue: parsed[:expected_revenue],
       qty: parsed[:qty],
       shopify_id: parsed[:store_id],
       sale: sale,
       product: resolved_product,
-      variant: imported_variant
+      variant: imported_variant,
+      origin_sale_item: resolved_origin_sale_item
     }.compact
   end
 
   def resolved_product
-    @resolved_product ||=
-      existing_product_from_store_id ||
+    return @resolved_product if defined?(@resolved_product)
+
+    default_product = default_resolved_product
+    @redirected_installment_product = false
+
+    if default_product&.non_catalog?
+      target = installment_target_product
+      if target
+        @redirected_installment_product = true
+        return @resolved_product = target
+      end
+    end
+
+    @resolved_product = default_product
+  end
+
+  def default_resolved_product
+    existing_product_from_store_id ||
       product_from_payload ||
       product_from_full_title ||
       placeholder_product
+  end
+
+  def redirected_installment_product?
+    resolved_product
+    @redirected_installment_product
+  end
+
+  def installment_target_product
+    installment_resolver.target_product
+  end
+
+  def resolved_origin_sale_item
+    return nil unless redirected_installment_product?
+
+    installment_resolver.origin_sale_item
+  end
+
+  def installment_resolver
+    @installment_resolver ||= Sale::InstallmentProductResolver.new(sale)
   end
 
   def product_from_payload
@@ -95,6 +132,7 @@ class Sale::Shopify::SaleItemImporter
 
   def imported_variant
     return @imported_variant if defined?(@imported_variant)
+    return @imported_variant = nil if redirected_installment_product?
 
     @imported_variant =
       if parsed[:variant_store_id].present?

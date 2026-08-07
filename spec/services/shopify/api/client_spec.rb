@@ -209,6 +209,55 @@ RSpec.describe Shopify::Api::Client do
       expect(result).to eq(order_response.body.dig("data", "order"))
     end
 
+    it "does not report truncation for a complete order" do
+      allow(Sentry).to receive(:capture_message)
+
+      client.fetch_order(order_id)
+
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+
+    context "when the order's line items did not fit the requested page" do
+      let(:order_response) do
+        double(body: {
+          "data" => {
+            "order" => {
+              "id" => order_id,
+              "lineItems" => {
+                "pageInfo" => {"hasNextPage" => true},
+                "nodes" => []
+              }
+            }
+          }
+        })
+      end
+
+      it "reports the truncated order loudly" do
+        allow(Sentry).to receive(:capture_message)
+        allow(Rails.logger).to receive(:error)
+
+        client.fetch_order(order_id)
+
+        aggregate_failures do
+          expect(Sentry).to have_received(:capture_message).with(
+            "Shopify line items truncated for 1 order(s): gid://shopify/Order/456",
+            level: :error,
+            tags: {api: "shopify", operation: "lineItems"},
+            extra: {order_ids: ["gid://shopify/Order/456"]}
+          )
+          expect(Rails.logger).to have_received(:error).with(
+            "Shopify line items truncated for 1 order(s): gid://shopify/Order/456"
+          )
+        end
+      end
+
+      it "still returns the order data" do
+        allow(Sentry).to receive(:capture_message)
+
+        expect(client.fetch_order(order_id)).to eq(order_response.body.dig("data", "order"))
+      end
+    end
+
     context "when Shopify API returns errors" do
       let(:error_response) do
         double(body: {
@@ -277,6 +326,110 @@ RSpec.describe Shopify::Api::Client do
       expect(result[:end_cursor]).to be_nil
     end
 
+    it "reports no cost when Shopify sent no extensions" do
+      result = client.fetch_orders(cursor: cursor, batch_size: batch_size)
+
+      expect(result[:query_cost]).to be_nil
+    end
+
+    context "when Shopify reports the query cost" do
+      let(:orders_response) do
+        double(body: {
+          "data" => {
+            "orders" => {
+              "edges" => [],
+              "pageInfo" => {"hasNextPage" => false, "endCursor" => nil}
+            }
+          },
+          "extensions" => {
+            "cost" => {
+              "requestedQueryCost" => 862,
+              "actualQueryCost" => 431,
+              "throttleStatus" => {
+                "maximumAvailable" => 2000.0,
+                "currentlyAvailable" => 1138.0,
+                "restoreRate" => 100.0
+              }
+            }
+          }
+        })
+      end
+
+      it "returns the measured cost alongside the page" do
+        result = client.fetch_orders(cursor: cursor, batch_size: batch_size)
+
+        expect(result[:query_cost]).to eq(
+          requested: 862,
+          actual: 431,
+          available: 1138.0,
+          maximum: 2000.0,
+          restore_rate: 100.0
+        )
+      end
+
+      it "logs the measured cost and the remaining budget" do
+        allow(Rails.logger).to receive(:info)
+
+        client.fetch_orders(cursor: cursor, batch_size: batch_size)
+
+        expect(Rails.logger).to have_received(:info).with(
+          "Shopify orders query cost: requested=862 actual=431 " \
+          "available=1138.0/2000.0 restore_rate=100.0"
+        )
+      end
+    end
+
+    context "when some orders' line items were truncated" do
+      let(:orders_response) do
+        double(body: {
+          "data" => {
+            "orders" => {
+              "edges" => [
+                {"node" => {
+                  "id" => "gid://shopify/Order/1",
+                  "lineItems" => {"pageInfo" => {"hasNextPage" => true}, "nodes" => []}
+                }},
+                {"node" => {
+                  "id" => "gid://shopify/Order/2",
+                  "lineItems" => {"pageInfo" => {"hasNextPage" => false}, "nodes" => []}
+                }},
+                {"node" => {
+                  "id" => "gid://shopify/Order/3",
+                  "lineItems" => {"pageInfo" => {"hasNextPage" => true}, "nodes" => []}
+                }}
+              ],
+              "pageInfo" => {"hasNextPage" => false, "endCursor" => nil}
+            }
+          }
+        })
+      end
+
+      it "reports only the truncated orders loudly" do
+        allow(Sentry).to receive(:capture_message)
+
+        client.fetch_orders(cursor: cursor, batch_size: batch_size)
+
+        expect(Sentry).to have_received(:capture_message).with(
+          "Shopify line items truncated for 2 order(s): gid://shopify/Order/1, gid://shopify/Order/3",
+          level: :error,
+          tags: {api: "shopify", operation: "lineItems"},
+          extra: {order_ids: ["gid://shopify/Order/1", "gid://shopify/Order/3"]}
+        )
+      end
+
+      it "still returns every fetched order" do
+        allow(Sentry).to receive(:capture_message)
+
+        result = client.fetch_orders(cursor: cursor, batch_size: batch_size)
+
+        expect(result[:items].pluck("id")).to eq([
+          "gid://shopify/Order/1",
+          "gid://shopify/Order/2",
+          "gid://shopify/Order/3"
+        ])
+      end
+    end
+
     context "when Shopify API returns errors" do
       let(:error_response) do
         double(body: {
@@ -294,6 +447,34 @@ RSpec.describe Shopify::Api::Client do
         expect {
           client.fetch_orders(cursor: nil, batch_size: 10)
         }.to raise_error(described_class::ApiError, "Failed to fetch orders: Access denied")
+      end
+
+      it "still logs the throttle status Shopify reported with the error" do
+        allow(mock_graphql_client).to receive(:query).and_return(
+          double(body: {
+            "errors" => [{"message" => "Throttled"}],
+            "extensions" => {
+              "cost" => {
+                "requestedQueryCost" => 862,
+                "actualQueryCost" => nil,
+                "throttleStatus" => {
+                  "maximumAvailable" => 2000.0,
+                  "currentlyAvailable" => 12.0,
+                  "restoreRate" => 100.0
+                }
+              }
+            }
+          })
+        )
+        allow(Rails.logger).to receive(:info)
+
+        expect { client.fetch_orders(cursor: nil, batch_size: 250) }
+          .to raise_error(described_class::ApiError)
+
+        expect(Rails.logger).to have_received(:info).with(
+          "Shopify orders query cost: requested=862 actual= " \
+          "available=12.0/2000.0 restore_rate=100.0"
+        )
       end
     end
   end
