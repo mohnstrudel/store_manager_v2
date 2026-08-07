@@ -195,6 +195,9 @@ function useFormStub<TData extends Record<string, unknown>>(initialData: TData) 
         typeof update === "function" ? (update as (data: TData) => TData)(currentData) : update,
       );
     },
+    reset: () => {
+      setDataState(initialData);
+    },
     transform: (callback: (data: TData) => unknown) => {
       transformPayload = callback;
     },
