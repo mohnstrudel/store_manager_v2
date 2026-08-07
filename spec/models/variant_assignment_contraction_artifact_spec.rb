@@ -2,7 +2,7 @@
 
 require "rails_helper"
 require Rails.root.join(
-  ".specs/codex/variant-assignments/20260803T220023Z__variant-assignments-repair/artifacts/" \
+  ".specs/174-expenses/20260803T220023Z__variant-assignments-repair/artifacts/" \
     "20260731120000_contract_variant_assignments"
 )
 
