@@ -50,6 +50,45 @@ describe("AppNavigation", () => {
     expect(screen.queryByRole("link", { name: "Brands" })).not.toBeInTheDocument();
   });
 
+  it("renders the glossary link for every signed-in role, not just admins", async () => {
+    mockPageProps({
+      auth: {
+        user: {
+          id: 1,
+          email_address: "manager@example.com",
+          role: "manager",
+        },
+      },
+    });
+    const user = userEvent.setup();
+
+    render(<AppNavigation />);
+
+    await user.click(screen.getByRole("button", { name: "More navigation links" }));
+
+    expect(screen.getByRole("link", { name: "Glossary" })).toHaveAttribute("href", "/glossary");
+  });
+
+  it("renders admin settings links with generated route paths", async () => {
+    const user = userEvent.setup();
+
+    render(<AppNavigation />);
+
+    await user.click(screen.getByRole("button", { name: "More navigation links" }));
+
+    expect(screen.getByRole("link", { name: "OpEx Rates" })).toHaveAttribute(
+      "href",
+      "/expense_rates",
+    );
+    expect(screen.getByRole("link", { name: "Users" })).toHaveAttribute("href", "/users");
+    expect(screen.getByRole("link", { name: "Variant Repairs" })).toHaveAttribute(
+      "href",
+      "/variant_assignment_issues",
+    );
+    expect(screen.queryByRole("link", { name: "Analytics" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Inventory Planner" })).not.toBeInTheDocument();
+  });
+
   it("closes the overflow menu when a navigation link is selected", async () => {
     const user = userEvent.setup();
 
