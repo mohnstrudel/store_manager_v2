@@ -57,18 +57,18 @@ RSpec.describe Purchase do
   describe "#variant_title" do
     context "when variant is present" do
       let(:variant) { create(:variant) }
-      let(:purchase) { create(:purchase, variant:) }
+      let(:purchase) { create(:purchase, product: variant.product, variant:) }
 
       it "returns variant title" do
         expect(purchase.variant_title).to eq(variant.title)
       end
     end
 
-    context "when variant is nil" do
+    context "when variant is omitted for a Base-only Product" do
       let(:purchase) { create(:purchase, variant: nil) }
 
-      it "returns '-'" do
-        expect(purchase.variant_title).to eq("-")
+      it "returns the normalized Base title" do
+        expect(purchase.variant_title).to eq("Base Model")
       end
     end
   end

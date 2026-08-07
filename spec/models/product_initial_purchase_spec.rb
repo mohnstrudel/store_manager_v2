@@ -13,8 +13,9 @@ RSpec.describe Product do
       expect {
         product.save_editing!(
           product_attributes: creation_product_attributes,
-          variants_attributes: [],
+          variants_attributes: [{client_key: "base-draft"}],
           store_infos_attributes: [],
+          purchase_variant_client_key: "base-draft",
           purchase_attributes: {
             supplier_id: supplier.id,
             amount: "2",
@@ -81,12 +82,14 @@ RSpec.describe Product do
 
       expect(product).to receive(:save!).ordered.and_call_original
       expect(purchase).to receive(:product=).with(product).ordered
+      expect(purchase).to receive(:variant=).with(instance_of(Variant)).ordered
       expect(purchase).to receive(:save_editing!).ordered
 
       product.save_editing!(
         product_attributes: creation_product_attributes,
-        variants_attributes: [],
+        variants_attributes: [{client_key: "base-draft"}],
         store_infos_attributes: [],
+        purchase_variant_client_key: "base-draft",
         purchase_attributes: {
           supplier_id: supplier.id,
           amount: "2",

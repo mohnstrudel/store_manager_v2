@@ -1,8 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import VariantFields from "./VariantFields";
 import { makeVariantForm } from "../../test/factories";
+import type { VariantFormData } from "../../types";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
@@ -132,6 +133,22 @@ describe("Products/components/Form/VariantFields", () => {
       expect(document.querySelector('input[name="variants[0][version_id]"]')).toHaveValue("10");
       expect(document.querySelector('input[name="variants[0][color_id]"]')).toHaveValue("100");
     });
+
+    it("submits its stable draft client key", () => {
+      renderVariant(makeVariantForm());
+
+      expect(document.querySelector('input[name="variants[0][client_key]"]')).toHaveValue(
+        "draft-variant-1",
+      );
+    });
+
+    it("reports option changes against the same draft client key", async () => {
+      const { onChange } = renderVariant(makeVariantForm());
+
+      fireEvent.change(screen.getByLabelText("Size"), { target: { value: "1" } });
+
+      expect(onChange).toHaveBeenCalledWith("draft-variant-1", { size_id: 1 });
+    });
   });
 });
 
@@ -139,17 +156,19 @@ function renderVariant(
   variant: ReturnType<typeof makeVariantForm>,
   props: Record<string, unknown> = {},
 ) {
-  const onRemove = vi.fn<(index: number) => void>();
+  const onRemove = vi.fn<(clientKey: string) => void>();
+  const onChange = vi.fn<(clientKey: string, changes: Partial<VariantFormData>) => void>();
   const result = render(
     <VariantFields
       colors={colors}
       index={0}
+      onChange={onChange}
       onRemove={onRemove}
       sizes={sizes}
-      variant={variant}
+      variant={{ ...variant, clientKey: "draft-variant-1" }}
       versions={versions}
       {...props}
     />,
   );
-  return { ...result, onRemove };
+  return { ...result, onChange, onRemove };
 }

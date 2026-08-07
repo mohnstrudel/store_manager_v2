@@ -25,7 +25,15 @@ function titleize(str: string): string {
 }
 
 function newSaleItem(): SaleItemFormRecord {
-  return { id: null, product_id: null, qty: "", price: "", _destroy: false };
+  return {
+    id: null,
+    product_id: null,
+    variant_id: null,
+    qty: "",
+    price: "",
+    _destroy: false,
+    variant_availability: null,
+  };
 }
 
 export default function SaleForm({ isNew, options, sale, submitLabel }: SaleFormProps) {
@@ -51,7 +59,7 @@ export default function SaleForm({ isNew, options, sale, submitLabel }: SaleForm
           <SaleNoteField sale={sale} />
           <SaleTotalsFields sale={sale} />
           <SaleAddressSections sale={sale} />
-          <SaleItemsSection form={form} options={options} />
+          <SaleItemsSection errors={errors} form={form} options={options} />
         </>
       )}
     </ResourceForm>
@@ -172,11 +180,20 @@ function SaleAddressSections({ sale }: { sale: SaleFormRecord }) {
   );
 }
 
-function SaleItemsSection({ form, options }: { form: SaleFormState; options: SaleFormOptions }) {
+function SaleItemsSection({
+  errors,
+  form,
+  options,
+}: {
+  errors: Record<string, string>;
+  form: SaleFormState;
+  options: SaleFormOptions;
+}) {
   return (
     <DynamicNestedForm name="Product" onAdd={form.saleItems.add}>
       {form.saleItems.items.map((saleItem, index) => (
         <SaleItemFields
+          errors={errors}
           index={index}
           key={saleItem.clientKey}
           onRemove={form.saleItems.remove}

@@ -90,7 +90,7 @@ RSpec.describe Purchase do
 
     describe "through variant associations" do
       let(:variant) { create(:variant) }
-      let(:purchase) { create(:purchase, variant:) }
+      let(:purchase) { create(:purchase, product: variant.product, variant:) }
 
       it "has many sizes through variant" do
         expect(purchase.sizes).to include(variant.size) if variant.size

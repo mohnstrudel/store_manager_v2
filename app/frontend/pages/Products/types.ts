@@ -1,5 +1,6 @@
 export type { PaginationMeta } from "@/types/pagination";
 import type { MediaRecord, MediaFormData } from "@/types/media";
+import type { ProfitabilitySummaryRecord } from "@/types/profitability";
 export type { MediaRecord, MediaFormData };
 
 export type VariantSummary = {
@@ -50,6 +51,8 @@ export type VariantRecord = {
   purchases_count: number;
   shopify_id_short: string;
   woo_store_id: string;
+  total_purchase_cost: string | null;
+  theoretical_profit: string | null;
 };
 
 export type SaleItemRecord = {
@@ -110,6 +113,22 @@ export type ProductShowRecord = {
   new_purchase_path: string;
 };
 
+export type ProfitabilityStatus = "profitable" | "break_even" | "loss" | "unknown";
+
+export type ProfitabilityRecord = ProfitabilitySummaryRecord & {
+  status: ProfitabilityStatus;
+  margin_percent: number | null;
+  merchandise_cost: string | null;
+  direct_expenses: string | null;
+  has_sale_items: boolean;
+  counted_sales_total: number;
+  invested_total: string | null;
+  purchased_units_total: number;
+  sold_units_total: number;
+  remaining_units_total: number;
+  remaining_inventory_cost: string | null;
+};
+
 export type SelectOption<Value extends string | number = string | number> = {
   value: Value;
   label: string;
@@ -129,6 +148,7 @@ export type FormOptions = {
 
 export type VariantFormData = {
   id: number | null;
+  base_model: boolean;
   sku: string;
   size_id: number | null;
   version_id: number | null;
@@ -155,6 +175,7 @@ export type PurchaseFormData = {
   amount: string;
   warehouse_id: number | null;
   payment_value: string;
+  variant_client_key: string | null;
 };
 
 export type ProductFormData = {

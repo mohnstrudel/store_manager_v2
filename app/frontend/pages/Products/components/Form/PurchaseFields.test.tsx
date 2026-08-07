@@ -9,16 +9,22 @@ vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 const suppliers = [{ value: 1, label: "Moon Supply" }];
 const warehouses = [{ value: 10, label: "Main Warehouse" }];
+const baseDraftAvailability = {
+  mode: "base" as const,
+  variants: [{ value: "draft-base", label: "Base Model", base_model: true }],
+};
 
 describe("Products/components/Form/PurchaseFields", () => {
   it("renders named hidden inputs for supplier_id and warehouse_id selects", async () => {
     await act(async () => {
       render(
         <PurchaseFields
+          draftAvailability={baseDraftAvailability}
+          onVariantChange={vi.fn<(clientKey: string | null) => void>()}
           purchase={makePurchaseForm({ supplier_id: 1, warehouse_id: 10 })}
           suppliers={suppliers}
+          variantClientKey="draft-base"
           warehouses={warehouses}
-          {...{}}
         />,
       );
     });
@@ -31,6 +37,8 @@ describe("Products/components/Form/PurchaseFields", () => {
   it("renders ordinary purchase fields as uncontrolled named inputs", () => {
     render(
       <PurchaseFields
+        draftAvailability={baseDraftAvailability}
+        onVariantChange={vi.fn<(clientKey: string | null) => void>()}
         purchase={makePurchaseForm({
           order_reference: "PO-1",
           item_price: "12.50",
@@ -38,8 +46,8 @@ describe("Products/components/Form/PurchaseFields", () => {
           payment_value: "25",
         })}
         suppliers={suppliers}
+        variantClientKey="draft-base"
         warehouses={warehouses}
-        {...{}}
       />,
     );
 
@@ -50,8 +58,60 @@ describe("Products/components/Form/PurchaseFields", () => {
   });
 
   it("does not render the warehouse select when there are no warehouses", () => {
-    render(<PurchaseFields purchase={makePurchaseForm()} suppliers={suppliers} warehouses={[]} />);
+    render(
+      <PurchaseFields
+        draftAvailability={baseDraftAvailability}
+        onVariantChange={vi.fn<(clientKey: string | null) => void>()}
+        purchase={makePurchaseForm()}
+        suppliers={suppliers}
+        variantClientKey="draft-base"
+        warehouses={[]}
+      />,
+    );
 
     expect(screen.getAllByRole("combobox")).toHaveLength(1);
+  });
+
+  it("submits the fixed draft Base client key", () => {
+    render(
+      <PurchaseFields
+        draftAvailability={{
+          mode: "base",
+          variants: [{ value: "draft-base", label: "Base Model", base_model: true }],
+        }}
+        onVariantChange={vi.fn<(clientKey: string | null) => void>()}
+        purchase={makePurchaseForm({ variant_client_key: "draft-base" })}
+        suppliers={suppliers}
+        variantClientKey="draft-base"
+        warehouses={warehouses}
+      />,
+    );
+
+    expect(screen.getByText("Base Model")).toBeInTheDocument();
+    expect(document.querySelector('input[name="purchase[variant_client_key]"]')).toHaveValue(
+      "draft-base",
+    );
+  });
+
+  it("does not select the first draft real Variant", () => {
+    render(
+      <PurchaseFields
+        draftAvailability={{
+          mode: "select",
+          variants: [
+            { value: "draft-large", label: "Large", base_model: false },
+            { value: "draft-small", label: "Small", base_model: false },
+          ],
+        }}
+        onVariantChange={vi.fn<(clientKey: string | null) => void>()}
+        purchase={makePurchaseForm()}
+        suppliers={suppliers}
+        variantClientKey={null}
+        warehouses={warehouses}
+      />,
+    );
+
+    expect(screen.getByRole("combobox", { name: "Variant" })).toHaveValue("");
+    expect(document.querySelector('input[name="purchase[variant_client_key]"]')).toHaveValue("");
   });
 });

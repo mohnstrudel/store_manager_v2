@@ -2,6 +2,7 @@ import type {
   ProductFormRecord,
   ProductIndexRecord,
   ProductShowRecord,
+  ProfitabilityRecord,
   PurchaseFormData,
   PurchaseRecord,
   SaleItemRecord,
@@ -9,6 +10,7 @@ import type {
   VariantFormData,
   VariantRecord,
 } from "../types";
+import { makeProfitabilitySummary } from "@/test/factories";
 
 export function makeProduct(overrides: Partial<ProductShowRecord> = {}): ProductShowRecord {
   return {
@@ -60,6 +62,8 @@ export function makeVariant(overrides: Partial<VariantRecord> = {}): VariantReco
     purchases_count: 1,
     shopify_id_short: "SHOP-V1",
     woo_store_id: "WOO-V1",
+    total_purchase_cost: "150",
+    theoretical_profit: "50",
     ...overrides,
   };
 }
@@ -99,6 +103,32 @@ export function makePurchase(overrides: Partial<PurchaseRecord> = {}): PurchaseR
   };
 }
 
+export function makeProfitability(
+  overrides: Partial<ProfitabilityRecord> = {},
+): ProfitabilityRecord {
+  return {
+    ...makeProfitabilitySummary({
+      expense_rate_percent: 15,
+      business_expenses: "45",
+      refunded_revenue: null,
+      realized_profit: "-65",
+      expected_final_profit: "135",
+    }),
+    status: "profitable",
+    margin_percent: 45,
+    merchandise_cost: "115",
+    direct_expenses: "5",
+    has_sale_items: true,
+    counted_sales_total: 3,
+    invested_total: "420",
+    purchased_units_total: 3,
+    sold_units_total: 1,
+    remaining_units_total: 2,
+    remaining_inventory_cost: "240",
+    ...overrides,
+  };
+}
+
 // ── Form factories (ProductFormRecord and its nested types) ───────────────────
 
 export function makeProductIndexRecord(
@@ -122,6 +152,7 @@ export function makeProductIndexRecord(
 export function makeVariantForm(overrides: Partial<VariantFormData> = {}): VariantFormData {
   return {
     id: null,
+    base_model: true,
     sku: "SKU-001",
     size_id: null,
     version_id: null,
@@ -154,6 +185,7 @@ export function makePurchaseForm(overrides: Partial<PurchaseFormData> = {}): Pur
     amount: "",
     warehouse_id: null,
     payment_value: "",
+    variant_client_key: null,
     ...overrides,
   };
 }

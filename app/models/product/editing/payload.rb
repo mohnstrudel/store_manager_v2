@@ -32,6 +32,7 @@ class Product::Editing::Payload
 
       {
         id: attrs[:id].presence,
+        client_key: attrs[:client_key].presence,
         sku: attrs[:sku],
         size_id: attrs[:size_id],
         version_id: attrs[:version_id],
@@ -45,7 +46,11 @@ class Product::Editing::Payload
   end
 
   def purchase_attributes
-    raw_purchase_attributes.compact_blank.to_h.symbolize_keys
+    raw_purchase_attributes.except(:variant_client_key).compact_blank.to_h.symbolize_keys
+  end
+
+  def purchase_variant_client_key
+    raw_purchase_attributes[:variant_client_key].presence
   end
 
   private
@@ -65,6 +70,7 @@ class Product::Editing::Payload
   def purchase_params
     params.expect(purchase: [
       :supplier_id,
+      :variant_client_key,
       :order_reference,
       :item_price,
       :amount,

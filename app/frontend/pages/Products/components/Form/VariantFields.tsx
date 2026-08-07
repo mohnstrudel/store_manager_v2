@@ -8,7 +8,9 @@ import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
 import SmartSelect from "@/components/lazySmartSelect";
 import { toSelectedOption } from "@/utils/selectOptions";
+import type { SectionRow } from "@/utils/useDynamicSection";
 import { type SelectOption, type VariantFormData } from "../../types";
+import { variantFormTitle } from "../variantDrafts";
 
 const SELECT_FALLBACK = <SelectSkeleton />;
 
@@ -16,9 +18,10 @@ type VariantFieldsProps = {
   colors: SelectOption<number>[];
   errors?: Record<string, string>;
   index: number;
-  onRemove: (index: number) => void;
+  onChange: (clientKey: string, changes: Partial<VariantFormData>) => void;
+  onRemove: (clientKey: string) => void;
   sizes: SelectOption<number>[];
-  variant: VariantFormData;
+  variant: SectionRow<VariantFormData>;
   versions: SelectOption<number>[];
 };
 
@@ -26,12 +29,13 @@ export default function VariantFields({
   colors,
   errors = EMPTY_ERRORS,
   index,
+  onChange,
   onRemove,
   sizes,
   variant,
   versions,
 }: VariantFieldsProps) {
-  const variantFields = useVariantFieldState(variant);
+  const variantFields = useVariantFieldState(variant, onChange);
 
   const prefix = `variants.${index}`;
   const skuError = errors[`${prefix}.sku`];
@@ -46,10 +50,13 @@ export default function VariantFields({
     size_id: variantFields.sizeId,
     version_id: variantFields.versionId,
   };
-  const title = generateVariantTitle(displayVariant, colors, sizes, versions);
+  const title = variantFormTitle(displayVariant, colors, sizes, versions);
   const isDimmed = variant.deactivated || variantFields.isMarkedForDeletion;
   const sizeHasError = !!(sizeError || combinationError);
-  const handleRemove = useCallback(() => onRemove(index), [index, onRemove]);
+  const handleRemove = useCallback(
+    () => onRemove(variant.clientKey),
+    [onRemove, variant.clientKey],
+  );
   const actions = useMemo(
     () => (
       <VariantActions
@@ -69,6 +76,7 @@ export default function VariantFields({
       title={title}
     >
       <input name={`variants[${index}][id]`} type="hidden" defaultValue={variant.id ?? ""} />
+      <input name={`variants[${index}][client_key]`} type="hidden" value={variant.clientKey} />
 
       <FormRow>
         <FormControl
@@ -136,7 +144,7 @@ export default function VariantFields({
         <FormInput
           className="w-full"
           defaultValue={variant.purchase_cost}
-          label="Purchase Cost"
+          label="List cost"
           min="0"
           name={`variants[${index}][purchase_cost]`}
           step="0.01"
@@ -188,23 +196,45 @@ function VariantActions({
   );
 }
 
-function useVariantFieldState(variant: VariantFormData) {
+function useVariantFieldState(
+  variant: SectionRow<VariantFormData>,
+  onChange: (clientKey: string, changes: Partial<VariantFormData>) => void,
+) {
   const [sizeId, setSizeId] = useState<number | null>(variant.size_id);
   const [versionId, setVersionId] = useState<number | null>(variant.version_id);
   const [colorId, setColorId] = useState<number | null>(variant.color_id);
   const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(variant._destroy);
+  const markForDeletion = useCallback(
+    (checked: boolean) => {
+      setIsMarkedForDeletion(checked);
+      onChange(variant.clientKey, { _destroy: checked });
+    },
+    [onChange, variant.clientKey],
+  );
 
   const selectSize = useCallback(
-    (option: SelectOption<number> | null) => setSizeId(option?.value ?? null),
-    [],
+    (option: SelectOption<number> | null) => {
+      const size_id = option?.value ?? null;
+      setSizeId(size_id);
+      onChange(variant.clientKey, { size_id });
+    },
+    [onChange, variant.clientKey],
   );
   const selectVersion = useCallback(
-    (option: SelectOption<number> | null) => setVersionId(option?.value ?? null),
-    [],
+    (option: SelectOption<number> | null) => {
+      const version_id = option?.value ?? null;
+      setVersionId(version_id);
+      onChange(variant.clientKey, { version_id });
+    },
+    [onChange, variant.clientKey],
   );
   const selectColor = useCallback(
-    (option: SelectOption<number> | null) => setColorId(option?.value ?? null),
-    [],
+    (option: SelectOption<number> | null) => {
+      const color_id = option?.value ?? null;
+      setColorId(color_id);
+      onChange(variant.clientKey, { color_id });
+    },
+    [onChange, variant.clientKey],
   );
 
   return {
@@ -213,36 +243,10 @@ function useVariantFieldState(variant: VariantFormData) {
     selectColor,
     selectSize,
     selectVersion,
-    setIsMarkedForDeletion,
+    setIsMarkedForDeletion: markForDeletion,
     sizeId,
     versionId,
   };
 }
 
 const EMPTY_ERRORS: Record<string, string> = {};
-
-function generateVariantTitle(
-  variant: VariantFormData,
-  colors: SelectOption<number>[],
-  sizes: SelectOption<number>[],
-  versions: SelectOption<number>[],
-): string {
-  const parts: string[] = [];
-
-  if (variant.size_id) {
-    const size = sizes.find((s) => s.value === variant.size_id);
-    if (size) parts.push(size.label);
-  }
-
-  if (variant.version_id) {
-    const version = versions.find((v) => v.value === variant.version_id);
-    if (version) parts.push(version.label);
-  }
-
-  if (variant.color_id) {
-    const color = colors.find((c) => c.value === variant.color_id);
-    if (color) parts.push(color.label);
-  }
-
-  return parts.length > 0 ? parts.join(" | ") : "Base Model";
-}

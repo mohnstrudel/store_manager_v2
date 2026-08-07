@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
@@ -29,21 +29,27 @@ vi.mock("./Form/VariantFields", () => ({
   default: ({
     errors = {},
     index,
+    onChange,
     onRemove,
     variant,
   }: {
     errors?: Record<string, string>;
     index: number;
-    onRemove: (index: number) => void;
-    variant: VariantFormData;
+    onChange: (clientKey: string, changes: Partial<VariantFormData>) => void;
+    onRemove: (clientKey: string) => void;
+    variant: VariantFormData & { clientKey: string };
   }) => (
-    <div data-testid="variant-row">
+    <div data-client-key={variant.clientKey} data-testid="variant-row">
       <p>{variant.sku || `Variant ${index + 1}`}</p>
       <input name={`variants[${index}][sku]`} defaultValue={variant.sku} />
+      <input name={`variants[${index}][client_key]`} value={variant.clientKey} readOnly />
       {errors[`variants.${index}.sku`] && <p>{errors[`variants.${index}.sku`]}</p>}
       {errors[`variants.${index}.base`] && <p>{errors[`variants.${index}.base`]}</p>}
+      <button onClick={() => onChange(variant.clientKey, { size_id: 10 })} type="button">
+        Make real
+      </button>
       {!variant.id && (
-        <button type="button" onClick={() => onRemove(index)}>
+        <button type="button" onClick={() => onRemove(variant.clientKey)}>
           Remove
         </button>
       )}
@@ -80,14 +86,32 @@ vi.mock("./Form/StoreInfoFields", () => ({
 
 vi.mock("./Form/PurchaseFields", () => ({
   default: ({
+    draftAvailability,
     errors = {},
+    onVariantChange,
     purchase,
+    variantClientKey,
   }: {
+    draftAvailability: {
+      mode: "base" | "select";
+      variants: Array<{ value: string; label: string }>;
+    };
     errors?: Record<string, string>;
+    onVariantChange: (clientKey: string | null) => void;
     purchase: PurchaseFormData;
+    variantClientKey: string | null;
   }) => (
-    <div data-testid="purchase-fields">
+    <div
+      data-mode={draftAvailability.mode}
+      data-testid="purchase-fields"
+      data-variant-client-key={variantClientKey ?? ""}
+    >
       <input name="purchase[item_price]" defaultValue={purchase.item_price} />
+      {draftAvailability.variants.map((variant) => (
+        <button key={variant.value} onClick={() => onVariantChange(variant.value)} type="button">
+          Choose {variant.label}
+        </button>
+      ))}
       {errors["purchase.0.item_price"] && <p>{errors["purchase.0.item_price"]}</p>}
       {errors["purchase.0.base"] && <p>{errors["purchase.0.base"]}</p>}
     </div>
@@ -214,6 +238,48 @@ describe("Products/components/Form", () => {
       await user.click(screen.getByRole("button", { name: "Add Purchase" }));
 
       expect(screen.getByTestId("purchase-fields")).toBeInTheDocument();
+    });
+
+    it("suppresses draft Base for real Variants and restores the same Base key", async () => {
+      const user = userEvent.setup();
+      await renderForm({
+        isNew: true,
+        purchase: makePurchaseForm({ supplier_id: 40 }),
+      });
+
+      const initialBaseKey = screen.getByTestId("variant-row").dataset.clientKey;
+      expect(initialBaseKey).toBe("initial-variant-0");
+      expect(screen.getByTestId("purchase-fields")).toHaveAttribute("data-mode", "base");
+
+      await user.click(screen.getByRole("button", { name: "Add Variant" }));
+      const newVariantRow = screen.getAllByTestId("variant-row")[1];
+      const realVariantKey = newVariantRow.dataset.clientKey;
+      await user.click(within(newVariantRow).getByRole("button", { name: "Make real" }));
+
+      expect(screen.getAllByTestId("variant-row")).toHaveLength(1);
+      expect(screen.getByTestId("variant-row")).toHaveAttribute("data-client-key", realVariantKey);
+      expect(
+        screen.getByTestId("variant-row").querySelector('input[name$="[sku]"]'),
+      ).toHaveAttribute("name", "variants[0][sku]");
+      expect(screen.getByTestId("purchase-fields")).toHaveAttribute("data-mode", "select");
+      expect(screen.getByTestId("purchase-fields")).toHaveAttribute("data-variant-client-key", "");
+
+      await user.click(screen.getByRole("button", { name: /Choose Large/ }));
+      expect(screen.getByTestId("purchase-fields")).toHaveAttribute(
+        "data-variant-client-key",
+        realVariantKey,
+      );
+
+      await user.click(
+        within(screen.getByTestId("variant-row")).getByRole("button", { name: "Remove" }),
+      );
+
+      expect(screen.getByTestId("variant-row")).toHaveAttribute("data-client-key", initialBaseKey);
+      expect(screen.getByTestId("purchase-fields")).toHaveAttribute("data-mode", "base");
+      expect(screen.getByTestId("purchase-fields")).toHaveAttribute(
+        "data-variant-client-key",
+        initialBaseKey,
+      );
     });
   });
 });
