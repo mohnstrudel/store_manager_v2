@@ -48,8 +48,17 @@ class Sale::InstallmentBackfill
         next
       end
 
-      sale_item.update!(product: target, variant: nil, origin_sale_item: resolver.origin_sale_item)
-      reassigned_count += 1
+      origin_sale_item = resolver.origin_sale_item
+
+      begin
+        # origin_sale_item is the customer's real prior purchase of target, so its
+        # variant is the edition they actually bought; nil only resolves on its own
+        # when target has no active real variant to require one instead.
+        sale_item.update!(product: target, variant: origin_sale_item&.variant, origin_sale_item:)
+        reassigned_count += 1
+      rescue ActiveRecord::RecordInvalid
+        unresolved_sale_item_ids << sale_item.id
+      end
     end
 
     Result.new(reassigned_count:, unresolved_sale_item_ids:)

@@ -58,6 +58,39 @@ RSpec.describe Sale::InstallmentBackfill do
           expect(result.unresolved_sale_item_ids).to eq([installment_sale_item.id])
         end
       end
+
+      context "when the target product has an active real variant" do
+        let(:real_variant) { create(:variant, product: real_product) }
+        let!(:origin_sale_item) { create(:sale_item, sale: origin_sale, product: real_product, variant: real_variant) }
+
+        it "assigns the origin sale item's variant instead of leaving it blank" do
+          described_class.call
+
+          expect(installment_sale_item.reload).to have_attributes(product: real_product, variant: real_variant)
+        end
+      end
+
+      context "when the target product resolves but no non-installment purchase can supply a variant" do
+        let(:origin_sale_item) { nil }
+        let(:real_variant) { create(:variant, product: real_product) }
+        let(:unrelated_origin) { create(:sale_item) }
+        let!(:disqualified_purchase) do
+          create(
+            :sale_item,
+            sale: origin_sale,
+            product: real_product,
+            variant: real_variant,
+            origin_sale_item: unrelated_origin
+          )
+        end
+
+        it "leaves it on the placeholder product and reports it as unresolved instead of raising" do
+          result = described_class.call
+
+          expect(installment_sale_item.reload.product).to eq(placeholder_product)
+          expect(result.unresolved_sale_item_ids).to eq([installment_sale_item.id])
+        end
+      end
     end
   end
 end
