@@ -2,7 +2,7 @@
 
 module FormattingHelper
   def safe_blank_render(value)
-    value.presence || "-"
+    value.presence
   end
 
   def formatted_timestamp(time)
@@ -25,6 +25,7 @@ module FormattingHelper
 
   def format_money(amount, unit = "")
     return unless amount.presence
+    return if amount.to_f.zero?
 
     number_to_currency(
       amount.to_f,
@@ -36,8 +37,33 @@ module FormattingHelper
     ).strip
   end
 
-  def format_zero_values(value)
-    (value.to_i > 0) ? value : "-"
+  def decimal_field_value(value)
+    return "" if value.nil?
+
+    format("%.2f", value)
+  end
+
+  def compact_decimal_field_value(value)
+    return "" if value.nil?
+
+    whole, fraction = value.to_d.to_s("F").split(".", 2)
+    fraction = fraction&.sub(/0+\z/, "")
+    fraction.present? ? "#{whole}.#{fraction}" : whole
+  end
+
+  def percent_of(part, whole)
+    return nil if part.nil? || whole.nil?
+
+    whole = whole.to_d
+    return nil if whole.zero?
+
+    (part.to_d / whole * 100).round
+  end
+
+  def payment_pie_total(expected, received, outstanding)
+    return nil if expected.nil?
+
+    [expected.to_d, received.to_d + outstanding.to_d].max
   end
 
   def format_show_page_title(record)

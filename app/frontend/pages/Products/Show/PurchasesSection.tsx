@@ -23,7 +23,7 @@ export default function PurchasesSection({ purchases }: PurchasesSectionProps) {
             <th>Ref</th>
             <th>Variant?</th>
             <th>Time ago</th>
-            <th className="text-right">Item Price, $</th>
+            <th className="text-right">Item Price</th>
             <th>Amount</th>
             <th>Warehouse</th>
           </tr>

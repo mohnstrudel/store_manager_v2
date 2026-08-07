@@ -17,7 +17,7 @@ module DashboardHelper
       sale_debts: sale_debts.first(5).map { |product| dashboard_sale_debt_props(product) },
       sale_debts_count: sale_debts.length,
       suppliers_debts: suppliers_debts.filter_map { |supplier_debt| dashboard_supplier_debt_props(supplier_debt) },
-      total_suppliers_debt: format_money(total_suppliers_debt, "$"),
+      total_suppliers_debt: format_money(total_suppliers_debt),
       debts_path: debts_path
     }
   end
@@ -28,7 +28,7 @@ module DashboardHelper
       path: product_path(product.slug),
       row_id: product.sale_variant_id || product.id,
       title: product.full_title,
-      variant_name: product.sale_variant_id.present? ? product.variant_name : "-",
+      variant_name: product.sale_variant_id.present? ? product.variant_name : nil,
       debt: product.debt.to_i
     }
   end
@@ -57,7 +57,7 @@ module DashboardHelper
       path: product_path(product.slug),
       row_id: product.sale_variant_id || product.id,
       title: product.full_title,
-      variant_name: variant ? product.variant_name : "",
+      variant_name: variant ? product.variant_name : nil,
       sold_amount: product.sold_amount.to_i,
       purchased_amount: variant ? product.purchased_variants_amount.to_i : product.purchased_amount.to_i,
       debt: variant ? product.variants_debt.to_i : product.debt.to_i

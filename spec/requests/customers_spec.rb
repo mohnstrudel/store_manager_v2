@@ -65,6 +65,41 @@ RSpec.describe "Customers" do
         store_type: "shopify"
       )
     end
+
+    it "carries payment-plan context so instalments do not read as duplicate orders" do
+      customer = create(:customer)
+      origin = create(:sale, customer:, shopify_name: "HSCM#1746", shopify_store_id: "gid://shopify/Order/100")
+      follow_up = create(:sale, customer:, shopify_name: "HSCM#1747", shopify_store_id: "gid://shopify/Order/101")
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-1",
+          external_origin_order_id: "100",
+          kind: "installments",
+          status: "active",
+          expected_parts: 4,
+          synced_at: Time.current
+        },
+        parts: [
+          {provider_part_id: "subscription-1:1", sequence: 1, external_order_id: "100"},
+          {provider_part_id: "subscription-1:2", sequence: 2, external_order_id: "101"}
+        ]
+      )
+
+      get customer_path(customer)
+
+      active_sales = inertia.props[:active_sales]
+      origin_props = active_sales.find { |props| props[:id] == origin.id }
+      follow_up_props = active_sales.find { |props| props[:id] == follow_up.id }
+      expect(follow_up_props[:payment_plans].sole).to include(
+        expected_parts: 4,
+        sale_part_number: 2,
+        is_origin_sale: false,
+        origin_sale: {path: sale_path(origin), identifier: "HSCM#1746"}
+      )
+      expect(origin_props[:is_follow_up_payment]).to be(false)
+      expect(follow_up_props[:is_follow_up_payment]).to be(true)
+    end
   end
 
   describe "GET /customers/new" do

@@ -75,7 +75,7 @@ describe("Dashboard/Index", () => {
   it("hides the suppliers debt section when suppliers_debts is empty", () => {
     render(<Index {...defaultProps} suppliers_debts={[]} />);
 
-    expect(screen.queryByText("Suppliers Debt")).not.toBeInTheDocument();
+    expect(screen.queryByText("Supplier Debt")).not.toBeInTheDocument();
   });
 
   it("shows the webhook warning when sales_hook_disabled is true", () => {

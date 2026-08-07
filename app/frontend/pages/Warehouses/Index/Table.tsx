@@ -74,7 +74,7 @@ export default function IndexTable({ onPositionChange, warehouses }: IndexTableP
             <td>{warehouse.purchase_items_count}</td>
             <td className={warehouse.has_purchase_items ? "w-full max-w-45 lg:w-45" : ""}>
               {warehouse.has_purchase_items ? (
-                <PaymentProgressBar onlyDebt progress={warehouse.payment_progress} />
+                <PaymentProgressBar caption="debtOnly" progress={warehouse.payment_progress} />
               ) : null}
             </td>
             <td className="table_actions text-right">

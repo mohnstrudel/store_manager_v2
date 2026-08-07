@@ -14,10 +14,6 @@
     @apply text-right;
   }
 
-  .table_actions a:not(:first-child) {
-    @apply ml-2;
-  }
-
   .page_search {
     @apply px-4 lg:px-8 pt-4 lg:pt-7 pb-2 lg:pb-0 mb-4 lg:mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-0;
   }

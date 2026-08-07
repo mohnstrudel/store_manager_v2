@@ -26,7 +26,7 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
             </th>
             <th>Date</th>
             {hasVariants && <th>Variant?</th>}
-            <th className="text-right">Price, $</th>
+            <th className="text-right">Price</th>
             <th>Amount</th>
             <th>
               Status <span className="font-normal text-sm pl-4">+ Warehouse</span>

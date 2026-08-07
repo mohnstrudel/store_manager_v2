@@ -127,7 +127,7 @@ module WarehouseHelper
       path: purchase_item_path(item),
       title: purchase_product_title(item.purchase),
       variant_title: item.purchase.variant&.title,
-      sku: item.purchase.variant&.sku || purchase_display_product(item.purchase)&.base_variant&.sku || "-",
+      sku: item.purchase.variant&.sku || purchase_display_product(item.purchase)&.base_variant&.sku,
       sale_path: sale ? sale_path(sale) : nil,
       sale_title: sale&.title,
       sale_store_type: sale_store_type(sale),

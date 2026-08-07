@@ -97,7 +97,7 @@ function PurchaseItemsSectionHeader({
     <div className="flex justify-between align-center">
       <h3>Number of Items: {pagination.total_count}</h3>
       <div className="w-full max-w-45 px-3 mt-4 text-center lg:w-45">
-        <PaymentProgressBar onlyDebt progress={warehouse.payment_progress} />
+        <PaymentProgressBar caption="debtOnly" progress={warehouse.payment_progress} />
       </div>
     </div>
   );

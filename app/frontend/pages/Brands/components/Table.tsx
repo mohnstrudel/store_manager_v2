@@ -37,7 +37,7 @@ export default function Table({ brands }: TableProps) {
               <td>{brand.created_at}</td>
               <td>{brand.updated_at}</td>
               <td className="table_actions text-right">
-                <div className="flex flex-wrap justify-end gap-3">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Link href={showPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">📄</i>
                     Show

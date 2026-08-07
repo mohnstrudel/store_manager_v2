@@ -1,3 +1,4 @@
+import { emptyToNull } from "@/utils/emptyValue";
 import { CustomerDetailRecord } from "../types";
 
 type DetailsProps = {
@@ -36,14 +37,13 @@ export default function Details({ customer }: DetailsProps) {
                   {customer.woo_store_id}
                 </span>
               )}
-              {!customer.shopify_id_short && !customer.woo_store_id && "-"}
             </td>
-            <td>{customer.first_name ?? ""}</td>
-            <td>{customer.last_name ?? ""}</td>
-            <td>{customer.email ?? ""}</td>
-            <td>{customer.phone ?? ""}</td>
-            <td>{customer.created_at ?? ""}</td>
-            <td>{customer.updated_at ?? ""}</td>
+            <td>{emptyToNull(customer.first_name)}</td>
+            <td>{emptyToNull(customer.last_name)}</td>
+            <td>{emptyToNull(customer.email)}</td>
+            <td>{emptyToNull(customer.phone)}</td>
+            <td>{emptyToNull(customer.created_at)}</td>
+            <td>{emptyToNull(customer.updated_at)}</td>
           </tr>
         </tbody>
       </table>

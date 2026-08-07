@@ -37,7 +37,7 @@ export default function Table({ colors }: TableProps) {
               <td>{color.created_at}</td>
               <td>{color.updated_at}</td>
               <td className="table_actions text-right">
-                <div className="flex flex-wrap justify-end gap-3">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Link href={showPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">📄</i>
                     Show

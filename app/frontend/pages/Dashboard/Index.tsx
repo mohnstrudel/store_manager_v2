@@ -111,13 +111,13 @@ type SalesDebtSectionProps = {
 function SalesDebtSection({ debtsPath, saleDebts, total }: SalesDebtSectionProps) {
   return (
     <section className="section_border_base section_wide">
-      <DashboardSectionTitle label="Sales Debt" value={total} />
+      <DashboardSectionTitle label="Products Short" value={total} />
       <table>
         <thead>
           <tr>
             <th>Title</th>
             <th>Variant</th>
-            <th>Amount</th>
+            <th>Unit shortfall</th>
           </tr>
         </thead>
         <tbody>
@@ -149,7 +149,7 @@ type SuppliersDebtSectionProps = {
 function SuppliersDebtSection({ supplierDebts, totalDebt }: SuppliersDebtSectionProps) {
   return (
     <section className="section_border_base section_wide">
-      <DashboardSectionTitle label="Suppliers Debt" value={totalDebt} />
+      <DashboardSectionTitle label="Supplier Debt" value={totalDebt} />
       <table>
         <thead>
           <tr>

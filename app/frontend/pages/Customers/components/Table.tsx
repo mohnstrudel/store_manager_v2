@@ -1,5 +1,6 @@
 import { Link } from "@inertiajs/react";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import { emptyToNull } from "@/utils/emptyValue";
 import { CustomerRecord } from "../types";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 
@@ -31,10 +32,10 @@ export default function Table({ customers, searchQuery = "" }: TableProps) {
             key={customer.id}
             {...rowNavigationProps(`/customers/${customer.id}`)}
           >
-            <td>{customer.woo_store_id ?? ""}</td>
-            <td>{customer.full_name ?? ""}</td>
-            <td>{customer.email ?? ""}</td>
-            <td>{customer.phone ?? ""}</td>
+            <td>{emptyToNull(customer.woo_store_id)}</td>
+            <td>{emptyToNull(customer.full_name)}</td>
+            <td>{emptyToNull(customer.email)}</td>
+            <td>{emptyToNull(customer.phone)}</td>
             <td className="table_actions">
               <Link href={`/customers/${customer.id}/edit`} onClick={stopRowNavigation} prefetch>
                 <i className="icn">✏</i>
