@@ -43,9 +43,29 @@
     @apply -rotate-45;
   }
 
-  /* TipMark tooltip */
+  /* TipMark */
+  .tip_mark__trigger {
+    @apply cursor-help ml-1 text-base/4;
+  }
+
+  .tip_mark__trigger[data-size="large"] {
+    @apply ml-2 text-xl leading-0;
+  }
+
+  .tip_mark__trigger[data-tone="orange"] {
+    @apply text-orange-600 dark:text-orange-400;
+  }
+
   .tip_mark__tooltip {
-    @apply cursor-text absolute z-20 top-0 left-0 opacity-0 pointer-events-none transition-opacity duration-150 flex group-hover:opacity-100 group-hover:pointer-events-auto rounded-lg bg-yellow-100 dark:bg-yellow-800 border border-yellow-800/10 pt-4 pr-5 pb-5 pl-3 w-64 text-yellow-800 dark:text-yellow-100 text-sm text-pretty text-left font-normal leading-normal tracking-normal normal-case;
+    @apply cursor-text z-[2147483647] rounded-lg bg-yellow-100 dark:bg-yellow-800 border border-yellow-800/10 pt-4 pr-5 pb-5 pl-3 w-64 max-w-[calc(100vw-2rem)] text-yellow-800 dark:text-yellow-100 text-sm text-pretty text-left font-normal leading-normal tracking-normal normal-case;
+  }
+
+  .tip_mark__hint {
+    @apply block;
+  }
+
+  .tip_mark__glossary_link {
+    @apply mt-2 inline-block text-xs font-semibold;
   }
 
   trix-toolbar .trix-button:not(:first-child) {

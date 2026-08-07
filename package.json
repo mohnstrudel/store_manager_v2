@@ -18,6 +18,7 @@
   "dependencies": {
     "@dnd-kit/helpers": "^0.4.0",
     "@dnd-kit/react": "^0.4.0",
+    "@floating-ui/react": "^0.27.20",
     "@heroicons/react": "^2.2.0",
     "@inertiajs/react": "^3.3.1",
     "@js-from-routes/client": "^1.0.4",

@@ -287,7 +287,11 @@ function PurchaseItemCustomer({ item }: { item: WarehousePurchaseItemRecord }) {
             text={item.sale_summary}
           />
           {item.sale_summary}
-          {item.sale_note && <TipMark starClassName="text-xl leading-0">{item.sale_note}</TipMark>}
+          {item.sale_note && (
+            <TipMark size="large" tone="orange">
+              {item.sale_note}
+            </TipMark>
+          )}
         </div>
       </li>
       <li className="mt-2">

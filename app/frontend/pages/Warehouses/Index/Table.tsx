@@ -64,7 +64,7 @@ export default function IndexTable({ onPositionChange, warehouses }: IndexTableP
             <td>
               <strong>{warehouse.name}</strong>
               {warehouse.is_default && (
-                <TipMark>
+                <TipMark tone="orange">
                   New purchases go to this warehouse by default. Change it on the edit page.
                 </TipMark>
               )}

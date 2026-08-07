@@ -27,7 +27,7 @@ describe("Sales/Show/Details", () => {
 
     await user.click(screen.getByRole("button", { name: /Billing/ }));
 
-    expect(screen.getByText("Billing address differs from shipping.")).toBeInTheDocument();
+    expect(screen.getByLabelText("More information")).toHaveTextContent("*");
     expect(screen.getByText("456 Side St")).toBeInTheDocument();
     expect(screen.getByText("Paris")).toBeInTheDocument();
   });

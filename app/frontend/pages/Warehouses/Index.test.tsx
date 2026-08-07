@@ -31,23 +31,14 @@ describe("Warehouses/Index", () => {
   it("marks the default warehouse with a tip indicator", () => {
     renderIndex({ warehouses: [makeWarehouseRecord({ is_default: true })] });
 
-    const star = screen.getByText("*");
-    expect(star).toHaveClass("text-yellow-600");
-    expect(
-      screen.getByText(
-        "New purchases go to this warehouse by default. Change it on the edit page.",
-      ),
-    ).toBeInTheDocument();
+    const star = screen.getByLabelText("More information");
+    expect(star).toHaveClass("tip_mark__trigger");
   });
 
   it("does not show a default tip for non-default warehouses", () => {
     renderIndex({ warehouses: [makeWarehouseRecord({ is_default: false })] });
 
-    expect(
-      screen.queryByText(
-        "New purchases go to this warehouse by default. Change it on the edit page.",
-      ),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("More information")).not.toBeInTheDocument();
   });
 
   describe("position select", () => {
