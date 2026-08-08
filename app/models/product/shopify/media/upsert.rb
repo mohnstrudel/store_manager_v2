@@ -47,7 +47,6 @@ module Product::Shopify::Media
     end
 
     def attach_image(media, downloaded_file)
-      media.image.purge if media.image.attached?
       media.image.attach(
         io: downloaded_file.file,
         filename: downloaded_file.filename

@@ -19,9 +19,16 @@ RSpec.describe Media do
     it { is_expected.to belong_to(:mediaable).inverse_of(:media) }
     it { is_expected.to have_many(:store_infos).dependent(:destroy) }
 
-    it "has_one_attached image with dependent: :purge_later" do
+    it "has_one_attached image with dependent: false" do
       media = create(:media, :for_product)
-      expect(media.image).to be_present
+      blob = media.image.blob
+
+      expect {
+        media.destroy
+      }.not_to have_enqueued_job(ActiveStorage::PurgeJob)
+
+      expect(ActiveStorage::Blob.find_by(id: blob.id)).to be_present
+      expect(ActiveStorage::Blob.unattached).to include(blob)
     end
   end
 

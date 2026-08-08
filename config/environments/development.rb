@@ -61,6 +61,7 @@ Rails.application.configure do
 
   # Store uploaded files on the R2
   # config.active_storage.service = :cloudflare
+  config.x.storage.delete_files = false
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
