@@ -107,7 +107,7 @@ RSpec.describe Product::Shopify::Media::Upsert do
       }.not_to change(product.media, :count)
     end
 
-    it "reattaches a matching checksum when the existing blob is missing from storage, without deleting the previous file from the service" do
+    it "reattaches a matching checksum when the existing blob is missing from storage, purging the previous blob without a synchronous service call" do
       create(:store_info, :shopify,
         storable: existing_media,
         store_id: "gid://shopify/MediaImage/1",
@@ -128,7 +128,7 @@ RSpec.describe Product::Shopify::Media::Upsert do
           media_items: [media_items.first],
           downloads_by_key: {"existing" => existing_download}
         )
-      }.not_to have_enqueued_job(ActiveStorage::PurgeJob)
+      }.to have_enqueued_job(ActiveStorage::PurgeJob)
 
       existing_media.reload
       expect(product.media.count).to eq(1)

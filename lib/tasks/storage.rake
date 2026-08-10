@@ -43,4 +43,50 @@ namespace :storage do
 
     puts "Deleted #{result.count} object(s), #{result.total_bytes} bytes reclaimed."
   end
+
+  desc "Report legacy `images` attachment rows by deletion safety. Deletes nothing."
+  task audit_legacy_image_attachments: :environment do
+    result = Storage::LegacyImageAttachmentAudit.call
+
+    puts "Total legacy attachment(s): #{result.total}"
+    puts "  retained (blob stays attached elsewhere): #{result.retained_ids.size}"
+    puts "  releasing (blob becomes unattached, Shopify-recoverable): #{result.releasing_ids.size}"
+    puts "  releasing_unrecoverable (no Shopify link to re-pull from): #{result.releasing_unrecoverable_ids.size}"
+    puts "  orphaned_owner (owner record no longer exists): #{result.orphaned_owner_ids.size}"
+    puts "  blocked (owner has no covering Media, must not delete): #{result.blocked_ids.size} across #{result.blocked_owners.size} owner(s)"
+    puts "Releasing bytes: #{result.releasing_bytes}"
+
+    if result.blocked_owners.any?
+      puts "Blocked owners (first 20):"
+      result.blocked_owners.first(20).each { |type, id| puts "  #{type}##{id}" }
+    end
+  end
+
+  desc "Delete legacy `images` attachment rows. Requires config.x.storage.delete_files and CONFIRM=yes. SCOPE=retained (default) or all."
+  task delete_legacy_image_attachments: :environment do
+    unless Rails.configuration.x.storage.delete_files
+      abort "Refusing: config.x.storage.delete_files is false here. This task may only run in " \
+        "production, the only environment whose database is authoritative for what the bucket should contain."
+    end
+
+    unless ENV["CONFIRM"] == "yes"
+      abort "Refusing: set CONFIRM=yes to proceed."
+    end
+
+    scope = (ENV["SCOPE"] || "retained").to_sym
+    unless [:retained, :all].include?(scope)
+      abort "Refusing: SCOPE must be 'retained' or 'all', got #{scope.inspect}."
+    end
+
+    allow_unrecoverable = ENV["ALLOW_UNRECOVERABLE"] == "yes"
+
+    begin
+      result = Storage::LegacyImageAttachmentCleanup.call(scope:, allow_unrecoverable:)
+    rescue Storage::LegacyImageAttachmentCleanup::Blocked => e
+      abort "Refusing: #{e.message}. Run backfill_legacy_media_images first."
+    end
+
+    puts "Deleted #{result.deleted_count} legacy attachment(s), released #{result.released_blob_count} " \
+      "blob(s) for purge, #{result.released_bytes} bytes."
+  end
 end

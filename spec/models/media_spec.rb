@@ -19,16 +19,18 @@ RSpec.describe Media do
     it { is_expected.to belong_to(:mediaable).inverse_of(:media) }
     it { is_expected.to have_many(:store_infos).dependent(:destroy) }
 
-    it "has_one_attached image with dependent: false" do
+    it "has dependent: :purge_later, matching this environment's config.x.storage.delete_files" do
+      expect(Rails.configuration.x.storage.delete_files).to be true
+      expect(described_class.reflect_on_attachment(:image).options[:dependent]).to eq(:purge_later)
+    end
+
+    it "purges the blob when the media is destroyed" do
       media = create(:media, :for_product)
       blob = media.image.blob
 
       expect {
         media.destroy
-      }.not_to have_enqueued_job(ActiveStorage::PurgeJob)
-
-      expect(ActiveStorage::Blob.find_by(id: blob.id)).to be_present
-      expect(ActiveStorage::Blob.unattached).to include(blob)
+      }.to have_enqueued_job(ActiveStorage::PurgeJob)
     end
   end
 

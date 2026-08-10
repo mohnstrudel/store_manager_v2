@@ -17,7 +17,7 @@ class Media < ApplicationRecord
 
   belongs_to :mediaable, polymorphic: true, inverse_of: :media
 
-  has_one_attached :image, dependent: false do |attachable|
+  has_one_attached :image, dependent: (Rails.configuration.x.storage.delete_files ? :purge_later : false) do |attachable|
     attachable.variant :preview,
       format: :webp,
       resize_to_limit: [800, 800],
