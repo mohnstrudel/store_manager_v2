@@ -302,7 +302,7 @@ RSpec.describe "Products" do
       expect(created_product.sizes).to contain_exactly(size)
       expect(created_product.versions).to contain_exactly(version)
       expect(created_product.colors).to contain_exactly(color)
-      expect(created_product.store_infos.shopify.first.tag_list).to eq(["featured", "new"])
+      expect(created_product.store_infos.shopify.first.tag_list).to contain_exactly("featured", "new")
     end
 
     it "creates an initial Purchase against normalized Base for a Base-only Product" do
