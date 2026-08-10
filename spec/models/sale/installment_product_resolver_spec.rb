@@ -58,14 +58,14 @@ RSpec.describe Sale::InstallmentProductResolver do
       let!(:real_product) { create(:product, title: "Vegeta", shopify_id: real_product_store_id) }
       let(:subscription) { {"order_id" => "123456"} }
       let(:seal_client) { instance_double(Seal::Api::Client, find_subscription_for_order: subscription) }
+      let(:shopify_client) { instance_double(Shopify::Api::Client, fetch_order: origin_order) }
       let(:origin_order) do
         {"lineItems" => {"nodes" => [{"product" => {"id" => real_product_store_id}}]}}
       end
 
       before do
         allow(Seal::Api::Client).to receive(:shared).and_return(seal_client)
-        allow_any_instance_of(Shopify::Api::Client).to receive(:fetch_order)
-          .with("gid://shopify/Order/123456").and_return(origin_order)
+        allow(Shopify::Api::Client).to receive(:new).and_return(shopify_client)
       end
 
       it "returns the product Seal identifies" do
@@ -84,11 +84,11 @@ RSpec.describe Sale::InstallmentProductResolver do
           {"product" => {"id" => product_b.shopify_id}}
         ]}}
       end
+      let(:shopify_client) { instance_double(Shopify::Api::Client, fetch_order: origin_order) }
 
       before do
         allow(Seal::Api::Client).to receive(:shared).and_return(seal_client)
-        allow_any_instance_of(Shopify::Api::Client).to receive(:fetch_order)
-          .with("gid://shopify/Order/123456").and_return(origin_order)
+        allow(Shopify::Api::Client).to receive(:new).and_return(shopify_client)
       end
 
       it "returns nil, since the payment can't be attributed to a single product" do

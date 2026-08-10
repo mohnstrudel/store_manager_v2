@@ -412,12 +412,12 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         let(:origin_order) do
           {"lineItems" => {"nodes" => [{"product" => {"id" => real_product_store_id}}]}}
         end
+        let(:shopify_client) { instance_double(Shopify::Api::Client, fetch_order: origin_order) }
 
         before do
           allow(Seal::Api::Client).to receive(:shared).and_return(seal_client)
           allow(seal_client).to receive(:find_subscription_for_order).and_return(subscription)
-          allow_any_instance_of(Shopify::Api::Client).to receive(:fetch_order)
-            .with("gid://shopify/Order/123456").and_return(origin_order)
+          allow(Shopify::Api::Client).to receive(:new).and_return(shopify_client)
           allow(Product).to receive(:find_by_shopify_id).with(real_product_store_id).and_return(real_product)
         end
 
