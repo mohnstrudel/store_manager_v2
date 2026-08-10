@@ -35,7 +35,7 @@ Do not stop until the required verification is green. During the final gate, inv
 
 ## Code comments
 
-- Default to no comments. Only add one when the WHY is genuinely non-obvious from the code itself: a hidden constraint, a subtle invariant, a workaround for a specific bug.
+- Default to no comments.
 - Never write multi-line comment blocks narrating rationale, trade-offs, or edge cases in prose. If a comment needs more than one short line, the design likely needs a clearer name or a smaller function instead.
 - Do not restate what the code already says. If removing the comment wouldn't confuse a future reader, don't write it.
 
