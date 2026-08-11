@@ -7,8 +7,4 @@ namespace :scheduler do
   task supervise_sales_webhook: :environment do
     Woo::SuperviseSalesWebhookJob.perform_later
   end
-
-  task heal_media_integrity: :environment do
-    Shopify::MediaIntegritySweepJob.perform_later
-  end
 end
