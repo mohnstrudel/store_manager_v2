@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Storage::LegacyImageAttachmentCleanup do
+RSpec.describe Media::LegacyAttachmentCleanup do
   def uploaded_blob
     ActiveStorage::Blob.create_and_upload!(
       io: StringIO.new("legacy image data"),

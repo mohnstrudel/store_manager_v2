@@ -3,8 +3,8 @@
 desc "Delete legacy `images` attachment rows that are safe to delete, purging blobs they were the last reference to."
 task delete_legacy_image_attachments: :environment do
   begin
-    result = Storage::LegacyImageAttachmentCleanup.call
-  rescue Storage::LegacyImageAttachmentCleanup::Blocked => e
+    result = Media::LegacyAttachmentCleanup.call
+  rescue Media::LegacyAttachmentCleanup::Blocked => e
     abort "Refusing: #{e.message}. Run backfill_legacy_media_images first."
   end
 
