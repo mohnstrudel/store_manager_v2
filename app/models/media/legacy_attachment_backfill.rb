@@ -33,19 +33,13 @@ class Media::LegacyAttachmentBackfill
   private
 
   def gap_owner_ids(model)
-    legacy_owner_ids = ActiveStorage::Attachment
+    covered_owner_ids = Media.joins(:image_attachment).where(mediaable_type: model.name).select(:mediaable_id)
+
+    ActiveStorage::Attachment
       .where(name: LEGACY_NAME, record_type: model.name)
+      .where.not(record_id: covered_owner_ids)
       .distinct
       .pluck(:record_id)
-    return [] if legacy_owner_ids.empty?
-
-    covered_ids = Media.joins(:image_attachment)
-      .where(mediaable_type: model.name, mediaable_id: legacy_owner_ids)
-      .distinct
-      .pluck(:mediaable_id)
-      .to_set
-
-    legacy_owner_ids.reject { |id| covered_ids.include?(id) }
   end
 
   def backfill_owner(owner)
