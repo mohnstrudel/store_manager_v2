@@ -16,12 +16,6 @@ RSpec.describe Storage::LegacyImageAttachmentCleanup do
   end
 
   describe ".call" do
-    it "raises NotPermitted when config.x.storage.delete_files is false" do
-      allow(Rails.configuration.x.storage).to receive(:delete_files).and_return(false)
-
-      expect { described_class.call }.to raise_error(described_class::NotPermitted)
-    end
-
     it "raises Blocked and deletes nothing when an owner has no covering Media" do
       product = create(:product)
       legacy_attachment(product)

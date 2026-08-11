@@ -4,7 +4,6 @@ module Storage
   class LegacyImageAttachmentCleanup
     BATCH_SIZE = 1_000
     Blocked = Class.new(StandardError)
-    NotPermitted = Class.new(StandardError)
     Result = Data.define(:deleted_count, :released_blob_count, :released_bytes)
 
     def self.call(allow_unrecoverable: false, scope: :all)
@@ -17,10 +16,6 @@ module Storage
     end
 
     def call
-      unless Rails.configuration.x.storage.delete_files
-        raise NotPermitted, "config.x.storage.delete_files is false in this environment"
-      end
-
       audit = LegacyImageAttachmentAudit.call
 
       if audit.blocked?

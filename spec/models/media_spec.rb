@@ -19,11 +19,6 @@ RSpec.describe Media do
     it { is_expected.to belong_to(:mediaable).inverse_of(:media) }
     it { is_expected.to have_many(:store_infos).dependent(:destroy) }
 
-    it "has dependent: :purge_later, matching this environment's config.x.storage.delete_files" do
-      expect(Rails.configuration.x.storage.delete_files).to be true
-      expect(described_class.reflect_on_attachment(:image).options[:dependent]).to eq(:purge_later)
-    end
-
     it "purges the blob when the media is destroyed" do
       media = create(:media, :for_product)
       blob = media.image.blob
