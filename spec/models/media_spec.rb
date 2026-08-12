@@ -21,7 +21,6 @@ RSpec.describe Media do
 
     it "purges the blob when the media is destroyed" do
       media = create(:media, :for_product)
-      blob = media.image.blob
 
       expect {
         media.destroy
