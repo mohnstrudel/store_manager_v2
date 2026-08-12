@@ -39,7 +39,7 @@ RSpec.describe Product::Shopify::Importer do
       expect(product.shape).to eq("Statue")
       expect(product.brands.first.title).to eq("Light and Dust Studio")
       expect(product.sizes.first.value).to eq("1:4")
-      expect(product.published_at).to be_within(1.second).of(2.days.ago)
+      expect(product.published_at).to eq(Time.zone.parse(parsed_product[:published_at]))
     end
 
     it "enqueues sync jobs for variants and media" do # rubocop:todo RSpec/MultipleExpectations

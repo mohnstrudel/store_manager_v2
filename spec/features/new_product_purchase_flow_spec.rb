@@ -72,11 +72,12 @@ RSpec.describe "Creating a product with a purchase" do
 
     click_button "Create Product"
 
+    expect(page).to have_content("Product was successfully created")
+
     created_product = Variant.find_by!(sku: "product-with-initial-purchase-variant").product
     purchase = created_product.purchases.last
 
     expect(page).to have_current_path(product_path(created_product))
-    expect(page).to have_content("Product was successfully created")
     expect(created_product.brands).to include(brand)
     expect(created_product.description.body.to_html).to include("Product description")
     expect(purchase).to be_present

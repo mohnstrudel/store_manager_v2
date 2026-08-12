@@ -20,6 +20,7 @@ RSpec.describe "Creating a new purchase" do
 
     expect {
       click_button "Create Purchase"
+      expect(page).to have_content("Purchase was successfully created")
     }.to change(Purchase, :count).by(1)
       .and change(PurchaseItem, :count).by(5)
 
@@ -39,6 +40,7 @@ RSpec.describe "Creating a new purchase" do
 
     expect {
       click_button "Create Purchase"
+      expect(page).to have_content("Purchase was successfully created")
     }.to change(Purchase, :count).by(1)
       .and change(Payment, :count).by(1)
 
@@ -100,6 +102,8 @@ RSpec.describe "Creating a new purchase" do
     find("#purchase_item_price").set(10)
 
     click_button "Create Purchase"
+
+    expect(page).to have_content("Purchase was successfully created")
 
     purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))

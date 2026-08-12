@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { useCallback, type FormEvent, useState } from "react";
+import { useCallback, type FormEvent, useMemo, useState } from "react";
 import type { WarehouseOption } from "@/types/warehouse";
 import SmartSelect from "@/components/SmartSelect";
 
@@ -29,7 +29,10 @@ export default function MoveToWarehouseForm({
   const [destination, setDestination] = useState<WarehouseSelectOption | null>(null);
   const visible = selectedIds.length > 0;
 
-  const warehouseOptions = warehouses.map((w) => ({ value: w.id, label: w.name }));
+  const warehouseOptions = useMemo(
+    () => warehouses.map((warehouse) => ({ value: warehouse.id, label: warehouse.name })),
+    [warehouses],
+  );
 
   const handleDestinationChange = useCallback((option: WarehouseSelectOption | null) => {
     setDestination(option);
