@@ -8,6 +8,8 @@ class ActiveStorage::Blob::ReclaimableSpace
 
   class UnsupportedService < StandardError; end
 
+  Candidate = Data.define(:key, :size, :parent_key)
+
   def self.bytes(cutoff: DEFAULT_CUTOFF_AGE.ago, service: ActiveStorage::Blob.service)
     new(cutoff:, service:).bytes
   end
@@ -18,20 +20,28 @@ class ActiveStorage::Blob::ReclaimableSpace
   end
 
   def bytes
-    ensure_listable_service!
-    reclaimable_bytes = 0
-    batch = []
+    each_reclaimable_batch.sum do |candidates|
+      candidates.sum(&:size)
+    end
+  end
 
+  def each_reclaimable_batch
+    return enum_for(__method__) unless block_given?
+
+    ensure_listable_service!
+    batch = []
     service.bucket.objects.each do |object|
       batch << object
       next unless batch.size == BATCH_SIZE
 
-      reclaimable_bytes += reclaimable_bytes_for(batch)
+      candidates = reclaimable_candidates_for(batch)
+      yield candidates if candidates.any?
       batch.clear
     end
-    reclaimable_bytes += reclaimable_bytes_for(batch) if batch.any?
+    return if batch.empty?
 
-    reclaimable_bytes
+    candidates = reclaimable_candidates_for(batch)
+    yield candidates if candidates.any?
   end
 
   private
@@ -48,11 +58,13 @@ class ActiveStorage::Blob::ReclaimableSpace
     service.name.to_s
   end
 
-  def reclaimable_bytes_for(objects)
+  def reclaimable_candidates_for(objects)
     blob_states = blob_states_for(objects)
 
-    objects.sum do |object|
-      reclaimable?(object, blob_states) ? object.size : 0
+    objects.filter_map do |object|
+      parent_key = parent_blob_key(object.key)
+      state = reclaimable_state(object, parent_key, blob_states)
+      Candidate.new(key: object.key, size: object.size, parent_key:) if state
     end
   end
 
@@ -65,17 +77,15 @@ class ActiveStorage::Blob::ReclaimableSpace
       .group(:id)
       .pluck(:key, :service_name, :created_at, Arel.sql("COUNT(active_storage_attachments.id)"))
       .to_h do |key, blob_service_name, created_at, attachment_count|
-        reclaimable = blob_service_name == service_name && created_at <= cutoff && attachment_count.zero?
-        [key, reclaimable]
+        [key, blob_service_name == service_name && created_at <= cutoff && attachment_count.zero?]
       end
   end
 
-  def reclaimable?(object, blob_states)
-    return false if object.last_modified > cutoff
+  def reclaimable_state(object, parent_key, blob_states)
+    return if object.last_modified > cutoff
+    return unless parent_key
 
-    parent_key = parent_blob_key(object.key)
-    return false unless parent_key
-    return blob_states.fetch(parent_key) if blob_states.key?(parent_key)
+    return blob_states[parent_key] if blob_states.key?(parent_key)
 
     parent_key.match?(ACTIVE_STORAGE_KEY_PATTERN)
   end
