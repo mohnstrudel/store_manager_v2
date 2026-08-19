@@ -125,7 +125,9 @@ describe("Sales/Show/ProfitabilitySummary", () => {
 
       await openHint("cogs");
 
-      expect(screen.getByText(/695 merchandise cost plus 5 direct expenses/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/695 in purchase price and shipping, plus 5 in direct expenses/),
+      ).toBeInTheDocument();
     });
 
     it("claims no split when no direct expenses were recorded", async () => {
@@ -133,7 +135,7 @@ describe("Sales/Show/ProfitabilitySummary", () => {
 
       await openHint("cogs");
 
-      expect(screen.queryByText(/merchandise cost plus/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/in purchase price and shipping, plus/)).not.toBeInTheDocument();
     });
 
     it("warns in the revenue hint that the figures cover the whole payment plan", async () => {

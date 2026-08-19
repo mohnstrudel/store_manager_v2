@@ -73,6 +73,23 @@ RSpec.describe Purchase do
         it { is_expected.to be_valid }
       end
     end
+
+    it "rejects inventory with a Variant owned by another Product" do
+      product = create(:product)
+      other_product = create(:product)
+      other_variant = create(:variant, product: other_product)
+      mismatched_purchase = build(
+        :purchase,
+        product:,
+        variant: other_variant,
+        amount: 1,
+        item_price: BigDecimal(10),
+        supplier: create(:supplier)
+      )
+
+      expect(mismatched_purchase).not_to be_valid
+      expect(mismatched_purchase.errors[:variant]).to be_present
+    end
   end
 
   describe "Associations" do

@@ -201,29 +201,15 @@ module ProductHelper
   def product_profitability_props(product)
     expense_fraction = ExpenseRate.combined_fraction
     summary = product.profitability(expense_fraction:)
-    inventory = product.inventory_economics
 
     {
-      status: summary[:status],
-      margin_percent: summary[:margin_percent]&.to_f,
       expense_rate_percent: ExpenseRate.sum(:rate_percent).to_f,
-      expected_revenue: format_money(summary[:expected_revenue]),
+      potential_sales: format_money(summary[:potential_sales]),
+      expected_total_cost: format_money(summary[:expected_total_cost]),
+      expected_net_profit: format_money(summary[:expected_net_profit]),
       received_revenue: format_money(summary[:received_revenue]),
-      outstanding_revenue: format_money(summary[:outstanding_revenue]),
-      refunded_revenue: format_money(summary[:refunded_revenue]),
-      purchase_cost: format_money(summary[:purchase_cost]),
-      merchandise_cost: format_money(summary[:merchandise_cost]),
-      direct_expenses: format_money(summary[:direct_expenses]),
-      business_expenses: format_money(summary[:business_expenses]),
-      realized_profit: format_money(summary[:realized_profit]),
-      expected_final_profit: format_money(summary[:expected_final_profit]),
-      has_sale_items: summary[:has_sale_items],
-      counted_sales_total: summary[:counted_sales_total],
-      invested_total: format_money(inventory[:invested_total]),
-      purchased_units_total: inventory[:purchased_units],
-      sold_units_total: inventory[:sold_units],
-      remaining_units_total: inventory[:remaining_units],
-      remaining_inventory_cost: format_money(inventory[:remaining_inventory_cost])
+      purchase_paid: format_money(summary[:purchase_paid]),
+      cash_position: format_money(summary[:cash_position])
     }
   end
 

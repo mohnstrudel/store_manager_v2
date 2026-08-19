@@ -46,6 +46,9 @@ function statedTerms(group: EconomicsTerm[]): EconomicsTerm[] {
 function Term({ anchor, hint, label, result = false, value }: EconomicsTerm) {
   return (
     <div className={result ? RESULT_TERM_CLASS : TERM_CLASS} data-testid={`metric-${anchor}`}>
+      <span className="economics_snapshot__value">
+        {result ? <Amount emphasizeSign value={value} /> : value}
+      </span>
       <span
         className="economics_snapshot__label"
         data-tone={result ? profitTone(value) : undefined}
@@ -53,9 +56,6 @@ function Term({ anchor, hint, label, result = false, value }: EconomicsTerm) {
         <MetricLabel anchor={anchor} hint={hint}>
           {label}
         </MetricLabel>
-      </span>
-      <span className="economics_snapshot__value">
-        {result ? <Amount emphasizeSign value={value} /> : value}
       </span>
     </div>
   );

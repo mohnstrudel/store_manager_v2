@@ -61,7 +61,7 @@
   }
 
   .tip_mark__hint {
-    @apply block;
+    @apply block whitespace-pre-line;
   }
 
   .tip_mark__glossary_link {

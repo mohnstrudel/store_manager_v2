@@ -17,10 +17,8 @@ describe("Glossary/Show", () => {
     const anchors = [
       "revenue",
       "monthlyRevenue",
-      "received",
       "outstanding",
       "cogs",
-      "merchandise",
       "directExpenses",
       "opEx",
       "estimatedOpEx",
@@ -28,11 +26,12 @@ describe("Glossary/Show", () => {
       "actualOpEx",
       "comparison",
       "netProfit",
-      "profitInHand",
+      "expectedNetProfit",
+      "cashPositionToday",
       "projectedNetProfit",
       "projectedTotal",
-      "invested",
-      "unsoldStockValue",
+      "potentialSales",
+      "expectedTotalCost",
       "variantPurchaseCostTotal",
       "variantTheoreticalProfit",
     ];
@@ -80,7 +79,7 @@ describe("Glossary/Show", () => {
     const expectedTerms = {
       "Money from customers": [
         "Revenue",
-        "Received",
+        "Potential sales",
         "Outstanding",
         "Refunded",
         "Payment plan",
@@ -89,12 +88,11 @@ describe("Glossary/Show", () => {
         "Projected total",
         "Projected remainder",
       ],
-      "What the goods cost": ["COGS", "Merchandise cost", "Direct expenses"],
+      "What the goods cost": ["COGS", "Direct expenses"],
       Overheads: ["OpEx", "OpEx rates", "OpEx records"],
-      Profit: ["Net profit", "Profit in hand", "Projected net profit"],
+      Profit: ["Net profit", "Expected net profit", "Cash position today", "Projected net profit"],
       "Stock and suppliers": [
-        "Invested",
-        "Unsold stock value",
+        "Expected total cost",
         "List cost",
         "Total landed cost",
         "Theoretical profit",
@@ -123,7 +121,9 @@ describe("Glossary/Show", () => {
     expect(
       screen.getByText(/tied only to the product rather than to a variant/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/moves toward Net profit as the customer pays/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/money went out to a supplier before any came back/),
+    ).toBeInTheDocument();
   });
 
   it("distinguishes the dashboard's two shortfall counts", () => {

@@ -10,7 +10,6 @@ import type {
   VariantFormData,
   VariantRecord,
 } from "../types";
-import { makeProfitabilitySummary } from "@/test/factories";
 
 export function makeProduct(overrides: Partial<ProductShowRecord> = {}): ProductShowRecord {
   return {
@@ -107,24 +106,13 @@ export function makeProfitability(
   overrides: Partial<ProfitabilityRecord> = {},
 ): ProfitabilityRecord {
   return {
-    ...makeProfitabilitySummary({
-      expense_rate_percent: 15,
-      business_expenses: "45",
-      refunded_revenue: null,
-      realized_profit: "-65",
-      expected_final_profit: "135",
-    }),
-    status: "profitable",
-    margin_percent: 45,
-    merchandise_cost: "115",
-    direct_expenses: "5",
-    has_sale_items: true,
-    counted_sales_total: 3,
-    invested_total: "420",
-    purchased_units_total: 3,
-    sold_units_total: 1,
-    remaining_units_total: 2,
-    remaining_inventory_cost: "240",
+    expense_rate_percent: 15,
+    potential_sales: "1 000",
+    expected_total_cost: "400",
+    expected_net_profit: "500",
+    received_revenue: "700",
+    purchase_paid: "620",
+    cash_position: "80",
     ...overrides,
   };
 }

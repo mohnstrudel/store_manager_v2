@@ -39,7 +39,7 @@
   }
 
   .economics_snapshot__label {
-    @apply block text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400 mb-1.5;
+    @apply block text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400 mt-1.5;
   }
 
   .economics_snapshot__term--result .economics_snapshot__label {

@@ -171,7 +171,7 @@ describe("Products/Show", () => {
         const dashboard = screen.getByTestId("economics-dashboard");
 
         expect(within(dashboard).getByTestId("profitability-snapshot-card")).toBeInTheDocument();
-        expect(within(dashboard).getByText("Net Profit")).toBeInTheDocument();
+        expect(within(dashboard).getByText("Exp. Net Profit")).toBeInTheDocument();
       });
 
       it("stays visible on every tab", async () => {
@@ -192,41 +192,29 @@ describe("Products/Show", () => {
         expect(screen.queryByTestId("economics-dashboard")).not.toBeInTheDocument();
       });
 
-      it("drops the profit equation when profitability has no expected revenue", () => {
-        renderShow({
-          activeSales: [makeSaleItem()],
-          profitability: makeProfitability({ expected_revenue: null }),
-        });
-
-        expect(screen.queryByTestId("profitability-snapshot-card")).not.toBeInTheDocument();
-      });
-
-      it("shows what was invested in a purchased product that has no sales", () => {
+      it("shows the full picture for a purchased product with no sales", () => {
         renderShow({
           purchases: [makePurchase()],
           profitability: makeProfitability({
-            expected_revenue: null,
-            expected_final_profit: null,
             received_revenue: null,
-            outstanding_revenue: null,
-            invested_total: "420",
+            purchase_paid: null,
+            cash_position: null,
+            potential_sales: "120",
+            expected_total_cost: "80",
+            expected_net_profit: "28",
           }),
         });
 
         const dashboard = within(screen.getByTestId("economics-dashboard"));
 
-        expect(dashboard.getByText("Invested")).toBeInTheDocument();
-        expect(dashboard.getByText("420")).toBeInTheDocument();
-        expect(screen.queryByTestId("profitability-snapshot-card")).not.toBeInTheDocument();
+        expect(dashboard.getByText("Exp. Total Cost")).toBeInTheDocument();
+        expect(dashboard.getByText("80")).toBeInTheDocument();
+        expect(screen.getByTestId("profitability-snapshot-card")).toBeInTheDocument();
       });
 
-      it("is absent when there is nothing purchased and no recorded costs", () => {
+      it("is absent when there is nothing purchased and no cash position", () => {
         renderShow({
-          profitability: makeProfitability({
-            business_expenses: null,
-            invested_total: null,
-            purchase_cost: null,
-          }),
+          profitability: makeProfitability({ expected_total_cost: null, cash_position: null }),
         });
 
         expect(screen.queryByTestId("economics-dashboard")).not.toBeInTheDocument();

@@ -33,9 +33,10 @@ export const sections: GlossarySection[] = [
         watchFor: "A cancelled order drops out of Revenue everywhere and shows no profit card.",
       },
       {
-        id: "received",
-        term: "Received",
-        definition: "Money already collected from the customer.",
+        id: "potentialSales",
+        term: "Potential sales",
+        definition:
+          "What every purchased unit will earn at its variant's selling price, sold or unsold.",
       },
       {
         id: "outstanding",
@@ -100,16 +101,8 @@ export const sections: GlossarySection[] = [
           "A sale line with no purchase item linked shows no cost, so COGS is missing and every profit figure under it is too high.",
       },
       {
-        id: "merchandise",
-        term: "Merchandise cost",
-        shownAs: [{ labels: ["Merchandise"], where: "on a product" }],
-        definition:
-          "What the goods themselves cost, including inbound shipping but before direct expenses booked on top.",
-      },
-      {
         id: "directExpenses",
         term: "Direct expenses",
-        shownAs: [{ labels: ["Direct"], where: "on a product" }],
         definition:
           "Ad-hoc costs booked on a specific purchase item, such as extra tax or damaged packaging.",
       },
@@ -162,13 +155,20 @@ export const sections: GlossarySection[] = [
           "On a payment plan this reads one charge on its own, so a deposit carrying the whole job's cost can show a loss. Projected net profit reads the same job as a finished deal.",
       },
       {
-        id: "profitInHand",
-        term: "Profit in hand",
-        shownAs: [{ labels: ["In hand"], where: "on a product" }],
+        id: "expectedNetProfit",
+        term: "Expected net profit",
+        shownAs: [{ labels: ["Exp. Net Profit"], where: "on a product" }],
         definition:
-          "Received minus COGS and estimated OpEx: the profit left from the money collected so far.",
+          "Potential sales minus the expected total cost and estimated OpEx: what a product should earn once every purchased unit sells at its listed price.",
+      },
+      {
+        id: "cashPositionToday",
+        term: "Cash position today",
+        shownAs: [{ labels: ["Cash today"], where: "on a product" }],
+        definition:
+          "Money actually collected from customers minus money actually paid to suppliers for a product: what we should have in hand right now.",
         watchFor:
-          "A loss here on a part-paid order is expected and moves toward Net profit as the customer pays; this figure alone does not mean anything is wrong.",
+          "Negative before a purchase has sold anything is expected — money went out to a supplier before any came back from a customer.",
       },
       {
         id: "projectedNetProfit",
@@ -184,18 +184,13 @@ export const sections: GlossarySection[] = [
     title: "Stock and suppliers",
     entries: [
       {
-        id: "invested",
-        term: "Invested",
+        id: "expectedTotalCost",
+        term: "Expected total cost",
+        shownAs: [{ labels: ["Exp. Total Cost"], where: "on a product" }],
         definition:
-          "The landed cost of every unit received into a warehouse for this product, sold or unsold.",
+          "The landed cost of every unit received into a warehouse for this product, sold or unsold: purchase price, shipping, and direct expenses.",
         watchFor:
-          "A purchase not yet received is not counted, so Invested can be lower than the value ordered.",
-      },
-      {
-        id: "unsoldStockValue",
-        term: "Unsold stock value",
-        shownAs: [{ labels: ["Unsold"], where: "on a product" }],
-        definition: "The landed cost of the units in the warehouse that have not been sold.",
+          "A purchase not yet received is not counted, so Expected Total Cost can be lower than the value ordered.",
       },
       {
         id: "listCost",
@@ -210,7 +205,7 @@ export const sections: GlossarySection[] = [
         definition:
           "The purchase price, shipping, and direct expenses on this variant's own purchase items.",
         watchFor:
-          "Purchases tied only to the product rather than to a variant are missing here but counted in Invested, so the two rarely match.",
+          "Purchases tied only to the product rather than to a variant are missing here but counted in Expected total cost, so the two rarely match.",
       },
       {
         id: "variantTheoreticalProfit",

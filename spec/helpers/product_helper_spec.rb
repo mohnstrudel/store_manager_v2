@@ -8,6 +8,7 @@ RSpec.describe ProductHelper do
 
     before do
       create(:expense_rate, rate_percent: 10)
+      product.base_variant.update!(selling_price: BigDecimal("150"))
       sale = create(:sale, status: "pre-ordered")
       sale_item = create(
         :sale_item,
@@ -21,40 +22,45 @@ RSpec.describe ProductHelper do
       )
       purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("100"))
       create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+      create(:payment, purchase:, value: BigDecimal("80"))
     end
 
-    it "names direct expenses beside merchandise cost, matching the sale page's own term" do
+    it "prices potential sales at the variant's selling price and folds shipping and direct expenses into the expected total cost" do
       props = helper.product_profitability_props(product)
 
-      expect(props[:purchase_cost]).to eq("120")
-      expect(props[:direct_expenses]).to eq("5")
-      expect(props[:merchandise_cost]).to eq("115")
+      expect(props[:potential_sales]).to eq("150")
+      expect(props[:expected_total_cost]).to eq("120")
     end
 
-    it "reports profit on money received beside profit on the full order value" do
+    it "nets the expected total cost and estimated OpEx out of potential sales for the expected net profit" do
+      expect(helper.product_profitability_props(product)[:expected_net_profit]).to eq("15")
+    end
+
+    it "reports customer paid and purchase paid separately and nets them into the cash position" do
       props = helper.product_profitability_props(product)
 
-      expect(props[:realized_profit]).to eq("-50")
-      expect(props[:expected_final_profit]).to eq("150")
-    end
-
-    it "decides has_sale_items on the backend from the same items the equation aggregates" do
-      expect(helper.product_profitability_props(product)[:has_sale_items]).to eq(true)
-
-      bare_product = create(:product)
-      expect(helper.product_profitability_props(bare_product)[:has_sale_items]).to eq(false)
-    end
-
-    it "passes the counted order total through so the hints can name what a figure covers" do
-      expect(helper.product_profitability_props(product)[:counted_sales_total]).to eq(1)
+      expect(props[:received_revenue]).to eq("100")
+      expect(props[:purchase_paid]).to eq("80")
+      expect(props[:cash_position]).to eq("20")
     end
 
     it "omits values no component reads" do
       props = helper.product_profitability_props(product)
 
-      expect(props).not_to have_key(:item_cost_total)
-      expect(props).not_to have_key(:shipping_cost_total)
-      expect(props).not_to have_key(:received_percent)
+      expect(props).not_to have_key(:status)
+      expect(props).not_to have_key(:margin_percent)
+      expect(props).not_to have_key(:has_sale_items)
+      expect(props).not_to have_key(:invested_total)
+      expect(props).not_to have_key(:remaining_inventory_cost)
+      expect(props).not_to have_key(:purchased_units_total)
+      expect(props).not_to have_key(:sold_units_total)
+      expect(props).not_to have_key(:remaining_units_total)
+      expect(props).not_to have_key(:merchandise_cost)
+      expect(props).not_to have_key(:direct_expenses)
+      expect(props).not_to have_key(:business_expenses)
+      expect(props).not_to have_key(:outstanding_revenue)
+      expect(props).not_to have_key(:refunded_revenue)
+      expect(props).not_to have_key(:counted_sales_total)
       expect(props).not_to have_key(:refunded_percent)
     end
   end

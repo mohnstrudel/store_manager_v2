@@ -134,5 +134,5 @@ function cogsHint(profitability: SaleProfitabilityRecord): string {
 
   if (isBlank(profitability.direct_expenses)) return scoped;
 
-  return `${scoped} Here: ${profitability.merchandise_cost} merchandise cost plus ${profitability.direct_expenses} direct expenses.`;
+  return `${scoped} Here: ${profitability.merchandise_cost} in purchase price and shipping, plus ${profitability.direct_expenses} in direct expenses.`;
 }

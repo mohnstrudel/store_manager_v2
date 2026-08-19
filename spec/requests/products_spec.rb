@@ -123,6 +123,7 @@ RSpec.describe "Products" do
 
       before do
         create(:expense_rate, rate_percent: 10)
+        product.base_variant.update!(selling_price: BigDecimal("150"))
         sale = create(:sale, status: "pre-ordered", financial_status: "PARTIALLY_PAID", payment_gateway_names: ["shopify_payments"])
         sale_item = create(
           :sale_item,
@@ -136,34 +137,29 @@ RSpec.describe "Products" do
         )
         purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("100"))
         create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+        create(:payment, purchase:, value: BigDecimal("80"))
       end
 
       it "includes profitability data for admins" do
         get product_path(product)
 
         profitability = inertia.props[:profitability]
-        expect(profitability[:status]).to eq("profitable")
         expect(profitability[:expense_rate_percent]).to eq(10.0)
-        expect(profitability[:purchase_cost]).to eq("120")
-        expect(profitability[:business_expenses]).to eq("30")
+        expect(profitability[:potential_sales]).to eq("150")
+        expect(profitability[:expected_total_cost]).to eq("120")
+        expect(profitability[:expected_net_profit]).to eq("15")
         expect(profitability[:received_revenue]).to eq("100")
-        expect(profitability[:outstanding_revenue]).to eq("200")
-        expect(profitability[:realized_profit]).to eq("-50")
-        expect(profitability[:expected_final_profit]).to eq("150")
-        expect(profitability[:margin_percent]).to eq(50.0)
-        expect(profitability[:has_sale_items]).to eq(true)
+        expect(profitability[:purchase_paid]).to eq("80")
+        expect(profitability[:cash_position]).to eq("20")
       end
 
-      it "names direct expenses beside merchandise cost and includes inventory economics for admins" do
+      it "folds direct expenses into the expected total cost across sold and unsold units alike" do
+        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("20"))
+        create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal("0"), direct_expense_amount: BigDecimal("7"))
+
         get product_path(product)
 
-        profitability = inertia.props[:profitability]
-        expect(profitability[:direct_expenses]).to eq("5")
-        expect(profitability[:merchandise_cost]).to eq("115")
-        expect(profitability[:purchased_units_total]).to eq(1)
-        expect(profitability[:sold_units_total]).to eq(1)
-        expect(profitability[:remaining_units_total]).to eq(0)
-        expect(profitability[:remaining_inventory_cost]).to be_nil
+        expect(inertia.props[:profitability][:expected_total_cost]).to eq("147")
       end
 
       it "omits values no component reads from the profitability props" do
@@ -174,15 +170,16 @@ RSpec.describe "Products" do
         expect(profitability).not_to have_key(:shipping_cost_total)
         expect(profitability).not_to have_key(:received_percent)
         expect(profitability).not_to have_key(:refunded_percent)
-      end
-
-      it "includes the total invested across sold and unsold units" do
-        unsold_purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("40"))
-        create(:purchase_item, purchase: unsold_purchase, shipping_cost: BigDecimal("10"), expenses: BigDecimal("0"))
-
-        get product_path(product)
-
-        expect(inertia.props[:profitability][:invested_total]).to eq("170")
+        expect(profitability).not_to have_key(:status)
+        expect(profitability).not_to have_key(:margin_percent)
+        expect(profitability).not_to have_key(:has_sale_items)
+        expect(profitability).not_to have_key(:invested_total)
+        expect(profitability).not_to have_key(:merchandise_cost)
+        expect(profitability).not_to have_key(:direct_expenses)
+        expect(profitability).not_to have_key(:business_expenses)
+        expect(profitability).not_to have_key(:outstanding_revenue)
+        expect(profitability).not_to have_key(:refunded_revenue)
+        expect(profitability).not_to have_key(:counted_sales_total)
       end
 
       it "omits profitability data for managers" do

@@ -1,6 +1,5 @@
 export type { PaginationMeta } from "@/types/pagination";
 import type { MediaRecord, MediaFormData } from "@/types/media";
-import type { ProfitabilitySummaryRecord } from "@/types/profitability";
 export type { MediaRecord, MediaFormData };
 
 export type VariantSummary = {
@@ -113,20 +112,14 @@ export type ProductShowRecord = {
   new_purchase_path: string;
 };
 
-export type ProfitabilityStatus = "profitable" | "break_even" | "loss" | "unknown";
-
-export type ProfitabilityRecord = ProfitabilitySummaryRecord & {
-  status: ProfitabilityStatus;
-  margin_percent: number | null;
-  merchandise_cost: string | null;
-  direct_expenses: string | null;
-  has_sale_items: boolean;
-  counted_sales_total: number;
-  invested_total: string | null;
-  purchased_units_total: number;
-  sold_units_total: number;
-  remaining_units_total: number;
-  remaining_inventory_cost: string | null;
+export type ProfitabilityRecord = {
+  expense_rate_percent: number;
+  potential_sales: string | null;
+  expected_total_cost: string | null;
+  expected_net_profit: string | null;
+  received_revenue: string | null;
+  purchase_paid: string | null;
+  cash_position: string | null;
 };
 
 export type SelectOption<Value extends string | number = string | number> = {
