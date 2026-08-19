@@ -454,7 +454,7 @@ Examples: [`spec/models/product`](spec/models/product), [`spec/jobs`](spec/jobs)
 
 | Category | Technology |
 | --- | --- |
-| Language | Ruby 4.0.5 |
+| Language | Ruby 4.0.x |
 | Framework | Rails 8.x |
 | Database | PostgreSQL |
 | Search | `pg_search` |
@@ -472,7 +472,7 @@ Examples: [`spec/models/product`](spec/models/product), [`spec/jobs`](spec/jobs)
 
 ### Requirements
 
-- Ruby 4.0.5 and Node 24, pinned in `mise.toml`
+- Ruby 4.0 and Node 24, pinned in `mise.toml`
 - PostgreSQL
 - Redis
 
