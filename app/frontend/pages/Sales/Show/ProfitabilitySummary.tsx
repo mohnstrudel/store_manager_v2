@@ -23,7 +23,7 @@ export default function ProfitabilitySummary({ profitability }: ProfitabilitySum
       className="economics_snapshot_card"
       data-testid="sale-profitability-card"
     >
-      <EconomicsRow groups={profitGroups(profitability)} />
+      <EconomicsRow groups={profitGroups(profitability)} hoverWholeLabels />
     </article>
   );
 }

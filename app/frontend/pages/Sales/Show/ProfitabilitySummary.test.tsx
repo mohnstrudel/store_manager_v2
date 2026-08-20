@@ -101,6 +101,19 @@ describe("Sales/Show/ProfitabilitySummary", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("makes each label the hover target with no asterisk mark", async () => {
+    renderSummary();
+
+    expect(card().querySelector(".tip_mark__trigger")).toBeNull();
+    expect(within(card()).queryByLabelText("More information")).not.toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.hover(within(card()).getByText("Revenue"));
+    await act(async () => {});
+
+    expect(screen.getByText(/For this sale\./)).toBeInTheDocument();
+  });
+
   describe("the caveats that used to be captions", () => {
     it("names the merchandise and direct-expense split behind the single cost figure", async () => {
       renderSummary({ purchase_cost: "700", merchandise_cost: "695", direct_expenses: "5" });
@@ -312,7 +325,10 @@ function amount(anchor: string): number {
 
 async function openHint(anchor: string) {
   const user = userEvent.setup();
+  const trigger = termOrFail(anchor).querySelector(".metric_label");
 
-  await user.hover(within(termOrFail(anchor)).getByLabelText("More information"));
+  if (trigger === null) throw new Error(`No hover trigger within metric ${anchor}`);
+
+  await user.hover(trigger);
   await act(async () => {});
 }
