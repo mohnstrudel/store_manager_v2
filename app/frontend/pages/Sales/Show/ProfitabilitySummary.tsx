@@ -31,11 +31,6 @@ export default function ProfitabilitySummary({ profitability }: ProfitabilitySum
 // travels with its booked counterpart. COGS has no counterpart:
 // `Sale::Profitability` charges the same purchase cost against the booked
 // revenue and the projected total alike, so a second one would restate it.
-//
-// Received is not stated here at all. A sale is billed and collected as one
-// amount, so for all but a handful of them it repeats Revenue exactly; where
-// it does not, Outstanding already names the gap. The product card keeps it,
-// because a product aggregates across many sales and the two genuinely part.
 function profitGroups(profitability: SaleProfitabilityRecord): EconomicsTerm[][] {
   return [
     [
@@ -134,5 +129,5 @@ function cogsHint(profitability: SaleProfitabilityRecord): string {
 
   if (isBlank(profitability.direct_expenses)) return scoped;
 
-  return `${scoped} Here: ${profitability.merchandise_cost} in purchase price and shipping, plus ${profitability.direct_expenses} in direct expenses.`;
+  return `${scoped} Here: ${profitability.merchandise_cost} in Item price and Shipping, plus ${profitability.direct_expenses} in Direct expenses.`;
 }

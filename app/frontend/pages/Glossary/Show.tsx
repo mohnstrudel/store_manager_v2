@@ -53,19 +53,19 @@ export const sections: GlossarySection[] = [
         id: "paymentPlan",
         term: "Payment plan",
         definition:
-          "A set of customer orders that together bill and collect one contract value over time.",
+          "A set of customer orders that together bill and collect the full amount of a job over time.",
       },
       {
         id: "deposit",
         term: "Deposit",
         definition:
-          "The first customer charge in a payment plan, billed before the rest of the job and carrying the whole job's cost.",
+          "The first payment in a payment plan, billed before the rest of the job and carrying the whole job's cost.",
       },
       {
         id: "payment",
         term: "Payment",
         definition:
-          "One charge to a customer within a larger payment plan, rather than a stand-alone order.",
+          "One customer order within a larger payment plan, rather than a stand-alone sale.",
         watchFor:
           "“Payments” on a purchase are payments to a supplier, and “Paid” is their total; they are not customer charges.",
       },
@@ -74,15 +74,9 @@ export const sections: GlossarySection[] = [
         term: "Projected total",
         shownAs: [{ labels: ["Projected"], where: "in the Revenue row on a sale card" }],
         definition:
-          "The full contract value of a payment plan, including customer charges not billed yet.",
+          "The full amount a payment plan will bill, including customer payments not billed yet.",
         example:
-          "A custom order starts with a 30% deposit: the deposit order's Revenue covers that charge, while Projected total covers the whole job.",
-      },
-      {
-        id: "projectedRemainder",
-        term: "Projected remainder",
-        definition:
-          "The part of a payment plan's contract value still to be collected across the plan.",
+          "A custom order starts with a 30% deposit: the deposit order's Revenue covers that payment, while Projected total covers the whole job.",
       },
     ],
   },
@@ -93,10 +87,8 @@ export const sections: GlossarySection[] = [
       {
         id: "cogs",
         term: "COGS",
-        definition:
-          "The landed cost of the goods sold: purchase price, inbound shipping, and direct expenses.",
-        example:
-          "Goods bought for 30 € with 5 € inbound shipping and a 20 € rush fee carry COGS of 55 €.",
+        definition: "The landed cost of the goods sold: Item price, Shipping, and direct expenses.",
+        example: "Goods bought for 30 € with 5 € Shipping and a 20 € rush fee carry COGS of 55 €.",
         watchFor:
           "A sale line with no purchase item linked shows no cost, so COGS is missing and every profit figure under it is too high.",
       },
@@ -122,8 +114,6 @@ export const sections: GlossarySection[] = [
         ],
         definition:
           "General business costs such as rent and payroll, estimated for a sale or product as a percentage of Revenue.",
-        watchFor:
-          "Today's OpEx rates are also applied to past months, so editing a rate recalculates their Estimated OpEx and Comparison; recorded Actual OpEx does not change.",
       },
       {
         id: "opExRates",
@@ -131,14 +121,20 @@ export const sections: GlossarySection[] = [
         definition: "The overhead percentages used to estimate OpEx from Revenue.",
       },
       {
-        id: "opExRecords",
-        aliasIds: ["actualOpEx", "comparison"],
-        term: "OpEx records",
-        shownAs: [{ labels: ["Actual OpEx", "Comparison"], where: "on the OpEx Rates page" }],
+        id: "actualOpEx",
+        term: "Actual OpEx",
         definition:
           "Operating costs recorded for a month as money actually spent, rather than estimated from Revenue.",
         watchFor:
-          "The “OpEx” navigation item opens these recorded costs; “OpEx” on a sale or product card is an estimate.",
+          "The “OpEx” navigation item opens the records behind Actual OpEx; “OpEx” on a sale or product card is an estimate.",
+      },
+      {
+        id: "comparison",
+        term: "Comparison",
+        definition:
+          "The absolute difference between Actual OpEx and Estimated OpEx for a month, shown as under, over, or on estimate.",
+        watchFor:
+          "Today's OpEx rates are also applied to past months, so editing a rate recalculates Estimated OpEx and Comparison; Actual OpEx does not change.",
       },
     ],
   },
@@ -159,7 +155,7 @@ export const sections: GlossarySection[] = [
         term: "Expected net profit",
         shownAs: [{ labels: ["Exp. Net Profit"], where: "on a product" }],
         definition:
-          "Potential sales minus the expected total cost and estimated OpEx: what a product should earn once every purchased unit sells at its listed price.",
+          "Potential sales minus the expected total cost and estimated OpEx: what a product should earn once every purchased unit sells at its Selling Price.",
       },
       {
         id: "cashPositionToday",
@@ -175,7 +171,7 @@ export const sections: GlossarySection[] = [
         term: "Projected net profit",
         shownAs: [{ labels: ["Projected"], where: "in the Net Profit row on a sale card" }],
         definition:
-          "Projected total minus COGS and OpEx estimated on the full contract value: what the whole payment plan should earn.",
+          "Projected total minus COGS and Projected OpEx: what the whole payment plan should earn.",
       },
     ],
   },
@@ -188,7 +184,7 @@ export const sections: GlossarySection[] = [
         term: "Expected total cost",
         shownAs: [{ labels: ["Exp. Total Cost"], where: "on a product" }],
         definition:
-          "The landed cost of every unit received into a warehouse for this product, sold or unsold: purchase price, shipping, and direct expenses.",
+          "The landed cost of every unit received into a warehouse for this product, sold or unsold: Item price, shipping, and direct expenses.",
         watchFor:
           "A purchase not yet received is not counted, so Expected Total Cost can be lower than the value ordered.",
       },
@@ -203,7 +199,7 @@ export const sections: GlossarySection[] = [
         id: "variantPurchaseCostTotal",
         term: "Total landed cost",
         definition:
-          "The purchase price, shipping, and direct expenses on this variant's own purchase items.",
+          "The Item price, shipping, and direct expenses on this variant's own purchase items.",
         watchFor:
           "Purchases tied only to the product rather than to a variant are missing here but counted in Expected total cost, so the two rarely match.",
       },
@@ -211,7 +207,7 @@ export const sections: GlossarySection[] = [
         id: "variantTheoreticalProfit",
         term: "Theoretical profit",
         definition:
-          "A per-unit estimate using the selling price, average landed cost across every purchase of the variant, and OpEx charged on the selling price.",
+          "A per-unit estimate using the selling price, Total landed cost divided by purchased units, and OpEx charged on the selling price.",
         watchFor: "It describes no actual sale, so use it as a planning estimate only.",
       },
       {

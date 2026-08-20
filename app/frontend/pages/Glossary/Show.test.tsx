@@ -86,10 +86,9 @@ describe("Glossary/Show", () => {
         "Deposit",
         "Payment",
         "Projected total",
-        "Projected remainder",
       ],
       "What the goods cost": ["COGS", "Direct expenses"],
-      Overheads: ["OpEx", "OpEx rates", "OpEx records"],
+      Overheads: ["OpEx", "OpEx rates", "Actual OpEx", "Comparison"],
       Profit: ["Net profit", "Expected net profit", "Cash position today", "Projected net profit"],
       "Stock and suppliers": [
         "Expected total cost",
@@ -146,7 +145,7 @@ describe("Glossary/Show", () => {
     render(<Show />);
 
     expect(
-      screen.getByText(/The “OpEx” navigation item opens these recorded costs/),
+      screen.getByText(/The “OpEx” navigation item opens the records behind Actual OpEx/),
     ).toBeInTheDocument();
     expect(screen.getByText(/“OpEx” on a sale or product card is an estimate/)).toBeInTheDocument();
     expect(
@@ -158,9 +157,7 @@ describe("Glossary/Show", () => {
     render(<Show />);
 
     expect(screen.getByText(/no purchase item linked shows no cost/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/recalculates their Estimated OpEx and Comparison/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/recalculates Estimated OpEx and Comparison/)).toBeInTheDocument();
     expect(screen.getByText(/A purchase not yet received is not counted/)).toBeInTheDocument();
     expect(screen.getByText(/describes no actual sale/)).toBeInTheDocument();
     expect(
@@ -190,13 +187,19 @@ describe("Glossary/Show", () => {
       monthlyRevenue: "revenue",
       estimatedOpEx: "opEx",
       projectedOpEx: "opEx",
-      actualOpEx: "opExRecords",
-      comparison: "opExRecords",
     };
 
     for (const [alias, entry] of Object.entries(aliases)) {
       expect(container.querySelectorAll(`#${alias}`)).toHaveLength(1);
       expect(container.querySelector(`#${alias}`)?.closest(`#${entry}`)).not.toBeNull();
+    }
+  });
+
+  it("gives Actual OpEx and Comparison their own unique anchors", () => {
+    const { container } = render(<Show />);
+
+    for (const id of ["actualOpEx", "comparison"]) {
+      expect(container.querySelectorAll(`#${id}`)).toHaveLength(1);
     }
   });
 

@@ -203,7 +203,6 @@ module ProductHelper
     summary = product.profitability(expense_fraction:)
 
     {
-      expense_rate_percent: ExpenseRate.sum(:rate_percent).to_f,
       potential_sales: format_money(summary[:potential_sales]),
       expected_total_cost: format_money(summary[:expected_total_cost]),
       expected_net_profit: format_money(summary[:expected_net_profit]),

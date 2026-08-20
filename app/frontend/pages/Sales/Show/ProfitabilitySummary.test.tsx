@@ -37,33 +37,14 @@ describe("Sales/Show/ProfitabilitySummary", () => {
     expect(amount("revenue") - amount("cogs") - amount("opEx")).toBe(amount("netProfit"));
   });
 
-  it("names the OpEx term without repeating the rate it came from", () => {
-    renderSummary({ expense_rate_percent: 35, business_expenses: "500" });
-
-    expect(within(card()).getByText("OpEx")).toBeInTheDocument();
-    expect(card()).not.toHaveTextContent("35%");
-  });
-
   it("states what is still owed and what was paid back as figures of their own", () => {
     renderSummary({
-      received_revenue: "100",
       outstanding_revenue: "200",
       refunded_revenue: "40",
     });
 
     expect(amount("outstanding")).toBe(200);
     expect(amount("refunded")).toBe(40);
-  });
-
-  // A sale is billed and collected as one amount, so Received repeats
-  // Revenue for all but a handful of sales; Outstanding names the gap when
-  // they part. The product card keeps Received, where they genuinely differ.
-  it("does not restate the revenue as money received", () => {
-    renderSummary({ expected_revenue: "377", received_revenue: "377" });
-
-    expect(term("received")).toBeNull();
-    expect(screen.queryByText("Received")).not.toBeInTheDocument();
-    expect(amount("revenue")).toBe(377);
   });
 
   describe("a figure that is zero or absent", () => {
@@ -77,8 +58,8 @@ describe("Sales/Show/ProfitabilitySummary", () => {
       expect(amount("revenue")).toBeGreaterThan(0);
     });
 
-    it("drops the OpEx term when no rate is configured", () => {
-      renderSummary({ expense_rate_percent: 0, business_expenses: null });
+    it("drops the OpEx term when no estimated OpEx exists", () => {
+      renderSummary({ business_expenses: null });
 
       expect(term("opEx")).toBeNull();
       expect(screen.queryByText("OpEx")).not.toBeInTheDocument();
@@ -126,7 +107,7 @@ describe("Sales/Show/ProfitabilitySummary", () => {
       await openHint("cogs");
 
       expect(
-        screen.getByText(/695 in purchase price and shipping, plus 5 in direct expenses/),
+        screen.getByText(/695 in Item price and Shipping, plus 5 in Direct expenses/),
       ).toBeInTheDocument();
     });
 
@@ -135,7 +116,7 @@ describe("Sales/Show/ProfitabilitySummary", () => {
 
       await openHint("cogs");
 
-      expect(screen.queryByText(/in purchase price and shipping, plus/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/in Item price and Shipping, plus/)).not.toBeInTheDocument();
     });
 
     it("warns in the revenue hint that the figures cover the whole payment plan", async () => {
@@ -149,17 +130,17 @@ describe("Sales/Show/ProfitabilitySummary", () => {
     });
 
     // Revenue and COGS count what has been billed and spent, so the scope note
-    // must not claim they include charges nobody has raised yet. Only the
+    // must not claim they include Payments nobody has billed yet. Only the
     // Projected terms do, and their own hints say so.
-    it("keeps unraised charges out of the scope note, and in the projected hint", async () => {
+    it("keeps unbilled Payments out of the scope note, and in the projected hint", async () => {
       renderSummary({ scope: "plan", projected_final_profit: "167", projected_revenue: "1 020" });
 
       await openHint("revenue");
-      expect(screen.queryByText(/including charges not yet raised/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/including Payments not billed yet/)).not.toBeInTheDocument();
       expect(screen.getByText(/Across every sale in this payment plan\./)).toBeInTheDocument();
 
       await openHint("projectedTotal");
-      expect(screen.getByText(/once every scheduled charge has been raised/)).toBeInTheDocument();
+      expect(screen.getByText(/including Payments not billed yet/)).toBeInTheDocument();
     });
 
     it("makes no plan claim for a sale that stands alone", async () => {
@@ -196,7 +177,6 @@ describe("Sales/Show/ProfitabilitySummary", () => {
       purchase_cost: "700",
       business_expenses: "45",
       expected_final_profit: "-445",
-      expense_rate_percent: 15,
       projected_revenue: "1 020",
       projected_business_expenses: "153",
       projected_final_profit: "167",
@@ -276,7 +256,7 @@ describe("Sales/Show/ProfitabilitySummary", () => {
       );
     });
 
-    it("shows no projection for a plan with no known contract value", () => {
+    it("shows no projection for a plan with no known Projected total", () => {
       renderSummary({ scope: "plan" });
 
       expect(term("projectedTotal")).toBeNull();

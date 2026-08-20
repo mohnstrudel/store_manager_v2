@@ -113,7 +113,6 @@ export type ProductShowRecord = {
 };
 
 export type ProfitabilityRecord = {
-  expense_rate_percent: number;
   potential_sales: string | null;
   expected_total_cost: string | null;
   expected_net_profit: string | null;

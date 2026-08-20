@@ -36,8 +36,8 @@ describe("MetricLabel", () => {
   it("points the glossary link at the anchor for the term shown", async () => {
     const user = userEvent.setup();
     render(
-      <MetricLabel anchor="profitInHand" hint="A plain explanation.">
-        Profit in hand
+      <MetricLabel anchor="cashPositionToday" hint="A plain explanation.">
+        Cash today
       </MetricLabel>,
     );
 
@@ -46,7 +46,7 @@ describe("MetricLabel", () => {
 
     expect(screen.getByRole("link", { name: "Glossary" })).toHaveAttribute(
       "href",
-      "/glossary#profitInHand",
+      "/glossary#cashPositionToday",
     );
   });
 });

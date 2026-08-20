@@ -88,7 +88,7 @@ describe("Products/Show/ProductVariants", () => {
       expect(profitHeader).not.toHaveAttribute("title");
     });
 
-    it("states that purchases booked against the product rather than a variant are excluded, so the reader knows why the column will not match Invested", async () => {
+    it("states that purchases booked against the product rather than a variant are excluded, so the reader knows why the column will not match Expected Total Cost", async () => {
       const user = userEvent.setup();
       renderProductVariants();
 

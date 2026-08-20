@@ -144,7 +144,6 @@ RSpec.describe "Products" do
         get product_path(product)
 
         profitability = inertia.props[:profitability]
-        expect(profitability[:expense_rate_percent]).to eq(10.0)
         expect(profitability[:potential_sales]).to eq("150")
         expect(profitability[:expected_total_cost]).to eq("120")
         expect(profitability[:expected_net_profit]).to eq("15")
@@ -166,6 +165,7 @@ RSpec.describe "Products" do
         get product_path(product)
 
         profitability = inertia.props[:profitability]
+        expect(profitability).not_to have_key(:expense_rate_percent)
         expect(profitability).not_to have_key(:item_cost_total)
         expect(profitability).not_to have_key(:shipping_cost_total)
         expect(profitability).not_to have_key(:received_percent)

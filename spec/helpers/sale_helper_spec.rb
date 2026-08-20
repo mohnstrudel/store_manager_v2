@@ -109,18 +109,14 @@ RSpec.describe SaleHelper do
       expect(props[:partially_paid]).to be(false)
       expect(props[:payment_plans]).to contain_exactly(
         id: SalePaymentPlan.sole.id,
-        provider: "seal",
         kind: "deposit",
-        status: "active",
         expected_parts: 1,
         collected_parts: 1,
         sale_part_number: 1,
         is_origin_sale: true,
         deposit_percent: 30,
-        projected_total: "1 020 EUR",
-        projected_remainder: "700 EUR",
+        projected_total: "1\u2009020 EUR",
         projected_collected: "320 EUR",
-        next_due_at: nil,
         origin_sale: nil,
         payments: [
           {

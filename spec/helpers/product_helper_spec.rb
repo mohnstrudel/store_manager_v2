@@ -47,6 +47,7 @@ RSpec.describe ProductHelper do
     it "omits values no component reads" do
       props = helper.product_profitability_props(product)
 
+      expect(props).not_to have_key(:expense_rate_percent)
       expect(props).not_to have_key(:status)
       expect(props).not_to have_key(:margin_percent)
       expect(props).not_to have_key(:has_sale_items)

@@ -150,16 +150,13 @@ module SaleHelper
 
     {
       scope: summary[:scope],
-      expense_rate_percent: (expense_fraction.to_d * 100).to_f,
       expected_revenue: format_money(summary[:expected_revenue]),
-      received_revenue: format_money(summary[:received_revenue]),
       outstanding_revenue: format_money(summary[:outstanding_revenue]),
       refunded_revenue: format_money(summary[:refunded_revenue]),
       purchase_cost: format_money(summary[:purchase_cost]),
       merchandise_cost: format_money(summary[:merchandise_cost]),
       direct_expenses: format_money(summary[:direct_expenses]),
       business_expenses: format_money(summary[:business_expenses]),
-      realized_profit: format_money(summary[:realized_profit]),
       expected_final_profit: format_money(summary[:expected_final_profit]),
       projected_revenue: format_money(summary[:projected_revenue]),
       projected_business_expenses: format_money(summary[:projected_business_expenses]),
@@ -172,18 +169,14 @@ module SaleHelper
 
     {
       id: plan.id,
-      provider: plan.provider,
       kind: plan.kind,
-      status: plan.status,
       expected_parts: plan.expected_parts,
       collected_parts: plan.collected_parts,
       sale_part_number: plan.part_number_for(sale),
       is_origin_sale: plan.origin_sale_id == sale.id,
       deposit_percent: compact_number(plan.deposit_percent),
       projected_total: format_plan_money(plan.projected_total, plan.currency),
-      projected_remainder: format_plan_money(remainder, plan.currency),
       projected_collected: sale_payment_plan_collected_props(plan, remainder),
-      next_due_at: format_date(plan.next_due_at),
       origin_sale: sale_payment_plan_origin_props(plan, sale),
       payments: plan.linked_parts.map { |part| sale_payment_plan_payment_props(part, sale) }
     }
@@ -329,16 +322,7 @@ module SaleHelper
   def sale_item_profitability_props(item, expense_fraction = ExpenseRate.combined_fraction)
     {
       expected_revenue: format_money(item.expected_revenue),
-      received_revenue: format_money(item.received_revenue),
-      outstanding_revenue: format_money(item.outstanding_revenue),
-      refunded_revenue: format_money(item.refunded_revenue),
-      paid_percent: percent_of(
-        item.received_revenue,
-        payment_pie_total(item.expected_revenue, item.received_revenue, item.outstanding_revenue)
-      ),
       purchase_cost: format_money(item.purchase_cost),
-      business_expenses: format_money(item.business_expenses(expense_fraction)),
-      realized_profit: format_money(item.realized_profit(expense_fraction)),
       expected_final_profit: format_money(item.expected_final_profit(expense_fraction))
     }
   end

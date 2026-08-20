@@ -364,6 +364,7 @@ RSpec.describe "Sales" do
 
         item_profitability = inertia.props[:sale][:sale_items].first[:profitability]
         expect(item_profitability[:purchase_cost]).to eq("120")
+        expect(item_profitability.keys).to contain_exactly("expected_revenue", "purchase_cost", "expected_final_profit")
       end
 
       it "omits profitability data for non-admins" do
@@ -383,7 +384,6 @@ RSpec.describe "Sales" do
         summary = inertia.props[:sale][:profitability]
         expect(summary).to include(
           scope: "sale",
-          expense_rate_percent: 10.0,
           expected_revenue: "300",
           merchandise_cost: "115",
           direct_expenses: "5",
@@ -391,6 +391,15 @@ RSpec.describe "Sales" do
           business_expenses: "30",
           expected_final_profit: "150"
         )
+      end
+
+      it "omits values no component reads from the profit summary" do
+        get sale_path(sale)
+
+        summary = inertia.props[:sale][:profitability]
+        expect(summary).not_to have_key(:expense_rate_percent)
+        expect(summary).not_to have_key(:received_revenue)
+        expect(summary).not_to have_key(:realized_profit)
       end
 
       it "omits the profit summary for a cancelled sale" do
@@ -456,7 +465,7 @@ RSpec.describe "Sales" do
         )
       end
 
-      it "reports the booked loss and the projected profit at once for a deposit with a known contract value" do
+      it "reports the booked loss and the projected profit at once for a deposit with a known Projected total" do
         get sale_path(origin)
 
         summary = inertia.props[:sale][:profitability]

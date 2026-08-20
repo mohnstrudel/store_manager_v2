@@ -161,13 +161,7 @@ export function makeSaleItemProfitability(
 ): SaleItemProfitabilityRecord {
   return {
     expected_revenue: "1060",
-    received_revenue: "750",
-    outstanding_revenue: "310",
-    refunded_revenue: "0",
-    paid_percent: 71,
     purchase_cost: "1050",
-    business_expenses: "106",
-    realized_profit: "-406",
     expected_final_profit: "-96",
     ...overrides,
   };

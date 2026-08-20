@@ -6,7 +6,7 @@ import { makeSalePaymentPlan } from "@/test/factories";
 describe("PlanProgressBar", () => {
   // Four-part plan of 255 each, contract value 1 020, two charges collected,
   // viewed from the second charge — the ticket's worked example.
-  it("renders one segment per expected charge, fills the collected ones, and marks the current segment", () => {
+  it("renders one segment per expected Payment, fills the collected ones, and marks the current segment", () => {
     const { container } = render(
       <PlanProgressBar
         plan={makeSalePaymentPlan({
@@ -51,7 +51,7 @@ describe("PlanProgressBar", () => {
     expect(screen.getByText("This payment")).toBeInTheDocument();
   });
 
-  it("states the charge's position and how much of the contract value has been collected", () => {
+  it("states the Payment's position and how much of the Projected total has been collected", () => {
     render(
       <PlanProgressBar
         plan={makeSalePaymentPlan({
@@ -68,7 +68,7 @@ describe("PlanProgressBar", () => {
     expect(screen.getByText("Payment 2 of 4 · 510 EUR of 1 020 EUR collected")).toBeInTheDocument();
   });
 
-  it("omits the money part of the caption when the contract value is unknown, but still renders position", () => {
+  it("omits the money part of the caption when the Projected total is unknown, but still renders position", () => {
     render(
       <PlanProgressBar
         plan={makeSalePaymentPlan({

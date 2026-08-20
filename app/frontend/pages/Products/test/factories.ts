@@ -106,7 +106,6 @@ export function makeProfitability(
   overrides: Partial<ProfitabilityRecord> = {},
 ): ProfitabilityRecord {
   return {
-    expense_rate_percent: 15,
     potential_sales: "1 000",
     expected_total_cost: "400",
     expected_net_profit: "500",
