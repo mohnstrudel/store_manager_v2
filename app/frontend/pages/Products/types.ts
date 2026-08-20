@@ -115,6 +115,7 @@ export type ProductShowRecord = {
 export type ProfitabilityRecord = {
   potential_sales: string | null;
   expected_total_cost: string | null;
+  business_expenses: string | null;
   expected_net_profit: string | null;
   received_revenue: string | null;
   purchase_paid: string | null;

@@ -113,6 +113,37 @@ describe("Products/Show/ProductEconomicsDashboard", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("makes each label the hover target with no asterisk mark", async () => {
+    renderDashboard();
+    const summaryCard = screen.getByTestId("profitability-snapshot-card");
+
+    expect(summaryCard.querySelector(".tip_mark__trigger")).toBeNull();
+    expect(within(summaryCard).queryByLabelText("More information")).not.toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.hover(within(summaryCard).getByText("Potential Sales"));
+    await act(async () => {});
+
+    expect(
+      screen.getByText(/What every purchased unit will earn at its variant's selling price/),
+    ).toBeInTheDocument();
+  });
+
+  it("names potential sales, expected total cost, and estimated OpEx on the expected net profit hint", async () => {
+    renderDashboard({
+      potential_sales: "900",
+      expected_total_cost: "300",
+      business_expenses: "150",
+      expected_net_profit: "450",
+    });
+
+    await openHint("expectedNetProfit");
+
+    expect(screen.getByText(/Potential sales: 900\./)).toBeInTheDocument();
+    expect(screen.getByText(/Expected total cost: 300\./)).toBeInTheDocument();
+    expect(screen.getByText(/Estimated OpEx: 150\./)).toBeInTheDocument();
+  });
 });
 
 function term(anchor: string): HTMLElement | null {
@@ -147,7 +178,10 @@ function amount(anchor: string): number {
 
 async function openHint(anchor: string) {
   const user = userEvent.setup();
+  const trigger = termOrFail(anchor).querySelector(".metric_label");
 
-  await user.hover(within(termOrFail(anchor)).getByLabelText("More information"));
+  if (trigger === null) throw new Error(`No hover trigger within metric ${anchor}`);
+
+  await user.hover(trigger);
   await act(async () => {});
 }

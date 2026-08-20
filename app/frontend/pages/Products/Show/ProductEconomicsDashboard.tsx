@@ -32,7 +32,7 @@ export default function ProductEconomicsDashboard({
         className="economics_snapshot_card"
         data-testid="profitability-snapshot-card"
       >
-        <EconomicsRow groups={economicsGroups(profitability)} />
+        <EconomicsRow groups={economicsGroups(profitability)} hoverWholeLabels />
       </article>
     </section>
   );
@@ -57,7 +57,7 @@ function economicsGroups(profitability: ProfitabilityRecord): EconomicsTerm[][] 
     [
       {
         anchor: "expectedNetProfit",
-        hint: financialMetricHints.expectedNetProfit,
+        hint: expectedNetProfitHint(profitability),
         label: "Exp. Net Profit",
         result: true,
         value: profitability.expected_net_profit,
@@ -78,6 +78,16 @@ function economicsGroups(profitability: ProfitabilityRecord): EconomicsTerm[][] 
 // stated there rather than left to be guessed.
 function expectedTotalCostHint(): string {
   return `${financialMetricHints.expectedTotalCost} Purchases not received into a warehouse are not counted.`;
+}
+
+// The three parts are interpolated here rather than kept as a static hint
+// entry, so the hover always names the figures the total was netted from.
+function expectedNetProfitHint(profitability: ProfitabilityRecord): string {
+  const potentialSales = profitability.potential_sales ?? "0";
+  const expectedTotalCost = profitability.expected_total_cost ?? "0";
+  const estimatedOpEx = profitability.business_expenses ?? "0";
+
+  return `${financialMetricHints.expectedNetProfit}\n\nPotential sales: ${potentialSales}.\nExpected total cost: ${expectedTotalCost}.\nEstimated OpEx: ${estimatedOpEx}.`;
 }
 
 // The two halves are interpolated here rather than kept as a static hint
