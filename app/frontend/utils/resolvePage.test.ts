@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import DashboardIndex from "../pages/Dashboard/Index";
 import SizesIndex from "../pages/Sizes/Index";
 import { resolvePage } from "./resolvePage";

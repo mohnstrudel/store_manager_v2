@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
+
 import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormInput from "@/components/FormInput";
-import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
+import NestedFormContainer from "@/components/NestedFormContainer";
 import VariantAssignmentSelect from "@/components/VariantAssignmentSelect";
 import { toSelectedOption } from "@/utils/selectOptions";
+
 import type { SaleItemFormRecord, SelectOption } from "../../types";
 
 type SaleItemFieldsProps = {

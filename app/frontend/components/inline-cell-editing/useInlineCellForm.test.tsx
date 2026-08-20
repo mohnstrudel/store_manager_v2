@@ -1,8 +1,10 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { describe, expect, it } from "vitest";
+
 import routes from "@/utils/routes";
+
 import { useInlineCellForm } from "./useInlineCellForm";
 
 describe("useInlineCellForm", () => {

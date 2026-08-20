@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+
 import MetricLabel from "@/components/profitability/MetricLabel";
 
 type FieldProps = {

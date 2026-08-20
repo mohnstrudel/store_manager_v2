@@ -1,5 +1,7 @@
 import { Link } from "@inertiajs/react";
+
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import { ShippingCompanyRecord } from "../types";
 
 type TableProps = {

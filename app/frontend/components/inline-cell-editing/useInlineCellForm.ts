@@ -1,7 +1,9 @@
-import type { PathHelper } from "@js-from-routes/client";
 import { useForm, usePage } from "@inertiajs/react";
+import type { PathHelper } from "@js-from-routes/client";
 import { useCallback, useEffect, useEffectEvent, useState, type ChangeEvent } from "react";
+
 import { replaceById } from "@/utils/replaceById";
+
 import { useRecentlySaved } from "./useRecentlySaved";
 
 type InlineCellFormConfig<TRecord extends { id: number }> = {

@@ -1,10 +1,12 @@
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import PaymentPlanMarker, { isFollowUpPayment } from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+import type { SalePaymentPlanRecord } from "@/types/payment";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleIndexRecord } from "../types";
-import type { SalePaymentPlanRecord } from "@/types/payment";
 
 const EMPTY_PAYMENT_PLANS: SalePaymentPlanRecord[] = [];
 

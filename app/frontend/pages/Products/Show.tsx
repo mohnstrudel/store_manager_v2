@@ -1,4 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
+
+import Button from "@/components/Button";
+import PageHeader from "@/components/PageHeader";
+import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import ProductActions from "./Show/ProductActions";
 import ProductDescription from "./Show/ProductDescription";
 import ProductEconomicsDashboard from "./Show/ProductEconomicsDashboard";
@@ -6,9 +11,6 @@ import ProductOverview from "./Show/ProductOverview";
 import ProductVariants from "./Show/ProductVariants";
 import PurchasesSection from "./Show/PurchasesSection";
 import SalesSection from "./Show/SalesSection";
-import Button from "@/components/Button";
-import PageHeader from "@/components/PageHeader";
-import { useConfirmAction } from "@/utils/useConfirmAction";
 import {
   type ProductShowRecord,
   type ProfitabilityRecord,

@@ -1,7 +1,9 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Show from "./Show";
+
 import { makeSalePaymentPlan } from "@/test/factories";
+
+import Show from "./Show";
 import { makeSaleProfitability, makeSaleShow } from "./test/factories";
 
 describe("Sales/Show", () => {

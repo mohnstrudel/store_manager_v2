@@ -1,10 +1,12 @@
 import { Link } from "@inertiajs/react";
+
 import Field from "@/components/Field";
 import {
   financialMetricHints,
   metricScopeNotes,
   withScope,
 } from "@/components/profitability/metricLabels";
+
 import type { PurchaseShowRecord } from "../types";
 
 type DetailsProps = {

@@ -1,4 +1,5 @@
 import { emptyToNull } from "@/utils/emptyValue";
+
 import { CustomerDetailRecord } from "../types";
 
 type DetailsProps = {

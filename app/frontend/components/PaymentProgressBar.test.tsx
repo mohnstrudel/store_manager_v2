@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+
 import type { PaymentProgress } from "@/types/payment";
+
 import PaymentProgressBar from "./PaymentProgressBar";
 
 describe("PaymentProgressBar", () => {

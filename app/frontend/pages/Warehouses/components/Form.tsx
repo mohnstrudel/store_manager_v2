@@ -1,4 +1,5 @@
 import { useCallback, useState, type ChangeEvent } from "react";
+
 import Button from "@/components/Button";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -6,10 +7,11 @@ import FormRow from "@/components/FormRow";
 import FormSectionHeading from "@/components/FormSectionHeading";
 import ImageUploader from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
-import { useDynamicSection } from "@/utils/useDynamicSection";
 import { getFormString } from "@/utils/formSchema";
-import { validateWarehouseForm } from "./warehouseFormSchema";
+import { useDynamicSection } from "@/utils/useDynamicSection";
+
 import type { WarehouseFormOptions, WarehouseFormRecord, WarehouseOption } from "../types";
+import { validateWarehouseForm } from "./warehouseFormSchema";
 
 type WarehouseFormProps = {
   isNew: boolean;

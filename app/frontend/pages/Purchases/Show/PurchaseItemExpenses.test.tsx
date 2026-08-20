@@ -1,10 +1,12 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { describe, expect, it } from "vitest";
+
 import { nextFormErrors } from "@/test/mocks/inertia";
-import PurchaseItemExpenses from "./PurchaseItemExpenses";
+
 import { makeNewPurchaseItemExpense, makePurchaseItemExpense } from "../test/factories";
+import PurchaseItemExpenses from "./PurchaseItemExpenses";
 
 describe("Purchases/Show/PurchaseItemExpenses", () => {
   it("creates a named expense", async () => {

@@ -1,4 +1,3 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   autoUpdate,
   flip,
@@ -12,6 +11,7 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
 type TipMarkProps = {
   children: ReactNode;

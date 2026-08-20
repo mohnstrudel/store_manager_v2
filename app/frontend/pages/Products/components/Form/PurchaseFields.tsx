@@ -1,10 +1,12 @@
 import { useCallback } from "react";
+
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
-import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
+import NestedFormContainer from "@/components/NestedFormContainer";
 import { toSelectedOption } from "@/utils/selectOptions";
+
 import { type PurchaseFormData, type SelectOption } from "../../types";
 import type { DraftVariantAvailability, DraftVariantOption } from "../variantDrafts";
 

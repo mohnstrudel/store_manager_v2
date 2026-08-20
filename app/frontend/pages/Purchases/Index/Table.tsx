@@ -1,8 +1,10 @@
-import { useCallback, type ChangeEvent } from "react";
 import { Link } from "@inertiajs/react";
+import { useCallback, type ChangeEvent } from "react";
+
+import PaymentProgressBar from "@/components/PaymentProgressBar";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
-import PaymentProgressBar from "@/components/PaymentProgressBar";
+
 import type { PurchaseIndexRecord } from "../types";
 
 type IndexTableProps = {

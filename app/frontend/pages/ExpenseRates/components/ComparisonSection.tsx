@@ -1,8 +1,10 @@
+import { Fragment } from "react";
+
 import Amount from "@/components/Amount";
 import DetailsChevron from "@/components/DetailsChevron";
 import MetricLabel from "@/components/profitability/MetricLabel";
 import { financialMetricHints } from "@/components/profitability/metricLabels";
-import { Fragment } from "react";
+
 import type { ComparisonRow } from "../types";
 
 export default function ComparisonSection({ comparison }: { comparison: ComparisonRow[] }) {

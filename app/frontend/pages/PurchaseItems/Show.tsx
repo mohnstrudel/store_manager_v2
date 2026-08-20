@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import Button from "@/components/Button";
 import Field from "@/components/Field";
 import ImageGallery from "@/components/ImageGallery";
@@ -8,6 +9,7 @@ import {
   withScope,
 } from "@/components/profitability/metricLabels";
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { PurchaseItemShowRecord } from "./types";
 
 type ShowProps = {

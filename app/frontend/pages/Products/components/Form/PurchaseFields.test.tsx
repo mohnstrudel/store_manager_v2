@@ -1,7 +1,8 @@
 import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import PurchaseFields from "./PurchaseFields";
+
 import { makePurchaseForm } from "../../test/factories";
+import PurchaseFields from "./PurchaseFields";
 // oxlint-disable-next-line import/no-unassigned-import
 import "@/components/SmartSelect";
 

@@ -1,6 +1,7 @@
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import Field from "@/components/Field";
 import ImageGallery from "@/components/ImageGallery";
+
 import { type ProductShowRecord, type TimestampColumn } from "../types";
 
 type ProductOverviewProps = {

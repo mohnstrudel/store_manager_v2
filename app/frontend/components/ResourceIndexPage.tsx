@@ -1,5 +1,6 @@
 import { Link } from "@inertiajs/react";
 import type { ReactNode } from "react";
+
 import PageHeader from "@/components/PageHeader";
 
 type ResourceIndexPageProps = {

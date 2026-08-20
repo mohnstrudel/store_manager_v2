@@ -1,6 +1,8 @@
 import { Link } from "@inertiajs/react";
+
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
+
 import Table from "./components/Table";
 import { CustomerRecord, PaginationMeta } from "./types";
 

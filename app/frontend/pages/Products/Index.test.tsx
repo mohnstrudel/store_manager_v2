@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+
 import { makePagination } from "@/test/factories";
 import type { PaginationMeta } from "@/types/pagination";
+
 import Index from "./Index";
 import { makeProductIndexRecord } from "./test/factories";
 import type { ProductIndexRecord } from "./types";

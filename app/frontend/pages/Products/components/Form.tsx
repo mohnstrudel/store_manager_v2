@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -12,9 +13,6 @@ import { type SectionRow, useDynamicSection } from "@/utils/useDynamicSection";
 
 const TiptapEditor = lazy(() => import("./Form/TiptapEditor"));
 const TIPTAP_FALLBACK = <TiptapSkeleton />;
-import VariantFields from "./Form/VariantFields";
-import StoreInfoFields from "./Form/StoreInfoFields";
-import PurchaseFields from "./Form/PurchaseFields";
 import {
   type FormOptions,
   type MediaFormData,
@@ -23,6 +21,9 @@ import {
   type StoreInfoFormData,
   type VariantFormData,
 } from "../types";
+import PurchaseFields from "./Form/PurchaseFields";
+import StoreInfoFields from "./Form/StoreInfoFields";
+import VariantFields from "./Form/VariantFields";
 import { validateProductFormSubmission } from "./productFormValidation";
 import { draftVariantAvailability, visibleDraftVariants } from "./variantDrafts";
 

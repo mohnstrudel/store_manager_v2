@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import TipMark from "@/components/TipMark";
 
 type MetricLabelProps = {

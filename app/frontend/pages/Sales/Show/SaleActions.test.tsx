@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import SaleActions from "./SaleActions";
+
 import { makeSaleShow } from "../test/factories";
+import SaleActions from "./SaleActions";
 
 describe("Sales/Show/SaleActions", () => {
   it("renders purchase-linking, fetch, admin, and edit actions for a Shopify sale", () => {

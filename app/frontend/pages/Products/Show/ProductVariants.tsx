@@ -2,6 +2,7 @@ import Amount from "@/components/Amount";
 import MetricLabel from "@/components/profitability/MetricLabel";
 import { financialMetricHints } from "@/components/profitability/metricLabels";
 import { emptyToNull, isEmptyValue } from "@/utils/emptyValue";
+
 import { type VariantRecord } from "../types";
 
 type ProductVariantsProps = {

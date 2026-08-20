@@ -1,4 +1,5 @@
 import { lazy } from "react";
+
 import type SmartSelectType from "./SmartSelect";
 
 /**

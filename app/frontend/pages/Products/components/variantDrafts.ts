@@ -1,4 +1,5 @@
 import type { SectionRow } from "@/utils/useDynamicSection";
+
 import type { FormOptions, SelectOption, VariantFormData } from "../types";
 
 export type DraftVariantOption = {

@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import Details from "./Details";
-import { makeSaleShow } from "../test/factories";
+
 import { makeSalePaymentPlan } from "@/test/factories";
+
+import { makeSaleShow } from "../test/factories";
+import Details from "./Details";
 
 describe("Sales/Show/Details", () => {
   it("renders the customer, note, totals, and store identifiers", () => {

@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import PlanProgressBar from "./PlanProgressBar";
+
 import { makeSalePaymentPlan } from "@/test/factories";
+
+import PlanProgressBar from "./PlanProgressBar";
 
 describe("PlanProgressBar", () => {
   // Four-part plan of 255 each, contract value 1 020, two charges collected,

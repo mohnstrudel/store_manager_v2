@@ -1,10 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { describe, expect, it, vi } from "vitest";
-import Table from "./Table";
+
 import { makeExpenseRate } from "../test/factories";
 import type { ExpenseRateRecord } from "../types";
+import Table from "./Table";
 
 describe("ExpenseRates/components/Table", () => {
   it("renders expense rate rows with an edit link", () => {

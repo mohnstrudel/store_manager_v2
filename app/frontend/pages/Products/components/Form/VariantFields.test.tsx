@@ -1,9 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import VariantFields from "./VariantFields";
+
 import { makeVariantForm } from "../../test/factories";
 import type { VariantFormData } from "../../types";
+import VariantFields from "./VariantFields";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 

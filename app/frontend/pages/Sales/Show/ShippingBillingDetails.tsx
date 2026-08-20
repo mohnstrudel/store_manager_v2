@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
-import TipMark from "@/components/TipMark";
+
 import Field from "@/components/Field";
+import TipMark from "@/components/TipMark";
+
 import type { SaleAddressRecord, SaleShowRecord } from "../types";
 
 type TabKey = "shipping" | "billing";

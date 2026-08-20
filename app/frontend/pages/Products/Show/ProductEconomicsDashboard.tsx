@@ -1,6 +1,7 @@
 import { isBlank } from "@/components/Field";
 import EconomicsRow, { type EconomicsTerm } from "@/components/profitability/EconomicsRow";
 import { financialMetricHints } from "@/components/profitability/metricLabels";
+
 import { type ProfitabilityRecord } from "../types";
 
 type ProductEconomicsDashboardProps = {

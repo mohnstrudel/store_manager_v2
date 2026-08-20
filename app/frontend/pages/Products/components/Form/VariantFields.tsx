@@ -1,14 +1,16 @@
 import { Suspense, useCallback, useMemo, useState } from "react";
+
 import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormControl from "@/components/FormControl";
 import FormError from "@/components/FormError";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
-import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
 import SmartSelect from "@/components/lazySmartSelect";
+import NestedFormContainer from "@/components/NestedFormContainer";
 import { toSelectedOption } from "@/utils/selectOptions";
 import type { SectionRow } from "@/utils/useDynamicSection";
+
 import { type SelectOption, type VariantFormData } from "../../types";
 import { variantFormTitle } from "../variantDrafts";
 

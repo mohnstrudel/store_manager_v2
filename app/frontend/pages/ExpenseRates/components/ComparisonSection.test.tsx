@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import ComparisonSection from "./ComparisonSection";
+
 import { makeComparisonRow } from "../test/factories";
+import ComparisonSection from "./ComparisonSection";
 
 describe("ExpenseRates/components/ComparisonSection", () => {
   it("shows the canonical labels, monthly Revenue hint, and unmatched actuals", () => {

@@ -1,7 +1,9 @@
 import { Link } from "@inertiajs/react";
+
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import PaymentProgressBar from "@/components/PaymentProgressBar";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+
 import type {
   PurchaseItemRecord,
   PurchaseShowRecord,

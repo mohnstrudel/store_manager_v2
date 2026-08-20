@@ -1,9 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
-import MoveToWarehouseForm from "./MoveToWarehouseForm";
+
 import type { WarehouseOption } from "@/types/warehouse";
+
+import MoveToWarehouseForm from "./MoveToWarehouseForm";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 

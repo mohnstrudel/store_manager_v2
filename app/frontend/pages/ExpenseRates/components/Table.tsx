@@ -1,10 +1,12 @@
 import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 import { useCallback } from "react";
+
 import Button from "@/components/Button";
+import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { useConfirmAction } from "@/utils/useConfirmAction";
-import routes from "@/utils/routes";
+
 import { ExpenseRateRecord } from "../types";
 
 type TableProps = {

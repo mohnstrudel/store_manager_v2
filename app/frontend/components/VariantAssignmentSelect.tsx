@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import FormControl from "@/components/FormControl";
 import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
-import routes from "@/utils/routes";
 import type { VariantAssignmentOption, VariantAvailability } from "@/types/variantAssignment";
+import routes from "@/utils/routes";
 
 type VariantAssignmentSelectProps = {
   error?: string;

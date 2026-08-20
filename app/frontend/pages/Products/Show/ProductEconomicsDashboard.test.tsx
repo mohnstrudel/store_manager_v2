@@ -1,9 +1,10 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import ProductEconomicsDashboard from "./ProductEconomicsDashboard";
+
 import { makeProfitability } from "../test/factories";
 import { type ProfitabilityRecord } from "../types";
+import ProductEconomicsDashboard from "./ProductEconomicsDashboard";
 
 function renderDashboard(overrides: Partial<ProfitabilityRecord> = {}) {
   return render(<ProductEconomicsDashboard profitability={makeProfitability(overrides)} />);

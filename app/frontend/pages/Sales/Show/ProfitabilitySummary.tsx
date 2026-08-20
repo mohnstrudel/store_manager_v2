@@ -6,6 +6,7 @@ import {
   metricScopeNotes,
   withScope,
 } from "@/components/profitability/metricLabels";
+
 import type { SaleProfitabilityRecord } from "../types";
 
 type ProfitabilitySummaryProps = {

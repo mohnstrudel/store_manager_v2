@@ -1,14 +1,19 @@
 import { Link } from "@inertiajs/react";
 import { type ChangeEvent, useCallback, useRef } from "react";
+
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+import { type InlineCellEditorHandle } from "@/components/inline-cell-editing";
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import Pagination from "@/components/Pagination";
+import PaymentProgressBar from "@/components/PaymentProgressBar";
+import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
+import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import TipMark from "@/components/TipMark";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
-import PaymentProgressBar from "@/components/PaymentProgressBar";
+
 import type {
   PaginationMeta,
   ShippingCompanyOption,
@@ -16,9 +21,6 @@ import type {
   WarehousePurchaseItemRecord,
   WarehouseShowRecord,
 } from "../types";
-import { type InlineCellEditorHandle } from "@/components/inline-cell-editing";
-import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
-import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
 
 type PurchaseItemsSectionProps = {
   pagination: PaginationMeta;

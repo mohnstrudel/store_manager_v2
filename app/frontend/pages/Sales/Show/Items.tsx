@@ -1,5 +1,6 @@
-import { useCallback, type ChangeEvent, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
+import { useCallback, type ChangeEvent, type MouseEvent } from "react";
+
 import Amount from "@/components/Amount";
 import DetailsChevron from "@/components/DetailsChevron";
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
@@ -10,9 +11,10 @@ import {
   withScope,
 } from "@/components/profitability/metricLabels";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+import type { WarehouseOption } from "@/types/warehouse";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
-import type { WarehouseOption } from "@/types/warehouse";
+
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {

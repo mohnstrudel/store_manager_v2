@@ -1,8 +1,10 @@
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
-import { emptyToNull } from "@/utils/emptyValue";
-import { CustomerRecord } from "../types";
+
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
+import { emptyToNull } from "@/utils/emptyValue";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
+import { CustomerRecord } from "../types";
 
 type TableProps = {
   customers: CustomerRecord[];

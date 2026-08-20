@@ -1,15 +1,17 @@
 import { useCallback, useState } from "react";
-import { useDynamicSection } from "@/utils/useDynamicSection";
-import { validateSaleForm } from "./saleFormSchema";
-import { toSelectedOption } from "@/utils/selectOptions";
+
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
+import { toSelectedOption } from "@/utils/selectOptions";
+import { useDynamicSection } from "@/utils/useDynamicSection";
+
+import type { SaleFormOptions, SaleFormRecord, SaleItemFormRecord } from "../types";
 import AddressFields from "./Form/AddressFields";
 import SaleItemFields from "./Form/SaleItemFields";
-import type { SaleFormOptions, SaleFormRecord, SaleItemFormRecord } from "../types";
+import { validateSaleForm } from "./saleFormSchema";
 
 type SaleFormProps = {
   isNew: boolean;

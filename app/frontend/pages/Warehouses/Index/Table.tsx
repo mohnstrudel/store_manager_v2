@@ -1,9 +1,10 @@
 import { Link } from "@inertiajs/react";
 import type { ChangeEvent } from "react";
-import TipMark from "@/components/TipMark";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import PaymentProgressBar from "@/components/PaymentProgressBar";
+import TipMark from "@/components/TipMark";
 import type { PaymentProgress } from "@/types/payment";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 export type WarehouseRecord = {
   id: number;

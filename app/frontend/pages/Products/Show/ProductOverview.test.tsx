@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+
+import { makeProduct } from "../test/factories";
 import type { ProductShowRecord } from "../types";
 import ProductOverview from "./ProductOverview";
-import { makeProduct } from "../test/factories";
 
 vi.mock("@/components/ImageGallery", () => ({
   default: ({ media }: { media: { length: number } }) => (

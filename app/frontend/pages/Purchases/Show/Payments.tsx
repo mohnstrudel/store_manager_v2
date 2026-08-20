@@ -1,7 +1,9 @@
-import { useForm } from "@inertiajs/react";
 import { PlusCircleIcon } from "@heroicons/react/20/solid";
+import { useForm } from "@inertiajs/react";
 import { useCallback, type ChangeEvent, type FormEvent } from "react";
+
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
 type PaymentsProps = {

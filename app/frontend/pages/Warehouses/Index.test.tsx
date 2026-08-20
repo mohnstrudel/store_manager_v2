@@ -1,10 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { router } from "@inertiajs/react";
+
 import Index from "./Index";
-import { makeWarehouseRecord } from "./test/factories";
 import type { WarehouseRecord } from "./Index/Table";
+import { makeWarehouseRecord } from "./test/factories";
 
 describe("Warehouses/Index", () => {
   it("renders the heading, column headers, and warehouse rows", () => {

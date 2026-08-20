@@ -1,9 +1,10 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import ProfitabilitySummary from "./ProfitabilitySummary";
+
 import { makeSaleProfitability } from "../test/factories";
 import type { SaleProfitabilityRecord } from "../types";
+import ProfitabilitySummary from "./ProfitabilitySummary";
 
 describe("Sales/Show/ProfitabilitySummary", () => {
   it("states its terms without an operator or arrow between them", () => {

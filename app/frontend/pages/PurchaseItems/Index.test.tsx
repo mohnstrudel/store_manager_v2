@@ -1,7 +1,9 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Index from "./Index";
+
 import { makePagination } from "@/test/factories";
+
+import Index from "./Index";
 import { makePurchaseItemIndexRecord } from "./test/factories";
 
 describe("PurchaseItems/Index", () => {

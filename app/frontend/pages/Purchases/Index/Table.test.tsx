@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import { makePurchaseIndexRecord } from "../test/factories";
-import IndexTable from "./Table";
 import type { PurchaseIndexRecord } from "../types";
+import IndexTable from "./Table";
 
 describe("Purchases/Index/Table", () => {
   it("calls onTogglePurchase with the purchase id when a checkbox is changed", async () => {

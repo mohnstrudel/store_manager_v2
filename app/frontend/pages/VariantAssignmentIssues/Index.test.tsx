@@ -1,9 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { beforeEach, describe, expect, it } from "vitest";
+
 import { makePagination } from "@/test/factories";
 import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
+
 import Index from "./Index";
 import type { AssignmentIssue, AssignmentIssueCounts, IssueFilter } from "./types";
 

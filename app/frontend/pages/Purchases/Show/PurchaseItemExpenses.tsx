@@ -1,8 +1,10 @@
+import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { useForm } from "@inertiajs/react";
 import { useCallback, type ChangeEvent, type FormEvent } from "react";
+
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { NewPurchaseItemExpenseRecord, PurchaseItemExpenseRecord } from "../types";
-import { PlusCircleIcon } from "@heroicons/react/20/solid";
 
 type PurchaseItemExpensesProps = {
   compact?: boolean;

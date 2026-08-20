@@ -1,9 +1,10 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
-import Form from "./Form";
+
 import {
   makeProductForm,
   makePurchaseForm,
@@ -11,6 +12,7 @@ import {
   makeVariantForm,
 } from "../test/factories";
 import type { PurchaseFormData, StoreInfoFormData, VariantFormData } from "../types";
+import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 

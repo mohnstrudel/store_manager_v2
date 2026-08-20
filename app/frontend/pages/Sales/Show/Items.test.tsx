@@ -1,9 +1,10 @@
+import { router } from "@inertiajs/react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
+
 import type { WarehouseOption } from "@/types/warehouse";
-import Items from "./Items";
+
 import {
   makeSaleItemProfitability,
   makeSalePurchaseMovement,
@@ -11,6 +12,7 @@ import {
   makeSaleShowSaleItem,
 } from "../test/factories";
 import type { SaleShowSaleItemRecord } from "../types";
+import Items from "./Items";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 

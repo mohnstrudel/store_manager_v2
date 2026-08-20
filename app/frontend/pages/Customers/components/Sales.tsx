@@ -1,6 +1,8 @@
 import { Link } from "@inertiajs/react";
+
 import PaymentPlanMarker, { isFollowUpPayment } from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+
 import { SaleRecord } from "../types";
 
 type SalesProps = {

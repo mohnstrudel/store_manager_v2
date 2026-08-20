@@ -1,5 +1,5 @@
-import type { SalePaymentPlanRecord } from "@/types/payment";
 import type { PaginationMeta } from "@/types/pagination";
+import type { SalePaymentPlanRecord } from "@/types/payment";
 import type { ProfitabilitySummaryRecord } from "@/types/profitability";
 
 type HasId = { id: number };

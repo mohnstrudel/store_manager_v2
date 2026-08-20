@@ -1,9 +1,11 @@
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
 import SyncModal from "@/components/SyncModal";
 import { useModalVisibility } from "@/utils/useModalVisibility";
+
 import Table from "./Index/Table";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
 

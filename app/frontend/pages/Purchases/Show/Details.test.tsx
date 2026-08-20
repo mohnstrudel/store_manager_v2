@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Details from "./Details";
+
 import { makePurchaseShow } from "../test/factories";
+import Details from "./Details";
 
 describe("Purchases/Show/Details", () => {
   it("renders the purchase summary and supplier link", () => {

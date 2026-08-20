@@ -1,8 +1,9 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import StoreInfoFields from "./StoreInfoFields";
+
 import { makeStoreInfoForm } from "../../test/factories";
+import StoreInfoFields from "./StoreInfoFields";
 
 type TagSelectMockProps = {
   defaultValue: { value: string; label: string }[];

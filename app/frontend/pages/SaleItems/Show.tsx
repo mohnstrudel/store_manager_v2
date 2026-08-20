@@ -1,8 +1,6 @@
-import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
-import { useConfirmAction } from "@/utils/useConfirmAction";
-import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+import { useCallback, type MouseEvent } from "react";
+
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import MetricLabel from "@/components/profitability/MetricLabel";
 import {
@@ -10,6 +8,10 @@ import {
   metricScopeNotes,
   withScope,
 } from "@/components/profitability/metricLabels";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import { useConfirmAction } from "@/utils/useConfirmAction";
+import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+
 import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
 
 type ShowProps = {

@@ -1,3 +1,4 @@
+import { Link } from "@inertiajs/react";
 import {
   type ChangeEvent,
   type MouseEvent,
@@ -5,13 +6,14 @@ import {
   useCallback,
   useState,
 } from "react";
-import { Link } from "@inertiajs/react";
+
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 import DetailsChevron from "@/components/DetailsChevron";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
-import { useConfirmAction } from "@/utils/useConfirmAction";
 import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
 import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { PurchaseItemRecord, ShippingCompanyOption } from "../../types";
 import { InlineShippingCostEditor } from "../InlineShippingCostEditor";
 import PurchaseItemExpenses from "../PurchaseItemExpenses";

@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import PaymentPlanMarker, { isFollowUpPayment } from "./PaymentPlanMarker";
+
 import { makeSalePaymentPlan } from "@/test/factories";
+
+import PaymentPlanMarker, { isFollowUpPayment } from "./PaymentPlanMarker";
 
 describe("PaymentPlanMarker", () => {
   it("renders nothing for a sale that belongs to no plan", () => {

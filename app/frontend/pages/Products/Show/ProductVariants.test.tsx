@@ -1,9 +1,10 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+
+import { makeVariant } from "../test/factories";
 import type { VariantRecord } from "../types";
 import ProductVariants from "./ProductVariants";
-import { makeVariant } from "../test/factories";
 
 describe("Products/Show/ProductVariants", () => {
   it("renders nothing without variants", () => {

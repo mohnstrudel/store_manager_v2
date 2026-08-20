@@ -1,8 +1,10 @@
 import { useCallback, useState, type ChangeEvent } from "react";
+
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import ResourceForm from "@/components/ResourceForm";
+
 import type { ExpenseRateOption, OperationalExpenseRecord } from "../types";
 
 type OperationalExpenseFormProps = {

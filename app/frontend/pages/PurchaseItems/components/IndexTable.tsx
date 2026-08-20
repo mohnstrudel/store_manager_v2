@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 export type PurchaseItemRecord = {

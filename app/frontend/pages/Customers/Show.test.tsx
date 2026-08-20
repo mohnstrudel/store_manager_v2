@@ -1,9 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { describe, expect, it, vi } from "vitest";
-import Show from "./Show";
+
 import { makeSalePaymentPlan } from "@/test/factories";
+
+import Show from "./Show";
 import { makeCustomerDetail, makeCustomerSale } from "./test/factories";
 import type { CustomerDetailRecord, SaleRecord } from "./types";
 

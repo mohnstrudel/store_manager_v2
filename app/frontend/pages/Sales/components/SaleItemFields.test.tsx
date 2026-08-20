@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import SaleItemFields from "./Form/SaleItemFields";
+
 import type { SaleItemFormRecord } from "../types";
+import SaleItemFields from "./Form/SaleItemFields";
 // oxlint-disable-next-line import/no-unassigned-import
 import "@/components/SmartSelect";
 

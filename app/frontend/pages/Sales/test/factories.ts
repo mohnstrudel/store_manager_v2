@@ -1,3 +1,6 @@
+import { makeProfitabilitySummary } from "@/test/factories";
+import type { PaymentProgress } from "@/types/payment";
+
 import type {
   SaleAddressFormRecord,
   SaleAddressRecord,
@@ -16,8 +19,6 @@ import type {
   SaleShowRecord,
   SaleShowSaleItemRecord,
 } from "../types";
-import { makeProfitabilitySummary } from "@/test/factories";
-import type { PaymentProgress } from "@/types/payment";
 
 export function makeSaleIndexPurchaseItem(
   overrides: Partial<SaleIndexPurchaseItemRecord> = {},

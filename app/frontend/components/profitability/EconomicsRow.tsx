@@ -1,6 +1,8 @@
 import { Fragment } from "react";
+
 import Amount, { isNegativeAmount } from "@/components/Amount";
 import { isBlank } from "@/components/Field";
+
 import MetricLabel from "./MetricLabel";
 
 export type EconomicsTerm = {

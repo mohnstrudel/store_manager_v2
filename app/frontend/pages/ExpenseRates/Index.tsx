@@ -1,4 +1,5 @@
 import ResourceIndexPage from "@/components/ResourceIndexPage";
+
 import ComparisonSection from "./components/ComparisonSection";
 import Table from "./components/Table";
 import { ComparisonRow, ExpenseRateRecord } from "./types";

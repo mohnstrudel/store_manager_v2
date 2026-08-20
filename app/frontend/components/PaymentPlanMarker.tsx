@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import type { SalePaymentPlanRecord } from "@/types/payment";
 import { stopRowNavigation } from "@/utils/rowNavigation";
 

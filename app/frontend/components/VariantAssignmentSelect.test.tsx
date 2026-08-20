@@ -1,9 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 // oxlint-disable-next-line import/no-unassigned-import
 import "@/components/SmartSelect";
-import VariantAssignmentSelect from "./VariantAssignmentSelect";
 import type { VariantAvailability } from "@/types/variantAssignment";
+
+import VariantAssignmentSelect from "./VariantAssignmentSelect";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 

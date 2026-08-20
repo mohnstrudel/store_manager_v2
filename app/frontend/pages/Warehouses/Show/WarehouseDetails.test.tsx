@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { WarehouseDetails } from "./WarehouseDetails";
+
 import { makeWarehouseShowRecord } from "../test/factories";
+import { WarehouseDetails } from "./WarehouseDetails";
 
 describe("Warehouses/Show/WarehouseDetails", () => {
   it("links the courier tracking url when present", () => {

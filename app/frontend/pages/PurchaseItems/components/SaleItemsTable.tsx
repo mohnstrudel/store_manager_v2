@@ -1,5 +1,7 @@
 import { useCallback, type MouseEvent } from "react";
+
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { SaleItemTableRow } from "../types";
 
 type SaleItemsTableProps = {

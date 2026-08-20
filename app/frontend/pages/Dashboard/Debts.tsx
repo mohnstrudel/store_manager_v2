@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
-import { rowNavigationProps } from "@/utils/rowNavigation";
 import type { PaginationMeta } from "@/types/pagination";
+import { rowNavigationProps } from "@/utils/rowNavigation";
 
 type DebtRecord = {
   id: number;

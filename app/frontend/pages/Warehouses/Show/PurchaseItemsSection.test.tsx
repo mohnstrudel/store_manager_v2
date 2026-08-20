@@ -1,12 +1,14 @@
+import { router } from "@inertiajs/react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
-import { mockPage } from "@/test/mocks/inertia";
-import { PurchaseItemsSection } from "./PurchaseItemsSection";
+
 import { makePagination } from "@/test/factories";
+import { mockPage } from "@/test/mocks/inertia";
+
 import { makeWarehousePurchaseItem, makeWarehouseShowRecord } from "../test/factories";
 import type { WarehousePurchaseItemRecord } from "../types";
+import { PurchaseItemsSection } from "./PurchaseItemsSection";
 
 const writeText = vi.fn<(...args: unknown[]) => Promise<void>>();
 

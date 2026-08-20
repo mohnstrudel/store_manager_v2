@@ -1,6 +1,8 @@
 import { Link } from "@inertiajs/react";
+
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
+
 import Form from "./components/Form";
 import { FranchiseRecord } from "./types";
 

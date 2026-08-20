@@ -1,9 +1,10 @@
+import { router } from "@inertiajs/react";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
+
 import { mockPage } from "@/test/mocks/inertia";
-import PurchaseItems from "./PurchaseItems";
+
 import {
   makePurchaseItem,
   makePurchaseItemExpense,
@@ -11,6 +12,7 @@ import {
   makeShippingCompanyOption,
   makeWarehouseOption,
 } from "../test/factories";
+import PurchaseItems from "./PurchaseItems";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 

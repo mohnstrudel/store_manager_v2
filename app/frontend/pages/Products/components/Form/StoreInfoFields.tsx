@@ -1,8 +1,9 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+
 import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormControl from "@/components/FormControl";
-import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect, { SelectSkeleton } from "@/components/FormSmartSelect";
+import NestedFormContainer from "@/components/NestedFormContainer";
 
 const TagSelect = lazy(() => import("./TagSelect"));
 const SELECT_FALLBACK = <SelectSkeleton />;

@@ -1,7 +1,9 @@
 import { Link } from "@inertiajs/react";
+
 import Field from "@/components/Field";
 import PlanProgressBar from "@/components/PlanProgressBar";
 import type { PaymentPlanPaymentRef, SalePaymentPlanRecord } from "@/types/payment";
+
 import type { SaleShowRecord } from "../types";
 import ShippingBillingDetails from "./ShippingBillingDetails";
 

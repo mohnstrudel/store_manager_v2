@@ -1,11 +1,13 @@
 import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 import { useCallback } from "react";
+
 import Amount from "@/components/Amount";
 import Button from "@/components/Button";
 import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { OperationalExpenseRecord } from "../types";
 
 export default function Table({ expenses }: { expenses: OperationalExpenseRecord[] }) {
