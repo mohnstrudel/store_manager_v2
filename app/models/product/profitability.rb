@@ -15,9 +15,9 @@ module Product::Profitability
   end
 
   def profitability(expense_fraction: ExpenseRate.combined_fraction)
-    purchase_items = inventory_purchase_items.includes(:variant, :purchase).to_a
+    purchase_items = inventory_purchase_items.includes(purchase: :variant).to_a
 
-    potential_sales = purchase_items.sum(0.to_d) { |purchase_item| purchase_item.variant.selling_price.to_d }
+    potential_sales = purchase_items.sum(0.to_d) { |purchase_item| purchase_item.purchase.variant&.selling_price.to_d }
     expected_total_cost = landed_cost_of(purchase_items)
     business_expenses = (potential_sales * expense_fraction).round(2)
     received_revenue = profitability_sale_items.sum(0.to_d) { |item| item.received_revenue.to_d }

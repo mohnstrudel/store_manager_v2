@@ -60,6 +60,25 @@ RSpec.describe Product::Profitability, :aggregate_failures do
       expect(product.profitability[:potential_sales]).to eq(BigDecimal("120"))
     end
 
+    it "prices a unit through its purchase's variant when the item's own denormalized identity is stale" do
+      unsold_purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("20"))
+      stale_item = create(:purchase_item, purchase: unsold_purchase, shipping_cost: BigDecimal("0"), expenses: BigDecimal("0"))
+      stale_item.update_columns(product_id: nil, variant_id: nil) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(product.profitability[:potential_sales]).to eq(BigDecimal("120"))
+    end
+
+    it "prices no unit for a purchase that was never resolved to a variant" do
+      unresolved_purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("20"))
+      unresolved_item = create(:purchase_item, purchase: unresolved_purchase, shipping_cost: BigDecimal("0"), expenses: BigDecimal("0"))
+      unresolved_purchase.update_columns(variant_id: nil) # rubocop:disable Rails/SkipsModelValidations
+      unresolved_item.update_columns(variant_id: nil) # rubocop:disable Rails/SkipsModelValidations
+
+      expect { product.profitability }.not_to raise_error
+      expect(product.profitability[:potential_sales]).to eq(BigDecimal("60"))
+      expect(product.profitability[:expected_total_cost]).to eq(BigDecimal("60"))
+    end
+
     it "sums item price, shipping, and direct expenses across every purchased unit" do
       unsold_purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("20"))
       create(:purchase_item, :with_direct_expense, purchase: unsold_purchase, shipping_cost: BigDecimal("3"), direct_expense_amount: BigDecimal("2"))
