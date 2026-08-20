@@ -205,6 +205,7 @@ module ProductHelper
     {
       potential_sales: format_money(summary[:potential_sales]),
       expected_total_cost: format_money(summary[:expected_total_cost]),
+      business_expenses: format_money(summary[:business_expenses]),
       expected_net_profit: format_money(summary[:expected_net_profit]),
       received_revenue: format_money(summary[:received_revenue]),
       purchase_paid: format_money(summary[:purchase_paid]),

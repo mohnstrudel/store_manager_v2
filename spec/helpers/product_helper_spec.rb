@@ -33,7 +33,10 @@ RSpec.describe ProductHelper do
     end
 
     it "nets the expected total cost and estimated OpEx out of potential sales for the expected net profit" do
-      expect(helper.product_profitability_props(product)[:expected_net_profit]).to eq("15")
+      props = helper.product_profitability_props(product)
+
+      expect(props[:business_expenses]).to eq("15")
+      expect(props[:expected_net_profit]).to eq("15")
     end
 
     it "reports customer paid and purchase paid separately and nets them into the cash position" do
@@ -58,7 +61,6 @@ RSpec.describe ProductHelper do
       expect(props).not_to have_key(:remaining_units_total)
       expect(props).not_to have_key(:merchandise_cost)
       expect(props).not_to have_key(:direct_expenses)
-      expect(props).not_to have_key(:business_expenses)
       expect(props).not_to have_key(:outstanding_revenue)
       expect(props).not_to have_key(:refunded_revenue)
       expect(props).not_to have_key(:counted_sales_total)

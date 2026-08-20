@@ -146,6 +146,7 @@ RSpec.describe "Products" do
         profitability = inertia.props[:profitability]
         expect(profitability[:potential_sales]).to eq("150")
         expect(profitability[:expected_total_cost]).to eq("120")
+        expect(profitability[:business_expenses]).to eq("15")
         expect(profitability[:expected_net_profit]).to eq("15")
         expect(profitability[:received_revenue]).to eq("100")
         expect(profitability[:purchase_paid]).to eq("80")
@@ -176,7 +177,6 @@ RSpec.describe "Products" do
         expect(profitability).not_to have_key(:invested_total)
         expect(profitability).not_to have_key(:merchandise_cost)
         expect(profitability).not_to have_key(:direct_expenses)
-        expect(profitability).not_to have_key(:business_expenses)
         expect(profitability).not_to have_key(:outstanding_revenue)
         expect(profitability).not_to have_key(:refunded_revenue)
         expect(profitability).not_to have_key(:counted_sales_total)
