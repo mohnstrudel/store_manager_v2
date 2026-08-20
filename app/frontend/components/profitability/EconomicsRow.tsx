@@ -13,7 +13,13 @@ export type EconomicsTerm = {
   value: string | null;
 };
 
-export default function EconomicsRow({ groups }: { groups: EconomicsTerm[][] }) {
+export default function EconomicsRow({
+  groups,
+  hoverWholeLabels = false,
+}: {
+  groups: EconomicsTerm[][];
+  hoverWholeLabels?: boolean;
+}) {
   const stated = groups.map(statedTerms).filter((terms) => terms.length > 0);
 
   if (stated.length === 0) return null;
@@ -28,6 +34,7 @@ export default function EconomicsRow({ groups }: { groups: EconomicsTerm[][] }) 
               <Term
                 anchor={term.anchor}
                 hint={term.hint}
+                hoverWhole={hoverWholeLabels}
                 key={term.anchor}
                 label={term.label}
                 result={term.result}
@@ -45,7 +52,14 @@ function statedTerms(group: EconomicsTerm[]): EconomicsTerm[] {
   return group.filter((term) => !isBlank(term.value));
 }
 
-function Term({ anchor, hint, label, result = false, value }: EconomicsTerm) {
+function Term({
+  anchor,
+  hint,
+  hoverWhole,
+  label,
+  result = false,
+  value,
+}: EconomicsTerm & { hoverWhole: boolean }) {
   return (
     <div className={result ? RESULT_TERM_CLASS : TERM_CLASS} data-testid={`metric-${anchor}`}>
       <span className="economics_snapshot__value">
@@ -55,7 +69,7 @@ function Term({ anchor, hint, label, result = false, value }: EconomicsTerm) {
         className="economics_snapshot__label"
         data-tone={result ? profitTone(value) : undefined}
       >
-        <MetricLabel anchor={anchor} hint={hint}>
+        <MetricLabel anchor={anchor} hint={hint} hoverWhole={hoverWhole}>
           {label}
         </MetricLabel>
       </span>

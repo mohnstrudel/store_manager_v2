@@ -50,4 +50,20 @@ describe("MetricLabel", () => {
       "/glossary#cashPositionToday",
     );
   });
+
+  it("makes the whole label the hover/focus target and drops the mark when hoverWhole is set", async () => {
+    const user = userEvent.setup();
+    render(
+      <MetricLabel anchor="revenue" hint="A plain explanation." hoverWhole>
+        Revenue
+      </MetricLabel>,
+    );
+
+    expect(screen.queryByLabelText("More information")).not.toBeInTheDocument();
+
+    await user.hover(screen.getByText("Revenue"));
+    await act(async () => {});
+
+    expect(screen.getByText("A plain explanation.")).toBeInTheDocument();
+  });
 });

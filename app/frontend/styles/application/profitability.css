@@ -50,6 +50,10 @@
     @apply text-red-700 dark:text-red-400;
   }
 
+  .metric_label--hoverable {
+    @apply cursor-help;
+  }
+
   .economics_snapshot__value {
     @apply block font-mono text-2xl font-semibold leading-none tracking-tight text-gray-700 dark:text-gray-100 lg:text-3xl;
   }

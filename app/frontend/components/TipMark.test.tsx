@@ -61,6 +61,26 @@ describe("TipMark", () => {
     expect(trigger).toHaveAttribute("data-tone", "orange");
   });
 
+  it("uses a custom trigger as the hover target with its own accessible name", async () => {
+    const user = userEvent.setup();
+    render(
+      <TipMark trigger="Exp. Net Profit" triggerClassName="custom_trigger">
+        Helpful context.
+      </TipMark>,
+    );
+
+    expect(screen.queryByLabelText("More information")).not.toBeInTheDocument();
+
+    const trigger = screen.getByText("Exp. Net Profit");
+    expect(trigger).toHaveClass("custom_trigger");
+    expect(trigger).not.toHaveAttribute("aria-label");
+
+    await user.hover(trigger);
+    await flushFloatingPosition();
+
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Helpful context.");
+  });
+
   it("opens its tip when the mark receives keyboard focus", async () => {
     const user = userEvent.setup();
     render(<TipMark>Helpful context.</TipMark>);

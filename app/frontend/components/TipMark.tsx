@@ -18,6 +18,11 @@ type TipMarkProps = {
   size?: "regular" | "large";
   starClassName?: string;
   tone?: "orange";
+  // Overrides the "*" mark as the hover/focus target. When set, its own
+  // text serves as the accessible name instead of "More information" —
+  // the caller is supplying real, readable content, not a glyph.
+  trigger?: ReactNode;
+  triggerClassName?: string;
 };
 
 export default function TipMark({
@@ -25,6 +30,8 @@ export default function TipMark({
   size = "regular",
   starClassName = "",
   tone,
+  trigger,
+  triggerClassName,
 }: TipMarkProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { context, floatingStyles, isPositioned, placement, refs } = useFloating({
@@ -49,16 +56,18 @@ export default function TipMark({
   );
 
   return (
-    <span>
+    <>
       <span
         ref={refs.setReference}
-        className={`tip_mark__trigger ${starClassName}`.trim()}
+        className={triggerClassName ?? `tip_mark__trigger ${starClassName}`.trim()}
         data-size={size}
         data-tone={tone}
         tabIndex={0}
-        {...getReferenceProps({ "aria-label": "More information" })}
+        {...getReferenceProps(
+          trigger === undefined ? { "aria-label": "More information" } : undefined,
+        )}
       >
-        *
+        {trigger ?? "*"}
       </span>
       {isOpen && (
         <FloatingPortal>
@@ -73,6 +82,6 @@ export default function TipMark({
           </span>
         </FloatingPortal>
       )}
-    </span>
+    </>
   );
 }
