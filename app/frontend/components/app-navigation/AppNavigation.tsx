@@ -175,16 +175,10 @@ const adminLinks: NavigationLink[] = [
     },
   },
   {
-    href: routes.operationalExpenses.index.path(),
-    label: "OpEx",
-    component: "OperationalExpenses/Index",
-    pageProps: { operationalExpenses: [] },
-  },
-  {
     href: routes.expenseRates.index.path(),
     label: "OpEx Rates",
     component: "ExpenseRates/Index",
-    pageProps: { expenseRates: [], comparison: [] },
+    pageProps: { expenseRates: [] },
   },
   {
     href: routes.users.index.path(),

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_30_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_21_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -150,18 +150,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_150000) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["event_type", "status"], name: "index_notifications_on_event_type_and_status"
-  end
-
-  create_table "operational_expenses", force: :cascade do |t|
-    t.decimal "amount", precision: 10, scale: 2, null: false
-    t.string "category", null: false
-    t.datetime "created_at", null: false
-    t.bigint "expense_rate_id"
-    t.date "incurred_on", null: false
-    t.string "note"
-    t.datetime "updated_at", null: false
-    t.index ["expense_rate_id"], name: "index_operational_expenses_on_expense_rate_id"
-    t.index ["incurred_on"], name: "index_operational_expenses_on_incurred_on"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -584,7 +572,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_150000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "operational_expenses", "expense_rates"
   add_foreign_key "payments", "purchases"
   add_foreign_key "product_brands", "brands"
   add_foreign_key "product_brands", "products"

@@ -142,6 +142,5 @@ Rails.application.routes.draw do
     # Reference data
     resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
     resources :expense_rates, except: :show
-    resources :operational_expenses, except: :show
   end
 end

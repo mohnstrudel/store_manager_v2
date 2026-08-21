@@ -5,9 +5,9 @@
 # Table name: notifications
 #
 #  id         :bigint           not null, primary key
-#  event_type :integer          default("product_purchased"), not null
+#  event_type :integer          default(0), not null
 #  name       :string           not null
-#  status     :integer          default("disabled"), not null
+#  status     :integer          default(0), not null
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #

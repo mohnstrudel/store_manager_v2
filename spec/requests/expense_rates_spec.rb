@@ -22,16 +22,6 @@ RSpec.describe "ExpenseRates" do
       )
     end
 
-    it "renders the estimated vs. actual OpEx comparison" do
-      create(:expense_rate)
-
-      get expense_rates_path
-
-      expect(response).to have_http_status(:ok)
-      expect(inertia.props[:comparison]).to be_an(Array)
-      expect(inertia.props[:comparison].first).to include(:month, :revenue, :assumed_total, :actual_total, :comparison, :by_rate)
-    end
-
     it "denies access to managers" do
       log_out
       sign_in create(:user, :manager)

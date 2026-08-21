@@ -5,17 +5,12 @@ class ExpenseRatesController < ApplicationController
 
   def index
     @expense_rates = ExpenseRate.ordered
-    last_modified = [
-      @expense_rates.maximum(:updated_at),
-      OperationalExpense.maximum(:updated_at),
-      Sale.maximum(:updated_at)
-    ].compact.max
+    last_modified = @expense_rates.maximum(:updated_at)
 
     return unless stale?(etag: [@expense_rates, request.inertia?, ViteRuby.digest], last_modified:)
 
     render inertia: "ExpenseRates/Index", props: {
-      expenseRates: @expense_rates.map { |expense_rate| helpers.expense_rate_props(expense_rate) },
-      comparison: helpers.operational_expense_comparison_props
+      expenseRates: @expense_rates.map { |expense_rate| helpers.expense_rate_props(expense_rate) }
     }
   end
 

@@ -21,7 +21,8 @@ export default function Table({ expenseRates }: TableProps) {
         <div className="table_empty">
           <p>
             OpEx rates are recurring operating costs — payroll, rent, fees — expressed as a
-            percentage of revenue. They drive the estimated OpEx used in the comparison below.
+            percentage of revenue. They drive the estimated OpEx used across sales and product
+            profitability.
           </p>
           <Link className="btn_blue" href={routes.expenseRates.new.path()} prefetch>
             <PlusCircleIcon height={20} width={20} />

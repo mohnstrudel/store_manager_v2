@@ -11,7 +11,6 @@
 #  updated_at   :datetime         not null
 #
 class ExpenseRate < ApplicationRecord
-  has_many :operational_expenses, dependent: :nullify
   validates :name, presence: true
   validates_db_uniqueness_of :name
   validates :rate_percent,
