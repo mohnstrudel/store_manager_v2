@@ -86,13 +86,13 @@ describe("Products/Show/ProductEconomicsDashboard", () => {
     expect(group("potentialSales")).not.toBe(group("expectedNetProfit"));
   });
 
-  it("names customer paid and purchase paid separately on the cash position hint", async () => {
-    renderDashboard({ received_revenue: "700", purchase_paid: "620", cash_position: "80" });
+  it("names money collected and kept and money paid to suppliers on the cash position hint", async () => {
+    renderDashboard({ collected_revenue: "700", purchase_paid: "620", cash_position: "80" });
 
     await openHint("cashPositionToday");
 
-    expect(screen.getByText(/Customer paid: 700\./)).toBeInTheDocument();
-    expect(screen.getByText(/Purchase paid: 620\./)).toBeInTheDocument();
+    expect(screen.getByText(/Collected and kept: 700\./)).toBeInTheDocument();
+    expect(screen.getByText(/Paid to suppliers: 620\./)).toBeInTheDocument();
   });
 
   it("keeps the warehouse caveat on the expected total cost figure", async () => {

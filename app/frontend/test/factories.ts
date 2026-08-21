@@ -1,6 +1,5 @@
 import type { PaginationMeta } from "@/types/pagination";
 import type { SalePaymentPlanRecord } from "@/types/payment";
-import type { ProfitabilitySummaryRecord } from "@/types/profitability";
 
 type HasId = { id: number };
 
@@ -10,20 +9,6 @@ export function makePagination(overrides: Partial<PaginationMeta> = {}): Paginat
     total_pages: 1,
     total_count: 1,
     limit: 50,
-    ...overrides,
-  };
-}
-
-export function makeProfitabilitySummary(
-  overrides: Partial<ProfitabilitySummaryRecord> = {},
-): ProfitabilitySummaryRecord {
-  return {
-    expected_revenue: "300",
-    outstanding_revenue: "200",
-    refunded_revenue: "0",
-    purchase_cost: "120",
-    business_expenses: "30",
-    expected_final_profit: "150",
     ...overrides,
   };
 }

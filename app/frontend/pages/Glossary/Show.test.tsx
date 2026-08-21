@@ -17,20 +17,14 @@ describe("Glossary/Show", () => {
 
     const anchors = [
       "revenue",
-      "monthlyRevenue",
-      "outstanding",
+      "grossRevenue",
       "cogs",
+      "purchaseCost",
+      "purchaseExpenses",
       "directExpenses",
-      "opEx",
-      "estimatedOpEx",
-      "projectedOpEx",
-      "actualOpEx",
-      "comparison",
       "netProfit",
       "expectedNetProfit",
       "cashPositionToday",
-      "projectedNetProfit",
-      "projectedTotal",
       "potentialSales",
       "expectedTotalCost",
       "variantPurchaseCostTotal",
@@ -80,6 +74,7 @@ describe("Glossary/Show", () => {
     const expectedTerms = {
       "Money from customers": [
         "Revenue",
+        "Gross revenue",
         "Potential sales",
         "Outstanding",
         "Refunded",
@@ -88,9 +83,9 @@ describe("Glossary/Show", () => {
         "Payment",
         "Projected total",
       ],
-      "What the goods cost": ["COGS", "Direct expenses"],
-      Overheads: ["OpEx", "OpEx rates", "Actual OpEx", "Comparison"],
-      Profit: ["Net profit", "Expected net profit", "Cash position today", "Projected net profit"],
+      "What the goods cost": ["COGS", "Purchase cost", "Purchase expenses", "Direct expenses"],
+      Overheads: ["OpEx", "OpEx rates"],
+      Profit: ["Net profit", "Expected net profit", "Cash position today"],
       "Stock and suppliers": [
         "Expected total cost",
         "List cost",
@@ -142,13 +137,9 @@ describe("Glossary/Show", () => {
     expect(screen.queryByText(/Shown as “Supplier debt”/)).toBeNull();
   });
 
-  it("explains the two meanings of OpEx and Payment", () => {
+  it("explains the two meanings of Payment", () => {
     render(<Show />);
 
-    expect(
-      screen.getByText(/The “OpEx” navigation item opens the records behind Actual OpEx/),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/“OpEx” on a sale or product card is an estimate/)).toBeInTheDocument();
     expect(
       screen.getByText(/“Payments” on a purchase are payments to a supplier/),
     ).toBeInTheDocument();
@@ -158,20 +149,17 @@ describe("Glossary/Show", () => {
     render(<Show />);
 
     expect(screen.getByText(/no purchase item linked shows no cost/)).toBeInTheDocument();
-    expect(screen.getByText(/recalculates Estimated OpEx and Comparison/)).toBeInTheDocument();
     expect(screen.getByText(/A purchase not yet received is not counted/)).toBeInTheDocument();
     expect(screen.getByText(/describes no actual sale/)).toBeInTheDocument();
     expect(
-      screen.getByText(/a deposit carrying the whole job's cost can show a loss/),
+      screen.getByText(/this covers every sale in the plan, not one charge on its own/),
     ).toBeInTheDocument();
   });
 
-  it("tells the deposit-versus-plan profit story once, on Net profit", () => {
+  it("tells the whole-plan profit story once, on Net profit", () => {
     render(<Show />);
 
-    expect(
-      screen.getAllByText(/Projected net profit reads the same job as a finished deal/),
-    ).toHaveLength(1);
+    expect(screen.getAllByText(/this covers every sale in the plan/)).toHaveLength(1);
   });
 
   it("gives the new terms their own anchors", () => {
@@ -182,34 +170,18 @@ describe("Glossary/Show", () => {
     expect(container.querySelector("#productsShort")).not.toBeNull();
   });
 
-  it("keeps aliases unique and attached to the term they describe", () => {
-    const { container } = render(<Show />);
-    const aliases = {
-      monthlyRevenue: "revenue",
-      estimatedOpEx: "opEx",
-      projectedOpEx: "opEx",
-    };
-
-    for (const [alias, entry] of Object.entries(aliases)) {
-      expect(container.querySelectorAll(`#${alias}`)).toHaveLength(1);
-      expect(container.querySelector(`#${alias}`)?.closest(`#${entry}`)).not.toBeNull();
-    }
-  });
-
-  it("gives Actual OpEx and Comparison their own unique anchors", () => {
-    const { container } = render(<Show />);
-
-    for (const id of ["actualOpEx", "comparison"]) {
-      expect(container.querySelectorAll(`#${id}`)).toHaveLength(1);
-    }
-  });
-
-  it("distinguishes the three Projected figures on a sale card", () => {
+  it("separates the two purchase figures from the COGS total they add up to", () => {
     render(<Show />);
 
-    expect(screen.getByText(/Shown as “Projected” in the Revenue row/)).toBeInTheDocument();
-    expect(screen.getByText(/“Projected” in the OpEx row/)).toBeInTheDocument();
-    expect(screen.getByText(/Shown as “Projected” in the Net Profit row/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/What the suppliers charged for the items themselves/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/inbound shipping and ad-hoc direct expenses/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Purchase cost plus Purchase expenses is the same money as COGS, stated as two figures/,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("names an on-screen label only where it differs from the term", () => {

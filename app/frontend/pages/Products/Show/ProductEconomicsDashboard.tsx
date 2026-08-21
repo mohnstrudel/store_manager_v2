@@ -1,6 +1,10 @@
 import { isBlank } from "@/components/Field";
 import EconomicsRow, { type EconomicsTerm } from "@/components/profitability/EconomicsRow";
-import { financialMetricHints } from "@/components/profitability/metricLabels";
+import {
+  financialMetricHints,
+  metricScopeNotes,
+  withScope,
+} from "@/components/profitability/metricLabels";
 
 import { type ProfitabilityRecord } from "../types";
 
@@ -93,8 +97,9 @@ function expectedNetProfitHint(profitability: ProfitabilityRecord): string {
 // The two halves are interpolated here rather than kept as a static hint
 // entry, so the hover always names the figures behind today's number.
 function cashPositionHint(profitability: ProfitabilityRecord): string {
-  const customerPaid = profitability.received_revenue ?? "0";
-  const purchasePaid = profitability.purchase_paid ?? "0";
+  const scoped = withScope(financialMetricHints.cashPositionToday, metricScopeNotes.product);
+  const collectedAndKept = profitability.collected_revenue ?? "0";
+  const paidToSuppliers = profitability.purchase_paid ?? "0";
 
-  return `${financialMetricHints.cashPositionToday}\n\nCustomer paid: ${customerPaid}.\nPurchase paid: ${purchasePaid}.`;
+  return `${scoped}\n\nCollected and kept: ${collectedAndKept}.\nPaid to suppliers: ${paidToSuppliers}.`;
 }

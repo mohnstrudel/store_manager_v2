@@ -197,7 +197,7 @@ describe("Products/Show", () => {
         renderShow({
           purchases: [makePurchase()],
           profitability: makeProfitability({
-            received_revenue: null,
+            collected_revenue: null,
             purchase_paid: null,
             cash_position: null,
             potential_sales: "120",

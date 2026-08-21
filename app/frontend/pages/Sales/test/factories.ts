@@ -1,4 +1,3 @@
-import { makeProfitabilitySummary } from "@/test/factories";
 import type { PaymentProgress } from "@/types/payment";
 
 import type {
@@ -172,13 +171,17 @@ export function makeSaleProfitability(
   overrides: Partial<SaleProfitabilityRecord> = {},
 ): SaleProfitabilityRecord {
   return {
-    ...makeProfitabilitySummary(),
     scope: "sale",
-    merchandise_cost: "115",
+    gross_revenue: "300",
+    item_price_total: "100",
+    purchase_expenses: "20",
+    purchase_shipping_cost: "15",
     direct_expenses: "5",
-    projected_revenue: null,
-    projected_business_expenses: null,
-    projected_final_profit: null,
+    business_expenses: "30",
+    net_profit: "150",
+    collected_revenue: "100",
+    purchase_paid: "60",
+    cash_position: "40",
     ...overrides,
   };
 }

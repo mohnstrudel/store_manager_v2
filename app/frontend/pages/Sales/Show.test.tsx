@@ -97,7 +97,7 @@ describe("Sales/Show", () => {
     renderShow({ partially_paid: true, profitability: makeSaleProfitability() });
 
     const summary = screen.getByRole("article", { name: "Profit summary" });
-    expect(within(summary).getByText("COGS")).toBeInTheDocument();
+    expect(within(summary).getByText("Gross Revenue")).toBeInTheDocument();
   });
 
   it("leaves the profit summary out when the sale makes no profit claim", () => {

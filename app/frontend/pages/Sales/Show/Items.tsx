@@ -1,15 +1,8 @@
 import { Link } from "@inertiajs/react";
 import { useCallback, type ChangeEvent, type MouseEvent } from "react";
 
-import Amount from "@/components/Amount";
 import DetailsChevron from "@/components/DetailsChevron";
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
-import MetricLabel from "@/components/profitability/MetricLabel";
-import {
-  financialMetricHints,
-  metricScopeNotes,
-  withScope,
-} from "@/components/profitability/metricLabels";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import type { WarehouseOption } from "@/types/warehouse";
 import { useConfirmAction } from "@/utils/useConfirmAction";
@@ -26,7 +19,6 @@ type ItemsProps = {
 
 type SelectionProps = {
   selectedIds: number[];
-  showProfitabilityColumns: boolean;
   showPurchaseColumn: boolean;
   toggleSelectedIdFromDataAttribute: (
     attributeName: string,
@@ -40,7 +32,6 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
   if (saleItems.length === 0) return null;
 
   const showPurchaseColumn = saleItems.some((si) => si.purchase_items.length > 0);
-  const showProfitabilityColumns = saleItems.some((si) => si.profitability !== null);
 
   return (
     <div className="table_card full_width">
@@ -58,34 +49,7 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
             {showPurchaseColumn && <th />}
             <th className="text-center w-[106px] lg:w-[114px]">Image</th>
             <th>Product</th>
-            {showProfitabilityColumns && (
-              <>
-                <th className="text-right">
-                  <MetricLabel
-                    anchor="revenue"
-                    hint={withScope(financialMetricHints.revenue, metricScopeNotes.line)}
-                  >
-                    Revenue
-                  </MetricLabel>
-                </th>
-                <th className="text-right">
-                  <MetricLabel
-                    anchor="cogs"
-                    hint={withScope(financialMetricHints.cogs, metricScopeNotes.line)}
-                  >
-                    COGS
-                  </MetricLabel>
-                </th>
-                <th className="text-right">
-                  <MetricLabel
-                    anchor="netProfit"
-                    hint={withScope(financialMetricHints.netProfit, metricScopeNotes.line)}
-                  >
-                    Net Profit
-                  </MetricLabel>
-                </th>
-              </>
-            )}
+            <th className="text-right">Price</th>
           </tr>
         </thead>
         <tbody>
@@ -94,7 +58,6 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
               key={saleItem.id}
               saleItem={saleItem}
               selectedIds={selectedIds}
-              showProfitabilityColumns={showProfitabilityColumns}
               showPurchaseColumn={showPurchaseColumn}
               toggleSelectedIdFromDataAttribute={toggleSelectedIdFromDataAttribute}
             />
@@ -108,13 +71,11 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
 function SaleItemRow({
   saleItem,
   selectedIds,
-  showProfitabilityColumns,
   showPurchaseColumn,
   toggleSelectedIdFromDataAttribute,
 }: { saleItem: SaleShowSaleItemRecord } & SelectionProps) {
   const hasPurchaseItems = saleItem.purchase_items.length > 0;
   const missingPurchasesCount = Math.max(0, saleItem.qty - saleItem.purchase_items.length);
-  const profitability = saleItem.profitability;
 
   return (
     <tr className="cursor-default">
@@ -158,19 +119,7 @@ function SaleItemRow({
           </mark>
         )}
       </td>
-      {showProfitabilityColumns && (
-        <>
-          <td className="text-right">
-            <Amount value={profitability?.expected_revenue ?? null} />
-          </td>
-          <td className="text-right">
-            <Amount value={profitability?.purchase_cost ?? null} />
-          </td>
-          <td className="text-right">
-            <Amount value={profitability?.expected_final_profit ?? null} />
-          </td>
-        </>
-      )}
+      <td className="text-right">{saleItem.payment.price}</td>
     </tr>
   );
 }

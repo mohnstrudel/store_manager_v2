@@ -110,7 +110,7 @@ export function makeProfitability(
     expected_total_cost: "400",
     business_expenses: "100",
     expected_net_profit: "500",
-    received_revenue: "700",
+    collected_revenue: "700",
     purchase_paid: "620",
     cash_position: "80",
     ...overrides,

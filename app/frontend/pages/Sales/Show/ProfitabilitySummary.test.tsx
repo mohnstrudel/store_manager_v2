@@ -6,76 +6,161 @@ import { makeSaleProfitability } from "../test/factories";
 import type { SaleProfitabilityRecord } from "../types";
 import ProfitabilitySummary from "./ProfitabilitySummary";
 
+const TERM_ANCHORS = [
+  "grossRevenue",
+  "purchaseCost",
+  "netProfit",
+  "purchaseExpenses",
+  "cashPositionToday",
+];
+
 describe("Sales/Show/ProfitabilitySummary", () => {
+  it("states five terms, each with its own label and figure", () => {
+    renderSummary();
+
+    const labels = [...card().querySelectorAll(".economics_snapshot__label")].map(
+      (element) => element.textContent,
+    );
+
+    expect(labels).toEqual([
+      "Gross Revenue",
+      "Pur. Cost",
+      "Net Profit",
+      "Pur. Expenses",
+      "Cash today",
+    ]);
+    expect(amount("grossRevenue")).toBe(300);
+    expect(amount("purchaseCost")).toBe(100);
+    expect(amount("netProfit")).toBe(150);
+    expect(amount("purchaseExpenses")).toBe(20);
+    expect(amount("cashPositionToday")).toBe(40);
+  });
+
+  it("keeps every term in a group of its own, so a divider separates each figure", () => {
+    renderSummary();
+
+    expect(card().querySelectorAll(".economics_snapshot__group")).toHaveLength(TERM_ANCHORS.length);
+
+    for (const anchor of TERM_ANCHORS) {
+      const holder = termOrFail(anchor).closest(".economics_snapshot__group");
+
+      expect(holder?.querySelectorAll(".economics_snapshot__term")).toHaveLength(1);
+    }
+  });
+
   it("states its terms without an operator or arrow between them", () => {
-    renderSummary({ expected_final_profit: "-96" });
+    renderSummary({ net_profit: "-96" });
 
     expect(operatorGlyphs()).toEqual([]);
     // The minus on a negative amount is part of the figure, not an operator.
     expect(within(card()).getByText("−96")).toBeInTheDocument();
   });
 
-  it("charges one cost figure, never the merchandise split it is made of", () => {
-    renderSummary({ purchase_cost: "2 700", merchandise_cost: "2 400", direct_expenses: "300" });
+  it("reconciles the deducted figures to the net profit only in its hover", async () => {
+    const figures = makeSaleProfitability();
 
-    expect(amount("cogs")).toBe(2700);
-    expect(screen.queryByText("Merchandise")).not.toBeInTheDocument();
-    expect(screen.queryByText("Direct")).not.toBeInTheDocument();
+    expect(
+      Number(figures.gross_revenue) -
+        Number(figures.item_price_total) -
+        Number(figures.purchase_expenses) -
+        Number(figures.business_expenses),
+    ).toBe(Number(figures.net_profit));
+
+    renderSummary();
+    await openHint("netProfit");
+
+    expect(screen.getByText(/Gross Revenue: 300\./)).toBeInTheDocument();
+    expect(screen.getByText(/Purchase Cost: 100\./)).toBeInTheDocument();
+    expect(screen.getByText(/Purchase Expenses: 20\./)).toBeInTheDocument();
+    expect(screen.getByText(/Estimated OpEx: 30\./)).toBeInTheDocument();
   });
 
-  it("states an equation whose deducted terms reconcile to the net profit", () => {
+  it("charges OpEx in the net profit hover and nowhere as a term", async () => {
+    renderSummary();
+
+    expect(term("opEx")).toBeNull();
+    expect(within(card()).queryByText("OpEx")).not.toBeInTheDocument();
+
+    const values = [...card().querySelectorAll(".economics_snapshot__value")].map(
+      (element) => element.textContent,
+    );
+
+    expect(values).not.toContain("30");
+
+    await openHint("netProfit");
+
+    expect(screen.getByText(/Estimated OpEx: 30\./)).toBeInTheDocument();
+  });
+
+  it("states the OpEx figure as zero when no overheads were estimated", async () => {
+    renderSummary({ business_expenses: null });
+
+    await openHint("netProfit");
+
+    expect(screen.getByText(/Estimated OpEx: 0\./)).toBeInTheDocument();
+  });
+
+  it.each(["Outstanding", "Refunded", "COGS", "OpEx", "Projected"])(
+    "carries no %s label",
+    (label) => {
+      renderSummary();
+
+      expect(within(card()).queryByText(label)).not.toBeInTheDocument();
+    },
+  );
+
+  it.each(["outstanding", "refunded", "cogs", "opEx", "projectedTotal", "projectedNetProfit"])(
+    "states no %s term",
+    (anchor) => {
+      renderSummary();
+
+      expect(term(anchor)).toBeNull();
+    },
+  );
+
+  it("names the shipping and direct-expense split behind the purchase expenses figure", async () => {
     renderSummary({
-      expected_revenue: "5 000",
-      purchase_cost: "2 700",
-      business_expenses: "500",
-      expected_final_profit: "1 800",
+      purchase_expenses: "700",
+      purchase_shipping_cost: "695",
+      direct_expenses: "5",
     });
 
-    expect(amount("revenue")).toBe(5000);
-    expect(amount("cogs")).toBe(2700);
-    expect(amount("opEx")).toBe(500);
-    expect(amount("netProfit")).toBe(1800);
-    expect(amount("revenue") - amount("cogs") - amount("opEx")).toBe(amount("netProfit"));
+    await openHint("purchaseExpenses");
+
+    expect(screen.getByText(/695 in Shipping, plus 5 in Direct expenses/)).toBeInTheDocument();
   });
 
-  it("states what is still owed and what was paid back as figures of their own", () => {
+  it("claims no split when no direct expenses were recorded", async () => {
     renderSummary({
-      outstanding_revenue: "200",
-      refunded_revenue: "40",
+      purchase_expenses: "700",
+      purchase_shipping_cost: "700",
+      direct_expenses: null,
     });
 
-    expect(amount("outstanding")).toBe(200);
-    expect(amount("refunded")).toBe(40);
+    await openHint("purchaseExpenses");
+
+    expect(screen.queryByText(/in Shipping, plus/)).not.toBeInTheDocument();
   });
 
-  describe("a figure that is zero or absent", () => {
-    it("takes its label with it rather than heading an empty space", () => {
-      renderSummary({ refunded_revenue: null, outstanding_revenue: null });
+  it("names the two halves behind today's cash", async () => {
+    renderSummary();
 
-      expect(term("refunded")).toBeNull();
-      expect(term("outstanding")).toBeNull();
-      expect(screen.queryByText("Refunded")).not.toBeInTheDocument();
-      expect(screen.queryByText("Outstanding")).not.toBeInTheDocument();
-      expect(amount("revenue")).toBeGreaterThan(0);
-    });
+    await openHint("cashPositionToday");
 
-    it("drops the OpEx term when no estimated OpEx exists", () => {
-      renderSummary({ business_expenses: null });
+    expect(screen.getByText(/Collected and kept: 100\./)).toBeInTheDocument();
+    expect(screen.getByText(/Paid to suppliers: 60\./)).toBeInTheDocument();
+  });
 
-      expect(term("opEx")).toBeNull();
-      expect(screen.queryByText("OpEx")).not.toBeInTheDocument();
-    });
+  it("takes a label with a blank figure rather than heading an empty space", () => {
+    renderSummary({ purchase_expenses: null });
 
-    it("drops the cost term when nothing was spent but overheads were estimated", () => {
-      renderSummary({ purchase_cost: null, business_expenses: "45" });
-
-      expect(term("cogs")).toBeNull();
-      expect(amount("opEx")).toBe(45);
-    });
+    expect(term("purchaseExpenses")).toBeNull();
+    expect(within(card()).queryByText("Pur. Expenses")).not.toBeInTheDocument();
+    expect(amount("grossRevenue")).toBe(300);
   });
 
   it("renders a negative net profit with matching label and value tones", () => {
-    renderSummary({ expected_final_profit: "-96" });
+    renderSummary({ net_profit: "-96" });
 
     expect(within(card()).getByText("Net Profit").parentElement).toHaveAttribute(
       "data-tone",
@@ -84,13 +169,30 @@ describe("Sales/Show/ProfitabilitySummary", () => {
     expect(within(card()).getByText("−96")).toHaveAttribute("data-tone", "negative");
   });
 
+  it("tones a cash shortfall negative as well", () => {
+    renderSummary({ cash_position: "-20" });
+
+    expect(within(card()).getByText("Cash today").parentElement).toHaveAttribute(
+      "data-tone",
+      "negative",
+    );
+    expect(within(card()).getByText("−20")).toHaveAttribute("data-tone", "negative");
+  });
+
   it("makes no profit claim when nothing was spent on the sale", () => {
     const { container } = renderSummary({
-      purchase_cost: null,
-      merchandise_cost: null,
+      item_price_total: null,
+      purchase_expenses: null,
+      purchase_shipping_cost: null,
       direct_expenses: null,
       business_expenses: null,
     });
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("makes no profit claim without a gross revenue to charge costs against", () => {
+    const { container } = renderSummary({ gross_revenue: null });
 
     expect(container).toBeEmptyDOMElement();
   });
@@ -108,181 +210,51 @@ describe("Sales/Show/ProfitabilitySummary", () => {
     expect(within(card()).queryByLabelText("More information")).not.toBeInTheDocument();
 
     const user = userEvent.setup();
-    await user.hover(within(card()).getByText("Revenue"));
+    await user.hover(within(card()).getByText("Gross Revenue"));
     await act(async () => {});
 
     expect(screen.getByText(/For this sale\./)).toBeInTheDocument();
   });
 
-  describe("the caveats that used to be captions", () => {
-    it("names the merchandise and direct-expense split behind the single cost figure", async () => {
-      renderSummary({ purchase_cost: "700", merchandise_cost: "695", direct_expenses: "5" });
+  it.each(TERM_ANCHORS)("points the %s label at its own glossary entry", async (anchor) => {
+    renderSummary();
 
-      await openHint("cogs");
+    await openHint(anchor);
 
-      expect(
-        screen.getByText(/695 in Item price and Shipping, plus 5 in Direct expenses/),
-      ).toBeInTheDocument();
-    });
+    expect(screen.getByRole("link", { name: "Glossary" })).toHaveAttribute(
+      "href",
+      `/glossary#${anchor}`,
+    );
+  });
 
-    it("claims no split when no direct expenses were recorded", async () => {
-      renderSummary({ purchase_cost: "700", merchandise_cost: "700", direct_expenses: null });
-
-      await openHint("cogs");
-
-      expect(screen.queryByText(/in Item price and Shipping, plus/)).not.toBeInTheDocument();
-    });
-
-    it("warns in the revenue hint that the figures cover the whole payment plan", async () => {
-      renderSummary({ scope: "plan", projected_final_profit: null });
+  describe("what the figures were added up from", () => {
+    it("warns in a hint that a plan's figures cover every sale in it", async () => {
+      renderSummary({ scope: "plan" });
 
       expect(card()).not.toHaveTextContent("payment plan");
 
-      await openHint("revenue");
+      await openHint("grossRevenue");
 
       expect(screen.getByText(/Across every sale in this payment plan\./)).toBeInTheDocument();
-    });
-
-    // Revenue and COGS count what has been billed and spent, so the scope note
-    // must not claim they include Payments nobody has billed yet. Only the
-    // Projected terms do, and their own hints say so.
-    it("keeps unbilled Payments out of the scope note, and in the projected hint", async () => {
-      renderSummary({ scope: "plan", projected_final_profit: "167", projected_revenue: "1 020" });
-
-      await openHint("revenue");
-      expect(screen.queryByText(/including Payments not billed yet/)).not.toBeInTheDocument();
-      expect(screen.getByText(/Across every sale in this payment plan\./)).toBeInTheDocument();
-
-      await openHint("projectedTotal");
-      expect(screen.getByText(/including Payments not billed yet/)).toBeInTheDocument();
     });
 
     it("makes no plan claim for a sale that stands alone", async () => {
       renderSummary({ scope: "sale" });
 
-      await openHint("revenue");
+      await openHint("grossRevenue");
 
       expect(screen.queryByText(/payment plan/)).not.toBeInTheDocument();
       expect(screen.getByText(/For this sale\./)).toBeInTheDocument();
     });
 
-    // Every figure is a sum. Without a scope note a reader cannot tell an
-    // sale total from a line total from a product's lifetime total.
-    it.each(["cogs", "opEx", "netProfit", "outstanding"])(
-      "closes the %s hint by naming what was added up",
-      async (anchor) => {
-        renderSummary({ scope: "sale", outstanding_revenue: "200" });
-
-        await openHint(anchor);
-
-        expect(screen.getByText(/For this sale\./)).toBeInTheDocument();
-      },
-    );
-  });
-
-  // Worked example from the spec: a 30% deposit on a 1 020 deal, the remaining
-  // charges not yet raised, at a 15% OpEx rate.
-  describe("the projected figures", () => {
-    const bookedAndProjected = {
-      scope: "plan" as const,
-      expected_revenue: "300",
-      merchandise_cost: "700",
-      direct_expenses: null,
-      purchase_cost: "700",
-      business_expenses: "45",
-      expected_final_profit: "-445",
-      projected_revenue: "1 020",
-      projected_business_expenses: "153",
-      projected_final_profit: "167",
-    };
-
-    it("gives every projected figure a label of its own", () => {
-      renderSummary(bookedAndProjected);
-
-      expect(amount("revenue")).toBe(300);
-      expect(amount("projectedTotal")).toBe(1020);
-      expect(amount("opEx")).toBe(45);
-      expect(amount("projectedOpEx")).toBe(153);
-      expect(amount("netProfit")).toBe(-445);
-      expect(amount("projectedNetProfit")).toBe(167);
-
-      for (const anchor of ["projectedTotal", "projectedOpEx", "projectedNetProfit"]) {
-        expect(within(termOrFail(anchor)).getByText("Projected")).toBeInTheDocument();
-      }
-    });
-
-    it("points each projected label at its own glossary entry", async () => {
-      renderSummary(bookedAndProjected);
-
-      await openHint("projectedNetProfit");
-
-      expect(screen.getByRole("link", { name: "Glossary" })).toHaveAttribute(
-        "href",
-        "/glossary#projectedNetProfit",
-      );
-    });
-
-    it("keeps a projected figure in the same group as the figure it projects", () => {
-      renderSummary(bookedAndProjected);
-
-      expect(group("revenue")).toBe(group("projectedTotal"));
-      expect(group("opEx")).toBe(group("projectedOpEx"));
-      expect(group("netProfit")).toBe(group("projectedNetProfit"));
-      expect(group("revenue")).not.toBe(group("cogs"));
-    });
-
-    it("states the cost once, since the same spend backs both bases", () => {
-      renderSummary(bookedAndProjected);
-
-      expect(amount("cogs")).toBe(700);
-      expect(screen.getAllByText("COGS")).toHaveLength(1);
-    });
-
-    it("reconciles each basis against that one cost figure", () => {
-      renderSummary(bookedAndProjected);
-
-      expect(amount("revenue") - amount("cogs") - amount("opEx")).toBe(amount("netProfit"));
-      expect(amount("projectedTotal") - amount("cogs") - amount("projectedOpEx")).toBe(
-        amount("projectedNetProfit"),
-      );
-    });
-
-    it("computes the projected OpEx from the projected revenue, not the booked business expenses", () => {
-      renderSummary(bookedAndProjected);
-
-      // Reusing the booked 45.00 OpEx for the projected basis would report
-      // 175.00 profit instead of 167.00 — pin the real, larger OpEx figure.
-      expect(amount("projectedOpEx")).toBe(153);
-      expect(amount("projectedOpEx")).not.toBe(45);
-      expect(amount("projectedNetProfit")).not.toBe(175);
-    });
-
-    it("tones a booked loss and a projected gain apart", () => {
-      renderSummary(bookedAndProjected);
-
-      expect(within(termOrFail("netProfit")).getByText("−445")).toHaveAttribute(
-        "data-tone",
-        "negative",
-      );
-      expect(within(termOrFail("projectedNetProfit")).getByText("167")).toHaveAttribute(
-        "data-tone",
-        "positive",
-      );
-    });
-
-    it("shows no projection for a plan with no known Projected total", () => {
-      renderSummary({ scope: "plan" });
-
-      expect(term("projectedTotal")).toBeNull();
-      expect(term("projectedNetProfit")).toBeNull();
-      expect(screen.queryByText("Projected")).not.toBeInTheDocument();
-    });
-
-    it("shows no projection for a sale outside a plan", () => {
+    // Every figure is a sum. Without a scope note a reader cannot tell a sale
+    // total from a line total from a product's lifetime total.
+    it.each(TERM_ANCHORS)("closes the %s hint by naming what was added up", async (anchor) => {
       renderSummary({ scope: "sale" });
 
-      expect(term("projectedTotal")).toBeNull();
-      expect(screen.queryByText("Projected")).not.toBeInTheDocument();
+      await openHint(anchor);
+
+      expect(screen.getByText(/For this sale\./)).toBeInTheDocument();
     });
   });
 });
@@ -295,18 +267,12 @@ function card() {
   return screen.getByTestId("sale-profitability-card");
 }
 
-// Three terms are labelled "Projected", so each is addressed by the glossary
-// anchor that says which figure it states rather than by its label text.
 function term(anchor: string): HTMLElement | null {
   return screen.queryByTestId(`metric-${anchor}`);
 }
 
 function termOrFail(anchor: string): HTMLElement {
   return screen.getByTestId(`metric-${anchor}`);
-}
-
-function group(anchor: string): Element | null {
-  return termOrFail(anchor).closest(".economics_snapshot__group");
 }
 
 // An operator or arrow was an element holding nothing but a glyph. A negative

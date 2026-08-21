@@ -1,5 +1,4 @@
 import type { PaymentProgress, SalePaymentPlanRecord } from "@/types/payment";
-import type { ProfitabilitySummaryRecord } from "@/types/profitability";
 import type { VariantAvailability } from "@/types/variantAssignment";
 import type { WarehouseOption } from "@/types/warehouse";
 
@@ -95,13 +94,18 @@ export type SaleItemProfitabilityRecord = {
 
 export type SaleProfitabilityScope = "plan" | "sale";
 
-export type SaleProfitabilityRecord = ProfitabilitySummaryRecord & {
+export type SaleProfitabilityRecord = {
   scope: SaleProfitabilityScope;
-  merchandise_cost: string | null;
+  gross_revenue: string | null;
+  item_price_total: string | null;
+  purchase_expenses: string | null;
+  purchase_shipping_cost: string | null;
   direct_expenses: string | null;
-  projected_revenue: string | null;
-  projected_business_expenses: string | null;
-  projected_final_profit: string | null;
+  business_expenses: string | null;
+  net_profit: string | null;
+  collected_revenue: string | null;
+  purchase_paid: string | null;
+  cash_position: string | null;
 };
 
 export type SaleShowSaleItemRecord = {

@@ -15,7 +15,7 @@ type ProfitabilitySummaryProps = {
 
 export default function ProfitabilitySummary({ profitability }: ProfitabilitySummaryProps) {
   if (profitability === null) return null;
-  if (isBlank(profitability.expected_revenue) || !hasRecordedCosts(profitability)) return null;
+  if (isBlank(profitability.gross_revenue) || !hasRecordedCosts(profitability)) return null;
 
   return (
     <article
@@ -28,107 +28,92 @@ export default function ProfitabilitySummary({ profitability }: ProfitabilitySum
   );
 }
 
-// A figure that reads differently once every scheduled charge is raised
-// travels with its booked counterpart. COGS has no counterpart:
-// `Sale::Profitability` charges the same purchase cost against the booked
-// revenue and the projected total alike, so a second one would restate it.
 function profitGroups(profitability: SaleProfitabilityRecord): EconomicsTerm[][] {
   return [
     [
       {
-        anchor: "revenue",
-        hint: revenueHint(profitability),
-        label: "Revenue",
-        value: profitability.expected_revenue,
-      },
-      {
-        anchor: "projectedTotal",
-        hint: withScope(financialMetricHints.projectedTotal, saleScope(profitability)),
-        label: "Projected",
-        value: profitability.projected_revenue,
+        anchor: "grossRevenue",
+        hint: withScope(financialMetricHints.grossRevenue, saleScope(profitability)),
+        label: "Gross Revenue",
+        value: profitability.gross_revenue,
       },
     ],
     [
       {
-        anchor: "cogs",
-        hint: cogsHint(profitability),
-        label: "COGS",
-        value: profitability.purchase_cost,
-      },
-    ],
-    [
-      {
-        anchor: "opEx",
-        hint: withScope(financialMetricHints.opEx, saleScope(profitability)),
-        label: "OpEx",
-        value: profitability.business_expenses,
-      },
-      {
-        anchor: "projectedOpEx",
-        hint: withScope(financialMetricHints.projectedOpEx, saleScope(profitability)),
-        label: "Projected",
-        value: profitability.projected_business_expenses,
+        anchor: "purchaseCost",
+        hint: withScope(financialMetricHints.purchaseCost, saleScope(profitability)),
+        label: "Pur. Cost",
+        value: profitability.item_price_total,
       },
     ],
     [
       {
         anchor: "netProfit",
-        hint: withScope(financialMetricHints.netProfit, saleScope(profitability)),
+        hint: netProfitHint(profitability),
         label: "Net Profit",
         result: true,
-        value: profitability.expected_final_profit,
-      },
-      {
-        anchor: "projectedNetProfit",
-        hint: withScope(financialMetricHints.projectedNetProfit, saleScope(profitability)),
-        label: "Projected",
-        result: true,
-        value: profitability.projected_final_profit,
+        value: profitability.net_profit,
       },
     ],
     [
       {
-        anchor: "outstanding",
-        hint: withScope(financialMetricHints.outstanding, saleScope(profitability)),
-        label: "Outstanding",
-        value: profitability.outstanding_revenue,
+        anchor: "purchaseExpenses",
+        hint: purchaseExpensesHint(profitability),
+        label: "Pur. Expenses",
+        value: profitability.purchase_expenses,
       },
+    ],
+    [
       {
-        anchor: "refunded",
-        hint: withScope(financialMetricHints.refunded, saleScope(profitability)),
-        label: "Refunded",
-        value: profitability.refunded_revenue,
+        anchor: "cashPositionToday",
+        hint: cashPositionHint(profitability),
+        label: "Cash today",
+        result: true,
+        value: profitability.cash_position,
       },
     ],
   ];
 }
 
-// How wide these figures reach used to be a caption under the card. It is the
-// scope note for every term here: a lone sale totals itself, a plan totals
-// every sale in it, and the reader cannot tell which from the figures alone.
-//
-// It says nothing about charges not yet raised, which the old caption did.
-// That was never true of the terms it sat under — Revenue and COGS count what
-// has been billed and spent. It is true only of the Projected terms, and each
-// of their own hints already says so.
+// How wide these figures reach: a lone sale totals itself, a plan totals every
+// sale in it, and the reader cannot tell which from the figures alone.
 function saleScope(profitability: SaleProfitabilityRecord): string {
   if (profitability.scope !== "plan") return metricScopeNotes.sale;
 
   return "Across every sale in this payment plan.";
 }
 
-function revenueHint(profitability: SaleProfitabilityRecord): string {
-  return withScope(financialMetricHints.revenue, saleScope(profitability));
-}
-
-// The merchandise and direct-expense split has no term of its own: it only
-// ever restated COGS, so it is stated where a reader asks what COGS is made
-// of. The figures are interpolated, so the hint is composed here rather than
-// kept as a static entry in `financialMetricHints`.
-function cogsHint(profitability: SaleProfitabilityRecord): string {
-  const scoped = withScope(financialMetricHints.cogs, saleScope(profitability));
+// The shipping and direct-expense split has no term of its own, so it is
+// stated where a reader asks what Purchase Expenses is made of. The figures
+// are interpolated, so the hint is composed here.
+function purchaseExpensesHint(profitability: SaleProfitabilityRecord): string {
+  const scoped = withScope(financialMetricHints.purchaseExpenses, saleScope(profitability));
 
   if (isBlank(profitability.direct_expenses)) return scoped;
 
-  return `${scoped} Here: ${profitability.merchandise_cost} in Item price and Shipping, plus ${profitability.direct_expenses} in Direct expenses.`;
+  const shipping = profitability.purchase_shipping_cost ?? "0";
+
+  return `${scoped} Here: ${shipping} in Shipping, plus ${profitability.direct_expenses} in Direct expenses.`;
+}
+
+// OpEx has no term of its own, so this is the only place it appears: the hover
+// names every figure the profit was netted from, OpEx included.
+function netProfitHint(profitability: SaleProfitabilityRecord): string {
+  const scoped = withScope(financialMetricHints.netProfit, saleScope(profitability));
+  const grossRevenue = profitability.gross_revenue ?? "0";
+  const purchaseCost = profitability.item_price_total ?? "0";
+  const purchaseExpenses = profitability.purchase_expenses ?? "0";
+  const estimatedOpEx = profitability.business_expenses ?? "0";
+
+  return `${scoped}\n\nGross Revenue: ${grossRevenue}.\nPurchase Cost: ${purchaseCost}.\nPurchase Expenses: ${purchaseExpenses}.\nEstimated OpEx: ${estimatedOpEx}.`;
+}
+
+// The two halves are interpolated so the hover always names the figures behind
+// today's number.
+function cashPositionHint(profitability: SaleProfitabilityRecord): string {
+  const scoped = withScope(financialMetricHints.cashPositionToday, saleScope(profitability));
+  const collected = profitability.collected_revenue ?? "0";
+  const purchasePaid = profitability.purchase_paid ?? "0";
+
+  return `${scoped}\n\nCollected and kept: ${collected}.\nPaid to suppliers: ${purchasePaid}.`;
 }

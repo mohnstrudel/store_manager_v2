@@ -1,8 +1,13 @@
 import { isBlank } from "@/components/Field";
-import { type ProfitabilitySummaryRecord } from "@/types/profitability";
 
-export function hasRecordedCosts(
-  summary: Pick<ProfitabilitySummaryRecord, "business_expenses" | "purchase_cost">,
-): boolean {
-  return !isBlank(summary.purchase_cost) || !isBlank(summary.business_expenses);
+export function hasRecordedCosts(summary: {
+  business_expenses: string | null;
+  item_price_total: string | null;
+  purchase_expenses: string | null;
+}): boolean {
+  return (
+    !isBlank(summary.item_price_total) ||
+    !isBlank(summary.purchase_expenses) ||
+    !isBlank(summary.business_expenses)
+  );
 }

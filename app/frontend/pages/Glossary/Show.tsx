@@ -27,11 +27,16 @@ export const sections: GlossarySection[] = [
     entries: [
       {
         id: "revenue",
-        aliasIds: ["monthlyRevenue"],
         term: "Revenue",
         shownAs: [{ labels: ["Total"], where: "on a sale's details card" }],
         definition: "The full value of a customer's order, whether or not they have paid yet.",
         watchFor: "A cancelled order drops out of Revenue everywhere and shows no profit card.",
+      },
+      {
+        id: "grossRevenue",
+        term: "Gross revenue",
+        definition:
+          "The full value a sale or payment plan will bill once every payment is raised, before any cost. On a sale that belongs to a payment plan this is the plan's projected total.",
       },
       {
         id: "potentialSales",
@@ -48,7 +53,7 @@ export const sections: GlossarySection[] = [
         id: "refunded",
         term: "Refunded",
         definition:
-          "Money returned to the customer after the order was billed, shown separately without reducing Revenue.",
+          "Money returned to the customer after the order was billed. It has no figure of its own on a sale card, and it is taken out of the money collected, so it reduces Cash position today.",
       },
       {
         id: "paymentPlan",
@@ -73,7 +78,6 @@ export const sections: GlossarySection[] = [
       {
         id: "projectedTotal",
         term: "Projected total",
-        shownAs: [{ labels: ["Projected"], where: "in the Revenue row on a sale card" }],
         definition:
           "The full amount a payment plan will bill, including customer payments not billed yet.",
         example:
@@ -94,6 +98,20 @@ export const sections: GlossarySection[] = [
           "A sale line with no purchase item linked shows no cost, so COGS is missing and every profit figure under it is too high.",
       },
       {
+        id: "purchaseCost",
+        term: "Purchase cost",
+        definition:
+          "What the suppliers charged for the items themselves, before shipping and any other cost.",
+      },
+      {
+        id: "purchaseExpenses",
+        term: "Purchase expenses",
+        definition:
+          "Every other cost of the purchased items: inbound shipping and ad-hoc direct expenses.",
+        watchFor:
+          "Purchase cost plus Purchase expenses is the same money as COGS, stated as two figures.",
+      },
+      {
         id: "directExpenses",
         term: "Direct expenses",
         definition:
@@ -107,12 +125,7 @@ export const sections: GlossarySection[] = [
     entries: [
       {
         id: "opEx",
-        aliasIds: ["estimatedOpEx", "projectedOpEx"],
         term: "OpEx",
-        shownAs: [
-          { labels: ["Estimated OpEx"], where: "on the OpEx Rates page" },
-          { labels: ["Projected"], where: "in the OpEx row on a sale card" },
-        ],
         definition:
           "General business costs such as rent and payroll, estimated for a sale or product as a percentage of Revenue.",
       },
@@ -120,22 +133,6 @@ export const sections: GlossarySection[] = [
         id: "opExRates",
         term: "OpEx rates",
         definition: "The overhead percentages used to estimate OpEx from Revenue.",
-      },
-      {
-        id: "actualOpEx",
-        term: "Actual OpEx",
-        definition:
-          "Operating costs recorded for a month as money actually spent, rather than estimated from Revenue.",
-        watchFor:
-          "The “OpEx” navigation item opens the records behind Actual OpEx; “OpEx” on a sale or product card is an estimate.",
-      },
-      {
-        id: "comparison",
-        term: "Comparison",
-        definition:
-          "The absolute difference between Actual OpEx and Estimated OpEx for a month, shown as under, over, or on estimate.",
-        watchFor:
-          "Today's OpEx rates are also applied to past months, so editing a rate recalculates Estimated OpEx and Comparison; Actual OpEx does not change.",
       },
     ],
   },
@@ -147,9 +144,9 @@ export const sections: GlossarySection[] = [
         id: "netProfit",
         term: "Net profit",
         definition:
-          "Revenue minus COGS and estimated OpEx: what one order should earn once the customer pays in full.",
+          "Gross revenue minus purchase cost, purchase expenses, and estimated OpEx: what a sale should earn once the customer has paid in full.",
         watchFor:
-          "On a payment plan this reads one charge on its own, so a deposit carrying the whole job's cost can show a loss. Projected net profit reads the same job as a finished deal.",
+          "When the sale belongs to a payment plan this covers every sale in the plan, not one charge on its own. Estimated OpEx is taken out of it but has no figure of its own on the card.",
       },
       {
         id: "expectedNetProfit",
@@ -161,18 +158,11 @@ export const sections: GlossarySection[] = [
       {
         id: "cashPositionToday",
         term: "Cash position today",
-        shownAs: [{ labels: ["Cash today"], where: "on a product" }],
+        shownAs: [{ labels: ["Cash today"], where: "on a sale and on a product" }],
         definition:
-          "Money actually collected from customers minus money actually paid to suppliers for a product: what we should have in hand right now.",
+          "Money collected from customers and kept after refunds, minus money paid to suppliers for the units it covers: what we should have in hand right now.",
         watchFor:
-          "Negative before a purchase has sold anything is expected — money went out to a supplier before any came back from a customer.",
-      },
-      {
-        id: "projectedNetProfit",
-        term: "Projected net profit",
-        shownAs: [{ labels: ["Projected"], where: "in the Net Profit row on a sale card" }],
-        definition:
-          "Projected total minus COGS and Projected OpEx: what the whole payment plan should earn.",
+          "On a sale it counts only that order's units; on a product it counts every unit purchased, including units still in a warehouse. Negative before a purchase has sold anything is expected — money went out to a supplier before any came back from a customer.",
       },
     ],
   },

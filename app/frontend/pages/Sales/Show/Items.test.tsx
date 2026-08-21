@@ -6,7 +6,6 @@ import { describe, expect, it, vi } from "vitest";
 import type { WarehouseOption } from "@/types/warehouse";
 
 import {
-  makeSaleItemProfitability,
   makeSalePurchaseMovement,
   makeSaleShowPurchaseItem,
   makeSaleShowSaleItem,
@@ -111,46 +110,19 @@ describe("Sales/Show/Items", () => {
     expect(screen.getByText("Paris Hub")).toBeInTheDocument();
   });
 
-  it("renders nothing in the revenue column for a sale item without profitability data", () => {
-    renderItems([
-      makeSaleShowSaleItem({ profitability: makeSaleItemProfitability() }),
-      makeSaleShowSaleItem({ id: 12, profitability: null }),
-    ]);
+  it("renders the price column", () => {
+    renderItems([makeSaleShowSaleItem()]);
 
-    const rows = screen.getAllByRole("row");
-    const revenueCell = within(rows[2]).getAllByRole("cell")[3];
-
-    expect(revenueCell).toHaveTextContent("");
+    expect(screen.getByRole("columnheader", { name: "Price" })).toBeInTheDocument();
+    const dataRow = screen.getAllByRole("row")[1];
+    const priceCell = within(dataRow).getAllByRole("cell")[3];
+    expect(priceCell).toHaveTextContent("1060");
   });
 
-  it("hides profitability columns when no sale item has profitability data", () => {
+  it("always renders the price column regardless of profitability data", () => {
     renderItems([makeSaleShowSaleItem({ profitability: null })]);
 
-    expect(screen.queryByRole("columnheader", { name: "Revenue" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("columnheader", { name: "Net Profit" })).not.toBeInTheDocument();
-  });
-
-  it("shows the cost and final profit columns when profitability is present", () => {
-    renderItems([makeSaleShowSaleItem({ profitability: makeSaleItemProfitability() })]);
-
-    expect(screen.getByRole("columnheader", { name: "COGS" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Net Profit" })).toBeInTheDocument();
-  });
-
-  it("shows the revenue column when profitability is present", () => {
-    renderItems([makeSaleShowSaleItem({ profitability: makeSaleItemProfitability() })]);
-
-    expect(screen.getByRole("columnheader", { name: "Revenue" })).toBeInTheDocument();
-
-    const dataRow = screen.getAllByRole("row")[1];
-    const revenueCell = within(dataRow).getAllByRole("cell")[3];
-    expect(revenueCell).toHaveTextContent("1060");
-  });
-
-  it("colors a negative final profit", () => {
-    renderItems([makeSaleShowSaleItem({ profitability: makeSaleItemProfitability() })]);
-
-    expect(screen.getByText("−96")).toHaveAttribute("data-tone", "negative");
+    expect(screen.getByRole("columnheader", { name: "Price" })).toBeInTheDocument();
   });
 
   it("unlinks a purchase item after confirmation", async () => {

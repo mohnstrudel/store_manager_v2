@@ -117,7 +117,7 @@ export type ProfitabilityRecord = {
   expected_total_cost: string | null;
   business_expenses: string | null;
   expected_net_profit: string | null;
-  received_revenue: string | null;
+  collected_revenue: string | null;
   purchase_paid: string | null;
   cash_position: string | null;
 };
