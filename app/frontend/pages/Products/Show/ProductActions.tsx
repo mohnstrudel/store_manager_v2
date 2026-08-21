@@ -1,5 +1,6 @@
 import { ChevronDoubleDownIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+
 import { type ProductShowRecord } from "../types";
 
 type ProductActionsProps = {

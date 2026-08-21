@@ -1,23 +1,34 @@
+import { useCallback } from "react";
+
+import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
-import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
+import NestedFormContainer from "@/components/NestedFormContainer";
 import { toSelectedOption } from "@/utils/selectOptions";
+
 import { type PurchaseFormData, type SelectOption } from "../../types";
+import type { DraftVariantAvailability, DraftVariantOption } from "../variantDrafts";
 
 type PurchaseFieldsProps = {
+  draftAvailability: DraftVariantAvailability;
   errors?: Record<string, string>;
+  onVariantChange: (clientKey: string | null) => void;
   purchase: PurchaseFormData;
   suppliers: SelectOption<number>[];
+  variantClientKey: string | null;
   warehouses: SelectOption<number>[];
 };
 
 const EMPTY_ERRORS: Record<string, string> = {};
 
 export default function PurchaseFields({
+  draftAvailability,
   errors = EMPTY_ERRORS,
+  onVariantChange,
   purchase,
   suppliers,
+  variantClientKey,
   warehouses,
 }: PurchaseFieldsProps) {
   const prefix = "purchase.0";
@@ -28,6 +39,7 @@ export default function PurchaseFields({
   const amountError = errors[`${prefix}.amount`];
   const paymentValueError = errors[`${prefix}.payment_value`];
   const warehouseError = errors[`${prefix}.warehouse_id`];
+  const variantError = errors[`${prefix}.variant_client_key`] || errors[`${prefix}.variant`];
 
   return (
     <NestedFormContainer
@@ -54,6 +66,13 @@ export default function PurchaseFields({
           name="purchase[order_reference]"
         />
       </FormRow>
+
+      <DraftVariantSelect
+        availability={draftAvailability}
+        error={variantError}
+        onChange={onVariantChange}
+        value={variantClientKey}
+      />
 
       <FormRow>
         <FormInput
@@ -90,5 +109,51 @@ export default function PurchaseFields({
         />
       )}
     </NestedFormContainer>
+  );
+}
+
+function DraftVariantSelect({
+  availability,
+  error,
+  onChange,
+  value,
+}: {
+  availability: DraftVariantAvailability;
+  error?: string;
+  onChange: (clientKey: string | null) => void;
+  value: string | null;
+}) {
+  const handleSelectionChange = useCallback(
+    (option: DraftVariantOption | null) => onChange(option?.value ?? null),
+    [onChange],
+  );
+
+  if (availability.mode === "base") {
+    const baseVariant = availability.variants[0];
+
+    return (
+      <FormControl error={error} htmlFor="purchase-variant" label="Variant">
+        <input
+          id="purchase-variant"
+          name="purchase[variant_client_key]"
+          type="hidden"
+          value={baseVariant?.value ?? ""}
+        />
+        <p>{baseVariant?.label ?? "Base Model"}</p>
+      </FormControl>
+    );
+  }
+
+  return (
+    <FormSmartSelect
+      error={error}
+      inputId="purchase-variant"
+      isClearable
+      label="Variant"
+      name="purchase[variant_client_key]"
+      onChange={handleSelectionChange}
+      options={availability.variants}
+      value={availability.variants.find((variant) => variant.value === value) ?? null}
+    />
   );
 }

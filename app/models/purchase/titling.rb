@@ -13,6 +13,6 @@ module Purchase::Titling
   end
 
   def variant_title
-    variant ? variant.title : "-"
+    variant&.title
   end
 end

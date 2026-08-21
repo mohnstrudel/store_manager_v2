@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
 import { usePage } from "@inertiajs/react";
+import { useEffect, useState } from "react";
+
 import type { PageProps } from "@/types/inertia";
 
 const MAX_BREADCRUMBS = 4;

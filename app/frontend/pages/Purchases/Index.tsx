@@ -1,9 +1,11 @@
 import { Link } from "@inertiajs/react";
+
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
+
 import IndexTable from "./Index/Table";
-import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import type { PaginationMeta, PurchaseIndexRecord, WarehouseOption } from "./types";
 
 type IndexProps = {

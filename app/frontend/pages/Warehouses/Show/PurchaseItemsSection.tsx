@@ -1,14 +1,19 @@
 import { Link } from "@inertiajs/react";
 import { type ChangeEvent, useCallback, useRef } from "react";
+
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+import { type InlineCellEditorHandle } from "@/components/inline-cell-editing";
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import Pagination from "@/components/Pagination";
+import PaymentProgressBar from "@/components/PaymentProgressBar";
+import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
+import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import TipMark from "@/components/TipMark";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
-import PaymentProgressBar from "@/components/PaymentProgressBar";
+
 import type {
   PaginationMeta,
   ShippingCompanyOption,
@@ -16,9 +21,6 @@ import type {
   WarehousePurchaseItemRecord,
   WarehouseShowRecord,
 } from "../types";
-import { type InlineCellEditorHandle } from "@/components/inline-cell-editing";
-import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
-import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
 
 type PurchaseItemsSectionProps = {
   pagination: PaginationMeta;
@@ -97,7 +99,7 @@ function PurchaseItemsSectionHeader({
     <div className="flex justify-between align-center">
       <h3>Number of Items: {pagination.total_count}</h3>
       <div className="w-full max-w-45 px-3 mt-4 text-center lg:w-45">
-        <PaymentProgressBar onlyDebt progress={warehouse.payment_progress} />
+        <PaymentProgressBar caption="debtOnly" progress={warehouse.payment_progress} />
       </div>
     </div>
   );
@@ -287,7 +289,11 @@ function PurchaseItemCustomer({ item }: { item: WarehousePurchaseItemRecord }) {
             text={item.sale_summary}
           />
           {item.sale_summary}
-          {item.sale_note && <TipMark starClassName="text-xl leading-0">{item.sale_note}</TipMark>}
+          {item.sale_note && (
+            <TipMark size="large" tone="orange">
+              {item.sale_note}
+            </TipMark>
+          )}
         </div>
       </li>
       <li className="mt-2">

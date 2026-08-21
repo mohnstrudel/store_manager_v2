@@ -10,8 +10,10 @@ import {
   type ComponentProps,
   type Ref,
 } from "react";
-import FormSectionHeading from "./FormSectionHeading";
+
 import routes from "@/utils/routes";
+
+import FormSectionHeading from "./FormSectionHeading";
 
 const DEFAULT_UPLOAD_URL = routes.mediaUploads.create.path();
 

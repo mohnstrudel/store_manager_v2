@@ -15,13 +15,16 @@
 #  width                :integer
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  product_id           :bigint
 #  purchase_id          :bigint
 #  sale_item_id         :bigint
 #  shipping_company_id  :bigint
+#  variant_id           :bigint
 #  warehouse_id         :bigint           not null
 #
 class PurchaseItem < ApplicationRecord
   include Editing
+  include Expenses
   include HasAuditNotifications
   include HasPreviewImages
   include Linking
@@ -50,14 +53,27 @@ class PurchaseItem < ApplicationRecord
   validates :shipping_company_id,
     presence: true,
     if: -> { tracking_number.present? }
+  validates :product_id, :variant_id, presence: true
+  before_validation :derive_variant_identity
 
   db_belongs_to :warehouse, inverse_of: :purchase_items
   db_belongs_to :purchase, inverse_of: :purchase_items
+  belongs_to :product, inverse_of: false
+  belongs_to :variant, inverse_of: false
   belongs_to :sale_item, optional: true, counter_cache: true, inverse_of: :purchase_items
   belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
+  has_many :purchase_expenses, dependent: :destroy, inverse_of: :purchase_item
 
-  has_one :product, through: :purchase
   has_one :sale, through: :sale_item
   has_one :customer, through: :sale
   has_one :woo_info, through: :sale, source: :woo_info
+
+  private
+
+  def derive_variant_identity
+    return unless purchase
+
+    self.product_id = purchase.product_id
+    self.variant_id = purchase.variant_id
+  end
 end

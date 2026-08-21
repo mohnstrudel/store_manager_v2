@@ -18,7 +18,7 @@ module PurchaseItem::Warehousing
 
     def move_to_warehouse!(purchase_item_ids:, warehouse_id:)
       warehouse_id = warehouse_id.to_i
-      purchase_items = where(id: purchase_item_ids).to_a
+      purchase_items = where(id: purchase_item_ids).in_order_of(:id, purchase_item_ids).to_a
       return NOTHING_MOVED if purchase_items.blank?
 
       purchase_item_ids_by_origin = purchase_items

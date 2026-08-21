@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
-import { rowNavigationProps } from "@/utils/rowNavigation";
 import type { PaginationMeta } from "@/types/pagination";
+import { rowNavigationProps } from "@/utils/rowNavigation";
 
 type DebtRecord = {
   id: number;
@@ -66,7 +67,7 @@ function DebtsTable({ debts }: { debts: DebtRecord[] }) {
           <th>Variant</th>
           <th>Sold</th>
           <th>Purchased</th>
-          <th>Debt</th>
+          <th>Unit shortfall</th>
         </tr>
       </thead>
       <tbody>
@@ -93,7 +94,7 @@ function UnpaidPurchasesSection({ unpaidPurchases }: { unpaidPurchases: UnpaidPu
           <tr>
             <th>Purchased Ago</th>
             <th>Supplier</th>
-            <th className="text-right">Cost</th>
+            <th className="text-right">Unit Price</th>
             <th>Qty</th>
           </tr>
         </thead>

@@ -1,5 +1,6 @@
 export type { PaginationMeta } from "@/types/pagination";
 import type { PaymentProgress } from "@/types/payment";
+import type { VariantAvailability } from "@/types/variantAssignment";
 export type { PaymentProgress };
 export type { WarehouseOption } from "@/types/warehouse";
 
@@ -37,6 +38,7 @@ export type PurchaseShowRecord = {
   item_price: string;
   cost_total: string;
   shipping_total: string;
+  expenses_total: string;
   paid: string;
   debt: string;
   supplier_title: string;
@@ -72,6 +74,8 @@ export type PurchaseItemRecord = {
   shipping_company_id: number | null;
   shipping_company_name: string;
   shipping_cost: string;
+  purchase_expenses: PurchaseItemExpenseRecord[];
+  new_purchase_expense: NewPurchaseItemExpenseRecord;
 };
 
 export type PaymentRecord = {
@@ -80,14 +84,26 @@ export type PaymentRecord = {
   destroy_path: string;
   payment_date: string;
   value: string;
-  errors: string[];
 };
 
 export type NewPaymentRecord = {
   create_path: string;
   payment_date: string;
   value: string;
-  errors: string[];
+};
+
+export type PurchaseItemExpenseRecord = {
+  id: number;
+  description: string;
+  amount: string;
+  update_path: string;
+  destroy_path: string;
+};
+
+export type NewPurchaseItemExpenseRecord = {
+  description: string;
+  amount: string;
+  create_path: string;
 };
 
 export type PurchaseFormRecord = {
@@ -101,11 +117,10 @@ export type PurchaseFormRecord = {
   amount: string;
   warehouse_id: number | null;
   payment_value: string;
-  variant_options: SelectOption<number>[];
+  variant_availability: VariantAvailability | null;
 };
 
 export type PurchaseFormOptions = {
-  product_variants_path: string;
   products: SelectOption<number>[];
   suppliers: SelectOption<number>[];
   warehouses: SelectOption<number>[];

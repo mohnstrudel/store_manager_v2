@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Details from "./Details";
+
 import { makeVersion } from "../test/factories";
+import Details from "./Details";
 
 describe("Versions/components/Details", () => {
   it("renders the version detail table", () => {

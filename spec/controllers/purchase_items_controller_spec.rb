@@ -50,6 +50,34 @@ describe PurchaseItemsController do
     end
   end
 
+  describe "PATCH #update" do
+    it "ignores anonymous direct-expense values" do
+      purchase_item = create(:purchase_item, shipping_cost: 5)
+      create(:purchase_expense, purchase_item:, amount: 12)
+
+      patch :update, params: {
+        id: purchase_item.id,
+        purchase_item: {expenses: "999", shipping_cost: "15"}
+      }
+
+      purchase_item.reload
+      expect(purchase_item.expenses).to eq(BigDecimal("12"))
+      expect(purchase_item.shipping_cost).to eq(BigDecimal("15"))
+    end
+
+    it "does not accept direct SaleItem assignment" do
+      purchase_item = create(:purchase_item)
+      sale_item = create(:sale_item, product: purchase_item.purchase.product, variant: purchase_item.purchase.variant)
+
+      patch :update, params: {
+        id: purchase_item.id,
+        purchase_item: {sale_item_id: sale_item.id, weight: 2}
+      }
+
+      expect(purchase_item.reload.sale_item_id).to be_nil
+    end
+  end
+
   describe "DELETE #destroy" do
     # rubocop:todo RSpec/MultipleExpectations
     it "destroys the purchase_item without destroying the associated purchase" do

@@ -1,4 +1,5 @@
 import { createInertiaApp, router } from "@inertiajs/react";
+
 import AppLayout from "@/layouts/AppLayout";
 import { resolvePage } from "@/utils/resolvePage";
 

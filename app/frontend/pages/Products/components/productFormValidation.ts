@@ -1,7 +1,8 @@
 import { getFormString } from "@/utils/formSchema";
 import { msg } from "@/utils/validationMessages";
-import { validateProductForm } from "./productFormSchema";
+
 import type { PurchaseFormData, VariantFormData } from "../types";
+import { validateProductForm } from "./productFormSchema";
 
 type ValidateProductFormSubmissionInput = {
   formData: FormData;

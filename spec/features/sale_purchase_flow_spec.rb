@@ -60,7 +60,7 @@ feature "Link sales with purchases flow" do
     expect(page).to have_content(supplier.title)
     expect(page).to have_content(warehouse.name)
 
-    # Purchased/Sold ratio is correct
-    expect(page).to have_selector(".mark_gray", text: "1 / 1", normalize_ws: true)
+    # The sale item is fully covered by the linked purchase, so no shortfall warning shows
+    expect(page).not_to have_content(/MISSING \d+ PURCHASE/)
   end
 end

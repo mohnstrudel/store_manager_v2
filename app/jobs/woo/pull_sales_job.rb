@@ -8,6 +8,7 @@ module Woo
     include Sanitizable
 
     URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
+    PARTIALLY_PAID_STATUS = "partially-paid"
     ORDERS_SIZE = ENV["ORDERS_SIZE"] || 2700
     SYNC_VARIANTS_JOB = Woo::PullVariantsJob.new
 
@@ -50,6 +51,7 @@ module Woo
 
               sale_item.assign_attributes({
                 price: order_product[:price],
+                expected_revenue: order_product[:expected_revenue],
                 product:,
                 qty: order_product[:qty],
                 sale:,
@@ -63,6 +65,8 @@ module Woo
               sale_item.upsert_woo_info!(store_id: order_product[:sale_item_woo_id], pull_time: pulled_at) if order_product[:sale_item_woo_id].present?
             end
           end
+
+          sale.allocate_revenue_to_items!
         end
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -96,9 +100,10 @@ module Woo
           shipping_total: order[:shipping_total],
           status: order[:status],
           total: order[:total],
-          woo_created_at: DateTime.parse(order[:date_created]),
+          woo_created_at: parse_woo_datetime(order[:date_created]),
           woo_id: order[:id],
-          woo_updated_at: DateTime.parse(order[:date_modified])
+          woo_updated_at: parse_woo_datetime(order[:date_modified]),
+          **payment_attributes(order)
         },
         addresses: {
           shipping:,
@@ -115,12 +120,43 @@ module Woo
           {
             sale_item_woo_id: line_item[:id],
             price: line_item[:price].to_i + line_item[:total_tax].to_i,
+            expected_revenue: (line_item[:total].to_d + line_item[:total_tax].to_d).to_s("F"),
             product_woo_id: line_item[:product_id],
             qty: line_item[:quantity],
             variant: parse_variant(line_item)
           }.compact
         }
+      }.compact
+    end
+
+    def payment_attributes(order)
+      total = order[:total]
+      refunded = order[:refunds].to_a.sum(0.to_d) { |refund| refund[:total].to_d.abs }
+
+      {
+        expected_revenue: total,
+        **payment_split(order),
+        refunded_revenue: refunded.to_s("F"),
+        payment_gateway_names: [order[:payment_method_title]].compact_blank
       }
+    end
+
+    def payment_split(order)
+      return {received_revenue: nil, outstanding_revenue: nil} if order[:status] == PARTIALLY_PAID_STATUS
+
+      paid = order[:date_paid].present?
+      total = order[:total]
+
+      {
+        received_revenue: paid ? total : "0",
+        outstanding_revenue: paid ? "0" : total
+      }
+    end
+
+    def parse_woo_datetime(value)
+      return if value.blank?
+
+      DateTime.parse(value).iso8601
     end
 
     def parse_variant(line_item)

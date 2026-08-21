@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 export type PurchaseItemRecord = {
@@ -9,7 +10,7 @@ export type PurchaseItemRecord = {
   purchase_title: string;
   product_path: string | null;
   product_title: string;
-  variant_title: string;
+  variant_title: string | null;
   warehouse_name: string;
   warehouse_path: string;
   sale_path: string | null;
@@ -76,9 +77,7 @@ export default function IndexTable({ purchaseItems }: IndexTableProps) {
                 <Link href={purchaseItem.sale_path} onClick={stopRowNavigation} prefetch>
                   {purchaseItem.sale_title}
                 </Link>
-              ) : (
-                "-"
-              )}
+              ) : null}
               {purchaseItem.customer_email && (
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   {purchaseItem.customer_email}
@@ -105,5 +104,5 @@ export default function IndexTable({ purchaseItems }: IndexTableProps) {
 }
 
 function hasVariantTitle(purchaseItem: PurchaseItemRecord) {
-  return Boolean(purchaseItem.variant_title && purchaseItem.variant_title !== "-");
+  return Boolean(purchaseItem.variant_title);
 }

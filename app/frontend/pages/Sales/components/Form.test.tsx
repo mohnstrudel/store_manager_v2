@@ -1,13 +1,15 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 // oxlint-disable-next-line import/no-unassigned-import
 import "@/components/SmartSelect";
-import Form from "./Form";
+
 import { makeSaleForm, makeSaleFormOptions, makeSaleItemForm } from "../test/factories";
 import type { SaleItemFormRecord } from "../types";
+import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));

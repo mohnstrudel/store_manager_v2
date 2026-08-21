@@ -1,6 +1,6 @@
 import type { MediaFormData, MediaRecord } from "@/types/media";
-import type { PaymentProgress } from "@/types/payment";
 import type { PaginationMeta } from "@/types/pagination";
+import type { PaymentProgress } from "@/types/payment";
 import type { WarehouseOption } from "@/types/warehouse";
 
 export type WarehouseShowRecord = {

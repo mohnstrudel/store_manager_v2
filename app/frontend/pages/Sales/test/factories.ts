@@ -1,3 +1,5 @@
+import type { PaymentProgress } from "@/types/payment";
+
 import type {
   SaleAddressFormRecord,
   SaleAddressRecord,
@@ -8,6 +10,9 @@ import type {
   SaleIndexRecord,
   SaleIndexSaleItemRecord,
   SaleItemFormRecord,
+  SaleItemProfitabilityRecord,
+  SalePaymentRecord,
+  SaleProfitabilityRecord,
   SalePurchaseMovementRecord,
   SaleShowPurchaseItemRecord,
   SaleShowRecord,
@@ -40,6 +45,17 @@ export function makeSaleIndexSaleItem(
   };
 }
 
+export function makeSalePayment(overrides: Partial<SalePaymentRecord> = {}): SalePaymentRecord {
+  return {
+    progress: 71,
+    paid: "750",
+    price: "1060",
+    debt: "310",
+    payment_overdue: false,
+    ...overrides,
+  };
+}
+
 export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): SaleIndexRecord {
   return {
     id: 1,
@@ -47,7 +63,6 @@ export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): S
     customer_name: "Dale Cooper",
     customer_email: "dale@fbi.gov",
     sale_items: [makeSaleIndexSaleItem()],
-    total: "1060",
     created_at: "20. May '26 10:00",
     updated_at: "20. May '26 11:00",
     active: true,
@@ -56,6 +71,10 @@ export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): S
     shopify_id: "gid://shopify/Order/7383283466569",
     shopify_id_short: "7383283466569",
     woo_store_id: "WOO-1",
+    payment: makeSalePayment(),
+    payment_plans: [],
+    partially_paid: false,
+    is_follow_up_payment: false,
     ...overrides,
   };
 }
@@ -137,17 +156,58 @@ export function makeSaleShowPurchaseItem(
   };
 }
 
+export function makeSaleItemProfitability(
+  overrides: Partial<SaleItemProfitabilityRecord> = {},
+): SaleItemProfitabilityRecord {
+  return {
+    expected_revenue: "1060",
+    purchase_cost: "1050",
+    expected_final_profit: "-96",
+    ...overrides,
+  };
+}
+
+export function makeSaleProfitability(
+  overrides: Partial<SaleProfitabilityRecord> = {},
+): SaleProfitabilityRecord {
+  return {
+    scope: "sale",
+    gross_revenue: "300",
+    item_price_total: "100",
+    purchase_expenses: "20",
+    purchase_shipping_cost: "15",
+    direct_expenses: "5",
+    business_expenses: "30",
+    net_profit: "150",
+    collected_revenue: "100",
+    purchase_paid: "60",
+    cash_position: "40",
+    ...overrides,
+  };
+}
+
+export function makeSaleItemPayment(overrides: Partial<PaymentProgress> = {}): PaymentProgress {
+  return {
+    progress: 71,
+    paid: "750",
+    price: "1060",
+    debt: "310",
+    ...overrides,
+  };
+}
+
 export function makeSaleShowSaleItem(
   overrides: Partial<SaleShowSaleItemRecord> = {},
 ): SaleShowSaleItemRecord {
   return {
     id: 11,
     title: "Pikachu Figure",
-    price: "1060",
     qty: 2,
     product_path: "/products/pikachu",
     product_thumb_url: null,
     purchase_items: [makeSaleShowPurchaseItem()],
+    payment: makeSaleItemPayment(),
+    profitability: null,
     ...overrides,
   };
 }
@@ -190,6 +250,11 @@ export function makeSaleShow(overrides: Partial<SaleShowRecord> = {}): SaleShowR
       postcode: "75001",
     }),
     sale_items: [makeSaleShowSaleItem()],
+    payment: makeSalePayment(),
+    payment_plans: [],
+    partially_paid: false,
+    profitability: null,
+    is_follow_up_payment: false,
     ...overrides,
   };
 }
@@ -198,9 +263,11 @@ export function makeSaleItemForm(overrides: Partial<SaleItemFormRecord> = {}): S
   return {
     id: null,
     product_id: null,
+    variant_id: null,
     qty: "",
     price: "",
     _destroy: false,
+    variant_availability: null,
     ...overrides,
   };
 }

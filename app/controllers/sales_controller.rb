@@ -27,7 +27,7 @@ class SalesController < ApplicationController
   # GET /sales/1
   def show
     render inertia: "Sales/Show", props: {
-      sale: helpers.sale_showing_props(@sale)
+      sale: helpers.sale_showing_props(@sale, can_view_profitability: policy(@sale).view_profitability?)
     }
   end
 
@@ -55,7 +55,7 @@ class SalesController < ApplicationController
     )
     redirect_to @sale, notice: "Sale was successfully created"
   rescue ActiveRecord::RecordInvalid => e
-    append_sale_item_errors(e.record)
+    append_sale_item_errors(e.record, payload:)
     redirect_to new_sale_url, inertia: inertia_errors(@sale.errors)
   end
 
@@ -71,7 +71,7 @@ class SalesController < ApplicationController
     )
     redirect_to @sale, notice: "Sale was successfully updated"
   rescue ActiveRecord::RecordInvalid => e
-    append_sale_item_errors(e.record)
+    append_sale_item_errors(e.record, payload:)
     redirect_to edit_sale_url(@sale), inertia: inertia_errors(@sale.errors)
   end
 
@@ -91,11 +91,16 @@ class SalesController < ApplicationController
     @sale = Sale.for_edit.friendly.find(params.expect(:id))
   end
 
-  def append_sale_item_errors(record)
+  def append_sale_item_errors(record, payload:)
     return unless record.is_a?(SaleItem)
 
-    record.errors.full_messages.each do |message|
-      @sale.errors.add(:base, "Sale item #{message}")
+    submitted_items = payload.rebuild_submitted_sale_items(sale: @sale, invalid_record: record)
+    row_index = submitted_items.index(record)
+    return if row_index.nil?
+
+    record.errors.each do |error|
+      attribute = (error.attribute == :base) ? "base" : error.attribute
+      @sale.errors.add("sale_items.#{row_index}.#{attribute}", error.message)
     end
   end
 end

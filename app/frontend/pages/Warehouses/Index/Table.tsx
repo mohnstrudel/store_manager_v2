@@ -1,9 +1,10 @@
 import { Link } from "@inertiajs/react";
 import type { ChangeEvent } from "react";
-import TipMark from "@/components/TipMark";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import PaymentProgressBar from "@/components/PaymentProgressBar";
+import TipMark from "@/components/TipMark";
 import type { PaymentProgress } from "@/types/payment";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 export type WarehouseRecord = {
   id: number;
@@ -64,7 +65,7 @@ export default function IndexTable({ onPositionChange, warehouses }: IndexTableP
             <td>
               <strong>{warehouse.name}</strong>
               {warehouse.is_default && (
-                <TipMark>
+                <TipMark tone="orange">
                   New purchases go to this warehouse by default. Change it on the edit page.
                 </TipMark>
               )}
@@ -74,7 +75,7 @@ export default function IndexTable({ onPositionChange, warehouses }: IndexTableP
             <td>{warehouse.purchase_items_count}</td>
             <td className={warehouse.has_purchase_items ? "w-full max-w-45 lg:w-45" : ""}>
               {warehouse.has_purchase_items ? (
-                <PaymentProgressBar onlyDebt progress={warehouse.payment_progress} />
+                <PaymentProgressBar caption="debtOnly" progress={warehouse.payment_progress} />
               ) : null}
             </td>
             <td className="table_actions text-right">

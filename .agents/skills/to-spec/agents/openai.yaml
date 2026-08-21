@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Spec"
+  short_description: "Record the approved plan as a local spec"
+  default_prompt: "Use $to-spec to serialize the approved plan into a local spec."

@@ -1,5 +1,7 @@
 import { Link } from "@inertiajs/react";
+
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import { ShippingCompanyRecord } from "../types";
 
 type TableProps = {
@@ -46,7 +48,7 @@ export default function Table({ shippingCompanies }: TableProps) {
             <td>{shippingCompany.created_at}</td>
             <td>{shippingCompany.updated_at}</td>
             <td className="table_actions text-right">
-              <div className="flex flex-wrap justify-end gap-3">
+              <div className="flex flex-wrap justify-end gap-2">
                 <Link
                   href={`/shipping_companies/${shippingCompany.id}`}
                   onClick={stopRowNavigation}

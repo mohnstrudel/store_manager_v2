@@ -20,13 +20,15 @@ class Sale::Shopify::Parser
     parse_store_info
     parse_customer
     parse_sale_items
+    parse_payment_plan
 
     {
       sale: @sale,
       addresses: @addresses,
       store_info: @store_info,
       sale_items: @sale_items,
-      customer: @customer
+      customer: @customer,
+      payment_plan: @payment_plan
     }
   end
 
@@ -48,8 +50,105 @@ class Sale::Shopify::Parser
       shipping_total: money_amount(@order["totalShippingPriceSet"]),
       shopify_created_at: parse_datetime(@order["createdAt"]),
       status: derive_status,
-      total: money_amount(@order["totalPriceSet"])
+      total: money_amount(@order["totalPriceSet"]),
+      **payment_attributes
     }
+  end
+
+  def payment_attributes
+    {
+      expected_revenue: money_amount(@order["currentTotalPriceSet"]) || money_amount(@order["totalPriceSet"]),
+      received_revenue: money_amount(@order["totalReceivedSet"]),
+      outstanding_revenue: money_amount(@order["totalOutstandingSet"]),
+      refunded_revenue: money_amount(@order["totalRefundedSet"]),
+      net_payment: money_amount(@order["netPaymentSet"]),
+      payment_gateway_names: Array(@order["paymentGatewayNames"]),
+      payment_terms_name: @order.dig("paymentTerms", "paymentTermsName"),
+      payment_terms_type: @order.dig("paymentTerms", "paymentTermsType"),
+      payment_due: next_payment_due,
+      payment_overdue: @order.dig("paymentTerms", "overdue") || false
+    }
+  end
+
+  def next_payment_due
+    schedules = payment_schedules
+    return nil if schedules.blank?
+
+    schedules
+      .select { |schedule| schedule["completedAt"].nil? && schedule["dueAt"].present? }
+      .filter_map { |schedule| parse_datetime(schedule["dueAt"]) }
+      .min
+  end
+
+  def parse_payment_plan
+    terms = @order["paymentTerms"]
+    schedules = payment_schedules
+    @payment_plan = nil
+    return if terms.blank? || terms["id"].blank? || schedules.blank?
+
+    next_due_at = next_payment_due
+    total = projected_total(schedules)
+    @payment_plan = {
+      attributes: {
+        provider: "shopify",
+        external_id: terms["id"],
+        external_origin_order_id: @order["id"],
+        kind: "payment_terms",
+        status: payment_plan_status(terms, schedules),
+        expected_parts: schedules.size,
+        currency: payment_plan_currency(schedules),
+        projected_total: total,
+        deposit_percent: deposit_percent(schedules, total),
+        next_due_at:
+      },
+      parts: schedules.each_with_index.map { |schedule, index|
+        {
+          provider_part_id: schedule["id"],
+          sequence: index + 1,
+          external_order_id: @order["id"],
+          amount: schedule.dig("totalBalance", "amount"),
+          currency: schedule.dig("totalBalance", "currencyCode") ||
+            schedule.dig("balanceDue", "currencyCode"),
+          due_at: parse_datetime(schedule["dueAt"]),
+          provider_completed_at: parse_datetime(schedule["completedAt"])
+        }
+      }
+    }
+  end
+
+  def payment_schedules
+    Array(@order.dig("paymentTerms", "paymentSchedules", "nodes"))
+  end
+
+  def projected_total(schedules)
+    schedules.sum { |schedule| schedule_total_balance(schedule) }
+  end
+
+  def deposit_percent(schedules, total)
+    return if schedules.size <= 1 || total.zero?
+
+    amounts = schedules.map { |schedule| schedule_total_balance(schedule) }
+    return if amounts.uniq.size <= 1
+
+    (amounts.first / total * 100).round(2)
+  end
+
+  def schedule_total_balance(schedule)
+    schedule.dig("totalBalance", "amount").to_d
+  end
+
+  def payment_plan_status(terms, schedules)
+    return "completed" if schedules.all? { |schedule| schedule["completedAt"].present? }
+    return "overdue" if terms["overdue"]
+
+    "active"
+  end
+
+  def payment_plan_currency(schedules)
+    schedules.filter_map { |schedule|
+      schedule.dig("totalBalance", "currencyCode") ||
+        schedule.dig("balanceDue", "currencyCode")
+    }.first
   end
 
   def parse_addresses
@@ -121,6 +220,7 @@ class Sale::Shopify::Parser
 
         {
           price: money_amount(line_item["originalTotalSet"]),
+          expected_revenue: money_amount(line_item["discountedTotalSet"]) || money_amount(line_item["originalTotalSet"]),
           qty: line_item["quantity"],
           store_id: line_item["id"],
           variant_title: line_item["variantTitle"],

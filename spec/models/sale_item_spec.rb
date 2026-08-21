@@ -5,11 +5,16 @@
 # Table name: sale_items
 #
 #  id                   :bigint           not null, primary key
+#  expected_revenue     :decimal(8, 2)
+#  outstanding_revenue  :decimal(8, 2)
 #  price                :decimal(8, 2)
 #  purchase_items_count :integer          default(0), not null
 #  qty                  :integer
+#  received_revenue     :decimal(8, 2)
+#  refunded_revenue     :decimal(8, 2)
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  origin_sale_item_id  :bigint
 #  product_id           :bigint           not null
 #  sale_id              :bigint           not null
 #  shopify_id           :string

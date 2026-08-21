@@ -1,5 +1,7 @@
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+import Field from "@/components/Field";
 import ImageGallery from "@/components/ImageGallery";
+
 import { type ProductShowRecord, type TimestampColumn } from "../types";
 
 type ProductOverviewProps = {
@@ -18,83 +20,73 @@ export default function ProductOverview({ product }: ProductOverviewProps) {
 
 function ProductDetailsCard({ product }: ProductOverviewProps) {
   return (
-    <div className="card grow">
-      <h5>Title</h5>
-      <p>{product.title}</p>
-      <h5>Franchise</h5>
-      <p>{product.franchise.title}</p>
-      <h5>Version</h5>
-      <p>{formatList(product.versions.map((version) => version.value))}</p>
-      <h5>Brand</h5>
-      <p>{formatList(product.brands.map((brand) => brand.title))}</p>
-      <h5>Size</h5>
-      <p>{formatList(product.sizes.map((size) => size.value))}</p>
-      <h5>Shape</h5>
-      <p>{product.shape}</p>
-      <h5>Color</h5>
-      <p>{formatList(product.colors.map((color) => color.value))}</p>
-    </div>
+    <dl className="card grow">
+      <Field label="Title" value={product.title} />
+      <Field label="Franchise" value={product.franchise.title} />
+      <Field label="Version" value={formatList(product.versions.map((version) => version.value))} />
+      <Field label="Brand" value={formatList(product.brands.map((brand) => brand.title))} />
+      <Field label="Size" value={formatList(product.sizes.map((size) => size.value))} />
+      <Field label="Shape" value={product.shape} />
+      <Field label="Color" value={formatList(product.colors.map((color) => color.value))} />
+    </dl>
   );
 }
 
 function StoreIdentifiersCard({ product }: ProductOverviewProps) {
   return (
-    <div className="card w-min">
-      <h5>ID</h5>
-      <p>{product.id}</p>
-      <h5>Created&nbsp;At</h5>
-      <TimestampColumns columns={product.created_at_columns} />
-      <h5>Updated&nbsp;At</h5>
-      <TimestampColumns columns={product.updated_at_columns} />
-      <h5>Woo ID</h5>
+    <dl className="card w-min">
+      <Field label="ID" value={product.id} />
+      <dt>Created&nbsp;At</dt>
+      <dd>
+        <TimestampColumns columns={product.created_at_columns} />
+      </dd>
+      <dt>Updated&nbsp;At</dt>
+      <dd>
+        <TimestampColumns columns={product.updated_at_columns} />
+      </dd>
       <WooIdentifier product={product} />
-      <h5>Shopify ID</h5>
       <ShopifyIdentifier product={product} />
       <ShopifyTags product={product} />
-    </div>
+    </dl>
   );
 }
 
 function WooIdentifier({ product }: ProductOverviewProps) {
   const wooInfo = product.woo_info;
 
-  if (!wooInfo?.store_id) return <p>-</p>;
-
   return (
-    <>
-      <p>
-        {wooInfo.product_url ? (
-          <a className="link" href={wooInfo.product_url} rel="noopener noreferrer" target="_blank">
-            {wooInfo.store_id}
-          </a>
-        ) : (
-          wooInfo.store_id
-        )}
-      </p>
-      <CopyToClipboardButton className="text-xs btn_xs" text={wooInfo.store_id} />
-    </>
+    <Field label="Woo ID" value={wooInfo?.store_id}>
+      {wooInfo?.product_url ? (
+        <a className="link" href={wooInfo.product_url} rel="noopener noreferrer" target="_blank">
+          {wooInfo.store_id}
+        </a>
+      ) : (
+        wooInfo?.store_id
+      )}
+      {wooInfo?.store_id && (
+        <CopyToClipboardButton className="text-xs btn_xs" text={wooInfo.store_id} />
+      )}
+    </Field>
   );
 }
 
 function ShopifyIdentifier({ product }: ProductOverviewProps) {
   const shopifyInfo = product.shopify_info;
 
-  if (!shopifyInfo?.id_short) return <p>-</p>;
-
   return (
-    <>
-      <p className="flex gap-2">
-        <a
-          className="link"
-          href={shopifyInfo.product_url ?? "#"}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          {shopifyInfo.id_short}
-        </a>
-      </p>
-      <CopyToClipboardButton className="text-xs btn_xs" text={shopifyInfo.id_short} />
-    </>
+    <Field className="flex gap-2" label="Shopify ID" value={shopifyInfo?.id_short}>
+      <a
+        className="link"
+        href={shopifyInfo?.product_url ?? "#"}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        {shopifyInfo?.id_short}
+      </a>
+      {shopifyInfo?.id_short && (
+        <CopyToClipboardButton className="text-xs btn_xs" text={shopifyInfo.id_short} />
+      )}
+    </Field>
   );
 }
 
@@ -102,19 +94,20 @@ function ShopifyTags({ product }: ProductOverviewProps) {
   if (!product.shopify_info || product.shopify_info.tag_list.length === 0) return null;
 
   return (
-    <>
-      <h5>Tags</h5>
-      <p className="flex flex-wrap gap-1 gap-y-2">
-        {product.shopify_info.tag_list.map((tag) => (
-          <span
-            className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200/50 dark:hover:bg-gray-800 rounded py-0.5 px-2"
-            key={tag}
-          >
-            {tag}
-          </span>
-        ))}
-      </p>
-    </>
+    <Field
+      className="flex flex-wrap gap-1 gap-y-2"
+      label="Tags"
+      value={product.shopify_info.tag_list.length}
+    >
+      {product.shopify_info.tag_list.map((tag) => (
+        <span
+          className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200/50 dark:hover:bg-gray-800 rounded py-0.5 px-2"
+          key={tag}
+        >
+          {tag}
+        </span>
+      ))}
+    </Field>
   );
 }
 
@@ -136,5 +129,5 @@ function TimestampColumns({ columns }: { columns: TimestampColumn[] }) {
 function formatList(values: string[]) {
   const presentValues = values.filter(Boolean);
 
-  return presentValues.length > 0 ? presentValues.join(", ") : "-";
+  return presentValues.length > 0 ? presentValues.join(", ") : null;
 }

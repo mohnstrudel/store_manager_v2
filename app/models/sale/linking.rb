@@ -4,39 +4,30 @@ module Sale::Linking
   extend ActiveSupport::Concern
 
   def link_purchase_items!
-    purchase_item_ids = link_with_purchase_items
-    PurchaseItem.notify_order_status!(purchase_item_ids:)
+    link_with_purchase_items
   end
 
   def unlinked_sale_items?
-    total_sold = sale_items.sum(:qty)
+    total_sold = sale_items.non_installment.sum(:qty)
     total_purchased = sale_items.sum { |sale_item| sale_item.purchase_items.size }
 
     return if total_sold == total_purchased
 
-    product_ids = sale_items.pluck(:product_id)
+    identities = sale_items.non_installment.pluck(:product_id, :variant_id)
 
-    PurchaseItem.available_for_product_linking(product_ids).exists?
+    identities.any? do |product_id, variant_id|
+      PurchaseItem
+        .available_for_product_linking(product_id)
+        .where(variant_id:)
+        .exists?
+    end
   end
 
   def link_with_purchase_items
     return unless active? || completed?
 
-    sale_items.linkable.map do |sale_item|
-      already_linked_size = sale_item.purchase_items.count
-      remaining_size = sale_item.qty - already_linked_size
-
-      next if remaining_size <= 0
-
-      linkable_purchase_items = PurchaseItem
-        .available_for_product_linking(sale_item.product_id)
-        .limit(remaining_size)
-
-      linked_purchase_items_ids = linkable_purchase_items.pluck(:id)
-
-      linkable_purchase_items.each { it.link_to_sale_item!(sale_item.id) }
-
-      linked_purchase_items_ids
-    end.compact.flatten
+    PurchaseItem.link_available_to_sale_items!(
+      sale_items: sale_items.linkable.order(:id).to_a
+    )
   end
 end

@@ -34,6 +34,10 @@ module Purchase::Financials
     item_price * amount + shipping_total
   end
 
+  def expenses_total
+    purchase_items.sum(:expenses)
+  end
+
   def date
     purchase_date || created_at
   end

@@ -1,4 +1,6 @@
+import Field from "@/components/Field";
 import ImageGallery from "@/components/ImageGallery";
+
 import type { WarehouseShowRecord } from "../types";
 
 export function WarehouseDetails({ warehouse }: { warehouse: WarehouseShowRecord }) {
@@ -13,47 +15,33 @@ export function WarehouseDetails({ warehouse }: { warehouse: WarehouseShowRecord
 
 function WarehouseIdentityCard({ warehouse }: { warehouse: WarehouseShowRecord }) {
   return (
-    <div className="card grow">
-      <h5>Name</h5>
-      <p>{warehouse.name}</p>
-      <h5>English External Name (for Clients)</h5>
-      <p>{warehouse.external_name_en}</p>
-      <h5>English Description (for Clients)</h5>
-      <p>{warehouse.desc_en}</p>
-      <h5>German External Name (for Clients)</h5>
-      <p>{warehouse.external_name_de}</p>
-      <h5>German Description (for Clients)</h5>
-      <p>{warehouse.desc_de}</p>
-    </div>
+    <dl className="card grow">
+      <Field label="Name" value={warehouse.name} />
+      <Field label="English External Name (for Clients)" value={warehouse.external_name_en} />
+      <Field label="English Description (for Clients)" value={warehouse.desc_en} />
+      <Field label="German External Name (for Clients)" value={warehouse.external_name_de} />
+      <Field label="German Description (for Clients)" value={warehouse.desc_de} />
+    </dl>
   );
 }
 
 function WarehouseLogisticsCard({ warehouse }: { warehouse: WarehouseShowRecord }) {
   return (
-    <div className="card grow">
-      <h5>CBM</h5>
-      <p>{warehouse.cbm}</p>
-      <h5>Container Tracking Number</h5>
-      <p>{warehouse.container_tracking_number}</p>
-      <h5>Courier Tracking URL</h5>
-      <p>
-        {warehouse.courier_tracking_url ? (
-          <a
-            className="link"
-            href={warehouse.courier_tracking_url}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {warehouse.courier_tracking_url}
-          </a>
-        ) : (
-          "-"
-        )}
-      </p>
-      <h5>Is Default?</h5>
-      <p>{warehouse.is_default ? "Yes" : "No"}</p>
-      <h5>Created At</h5>
-      <p>{warehouse.created_at}</p>
-    </div>
+    <dl className="card grow">
+      <Field label="CBM" value={warehouse.cbm} />
+      <Field label="Container Tracking Number" value={warehouse.container_tracking_number} />
+      <Field label="Courier Tracking URL" value={warehouse.courier_tracking_url}>
+        <a
+          className="link"
+          href={warehouse.courier_tracking_url}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {warehouse.courier_tracking_url}
+        </a>
+      </Field>
+      <Field label="Is Default?" value={warehouse.is_default ? "Yes" : "No"} />
+      <Field label="Created At" value={warehouse.created_at} />
+    </dl>
   );
 }

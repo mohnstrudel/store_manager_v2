@@ -33,6 +33,12 @@ RSpec.describe "Purchases" do
       purchase = create(:purchase)
       purchase_item = create(:purchase_item, purchase:, warehouse:, shipping_company:)
       payment = create(:payment, purchase:, value: 12)
+      item_expense = create(
+        :purchase_expense,
+        purchase_item:,
+        description: "Repacking",
+        amount: 2
+      )
 
       get purchase_path(purchase)
 
@@ -48,6 +54,35 @@ RSpec.describe "Purchases" do
         name: "Skyline"
       )
       expect(inertia.props[:payments].first[:id]).to eq(payment.id)
+      expect(inertia.props).not_to have_key(:purchase_expenses)
+      expect(inertia.props).not_to have_key(:new_purchase_expense)
+      expect(inertia.props[:purchase_items].first[:purchase_expenses]).to include(a_hash_including(
+        "id" => item_expense.id,
+        "description" => "Repacking",
+        "amount" => "2"
+      ))
+      expect(purchase_props[:expenses_total]).to eq("2")
+    end
+
+    it "has no whole-purchase expense route" do
+      purchase = create(:purchase)
+
+      expect {
+        Rails.application.routes.recognize_path("/purchases/#{purchase.to_param}/expenses", method: :post)
+      }.to raise_error(ActionController::RoutingError)
+    end
+
+    it "uses the purchase detail read shapes for payment and item ordering" do
+      purchase = create(:purchase)
+      older_payment = create(:payment, purchase:, payment_date: Date.new(2026, 5, 1))
+      newer_payment = create(:payment, purchase:, payment_date: Date.new(2026, 6, 1))
+      older_item = create(:purchase_item, purchase:, updated_at: 2.days.ago)
+      newer_item = create(:purchase_item, purchase:, updated_at: 1.day.ago)
+
+      get purchase_path(purchase)
+
+      expect(inertia.props[:payments].pluck(:id)).to eq([older_payment.id, newer_payment.id])
+      expect(inertia.props[:purchase_items].pluck(:id)).to eq([newer_item.id, older_item.id])
     end
   end
 
@@ -74,10 +109,16 @@ RSpec.describe "Purchases" do
         warehouse_id: warehouse.id,
         payment_value: ""
       )
-      expect(inertia.props[:purchase][:variant_options]).to include(
-        include(value: variant.id, label: variant.title)
+      expect(inertia.props[:purchase][:variant_availability]).to eq(
+        "mode" => "select",
+        "variants" => [
+          {
+            "value" => variant.id,
+            "label" => variant.title,
+            "base_model" => false
+          }
+        ]
       )
-      expect(inertia.props[:options]).to include(product_variants_path: product_variants_path)
       expect(inertia.props[:options][:products].pluck(:value)).to include(product.id)
       expect(inertia.props[:options][:suppliers].pluck(:value)).to include(supplier.id)
       expect(inertia.props[:options][:warehouses].pluck(:value)).to include(warehouse.id)
@@ -102,15 +143,21 @@ RSpec.describe "Purchases" do
         variant_id: variant.id,
         supplier_id: purchase.supplier_id,
         order_reference: purchase.order_reference,
-        item_price: purchase.item_price.to_s,
+        item_price: format("%.2f", purchase.item_price),
         amount: purchase.amount.to_s,
         warehouse_id: warehouse.id,
         payment_value: ""
       )
-      expect(inertia.props[:purchase][:variant_options]).to include(
-        include(value: variant.id, label: variant.title)
+      expect(inertia.props[:purchase][:variant_availability]).to eq(
+        "mode" => "select",
+        "variants" => [
+          {
+            "value" => variant.id,
+            "label" => variant.title,
+            "base_model" => false
+          }
+        ]
       )
-      expect(inertia.props[:options][:product_variants_path]).to eq(product_variants_path)
     end
   end
 
@@ -142,6 +189,24 @@ RSpec.describe "Purchases" do
       expect(response).to redirect_to(purchase_path(purchase))
       expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
       expect(purchase.payments.first.value).to eq(BigDecimal(30))
+    end
+
+    it "persists the explicitly selected real Variant" do
+      product = create(:product)
+      variant = create(:variant, product:, size: create(:size))
+
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: create(:supplier).id,
+          product_id: product.id,
+          variant_id: variant.id,
+          item_price: "15.00",
+          amount: "1"
+        }
+      }
+
+      expect(response).to redirect_to(purchase_path(Purchase.last))
+      expect(Purchase.last.variant).to eq(variant)
     end
 
     it "redirects to the new page with errors when invalid" do

@@ -1,7 +1,8 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
+
 import Show from "./Show";
 import {
   makeNewPayment,
@@ -11,7 +12,6 @@ import {
   makeShippingCompanyOption,
   makeWarehouseOption,
 } from "./test/factories";
-
 import type {
   NewPaymentRecord,
   PaymentRecord,
@@ -84,6 +84,7 @@ describe("Purchases/Show", () => {
     );
     expect(screen.getByTestId("purchase-details")).toHaveTextContent("Details for Pikachu Figure");
     expect(screen.getByTestId("payments")).toHaveTextContent("Payments: 1, new: 10.00");
+    expect(screen.queryByRole("button", { name: "Add expense" })).not.toBeInTheDocument();
   });
 
   it("destroys the purchase after confirmation", async () => {

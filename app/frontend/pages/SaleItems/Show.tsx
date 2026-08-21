@@ -1,9 +1,17 @@
-import { useCallback, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
+import { useCallback, type MouseEvent } from "react";
+
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
+import MetricLabel from "@/components/profitability/MetricLabel";
+import {
+  financialMetricHints,
+  metricScopeNotes,
+  withScope,
+} from "@/components/profitability/metricLabels";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
+
 import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
 
 type ShowProps = {
@@ -78,7 +86,17 @@ export default function Show({
                   <th>Warehouse</th>
                   <th>Length x Width x Height, cm</th>
                   <th className="text-right">Kg</th>
-                  <th className="text-right">Expenses</th>
+                  <th className="text-right">
+                    <MetricLabel
+                      anchor="directExpenses"
+                      hint={withScope(
+                        financialMetricHints.directExpenses,
+                        metricScopeNotes.saleItem,
+                      )}
+                    >
+                      Direct expenses
+                    </MetricLabel>
+                  </th>
                   <th className="text-right">Shipping</th>
                   <th className="text-right">Actions</th>
                 </tr>
@@ -105,16 +123,18 @@ export default function Show({
                     <td className="font-mono text-right">{purchaseItem.expenses}</td>
                     <td className="font-mono text-right">{purchaseItem.shipping_cost}</td>
                     <td className="table_actions">
-                      <PurchaseItemUnlinkButton purchaseItem={purchaseItem} />
-                      <Link
-                        className="no_events"
-                        href={purchaseItem.edit_path}
-                        onClick={stopRowNavigation}
-                        prefetch
-                      >
-                        <i className="icn">✏</i>
-                        Edit
-                      </Link>
+                      <div className="flex justify-end gap-2">
+                        <PurchaseItemUnlinkButton purchaseItem={purchaseItem} />
+                        <Link
+                          className="no_events"
+                          href={purchaseItem.edit_path}
+                          onClick={stopRowNavigation}
+                          prefetch
+                        >
+                          <i className="icn">✏</i>
+                          Edit
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

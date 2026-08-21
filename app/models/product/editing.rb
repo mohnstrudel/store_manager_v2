@@ -3,12 +3,19 @@
 module Product::Editing
   extend ActiveSupport::Concern
 
-  def save_editing!(product_attributes:, variants_attributes:, store_infos_attributes:, purchase_attributes: {}, media_attributes: [])
+  def save_editing!(
+    product_attributes:,
+    variants_attributes:,
+    store_infos_attributes:,
+    purchase_attributes: {},
+    purchase_variant_client_key: nil,
+    media_attributes: []
+  )
     creating = new_record?
     self.initial_purchase = build_initial_purchase(purchase_attributes, creating)
 
     assign_product_attributes(product_attributes)
-    assign_collection_attributes(:variants, variants_attributes)
+    draft_variants = assign_collection_attributes(:variants, variants_attributes)
     assign_collection_attributes(:store_infos, store_infos_attributes)
     sync_variant_option_ids
     build_base_variant
@@ -26,8 +33,10 @@ module Product::Editing
       store_infos.each { |store_info| save_store_info(store_info) }
       variants.each { |variant| save_variant(variant) }
       update_media_from_form!(media_attributes)
-      initial_purchase&.product = self
-      initial_purchase&.save_editing!
+      save_initial_purchase!(
+        draft_variants:,
+        variant_client_key: purchase_variant_client_key
+      )
     end
   end
 
@@ -48,16 +57,21 @@ module Product::Editing
   end
 
   def assign_collection_attributes(association_name, attributes_list)
-    return if attributes_list.blank?
+    return {} if attributes_list.blank?
 
     existing_records = public_send(association_name).load_target.index_by { |record| record.id.to_s }
+    records_by_client_key = {}
 
     attributes_list.each do |attributes|
       next if destroy_flag?(attributes) && attributes[:id].blank?
 
       record = existing_records[attributes[:id].to_s] || build_associated_record(association_name)
       assign_editable_attributes(record, attributes, association_name)
+      client_key = attributes[:client_key].presence
+      records_by_client_key[client_key] = record if client_key
     end
+
+    records_by_client_key
   end
 
   def build_associated_record(association_name)
@@ -79,7 +93,7 @@ module Product::Editing
       return
     end
 
-    record.assign_attributes(attributes.except(:id, :destroy))
+    record.assign_attributes(attributes.except(:id, :client_key, :destroy))
   end
 
   def validate_variant_uniqueness
@@ -174,6 +188,32 @@ module Product::Editing
       errors.add("purchase.0.#{nested_attribute}", error.message)
     end
     errors.add(:initial_purchase, :invalid) if relevant_errors.any?
+  end
+
+  def save_initial_purchase!(draft_variants:, variant_client_key:)
+    return unless initial_purchase
+
+    variant = draft_variants[variant_client_key]
+    unless variant_client_key.present? && variant&.persisted? && !variant.should_be_removed?
+      message = variant_client_key.present? ? "is invalid" : "must be selected"
+      initial_purchase.errors.add(:variant_client_key, message)
+      errors.add("purchase.0.variant_client_key", message)
+      errors.add(:initial_purchase, :invalid)
+      raise ActiveRecord::RecordInvalid.new(self)
+    end
+
+    initial_purchase.product = self
+    initial_purchase.variant = variant
+    initial_purchase.save_editing!
+  rescue ActiveRecord::RecordInvalid => error
+    raise if error.record.equal?(self)
+
+    error.record.errors.each do |record_error|
+      nested_attribute = (record_error.attribute == :base) ? "base" : record_error.attribute
+      errors.add("purchase.0.#{nested_attribute}", record_error.message)
+    end
+    errors.add(:initial_purchase, :invalid)
+    raise ActiveRecord::RecordInvalid.new(self)
   end
 
   def active_editing_store_infos

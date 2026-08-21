@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
 module ProductHelper
-  def format_relation(relationship, key)
-    return "-" if relationship.blank?
-    relationship.pluck(key).join(", ")
-  end
-
   def product_timestamp_columns(record, attribute)
     columns = [{key: attribute.to_s.delete_suffix("_at"), label: "StoreMate", value: record.public_send(attribute)}]
 
@@ -119,7 +114,9 @@ module ProductHelper
     }
   end
 
-  def variant_props(variant, sales_sums, purchase_sums)
+  def variant_props(variant, sales_sums, purchase_sums, purchase_cost_totals, can_view_profitability: false, expense_fraction: ExpenseRate.combined_fraction)
+    purchase_totals = purchase_cost_totals[variant.id]
+
     {
       id: variant.id,
       title: variant.title,
@@ -131,8 +128,20 @@ module ProductHelper
       active_sales_count: sales_sums[variant.id].to_i,
       purchases_count: purchase_sums[variant.id].to_i,
       shopify_id_short: variant.shopify_info&.id_short,
-      woo_store_id: variant.woo_info&.store_id
+      woo_store_id: variant.woo_info&.store_id,
+      total_purchase_cost: can_view_profitability && purchase_totals ? format_money(purchase_totals[:cost]) : nil,
+      theoretical_profit: can_view_profitability ? variant_theoretical_profit(variant, purchase_totals, expense_fraction) : nil
     }
+  end
+
+  def variant_theoretical_profit(variant, purchase_totals, expense_fraction)
+    return nil if purchase_totals.nil? || purchase_totals[:units].zero?
+
+    selling_price = variant.selling_price.to_d
+    return nil if selling_price.zero?
+
+    average_landed_cost = purchase_totals[:cost] / purchase_totals[:units]
+    format_money(selling_price - average_landed_cost - (selling_price * expense_fraction))
   end
 
   def product_sale_item_props(sale_item, product)
@@ -189,6 +198,21 @@ module ProductHelper
     }
   end
 
+  def product_profitability_props(product)
+    expense_fraction = ExpenseRate.combined_fraction
+    summary = product.profitability(expense_fraction:)
+
+    {
+      potential_sales: format_money(summary[:potential_sales]),
+      expected_total_cost: format_money(summary[:expected_total_cost]),
+      business_expenses: format_money(summary[:business_expenses]),
+      expected_net_profit: format_money(summary[:expected_net_profit]),
+      collected_revenue: format_money(summary[:collected_revenue]),
+      purchase_paid: format_money(summary[:purchase_paid]),
+      cash_position: format_money(summary[:cash_position])
+    }
+  end
+
   def product_form_props(product)
     {
       product: form_product_props(product),
@@ -214,6 +238,7 @@ module ProductHelper
   def form_variant_props(variant)
     {
       id: variant.id,
+      base_model: variant.base_model?,
       sku: variant.sku,
       size_id: variant.size_id,
       version_id: variant.version_id,
@@ -224,6 +249,31 @@ module ProductHelper
       deactivated: variant.deactivated?,
       has_sales_or_purchases: variant.persisted? ? variant.has_sales_or_purchases? : false,
       _destroy: false
+    }
+  end
+
+  def variant_availability_props(product, current_variant: nil)
+    return nil unless product
+
+    assignable_variants = product.assignable_variants.includes(:color, :size, :version).to_a
+    mode = assignable_variants.any?(&:base_model?) ? "base" : "select"
+    variants = assignable_variants
+
+    if current_variant&.product_id == product.id && variants.none? { |variant| variant.id == current_variant.id }
+      variants = [*variants, current_variant]
+    end
+
+    {
+      mode:,
+      variants: variants.map { |variant| variant_assignment_option_props(variant) }
+    }
+  end
+
+  def variant_assignment_option_props(variant)
+    {
+      value: variant.id,
+      label: variant.title.to_s,
+      base_model: variant.base_model?
     }
   end
 
@@ -262,7 +312,8 @@ module ProductHelper
       item_price: "",
       amount: "",
       warehouse_id: default_warehouse&.id,
-      payment_value: ""
+      payment_value: "",
+      variant_client_key: nil
     }
   end
 

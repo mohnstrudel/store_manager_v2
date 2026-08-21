@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 

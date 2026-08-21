@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
-import Form from "./Form";
+
 import { makePurchaseItemFormOptions, makePurchaseItemFormRecord } from "../test/factories";
+import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 
@@ -85,7 +87,8 @@ describe("PurchaseItems/components/Form", () => {
       expect(screen.getByLabelText("Width, cm")).toHaveValue("20");
       expect(screen.getByLabelText("Height, cm")).toHaveValue("15");
       expect(screen.getByLabelText("Weight, kg")).toHaveValue("2.5");
-      expect(screen.getByLabelText("Expenses")).toHaveValue("100.00");
+      expect(screen.queryByLabelText("Expenses")).not.toBeInTheDocument();
+      expect(document.querySelector('[name="purchase_item[expenses]"]')).toBeNull();
       expect(screen.getByLabelText("Shipping")).toHaveValue("25.00");
       expect(screen.getByLabelText("Tracking Number")).toHaveValue("TRK-001");
       expect(screen.getByLabelText("Shipping Company")).toHaveValue("20");

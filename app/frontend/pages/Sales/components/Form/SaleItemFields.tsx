@@ -1,12 +1,16 @@
 import { useCallback, useMemo, useState } from "react";
+
 import DestroyCheckbox from "@/components/DestroyCheckbox";
 import FormInput from "@/components/FormInput";
-import NestedFormContainer from "@/components/NestedFormContainer";
 import FormSmartSelect from "@/components/FormSmartSelect";
+import NestedFormContainer from "@/components/NestedFormContainer";
+import VariantAssignmentSelect from "@/components/VariantAssignmentSelect";
 import { toSelectedOption } from "@/utils/selectOptions";
+
 import type { SaleItemFormRecord, SelectOption } from "../../types";
 
 type SaleItemFieldsProps = {
+  errors?: Record<string, string>;
   index: number;
   onRemove: (clientKey: string) => void;
   productOptions: SelectOption<number>[];
@@ -14,6 +18,7 @@ type SaleItemFieldsProps = {
 };
 
 export default function SaleItemFields({
+  errors = EMPTY_ERRORS,
   index,
   onRemove,
   productOptions,
@@ -21,6 +26,7 @@ export default function SaleItemFields({
 }: SaleItemFieldsProps) {
   const saleItemFields = useSaleItemFieldState(saleItem, productOptions);
   const prefix = `sale_items[${index}]`;
+  const errorPrefix = `sale_items.${index}`;
   const handleRemove = useCallback(
     () => onRemove(saleItem.clientKey),
     [onRemove, saleItem.clientKey],
@@ -49,12 +55,24 @@ export default function SaleItemFields({
 
       <FormSmartSelect
         defaultValue={toSelectedOption(productOptions, saleItemFields.productId)}
+        error={errors[`${errorPrefix}.product`] || errors[`${errorPrefix}.product_id`]}
         inputId={`sale_item_${index}_product_id`}
         isClearable
         label="Product"
         name={`${prefix}[product_id]`}
         onChange={saleItemFields.selectProduct}
         options={productOptions}
+      />
+
+      <VariantAssignmentSelect
+        error={errors[`${errorPrefix}.variant`] || errors[`${errorPrefix}.variant_id`]}
+        initialAvailability={saleItem.variant_availability}
+        initialProductId={saleItem.product_id}
+        inputId={`sale_item_${index}_variant_id`}
+        name={`${prefix}[variant_id]`}
+        onChange={saleItemFields.selectVariant}
+        productId={saleItemFields.productId}
+        value={saleItemFields.variantId}
       />
 
       <FormInput
@@ -82,12 +100,18 @@ function useSaleItemFieldState(
   productOptions: SelectOption<number>[],
 ) {
   const [productId, setProductId] = useState<number | null>(saleItem.product_id);
+  const [variantId, setVariantId] = useState<number | null>(saleItem.variant_id);
   const productLabel =
     productOptions.find((option) => option.value === productId)?.label ?? "New product";
-  const selectProduct = useCallback(
-    (option: SelectOption<number> | null) => setProductId(option?.value ?? null),
-    [],
-  );
+  const selectProduct = useCallback((option: SelectOption<number> | null) => {
+    setProductId(option?.value ?? null);
+    setVariantId(null);
+  }, []);
+  const selectVariant = useCallback((selectedVariantId: number | null) => {
+    setVariantId(selectedVariantId);
+  }, []);
 
-  return { productId, productLabel, selectProduct };
+  return { productId, productLabel, selectProduct, selectVariant, variantId };
 }
+
+const EMPTY_ERRORS: Record<string, string> = {};

@@ -45,4 +45,13 @@
   h4 {
     @apply text-lg;
   }
+
+  /* Disclosure widgets use the chevron component instead of the native marker */
+  summary {
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
 }

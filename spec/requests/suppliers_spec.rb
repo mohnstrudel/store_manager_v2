@@ -58,7 +58,7 @@ RSpec.describe "Suppliers" do
               path: purchase_path(purchase),
               purchased_ago: "less than a minute",
               title: product.full_title,
-              variant: ""
+              variant: "Base Model"
             }
           ],
           supplier: {

@@ -1,7 +1,8 @@
+import { router } from "@inertiajs/react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
+
 import Show from "./Show";
 import { makePurchaseItemShowRecord, makeWarehouseMovementRecord } from "./test/factories";
 
@@ -33,7 +34,7 @@ describe("PurchaseItems/Show", () => {
     expect(screen.getByRole("link", { name: "Product X" })).toHaveAttribute("href", "/products/5");
   });
 
-  it("renders warehouse movement history and shows a dash when a past warehouse link is unavailable", () => {
+  it("renders warehouse movement history and shows nothing when a past warehouse link is unavailable", () => {
     renderShow({
       warehouse_movements: [
         makeWarehouseMovementRecord(),
@@ -47,10 +48,12 @@ describe("PurchaseItems/Show", () => {
     });
 
     const movementGrid = screen.getByRole("grid");
+    const rows = within(movementGrid).getAllByRole("row");
+    const secondRow = rows[2];
 
     expect(within(movementGrid).getByText("Moved in")).toBeInTheDocument();
     expect(within(movementGrid).getByText("21 May 2026")).toBeInTheDocument();
-    expect(within(movementGrid).getByText("-")).toBeInTheDocument();
+    expect(within(secondRow).getAllByRole("cell")[1]).toHaveTextContent("");
   });
 
   it("hides optional sale links when the purchase item is not linked to a sale", () => {
@@ -58,6 +61,13 @@ describe("PurchaseItems/Show", () => {
 
     expect(screen.queryByRole("link", { name: "Sale" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Sale Item" })).not.toBeInTheDocument();
+  });
+
+  it("hides the tracking number and shipping company rows when they are blank", () => {
+    renderShow({ tracking_number: "", shipping_company_name: "" });
+
+    expect(screen.queryByText("Tracking Number")).not.toBeInTheDocument();
+    expect(screen.queryByText("Shipping Company")).not.toBeInTheDocument();
   });
 
   it("destroys the purchase item after confirmation", async () => {

@@ -1,7 +1,8 @@
 import { router } from "@inertiajs/react";
 import { useCallback, type FormEvent, useMemo, useState } from "react";
-import type { WarehouseOption } from "@/types/warehouse";
+
 import SmartSelect from "@/components/SmartSelect";
+import type { WarehouseOption } from "@/types/warehouse";
 
 type WarehouseSelectOption = { value: number; label: string };
 

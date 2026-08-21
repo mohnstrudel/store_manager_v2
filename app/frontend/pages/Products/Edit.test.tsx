@@ -1,5 +1,6 @@
 import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
 import Edit from "./Edit";
 import { makeProductForm } from "./test/factories";
 import type { FormOptions } from "./types";

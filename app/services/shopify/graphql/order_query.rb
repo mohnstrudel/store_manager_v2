@@ -43,6 +43,55 @@ module Shopify
             amount
           }
         }
+        currentTotalPriceSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalReceivedSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalOutstandingSet {
+          shopMoney {
+            amount
+          }
+        }
+        netPaymentSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalRefundedSet {
+          shopMoney {
+            amount
+          }
+        }
+        paymentGatewayNames
+        paymentTerms {
+          id
+          paymentTermsName
+          paymentTermsType
+          overdue
+          paymentSchedules(first: 250) {
+            nodes {
+              id
+              balanceDue {
+                amount
+                currencyCode
+              }
+              totalBalance {
+                amount
+                currencyCode
+              }
+              completedAt
+              due
+              dueAt
+              issuedAt
+            }
+          }
+        }
         unpaid
         updatedAt
         phone
@@ -87,10 +136,18 @@ module Shopify
           phone
         }
         lineItems(first: 10) {
+          pageInfo {
+            hasNextPage
+          }
           nodes {
             id
             quantity
             originalTotalSet {
+              shopMoney {
+                amount
+              }
+            }
+            discountedTotalSet {
               shopMoney {
                 amount
               }

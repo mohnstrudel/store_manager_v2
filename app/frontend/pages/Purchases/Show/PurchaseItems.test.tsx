@@ -1,15 +1,18 @@
+import { router } from "@inertiajs/react";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
+
 import { mockPage } from "@/test/mocks/inertia";
-import PurchaseItems from "./PurchaseItems";
+
 import {
   makePurchaseItem,
+  makePurchaseItemExpense,
   makePurchaseShow,
   makeShippingCompanyOption,
   makeWarehouseOption,
 } from "../test/factories";
+import PurchaseItems from "./PurchaseItems";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
@@ -17,23 +20,23 @@ const defaultProps = {
   movePath: "/purchase_items/move",
   purchase: makePurchaseShow({
     amount: 1,
-    cost_total: "$10.00",
+    cost_total: "10.00",
     date: "01 Jan 2026",
-    debt: "$10.00",
+    debt: "10.00",
     id: 1,
-    item_price: "$10.00",
+    item_price: "10.00",
     order_reference: "REF-1",
-    paid: "$0.00",
+    paid: "0.00",
     path: "/purchases/1",
     payment_progress: {
-      debt: "$10.00",
-      paid: "$0.00",
-      price: "$10.00",
+      debt: "10.00",
+      paid: "0.00",
+      price: "10.00",
       progress: 0,
     },
     product_image_url: null,
     product_title: "Blue Widget",
-    shipping_total: "$0.00",
+    shipping_total: "0.00",
     supplier_title: "Supplier A",
     variant_title: "",
   }),
@@ -132,6 +135,26 @@ describe("Purchases/Show/PurchaseItems", () => {
 
     expect(window.confirm).toHaveBeenCalledWith("Unlink this purchase item?");
     expect(router.delete).toHaveBeenCalledWith("/purchase_items/10/unlink");
+  });
+
+  it("shows nothing for a zero shipping cost, but shows a real cost", () => {
+    const { rerender } = render(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[makePurchaseItem({ id: 10, shipping_cost: "0" })]}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Edit shipping cost" })).toHaveTextContent("");
+
+    rerender(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[makePurchaseItem({ id: 10, shipping_cost: "12" })]}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Edit shipping cost" })).toHaveTextContent("12");
   });
 
   it("edits shipping cost inline", async () => {
@@ -419,6 +442,51 @@ describe("Purchases/Show/PurchaseItems", () => {
     expect(screen.queryByRole("button", { name: /Move/ })).not.toBeInTheDocument();
   });
 
+  it("starts an empty item expense section closed without a gradient", () => {
+    render(<PurchaseItems {...defaultProps} purchaseItems={[makePurchaseItem()]} />);
+
+    const details = screen.getByText("Item direct expenses").closest("details");
+    expect(details).not.toHaveAttribute("open");
+    expect(details?.closest("td")).toHaveClass("bg-transparent");
+    expect(details?.closest("td")).not.toHaveClass("bg-linear-to-t");
+  });
+
+  it("starts an item expense section closed and summarizes existing expenses", () => {
+    render(
+      <PurchaseItems
+        {...defaultProps}
+        purchaseItems={[
+          makePurchaseItem({
+            purchase_expenses: [
+              makePurchaseItemExpense({ id: 1, amount: "10" }),
+              makePurchaseItemExpense({ id: 2, amount: "12.5" }),
+            ],
+          }),
+        ]}
+      />,
+    );
+
+    const details = screen.getByText("Item direct expenses (2 · 22.5 total)").closest("details");
+    expect(details).not.toHaveAttribute("open");
+    expect(details?.closest("td")).toHaveClass("bg-transparent");
+    expect(details?.closest("td")).not.toHaveClass("bg-linear-to-t");
+  });
+
+  it("adds and removes the item expense gradient as the section toggles", async () => {
+    const user = userEvent.setup();
+    render(<PurchaseItems {...defaultProps} purchaseItems={[makePurchaseItem()]} />);
+
+    const summary = screen.getByText("Item direct expenses");
+    const details = summary.closest("details");
+    await user.click(summary);
+    expect(details).toHaveAttribute("open");
+    expect(details?.closest("td")).toHaveClass("bg-linear-to-t");
+
+    await user.click(summary);
+    expect(details).not.toHaveAttribute("open");
+    expect(details?.closest("td")).not.toHaveClass("bg-linear-to-t");
+  });
+
   it("does not auto-open shipping editor when tracking already has a company", async () => {
     const user = userEvent.setup();
 
@@ -465,23 +533,23 @@ describe("Purchases/Show/PurchaseItems", () => {
         purchase={{
           ...makePurchaseShow({
             amount: 1,
-            cost_total: "$10.00",
+            cost_total: "10.00",
             date: "01 Jan 2026",
-            debt: "$10.00",
+            debt: "10.00",
             id: 1,
-            item_price: "$10.00",
+            item_price: "10.00",
             order_reference: "REF-1",
-            paid: "$0.00",
+            paid: "0.00",
             path: "/purchases/1",
             payment_progress: {
-              debt: "$10.00",
-              paid: "$0.00",
-              price: "$10.00",
+              debt: "10.00",
+              paid: "0.00",
+              price: "10.00",
               progress: 0,
             },
             product_image_url: null,
             product_title: "Blue Widget",
-            shipping_total: "$0.00",
+            shipping_total: "0.00",
             supplier_title: "Supplier A",
             variant_title: "",
           }),

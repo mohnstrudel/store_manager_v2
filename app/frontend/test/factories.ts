@@ -1,4 +1,5 @@
 import type { PaginationMeta } from "@/types/pagination";
+import type { SalePaymentPlanRecord } from "@/types/payment";
 
 type HasId = { id: number };
 
@@ -8,6 +9,25 @@ export function makePagination(overrides: Partial<PaginationMeta> = {}): Paginat
     total_pages: 1,
     total_count: 1,
     limit: 50,
+    ...overrides,
+  };
+}
+
+export function makeSalePaymentPlan(
+  overrides: Partial<SalePaymentPlanRecord> = {},
+): SalePaymentPlanRecord {
+  return {
+    id: 1,
+    kind: "installments",
+    expected_parts: 8,
+    collected_parts: 3,
+    sale_part_number: null,
+    is_origin_sale: true,
+    deposit_percent: null,
+    projected_total: null,
+    projected_collected: null,
+    origin_sale: null,
+    payments: [],
     ...overrides,
   };
 }

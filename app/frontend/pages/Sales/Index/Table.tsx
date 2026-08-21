@@ -1,8 +1,14 @@
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
+import PaymentPlanMarker, { isFollowUpPayment } from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+import type { SalePaymentPlanRecord } from "@/types/payment";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleIndexRecord } from "../types";
+
+const EMPTY_PAYMENT_PLANS: SalePaymentPlanRecord[] = [];
 
 type TableProps = {
   sales: SaleIndexRecord[];
@@ -20,7 +26,6 @@ export default function Table({ sales }: TableProps) {
             <span>Customer</span> <span className="font-normal text-sm pl-4">+ Products</span>
           </th>
           <th className="w-80">Purchase Status</th>
-          <th className="text-right">Price</th>
           <th>
             Created&nbsp;&nbsp;▾
             <br />
@@ -32,9 +37,15 @@ export default function Table({ sales }: TableProps) {
       <tbody>
         {sales.map((sale) => {
           const purchaseItems = sale.sale_items.flatMap((saleItem) => saleItem.purchase_items);
+          const paymentPlans = sale.payment_plans ?? EMPTY_PAYMENT_PLANS;
 
           return (
-            <tr className="hoverable" key={sale.id} {...rowNavigationProps(sale.path)}>
+            <tr
+              className="hoverable"
+              data-follow-up={isFollowUpPayment(paymentPlans) || undefined}
+              key={sale.id}
+              {...rowNavigationProps(sale.path)}
+            >
               <td className="text-center">
                 <div className="flex flex-wrap justify-center gap-2">
                   {sale.sale_items.map((saleItem) => (
@@ -48,6 +59,7 @@ export default function Table({ sales }: TableProps) {
               </td>
 
               <td>
+                <PaymentPlanMarker plans={paymentPlans} />
                 <span className="font-bold">{sale.customer_name}</span>
                 {sale.customer_email ? (
                   <>
@@ -86,7 +98,7 @@ export default function Table({ sales }: TableProps) {
                         {purchaseItem.expenses != null && (
                           <>
                             {" "}
-                            — expenses: $
+                            — Direct expenses:{" "}
                             <span className="font-mono inline">{purchaseItem.expenses}</span>
                           </>
                         )}
@@ -95,8 +107,6 @@ export default function Table({ sales }: TableProps) {
                   </div>
                 ) : null}
               </td>
-
-              <td className="text-right font-mono whitespace-nowrap">{sale.total ?? ""}</td>
 
               <td>
                 {sale.created_at}

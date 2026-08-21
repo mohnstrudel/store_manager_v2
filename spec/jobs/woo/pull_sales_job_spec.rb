@@ -12,6 +12,9 @@ RSpec.describe Woo::PullSalesJob do
   }
   let(:sample_order) { woo_orders.first }
   let(:sample_parsed_order) { parsed_woo_orders.first }
+  let(:partially_paid_order) {
+    JSON.parse(file_fixture("api_partially_paid_order.json").read, symbolize_names: true)
+  }
 
   describe "#parse_all" do
     context "when we receive an array of orders from Woo API" do
@@ -163,6 +166,29 @@ RSpec.describe Woo::PullSalesJob do
 
         expect(job).to have_received(:api_get_all_orders).with(100, 5)
       end
+
+      it "keeps the full refresh path updating stored order statuses" do
+        order = sample_order.deep_dup
+        product = create(
+          :product,
+          woo_store_id: order[:line_items].first[:product_id].to_s
+        )
+        create(
+          :variant,
+          product:,
+          woo_store_id: order[:line_items].first[:variation_id].to_s
+        )
+        existing_sale = create(
+          :sale,
+          woo_store_id: order[:id].to_s,
+          status: "processing"
+        )
+        allow(job).to receive(:api_get_all_orders).with(1, nil).and_return([order])
+
+        job.perform(limit: 1)
+
+        expect(existing_sale.reload.status).to eq(order[:status])
+      end
     end
   end
 
@@ -193,6 +219,62 @@ RSpec.describe Woo::PullSalesJob do
       expect(parsed[:addresses][:shipping][:address_1]).to eq(sample_order[:shipping][:address_1])
       expect(parsed[:addresses][:billing][:address_1]).to eq("Billing-only street")
       expect(parsed[:sale]).not_to include(:address_1)
+    end
+
+    it "marks revenue as received when the order has been paid", :aggregate_failures do
+      parsed = job.parse(sample_order)
+
+      expect(parsed[:sale]).to include(
+        woo_created_at: Time.zone.parse(sample_order[:date_created]),
+        expected_revenue: sample_order[:total],
+        received_revenue: sample_order[:total],
+        outstanding_revenue: "0",
+        refunded_revenue: "0.0"
+      )
+      expect(parsed[:sale][:payment_gateway_names]).to eq([sample_order[:payment_method_title]])
+    end
+
+    it "marks revenue as outstanding when the order has not been paid", :aggregate_failures do
+      unpaid_order = sample_order.merge(date_paid: nil, payment_method_title: nil)
+      parsed = job.parse(unpaid_order)
+
+      expect(parsed[:sale]).to include(
+        expected_revenue: unpaid_order[:total],
+        received_revenue: "0",
+        outstanding_revenue: unpaid_order[:total]
+      )
+      expect(parsed[:sale][:payment_gateway_names]).to eq([])
+    end
+
+    it "claims neither a full nor an empty payment when Woo reports a partial one", :aggregate_failures do
+      parsed = job.parse(partially_paid_order)
+
+      expect(parsed[:sale]).to include(
+        status: "partially-paid",
+        expected_revenue: "991.59",
+        received_revenue: nil,
+        outstanding_revenue: nil,
+        refunded_revenue: "0.0"
+      )
+      # The two amounts Woo's payment date would otherwise have invented.
+      expect(parsed[:sale][:received_revenue]).not_to eq("991.59")
+      expect(parsed[:sale][:received_revenue]).not_to eq("0")
+    end
+
+    it "sums refunds into refunded_revenue" do
+      refunded_order = sample_order.merge(refunds: [{total: "-50.00"}, {total: "-10.00"}])
+      parsed = job.parse(refunded_order)
+
+      expect(parsed[:sale][:refunded_revenue]).to eq("60.0")
+    end
+
+    it "derives line item expected_revenue from the tax-inclusive line total" do
+      parsed = job.parse(sample_order)
+      line_item = sample_order[:line_items].first
+
+      expect(parsed[:products].first[:expected_revenue]).to eq(
+        (line_item[:total].to_d + line_item[:total_tax].to_d).to_s("F")
+      )
     end
   end
 
@@ -322,14 +404,18 @@ RSpec.describe Woo::PullSalesJob do
     context "when we parsed orders from Woo API" do
       before do
         create(:sale, woo_store_id: parsed_woo_orders.first[:sale][:woo_id], total: 50)
+        parsed_woo_orders.pluck(:products).flatten.each do |p|
+          create(:product, woo_store_id: p[:product_woo_id])
+        end
+        first_product = Product.find_by_woo_id(
+          parsed_woo_orders.first[:products].first[:product_woo_id]
+        )
         create(
           :variant,
+          product: first_product,
           woo_store_id: parsed_woo_orders.first[:products].first[:variant][:woo_id]
         ).tap do |e|
           e.woo_info.update(slug: weird_link)
-        end
-        parsed_woo_orders.pluck(:products).flatten.each do |p|
-          create(:product, woo_store_id: p[:product_woo_id])
         end
         job.create_sales(parsed_woo_orders)
       end
@@ -338,10 +424,10 @@ RSpec.describe Woo::PullSalesJob do
         expect(Sale.all.size).to eq(parsed_woo_orders.size)
       end
 
-      it "creates product sales with variants" do
+      it "assigns every product sale to a Variant" do
         with_variant = SaleItem.where.not(variant_id: nil)
-        parsed_variants_count = parsed_woo_orders.pluck(:products).flatten.count { |product| product[:variant].present? }
-        expect(with_variant.size).to eq(parsed_variants_count)
+        parsed_products_count = parsed_woo_orders.pluck(:products).flatten.size
+        expect(with_variant.size).to eq(parsed_products_count)
       end
 
       it "reuses existing sales" do
@@ -354,9 +440,24 @@ RSpec.describe Woo::PullSalesJob do
         expect(existing_sale.status).to eq(parsed_woo_orders.first[:sale][:status])
       end
 
+      it "persists the Woo order timestamp on the sale for analytics" do
+        first_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
+
+        expect(first_sale.woo_created_at).to be_within(1.second).of(Time.zone.parse(parsed_woo_orders.first[:sale][:woo_created_at]))
+      end
+
       it "reuses existing variants" do
         existing_variant = Variant.find_by_woo_id(parsed_woo_orders.first[:products].first[:variant][:woo_id])
         expect(existing_variant.woo_info.slug).to eq(weird_link)
+      end
+
+      it "allocates order-level revenue down to sale items", :aggregate_failures do
+        first_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
+        item = first_sale.sale_items.first
+
+        expect(item.expected_revenue).to eq(BigDecimal(parsed_woo_orders.first[:products].first[:expected_revenue]))
+        expect(item.received_revenue).to eq(BigDecimal(parsed_woo_orders.first[:sale][:received_revenue]))
+        expect(item.outstanding_revenue).to eq(BigDecimal(parsed_woo_orders.first[:sale][:outstanding_revenue]))
       end
     end
 
@@ -429,6 +530,82 @@ RSpec.describe Woo::PullSalesJob do
         )
 
         expect { job.create_sales([parsed_order_with_missing_product]) }.not_to raise_error
+      end
+    end
+
+    context "when an existing Woo line omits Variant metadata" do
+      it "preserves the stored Variant while updating the Sale status" do
+        product = create(:product, woo_store_id: "woo-product")
+        stored_variant = create(
+          :variant,
+          :with_version,
+          product:,
+          woo_store_id: "woo-variant"
+        )
+        sale = create(:sale, woo_store_id: "woo-order", status: "processing")
+        sale_item = create(
+          :sale_item,
+          product:,
+          variant: stored_variant,
+          sale:,
+          woo_store_id: "woo-line"
+        )
+        parsed_order = {
+          sale: {
+            woo_id: "woo-order",
+            status: "completed",
+            total: "10.00",
+            expected_revenue: "10.00",
+            received_revenue: "10.00",
+            outstanding_revenue: "0",
+            refunded_revenue: "0"
+          },
+          customer: {
+            email: "woo@example.com",
+            first_name: "Woo",
+            last_name: "Customer",
+            phone: nil,
+            woo_id: "woo-customer"
+          },
+          products: [{
+            sale_item_woo_id: "woo-line",
+            product_woo_id: "woo-product",
+            price: "10.00",
+            expected_revenue: "10.00",
+            qty: 1
+          }]
+        }
+
+        job.create_sales([parsed_order])
+
+        aggregate_failures do
+          expect(sale_item.reload.variant_id).to eq(stored_variant.id)
+          expect(sale.reload.status).to eq("completed")
+        end
+      end
+    end
+
+    context "when Woo reports a partially paid order" do
+      it "leaves the unknown split unset on the sale and on its items", :aggregate_failures do
+        partially_paid_order[:line_items].each do |line_item|
+          create(:product, woo_store_id: line_item[:product_id].to_s)
+        end
+
+        job.create_sales(job.parse_all([partially_paid_order]))
+
+        sale = Sale.find_by_woo_id(partially_paid_order[:id])
+        expect(sale).to have_attributes(
+          expected_revenue: BigDecimal("991.59"),
+          received_revenue: nil,
+          outstanding_revenue: nil,
+          refunded_revenue: BigDecimal(0)
+        )
+        expect(sale.sale_items.map(&:expected_revenue)).to contain_exactly(
+          BigDecimal("622.59"), BigDecimal("369.00")
+        )
+        expect(sale.sale_items.map(&:received_revenue)).to all(be_nil)
+        expect(sale.sale_items.map(&:outstanding_revenue)).to all(be_nil)
+        expect(sale.sale_items.map(&:refunded_revenue)).to all(eq(BigDecimal(0)))
       end
     end
 

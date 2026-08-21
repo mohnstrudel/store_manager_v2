@@ -23,13 +23,16 @@ class ProductsController < ApplicationController
     purchases = @product.purchases.includes(:supplier, :variant, purchase_items: :warehouse)
     variants_sales_sums = @product.variant_sales_sums
     variants_purchases_sums = @product.variant_purchase_sums
+    variants_purchase_cost_totals = @product.variant_purchase_cost_totals
+    can_view_profitability = policy(@product).view_profitability?
 
     render inertia: "Products/Show", props: {
       product: helpers.show_product_props(@product, can_pull_from_shopify: policy(@product).pull_from_shopify?),
-      variants: @product.variants.map { |variant| helpers.variant_props(variant, variants_sales_sums, variants_purchases_sums) },
+      variants: @product.variants.map { |variant| helpers.variant_props(variant, variants_sales_sums, variants_purchases_sums, variants_purchase_cost_totals, can_view_profitability:) },
       active_sales: active_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
       completed_sales: complete_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
-      purchases: purchases.map { |purchase| helpers.purchase_props(purchase) }
+      purchases: purchases.map { |purchase| helpers.purchase_props(purchase) },
+      profitability: can_view_profitability ? helpers.product_profitability_props(@product) : nil
     }
   end
 
@@ -57,6 +60,7 @@ class ProductsController < ApplicationController
       variants_attributes: payload.variants_attributes,
       store_infos_attributes: payload.store_infos_attributes,
       purchase_attributes: payload.purchase_attributes,
+      purchase_variant_client_key: payload.purchase_variant_client_key,
       media_attributes: extract_media_attributes
     )
 

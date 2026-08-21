@@ -1,8 +1,10 @@
-import { useCallback } from "react";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link, router, usePage } from "@inertiajs/react";
-import routes from "@/utils/routes";
+import { useCallback } from "react";
+
 import type { PageProps } from "@/types/inertia";
+import routes from "@/utils/routes";
+
 import { useNavigationDropdown } from "./useNavigationDropdown";
 
 const emptyPagination = {
@@ -37,7 +39,7 @@ const primaryLinks: NavigationLink[] = [
       sale_debts_count: 0,
       sales_hook_disabled: false,
       suppliers_debts: [],
-      total_suppliers_debt: "$0",
+      total_suppliers_debt: "0",
     },
   },
   {
@@ -150,14 +152,41 @@ const overflowLinks: Array<NavigationLink | NavigationDivider> = [
     pageProps: { sizes: [] },
   },
   { divider: true, key: "divider-sections" },
+  {
+    href: routes.glossary.show.path(),
+    label: "Glossary",
+    component: "Glossary/Show",
+    pageProps: {},
+  },
 ];
 
-const usersLink: NavigationLink = {
-  href: routes.users.index.path(),
-  label: "Users",
-  component: "Users/Index",
-  pageProps: { users: [] },
-};
+const adminLinks: NavigationLink[] = [
+  {
+    href: routes.variantAssignmentIssues.index.path(),
+    label: "Variant Repairs",
+    component: "VariantAssignmentIssues/Index",
+    pageProps: {
+      counts: { purchases: 0, sale_items: 0, purchase_item_links: 0 },
+      filter: "",
+      filters: [],
+      issue_type: "purchases",
+      issues: [],
+      pagination: emptyPagination,
+    },
+  },
+  {
+    href: routes.expenseRates.index.path(),
+    label: "OpEx Rates",
+    component: "ExpenseRates/Index",
+    pageProps: { expenseRates: [] },
+  },
+  {
+    href: routes.users.index.path(),
+    label: "Users",
+    component: "Users/Index",
+    pageProps: { users: [] },
+  },
+];
 
 export default function AppNavigation() {
   const { auth } = usePage<PageProps>().props;
@@ -274,13 +303,16 @@ function NavigationOverflowMenu({
       </button>
       <ul className="navigation-dropdown_menu" aria-hidden={!isOpen} id="navigation-dropdown-links">
         <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />
-        {user?.role === "admin" ? (
-          <NavigationLinkItem
-            className="navigation-dropdown_link"
-            link={usersLink}
-            onSelect={closeDropdown}
-          />
-        ) : null}
+        {user?.role === "admin"
+          ? adminLinks.map((link) => (
+              <NavigationLinkItem
+                className="navigation-dropdown_link"
+                key={link.href}
+                link={link}
+                onSelect={closeDropdown}
+              />
+            ))
+          : null}
         <li>
           <button className="navigation-dropdown_link" onClick={handleLogOut} type="button">
             Log Out

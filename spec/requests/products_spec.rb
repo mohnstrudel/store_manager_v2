@@ -70,6 +70,43 @@ RSpec.describe "Products" do
       expect(inertia.props[:purchases].length).to eq(1)
     end
 
+    it "includes variant total purchase cost and theoretical profit" do
+      product = create(:product)
+      variant = create(:variant, product:, selling_price: BigDecimal("200"))
+      other_variant = create(:variant, product:, selling_price: BigDecimal("50"))
+      purchase = create(:purchase, product:, variant:, item_price: BigDecimal("100"))
+      create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+      create(:expense_rate, rate_percent: 10)
+
+      get product_path(product)
+
+      variants_props = inertia.props[:variants]
+      with_purchase = variants_props.find { |v| v[:id] == variant.id }
+      without_purchase = variants_props.find { |v| v[:id] == other_variant.id }
+
+      expect(with_purchase[:total_purchase_cost]).to eq("120")
+      expect(with_purchase[:theoretical_profit]).to eq("60")
+      expect(without_purchase[:total_purchase_cost]).to be_nil
+      expect(without_purchase[:theoretical_profit]).to be_nil
+    end
+
+    it "keeps theoretical profit per unit as more units are purchased" do
+      product = create(:product)
+      variant = create(:variant, product:, selling_price: BigDecimal("200"))
+      purchase = create(:purchase, product:, variant:, amount: 5, item_price: BigDecimal("100"))
+      5.times do
+        create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+      end
+      create(:expense_rate, rate_percent: 10)
+
+      get product_path(product)
+
+      variant_props = inertia.props[:variants].find { |v| v[:id] == variant.id }
+
+      expect(variant_props[:total_purchase_cost]).to eq("600")
+      expect(variant_props[:theoretical_profit]).to eq("60")
+    end
+
     it "includes store_infos tags in the show props" do
       product = create(:product)
       shopify_info = product.store_infos.shopify.first
@@ -79,6 +116,82 @@ RSpec.describe "Products" do
 
       product_props = inertia.props[:product]
       expect(product_props[:shopify_info][:tag_list]).to include("featured", "new")
+    end
+
+    describe "profitability props" do
+      let(:product) { create(:product) }
+
+      before do
+        create(:expense_rate, rate_percent: 10)
+        product.base_variant.update!(selling_price: BigDecimal("150"))
+        sale = create(:sale, status: "pre-ordered", financial_status: "PARTIALLY_PAID", payment_gateway_names: ["shopify_payments"])
+        sale_item = create(
+          :sale_item,
+          product:,
+          variant: nil,
+          sale:,
+          qty: 1,
+          expected_revenue: BigDecimal("300"),
+          received_revenue: BigDecimal("100"),
+          outstanding_revenue: BigDecimal("200")
+        )
+        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("100"))
+        create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+        create(:payment, purchase:, value: BigDecimal("80"))
+      end
+
+      it "includes profitability data for admins" do
+        get product_path(product)
+
+        profitability = inertia.props[:profitability]
+        expect(profitability[:potential_sales]).to eq("150")
+        expect(profitability[:expected_total_cost]).to eq("120")
+        expect(profitability[:business_expenses]).to eq("15")
+        expect(profitability[:expected_net_profit]).to eq("15")
+        expect(profitability[:collected_revenue]).to eq("100")
+        expect(profitability[:purchase_paid]).to eq("80")
+        expect(profitability[:cash_position]).to eq("20")
+      end
+
+      it "folds direct expenses into the expected total cost across sold and unsold units alike" do
+        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("20"))
+        create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal("0"), direct_expense_amount: BigDecimal("7"))
+
+        get product_path(product)
+
+        expect(inertia.props[:profitability][:expected_total_cost]).to eq("147")
+      end
+
+      it "omits values no component reads from the profitability props" do
+        get product_path(product)
+
+        profitability = inertia.props[:profitability]
+        expect(profitability).not_to have_key(:expense_rate_percent)
+        expect(profitability).not_to have_key(:item_cost_total)
+        expect(profitability).not_to have_key(:shipping_cost_total)
+        expect(profitability).not_to have_key(:received_percent)
+        expect(profitability).not_to have_key(:refunded_percent)
+        expect(profitability).not_to have_key(:status)
+        expect(profitability).not_to have_key(:margin_percent)
+        expect(profitability).not_to have_key(:has_sale_items)
+        expect(profitability).not_to have_key(:invested_total)
+        expect(profitability).not_to have_key(:merchandise_cost)
+        expect(profitability).not_to have_key(:direct_expenses)
+        expect(profitability).not_to have_key(:outstanding_revenue)
+        expect(profitability).not_to have_key(:refunded_revenue)
+        expect(profitability).not_to have_key(:received_revenue)
+        expect(profitability).not_to have_key(:counted_sales_total)
+      end
+
+      it "omits profitability data for managers" do
+        log_out
+        sign_in create(:user, :manager)
+
+        get product_path(product)
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:profitability]).to be_nil
+      end
     end
   end
 
@@ -140,13 +253,11 @@ RSpec.describe "Products" do
       expect(flash[:notice]).to eq("Product was successfully created")
     end
 
-    it "creates a product with nested variants, store infos, and an initial purchase" do
+    it "creates a product with nested variants and store infos" do
       brand = create(:brand, title: "Featured Brand")
       size = create(:size, value: "Large")
       version = create(:version, value: "Deluxe")
       color = create(:color, value: "Red")
-      supplier = create(:supplier)
-      warehouse = create(:warehouse, is_default: true)
 
       expect {
         post products_path, params: {
@@ -175,9 +286,44 @@ RSpec.describe "Products" do
               tag_list: "featured, new",
               _destroy: "0"
             }
+          }
+        }
+      }.to change(Product, :count).by(1)
+        .and change(Variant, :count).by(2)
+        .and change(StoreInfo, :count).by(1)
+
+      created_product = Product.find_by!(title: "Nested Product")
+
+      expect(response).to redirect_to(product_path(created_product))
+      expect(created_product.brands).to contain_exactly(brand)
+      expect(created_product.description.body.to_html).to include("Product description")
+      expect(created_product.sizes).to contain_exactly(size)
+      expect(created_product.versions).to contain_exactly(version)
+      expect(created_product.colors).to contain_exactly(color)
+      expect(created_product.store_infos.shopify.first.tag_list).to contain_exactly("featured", "new")
+    end
+
+    it "creates an initial Purchase against normalized Base for a Base-only Product" do
+      supplier = create(:supplier)
+      warehouse = create(:warehouse, is_default: true)
+
+      expect {
+        post products_path, params: {
+          product: {
+            title: "Base Purchase Product",
+            franchise_id: franchise.id,
+            shape: "Bust"
+          },
+          variants: {
+            "0" => {
+              client_key: "draft-base",
+              sku: "base-purchase-product-base",
+              _destroy: "0"
+            }
           },
           purchase: {
             supplier_id: supplier.id,
+            variant_client_key: "draft-base",
             order_reference: "PO-42",
             item_price: "15",
             amount: "2",
@@ -186,24 +332,101 @@ RSpec.describe "Products" do
           }
         }
       }.to change(Product, :count).by(1)
-        .and change(Variant, :count).by(2)
-        .and change(StoreInfo, :count).by(1)
         .and change(Purchase, :count).by(1)
 
-      created_product = Product.find_by!(title: "Nested Product")
+      created_product = Product.find_by!(title: "Base Purchase Product")
       purchase = created_product.purchases.last
 
-      expect(response).to redirect_to(product_path(created_product))
-      expect(created_product.brands).to contain_exactly(brand)
-      expect(created_product.description.body.to_html).to include("Product description")
-      expect(created_product.sizes).to contain_exactly(size)
-      expect(created_product.versions).to contain_exactly(version)
-      expect(created_product.colors).to contain_exactly(color)
-      expect(created_product.store_infos.shopify.first.tag_list).to eq(["featured", "new"])
+      expect(purchase.variant).to eq(created_product.base_variant)
       expect(purchase.supplier).to eq(supplier)
       expect(purchase.purchase_items.count).to eq(2)
       expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
       expect(purchase.payments.pluck(:value)).to eq([BigDecimal(30)])
+    end
+
+    it "resolves an initial Purchase to its selected draft real Variant after persistence" do
+      supplier = create(:supplier)
+      size = create(:size, value: "Large")
+
+      post products_path, params: {
+        product: {
+          title: "Draft Variant Purchase",
+          franchise_id: franchise.id,
+          shape: "Bust"
+        },
+        variants: {
+          "0" => {
+            client_key: "draft-large",
+            sku: "draft-large",
+            size_id: size.id,
+            purchase_cost: "10",
+            selling_price: "20",
+            weight: "1",
+            _destroy: "0"
+          }
+        },
+        purchase: {
+          supplier_id: supplier.id,
+          variant_client_key: "draft-large",
+          item_price: "10",
+          amount: "1"
+        }
+      }
+
+      product = Product.find_by!(title: "Draft Variant Purchase")
+      purchase = product.purchases.sole
+
+      expect(response).to redirect_to(product_path(product))
+      expect(purchase.variant).to eq(product.variants.real.sole)
+      expect(product.base_variant).to be_deactivated
+    end
+
+    ["", "unknown-draft"].each do |variant_client_key|
+      it "rolls back every initial record for draft key #{variant_client_key.inspect}" do
+        supplier = create(:supplier)
+        warehouse = create(:warehouse, is_default: true)
+        size = create(:size)
+
+        expect {
+          post products_path, params: {
+            product: {
+              title: "Rolled Back Draft",
+              franchise_id: franchise.id,
+              shape: "Bust"
+            },
+            variants: {
+              "0" => {
+                client_key: "draft-real",
+                sku: "draft-real",
+                size_id: size.id,
+                _destroy: "0"
+              }
+            },
+            store_infos: {
+              "0" => {
+                store_name: "shopify",
+                tag_list: "rollback",
+                _destroy: "0"
+              }
+            },
+            purchase: {
+              supplier_id: supplier.id,
+              variant_client_key:,
+              item_price: "10",
+              amount: "2",
+              warehouse_id: warehouse.id,
+              payment_value: "20"
+            }
+          }
+        }.to change(Product, :count).by(0)
+          .and change(Variant, :count).by(0)
+          .and change(StoreInfo, :count).by(0)
+          .and change(Purchase, :count).by(0)
+          .and change(PurchaseItem, :count).by(0)
+          .and change(Payment, :count).by(0)
+
+        expect(response).to redirect_to(new_product_path)
+      end
     end
 
     it "redirects to new with errors when title is blank" do
@@ -436,8 +659,8 @@ RSpec.describe "Products" do
   describe "PATCH /products/:id — variant lifecycle" do
     let(:product) { create(:product) }
 
-    it "hard destroys a variant without sales when _destroy is true" do
-      variant = product.variants.find { |v| v.base_model? }
+    it "hard destroys a real variant without sales when _destroy is true" do
+      variant = create(:variant, product:)
       variant_id = variant.id
 
       expect {
@@ -448,10 +671,11 @@ RSpec.describe "Products" do
       }.to change(Variant, :count).by(-1)
 
       expect(Variant.exists?(variant_id)).to be false
+      expect(product.base_variant.reload).not_to be_deactivated
     end
 
-    it "deactivates a variant with sales when _destroy is true" do
-      variant = product.variants.find { |v| v.base_model? }
+    it "deactivates a real variant with sales when _destroy is true" do
+      variant = create(:variant, product:)
       sale = create(:sale)
       SaleItem.create!(product:, variant:, sale:, qty: 1)
 
@@ -462,6 +686,20 @@ RSpec.describe "Products" do
 
       expect(variant.reload.deactivated_at).to be_present
       expect(Variant.exists?(variant.id)).to be true
+      expect(product.base_variant.reload).not_to be_deactivated
+    end
+
+    it "rejects direct Base removal" do
+      base_variant = product.base_variant
+
+      patch product_path(product), params: {
+        product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+        variants: {"0" => {id: base_variant.id, _destroy: true}}
+      }
+
+      expect(response).to redirect_to(edit_product_path(product))
+      expect(base_variant.reload).to be_persisted
+      expect(base_variant).not_to be_deactivated
     end
   end
 

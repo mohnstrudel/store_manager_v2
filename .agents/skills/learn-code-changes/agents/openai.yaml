@@ -1,0 +1,4 @@
+interface:
+  display_name: "Learn Code Changes"
+  short_description: "Understand and remember repository changes"
+  default_prompt: "Use $learn-code-changes to catch me up on a repository change range and check my understanding."

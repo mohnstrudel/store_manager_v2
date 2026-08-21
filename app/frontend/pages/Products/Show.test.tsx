@@ -1,9 +1,16 @@
+import { router } from "@inertiajs/react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
+
 import Show from "./Show";
-import { makeProduct, makePurchase, makeSaleItem, makeVariant } from "./test/factories";
+import {
+  makeProduct,
+  makeProfitability,
+  makePurchase,
+  makeSaleItem,
+  makeVariant,
+} from "./test/factories";
 import type { ProductShowRecord } from "./types";
 
 vi.mock("@/components/ImageGallery", () => ({
@@ -53,40 +60,91 @@ describe("Products/Show", () => {
     });
   });
 
-  describe("sections", () => {
-    it("renders the product overview", () => {
+  describe("tabs", () => {
+    it("opens on the overview with attributes and description", () => {
       renderShow();
 
+      expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
       expect(screen.getByTestId("image-gallery")).toBeInTheDocument();
       expect(screen.getByText("Pokemon")).toBeInTheDocument();
-    });
-
-    it("renders the product description", () => {
-      renderShow();
-
       expect(screen.getByText("A very electric mouse.")).toBeInTheDocument();
     });
 
-    describe("when the description is empty", () => {
-      it("hides the description card", () => {
-        renderShow({ product: makeProduct({ description_html: "" }) });
+    it("shows sale and purchase counts in the tab labels", () => {
+      renderShow({ activeSales: [makeSaleItem()], purchases: [makePurchase()] });
 
-        expect(screen.queryByText(/electric mouse/)).not.toBeInTheDocument();
-      });
+      expect(screen.getByRole("tab", { name: "Sales 1" })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: "Purchases 1" })).toBeInTheDocument();
     });
 
-    describe("when the product has variants", () => {
-      it("renders the variants table", () => {
+    it("switches to sales and hides the overview", async () => {
+      const user = userEvent.setup();
+      renderShow({
+        activeSales: [makeSaleItem({ customer_name: "Ash Ketchum" })],
+        completedSales: [makeSaleItem({ id: 2, customer_name: "Misty" })],
+      });
+
+      await user.click(screen.getByRole("tab", { name: /Sales/ }));
+
+      const activeSection = screen.getByRole("heading", { name: /Active Sales/ }).closest("div")!;
+      const completedSection = screen
+        .getByRole("heading", { name: /Completed Sales/ })
+        .closest("div")!;
+
+      expect(within(activeSection).getByText("Ash Ketchum")).toBeInTheDocument();
+      expect(within(completedSection).getByText("Misty")).toBeInTheDocument();
+      expect(screen.queryByTestId("image-gallery")).not.toBeInTheDocument();
+    });
+
+    it("hides the sales tab when there are no sales", () => {
+      renderShow({ activeSales: [], completedSales: [] });
+
+      expect(screen.queryByRole("tab", { name: /Sales/ })).not.toBeInTheDocument();
+    });
+
+    it("switches to purchases", async () => {
+      const user = userEvent.setup();
+      renderShow({ purchases: [makePurchase()] });
+
+      await user.click(screen.getByRole("tab", { name: /Purchases/ }));
+
+      expect(screen.getByRole("heading", { name: /Purchases/ })).toBeInTheDocument();
+      expect(screen.getByText("GoodSmile")).toBeInTheDocument();
+    });
+
+    it("hides the purchases tab when there are no purchases", () => {
+      renderShow({ purchases: [] });
+
+      expect(screen.queryByRole("tab", { name: /Purchases/ })).not.toBeInTheDocument();
+    });
+
+    describe("variants tab", () => {
+      it("shows the variants table with its count", async () => {
+        const user = userEvent.setup();
         renderShow({ variants: [makeVariant()] });
+
+        await user.click(screen.getByRole("tab", { name: "Variants 1" }));
 
         expect(screen.getByRole("heading", { name: "Variants" })).toBeInTheDocument();
       });
 
-      it("shows the variant column in sales tables", () => {
+      it("hides the tab without variants", () => {
+        renderShow({ variants: [] });
+
+        expect(screen.queryByRole("tab", { name: /Variants/ })).not.toBeInTheDocument();
+      });
+
+      it("shows the variant column in sales tables", async () => {
+        const user = userEvent.setup();
         renderShow({
           variants: [makeVariant()],
           activeSales: [makeSaleItem({ variant_title: "Red Edition" })],
         });
+
+        await user.click(screen.getByRole("tab", { name: /Sales/ }));
 
         const activeSection = screen
           .getAllByRole("heading", { name: /Active Sales/ })[0]
@@ -96,47 +154,80 @@ describe("Products/Show", () => {
           within(activeSection).getByRole("columnheader", { name: "Variant?" }),
         ).toBeInTheDocument();
       });
+
+      it("renders without crashing for managers, who have no profitability data", async () => {
+        const user = userEvent.setup();
+        renderShow({ variants: [makeVariant()], profitability: null });
+
+        await user.click(screen.getByRole("tab", { name: "Variants 1" }));
+
+        expect(screen.getByRole("heading", { name: "Variants" })).toBeInTheDocument();
+      });
     });
 
-    it("hides the variants section without variants", () => {
-      renderShow({ variants: [] });
+    describe("economics dashboard", () => {
+      it("summarizes the product economics above the tabs", () => {
+        renderShow({ activeSales: [makeSaleItem()], profitability: makeProfitability() });
 
-      expect(screen.queryByRole("heading", { name: "Variants" })).not.toBeInTheDocument();
-    });
+        const dashboard = screen.getByTestId("economics-dashboard");
 
-    it("renders active and completed sales in their own sections", () => {
-      renderShow({
-        activeSales: [makeSaleItem({ customer_name: "Ash Ketchum" })],
-        completedSales: [makeSaleItem({ id: 2, customer_name: "Misty" })],
+        expect(within(dashboard).getByTestId("profitability-snapshot-card")).toBeInTheDocument();
+        expect(within(dashboard).getByText("Exp. Net Profit")).toBeInTheDocument();
       });
 
-      const activeSection = screen.getByRole("heading", { name: /Active Sales/ }).closest("div")!;
-      const completedSection = screen
-        .getByRole("heading", { name: /Completed Sales/ })
-        .closest("div")!;
+      it("stays visible on every tab", async () => {
+        const user = userEvent.setup();
+        renderShow({
+          activeSales: [makeSaleItem()],
+          profitability: makeProfitability(),
+          purchases: [makePurchase()],
+        });
 
-      expect(within(activeSection).getByText("Ash Ketchum")).toBeInTheDocument();
-      expect(within(completedSection).getByText("Misty")).toBeInTheDocument();
+        await user.click(screen.getByRole("tab", { name: /Purchases/ }));
+        expect(screen.getByTestId("economics-dashboard")).toBeInTheDocument();
+      });
+
+      it("is absent for users without profitability access", () => {
+        renderShow({ profitability: null });
+
+        expect(screen.queryByTestId("economics-dashboard")).not.toBeInTheDocument();
+      });
+
+      it("shows the full picture for a purchased product with no sales", () => {
+        renderShow({
+          purchases: [makePurchase()],
+          profitability: makeProfitability({
+            collected_revenue: null,
+            purchase_paid: null,
+            cash_position: null,
+            potential_sales: "120",
+            expected_total_cost: "80",
+            expected_net_profit: "28",
+          }),
+        });
+
+        const dashboard = within(screen.getByTestId("economics-dashboard"));
+
+        expect(dashboard.getByText("Exp. Total Cost")).toBeInTheDocument();
+        expect(dashboard.getByText("80")).toBeInTheDocument();
+        expect(screen.getByTestId("profitability-snapshot-card")).toBeInTheDocument();
+      });
+
+      it("is absent when there is nothing purchased and no cash position", () => {
+        renderShow({
+          profitability: makeProfitability({ expected_total_cost: null, cash_position: null }),
+        });
+
+        expect(screen.queryByTestId("economics-dashboard")).not.toBeInTheDocument();
+      });
     });
 
-    it("hides sales sections without sales", () => {
-      renderShow({ activeSales: [], completedSales: [] });
+    describe("when the description is empty", () => {
+      it("hides the description card", () => {
+        renderShow({ product: makeProduct({ description_html: "" }) });
 
-      expect(screen.queryByRole("heading", { name: /Active Sales/ })).not.toBeInTheDocument();
-      expect(screen.queryByRole("heading", { name: /Completed Sales/ })).not.toBeInTheDocument();
-    });
-
-    it("renders the purchases section", () => {
-      renderShow({ purchases: [makePurchase()] });
-
-      expect(screen.getByRole("heading", { name: /Purchases/ })).toBeInTheDocument();
-      expect(screen.getByText("GoodSmile")).toBeInTheDocument();
-    });
-
-    it("hides the purchases section without purchases", () => {
-      renderShow({ purchases: [] });
-
-      expect(screen.queryByRole("heading", { name: /Purchases/ })).not.toBeInTheDocument();
+        expect(screen.queryByText(/electric mouse/)).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -168,12 +259,14 @@ function renderShow({
   activeSales = [],
   completedSales = [],
   product = makeProduct(),
+  profitability = null,
   purchases = [],
   variants = [],
 }: {
   activeSales?: ReturnType<typeof makeSaleItem>[];
   completedSales?: ReturnType<typeof makeSaleItem>[];
   product?: ProductShowRecord;
+  profitability?: ReturnType<typeof makeProfitability> | null;
   purchases?: ReturnType<typeof makePurchase>[];
   variants?: ReturnType<typeof makeVariant>[];
 } = {}) {
@@ -182,6 +275,7 @@ function renderShow({
       active_sales={activeSales}
       completed_sales={completedSales}
       product={product}
+      profitability={profitability}
       purchases={purchases}
       variants={variants}
     />,

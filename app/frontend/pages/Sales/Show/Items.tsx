@@ -1,12 +1,13 @@
-import { useCallback, type ChangeEvent, type MouseEvent } from "react";
 import { Link } from "@inertiajs/react";
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { useCallback, type ChangeEvent, type MouseEvent } from "react";
+
+import DetailsChevron from "@/components/DetailsChevron";
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+import type { WarehouseOption } from "@/types/warehouse";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
-import type { WarehouseOption } from "@/types/warehouse";
-import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
+
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {
@@ -48,8 +49,7 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
             {showPurchaseColumn && <th />}
             <th className="text-center w-[106px] lg:w-[114px]">Image</th>
             <th>Product</th>
-            <th className="text-right">Price, $</th>
-            <th className="text-center">Purchased / Sold</th>
+            <th className="text-right">Price</th>
           </tr>
         </thead>
         <tbody>
@@ -75,6 +75,7 @@ function SaleItemRow({
   toggleSelectedIdFromDataAttribute,
 }: { saleItem: SaleShowSaleItemRecord } & SelectionProps) {
   const hasPurchaseItems = saleItem.purchase_items.length > 0;
+  const missingPurchasesCount = Math.max(0, saleItem.qty - saleItem.purchase_items.length);
 
   return (
     <tr className="cursor-default">
@@ -103,22 +104,22 @@ function SaleItemRow({
         <Link className="link no-underline font-semibold" href={saleItem.product_path} prefetch>
           {saleItem.title}
         </Link>
-        {hasPurchaseItems ? (
+        {hasPurchaseItems && (
           <menu>
             {saleItem.purchase_items.map((purchaseItem) => (
               <PurchaseItemRow key={purchaseItem.id} purchaseItem={purchaseItem} />
             ))}
           </menu>
-        ) : (
+        )}
+        {missingPurchasesCount > 0 && (
           <mark className="block uppercase tracking-wide text-xs w-fit mt-2 -ml-1">
-            <span className="font-semibold">NO PURCHASE</span>
+            <span className="font-semibold">
+              MISSING {missingPurchasesCount} PURCHASE{missingPurchasesCount === 1 ? "" : "S"}
+            </span>
           </mark>
         )}
       </td>
-      <td className="text-right font-mono">{saleItem.price ?? ""}</td>
-      <td className="text-center">
-        <PurchasedSoldRatio purchased={saleItem.purchase_items.length} sold={saleItem.qty} />
-      </td>
+      <td className="text-right">{saleItem.payment.price}</td>
     </tr>
   );
 }
@@ -150,7 +151,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
             {purchaseItem.supplier_title}, {purchaseItem.purchase_date}
             {purchaseItem.item_price && (
               <>
-                {", $"}
+                {", "}
                 {purchaseItem.item_price}
               </>
             )}
@@ -175,11 +176,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
               </Link>
             </span>
 
-            {hasMovementHistory && (
-              <span className="text-xs btn_rounded w-5 h-5 p-0 btn_lightblue flex items-center justify-center transition-transform origin-center group-open:-rotate-90">
-                <ChevronLeftIcon className="h-4 w-4" />
-              </span>
-            )}
+            {hasMovementHistory && <DetailsChevron />}
           </summary>
 
           {hasMovementHistory && (

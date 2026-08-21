@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Index from "./Index";
+
 import { makePagination } from "@/test/factories";
+
+import Index from "./Index";
 import { makePurchaseItemIndexRecord } from "./test/factories";
 
 describe("PurchaseItems/Index", () => {
@@ -21,6 +23,19 @@ describe("PurchaseItems/Index", () => {
     );
     expect(screen.getByRole("link", { name: "Product X" })).toHaveAttribute("href", "/products/5");
     expect(screen.getByRole("link", { name: "Sale 7" })).toHaveAttribute("href", "/sales/7");
+  });
+
+  it("renders nothing in the sale column when a purchase item has no linked sale", () => {
+    renderIndex({
+      purchase_items: [
+        makePurchaseItemIndexRecord({ sale_path: null, sale_title: "", customer_email: "" }),
+      ],
+    });
+
+    const dataRow = screen.getAllByRole("row")[1];
+    const saleCell = within(dataRow).getAllByRole("cell")[3];
+
+    expect(saleCell).toHaveTextContent("");
   });
 
   it("renders the empty state without bottom pagination when there are no purchase items", () => {

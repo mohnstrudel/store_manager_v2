@@ -34,9 +34,11 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       variant_key = "#{product.id}-#{parsed_variant[:id]}"
       created_variants[variant_key] ||= begin
         variant = Variant.find_by_shopify_id(parsed_variant[:id]) || Variant.new(product: product)
+        variant = Variant.new(product: product) if variant.product_id != product.id
         variant.version = Version.find_or_create_by(value: parsed_variant[:title] || "Default")
         product.fill_variant_sku(variant, "shopify-sale-#{parsed_variant[:id] || parsed_variant[:title] || SecureRandom.hex(4)}")
         variant.save!
+        variant.upsert_shopify_info!(store_id: parsed_variant[:id]) if parsed_variant[:id].present?
         variant
       end
     end
@@ -74,6 +76,13 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(sale.shopify_info.ext_created_at).to be_within(1.second).of(Time.zone.parse("2025-05-01T06:27:45+00:00"))
       end
 
+      it "persists the Shopify order timestamp on the sale for analytics" do
+        import_order
+        sale = Sale.last
+
+        expect(sale.shopify_created_at).to be_within(1.second).of(Time.zone.parse("2025-05-01T06:27:45+00:00"))
+      end
+
       it "sets ext_created_at on customer shopify_info" do
         import_order
         customer = Customer.last
@@ -101,6 +110,50 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
         expect(sale.shipping_address).to have_attributes(address_1: "Shipping St", city: "Berlin")
         expect(sale.billing_address).to have_attributes(address_1: "Billing St", city: "Munich")
+      end
+
+      it "persists and links a native Shopify payment plan idempotently" do
+        order_id = "gid://shopify/Order/777"
+        parsed_order = valid_parsed_order.deep_dup.merge(
+          store_info: valid_parsed_order[:store_info].merge(store_id: order_id),
+          payment_plan: {
+            attributes: {
+              provider: "shopify",
+              external_id: "gid://shopify/PaymentTerms/77",
+              external_origin_order_id: order_id,
+              kind: "payment_terms",
+              status: "active",
+              expected_parts: 2,
+              currency: "EUR",
+              next_due_at: 1.month.from_now
+            },
+            parts: [
+              {
+                provider_part_id: "gid://shopify/PaymentSchedule/1",
+                sequence: 1,
+                external_order_id: order_id,
+                amount: "250.00",
+                currency: "EUR",
+                provider_completed_at: 1.day.ago
+              },
+              {
+                provider_part_id: "gid://shopify/PaymentSchedule/2",
+                sequence: 2,
+                external_order_id: order_id,
+                amount: "250.00",
+                currency: "EUR"
+              }
+            ]
+          }
+        )
+
+        2.times { import_order(parsed_order) }
+
+        plan = SalePaymentPlan.sole
+        sale = Sale.find_by_shopify_id(order_id)
+        expect(plan).to have_attributes(origin_sale: sale, expected_parts: 2)
+        expect(plan.parts.count).to eq(2)
+        expect(plan.parts.pluck(:sale_id).uniq).to eq([sale.id])
       end
     end
 
@@ -262,7 +315,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(Sale.order(:id).last(2).map { |sale| sale.sale_items.last.product_id }.uniq.count).to eq(1)
       end
 
-      it "creates sale item without variant when variant_title is blank" do
+      it "creates a sale item against Base when variant_title is blank" do
         parsed_order_without_variant_title = parsed_order_title_only.deep_dup
         parsed_order_without_variant_title[:sale_items].first[:variant_title] = nil
         parsed_order_without_variant_title[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-no-variant"
@@ -280,7 +333,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
         sale_item = SaleItem.last
         expect(sale_item.product).to be_present
-        expect(sale_item.variant).to be_nil
+        expect(sale_item.variant).to eq(sale_item.product.base_variant)
       end
     end
 
@@ -371,8 +424,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
         allow(Version).to receive(:find_or_create_by).with(value: "New Variant").and_return(variant.version)
         allow(variant.version).to receive(:value).and_return("New Variant")
-        allow_any_instance_of(Variant).to receive(:save!).and_return(true)
-        allow_any_instance_of(Version).to receive(:save!).and_return(true)
       end
 
       it "creates new variant with correct title" do
@@ -409,8 +460,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
         allow(Version).to receive(:find_or_create_by).with(value: "1:4 | New Variant | Red").and_return(variant.version)
         allow(variant.version).to receive(:value).and_return("1:4 | New Variant | Red")
-        allow_any_instance_of(Variant).to receive(:save!).and_return(true)
-        allow_any_instance_of(Version).to receive(:save!).and_return(true)
       end
 
       it "creates new variant with multiple attributes" do
@@ -514,7 +563,11 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let!(:existing_sale) { create(:sale, shopify_id: valid_parsed_order[:sale][:store_id]) }
       let!(:existing_sale_item) do
         product = create(:product, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id])
-        variant = create(:variant, shopify_id: valid_parsed_order[:sale_items].first[:variant_store_id])
+        variant = create(
+          :variant,
+          product:,
+          shopify_id: valid_parsed_order[:sale_items].first[:variant_store_id]
+        )
 
         create(:sale_item,
           shopify_id: valid_parsed_order[:sale_items].first[:store_id],
@@ -535,9 +588,118 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
+    context "when importing Shopify payment data" do
+      let(:parsed_order_with_revenue) do
+        order = valid_parsed_order.deep_dup
+        order[:sale].merge!(
+          expected_revenue: "234.63",
+          received_revenue: "100.00",
+          outstanding_revenue: "134.63",
+          refunded_revenue: "0.00",
+          net_payment: "100.00",
+          payment_gateway_names: ["shopify_payments"],
+          payment_terms_name: "Within 30 days",
+          payment_terms_type: "NET",
+          payment_due: "2025-06-01T00:00:00+00:00",
+          payment_overdue: true
+        )
+        order[:sale_items].first[:expected_revenue] = "234.63"
+        order
+      end
+
+      it "persists sale-level revenue and payment terms fields" do
+        described_class.import!(parsed_order_with_revenue)
+
+        expect(Sale.last).to have_attributes(
+          expected_revenue: BigDecimal("234.63"),
+          received_revenue: BigDecimal("100.00"),
+          outstanding_revenue: BigDecimal("134.63"),
+          refunded_revenue: BigDecimal("0"),
+          net_payment: BigDecimal("100.00"),
+          payment_gateway_names: ["shopify_payments"],
+          payment_terms_name: "Within 30 days",
+          payment_terms_type: "NET",
+          payment_overdue: true
+        )
+        expect(Sale.last.payment_due).to be_within(1.second).of(Time.zone.parse("2025-06-01T00:00:00+00:00"))
+      end
+
+      it "allocates the full order revenue to a single sale item" do
+        described_class.import!(parsed_order_with_revenue)
+
+        expect(SaleItem.last).to have_attributes(
+          expected_revenue: BigDecimal("234.63"),
+          received_revenue: BigDecimal("100.00"),
+          outstanding_revenue: BigDecimal("134.63"),
+          refunded_revenue: BigDecimal("0")
+        )
+      end
+
+      it "allocates order revenue proportionally across multiple line items" do
+        order = parsed_order_with_revenue.deep_dup
+        order[:sale].merge!(
+          expected_revenue: "300.00",
+          received_revenue: "90.00",
+          outstanding_revenue: "210.00",
+          refunded_revenue: "0.00"
+        )
+        order[:sale_items].first[:expected_revenue] = "100.00"
+
+        second_item = order[:sale_items].first.deep_dup
+        second_item.merge!(
+          store_id: "gid://shopify/LineItem/second-item",
+          variant_store_id: nil,
+          variant_title: nil,
+          product_store_id: "gid://shopify/Product/second-product",
+          full_title: "Halo - Master Chief | 1:4 Resin Statue",
+          expected_revenue: "200.00",
+          product: {
+            store_id: "gid://shopify/Product/second-product",
+            title: "Master Chief",
+            franchise: "Halo",
+            shape: "Statue",
+            variants: []
+          }
+        )
+        order[:sale_items] << second_item
+
+        described_class.import!(order)
+
+        first_item = SaleItem.find_by(shopify_id: order[:sale_items].first[:store_id])
+        allocated_second_item = SaleItem.find_by(shopify_id: "gid://shopify/LineItem/second-item")
+
+        expect(first_item).to have_attributes(
+          received_revenue: BigDecimal("30"),
+          outstanding_revenue: BigDecimal("70")
+        )
+        expect(allocated_second_item).to have_attributes(
+          received_revenue: BigDecimal("60"),
+          outstanding_revenue: BigDecimal("140")
+        )
+      end
+
+      it "leaves revenue fields empty when the payload has no payment data" do
+        import_order
+
+        expect(Sale.last).to have_attributes(
+          received_revenue: nil,
+          outstanding_revenue: nil,
+          refunded_revenue: nil
+        )
+        expect(SaleItem.last).to have_attributes(received_revenue: nil, outstanding_revenue: nil)
+      end
+    end
+
     context "when linking purchased products" do
       let(:product) { create(:product) }
-      let(:purchase) { create(:purchase, product: product, amount: 3) }
+      let(:purchase_variant) do
+        variant = create(:variant, :with_version, product:)
+        variant.upsert_shopify_info!(
+          store_id: valid_parsed_order[:sale_items].first[:variant_store_id]
+        )
+        variant
+      end
+      let(:purchase) { create(:purchase, product:, variant: purchase_variant, amount: 3) }
       let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase) }
       let!(:existing_sale) do
         sale = create(:sale, status: "pre-ordered")
@@ -545,7 +707,15 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         sale.shopify_info.update(store_id: valid_parsed_order[:store_info][:store_id])
         sale
       end
-      let(:sale_item) { create(:sale_item, sale: existing_sale, product: product, qty: 2) }
+      let(:sale_item) do
+        create(
+          :sale_item,
+          sale: existing_sale,
+          product:,
+          variant: purchase_variant,
+          qty: 2
+        )
+      end
       # Note: fixture uses :store_id key, importer maps it to shopify_id column
       let(:sale_item_store_id_from_fixture) { valid_parsed_order[:sale_items].first[:store_id] }
 
@@ -561,8 +731,14 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "notifies customers about linked products" do
+        callbacks = []
+        allow(ActiveRecord).to receive(:after_all_transactions_commit) { |&callback| callbacks << callback }
         allow(PurchaseItem).to receive(:notify_order_status!)
+
         import_order
+
+        expect(PurchaseItem).not_to have_received(:notify_order_status!)
+        callbacks.each(&:call)
         expect(PurchaseItem).to have_received(:notify_order_status!).at_least(:once)
       end
     end

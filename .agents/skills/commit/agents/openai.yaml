@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit"
+  short_description: "Create a conventional commit for changes"
+  default_prompt: "Use $commit to prepare a Conventional Commit for the current changes."

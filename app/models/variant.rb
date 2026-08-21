@@ -34,8 +34,8 @@ class Variant < ApplicationRecord
   belongs_to :size, optional: true, inverse_of: :variants
   belongs_to :version, optional: true, inverse_of: :variants
 
-  has_many :sale_items, dependent: :nullify, inverse_of: :variant
-  has_many :purchases, dependent: :nullify, inverse_of: :variant
+  has_many :sale_items, inverse_of: :variant # rubocop:disable Rails/HasManyOrHasOneDependent
+  has_many :purchases, inverse_of: :variant # rubocop:disable Rails/HasManyOrHasOneDependent
 
   scope :active, -> { where(deactivated_at: nil) }
   scope :deactivated, -> { where.not(deactivated_at: nil) }

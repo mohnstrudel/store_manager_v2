@@ -1,6 +1,9 @@
-import { router } from "@inertiajs/react";
-import { useCallback, type ChangeEvent, type FormEvent, useState } from "react";
+import { PlusCircleIcon } from "@heroicons/react/20/solid";
+import { useForm } from "@inertiajs/react";
+import { useCallback, type ChangeEvent, type FormEvent } from "react";
+
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { NewPaymentRecord, PaymentRecord, PurchaseShowRecord } from "../types";
 
 type PaymentsProps = {
@@ -17,7 +20,7 @@ export default function Payments({ newPayment, payments, purchase }: PaymentsPro
         <thead>
           <tr>
             <th>Date</th>
-            <th>Amount, $</th>
+            <th>Amount</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -41,37 +44,49 @@ export default function Payments({ newPayment, payments, purchase }: PaymentsPro
 }
 
 function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchasePath: string }) {
-  const [paymentDate, setPaymentDate] = useState(payment.payment_date);
-  const [value, setValue] = useState(payment.value);
+  const form = useForm({
+    payment_date: payment.payment_date,
+    value: payment.value,
+    return_to: purchasePath,
+  });
   const destroyPayment = useConfirmAction("delete", payment.destroy_path, {
     message: "Remove this payment?",
   });
 
-  const handleSubmit = useCallback(
+  const savePayment = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      router.patch(payment.update_path, {
-        payment: { payment_date: paymentDate, value },
-        return_to: purchasePath,
-      });
+      form.transform((data) => ({
+        payment: { payment_date: data.payment_date, value: data.value },
+        return_to: data.return_to,
+      }));
+      form.patch(payment.update_path, { preserveScroll: true });
     },
-    [payment.update_path, paymentDate, purchasePath, value],
+    [form, payment.update_path],
   );
 
-  const updateDate = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setPaymentDate(event.target.value);
-  }, []);
+  const updateDate = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.clearErrors("payment_date");
+      form.setData((data) => ({ ...data, payment_date: event.target.value }));
+    },
+    [form],
+  );
 
-  const updateValue = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
-  }, []);
+  const updateValue = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.clearErrors("value");
+      form.setData((data) => ({ ...data, value: event.target.value }));
+    },
+    [form],
+  );
 
   return (
     <>
-      {payment.errors.length > 0 && <PaymentErrors errors={payment.errors} />}
+      <PaymentErrors errors={form.errors} />
       <tr data-payment-id={payment.id}>
         <td>
-          <form className="hidden" id={`payment_${payment.id}_inline`} onSubmit={handleSubmit} />
+          <form className="hidden" id={`payment_${payment.id}_inline`} onSubmit={savePayment} />
           <label className="sr-only" htmlFor={`payment_${payment.id}_date`}>
             Date
           </label>
@@ -81,7 +96,7 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
             onChange={updateDate}
             suppressHydrationWarning
             type="date"
-            value={paymentDate}
+            value={form.data.payment_date}
           />
         </td>
         <td>
@@ -96,13 +111,13 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
             step="any"
             suppressHydrationWarning
             type="number"
-            value={value}
+            value={form.data.value}
           />
         </td>
         <td>
           <div className="flex flex-wrap gap-2">
             <button
-              className="btn_rounded btn_lightblue"
+              className="btn_rounded btn_lightamber"
               form={`payment_${payment.id}_inline`}
               type="submit"
             >
@@ -125,34 +140,52 @@ function NewPaymentRow({
   newPayment: NewPaymentRecord;
   purchasePath: string;
 }) {
-  const [paymentDate, setPaymentDate] = useState(newPayment.payment_date);
-  const [value, setValue] = useState(newPayment.value);
+  const form = useForm({
+    payment_date: newPayment.payment_date,
+    value: newPayment.value,
+    return_to: purchasePath,
+  });
 
-  const handleSubmit = useCallback(
+  const createPayment = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      router.post(newPayment.create_path, {
-        payment: { payment_date: paymentDate, value },
-        return_to: purchasePath,
+      form.transform((data) => ({
+        payment: { payment_date: data.payment_date, value: data.value },
+        return_to: data.return_to,
+      }));
+      form.post(newPayment.create_path, {
+        preserveScroll: true,
+        onSuccess: () => {
+          form.reset();
+          form.clearErrors();
+        },
       });
     },
-    [newPayment.create_path, paymentDate, purchasePath, value],
+    [form, newPayment.create_path],
   );
 
-  const updateDate = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setPaymentDate(event.target.value);
-  }, []);
+  const updateDate = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.clearErrors("payment_date");
+      form.setData((data) => ({ ...data, payment_date: event.target.value }));
+    },
+    [form],
+  );
 
-  const updateValue = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
-  }, []);
+  const updateValue = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.clearErrors("value");
+      form.setData((data) => ({ ...data, value: event.target.value }));
+    },
+    [form],
+  );
 
   return (
     <>
-      {newPayment.errors.length > 0 && <PaymentErrors errors={newPayment.errors} />}
+      <PaymentErrors errors={form.errors} />
       <tr>
         <td className="w-60">
-          <form className="hidden" id="new_payment_inline" onSubmit={handleSubmit} />
+          <form className="hidden" id="new_payment_inline" onSubmit={createPayment} />
           <label className="sr-only" htmlFor="payment_date">
             Date
           </label>
@@ -162,7 +195,7 @@ function NewPaymentRow({
             onChange={updateDate}
             suppressHydrationWarning
             type="date"
-            value={paymentDate}
+            value={form.data.payment_date}
           />
         </td>
         <td className="w-60">
@@ -177,11 +210,12 @@ function NewPaymentRow({
             step="any"
             suppressHydrationWarning
             type="number"
-            value={value}
+            value={form.data.value}
           />
         </td>
         <td>
-          <button className="btn_rounded" form="new_payment_inline" type="submit">
+          <button className="btn_rounded btn_lightblue" form="new_payment_inline" type="submit">
+            <PlusCircleIcon height={20} width={20} />
             Add payment
           </button>
         </td>
@@ -190,12 +224,15 @@ function NewPaymentRow({
   );
 }
 
-function PaymentErrors({ errors }: { errors: string[] }) {
+function PaymentErrors({ errors }: { errors: Record<string, string> }) {
+  const messages = Object.values(errors);
+  if (messages.length === 0) return null;
+
   return (
     <tr>
       <td colSpan={3}>
         <div className="px-3 pt-3 text-sm text-red-600">
-          {errors.map((message) => (
+          {messages.map((message) => (
             <div key={message}>{message}</div>
           ))}
         </div>

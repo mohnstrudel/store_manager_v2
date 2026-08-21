@@ -1,6 +1,9 @@
 import { Link } from "@inertiajs/react";
+
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+import { emptyToNull } from "@/utils/emptyValue";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import type { ProductIndexRecord } from "../types";
 
 type IndexTableProps = {
@@ -41,17 +44,19 @@ export default function IndexTable({ products }: IndexTableProps) {
                 </ul>
               )}
             </td>
-            <td>{product.woo_store_id || "—"}</td>
-            <td>{product.shopify_id_short || "—"}</td>
+            <td>{emptyToNull(product.woo_store_id)}</td>
+            <td>{emptyToNull(product.shopify_id_short)}</td>
             <td className="table_actions text-right" onClick={stopRowNavigation}>
-              <Link href={product.edit_path} prefetch>
-                <i className="icn">✏</i>
-                Edit
-              </Link>
-              <Link href={product.new_purchase_path} prefetch>
-                <i className="icn">💰</i>
-                Purchase
-              </Link>
+              <div className="flex justify-end gap-2">
+                <Link href={product.edit_path} prefetch>
+                  <i className="icn">✏</i>
+                  Edit
+                </Link>
+                <Link href={product.new_purchase_path} prefetch>
+                  <i className="icn">💰</i>
+                  Purchase
+                </Link>
+              </div>
             </td>
           </tr>
         ))}

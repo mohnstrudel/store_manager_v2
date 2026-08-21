@@ -1,5 +1,8 @@
 import { Link } from "@inertiajs/react";
+
+import PaymentPlanMarker, { isFollowUpPayment } from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+
 import { SaleRecord } from "../types";
 
 type SalesProps = {
@@ -19,7 +22,7 @@ export default function Sales({ heading, sales }: SalesProps) {
             <th className="text-center">Image</th>
             <th>Sale</th>
             <th>Status</th>
-            <th>Price, $</th>
+            <th>Price</th>
             <th>Country</th>
             <th>City</th>
             <th>Note</th>
@@ -31,10 +34,10 @@ export default function Sales({ heading, sales }: SalesProps) {
         </thead>
         <tbody>
           {sales.map((sale) => (
-            <tr key={sale.id}>
+            <tr data-follow-up={isFollowUpPayment(sale.payment_plans) || undefined} key={sale.id}>
               <td className="text-center">
                 <ZoomableThumbnail
-                  alt={sale.sold_product_name || `Sale ${saleIdentifier(sale)}`}
+                  alt={sale.sold_product_name || `${saleNoun(sale)} ${saleIdentifier(sale)}`}
                   key={`${sale.id}-${sale.product_thumb_url ?? "missing"}`}
                   src={sale.product_thumb_url}
                 />
@@ -61,6 +64,7 @@ export default function Sales({ heading, sales }: SalesProps) {
                     </span>
                   </span>
                 </Link>
+                <PaymentPlanMarker plans={sale.payment_plans} />
               </td>
               <td>
                 <span className={sale.active ? "text-lime-700" : "text-red-900"}>
@@ -99,4 +103,8 @@ function saleLinkLabel(sale: SaleRecord) {
 
 function saleIdentifier(sale: SaleRecord) {
   return String(sale.sale_identifier || sale.store_id || sale.id);
+}
+
+function saleNoun(sale: SaleRecord) {
+  return sale.is_follow_up_payment ? "Payment" : "Sale";
 }

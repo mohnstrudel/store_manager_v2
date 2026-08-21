@@ -1,6 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createInertiaApp, router } from "@inertiajs/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import AppLayout from "@/layouts/AppLayout";
+
 import {
   disableAutocorrect,
   enableAutocorrectDisabler,

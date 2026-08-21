@@ -1,6 +1,8 @@
 import { Link } from "@inertiajs/react";
-import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import routes from "@/utils/routes";
+import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import { VersionRecord } from "../types";
 
 type TableProps = {
@@ -35,7 +37,7 @@ export default function Table({ versions }: TableProps) {
               <td>{version.created_at}</td>
               <td>{version.updated_at}</td>
               <td className="table_actions text-right">
-                <div className="flex flex-wrap justify-end gap-3">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Link href={currentVersionPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">📄</i>
                     Show

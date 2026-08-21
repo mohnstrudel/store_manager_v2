@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shopify"
+  short_description: "Structure Shopify Admin API changes"
+  default_prompt: "Use $shopify to implement this Shopify Admin API change in the repository."
