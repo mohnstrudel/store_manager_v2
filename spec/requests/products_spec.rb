@@ -148,7 +148,7 @@ RSpec.describe "Products" do
         expect(profitability[:expected_total_cost]).to eq("120")
         expect(profitability[:business_expenses]).to eq("15")
         expect(profitability[:expected_net_profit]).to eq("15")
-        expect(profitability[:received_revenue]).to eq("100")
+        expect(profitability[:collected_revenue]).to eq("100")
         expect(profitability[:purchase_paid]).to eq("80")
         expect(profitability[:cash_position]).to eq("20")
       end
@@ -179,6 +179,7 @@ RSpec.describe "Products" do
         expect(profitability).not_to have_key(:direct_expenses)
         expect(profitability).not_to have_key(:outstanding_revenue)
         expect(profitability).not_to have_key(:refunded_revenue)
+        expect(profitability).not_to have_key(:received_revenue)
         expect(profitability).not_to have_key(:counted_sales_total)
       end
 

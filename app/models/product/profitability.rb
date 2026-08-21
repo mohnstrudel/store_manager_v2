@@ -3,8 +3,8 @@
 # Product-level economics driven by purchased inventory, not by what has
 # sold: Potential sales prices every purchased unit at its variant's selling
 # price, the expected total cost is everything spent landing those units,
-# and OpEx is estimated on potential sales. Cash position nets money actually
-# collected from customers against money actually paid to suppliers.
+# and OpEx is estimated on potential sales. Cash position nets money kept
+# from customers against money actually paid to suppliers.
 module Product::Profitability
   extend ActiveSupport::Concern
 
@@ -20,7 +20,7 @@ module Product::Profitability
     potential_sales = purchase_items.sum(0.to_d) { |purchase_item| purchase_item.purchase.variant&.selling_price.to_d }
     expected_total_cost = landed_cost_of(purchase_items)
     business_expenses = (potential_sales * expense_fraction).round(2)
-    received_revenue = profitability_sale_items.sum(0.to_d) { |item| item.received_revenue.to_d }
+    collected_revenue = profitability_sale_items.sum(0.to_d) { |item| item.received_revenue.to_d - item.refunded_revenue.to_d }
     purchase_paid = inventory_purchases.sum(:paid)
 
     {
@@ -28,9 +28,9 @@ module Product::Profitability
       expected_total_cost:,
       business_expenses:,
       expected_net_profit: potential_sales - expected_total_cost - business_expenses,
-      received_revenue:,
+      collected_revenue:,
       purchase_paid:,
-      cash_position: received_revenue - purchase_paid
+      cash_position: collected_revenue - purchase_paid
     }
   end
 

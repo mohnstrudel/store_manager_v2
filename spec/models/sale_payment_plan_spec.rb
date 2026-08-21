@@ -232,23 +232,18 @@ RSpec.describe SalePaymentPlan do
 
       summary = plan.profitability
 
-      expect(summary[:expected_revenue]).to eq(BigDecimal("1000"))
-      expect(summary[:received_revenue]).to eq(BigDecimal("1000"))
-      expect(summary[:purchase_cost]).to eq(BigDecimal("570"))
+      expect(summary[:gross_revenue]).to eq(BigDecimal("1000"))
+      expect(summary[:collected_revenue]).to eq(BigDecimal("1000"))
+      expect(summary[:item_price_total]).to eq(BigDecimal("500"))
+      expect(summary[:purchase_shipping_cost]).to eq(BigDecimal("50"))
       expect(summary[:direct_expenses]).to eq(BigDecimal("20"))
-      expect(summary[:merchandise_cost]).to eq(BigDecimal("550"))
+      expect(summary[:purchase_expenses]).to eq(BigDecimal("70"))
       expect(summary[:business_expenses]).to eq(BigDecimal("100"))
-      expect(summary[:realized_profit]).to eq(BigDecimal("330"))
-      expect(summary[:expected_final_profit]).to eq(BigDecimal("330"))
-
-      # No contract value on this plan, so the projected keys carry explicit
-      # nil rather than being absent — the frontend type stays T | null.
-      expect(summary[:projected_revenue]).to be_nil
-      expect(summary[:projected_business_expenses]).to be_nil
-      expect(summary[:projected_final_profit]).to be_nil
+      expect(summary[:net_profit]).to eq(BigDecimal("330"))
+      expect(summary[:cash_position]).to eq(BigDecimal("1000"))
     end
 
-    it "projects revenue and OpEx to the plan's full contract value instead of what has been charged" do
+    it "measures the whole contract value against the whole cost, not the deposit alone" do
       # Worked example from the ticket: a 30% deposit on a 1 020 deal, the
       # remaining 70% not yet raised as a Sale, at a 15% OpEx rate.
       create(:expense_rate, rate_percent: 15)
@@ -282,18 +277,17 @@ RSpec.describe SalePaymentPlan do
 
       summary = plan.profitability
 
-      # Booked side is unchanged: revenue and cost from the one raised charge.
-      expect(summary[:expected_revenue]).to eq(BigDecimal("300"))
-      expect(summary[:purchase_cost]).to eq(BigDecimal("700"))
-      expect(summary[:business_expenses]).to eq(BigDecimal("45"))
-      expect(summary[:expected_final_profit]).to eq(BigDecimal("-445"))
+      # The deal, not the one raised charge: OpEx follows the contract value
+      # too, so 1 020 is not measured against the 45.00 charged on 300.
+      expect(summary[:gross_revenue]).to eq(BigDecimal("1020"))
+      expect(summary[:item_price_total]).to eq(BigDecimal("700"))
+      expect(summary[:purchase_expenses]).to eq(0)
+      expect(summary[:business_expenses]).to eq(BigDecimal("153"))
+      expect(summary[:net_profit]).to eq(BigDecimal("167"))
 
-      # Projected side uses the full contract value for revenue AND for OpEx.
-      # Reusing the booked 45.00 OpEx here would report 175.00 instead of
-      # 167.00 and overstate the deal's profit.
-      expect(summary[:projected_revenue]).to eq(BigDecimal("1020"))
-      expect(summary[:projected_business_expenses]).to eq(BigDecimal("153"))
-      expect(summary[:projected_final_profit]).to eq(BigDecimal("167"))
+      # Cash is what moved, never what the contract promises.
+      expect(summary[:collected_revenue]).to eq(BigDecimal("300"))
+      expect(summary[:cash_position]).to eq(BigDecimal("300"))
     end
   end
 

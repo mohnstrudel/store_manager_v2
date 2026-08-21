@@ -97,12 +97,21 @@ RSpec.describe Product::Profitability, :aggregate_failures do
       expect(displayed).to eq(summary[:expected_net_profit])
     end
 
-    it "reports customer money received and supplier money paid separately, netting them into the cash position" do
+    it "reports customer money kept and supplier money paid separately, netting them into the cash position" do
       summary = product.profitability
 
-      expect(summary[:received_revenue]).to eq(BigDecimal("250"))
+      expect(summary[:collected_revenue]).to eq(BigDecimal("250"))
       expect(summary[:purchase_paid]).to eq(BigDecimal("25"))
       expect(summary[:cash_position]).to eq(BigDecimal("225"))
+    end
+
+    it "keeps money refunded to a customer out of the cash position" do
+      paid_item.update!(refunded_revenue: BigDecimal("70"))
+
+      summary = product.profitability
+
+      expect(summary[:collected_revenue]).to eq(BigDecimal("180"))
+      expect(summary[:cash_position]).to eq(BigDecimal("155"))
     end
 
     it "counts every purchase paid toward suppliers, whether or not its units sold" do

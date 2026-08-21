@@ -378,18 +378,32 @@ RSpec.describe "Sales" do
         expect(inertia.props[:sale][:profitability]).to be_nil
       end
 
-      it "includes an order-scoped profit summary that separates direct expenses" do
+      it "includes an order-scoped profit summary that splits the purchase figures" do
         get sale_path(sale)
 
         summary = inertia.props[:sale][:profitability]
         expect(summary).to include(
           scope: "sale",
-          expected_revenue: "300",
-          merchandise_cost: "115",
+          gross_revenue: "300",
+          item_price_total: "100",
+          purchase_expenses: "20",
+          purchase_shipping_cost: "15",
           direct_expenses: "5",
-          purchase_cost: "120",
           business_expenses: "30",
-          expected_final_profit: "150"
+          net_profit: "150"
+        )
+      end
+
+      it "states the two halves of the cash position beside it" do
+        Purchase.sole.update!(paid: BigDecimal("60"))
+
+        get sale_path(sale)
+
+        summary = inertia.props[:sale][:profitability]
+        expect(summary).to include(
+          collected_revenue: "100",
+          purchase_paid: "60",
+          cash_position: "40"
         )
       end
 
@@ -398,8 +412,16 @@ RSpec.describe "Sales" do
 
         summary = inertia.props[:sale][:profitability]
         expect(summary).not_to have_key(:expense_rate_percent)
-        expect(summary).not_to have_key(:received_revenue)
+        expect(summary).not_to have_key(:expected_revenue)
+        expect(summary).not_to have_key(:outstanding_revenue)
+        expect(summary).not_to have_key(:refunded_revenue)
+        expect(summary).not_to have_key(:purchase_cost)
+        expect(summary).not_to have_key(:merchandise_cost)
+        expect(summary).not_to have_key(:expected_final_profit)
         expect(summary).not_to have_key(:realized_profit)
+        expect(summary).not_to have_key(:projected_revenue)
+        expect(summary).not_to have_key(:projected_business_expenses)
+        expect(summary).not_to have_key(:projected_final_profit)
       end
 
       it "omits the profit summary for a cancelled sale" do
@@ -409,20 +431,9 @@ RSpec.describe "Sales" do
 
         expect(inertia.props[:sale][:profitability]).to be_nil
       end
-
-      it "carries the projected profit keys as explicit nil when the sale belongs to no plan" do
-        get sale_path(sale)
-
-        summary = inertia.props[:sale][:profitability]
-        expect(summary).to include(
-          projected_revenue: nil,
-          projected_business_expenses: nil,
-          projected_final_profit: nil
-        )
-      end
     end
 
-    describe "projected profit props" do
+    describe "whole-deal profit props" do
       let(:origin) do
         create(
           :sale,
@@ -465,16 +476,18 @@ RSpec.describe "Sales" do
         )
       end
 
-      it "reports the booked loss and the projected profit at once for a deposit with a known Projected total" do
+      it "measures the whole contract value against the whole cost for a deposit with a known Projected total" do
         get sale_path(origin)
 
         summary = inertia.props[:sale][:profitability]
         expect(summary).to include(
           scope: "plan",
-          expected_final_profit: "-445",
-          projected_revenue: "1 020",
-          projected_business_expenses: "153",
-          projected_final_profit: "167"
+          gross_revenue: "1 020",
+          item_price_total: "700",
+          business_expenses: "153",
+          net_profit: "167",
+          collected_revenue: "300",
+          cash_position: "300"
         )
       end
     end

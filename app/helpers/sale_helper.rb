@@ -150,17 +150,16 @@ module SaleHelper
 
     {
       scope: summary[:scope],
-      expected_revenue: format_money(summary[:expected_revenue]),
-      outstanding_revenue: format_money(summary[:outstanding_revenue]),
-      refunded_revenue: format_money(summary[:refunded_revenue]),
-      purchase_cost: format_money(summary[:purchase_cost]),
-      merchandise_cost: format_money(summary[:merchandise_cost]),
+      gross_revenue: format_money(summary[:gross_revenue]),
+      item_price_total: format_money(summary[:item_price_total]),
+      purchase_expenses: format_money(summary[:purchase_expenses]),
+      purchase_shipping_cost: format_money(summary[:purchase_shipping_cost]),
       direct_expenses: format_money(summary[:direct_expenses]),
       business_expenses: format_money(summary[:business_expenses]),
-      expected_final_profit: format_money(summary[:expected_final_profit]),
-      projected_revenue: format_money(summary[:projected_revenue]),
-      projected_business_expenses: format_money(summary[:projected_business_expenses]),
-      projected_final_profit: format_money(summary[:projected_final_profit])
+      net_profit: format_money(summary[:net_profit]),
+      collected_revenue: format_money(summary[:collected_revenue]),
+      purchase_paid: format_money(summary[:purchase_paid]),
+      cash_position: format_money(summary[:cash_position])
     }
   end
 

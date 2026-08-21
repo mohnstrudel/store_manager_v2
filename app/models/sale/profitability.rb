@@ -6,34 +6,59 @@
 module Sale::Profitability
   extend ActiveSupport::Concern
 
-  def profitability(expense_fraction: ExpenseRate.combined_fraction)
-    items = sale_items.includes(purchase_items: :purchase).to_a
-    purchase_cost = items.sum(0.to_d, &:purchase_cost)
-    direct_expenses = items.sum(0.to_d, &:direct_expenses)
-    business_expenses = (expected_revenue.to_d * expense_fraction).round(2)
+  # Terms a payment plan can add up across its sales. Everything else is
+  # derived from them once, by `derived`, so a plan states one equation
+  # instead of summing figures that were already netted per charge.
+  ADDITIVE_TERMS = %i[
+    expected_revenue
+    collected_revenue
+    item_price_total
+    purchase_shipping_cost
+    direct_expenses
+    purchase_paid
+  ].freeze
+
+  # The one equation behind the economics card, for a lone sale and for a whole
+  # payment plan alike. Gross revenue is passed in because only the plan knows
+  # the contract value; every deduction follows from it, OpEx included, so a
+  # deposit is never measured against 100% of the cost.
+  def self.derived(terms, gross_revenue:, expense_fraction:)
+    purchase_expenses = terms[:purchase_shipping_cost] + terms[:direct_expenses]
+    business_expenses = (gross_revenue * expense_fraction).round(2)
+    collected_revenue = terms[:collected_revenue]
 
     {
-      expected_revenue: expected_revenue.to_d,
-      received_revenue: received_revenue.to_d,
-      outstanding_revenue: outstanding_revenue.to_d,
-      refunded_revenue: refunded_revenue.to_d,
-      purchase_cost:,
-      direct_expenses:,
-      # What the goods themselves cost, once the named direct expenses are taken
-      # out of the cost of goods. Revenue − merchandise − direct − OpEx then adds
-      # up to the profit instead of charging the expenses twice.
-      merchandise_cost: purchase_cost - direct_expenses,
+      gross_revenue:,
+      purchase_expenses:,
       business_expenses:,
-      realized_profit: received_revenue.to_d - purchase_cost - business_expenses,
-      expected_final_profit: expected_revenue.to_d - purchase_cost - business_expenses,
-      # A lone sale has no contract value to project against, so these carry
-      # explicit nil rather than being absent — the plan scope (see
-      # SalePaymentPlan#profitability) can populate them, and the frontend
-      # type stays `T | null` on both branches instead of `T | undefined`.
-      projected_revenue: nil,
-      projected_business_expenses: nil,
-      projected_final_profit: nil
+      net_profit: gross_revenue - terms[:item_price_total] - purchase_expenses - business_expenses,
+      cash_position: collected_revenue && collected_revenue - terms[:purchase_paid]
     }
+  end
+
+  def profitability(expense_fraction: ExpenseRate.combined_fraction)
+    items = sale_items.includes(purchase_items: :purchase).to_a
+    terms = {
+      expected_revenue: expected_revenue.to_d,
+      collected_revenue:,
+      item_price_total: items.sum(0.to_d, &:item_price_total),
+      purchase_shipping_cost: items.sum(0.to_d, &:purchase_shipping_cost),
+      direct_expenses: items.sum(0.to_d, &:direct_expenses),
+      purchase_paid: supplier_paid(items)
+    }
+
+    terms.merge(
+      Sale::Profitability.derived(terms, gross_revenue: terms[:expected_revenue], expense_fraction:)
+    )
+  end
+
+  # Money the customer paid and we still hold. A store can state an order's
+  # value without ever stating how much of it was collected, and no cash
+  # figure can be claimed from that.
+  def collected_revenue
+    return if payment_split_unknown?
+
+    received_revenue.to_d - refunded_revenue.to_d
   end
 
   # The economics worth reporting for this order, and how wide they reach.
@@ -53,5 +78,20 @@ module Sale::Profitability
     else
       profitability(expense_fraction:).merge(scope: :sale)
     end
+  end
+
+  private
+
+  # Supplier money behind this order's units only. A purchase pays for every
+  # unit it ordered, and the rest can sit in a warehouse or belong to another
+  # customer, so each purchase gives up a per-unit share and never more than
+  # it was actually paid.
+  def supplier_paid(items)
+    items.flat_map(&:purchase_items).group_by(&:purchase).sum(0.to_d) { |purchase, linked|
+      units = purchase.amount.to_i
+      paid = purchase.paid.to_d
+
+      units.zero? ? 0.to_d : [paid * linked.size / units, paid].min
+    }
   end
 end

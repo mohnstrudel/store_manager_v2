@@ -39,10 +39,10 @@ RSpec.describe ProductHelper do
       expect(props[:expected_net_profit]).to eq("15")
     end
 
-    it "reports customer paid and purchase paid separately and nets them into the cash position" do
+    it "reports customer money kept and purchase paid separately and nets them into the cash position" do
       props = helper.product_profitability_props(product)
 
-      expect(props[:received_revenue]).to eq("100")
+      expect(props[:collected_revenue]).to eq("100")
       expect(props[:purchase_paid]).to eq("80")
       expect(props[:cash_position]).to eq("20")
     end
@@ -63,6 +63,7 @@ RSpec.describe ProductHelper do
       expect(props).not_to have_key(:direct_expenses)
       expect(props).not_to have_key(:outstanding_revenue)
       expect(props).not_to have_key(:refunded_revenue)
+      expect(props).not_to have_key(:received_revenue)
       expect(props).not_to have_key(:counted_sales_total)
       expect(props).not_to have_key(:refunded_percent)
     end

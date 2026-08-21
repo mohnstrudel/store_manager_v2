@@ -23,18 +23,6 @@
 class SalePaymentPlan < ApplicationRecord
   PROVIDERS = %w[seal shopify].freeze
   KINDS = %w[deposit installments payment_terms].freeze
-  # Additive terms of a sale's profitability summary. Profit is derived from the
-  # totals afterwards rather than summed, so the plan states one equation.
-  PROFITABILITY_COMPONENTS = %i[
-    expected_revenue
-    received_revenue
-    outstanding_revenue
-    refunded_revenue
-    purchase_cost
-    direct_expenses
-    merchandise_cost
-    business_expenses
-  ].freeze
 
   belongs_to :origin_sale, class_name: "Sale", optional: true, inverse_of: :origin_payment_plans
   has_many :parts,
@@ -127,17 +115,21 @@ class SalePaymentPlan < ApplicationRecord
 
   # Economics of the whole deal. The purchase links sit on the originating order
   # while the money arrives across every charge, so only the plan can put revenue
-  # and cost of goods on the same page.
+  # and cost of goods on the same page. Gross revenue is the contract value when
+  # the provider states one, so the deal reads as a finished job rather than as
+  # whatever has been billed so far.
   def profitability(expense_fraction: ExpenseRate.combined_fraction)
     summaries = related_sales.map { |sale| sale.profitability(expense_fraction:) }
-    totals = PROFITABILITY_COMPONENTS.index_with { |component|
-      summaries.sum(0.to_d) { |summary| summary.fetch(component) }
+    terms = Sale::Profitability::ADDITIVE_TERMS.index_with { |term|
+      total_across(summaries, term)
     }
 
-    totals.merge(
-      realized_profit: totals[:received_revenue] - totals[:purchase_cost] - totals[:business_expenses],
-      expected_final_profit: totals[:expected_revenue] - totals[:purchase_cost] - totals[:business_expenses],
-      **projected_profitability(totals[:purchase_cost], expense_fraction)
+    terms.merge(
+      Sale::Profitability.derived(
+        terms,
+        gross_revenue: projected_total&.to_d || terms[:expected_revenue],
+        expense_fraction:
+      )
     )
   end
 
@@ -148,6 +140,14 @@ class SalePaymentPlan < ApplicationRecord
   end
 
   private
+
+  # One charge that never said what it collected leaves the deal's total
+  # unstated too, rather than counting it as nothing.
+  def total_across(summaries, term)
+    values = summaries.map { |summary| summary.fetch(term) }
+
+    values.sum(0.to_d) unless values.any?(&:nil?)
+  end
 
   def reconcile_part!(snapshot)
     provider_part_id = snapshot[:provider_part_id].presence&.to_s
@@ -180,26 +180,6 @@ class SalePaymentPlan < ApplicationRecord
 
   def related_sales
     ([origin_sale] + parts.active.includes(:sale).map(&:sale)).compact.uniq
-  end
-
-  # The full-deal profit next to the booked one: purchase_cost is the plan's
-  # already-summed cost of goods and needs no projecting, but revenue and OpEx
-  # both scale to the contract value so a deposit isn't measured against 100%
-  # of the cost on 30% of the revenue. Absent a contract value there is
-  # nothing to project, so all three keys stay explicit nil together rather
-  # than a mix of present and absent keys.
-  def projected_profitability(purchase_cost, expense_fraction)
-    if projected_total.nil?
-      return {projected_revenue: nil, projected_business_expenses: nil, projected_final_profit: nil}
-    end
-
-    business_expenses = (projected_total.to_d * expense_fraction).round(2)
-
-    {
-      projected_revenue: projected_total,
-      projected_business_expenses: business_expenses,
-      projected_final_profit: projected_total - purchase_cost - business_expenses
-    }
   end
 
   def positive_net_cash(sale)

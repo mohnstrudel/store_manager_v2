@@ -13,6 +13,16 @@ module SaleItem::Profitability
     purchase_items.sum(0.to_d) { |purchase_item| purchase_item.cost.to_d + purchase_item.expenses.to_d }
   end
 
+  # What the suppliers charged for the goods themselves, before anything spent
+  # landing them.
+  def item_price_total
+    purchase_items.sum(0.to_d) { |purchase_item| purchase_item.purchase.item_price.to_d }
+  end
+
+  def purchase_shipping_cost
+    purchase_items.sum(0.to_d) { |purchase_item| purchase_item.shipping_cost.to_d }
+  end
+
   # The share of purchase_cost that is ad-hoc expenses, so a summary can name it
   # without deducting it twice.
   def direct_expenses
