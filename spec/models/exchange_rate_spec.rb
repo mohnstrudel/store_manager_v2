@@ -127,6 +127,39 @@ RSpec.describe ExchangeRate do
     end
   end
 
+  describe ".rate_on when a currency's ECB history starts after the requested date" do
+    before do
+      create(:exchange_rate, date: Date.new(2027, 1, 15), currency: "XYZ", rate: BigDecimal("1.10"))
+      create(:exchange_rate, date: Date.new(2027, 1, 18), currency: "XYZ", rate: BigDecimal("1.12"))
+      create(:exchange_rate, date: Date.new(2027, 1, 19), currency: "XYZ", rate: BigDecimal("1.08"))
+      create(:exchange_rate, date: Date.new(2027, 1, 20), currency: "XYZ", rate: BigDecimal("1.14"))
+      create(:exchange_rate, date: Date.new(2027, 1, 21), currency: "XYZ", rate: BigDecimal("1.09"))
+      create(:exchange_rate, date: Date.new(2027, 1, 22), currency: "XYZ", rate: BigDecimal("1.11"))
+    end
+
+    it "resolves to the median of rates within three months of the currency's earliest cached date" do
+      expect(HTTParty).not_to receive(:get)
+
+      # Sorted XYZ rates: 1.08, 1.09, 1.10, 1.11, 1.12, 1.14 — hand-computed median
+      # of the middle two (1.10, 1.11) is 1.105, independent of the fallback code.
+      expect(described_class.rate_on(currency: "XYZ", date: Date.new(2026, 12, 1)))
+        .to eq(BigDecimal("1.105"))
+    end
+
+    it "still uses an exact or earlier-dated rate directly when one exists" do
+      create(:exchange_rate, date: Date.new(2026, 11, 1), currency: "XYZ", rate: BigDecimal("1.20"))
+
+      expect(described_class.rate_on(currency: "XYZ", date: Date.new(2026, 12, 1)))
+        .to eq(BigDecimal("1.20"))
+    end
+
+    it "raises for a currency with zero cached rows at any date" do
+      expect {
+        described_class.rate_on(currency: "ZZZ", date: Date.new(2026, 12, 1))
+      }.to raise_error(ArgumentError, /No ECB reference rate cached for ZZZ/)
+    end
+  end
+
   describe ".usd_amount when the ECB response is unsuccessful or malformed" do
     it "persists no rate rows when the HTTP response is unsuccessful" do
       allow(HTTParty).to receive(:get).and_return(instance_double(HTTParty::Response, success?: false, code: 503, body: ""))

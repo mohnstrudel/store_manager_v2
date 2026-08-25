@@ -33,7 +33,21 @@ class ExchangeRate < ApplicationRecord
     ensure_cached!
 
     where(currency:).where(date: ..date).order(date: :desc).pick(:rate) ||
+      median_rate_for_missing_history(currency:) ||
       raise(ArgumentError, "No ECB reference rate cached for #{currency} on or before #{date}")
+  end
+
+  # Falls back to the median of a currency's cached rates within a three-month
+  # window centered on its nearest available (earliest) cached date, when no
+  # rate exists on or before the requested date. Returns nil when the currency
+  # has no cached rate at any date, so `rate_on` raises as before.
+  def self.median_rate_for_missing_history(currency:)
+    earliest_date = where(currency:).minimum(:date)
+    return nil unless earliest_date
+
+    rates = where(currency:, date: (earliest_date - 3.months)..(earliest_date + 3.months)).order(:rate).pluck(:rate)
+    middle = rates.length / 2
+    rates.length.odd? ? rates[middle] : (rates[middle - 1] + rates[middle]) / 2
   end
 
   def self.ensure_cached!

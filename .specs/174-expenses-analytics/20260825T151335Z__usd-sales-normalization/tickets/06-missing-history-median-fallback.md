@@ -1,7 +1,7 @@
 # 06. Fall back to a median rate when a currency has no ECB history
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 01
 
 ## What to build
@@ -10,10 +10,10 @@ When `ExchangeRate.rate_on` finds no published rate for a currency on or before 
 
 ## Acceptance criteria
 
-- [ ] A currency with zero published rates on or before the sale date resolves to the median of its rates within a three-month window centered on its nearest available (first) published date, rather than raising `ArgumentError`.
-- [ ] A currency with at least one published rate on or before the sale date is unaffected: exact-date and latest-earlier-date behavior from Ticket 01 remains unchanged.
-- [ ] A currency with absolutely no cached rate at any date (never published by ECB) still raises, since there is no nearest available rate to center a window on.
-- [ ] The median fallback reuses the same cached `ExchangeRate` rows Ticket 01 persists; it triggers no additional ECB request.
+- [x] A currency with zero published rates on or before the sale date resolves to the median of its rates within a three-month window centered on its nearest available (first) published date, rather than raising `ArgumentError`.
+- [x] A currency with at least one published rate on or before the sale date is unaffected: exact-date and latest-earlier-date behavior from Ticket 01 remains unchanged.
+- [x] A currency with absolutely no cached rate at any date (never published by ECB) still raises, since there is no nearest available rate to center a window on.
+- [x] The median fallback reuses the same cached `ExchangeRate` rows Ticket 01 persists; it triggers no additional ECB request.
 
 ## Anchors
 
