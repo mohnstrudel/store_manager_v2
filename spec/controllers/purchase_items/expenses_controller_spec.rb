@@ -28,7 +28,7 @@ RSpec.describe PurchaseItems::ExpensesController do
     }
 
     expect(response).to redirect_to(purchase_path(item.purchase))
-    expect(expense.reload).to have_attributes(description: "Repacked", amount: BigDecimal("5"))
+    expect(expense.reload).to have_attributes(description: "Repacked", amount: BigDecimal(5))
   end
 
   it "redirects invalid item-level expenses to the purchase show page" do

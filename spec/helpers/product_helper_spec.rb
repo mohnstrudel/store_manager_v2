@@ -8,7 +8,7 @@ RSpec.describe ProductHelper do
 
     before do
       create(:expense_rate, rate_percent: 10)
-      product.base_variant.update!(selling_price: BigDecimal("150"))
+      product.base_variant.update!(selling_price: BigDecimal(150))
       sale = create(:sale, status: "pre-ordered")
       sale_item = create(
         :sale_item,
@@ -16,13 +16,13 @@ RSpec.describe ProductHelper do
         variant: nil,
         sale:,
         qty: 1,
-        expected_revenue: BigDecimal("300"),
-        received_revenue: BigDecimal("100"),
-        outstanding_revenue: BigDecimal("200")
+        expected_revenue: BigDecimal(300),
+        received_revenue: BigDecimal(100),
+        outstanding_revenue: BigDecimal(200)
       )
-      purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("100"))
-      create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
-      create(:payment, purchase:, value: BigDecimal("80"))
+      purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal(100))
+      create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal(15), direct_expense_amount: BigDecimal(5))
+      create(:payment, purchase:, value: BigDecimal(80))
     end
 
     it "prices potential sales at the variant's selling price and folds shipping and direct expenses into the expected total cost" do
@@ -73,10 +73,10 @@ RSpec.describe ProductHelper do
     it "shows the calculated theoretical profit even when the purchase cost total formats to zero" do
       create(:expense_rate, rate_percent: BigDecimal("15.0"))
       product = create(:product)
-      variant = create(:variant, product:, selling_price: BigDecimal("200"))
-      purchase = create(:purchase, product:, variant:, item_price: BigDecimal("0"))
-      create(:purchase_item, purchase:, shipping_cost: BigDecimal("0"), expenses: BigDecimal("0"))
-      create(:purchase_item, purchase:, shipping_cost: BigDecimal("0"), expenses: BigDecimal("0"))
+      variant = create(:variant, product:, selling_price: BigDecimal(200))
+      purchase = create(:purchase, product:, variant:, item_price: BigDecimal(0))
+      create(:purchase_item, purchase:, shipping_cost: BigDecimal(0), expenses: BigDecimal(0))
+      create(:purchase_item, purchase:, shipping_cost: BigDecimal(0), expenses: BigDecimal(0))
 
       purchase_cost_totals = product.variant_purchase_cost_totals
       props = helper.variant_props(variant, {}, {}, purchase_cost_totals, can_view_profitability: true)

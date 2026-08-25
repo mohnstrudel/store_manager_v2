@@ -8,30 +8,30 @@ RSpec.describe SaleItem::RevenueDefaults, :aggregate_failures do
 
   describe "manual sale items (no Shopify data)" do
     it "sets expected/received/future/refunded defaults from the sale item price" do
-      sale_item = create(:sale_item, sale:, product:, variant: nil, shopify_id: nil, price: BigDecimal("150"))
+      sale_item = create(:sale_item, sale:, product:, variant: nil, shopify_id: nil, price: BigDecimal(150))
 
-      expect(sale_item.expected_revenue).to eq(BigDecimal("150"))
-      expect(sale_item.received_revenue).to eq(BigDecimal("150"))
+      expect(sale_item.expected_revenue).to eq(BigDecimal(150))
+      expect(sale_item.received_revenue).to eq(BigDecimal(150))
       expect(sale_item.outstanding_revenue).to eq(0)
       expect(sale_item.refunded_revenue).to eq(0)
     end
 
     it "updates defaults when the manual price changes" do
-      sale_item = create(:sale_item, sale:, product:, variant: nil, shopify_id: nil, price: BigDecimal("150"))
+      sale_item = create(:sale_item, sale:, product:, variant: nil, shopify_id: nil, price: BigDecimal(150))
 
-      sale_item.update!(price: BigDecimal("200"))
+      sale_item.update!(price: BigDecimal(200))
 
-      expect(sale_item.expected_revenue).to eq(BigDecimal("200"))
-      expect(sale_item.received_revenue).to eq(BigDecimal("200"))
+      expect(sale_item.expected_revenue).to eq(BigDecimal(200))
+      expect(sale_item.received_revenue).to eq(BigDecimal(200))
     end
 
     it "does not clobber an explicitly refunded amount when price is unchanged" do
-      sale_item = create(:sale_item, sale:, product:, variant: nil, shopify_id: nil, price: BigDecimal("150"))
+      sale_item = create(:sale_item, sale:, product:, variant: nil, shopify_id: nil, price: BigDecimal(150))
 
-      sale_item.update!(refunded_revenue: BigDecimal("50"))
+      sale_item.update!(refunded_revenue: BigDecimal(50))
 
-      expect(sale_item.refunded_revenue).to eq(BigDecimal("50"))
-      expect(sale_item.expected_revenue).to eq(BigDecimal("150"))
+      expect(sale_item.refunded_revenue).to eq(BigDecimal(50))
+      expect(sale_item.expected_revenue).to eq(BigDecimal(150))
     end
   end
 
@@ -71,14 +71,14 @@ RSpec.describe SaleItem::RevenueDefaults, :aggregate_failures do
         product:,
         variant: nil,
         shopify_id: "gid://shopify/LineItem/1",
-        price: BigDecimal("150"),
-        expected_revenue: BigDecimal("100"),
+        price: BigDecimal(150),
+        expected_revenue: BigDecimal(100),
         received_revenue: nil,
         outstanding_revenue: nil,
         refunded_revenue: nil
       )
 
-      expect(sale_item.expected_revenue).to eq(BigDecimal("100"))
+      expect(sale_item.expected_revenue).to eq(BigDecimal(100))
       expect(sale_item.received_revenue).to be_nil
       expect(sale_item.outstanding_revenue).to be_nil
       expect(sale_item.refunded_revenue).to be_nil

@@ -82,7 +82,7 @@ RSpec.describe Seal::Api::Client do
 
   describe "::shared" do
     it "memoizes a single instance" do
-      expect(described_class.shared).to be(described_class.shared)
+      expect(described_class.shared).to be(described_class.shared) # rubocop:disable RSpec/IdenticalEqualityAssertion -- two separate calls; asserting the memoized instance is the same object, not comparing an expression to itself
     end
   end
 

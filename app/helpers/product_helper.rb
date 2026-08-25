@@ -129,7 +129,7 @@ module ProductHelper
       purchases_count: purchase_sums[variant.id].to_i,
       shopify_id_short: variant.shopify_info&.id_short,
       woo_store_id: variant.woo_info&.store_id,
-      total_purchase_cost: can_view_profitability && purchase_totals ? format_money(purchase_totals[:cost]) : nil,
+      total_purchase_cost: (can_view_profitability && purchase_totals) ? format_money(purchase_totals[:cost]) : nil,
       theoretical_profit: can_view_profitability ? variant_theoretical_profit(variant, purchase_totals, expense_fraction) : nil
     }
   end

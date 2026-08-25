@@ -7,6 +7,7 @@ RSpec.describe Sales::BulkPullsController do
     sign_in_as_admin
     allow(Seal::SyncPaymentPlansJob).to receive(:perform_later)
   end
+
   after { log_out }
 
   describe "POST #create" do

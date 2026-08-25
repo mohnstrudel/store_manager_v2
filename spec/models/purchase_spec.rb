@@ -49,8 +49,9 @@ RSpec.describe Purchase do
     end
 
     describe "product or variant presence (on create)" do
+      subject(:purchase) { described_class.new(amount: 10, item_price: BigDecimal("100.0"), supplier:) }
+
       let(:supplier) { create(:supplier) }
-      subject(:purchase) { Purchase.new(amount: 10, item_price: BigDecimal("100.0"), supplier:) }
 
       context "when neither product nor variant is set" do
         it { is_expected.not_to be_valid }

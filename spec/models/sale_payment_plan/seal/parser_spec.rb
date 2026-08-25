@@ -17,12 +17,12 @@ RSpec.describe SalePaymentPlan::Seal::Parser do
       external_origin_order_id: "100",
       kind: "deposit",
       expected_parts: 1,
-      deposit_percent: BigDecimal("30"),
-      projected_total: BigDecimal("1020"),
+      deposit_percent: BigDecimal(30),
+      projected_total: BigDecimal(1020),
       currency: "EUR"
     )
     expect(result[:parts]).to contain_exactly(
-      hash_including(sequence: 1, external_order_id: "100", amount: BigDecimal("300"))
+      hash_including(sequence: 1, external_order_id: "100", amount: BigDecimal(300))
     )
   end
 
@@ -46,7 +46,7 @@ RSpec.describe SalePaymentPlan::Seal::Parser do
     expect(result[:attributes]).to include(
       kind: "installments",
       expected_parts: 4,
-      projected_total: BigDecimal("1020"),
+      projected_total: BigDecimal(1020),
       next_due_at: DateTime.parse("2026-03-01T10:00:00Z")
     )
     expect(result[:parts].map { |part| part.values_at(:sequence, :external_order_id) }).to eq(
@@ -103,7 +103,7 @@ RSpec.describe SalePaymentPlan::Seal::Parser do
     }
   end
 
-  def selling_plan(adjustment_type: "PERCENTAGE", adjustment_value:, max_cycles:)
+  def selling_plan(adjustment_value:, max_cycles:, adjustment_type: "PERCENTAGE")
     {
       "selling_plan_id" => "plan-1",
       "pricing_policy_fixed_adjustment_type" => adjustment_type,

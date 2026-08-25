@@ -100,13 +100,13 @@ class SalePaymentPlan::Seal::Parser
     recurring_amount = subscription_items.sum { |item| item["final_amount"].to_d }
 
     (1..expected_parts).map do |sequence|
-      attempt = sequence == 1 ? nil : completed[sequence - 2]
+      attempt = (sequence == 1) ? nil : completed[sequence - 2]
       scheduled_attempt = scheduled[sequence - completed.size - 2] if sequence > completed.size + 1
 
       {
         provider_part_id: "#{subscription.fetch("id")}:#{sequence}",
         sequence:,
-        external_order_id: sequence == 1 ? subscription["order_id"] : attempt&.dig("order_id"),
+        external_order_id: (sequence == 1) ? subscription["order_id"] : attempt&.dig("order_id"),
         amount: recurring_amount,
         currency: subscription["currency"],
         due_at: parse_datetime(scheduled_attempt&.dig("date")),

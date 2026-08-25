@@ -43,7 +43,7 @@ RSpec.describe "Purchase inline updates" do
       }
 
       expect_successful_return_to(purchases_path)
-      expect(payment.reload).to have_attributes(payment_date: payment_date, value: BigDecimal("15"))
+      expect(payment.reload).to have_attributes(payment_date: payment_date, value: BigDecimal(15))
     end
 
     it "returns failed updates to the purchase show page with Inertia errors" do
@@ -100,7 +100,7 @@ RSpec.describe "Purchase inline updates" do
       }
 
       expect_successful_return_to(purchases_path)
-      expect(expense.reload).to have_attributes(description: "Repacking", amount: BigDecimal("5"))
+      expect(expense.reload).to have_attributes(description: "Repacking", amount: BigDecimal(5))
     end
 
     it "returns failed updates to the purchase show page with Inertia errors" do

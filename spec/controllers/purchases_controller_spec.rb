@@ -76,7 +76,6 @@ RSpec.describe PurchasesController do
   describe "PATCH #update" do
     let(:purchase) { create(:purchase) }
 
-    # rubocop:disable RSpec/MultipleExpectations
     it "updates the purchase through the normalized payload" do
       patch :update, params: {
         id: purchase.to_param,
@@ -93,7 +92,6 @@ RSpec.describe PurchasesController do
       expect(response).to redirect_to(purchase_path(purchase.reload))
       expect(purchase.order_reference).to eq("UPDATED-REF")
     end
-    # rubocop:enable RSpec/MultipleExpectations
 
     it "redirects back to the edit page with errors and leaves the purchase unchanged on an invalid update" do
       original_reference = purchase.order_reference

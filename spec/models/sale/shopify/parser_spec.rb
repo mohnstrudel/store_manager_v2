@@ -607,8 +607,7 @@ RSpec.describe Sale::Shopify::Parser do
 
       result = described_class.parse(multi_line_order)
 
-      expect(result[:sale_items].map { |item| item[:expected_revenue] }).to eq(["95.00", "40.00"])
+      expect(result[:sale_items].pluck(:expected_revenue)).to eq(["95.00", "40.00"])
     end
   end
-
 end

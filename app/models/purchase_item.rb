@@ -53,7 +53,6 @@ class PurchaseItem < ApplicationRecord
   validates :shipping_company_id,
     presence: true,
     if: -> { tracking_number.present? }
-  validates :product_id, :variant_id, presence: true
   before_validation :derive_variant_identity
 
   db_belongs_to :warehouse, inverse_of: :purchase_items

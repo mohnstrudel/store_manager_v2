@@ -72,10 +72,10 @@ RSpec.describe "Products" do
 
     it "includes variant total purchase cost and theoretical profit" do
       product = create(:product)
-      variant = create(:variant, product:, selling_price: BigDecimal("200"))
-      other_variant = create(:variant, product:, selling_price: BigDecimal("50"))
-      purchase = create(:purchase, product:, variant:, item_price: BigDecimal("100"))
-      create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+      variant = create(:variant, product:, selling_price: BigDecimal(200))
+      other_variant = create(:variant, product:, selling_price: BigDecimal(50))
+      purchase = create(:purchase, product:, variant:, item_price: BigDecimal(100))
+      create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal(15), direct_expense_amount: BigDecimal(5))
       create(:expense_rate, rate_percent: 10)
 
       get product_path(product)
@@ -92,10 +92,10 @@ RSpec.describe "Products" do
 
     it "keeps theoretical profit per unit as more units are purchased" do
       product = create(:product)
-      variant = create(:variant, product:, selling_price: BigDecimal("200"))
-      purchase = create(:purchase, product:, variant:, amount: 5, item_price: BigDecimal("100"))
+      variant = create(:variant, product:, selling_price: BigDecimal(200))
+      purchase = create(:purchase, product:, variant:, amount: 5, item_price: BigDecimal(100))
       5.times do
-        create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+        create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal(15), direct_expense_amount: BigDecimal(5))
       end
       create(:expense_rate, rate_percent: 10)
 
@@ -123,7 +123,7 @@ RSpec.describe "Products" do
 
       before do
         create(:expense_rate, rate_percent: 10)
-        product.base_variant.update!(selling_price: BigDecimal("150"))
+        product.base_variant.update!(selling_price: BigDecimal(150))
         sale = create(:sale, status: "pre-ordered", financial_status: "PARTIALLY_PAID", payment_gateway_names: ["shopify_payments"])
         sale_item = create(
           :sale_item,
@@ -131,13 +131,13 @@ RSpec.describe "Products" do
           variant: nil,
           sale:,
           qty: 1,
-          expected_revenue: BigDecimal("300"),
-          received_revenue: BigDecimal("100"),
-          outstanding_revenue: BigDecimal("200")
+          expected_revenue: BigDecimal(300),
+          received_revenue: BigDecimal(100),
+          outstanding_revenue: BigDecimal(200)
         )
-        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("100"))
-        create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
-        create(:payment, purchase:, value: BigDecimal("80"))
+        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal(100))
+        create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal(15), direct_expense_amount: BigDecimal(5))
+        create(:payment, purchase:, value: BigDecimal(80))
       end
 
       it "includes profitability data for admins" do
@@ -154,8 +154,8 @@ RSpec.describe "Products" do
       end
 
       it "folds direct expenses into the expected total cost across sold and unsold units alike" do
-        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("20"))
-        create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal("0"), direct_expense_amount: BigDecimal("7"))
+        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal(20))
+        create(:purchase_item, :with_direct_expense, purchase:, shipping_cost: BigDecimal(0), direct_expense_amount: BigDecimal(7))
 
         get product_path(product)
 
@@ -387,6 +387,7 @@ RSpec.describe "Products" do
         warehouse = create(:warehouse, is_default: true)
         size = create(:size)
 
+        # rubocop:disable RSpec/ChangeByZero -- one exercise must prove six models are untouched; not_to can't chain compound matchers, and avoid_changing isn't available in this RSpec version
         expect {
           post products_path, params: {
             product: {
@@ -424,6 +425,7 @@ RSpec.describe "Products" do
           .and change(Purchase, :count).by(0)
           .and change(PurchaseItem, :count).by(0)
           .and change(Payment, :count).by(0)
+        # rubocop:enable RSpec/ChangeByZero
 
         expect(response).to redirect_to(new_product_path)
       end

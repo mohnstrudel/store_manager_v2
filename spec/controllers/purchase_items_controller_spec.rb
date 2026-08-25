@@ -61,8 +61,8 @@ describe PurchaseItemsController do
       }
 
       purchase_item.reload
-      expect(purchase_item.expenses).to eq(BigDecimal("12"))
-      expect(purchase_item.shipping_cost).to eq(BigDecimal("15"))
+      expect(purchase_item.expenses).to eq(BigDecimal(12))
+      expect(purchase_item.shipping_cost).to eq(BigDecimal(15))
     end
 
     it "does not accept direct SaleItem assignment" do

@@ -28,7 +28,9 @@ class Sale::InstallmentBackfill
   private
 
   def placeholder_product
-    @placeholder_product ||= Product.find_by(shopify_id: PLACEHOLDER_SHOPIFY_ID)
+    return @placeholder_product if defined?(@placeholder_product)
+
+    @placeholder_product = Product.find_by(shopify_id: PLACEHOLDER_SHOPIFY_ID)
   end
 
   def flag_placeholder_product!

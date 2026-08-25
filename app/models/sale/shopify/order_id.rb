@@ -7,7 +7,7 @@ class Sale::Shopify::OrderId
     candidate = value.to_s.strip
     return if candidate.blank?
     return candidate if candidate.match?(/\A\d+\z/)
-    return candidate.delete_prefix(GID_PREFIX) if candidate.match?(/\A#{Regexp.escape(GID_PREFIX)}\d+\z/)
+    candidate.delete_prefix(GID_PREFIX) if candidate.match?(/\A#{Regexp.escape(GID_PREFIX)}\d+\z/) # rubocop:disable Performance/ConstantRegexp -- GID_PREFIX parsing isn't hot; /o adds staleness risk for negligible gain
   end
 
   def self.find_sale(value)

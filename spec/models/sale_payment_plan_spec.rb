@@ -163,7 +163,7 @@ RSpec.describe SalePaymentPlan do
           deposit_percent: 30,
           shipping_amount: 40
         )
-      ).to eq(BigDecimal("1040"))
+      ).to eq(BigDecimal(1040))
     end
 
     it "subtracts unique linked Sale cash from the projected remainder" do
@@ -185,7 +185,7 @@ RSpec.describe SalePaymentPlan do
       )
 
       expect(plan.origin_sale).to eq(sale)
-      expect(plan.projected_remainder).to eq(BigDecimal("700"))
+      expect(plan.projected_remainder).to eq(BigDecimal(700))
     end
   end
 
@@ -216,10 +216,10 @@ RSpec.describe SalePaymentPlan do
       create(
         :purchase_item,
         :with_direct_expense,
-        purchase: create(:purchase, product:, amount: 1, item_price: BigDecimal("500")),
+        purchase: create(:purchase, product:, amount: 1, item_price: BigDecimal(500)),
         sale_item: origin_item,
-        shipping_cost: BigDecimal("50"),
-        direct_expense_amount: BigDecimal("20")
+        shipping_cost: BigDecimal(50),
+        direct_expense_amount: BigDecimal(20)
       )
 
       plan = described_class.reconcile!(
@@ -232,15 +232,15 @@ RSpec.describe SalePaymentPlan do
 
       summary = plan.profitability
 
-      expect(summary[:gross_revenue]).to eq(BigDecimal("1000"))
-      expect(summary[:collected_revenue]).to eq(BigDecimal("1000"))
-      expect(summary[:item_price_total]).to eq(BigDecimal("500"))
-      expect(summary[:purchase_shipping_cost]).to eq(BigDecimal("50"))
-      expect(summary[:direct_expenses]).to eq(BigDecimal("20"))
-      expect(summary[:purchase_expenses]).to eq(BigDecimal("70"))
-      expect(summary[:business_expenses]).to eq(BigDecimal("100"))
-      expect(summary[:net_profit]).to eq(BigDecimal("330"))
-      expect(summary[:cash_position]).to eq(BigDecimal("1000"))
+      expect(summary[:gross_revenue]).to eq(BigDecimal(1000))
+      expect(summary[:collected_revenue]).to eq(BigDecimal(1000))
+      expect(summary[:item_price_total]).to eq(BigDecimal(500))
+      expect(summary[:purchase_shipping_cost]).to eq(BigDecimal(50))
+      expect(summary[:direct_expenses]).to eq(BigDecimal(20))
+      expect(summary[:purchase_expenses]).to eq(BigDecimal(70))
+      expect(summary[:business_expenses]).to eq(BigDecimal(100))
+      expect(summary[:net_profit]).to eq(BigDecimal(330))
+      expect(summary[:cash_position]).to eq(BigDecimal(1000))
     end
 
     it "measures the whole contract value against the whole cost, not the deposit alone" do
@@ -260,9 +260,9 @@ RSpec.describe SalePaymentPlan do
       origin_item = create(:sale_item, sale: origin, product:, variant: nil, qty: 1)
       create(
         :purchase_item,
-        purchase: create(:purchase, product:, amount: 1, item_price: BigDecimal("700")),
+        purchase: create(:purchase, product:, amount: 1, item_price: BigDecimal(700)),
         sale_item: origin_item,
-        shipping_cost: BigDecimal("0")
+        shipping_cost: BigDecimal(0)
       )
 
       plan = described_class.reconcile!(
@@ -279,15 +279,15 @@ RSpec.describe SalePaymentPlan do
 
       # The deal, not the one raised charge: OpEx follows the contract value
       # too, so 1 020 is not measured against the 45.00 charged on 300.
-      expect(summary[:gross_revenue]).to eq(BigDecimal("1020"))
-      expect(summary[:item_price_total]).to eq(BigDecimal("700"))
+      expect(summary[:gross_revenue]).to eq(BigDecimal(1020))
+      expect(summary[:item_price_total]).to eq(BigDecimal(700))
       expect(summary[:purchase_expenses]).to eq(0)
-      expect(summary[:business_expenses]).to eq(BigDecimal("153"))
-      expect(summary[:net_profit]).to eq(BigDecimal("167"))
+      expect(summary[:business_expenses]).to eq(BigDecimal(153))
+      expect(summary[:net_profit]).to eq(BigDecimal(167))
 
       # Cash is what moved, never what the contract promises.
-      expect(summary[:collected_revenue]).to eq(BigDecimal("300"))
-      expect(summary[:cash_position]).to eq(BigDecimal("300"))
+      expect(summary[:collected_revenue]).to eq(BigDecimal(300))
+      expect(summary[:cash_position]).to eq(BigDecimal(300))
     end
   end
 

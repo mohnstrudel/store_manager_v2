@@ -6,7 +6,7 @@ describe ApplicationPolicy do
   subject { described_class.new(user, record) }
 
   # Any record, since the policy is generic
-  let(:record) { instance_double("AnyRecord") }
+  let(:record) { instance_double("AnyRecord") } # rubocop:disable RSpec/VerifiedDoubleReference -- deliberately generic; no single real model represents "any record" for this policy
   let(:user) { User.new }
 
   context "when user is admin" do

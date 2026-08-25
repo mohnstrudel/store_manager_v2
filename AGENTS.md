@@ -25,6 +25,7 @@ For one ticket, run only the specs and directly relevant static checks for what 
 After every ticket is done, the coordinating task runs the **full** suite. A task implementing a spec without tickets, or application work that was not ticketed, also runs this gate before completion:
 
 - `mise exec -- bin/rspec --format progress --color` — all RSpec examples must pass.
+- `mise exec -- bundle exec rubocop` — zero offenses.
 - `mise exec -- pnpm exec vitest run` — all Vitest tests must pass.
 - `mise exec -- pnpm exec oxlint app/frontend` — zero errors (warnings are pre-existing and acceptable).
 - `mise exec -- pnpm exec oxfmt --check app/frontend …` — no formatting violations.

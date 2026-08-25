@@ -44,9 +44,9 @@ RSpec.describe "Sales" do
           :sale,
           status: "processing",
           payment_overdue: true,
-          expected_revenue: BigDecimal("900"),
-          received_revenue: BigDecimal("300"),
-          outstanding_revenue: BigDecimal("600")
+          expected_revenue: BigDecimal(900),
+          received_revenue: BigDecimal(300),
+          outstanding_revenue: BigDecimal(600)
         )
       end
 
@@ -344,10 +344,10 @@ RSpec.describe "Sales" do
         create(
           :sale,
           status: "pre-ordered",
-          expected_revenue: BigDecimal("300"),
-          received_revenue: BigDecimal("100"),
-          outstanding_revenue: BigDecimal("200"),
-          refunded_revenue: BigDecimal("0")
+          expected_revenue: BigDecimal(300),
+          received_revenue: BigDecimal(100),
+          outstanding_revenue: BigDecimal(200),
+          refunded_revenue: BigDecimal(0)
         )
       end
 
@@ -355,8 +355,8 @@ RSpec.describe "Sales" do
         create(:expense_rate, rate_percent: 10)
         product = create(:product)
         sale_item = create(:sale_item, sale:, product:, variant: nil, qty: 1)
-        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal("100"))
-        create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal("15"), direct_expense_amount: BigDecimal("5"))
+        purchase = create(:purchase, product:, amount: 1, item_price: BigDecimal(100))
+        create(:purchase_item, :with_direct_expense, purchase:, sale_item:, shipping_cost: BigDecimal(15), direct_expense_amount: BigDecimal(5))
       end
 
       it "includes profitability data for admins" do
@@ -395,7 +395,7 @@ RSpec.describe "Sales" do
       end
 
       it "states the two halves of the cash position beside it" do
-        Purchase.sole.update!(paid: BigDecimal("60"))
+        Purchase.sole.update!(paid: BigDecimal(60))
 
         get sale_path(sale)
 
@@ -439,10 +439,10 @@ RSpec.describe "Sales" do
           :sale,
           status: "pre-ordered",
           shopify_store_id: "gid://shopify/Order/950",
-          expected_revenue: BigDecimal("300"),
-          received_revenue: BigDecimal("300"),
-          outstanding_revenue: BigDecimal("0"),
-          refunded_revenue: BigDecimal("0")
+          expected_revenue: BigDecimal(300),
+          received_revenue: BigDecimal(300),
+          outstanding_revenue: BigDecimal(0),
+          refunded_revenue: BigDecimal(0)
         )
       end
 
@@ -452,9 +452,9 @@ RSpec.describe "Sales" do
         origin_item = create(:sale_item, sale: origin, product:, variant: nil, qty: 1)
         create(
           :purchase_item,
-          purchase: create(:purchase, product:, amount: 1, item_price: BigDecimal("700")),
+          purchase: create(:purchase, product:, amount: 1, item_price: BigDecimal(700)),
           sale_item: origin_item,
-          shipping_cost: BigDecimal("0")
+          shipping_cost: BigDecimal(0)
         )
 
         SalePaymentPlan.reconcile!(
@@ -493,7 +493,7 @@ RSpec.describe "Sales" do
     end
 
     describe "payment props" do
-      let(:sale) { create(:sale, shipping_total: BigDecimal("30")) }
+      let(:sale) { create(:sale, shipping_total: BigDecimal(30)) }
 
       before do
         product = create(:product)
@@ -502,9 +502,9 @@ RSpec.describe "Sales" do
           sale:,
           product:,
           variant: nil,
-          price: BigDecimal("100"),
-          expected_revenue: BigDecimal("100"),
-          received_revenue: BigDecimal("40")
+          price: BigDecimal(100),
+          expected_revenue: BigDecimal(100),
+          received_revenue: BigDecimal(40)
         )
       end
 

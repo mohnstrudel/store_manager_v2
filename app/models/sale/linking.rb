@@ -18,8 +18,7 @@ module Sale::Linking
     identities.any? do |product_id, variant_id|
       PurchaseItem
         .available_for_product_linking(product_id)
-        .where(variant_id:)
-        .exists?
+        .exists?(variant_id:)
     end
   end
 

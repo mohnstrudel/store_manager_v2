@@ -240,7 +240,7 @@ RSpec.describe Sale do
     end
   end
 
-  def create_plan(parts:, provider: "seal", kind: "installments", external_origin_order_id:, external_id: "subscription-1")
+  def create_plan(parts:, external_origin_order_id:, provider: "seal", kind: "installments", external_id: "subscription-1")
     SalePaymentPlan.reconcile!(
       attributes: {
         provider:,

@@ -43,7 +43,7 @@ RSpec.describe Warehouses::ItemsController do
       }.to change(PurchaseItem, :count).by(1)
 
       expect(response).to redirect_to(warehouse_path(warehouse))
-      expect(PurchaseItem.last.expenses).to eq(BigDecimal("0"))
+      expect(PurchaseItem.last.expenses).to eq(BigDecimal(0))
     end
 
     it "does not accept direct SaleItem assignment" do

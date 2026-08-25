@@ -7,16 +7,16 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
     create(
       :sale,
       status: "pre-ordered",
-      expected_revenue: BigDecimal("300"),
-      received_revenue: BigDecimal("100"),
-      outstanding_revenue: BigDecimal("200"),
-      refunded_revenue: BigDecimal("0")
+      expected_revenue: BigDecimal(300),
+      received_revenue: BigDecimal(100),
+      outstanding_revenue: BigDecimal(200),
+      refunded_revenue: BigDecimal(0)
     )
   end
 
   let(:product) { create(:product) }
   let!(:sale_item) { create(:sale_item, sale:, product:, variant: nil, qty: 1) }
-  let(:purchase) { create(:purchase, product:, amount: 1, item_price: BigDecimal("100")) }
+  let(:purchase) { create(:purchase, product:, amount: 1, item_price: BigDecimal(100)) }
 
   let!(:purchase_item) do
     create(
@@ -24,8 +24,8 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
       :with_direct_expense,
       purchase:,
       sale_item:,
-      shipping_cost: BigDecimal("15"),
-      direct_expense_amount: BigDecimal("5")
+      shipping_cost: BigDecimal(15),
+      direct_expense_amount: BigDecimal(5)
     )
   end
 
@@ -33,10 +33,10 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
     it "separates what the suppliers charged for the items from every other cost of them" do
       summary = sale.profitability
 
-      expect(summary[:item_price_total]).to eq(BigDecimal("100"))
-      expect(summary[:purchase_shipping_cost]).to eq(BigDecimal("15"))
-      expect(summary[:direct_expenses]).to eq(BigDecimal("5"))
-      expect(summary[:purchase_expenses]).to eq(BigDecimal("20"))
+      expect(summary[:item_price_total]).to eq(BigDecimal(100))
+      expect(summary[:purchase_shipping_cost]).to eq(BigDecimal(15))
+      expect(summary[:direct_expenses]).to eq(BigDecimal(5))
+      expect(summary[:purchase_expenses]).to eq(BigDecimal(20))
     end
 
     it "charges OpEx on the gross revenue and nets every cost out of it" do
@@ -44,9 +44,9 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
 
       summary = sale.profitability
 
-      expect(summary[:gross_revenue]).to eq(BigDecimal("300"))
-      expect(summary[:business_expenses]).to eq(BigDecimal("30"))
-      expect(summary[:net_profit]).to eq(BigDecimal("150"))
+      expect(summary[:gross_revenue]).to eq(BigDecimal(300))
+      expect(summary[:business_expenses]).to eq(BigDecimal(30))
+      expect(summary[:net_profit]).to eq(BigDecimal(150))
     end
 
     it "is zero business expenses without expense rates" do
@@ -62,42 +62,42 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
         summary[:purchase_expenses] -
         summary[:business_expenses]
 
-      expect(deducted).to eq(BigDecimal("150"))
-      expect(summary[:net_profit]).to eq(BigDecimal("150"))
+      expect(deducted).to eq(BigDecimal(150))
+      expect(summary[:net_profit]).to eq(BigDecimal(150))
     end
 
     it "keeps money sent back to the customer out of what we collected" do
-      sale.update!(refunded_revenue: BigDecimal("40"))
+      sale.update!(refunded_revenue: BigDecimal(40))
 
-      expect(sale.profitability[:collected_revenue]).to eq(BigDecimal("60"))
+      expect(sale.profitability[:collected_revenue]).to eq(BigDecimal(60))
     end
 
     it "nets supplier money paid against customer money kept for the cash position" do
-      purchase.update!(paid: BigDecimal("80"))
+      purchase.update!(paid: BigDecimal(80))
 
       summary = sale.profitability
 
-      expect(summary[:purchase_paid]).to eq(BigDecimal("80"))
-      expect(summary[:cash_position]).to eq(BigDecimal("20"))
+      expect(summary[:purchase_paid]).to eq(BigDecimal(80))
+      expect(summary[:cash_position]).to eq(BigDecimal(20))
     end
 
     it "claims only the linked units' share of what the supplier was paid" do
-      purchase.update!(amount: 3, paid: BigDecimal("90"))
+      purchase.update!(amount: 3, paid: BigDecimal(90))
 
-      expect(sale.profitability[:purchase_paid]).to eq(BigDecimal("30"))
+      expect(sale.profitability[:purchase_paid]).to eq(BigDecimal(30))
     end
 
     it "claims no supplier money from a purchase that records no units" do
-      purchase.update!(amount: 0, paid: BigDecimal("90"))
+      purchase.update!(amount: 0, paid: BigDecimal(90))
 
       expect(sale.profitability[:purchase_paid]).to eq(0)
     end
 
     it "never claims more supplier money than the purchase was paid" do
-      purchase.update!(paid: BigDecimal("90"))
-      create(:purchase_item, purchase:, sale_item:, shipping_cost: BigDecimal("0"), expenses: BigDecimal("0"))
+      purchase.update!(paid: BigDecimal(90))
+      create(:purchase_item, purchase:, sale_item:, shipping_cost: BigDecimal(0), expenses: BigDecimal(0))
 
-      expect(sale.profitability[:purchase_paid]).to eq(BigDecimal("90"))
+      expect(sale.profitability[:purchase_paid]).to eq(BigDecimal(90))
     end
 
     it "claims no cash position when the store never said how much was collected" do
@@ -129,9 +129,9 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
       summary = sale.profitability_summary
 
       expect(summary[:scope]).to eq(:sale)
-      expect(summary[:gross_revenue]).to eq(BigDecimal("300"))
-      expect(summary[:item_price_total]).to eq(BigDecimal("100"))
-      expect(summary[:net_profit]).to eq(BigDecimal("150"))
+      expect(summary[:gross_revenue]).to eq(BigDecimal(300))
+      expect(summary[:item_price_total]).to eq(BigDecimal(100))
+      expect(summary[:net_profit]).to eq(BigDecimal(150))
     end
 
     it "makes no claim about a cancelled sale" do
@@ -146,10 +146,10 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
           :sale,
           status: "pre-ordered",
           shopify_store_id: "gid://shopify/Order/900",
-          expected_revenue: BigDecimal("300"),
-          received_revenue: BigDecimal("300"),
-          outstanding_revenue: BigDecimal("0"),
-          refunded_revenue: BigDecimal("0")
+          expected_revenue: BigDecimal(300),
+          received_revenue: BigDecimal(300),
+          outstanding_revenue: BigDecimal(0),
+          refunded_revenue: BigDecimal(0)
         )
       end
 
@@ -158,10 +158,10 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
           :sale,
           status: "pre-ordered",
           shopify_store_id: "gid://shopify/Order/901",
-          expected_revenue: BigDecimal("700"),
-          received_revenue: BigDecimal("700"),
-          outstanding_revenue: BigDecimal("0"),
-          refunded_revenue: BigDecimal("0")
+          expected_revenue: BigDecimal(700),
+          received_revenue: BigDecimal(700),
+          outstanding_revenue: BigDecimal(0),
+          refunded_revenue: BigDecimal(0)
         )
       end
 
@@ -173,10 +173,10 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
         create(
           :purchase_item,
           :with_direct_expense,
-          purchase: create(:purchase, product: plan_product, amount: 1, item_price: BigDecimal("500")),
+          purchase: create(:purchase, product: plan_product, amount: 1, item_price: BigDecimal(500)),
           sale_item: origin_item,
-          shipping_cost: BigDecimal("50"),
-          direct_expense_amount: BigDecimal("20")
+          shipping_cost: BigDecimal(50),
+          direct_expense_amount: BigDecimal(20)
         )
         # The follow-up charge carries no purchase links of its own: linkable
         # sale items skip rows carried over from the originating order.
@@ -192,18 +192,18 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
         summary = follow_up.profitability_summary
 
         expect(summary[:scope]).to eq(:plan)
-        expect(summary[:gross_revenue]).to eq(BigDecimal("1000"))
-        expect(summary[:item_price_total]).to eq(BigDecimal("500"))
-        expect(summary[:purchase_expenses]).to eq(BigDecimal("70"))
-        expect(summary[:net_profit]).to eq(BigDecimal("330"))
+        expect(summary[:gross_revenue]).to eq(BigDecimal(1000))
+        expect(summary[:item_price_total]).to eq(BigDecimal(500))
+        expect(summary[:purchase_expenses]).to eq(BigDecimal(70))
+        expect(summary[:net_profit]).to eq(BigDecimal(330))
       end
 
       it "reports the whole plan for the originating order instead of a deposit against the full cost" do
         summary = origin.profitability_summary
 
         expect(summary[:scope]).to eq(:plan)
-        expect(summary[:gross_revenue]).to eq(BigDecimal("1000"))
-        expect(summary[:net_profit]).to eq(BigDecimal("330"))
+        expect(summary[:gross_revenue]).to eq(BigDecimal(1000))
+        expect(summary[:net_profit]).to eq(BigDecimal(330))
       end
 
       it "claims no cash position for the deal when one charge never said what it collected" do
@@ -213,7 +213,7 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
 
         expect(summary[:collected_revenue]).to be_nil
         expect(summary[:cash_position]).to be_nil
-        expect(summary[:net_profit]).to eq(BigDecimal("330"))
+        expect(summary[:net_profit]).to eq(BigDecimal(330))
       end
 
       it "falls back to the sale alone when more than one plan claims it" do
@@ -225,7 +225,7 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
         summary = follow_up.profitability_summary
 
         expect(summary[:scope]).to eq(:sale)
-        expect(summary[:gross_revenue]).to eq(BigDecimal("700"))
+        expect(summary[:gross_revenue]).to eq(BigDecimal(700))
         expect(summary[:item_price_total]).to eq(0)
         expect(summary[:purchase_expenses]).to eq(0)
       end

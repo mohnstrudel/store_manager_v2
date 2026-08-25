@@ -19,7 +19,7 @@ module PurchaseItems
     end
 
     def permitted_params
-      params.require(:purchase_item).permit(:tracking_number, :shipping_company_id, :shipping_cost)
+      params.expect(purchase_item: [:tracking_number, :shipping_company_id, :shipping_cost])
     end
 
     def return_path

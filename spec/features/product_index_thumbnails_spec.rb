@@ -14,7 +14,7 @@ RSpec.describe "Product index thumbnails", :js do
   scenario "renders zoomable lazy thumbnails" do
     page.driver.resize(1200, 900)
 
-    create_list(:product, 18)
+    create_list(:product, 18) # rubocop:disable FactoryBot/ExcessiveCreateList -- pushes the target image below the fold to exercise real lazy-loading behavior
 
     visible_product = create(:product, title: "Visible Product")
     attach_valid_image_to(visible_product, "product-index-visible.png")

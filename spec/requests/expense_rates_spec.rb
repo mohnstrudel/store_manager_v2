@@ -61,7 +61,7 @@ RSpec.describe "ExpenseRates" do
       }.to change(ExpenseRate, :count).by(1)
 
       expect(response).to redirect_to(expense_rates_url)
-      expect(ExpenseRate.last).to have_attributes(name: "Payroll", rate_percent: BigDecimal("15"))
+      expect(ExpenseRate.last).to have_attributes(name: "Payroll", rate_percent: BigDecimal(15))
     end
 
     it "redirects back with errors for invalid params" do

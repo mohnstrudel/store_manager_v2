@@ -123,12 +123,12 @@ module PurchaseItem::Linking
     def reconcile_purchase_identity_change!(purchase)
       incompatible_purchase_items = purchase.purchase_items
         .joins(:sale_item)
-        .where.not(
+        .where.not( # rubocop:disable Rails/WhereNotWithMultipleConditions -- intentional: NOT(A AND B) = any-field-mismatch = "incompatible" is the desired semantics here, not an all-fields-differ check
           sale_items: {
             product_id: purchase.product_id,
             variant_id: purchase.variant_id
           }
-        )
+        ) # rubocop:enable Rails/WhereNotWithMultipleConditions
         .to_a
 
       link_exact!(assignments: [], unlink_purchase_items: incompatible_purchase_items)
@@ -143,10 +143,10 @@ module PurchaseItem::Linking
 
     def reconcile_sale_item_identity_change!(sale_item)
       incompatible_purchase_items = sale_item.purchase_items
-        .where.not(
+        .where.not( # rubocop:disable Rails/WhereNotWithMultipleConditions -- same intentional any-field-mismatch semantics as reconcile_purchase_identity_change!
           product_id: sale_item.product_id,
           variant_id: sale_item.variant_id
-        )
+        ) # rubocop:enable Rails/WhereNotWithMultipleConditions
         .to_a
 
       link_exact!(assignments: [], unlink_purchase_items: incompatible_purchase_items)

@@ -17,6 +17,16 @@ RSpec.describe Gettable do
     end
   end
 
+  describe "#api_get_order", :vcr do
+    it "replays a recorded Woo API response through VCR" do
+      VCR.use_cassette("gettable/api_get_order") do
+        result = instance.api_get_order("123")
+
+        expect(result).to eq({id: 123, status: "processing", total: "99.99"})
+      end
+    end
+  end
+
   describe "#api_get_all" do
     let(:base_url) { "https://example.com/api/orders" }
     let(:total_records) { 250 }
@@ -153,7 +163,7 @@ RSpec.describe Gettable do
 
   describe "#api_get" do
     let(:test_url) { "https://example.com/api/test" }
-    let(:mock_response) { double("Response", body: '{"id": 1, "name": "Test"}', code: 200, success?: true) }
+    let(:mock_response) { instance_double(HTTParty::Response, body: '{"id": 1, "name": "Test"}', code: 200, success?: true) }
 
     context "with successful HTTP request" do
       before do
@@ -272,7 +282,7 @@ RSpec.describe Gettable do
     end
 
     context "when the response body is blank" do
-      let(:blank_response) { double("Response", body: "", code: 200, success?: true) }
+      let(:blank_response) { instance_double(HTTParty::Response, body: "", code: 200, success?: true) }
 
       before do
         allow(HTTParty).to receive(:get).and_return(blank_response)
@@ -294,14 +304,14 @@ RSpec.describe Gettable do
           extra: {
             url: test_url,
             query: {},
-            response_class: "RSpec::Mocks::Double"
+            response_class: "RSpec::Mocks::InstanceVerifyingDouble"
           }
         )
       end
     end
 
     context "when the response is unsuccessful" do
-      let(:error_response) { double("Response", body: '{"message":"Unauthorized"}', code: 401, success?: false) }
+      let(:error_response) { instance_double(HTTParty::Response, body: '{"message":"Unauthorized"}', code: 401, success?: false) }
 
       before do
         allow(HTTParty).to receive(:get).and_return(error_response)

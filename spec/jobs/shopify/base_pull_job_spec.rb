@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/VerifiedDoubles, RSpec/VerifiedDoubleReference -- BasePullJob's template-method interface is tested generically; these doubles intentionally use placeholder names (Parser, Record, ParserClass, JobSetter) that don't correspond to any single concrete subclass's real collaborators
+
 require "rails_helper"
 
 RSpec.describe Shopify::BasePullJob do
@@ -246,3 +248,4 @@ RSpec.describe Shopify::BasePullJob do
     end
   end
 end
+# rubocop:enable RSpec/VerifiedDoubles, RSpec/VerifiedDoubleReference

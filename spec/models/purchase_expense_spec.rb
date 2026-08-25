@@ -54,9 +54,9 @@ RSpec.describe PurchaseExpense do
     create(:purchase_expense, purchase_item: first_item, amount: 2)
 
     expense.update!(amount: 5)
-    expect(first_item.reload.expenses).to eq(BigDecimal("7"))
+    expect(first_item.reload.expenses).to eq(BigDecimal(7))
 
     expense.destroy!
-    expect(first_item.reload.expenses).to eq(BigDecimal("2"))
+    expect(first_item.reload.expenses).to eq(BigDecimal(2))
   end
 end

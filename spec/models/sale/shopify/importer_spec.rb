@@ -614,7 +614,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           expected_revenue: BigDecimal("234.63"),
           received_revenue: BigDecimal("100.00"),
           outstanding_revenue: BigDecimal("134.63"),
-          refunded_revenue: BigDecimal("0"),
+          refunded_revenue: BigDecimal(0),
           net_payment: BigDecimal("100.00"),
           payment_gateway_names: ["shopify_payments"],
           payment_terms_name: "Within 30 days",
@@ -631,7 +631,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           expected_revenue: BigDecimal("234.63"),
           received_revenue: BigDecimal("100.00"),
           outstanding_revenue: BigDecimal("134.63"),
-          refunded_revenue: BigDecimal("0")
+          refunded_revenue: BigDecimal(0)
         )
       end
 
@@ -669,12 +669,12 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         allocated_second_item = SaleItem.find_by(shopify_id: "gid://shopify/LineItem/second-item")
 
         expect(first_item).to have_attributes(
-          received_revenue: BigDecimal("30"),
-          outstanding_revenue: BigDecimal("70")
+          received_revenue: BigDecimal(30),
+          outstanding_revenue: BigDecimal(70)
         )
         expect(allocated_second_item).to have_attributes(
-          received_revenue: BigDecimal("60"),
-          outstanding_revenue: BigDecimal("140")
+          received_revenue: BigDecimal(60),
+          outstanding_revenue: BigDecimal(140)
         )
       end
 
