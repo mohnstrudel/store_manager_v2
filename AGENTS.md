@@ -7,6 +7,7 @@
 - For delegated research or review, follow only the assigned scope. Do not start planning, serialize work, implement, or delegate again unless the assignment explicitly requires it.
 - For Rails domain work, use `rails-domain-architecture` SKILL.md.
 - For frontend work, use `frontend-architecture` SKILL.md.
+- For Rails test boundaries, test infrastructure, and shared contracts, use `rails-testing` SKILL.md.
 - For adding or changing an inline table-cell editor, use `inline-cell-editor` SKILL.md.
 - To record an approved plan as a spec in `.specs/`, use `to-spec`; to split it into implementation-ready tickets, use `to-tickets`; to execute or resume serialized work, use `implement`. Serialization keeps implementation contexts minimal; the judgment rule lives in `collaborative-planning` Handoff.
 

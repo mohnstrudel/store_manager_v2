@@ -10,6 +10,7 @@ description: Design or refactor the backend side of Ruby on Rails codebases towa
 - Use `collaborative-planning` to run the planning process. During planning, use this skill to inspect Rails code and draft the Domain Contract; after approval, keep using it through implementation and validation.
 - Treat this as the default architecture skill for backend and domain work in this repo.
 - For React components, hooks, browser state, and frontend tests, use `frontend-architecture` instead.
+- Load `rails-testing` when work touches request specs, Rails test infrastructure, or shared Ruby contracts; it supplies the repository-specific rules behind the Tests label below.
 
 ## Required Domain Contract
 
@@ -20,7 +21,7 @@ Before planning a behavior-bearing backend change or a refactor that affects or 
 - **Invariants:** Name the rules that must hold and their database, domain, authorization, transaction, or locking enforcement. Use database constraints whenever they can express the rule.
 - **Commands:** Name the business-facing write APIs. Route invariant-bearing writes through the owner. At request boundaries, pass scoped records or relations into commands instead of reloading them globally.
 - **Inspection and recovery:** Explain how to inspect current state and relevant history, detect drift, and safely repair or recompute it.
-- **Tests:** Cover the domain and request seams, including invalid, unauthorized, stale, and concurrency-sensitive scenarios where relevant. Request specs own the Rails-to-Inertia contract; frontend component tests do not replace them.
+- **Tests:** Cover the domain and request seams, including invalid, unauthorized, stale, and concurrency-sensitive scenarios where relevant. Request specs own the Rails-to-Inertia contract; frontend component tests do not replace them. See `rails-testing` for the Rails test boundary and infrastructure.
 
 ## Implementation Path
 

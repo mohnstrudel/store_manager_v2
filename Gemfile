@@ -130,6 +130,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "cuprite"
+  gem "duck_typer", "~> 0.6.1"
   gem "pundit-matchers"
   gem "shoulda-matchers"
   gem "rails-controller-testing"

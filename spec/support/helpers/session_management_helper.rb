@@ -5,7 +5,7 @@ module Helpers
     def sign_in(user)
       Current.session = user.sessions.create!
       if feature_test?
-        sign_in_browser_as_admin
+        sign_in_browser(user)
       else
         set_session_cookie_in_request(Current.session.id)
       end

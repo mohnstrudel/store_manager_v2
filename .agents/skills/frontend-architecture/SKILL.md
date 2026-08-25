@@ -14,6 +14,7 @@ description: Design or refactor React and Inertia frontend code with clear behav
 - Read [styling.md](references/styling.md) when work changes CSS, layout, responsive or dark-mode behavior, visual state, or presentation markup.
 - Read `docs/plain-language/interface-text.md` when writing or changing user-facing copy: labels, buttons, errors, empty states, or confirmations.
 - For a persisted table-cell editor, also use `inline-cell-editor`; it supplements this skill and the Rails skill.
+- Load `rails-testing` alongside this skill when work touches request specs, Cuprite specs, Rails test infrastructure, or shared Ruby contracts. This skill's `testing.md` owns the frontend seam choice; `rails-testing` owns the Rails-side boundary.
 
 ## Example Policy
 

@@ -9,7 +9,7 @@ description: Add or change a persisted inline table-cell editor in this Rails, I
 
 - Use `collaborative-planning` to run the process. Load this skill with both `rails-domain-architecture` and `frontend-architecture` before gathering detailed evidence, and keep all applicable skills active through implementation and validation.
 - Complete the Rails Domain Contract and Frontend Contract when their behavior or boundary gates apply. Incorporate conditional `architecture-review.md` decisions through those contracts instead of adding another checklist here.
-- Read the frontend [testing reference](../frontend-architecture/references/testing.md) when choosing or implementing test seams.
+- Read the frontend [testing reference](../frontend-architecture/references/testing.md) when choosing or implementing test seams. Load `rails-testing` for the request boundary and Rails test infrastructure behind Tests and Verification below.
 - Treat this skill as the low-freedom workflow for inline cells, not as a replacement for the owning Rails and frontend architecture rules.
 
 Current seams to inspect before changing the pattern:

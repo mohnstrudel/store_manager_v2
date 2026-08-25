@@ -180,6 +180,7 @@ GEM
       dry-inflector (~> 1.0)
       dry-logic (~> 1.4)
       zeitwerk (~> 2.6)
+    duck_typer (0.6.1)
     erb (6.0.7)
     erubi (1.13.1)
     factory_bot (6.6.0)
@@ -684,6 +685,7 @@ DEPENDENCIES
   debug
   dotenv
   down (~> 5.0)
+  duck_typer (~> 0.6.1)
   factory_bot_rails
   faker (~> 3.2)
   friendly_id
