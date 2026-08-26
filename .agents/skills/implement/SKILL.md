@@ -16,7 +16,7 @@ Coordinate one approved unit of serialized work without reconstructing its plann
 5. For each listed TDD case, write the failing test first and confirm it fails for the expected reason before implementing. Work one case at a time. When the contract documents that no fast seam exists, use its approved verification route instead of inventing another test layer.
 6. Do not reload `collaborative-planning` or reopen approved decisions. If a new material product or architecture decision appears, return that precise delta to the coordinating task and wait for the spec to be updated. If implementation requires investigation not named by the ticket, stop the affected unit and return the precise uncertainty so `to-tickets` can create a separate investigation ticket; never hide research inside implementation.
 7. Run the ticket's Focused verification plus checks required by its actual changes. Check off acceptance criteria after verification, set the ticket to `done`, then make one commit for the ticket's changes using the `commit` skill's format.
-8. Report the next frontier. When every ticket is `done`, the coordinating task applies `AGENTS.md`'s risk-based completion policy to the combined change; other tasks report the frontier and stop.
+8. Report the next frontier. When every ticket is `done` (or, for an unticketed spec, once its single unit is `done`), delete the entire spec iteration directory (`spec.md`, `tickets/`, and any other files under that `YYYYMMDDTHHMMSSZ__<spec-slug>` directory) in a dedicated commit before reporting completion — git history retains the content. The coordinating task then applies `AGENTS.md`'s risk-based completion policy to the combined change; other tasks report the frontier and stop.
 
 ## Rules
 
@@ -27,4 +27,5 @@ Coordinate one approved unit of serialized work without reconstructing its plann
 - Remove code made obsolete by the approved change, but do not absorb unrelated cleanup or refactoring.
 - Status lines and checked criteria are the shared coordination state for parallel sessions; keep them truthful at every step.
 - An `in progress` ticket is a best-effort claim. Never take it over without an explicit resume or takeover request.
+- Once a spec iteration is fully done, remove it: do not leave completed `spec.md` or `tickets/*.md` files in the working tree as historical clutter.
 - Commit only after the ticket's (or unit's) verification passes, one commit per ticket or unit, scoped to only its changes — never bundle multiple tickets, unrelated files, or a failing state into one commit.
