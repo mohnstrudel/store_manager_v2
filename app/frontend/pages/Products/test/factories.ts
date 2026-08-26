@@ -1,4 +1,5 @@
 import type {
+  PaymentItemRecord,
   ProductFormRecord,
   ProductIndexRecord,
   ProductShowRecord,
@@ -83,6 +84,28 @@ export function makeSaleItem(overrides: Partial<SaleItemRecord> = {}): SaleItemR
     status: "active",
     warehouse: "Tokyo",
     purchase_item_path: null,
+    ...overrides,
+  };
+}
+
+export function makePaymentItem(overrides: Partial<PaymentItemRecord> = {}): PaymentItemRecord {
+  return {
+    id: 1,
+    sale_path: "/sales/1",
+    store_type: "shopify",
+    store_id: "#1002",
+    customer_name: "Ash Ketchum",
+    customer_email: "ash@example.com",
+    date: "20 May 2026",
+    variant_title: null,
+    price: "30.00",
+    qty: 1,
+    status: "active",
+    warehouse: "Tokyo",
+    purchase_item_path: null,
+    sequence: 2,
+    expected_parts: 4,
+    origin: { path: "/sales/1", identifier: "#1001" },
     ...overrides,
   };
 }

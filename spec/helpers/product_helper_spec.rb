@@ -117,4 +117,66 @@ RSpec.describe ProductHelper do
       end
     end
   end
+
+  describe "#product_payment_item_props" do
+    let(:product) { create(:product) }
+    let(:variant) { create(:variant, product:) }
+
+    def reconcile_plan(external_origin_order_id:, parts:, external_id: "subscription-1")
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id:,
+          external_origin_order_id:,
+          kind: "installments",
+          status: "active",
+          expected_parts: parts.size,
+          synced_at: Time.current
+        },
+        parts:
+      )
+    end
+
+    it "carries the payment's sequence, expected parts, and a link back to the origin sale" do
+      origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/900", shopify_name: "Order #900")
+      follow_up = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/901")
+      follow_up_item = create(:sale_item, product:, variant:, sale: follow_up, qty: 1)
+      create(:sale_item, product:, variant:, sale: origin, qty: 1)
+      reconcile_plan(
+        external_origin_order_id: "900",
+        parts: [
+          {sequence: 1, provider_part_id: "part-1", external_order_id: "900"},
+          {sequence: 2, provider_part_id: "part-2", external_order_id: "901"}
+        ]
+      )
+
+      props = helper.product_payment_item_props(follow_up_item, product)
+
+      expect(props[:sequence]).to eq(2)
+      expect(props[:expected_parts]).to eq(2)
+      expect(props[:origin]).to eq(path: helper.sale_path(origin), identifier: "Order #900")
+      expect(props[:sale_path]).to eq(helper.sale_path(follow_up))
+    end
+
+    it "still renders and links correctly when the payment sale item has no purchase item linkage" do
+      origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/910")
+      follow_up = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/911")
+      follow_up_item = create(:sale_item, product:, variant:, sale: follow_up, qty: 1)
+      create(:sale_item, product:, variant:, sale: origin, qty: 1)
+      reconcile_plan(
+        external_id: "subscription-2",
+        external_origin_order_id: "910",
+        parts: [
+          {sequence: 1, provider_part_id: "part-3", external_order_id: "910"},
+          {sequence: 2, provider_part_id: "part-4", external_order_id: "911"}
+        ]
+      )
+
+      props = helper.product_payment_item_props(follow_up_item, product)
+
+      expect(props[:purchase_item_path]).to be_nil
+      expect(props[:warehouse]).to eq("")
+      expect(props[:sale_path]).to eq(helper.sale_path(follow_up))
+    end
+  end
 end

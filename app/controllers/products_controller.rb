@@ -19,7 +19,9 @@ class ProductsController < ApplicationController
 
   def show
     active_sales = @product.active_sale_items
+    active_payments = @product.active_payment_items
     complete_sales = @product.completed_sale_items
+    complete_payments = @product.completed_payment_items
     purchases = @product.purchases.includes(:supplier, :variant, purchase_items: :warehouse)
     variants_sales_sums = @product.variant_sales_sums
     variants_purchases_sums = @product.variant_purchase_sums
@@ -30,7 +32,9 @@ class ProductsController < ApplicationController
       product: helpers.show_product_props(@product, can_pull_from_shopify: policy(@product).pull_from_shopify?),
       variants: @product.variants.map { |variant| helpers.variant_props(variant, variants_sales_sums, variants_purchases_sums, variants_purchase_cost_totals, can_view_profitability:) },
       active_sales: active_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
+      active_payments: active_payments.map { |sale_item| helpers.product_payment_item_props(sale_item, @product) },
       completed_sales: complete_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
+      completed_payments: complete_payments.map { |sale_item| helpers.product_payment_item_props(sale_item, @product) },
       purchases: purchases.map { |purchase| helpers.purchase_props(purchase) },
       profitability: can_view_profitability ? helpers.product_profitability_props(@product) : nil
     }

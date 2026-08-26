@@ -1,7 +1,7 @@
 # 07. Separate product payments from sales
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: none
 
 ## What to build
@@ -10,12 +10,12 @@ Keep follow-up payment orders inspectable on Product pages without presenting th
 
 ## Acceptance criteria
 
-- [ ] Rails decides whether each Product history row is a merchandise sale or follow-up payment using the existing payment-plan domain classification.
-- [ ] Merchandise sale counts and sold quantities exclude follow-up payment-only rows.
-- [ ] Follow-up payments remain linked and visible in a clearly labeled payment presentation.
-- [ ] Payment rows identify their sequence or origin context when available.
-- [ ] Deposit origin orders remain merchandise sales; only later plan charges become follow-up payments.
-- [ ] Standalone sales and Shopify same-order payment terms retain existing merchandise behavior.
+- [x] Rails decides whether each Product history row is a merchandise sale or follow-up payment using the existing payment-plan domain classification.
+- [x] Merchandise sale counts and sold quantities exclude follow-up payment-only rows.
+- [x] Follow-up payments remain linked and visible in a clearly labeled payment presentation.
+- [x] Payment rows identify their sequence or origin context when available.
+- [x] Deposit origin orders remain merchandise sales; only later plan charges become follow-up payments.
+- [x] Standalone sales and Shopify same-order payment terms retain existing merchandise behavior.
 
 ## Anchors
 

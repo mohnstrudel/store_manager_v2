@@ -5,13 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import Show from "./Show";
 import {
+  makePaymentItem,
   makeProduct,
   makeProfitability,
   makePurchase,
   makeSaleItem,
   makeVariant,
 } from "./test/factories";
-import type { ProductShowRecord } from "./types";
+import type { PaymentItemRecord, ProductShowRecord } from "./types";
 
 vi.mock("@/components/ImageGallery", () => ({
   default: ({ media }: { media: ProductShowRecord["media"] }) => (
@@ -103,6 +104,72 @@ describe("Products/Show", () => {
       renderShow({ activeSales: [], completedSales: [] });
 
       expect(screen.queryByRole("tab", { name: /Sales/ })).not.toBeInTheDocument();
+    });
+
+    describe("payments", () => {
+      it("shows the sales tab count from merchandise sales only", () => {
+        renderShow({
+          activeSales: [makeSaleItem()],
+          activePayments: [makePaymentItem(), makePaymentItem({ id: 2 })],
+        });
+
+        expect(screen.getByRole("tab", { name: "Sales 1" })).toBeInTheDocument();
+      });
+
+      it("shows the sales tab when there are only payments and no merchandise sales", () => {
+        renderShow({ activePayments: [makePaymentItem()] });
+
+        expect(screen.getByRole("tab", { name: "Sales 0" })).toBeInTheDocument();
+      });
+
+      it("hides the sales tab when there are no sales and no payments", () => {
+        renderShow({
+          activeSales: [],
+          completedSales: [],
+          activePayments: [],
+          completedPayments: [],
+        });
+
+        expect(screen.queryByRole("tab", { name: /Sales/ })).not.toBeInTheDocument();
+      });
+
+      it("shows merchandise sales and follow-up payments as distinct groups", async () => {
+        const user = userEvent.setup();
+        renderShow({
+          activeSales: [makeSaleItem({ customer_name: "Ash Ketchum" })],
+          activePayments: [makePaymentItem({ customer_name: "Misty" })],
+        });
+
+        await user.click(screen.getByRole("tab", { name: /Sales/ }));
+
+        const salesSection = screen.getByRole("heading", { name: /Active Sales/ }).closest("div")!;
+        const paymentsSection = screen
+          .getByRole("heading", { name: /Active Payments/ })
+          .closest("div")!;
+
+        expect(within(salesSection).getByText("Ash Ketchum")).toBeInTheDocument();
+        expect(within(paymentsSection).getByText("Misty")).toBeInTheDocument();
+      });
+
+      it("preserves the existing sales presentation when there are no payment orders", async () => {
+        const user = userEvent.setup();
+        renderShow({ activeSales: [makeSaleItem({ customer_name: "Ash Ketchum" })] });
+
+        await user.click(screen.getByRole("tab", { name: /Sales/ }));
+
+        expect(screen.getByText("Ash Ketchum")).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: /Payments/ })).not.toBeInTheDocument();
+      });
+
+      it("shows a payment-only empty state without a misleading sales table", async () => {
+        const user = userEvent.setup();
+        renderShow({ activePayments: [makePaymentItem({ customer_name: "Misty" })] });
+
+        await user.click(screen.getByRole("tab", { name: /Sales/ }));
+
+        expect(screen.getByText("Misty")).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: /^Active Sales/ })).not.toBeInTheDocument();
+      });
     });
 
     it("switches to purchases", async () => {
@@ -256,14 +323,18 @@ describe("Products/Show", () => {
 });
 
 function renderShow({
+  activePayments = [],
   activeSales = [],
+  completedPayments = [],
   completedSales = [],
   product = makeProduct(),
   profitability = null,
   purchases = [],
   variants = [],
 }: {
+  activePayments?: PaymentItemRecord[];
   activeSales?: ReturnType<typeof makeSaleItem>[];
+  completedPayments?: PaymentItemRecord[];
   completedSales?: ReturnType<typeof makeSaleItem>[];
   product?: ProductShowRecord;
   profitability?: ReturnType<typeof makeProfitability> | null;
@@ -272,7 +343,9 @@ function renderShow({
 } = {}) {
   return render(
     <Show
+      active_payments={activePayments}
       active_sales={activeSales}
+      completed_payments={completedPayments}
       completed_sales={completedSales}
       product={product}
       profitability={profitability}

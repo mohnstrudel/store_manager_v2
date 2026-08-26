@@ -20,7 +20,14 @@ module SaleItem::Listing
       includes(
         :product,
         purchase_items: :warehouse,
-        sale: [:customer, :shopify_info, :woo_info, :shipping_address],
+        sale: [
+          :customer,
+          :shopify_info,
+          :woo_info,
+          :shipping_address,
+          :origin_payment_plans,
+          {sale_payment_parts: :sale_payment_plan}
+        ],
         variant: [:version, :color, :size]
       )
     }

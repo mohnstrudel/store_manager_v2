@@ -179,6 +179,48 @@ module ProductHelper
     end
   end
 
+  def product_payment_item_props(sale_item, product)
+    sale = sale_item.sale
+    purchase_item = sale_item.purchase_items.first
+    store_type, store_id = product_sale_info_for_sale(sale)
+    plan = product_follow_up_payment_plan(sale)
+
+    {
+      id: sale_item.id,
+      sale_path: sale_path(sale),
+      store_type: store_type,
+      store_id: store_id.presence || "",
+      customer_name: sale.customer.full_name,
+      customer_email: sale.customer.email,
+      date: format_date(sale.woo_created_at.presence || sale_item.created_at),
+      variant_title: product.variants.any? ? sale_item.variant&.title : nil,
+      price: format_money(sale_item.price),
+      qty: sale_item.qty,
+      status: sale.status,
+      warehouse: purchase_item&.warehouse&.name.presence || "",
+      purchase_item_path: purchase_item ? purchase_item_path(purchase_item) : nil,
+      sequence: plan&.part_number_for(sale),
+      expected_parts: plan&.expected_parts,
+      origin: product_payment_origin_props(plan, sale)
+    }
+  end
+
+  # The specific plan that makes this sale a follow-up payment, matching the
+  # same predicate Sale#follow_up_payment? uses, so the sequence and origin
+  # shown here always agree with the role that put this row in the payment group.
+  def product_follow_up_payment_plan(sale)
+    sale.payment_plans_for_display.find { |plan| plan.origin_sale_id != sale.id && plan.part_number_for(sale).present? }
+  end
+
+  def product_payment_origin_props(plan, sale)
+    return if plan.nil?
+
+    origin = plan.origin_sale
+    return if origin.nil? || origin.id == sale.id
+
+    {path: sale_path(origin), identifier: origin.shop_identifier.presence || origin.id.to_s}
+  end
+
   def purchase_props(purchase)
     {
       id: purchase.id,

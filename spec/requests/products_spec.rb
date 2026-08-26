@@ -67,7 +67,43 @@ RSpec.describe "Products" do
       expect(response).to have_http_status(:ok)
       expect(inertia.props[:active_sales].length).to eq(1)
       expect(inertia.props[:completed_sales].length).to eq(1)
+      expect(inertia.props[:active_payments]).to eq([])
+      expect(inertia.props[:completed_payments]).to eq([])
       expect(inertia.props[:purchases].length).to eq(1)
+    end
+
+    it "carries a follow-up payment's backend-owned role in separate payment props with sequence and origin context" do
+      product = create(:product)
+      variant = create(:variant, product:)
+      origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/900")
+      follow_up = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/901")
+
+      create(:sale_item, product:, variant:, sale: origin, qty: 1)
+      create(:sale_item, product:, variant:, sale: follow_up, qty: 1)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-1",
+          external_origin_order_id: "900",
+          kind: "installments",
+          status: "active",
+          expected_parts: 2,
+          synced_at: Time.current
+        },
+        parts: [
+          {sequence: 1, provider_part_id: "part-1", external_order_id: "900"},
+          {sequence: 2, provider_part_id: "part-2", external_order_id: "901"}
+        ]
+      )
+
+      get product_path(product)
+
+      expect(inertia.props[:active_sales].length).to eq(1)
+      expect(inertia.props[:active_payments].length).to eq(1)
+      payment_props = inertia.props[:active_payments].first
+      expect(payment_props[:sequence]).to eq(2)
+      expect(payment_props[:expected_parts]).to eq(2)
+      expect(payment_props[:origin][:path]).to eq(sale_path(origin))
     end
 
     it "includes variant total purchase cost and theoretical profit" do

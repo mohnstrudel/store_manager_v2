@@ -71,6 +71,31 @@ export type SaleItemRecord = {
   purchase_item_path: string | null;
 };
 
+export type PaymentOrigin = {
+  path: string;
+  identifier: string;
+};
+
+// Decided once on the server (Sale#follow_up_payment?); see SaleItemRecord.
+export type PaymentItemRecord = {
+  id: number;
+  sale_path: string;
+  store_type: "shopify" | "woo" | null;
+  store_id: string;
+  customer_name: string;
+  customer_email: string;
+  date: string;
+  variant_title: string | null;
+  price: string;
+  qty: number;
+  status: string;
+  warehouse: string;
+  purchase_item_path: string | null;
+  sequence: number | null;
+  expected_parts: number | null;
+  origin: PaymentOrigin | null;
+};
+
 export type PurchaseWarehouse = {
   id: number;
   name: string;
