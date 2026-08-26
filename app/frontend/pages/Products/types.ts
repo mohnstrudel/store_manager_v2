@@ -76,7 +76,6 @@ export type PaymentOrigin = {
   identifier: string;
 };
 
-// Decided once on the server (Sale#follow_up_payment?); see SaleItemRecord.
 export type PaymentItemRecord = {
   id: number;
   sale_path: string;

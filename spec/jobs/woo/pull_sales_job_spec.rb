@@ -25,9 +25,7 @@ RSpec.describe Woo::PullSalesJob do
   }
   let(:to_money) { ->(value) { value.nil? ? nil : BigDecimal(value.to_s) } }
 
-  # Every fixture order is EUR (Woo's own `currency` field), so a single
-  # rate far before any fixture date covers every real example. Tests that
-  # need to prove date-sensitive lookup seed their own closer rate.
+  # This baseline rate predates every fixture order; date-sensitive examples override it.
   before do
     create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
   end

@@ -1,16 +1,7 @@
 # frozen_string_literal: true
 
-# Contract-testing helpers for interchangeable implementations. These prove
-# structural interface compatibility only — pair with real behavioral
-# examples for each implementation; matching method names does not prove
-# matching semantics. See rails-testing's SKILL.md "Shared Contracts".
+# Structural interface checks do not replace behavioral examples.
 module DuckTyper
-  # Declares an example asserting `described_class` implements every method
-  # `canonical` exposes. Pass a small inline `Class.new` as `canonical` to
-  # keep the contract's shape explicit in the spec, or a real class when its
-  # own interface is what other implementations must match. Pass `methods:`
-  # to check an explicit subset instead of the canonical class's full
-  # public and private interface.
   def implement_canonical_interface(canonical, methods: nil)
     required = methods || canonical.public_instance_methods(false) + canonical.private_instance_methods(false)
 

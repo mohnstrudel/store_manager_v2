@@ -12,10 +12,6 @@
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #
-# Caches official ECB daily reference rates and converts any ECB-quoted
-# source currency to USD through the EUR cross-rate for a given date. USD
-# passes through unchanged; a date with no exact rate uses the latest
-# earlier published rate.
 class ExchangeRate < ApplicationRecord
   validates_db_uniqueness_of :date, scope: :currency
 
@@ -37,10 +33,6 @@ class ExchangeRate < ApplicationRecord
       raise(ArgumentError, "No ECB reference rate cached for #{currency} on or before #{date}")
   end
 
-  # Falls back to the median of a currency's cached rates within a three-month
-  # window centered on its nearest available (earliest) cached date, when no
-  # rate exists on or before the requested date. Returns nil when the currency
-  # has no cached rate at any date, so `rate_on` raises as before.
   def self.median_rate_for_missing_history(currency:)
     earliest_date = where(currency:).minimum(:date)
     return nil unless earliest_date

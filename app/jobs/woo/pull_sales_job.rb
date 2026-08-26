@@ -145,10 +145,7 @@ module Woo
       }
     end
 
-    # Core Woo Orders API exposes no payment ledger for a partial order, so
-    # the deposits/partial-payments plugin's own order meta is the only
-    # verified evidence of cash actually collected — see Sale::Settlement
-    # for why outstanding always stays unknown here.
+    # Woo exposes partial-payment receipts only through the deposits plugin's order metadata.
     def payment_split(order, currency:, date:)
       return partially_paid_split(order, currency:, date:) if order[:status] == PARTIALLY_PAID_STATUS
 

@@ -205,9 +205,6 @@ module ProductHelper
     }
   end
 
-  # The specific plan that makes this sale a follow-up payment, matching the
-  # same predicate Sale#follow_up_payment? uses, so the sequence and origin
-  # shown here always agree with the role that put this row in the payment group.
   def product_follow_up_payment_plan(sale)
     sale.payment_plans_for_display.find { |plan| plan.origin_sale_id != sale.id && plan.part_number_for(sale).present? }
   end

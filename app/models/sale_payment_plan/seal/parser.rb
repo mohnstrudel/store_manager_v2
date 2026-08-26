@@ -73,9 +73,6 @@ class SalePaymentPlan::Seal::Parser
     )
   end
 
-  # The Seal API never reports the linked order's own creation date, so
-  # conversion depends on the caller resolving and passing origin_date
-  # from the local Sale the order_id links to.
   def usd_amount(amount)
     SalePaymentPlan.usd_amount(amount, currency: subscription["currency"], date: origin_date)
   end

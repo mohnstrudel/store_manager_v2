@@ -85,12 +85,6 @@ class SalePaymentPlan < ApplicationRecord
     (deposit_merchandise_amount.to_d / (percent / 100)) + shipping_amount.to_d
   end
 
-  # Converts a plan or part money value to USD using its recorded source
-  # currency and the plan's linked origin sale date. USD passes through
-  # without needing a date. Any other currency with no resolvable origin
-  # date defers to nil rather than persisting a foreign amount as if it
-  # were already USD; a later synchronization with a linked origin
-  # converts it once the date becomes available.
   def self.usd_amount(amount, currency:, date:)
     return if amount.nil?
     return amount.to_d if currency == "USD"

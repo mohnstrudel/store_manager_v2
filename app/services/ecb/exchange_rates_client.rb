@@ -1,14 +1,5 @@
 # frozen_string_literal: true
 
-# Ecb::ExchangeRatesClient
-#
-# Fetches the European Central Bank's full published reference-rate history
-# (every currency, every business day, since the euro's introduction) in one
-# request so historical sale dates never need a second ECB round trip.
-#
-# Usage:
-#   client = Ecb::ExchangeRatesClient.new
-#   client.fetch_all # => [{date:, currency:, rate:}, ...]
 module Ecb
   class ExchangeRatesClient
     class FetchError < StandardError; end

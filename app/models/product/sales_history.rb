@@ -53,9 +53,7 @@ module Product::SalesHistory
 
   private
 
-  # Follow-up payment role comes from the payment-plan domain, not a
-  # product-owned signal, so a later charge on the same deal never counts as
-  # another unit sold here.
+  # Follow-up charges do not represent additional units sold.
   def merchandise_sale_items(scope)
     scope.order(created_at: :asc).reject { |sale_item| sale_item.sale.follow_up_payment? }
   end
