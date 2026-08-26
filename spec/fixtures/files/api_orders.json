@@ -1,6 +1,7 @@
 [
     {
         "id": 111,
+        "currency": "EUR",
         "status": "completed",
         "date_created": "2023-11-24T15:25:38",
         "date_modified": "2023-11-24T15:25:38",
@@ -61,6 +62,7 @@
     },
     {
         "id": 222,
+        "currency": "EUR",
         "status": "on-hold",
         "date_created": "2023-11-24T15:25:38",
         "date_modified": "2023-11-24T15:25:38",

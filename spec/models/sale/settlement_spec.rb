@@ -53,6 +53,40 @@ RSpec.describe Sale::Settlement do
     end
   end
 
+  describe ".settlement_status_from_woo" do
+    it "persists paid for a known status with a payment date" do
+      expect(
+        Sale.settlement_status_from_woo(status: "completed", date_paid: "2023-11-25T10:00:00")
+      ).to eq("paid")
+    end
+
+    it "persists not_fully_paid for a known status without a payment date" do
+      expect(
+        Sale.settlement_status_from_woo(status: "on-hold", date_paid: nil)
+      ).to eq("not_fully_paid")
+    end
+
+    it "persists not_fully_paid for partially-paid regardless of a payment date" do
+      expect(
+        Sale.settlement_status_from_woo(status: "partially-paid", date_paid: "2023-08-17T05:57:51")
+      ).to eq("not_fully_paid")
+    end
+
+    it "keeps a settlement mapping for cancelled, failed, and refunded orders instead of leaving them unmapped", :aggregate_failures do
+      %w[cancelled failed refunded].each do |status|
+        expect(
+          Sale.settlement_status_from_woo(status: status, date_paid: "2023-11-25T10:00:00")
+        ).to eq("paid")
+      end
+    end
+
+    it "raises for an unmapped Woo status instead of persisting a placeholder" do
+      expect {
+        Sale.settlement_status_from_woo(status: "checkout-draft-unknown", date_paid: nil)
+      }.to raise_error(ArgumentError, 'Unmapped Woo status: "checkout-draft-unknown"')
+    end
+  end
+
   describe "settlement_status enum" do
     it "exposes paid, not_fully_paid, and unknown predicate methods" do
       sale = build(:sale, settlement_status: "not_fully_paid")

@@ -1,7 +1,7 @@
 # 03. Normalize WooCommerce sales to USD
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 01, 02
 
 ## What to build
@@ -10,14 +10,14 @@ Treat every incoming WooCommerce sale amount as EUR, convert the complete order 
 
 ## Acceptance criteria
 
-- [ ] Order total, discount, shipping, expected revenue, refunds, received revenue, and outstanding revenue convert from EUR to USD.
-- [ ] Line price and expected revenue convert from EUR to USD before persistence.
-- [ ] A `partially-paid` order without plugin deposit evidence keeps received and outstanding `nil`; conversion does not turn them into zero. A `partially-paid` order with a verified plugin deposit (`_awcdp_deposits_deposit_paid = "yes"`) persists received revenue as the converted `_awcdp_deposits_deposit_amount`; outstanding stays `nil` regardless.
-- [ ] Conversion uses `woo_created_at`, never pull time or local record creation time.
-- [ ] Sale-item allocated revenue derives once from converted USD order totals.
-- [ ] Woo’s explicit `currency` field is the conversion input rather than a hardcoded EUR literal.
-- [ ] A paid non-partial order persists `paid`; an unpaid or `partially-paid` order persists `not_fully_paid`; cancelled, failed, and fully refunded orders keep their mapping and fall inside Ticket 02’s economic-exclusion scope; an unmapped Woo status raises.
-- [ ] A Woo `partially-paid` order exposes its USD order total and, when a verified plugin deposit exists, the converted deposit amount received; otherwise it exposes an explicit unavailable amount capability for the unified progress summary. Outstanding is always the unavailable capability for Woo partials.
+- [x] Order total, discount, shipping, expected revenue, refunds, received revenue, and outstanding revenue convert from EUR to USD.
+- [x] Line price and expected revenue convert from EUR to USD before persistence.
+- [x] A `partially-paid` order without plugin deposit evidence keeps received and outstanding `nil`; conversion does not turn them into zero. A `partially-paid` order with a verified plugin deposit (`_awcdp_deposits_deposit_paid = "yes"`) persists received revenue as the converted `_awcdp_deposits_deposit_amount`; outstanding stays `nil` regardless.
+- [x] Conversion uses `woo_created_at`, never pull time or local record creation time.
+- [x] Sale-item allocated revenue derives once from converted USD order totals.
+- [x] Woo’s explicit `currency` field is the conversion input rather than a hardcoded EUR literal.
+- [x] A paid non-partial order persists `paid`; an unpaid or `partially-paid` order persists `not_fully_paid`; cancelled, failed, and fully refunded orders keep their mapping and fall inside Ticket 02’s economic-exclusion scope; an unmapped Woo status raises.
+- [x] A Woo `partially-paid` order exposes its USD order total and, when a verified plugin deposit exists, the converted deposit amount received; otherwise it exposes an explicit unavailable amount capability for the unified progress summary. Outstanding is always the unavailable capability for Woo partials.
 
 ## Woo cash contract
 
