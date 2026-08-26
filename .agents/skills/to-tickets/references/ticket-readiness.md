@@ -62,7 +62,7 @@ Every acceptance criterion must trace to an approved requirement or necessary re
 
 Include TDD cases for behavior-bearing implementation tickets. Omit the section for mechanical or investigation tickets. When no fast seam exists, replace it with one sentence naming the approved verification route and why test-first does not apply.
 
-Focused verification contains only related specs and directly relevant static checks. Never put the complete repository gate in a ticket; the coordinating task owns that gate after all tickets are done.
+Focused verification contains only related specs and directly relevant static checks. The coordinating task decides whether combined integration risk requires a complete backend or frontend suite.
 
 ## Conditional sections
 

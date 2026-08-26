@@ -17,6 +17,13 @@ Use `collaborative-planning` for the process. Load this skill with the owning ar
 - `sign_in(user)` signs in that user: request and controller specs receive a signed session cookie; Cuprite specs drive the sign-in form. Use `sign_in_as_admin` when the scenario requires an admin.
 - `verify_partial_doubles` checks stubs on real objects; it does not verify plain `double` objects. Use `instance_double`, `class_double`, or `object_double` for stand-ins.
 
+### External HTTP
+
+- `spec/support/vcr.rb` blocks non-local live network access; keep that boundary enabled.
+- Use VCR when exercising the HTTP client boundary against a representative provider exchange, including method and URL construction, parsing, or payload compatibility. Reuse a stable cassette for the same interaction.
+- Use WebMock for exact header, body, or request assertions and deterministic statuses, timeouts, malformed responses, or minimal unit cases.
+- Filter secrets and personal data; remove unstable headers and unrelated payload fields before committing a cassette.
+
 ## Shared Contracts
 
 - Use `shared_examples` only for a real semantic contract between independent producers, consumers, or interchangeable implementations.

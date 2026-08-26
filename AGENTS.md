@@ -17,23 +17,27 @@
 
 ## Completion
 
+Choose the smallest verification set that could catch a plausible defect.
 
-Validate in proportion to what changed.
+- Non-executable changes — documentation, skills, comments, formatting, and metadata: inspect the diff and run a relevant syntax or static check; no application tests.
+- Mechanical code changes: use the narrowest relevant static check or focused test. A diff proving executable code unchanged is sufficient.
+- Behavior, API, persistence, or user-interaction changes: run focused tests covering the changed contract plus applicable static checks. Add a test only when the contract lacks coverage.
+- One ticket: run its Focused verification and checks required by its actual changes.
+- Completed ticket set: verify affected integration points.
 
-For one ticket, run only the specs and directly relevant static checks for what that ticket changed, using its Focused verification section. Do not run the full application suite from a ticket task.
+Run a full backend or frontend suite only when the user requests it, a release gate requires it, or the change affects shared infrastructure or a cross-cutting contract whose interaction risk cannot be bounded by focused checks. State the trigger. Run only the applicable stack:
 
-After every ticket is done, the coordinating task runs the **full** suite. A task implementing a spec without tickets, or application work that was not ticketed, also runs this gate before completion:
+- Backend: `mise exec -- bin/rspec --format progress --color` and `mise exec -- bundle exec rubocop`.
+- Frontend: `mise exec -- pnpm exec vitest run`, `mise exec -- pnpm exec oxlint app/frontend`, `mise exec -- pnpm exec oxfmt --check app/frontend …`, and `mise exec -- pnpm exec tsc --noEmit`.
 
-- `mise exec -- bin/rspec --format progress --color` — all RSpec examples must pass.
-- `mise exec -- bundle exec rubocop` — zero offenses.
-- `mise exec -- pnpm exec vitest run` — all Vitest tests must pass.
-- `mise exec -- pnpm exec oxlint app/frontend` — zero errors (warnings are pre-existing and acceptable).
-- `mise exec -- pnpm exec oxfmt --check app/frontend …` — no formatting violations.
-- `mise exec -- pnpm exec tsc --noEmit` — zero type errors.
+Required checks must be green. Fix failures caused by the change; report unrelated failures.
 
-For documentation, skills, and other non-executable project metadata, do not run the application suite. Validate the changed artifact, check the diff, and run only a directly relevant static check when one exists.
+## External HTTP tests
 
-Do not stop until the required verification is green. During the final gate, investigate and fix every failure even when it appears pre-existing or unrelated. Update any affected tests when behaviour changes.
+- Tests run without live external network access.
+- Use a VCR cassette for a representative provider exchange when testing method and URL construction, serialization, parsing, or payload compatibility.
+- Use WebMock for exact request assertions and deterministic failures, timeouts, malformed responses, or minimal unit cases.
+- Keep cassettes minimal and deterministic. Filter credentials, tokens, personal data, and unstable headers before committing them.
 
 ## Code comments
 
