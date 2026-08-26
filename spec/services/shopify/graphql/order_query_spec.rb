@@ -90,6 +90,25 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       end
     end
 
+    it "requests currencyCode beside every order-level shopMoney amount" do
+      %w[
+        totalDiscountsSet totalPriceSet totalShippingPriceSet currentTotalPriceSet
+        totalReceivedSet totalOutstandingSet netPaymentSet totalRefundedSet
+      ].each do |field|
+        expect(described_class::SALE_FIELDS).to match(
+          /#{field} \{\s*shopMoney \{\s*amount\s*currencyCode\s*\}\s*\}/
+        )
+      end
+    end
+
+    it "requests currencyCode beside line item originalTotalSet and discountedTotalSet amounts" do
+      %w[originalTotalSet discountedTotalSet].each do |field|
+        expect(described_class::SALE_FIELDS).to match(
+          /#{field} \{\s*shopMoney \{\s*amount\s*currencyCode\s*\}\s*\}/
+        )
+      end
+    end
+
     it "includes minimal product reference fields for sale item linking" do
       expect(described_class::SALE_FIELDS).to include("id")
       expect(described_class::SALE_FIELDS).to include("product {")

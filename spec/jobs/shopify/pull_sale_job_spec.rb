@@ -14,9 +14,9 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
         "displayFinancialStatus" => "PAID",
         "displayFulfillmentStatus" => "UNFULFILLED",
         "email" => "customer@example.com",
-        "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
-        "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00"}},
-        "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00"}},
+        "totalPriceSet" => {"shopMoney" => {"amount" => "100.00", "currencyCode" => "USD"}},
+        "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}},
+        "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}},
         "customer" => {
           "id" => "gid://shopify/Customer/456",
           "firstName" => "Jane",

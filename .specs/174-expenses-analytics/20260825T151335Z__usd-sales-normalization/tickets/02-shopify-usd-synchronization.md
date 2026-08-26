@@ -1,7 +1,7 @@
 # 02. Normalize Shopify sales to USD
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 01
 
 ## What to build
@@ -10,16 +10,16 @@ Make every manually triggered Shopify synchronization request `shopMoney.currenc
 
 ## Acceptance criteria
 
-- [ ] The Shopify order query requests `currencyCode` beside every imported `shopMoney.amount`.
-- [ ] EUR order and line money converts to USD.
-- [ ] USD order and line money persists unchanged.
-- [ ] Other Shopify `shopMoney` currencies convert through the same generic source-currency→USD path.
-- [ ] Conversion uses `shopify_created_at`, never pull time.
-- [ ] Item `price` and `expected_revenue` convert before persistence; received, outstanding, and refunded item revenue derives once from converted order totals.
-- [ ] Re-importing the same Shopify payload produces the same USD values without double conversion.
-- [ ] The `settlement_status` column, enum, shared precedence mapper, and economic-exclusion scope land here as the single owner for Woo, the backfill, and the UI.
-- [ ] The importer persists `paid` or `not_fully_paid` from authoritative Shopify financial, balance, and refund evidence, and raises on an unmapped financial status instead of persisting a placeholder.
-- [ ] Native payment schedules and amount-only partial orders persist the paid, total, and part-count values Ticket 08 formats; this ticket proves persistence, not presentation.
+- [x] The Shopify order query requests `currencyCode` beside every imported `shopMoney.amount`.
+- [x] EUR order and line money converts to USD.
+- [x] USD order and line money persists unchanged.
+- [x] Other Shopify `shopMoney` currencies convert through the same generic source-currency→USD path.
+- [x] Conversion uses `shopify_created_at`, never pull time.
+- [x] Item `price` and `expected_revenue` convert before persistence; received, outstanding, and refunded item revenue derives once from converted order totals.
+- [x] Re-importing the same Shopify payload produces the same USD values without double conversion.
+- [x] The `settlement_status` column, enum, shared precedence mapper, and economic-exclusion scope land here as the single owner for Woo, the backfill, and the UI.
+- [x] The importer persists `paid` or `not_fully_paid` from authoritative Shopify financial, balance, and refund evidence, and raises on an unmapped financial status instead of persisting a placeholder.
+- [x] Native payment schedules and amount-only partial orders persist the paid, total, and part-count values Ticket 08 formats; this ticket proves persistence, not presentation.
 
 ## Anchors
 

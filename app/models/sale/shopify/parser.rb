@@ -35,33 +35,38 @@ class Sale::Shopify::Parser
   private
 
   def parse_sale_attributes
+    payment = payment_attributes
     @sale = {
       cancel_reason: @order["cancelReason"],
       cancelled_at: parse_datetime(@order["cancelledAt"]),
       closed: @order["closed"],
       closed_at: parse_datetime(@order["closedAt"]),
       confirmed: @order["confirmed"],
-      discount_total: money_amount(@order["totalDiscountsSet"]),
+      discount_total: converted_money(@order["totalDiscountsSet"]),
       financial_status: @order["displayFinancialStatus"],
       fulfillment_status: @order["displayFulfillmentStatus"],
       shopify_name: @order["name"],
       note: @order["note"],
       return_status: @order["returnStatus"],
-      shipping_total: money_amount(@order["totalShippingPriceSet"]),
-      shopify_created_at: parse_datetime(@order["createdAt"]),
+      shipping_total: converted_money(@order["totalShippingPriceSet"]),
+      shopify_created_at: shopify_created_at,
       status: derive_status,
-      total: money_amount(@order["totalPriceSet"]),
-      **payment_attributes
+      total: converted_money(@order["totalPriceSet"]),
+      settlement_status: Sale.settlement_status_from_shopify(
+        financial_status: @order["displayFinancialStatus"],
+        outstanding_revenue: payment[:outstanding_revenue]
+      ),
+      **payment
     }
   end
 
   def payment_attributes
     {
-      expected_revenue: money_amount(@order["currentTotalPriceSet"]) || money_amount(@order["totalPriceSet"]),
-      received_revenue: money_amount(@order["totalReceivedSet"]),
-      outstanding_revenue: money_amount(@order["totalOutstandingSet"]),
-      refunded_revenue: money_amount(@order["totalRefundedSet"]),
-      net_payment: money_amount(@order["netPaymentSet"]),
+      expected_revenue: converted_money(@order["currentTotalPriceSet"]) || converted_money(@order["totalPriceSet"]),
+      received_revenue: converted_money(@order["totalReceivedSet"]),
+      outstanding_revenue: converted_money(@order["totalOutstandingSet"]),
+      refunded_revenue: converted_money(@order["totalRefundedSet"]),
+      net_payment: converted_money(@order["netPaymentSet"]),
       payment_gateway_names: Array(@order["paymentGatewayNames"]),
       payment_terms_name: @order.dig("paymentTerms", "paymentTermsName"),
       payment_terms_type: @order.dig("paymentTerms", "paymentTermsType"),
@@ -177,7 +182,7 @@ class Sale::Shopify::Parser
   def parse_store_info
     @store_info = {
       store_id: @order["id"],
-      ext_created_at: parse_datetime(@order["createdAt"]),
+      ext_created_at: shopify_created_at,
       ext_updated_at: parse_datetime(@order["updatedAt"])
     }
   end
@@ -219,8 +224,8 @@ class Sale::Shopify::Parser
         parsed_product = parse_product(line_item["product"], product_store_id)
 
         {
-          price: money_amount(line_item["originalTotalSet"]),
-          expected_revenue: money_amount(line_item["discountedTotalSet"]) || money_amount(line_item["originalTotalSet"]),
+          price: converted_money(line_item["originalTotalSet"]),
+          expected_revenue: converted_money(line_item["discountedTotalSet"]) || converted_money(line_item["originalTotalSet"]),
           qty: line_item["quantity"],
           store_id: line_item["id"],
           variant_title: line_item["variantTitle"],
@@ -245,8 +250,15 @@ class Sale::Shopify::Parser
     raise ArgumentError, "Invalid datetime format: #{datetime_str}"
   end
 
-  def money_amount(money_set)
-    money_set&.dig("shopMoney", "amount")
+  def shopify_created_at
+    @shopify_created_at ||= parse_datetime(@order["createdAt"])
+  end
+
+  def converted_money(money_set)
+    amount = money_set&.dig("shopMoney", "amount")
+    return nil if amount.blank?
+
+    ExchangeRate.usd_amount(amount, currency: money_set.dig("shopMoney", "currencyCode"), date: shopify_created_at&.to_date)
   end
 
   def parse_product(product_payload, product_store_id)

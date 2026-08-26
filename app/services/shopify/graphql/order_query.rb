@@ -31,41 +31,49 @@ module Shopify
         totalDiscountsSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         totalPriceSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         totalShippingPriceSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         currentTotalPriceSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         totalReceivedSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         totalOutstandingSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         netPaymentSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         totalRefundedSet {
           shopMoney {
             amount
+            currencyCode
           }
         }
         paymentGatewayNames
@@ -145,11 +153,13 @@ module Shopify
             originalTotalSet {
               shopMoney {
                 amount
+                currencyCode
               }
             }
             discountedTotalSet {
               shopMoney {
                 amount
+                currencyCode
               }
             }
             variantTitle

@@ -25,6 +25,7 @@
 #  received_revenue      :decimal(8, 2)
 #  refunded_revenue      :decimal(8, 2)
 #  return_status         :string
+#  settlement_status     :string
 #  shipping_total        :decimal(8, 2)
 #  shopify_created_at    :datetime
 #  shopify_name          :string

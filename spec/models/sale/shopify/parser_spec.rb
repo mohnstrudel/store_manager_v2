@@ -17,9 +17,9 @@ RSpec.describe Sale::Shopify::Parser do
       "displayFulfillmentStatus" => "UNFULFILLED",
       "note" => "Customer note",
       "returnStatus" => nil,
-      "totalDiscountsSet" => {"shopMoney" => {"amount" => "10.00"}},
-      "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
-      "totalShippingPriceSet" => {"shopMoney" => {"amount" => "5.00"}},
+      "totalDiscountsSet" => {"shopMoney" => {"amount" => "10.00", "currencyCode" => "USD"}},
+      "totalPriceSet" => {"shopMoney" => {"amount" => "100.00", "currencyCode" => "USD"}},
+      "totalShippingPriceSet" => {"shopMoney" => {"amount" => "5.00", "currencyCode" => "USD"}},
       "email" => "customer@example.com",
       "shippingAddress" => {
         "firstName" => "John",
@@ -60,7 +60,7 @@ RSpec.describe Sale::Shopify::Parser do
             "id" => "gid://shopify/LineItem/111",
             "title" => "Stellar Blade - Eve | 1:4 Resin Statue",
             "quantity" => 1,
-            "originalTotalSet" => {"shopMoney" => {"amount" => "95.00"}},
+            "originalTotalSet" => {"shopMoney" => {"amount" => "95.00", "currencyCode" => "USD"}},
             "variantTitle" => "Regular",
             "variant" => {
               "id" => "gid://shopify/ProductVariant/222",
@@ -338,11 +338,11 @@ RSpec.describe Sale::Shopify::Parser do
     let(:partially_paid_order) do
       api_order.deep_dup.merge(
         "displayFinancialStatus" => "PARTIALLY_PAID",
-        "currentTotalPriceSet" => {"shopMoney" => {"amount" => "95.00"}},
-        "totalReceivedSet" => {"shopMoney" => {"amount" => "50.00"}},
-        "totalOutstandingSet" => {"shopMoney" => {"amount" => "45.00"}},
-        "netPaymentSet" => {"shopMoney" => {"amount" => "50.00"}},
-        "totalRefundedSet" => {"shopMoney" => {"amount" => "0.00"}},
+        "currentTotalPriceSet" => {"shopMoney" => {"amount" => "95.00", "currencyCode" => "USD"}},
+        "totalReceivedSet" => {"shopMoney" => {"amount" => "50.00", "currencyCode" => "USD"}},
+        "totalOutstandingSet" => {"shopMoney" => {"amount" => "45.00", "currencyCode" => "USD"}},
+        "netPaymentSet" => {"shopMoney" => {"amount" => "50.00", "currencyCode" => "USD"}},
+        "totalRefundedSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}},
         "paymentGatewayNames" => ["shopify_payments"]
       )
     end
@@ -351,11 +351,11 @@ RSpec.describe Sale::Shopify::Parser do
       result = described_class.parse(partially_paid_order)
 
       expect(result[:sale]).to include(
-        expected_revenue: "95.00",
-        received_revenue: "50.00",
-        outstanding_revenue: "45.00",
-        net_payment: "50.00",
-        refunded_revenue: "0.00",
+        expected_revenue: BigDecimal("95.00"),
+        received_revenue: BigDecimal("50.00"),
+        outstanding_revenue: BigDecimal("45.00"),
+        net_payment: BigDecimal("50.00"),
+        refunded_revenue: BigDecimal("0.00"),
         payment_gateway_names: ["shopify_payments"]
       )
     end
@@ -363,7 +363,7 @@ RSpec.describe Sale::Shopify::Parser do
     it "falls back to totalPriceSet when currentTotalPriceSet is missing" do
       result = described_class.parse(api_order)
 
-      expect(result[:sale][:expected_revenue]).to eq("100.00")
+      expect(result[:sale][:expected_revenue]).to eq(BigDecimal("100.00"))
     end
 
     it "defaults payment fields when the payload has none" do
@@ -385,13 +385,13 @@ RSpec.describe Sale::Shopify::Parser do
     it "parses refunded amounts for refunded orders" do
       refunded_order = api_order.deep_dup.merge(
         "displayFinancialStatus" => "REFUNDED",
-        "totalRefundedSet" => {"shopMoney" => {"amount" => "95.00"}},
-        "netPaymentSet" => {"shopMoney" => {"amount" => "0.00"}}
+        "totalRefundedSet" => {"shopMoney" => {"amount" => "95.00", "currencyCode" => "USD"}},
+        "netPaymentSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}}
       )
 
       result = described_class.parse(refunded_order)
 
-      expect(result[:sale]).to include(refunded_revenue: "95.00", net_payment: "0.00")
+      expect(result[:sale]).to include(refunded_revenue: BigDecimal("95.00"), net_payment: BigDecimal("0.00"))
     end
 
     it "parses payment terms and the earliest unpaid schedule due date" do
@@ -585,29 +585,118 @@ RSpec.describe Sale::Shopify::Parser do
 
     it "parses line item expected revenue from discountedTotalSet" do
       discounted_order = api_order.deep_dup
-      discounted_order["lineItems"]["nodes"].first["discountedTotalSet"] = {"shopMoney" => {"amount" => "85.00"}}
+      discounted_order["lineItems"]["nodes"].first["discountedTotalSet"] =
+        {"shopMoney" => {"amount" => "85.00", "currencyCode" => "USD"}}
 
       result = described_class.parse(discounted_order)
 
-      expect(result[:sale_items].first[:expected_revenue]).to eq("85.00")
+      expect(result[:sale_items].first[:expected_revenue]).to eq(BigDecimal("85.00"))
     end
 
     it "falls back to originalTotalSet for line item expected revenue" do
       result = described_class.parse(api_order)
 
-      expect(result[:sale_items].first[:expected_revenue]).to eq("95.00")
+      expect(result[:sale_items].first[:expected_revenue]).to eq(BigDecimal("95.00"))
     end
 
     it "parses expected revenue for every line item of a multi-product order" do
       multi_line_order = api_order.deep_dup
       second_line = multi_line_order["lineItems"]["nodes"].first.deep_dup
       second_line["id"] = "gid://shopify/LineItem/222"
-      second_line["discountedTotalSet"] = {"shopMoney" => {"amount" => "40.00"}}
+      second_line["discountedTotalSet"] = {"shopMoney" => {"amount" => "40.00", "currencyCode" => "USD"}}
       multi_line_order["lineItems"]["nodes"] << second_line
 
       result = described_class.parse(multi_line_order)
 
-      expect(result[:sale_items].pluck(:expected_revenue)).to eq(["95.00", "40.00"])
+      expect(result[:sale_items].pluck(:expected_revenue)).to eq([BigDecimal("95.00"), BigDecimal("40.00")])
+    end
+  end
+
+  describe "USD normalization" do
+    before do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "CHF", rate: BigDecimal("0.9375"))
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "GBP", rate: BigDecimal("0.8700"))
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "CAD", rate: BigDecimal("1.5000"))
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "AUD", rate: BigDecimal("1.6500"))
+    end
+
+    let(:eur_order) do
+      api_order.deep_dup.merge(
+        "createdAt" => "2026-08-21T12:00:00Z",
+        "totalPriceSet" => {"shopMoney" => {"amount" => "100.00", "currencyCode" => "EUR"}},
+        "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "EUR"}},
+        "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "EUR"}}
+      ).tap { |order| order["lineItems"]["nodes"].first["originalTotalSet"] = {"shopMoney" => {"amount" => "100.00", "currencyCode" => "EUR"}} }
+    end
+
+    it "converts EUR order and line totals to USD using the order creation date, not pull time" do
+      travel_to(Time.zone.parse("2030-01-01T00:00:00Z")) do
+        result = described_class.parse(eur_order)
+
+        expect(result[:sale][:total]).to eq(BigDecimal("112.50"))
+        expect(result[:sale_items].first[:price]).to eq(BigDecimal("112.50"))
+      end
+    end
+
+    it "leaves USD order and line money unchanged as a decimal passthrough" do
+      result = described_class.parse(api_order)
+
+      expect(result[:sale][:total]).to eq(BigDecimal("100.00"))
+      expect(result[:sale_items].first[:price]).to eq(BigDecimal("95.00"))
+    end
+
+    it "converts CHF, GBP, CAD, and AUD order totals through the same generic cross-rate path", :aggregate_failures do
+      {"CHF" => "93.75", "GBP" => "87.00", "CAD" => "150.00", "AUD" => "165.00"}.each do |currency, amount|
+        order = api_order.deep_dup.merge(
+          "createdAt" => "2026-08-21T12:00:00Z",
+          "totalPriceSet" => {"shopMoney" => {"amount" => amount, "currencyCode" => currency}}
+        )
+
+        result = described_class.parse(order)
+
+        expect(result[:sale][:total]).to eq(BigDecimal("112.50")), "expected #{currency} #{amount} to convert to 112.50 USD"
+      end
+    end
+
+    it "re-parsing the same payload produces the same USD values without double conversion" do
+      first = described_class.parse(eur_order)
+      second = described_class.parse(eur_order)
+
+      expect(first[:sale][:total]).to eq(BigDecimal("112.50"))
+      expect(second[:sale][:total]).to eq(BigDecimal("112.50"))
+    end
+  end
+
+  describe "settlement_status" do
+    it "persists paid for PAID with no outstanding evidence" do
+      result = described_class.parse(api_order)
+
+      expect(result[:sale][:settlement_status]).to eq("paid")
+    end
+
+    it "persists not_fully_paid for PARTIALLY_PAID or positive outstanding revenue" do
+      partially_paid = api_order.deep_dup.merge("displayFinancialStatus" => "PARTIALLY_PAID")
+
+      result = described_class.parse(partially_paid)
+
+      expect(result[:sale][:settlement_status]).to eq("not_fully_paid")
+    end
+
+    it "keeps a settlement mapping for cancelled, VOIDED, and fully refunded orders" do
+      voided_order = api_order.deep_dup.merge("displayFinancialStatus" => "VOIDED")
+
+      result = described_class.parse(voided_order)
+
+      expect(result[:sale][:settlement_status]).to eq("not_fully_paid")
+    end
+
+    it "raises for an unmapped Shopify financial status instead of persisting a placeholder" do
+      unmapped_order = api_order.deep_dup.merge("displayFinancialStatus" => "SOMETHING_NEW")
+
+      expect { described_class.parse(unmapped_order) }.to raise_error(
+        ArgumentError, 'Unmapped Shopify financial status: "SOMETHING_NEW"'
+      )
     end
   end
 end

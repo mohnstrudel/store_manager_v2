@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_130100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -397,6 +397,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
     t.decimal "received_revenue", precision: 8, scale: 2
     t.decimal "refunded_revenue", precision: 8, scale: 2
     t.string "return_status"
+    t.string "settlement_status"
     t.decimal "shipping_total", precision: 8, scale: 2
     t.datetime "shopify_created_at"
     t.string "shopify_id"
@@ -412,6 +413,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
     t.index ["customer_id"], name: "index_sales_on_customer_id"
     t.index ["shopify_id"], name: "index_sales_on_shopify_id"
     t.index ["slug"], name: "index_sales_on_slug", unique: true
+    t.check_constraint "settlement_status::text = ANY (ARRAY['paid'::character varying, 'not_fully_paid'::character varying, 'unknown'::character varying]::text[])", name: "sales_settlement_status_allowed_values"
   end
 
   create_table "sessions", force: :cascade do |t|
