@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { makeSalePaymentPlan } from "@/test/factories";
+import { makeSalePaymentPlan, makeSalePaymentProgress } from "@/test/factories";
 
 import Show from "./Show";
 import { makeCustomerDetail, makeCustomerSale } from "./test/factories";
@@ -57,6 +57,15 @@ describe("Customers/Show", () => {
           id: 10,
           path: "/sales/10",
           sale_identifier: "HSCM#1747",
+          is_follow_up_payment: true,
+          settlement_status: "not_fully_paid",
+          payment_progress: makeSalePaymentProgress({
+            source: "plan_schedule",
+            percent: 42,
+            total: "$245",
+            sale_part_number: 2,
+            expected_parts: 4,
+          }),
           payment_plans: [
             makeSalePaymentPlan({
               expected_parts: 4,
@@ -70,7 +79,9 @@ describe("Customers/Show", () => {
       completed_sales: [],
     });
 
-    expect(screen.getByText("Payment 2 of 4")).toBeInTheDocument();
+    expect(
+      screen.getByText("Payment 2 of 4 · 42% collected · Projected total $245"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Original sale HSCM#1746" })).toHaveAttribute(
       "href",
       "/sales/9",
@@ -80,6 +91,24 @@ describe("Customers/Show", () => {
     const rows = salesSection!.querySelectorAll("tbody tr");
     expect(rows[0]).not.toHaveAttribute("data-follow-up");
     expect(rows[1]).toHaveAttribute("data-follow-up");
+  });
+
+  it("uses the normalized settlement marker copy for an amount-only partial sale", () => {
+    renderShow({
+      active_sales: [
+        makeCustomerSale({
+          settlement_status: "not_fully_paid",
+          payment_progress: makeSalePaymentProgress({
+            source: "amount",
+            percent: 42,
+            total: "$245",
+          }),
+        }),
+      ],
+      completed_sales: [],
+    });
+
+    expect(screen.getByText("Not fully paid · 42% collected · Total $245")).toBeInTheDocument();
   });
 
   it("names a follow-up payment 'Payment' instead of 'Sale' when there is no sold product name", () => {

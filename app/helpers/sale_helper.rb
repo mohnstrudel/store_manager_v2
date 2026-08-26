@@ -1,6 +1,18 @@
 # frozen_string_literal: true
 
 module SaleHelper
+  EMPTY_PAYMENT_PROGRESS = {
+    source: nil,
+    percent: nil,
+    paid: nil,
+    total: nil,
+    remaining: nil,
+    completed_parts: nil,
+    expected_parts: nil,
+    sale_part_number: nil,
+    plan_id: nil
+  }.freeze
+
   def sale_listing_props(sale)
     sale_base_props(sale).merge(
       customer_name: sale.customer.full_name,
@@ -142,6 +154,15 @@ module SaleHelper
     }
   end
 
+  def sale_settlement_props(sale)
+    return {settlement_status: nil, payment_progress: nil} if sale.economically_excluded?
+
+    {
+      settlement_status: sale.settlement_status,
+      payment_progress: (sale.paid? || sale.not_fully_paid?) ? sale_payment_progress_props(sale) : nil
+    }
+  end
+
   private
 
   def sale_profitability_props(sale, expense_fraction)
@@ -228,8 +249,62 @@ module SaleHelper
       shopify_id_short: sale.shopify_info&.id_short,
       woo_store_id: sale.woo_store_id,
       shop_identifier: sale.shop_identifier,
-      is_follow_up_payment: sale.follow_up_payment?
+      is_follow_up_payment: sale.follow_up_payment?,
+      **sale_settlement_props(sale)
     }
+  end
+
+  def sale_payment_progress_props(sale)
+    plan = sale.payment_plans_for_display.first
+
+    if plan
+      sale_plan_payment_progress_props(plan, sale)
+    elsif sale.outstanding_revenue.nil? && sale.expected_revenue.present?
+      sale_woo_payment_progress_props(sale)
+    else
+      sale_amount_progress_props(sale)
+    end
+  end
+
+  def sale_plan_payment_progress_props(plan, sale)
+    return sale_amount_progress_props(sale) if plan.projected_total.nil?
+
+    remainder = plan.projected_remainder
+    paid = plan.projected_total - remainder
+    schedule = plan.kind != "deposit" && plan.expected_parts > 1
+
+    EMPTY_PAYMENT_PROGRESS.merge(
+      source: schedule ? "plan_schedule" : "plan_deposit",
+      percent: [percent_of(paid, plan.projected_total) || 0, 100].min,
+      paid: format_usd(paid),
+      total: format_usd(plan.projected_total),
+      remaining: format_usd(remainder),
+      completed_parts: schedule ? plan.collected_parts : nil,
+      expected_parts: schedule ? plan.expected_parts : nil,
+      sale_part_number: schedule ? plan.part_number_for(sale) : nil,
+      plan_id: plan.id
+    )
+  end
+
+  def sale_amount_progress_props(sale)
+    pie = payment_pie_total(sale.expected_revenue, sale.received_revenue, sale.outstanding_revenue)
+    return EMPTY_PAYMENT_PROGRESS if pie.nil?
+
+    EMPTY_PAYMENT_PROGRESS.merge(
+      source: "amount",
+      percent: [percent_of(sale.received_revenue, pie) || 0, 100].min,
+      paid: format_usd(sale.received_revenue),
+      total: format_usd(pie),
+      remaining: sale.outstanding_revenue.to_d.positive? ? format_usd(sale.outstanding_revenue) : nil
+    )
+  end
+
+  def sale_woo_payment_progress_props(sale)
+    EMPTY_PAYMENT_PROGRESS.merge(
+      source: sale.received_revenue.present? ? "woo_deposit" : "woo_unavailable",
+      paid: format_usd(sale.received_revenue),
+      total: format_usd(sale.expected_revenue)
+    )
   end
 
   def sale_customer_props(customer)

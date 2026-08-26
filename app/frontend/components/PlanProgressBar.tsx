@@ -5,7 +5,7 @@ type PlanProgressBarProps = {
 };
 
 export default function PlanProgressBar({ plan }: PlanProgressBarProps) {
-  if (plan.sale_part_number == null) return null;
+  if (plan.sale_part_number == null || plan.kind === "deposit") return null;
 
   const segments = Array.from({ length: plan.expected_parts }, (_, index) => index + 1);
   const currentPart = plan.sale_part_number;

@@ -61,7 +61,9 @@ export function makeCustomerSale(overrides: Partial<SaleRecord> = {}): SaleRecor
     created_at: "19. May '26",
     updated_at: "19. May '26",
     payment_plans: [],
+    payment_progress: null,
     partially_paid: false,
+    settlement_status: null,
     is_follow_up_payment: false,
     ...overrides,
   };

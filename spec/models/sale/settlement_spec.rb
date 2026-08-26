@@ -144,4 +144,24 @@ RSpec.describe Sale::Settlement do
       expect(Sale.economically_included).to include(sale)
     end
   end
+
+  describe "#economically_excluded?" do
+    it "mirrors the scope for a cancelled sale" do
+      sale = build(:sale, status: "cancelled")
+
+      expect(sale.economically_excluded?).to be(true)
+    end
+
+    it "mirrors the scope for a fully refunded sale" do
+      sale = build(:sale, status: "completed", total: BigDecimal("100.00"), refunded_revenue: BigDecimal("100.00"))
+
+      expect(sale.economically_excluded?).to be(true)
+    end
+
+    it "is false for a positive not-yet-refunded sale" do
+      sale = build(:sale, status: "processing", total: BigDecimal("100.00"), refunded_revenue: nil)
+
+      expect(sale.economically_excluded?).to be(false)
+    end
+  end
 end

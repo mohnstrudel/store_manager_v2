@@ -156,6 +156,19 @@ describe("PaymentProgressBar", () => {
       expect(screen.queryByText(/of/)).not.toBeInTheDocument();
     });
   });
+
+  describe('when caption is "none"', () => {
+    it("renders only the fill bar, leaving caption text to the caller", () => {
+      renderPaymentProgressBar({
+        caption: "none",
+        progress: { progress: 30, paid: "300", price: "1 000", debt: "700" },
+      });
+
+      expect(screen.getByText("30%")).toBeInTheDocument();
+      expect(screen.queryByText("300")).not.toBeInTheDocument();
+      expect(screen.queryByText("700")).not.toBeInTheDocument();
+    });
+  });
 });
 
 const baseProgress: PaymentProgress = {
@@ -166,7 +179,7 @@ const baseProgress: PaymentProgress = {
 };
 
 type RenderPaymentProgressBarOptions = {
-  caption?: "full" | "debtOnly" | "paidOfTotal";
+  caption?: "full" | "debtOnly" | "paidOfTotal" | "none";
   progress?: PaymentProgress;
 };
 

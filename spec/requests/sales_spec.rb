@@ -642,6 +642,48 @@ RSpec.describe "Sales" do
 
       expect(inertia.props[:sales].first).to include(id: sale.id, is_follow_up_payment: false)
     end
+
+    it "includes the normalized settlement status and payment progress" do
+      create(:sale, settlement_status: "not_fully_paid", expected_revenue: 1000, received_revenue: 300, outstanding_revenue: 700)
+
+      get sales_path
+
+      sale_props = inertia.props[:sales].first
+      expect(sale_props[:settlement_status]).to eq("not_fully_paid")
+      expect(sale_props[:payment_progress]).to include(source: "amount", percent: 30, paid: "$300", total: "$1,000", remaining: "$700")
+    end
+
+    it "reports no positive status or progress for an economically excluded sale" do
+      create(:sale, settlement_status: "not_fully_paid", status: "processing", financial_status: "VOIDED")
+
+      get sales_path
+
+      sale_props = inertia.props[:sales].first
+      expect(sale_props[:settlement_status]).to be_nil
+      expect(sale_props[:payment_progress]).to be_nil
+    end
+  end
+
+  describe "GET /sales/:id settlement and progress props" do
+    it "includes the normalized settlement status and payment progress" do
+      sale = create(:sale, settlement_status: "paid", expected_revenue: 1000, received_revenue: 1000, outstanding_revenue: 0)
+
+      get sale_path(sale)
+
+      sale_props = inertia.props[:sale]
+      expect(sale_props[:settlement_status]).to eq("paid")
+      expect(sale_props[:payment_progress]).to include(source: "amount", percent: 100)
+    end
+
+    it "reports no positive status or progress for an economically excluded sale" do
+      sale = create(:sale, settlement_status: "paid", status: "refunded")
+
+      get sale_path(sale)
+
+      sale_props = inertia.props[:sale]
+      expect(sale_props[:settlement_status]).to be_nil
+      expect(sale_props[:payment_progress]).to be_nil
+    end
   end
 end
 # rubocop:enable RSpec/MultipleExpectations

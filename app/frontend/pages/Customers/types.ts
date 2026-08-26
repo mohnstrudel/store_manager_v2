@@ -1,4 +1,4 @@
-import type { SalePaymentPlanRecord } from "@/types/payment";
+import type { SalePaymentPlanRecord, SalePaymentProgress, SettlementStatus } from "@/types/payment";
 
 export type CustomerRecord = {
   id: number | null;
@@ -22,6 +22,7 @@ export type SaleRecord = {
   id: number;
   path: string;
   payment_plans: SalePaymentPlanRecord[];
+  payment_progress: SalePaymentProgress | null;
   partially_paid: boolean;
   store_id: string;
   sale_identifier: string;
@@ -36,7 +37,7 @@ export type SaleRecord = {
   note: string;
   created_at: string;
   updated_at: string;
-  // Decided once on the server (Sale#follow_up_payment?); see Sales/types.ts.
+  settlement_status: SettlementStatus;
   is_follow_up_payment: boolean;
 };
 

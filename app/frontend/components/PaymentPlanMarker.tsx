@@ -1,57 +1,48 @@
 import { Link } from "@inertiajs/react";
 
-import type { SalePaymentPlanRecord } from "@/types/payment";
+import type { SalePaymentPlanRecord, SalePaymentProgress, SettlementStatus } from "@/types/payment";
 import { stopRowNavigation } from "@/utils/rowNavigation";
 
 type PaymentPlanMarkerProps = {
-  plans: SalePaymentPlanRecord[];
+  plans?: SalePaymentPlanRecord[];
+  progress: SalePaymentProgress | null;
+  settlementStatus: SettlementStatus;
 };
 
-export default function PaymentPlanMarker({ plans }: PaymentPlanMarkerProps) {
-  if (plans.length === 0) return null;
+export default function PaymentPlanMarker({
+  plans = [],
+  progress,
+  settlementStatus,
+}: PaymentPlanMarkerProps) {
+  if (settlementStatus !== "not_fully_paid") return null;
+
+  const origin = plans.map((plan) => plan.origin_sale).find((sale) => sale != null);
 
   return (
-    <span className="payment_plan_marker" data-follow-up={isFollowUpPayment(plans) || undefined}>
-      {plans.map((plan) => (
-        <PaymentPlanLine key={plan.id} plan={plan} />
-      ))}
-    </span>
-  );
-}
-
-export function isFollowUpPayment(plans: SalePaymentPlanRecord[]) {
-  return plans.some(isLaterPayment);
-}
-
-function PaymentPlanLine({ plan }: { plan: SalePaymentPlanRecord }) {
-  return (
-    <span className="payment_plan_marker__line">
-      <span>{planLabel(plan)}</span>
-      {plan.origin_sale ? (
-        <Link className="link" href={plan.origin_sale.path} onClick={stopRowNavigation} prefetch>
-          Original sale {plan.origin_sale.identifier}
+    <span className="payment_plan_marker">
+      <span>{markerText(progress)}</span>
+      {origin && (
+        <Link className="link" href={origin.path} onClick={stopRowNavigation} prefetch>
+          Original sale {origin.identifier}
         </Link>
-      ) : null}
+      )}
     </span>
   );
 }
 
-function planLabel(plan: SalePaymentPlanRecord) {
-  const projection = plan.projected_total ? ` · Projected total ${plan.projected_total}` : "";
-
-  if (plan.kind === "deposit") {
-    const state = plan.collected_parts > 0 ? " collected" : "";
-
-    return `${plan.deposit_percent}% deposit${state}${projection}`;
+function markerText(progress: SalePaymentProgress | null) {
+  switch (progress?.source) {
+    case "plan_deposit":
+      return `Deposit · ${progress.percent}% collected · Projected total ${progress.total}`;
+    case "plan_schedule":
+      return `Payment ${progress.sale_part_number} of ${progress.expected_parts} · ${progress.percent}% collected · Projected total ${progress.total}`;
+    case "amount":
+      return `Not fully paid · ${progress.percent}% collected · Total ${progress.total}`;
+    case "woo_deposit":
+      return `Not fully paid · Deposit ${progress.paid} collected · Total ${progress.total}`;
+    case "woo_unavailable":
+      return "Not fully paid · Payment amounts unavailable";
+    default:
+      return "Not fully paid";
   }
-
-  if (isLaterPayment(plan)) {
-    return `Payment ${plan.sale_part_number} of ${plan.expected_parts}${projection}`;
-  }
-
-  return `Payment plan · ${plan.collected_parts} of ${plan.expected_parts} collected${projection}`;
-}
-
-function isLaterPayment(plan: SalePaymentPlanRecord) {
-  return !plan.is_origin_sale && plan.sale_part_number != null;
 }

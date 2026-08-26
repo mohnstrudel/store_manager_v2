@@ -61,7 +61,8 @@ module CustomerHelper
       created_at: format_date(sale.shop_created_at.presence || sale.created_at),
       updated_at: format_date(sale.shop_updated_at.presence || sale.updated_at),
       is_follow_up_payment: sale.follow_up_payment?,
-      **sale_payment_context_props(sale)
+      **sale_payment_context_props(sale),
+      **sale_settlement_props(sale)
     }
   end
 

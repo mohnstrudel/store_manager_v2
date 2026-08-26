@@ -37,6 +37,12 @@ module FormattingHelper
     ).strip
   end
 
+  def format_usd(amount)
+    return unless amount.presence
+
+    number_to_currency(amount.to_f, precision: 0)
+  end
+
   def decimal_field_value(value)
     return "" if value.nil?
 

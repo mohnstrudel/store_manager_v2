@@ -177,6 +177,163 @@ RSpec.describe SaleHelper do
     end
   end
 
+  describe "#sale_settlement_props" do
+    it "passes through the normalized settlement status" do
+      sale = create(:sale, settlement_status: "paid")
+
+      expect(helper.sale_settlement_props(sale)[:settlement_status]).to eq("paid")
+    end
+
+    it "reports no status or progress for an economically excluded sale" do
+      sale = create(:sale, settlement_status: "not_fully_paid", status: "cancelled")
+
+      expect(helper.sale_settlement_props(sale)).to eq(settlement_status: nil, payment_progress: nil)
+    end
+
+    it "reports no progress for an unknown settlement" do
+      sale = create(:sale, settlement_status: "unknown")
+
+      expect(helper.sale_settlement_props(sale)[:payment_progress]).to be_nil
+    end
+  end
+
+  describe "#sale_settlement_props payment_progress" do
+    it "computes amount progress from known received and outstanding revenue" do
+      sale = create(:sale, settlement_status: "not_fully_paid", expected_revenue: 1000, received_revenue: 300, outstanding_revenue: 700)
+
+      expect(helper.sale_settlement_props(sale)[:payment_progress]).to include(
+        source: "amount", percent: 30, paid: "$300", total: "$1,000", remaining: "$700"
+      )
+    end
+
+    it "reports zero percent instead of nil when nothing has been paid yet" do
+      sale = create(:sale, settlement_status: "not_fully_paid", expected_revenue: 1000, received_revenue: 0, outstanding_revenue: 1000)
+
+      expect(helper.sale_settlement_props(sale)[:payment_progress]).to include(
+        source: "amount", percent: 0, paid: "$0", total: "$1,000", remaining: "$1,000"
+      )
+    end
+
+    it "reports 100 percent and no remaining claim once fully paid" do
+      sale = create(:sale, settlement_status: "paid", expected_revenue: 1000, received_revenue: 1000, outstanding_revenue: 0)
+
+      expect(helper.sale_settlement_props(sale)[:payment_progress]).to include(source: "amount", percent: 100, remaining: nil)
+    end
+
+    it "falls back to amount progress when the plan carries no known projected total" do
+      sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/500", expected_revenue: 1000, received_revenue: 300, outstanding_revenue: 700)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "shopify",
+          external_id: "terms-500",
+          external_origin_order_id: "500",
+          kind: "payment_terms",
+          status: "active",
+          expected_parts: 2,
+          projected_total: nil,
+          synced_at: Time.current
+        },
+        parts: [{provider_part_id: "terms-500:1", sequence: 1, external_order_id: "500"}]
+      )
+
+      expect(helper.sale_settlement_props(sale.reload)[:payment_progress]).to include(source: "amount", percent: 30)
+    end
+
+    it "shows a Seal deposit's amount progress against its projected total, never a part count" do
+      sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/100", received_revenue: 420, refunded_revenue: 0, outstanding_revenue: 0)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-deposit",
+          external_origin_order_id: "100",
+          kind: "deposit",
+          status: "active",
+          expected_parts: 1,
+          deposit_percent: 30,
+          projected_total: 1400,
+          synced_at: Time.current
+        },
+        parts: [{provider_part_id: "subscription-deposit:1", sequence: 1, external_order_id: "100", amount: 420}]
+      )
+
+      progress = helper.sale_settlement_props(sale.reload)[:payment_progress]
+
+      expect(progress).to include(
+        source: "plan_deposit", percent: 30, paid: "$420", total: "$1,400", remaining: "$980",
+        completed_parts: nil, expected_parts: nil, sale_part_number: nil
+      )
+    end
+
+    it "shows completed and expected parts for a real installment schedule" do
+      sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/300", received_revenue: 300, refunded_revenue: 0)
+      create(:sale, shopify_store_id: "gid://shopify/Order/301", received_revenue: 200, refunded_revenue: 0)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-schedule",
+          external_origin_order_id: "300",
+          kind: "installments",
+          status: "active",
+          expected_parts: 4,
+          projected_total: 1000,
+          synced_at: Time.current
+        },
+        parts: [
+          {provider_part_id: "subscription-schedule:1", sequence: 1, external_order_id: "300"},
+          {provider_part_id: "subscription-schedule:2", sequence: 2, external_order_id: "301"}
+        ]
+      )
+
+      progress = helper.sale_settlement_props(sale.reload)[:payment_progress]
+
+      expect(progress).to include(
+        source: "plan_schedule", percent: 50, paid: "$500", total: "$1,000", remaining: "$500",
+        completed_parts: 2, expected_parts: 4, sale_part_number: 1
+      )
+    end
+
+    it "computes the amount percentage independently of the parts fraction" do
+      sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/400", received_revenue: 500, refunded_revenue: 0)
+      create(:sale, shopify_store_id: "gid://shopify/Order/401", received_revenue: 300, refunded_revenue: 0)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-unequal",
+          external_origin_order_id: "400",
+          kind: "installments",
+          status: "active",
+          expected_parts: 4,
+          projected_total: 1000,
+          synced_at: Time.current
+        },
+        parts: [
+          {provider_part_id: "subscription-unequal:1", sequence: 1, external_order_id: "400"},
+          {provider_part_id: "subscription-unequal:2", sequence: 2, external_order_id: "401"}
+        ]
+      )
+
+      progress = helper.sale_settlement_props(sale.reload)[:payment_progress]
+
+      expect(progress).to include(completed_parts: 2, expected_parts: 4, percent: 80)
+    end
+
+    it "shows a Woo verified deposit's collected amount and order total, with no percentage or remaining" do
+      sale = create(:sale, settlement_status: "not_fully_paid", expected_revenue: 1145, received_revenue: 196, outstanding_revenue: nil)
+
+      expect(helper.sale_settlement_props(sale)[:payment_progress]).to include(
+        source: "woo_deposit", paid: "$196", total: "$1,145", percent: nil, remaining: nil
+      )
+    end
+
+    it "reports the order total when Woo payment amounts are unavailable" do
+      sale = create(:sale, settlement_status: "not_fully_paid", expected_revenue: 1145, received_revenue: nil, outstanding_revenue: nil)
+
+      expect(helper.sale_settlement_props(sale)[:payment_progress]).to include(
+        source: "woo_unavailable", paid: nil, total: "$1,145"
+      )
+    end
+  end
+
   def reconcile_two_part_plan
     SalePaymentPlan.reconcile!(
       attributes: {

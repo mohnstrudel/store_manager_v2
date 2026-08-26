@@ -1,4 +1,9 @@
-import type { PaymentProgress, SalePaymentPlanRecord } from "@/types/payment";
+import type {
+  PaymentProgress,
+  SalePaymentPlanRecord,
+  SalePaymentProgress,
+  SettlementStatus,
+} from "@/types/payment";
 import type { VariantAvailability } from "@/types/variantAssignment";
 import type { WarehouseOption } from "@/types/warehouse";
 
@@ -50,8 +55,9 @@ export type SaleIndexRecord = {
   woo_store_id: string;
   payment: SalePaymentRecord;
   payment_plans: SalePaymentPlanRecord[];
+  payment_progress: SalePaymentProgress | null;
   partially_paid: boolean;
-  // Decided once on the server (Sale#follow_up_payment?); see SaleShowRecord.
+  settlement_status: SettlementStatus;
   is_follow_up_payment: boolean;
 };
 
@@ -206,6 +212,8 @@ export type SaleShowRecord = {
   sale_items: SaleShowSaleItemRecord[];
   payment: SalePaymentRecord;
   payment_plans: SalePaymentPlanRecord[];
+  payment_progress: SalePaymentProgress | null;
   partially_paid: boolean;
+  settlement_status: SettlementStatus;
   profitability: SaleProfitabilityRecord | null;
 };

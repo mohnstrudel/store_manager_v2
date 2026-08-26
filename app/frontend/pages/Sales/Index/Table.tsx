@@ -1,14 +1,11 @@
 import { Link } from "@inertiajs/react";
 
-import PaymentPlanMarker, { isFollowUpPayment } from "@/components/PaymentPlanMarker";
+import PaymentPlanMarker from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
-import type { SalePaymentPlanRecord } from "@/types/payment";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import type { SaleIndexRecord } from "../types";
-
-const EMPTY_PAYMENT_PLANS: SalePaymentPlanRecord[] = [];
 
 type TableProps = {
   sales: SaleIndexRecord[];
@@ -37,12 +34,11 @@ export default function Table({ sales }: TableProps) {
       <tbody>
         {sales.map((sale) => {
           const purchaseItems = sale.sale_items.flatMap((saleItem) => saleItem.purchase_items);
-          const paymentPlans = sale.payment_plans ?? EMPTY_PAYMENT_PLANS;
 
           return (
             <tr
               className="hoverable"
-              data-follow-up={isFollowUpPayment(paymentPlans) || undefined}
+              data-follow-up={sale.is_follow_up_payment || undefined}
               key={sale.id}
               {...rowNavigationProps(sale.path)}
             >
@@ -59,7 +55,11 @@ export default function Table({ sales }: TableProps) {
               </td>
 
               <td>
-                <PaymentPlanMarker plans={paymentPlans} />
+                <PaymentPlanMarker
+                  plans={sale.payment_plans ?? []}
+                  progress={sale.payment_progress}
+                  settlementStatus={sale.settlement_status}
+                />
                 <span className="font-bold">{sale.customer_name}</span>
                 {sale.customer_email ? (
                   <>

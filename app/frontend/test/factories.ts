@@ -1,5 +1,5 @@
 import type { PaginationMeta } from "@/types/pagination";
-import type { SalePaymentPlanRecord } from "@/types/payment";
+import type { SalePaymentPlanRecord, SalePaymentProgress } from "@/types/payment";
 
 type HasId = { id: number };
 
@@ -28,6 +28,23 @@ export function makeSalePaymentPlan(
     projected_collected: null,
     origin_sale: null,
     payments: [],
+    ...overrides,
+  };
+}
+
+export function makeSalePaymentProgress(
+  overrides: Partial<SalePaymentProgress> = {},
+): SalePaymentProgress {
+  return {
+    source: null,
+    percent: null,
+    paid: null,
+    total: null,
+    remaining: null,
+    completed_parts: null,
+    expected_parts: null,
+    sale_part_number: null,
+    plan_id: null,
     ...overrides,
   };
 }

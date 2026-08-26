@@ -100,6 +100,28 @@ RSpec.describe "Customers" do
       expect(origin_props[:is_follow_up_payment]).to be(false)
       expect(follow_up_props[:is_follow_up_payment]).to be(true)
     end
+
+    it "includes the normalized settlement status and payment progress" do
+      customer = create(:customer)
+      create(:sale, customer:, status: "completed", settlement_status: "not_fully_paid", expected_revenue: 1000, received_revenue: 300, outstanding_revenue: 700)
+
+      get customer_path(customer)
+
+      sale_props = inertia.props[:completed_sales].first
+      expect(sale_props[:settlement_status]).to eq("not_fully_paid")
+      expect(sale_props[:payment_progress]).to include(source: "amount", percent: 30, paid: "$300", total: "$1,000", remaining: "$700")
+    end
+
+    it "reports no positive status or progress for an economically excluded sale" do
+      customer = create(:customer)
+      create(:sale, customer:, status: "completed", settlement_status: "not_fully_paid", financial_status: "VOIDED")
+
+      get customer_path(customer)
+
+      sale_props = inertia.props[:completed_sales].first
+      expect(sale_props[:settlement_status]).to be_nil
+      expect(sale_props[:payment_progress]).to be_nil
+    end
   end
 
   describe "GET /customers/new" do

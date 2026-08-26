@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import type { PaymentProgress } from "@/types/payment";
 
 type PaymentProgressBarProps = {
-  caption?: "full" | "debtOnly" | "paidOfTotal";
+  caption?: "full" | "debtOnly" | "paidOfTotal" | "none";
   progress: PaymentProgress;
 };
 

@@ -59,4 +59,12 @@ module Sale::Settlement
       end
     end
   end
+
+  def economically_excluded?
+    cancelled? || status == "refunded" || financial_status == "VOIDED" || fully_refunded?
+  end
+
+  def fully_refunded?
+    refunded_revenue.present? && total.present? && refunded_revenue >= total
+  end
 end

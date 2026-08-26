@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { makePagination, makeSalePaymentPlan } from "@/test/factories";
+import { makePagination, makeSalePaymentProgress } from "@/test/factories";
 
 import Index from "./Index";
 import { makeSaleIndexRecord } from "./test/factories";
@@ -53,80 +53,109 @@ describe("Sales/Index", () => {
     expect(screen.queryByText("Processing")).not.toBeInTheDocument();
   });
 
-  describe("payment plan affiliation", () => {
-    it("marks the originating sale and states the position of its follow-up payment", () => {
+  describe("payment progress marker", () => {
+    it("shows scheduled payment progress before the sale details", () => {
       renderIndex({
         sales: [
           makeSaleIndexRecord({
-            payment_plans: [makeSalePaymentPlan({ collected_parts: 2 })],
-          }),
-          makeSaleIndexRecord({
-            id: 2,
-            payment_plans: [
-              makeSalePaymentPlan({
-                collected_parts: 3,
-                is_origin_sale: false,
-                sale_part_number: 2,
-                origin_sale: { path: "/sales/1", identifier: "HSCM#1746" },
-              }),
-            ],
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "plan_schedule",
+              percent: 42,
+              sale_part_number: 2,
+              expected_parts: 8,
+              total: "$245",
+            }),
           }),
         ],
       });
 
-      expect(screen.getByText("Payment plan · 2 of 8 collected")).toBeInTheDocument();
-      expect(screen.getByText("Payment 2 of 8")).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Original sale HSCM#1746" })).toHaveAttribute(
-        "href",
-        "/sales/1",
-      );
+      const marker = screen.getByText("Payment 2 of 8 · 42% collected · Projected total $245");
+      expect(marker.parentElement?.firstElementChild).toBe(marker);
     });
 
-    it("subordinates the follow-up row and leaves ordinary rows alone", () => {
-      const { container } = renderIndex({
-        sales: [
-          makeSaleIndexRecord({
-            payment_plans: [makeSalePaymentPlan({ collected_parts: 2 })],
-          }),
-          makeSaleIndexRecord({
-            id: 2,
-            payment_plans: [
-              makeSalePaymentPlan({
-                is_origin_sale: false,
-                sale_part_number: 2,
-                origin_sale: { path: "/sales/1", identifier: "HSCM#1746" },
-              }),
-            ],
-          }),
-        ],
-      });
-
-      const rows = container.querySelectorAll("tbody tr");
-      expect(rows[0]).not.toHaveAttribute("data-follow-up");
-      expect(rows[1]).toHaveAttribute("data-follow-up");
-    });
-
-    it("shows a deposit projection without rendering one of one", () => {
+    it("shows deposit progress without a fabricated part count", () => {
       renderIndex({
         sales: [
           makeSaleIndexRecord({
-            payment_plans: [
-              makeSalePaymentPlan({
-                kind: "deposit",
-                expected_parts: 1,
-                collected_parts: 1,
-                deposit_percent: 30,
-                projected_total: "1 020 EUR",
-              }),
-            ],
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "plan_deposit",
+              percent: 42,
+              total: "$245",
+            }),
           }),
         ],
       });
 
       expect(
-        screen.getByText(/30% deposit collected · Projected total 1\s020 EUR/),
+        screen.getByText("Deposit · 42% collected · Projected total $245"),
       ).toBeInTheDocument();
       expect(screen.queryByText(/1 of 1/)).not.toBeInTheDocument();
+    });
+
+    it("shows amount-only progress", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "amount",
+              percent: 42,
+              total: "$245",
+            }),
+          }),
+        ],
+      });
+
+      expect(screen.getByText("Not fully paid · 42% collected · Total $245")).toBeInTheDocument();
+    });
+
+    it("shows a verified Woo deposit without a percentage", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "woo_deposit",
+              paid: "$196",
+              total: "$1,145",
+            }),
+          }),
+        ],
+      });
+
+      expect(
+        screen.getByText("Not fully paid · Deposit $196 collected · Total $1,145"),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/% collected/)).not.toBeInTheDocument();
+    });
+
+    it("shows unavailable Woo payment amounts without a percentage", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "woo_unavailable",
+              total: "$1,145",
+            }),
+          }),
+        ],
+      });
+
+      expect(screen.getByText("Not fully paid · Payment amounts unavailable")).toBeInTheDocument();
+      expect(screen.queryByText(/% collected/)).not.toBeInTheDocument();
+    });
+
+    it("uses the backend-owned follow-up classification", () => {
+      const { container } = renderIndex({
+        sales: [makeSaleIndexRecord(), makeSaleIndexRecord({ id: 2, is_follow_up_payment: true })],
+      });
+
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows[0]).not.toHaveAttribute("data-follow-up");
+      expect(rows[1]).toHaveAttribute("data-follow-up");
     });
   });
 

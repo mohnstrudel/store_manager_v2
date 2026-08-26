@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
 
-import PaymentPlanMarker, { isFollowUpPayment } from "@/components/PaymentPlanMarker";
+import PaymentPlanMarker from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 
 import { SaleRecord } from "../types";
@@ -34,7 +34,7 @@ export default function Sales({ heading, sales }: SalesProps) {
         </thead>
         <tbody>
           {sales.map((sale) => (
-            <tr data-follow-up={isFollowUpPayment(sale.payment_plans) || undefined} key={sale.id}>
+            <tr data-follow-up={sale.is_follow_up_payment || undefined} key={sale.id}>
               <td className="text-center">
                 <ZoomableThumbnail
                   alt={sale.sold_product_name || `${saleNoun(sale)} ${saleIdentifier(sale)}`}
@@ -64,7 +64,11 @@ export default function Sales({ heading, sales }: SalesProps) {
                     </span>
                   </span>
                 </Link>
-                <PaymentPlanMarker plans={sale.payment_plans} />
+                <PaymentPlanMarker
+                  plans={sale.payment_plans}
+                  progress={sale.payment_progress}
+                  settlementStatus={sale.settlement_status}
+                />
               </td>
               <td>
                 <span className={sale.active ? "text-lime-700" : "text-red-900"}>

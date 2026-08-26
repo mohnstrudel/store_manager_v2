@@ -115,4 +115,19 @@ describe("PlanProgressBar", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("renders nothing for a deposit, even when it can place the sale, since a deposit has no real schedule", () => {
+    const { container } = render(
+      <PlanProgressBar
+        plan={makeSalePaymentPlan({
+          kind: "deposit",
+          expected_parts: 1,
+          collected_parts: 1,
+          sale_part_number: 1,
+        })}
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

@@ -1,8 +1,14 @@
 import { Link } from "@inertiajs/react";
 
 import Field from "@/components/Field";
+import PaymentProgressBar from "@/components/PaymentProgressBar";
 import PlanProgressBar from "@/components/PlanProgressBar";
-import type { PaymentPlanPaymentRef, SalePaymentPlanRecord } from "@/types/payment";
+import type {
+  PaymentPlanPaymentRef,
+  SalePaymentPlanRecord,
+  SalePaymentProgress,
+  SettlementStatus,
+} from "@/types/payment";
 
 import type { SaleShowRecord } from "../types";
 import ShippingBillingDetails from "./ShippingBillingDetails";
@@ -47,7 +53,7 @@ export default function Details({ sale }: DetailsProps) {
       </dl>
 
       <div className="flex flex-col gap-4 w-1/3">
-        <PlanProgressCard plans={plans} />
+        <SettlementSummaryCard sale={sale} />
         {showOrderOnlyDetails && <ShippingBillingDetails sale={sale} />}
       </div>
 
@@ -114,21 +120,91 @@ function planPaymentLists(plans: SalePaymentPlanRecord[]) {
   ));
 }
 
-function PlanProgressCard({ plans }: { plans: SalePaymentPlanRecord[] }) {
-  if (plans.length === 0) return null;
+function SettlementSummaryCard({ sale }: { sale: SaleShowRecord }) {
+  const status = sale.settlement_status;
+  const progress = sale.payment_progress;
+  const plans = sale.payment_plans;
+  if (status == null && plans.length === 0) return null;
 
   const lists = planPaymentLists(plans);
+  const scheduledPlan = progress?.plan_id
+    ? plans.find((plan) => plan.id === progress.plan_id)
+    : plans.find((plan) => plan.sale_part_number != null);
 
   return (
-    <div className="card w-full">
-      <div className="flex flex-col gap-4">
-        {plans.map((plan) => (
-          <PlanProgressBar key={plan.id} plan={plan} />
-        ))}
-      </div>
+    <section aria-label="Payment status" className="card w-full">
+      {status && <h3>{settlementStatusLabel(status)}</h3>}
+      {status === "unknown" ? (
+        <p>Payment status unknown</p>
+      ) : (
+        progress && <SettlementProgress progress={progress} />
+      )}
+      {scheduledPlan && <PlanProgressBar plan={scheduledPlan} />}
       {lists && <div className="mt-4">{lists}</div>}
+    </section>
+  );
+}
+
+function SettlementProgress({ progress }: { progress: SalePaymentProgress }) {
+  return (
+    <div className="mt-3">
+      {progress.percent != null && (
+        <PaymentProgressBar
+          caption="none"
+          progress={{
+            progress: progress.percent,
+            paid: progress.paid,
+            price: progress.total,
+            debt: progress.remaining,
+          }}
+        />
+      )}
+      <p className="mt-2">{paymentProgressText(progress)}</p>
     </div>
   );
+}
+
+function settlementStatusLabel(status: Exclude<SettlementStatus, null>) {
+  switch (status) {
+    case "paid":
+      return "Paid";
+    case "not_fully_paid":
+      return "Not fully paid";
+    case "unknown":
+      return "Unknown";
+  }
+}
+
+function paymentProgressText(progress: SalePaymentProgress) {
+  switch (progress.source) {
+    case "plan_schedule":
+      return withRemaining(
+        `${progress.percent}% · ${progress.completed_parts} of ${progress.expected_parts} payments completed · Paid ${progress.paid} of ${progress.total}`,
+        progress,
+      );
+    case "plan_deposit":
+      return withRemaining(
+        `${progress.percent}% · Paid ${progress.paid} of projected ${progress.total}`,
+        progress,
+      );
+    case "amount":
+      return withRemaining(
+        `${progress.percent}% · Paid ${progress.paid} of ${progress.total}`,
+        progress,
+      );
+    case "woo_deposit":
+      return `Deposit ${progress.paid} collected of total ${progress.total} · Remaining amount unavailable from WooCommerce`;
+    case "woo_unavailable":
+      return `Total ${progress.total} · Paid and remaining amounts unavailable from WooCommerce`;
+    default:
+      return null;
+  }
+}
+
+function withRemaining(text: string, progress: SalePaymentProgress) {
+  if (progress.percent === 100 || progress.remaining == null) return text;
+
+  return `${text} · ${progress.remaining} remaining`;
 }
 
 function paymentLabel(payment: PaymentPlanPaymentRef, expectedParts: number) {

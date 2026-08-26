@@ -29,3 +29,25 @@ export type SalePaymentPlanRecord = {
   origin_sale: PaymentPlanSaleRef | null;
   payments: PaymentPlanPaymentRef[];
 };
+
+export type SettlementStatus = "paid" | "not_fully_paid" | "unknown" | null;
+
+export type SalePaymentProgressSource =
+  | "plan_deposit"
+  | "plan_schedule"
+  | "amount"
+  | "woo_deposit"
+  | "woo_unavailable"
+  | null;
+
+export type SalePaymentProgress = {
+  source: SalePaymentProgressSource;
+  percent: number | null;
+  paid: string | null;
+  total: string | null;
+  remaining: string | null;
+  completed_parts: number | null;
+  expected_parts: number | null;
+  sale_part_number: number | null;
+  plan_id: number | null;
+};

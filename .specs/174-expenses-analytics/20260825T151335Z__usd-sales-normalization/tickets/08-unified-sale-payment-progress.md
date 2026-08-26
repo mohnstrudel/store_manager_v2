@@ -1,7 +1,7 @@
 # 08. Show unified sale payment progress
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 02, 03, 04
 
 ## What to build
@@ -10,18 +10,18 @@ Give every Sale page one settlement summary. Whenever paid and total amounts are
 
 ## Acceptance criteria
 
-- [ ] Positive sales visibly show `Paid`, `Not fully paid`, or `Unknown` from the backend-owned normalized settlement status.
-- [ ] Excluded sales do not appear as positive sales or positive economics.
-- [ ] Every not-fully-paid sale with known paid and total amounts shows a continuous percentage bar plus paid, total, and remaining USD.
-- [ ] Native Shopify payment terms and Seal installments additionally show completed and expected parts when the provider exposes a real schedule.
-- [ ] A Shopify partial order without a schedule shows amount progress only.
-- [ ] A Seal deposit with `$420` collected against projected `$1,400` shows `30%` and `$980 remaining`; it never renders `1 of 1`.
-- [ ] A Woo `partially-paid` order with a verified plugin deposit shows `Not fully paid`, its USD order total, the USD deposit collected, and `Remaining amount unavailable from WooCommerce`, with no percentage fill. A Woo `partially-paid` order without plugin deposit evidence shows `Not fully paid`, its USD order total, and `Paid and remaining amounts unavailable from WooCommerce`, with no percentage fill.
-- [ ] Every not-fully-paid Sales index row places a concise progress marker before the sale details.
-- [ ] Deposit rows use `Deposit · 42% collected · Projected total $245`; scheduled follow-ups use `Payment 2 of 8 · 42% collected · Projected total $245`; amount-only sales use `Not fully paid · 42% collected · Total $245`.
-- [ ] Woo partial index rows with a verified plugin deposit use `Not fully paid · Deposit $196 collected · Total $1,145`, never a percentage. Woo partial index rows without plugin deposit evidence use `Not fully paid · Payment amounts unavailable` and never show a fabricated percentage.
-- [ ] Payment progress updates after the existing manual Shopify or Woo synchronization; no webhook is introduced.
-- [ ] Rails owns the normalized settlement status and every progress capability prop.
+- [x] Positive sales visibly show `Paid`, `Not fully paid`, or `Unknown` from the backend-owned normalized settlement status.
+- [x] Excluded sales do not appear as positive sales or positive economics.
+- [x] Every not-fully-paid sale with known paid and total amounts shows a continuous percentage bar plus paid, total, and remaining USD.
+- [x] Native Shopify payment terms and Seal installments additionally show completed and expected parts when the provider exposes a real schedule.
+- [x] A Shopify partial order without a schedule shows amount progress only.
+- [x] A Seal deposit with `$420` collected against projected `$1,400` shows `30%` and `$980 remaining`; it never renders `1 of 1`.
+- [x] A Woo `partially-paid` order with a verified plugin deposit shows `Not fully paid`, its USD order total, the USD deposit collected, and `Remaining amount unavailable from WooCommerce`, with no percentage fill. A Woo `partially-paid` order without plugin deposit evidence shows `Not fully paid`, its USD order total, and `Paid and remaining amounts unavailable from WooCommerce`, with no percentage fill.
+- [x] Every not-fully-paid Sales index row places a concise progress marker before the sale details.
+- [x] Deposit rows use `Deposit · 42% collected · Projected total $245`; scheduled follow-ups use `Payment 2 of 8 · 42% collected · Projected total $245`; amount-only sales use `Not fully paid · 42% collected · Total $245`.
+- [x] Woo partial index rows with a verified plugin deposit use `Not fully paid · Deposit $196 collected · Total $1,145`, never a percentage. Woo partial index rows without plugin deposit evidence use `Not fully paid · Payment amounts unavailable` and never show a fabricated percentage.
+- [x] Payment progress updates after the existing manual Shopify or Woo synchronization; no webhook is introduced.
+- [x] Rails owns the normalized settlement status and every progress capability prop.
 
 ## Anchors
 
