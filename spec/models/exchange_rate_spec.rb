@@ -92,35 +92,20 @@ RSpec.describe ExchangeRate do
     end
   end
 
-  describe ".usd_amount caching" do
-    let(:history_body) do
-      <<~XML
-        <?xml version="1.0" encoding="UTF-8"?>
-        <gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
-          <Cube>
-            <Cube time="2026-08-21">
-              <Cube currency="USD" rate="1.1250"/>
-              <Cube currency="CHF" rate="0.9375"/>
-            </Cube>
-          </Cube>
-        </gesmes:Envelope>
-      XML
-    end
-    let(:response) { instance_double(HTTParty::Response, success?: true, body: history_body) }
-
-    before do
-      allow(HTTParty).to receive(:get).and_return(response)
-    end
-
+  describe ".usd_amount caching", :vcr do
     it "fetches once from ECB and reuses cached rates without another HTTP request" do
-      described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
-      described_class.usd_amount(BigDecimal("50.00"), currency: "CHF", date: Date.new(2026, 8, 21))
+      VCR.use_cassette("ecb/history") do
+        described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
+      end
 
-      expect(HTTParty).to have_received(:get).once
+      expect(described_class.usd_amount(BigDecimal("50.00"), currency: "CHF", date: Date.new(2026, 8, 21)))
+        .to eq(BigDecimal("60.00"))
     end
 
     it "persists the fetched rates for reuse" do
-      described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
+      VCR.use_cassette("ecb/history") do
+        described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
+      end
 
       expect(described_class.where(currency: "USD", date: Date.new(2026, 8, 21)).pick(:rate))
         .to eq(BigDecimal("1.1250"))
@@ -140,8 +125,6 @@ RSpec.describe ExchangeRate do
     it "resolves to the median of rates within three months of the currency's earliest cached date" do
       expect(HTTParty).not_to receive(:get)
 
-      # Sorted XYZ rates: 1.08, 1.09, 1.10, 1.11, 1.12, 1.14 — hand-computed median
-      # of the middle two (1.10, 1.11) is 1.105, independent of the fallback code.
       expect(described_class.rate_on(currency: "XYZ", date: Date.new(2026, 12, 1)))
         .to eq(BigDecimal("1.105"))
     end
@@ -160,23 +143,23 @@ RSpec.describe ExchangeRate do
     end
   end
 
-  describe ".usd_amount when the ECB response is unsuccessful or malformed" do
+  describe ".usd_amount when the ECB response is unsuccessful or malformed", :vcr do
     it "persists no rate rows when the HTTP response is unsuccessful" do
-      allow(HTTParty).to receive(:get).and_return(instance_double(HTTParty::Response, success?: false, code: 503, body: ""))
-
-      expect {
-        described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
-      }.to raise_error(Ecb::ExchangeRatesClient::FetchError)
+      VCR.use_cassette("ecb/unsuccessful_response") do
+        expect {
+          described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
+        }.to raise_error(Ecb::ExchangeRatesClient::FetchError)
+      end
 
       expect(described_class.count).to eq(0)
     end
 
     it "persists no rate rows when the response body is malformed XML" do
-      allow(HTTParty).to receive(:get).and_return(instance_double(HTTParty::Response, success?: true, body: "not xml <<<"))
-
-      expect {
-        described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
-      }.to raise_error(Ecb::ExchangeRatesClient::FetchError)
+      VCR.use_cassette("ecb/malformed_response") do
+        expect {
+          described_class.usd_amount(BigDecimal("100.00"), currency: "CHF", date: Date.new(2026, 8, 21))
+        }.to raise_error(Ecb::ExchangeRatesClient::FetchError)
+      end
 
       expect(described_class.count).to eq(0)
     end
