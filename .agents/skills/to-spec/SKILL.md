@@ -16,7 +16,11 @@ Convert what this conversation has already settled into a new iteration under `.
 - Render the visible plan shape from `collaborative-planning` — goal, scope, affected boundaries, evidence, recommended approach, alternatives when material, validation strategy, and non-goals — do not invent another structure. Include the applicable Domain Contract and Frontend Contract labels.
 - Mark every decision `approved` or `proposal`. Never promote a proposal silently; collect unresolved proposals under Open proposals.
 - When a decision changes behavior, record current behavior and proposed behavior separately.
-- Keep the spec decision-dense and short. Skip narration, user stories, and issue-tracker formatting.
+- Describe approved behavior concretely enough to derive acceptance cases, but do not prescribe every implementation detail. Name implementation constraints only when they are approved architecture, contract, compatibility, sequencing, or verification decisions.
+- Record required behavior as observable outcomes, including boundaries and failure behavior that implementation tickets must preserve.
+- In Testing decisions, list the behavior cases that need coverage and identify the fast seam for each case. Mark behavior-bearing cases that should enter the implementation loop as failing tests first.
+- Reject speculative defensive work. Do not add validation, retries, fallbacks, compatibility layers, abstractions, or edge-case handling unless approved behavior or repository evidence requires it.
+- Keep the spec decision-dense and short. Skip narration, user stories, issue-tracker formatting.
 - The spec is the reference for `to-tickets`, for implementing sessions, and for reviewing the result (`/code-review` against the spec).
 
 ## Template
