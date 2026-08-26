@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 class SalePaymentPlan::Seal::Parser
-  def self.parse(subscription, selling_plans_by_id:)
-    new(subscription, selling_plans_by_id:).parse
+  def self.parse(subscription, selling_plans_by_id:, origin_date: nil)
+    new(subscription, selling_plans_by_id:, origin_date:).parse
   end
 
-  def initialize(subscription, selling_plans_by_id:)
+  def initialize(subscription, selling_plans_by_id:, origin_date: nil)
     @subscription = subscription
     @selling_plans_by_id = selling_plans_by_id
+    @origin_date = origin_date
   end
 
   def parse
@@ -21,7 +22,6 @@ class SalePaymentPlan::Seal::Parser
         expected_parts:,
         deposit_percent:,
         projected_total:,
-        currency: subscription["currency"],
         next_due_at:
       },
       parts: part_snapshots
@@ -30,7 +30,7 @@ class SalePaymentPlan::Seal::Parser
 
   private
 
-  attr_reader :selling_plans_by_id, :subscription
+  attr_reader :selling_plans_by_id, :subscription, :origin_date
 
   def expected_parts
     @expected_parts ||= Integer(subscription["billing_max_cycles"])
@@ -64,11 +64,20 @@ class SalePaymentPlan::Seal::Parser
   def projected_total
     return unless unambiguous_pricing?
 
-    SalePaymentPlan.projected_deposit_total(
-      deposit_merchandise_amount: subscription_items.sum { |item| item["final_amount"].to_d },
-      deposit_percent: payment_percent,
-      shipping_amount:
+    usd_amount(
+      SalePaymentPlan.projected_deposit_total(
+        deposit_merchandise_amount: subscription_items.sum { |item| item["final_amount"].to_d },
+        deposit_percent: payment_percent,
+        shipping_amount:
+      )
     )
+  end
+
+  # The Seal API never reports the linked order's own creation date, so
+  # conversion depends on the caller resolving and passing origin_date
+  # from the local Sale the order_id links to.
+  def usd_amount(amount)
+    SalePaymentPlan.usd_amount(amount, currency: subscription["currency"], date: origin_date)
   end
 
   def unambiguous_pricing?
@@ -97,7 +106,7 @@ class SalePaymentPlan::Seal::Parser
   def part_snapshots
     completed = completed_attempts
     scheduled = scheduled_attempts
-    recurring_amount = subscription_items.sum { |item| item["final_amount"].to_d }
+    recurring_amount = usd_amount(subscription_items.sum { |item| item["final_amount"].to_d })
 
     (1..expected_parts).map do |sequence|
       attempt = (sequence == 1) ? nil : completed[sequence - 2]
@@ -108,7 +117,6 @@ class SalePaymentPlan::Seal::Parser
         sequence:,
         external_order_id: (sequence == 1) ? subscription["order_id"] : attempt&.dig("order_id"),
         amount: recurring_amount,
-        currency: subscription["currency"],
         due_at: parse_datetime(scheduled_attempt&.dig("date")),
         provider_completed_at: parse_datetime(attempt&.dig("completed_at"))
       }

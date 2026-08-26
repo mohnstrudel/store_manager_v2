@@ -467,11 +467,10 @@ RSpec.describe "Sales" do
             expected_parts: 1,
             deposit_percent: 30,
             projected_total: 1020,
-            currency: "EUR",
             synced_at: Time.current
           },
           parts: [
-            {sequence: 1, provider_part_id: "origin", external_order_id: "950", amount: 300, currency: "EUR"}
+            {sequence: 1, provider_part_id: "origin", external_order_id: "950", amount: 300}
           ]
         )
       end

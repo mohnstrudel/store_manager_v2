@@ -187,6 +187,52 @@ RSpec.describe SalePaymentPlan do
       expect(plan.origin_sale).to eq(sale)
       expect(plan.projected_remainder).to eq(BigDecimal(700))
     end
+
+    it "keeps deposit percent and projected remainder true to their USD amounts, independent of a single settled part's count" do
+      sale = create(
+        :sale,
+        shopify_store_id: "gid://shopify/Order/100",
+        received_revenue: 420,
+        refunded_revenue: 0,
+        outstanding_revenue: 0
+      )
+      plan = described_class.reconcile!(
+        attributes: plan_attributes(
+          kind: "deposit",
+          expected_parts: 1,
+          deposit_percent: 30,
+          projected_total: 1400
+        ),
+        parts: [part_attributes(sequence: 1, provider_part_id: "origin", external_order_id: "100", amount: 420)]
+      )
+
+      expect(plan.origin_sale).to eq(sale)
+      expect(plan.deposit_percent).to eq(BigDecimal(30))
+      expect(plan.projected_remainder).to eq(BigDecimal(980))
+      expect(plan.collected_parts).to eq(1)
+    end
+
+    it "counts completed scheduled parts by their true tally, independent of unequal amounts" do
+      sale = create(
+        :sale,
+        shopify_store_id: "gid://shopify/Order/100",
+        received_revenue: 500,
+        refunded_revenue: 0
+      )
+      plan = described_class.reconcile!(
+        attributes: plan_attributes(provider: "shopify", external_id: "terms-2", expected_parts: 4),
+        parts: [
+          part_attributes(sequence: 1, provider_part_id: "s1", amount: 300, provider_completed_at: 1.day.ago),
+          part_attributes(sequence: 2, provider_part_id: "s2", amount: 238, provider_completed_at: 1.day.ago),
+          part_attributes(sequence: 3, provider_part_id: "s3", amount: 238),
+          part_attributes(sequence: 4, provider_part_id: "s4", amount: 244)
+        ]
+      )
+      plan.update!(origin_sale: sale)
+
+      expect(plan.collected_parts).to eq(2)
+      expect(plan.expected_parts).to eq(4)
+    end
   end
 
   describe "#profitability" do
@@ -299,7 +345,6 @@ RSpec.describe SalePaymentPlan do
       kind: "installments",
       status: "active",
       expected_parts: 4,
-      currency: "EUR",
       synced_at: Time.current
     }.merge(overrides)
   end
@@ -308,8 +353,7 @@ RSpec.describe SalePaymentPlan do
     {
       sequence: 1,
       provider_part_id: "part-1",
-      amount: 100,
-      currency: "EUR"
+      amount: 100
     }.merge(overrides)
   end
 end

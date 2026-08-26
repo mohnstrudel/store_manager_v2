@@ -92,7 +92,8 @@ class Sale::Shopify::Parser
     return if terms.blank? || terms["id"].blank? || schedules.blank?
 
     next_due_at = next_payment_due
-    total = projected_total(schedules)
+    raw_total = projected_total(schedules)
+    currency = payment_plan_currency(schedules)
     @payment_plan = {
       attributes: {
         provider: "shopify",
@@ -101,9 +102,8 @@ class Sale::Shopify::Parser
         kind: "payment_terms",
         status: payment_plan_status(terms, schedules),
         expected_parts: schedules.size,
-        currency: payment_plan_currency(schedules),
-        projected_total: total,
-        deposit_percent: deposit_percent(schedules, total),
+        projected_total: SalePaymentPlan.usd_amount(raw_total, currency:, date: shopify_created_at&.to_date),
+        deposit_percent: deposit_percent(schedules, raw_total),
         next_due_at:
       },
       parts: schedules.each_with_index.map { |schedule, index|
@@ -111,9 +111,11 @@ class Sale::Shopify::Parser
           provider_part_id: schedule["id"],
           sequence: index + 1,
           external_order_id: @order["id"],
-          amount: schedule.dig("totalBalance", "amount"),
-          currency: schedule.dig("totalBalance", "currencyCode") ||
-            schedule.dig("balanceDue", "currencyCode"),
+          amount: SalePaymentPlan.usd_amount(
+            schedule_total_balance(schedule),
+            currency: schedule_currency(schedule),
+            date: shopify_created_at&.to_date
+          ),
           due_at: parse_datetime(schedule["dueAt"]),
           provider_completed_at: parse_datetime(schedule["completedAt"])
         }
@@ -149,11 +151,12 @@ class Sale::Shopify::Parser
     "active"
   end
 
+  def schedule_currency(schedule)
+    schedule.dig("totalBalance", "currencyCode") || schedule.dig("balanceDue", "currencyCode")
+  end
+
   def payment_plan_currency(schedules)
-    schedules.filter_map { |schedule|
-      schedule.dig("totalBalance", "currencyCode") ||
-        schedule.dig("balanceDue", "currencyCode")
-    }.first
+    schedules.filter_map { |schedule| schedule_currency(schedule) }.first
   end
 
   def parse_addresses

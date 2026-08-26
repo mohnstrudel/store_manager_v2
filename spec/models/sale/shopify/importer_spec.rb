@@ -124,7 +124,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
               kind: "payment_terms",
               status: "active",
               expected_parts: 2,
-              currency: "EUR",
               next_due_at: 1.month.from_now
             },
             parts: [
@@ -133,15 +132,13 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
                 sequence: 1,
                 external_order_id: order_id,
                 amount: "250.00",
-                currency: "EUR",
                 provider_completed_at: 1.day.ago
               },
               {
                 provider_part_id: "gid://shopify/PaymentSchedule/2",
                 sequence: 2,
                 external_order_id: order_id,
-                amount: "250.00",
-                currency: "EUR"
+                amount: "250.00"
               }
             ]
           }

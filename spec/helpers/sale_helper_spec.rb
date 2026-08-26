@@ -90,7 +90,6 @@ RSpec.describe SaleHelper do
           expected_parts: 1,
           deposit_percent: 30,
           projected_total: 1020,
-          currency: "EUR",
           synced_at: Time.current
         },
         parts: [
@@ -98,8 +97,7 @@ RSpec.describe SaleHelper do
             provider_part_id: "subscription-1:1",
             sequence: 1,
             external_order_id: "100",
-            amount: 300,
-            currency: "EUR"
+            amount: 300
           }
         ]
       )
@@ -115,8 +113,8 @@ RSpec.describe SaleHelper do
         sale_part_number: 1,
         is_origin_sale: true,
         deposit_percent: 30,
-        projected_total: "1\u2009020 EUR",
-        projected_collected: "320 EUR",
+        projected_total: "1\u2009020",
+        projected_collected: "320",
         origin_sale: nil,
         payments: [
           {

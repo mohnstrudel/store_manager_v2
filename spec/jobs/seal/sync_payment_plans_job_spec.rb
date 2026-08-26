@@ -54,6 +54,52 @@ RSpec.describe Seal::SyncPaymentPlansJob do
     )
   end
 
+  describe "USD conversion" do
+    let(:origin_date) { Date.new(2026, 8, 21) }
+
+    before do
+      create(:exchange_rate, date: origin_date, currency: "USD", rate: BigDecimal("1.1250"))
+      allow(client).to receive(:each_subscription_detail).and_yield(subscription)
+    end
+
+    it "converts Seal money to USD using the linked origin sale's external date" do
+      create(:sale, shopify_store_id: "gid://shopify/Order/100", shopify_created_at: origin_date.to_time)
+
+      described_class.perform_now
+
+      plan = SalePaymentPlan.sole
+      expect(plan.projected_total).to eq(BigDecimal("1147.50"))
+      expect(plan.parts.first.amount).to eq(BigDecimal("281.25"))
+    end
+
+    it "defers monetary reconciliation until the origin sale exists, then converts once on a later sync" do
+      described_class.perform_now
+      plan = SalePaymentPlan.sole
+      expect(plan.projected_total).to be_nil
+
+      create(:sale, shopify_store_id: "gid://shopify/Order/100", shopify_created_at: origin_date.to_time)
+      described_class.perform_now
+
+      expect(SalePaymentPlan.sole.id).to eq(plan.id)
+      expect(plan.reload.projected_total).to eq(BigDecimal("1147.50"))
+    end
+
+    it "repeats reconciliation with the same USD amounts, provider IDs, sequences, links, and active states" do
+      create(:sale, shopify_store_id: "gid://shopify/Order/100", shopify_created_at: origin_date.to_time)
+
+      described_class.perform_now
+      first_plan = SalePaymentPlan.sole.attributes.except("updated_at", "synced_at")
+      first_parts = SalePaymentPlan.sole.parts.order(:sequence).map { |part| part.attributes.except("updated_at") }
+
+      described_class.perform_now
+      second_plan = SalePaymentPlan.sole.attributes.except("updated_at", "synced_at")
+      second_parts = SalePaymentPlan.sole.parts.order(:sequence).map { |part| part.attributes.except("updated_at") }
+
+      expect(second_plan).to eq(first_plan)
+      expect(second_parts).to eq(first_parts)
+    end
+  end
+
   it "preserves the previous snapshot when the provider request fails" do
     plan = SalePaymentPlan.reconcile!(
       attributes: {

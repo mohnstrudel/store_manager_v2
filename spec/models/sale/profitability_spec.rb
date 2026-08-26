@@ -241,10 +241,9 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
         kind: "installments",
         status: "active",
         expected_parts: 2,
-        currency: "EUR",
         synced_at: Time.current
       },
-      parts: parts.map { |part| part.merge(currency: "EUR") }
+      parts:
     )
   end
 end

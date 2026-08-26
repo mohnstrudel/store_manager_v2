@@ -420,148 +420,174 @@ RSpec.describe Sale::Shopify::Parser do
       )
     end
 
-    it "parses an exact native Shopify payment-plan snapshot" do
-      order_with_terms = api_order.deep_dup.merge(
-        "paymentTerms" => {
-          "id" => "gid://shopify/PaymentTerms/77",
-          "paymentTermsName" => "Four payments",
-          "paymentTermsType" => "FIXED",
-          "overdue" => false,
-          "paymentSchedules" => {
-            "nodes" => [
-              {
-                "id" => "gid://shopify/PaymentSchedule/1",
-                "balanceDue" => {"amount" => "0.00", "currencyCode" => "EUR"},
-                "totalBalance" => {"amount" => "250.00", "currencyCode" => "EUR"},
-                "completedAt" => "2023-01-09T12:00:00Z",
-                "dueAt" => "2023-01-10T12:00:00Z"
-              },
-              {
-                "id" => "gid://shopify/PaymentSchedule/2",
-                "balanceDue" => {"amount" => "250.00", "currencyCode" => "EUR"},
-                "totalBalance" => {"amount" => "250.00", "currencyCode" => "EUR"},
-                "completedAt" => nil,
-                "dueAt" => "2023-02-10T12:00:00Z"
-              }
-            ]
+    describe "payment plan money" do
+      before do
+        create(:exchange_rate, date: Date.new(2023, 1, 1), currency: "USD", rate: BigDecimal("1.0000"))
+      end
+
+      it "parses an exact native Shopify payment-plan snapshot" do
+        order_with_terms = api_order.deep_dup.merge(
+          "paymentTerms" => {
+            "id" => "gid://shopify/PaymentTerms/77",
+            "paymentTermsName" => "Four payments",
+            "paymentTermsType" => "FIXED",
+            "overdue" => false,
+            "paymentSchedules" => {
+              "nodes" => [
+                {
+                  "id" => "gid://shopify/PaymentSchedule/1",
+                  "balanceDue" => {"amount" => "0.00", "currencyCode" => "EUR"},
+                  "totalBalance" => {"amount" => "250.00", "currencyCode" => "EUR"},
+                  "completedAt" => "2023-01-09T12:00:00Z",
+                  "dueAt" => "2023-01-10T12:00:00Z"
+                },
+                {
+                  "id" => "gid://shopify/PaymentSchedule/2",
+                  "balanceDue" => {"amount" => "250.00", "currencyCode" => "EUR"},
+                  "totalBalance" => {"amount" => "250.00", "currencyCode" => "EUR"},
+                  "completedAt" => nil,
+                  "dueAt" => "2023-02-10T12:00:00Z"
+                }
+              ]
+            }
           }
-        }
-      )
+        )
 
-      result = described_class.parse(order_with_terms)
+        result = described_class.parse(order_with_terms)
 
-      expect(result[:payment_plan]).to eq(
-        attributes: {
-          provider: "shopify",
-          external_id: "gid://shopify/PaymentTerms/77",
-          external_origin_order_id: "gid://shopify/Order/12345",
-          kind: "payment_terms",
-          status: "active",
-          expected_parts: 2,
-          currency: "EUR",
-          projected_total: BigDecimal("500.00"),
-          deposit_percent: nil,
-          next_due_at: DateTime.parse("2023-02-10T12:00:00Z")
-        },
-        parts: [
-          {
-            provider_part_id: "gid://shopify/PaymentSchedule/1",
-            sequence: 1,
-            external_order_id: "gid://shopify/Order/12345",
-            amount: "250.00",
-            currency: "EUR",
-            due_at: DateTime.parse("2023-01-10T12:00:00Z"),
-            provider_completed_at: DateTime.parse("2023-01-09T12:00:00Z")
+        expect(result[:payment_plan]).to eq(
+          attributes: {
+            provider: "shopify",
+            external_id: "gid://shopify/PaymentTerms/77",
+            external_origin_order_id: "gid://shopify/Order/12345",
+            kind: "payment_terms",
+            status: "active",
+            expected_parts: 2,
+            projected_total: BigDecimal("500.00"),
+            deposit_percent: nil,
+            next_due_at: DateTime.parse("2023-02-10T12:00:00Z")
           },
-          {
-            provider_part_id: "gid://shopify/PaymentSchedule/2",
-            sequence: 2,
-            external_order_id: "gid://shopify/Order/12345",
-            amount: "250.00",
-            currency: "EUR",
-            due_at: DateTime.parse("2023-02-10T12:00:00Z"),
-            provider_completed_at: nil
+          parts: [
+            {
+              provider_part_id: "gid://shopify/PaymentSchedule/1",
+              sequence: 1,
+              external_order_id: "gid://shopify/Order/12345",
+              amount: BigDecimal("250.00"),
+              due_at: DateTime.parse("2023-01-10T12:00:00Z"),
+              provider_completed_at: DateTime.parse("2023-01-09T12:00:00Z")
+            },
+            {
+              provider_part_id: "gid://shopify/PaymentSchedule/2",
+              sequence: 2,
+              external_order_id: "gid://shopify/Order/12345",
+              amount: BigDecimal("250.00"),
+              due_at: DateTime.parse("2023-02-10T12:00:00Z"),
+              provider_completed_at: nil
+            }
+          ]
+        )
+      end
+
+      it "converts the projected total and part amounts using the order's own creation date" do
+        create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
+        order_with_terms = api_order.deep_dup.merge(
+          "createdAt" => "2026-08-21T12:00:00Z",
+          "paymentTerms" => {
+            "id" => "gid://shopify/PaymentTerms/90",
+            "paymentTermsName" => "Two payments",
+            "paymentTermsType" => "FIXED",
+            "overdue" => false,
+            "paymentSchedules" => {
+              "nodes" => [
+                {"id" => "s1", "totalBalance" => {"amount" => "1000.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2026-09-10T12:00:00Z"}
+              ]
+            }
           }
-        ]
-      )
-    end
+        )
 
-    it "records a contract total but no deposit share when schedule amounts are equal" do
-      order_with_equal_terms = api_order.deep_dup.merge(
-        "paymentTerms" => {
-          "id" => "gid://shopify/PaymentTerms/79",
-          "paymentTermsName" => "Four payments",
-          "paymentTermsType" => "FIXED",
-          "overdue" => false,
-          "paymentSchedules" => {
-            "nodes" => [
-              {"id" => "s1", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
-              {"id" => "s2", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
-              {"id" => "s3", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
-              {"id" => "s4", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
-            ]
+        result = described_class.parse(order_with_terms)
+
+        expect(result[:payment_plan][:attributes][:projected_total]).to eq(BigDecimal("1125.00"))
+        expect(result[:payment_plan][:parts].first[:amount]).to eq(BigDecimal("1125.00"))
+      end
+
+      it "records a contract total but no deposit share when schedule amounts are equal" do
+        order_with_equal_terms = api_order.deep_dup.merge(
+          "paymentTerms" => {
+            "id" => "gid://shopify/PaymentTerms/79",
+            "paymentTermsName" => "Four payments",
+            "paymentTermsType" => "FIXED",
+            "overdue" => false,
+            "paymentSchedules" => {
+              "nodes" => [
+                {"id" => "s1", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
+                {"id" => "s2", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
+                {"id" => "s3", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
+                {"id" => "s4", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
+              ]
+            }
           }
-        }
-      )
+        )
 
-      result = described_class.parse(order_with_equal_terms)
+        result = described_class.parse(order_with_equal_terms)
 
-      expect(result[:payment_plan][:attributes]).to include(
-        expected_parts: 4,
-        projected_total: BigDecimal("1020.00"),
-        deposit_percent: nil
-      )
-    end
+        expect(result[:payment_plan][:attributes]).to include(
+          expected_parts: 4,
+          projected_total: BigDecimal("1020.00"),
+          deposit_percent: nil
+        )
+      end
 
-    it "records both a contract total and a deposit share when the schedule amounts differ" do
-      order_with_deposit_terms = api_order.deep_dup.merge(
-        "paymentTerms" => {
-          "id" => "gid://shopify/PaymentTerms/80",
-          "paymentTermsName" => "Deposit then instalments",
-          "paymentTermsType" => "FIXED",
-          "overdue" => false,
-          "paymentSchedules" => {
-            "nodes" => [
-              {"id" => "s1", "totalBalance" => {"amount" => "306.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
-              {"id" => "s2", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
-              {"id" => "s3", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
-              {"id" => "s4", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
-            ]
+      it "records both a contract total and a deposit share when the schedule amounts differ" do
+        order_with_deposit_terms = api_order.deep_dup.merge(
+          "paymentTerms" => {
+            "id" => "gid://shopify/PaymentTerms/80",
+            "paymentTermsName" => "Deposit then instalments",
+            "paymentTermsType" => "FIXED",
+            "overdue" => false,
+            "paymentSchedules" => {
+              "nodes" => [
+                {"id" => "s1", "totalBalance" => {"amount" => "306.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
+                {"id" => "s2", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
+                {"id" => "s3", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
+                {"id" => "s4", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
+              ]
+            }
           }
-        }
-      )
+        )
 
-      result = described_class.parse(order_with_deposit_terms)
+        result = described_class.parse(order_with_deposit_terms)
 
-      expect(result[:payment_plan][:attributes]).to include(
-        expected_parts: 4,
-        projected_total: BigDecimal("1020.00"),
-        deposit_percent: BigDecimal("30.00")
-      )
-    end
+        expect(result[:payment_plan][:attributes]).to include(
+          expected_parts: 4,
+          projected_total: BigDecimal("1020.00"),
+          deposit_percent: BigDecimal("30.00")
+        )
+      end
 
-    it "records a contract total but no deposit share for a single-schedule plan" do
-      order_with_single_schedule = api_order.deep_dup.merge(
-        "paymentTerms" => {
-          "id" => "gid://shopify/PaymentTerms/81",
-          "paymentTermsName" => "Net 30",
-          "paymentTermsType" => "NET",
-          "overdue" => false,
-          "paymentSchedules" => {
-            "nodes" => [
-              {"id" => "s1", "totalBalance" => {"amount" => "1020.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"}
-            ]
+      it "records a contract total but no deposit share for a single-schedule plan" do
+        order_with_single_schedule = api_order.deep_dup.merge(
+          "paymentTerms" => {
+            "id" => "gid://shopify/PaymentTerms/81",
+            "paymentTermsName" => "Net 30",
+            "paymentTermsType" => "NET",
+            "overdue" => false,
+            "paymentSchedules" => {
+              "nodes" => [
+                {"id" => "s1", "totalBalance" => {"amount" => "1020.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"}
+              ]
+            }
           }
-        }
-      )
+        )
 
-      result = described_class.parse(order_with_single_schedule)
+        result = described_class.parse(order_with_single_schedule)
 
-      expect(result[:payment_plan][:attributes]).to include(
-        expected_parts: 1,
-        projected_total: BigDecimal("1020.00"),
-        deposit_percent: nil
-      )
+        expect(result[:payment_plan][:attributes]).to include(
+          expected_parts: 1,
+          projected_total: BigDecimal("1020.00"),
+          deposit_percent: nil
+        )
+      end
     end
 
     it "leaves payment_due empty when all schedules are completed" do

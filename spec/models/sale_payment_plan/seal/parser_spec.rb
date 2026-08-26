@@ -3,12 +3,19 @@
 require "rails_helper"
 
 RSpec.describe SalePaymentPlan::Seal::Parser do
+  let(:origin_date) { Date.new(2024, 1, 1) }
+
+  before do
+    create(:exchange_rate, date: origin_date, currency: "USD", rate: BigDecimal("1.0000"))
+  end
+
   it "builds a deposit projection from an authoritative percentage adjustment" do
     result = described_class.parse(
       subscription(max_cycles: 1, item_amount: "300.00", delivery_price: "20.00"),
       selling_plans_by_id: {
         "plan-1" => selling_plan(adjustment_value: "70", max_cycles: 1)
-      }
+      },
+      origin_date:
     )
 
     expect(result[:attributes]).to include(
@@ -18,12 +25,40 @@ RSpec.describe SalePaymentPlan::Seal::Parser do
       kind: "deposit",
       expected_parts: 1,
       deposit_percent: BigDecimal(30),
-      projected_total: BigDecimal(1020),
-      currency: "EUR"
+      projected_total: BigDecimal(1020)
     )
+    expect(result[:attributes]).not_to have_key(:currency)
     expect(result[:parts]).to contain_exactly(
       hash_including(sequence: 1, external_order_id: "100", amount: BigDecimal(300))
     )
+  end
+
+  it "converts the projected total and part amounts from the recorded source currency using the linked origin's external date" do
+    conversion_date = Date.new(2026, 8, 21)
+    create(:exchange_rate, date: conversion_date, currency: "USD", rate: BigDecimal("1.1250"))
+
+    result = described_class.parse(
+      subscription(max_cycles: 4, item_amount: "250.00", delivery_price: "20.00"),
+      selling_plans_by_id: {
+        "plan-1" => selling_plan(adjustment_value: "75", max_cycles: 4)
+      },
+      origin_date: conversion_date
+    )
+
+    expect(result[:attributes][:projected_total]).to eq(BigDecimal("1147.50"))
+    expect(result[:parts].first[:amount]).to eq(BigDecimal("281.25"))
+  end
+
+  it "defers monetary reconciliation and persists no foreign amount as USD when the origin date is not yet resolvable" do
+    result = described_class.parse(
+      subscription(max_cycles: 4, item_amount: "250.00", delivery_price: "20.00"),
+      selling_plans_by_id: {
+        "plan-1" => selling_plan(adjustment_value: "75", max_cycles: 4)
+      }
+    )
+
+    expect(result[:attributes][:projected_total]).to be_nil
+    expect(result[:parts]).to all(include(amount: nil))
   end
 
   it "deduplicates completed retries and fills the remaining contractual parts" do
@@ -40,7 +75,8 @@ RSpec.describe SalePaymentPlan::Seal::Parser do
       data,
       selling_plans_by_id: {
         "plan-1" => selling_plan(adjustment_value: "75", max_cycles: 4)
-      }
+      },
+      origin_date:
     )
 
     expect(result[:attributes]).to include(

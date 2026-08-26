@@ -174,7 +174,7 @@ module SaleHelper
       sale_part_number: plan.part_number_for(sale),
       is_origin_sale: plan.origin_sale_id == sale.id,
       deposit_percent: compact_number(plan.deposit_percent),
-      projected_total: format_plan_money(plan.projected_total, plan.currency),
+      projected_total: format_money(plan.projected_total),
       projected_collected: sale_payment_plan_collected_props(plan, remainder),
       origin_sale: sale_payment_plan_origin_props(plan, sale),
       payments: plan.linked_parts.map { |part| sale_payment_plan_payment_props(part, sale) }
@@ -184,7 +184,7 @@ module SaleHelper
   def sale_payment_plan_collected_props(plan, remainder)
     return if plan.projected_total.nil?
 
-    format_plan_money(plan.projected_total - remainder, plan.currency)
+    format_money(plan.projected_total - remainder)
   end
 
   def sale_payment_plan_origin_props(plan, sale)
@@ -211,10 +211,6 @@ module SaleHelper
     return if value.nil?
 
     value.to_d.frac.zero? ? value.to_i : value.to_f
-  end
-
-  def format_plan_money(value, currency)
-    format_money(value, currency.to_s)
   end
 
   def sale_base_props(sale)

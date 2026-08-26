@@ -1,7 +1,7 @@
 # 04. Normalize payment plans to USD
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 01, 02
 
 ## What to build
@@ -10,14 +10,14 @@ Persist Shopify and Seal payment-plan money in USD using each recorded source cu
 
 ## Acceptance criteria
 
-- [ ] Shopify payment-term projections and retained part amounts persist in USD.
-- [ ] Seal deposit/installment projections and retained part amounts convert from their recorded EUR, USD, CHF, GBP, CAD, or AUD currency through the generic converter.
-- [ ] Shopify plans use the origin sale’s `shopify_created_at`; Seal plans use the linked origin sale’s applicable external creation date.
-- [ ] A plan without a resolvable origin date does not persist a foreign amount as USD and can be reconciled after the origin sale arrives.
-- [ ] Reconciliation remains idempotent and preserves provider/sequence uniqueness and active-part lifecycle.
-- [ ] `sale_payment_plans.currency` and `sale_payment_parts.currency` are no longer read or written by parsers, importers, helpers, factories, or tests; the columns stay in the database until Ticket 05 has converted historical plan money.
-- [ ] `status`, `next_due_at`, and part `amount` remain.
-- [ ] Plan profitability, projected remainder, and UI-formatted projection values consume USD without currency-specific branches.
+- [x] Shopify payment-term projections and retained part amounts persist in USD.
+- [x] Seal deposit/installment projections and retained part amounts convert from their recorded EUR, USD, CHF, GBP, CAD, or AUD currency through the generic converter.
+- [x] Shopify plans use the origin sale’s `shopify_created_at`; Seal plans use the linked origin sale’s applicable external creation date.
+- [x] A plan without a resolvable origin date does not persist a foreign amount as USD and can be reconciled after the origin sale arrives.
+- [x] Reconciliation remains idempotent and preserves provider/sequence uniqueness and active-part lifecycle.
+- [x] `sale_payment_plans.currency` and `sale_payment_parts.currency` are no longer read or written by parsers, importers, helpers, factories, or tests; the columns stay in the database until Ticket 05 has converted historical plan money.
+- [x] `status`, `next_due_at`, and part `amount` remain.
+- [x] Plan profitability, projected remainder, and UI-formatted projection values consume USD without currency-specific branches.
 
 ## Anchors
 
