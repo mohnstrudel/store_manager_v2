@@ -37,9 +37,10 @@ Do not stop until the required verification is green. During the final gate, inv
 
 ## Code comments
 
-- Default to no comments.
-- Never write multi-line comment blocks narrating rationale, trade-offs, or edge cases in prose. If a comment needs more than one short line, the design likely needs a clearer name or a smaller function instead.
-- Do not restate what the code already says. If removing the comment wouldn't confuse a future reader, don't write it.
+- Comments are not an implementation deliverable. Default to none.
+- Add a comment only when it explains why a non-obvious constraint exists or preserves information that cannot be inferred from the code.
+- Never narrate control flow or restate what the code does. Prefer clearer names, smaller functions, and structure that makes the code explain itself.
+- Never write multi-line prose comments about rationale, trade-offs, or edge cases. If one short line cannot preserve the needed information, improve the design instead.
 
 ## Safety
 

@@ -20,6 +20,7 @@ Convert what this conversation has already settled into a new iteration under `.
 - Record required behavior as observable outcomes, including boundaries and failure behavior that implementation tickets must preserve.
 - In Testing decisions, list the behavior cases that need coverage and identify the fast seam for each case. Mark behavior-bearing cases that should enter the implementation loop as failing tests first.
 - Reject speculative defensive work. Do not add validation, retries, fallbacks, compatibility layers, abstractions, or edge-case handling unless approved behavior or repository evidence requires it.
+- Default to no implementation comments. Allow a comment only when it explains why a non-obvious constraint exists or preserves information that cannot be inferred from the code. Never use comments as implementation output, narrate control flow, or restate what the code does; prefer names and structure that make the code explain itself.
 - Keep the spec decision-dense and short. Skip narration, user stories, issue-tracker formatting.
 - The spec is the reference for `to-tickets`, for implementing sessions, and for reviewing the result (`/code-review` against the spec).
 

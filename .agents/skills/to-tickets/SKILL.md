@@ -14,6 +14,6 @@ description: Turn an approved spec iteration into dependency-ordered, implementa
 5. Return every unresolved major product or architecture question to `collaborative-planning` before creating affected implementation tickets. Update the spec after approval, then resume ticketing.
 6. Separate implementation uncertainty from implementation. When repository investigation or a feasibility check must happen first, create a dedicated investigation ticket with a concrete evidence deliverable and make affected implementation tickets depend on it. Do not hide research inside an implementation ticket. If the investigation may choose product behavior or architecture, resolve that question through `collaborative-planning` instead.
 7. Present the numbered breakdown with outcomes, blockers, and parallelism. Obtain user approval before writing files.
-8. Write tickets to `<spec-directory>/tickets/<NN>-<slug>.md` using the adaptive contract. Audit the complete set for omitted decisions, duplicate ownership, hidden dependencies, oversized tickets, speculative defensive bloat, and missing test-first cases before finishing.
+8. Write tickets to `<spec-directory>/tickets/<NN>-<slug>.md` using the adaptive contract. Audit the complete set for omitted decisions, duplicate ownership, hidden dependencies, oversized tickets, speculative defensive bloat, unnecessary comments, and missing test-first cases before finishing.
 
 Use a fresh-context readiness reviewer only when the user asks or the ticket set is unusually risky. Do not make review a routine ticketing step.
