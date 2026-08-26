@@ -41,10 +41,9 @@ Required checks must be green. Fix failures caused by the change; report unrelat
 
 ## Code comments
 
-- Comments are not an implementation deliverable. Default to none.
-- Add a comment only when it explains why a non-obvious constraint exists or preserves information that cannot be inferred from the code.
-- Never narrate control flow or restate what the code does. Prefer clearer names, smaller functions, and structure that makes the code explain itself.
-- Never write multi-line prose comments about rationale, trade-offs, or edge cases. If one short line cannot preserve the needed information, improve the design instead.
+- Code must explain itself through precise domain names, cohesive units, and explicit control and data flow. Rewrite unclear code before considering a comment.
+- Add a comment only when omitting indispensable, non-inferable rationale or an external constraint would create a material risk of misuse or regression. If naming or structure can carry the information, do not comment.
+- Keep the comment to one short line explaining why. Never narrate, summarize, label sections, restate code, or document an API the code already exposes.
 
 ## Safety
 

@@ -23,7 +23,7 @@ Coordinate one approved unit of serialized work without reconstructing its plann
 - When the selected spec has no tickets, implement it as one unit, apply `AGENTS.md`'s risk-based completion policy, and make one commit for the unit once its required checks pass.
 - Treat the approved outcome, acceptance criteria, non-goals, and required repository constraints as the scope boundary. Do not invent requirements or follow implementation suggestions that are not approved constraints.
 - Add no speculative validation, retries, fallbacks, compatibility layers, abstractions, or edge-case handling. Each must trace to an acceptance criterion, approved constraint, or concrete repository requirement.
-- Comments are not implementation output. Add one only to preserve non-inferable rationale or a non-obvious constraint; never narrate control flow or restate code.
+- Write self-explanatory code through precise names, cohesive units, and explicit flow. Add one short comment explaining why only when indispensable rationale or an external constraint cannot be encoded or inferred and omitting it creates material misuse or regression risk.
 - Remove code made obsolete by the approved change, but do not absorb unrelated cleanup or refactoring.
 - Status lines and checked criteria are the shared coordination state for parallel sessions; keep them truthful at every step.
 - An `in progress` ticket is a best-effort claim. Never take it over without an explicit resume or takeover request.
