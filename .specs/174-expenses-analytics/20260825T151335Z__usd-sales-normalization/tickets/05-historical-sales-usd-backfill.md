@@ -1,7 +1,7 @@
 # 05. Convert historical imported sales to USD
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 02, 03, 04
 
 ## What to build
@@ -10,18 +10,18 @@ Provide a one-time historical conversion that changes existing Shopify, WooComme
 
 ## Acceptance criteria
 
-- [ ] Every WooCommerce sale is treated as EUR and converted using `woo_created_at`.
-- [ ] Existing Shopify orders use the shop’s verified historical base currency; the backfill does not re-fetch every order only to rediscover that shop-level value.
-- [ ] Existing Seal plan money converts from each row’s recorded `currency` column.
-- [ ] External sale date controls every conversion; records without the required external date remain unchanged and appear in the report.
-- [ ] Sale totals and line prices convert once, then item received/outstanding/refunded revenue is reallocated from converted USD sale totals.
-- [ ] Payment-plan money converts using its origin sale date.
-- [ ] Manual sale money, purchases, supplier payments, expenses, and other entered USD values are outside the selection scope and stay unchanged.
-- [ ] Converted money, item reallocation, and `settlement_status` commit in one transaction per sale, so `settlement_status IS NULL` selects exactly the sales still to convert.
-- [ ] A second run over converted data changes nothing, and an interrupted run resumes on the remaining null-settlement sales.
-- [ ] The run reports converted, unresolved, and failed counts with identifiers, following the existing `Sale::InstallmentBackfill` result shape.
-- [ ] Every sale receives `paid`, `not_fully_paid`, or `unknown` from Ticket 02’s shared mapper; manual sales, which record no revenue amounts, become `unknown`.
-- [ ] `sale_payment_plans.currency` and `sale_payment_parts.currency` are dropped as the final step, after plan conversion has committed.
+- [x] Every WooCommerce sale is treated as EUR and converted using `woo_created_at`.
+- [x] Existing Shopify orders use the shop’s verified historical base currency; the backfill does not re-fetch every order only to rediscover that shop-level value.
+- [x] Existing Seal plan money converts from each row’s recorded `currency` column.
+- [x] External sale date controls every conversion; records without the required external date remain unchanged and appear in the report.
+- [x] Sale totals and line prices convert once, then item received/outstanding/refunded revenue is reallocated from converted USD sale totals.
+- [x] Payment-plan money converts using its origin sale date.
+- [x] Manual sale money, purchases, supplier payments, expenses, and other entered USD values are outside the selection scope and stay unchanged.
+- [x] Converted money, item reallocation, and `settlement_status` commit in one transaction per sale, so `settlement_status IS NULL` selects exactly the sales still to convert.
+- [x] A second run over converted data changes nothing, and an interrupted run resumes on the remaining null-settlement sales.
+- [x] The run reports converted, unresolved, and failed counts with identifiers, following the existing `Sale::InstallmentBackfill` result shape.
+- [x] Every sale receives `paid`, `not_fully_paid`, or `unknown` from Ticket 02’s shared mapper; manual sales, which record no revenue amounts, become `unknown`.
+- [ ] `sale_payment_plans.currency` and `sale_payment_parts.currency` are dropped as the final step, after plan conversion has committed. — **Deferred, not a same-CI-run task**: `Sale::UsdBackfill` itself reads `currency` off both tables to know what to convert, so a migration that drops those columns cannot be applied in the same schema state the backfill's own tests run against (Rails' pending-migration check aborts the whole suite otherwise, and an applied drop breaks the very code that needs the column). This is a real expand/contract deploy-ordering step: run `bin/rails backfill_sales_to_usd` in production, verify no non-USD `currency` values remain on `sale_payment_plans`/`sale_payment_parts`, then create and run a small follow-up migration (`remove_column :sale_payment_plans, :currency` / `remove_column :sale_payment_parts, :currency`) as its own commit.
 
 ## Anchors
 
@@ -46,6 +46,7 @@ With `1 EUR = 1.1250 USD`, a historical Woo sale containing `100.00` total and `
 
 - Run after every live importer writes USD and after Ticket 04 stops reading and writing plan currency; the plan and part `currency` columns must still exist when the run starts.
 - Historical conversion is an explicit domain command invoked by a task, not schema-migration application code or network access inside a migration.
+- **Deferred:** the `sale_payment_plans.currency`/`sale_payment_parts.currency` drop is intentionally not part of this ticket's commit — see the acceptance criteria note above. Shipping it in the same schema state as the backfill code is impossible (the backfill reads those columns), so it ships as its own follow-up migration after a production run of `bin/rails backfill_sales_to_usd` is verified.
 
 ## Non-goals
 
@@ -77,7 +78,7 @@ With `1 EUR = 1.1250 USD`, a historical Woo sale containing `100.00` total and `
 - A second run selects no already-converted sale and changes no money.
 - After a failure is repaired, the next run processes only the remaining sales.
 - Reported counts and identifiers match committed database state.
-- Plan and part `currency` columns are absent after the final drop.
+- Plan and part `currency` columns are absent after the final drop — deferred to the follow-up migration described above; not exercised by this ticket's Focused verification.
 
 ## Focused verification
 
