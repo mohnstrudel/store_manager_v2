@@ -431,6 +431,26 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         end
       end
 
+      context "when the customer's other real product has real variants and no active base variant" do
+        let(:multi_variant_product) { create(:product, title: "Nanami Kento") }
+        let!(:size_1_to_1) { create(:variant, :with_size, product: multi_variant_product, size_value: "1:1") }
+        let!(:size_1_to_2) { create(:variant, :with_size, product: multi_variant_product, size_value: "1:2") }
+        let(:origin_sale) { create(:sale, customer: sale.customer) }
+        let!(:origin_sale_item) { create(:sale_item, sale: origin_sale, product: multi_variant_product, variant: size_1_to_1) }
+
+        before do
+          multi_variant_product.synchronize_variant_availability!
+        end
+
+        it "reuses the origin sale item's variant instead of failing variant validation" do
+          result = described_class.new(sale, parsed_sale_item).import!
+
+          expect(result.product).to eq(multi_variant_product)
+          expect(result.variant).to eq(size_1_to_1)
+          expect(result.origin_sale_item).to eq(origin_sale_item)
+        end
+      end
+
       context "when the customer has multiple real products" do
         let(:product_a) { create(:product, title: "Astarion") }
         let(:product_b) { create(:product, title: "Malenia") }

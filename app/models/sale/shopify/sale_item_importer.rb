@@ -133,7 +133,7 @@ class Sale::Shopify::SaleItemImporter
 
   def imported_variant
     return @imported_variant if defined?(@imported_variant)
-    return @imported_variant = nil if redirected_installment_product?
+    return @imported_variant = resolved_origin_sale_item&.variant if redirected_installment_product?
 
     @imported_variant =
       if parsed[:variant_store_id].present?
@@ -160,6 +160,7 @@ class Sale::Shopify::SaleItemImporter
   # has no assignable fallback on a multi-variant product. Defer to the async product pull;
   # the next full synchronization retries this line item once the variant is cached locally.
   def unresolvable_new_variant?
+    return false if redirected_installment_product?
     return false if parsed[:variant_store_id].blank?
     return false if Variant.find_by_shopify_id(parsed[:variant_store_id])
     return false if parsed.dig(:product, :variants).present?
