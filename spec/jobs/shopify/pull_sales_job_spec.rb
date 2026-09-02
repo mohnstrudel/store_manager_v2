@@ -97,6 +97,56 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
   end
 
+  describe "Seal sync handoff" do
+    let(:api_response) { {items: [], has_next_page: false, end_cursor: nil} }
+
+    before do
+      # rubocop:disable RSpec/VerifiedDoubles
+      mock_client = spy("Shopify::Api::Client")
+      # rubocop:enable RSpec/VerifiedDoubles
+      allow(mock_client).to receive(:fetch_orders).and_return(api_response)
+      allow(Shopify::Api::Client).to receive(:new).and_return(mock_client)
+      allow(Config).to receive(:update_shopify_sales_sync_time)
+      allow(Seal::SyncPaymentPlansJob).to receive(:perform_later)
+    end
+
+    it "enqueues one Seal sync after the terminal full-history page imports successfully" do
+      job.perform
+
+      expect(Seal::SyncPaymentPlansJob).to have_received(:perform_later)
+    end
+
+    context "when Shopify reports another page" do
+      let(:api_response) { {items: [], has_next_page: true, end_cursor: "cursor-1"} }
+
+      it "does not enqueue Seal for an intermediate page" do
+        job.perform
+
+        expect(Seal::SyncPaymentPlansJob).not_to have_received(:perform_later)
+      end
+
+      it "enqueues Seal for a limited pull even though another page remains" do
+        job.perform(limit: 3)
+
+        expect(Seal::SyncPaymentPlansJob).to have_received(:perform_later)
+      end
+    end
+
+    context "when import fails" do
+      let(:api_response) { {items: [{"id" => "gid://shopify/Order/999"}], has_next_page: false, end_cursor: nil} }
+
+      before do
+        allow(Sale::Shopify::Parser).to receive(:parse).and_return({})
+        allow(Sale::Shopify::Importer).to receive(:import!).and_raise(StandardError, "boom")
+      end
+
+      it "does not enqueue Seal" do
+        expect { job.perform }.to raise_error(StandardError, "boom")
+        expect(Seal::SyncPaymentPlansJob).not_to have_received(:perform_later)
+      end
+    end
+  end
+
   describe "limited pull" do
     let(:api_response) do
       {

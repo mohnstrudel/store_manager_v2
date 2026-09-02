@@ -8,7 +8,12 @@ module Shopify
     def perform(attempts: 0, cursor: nil, limit: nil)
       fetch_shopify_data(cursor:, limit:)
       process_items
-      schedule_next_page if limit.blank?
+
+      if limit.blank? && @api_payload[:has_next_page]
+        schedule_next_page
+      else
+        handle_terminal_page
+      end
     rescue ShopifyAPI::Errors::HttpResponseError => e
       handle_api_error(e, attempts, cursor, limit)
     end
@@ -34,11 +39,13 @@ module Shopify
     end
 
     def schedule_next_page
-      if @api_payload[:has_next_page]
-        self.class
-          .set(wait: 1.second)
-          .perform_later(cursor: @api_payload[:end_cursor])
-      end
+      self.class
+        .set(wait: 1.second)
+        .perform_later(cursor: @api_payload[:end_cursor])
+    end
+
+    # No-op by default; a subclass reacts to the crawl's last successful page.
+    def handle_terminal_page
     end
 
     def handle_api_error(error, attempts, cursor, limit)

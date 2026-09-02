@@ -40,6 +40,14 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
         .and change(Customer, :count).by(1)
     end
 
+    it "never starts a full Seal sync" do
+      allow(Seal::SyncPaymentPlansJob).to receive(:perform_later)
+
+      job.perform(sale_id)
+
+      expect(Seal::SyncPaymentPlansJob).not_to have_received(:perform_later)
+    end
+
     it "raises ArgumentError when sale_id is nil" do
       expect { job.perform(nil) }.to raise_error(ArgumentError, "Sale store_id is required")
     end

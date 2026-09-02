@@ -25,5 +25,9 @@ module Shopify
     def batch_size
       250
     end
+
+    def handle_terminal_page
+      Seal::SyncPaymentPlansJob.perform_later
+    end
   end
 end

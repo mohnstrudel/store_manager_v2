@@ -46,6 +46,14 @@ RSpec.describe Shopify::BasePullJob do
           end
         end
       end
+
+      def handle_terminal_page
+        @terminal_page_handled = true
+      end
+
+      def terminal_page_handled?
+        @terminal_page_handled || false
+      end
     end
   end
 
@@ -124,6 +132,11 @@ RSpec.describe Shopify::BasePullJob do
       expect(creator_class).to have_received(:import!).exactly(2).times
     end
 
+    it "invokes the terminal-page hook when there is no next page" do
+      perform_job
+      expect(job.terminal_page_handled?).to be(true)
+    end
+
     context "when processing with a limit" do
       let(:job_params) { {limit: 5} }
 
@@ -147,6 +160,11 @@ RSpec.describe Shopify::BasePullJob do
         allow(api_client).to receive(:fetch_test_data).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
+      end
+
+      it "invokes the terminal-page hook even when Shopify reports another page" do
+        perform_job
+        expect(job.terminal_page_handled?).to be(true)
       end
     end
 
@@ -173,6 +191,11 @@ RSpec.describe Shopify::BasePullJob do
         perform_job
         expect(job_class).to have_received(:set).with(wait: 15.seconds)
         expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: nil, limit: nil)
+      end
+
+      it "does not invoke the terminal-page hook while retrying" do
+        perform_job
+        expect(job.terminal_page_handled?).to be(false)
       end
 
       it "raises other Shopify API errors" do
@@ -206,6 +229,11 @@ RSpec.describe Shopify::BasePullJob do
         expect(job_class).to have_received(:set).with(wait: 1.second)
         expect(job_setter).to have_received(:perform_later)
           .with(cursor: modified_api_response[:end_cursor])
+      end
+
+      it "does not invoke the terminal-page hook for an intermediate page" do
+        perform_job
+        expect(job.terminal_page_handled?).to be(false)
       end
 
       it "does not schedule next job when there are no more pages" do

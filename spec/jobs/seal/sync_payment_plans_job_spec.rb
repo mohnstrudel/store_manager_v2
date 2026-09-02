@@ -64,6 +64,70 @@ RSpec.describe Seal::SyncPaymentPlansJob do
     expect(SalePaymentPlan.sole.origin_sale).to be_nil
   end
 
+  describe "single-flight locking" do
+    # Transactional specs pin every leased AR connection to one PostgreSQL session
+    # (ActiveRecord::TestFixtures#lock_thread), so a real competing session for the
+    # advisory lock needs a raw libpq connection outside the AR pool entirely.
+    def raw_pg_connection
+      config = ActiveRecord::Base.connection_db_config.configuration_hash
+      PG.connect(dbname: config[:database], host: config[:host], port: config[:port], user: config[:username], password: config[:password])
+    end
+
+    def hold_competing_lock
+      acquired = Queue.new
+      release = Queue.new
+
+      thread = Thread.new do
+        connection = raw_pg_connection
+        connection.exec("SELECT pg_try_advisory_lock(#{described_class::LOCK_KEY})")
+        acquired << true
+        release.pop
+        connection.exec("SELECT pg_advisory_unlock(#{described_class::LOCK_KEY})")
+      ensure
+        connection&.close
+      end
+      acquired.pop
+
+      yield
+    ensure
+      release << true
+      thread.join
+    end
+
+    def lock_free?
+      connection = raw_pg_connection
+      free = connection.exec("SELECT pg_try_advisory_lock(#{described_class::LOCK_KEY})").getvalue(0, 0)
+      connection.exec("SELECT pg_advisory_unlock(#{described_class::LOCK_KEY})") if free == "t"
+      free == "t"
+    ensure
+      connection&.close
+    end
+
+    it "exits without provider calls or writes when a competing sync holds the lock" do
+      hold_competing_lock do
+        expect(Seal::Api::Client).not_to receive(:new)
+        expect { described_class.perform_now }.not_to change(SalePaymentPlan, :count)
+      end
+    end
+
+    it "releases the lock after a successful run" do
+      allow(client).to receive(:each_subscription_detail).and_yield(subscription)
+
+      described_class.perform_now
+
+      expect(lock_free?).to be(true)
+    end
+
+    it "releases the lock after the provider request fails" do
+      allow(client).to receive(:each_subscription_detail)
+        .and_raise(Seal::Api::Client::ApiError, "provider unavailable")
+
+      expect { described_class.perform_now }.to raise_error(Seal::Api::Client::ApiError)
+
+      expect(lock_free?).to be(true)
+    end
+  end
+
   describe "USD conversion" do
     let(:origin_date) { Date.new(2026, 8, 21) }
 

@@ -1,7 +1,7 @@
 # 02. Sequence Shopify before Seal
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 01-make-seal-order-ids-authoritative
 
 ## What to build
@@ -10,14 +10,14 @@ Start one Seal sync only after the selected Shopify sales crawl reaches a termin
 
 ## Acceptance criteria
 
-- [ ] The bulk sales action enqueues Shopify and delayed Woo as before but no longer enqueues Seal directly.
-- [ ] An intermediate Shopify page enqueues only the next Shopify page.
-- [ ] A terminal full-history page enqueues one Seal sync after every order on that page imports successfully.
-- [ ] A successful limited pull treats its processed page as terminal and enqueues Seal even when Shopify reports another page.
-- [ ] Failed fetch/import and retry attempts enqueue no Seal job.
-- [ ] A single-order pull never starts a full Seal sync.
-- [ ] Seal sync holds one advisory lock over its complete provider iteration; a competing job exits without provider calls or writes.
-- [ ] The lock releases on success and exception.
+- [x] The bulk sales action enqueues Shopify and delayed Woo as before but no longer enqueues Seal directly.
+- [x] An intermediate Shopify page enqueues only the next Shopify page.
+- [x] A terminal full-history page enqueues one Seal sync after every order on that page imports successfully.
+- [x] A successful limited pull treats its processed page as terminal and enqueues Seal even when Shopify reports another page.
+- [x] Failed fetch/import and retry attempts enqueue no Seal job.
+- [x] A single-order pull never starts a full Seal sync.
+- [x] Seal sync holds one advisory lock over its complete provider iteration; a competing job exits without provider calls or writes.
+- [x] The lock releases on success and exception.
 
 ## TDD cases
 
