@@ -5,6 +5,11 @@ require "rails_helper"
 RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
   let(:job) { described_class.new }
 
+  # This baseline rate predates every fixture order; date-sensitive examples override it.
+  before do
+    create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.0000"))
+  end
+
   describe "#perform" do
     let(:api_response) do
       {
@@ -14,12 +19,14 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
             "name" => "#1001",
             "createdAt" => "2023-01-01T00:00:00Z",
             "updatedAt" => "2023-01-02T00:00:00Z",
+            "currencyCode" => "EUR",
+            "presentmentCurrencyCode" => "EUR",
             "displayFinancialStatus" => "PAID",
             "displayFulfillmentStatus" => "UNFULFILLED",
             "email" => "customer@example.com",
-            "totalPriceSet" => {"shopMoney" => {"amount" => "100.00", "currencyCode" => "USD"}},
-            "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}},
-            "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}},
+            "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
+            "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00"}},
+            "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00"}},
             "customer" => {
               "id" => "gid://shopify/Customer/456",
               "firstName" => "John",
@@ -76,6 +83,119 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       it "updates existing sale instead of creating duplicate" do
         expect { job.perform }.not_to change(Sale, :count)
       end
+    end
+  end
+
+  describe "limited pull" do
+    let(:api_response) do
+      {
+        items: [],
+        has_next_page: false,
+        end_cursor: nil
+      }
+    end
+
+    it "requests only the given batch size through the normal query, parser, and importer" do
+      # rubocop:disable RSpec/VerifiedDoubles
+      mock_client = spy("Shopify::Api::Client")
+      # rubocop:enable RSpec/VerifiedDoubles
+      allow(mock_client).to receive(:fetch_orders).and_return(api_response)
+      allow(Shopify::Api::Client).to receive(:new).and_return(mock_client)
+
+      job.perform(limit: 3)
+
+      expect(mock_client).to have_received(:fetch_orders).with(cursor: nil, batch_size: 3)
+    end
+  end
+
+  describe "USD conversion parity across synchronization entry points" do
+    let(:eur_order) do
+      {
+        "id" => "gid://shopify/Order/parity-bulk",
+        "name" => "#2001",
+        "createdAt" => "2026-08-21T12:00:00Z",
+        "updatedAt" => "2026-08-21T12:05:00Z",
+        "currencyCode" => "EUR",
+        "presentmentCurrencyCode" => "CHF",
+        "displayFinancialStatus" => "PAID",
+        "displayFulfillmentStatus" => "UNFULFILLED",
+        "email" => "parity@example.com",
+        "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
+        "totalDiscountsSet" => {"shopMoney" => {"amount" => "8.00"}},
+        "totalShippingPriceSet" => {"shopMoney" => {"amount" => "4.00"}},
+        "customer" => {
+          "id" => "gid://shopify/Customer/parity",
+          "firstName" => "Parity",
+          "lastName" => "Tester",
+          "defaultEmailAddress" => {"emailAddress" => "parity@example.com"}
+        },
+        "lineItems" => {"nodes" => []}
+      }
+    end
+
+    before do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
+    end
+
+    it "produces identical USD values and currency data through the bulk and single-order jobs" do
+      # rubocop:disable RSpec/VerifiedDoubles
+      bulk_client = spy("Shopify::Api::Client")
+      # rubocop:enable RSpec/VerifiedDoubles
+      allow(bulk_client).to receive(:fetch_orders).and_return(items: [eur_order], has_next_page: false, end_cursor: nil)
+      allow(Shopify::Api::Client).to receive(:new).and_return(bulk_client)
+      job.perform
+
+      single_order = eur_order.merge("id" => "gid://shopify/Order/parity-single")
+      # rubocop:disable RSpec/VerifiedDoubles
+      single_client = spy("Shopify::Api::Client")
+      # rubocop:enable RSpec/VerifiedDoubles
+      allow(single_client).to receive(:fetch_order).and_return(single_order)
+      allow(Shopify::Api::Client).to receive(:new).and_return(single_client)
+      Shopify::PullSaleJob.new.perform(single_order["id"])
+
+      bulk_sale = Sale.find_by_shopify_id(eur_order["id"])
+      single_sale = Sale.find_by_shopify_id(single_order["id"])
+
+      expect(bulk_sale).to have_attributes(
+        total: BigDecimal("112.50"),
+        discount_total: BigDecimal("9.00"),
+        shipping_total: BigDecimal("4.50"),
+        shop_currency: "EUR",
+        presentment_currency: "CHF",
+        usd_conversion_rate: BigDecimal("1.1250"),
+        exchange_rate_date: Date.new(2026, 8, 21)
+      )
+      expect(single_sale).to have_attributes(
+        total: bulk_sale.total,
+        discount_total: bulk_sale.discount_total,
+        shipping_total: bulk_sale.shipping_total,
+        shop_currency: bulk_sale.shop_currency,
+        presentment_currency: bulk_sale.presentment_currency,
+        usd_conversion_rate: bulk_sale.usd_conversion_rate,
+        exchange_rate_date: bulk_sale.exchange_rate_date
+      )
+    end
+
+    it "keeps one stable sale when the bulk job then the single-order job import the same order" do
+      # rubocop:disable RSpec/VerifiedDoubles
+      bulk_client = spy("Shopify::Api::Client")
+      # rubocop:enable RSpec/VerifiedDoubles
+      allow(bulk_client).to receive(:fetch_orders).and_return(items: [eur_order], has_next_page: false, end_cursor: nil)
+      allow(Shopify::Api::Client).to receive(:new).and_return(bulk_client)
+      job.perform
+      bulk_sale = Sale.find_by_shopify_id(eur_order["id"])
+
+      # rubocop:disable RSpec/VerifiedDoubles
+      single_client = spy("Shopify::Api::Client")
+      # rubocop:enable RSpec/VerifiedDoubles
+      allow(single_client).to receive(:fetch_order).and_return(eur_order)
+      allow(Shopify::Api::Client).to receive(:new).and_return(single_client)
+
+      expect {
+        Shopify::PullSaleJob.new.perform(eur_order["id"])
+      }.not_to change(Sale, :count)
+
+      expect(Sale.find_by_shopify_id(eur_order["id"])).to eq(bulk_sale)
     end
   end
 end
