@@ -49,4 +49,33 @@ RSpec.describe Ecb::ExchangeRatesClient do
       end
     end
   end
+
+  describe "#fetch_recent", :vcr do
+    context "when the ECB recent feed responds successfully" do
+      it "requests exactly the ECB recent reference-rate feed" do
+        VCR.use_cassette("ecb/recent") do
+          expect { client.fetch_recent }.not_to raise_error
+        end
+      end
+
+      it "parses every date/currency/rate row from the nested Cube structure" do
+        rows = VCR.use_cassette("ecb/recent") { client.fetch_recent }
+
+        expect(rows).to contain_exactly(
+          {date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250")},
+          {date: Date.new(2026, 8, 21), currency: "CHF", rate: BigDecimal("0.9375")},
+          {date: Date.new(2026, 8, 20), currency: "USD", rate: BigDecimal("1.1200")},
+          {date: Date.new(2026, 8, 20), currency: "CHF", rate: BigDecimal("0.9350")}
+        )
+      end
+    end
+
+    context "when the ECB recent feed returns an unsuccessful response" do
+      it "raises FetchError" do
+        VCR.use_cassette("ecb/unsuccessful_response_recent") do
+          expect { client.fetch_recent }.to raise_error(described_class::FetchError, /HTTP 503/)
+        end
+      end
+    end
+  end
 end

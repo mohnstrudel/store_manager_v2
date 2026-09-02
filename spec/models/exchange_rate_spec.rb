@@ -164,4 +164,122 @@ RSpec.describe ExchangeRate do
       expect(described_class.count).to eq(0)
     end
   end
+
+  describe ".eur_to_usd_conversion" do
+    it "returns the order date, effective ECB date, positive rate, and a cent-rounded USD amount" do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
+
+      conversion = described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+
+      expect(conversion.order_date).to eq(Date.new(2026, 8, 21))
+      expect(conversion.effective_date).to eq(Date.new(2026, 8, 21))
+      expect(conversion.rate).to eq(BigDecimal("1.1250"))
+      expect(conversion.usd_amount(BigDecimal("100.00"))).to eq(BigDecimal("112.50"))
+    end
+
+    it "uses the latest earlier published rate on a Saturday, Sunday, or ECB holiday" do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
+      sunday = Date.new(2026, 8, 23)
+
+      conversion = described_class.eur_to_usd_conversion(date: sunday)
+
+      expect(conversion.order_date).to eq(sunday)
+      expect(conversion.effective_date).to eq(Date.new(2026, 8, 21))
+      expect(conversion.rate).to eq(BigDecimal("1.1250"))
+    end
+
+    it "does not fall back to the median rate that a legacy caller would still receive" do
+      create(:exchange_rate, date: Date.new(2027, 1, 18), currency: "USD", rate: BigDecimal("1.12"))
+      create(:exchange_rate, date: Date.new(2027, 1, 20), currency: "USD", rate: BigDecimal("1.14"))
+
+      expect {
+        described_class.eur_to_usd_conversion(date: Date.new(2026, 12, 1))
+      }.to raise_error(ArgumentError, /No ECB EUR-to-USD rate cached/)
+
+      expect(described_class.rate_on(currency: "USD", date: Date.new(2026, 12, 1))).to eq(BigDecimal("1.13"))
+    end
+
+    it "raises when no USD rate is cached on or before the requested date" do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"), fetched_at: 1.hour.ago)
+
+      expect {
+        described_class.eur_to_usd_conversion(date: Date.new(2020, 1, 1))
+      }.to raise_error(ArgumentError, /No ECB EUR-to-USD rate cached/)
+    end
+  end
+
+  describe ".eur_to_usd_conversion caching", :vcr do
+    it "makes one full-history request when the cache is empty" do
+      conversion = VCR.use_cassette("ecb/history") do
+        described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+      end
+
+      expect(conversion.rate).to eq(BigDecimal("1.1250"))
+      expect(described_class.count).to eq(4)
+    end
+
+    it "makes no request when the cache was refreshed less than 24 hours ago" do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"), fetched_at: 1.hour.ago)
+
+      conversion = described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+
+      expect(conversion.rate).to eq(BigDecimal("1.1250"))
+    end
+
+    it "makes one recent-feed request when the cache is older than 24 hours" do
+      create(:exchange_rate, date: Date.new(2026, 8, 20), currency: "USD", rate: BigDecimal("1.1200"), fetched_at: 25.hours.ago)
+
+      conversion = VCR.use_cassette("ecb/recent") do
+        described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+      end
+
+      expect(conversion.rate).to eq(BigDecimal("1.1250"))
+    end
+
+    it "records freshness on a successful refresh even when the recent feed adds no new publication date" do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"), fetched_at: 25.hours.ago)
+      create(:exchange_rate, date: Date.new(2026, 8, 20), currency: "USD", rate: BigDecimal("1.1200"), fetched_at: 25.hours.ago)
+
+      VCR.use_cassette("ecb/recent") do
+        described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+      end
+
+      expect {
+        described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+      }.not_to raise_error
+    end
+
+    it "does not alter historical rates outside the refreshed window" do
+      create(:exchange_rate, date: Date.new(2020, 1, 1), currency: "USD", rate: BigDecimal("1.5000"), fetched_at: 25.hours.ago)
+      create(:exchange_rate, date: Date.new(2026, 8, 20), currency: "USD", rate: BigDecimal("1.1200"), fetched_at: 25.hours.ago)
+
+      VCR.use_cassette("ecb/recent") do
+        described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+      end
+
+      expect(described_class.find_by(date: Date.new(2020, 1, 1), currency: "USD").rate).to eq(BigDecimal("1.5000"))
+    end
+
+    it "reuses stored rows for many conversions after one refresh with no further requests" do
+      create(:exchange_rate, date: Date.new(2026, 8, 20), currency: "USD", rate: BigDecimal("1.1200"), fetched_at: 25.hours.ago)
+
+      VCR.use_cassette("ecb/recent") do
+        described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+      end
+
+      results = Array.new(3) { described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21)) }
+
+      expect(results).to all(have_attributes(rate: BigDecimal("1.1250")))
+    end
+
+    it "raises and persists nothing when the required ECB fetch fails" do
+      VCR.use_cassette("ecb/unsuccessful_response") do
+        expect {
+          described_class.eur_to_usd_conversion(date: Date.new(2026, 8, 21))
+        }.to raise_error(Ecb::ExchangeRatesClient::FetchError)
+      end
+
+      expect(described_class.count).to eq(0)
+    end
+  end
 end

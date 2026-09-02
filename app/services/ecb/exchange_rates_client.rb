@@ -5,9 +5,20 @@ module Ecb
     class FetchError < StandardError; end
 
     HISTORY_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.xml"
+    RECENT_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"
 
     def fetch_all
-      response = HTTParty.get(HISTORY_URL)
+      fetch(HISTORY_URL)
+    end
+
+    def fetch_recent
+      fetch(RECENT_URL)
+    end
+
+    private
+
+    def fetch(url)
+      response = HTTParty.get(url)
 
       raise FetchError, "ECB rates request failed: HTTP #{response.code}" unless response.success?
 
@@ -15,8 +26,6 @@ module Ecb
     rescue HTTParty::Error, Nokogiri::XML::SyntaxError => e
       raise FetchError, "ECB rates request failed: #{e.class}: #{e.message}"
     end
-
-    private
 
     def parse(xml_body)
       document = Nokogiri::XML(xml_body) { |config| config.strict }
