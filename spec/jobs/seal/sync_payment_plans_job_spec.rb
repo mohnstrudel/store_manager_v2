@@ -54,6 +54,16 @@ RSpec.describe Seal::SyncPaymentPlansJob do
     )
   end
 
+  it "never links an origin sale by matching customer or amount when the Seal order id differs" do
+    customer = create(:customer)
+    create(:sale, customer:, shopify_store_id: "gid://shopify/Order/999", total: BigDecimal("1147.50"))
+    allow(client).to receive(:each_subscription_detail).and_yield(subscription)
+
+    described_class.perform_now
+
+    expect(SalePaymentPlan.sole.origin_sale).to be_nil
+  end
+
   describe "USD conversion" do
     let(:origin_date) { Date.new(2026, 8, 21) }
 

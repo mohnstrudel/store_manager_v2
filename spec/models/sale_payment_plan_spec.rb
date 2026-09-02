@@ -76,6 +76,23 @@ RSpec.describe SalePaymentPlan do
       expect(plan.parts.order(:sequence).map(&:sale)).to eq([origin, installment])
     end
 
+    it "keeps one active part relationship when duplicate provider attempts report the same order id" do
+      origin = create(:sale, shopify_store_id: "gid://shopify/Order/100")
+      installment = create(:sale, shopify_store_id: "gid://shopify/Order/101")
+
+      plan = described_class.reconcile!(
+        attributes: plan_attributes(external_origin_order_id: "100", expected_parts: 3),
+        parts: [
+          part_attributes(sequence: 1, provider_part_id: "origin", external_order_id: "100"),
+          part_attributes(sequence: 2, provider_part_id: "attempt-1", external_order_id: "101"),
+          part_attributes(sequence: 3, provider_part_id: "attempt-2", external_order_id: "101")
+        ]
+      )
+
+      expect(plan.origin_sale).to eq(origin)
+      expect(plan.parts.active.where(sale_id: installment.id).count).to eq(1)
+    end
+
     it "prunes obsolete unlinked parts and preserves linked history as inactive" do
       linked_sale = create(:sale, shopify_store_id: "gid://shopify/Order/101")
       plan = described_class.reconcile!(
