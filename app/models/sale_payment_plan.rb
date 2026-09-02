@@ -31,6 +31,7 @@ class SalePaymentPlan < ApplicationRecord
     dependent: :destroy,
     inverse_of: :sale_payment_plan
 
+  scope :seal, -> { where(provider: "seal") }
   validates :provider, inclusion: {in: PROVIDERS}
   validates :kind, inclusion: {in: KINDS}
   validates :external_id, presence: true
@@ -146,6 +147,25 @@ class SalePaymentPlan < ApplicationRecord
   # the store has not sent us yet, and such a part has nothing to link to.
   def linked_parts
     parts.select { |part| part.active? && part.sale }
+  end
+
+  # Sales actively collecting on this plan, distinct from the sale that started it.
+  def follow_up_sales
+    linked_parts.map(&:sale).uniq - [origin_sale]
+  end
+
+  # The one catalog, non-installment item on the origin sale, when unambiguous.
+  def eligible_origin_item
+    return if origin_sale.blank?
+
+    candidates = origin_sale.sale_items.non_installment.joins(:product).where(products: {non_catalog: false}).to_a
+    candidates.first if candidates.one?
+  end
+
+  def reconcile_installment_attribution!
+    origin_item = eligible_origin_item
+
+    follow_up_sales.each { |sale| sale.reconcile_installment_attribution!(origin_item) }
   end
 
   private

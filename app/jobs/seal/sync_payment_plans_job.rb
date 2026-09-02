@@ -27,6 +27,8 @@ module Seal
             parts: snapshot.fetch(:parts)
           )
         end
+
+        Seal::ReconcileInstallmentSaleItemsJob.perform_later
       ensure
         release_lock!
       end

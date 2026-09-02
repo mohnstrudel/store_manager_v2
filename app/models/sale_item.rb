@@ -48,6 +48,17 @@ class SaleItem < ApplicationRecord
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
   has_many :installment_sale_items, class_name: "SaleItem", foreign_key: :origin_sale_item_id, dependent: :nullify, inverse_of: :origin_sale_item
 
+  # Applies the plan's one eligible origin item, or restores the generic Seal
+  # placeholder when none is uniquely eligible. Never discovers the relationship
+  # itself; the caller supplies an already-resolved origin item or nil.
+  def apply_installment_origin!(origin_item)
+    if origin_item
+      update!(origin_sale_item: origin_item, product: origin_item.product, variant: origin_item.variant)
+    else
+      update!(origin_sale_item: nil, product: Product.seal_installment_placeholder, variant: nil)
+    end
+  end
+
   private
 
   def validate_unique_woo_store_id

@@ -41,6 +41,11 @@ class Product < ApplicationRecord
 
   extend FriendlyId
 
+  # Seal Subscriptions bills every installment against this one generic Shopify
+  # product; reconciliation restores unresolved payment items to it by this ID
+  # rather than rediscovering it through a provider request.
+  SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID = "gid://shopify/Product/9499506180425"
+
   audited associated_with: :franchise
   has_associated_audits
 
@@ -84,6 +89,10 @@ class Product < ApplicationRecord
   has_many :purchase_items, through: :purchases
 
   has_rich_text :description
+
+  def self.seal_installment_placeholder
+    find_by(shopify_id: SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID)
+  end
 
   private
 

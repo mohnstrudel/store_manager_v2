@@ -1,7 +1,7 @@
 # 03. Reconcile installment items after Seal
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 02-sequence-shopify-before-seal
 
 ## What to build
@@ -10,16 +10,16 @@ Replace import-time product guessing with `Seal::ReconcileInstallmentSaleItemsJo
 
 ## Acceptance criteria
 
-- [ ] Add full-plan and single-sale modes to the reconciliation job.
-- [ ] A complete successful Seal sync enqueues one full reconciliation; a failed sync enqueues none.
-- [ ] A single-order Shopify pull may enqueue scoped reconciliation after import, but never a full Seal sync.
-- [ ] `SalePaymentPlan` selects follow-up sales only from active linked parts distinct from its origin sale.
-- [ ] Exactly one catalog, non-installment origin item assigns that item, its product, and its variant to the payment item.
-- [ ] Missing records or zero/multiple eligible origin items leave or restore the canonical Seal placeholder product with no origin item or variant.
-- [ ] Unique relationships correct previous guesses; ambiguous relationships clear unsupported guesses.
-- [ ] Repeated full or scoped runs are idempotent.
-- [ ] The reconciliation path constructs no Shopify/Seal client, pulls no product, links no purchase, and performs no customer-wide search.
-- [ ] `Sale::Shopify::SaleItemImporter` stops invoking `Sale::InstallmentProductResolver`; the live behavior is model methods plus the delivery job, not another resolver object.
+- [x] Add full-plan and single-sale modes to the reconciliation job.
+- [x] A complete successful Seal sync enqueues one full reconciliation; a failed sync enqueues none.
+- [x] A single-order Shopify pull may enqueue scoped reconciliation after import, but never a full Seal sync.
+- [x] `SalePaymentPlan` selects follow-up sales only from active linked parts distinct from its origin sale.
+- [x] Exactly one catalog, non-installment origin item assigns that item, its product, and its variant to the payment item.
+- [x] Missing records or zero/multiple eligible origin items leave or restore the canonical Seal placeholder product with no origin item or variant.
+- [x] Unique relationships correct previous guesses; ambiguous relationships clear unsupported guesses.
+- [x] Repeated full or scoped runs are idempotent.
+- [x] The reconciliation path constructs no Shopify/Seal client, pulls no product, links no purchase, and performs no customer-wide search.
+- [x] `Sale::Shopify::SaleItemImporter` stops invoking `Sale::InstallmentProductResolver`; the live behavior is model methods plus the delivery job, not another resolver object.
 
 ## TDD cases
 

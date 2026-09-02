@@ -64,6 +64,26 @@ RSpec.describe Seal::SyncPaymentPlansJob do
     expect(SalePaymentPlan.sole.origin_sale).to be_nil
   end
 
+  describe "reconciliation handoff" do
+    it "enqueues one full reconciliation after a complete successful sync" do
+      allow(client).to receive(:each_subscription_detail).and_yield(subscription)
+      allow(Seal::ReconcileInstallmentSaleItemsJob).to receive(:perform_later)
+
+      described_class.perform_now
+
+      expect(Seal::ReconcileInstallmentSaleItemsJob).to have_received(:perform_later).with(no_args)
+    end
+
+    it "enqueues no reconciliation when the sync fails" do
+      allow(client).to receive(:each_subscription_detail).and_raise(Seal::Api::Client::ApiError, "provider unavailable")
+      allow(Seal::ReconcileInstallmentSaleItemsJob).to receive(:perform_later)
+
+      expect { described_class.perform_now }.to raise_error(Seal::Api::Client::ApiError)
+
+      expect(Seal::ReconcileInstallmentSaleItemsJob).not_to have_received(:perform_later)
+    end
+  end
+
   describe "single-flight locking" do
     # Transactional specs pin every leased AR connection to one PostgreSQL session
     # (ActiveRecord::TestFixtures#lock_thread), so a real competing session for the

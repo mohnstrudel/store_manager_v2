@@ -401,7 +401,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
     end
 
-    context "when the resolved product is flagged non_catalog (an installment placeholder)" do
+    context "when the resolved product is flagged non_catalog (a Seal installment placeholder)" do
       let(:placeholder_product) { create(:product, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
       let(:parsed_sale_item) do
         {
@@ -417,93 +417,15 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(placeholder_product)
       end
 
-      context "when the customer has exactly one other real product" do
-        let(:real_product) { create(:product, title: "Astarion") }
-        let(:origin_sale) { create(:sale, customer: sale.customer) }
-        let!(:origin_sale_item) { create(:sale_item, sale: origin_sale, product: real_product) }
+      it "imports the sale item on the placeholder product without redirecting or linking an origin item" do
+        real_product = create(:product, title: "Astarion")
+        origin_sale = create(:sale, customer: sale.customer)
+        create(:sale_item, sale: origin_sale, product: real_product)
 
-        it "reassigns the sale item to the real product and links the origin sale item" do
-          result = described_class.new(sale, parsed_sale_item).import!
+        result = described_class.new(sale, parsed_sale_item).import!
 
-          expect(result.product).to eq(real_product)
-          expect(result.variant).to eq(real_product.base_variant)
-          expect(result.origin_sale_item).to eq(origin_sale_item)
-        end
-      end
-
-      context "when the customer's other real product has real variants and no active base variant" do
-        let(:multi_variant_product) { create(:product, title: "Nanami Kento") }
-        let!(:size_1_to_1) { create(:variant, :with_size, product: multi_variant_product, size_value: "1:1") }
-        let!(:size_1_to_2) { create(:variant, :with_size, product: multi_variant_product, size_value: "1:2") }
-        let(:origin_sale) { create(:sale, customer: sale.customer) }
-        let!(:origin_sale_item) { create(:sale_item, sale: origin_sale, product: multi_variant_product, variant: size_1_to_1) }
-
-        before do
-          multi_variant_product.synchronize_variant_availability!
-        end
-
-        it "reuses the origin sale item's variant instead of failing variant validation" do
-          result = described_class.new(sale, parsed_sale_item).import!
-
-          expect(result.product).to eq(multi_variant_product)
-          expect(result.variant).to eq(size_1_to_1)
-          expect(result.origin_sale_item).to eq(origin_sale_item)
-        end
-      end
-
-      context "when the customer has multiple real products" do
-        let(:product_a) { create(:product, title: "Astarion") }
-        let(:product_b) { create(:product, title: "Malenia") }
-        let(:matching_sale) { create(:sale, customer: sale.customer, total: sale.total) }
-        let(:other_sale) { create(:sale, customer: sale.customer, total: BigDecimal("9999.0")) }
-        let!(:matching_origin_item) { create(:sale_item, sale: matching_sale, product: product_a) }
-        let!(:other_item) { create(:sale_item, sale: other_sale, product: product_b) }
-
-        it "resolves via an exact total match against one of the customer's other orders" do
-          result = described_class.new(sale, parsed_sale_item).import!
-
-          expect(result.product).to eq(product_a)
-        end
-      end
-
-      context "when the customer has no other real products but Seal Subscriptions resolves it" do
-        let(:seal_client) { instance_double(Seal::Api::Client) }
-        let(:real_product_store_id) { "gid://shopify/Product/777" }
-        let(:real_product) { create(:product, title: "Vegeta", shopify_id: real_product_store_id) }
-        let(:subscription) { {"order_id" => "123456"} }
-        let(:origin_order) do
-          {"lineItems" => {"nodes" => [{"product" => {"id" => real_product_store_id}}]}}
-        end
-        let(:shopify_client) { instance_double(Shopify::Api::Client, fetch_order: origin_order) }
-
-        before do
-          allow(Seal::Api::Client).to receive(:shared).and_return(seal_client)
-          allow(seal_client).to receive(:find_subscription_for_order).and_return(subscription)
-          allow(Shopify::Api::Client).to receive(:new).and_return(shopify_client)
-          allow(Product).to receive(:find_by_shopify_id).with(real_product_store_id).and_return(real_product)
-        end
-
-        it "resolves via Seal Subscriptions" do
-          result = described_class.new(sale, parsed_sale_item).import!
-
-          expect(result.product).to eq(real_product)
-        end
-      end
-
-      context "when neither heuristic nor Seal Subscriptions can resolve the real product" do
-        let(:seal_client) { instance_double(Seal::Api::Client) }
-
-        before do
-          allow(Seal::Api::Client).to receive(:shared).and_return(seal_client)
-          allow(seal_client).to receive(:find_subscription_for_order).and_return(nil)
-        end
-
-        it "keeps the sale item on the placeholder product without an origin link" do
-          result = described_class.new(sale, parsed_sale_item).import!
-
-          expect(result.product).to eq(placeholder_product)
-          expect(result.origin_sale_item).to be_nil
-        end
+        expect(result.product).to eq(placeholder_product)
+        expect(result.origin_sale_item).to be_nil
       end
     end
   end

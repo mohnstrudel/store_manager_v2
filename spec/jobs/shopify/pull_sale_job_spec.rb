@@ -63,5 +63,53 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
         expect { job.perform(sale_id) }.not_to change(Sale, :count)
       end
     end
+
+    describe "scoped reconciliation handoff" do
+      before do
+        allow(Seal::ReconcileInstallmentSaleItemsJob).to receive(:perform_later)
+      end
+
+      def create_plan(external_origin_order_id:, follow_up_order_id:)
+        SalePaymentPlan.reconcile!(
+          attributes: {
+            provider: "seal",
+            external_id: "sub-#{external_origin_order_id}",
+            external_origin_order_id:,
+            kind: "installments",
+            status: "active",
+            expected_parts: 2,
+            synced_at: Time.current
+          },
+          parts: [
+            {sequence: 1, provider_part_id: "origin", external_order_id: external_origin_order_id},
+            {sequence: 2, provider_part_id: "attempt-1", external_order_id: follow_up_order_id}
+          ]
+        )
+      end
+
+      it "enqueues scoped reconciliation when the imported sale is a persisted plan's origin" do
+        create_plan(external_origin_order_id: "123", follow_up_order_id: "124")
+
+        job.perform(sale_id)
+
+        sale = Sale::Shopify::OrderId.find_sale(sale_id)
+        expect(Seal::ReconcileInstallmentSaleItemsJob).to have_received(:perform_later).with(sale_id: sale.id)
+      end
+
+      it "enqueues scoped reconciliation when the imported sale is a persisted plan's follow-up part" do
+        create_plan(external_origin_order_id: "122", follow_up_order_id: "123")
+
+        job.perform(sale_id)
+
+        sale = Sale::Shopify::OrderId.find_sale(sale_id)
+        expect(Seal::ReconcileInstallmentSaleItemsJob).to have_received(:perform_later).with(sale_id: sale.id)
+      end
+
+      it "enqueues no reconciliation when the sale is not linked to any persisted plan" do
+        job.perform(sale_id)
+
+        expect(Seal::ReconcileInstallmentSaleItemsJob).not_to have_received(:perform_later)
+      end
+    end
   end
 end

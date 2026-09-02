@@ -60,26 +60,12 @@ class Sale::Shopify::SaleItemImporter
       shopify_id: parsed[:store_id],
       sale: sale,
       product: resolved_product,
-      variant: imported_variant,
-      origin_sale_item: resolved_origin_sale_item
+      variant: imported_variant
     }.compact
   end
 
   def resolved_product
-    return @resolved_product if defined?(@resolved_product)
-
-    default_product = default_resolved_product
-    @redirected_installment_product = false
-
-    if default_product&.non_catalog?
-      target = installment_target_product
-      if target
-        @redirected_installment_product = true
-        return @resolved_product = target
-      end
-    end
-
-    @resolved_product = default_product
+    @resolved_product ||= default_resolved_product
   end
 
   def default_resolved_product
@@ -87,25 +73,6 @@ class Sale::Shopify::SaleItemImporter
       product_from_payload ||
       product_from_full_title ||
       placeholder_product
-  end
-
-  def redirected_installment_product?
-    resolved_product
-    @redirected_installment_product
-  end
-
-  def installment_target_product
-    installment_resolver.target_product
-  end
-
-  def resolved_origin_sale_item
-    return nil unless redirected_installment_product?
-
-    installment_resolver.origin_sale_item
-  end
-
-  def installment_resolver
-    @installment_resolver ||= Sale::InstallmentProductResolver.new(sale)
   end
 
   def product_from_payload
@@ -133,7 +100,6 @@ class Sale::Shopify::SaleItemImporter
 
   def imported_variant
     return @imported_variant if defined?(@imported_variant)
-    return @imported_variant = resolved_origin_sale_item&.variant if redirected_installment_product?
 
     @imported_variant =
       if parsed[:variant_store_id].present?
@@ -160,7 +126,6 @@ class Sale::Shopify::SaleItemImporter
   # has no assignable fallback on a multi-variant product. Defer to the async product pull;
   # the next full synchronization retries this line item once the variant is cached locally.
   def unresolvable_new_variant?
-    return false if redirected_installment_product?
     return false if parsed[:variant_store_id].blank?
     return false if Variant.find_by_shopify_id(parsed[:variant_store_id])
     return false if parsed.dig(:product, :variants).present?
