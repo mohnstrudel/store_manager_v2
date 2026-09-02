@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -112,7 +112,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_150000) do
     t.string "currency", null: false
     t.date "date", null: false
     t.datetime "fetched_at", null: false
-    t.decimal "rate", precision: 10, scale: 4, null: false
+    t.decimal "rate", precision: 15, scale: 4, null: false
     t.datetime "updated_at", null: false
     t.index ["currency", "date"], name: "index_exchange_rates_on_currency_and_date", unique: true
     t.check_constraint "rate > 0::numeric", name: "exchange_rates_positive_rate"

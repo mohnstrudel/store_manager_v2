@@ -359,6 +359,48 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
     end
 
+    context "when the sale item references a new variant of an already-known multi-variant product" do
+      let!(:existing_real_variant) { create(:variant, :with_version, product:) }
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/new-variant",
+          price: "40.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          product: nil,
+          variant_store_id: variant_store_id,
+          variant_title: "New Size"
+        }
+      end
+
+      before do
+        allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(product)
+        allow(Shopify::PullProductJob).to receive(:perform_later)
+      end
+
+      it "defers the sale item instead of failing variant validation" do
+        expect {
+          expect(described_class.new(sale, parsed_sale_item).import!).to be_nil
+        }.not_to change(SaleItem, :count)
+      end
+
+      it "enqueues a background product pull to backfill the missing variant" do
+        described_class.new(sale, parsed_sale_item).import!
+
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
+      end
+
+      it "still resolves once the variant is locally cached from that backfill" do
+        variant.shopify_info.update!(store_id: variant_store_id)
+
+        expect {
+          result = described_class.new(sale, parsed_sale_item).import!
+          expect(result).to be_persisted
+          expect(result.variant).to eq(variant)
+        }.to change(SaleItem, :count).by(1)
+      end
+    end
+
     context "when the resolved product is flagged non_catalog (an installment placeholder)" do
       let(:placeholder_product) { create(:product, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
       let(:parsed_sale_item) do

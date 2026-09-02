@@ -17,6 +17,7 @@ class Sale::Shopify::SaleItemImporter
       parsed[:product_store_id].present? && Product.find_by_shopify_id(parsed[:product_store_id]).nil?
 
     return create_title_only_sale_item! if only_product_title?
+    return if unresolvable_new_variant?
 
     ActiveRecord::Base.transaction do
       sale_item.assign_attributes(sale_item_attributes)
@@ -152,6 +153,21 @@ class Sale::Shopify::SaleItemImporter
     parsed[:product][:variants]
       .map { |parsed_variant| Variant::Shopify::Importer.import!(resolved_product, parsed_variant) }
       .find { |variant| variant.shopify_info&.store_id == parsed[:variant_store_id] }
+  end
+
+  # The order-sync product payload never carries variants (kept light to bound bulk-pull
+  # query cost), so a variant Shopify has not shown us before cannot be resolved here and
+  # has no assignable fallback on a multi-variant product. Defer to the async product pull;
+  # the next full synchronization retries this line item once the variant is cached locally.
+  def unresolvable_new_variant?
+    return false if parsed[:variant_store_id].blank?
+    return false if Variant.find_by_shopify_id(parsed[:variant_store_id])
+    return false if parsed.dig(:product, :variants).present?
+    return false if resolved_product.blank?
+    return false if resolved_product.assignable_variants.base_models.exists?
+
+    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if parsed[:product_store_id].present?
+    true
   end
 
   def create_custom_variant

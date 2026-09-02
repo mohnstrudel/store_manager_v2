@@ -10,7 +10,7 @@ require "rails_helper"
 #  currency   :string           not null
 #  date       :date             not null
 #  fetched_at :datetime         not null
-#  rate       :decimal(10, 4)   not null
+#  rate       :decimal(15, 4)   not null
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #

@@ -77,6 +77,17 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       expect { job.perform }.to raise_error(StandardError, "API rate limit exceeded")
     end
 
+    it "logs and skips known importer validation failures instead of aborting the page" do
+      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
+        Sale::Shopify::Importer::Error.new("Failed to process SaleItem: Variant must be selected")
+      )
+      allow(Rails.logger).to receive(:error)
+
+      expect { job.perform }.not_to raise_error
+      expect(Rails.logger).to have_received(:error).with(/Skipping Shopify order due to import failure/)
+      expect(Sale.count).to eq(0)
+    end
+
     context "when sale already exists" do
       before { create(:sale, shopify_id: "gid://shopify/Order/123") }
 

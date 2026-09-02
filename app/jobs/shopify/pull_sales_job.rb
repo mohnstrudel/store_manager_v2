@@ -4,6 +4,12 @@ module Shopify
   class PullSalesJob < Shopify::BasePullJob
     private
 
+    def process_item(api_item)
+      super
+    rescue Sale::Shopify::Importer::Error => e
+      Rails.logger.error("Skipping Shopify order due to import failure: #{e.message}")
+    end
+
     def fetch_from_api(api_client, cursor:, batch_size:)
       api_client.fetch_orders(cursor: cursor, batch_size: batch_size)
     end
