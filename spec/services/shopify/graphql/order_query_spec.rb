@@ -90,23 +90,24 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       end
     end
 
-    it "requests currencyCode beside every order-level shopMoney amount" do
+    it "requests the order's top-level currencyCode and presentmentCurrencyCode" do
+      expect(described_class::SALE_FIELDS).to include("currencyCode")
+      expect(described_class::SALE_FIELDS).to include("presentmentCurrencyCode")
+    end
+
+    it "does not select currencyCode beside any order-level or line-item shopMoney amount" do
       %w[
         totalDiscountsSet totalPriceSet totalShippingPriceSet currentTotalPriceSet
         totalReceivedSet totalOutstandingSet netPaymentSet totalRefundedSet
+        originalTotalSet discountedTotalSet
       ].each do |field|
-        expect(described_class::SALE_FIELDS).to match(
-          /#{field} \{\s*shopMoney \{\s*amount\s*currencyCode\s*\}\s*\}/
-        )
+        expect(described_class::SALE_FIELDS).to match(/#{field} \{\s*shopMoney \{\s*amount\s*\}\s*\}/)
       end
     end
 
-    it "requests currencyCode beside line item originalTotalSet and discountedTotalSet amounts" do
-      %w[originalTotalSet discountedTotalSet].each do |field|
-        expect(described_class::SALE_FIELDS).to match(
-          /#{field} \{\s*shopMoney \{\s*amount\s*currencyCode\s*\}\s*\}/
-        )
-      end
+    it "does not select currencyCode beside payment schedule balanceDue or totalBalance" do
+      expect(described_class::SALE_FIELDS).to match(/balanceDue \{\s*amount\s*\}/)
+      expect(described_class::SALE_FIELDS).to match(/totalBalance \{\s*amount\s*\}/)
     end
 
     it "includes minimal product reference fields for sale item linking" do

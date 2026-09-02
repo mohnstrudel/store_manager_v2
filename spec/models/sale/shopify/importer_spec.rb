@@ -213,6 +213,54 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
+    context "when the parsed order carries Shopify currency provenance" do
+      let(:parsed_order_with_currency) do
+        order = valid_parsed_order.deep_dup
+        order[:store_info] = order[:store_info].merge(store_id: "gid://shopify/Order/currency-provenance")
+        order[:sale].merge!(
+          shop_currency: "EUR",
+          presentment_currency: "CHF",
+          usd_conversion_rate: "1.1250",
+          exchange_rate_date: "2026-08-21"
+        )
+        order
+      end
+
+      it "persists the resolved shop currency, presentment currency, rate, and effective date" do
+        described_class.import!(parsed_order_with_currency)
+
+        expect(Sale.last).to have_attributes(
+          shop_currency: "EUR",
+          presentment_currency: "CHF",
+          usd_conversion_rate: BigDecimal("1.1250"),
+          exchange_rate_date: Date.new(2026, 8, 21)
+        )
+      end
+
+      it "re-importing the same raw payload updates the same sale without duplicating currency data" do
+        2.times { described_class.import!(parsed_order_with_currency) }
+
+        expect(Sale.count).to eq(1)
+        expect(Sale.last.usd_conversion_rate).to eq(BigDecimal("1.1250"))
+      end
+
+      it "leaves previously persisted currency data unchanged when a later import fails" do
+        described_class.import!(parsed_order_with_currency)
+        sale = Sale.last
+
+        allow_any_instance_of(Sale).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(Sale.new))
+
+        expect { described_class.import!(parsed_order_with_currency) }.to raise_error(Sale::Shopify::Importer::Error)
+
+        expect(sale.reload).to have_attributes(
+          shop_currency: "EUR",
+          presentment_currency: "CHF",
+          usd_conversion_rate: BigDecimal("1.1250"),
+          exchange_rate_date: Date.new(2026, 8, 21)
+        )
+      end
+    end
+
     context "when product sale is corrupted (no product info at all)" do
       let(:parsed_order_corrupted) do
         order = valid_parsed_order.deep_dup

@@ -3,11 +3,32 @@
 require "rails_helper"
 
 RSpec.describe Sale::Shopify::Parser do
+  # This baseline rate predates every fixture order; date-sensitive examples override it.
+  before do
+    create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.0000"))
+
+    # Stub Product::Shopify::Parser to return a hash with shopify_id key
+    # This prevents recursive parsing
+    allow(Product::Shopify::Parser).to receive(:parse).and_call_original
+    allow(Product::Shopify::Parser).to receive(:parse).with(
+      hash_including("id" => "gid://shopify/Product/333")
+    ).and_return(
+      {
+        store_id: "gid://shopify/Product/333",
+        title: "Eve",
+        franchise: "Stellar Blade",
+        variants: []
+      }
+    )
+  end
+
   let(:api_order) do
     {
       "id" => "gid://shopify/Order/12345",
       "createdAt" => "2023-01-01T12:00:00Z",
       "updatedAt" => "2023-01-02T12:00:00Z",
+      "currencyCode" => "EUR",
+      "presentmentCurrencyCode" => "CHF",
       "cancelledAt" => nil,
       "cancelReason" => nil,
       "closed" => false,
@@ -17,9 +38,9 @@ RSpec.describe Sale::Shopify::Parser do
       "displayFulfillmentStatus" => "UNFULFILLED",
       "note" => "Customer note",
       "returnStatus" => nil,
-      "totalDiscountsSet" => {"shopMoney" => {"amount" => "10.00", "currencyCode" => "USD"}},
-      "totalPriceSet" => {"shopMoney" => {"amount" => "100.00", "currencyCode" => "USD"}},
-      "totalShippingPriceSet" => {"shopMoney" => {"amount" => "5.00", "currencyCode" => "USD"}},
+      "totalDiscountsSet" => {"shopMoney" => {"amount" => "10.00"}},
+      "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
+      "totalShippingPriceSet" => {"shopMoney" => {"amount" => "5.00"}},
       "email" => "customer@example.com",
       "shippingAddress" => {
         "firstName" => "John",
@@ -60,7 +81,7 @@ RSpec.describe Sale::Shopify::Parser do
             "id" => "gid://shopify/LineItem/111",
             "title" => "Stellar Blade - Eve | 1:4 Resin Statue",
             "quantity" => 1,
-            "originalTotalSet" => {"shopMoney" => {"amount" => "95.00", "currencyCode" => "USD"}},
+            "originalTotalSet" => {"shopMoney" => {"amount" => "95.00"}},
             "variantTitle" => "Regular",
             "variant" => {
               "id" => "gid://shopify/ProductVariant/222",
@@ -79,22 +100,6 @@ RSpec.describe Sale::Shopify::Parser do
         ]
       }
     }
-  end
-
-  before do
-    # Stub Product::Shopify::Parser to return a hash with shopify_id key
-    # This prevents recursive parsing
-    allow(Product::Shopify::Parser).to receive(:parse).and_call_original
-    allow(Product::Shopify::Parser).to receive(:parse).with(
-      hash_including("id" => "gid://shopify/Product/333")
-    ).and_return(
-      {
-        store_id: "gid://shopify/Product/333",
-        title: "Eve",
-        franchise: "Stellar Blade",
-        variants: []
-      }
-    )
   end
 
   describe ".parse" do
@@ -338,11 +343,11 @@ RSpec.describe Sale::Shopify::Parser do
     let(:partially_paid_order) do
       api_order.deep_dup.merge(
         "displayFinancialStatus" => "PARTIALLY_PAID",
-        "currentTotalPriceSet" => {"shopMoney" => {"amount" => "95.00", "currencyCode" => "USD"}},
-        "totalReceivedSet" => {"shopMoney" => {"amount" => "50.00", "currencyCode" => "USD"}},
-        "totalOutstandingSet" => {"shopMoney" => {"amount" => "45.00", "currencyCode" => "USD"}},
-        "netPaymentSet" => {"shopMoney" => {"amount" => "50.00", "currencyCode" => "USD"}},
-        "totalRefundedSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}},
+        "currentTotalPriceSet" => {"shopMoney" => {"amount" => "95.00"}},
+        "totalReceivedSet" => {"shopMoney" => {"amount" => "50.00"}},
+        "totalOutstandingSet" => {"shopMoney" => {"amount" => "45.00"}},
+        "netPaymentSet" => {"shopMoney" => {"amount" => "50.00"}},
+        "totalRefundedSet" => {"shopMoney" => {"amount" => "0.00"}},
         "paymentGatewayNames" => ["shopify_payments"]
       )
     end
@@ -385,8 +390,8 @@ RSpec.describe Sale::Shopify::Parser do
     it "parses refunded amounts for refunded orders" do
       refunded_order = api_order.deep_dup.merge(
         "displayFinancialStatus" => "REFUNDED",
-        "totalRefundedSet" => {"shopMoney" => {"amount" => "95.00", "currencyCode" => "USD"}},
-        "netPaymentSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "USD"}}
+        "totalRefundedSet" => {"shopMoney" => {"amount" => "95.00"}},
+        "netPaymentSet" => {"shopMoney" => {"amount" => "0.00"}}
       )
 
       result = described_class.parse(refunded_order)
@@ -436,15 +441,15 @@ RSpec.describe Sale::Shopify::Parser do
               "nodes" => [
                 {
                   "id" => "gid://shopify/PaymentSchedule/1",
-                  "balanceDue" => {"amount" => "0.00", "currencyCode" => "EUR"},
-                  "totalBalance" => {"amount" => "250.00", "currencyCode" => "EUR"},
+                  "balanceDue" => {"amount" => "0.00"},
+                  "totalBalance" => {"amount" => "250.00"},
                   "completedAt" => "2023-01-09T12:00:00Z",
                   "dueAt" => "2023-01-10T12:00:00Z"
                 },
                 {
                   "id" => "gid://shopify/PaymentSchedule/2",
-                  "balanceDue" => {"amount" => "250.00", "currencyCode" => "EUR"},
-                  "totalBalance" => {"amount" => "250.00", "currencyCode" => "EUR"},
+                  "balanceDue" => {"amount" => "250.00"},
+                  "totalBalance" => {"amount" => "250.00"},
                   "completedAt" => nil,
                   "dueAt" => "2023-02-10T12:00:00Z"
                 }
@@ -499,7 +504,7 @@ RSpec.describe Sale::Shopify::Parser do
             "overdue" => false,
             "paymentSchedules" => {
               "nodes" => [
-                {"id" => "s1", "totalBalance" => {"amount" => "1000.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2026-09-10T12:00:00Z"}
+                {"id" => "s1", "totalBalance" => {"amount" => "1000.00"}, "completedAt" => nil, "dueAt" => "2026-09-10T12:00:00Z"}
               ]
             }
           }
@@ -520,10 +525,10 @@ RSpec.describe Sale::Shopify::Parser do
             "overdue" => false,
             "paymentSchedules" => {
               "nodes" => [
-                {"id" => "s1", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
-                {"id" => "s2", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
-                {"id" => "s3", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
-                {"id" => "s4", "totalBalance" => {"amount" => "255.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
+                {"id" => "s1", "totalBalance" => {"amount" => "255.00"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
+                {"id" => "s2", "totalBalance" => {"amount" => "255.00"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
+                {"id" => "s3", "totalBalance" => {"amount" => "255.00"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
+                {"id" => "s4", "totalBalance" => {"amount" => "255.00"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
               ]
             }
           }
@@ -547,10 +552,10 @@ RSpec.describe Sale::Shopify::Parser do
             "overdue" => false,
             "paymentSchedules" => {
               "nodes" => [
-                {"id" => "s1", "totalBalance" => {"amount" => "306.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
-                {"id" => "s2", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
-                {"id" => "s3", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
-                {"id" => "s4", "totalBalance" => {"amount" => "238.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
+                {"id" => "s1", "totalBalance" => {"amount" => "306.00"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"},
+                {"id" => "s2", "totalBalance" => {"amount" => "238.00"}, "completedAt" => nil, "dueAt" => "2023-02-10T12:00:00Z"},
+                {"id" => "s3", "totalBalance" => {"amount" => "238.00"}, "completedAt" => nil, "dueAt" => "2023-03-10T12:00:00Z"},
+                {"id" => "s4", "totalBalance" => {"amount" => "238.00"}, "completedAt" => nil, "dueAt" => "2023-04-10T12:00:00Z"}
               ]
             }
           }
@@ -574,7 +579,7 @@ RSpec.describe Sale::Shopify::Parser do
             "overdue" => false,
             "paymentSchedules" => {
               "nodes" => [
-                {"id" => "s1", "totalBalance" => {"amount" => "1020.00", "currencyCode" => "EUR"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"}
+                {"id" => "s1", "totalBalance" => {"amount" => "1020.00"}, "completedAt" => nil, "dueAt" => "2023-01-10T12:00:00Z"}
               ]
             }
           }
@@ -612,7 +617,7 @@ RSpec.describe Sale::Shopify::Parser do
     it "parses line item expected revenue from discountedTotalSet" do
       discounted_order = api_order.deep_dup
       discounted_order["lineItems"]["nodes"].first["discountedTotalSet"] =
-        {"shopMoney" => {"amount" => "85.00", "currencyCode" => "USD"}}
+        {"shopMoney" => {"amount" => "85.00"}}
 
       result = described_class.parse(discounted_order)
 
@@ -629,7 +634,7 @@ RSpec.describe Sale::Shopify::Parser do
       multi_line_order = api_order.deep_dup
       second_line = multi_line_order["lineItems"]["nodes"].first.deep_dup
       second_line["id"] = "gid://shopify/LineItem/222"
-      second_line["discountedTotalSet"] = {"shopMoney" => {"amount" => "40.00", "currencyCode" => "USD"}}
+      second_line["discountedTotalSet"] = {"shopMoney" => {"amount" => "40.00"}}
       multi_line_order["lineItems"]["nodes"] << second_line
 
       result = described_class.parse(multi_line_order)
@@ -638,54 +643,54 @@ RSpec.describe Sale::Shopify::Parser do
     end
   end
 
-  describe "USD normalization" do
-    before do
-      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
-      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "CHF", rate: BigDecimal("0.9375"))
-      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "GBP", rate: BigDecimal("0.8700"))
-      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "CAD", rate: BigDecimal("1.5000"))
-      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "AUD", rate: BigDecimal("1.6500"))
-    end
-
+  describe "EUR to USD conversion" do
     let(:eur_order) do
       api_order.deep_dup.merge(
         "createdAt" => "2026-08-21T12:00:00Z",
-        "totalPriceSet" => {"shopMoney" => {"amount" => "100.00", "currencyCode" => "EUR"}},
-        "totalDiscountsSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "EUR"}},
-        "totalShippingPriceSet" => {"shopMoney" => {"amount" => "0.00", "currencyCode" => "EUR"}}
-      ).tap { |order| order["lineItems"]["nodes"].first["originalTotalSet"] = {"shopMoney" => {"amount" => "100.00", "currencyCode" => "EUR"}} }
+        "totalPriceSet" => {"shopMoney" => {"amount" => "100.00"}},
+        "totalDiscountsSet" => {"shopMoney" => {"amount" => "8.00"}},
+        "totalShippingPriceSet" => {"shopMoney" => {"amount" => "4.00"}},
+        "currentTotalPriceSet" => {"shopMoney" => {"amount" => "92.00"}},
+        "totalReceivedSet" => {"shopMoney" => {"amount" => "40.00"}},
+        "totalOutstandingSet" => {"shopMoney" => {"amount" => "52.00"}},
+        "netPaymentSet" => {"shopMoney" => {"amount" => "40.00"}},
+        "totalRefundedSet" => {"shopMoney" => {"amount" => "6.00"}}
+      ).tap { |order| order["lineItems"]["nodes"].first["originalTotalSet"] = {"shopMoney" => {"amount" => "100.00"}} }
     end
 
-    it "converts EUR order and line totals to USD using the order creation date, not pull time" do
+    it "converts every order amount from one resolved rate using the order date, not pull time", :aggregate_failures do
       travel_to(Time.zone.parse("2030-01-01T00:00:00Z")) do
+        create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
         result = described_class.parse(eur_order)
 
-        expect(result[:sale][:total]).to eq(BigDecimal("112.50"))
+        expect(result[:sale]).to include(
+          total: BigDecimal("112.50"),
+          discount_total: BigDecimal("9.00"),
+          shipping_total: BigDecimal("4.50"),
+          expected_revenue: BigDecimal("103.50"),
+          received_revenue: BigDecimal("45.00"),
+          outstanding_revenue: BigDecimal("58.50"),
+          net_payment: BigDecimal("45.00"),
+          refunded_revenue: BigDecimal("6.75")
+        )
         expect(result[:sale_items].first[:price]).to eq(BigDecimal("112.50"))
       end
     end
 
-    it "leaves USD order and line money unchanged as a decimal passthrough" do
-      result = described_class.parse(api_order)
+    it "stores the resolved shop currency, presentment currency, rate, and effective date on the sale" do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
+      result = described_class.parse(eur_order)
 
-      expect(result[:sale][:total]).to eq(BigDecimal("100.00"))
-      expect(result[:sale_items].first[:price]).to eq(BigDecimal("95.00"))
-    end
-
-    it "converts CHF, GBP, CAD, and AUD order totals through the same generic cross-rate path", :aggregate_failures do
-      {"CHF" => "93.75", "GBP" => "87.00", "CAD" => "150.00", "AUD" => "165.00"}.each do |currency, amount|
-        order = api_order.deep_dup.merge(
-          "createdAt" => "2026-08-21T12:00:00Z",
-          "totalPriceSet" => {"shopMoney" => {"amount" => amount, "currencyCode" => currency}}
-        )
-
-        result = described_class.parse(order)
-
-        expect(result[:sale][:total]).to eq(BigDecimal("112.50")), "expected #{currency} #{amount} to convert to 112.50 USD"
-      end
+      expect(result[:sale]).to include(
+        shop_currency: "EUR",
+        presentment_currency: "CHF",
+        usd_conversion_rate: BigDecimal("1.1250"),
+        exchange_rate_date: Date.new(2026, 8, 21)
+      )
     end
 
     it "re-parsing the same payload produces the same USD values without double conversion" do
+      create(:exchange_rate, date: Date.new(2026, 8, 21), currency: "USD", rate: BigDecimal("1.1250"))
       first = described_class.parse(eur_order)
       second = described_class.parse(eur_order)
 

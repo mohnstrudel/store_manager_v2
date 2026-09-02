@@ -11,6 +11,7 @@
 #  closed_at             :datetime
 #  confirmed             :boolean          default(FALSE)
 #  discount_total        :decimal(8, 2)
+#  exchange_rate_date    :date
 #  expected_revenue      :decimal(8, 2)
 #  financial_status      :string
 #  fulfillment_status    :string
@@ -22,17 +23,20 @@
 #  payment_overdue       :boolean          default(FALSE), not null
 #  payment_terms_name    :string
 #  payment_terms_type    :string
+#  presentment_currency  :string
 #  received_revenue      :decimal(8, 2)
 #  refunded_revenue      :decimal(8, 2)
 #  return_status         :string
 #  settlement_status     :string
 #  shipping_total        :decimal(8, 2)
+#  shop_currency         :string
 #  shopify_created_at    :datetime
 #  shopify_name          :string
 #  shopify_updated_at    :datetime
 #  slug                  :string
 #  status                :string
 #  total                 :decimal(8, 2)
+#  usd_conversion_rate   :decimal(18, 10)
 #  woo_created_at        :datetime
 #  woo_updated_at        :datetime
 #  created_at            :datetime         not null

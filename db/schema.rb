@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_26_130100) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -383,6 +383,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_130100) do
     t.datetime "created_at", null: false
     t.bigint "customer_id", null: false
     t.decimal "discount_total", precision: 8, scale: 2
+    t.date "exchange_rate_date"
     t.decimal "expected_revenue", precision: 8, scale: 2
     t.string "financial_status"
     t.string "fulfillment_status"
@@ -394,11 +395,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_130100) do
     t.boolean "payment_overdue", default: false, null: false
     t.string "payment_terms_name"
     t.string "payment_terms_type"
+    t.string "presentment_currency"
     t.decimal "received_revenue", precision: 8, scale: 2
     t.decimal "refunded_revenue", precision: 8, scale: 2
     t.string "return_status"
     t.string "settlement_status"
     t.decimal "shipping_total", precision: 8, scale: 2
+    t.string "shop_currency"
     t.datetime "shopify_created_at"
     t.string "shopify_id"
     t.string "shopify_name"
@@ -407,13 +410,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_130100) do
     t.string "status"
     t.decimal "total", precision: 8, scale: 2
     t.datetime "updated_at", null: false
+    t.decimal "usd_conversion_rate", precision: 18, scale: 10
     t.datetime "woo_created_at"
     t.string "woo_id"
     t.datetime "woo_updated_at"
     t.index ["customer_id"], name: "index_sales_on_customer_id"
     t.index ["shopify_id"], name: "index_sales_on_shopify_id"
     t.index ["slug"], name: "index_sales_on_slug", unique: true
-    t.check_constraint "settlement_status::text = ANY (ARRAY['paid'::character varying, 'not_fully_paid'::character varying, 'unknown'::character varying]::text[])", name: "sales_settlement_status_allowed_values"
+    t.check_constraint "presentment_currency IS NULL OR presentment_currency::text ~ '^[A-Z]{3}$'::text", name: "sales_presentment_currency_format"
+    t.check_constraint "settlement_status::text = ANY (ARRAY['paid'::character varying::text, 'not_fully_paid'::character varying::text, 'unknown'::character varying::text])", name: "sales_settlement_status_allowed_values"
+    t.check_constraint "shop_currency IS NULL AND presentment_currency IS NULL AND usd_conversion_rate IS NULL AND exchange_rate_date IS NULL OR shop_currency IS NOT NULL AND presentment_currency IS NOT NULL AND usd_conversion_rate IS NOT NULL AND exchange_rate_date IS NOT NULL", name: "sales_currency_fields_all_or_none"
+    t.check_constraint "shop_currency IS NULL OR shop_currency::text ~ '^[A-Z]{3}$'::text", name: "sales_shop_currency_format"
+    t.check_constraint "usd_conversion_rate IS NULL OR usd_conversion_rate > 0::numeric", name: "sales_usd_conversion_rate_positive"
   end
 
   create_table "sessions", force: :cascade do |t|

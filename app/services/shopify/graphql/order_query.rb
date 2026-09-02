@@ -20,60 +20,54 @@ module Shopify
         closedAt
         confirmed
         createdAt
+        currencyCode
         displayFinancialStatus
         displayFulfillmentStatus
         fullyPaid
         id
         name
         note
+        presentmentCurrencyCode
         returnStatus
         statusPageUrl
         totalDiscountsSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         totalPriceSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         totalShippingPriceSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         currentTotalPriceSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         totalReceivedSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         totalOutstandingSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         netPaymentSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         totalRefundedSet {
           shopMoney {
             amount
-            currencyCode
           }
         }
         paymentGatewayNames
@@ -87,11 +81,9 @@ module Shopify
               id
               balanceDue {
                 amount
-                currencyCode
               }
               totalBalance {
                 amount
-                currencyCode
               }
               completedAt
               due
@@ -153,13 +145,11 @@ module Shopify
             originalTotalSet {
               shopMoney {
                 amount
-                currencyCode
               }
             }
             discountedTotalSet {
               shopMoney {
                 amount
-                currencyCode
               }
             }
             variantTitle

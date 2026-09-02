@@ -11,6 +11,7 @@
 #  closed_at             :datetime
 #  confirmed             :boolean          default(FALSE)
 #  discount_total        :decimal(8, 2)
+#  exchange_rate_date    :date
 #  expected_revenue      :decimal(8, 2)
 #  financial_status      :string
 #  fulfillment_status    :string
@@ -22,17 +23,20 @@
 #  payment_overdue       :boolean          default(FALSE), not null
 #  payment_terms_name    :string
 #  payment_terms_type    :string
+#  presentment_currency  :string
 #  received_revenue      :decimal(8, 2)
 #  refunded_revenue      :decimal(8, 2)
 #  return_status         :string
 #  settlement_status     :string
 #  shipping_total        :decimal(8, 2)
+#  shop_currency         :string
 #  shopify_created_at    :datetime
 #  shopify_name          :string
 #  shopify_updated_at    :datetime
 #  slug                  :string
 #  status                :string
 #  total                 :decimal(8, 2)
+#  usd_conversion_rate   :decimal(18, 10)
 #  woo_created_at        :datetime
 #  woo_updated_at        :datetime
 #  created_at            :datetime         not null
@@ -238,6 +242,70 @@ RSpec.describe Sale do
 
     it "returns no sales when nothing matches" do
       expect(described_class.search_by("nonexistent")).to be_empty
+    end
+  end
+
+  describe "Shopify currency fields" do
+    it "persists complete currency data together" do
+      sale = create(:sale,
+        shop_currency: "EUR",
+        presentment_currency: "CHF",
+        usd_conversion_rate: BigDecimal("1.1250"),
+        exchange_rate_date: Date.new(2026, 8, 21))
+
+      expect(sale.reload).to have_attributes(
+        shop_currency: "EUR",
+        presentment_currency: "CHF",
+        usd_conversion_rate: BigDecimal("1.1250"),
+        exchange_rate_date: Date.new(2026, 8, 21)
+      )
+    end
+
+    it "persists all four fields empty for a sale not yet synchronized" do
+      sale = create(:sale)
+
+      expect(sale.reload).to have_attributes(
+        shop_currency: nil,
+        presentment_currency: nil,
+        usd_conversion_rate: nil,
+        exchange_rate_date: nil
+      )
+    end
+
+    it "rejects partially filled currency data" do
+      expect {
+        create(:sale, shop_currency: "EUR")
+      }.to raise_error(ActiveRecord::StatementInvalid, /sales_currency_fields_all_or_none/)
+    end
+
+    it "rejects a shop currency code that is not three uppercase letters" do
+      expect {
+        create(:sale,
+          shop_currency: "eur",
+          presentment_currency: "CHF",
+          usd_conversion_rate: BigDecimal("1.1250"),
+          exchange_rate_date: Date.new(2026, 8, 21))
+      }.to raise_error(ActiveRecord::StatementInvalid, /sales_shop_currency_format/)
+    end
+
+    it "rejects a presentment currency code that is not three uppercase letters" do
+      expect {
+        create(:sale,
+          shop_currency: "EUR",
+          presentment_currency: "chf",
+          usd_conversion_rate: BigDecimal("1.1250"),
+          exchange_rate_date: Date.new(2026, 8, 21))
+      }.to raise_error(ActiveRecord::StatementInvalid, /sales_presentment_currency_format/)
+    end
+
+    it "rejects a non-positive conversion rate" do
+      expect {
+        create(:sale,
+          shop_currency: "EUR",
+          presentment_currency: "CHF",
+          usd_conversion_rate: BigDecimal(0),
+          exchange_rate_date: Date.new(2026, 8, 21))
+      }.to raise_error(ActiveRecord::StatementInvalid, /sales_usd_conversion_rate_positive/)
     end
   end
 

@@ -56,7 +56,8 @@ class Sale::Shopify::Parser
         financial_status: @order["displayFinancialStatus"],
         outstanding_revenue: payment[:outstanding_revenue]
       ),
-      **payment
+      **payment,
+      **currency_attributes
     }
   end
 
@@ -93,7 +94,6 @@ class Sale::Shopify::Parser
 
     next_due_at = next_payment_due
     raw_total = projected_total(schedules)
-    currency = payment_plan_currency(schedules)
     @payment_plan = {
       attributes: {
         provider: "shopify",
@@ -102,7 +102,7 @@ class Sale::Shopify::Parser
         kind: "payment_terms",
         status: payment_plan_status(terms, schedules),
         expected_parts: schedules.size,
-        projected_total: SalePaymentPlan.usd_amount(raw_total, currency:, date: shopify_created_at&.to_date),
+        projected_total: order_conversion&.usd_amount(raw_total),
         deposit_percent: deposit_percent(schedules, raw_total),
         next_due_at:
       },
@@ -111,11 +111,7 @@ class Sale::Shopify::Parser
           provider_part_id: schedule["id"],
           sequence: index + 1,
           external_order_id: @order["id"],
-          amount: SalePaymentPlan.usd_amount(
-            schedule_total_balance(schedule),
-            currency: schedule_currency(schedule),
-            date: shopify_created_at&.to_date
-          ),
+          amount: order_conversion&.usd_amount(schedule_total_balance(schedule)),
           due_at: parse_datetime(schedule["dueAt"]),
           provider_completed_at: parse_datetime(schedule["completedAt"])
         }
@@ -149,14 +145,6 @@ class Sale::Shopify::Parser
     return "overdue" if terms["overdue"]
 
     "active"
-  end
-
-  def schedule_currency(schedule)
-    schedule.dig("totalBalance", "currencyCode") || schedule.dig("balanceDue", "currencyCode")
-  end
-
-  def payment_plan_currency(schedules)
-    schedules.filter_map { |schedule| schedule_currency(schedule) }.first
   end
 
   def parse_addresses
@@ -257,11 +245,28 @@ class Sale::Shopify::Parser
     @shopify_created_at ||= parse_datetime(@order["createdAt"])
   end
 
+  def order_conversion
+    return @order_conversion if defined?(@order_conversion)
+
+    @order_conversion = shopify_created_at && ExchangeRate.eur_to_usd_conversion(date: shopify_created_at.to_date)
+  end
+
+  def currency_attributes
+    return {shop_currency: nil, presentment_currency: nil, usd_conversion_rate: nil, exchange_rate_date: nil} unless order_conversion
+
+    {
+      shop_currency: @order["currencyCode"],
+      presentment_currency: @order["presentmentCurrencyCode"],
+      usd_conversion_rate: order_conversion.rate,
+      exchange_rate_date: order_conversion.effective_date
+    }
+  end
+
   def converted_money(money_set)
     amount = money_set&.dig("shopMoney", "amount")
     return nil if amount.blank?
 
-    ExchangeRate.usd_amount(amount, currency: money_set.dig("shopMoney", "currencyCode"), date: shopify_created_at&.to_date)
+    order_conversion&.usd_amount(amount)
   end
 
   def parse_product(product_payload, product_store_id)
