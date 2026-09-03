@@ -1,7 +1,7 @@
 # 04. Resync and audit attribution history
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 03-reconcile-installment-items-after-seal
 
 ## What to build
@@ -10,15 +10,15 @@ Run the ordered Shopify → Seal → database attribution workflow over accessib
 
 ## Acceptance criteria
 
-- [ ] Record pre-run counts for plans with missing origin/payment links, generic payment items, and historically attributed payment items.
-- [ ] Run one full Shopify sales crawl, allow the terminal Seal sync and attribution job to finish, and record job boundaries.
-- [ ] Every completed Seal attempt whose Shopify order exists links to its exact plan part.
-- [ ] Every plan with exactly one eligible origin item attributes payment items to that item.
-- [ ] Missing and zero/multi-item origins remain generic and are reported separately; none is assigned by customer or amount.
-- [ ] Logs show one ordered Seal iteration and no provider call from attribution.
-- [ ] A repeated workflow changes no relationship or attribution except genuine provider updates.
-- [ ] Save actions, counts, sampled IDs, unresolved reasons, and rerun comparison in `../artifacts/04-attribution-history-audit.md`.
-- [ ] Do not mark complete while unexplained wrong or missing links remain.
+- [x] Record pre-run counts for plans with missing origin/payment links, generic payment items, and historically attributed payment items.
+- [x] Run one full Shopify sales crawl, allow the terminal Seal sync and attribution job to finish, and record job boundaries.
+- [x] Every completed Seal attempt whose Shopify order exists links to its exact plan part.
+- [x] Every plan with exactly one eligible origin item attributes payment items to that item.
+- [x] Missing and zero/multi-item origins remain generic and are reported separately; none is assigned by customer or amount.
+- [x] Logs show one ordered Seal iteration and no provider call from attribution.
+- [x] A repeated workflow changes no relationship or attribution except genuine provider updates.
+- [x] Save actions, counts, sampled IDs, unresolved reasons, and rerun comparison in `../artifacts/04-attribution-history-audit.md`.
+- [x] Do not mark complete while unexplained wrong or missing links remain.
 
 ## Verification route
 
