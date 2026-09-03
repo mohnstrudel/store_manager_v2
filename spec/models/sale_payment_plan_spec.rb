@@ -76,21 +76,18 @@ RSpec.describe SalePaymentPlan do
       expect(plan.parts.order(:sequence).map(&:sale)).to eq([origin, installment])
     end
 
-    it "keeps one active part relationship when duplicate provider attempts report the same order id" do
-      origin = create(:sale, shopify_store_id: "gid://shopify/Order/100")
-      installment = create(:sale, shopify_store_id: "gid://shopify/Order/101")
+    it "links every part that reports the same order id, matching a Shopify native payment_terms schedule" do
+      sale = create(:sale, shopify_store_id: "gid://shopify/Order/100")
 
       plan = described_class.reconcile!(
-        attributes: plan_attributes(external_origin_order_id: "100", expected_parts: 3),
+        attributes: plan_attributes(provider: "shopify", kind: "payment_terms", external_origin_order_id: "100", expected_parts: 2),
         parts: [
-          part_attributes(sequence: 1, provider_part_id: "origin", external_order_id: "100"),
-          part_attributes(sequence: 2, provider_part_id: "attempt-1", external_order_id: "101"),
-          part_attributes(sequence: 3, provider_part_id: "attempt-2", external_order_id: "101")
+          part_attributes(sequence: 1, provider_part_id: "schedule-1", external_order_id: "100"),
+          part_attributes(sequence: 2, provider_part_id: "schedule-2", external_order_id: "100")
         ]
       )
 
-      expect(plan.origin_sale).to eq(origin)
-      expect(plan.parts.active.where(sale_id: installment.id).count).to eq(1)
+      expect(plan.parts.order(:sequence).map(&:sale)).to eq([sale, sale])
     end
 
     it "prunes obsolete unlinked parts and preserves linked history as inactive" do

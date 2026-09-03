@@ -96,10 +96,9 @@ class SalePaymentPlan < ApplicationRecord
 
   def reconcile_parts!(part_snapshots)
     parts.update_all(active: false)
-    claimed_order_ids = Set.new
 
     Array(part_snapshots).each do |snapshot|
-      reconcile_part!(snapshot.to_h.symbolize_keys, claimed_order_ids)
+      reconcile_part!(snapshot.to_h.symbolize_keys)
     end
 
     parts.where(active: false, sale_id: nil).delete_all
@@ -178,9 +177,7 @@ class SalePaymentPlan < ApplicationRecord
     values.sum(0.to_d) unless values.any?(&:nil?)
   end
 
-  # A provider glitch can report the same order ID for two attempts; only the
-  # first claims the link so one Sale never backs two active parts at once.
-  def reconcile_part!(snapshot, claimed_order_ids)
+  def reconcile_part!(snapshot)
     provider_part_id = snapshot[:provider_part_id].presence&.to_s
     sequence = snapshot.fetch(:sequence)
     part = parts.find_by(provider_part_id:) if provider_part_id
@@ -188,8 +185,6 @@ class SalePaymentPlan < ApplicationRecord
     part ||= parts.build
 
     external_order_id = Sale::Shopify::OrderId.normalize(snapshot[:external_order_id])
-    external_order_id = nil if external_order_id && !claimed_order_ids.add?(external_order_id)
-
     part.assign_attributes(
       snapshot.except(:external_order_id).merge(
         provider_part_id:,
