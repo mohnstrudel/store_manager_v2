@@ -1,7 +1,7 @@
 # 05. Retire the installment resolver and backfill
 
 Spec: ../spec.md
-Status: todo
+Status: done
 Blocked by: 04-resync-and-audit-attribution-history
 
 ## What to build
@@ -10,12 +10,12 @@ After the attribution audit succeeds, remove the heuristic/provider resolver and
 
 ## Acceptance criteria
 
-- [ ] Remove `Sale::InstallmentProductResolver`, its specs, and every reference.
-- [ ] Remove `Sale::InstallmentBackfill`, `lib/tasks/backfill_installment_sale_items.rake`, obsolete specs, and every reference.
-- [ ] Preserve the canonical Seal placeholder identity under a stable domain owner used by import and reconciliation.
-- [ ] The only attribution path is persisted Seal relationships → `SalePaymentPlan` model command → reconciliation job.
-- [ ] No production command, callback, scheduled task, or documentation invokes customer/amount/provider fallback.
-- [ ] Unique, missing, and ambiguous attribution behavior remains green after deletion.
+- [x] Remove `Sale::InstallmentProductResolver`, its specs, and every reference.
+- [x] Remove `Sale::InstallmentBackfill`, `lib/tasks/backfill_installment_sale_items.rake`, obsolete specs, and every reference.
+- [x] Preserve the canonical Seal placeholder identity under a stable domain owner used by import and reconciliation.
+- [x] The only attribution path is persisted Seal relationships → `SalePaymentPlan` model command → reconciliation job.
+- [x] No production command, callback, scheduled task, or documentation invokes customer/amount/provider fallback.
+- [x] Unique, missing, and ambiguous attribution behavior remains green after deletion.
 
 ## TDD cases
 
