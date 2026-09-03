@@ -50,13 +50,18 @@ class SaleItem < ApplicationRecord
 
   # Applies the plan's one eligible origin item, or restores the generic Seal
   # placeholder when none is uniquely eligible. Never discovers the relationship
-  # itself; the caller supplies an already-resolved origin item or nil.
+  # itself; the caller supplies an already-resolved origin item or nil. A payment
+  # item never owns its own warehouse unit, so this never relinks PurchaseItems.
   def apply_installment_origin!(origin_item)
+    self.skip_purchase_relink = true
+
     if origin_item
       update!(origin_sale_item: origin_item, product: origin_item.product, variant: origin_item.variant)
     else
       update!(origin_sale_item: nil, product: Product.seal_installment_placeholder, variant: nil)
     end
+  ensure
+    self.skip_purchase_relink = false
   end
 
   private

@@ -4,16 +4,24 @@ module VariantAssignment
   extend ActiveSupport::Concern
 
   included do
+    attr_accessor :skip_purchase_relink
+
     before_validation :normalize_variant_assignment
     validate :validate_variant_assignment
     around_update :reconcile_purchase_item_identity,
-      if: :will_save_change_to_variant_identity?
+      if: :relink_purchase_items_on_update?
   end
 
   private
 
   def reconcile_purchase_item_identity
     PurchaseItem.reconcile_identity_change!(self) { yield }
+  end
+
+  # A relabeled Seal installment attribution never gains or loses a warehouse
+  # unit, so callers that only correct that label opt out via skip_purchase_relink.
+  def relink_purchase_items_on_update?
+    will_save_change_to_variant_identity? && !skip_purchase_relink
   end
 
   def will_save_change_to_variant_identity?
