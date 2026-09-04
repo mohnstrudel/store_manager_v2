@@ -111,6 +111,12 @@ function SettlementSummaryCard({ sale }: { sale: SaleShowRecord }) {
   const scheduledPlan = progress?.plan_id
     ? plans.find((plan) => plan.id === progress.plan_id)
     : plans.find((plan) => plan.sale_part_number != null);
+  const renderableScheduledPlan =
+    scheduledPlan?.sale_part_number != null && scheduledPlan.kind !== "deposit"
+      ? scheduledPlan
+      : null;
+  const settlementProgress =
+    progress?.source === "plan_schedule" && renderableScheduledPlan ? null : progress;
 
   return (
     <section aria-label="Payment status" className="card w-full">
@@ -118,12 +124,13 @@ function SettlementSummaryCard({ sale }: { sale: SaleShowRecord }) {
       {status === "unknown" ? (
         <p>Payment status unknown</p>
       ) : (
-        progress &&
-        (progress.source !== "plan_schedule" ||
-          scheduledPlan?.sale_part_number == null ||
-          scheduledPlan.kind === "deposit") && <SettlementProgress progress={progress} />
+        settlementProgress && <SettlementProgress progress={settlementProgress} />
       )}
-      {scheduledPlan && <PlanProgressBar plan={scheduledPlan} />}
+      {renderableScheduledPlan && (
+        <div className="my-3">
+          <PlanProgressBar plan={renderableScheduledPlan} />
+        </div>
+      )}
       {lists && <div className="mt-4">{lists}</div>}
     </section>
   );
