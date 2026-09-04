@@ -163,7 +163,6 @@ RSpec.describe Shopify::CreateProductJob do
         begin
           described_class.perform_now(product_id)
         rescue Shopify::Api::Client::ApiError
-          # Expected error
         end
 
         expect(product).not_to have_received(:upsert_shopify_info!)
@@ -175,7 +174,6 @@ RSpec.describe Shopify::CreateProductJob do
         begin
           described_class.perform_now(product_id)
         rescue Shopify::Api::Client::ApiError
-          # Expected error
         end
 
         expect(Shopify::CreateOptionsAndVariantsJob).not_to have_received(:perform_later)

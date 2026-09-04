@@ -25,6 +25,18 @@ module PurchaseItems
 
     private
 
+    def expense_params
+      params.expect(purchase_expense: [:description, :amount])
+    end
+
+    def return_path
+      params[:return_to].presence || purchase_path(@purchase)
+    end
+
+    def failure_path
+      purchase_path(@purchase)
+    end
+
     def authorize_resource
       authorize :purchase_expense, :create?
     end
@@ -36,18 +48,6 @@ module PurchaseItems
 
     def set_expense
       @purchase_expense = @purchase_item.purchase_expenses.find(params.expect(:id))
-    end
-
-    def expense_params
-      params.expect(purchase_expense: [:description, :amount])
-    end
-
-    def return_path
-      params[:return_to].presence || purchase_path(@purchase)
-    end
-
-    def failure_path
-      purchase_path(@purchase)
     end
   end
 end

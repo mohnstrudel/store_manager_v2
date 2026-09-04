@@ -12,11 +12,6 @@ type ProductEconomicsDashboardProps = {
   profitability: ProfitabilityRecord;
 };
 
-// Economics snapshot above the product tabs: every figure is driven by
-// purchased units and money that has actually moved, not by what has sold —
-// a purchased-but-unsold product still has a real cost, a potential sale
-// value, and a cash position, so the card shows for any product with
-// purchases or recorded cash activity.
 export default function ProductEconomicsDashboard({
   profitability,
 }: ProductEconomicsDashboardProps) {
@@ -77,15 +72,10 @@ function economicsGroups(profitability: ProfitabilityRecord): EconomicsTerm[][] 
   ];
 }
 
-// Purchases never received into a warehouse have no purchase items, so no
-// unit of them can be priced. The caveat qualifies the figure, so it is
-// stated there rather than left to be guessed.
 function expectedTotalCostHint(): string {
   return `${financialMetricHints.expectedTotalCost} Purchases not received into a warehouse are not counted.`;
 }
 
-// The three parts are interpolated here rather than kept as a static hint
-// entry, so the hover always names the figures the total was netted from.
 function expectedNetProfitHint(profitability: ProfitabilityRecord): string {
   const potentialSales = profitability.potential_sales ?? "0";
   const expectedTotalCost = profitability.expected_total_cost ?? "0";
@@ -94,8 +84,6 @@ function expectedNetProfitHint(profitability: ProfitabilityRecord): string {
   return `${financialMetricHints.expectedNetProfit}\n\nPotential sales: ${potentialSales}.\nExpected total cost: ${expectedTotalCost}.\nEstimated OpEx: ${estimatedOpEx}.`;
 }
 
-// The two halves are interpolated here rather than kept as a static hint
-// entry, so the hover always names the figures behind today's number.
 function cashPositionHint(profitability: ProfitabilityRecord): string {
   const scoped = withScope(financialMetricHints.cashPositionToday, metricScopeNotes.product);
   const collectedAndKept = profitability.collected_revenue ?? "0";

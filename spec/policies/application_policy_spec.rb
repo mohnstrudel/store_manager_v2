@@ -5,7 +5,6 @@ require "rails_helper"
 describe ApplicationPolicy do
   subject { described_class.new(user, record) }
 
-  # Any record, since the policy is generic
   let(:record) { instance_double("AnyRecord") } # rubocop:disable RSpec/VerifiedDoubleReference -- deliberately generic; no single real model represents "any record" for this policy
   let(:user) { User.new }
 
@@ -58,7 +57,6 @@ describe ApplicationPolicy do
   end
 
   describe "Scope" do
-    # Pundit needs a real model
     let(:scope) { Pundit.policy_scope!(user, Product) }
     let!(:products) { create_list(:product, 2) }
 

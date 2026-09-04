@@ -1,30 +1,13 @@
 # frozen_string_literal: true
 
-# Shopify::Graphql::BaseQuery
-#
-# Base class for Shopify GraphQL operations.
-# Provides shared error handling and execution logic for all GraphQL queries and mutations.
-#
 module Shopify
   module Graphql
     class BaseQuery
-      # Executes a GraphQL query and returns the response body
-      #
-      # @param client [ShopifyAPI::Clients::Graphql::Admin] The GraphQL client
-      # @param query [String] The GraphQL query string
-      # @param variables [Hash] Variables for the query
-      # @return [Hash] The response body
       def self.execute_query(client, query, variables: {})
         response = client.query(query:, variables:)
         response.body
       end
 
-      # Handles errors from Shopify GraphQL mutations
-      #
-      # @param query [String] The GraphQL query string (for logging)
-      # @param response [Object] The response object
-      # @param operation_name [String] Name of the operation (e.g., "productCreate")
-      # @raise [Shopify::Api::Client::ApiError] If errors are present in the response
       def self.handle_mutation_errors(query, response, operation_name)
         api_errors = response.body.dig("errors")
         user_errors = response.body.dig("data", operation_name, "userErrors")

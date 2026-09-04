@@ -16,6 +16,12 @@ type FormSmartSelectProps<Option, IsMulti extends boolean = false> = Omit<
   label: string;
 };
 
+export function SelectSkeleton() {
+  return (
+    <div className="h-10 w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 animate-pulse" />
+  );
+}
+
 export default function FormSmartSelect<Option, IsMulti extends boolean = false>({
   className = "",
   error,
@@ -34,11 +40,5 @@ export default function FormSmartSelect<Option, IsMulti extends boolean = false>
         />
       </Suspense>
     </FormControl>
-  );
-}
-
-export function SelectSkeleton() {
-  return (
-    <div className="h-10 w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 animate-pulse" />
   );
 }

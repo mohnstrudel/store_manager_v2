@@ -59,9 +59,6 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
     end
 
     it "allocates only the amounts the sale actually states" do
-      # A Woo deposit: the importer knows the order was not refunded but cannot
-      # say how much of it was collected. Splitting the unknown amounts would
-      # write zeros onto the items and contradict the order itself.
       sale.update!(received_revenue: nil, outstanding_revenue: nil, refunded_revenue: BigDecimal(30))
       small_item = create_item(BigDecimal(100))
       large_item = create_item(BigDecimal(200))

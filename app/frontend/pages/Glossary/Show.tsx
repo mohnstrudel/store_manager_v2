@@ -6,8 +6,6 @@ type GlossaryEntry = {
   id: string;
   aliasIds?: string[];
   term: string;
-  // Only where the app labels this figure with a word the term does not already
-  // say. A label that repeats the heading tells the reader nothing.
   shownAs?: { labels: string[]; where: string }[];
   definition: ReactNode;
   example?: ReactNode;

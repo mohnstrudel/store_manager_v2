@@ -96,14 +96,6 @@ class ProductsController < ApplicationController
 
   private
 
-  def set_product
-    @product = Product.for_details.friendly.find(params.expect(:id))
-  end
-
-  def set_product_for_edit
-    @product = Product.for_edit.friendly.find(params.expect(:id))
-  end
-
   def extract_media_attributes
     raw = params[:media]
     return [] if raw.blank?
@@ -121,5 +113,13 @@ class ProductsController < ApplicationController
         image: attrs[:image_blob_id]
       }.compact
     end
+  end
+
+  def set_product
+    @product = Product.for_details.friendly.find(params.expect(:id))
+  end
+
+  def set_product_for_edit
+    @product = Product.for_edit.friendly.find(params.expect(:id))
   end
 end

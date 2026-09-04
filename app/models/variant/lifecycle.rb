@@ -36,6 +36,14 @@ module Variant::Lifecycle
     end
   end
 
+  def product_owned_destruction?
+    destroyed_by_association == Product.reflect_on_association(:variants)
+  end
+
+  def base_model_identity_conflict?
+    base_model? && product.variants.base_models.where.not(id: id).exists?
+  end
+
   def prevent_direct_base_model_removal
     return unless base_model?
     return if product_owned_destruction?
@@ -52,13 +60,5 @@ module Variant::Lifecycle
     return unless association
 
     raise ActiveRecord::DeleteRestrictionError.new(association)
-  end
-
-  def base_model_identity_conflict?
-    base_model? && product.variants.base_models.where.not(id: id).exists?
-  end
-
-  def product_owned_destruction?
-    destroyed_by_association == Product.reflect_on_association(:variants)
   end
 end

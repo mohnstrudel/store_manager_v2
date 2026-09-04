@@ -271,6 +271,26 @@ function NavigationPrimaryLinks({ onSelect }: { onSelect?: () => void }) {
   );
 }
 
+function NavigationLinkGroup({
+  links,
+  onSelect,
+}: {
+  links: NavigationLink[];
+  onSelect?: () => void;
+}) {
+  return (
+    <>
+      {links.map((link) => (
+        <NavigationLinkItem key={link.href} link={link} onSelect={onSelect} />
+      ))}
+    </>
+  );
+}
+
+function NavigationSeparator({ className = "hidden lg:block lg:ml-6" }: { className?: string }) {
+  return <li aria-hidden="true" className={className} />;
+}
+
 function NavigationOverflowMenu({
   closeDropdown,
   dropdownRef,
@@ -320,22 +340,6 @@ function NavigationOverflowMenu({
         </li>
       </ul>
     </li>
-  );
-}
-
-function NavigationLinkGroup({
-  links,
-  onSelect,
-}: {
-  links: NavigationLink[];
-  onSelect?: () => void;
-}) {
-  return (
-    <>
-      {links.map((link) => (
-        <NavigationLinkItem key={link.href} link={link} onSelect={onSelect} />
-      ))}
-    </>
   );
 }
 
@@ -389,8 +393,11 @@ function NavigationLinkItem({
   );
 }
 
-function NavigationSeparator({ className = "hidden lg:block lg:ml-6" }: { className?: string }) {
-  return <li aria-hidden="true" className={className} />;
+function withSharedPageProps(pageProps: Record<string, unknown>) {
+  return (_currentProps: Record<string, unknown>, sharedProps: Record<string, unknown>) => ({
+    ...sharedProps,
+    ...pageProps,
+  });
 }
 
 function logOut(onLoggedOut?: () => void) {
@@ -398,11 +405,4 @@ function logOut(onLoggedOut?: () => void) {
 
   onLoggedOut?.();
   router.post(routes.sessions.destroy.path());
-}
-
-function withSharedPageProps(pageProps: Record<string, unknown>) {
-  return (_currentProps: Record<string, unknown>, sharedProps: Record<string, unknown>) => ({
-    ...sharedProps,
-    ...pageProps,
-  });
 }

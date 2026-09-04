@@ -16,10 +16,6 @@ module VariantAssignmentIssues
 
     private
 
-    def authorize_resource
-      authorize :variant_assignment_issue, :update?
-    end
-
     def repair_params
       params.expect(purchase: [:variant_id])
     end
@@ -34,6 +30,10 @@ module VariantAssignmentIssues
 
     def stale_repair_message
       "This issue changed while it was being repaired. Review it and try again"
+    end
+
+    def authorize_resource
+      authorize :variant_assignment_issue, :update?
     end
   end
 end

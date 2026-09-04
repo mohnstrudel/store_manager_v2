@@ -1,21 +1,5 @@
 # frozen_string_literal: true
 
-# Seal::Api::Client
-#
-# For looking up Seal Subscriptions data (https://www.sealsubscriptions.com) via
-# its Merchant REST API. Used to resolve which real product/order an installment
-# ("Subsequent Subscription Order") payment belongs to, when that can't be
-# determined from our own data.
-#
-# Seal's API has no endpoint to look up a subscription by Shopify order ID
-# directly, so this indexes every subscription's origin order and billing
-# attempts by order ID on first use. Reuse a single instance across a batch of
-# lookups (e.g. one import run or one backfill pass) so that index is only
-# built once.
-#
-# Usage:
-#   client = Seal::Api::Client.new
-#   client.find_subscription_for_order("gid://shopify/Order/123")
 module Seal
   module Api
     class Client
@@ -26,18 +10,11 @@ module Seal
       PER_PAGE = 50
 
       class << self
-        # A shared instance so the order index (built by paginating every
-        # subscription) is only fetched once per process, not once per lookup.
         def shared
           @shared ||= new
         end
       end
 
-      # Finds the subscription whose origin order or a billing attempt matches
-      # the given Shopify order ID (accepts a GID or a plain numeric ID).
-      #
-      # @param order_id [String] The Shopify order ID (GID or numeric)
-      # @return [Hash, nil] The subscription data, or nil if none matches
       def find_subscription_for_order(order_id)
         numeric_id = Sale::Shopify::OrderId.normalize(order_id)
         return nil if numeric_id.blank?
@@ -75,11 +52,6 @@ module Seal
         index
       end
 
-      def order_ids_for(subscription)
-        billing_attempt_order_ids = Array(subscription["billing_attempts"]).filter_map { |attempt| attempt["order_id"]&.to_s }
-        [subscription["order_id"]&.to_s, *billing_attempt_order_ids].compact
-      end
-
       def each_subscription
         page = 1
 
@@ -98,6 +70,25 @@ module Seal
         response = get("subscriptions", page:, "with-items": true, "with-billing-attempts": true)
         payload = response["payload"] || response
         Array(payload["subscriptions"])
+      end
+
+      def get(path, query = {})
+        response = HTTParty.get(
+          "#{BASE_URL}#{path}",
+          query: query.compact,
+          headers: {"X-Seal-Token" => TOKEN}
+        )
+
+        raise ApiError, "Seal API GET #{path} failed: HTTP #{response.code}" unless response.success?
+
+        JSON.parse(response.body)
+      rescue HTTParty::Error, JSON::ParserError => e
+        raise ApiError, "Seal API GET #{path} failed: #{e.class}: #{e.message}"
+      end
+
+      def order_ids_for(subscription)
+        billing_attempt_order_ids = Array(subscription["billing_attempts"]).filter_map { |attempt| attempt["order_id"]&.to_s }
+        [subscription["order_id"]&.to_s, *billing_attempt_order_ids].compact
       end
 
       def fetch_subscription_detail(id)
@@ -119,20 +110,6 @@ module Seal
 
           page += 1
         end
-      end
-
-      def get(path, query = {})
-        response = HTTParty.get(
-          "#{BASE_URL}#{path}",
-          query: query.compact,
-          headers: {"X-Seal-Token" => TOKEN}
-        )
-
-        raise ApiError, "Seal API GET #{path} failed: HTTP #{response.code}" unless response.success?
-
-        JSON.parse(response.body)
-      rescue HTTParty::Error, JSON::ParserError => e
-        raise ApiError, "Seal API GET #{path} failed: #{e.class}: #{e.message}"
       end
     end
   end

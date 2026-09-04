@@ -27,6 +27,14 @@ module Shopify
       @api_payload = fetch_from_api(api_client, cursor: cursor, batch_size: limit)
     end
 
+    def batch_size
+      raise NotImplementedError, "#{self.class} must implement #batch_size"
+    end
+
+    def fetch_from_api(api_client, cursor:, batch_size:)
+      raise NotImplementedError, "#{self.class} must implement #fetch_from_api"
+    end
+
     def process_items
       @api_payload[:items].each do |api_item|
         process_item(api_item)
@@ -38,27 +46,6 @@ module Shopify
       creator_class.import!(parsed_item)
     end
 
-    def schedule_next_page
-      self.class
-        .set(wait: 1.second)
-        .perform_later(cursor: @api_payload[:end_cursor])
-    end
-
-    # No-op by default; a subclass reacts to the crawl's last successful page.
-    def handle_terminal_page
-    end
-
-    def handle_api_error(error, attempts, cursor, limit)
-      if error.response.code == 429 # Rate limit error
-        retry_delay = attempts * 5 + 5
-        self.class
-          .set(wait: retry_delay.seconds)
-          .perform_later(attempts: attempts + 1, cursor:, limit:)
-      else
-        raise error
-      end
-    end
-
     def parser_class
       raise NotImplementedError, "#{self.class} must implement #parser_class"
     end
@@ -67,12 +54,24 @@ module Shopify
       raise NotImplementedError, "#{self.class} must implement #creator_class"
     end
 
-    def batch_size
-      raise NotImplementedError, "#{self.class} must implement #batch_size"
+    def schedule_next_page
+      self.class
+        .set(wait: 1.second)
+        .perform_later(cursor: @api_payload[:end_cursor])
     end
 
-    def fetch_from_api(api_client, cursor:, batch_size:)
-      raise NotImplementedError, "#{self.class} must implement #fetch_from_api"
+    def handle_terminal_page
+    end
+
+    def handle_api_error(error, attempts, cursor, limit)
+      if error.response.code == 429
+        retry_delay = attempts * 5 + 5
+        self.class
+          .set(wait: retry_delay.seconds)
+          .perform_later(attempts: attempts + 1, cursor:, limit:)
+      else
+        raise error
+      end
     end
   end
 end

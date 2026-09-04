@@ -1,5 +1,4 @@
 @layer components {
-  /* Gallery */
   .gallery_nav {
     @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
   }

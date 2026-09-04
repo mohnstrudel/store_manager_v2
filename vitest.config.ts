@@ -20,7 +20,7 @@ export default mergeConfig(
       globals: true,
       mockReset: true,
       setupFiles: ["app/frontend/test/setup.ts"],
-      include: ["app/frontend/**/*.test.{ts,tsx}"],
+      include: ["app/frontend/**/*.test.{ts,tsx}", "tools/source-policy/frontend/**/*.test.js"],
       coverage: {
         provider: "v8",
         include: ["app/frontend/**"],

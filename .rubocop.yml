@@ -3,6 +3,7 @@ inherit_from: .rubocop_todo.yml
 require:
   - standard
   - database_validations/rubocop/cops
+  - ./lib/rubocop/cop/project
 
 plugins:
   - rubocop-performance
@@ -97,3 +98,10 @@ Bundler/DuplicatedGem:
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
+
+Project/DepthFirstCallOrder:
+  Enabled: true
+Project/NoProseComments:
+  Enabled: true
+Project/PrivateMethodCandidate:
+  Enabled: true

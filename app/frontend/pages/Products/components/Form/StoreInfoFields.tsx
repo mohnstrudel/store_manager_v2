@@ -20,10 +20,6 @@ function toTagOptions(tagString: string): { value: string; label: string }[] {
     .map((t) => ({ value: t, label: t }));
 }
 
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
 type StoreInfoFieldsProps = {
   errors?: Record<string, string>;
   index: number;
@@ -94,6 +90,31 @@ export default function StoreInfoFields({
   );
 }
 
+function useStoreInfoFieldState(storeInfo: StoreInfoFormData, storeNames: string[]) {
+  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(storeInfo._destroy);
+  const storeNameOptions = useMemo<StoreOption[]>(
+    () => storeNames.map((name) => ({ value: name, label: capitalize(name) })),
+    [storeNames],
+  );
+  const currentStoreOption =
+    storeNameOptions.find((option) => option.value === storeInfo.store_name) ?? null;
+  const tagOptions = useMemo(() => toTagOptions(storeInfo.tag_list), [storeInfo.tag_list]);
+  const title = storeInfo.id ? capitalize(storeInfo.store_name) : "New Store Info";
+
+  return {
+    currentStoreOption,
+    isMarkedForDeletion,
+    setIsMarkedForDeletion,
+    storeNameOptions,
+    tagOptions,
+    title,
+  };
+}
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function StoreInfoActions({
   index,
   onMarkedForDeletionChange,
@@ -120,25 +141,4 @@ function StoreInfoActions({
       onChange={onMarkedForDeletionChange}
     />
   );
-}
-
-function useStoreInfoFieldState(storeInfo: StoreInfoFormData, storeNames: string[]) {
-  const [isMarkedForDeletion, setIsMarkedForDeletion] = useState(storeInfo._destroy);
-  const storeNameOptions = useMemo<StoreOption[]>(
-    () => storeNames.map((name) => ({ value: name, label: capitalize(name) })),
-    [storeNames],
-  );
-  const currentStoreOption =
-    storeNameOptions.find((option) => option.value === storeInfo.store_name) ?? null;
-  const tagOptions = useMemo(() => toTagOptions(storeInfo.tag_list), [storeInfo.tag_list]);
-  const title = storeInfo.id ? capitalize(storeInfo.store_name) : "New Store Info";
-
-  return {
-    currentStoreOption,
-    isMarkedForDeletion,
-    setIsMarkedForDeletion,
-    storeNameOptions,
-    tagOptions,
-    title,
-  };
 }

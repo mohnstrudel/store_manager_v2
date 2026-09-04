@@ -1256,8 +1256,6 @@ RSpec.describe Shopify::Api::Client do
       end
 
       it "raises ApiError with empty message since empty array is truthy" do
-        # The implementation returns unless errors, but empty array is truthy
-        # So it will raise with an empty message
         expect {
           client.send(:handle_query_errors, response, resource_name: "products")
         }.to raise_error(described_class::ApiError, "Failed to fetch products: ")

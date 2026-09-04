@@ -10,13 +10,6 @@ import {
 
 import FormError from "@/components/FormError";
 
-/**
- * The <td> container shared by both the display and edit states. Keeping one
- * stable element prevents style flickering when toggling between states.
- *
- * Pass `onOpen` only when in the closed state — it wires the whole-cell click
- * to open the editor and stops the click from triggering row navigation.
- */
 export function InlineCellTd({
   children,
   className = "",
@@ -51,10 +44,6 @@ export function InlineCellTd({
   );
 }
 
-/**
- * Closed state content: displays the current value and exposes keyboard
- * activation to open the editor. Render this inside InlineCellTd.
- */
 export function InlineCellTrigger({
   ariaLabel,
   children,
@@ -98,10 +87,6 @@ export function InlineCellTrigger({
   );
 }
 
-/**
- * Open state content: wraps the field(s) in a form with Save and Exit actions,
- * and keeps interactions from bubbling to the table row. Render inside InlineCellTd.
- */
 export function InlineCellForm({
   children,
   onCancel,
@@ -154,7 +139,6 @@ function stopRowEvents(event: { stopPropagation(): void }) {
 
 export type InlineCellEditorHandle = { open(): void; close(): void; getValue(): string };
 
-/** The open/closed state from `useInlineCellForm` that the editor shell needs. */
 type InlineCellControl = {
   isOpen: boolean;
   isSaved: boolean;
@@ -165,34 +149,19 @@ type InlineCellControl = {
 };
 
 type InlineCellEditorProps = {
-  /** The `useInlineCellForm` result driving open state and persistence. */
   form: InlineCellControl;
-  /** The editable control (input/select) shown while open. Wire its id to `fieldId`. */
   children: ReactNode;
-  /** Extra classes for the cell, e.g. width/alignment. */
   tdClassName?: string;
-  /** Accessible name for the closed-state Edit trigger. */
   ariaLabel: string;
-  /** Visually-hidden label tied to the field. */
   fieldLabel: string;
   fieldId: string;
   error?: string;
-  /** Invoked on submit. Pass `onBulkSave ?? form.save` to support sibling bulk saves. */
   onSave: () => void;
-  /** Invoked on cancel/Escape. Defaults to `form.close`. */
   onCancel?: () => void;
-  /** Closed-state text, e.g. the formatted current value. Empty shows nothing. */
   displayValue: string;
   displayClassName?: string;
 };
 
-/**
- * One editable table cell: shows `displayValue` until opened, then a form wrapping
- * the field (`children`). Owns the cell shell, the open/closed branch, and the
- * `{ open, close, getValue }` imperative handle that sibling editors use to
- * cascade. The field's value/onChange come from the same `useInlineCellForm` the
- * caller passes as `form`.
- */
 const InlineCellEditor = forwardRef<InlineCellEditorHandle, InlineCellEditorProps>(
   function InlineCellEditor(
     {

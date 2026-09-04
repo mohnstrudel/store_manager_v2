@@ -45,9 +45,6 @@ module Product::Editing
   def build_initial_purchase(purchase_attributes, creating)
     return unless creating && purchase_attributes.present?
 
-    # Don't set product: self here — that would add the unsaved purchase to
-    # self.purchases via inverse_of, causing spurious autosave validation errors.
-    # The product is assigned explicitly in the transaction after save.
     Purchase.new(purchase_attributes)
   end
 
@@ -74,6 +71,10 @@ module Product::Editing
     records_by_client_key
   end
 
+  def destroy_flag?(attributes)
+    ActiveModel::Type::Boolean.new.cast(attributes[:destroy])
+  end
+
   def build_associated_record(association_name)
     case association_name
     when :variants
@@ -94,6 +95,26 @@ module Product::Editing
     end
 
     record.assign_attributes(attributes.except(:id, :client_key, :destroy))
+  end
+
+  def sync_variant_option_ids
+    self.size_ids = variant_option_ids(:size_id)
+    self.version_ids = variant_option_ids(:version_id)
+    self.color_ids = variant_option_ids(:color_id)
+  end
+
+  def variant_option_ids(attribute_name)
+    active_editing_variants.filter_map { |variant| variant.public_send(attribute_name) }.uniq
+  end
+
+  def active_editing_variants
+    association(:variants).target.reject(&:should_be_removed?)
+  end
+
+  def ensure_editing_variants_have_skus
+    active_editing_variants.each do |variant|
+      fill_variant_sku(variant, variant.sku.presence || default_base_sku)
+    end
   end
 
   def validate_variant_uniqueness
@@ -120,10 +141,6 @@ module Product::Editing
     bubble_record_errors("variants", editing_variants)
 
     errors.add(:variants, :invalid) if editing_variants.any? { |variant| variant.errors.any? }
-  end
-
-  def active_editing_variants
-    association(:variants).target.reject(&:should_be_removed?)
   end
 
   def variant_combination(variant)
@@ -159,9 +176,12 @@ module Product::Editing
     end
   end
 
-  def ensure_editing_variants_have_skus
-    active_editing_variants.each do |variant|
-      fill_variant_sku(variant, variant.sku.presence || default_base_sku)
+  def bubble_record_errors(prefix, records)
+    records.each_with_index do |record, index|
+      record.errors.each do |error|
+        nested_attribute = (error.attribute == :base) ? "base" : error.attribute
+        errors.add("#{prefix}.#{index}.#{nested_attribute}", error.message)
+      end
     end
   end
 
@@ -173,12 +193,14 @@ module Product::Editing
     errors.add(:store_infos, :invalid) if editing_store_infos.any? { |store_info| store_info.errors.any? }
   end
 
+  def active_editing_store_infos
+    association(:store_infos).target.reject(&:should_be_removed?)
+  end
+
   def validate_initial_purchase
     return if initial_purchase.blank?
 
     initial_purchase.valid?
-    # product_id and product_or_variant_present errors are irrelevant here —
-    # the product is assigned explicitly in the transaction after save.
     relevant_errors = initial_purchase.errors.reject { |e|
       e.attribute == :product_id ||
         (e.attribute == :base && e.message == "must have a product or variant")
@@ -188,6 +210,26 @@ module Product::Editing
       errors.add("purchase.0.#{nested_attribute}", error.message)
     end
     errors.add(:initial_purchase, :invalid) if relevant_errors.any?
+  end
+
+  def save_store_info(store_info)
+    if store_info.marked_for_destruction?
+      store_info.destroy! if store_info.persisted?
+      return
+    end
+
+    store_info.save! if store_info.new_record? || store_info.changed?
+  end
+
+  def save_variant(variant)
+    return if variant.new_record? && variant.should_be_removed?
+
+    if variant.should_be_removed?
+      variant.remove_or_deactivate!
+      return
+    end
+
+    variant.save! if variant.new_record? || variant.changed?
   end
 
   def save_initial_purchase!(draft_variants:, variant_client_key:)
@@ -214,52 +256,5 @@ module Product::Editing
     end
     errors.add(:initial_purchase, :invalid)
     raise ActiveRecord::RecordInvalid.new(self)
-  end
-
-  def active_editing_store_infos
-    association(:store_infos).target.reject(&:should_be_removed?)
-  end
-
-  def save_store_info(store_info)
-    if store_info.marked_for_destruction?
-      store_info.destroy! if store_info.persisted?
-      return
-    end
-
-    store_info.save! if store_info.new_record? || store_info.changed?
-  end
-
-  def save_variant(variant)
-    return if variant.new_record? && variant.should_be_removed?
-
-    if variant.should_be_removed?
-      variant.remove_or_deactivate!
-      return
-    end
-
-    variant.save! if variant.new_record? || variant.changed?
-  end
-
-  def destroy_flag?(attributes)
-    ActiveModel::Type::Boolean.new.cast(attributes[:destroy])
-  end
-
-  def sync_variant_option_ids
-    self.size_ids = variant_option_ids(:size_id)
-    self.version_ids = variant_option_ids(:version_id)
-    self.color_ids = variant_option_ids(:color_id)
-  end
-
-  def variant_option_ids(attribute_name)
-    active_editing_variants.filter_map { |variant| variant.public_send(attribute_name) }.uniq
-  end
-
-  def bubble_record_errors(prefix, records)
-    records.each_with_index do |record, index|
-      record.errors.each do |error|
-        nested_attribute = (error.attribute == :base) ? "base" : error.attribute
-        errors.add("#{prefix}.#{index}.#{nested_attribute}", error.message)
-      end
-    end
   end
 end

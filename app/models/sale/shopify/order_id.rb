@@ -3,25 +3,15 @@
 class Sale::Shopify::OrderId
   GID_PREFIX = "gid://shopify/Order/"
 
-  def self.normalize(value)
-    candidate = value.to_s.strip
-    return if candidate.blank?
-    return candidate if candidate.match?(/\A\d+\z/)
-    candidate.delete_prefix(GID_PREFIX) if candidate.match?(/\A#{Regexp.escape(GID_PREFIX)}\d+\z/) # rubocop:disable Performance/ConstantRegexp -- GID_PREFIX parsing isn't hot; /o adds staleness risk for negligible gain
-  end
-
   def self.find_sale(value)
     normalized = normalize(value)
     return if normalized.blank?
 
-    StoreInfo
-      .shopify
-      .find_by(
-        storable_type: "Sale",
-        store_id: [normalized, "#{GID_PREFIX}#{normalized}"]
-      )
-      &.storable
+    Sale.find_by_shopify_id("#{GID_PREFIX}#{normalized}") || Sale.find_by_shopify_id(normalized)
   end
 
-  private_class_method :new
+  def self.normalize(value)
+    candidate = value.to_s.strip.delete_prefix(GID_PREFIX)
+    candidate if candidate.match?(/\A\d+\z/)
+  end
 end

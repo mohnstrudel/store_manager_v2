@@ -3,7 +3,6 @@
 class ShippingCompaniesController < ApplicationController
   before_action :set_shipping_company, only: %i[show edit update destroy]
 
-  # GET /shipping_companies or /shipping_companies.json
   def index
     @shipping_companies = ShippingCompany.order(:name)
 
@@ -14,7 +13,6 @@ class ShippingCompaniesController < ApplicationController
     }
   end
 
-  # GET /shipping_companies/1 or /shipping_companies/1.json
   def show
     @purchase_items = @shipping_company.purchase_items.for_shipping_details
 
@@ -24,19 +22,16 @@ class ShippingCompaniesController < ApplicationController
     }
   end
 
-  # GET /shipping_companies/new
   def new
     @shipping_company = ShippingCompany.new
 
     render inertia: "ShippingCompanies/New", props: helpers.shipping_company_form_props(@shipping_company)
   end
 
-  # GET /shipping_companies/1/edit
   def edit
     render inertia: "ShippingCompanies/Edit", props: helpers.shipping_company_form_props(@shipping_company)
   end
 
-  # POST /shipping_companies or /shipping_companies.json
   def create
     @shipping_company = ShippingCompany.new(shipping_company_params)
 
@@ -51,7 +46,6 @@ class ShippingCompaniesController < ApplicationController
     end
   end
 
-  # PATCH/PUT /shipping_companies/1 or /shipping_companies/1.json
   def update
     respond_to do |format|
       if @shipping_company.update(shipping_company_params)
@@ -64,7 +58,6 @@ class ShippingCompaniesController < ApplicationController
     end
   end
 
-  # DELETE /shipping_companies/1 or /shipping_companies/1.json
   def destroy
     @shipping_company.destroy
 
@@ -76,13 +69,11 @@ class ShippingCompaniesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_shipping_company
-    @shipping_company = ShippingCompany.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def shipping_company_params
     params.fetch(:shipping_company, {}).permit(:name, :tracking_url)
+  end
+
+  def set_shipping_company
+    @shipping_company = ShippingCompany.find(params.expect(:id))
   end
 end

@@ -81,171 +81,6 @@ export default function ImageUploader({
   );
 }
 
-function ImageHiddenFields({
-  fieldNamePrefix,
-  imageFieldName,
-  media,
-}: {
-  fieldNamePrefix: string;
-  imageFieldName: string;
-  media: ImageUploaderMedia[];
-}) {
-  return (
-    <div aria-hidden="true" className="hidden">
-      {media.map((image, index) => (
-        <div key={imageKey(image)}>
-          {image.id != null && (
-            <input name={`${fieldNamePrefix}[${index}][id]`} type="hidden" value={image.id} />
-          )}
-          <input name={`${fieldNamePrefix}[${index}][alt]`} type="hidden" value={image.alt} />
-          <input
-            name={`${fieldNamePrefix}[${index}][position]`}
-            type="hidden"
-            value={image.position}
-          />
-          <input
-            name={`${fieldNamePrefix}[${index}][${imageFieldName}]`}
-            type="hidden"
-            value={image.image_blob_id ?? ""}
-          />
-          <input
-            name={`${fieldNamePrefix}[${index}][_destroy]`}
-            type="hidden"
-            value={image._destroy ? "1" : "0"}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SortableImageGrid({
-  media,
-  onDragEnd,
-  onUpdate,
-}: {
-  media: ImageUploaderMedia[];
-  onDragEnd: (event: DragEndEvent) => void;
-  onUpdate: (cardId: number | string, changes: Partial<ImageUploaderMedia>) => void;
-}) {
-  if (media.length === 0) return null;
-
-  return (
-    <DragDropProvider onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-6 mb-8 lg:grid-cols-6">
-        {media.map((image, index) => (
-          <SortableImageCard
-            cardId={imageKey(image)}
-            image={image}
-            index={index}
-            key={imageKey(image)}
-            onUpdate={onUpdate}
-          />
-        ))}
-      </div>
-    </DragDropProvider>
-  );
-}
-
-function SortableImageCard({
-  cardId,
-  image,
-  index,
-  onUpdate,
-}: {
-  cardId: number | string;
-  image: ImageUploaderMedia;
-  index: number;
-  onUpdate: (cardId: number | string, changes: Partial<ImageUploaderMedia>) => void;
-}) {
-  const { ref, handleRef, isDragging } = useSortable({ id: cardId, index });
-  const cardStyle = useMemo(
-    () => ({ opacity: isDragging ? 0.4 : 1, transition: "opacity 200ms" }),
-    [isDragging],
-  );
-  const removeImage = useCallback(() => onUpdate(cardId, { _destroy: true }), [cardId, onUpdate]);
-
-  return (
-    <div ref={ref} style={cardStyle}>
-      <div className="relative">
-        <button
-          ref={handleRef as Ref<HTMLButtonElement>}
-          aria-label="Drag to reorder"
-          className="image_card__drag_handle peer/drag"
-          type="button"
-        >
-          <ArrowsRightLeftIcon className="w-8 h-8" />
-        </button>
-        <button
-          aria-label="Remove image"
-          className="image_card__remove_btn"
-          data-testid="image-remove-btn"
-          onClick={removeImage}
-          type="button"
-        >
-          <XMarkIcon className="w-8 h-8" />
-        </button>
-        {isPendingImage(image) && (
-          <span className="image_card__pending_badge" data-testid="image-pending-badge">
-            Pending
-          </span>
-        )}
-        <div className="image_card__frame">
-          <img alt={image.alt} src={image.preview_url} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function UploadProgressList({ uploading }: { uploading: UploadingFile[] }) {
-  if (uploading.length === 0) return null;
-
-  return (
-    <div className="mb-4 space-y-2">
-      {uploading.map((file) => (
-        <div key={file.name}>
-          <p className="text-xs text-gray-500">
-            {file.name} — {file.progress}%
-          </p>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <UploadProgress progress={file.progress} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function UploadProgress({ progress }: { progress: number }) {
-  const progressStyle = useMemo(() => ({ width: `${progress}%` }), [progress]);
-
-  return <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={progressStyle} />;
-}
-
-function ImageFileInput({
-  fileInputRef,
-  onFileChange,
-}: {
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
-}) {
-  return (
-    <div>
-      <input
-        accept="image/*"
-        className="file_input"
-        data-testid="new-images-input"
-        multiple
-        onChange={onFileChange}
-        ref={fileInputRef}
-        type="file"
-      />
-      <p className="text-xs text-gray-500 mt-2">Select multiple images to upload at once</p>
-    </div>
-  );
-}
-
 function useImageUploader(
   media: ImageUploaderMedia[],
   onMediaChange: (media: ImageUploaderMedia[]) => void,
@@ -322,6 +157,171 @@ function useImageUploader(
     uploading,
   };
 }
+function ImageHiddenFields({
+  fieldNamePrefix,
+  imageFieldName,
+  media,
+}: {
+  fieldNamePrefix: string;
+  imageFieldName: string;
+  media: ImageUploaderMedia[];
+}) {
+  return (
+    <div aria-hidden="true" className="hidden">
+      {media.map((image, index) => (
+        <div key={imageKey(image)}>
+          {image.id != null && (
+            <input name={`${fieldNamePrefix}[${index}][id]`} type="hidden" value={image.id} />
+          )}
+          <input name={`${fieldNamePrefix}[${index}][alt]`} type="hidden" value={image.alt} />
+          <input
+            name={`${fieldNamePrefix}[${index}][position]`}
+            type="hidden"
+            value={image.position}
+          />
+          <input
+            name={`${fieldNamePrefix}[${index}][${imageFieldName}]`}
+            type="hidden"
+            value={image.image_blob_id ?? ""}
+          />
+          <input
+            name={`${fieldNamePrefix}[${index}][_destroy]`}
+            type="hidden"
+            value={image._destroy ? "1" : "0"}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SortableImageGrid({
+  media,
+  onDragEnd,
+  onUpdate,
+}: {
+  media: ImageUploaderMedia[];
+  onDragEnd: (event: DragEndEvent) => void;
+  onUpdate: (cardId: number | string, changes: Partial<ImageUploaderMedia>) => void;
+}) {
+  if (media.length === 0) return null;
+
+  return (
+    <DragDropProvider onDragEnd={onDragEnd}>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-6 mb-8 lg:grid-cols-6">
+        {media.map((image, index) => (
+          <SortableImageCard
+            cardId={imageKey(image)}
+            image={image}
+            index={index}
+            key={imageKey(image)}
+            onUpdate={onUpdate}
+          />
+        ))}
+      </div>
+    </DragDropProvider>
+  );
+}
+
+function UploadProgressList({ uploading }: { uploading: UploadingFile[] }) {
+  if (uploading.length === 0) return null;
+
+  return (
+    <div className="mb-4 space-y-2">
+      {uploading.map((file) => (
+        <div key={file.name}>
+          <p className="text-xs text-gray-500">
+            {file.name} — {file.progress}%
+          </p>
+          <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <UploadProgress progress={file.progress} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+function ImageFileInput({
+  fileInputRef,
+  onFileChange,
+}: {
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div>
+      <input
+        accept="image/*"
+        className="file_input"
+        data-testid="new-images-input"
+        multiple
+        onChange={onFileChange}
+        ref={fileInputRef}
+        type="file"
+      />
+      <p className="text-xs text-gray-500 mt-2">Select multiple images to upload at once</p>
+    </div>
+  );
+}
+function SortableImageCard({
+  cardId,
+  image,
+  index,
+  onUpdate,
+}: {
+  cardId: number | string;
+  image: ImageUploaderMedia;
+  index: number;
+  onUpdate: (cardId: number | string, changes: Partial<ImageUploaderMedia>) => void;
+}) {
+  const { ref, handleRef, isDragging } = useSortable({ id: cardId, index });
+  const cardStyle = useMemo(
+    () => ({ opacity: isDragging ? 0.4 : 1, transition: "opacity 200ms" }),
+    [isDragging],
+  );
+  const removeImage = useCallback(() => onUpdate(cardId, { _destroy: true }), [cardId, onUpdate]);
+
+  return (
+    <div ref={ref} style={cardStyle}>
+      <div className="relative">
+        <button
+          ref={handleRef as Ref<HTMLButtonElement>}
+          aria-label="Drag to reorder"
+          className="image_card__drag_handle peer/drag"
+          type="button"
+        >
+          <ArrowsRightLeftIcon className="w-8 h-8" />
+        </button>
+        <button
+          aria-label="Remove image"
+          className="image_card__remove_btn"
+          data-testid="image-remove-btn"
+          onClick={removeImage}
+          type="button"
+        >
+          <XMarkIcon className="w-8 h-8" />
+        </button>
+        {isPendingImage(image) && (
+          <span className="image_card__pending_badge" data-testid="image-pending-badge">
+            Pending
+          </span>
+        )}
+        <div className="image_card__frame">
+          <img alt={image.alt} src={image.preview_url} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function isPendingImage(image: ImageUploaderMedia) {
+  return image.id == null && !!image.image_blob_id;
+}
+function UploadProgress({ progress }: { progress: number }) {
+  const progressStyle = useMemo(() => ({ width: `${progress}%` }), [progress]);
+
+  return <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={progressStyle} />;
+}
 
 function uploadFile(
   uploadUrl: string,
@@ -373,10 +373,6 @@ function uploadSucceeded(xhr: XMLHttpRequest) {
 
 function imageKey(image: ImageUploaderMedia) {
   return image.id ?? image.preview_url;
-}
-
-function isPendingImage(image: ImageUploaderMedia) {
-  return image.id == null && !!image.image_blob_id;
 }
 
 function updateUploadProgress(uploading: UploadingFile[], index: number, progress: number) {

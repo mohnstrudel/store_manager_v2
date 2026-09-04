@@ -67,28 +67,6 @@ class Product::Editing::Payload
     ])
   end
 
-  def purchase_params
-    params.expect(purchase: [
-      :supplier_id,
-      :variant_client_key,
-      :order_reference,
-      :item_price,
-      :amount,
-      :warehouse_id,
-      :payment_value
-    ])
-  end
-
-  def raw_purchase_attributes
-    return {} if params[:purchase].blank?
-
-    purchase_params.to_h.symbolize_keys
-  end
-
-  def boolean_type
-    @boolean_type ||= ActiveModel::Type::Boolean.new
-  end
-
   def row_values(value)
     case value
     when ActionController::Parameters
@@ -100,5 +78,27 @@ class Product::Editing::Payload
     else
       []
     end
+  end
+
+  def boolean_type
+    @boolean_type ||= ActiveModel::Type::Boolean.new
+  end
+
+  def raw_purchase_attributes
+    return {} if params[:purchase].blank?
+
+    purchase_params.to_h.symbolize_keys
+  end
+
+  def purchase_params
+    params.expect(purchase: [
+      :supplier_id,
+      :variant_client_key,
+      :order_reference,
+      :item_price,
+      :amount,
+      :warehouse_id,
+      :payment_value
+    ])
   end
 end

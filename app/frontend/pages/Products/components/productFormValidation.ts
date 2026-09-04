@@ -32,24 +32,6 @@ export function validateProductFormSubmission({
   return addSummaryErrors(errors);
 }
 
-function mergeVariantFromFormData(
-  formData: FormData,
-  variant: VariantFormData,
-  index: number,
-): VariantFormData {
-  return {
-    ...variant,
-    sku: getFormString(formData, `variants[${index}][sku]`),
-    size_id: getNullableNumberFromFormData(formData, `variants[${index}][size_id]`),
-    version_id: getNullableNumberFromFormData(formData, `variants[${index}][version_id]`),
-    color_id: getNullableNumberFromFormData(formData, `variants[${index}][color_id]`),
-    purchase_cost: getFormString(formData, `variants[${index}][purchase_cost]`),
-    selling_price: getFormString(formData, `variants[${index}][selling_price]`),
-    weight: getFormString(formData, `variants[${index}][weight]`),
-    _destroy: getBooleanFromFormData(formData, `variants[${index}][_destroy]`),
-  };
-}
-
 function mergePurchaseFromFormData(
   formData: FormData,
   purchase: PurchaseFormData,
@@ -63,6 +45,14 @@ function mergePurchaseFromFormData(
     warehouse_id: getNullableNumberFromFormData(formData, "purchase[warehouse_id]"),
     payment_value: getFormString(formData, "purchase[payment_value]"),
   };
+}
+
+function getNullableNumberFromFormData(formData: FormData, key: string): number | null {
+  const value = getFormString(formData, key);
+  if (value.trim() === "") return null;
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function addSummaryErrors(errors: Record<string, string> | null): Record<string, string> | null {
@@ -82,14 +72,24 @@ function addSummaryErrors(errors: Record<string, string> | null): Record<string,
   return nextErrors;
 }
 
-function getBooleanFromFormData(formData: FormData, key: string): boolean {
-  return formData.getAll(key).some((value) => value === "1" || value === "true" || value === "on");
+function mergeVariantFromFormData(
+  formData: FormData,
+  variant: VariantFormData,
+  index: number,
+): VariantFormData {
+  return {
+    ...variant,
+    sku: getFormString(formData, `variants[${index}][sku]`),
+    size_id: getNullableNumberFromFormData(formData, `variants[${index}][size_id]`),
+    version_id: getNullableNumberFromFormData(formData, `variants[${index}][version_id]`),
+    color_id: getNullableNumberFromFormData(formData, `variants[${index}][color_id]`),
+    purchase_cost: getFormString(formData, `variants[${index}][purchase_cost]`),
+    selling_price: getFormString(formData, `variants[${index}][selling_price]`),
+    weight: getFormString(formData, `variants[${index}][weight]`),
+    _destroy: getBooleanFromFormData(formData, `variants[${index}][_destroy]`),
+  };
 }
 
-function getNullableNumberFromFormData(formData: FormData, key: string): number | null {
-  const value = getFormString(formData, key);
-  if (value.trim() === "") return null;
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
+function getBooleanFromFormData(formData: FormData, key: string): boolean {
+  return formData.getAll(key).some((value) => value === "1" || value === "true" || value === "on");
 }

@@ -18,8 +18,6 @@ module VariantAssignment
     PurchaseItem.reconcile_identity_change!(self) { yield }
   end
 
-  # A relabeled Seal installment attribution never gains or loses a warehouse
-  # unit, so callers that only correct that label opt out via skip_purchase_relink.
   def relink_purchase_items_on_update?
     will_save_change_to_variant_identity? && !skip_purchase_relink
   end
@@ -33,6 +31,10 @@ module VariantAssignment
     return if product.blank? || variant.present?
 
     self.variant = assignable_base_variant
+  end
+
+  def new_or_changed_variant_identity?
+    new_record? || will_save_change_to_variant_identity?
   end
 
   def assignable_base_variant
@@ -63,9 +65,5 @@ module VariantAssignment
     return if product.assignable_variants.exists?(id: variant_id)
 
     errors.add(:variant, "is not assignable")
-  end
-
-  def new_or_changed_variant_identity?
-    new_record? || will_save_change_to_variant_identity?
   end
 end

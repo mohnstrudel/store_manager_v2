@@ -32,6 +32,12 @@ function ProductDetailsCard({ product }: ProductOverviewProps) {
   );
 }
 
+function formatList(values: string[]) {
+  const presentValues = values.filter(Boolean);
+
+  return presentValues.length > 0 ? presentValues.join(", ") : null;
+}
+
 function StoreIdentifiersCard({ product }: ProductOverviewProps) {
   return (
     <dl className="card w-min">
@@ -48,6 +54,21 @@ function StoreIdentifiersCard({ product }: ProductOverviewProps) {
       <ShopifyIdentifier product={product} />
       <ShopifyTags product={product} />
     </dl>
+  );
+}
+
+function TimestampColumns({ columns }: { columns: TimestampColumn[] }) {
+  return (
+    <div className="grid grid-flow-col auto-cols-max gap-6">
+      {columns.map((column) => (
+        <div className="flex flex-col gap-1" key={column.key}>
+          <span className="my-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400">
+            {column.label}
+          </span>
+          <span className="text-sm">{column.value}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -109,25 +130,4 @@ function ShopifyTags({ product }: ProductOverviewProps) {
       ))}
     </Field>
   );
-}
-
-function TimestampColumns({ columns }: { columns: TimestampColumn[] }) {
-  return (
-    <div className="grid grid-flow-col auto-cols-max gap-6">
-      {columns.map((column) => (
-        <div className="flex flex-col gap-1" key={column.key}>
-          <span className="my-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400">
-            {column.label}
-          </span>
-          <span className="text-sm">{column.value}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function formatList(values: string[]) {
-  const presentValues = values.filter(Boolean);
-
-  return presentValues.length > 0 ? presentValues.join(", ") : null;
 }

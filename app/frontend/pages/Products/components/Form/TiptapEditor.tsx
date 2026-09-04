@@ -137,73 +137,6 @@ export default function TiptapEditor({ defaultValue, name }: TiptapEditorProps) 
   );
 }
 
-type RichTextEditorProps = {
-  editor: TiptapEditorInstance;
-  onToolbarAction: (action: ToolbarAction) => void;
-};
-
-function RichTextEditor({ editor, onToolbarAction }: RichTextEditorProps) {
-  return (
-    <div className="tiptap-editor border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
-      <Toolbar editor={editor} onToolbarAction={onToolbarAction} />
-      <EditorContent
-        className="tiptap_content rich_text font-nunito prose prose-sm dark:prose-invert max-w-none p-4 min-h-48 [&_.ProseMirror]:outline-none"
-        editor={editor}
-      />
-    </div>
-  );
-}
-
-type ToolbarProps = {
-  editor: TiptapEditorInstance;
-  onToolbarAction: (action: ToolbarAction) => void;
-};
-
-function Toolbar({ editor, onToolbarAction }: ToolbarProps) {
-  return (
-    <div className="tiptap-toolbar flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
-      {TOOLBAR_GROUPS.map((buttons, index) => (
-        <ToolbarGroup
-          buttons={buttons}
-          editor={editor}
-          key={buttons.map((button) => button.action).join("-")}
-          onToolbarAction={onToolbarAction}
-          separated={index > 0}
-        />
-      ))}
-    </div>
-  );
-}
-
-type ToolbarGroupProps = {
-  buttons: ToolbarButtonConfig[];
-  editor: TiptapEditorInstance;
-  onToolbarAction: (action: ToolbarAction) => void;
-  separated: boolean;
-};
-
-function ToolbarGroup({ buttons, editor, onToolbarAction, separated }: ToolbarGroupProps) {
-  return (
-    <>
-      {separated && <ToolbarSeparator />}
-      {buttons.map((button) => (
-        <ToolbarButton
-          action={button.action}
-          active={isToolbarButtonActive(button, editor)}
-          disabled={button.isDisabled?.(editor)}
-          key={button.action}
-          label={button.label}
-          onAction={onToolbarAction}
-        />
-      ))}
-    </>
-  );
-}
-
-function ToolbarSeparator() {
-  return <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />;
-}
-
 function useTiptapDescriptionEditor(defaultValue: string) {
   const [html, setHtml] = useState(defaultValue);
   const [, rerender] = useState(0);
@@ -292,6 +225,73 @@ function useTiptapDescriptionEditor(defaultValue: string) {
   );
 
   return { editor, html, runToolbarAction };
+}
+
+type RichTextEditorProps = {
+  editor: TiptapEditorInstance;
+  onToolbarAction: (action: ToolbarAction) => void;
+};
+
+function RichTextEditor({ editor, onToolbarAction }: RichTextEditorProps) {
+  return (
+    <div className="tiptap-editor border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+      <Toolbar editor={editor} onToolbarAction={onToolbarAction} />
+      <EditorContent
+        className="tiptap_content rich_text font-nunito prose prose-sm dark:prose-invert max-w-none p-4 min-h-48 [&_.ProseMirror]:outline-none"
+        editor={editor}
+      />
+    </div>
+  );
+}
+
+type ToolbarProps = {
+  editor: TiptapEditorInstance;
+  onToolbarAction: (action: ToolbarAction) => void;
+};
+
+function Toolbar({ editor, onToolbarAction }: ToolbarProps) {
+  return (
+    <div className="tiptap-toolbar flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
+      {TOOLBAR_GROUPS.map((buttons, index) => (
+        <ToolbarGroup
+          buttons={buttons}
+          editor={editor}
+          key={buttons.map((button) => button.action).join("-")}
+          onToolbarAction={onToolbarAction}
+          separated={index > 0}
+        />
+      ))}
+    </div>
+  );
+}
+
+type ToolbarGroupProps = {
+  buttons: ToolbarButtonConfig[];
+  editor: TiptapEditorInstance;
+  onToolbarAction: (action: ToolbarAction) => void;
+  separated: boolean;
+};
+
+function ToolbarGroup({ buttons, editor, onToolbarAction, separated }: ToolbarGroupProps) {
+  return (
+    <>
+      {separated && <ToolbarSeparator />}
+      {buttons.map((button) => (
+        <ToolbarButton
+          action={button.action}
+          active={isToolbarButtonActive(button, editor)}
+          disabled={button.isDisabled?.(editor)}
+          key={button.action}
+          label={button.label}
+          onAction={onToolbarAction}
+        />
+      ))}
+    </>
+  );
+}
+
+function ToolbarSeparator() {
+  return <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />;
 }
 
 function promptForLink(editor: TiptapEditorInstance) {

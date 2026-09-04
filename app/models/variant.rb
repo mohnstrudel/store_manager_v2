@@ -48,8 +48,6 @@ class Variant < ApplicationRecord
     sale_items.exists? || purchases.exists?
   end
 
-  # Price tracking has been removed from StoreInfo
-  # This method returns 0.0 for backwards compatibility
   def price
     0.0
   end

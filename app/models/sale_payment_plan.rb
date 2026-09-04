@@ -122,11 +122,6 @@ class SalePaymentPlan < ApplicationRecord
     parts.active.find { |part| part.sale_id == sale.id }&.sequence
   end
 
-  # Economics of the whole deal. The purchase links sit on the originating order
-  # while the money arrives across every charge, so only the plan can put revenue
-  # and cost of goods on the same page. Gross revenue is the contract value when
-  # the provider states one, so the deal reads as a finished job rather than as
-  # whatever has been billed so far.
   def profitability(expense_fraction: ExpenseRate.combined_fraction)
     summaries = related_sales.map { |sale| sale.profitability(expense_fraction:) }
     terms = Sale::Profitability::ADDITIVE_TERMS.index_with { |term|
@@ -142,18 +137,12 @@ class SalePaymentPlan < ApplicationRecord
     )
   end
 
-  # Current parts whose order already exists locally. A plan can name a payment
-  # the store has not sent us yet, and such a part has nothing to link to.
-  def linked_parts
-    parts.select { |part| part.active? && part.sale }
+  def reconcile_installment_attribution!
+    origin_item = eligible_origin_item
+
+    follow_up_sales.each { |sale| sale.reconcile_installment_attribution!(origin_item) }
   end
 
-  # Sales actively collecting on this plan, distinct from the sale that started it.
-  def follow_up_sales
-    linked_parts.map(&:sale).uniq - [origin_sale]
-  end
-
-  # The one catalog, non-installment item on the origin sale, when unambiguous.
   def eligible_origin_item
     return if origin_sale.blank?
 
@@ -161,21 +150,15 @@ class SalePaymentPlan < ApplicationRecord
     candidates.first if candidates.one?
   end
 
-  def reconcile_installment_attribution!
-    origin_item = eligible_origin_item
+  def follow_up_sales
+    linked_parts.map(&:sale).uniq - [origin_sale]
+  end
 
-    follow_up_sales.each { |sale| sale.reconcile_installment_attribution!(origin_item) }
+  def linked_parts
+    parts.select { |part| part.active? && part.sale }
   end
 
   private
-
-  # One charge that never said what it collected leaves the deal's total
-  # unstated too, rather than counting it as nothing.
-  def total_across(summaries, term)
-    values = summaries.map { |summary| summary.fetch(term) }
-
-    values.sum(0.to_d) unless values.any?(&:nil?)
-  end
 
   def reconcile_part!(snapshot)
     provider_part_id = snapshot[:provider_part_id].presence&.to_s
@@ -202,6 +185,12 @@ class SalePaymentPlan < ApplicationRecord
     parts.active.count { |part| part.provider_completed_at.present? }
   end
 
+  def positive_net_cash(sale)
+    return 0.to_d unless sale
+
+    [sale.received_revenue.to_d - sale.refunded_revenue.to_d, 0.to_d].max
+  end
+
   def settled_with_positive_cash?(sale)
     sale && sale.outstanding_revenue.to_d <= 0 && positive_net_cash(sale).positive?
   end
@@ -210,9 +199,9 @@ class SalePaymentPlan < ApplicationRecord
     ([origin_sale] + parts.active.includes(:sale).map(&:sale)).compact.uniq
   end
 
-  def positive_net_cash(sale)
-    return 0.to_d unless sale
+  def total_across(summaries, term)
+    values = summaries.map { |summary| summary.fetch(term) }
 
-    [sale.received_revenue.to_d - sale.refunded_revenue.to_d, 0.to_d].max
+    values.sum(0.to_d) unless values.any?(&:nil?)
   end
 end

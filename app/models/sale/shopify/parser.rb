@@ -76,6 +76,31 @@ class Sale::Shopify::Parser
     }
   end
 
+  def converted_money(money_set)
+    amount = money_set&.dig("shopMoney", "amount")
+    return nil if amount.blank?
+
+    order_conversion&.usd_amount(amount)
+  end
+
+  def order_conversion
+    return @order_conversion if defined?(@order_conversion)
+
+    @order_conversion = shopify_created_at && ExchangeRate.eur_to_usd_conversion(date: shopify_created_at.to_date)
+  end
+
+  def shopify_created_at
+    @shopify_created_at ||= parse_datetime(@order["createdAt"])
+  end
+
+  def parse_datetime(datetime_str)
+    return nil unless datetime_str
+
+    DateTime.parse(datetime_str)
+  rescue ArgumentError
+    raise ArgumentError, "Invalid datetime format: #{datetime_str}"
+  end
+
   def next_payment_due
     schedules = payment_schedules
     return nil if schedules.blank?
@@ -84,6 +109,114 @@ class Sale::Shopify::Parser
       .select { |schedule| schedule["completedAt"].nil? && schedule["dueAt"].present? }
       .filter_map { |schedule| parse_datetime(schedule["dueAt"]) }
       .min
+  end
+
+  def payment_schedules
+    Array(@order.dig("paymentTerms", "paymentSchedules", "nodes"))
+  end
+
+  def derive_status
+    Sale.derive_status_from_shopify(@order["displayFulfillmentStatus"], @order["displayFinancialStatus"])
+  end
+
+  def currency_attributes
+    return {shop_currency: nil, presentment_currency: nil, usd_conversion_rate: nil, exchange_rate_date: nil} unless order_conversion
+
+    {
+      shop_currency: @order["currencyCode"],
+      presentment_currency: @order["presentmentCurrencyCode"],
+      usd_conversion_rate: order_conversion.rate,
+      exchange_rate_date: order_conversion.effective_date
+    }
+  end
+
+  def parse_addresses
+    @addresses = {
+      shipping: address_attributes("shippingAddress"),
+      billing: address_attributes("billingAddress", email: find_customer_email)
+    }
+  end
+
+  def address_attributes(key, email: nil)
+    {
+      first_name: @order.dig(key, "firstName"),
+      last_name: @order.dig(key, "lastName"),
+      email:,
+      phone: @order.dig(key, "phone"),
+      company: @order.dig(key, "company"),
+      address_1: @order.dig(key, "address1"),
+      address_2: @order.dig(key, "address2"),
+      city: @order.dig(key, "city"),
+      state: @order.dig(key, "provinceCode") || @order.dig(key, "province"),
+      postcode: @order.dig(key, "zip"),
+      country: @order.dig(key, "country")
+    }.compact_blank
+  end
+
+  def find_customer_email
+    (
+      @order.dig("customer", "defaultEmailAddress", "emailAddress") ||
+      @order["email"]
+    )&.downcase
+  end
+
+  def parse_store_info
+    @store_info = {
+      store_id: @order["id"],
+      ext_created_at: shopify_created_at,
+      ext_updated_at: parse_datetime(@order["updatedAt"])
+    }
+  end
+
+  def parse_customer
+    @customer = {
+      email: find_customer_email,
+      phone: find_customer_phone,
+      first_name: @order.dig("customer", "firstName"),
+      last_name: @order.dig("customer", "lastName"),
+      store_info: {
+        store_id: @order.dig("customer", "id"),
+        ext_created_at: parse_datetime(@order.dig("customer", "createdAt")),
+        ext_updated_at: parse_datetime(@order.dig("customer", "updatedAt"))
+      }.compact
+    }.compact_blank
+  end
+
+  def find_customer_phone
+    @order.dig("customer", "defaultPhoneNumber", "phoneNumber") ||
+      @order["phone"] ||
+      @order.dig("billingAddress", "phone") ||
+      @order.dig("shippingAddress", "phone")
+  end
+
+  def parse_sale_items
+    @sale_items = if @order.dig("lineItems", "nodes").blank?
+      []
+    else
+      @order["lineItems"]["nodes"].map do |line_item|
+        product_store_id = line_item.dig("variant", "product", "id") || line_item.dig("product", "id")
+        parsed_product = parse_product(line_item["product"], product_store_id)
+
+        {
+          price: converted_money(line_item["originalTotalSet"]),
+          expected_revenue: converted_money(line_item["discountedTotalSet"]) || converted_money(line_item["originalTotalSet"]),
+          qty: line_item["quantity"],
+          store_id: line_item["id"],
+          variant_title: line_item["variantTitle"],
+          variant_store_id: line_item.dig("variant", "id"),
+          product_store_id: product_store_id,
+          full_title: line_item["title"],
+          product: parsed_product
+        }
+      end
+    end
+  end
+
+  def parse_product(product_payload, product_store_id)
+    return nil if product_payload.blank?
+    return nil if product_payload["title"].blank?
+
+    Product::Shopify::Parser.parse(product_payload).merge(store_id: product_store_id || product_payload["id"])
   end
 
   def parse_payment_plan
@@ -119,21 +252,8 @@ class Sale::Shopify::Parser
     }
   end
 
-  def payment_schedules
-    Array(@order.dig("paymentTerms", "paymentSchedules", "nodes"))
-  end
-
   def projected_total(schedules)
     schedules.sum { |schedule| schedule_total_balance(schedule) }
-  end
-
-  def deposit_percent(schedules, total)
-    return if schedules.size <= 1 || total.zero?
-
-    amounts = schedules.map { |schedule| schedule_total_balance(schedule) }
-    return if amounts.uniq.size <= 1
-
-    (amounts.first / total * 100).round(2)
   end
 
   def schedule_total_balance(schedule)
@@ -147,132 +267,12 @@ class Sale::Shopify::Parser
     "active"
   end
 
-  def parse_addresses
-    @addresses = {
-      shipping: address_attributes("shippingAddress"),
-      billing: address_attributes("billingAddress", email: find_customer_email)
-    }
-  end
+  def deposit_percent(schedules, total)
+    return if schedules.size <= 1 || total.zero?
 
-  def address_attributes(key, email: nil)
-    {
-      first_name: @order.dig(key, "firstName"),
-      last_name: @order.dig(key, "lastName"),
-      email:,
-      phone: @order.dig(key, "phone"),
-      company: @order.dig(key, "company"),
-      address_1: @order.dig(key, "address1"),
-      address_2: @order.dig(key, "address2"),
-      city: @order.dig(key, "city"),
-      state: @order.dig(key, "provinceCode") || @order.dig(key, "province"),
-      postcode: @order.dig(key, "zip"),
-      country: @order.dig(key, "country")
-    }.compact_blank
-  end
+    amounts = schedules.map { |schedule| schedule_total_balance(schedule) }
+    return if amounts.uniq.size <= 1
 
-  def parse_store_info
-    @store_info = {
-      store_id: @order["id"],
-      ext_created_at: shopify_created_at,
-      ext_updated_at: parse_datetime(@order["updatedAt"])
-    }
-  end
-
-  def parse_customer
-    @customer = {
-      email: find_customer_email,
-      phone: find_customer_phone,
-      first_name: @order.dig("customer", "firstName"),
-      last_name: @order.dig("customer", "lastName"),
-      store_info: {
-        store_id: @order.dig("customer", "id"),
-        ext_created_at: parse_datetime(@order.dig("customer", "createdAt")),
-        ext_updated_at: parse_datetime(@order.dig("customer", "updatedAt"))
-      }.compact
-    }.compact_blank
-  end
-
-  def find_customer_email
-    (
-      @order.dig("customer", "defaultEmailAddress", "emailAddress") ||
-      @order["email"]
-    )&.downcase
-  end
-
-  def find_customer_phone
-    @order.dig("customer", "defaultPhoneNumber", "phoneNumber") ||
-      @order["phone"] ||
-      @order.dig("billingAddress", "phone") ||
-      @order.dig("shippingAddress", "phone")
-  end
-
-  def parse_sale_items
-    @sale_items = if @order.dig("lineItems", "nodes").blank?
-      []
-    else
-      @order["lineItems"]["nodes"].map do |line_item|
-        product_store_id = line_item.dig("variant", "product", "id") || line_item.dig("product", "id")
-        parsed_product = parse_product(line_item["product"], product_store_id)
-
-        {
-          price: converted_money(line_item["originalTotalSet"]),
-          expected_revenue: converted_money(line_item["discountedTotalSet"]) || converted_money(line_item["originalTotalSet"]),
-          qty: line_item["quantity"],
-          store_id: line_item["id"],
-          variant_title: line_item["variantTitle"],
-          variant_store_id: line_item.dig("variant", "id"),
-          product_store_id: product_store_id,
-          full_title: line_item["title"],
-          product: parsed_product
-        }
-      end
-    end
-  end
-
-  def derive_status
-    Sale.derive_status_from_shopify(@order["displayFulfillmentStatus"], @order["displayFinancialStatus"])
-  end
-
-  def parse_datetime(datetime_str)
-    return nil unless datetime_str
-
-    DateTime.parse(datetime_str)
-  rescue ArgumentError
-    raise ArgumentError, "Invalid datetime format: #{datetime_str}"
-  end
-
-  def shopify_created_at
-    @shopify_created_at ||= parse_datetime(@order["createdAt"])
-  end
-
-  def order_conversion
-    return @order_conversion if defined?(@order_conversion)
-
-    @order_conversion = shopify_created_at && ExchangeRate.eur_to_usd_conversion(date: shopify_created_at.to_date)
-  end
-
-  def currency_attributes
-    return {shop_currency: nil, presentment_currency: nil, usd_conversion_rate: nil, exchange_rate_date: nil} unless order_conversion
-
-    {
-      shop_currency: @order["currencyCode"],
-      presentment_currency: @order["presentmentCurrencyCode"],
-      usd_conversion_rate: order_conversion.rate,
-      exchange_rate_date: order_conversion.effective_date
-    }
-  end
-
-  def converted_money(money_set)
-    amount = money_set&.dig("shopMoney", "amount")
-    return nil if amount.blank?
-
-    order_conversion&.usd_amount(amount)
-  end
-
-  def parse_product(product_payload, product_store_id)
-    return nil if product_payload.blank?
-    return nil if product_payload["title"].blank?
-
-    Product::Shopify::Parser.parse(product_payload).merge(store_id: product_store_id || product_payload["id"])
+    (amounts.first / total * 100).round(2)
   end
 end

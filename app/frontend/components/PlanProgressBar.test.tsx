@@ -6,8 +6,6 @@ import { makeSalePaymentPlan } from "@/test/factories";
 import PlanProgressBar from "./PlanProgressBar";
 
 describe("PlanProgressBar", () => {
-  // Four-part plan of 255 each, contract value 1 020, two charges collected,
-  // viewed from the second charge — the ticket's worked example.
   it("renders one segment per expected Payment, fills the collected ones, and marks the current segment", () => {
     const { container } = render(
       <PlanProgressBar
@@ -44,9 +42,6 @@ describe("PlanProgressBar", () => {
     );
 
     const segments = container.querySelectorAll(".plan_progress_bar__segment");
-    // The current segment carries its own DOM marker (a non-color cue for
-    // sighted users via CSS, and readable text for assistive tech) rather
-    // than relying on the fill color alone to say which charge this is.
     expect(segments[1]).toHaveAttribute("data-current");
     expect(segments[0]).not.toHaveAttribute("data-current");
     expect(segments[2]).not.toHaveAttribute("data-current");

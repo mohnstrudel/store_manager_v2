@@ -7,6 +7,10 @@ module Sale::Titling
     [status&.titleize, shop_identifier].compact_blank.join(" | ")
   end
 
+  def shop_identifier
+    shopify_name.presence || short_shopify_id(shopify_id) || woo_store_id
+  end
+
   def select_title
     name = customer&.full_name.presence
     email = customer&.email.presence
@@ -17,10 +21,6 @@ module Sale::Titling
 
   def full_title
     [customer&.name_and_email, woo_store_id.presence].compact.join(" | ")
-  end
-
-  def shop_identifier
-    shopify_name.presence || short_shopify_id(shopify_id) || woo_store_id
   end
 
   private

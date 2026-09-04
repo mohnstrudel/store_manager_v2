@@ -49,8 +49,6 @@ export function makeSalePaymentProgress(
   };
 }
 
-// Like FactoryBot's create_list: builds `count` records from `factory`, auto-incrementing
-// `id` so each record has a unique key. Override other fields via the third argument.
 export function makeList<T extends HasId>(
   factory: (overrides?: Partial<T>) => T,
   count: number,

@@ -19,43 +19,6 @@ import type {
   SaleShowSaleItemRecord,
 } from "../types";
 
-export function makeSaleIndexPurchaseItem(
-  overrides: Partial<SaleIndexPurchaseItemRecord> = {},
-): SaleIndexPurchaseItemRecord {
-  return {
-    id: 101,
-    path: "/purchase_items/101",
-    warehouse_name: "Berlin Hub",
-    expenses: "9.99",
-    ...overrides,
-  };
-}
-
-export function makeSaleIndexSaleItem(
-  overrides: Partial<SaleIndexSaleItemRecord> = {},
-): SaleIndexSaleItemRecord {
-  return {
-    id: 11,
-    title: "Pikachu Figure",
-    qty: 2,
-    purchased_count: 1,
-    product_thumb_url: null,
-    purchase_items: [makeSaleIndexPurchaseItem()],
-    ...overrides,
-  };
-}
-
-export function makeSalePayment(overrides: Partial<SalePaymentRecord> = {}): SalePaymentRecord {
-  return {
-    progress: 71,
-    paid: "750",
-    price: "1060",
-    debt: "310",
-    payment_overdue: false,
-    ...overrides,
-  };
-}
-
 export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): SaleIndexRecord {
   return {
     id: 1,
@@ -81,79 +44,39 @@ export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): S
   };
 }
 
-export function makeSaleAddress(overrides: Partial<SaleAddressRecord> = {}): SaleAddressRecord {
+export function makeSaleIndexSaleItem(
+  overrides: Partial<SaleIndexSaleItemRecord> = {},
+): SaleIndexSaleItemRecord {
   return {
-    address_1: "123 Main St",
-    address_2: "",
-    city: "Bremerhaven",
-    company: "",
-    country: "DE",
-    email: "dale@fbi.gov",
-    first_name: "Dale",
-    last_name: "Cooper",
-    phone: "+4912345",
-    postcode: "27570",
-    state: "",
+    id: 11,
+    title: "Pikachu Figure",
+    qty: 2,
+    purchased_count: 1,
+    product_thumb_url: null,
+    purchase_items: [makeSaleIndexPurchaseItem()],
     ...overrides,
   };
 }
 
-export function makeSaleAddressForm(
-  overrides: Partial<SaleAddressFormRecord> = {},
-): SaleAddressFormRecord {
-  return {
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    company: "",
-    address_1: "",
-    address_2: "",
-    city: "",
-    state: "",
-    postcode: "",
-    country: "",
-    ...overrides,
-  };
-}
-
-export function makeSaleCustomer(overrides: Partial<SaleCustomerRecord> = {}): SaleCustomerRecord {
-  return {
-    id: 2,
-    path: "/customers/2",
-    first_name: "Dale",
-    last_name: "Cooper",
-    full_name: "Dale Cooper",
-    email: "dale@fbi.gov",
-    shopify_id_short: "9341147185481",
-    shop_admin_url: "https://admin.shopify.com/store/68d8f5-af/customers/9341147185481",
-    ...overrides,
-  };
-}
-
-export function makeSalePurchaseMovement(
-  overrides: Partial<SalePurchaseMovementRecord> = {},
-): SalePurchaseMovementRecord {
-  return {
-    moved_in: "18. May '26 08:30",
-    warehouse_name: "Berlin Hub",
-    ...overrides,
-  };
-}
-
-export function makeSaleShowPurchaseItem(
-  overrides: Partial<SaleShowPurchaseItemRecord> = {},
-): SaleShowPurchaseItemRecord {
+export function makeSaleIndexPurchaseItem(
+  overrides: Partial<SaleIndexPurchaseItemRecord> = {},
+): SaleIndexPurchaseItemRecord {
   return {
     id: 101,
-    path: "/purchases/55",
-    supplier_title: "Acme Imports",
-    purchase_date: "18. May '26",
-    item_price: "1030",
-    unlink_path: "/purchase_items/101/unlink",
-    current_warehouse_name: "Berlin Hub",
-    current_warehouse_path: "/warehouses/1?selected=101#101",
-    warehouse_movements: [makeSalePurchaseMovement()],
+    path: "/purchase_items/101",
+    warehouse_name: "Berlin Hub",
+    expenses: "9.99",
+    ...overrides,
+  };
+}
+
+export function makeSalePayment(overrides: Partial<SalePaymentRecord> = {}): SalePaymentRecord {
+  return {
+    progress: 71,
+    paid: "750",
+    price: "1060",
+    debt: "310",
+    payment_overdue: false,
     ...overrides,
   };
 }
@@ -184,32 +107,6 @@ export function makeSaleProfitability(
     collected_revenue: "100",
     purchase_paid: "60",
     cash_position: "40",
-    ...overrides,
-  };
-}
-
-export function makeSaleItemPayment(overrides: Partial<PaymentProgress> = {}): PaymentProgress {
-  return {
-    progress: 71,
-    paid: "750",
-    price: "1060",
-    debt: "310",
-    ...overrides,
-  };
-}
-
-export function makeSaleShowSaleItem(
-  overrides: Partial<SaleShowSaleItemRecord> = {},
-): SaleShowSaleItemRecord {
-  return {
-    id: 11,
-    title: "Pikachu Figure",
-    qty: 2,
-    product_path: "/products/pikachu",
-    product_thumb_url: null,
-    purchase_items: [makeSaleShowPurchaseItem()],
-    payment: makeSaleItemPayment(),
-    profitability: null,
     ...overrides,
   };
 }
@@ -263,6 +160,90 @@ export function makeSaleShow(overrides: Partial<SaleShowRecord> = {}): SaleShowR
   };
 }
 
+export function makeSaleCustomer(overrides: Partial<SaleCustomerRecord> = {}): SaleCustomerRecord {
+  return {
+    id: 2,
+    path: "/customers/2",
+    first_name: "Dale",
+    last_name: "Cooper",
+    full_name: "Dale Cooper",
+    email: "dale@fbi.gov",
+    shopify_id_short: "9341147185481",
+    shop_admin_url: "https://admin.shopify.com/store/68d8f5-af/customers/9341147185481",
+    ...overrides,
+  };
+}
+
+export function makeSaleAddress(overrides: Partial<SaleAddressRecord> = {}): SaleAddressRecord {
+  return {
+    address_1: "123 Main St",
+    address_2: "",
+    city: "Bremerhaven",
+    company: "",
+    country: "DE",
+    email: "dale@fbi.gov",
+    first_name: "Dale",
+    last_name: "Cooper",
+    phone: "+4912345",
+    postcode: "27570",
+    state: "",
+    ...overrides,
+  };
+}
+
+export function makeSaleShowSaleItem(
+  overrides: Partial<SaleShowSaleItemRecord> = {},
+): SaleShowSaleItemRecord {
+  return {
+    id: 11,
+    title: "Pikachu Figure",
+    qty: 2,
+    product_path: "/products/pikachu",
+    product_thumb_url: null,
+    purchase_items: [makeSaleShowPurchaseItem()],
+    payment: makeSaleItemPayment(),
+    profitability: null,
+    ...overrides,
+  };
+}
+
+export function makeSaleShowPurchaseItem(
+  overrides: Partial<SaleShowPurchaseItemRecord> = {},
+): SaleShowPurchaseItemRecord {
+  return {
+    id: 101,
+    path: "/purchases/55",
+    supplier_title: "Acme Imports",
+    purchase_date: "18. May '26",
+    item_price: "1030",
+    unlink_path: "/purchase_items/101/unlink",
+    current_warehouse_name: "Berlin Hub",
+    current_warehouse_path: "/warehouses/1?selected=101#101",
+    warehouse_movements: [makeSalePurchaseMovement()],
+    ...overrides,
+  };
+}
+
+export function makeSalePurchaseMovement(
+  overrides: Partial<SalePurchaseMovementRecord> = {},
+): SalePurchaseMovementRecord {
+  return {
+    moved_in: "18. May '26 08:30",
+    warehouse_name: "Berlin Hub",
+    ...overrides,
+  };
+}
+
+export function makeSaleItemPayment(overrides: Partial<PaymentProgress> = {}): PaymentProgress {
+  return {
+    progress: 71,
+    paid: "750",
+    price: "1060",
+    debt: "310",
+    ...overrides,
+  };
+}
+
 export function makeSaleItemForm(overrides: Partial<SaleItemFormRecord> = {}): SaleItemFormRecord {
   return {
     id: null,
@@ -289,6 +270,25 @@ export function makeSaleForm(overrides: Partial<SaleFormRecord> = {}): SaleFormR
     shipping_address: makeSaleAddressForm(),
     billing_address: makeSaleAddressForm(),
     sale_items: [],
+    ...overrides,
+  };
+}
+
+export function makeSaleAddressForm(
+  overrides: Partial<SaleAddressFormRecord> = {},
+): SaleAddressFormRecord {
+  return {
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    company: "",
+    address_1: "",
+    address_2: "",
+    city: "",
+    state: "",
+    postcode: "",
+    country: "",
     ...overrides,
   };
 }

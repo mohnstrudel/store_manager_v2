@@ -18,10 +18,6 @@ module PurchaseItems
 
     private
 
-    def authorize_resource
-      authorize :purchase_item, :move?
-    end
-
     def redirect_target
       return sale_path(params[:sale_id]) if params[:sale_id].present?
       return purchase_path(params[:purchase_id]) if params[:purchase_id].present?
@@ -41,6 +37,10 @@ module PurchaseItems
     def selected_sale_item
       purchase_item = PurchaseItem.find_by(id: selected_item_ids.first)
       purchase_item&.sale_item || warehouse_path(params[:warehouse_id])
+    end
+
+    def authorize_resource
+      authorize :purchase_item, :move?
     end
   end
 end

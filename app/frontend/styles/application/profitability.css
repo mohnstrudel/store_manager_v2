@@ -1,5 +1,4 @@
 @layer components {
-  /* Money amounts */
   .amount {
     @apply font-mono;
   }
@@ -12,8 +11,6 @@
     @apply text-lime-700 dark:text-lime-500;
   }
 
-  /* Product economics snapshot above the tabs: full-width on mobile, a
-     flexible profit equation card on larger screens. */
   .economics_dashboard {
     @apply flex flex-col items-stretch gap-4 lg:flex-row;
   }

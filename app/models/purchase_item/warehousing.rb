@@ -45,6 +45,13 @@ module PurchaseItem::Warehousing
     update!(warehouse_id:)
   end
 
+  def current_warehouse_arrived_at
+    warehouse_movements
+      .select { |movement| movement.warehouse&.id == warehouse_id }
+      .map(&:moved_in)
+      .max || created_at || Time.current
+  end
+
   def warehouse_movements(warehouses_by_id: nil)
     movement_data = audits.each_with_object([]) do |audit, rows|
       moved_warehouse_id = moved_warehouse_id_for(audit)
@@ -65,26 +72,19 @@ module PurchaseItem::Warehousing
     end
   end
 
-  def current_warehouse_arrived_at
-    warehouse_movements
-      .select { |movement| movement.warehouse&.id == warehouse_id }
-      .map(&:moved_in)
-      .max || created_at || Time.current
-  end
-
   private
 
   def set_initial_warehouse_arrived_at
     self.warehouse_arrived_at ||= current_warehouse_arrived_at
   end
 
-  def refresh_warehouse_arrived_at
-    self.warehouse_arrived_at = Time.current
-  end
-
   def moved_warehouse_id_for(audit)
     change = audit.audited_changes["warehouse_id"]
     value = change.is_a?(Array) ? change.last : change
     value&.to_i
+  end
+
+  def refresh_warehouse_arrived_at
+    self.warehouse_arrived_at = Time.current
   end
 end

@@ -52,18 +52,6 @@ class Sale::Shopify::SaleItemImporter
     sale_item
   end
 
-  def sale_item_attributes
-    {
-      price: parsed[:price],
-      expected_revenue: parsed[:expected_revenue],
-      qty: parsed[:qty],
-      shopify_id: parsed[:store_id],
-      sale: sale,
-      product: resolved_product,
-      variant: imported_variant
-    }.compact
-  end
-
   def resolved_product
     @resolved_product ||= default_resolved_product
   end
@@ -73,6 +61,12 @@ class Sale::Shopify::SaleItemImporter
       product_from_payload ||
       product_from_full_title ||
       placeholder_product
+  end
+
+  def existing_product_from_store_id
+    return nil if parsed[:product_store_id].blank?
+
+    Product.find_by_shopify_id(parsed[:product_store_id])
   end
 
   def product_from_payload
@@ -121,19 +115,18 @@ class Sale::Shopify::SaleItemImporter
       .find { |variant| variant.shopify_info&.store_id == parsed[:variant_store_id] }
   end
 
-  # The order-sync product payload never carries variants (kept light to bound bulk-pull
-  # query cost), so a variant Shopify has not shown us before cannot be resolved here and
-  # has no assignable fallback on a multi-variant product. Defer to the async product pull;
-  # the next full synchronization retries this line item once the variant is cached locally.
-  def unresolvable_new_variant?
-    return false if parsed[:variant_store_id].blank?
-    return false if Variant.find_by_shopify_id(parsed[:variant_store_id])
-    return false if parsed.dig(:product, :variants).present?
-    return false if resolved_product.blank?
-    return false if resolved_product.assignable_variants.base_models.exists?
+  def normalized_variant_title
+    return @normalized_variant_title if defined?(@normalized_variant_title)
 
-    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if parsed[:product_store_id].present?
-    true
+    raw_title = parsed[:variant_title].to_s
+    return @normalized_variant_title = nil if raw_title.blank?
+
+    title = Sanitizable.sanitize(raw_title).presence
+    @normalized_variant_title = title
+  end
+
+  def base_model_variant_title?
+    normalized_variant_title == "Default Title"
   end
 
   def create_custom_variant
@@ -153,20 +146,6 @@ class Sale::Shopify::SaleItemImporter
     )
   end
 
-  def base_model_variant_title?
-    normalized_variant_title == "Default Title"
-  end
-
-  def normalized_variant_title
-    return @normalized_variant_title if defined?(@normalized_variant_title)
-
-    raw_title = parsed[:variant_title].to_s
-    return @normalized_variant_title = nil if raw_title.blank?
-
-    title = Sanitizable.sanitize(raw_title).presence
-    @normalized_variant_title = title
-  end
-
   def base_model_variant_for(product)
     return product.base_variant if product.base_variant
 
@@ -175,10 +154,27 @@ class Sale::Shopify::SaleItemImporter
     product.base_variant
   end
 
-  def existing_product_from_store_id
-    return nil if parsed[:product_store_id].blank?
+  def sale_item_attributes
+    {
+      price: parsed[:price],
+      expected_revenue: parsed[:expected_revenue],
+      qty: parsed[:qty],
+      shopify_id: parsed[:store_id],
+      sale: sale,
+      product: resolved_product,
+      variant: imported_variant
+    }.compact
+  end
 
-    Product.find_by_shopify_id(parsed[:product_store_id])
+  def unresolvable_new_variant?
+    return false if parsed[:variant_store_id].blank?
+    return false if Variant.find_by_shopify_id(parsed[:variant_store_id])
+    return false if parsed.dig(:product, :variants).present?
+    return false if resolved_product.blank?
+    return false if resolved_product.assignable_variants.base_models.exists?
+
+    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if parsed[:product_store_id].present?
+    true
   end
 
   def handle_record_invalid(error)

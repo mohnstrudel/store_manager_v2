@@ -5,7 +5,6 @@ require "rails_helper"
 RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
   let(:job) { described_class.new }
 
-  # This baseline rate predates every fixture order; date-sensitive examples override it.
   before do
     create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.0000"))
   end
@@ -56,12 +55,10 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
 
     it "re-raises SKU collision errors" do
-      # Create a product that will cause SKU collision
       product = create(:product)
       create(:variant, product:, sku: "test-001")
       create(:sale, shopify_id: "gid://shopify/Order/123")
 
-      # Stub to raise SKU collision error
       allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
         StandardError.new("SKU has already been taken")
       )

@@ -14,7 +14,6 @@ module Variant::Options
 
   class_methods do
     def types
-      # Values should follow this rule: [English, German]
       {
         version: ["Version", "Variante"],
         size: ["Size", "Maßstab"],

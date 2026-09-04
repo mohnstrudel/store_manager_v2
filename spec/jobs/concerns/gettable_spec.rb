@@ -223,7 +223,7 @@ RSpec.describe Gettable do
         allow(HTTParty).to receive(:get).and_raise(StandardError.new(error_message))
         allow(Rails.logger).to receive(:error)
         allow(Sentry).to receive(:capture_message)
-        allow(instance).to receive(:sleep) # Mock sleep to avoid actual delays
+        allow(instance).to receive(:sleep)
       end
 
       it "retries up to 3 times" do
@@ -271,7 +271,7 @@ RSpec.describe Gettable do
             mock_response
           end
         end
-        allow(instance).to receive(:sleep) # Mock sleep to avoid actual delays
+        allow(instance).to receive(:sleep)
       end
 
       it "retries until successful" do

@@ -62,6 +62,15 @@ function BreadcrumbItem({
   );
 }
 
+function breadcrumbOpacityStyle(index: number, total: number) {
+  if (index === total - 1) return undefined;
+
+  const positionFromEnd = total - 1 - index;
+  const opacity = Math.max(0.4, 1 - positionFromEnd * 0.2);
+
+  return { opacity };
+}
+
 function BreadcrumbLabel({ name }: { name: string }) {
   const { icon, label } = splitBreadcrumbIcon(name);
 
@@ -75,15 +84,6 @@ function BreadcrumbLabel({ name }: { name: string }) {
       <span>{label}</span>
     </>
   );
-}
-
-function breadcrumbOpacityStyle(index: number, total: number) {
-  if (index === total - 1) return undefined;
-
-  const positionFromEnd = total - 1 - index;
-  const opacity = Math.max(0.4, 1 - positionFromEnd * 0.2);
-
-  return { opacity };
 }
 
 function splitBreadcrumbIcon(name: string) {

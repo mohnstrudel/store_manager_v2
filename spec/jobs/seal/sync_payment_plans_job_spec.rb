@@ -85,9 +85,6 @@ RSpec.describe Seal::SyncPaymentPlansJob do
   end
 
   describe "single-flight locking" do
-    # Transactional specs pin every leased AR connection to one PostgreSQL session
-    # (ActiveRecord::TestFixtures#lock_thread), so a real competing session for the
-    # advisory lock needs a raw libpq connection outside the AR pool entirely.
     def raw_pg_connection
       config = ActiveRecord::Base.connection_db_config.configuration_hash
       PG.connect(dbname: config[:database], host: config[:host], port: config[:port], user: config[:username], password: config[:password])

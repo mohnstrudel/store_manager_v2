@@ -1,24 +1,3 @@
-// Canonical test double for "@inertiajs/react".
-//
-// Applied globally via vitest.config.ts resolve.alias — no per-file vi.mock call needed.
-// Every test file that imports from "@inertiajs/react" automatically gets this module.
-//
-// Assert navigation via the shared router mock:
-//   import { router } from "@inertiajs/react";
-//   expect(router.delete).toHaveBeenCalledWith("/products/1", ...);
-//
-// Drive page-dependent rendering with the helpers:
-//   import { mockPage, mockPageProps } from "@/test/mocks/inertia";
-//   mockPageProps({ errors: { name: "can't be blank" } }); // before render()
-//
-// Queue server-side form errors:
-//   import { nextFormErrors } from "@/test/mocks/inertia";
-//   nextFormErrors.mockReturnValueOnce({ field: "message" });
-//
-// vitest.config.ts sets mockReset: true — call history and mockReturnValue
-// overrides reset automatically before each test. Apply helpers in beforeEach
-// or per test, never at module/describe scope.
-
 import {
   forwardRef,
   useImperativeHandle,
@@ -31,7 +10,6 @@ import {
 } from "react";
 import { vi } from "vitest";
 
-// Structural match of @inertiajs/core's Page type (transitive dep, not directly importable).
 type MockPage = {
   component: string;
   flash: Record<string, unknown>;
@@ -43,6 +21,14 @@ type MockPage = {
 };
 
 type PageOverrides = Partial<MockPage>;
+
+export function mockPageProps(props: Record<string, unknown>) {
+  mockPage({ props });
+}
+
+export function mockPage(overrides: PageOverrides) {
+  usePage.mockReturnValue(buildPage(overrides));
+}
 
 export function buildPage(overrides: PageOverrides = {}): MockPage {
   return {
@@ -58,14 +44,6 @@ export function buildPage(overrides: PageOverrides = {}): MockPage {
 }
 
 export const usePage = vi.fn<() => MockPage>(() => buildPage());
-
-export function mockPage(overrides: PageOverrides) {
-  usePage.mockReturnValue(buildPage(overrides));
-}
-
-export function mockPageProps(props: Record<string, unknown>) {
-  mockPage({ props });
-}
 
 export const router = {
   delete: vi.fn<(...args: unknown[]) => unknown>(),
@@ -148,8 +126,6 @@ export const Form = forwardRef<FormRef, FormStubProps>(function Form(
   }
 });
 
-// vi.fn with a default impl so mockReset restores () => null between tests.
-// Usage: nextFormErrors.mockReturnValueOnce({ field: "message" })
 export const nextFormErrors = vi.fn<() => Record<string, string> | null>(() => null);
 
 type SubmitOptions = {
@@ -201,8 +177,6 @@ function useFormStub<TData extends Record<string, unknown>>(initialData: TData) 
     transform: (callback: (data: TData) => unknown) => {
       transformPayload = callback;
     },
-    // Optimistic UI is not observable in component tests (rows render from
-    // test-supplied props, not Inertia page props), so the callback is dropped.
     optimistic: (_callback: unknown) => form,
     delete: (url: string, options?: SubmitOptions) => submit("delete", url, options),
     get: (url: string, options?: SubmitOptions) => submit("get", url, options),

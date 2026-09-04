@@ -84,28 +84,69 @@ class Variant::AssignmentBackfill
     :repair,
     :resume_from
 
-  def apply?
-    @apply
-  end
-
-  def halted?
-    @halted
-  end
-
-  def mode
-    apply? ? "apply" : "dry-run"
-  end
-
   def validate_resume_options!
     return if resume_from.blank? && after_id.blank?
     raise ArgumentError, "RESUME_FROM is required with AFTER_ID" if resume_from.blank?
     raise ArgumentError, "Unknown resume phase: #{resume_from}" unless PHASES.include?(resume_from)
   end
 
+  def counts_snapshot
+    integrity.counts.merge(
+      purchase_item_purchase_identity:
+        integrity.purchase_item_purchase_identity_mismatches.count,
+      base_activation: base_activation_issue_count,
+      duplicate_shopify_identity: duplicate_shopify_store_ids.size
+    )
+  end
+
+  def base_activation_issue_count
+    Product.includes(:variants).count { |product| base_activation_issue?(product) }
+  end
+
+  def base_activation_issue?(product)
+    base_variants = product.variants.select(&:base_model?)
+    return false unless base_variants.one?
+
+    base = base_variants.first
+    active_real_variant = product.variants.any? { |variant| !variant.base_model? && !variant.deactivated? }
+    base.deactivated? != active_real_variant
+  end
+
+  def duplicate_shopify_store_ids
+    StoreInfo
+      .shopify
+      .where(storable_type: "Variant")
+      .where.not(store_id: [nil, ""])
+      .group(:store_id)
+      .having("COUNT(*) > 1")
+      .order(:store_id)
+      .pluck(:store_id)
+  end
+
+  def log(message)
+    output.puts(message)
+  end
+
+  def mode
+    apply? ? "apply" : "dry-run"
+  end
+
+  def apply?
+    @apply
+  end
+
+  def log_counts(label, counts)
+    log "COUNTS label=#{label} #{counts.map { |key, value| "#{key}=#{value}" }.join(" ")}"
+  end
+
   def runnable_phases
     return PHASES unless resume_from
 
     PHASES.drop_while { |phase| phase != resume_from }
+  end
+
+  def halted?
+    @halted
   end
 
   def run_sync_base_activation
@@ -121,125 +162,6 @@ class Variant::AssignmentBackfill
     process_candidates(:sync_base_activation, candidates) do |candidate|
       Product.find(candidate.id).synchronize_variant_availability!
     end
-  end
-
-  def run_reconcile_shopify_identity
-    candidates = duplicate_shopify_store_ids.filter_map do |store_id|
-      infos = duplicate_shopify_infos(store_id).order(:id).to_a
-      canonical_info = canonical_shopify_info(infos)
-      Candidate.new(
-        id: infos.first.id,
-        record: canonical_info,
-        details: {
-          reason: canonical_info ? :unique_pull_provenance : :ambiguous_pull_provenance,
-          store_id:,
-          store_info_ids: infos.pluck(:id)
-        }
-      )
-    end
-    process_candidates(
-      :reconcile_shopify_identity,
-      candidates,
-      unresolved: ->(candidate) { candidate.record.blank? }
-    ) do |candidate|
-      repair.reconcile_duplicate_shopify_identity!(
-        store_id: candidate.details.fetch(:store_id),
-        canonical_store_info_id: candidate.record.id
-      )
-    end
-  end
-
-  def run_repair_purchases
-    candidates = integrity.broken_purchases.order(:id).map do |purchase|
-      product, variant, reason = deterministic_purchase_identity(purchase)
-      Candidate.new(
-        id: purchase.id,
-        record: variant,
-        details: {
-          reason:,
-          product_id: product&.id,
-          variant_id: variant&.id
-        }
-      )
-    end
-    process_candidates(
-      :repair_purchases,
-      candidates,
-      unresolved: ->(candidate) { candidate.record.blank? }
-    ) do |candidate|
-      repair.repair_purchase!(
-        purchase_id: candidate.id,
-        variant_id: candidate.details.fetch(:variant_id)
-      )
-    end
-  end
-
-  def run_repair_sale_items
-    candidates = integrity.broken_sale_items.order(:id).map do |sale_item|
-      product, variant, reason = deterministic_sale_item_identity(sale_item)
-      Candidate.new(
-        id: sale_item.id,
-        record: variant,
-        details: {
-          reason:,
-          product_id: product&.id,
-          variant_id: variant&.id
-        }
-      )
-    end
-    process_candidates(
-      :repair_sale_items,
-      candidates,
-      unresolved: ->(candidate) { candidate.record.blank? }
-    ) do |candidate|
-      repair.repair_sale_item!(
-        sale_item_id: candidate.id,
-        product_id: candidate.details.fetch(:product_id),
-        variant_id: candidate.details.fetch(:variant_id)
-      )
-    end
-  end
-
-  def run_backfill_purchase_item_identity
-    candidates = integrity
-      .purchase_item_purchase_identity_mismatches
-      .order(:id)
-      .map do |purchase_item|
-        Candidate.new(
-          id: purchase_item.id,
-          record: purchase_item,
-          details: {reason: :purchase_identity_mismatch}
-        )
-      end
-    process_candidates(:backfill_purchase_item_identity, candidates) do |candidate|
-      repair.repair_purchase_item_identity!(purchase_item_id: candidate.id)
-    end
-  end
-
-  def run_repair_purchase_item_links
-    candidates = integrity.incompatible_purchase_item_links.order(:id).map do |purchase_item|
-      Candidate.new(
-        id: purchase_item.id,
-        record: purchase_item,
-        details: {reason: :incompatible_link}
-      )
-    end
-    process_candidates(:repair_purchase_item_links, candidates) do |candidate|
-      repair.repair_purchase_item_link!(purchase_item_id: candidate.id)
-    end
-  end
-
-  def run_audit
-    counts = counts_snapshot
-    phase_counts[:audit] = counts.merge(
-      scanned: counts.values.sum,
-      planned: 0,
-      repaired: 0,
-      unresolved: unresolved_integrity_count(counts),
-      failures: 0
-    )
-    log_counts("audit", counts)
-    log_checkpoint(:audit, nil, phase_counts.fetch(:audit))
   end
 
   def process_candidates(phase, candidates, unresolved: ->(_candidate) { false })
@@ -295,6 +217,19 @@ class Variant::AssignmentBackfill
     log_checkpoint(phase, nil, counts) if candidates.empty?
   end
 
+  def resume_candidates(phase, candidates)
+    return candidates unless phase == resume_from && after_id
+
+    candidates.select { |candidate| candidate.id > after_id }
+  end
+
+  def log_unresolved(phase, candidate)
+    log(
+      "UNRESOLVED phase=#{phase} id=#{candidate.id} " \
+        "details=#{candidate.details.inspect}"
+    )
+  end
+
   def reconciliation_noop?(result)
     return false unless result.is_a?(Variant::AssignmentRepair::ShopifyIdentityReconciliation)
 
@@ -303,10 +238,75 @@ class Variant::AssignmentBackfill
       result.repaired_sale_item_count.zero?
   end
 
-  def resume_candidates(phase, candidates)
-    return candidates unless phase == resume_from && after_id
+  def log_checkpoint(phase, last_id, counts)
+    attributes = counts.except(:reasons).map { |key, value| "#{key}=#{value}" }
+    attributes << "reasons=#{counts.fetch(:reasons).sort.to_h.inspect}" if counts.key?(:reasons)
+    attributes.unshift("last_id=#{last_id}") if last_id
+    log "CHECKPOINT phase=#{phase} #{attributes.join(" ")}"
+  end
 
-    candidates.select { |candidate| candidate.id > after_id }
+  def run_reconcile_shopify_identity
+    candidates = duplicate_shopify_store_ids.filter_map do |store_id|
+      infos = duplicate_shopify_infos(store_id).order(:id).to_a
+      canonical_info = canonical_shopify_info(infos)
+      Candidate.new(
+        id: infos.first.id,
+        record: canonical_info,
+        details: {
+          reason: canonical_info ? :unique_pull_provenance : :ambiguous_pull_provenance,
+          store_id:,
+          store_info_ids: infos.pluck(:id)
+        }
+      )
+    end
+    process_candidates(
+      :reconcile_shopify_identity,
+      candidates,
+      unresolved: ->(candidate) { candidate.record.blank? }
+    ) do |candidate|
+      repair.reconcile_duplicate_shopify_identity!(
+        store_id: candidate.details.fetch(:store_id),
+        canonical_store_info_id: candidate.record.id
+      )
+    end
+  end
+
+  def duplicate_shopify_infos(store_id)
+    StoreInfo.shopify.where(storable_type: "Variant", store_id:)
+  end
+
+  def canonical_shopify_info(infos)
+    with_pull_provenance = infos.select do |info|
+      info.pull_time.present? ||
+        info.ext_created_at.present? ||
+        info.ext_updated_at.present?
+    end
+    with_pull_provenance.one? ? with_pull_provenance.first : nil
+  end
+
+  def run_repair_purchases
+    candidates = integrity.broken_purchases.order(:id).map do |purchase|
+      product, variant, reason = deterministic_purchase_identity(purchase)
+      Candidate.new(
+        id: purchase.id,
+        record: variant,
+        details: {
+          reason:,
+          product_id: product&.id,
+          variant_id: variant&.id
+        }
+      )
+    end
+    process_candidates(
+      :repair_purchases,
+      candidates,
+      unresolved: ->(candidate) { candidate.record.blank? }
+    ) do |candidate|
+      repair.repair_purchase!(
+        purchase_id: candidate.id,
+        variant_id: candidate.details.fetch(:variant_id)
+      )
+    end
   end
 
   def deterministic_purchase_identity(purchase)
@@ -315,6 +315,32 @@ class Variant::AssignmentBackfill
     return [product, nil, :ambiguous_option_product] if product.variants.real.exists?
 
     [product, product.base_variant, :base_only_product]
+  end
+
+  def run_repair_sale_items
+    candidates = integrity.broken_sale_items.order(:id).map do |sale_item|
+      product, variant, reason = deterministic_sale_item_identity(sale_item)
+      Candidate.new(
+        id: sale_item.id,
+        record: variant,
+        details: {
+          reason:,
+          product_id: product&.id,
+          variant_id: variant&.id
+        }
+      )
+    end
+    process_candidates(
+      :repair_sale_items,
+      candidates,
+      unresolved: ->(candidate) { candidate.record.blank? }
+    ) do |candidate|
+      repair.repair_sale_item!(
+        sale_item_id: candidate.id,
+        product_id: candidate.details.fetch(:product_id),
+        variant_id: candidate.details.fetch(:variant_id)
+      )
+    end
   end
 
   def deterministic_sale_item_identity(sale_item)
@@ -333,50 +359,46 @@ class Variant::AssignmentBackfill
     [product, nil, :ambiguous_option_product]
   end
 
-  def counts_snapshot
-    integrity.counts.merge(
-      purchase_item_purchase_identity:
-        integrity.purchase_item_purchase_identity_mismatches.count,
-      base_activation: base_activation_issue_count,
-      duplicate_shopify_identity: duplicate_shopify_store_ids.size
-    )
-  end
-
-  def base_activation_issue_count
-    Product.includes(:variants).count { |product| base_activation_issue?(product) }
-  end
-
-  def base_activation_issue?(product)
-    base_variants = product.variants.select(&:base_model?)
-    return false unless base_variants.one?
-
-    base = base_variants.first
-    active_real_variant = product.variants.any? { |variant| !variant.base_model? && !variant.deactivated? }
-    base.deactivated? != active_real_variant
-  end
-
-  def duplicate_shopify_store_ids
-    StoreInfo
-      .shopify
-      .where(storable_type: "Variant")
-      .where.not(store_id: [nil, ""])
-      .group(:store_id)
-      .having("COUNT(*) > 1")
-      .order(:store_id)
-      .pluck(:store_id)
-  end
-
-  def duplicate_shopify_infos(store_id)
-    StoreInfo.shopify.where(storable_type: "Variant", store_id:)
-  end
-
-  def canonical_shopify_info(infos)
-    with_pull_provenance = infos.select do |info|
-      info.pull_time.present? ||
-        info.ext_created_at.present? ||
-        info.ext_updated_at.present?
+  def run_backfill_purchase_item_identity
+    candidates = integrity
+      .purchase_item_purchase_identity_mismatches
+      .order(:id)
+      .map do |purchase_item|
+        Candidate.new(
+          id: purchase_item.id,
+          record: purchase_item,
+          details: {reason: :purchase_identity_mismatch}
+        )
+      end
+    process_candidates(:backfill_purchase_item_identity, candidates) do |candidate|
+      repair.repair_purchase_item_identity!(purchase_item_id: candidate.id)
     end
-    with_pull_provenance.one? ? with_pull_provenance.first : nil
+  end
+
+  def run_repair_purchase_item_links
+    candidates = integrity.incompatible_purchase_item_links.order(:id).map do |purchase_item|
+      Candidate.new(
+        id: purchase_item.id,
+        record: purchase_item,
+        details: {reason: :incompatible_link}
+      )
+    end
+    process_candidates(:repair_purchase_item_links, candidates) do |candidate|
+      repair.repair_purchase_item_link!(purchase_item_id: candidate.id)
+    end
+  end
+
+  def run_audit
+    counts = counts_snapshot
+    phase_counts[:audit] = counts.merge(
+      scanned: counts.values.sum,
+      planned: 0,
+      repaired: 0,
+      unresolved: unresolved_integrity_count(counts),
+      failures: 0
+    )
+    log_counts("audit", counts)
+    log_checkpoint(:audit, nil, phase_counts.fetch(:audit))
   end
 
   def unresolved_integrity_count(counts)
@@ -388,27 +410,5 @@ class Variant::AssignmentBackfill
       :duplicate_shopify_identity,
       :base_activation
     ).sum
-  end
-
-  def log_counts(label, counts)
-    log "COUNTS label=#{label} #{counts.map { |key, value| "#{key}=#{value}" }.join(" ")}"
-  end
-
-  def log_checkpoint(phase, last_id, counts)
-    attributes = counts.except(:reasons).map { |key, value| "#{key}=#{value}" }
-    attributes << "reasons=#{counts.fetch(:reasons).sort.to_h.inspect}" if counts.key?(:reasons)
-    attributes.unshift("last_id=#{last_id}") if last_id
-    log "CHECKPOINT phase=#{phase} #{attributes.join(" ")}"
-  end
-
-  def log_unresolved(phase, candidate)
-    log(
-      "UNRESOLVED phase=#{phase} id=#{candidate.id} " \
-        "details=#{candidate.details.inspect}"
-    )
-  end
-
-  def log(message)
-    output.puts(message)
   end
 end

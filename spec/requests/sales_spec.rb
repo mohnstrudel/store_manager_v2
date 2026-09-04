@@ -56,7 +56,6 @@ RSpec.describe "Sales" do
         payment = inertia.props[:sales].first[:payment]
         expect(payment[:progress]).to eq(33)
         expect(payment[:paid]).to eq("300")
-        # The payment pie, not the order's own 1 060 total: 300 paid + 600 debt.
         expect(payment[:price]).to eq("900")
         expect(payment[:debt]).to eq("600")
         expect(payment[:payment_overdue]).to be(true)
@@ -283,10 +282,6 @@ RSpec.describe "Sales" do
       expect(response).to be_redirect
       expect(response.location).to match(%r{/sales/.+/edit\z})
 
-      # The slug in the redirect URL may differ from the persisted slug because
-      # FriendlyId regenerates it (with woo_store_id now present) inside the
-      # rolled-back transaction. Request the edit page via the original path so
-      # we can verify the errors were stored in the session.
       get edit_sale_path(sale)
 
       expect(response).to have_http_status(:ok)

@@ -38,58 +38,14 @@ type ProductFormProps = {
 type ProductFormSections = ReturnType<typeof useProductFormSections>;
 type StoreInfoRow = SectionRow<StoreInfoFormData>;
 
-function defaultPurchase(): PurchaseFormData {
-  return {
-    supplier_id: null,
-    order_reference: "",
-    item_price: "",
-    amount: "",
-    warehouse_id: null,
-    payment_value: "",
-    variant_client_key: null,
-  };
+function TiptapSkeleton() {
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+      <div className="h-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 animate-pulse" />
+      <div className="min-h-48 animate-pulse bg-white dark:bg-gray-900" />
+    </div>
+  );
 }
-
-function newVariant(): VariantFormData {
-  return {
-    id: null,
-    base_model: false,
-    sku: "",
-    size_id: null,
-    version_id: null,
-    color_id: null,
-    purchase_cost: "0",
-    selling_price: "0",
-    weight: "0",
-    deactivated: false,
-    has_sales_or_purchases: false,
-    _destroy: false,
-  };
-}
-
-function newStoreInfo(): StoreInfoFormData {
-  return {
-    id: null,
-    store_name: "",
-    tag_list: "",
-    _destroy: false,
-  };
-}
-
-function shouldShowPurchase(purchase: PurchaseFormData, errors: Record<string, string>) {
-  const hasPurchaseValues = [
-    purchase.supplier_id,
-    purchase.order_reference,
-    purchase.item_price,
-    purchase.amount,
-    purchase.payment_value,
-  ].some((value) => value !== null && value !== "");
-
-  const hasPurchaseErrors = Object.keys(errors).some((key) => key.startsWith("purchase."));
-
-  return hasPurchaseValues || hasPurchaseErrors || !!errors.initial_purchase;
-}
-
 export default function ProductForm({
   isNew,
   options,
@@ -137,192 +93,6 @@ export default function ProductForm({
     </ResourceForm>
   );
 }
-
-function ProductIdentityFields({
-  errors,
-  options,
-  product,
-  selectedBrands,
-  selectedFranchise,
-}: {
-  errors: Record<string, string>;
-  options: FormOptions;
-  product: ProductFormRecord;
-  selectedBrands: FormOptions["brands"];
-  selectedFranchise: FormOptions["franchises"][number] | null;
-}) {
-  return (
-    <FormRow>
-      <FormSmartSelect
-        className="lg:w-2/3"
-        defaultValue={selectedFranchise}
-        error={errors.franchise || errors.franchise_id}
-        inputId="product_franchise_id"
-        isClearable
-        label="Franchise"
-        name="product[franchise_id]"
-        options={options.franchises}
-      />
-
-      <FormInput
-        defaultValue={product.title}
-        error={errors.title}
-        label="Title"
-        name="product[title]"
-      />
-
-      <FormControl className="lg:w-1/4" error={errors.shape} htmlFor="product_shape" label="Shape">
-        <select id="product_shape" name="product[shape]" defaultValue={product.shape}>
-          {options.shapes.map((shape) => (
-            <option key={shape} value={shape}>
-              {shape}
-            </option>
-          ))}
-        </select>
-      </FormControl>
-
-      <FormSmartSelect
-        className="lg:w-2/3"
-        defaultValue={selectedBrands}
-        error={errors.brand_ids}
-        inputId="product_brand_ids"
-        isMulti
-        label="Brand"
-        name="product[brand_ids][]"
-        options={options.brands}
-      />
-    </FormRow>
-  );
-}
-
-function ProductDescriptionField({
-  errors,
-  product,
-}: {
-  errors: Record<string, string>;
-  product: ProductFormRecord;
-}) {
-  return (
-    <div>
-      <label htmlFor="product[description]">Description</label>
-      <Suspense fallback={TIPTAP_FALLBACK}>
-        <TiptapEditor defaultValue={product.description_html} name="product[description]" />
-      </Suspense>
-      {errors.description && <p className="text_error mt-2">{errors.description}</p>}
-    </div>
-  );
-}
-
-function TiptapSkeleton() {
-  return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
-      <div className="h-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 animate-pulse" />
-      <div className="min-h-48 animate-pulse bg-white dark:bg-gray-900" />
-    </div>
-  );
-}
-
-function ProductVariantsSection({
-  errors,
-  form,
-  isNew,
-  options,
-}: {
-  errors: Record<string, string>;
-  form: ProductFormSections;
-  isNew: boolean;
-  options: FormOptions;
-}) {
-  const variants = isNew ? visibleDraftVariants(form.variants.items) : form.variants.items;
-
-  return (
-    <DynamicNestedForm name="Variant" onAdd={form.variants.add} title="Variants">
-      {variants.map((variant, index) => (
-        <VariantFields
-          colors={options.colors}
-          errors={errors}
-          index={index}
-          key={variant.clientKey}
-          onChange={form.variants.update}
-          onRemove={form.variants.remove}
-          sizes={options.sizes}
-          variant={variant}
-          versions={options.versions}
-        />
-      ))}
-    </DynamicNestedForm>
-  );
-}
-
-function ProductStoreInfoSection({
-  errors,
-  form,
-  options,
-}: {
-  errors: Record<string, string>;
-  form: ProductFormSections;
-  options: FormOptions;
-}) {
-  return (
-    <DynamicNestedForm
-      canAdd={canAddStoreInfo(form.storeInfos.items, options.store_names)}
-      name="Store Info"
-      onAdd={form.storeInfos.add}
-      title="Store Information"
-    >
-      {form.storeInfos.items.map((storeInfo, index) => (
-        <StoreInfoFields
-          errors={errors}
-          index={index}
-          key={storeInfo.clientKey}
-          onRemove={form.storeInfos.removeAt}
-          storeInfo={storeInfo}
-          storeNames={options.store_names}
-        />
-      ))}
-    </DynamicNestedForm>
-  );
-}
-
-function InitialPurchaseSection({
-  errors,
-  form,
-  options,
-}: {
-  errors: Record<string, string>;
-  form: ProductFormSections;
-  options: FormOptions;
-}) {
-  const renderPurchase = form.showPurchase || shouldShowPurchase(form.initialPurchase, errors);
-
-  return (
-    <section>
-      <FormSectionHeading
-        subtitle="Add a purchase if you want to create one alongside the product."
-        title="Purchase"
-      />
-
-      {!renderPurchase && (
-        <button className="btn_rounded" onClick={form.showPurchaseForm} type="button">
-          Add Purchase
-        </button>
-      )}
-
-      {renderPurchase && (
-        <PurchaseFields
-          draftAvailability={form.draftVariantAvailability}
-          errors={errors}
-          onVariantChange={form.selectDraftVariant}
-          purchase={form.initialPurchase}
-          suppliers={options.suppliers}
-          variantClientKey={form.variantClientKey}
-          warehouses={options.warehouses}
-        />
-      )}
-    </section>
-  );
-}
-
 function useProductFormSections(
   product: ProductFormRecord,
   purchase: PurchaseFormData | undefined,
@@ -391,7 +161,226 @@ function useProductFormSections(
     variantClientKey,
   };
 }
+function defaultPurchase(): PurchaseFormData {
+  return {
+    supplier_id: null,
+    order_reference: "",
+    item_price: "",
+    amount: "",
+    warehouse_id: null,
+    payment_value: "",
+    variant_client_key: null,
+  };
+}
+function newStoreInfo(): StoreInfoFormData {
+  return {
+    id: null,
+    store_name: "",
+    tag_list: "",
+    _destroy: false,
+  };
+}
+function newVariant(): VariantFormData {
+  return {
+    id: null,
+    base_model: false,
+    sku: "",
+    size_id: null,
+    version_id: null,
+    color_id: null,
+    purchase_cost: "0",
+    selling_price: "0",
+    weight: "0",
+    deactivated: false,
+    has_sales_or_purchases: false,
+    _destroy: false,
+  };
+}
 
+function ProductIdentityFields({
+  errors,
+  options,
+  product,
+  selectedBrands,
+  selectedFranchise,
+}: {
+  errors: Record<string, string>;
+  options: FormOptions;
+  product: ProductFormRecord;
+  selectedBrands: FormOptions["brands"];
+  selectedFranchise: FormOptions["franchises"][number] | null;
+}) {
+  return (
+    <FormRow>
+      <FormSmartSelect
+        className="lg:w-2/3"
+        defaultValue={selectedFranchise}
+        error={errors.franchise || errors.franchise_id}
+        inputId="product_franchise_id"
+        isClearable
+        label="Franchise"
+        name="product[franchise_id]"
+        options={options.franchises}
+      />
+
+      <FormInput
+        defaultValue={product.title}
+        error={errors.title}
+        label="Title"
+        name="product[title]"
+      />
+
+      <FormControl className="lg:w-1/4" error={errors.shape} htmlFor="product_shape" label="Shape">
+        <select id="product_shape" name="product[shape]" defaultValue={product.shape}>
+          {options.shapes.map((shape) => (
+            <option key={shape} value={shape}>
+              {shape}
+            </option>
+          ))}
+        </select>
+      </FormControl>
+
+      <FormSmartSelect
+        className="lg:w-2/3"
+        defaultValue={selectedBrands}
+        error={errors.brand_ids}
+        inputId="product_brand_ids"
+        isMulti
+        label="Brand"
+        name="product[brand_ids][]"
+        options={options.brands}
+      />
+    </FormRow>
+  );
+}
+function ProductDescriptionField({
+  errors,
+  product,
+}: {
+  errors: Record<string, string>;
+  product: ProductFormRecord;
+}) {
+  return (
+    <div>
+      <label htmlFor="product[description]">Description</label>
+      <Suspense fallback={TIPTAP_FALLBACK}>
+        <TiptapEditor defaultValue={product.description_html} name="product[description]" />
+      </Suspense>
+      {errors.description && <p className="text_error mt-2">{errors.description}</p>}
+    </div>
+  );
+}
+function ProductVariantsSection({
+  errors,
+  form,
+  isNew,
+  options,
+}: {
+  errors: Record<string, string>;
+  form: ProductFormSections;
+  isNew: boolean;
+  options: FormOptions;
+}) {
+  const variants = isNew ? visibleDraftVariants(form.variants.items) : form.variants.items;
+
+  return (
+    <DynamicNestedForm name="Variant" onAdd={form.variants.add} title="Variants">
+      {variants.map((variant, index) => (
+        <VariantFields
+          colors={options.colors}
+          errors={errors}
+          index={index}
+          key={variant.clientKey}
+          onChange={form.variants.update}
+          onRemove={form.variants.remove}
+          sizes={options.sizes}
+          variant={variant}
+          versions={options.versions}
+        />
+      ))}
+    </DynamicNestedForm>
+  );
+}
+function ProductStoreInfoSection({
+  errors,
+  form,
+  options,
+}: {
+  errors: Record<string, string>;
+  form: ProductFormSections;
+  options: FormOptions;
+}) {
+  return (
+    <DynamicNestedForm
+      canAdd={canAddStoreInfo(form.storeInfos.items, options.store_names)}
+      name="Store Info"
+      onAdd={form.storeInfos.add}
+      title="Store Information"
+    >
+      {form.storeInfos.items.map((storeInfo, index) => (
+        <StoreInfoFields
+          errors={errors}
+          index={index}
+          key={storeInfo.clientKey}
+          onRemove={form.storeInfos.removeAt}
+          storeInfo={storeInfo}
+          storeNames={options.store_names}
+        />
+      ))}
+    </DynamicNestedForm>
+  );
+}
 function canAddStoreInfo(storeInfos: StoreInfoRow[], storeNames: string[]) {
   return storeInfos.filter((storeInfo) => !storeInfo._destroy).length < storeNames.length;
+}
+function InitialPurchaseSection({
+  errors,
+  form,
+  options,
+}: {
+  errors: Record<string, string>;
+  form: ProductFormSections;
+  options: FormOptions;
+}) {
+  const renderPurchase = form.showPurchase || shouldShowPurchase(form.initialPurchase, errors);
+
+  return (
+    <section>
+      <FormSectionHeading
+        subtitle="Add a purchase if you want to create one alongside the product."
+        title="Purchase"
+      />
+
+      {!renderPurchase && (
+        <button className="btn_rounded" onClick={form.showPurchaseForm} type="button">
+          Add Purchase
+        </button>
+      )}
+
+      {renderPurchase && (
+        <PurchaseFields
+          draftAvailability={form.draftVariantAvailability}
+          errors={errors}
+          onVariantChange={form.selectDraftVariant}
+          purchase={form.initialPurchase}
+          suppliers={options.suppliers}
+          variantClientKey={form.variantClientKey}
+          warehouses={options.warehouses}
+        />
+      )}
+    </section>
+  );
+}
+function shouldShowPurchase(purchase: PurchaseFormData, errors: Record<string, string>) {
+  const hasPurchaseValues = [
+    purchase.supplier_id,
+    purchase.order_reference,
+    purchase.item_price,
+    purchase.amount,
+    purchase.payment_value,
+  ].some((value) => value !== null && value !== "");
+
+  const hasPurchaseErrors = Object.keys(errors).some((key) => key.startsWith("purchase."));
+
+  return hasPurchaseValues || hasPurchaseErrors || !!errors.initial_purchase;
 }

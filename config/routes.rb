@@ -4,10 +4,8 @@ require "sidekiq/web"
 require "sidekiq-status/web"
 
 Rails.application.routes.draw do
-  # System
   get "up", to: "rails/health#show", as: :rails_health_chec
 
-  # Operations
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"
   end
@@ -19,17 +17,14 @@ Rails.application.routes.draw do
   mount ShopifyApp::Engine, at: "shopify_app"
   mount Sidekiq::Web => "jobs"
 
-  # External webhooks
   post "update-order", to: "webhooks/order_updates#create"
   post "sale-status", to: "webhooks/sale_statuses#create"
 
-  # MCP endpoint (unauthenticated, for external agents)
   post "mcp", to: "mcp/server#handle"
 
   defaults export: true do
     root "dashboard#index"
 
-    # Authentication
     resources :passwords, param: :token
 
     resources :users, except: %i[new create]
@@ -39,22 +34,18 @@ Rails.application.routes.draw do
     get "sign_in", to: "sessions#new", as: :sign_in
     post "log_out", to: "sessions#destroy", as: :log_out
 
-    # Dashboard
     get "debts", to: "dashboard/debts#show"
     get "debts/:page", to: "dashboard/debts#show"
     get "noop", to: "dashboard#noop", as: :noop
 
-    # Glossary
     get "glossary", to: "glossary#show"
 
     scope module: :dashboard do
       resource :last_orders_pull, only: :create, path: "pull-last-orders"
     end
 
-    # Media
     post "media/uploads", to: "media_uploads#create", as: :media_uploads
 
-    # Inventory
     resources :variant_assignment_issues, only: :index
     namespace :variant_assignment_issues do
       resources :purchases, only: :update
@@ -139,7 +130,6 @@ Rails.application.routes.draw do
       end
     end
 
-    # Reference data
     resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
     resources :expense_rates, except: :show
   end

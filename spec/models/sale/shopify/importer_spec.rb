@@ -12,11 +12,8 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
   end
 
   before do
-    # Use local hash to track created variants and avoid uniqueness violations
     created_variants = {}
 
-    # Stub Product::Shopify::Importer to create valid products with SKUs
-    # Also return existing products if they match by shopify_id
     allow(Product::Shopify::Importer).to receive(:import!) do |parsed_product|
       product = Product.find_by_shopify_id(parsed_product[:store_id]) || Product.find_by(title: parsed_product[:title]) || Product.new
       product.assign_attributes(
@@ -29,7 +26,6 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       product
     end
 
-    # Stub Variant::Shopify::Importer to return unique variants
     allow(Variant::Shopify::Importer).to receive(:import!) do |product, parsed_variant|
       variant_key = "#{product.id}-#{parsed_variant[:id]}"
       created_variants[variant_key] ||= begin
@@ -444,10 +440,9 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
     context "when creating new variant with custom title" do
       let(:parsed_order_with_new_variant) do
         order = valid_parsed_order.deep_dup
-        # Use existing product with custom variant title (not in product's variants)
         order[:sale_items].first.merge!(
           variant_title: "New Variant",
-          variant_store_id: nil,  # No shopify_id, should use create_custom_variant path
+          variant_store_id: nil,
           product_store_id: "gid://shopify/Product/999999",
           variant_title_from_product: "Regular",
           product: {
@@ -480,10 +475,9 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
     context "when creating variant with multiple custom attributes" do
       let(:parsed_order_with_complex_variant) do
         order = valid_parsed_order.deep_dup
-        # Use existing product with custom variant title (not in product's variants)
         order[:sale_items].first.merge!(
           variant_title: "1:4 | New Variant | Red",
-          variant_store_id: nil,  # No shopify_id, should use create_custom_variant path
+          variant_store_id: nil,
           product_store_id: "gid://shopify/Product/888888",
           variant_title_from_product: "Regular",
           product: {
@@ -599,7 +593,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "uses existing product" do
-        existing_product # Reference to ensure creation
+        existing_product
         expect { import_order }.not_to change(Product, :count)
       end
     end
@@ -761,17 +755,14 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           qty: 2
         )
       end
-      # Note: fixture uses :store_id key, importer maps it to shopify_id column
       let(:sale_item_store_id_from_fixture) { valid_parsed_order[:sale_items].first[:store_id] }
 
       before do
         existing_sale
         sale_item.update(shopify_id: sale_item_store_id_from_fixture)
 
-        # Reset purchase_items_count to 0 so the linkable scope works
         sale_item.update(purchase_items_count: 0)
 
-        # Stub Product::Shopify::Importer to return existing product
         allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
       end
 

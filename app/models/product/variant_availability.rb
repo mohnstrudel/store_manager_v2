@@ -7,15 +7,15 @@ module Product::VariantAvailability
     validate :validate_one_base_variant
   end
 
+  def variant_repair_candidates
+    assignable_variants.or(variants.deactivated.real)
+  end
+
   def assignable_variants
     active_real_variants = variants.active.real
     return active_real_variants if active_real_variants.exists?
 
     variants.active.base_models
-  end
-
-  def variant_repair_candidates
-    assignable_variants.or(variants.deactivated.real)
   end
 
   def synchronize_variant_availability!

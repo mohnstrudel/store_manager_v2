@@ -1,10 +1,12 @@
 import { Link } from "@inertiajs/react";
+import { useMemo } from "react";
 
 import Field from "@/components/Field";
 import PaymentProgressBar from "@/components/PaymentProgressBar";
 import PlanProgressBar from "@/components/PlanProgressBar";
 import type {
   PaymentPlanPaymentRef,
+  PaymentProgress,
   SalePaymentPlanRecord,
   SalePaymentProgress,
   SettlementStatus,
@@ -71,21 +73,6 @@ export default function Details({ sale }: DetailsProps) {
   );
 }
 
-function projectedTotal(plans: SalePaymentPlanRecord[]): string | null {
-  const totals = new Set(
-    plans.map((plan) => plan.projected_total).filter((total): total is string => total != null),
-  );
-
-  return totals.size === 1 ? [...totals][0] : null;
-}
-
-function formatStatus(status: string) {
-  return status
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 function OriginSaleField({ plans }: { plans: SalePaymentPlanRecord[] }) {
   const origin = plans.map((plan) => plan.origin_sale).find((originSale) => originSale != null);
   if (!origin) return null;
@@ -96,6 +83,49 @@ function OriginSaleField({ plans }: { plans: SalePaymentPlanRecord[] }) {
         {origin.identifier}
       </Link>
     </Field>
+  );
+}
+
+function formatStatus(status: string) {
+  return status
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function projectedTotal(plans: SalePaymentPlanRecord[]): string | null {
+  const totals = new Set(
+    plans.map((plan) => plan.projected_total).filter((total): total is string => total != null),
+  );
+
+  return totals.size === 1 ? [...totals][0] : null;
+}
+
+function SettlementSummaryCard({ sale }: { sale: SaleShowRecord }) {
+  const status = sale.settlement_status;
+  const progress = sale.payment_progress;
+  const plans = sale.payment_plans;
+  if (status == null && plans.length === 0) return null;
+
+  const lists = planPaymentLists(plans);
+  const scheduledPlan = progress?.plan_id
+    ? plans.find((plan) => plan.id === progress.plan_id)
+    : plans.find((plan) => plan.sale_part_number != null);
+
+  return (
+    <section aria-label="Payment status" className="card w-full">
+      {status && <h3>{settlementStatusLabel(status)}</h3>}
+      {status === "unknown" ? (
+        <p>Payment status unknown</p>
+      ) : (
+        progress &&
+        (progress.source !== "plan_schedule" ||
+          scheduledPlan?.sale_part_number == null ||
+          scheduledPlan.kind === "deposit") && <SettlementProgress progress={progress} />
+      )}
+      {scheduledPlan && <PlanProgressBar plan={scheduledPlan} />}
+      {lists && <div className="mt-4">{lists}</div>}
+    </section>
   );
 }
 
@@ -120,50 +150,6 @@ function planPaymentLists(plans: SalePaymentPlanRecord[]) {
   ));
 }
 
-function SettlementSummaryCard({ sale }: { sale: SaleShowRecord }) {
-  const status = sale.settlement_status;
-  const progress = sale.payment_progress;
-  const plans = sale.payment_plans;
-  if (status == null && plans.length === 0) return null;
-
-  const lists = planPaymentLists(plans);
-  const scheduledPlan = progress?.plan_id
-    ? plans.find((plan) => plan.id === progress.plan_id)
-    : plans.find((plan) => plan.sale_part_number != null);
-
-  return (
-    <section aria-label="Payment status" className="card w-full">
-      {status && <h3>{settlementStatusLabel(status)}</h3>}
-      {status === "unknown" ? (
-        <p>Payment status unknown</p>
-      ) : (
-        progress && <SettlementProgress progress={progress} />
-      )}
-      {scheduledPlan && <PlanProgressBar plan={scheduledPlan} />}
-      {lists && <div className="mt-4">{lists}</div>}
-    </section>
-  );
-}
-
-function SettlementProgress({ progress }: { progress: SalePaymentProgress }) {
-  return (
-    <div className="mt-3">
-      {progress.percent != null && (
-        <PaymentProgressBar
-          caption="none"
-          progress={{
-            progress: progress.percent,
-            paid: progress.paid,
-            price: progress.total,
-            debt: progress.remaining,
-          }}
-        />
-      )}
-      <p className="mt-2">{paymentProgressText(progress)}</p>
-    </div>
-  );
-}
-
 function settlementStatusLabel(status: Exclude<SettlementStatus, null>) {
   switch (status) {
     case "paid":
@@ -173,6 +159,25 @@ function settlementStatusLabel(status: Exclude<SettlementStatus, null>) {
     case "unknown":
       return "Unknown";
   }
+}
+
+function SettlementProgress({ progress }: { progress: SalePaymentProgress }) {
+  const progressProps = useMemo<PaymentProgress | null>(() => {
+    if (progress.percent == null) return null;
+
+    return {
+      progress: progress.percent,
+      paid: progress.paid,
+      price: progress.total,
+      debt: progress.remaining,
+    };
+  }, [progress.percent, progress.paid, progress.total, progress.remaining]);
+  return (
+    <div className="my-3">
+      {progressProps && <PaymentProgressBar caption="none" progress={progressProps} />}
+      <p className="mt-2">{paymentProgressText(progress)}</p>
+    </div>
+  );
 }
 
 function paymentProgressText(progress: SalePaymentProgress) {
@@ -206,7 +211,6 @@ function withRemaining(text: string, progress: SalePaymentProgress) {
 
   return `${text} · ${progress.remaining} remaining`;
 }
-
 function paymentLabel(payment: PaymentPlanPaymentRef, expectedParts: number) {
   return `Payment ${payment.sequence} of ${expectedParts} · ${payment.identifier}`;
 }

@@ -59,14 +59,14 @@ export function variantFormTitle(
   return parts.length > 0 ? parts.join(" | ") : "Base Model";
 }
 
+function optionLabel(options: SelectOption<number>[], value: number | null) {
+  return options.find((option) => option.value === value)?.label;
+}
+
 function isActiveDraft(variant: VariantFormData) {
   return !variant.deactivated && !variant._destroy;
 }
 
 function isRealDraft(variant: VariantFormData) {
   return variant.size_id != null || variant.version_id != null || variant.color_id != null;
-}
-
-function optionLabel(options: SelectOption<number>[], value: number | null) {
-  return options.find((option) => option.value === value)?.label;
 }

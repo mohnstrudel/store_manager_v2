@@ -1,5 +1,4 @@
 @layer components {
-  /* Progress Widget */
   .progress_container {
     @apply w-full h-4 rounded-full overflow-hidden relative;
   }
@@ -24,7 +23,6 @@
     @apply bg-red-100 text-red-700 dark:bg-red-800/60 dark:text-red-300;
   }
 
-  /* "Removed" overlay */
   .rectangle_with_x {
     @apply relative;
   }
@@ -43,7 +41,6 @@
     @apply -rotate-45;
   }
 
-  /* TipMark */
   .tip_mark__trigger {
     @apply cursor-help ml-1 text-base/4;
   }

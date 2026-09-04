@@ -60,7 +60,6 @@ describe("Products/Show/ProductVariants", () => {
       const row = screen.getByRole("row", { name: /Default/ });
       const cells = within(row).getAllByRole("cell");
 
-      // Active Sales, Purchases, and Store ID are the last three columns.
       expect(cells[cells.length - 3]).toHaveTextContent("");
       expect(cells[cells.length - 2]).toHaveTextContent("");
       expect(cells[cells.length - 1]).toHaveTextContent("");

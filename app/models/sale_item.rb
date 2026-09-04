@@ -22,8 +22,6 @@
 #  woo_id               :string
 #
 class SaleItem < ApplicationRecord
-  # TODO: Remove after merging the Auth PR #141
-  self.ignored_columns += ["purchased_products_count"]
   attr_accessor :_destroy
 
   include HasAuditNotifications
@@ -48,10 +46,6 @@ class SaleItem < ApplicationRecord
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
   has_many :installment_sale_items, class_name: "SaleItem", foreign_key: :origin_sale_item_id, dependent: :nullify, inverse_of: :origin_sale_item
 
-  # Applies the plan's one eligible origin item, or restores the generic Seal
-  # placeholder when none is uniquely eligible. Never discovers the relationship
-  # itself; the caller supplies an already-resolved origin item or nil. A payment
-  # item never owns its own warehouse unit, so this never relinks PurchaseItems.
   def apply_installment_origin!(origin_item)
     self.skip_purchase_relink = true
 

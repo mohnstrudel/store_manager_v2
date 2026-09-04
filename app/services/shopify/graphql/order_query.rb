@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-# Shopify::Graphql::OrderQuery
-#
-# GraphQL queries for fetching orders from Shopify.
-# Provides queries for both individual orders and paginated order lists.
-#
 module Shopify
   module Graphql
     class OrderQuery
@@ -12,7 +7,6 @@ module Shopify
         id
       GQL
 
-      # GraphQL fields for an order including customer and line items
       SALE_FIELDS = <<~GQL
         cancelledAt
         cancelReason
@@ -167,9 +161,6 @@ module Shopify
         }
       GQL
 
-      # Query for fetching a single order by ID
-      #
-      # @return [String] The GraphQL query string
       def self.by_id
         <<~GQL
           query($id: ID!) {
@@ -180,9 +171,6 @@ module Shopify
         GQL
       end
 
-      # Query for fetching paginated list of orders
-      #
-      # @return [String] The GraphQL query string
       def self.list
         <<~GQL
           query($first: Int!, $after: String) {

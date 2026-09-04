@@ -29,18 +29,6 @@ module Purchases
 
     private
 
-    def authorize_resource
-      authorize :payment, :create?
-    end
-
-    def set_purchase
-      @purchase = Purchase.friendly.find(params.expect(:purchase_id))
-    end
-
-    def set_payment
-      @payment = @purchase.payments.find(params.expect(:id))
-    end
-
     def payment_params
       params.expect(payment: [:value, :payment_date]).tap do |payment|
         payment[:payment_date] = payment[:payment_date].presence || @payment&.payment_date || Time.zone.today
@@ -53,6 +41,18 @@ module Purchases
 
     def failure_path
       purchase_path(@purchase)
+    end
+
+    def authorize_resource
+      authorize :payment, :create?
+    end
+
+    def set_purchase
+      @purchase = Purchase.friendly.find(params.expect(:purchase_id))
+    end
+
+    def set_payment
+      @payment = @purchase.payments.find(params.expect(:id))
     end
   end
 end

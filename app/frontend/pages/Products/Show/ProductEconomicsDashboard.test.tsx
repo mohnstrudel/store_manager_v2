@@ -150,20 +150,18 @@ function term(anchor: string): HTMLElement | null {
   return screen.queryByTestId(`metric-${anchor}`);
 }
 
-function termOrFail(anchor: string): HTMLElement {
-  return screen.getByTestId(`metric-${anchor}`);
-}
-
 function group(anchor: string): Element | null {
   return termOrFail(anchor).closest(".economics_snapshot__group");
+}
+
+function termOrFail(anchor: string): HTMLElement {
+  return screen.getByTestId(`metric-${anchor}`);
 }
 
 function rows(cardTestId: string): NodeListOf<Element> {
   return screen.getByTestId(cardTestId).querySelectorAll(".economics_snapshot__equation");
 }
 
-// An operator was an element holding nothing but a glyph. A negative amount
-// reads "−953", so matching the whole content tells the two apart.
 function operatorGlyphs(cardTestId: string): string[] {
   return [...screen.getByTestId(cardTestId).querySelectorAll("*")]
     .map((element) => element.textContent ?? "")

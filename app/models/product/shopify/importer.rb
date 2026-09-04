@@ -73,6 +73,17 @@ class Product::Shopify::Importer
     StoreInfo.find_by(store_name: :shopify, slug: parsed[:store_link])&.storable
   end
 
+  def normalize_description_html(html)
+    return html if html.blank?
+
+    doc = Nokogiri::HTML::DocumentFragment.parse(html)
+    doc.css("li > p, li > div").each do |node|
+      node.add_next_sibling(node.children)
+      node.remove
+    end
+    doc.to_html
+  end
+
   def assign_brand
     return unless parsed[:brand]
 
@@ -85,17 +96,6 @@ class Product::Shopify::Importer
 
     size = Size.find_or_create_by(value: parsed[:size])
     product.sizes << size unless product.sizes.exists?(size.id)
-  end
-
-  def normalize_description_html(html)
-    return html if html.blank?
-
-    doc = Nokogiri::HTML::DocumentFragment.parse(html)
-    doc.css("li > p, li > div").each do |node|
-      node.add_next_sibling(node.children)
-      node.remove
-    end
-    doc.to_html
   end
 
   def base_variant_sku

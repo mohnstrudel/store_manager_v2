@@ -81,7 +81,7 @@ RSpec.describe Product::Shopify::Importer do
 
     it "saves Shopify ID to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
       product = described_class.import!(parsed_product)
-      product.reload # Clear association cache to see newly created store_info
+      product.reload
       expect(product.shopify_info).to be_present
       expect(product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
       expect(product.shopify_info.shopify?).to be true

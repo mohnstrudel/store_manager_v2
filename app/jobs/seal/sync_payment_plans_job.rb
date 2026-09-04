@@ -36,15 +36,14 @@ module Seal
 
     private
 
-    # Seal omits the linked order date, so conversion waits until its Sale exists locally.
-    def origin_date_for(subscription)
-      Sale::Shopify::OrderId.find_sale(subscription["order_id"])&.shop_created_at&.to_date
-    end
-
     def acquire_lock!
       ActiveModel::Type::Boolean.new.cast(
         ActiveRecord::Base.connection.select_value("SELECT pg_try_advisory_lock(#{LOCK_KEY})")
       )
+    end
+
+    def origin_date_for(subscription)
+      Sale::Shopify::OrderId.find_sale(subscription["order_id"])&.shop_created_at&.to_date
     end
 
     def release_lock!

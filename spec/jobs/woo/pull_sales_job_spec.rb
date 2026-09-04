@@ -25,7 +25,6 @@ RSpec.describe Woo::PullSalesJob do
   }
   let(:to_money) { ->(value) { value.nil? ? nil : BigDecimal(value.to_s) } }
 
-  # This baseline rate predates every fixture order; date-sensitive examples override it.
   before do
     create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
   end
@@ -657,10 +656,8 @@ RSpec.describe Woo::PullSalesJob do
       end
 
       it "fetches missing product from Woo" do
-        # Ensure no product exists with this woo_id
         Product.where_woo_ids([product_woo_id]).destroy_all
 
-        # Don't stub - let the actual method run, but mock the dependency
         sync_job = instance_double(Woo::PullProductsJob)
         allow(Woo::PullProductsJob).to receive(:new).and_return(sync_job)
         allow(sync_job).to receive(:get_and_create_product).with(product_woo_id)

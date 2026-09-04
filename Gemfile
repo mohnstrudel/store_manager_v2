@@ -5,68 +5,35 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby "4.0.6"
 
-# Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.x.x"
 gem "sprockets-rails"
 
-# Use postgresql as the database for Active Record
 gem "pg", "~> 1.6"
-
-# Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 7.1.x"
-
-# Use Redis adapter to run Action Cable in production
 gem "redis"
-
-# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
-# gem "kredis"
-
-# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.x"
-
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[windows jruby]
-
-# Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
-
-# Use Sass to process CSS
-# gem "sassc-rails"
-
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
-
 gem "pundit"
-
 gem "sidekiq", "~> 8.0"
 gem "sidekiq-status"
-
-# Add to postgresql.conf this two lines:
-# shared_preload_libraries = 'pg_stat_statements'
-# pg_stat_statements.track = all
 gem "pg_query", ">= 2"
 gem "pg_search"
 gem "audited"
 gem "positioning"
 gem "database_validations"
-# Disable strong_migrations untill we have enough users to care about locking db reads
-# gem "strong_migrations"
 gem "acts-as-taggable-on"
 gem "kaminari"
 gem "friendly_id"
-
 gem "slim-rails"
-
 gem "vite_rails"
 gem "inertia_rails"
-
 gem "aws-sdk-s3", require: false
 gem "shopify_app"
-
 gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
-
 gem "down", "~> 5.0"
 gem "httparty"
 
@@ -75,8 +42,6 @@ group :production do
 end
 
 group :production, :staging do
-  # Prevents webserver from spending time working on a request
-  # that has been in-flight for longer than 30 seconds
   gem "rack-timeout"
 end
 
@@ -85,7 +50,6 @@ group :production do
 end
 
 group :development, :test do
-  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[mri windows]
   gem "faker", "~> 3.2"
   gem "rubocop-rails", require: false
@@ -100,26 +64,15 @@ group :development, :test do
 end
 
 group :development do
-  # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-
-  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
-  # gem "rack-mini-profiler"
-
-  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
-  # gem "spring"
   gem "rails_live_reload"
   gem "annotaterb"
   gem "solargraph"
   gem "solargraph-rails"
   gem "rubocop-slim"
   gem "pry"
-  # A performance dashboard for Postgres,
-  # access at /pghero
   gem "pghero"
-  # Prosopite is able to auto-detect Rails N+1 queries
   gem "prosopite"
-  # Ruby Style Guide, with linter & automatic code fixer
   gem "standard", require: false
   gem "letter_opener"
   gem "rails-mcp-server"
@@ -127,7 +80,6 @@ group :development do
 end
 
 group :test do
-  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "cuprite"
   gem "duck_typer", "~> 0.6.1"

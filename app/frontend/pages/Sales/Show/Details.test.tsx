@@ -80,7 +80,6 @@ describe("Sales/Show/Details", () => {
     expect(screen.queryByRole("button", { name: /Billing/ })).not.toBeInTheDocument();
     expect(screen.queryByText("Address 1")).not.toBeInTheDocument();
 
-    // The rest of the details card is unaffected.
     expect(screen.getByText("Processing")).toBeInTheDocument();
     expect(screen.getByText("1060")).toBeInTheDocument();
     expect(screen.getByText("ID", { selector: "dt" })).toBeInTheDocument();
@@ -101,7 +100,6 @@ describe("Sales/Show/Details", () => {
 
     expect(screen.getByText("300")).toBeInTheDocument();
     expect(screen.getByText("1 020 EUR")).toBeInTheDocument();
-    // "Projected total" must render as the very next field after "Total".
     expect(total.nextElementSibling?.nextElementSibling).toBe(projectedTotal);
   });
 
@@ -167,7 +165,6 @@ describe("Sales/Show/Details", () => {
     const originField = screen.getByText("Original Sale", { selector: "dt" });
     expect(originField.nextElementSibling).toHaveTextContent("HSCM#1746");
     expect(screen.getByRole("link", { name: "HSCM#1746" })).toHaveAttribute("href", "/sales/9");
-    // It comes before every other field.
     expect(originField.previousElementSibling).toBeNull();
   });
 
@@ -221,8 +218,6 @@ describe("Sales/Show/Details", () => {
     const link = screen.getByRole("link", { name: "Payment 2 of 3 · HSCM#2" });
     expect(link).toHaveAttribute("href", "/sales/2");
     expect(screen.getByText("Payment 1 of 3 · HSCM#1 (this sale)")).toBeInTheDocument();
-    // The list sits in the plan's own card, under the progress bar it belongs
-    // to — not in the totals card, which states this order's figures alone.
     const totals = screen.getByText("Total", { selector: "dt" }).closest(".card");
     expect(totals).not.toContainElement(link);
     expect(link.closest(".card")).toContainElement(screen.getByText("This payment"));
@@ -270,8 +265,8 @@ describe("Sales/Show/Details", () => {
       expect(container.querySelector(".progress_container")).toBeInTheDocument();
     });
 
-    it("shows schedule progress and amount progress independently", () => {
-      render(
+    it("uses scheduled payment progress instead of duplicating amount progress", () => {
+      const { container } = render(
         <Details
           sale={makeSaleShow({
             settlement_status: "not_fully_paid",
@@ -298,10 +293,13 @@ describe("Sales/Show/Details", () => {
         />,
       );
 
+      expect(screen.getByText("Payment 2 of 4")).toBeInTheDocument();
       expect(
-        screen.getByText("80% · 2 of 4 payments completed · Paid $800 of $1,000 · $200 remaining"),
-      ).toBeInTheDocument();
-      expect(screen.getByText(/Payment 2 of 4/)).toBeInTheDocument();
+        screen.queryByText(
+          "80% · 2 of 4 payments completed · Paid $800 of $1,000 · $200 remaining",
+        ),
+      ).not.toBeInTheDocument();
+      expect(container.querySelector(".progress_container")).not.toBeInTheDocument();
     });
 
     it("shows deposit amount progress without inventing a part count", () => {

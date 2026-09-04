@@ -106,7 +106,6 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
 
     await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
     await user.type(screen.getByLabelText("Tracking number"), "-updated");
-    // Tracking Save is first in DOM (before auto-opened shipping Save)
     await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
 
     expect(screen.getByText("Shipping company is required")).toBeInTheDocument();

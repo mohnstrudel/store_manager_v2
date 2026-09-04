@@ -80,25 +80,6 @@ module PurchaseItemHelper
 
   private
 
-  def purchase_item_new_record(purchase_item, warehouse:)
-    {
-      id: nil,
-      path: "",
-      purchase_id: nil,
-      sale_item_id: nil,
-      warehouse_id: warehouse.id,
-      shipping_company_id: nil,
-      length: "",
-      width: "",
-      height: "",
-      weight: "",
-      shipping_cost: "",
-      tracking_number: "",
-      media: [],
-      redirect_to_sale_item: false
-    }
-  end
-
   def purchase_item_form_record(purchase_item, redirect_to_sale_item:)
     {
       id: purchase_item.id,
@@ -118,6 +99,22 @@ module PurchaseItemHelper
     }
   end
 
+  def purchase_item_media_form_props(purchase_item)
+    purchase_item.media.filter_map do |media|
+      next unless media.image.attached?
+
+      {
+        id: media.id,
+        alt: media.alt,
+        position: media.position,
+        preview_url: url_for(media.image.representation(:preview)),
+        thumb_url: url_for(media.image.representation(:thumb)),
+        image_blob_id: nil,
+        _destroy: false
+      }
+    end
+  end
+
   def purchase_item_form_options(purchase_item)
     {
       warehouses: Rails.cache.fetch(["pif/warehouses", Warehouse.maximum(:updated_at)]) {
@@ -130,6 +127,18 @@ module PurchaseItemHelper
         ShippingCompany.order(:name).pluck(:id, :name).map { |id, name| {value: id, label: name} }
       }
     }
+  end
+
+  def purchase_options_for_select
+    Purchase
+      .joins(:supplier)
+      .left_outer_joins(:product)
+      .order(purchase_date: :desc, created_at: :desc)
+      .pluck(:id, "suppliers.title", "products.full_title",
+        Arel.sql("COALESCE(purchases.purchase_date, purchases.created_at)"))
+      .map { |id, supplier, product, date|
+        {value: id, label: "#{supplier} | #{product} | #{date&.strftime("%Y-%m-%d")}"}
+      }
   end
 
   def purchase_item_sale_items_table_data(purchase_item)
@@ -184,31 +193,22 @@ module PurchaseItemHelper
     end
   end
 
-  def purchase_options_for_select
-    Purchase
-      .joins(:supplier)
-      .left_outer_joins(:product)
-      .order(purchase_date: :desc, created_at: :desc)
-      .pluck(:id, "suppliers.title", "products.full_title",
-        Arel.sql("COALESCE(purchases.purchase_date, purchases.created_at)"))
-      .map { |id, supplier, product, date|
-        {value: id, label: "#{supplier} | #{product} | #{date&.strftime("%Y-%m-%d")}"}
-      }
-  end
-
-  def purchase_item_media_form_props(purchase_item)
-    purchase_item.media.filter_map do |media|
-      next unless media.image.attached?
-
-      {
-        id: media.id,
-        alt: media.alt,
-        position: media.position,
-        preview_url: url_for(media.image.representation(:preview)),
-        thumb_url: url_for(media.image.representation(:thumb)),
-        image_blob_id: nil,
-        _destroy: false
-      }
-    end
+  def purchase_item_new_record(purchase_item, warehouse:)
+    {
+      id: nil,
+      path: "",
+      purchase_id: nil,
+      sale_item_id: nil,
+      warehouse_id: warehouse.id,
+      shipping_company_id: nil,
+      length: "",
+      width: "",
+      height: "",
+      weight: "",
+      shipping_cost: "",
+      tracking_number: "",
+      media: [],
+      redirect_to_sale_item: false
+    }
   end
 end

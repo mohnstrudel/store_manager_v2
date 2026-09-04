@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Settlement classification is independent from economic inclusion.
 module Sale::Settlement
   extend ActiveSupport::Concern
 

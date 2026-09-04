@@ -127,6 +127,46 @@ function IssueTable({ issueType, issues }: { issueType: IssueType; issues: Assig
   return <AssignmentIssueTable issueType={issueType} issues={issues} />;
 }
 
+function LinkIssueTable({ issues }: { issues: AssignmentIssue[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>PurchaseItem</th>
+            <th>Purchase identity</th>
+            <th>SaleItem identity</th>
+            <th>Impact</th>
+            <th>Repair</th>
+          </tr>
+        </thead>
+        <tbody>
+          {issues.map((issue) =>
+            isPurchaseItemLinkIssue(issue) ? (
+              <tr aria-label={`PurchaseItem link ${issue.id}`} key={issue.id}>
+                <td>#{issue.id}</td>
+                <td>
+                  <Link href={issue.purchase_path}>
+                    {issue.purchase_product_title} / {issue.purchase_variant_label}
+                  </Link>
+                </td>
+                <td>
+                  <Link href={issue.sale_path}>
+                    {issue.sale_product_title} / {issue.sale_variant_label}
+                  </Link>
+                </td>
+                <td>{linkImpact(issue)}</td>
+                <td>
+                  <LinkRepairButton issue={issue} />
+                </td>
+              </tr>
+            ) : null,
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 function AssignmentIssueTable({
   issueType,
   issues,
@@ -157,6 +197,50 @@ function AssignmentIssueTable({
   );
 }
 
+function IssuePagination({
+  filter,
+  issueType,
+  pagination,
+}: Pick<VariantAssignmentIssuesPageProps, "filter" | "pagination"> & {
+  issueType: IssueType;
+}) {
+  if (pagination.total_pages <= 1) return null;
+
+  return (
+    <nav aria-label="Variant repair pagination" className="pagination mt-6">
+      {pagination.current_page > 1 ? (
+        <Link
+          className="pagination_previous"
+          href={issuePath(issueType, filter, pagination.current_page - 1)}
+          rel="prev"
+        >
+          Previous
+        </Link>
+      ) : null}
+      <span aria-current="page" className="pagination_link is_current">
+        {pagination.current_page}
+      </span>
+      {pagination.current_page < pagination.total_pages ? (
+        <Link
+          className="pagination_next"
+          href={issuePath(issueType, filter, pagination.current_page + 1)}
+          rel="next"
+        >
+          Next
+        </Link>
+      ) : null}
+    </nav>
+  );
+}
+function issuePath(issueType: IssueType, filter?: string, page?: number) {
+  return routes.variantAssignmentIssues.index.path({
+    query: {
+      issue_type: issueType,
+      reason: filter || undefined,
+      page,
+    },
+  });
+}
 function AssignmentIssueRow({
   issue,
   issueType,
@@ -180,6 +264,33 @@ function AssignmentIssueRow({
   );
 }
 
+function reasonLabel(reason: string) {
+  return (
+    {
+      missing_product: "Missing Product",
+      missing_variant: "Missing Variant",
+      product_mismatch: "Product / Variant mismatch",
+      purchase_identity: "Purchase identity mismatch",
+      sale_item_identity: "SaleItem identity mismatch",
+    }[reason] ?? reason
+  );
+}
+function assignmentImpact(issue: PurchaseAssignmentIssue | SaleItemAssignmentIssue) {
+  if (issue.kind === "purchase") {
+    return `${unitCount(issue.inventory_units, "inventory unit")}; ${unitCount(
+      issue.linked_units,
+      "linked unit",
+    )}`;
+  }
+
+  return `${unitCount(issue.ordered_units, "ordered unit")}; ${unitCount(
+    issue.linked_units,
+    "linked unit",
+  )}`;
+}
+function unitCount(count: number, noun: string) {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
 function VariantRepairCell({
   issue,
   issueType,
@@ -242,47 +353,6 @@ function VariantRepairCell({
   );
 }
 
-function LinkIssueTable({ issues }: { issues: AssignmentIssue[] }) {
-  return (
-    <div className="overflow-x-auto">
-      <table>
-        <thead>
-          <tr>
-            <th>PurchaseItem</th>
-            <th>Purchase identity</th>
-            <th>SaleItem identity</th>
-            <th>Impact</th>
-            <th>Repair</th>
-          </tr>
-        </thead>
-        <tbody>
-          {issues.map((issue) =>
-            isPurchaseItemLinkIssue(issue) ? (
-              <tr aria-label={`PurchaseItem link ${issue.id}`} key={issue.id}>
-                <td>#{issue.id}</td>
-                <td>
-                  <Link href={issue.purchase_path}>
-                    {issue.purchase_product_title} / {issue.purchase_variant_label}
-                  </Link>
-                </td>
-                <td>
-                  <Link href={issue.sale_path}>
-                    {issue.sale_product_title} / {issue.sale_variant_label}
-                  </Link>
-                </td>
-                <td>{linkImpact(issue)}</td>
-                <td>
-                  <LinkRepairButton issue={issue} />
-                </td>
-              </tr>
-            ) : null,
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 function LinkRepairButton({ issue }: { issue: PurchaseItemLinkIssue }) {
   const page = usePage();
   const repair = useCallback(() => {
@@ -308,87 +378,11 @@ function LinkRepairButton({ issue }: { issue: PurchaseItemLinkIssue }) {
   );
 }
 
-function IssuePagination({
-  filter,
-  issueType,
-  pagination,
-}: Pick<VariantAssignmentIssuesPageProps, "filter" | "pagination"> & {
-  issueType: IssueType;
-}) {
-  if (pagination.total_pages <= 1) return null;
-
-  return (
-    <nav aria-label="Variant repair pagination" className="pagination mt-6">
-      {pagination.current_page > 1 ? (
-        <Link
-          className="pagination_previous"
-          href={issuePath(issueType, filter, pagination.current_page - 1)}
-          rel="prev"
-        >
-          Previous
-        </Link>
-      ) : null}
-      <span aria-current="page" className="pagination_link is_current">
-        {pagination.current_page}
-      </span>
-      {pagination.current_page < pagination.total_pages ? (
-        <Link
-          className="pagination_next"
-          href={issuePath(issueType, filter, pagination.current_page + 1)}
-          rel="next"
-        >
-          Next
-        </Link>
-      ) : null}
-    </nav>
-  );
-}
-
-function issuePath(issueType: IssueType, filter?: string, page?: number) {
-  return routes.variantAssignmentIssues.index.path({
-    query: {
-      issue_type: issueType,
-      reason: filter || undefined,
-      page,
-    },
-  });
-}
-
-function assignmentImpact(issue: PurchaseAssignmentIssue | SaleItemAssignmentIssue) {
-  if (issue.kind === "purchase") {
-    return `${unitCount(issue.inventory_units, "inventory unit")}; ${unitCount(
-      issue.linked_units,
-      "linked unit",
-    )}`;
-  }
-
-  return `${unitCount(issue.ordered_units, "ordered unit")}; ${unitCount(
-    issue.linked_units,
-    "linked unit",
-  )}`;
-}
-
 function linkImpact(issue: PurchaseItemLinkIssue) {
   return `${unitCount(
     issue.exact_replacements_available,
     "exact replacement",
   )} available; ${unitCount(issue.remaining_capacity_after_unlink, "open slot")} after unlink`;
-}
-
-function unitCount(count: number, noun: string) {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
-
-function reasonLabel(reason: string) {
-  return (
-    {
-      missing_product: "Missing Product",
-      missing_variant: "Missing Variant",
-      product_mismatch: "Product / Variant mismatch",
-      purchase_identity: "Purchase identity mismatch",
-      sale_item_identity: "SaleItem identity mismatch",
-    }[reason] ?? reason
-  );
 }
 
 function isPurchaseItemLinkIssue(issue: AssignmentIssue): issue is PurchaseItemLinkIssue {

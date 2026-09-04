@@ -3,8 +3,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "test:run": "vitest run",
-    "lint": "oxlint app/frontend",
+    "lint": "oxlint app/frontend --quiet && node tools/source-policy/frontend/cli.js --css-only",
+    "lint:source-policy": "node tools/source-policy/frontend/cli.js",
     "lint:perf": "oxlint app/frontend -D perf",
     "lint:fix": "oxlint app/frontend --fix",
     "lint:fix:all": "oxlint app/frontend --fix-dangerously",
@@ -58,5 +58,5 @@
   "engines": {
     "node": "24.x"
   },
-  "packageManager": "pnpm@11.24.0"
+  "packageManager": "pnpm@11.25.0"
 }

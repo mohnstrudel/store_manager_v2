@@ -29,7 +29,6 @@ module Mcp
     def route(req)
       id = req[:id]
 
-      # JSON-RPC notifications — "if id.nil?" — must not receive a response
       return nil if id.nil?
 
       case req[:method]
@@ -100,16 +99,16 @@ module Mcp
       tool_success(id, sale.item_tracking_payload)
     end
 
-    def tool_success(id, data)
-      {jsonrpc: "2.0", id:, result: {content: [{type: "text", text: data.to_json}], isError: false}}
+    def error_envelope(id, code, message)
+      {jsonrpc: "2.0", id:, error: {code:, message:}}
     end
 
     def tool_error(id, message)
       {jsonrpc: "2.0", id:, result: {content: [{type: "text", text: message}], isError: true}}
     end
 
-    def error_envelope(id, code, message)
-      {jsonrpc: "2.0", id:, error: {code:, message:}}
+    def tool_success(id, data)
+      {jsonrpc: "2.0", id:, result: {content: [{type: "text", text: data.to_json}], isError: false}}
     end
   end
 end

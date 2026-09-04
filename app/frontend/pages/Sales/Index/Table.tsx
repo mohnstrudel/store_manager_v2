@@ -56,7 +56,7 @@ export default function Table({ sales }: TableProps) {
 
               <td>
                 <PaymentPlanMarker
-                  plans={sale.payment_plans ?? []}
+                  plans={sale.payment_plans}
                   progress={sale.payment_progress}
                   settlementStatus={sale.settlement_status}
                 />

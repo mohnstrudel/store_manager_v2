@@ -178,8 +178,6 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
           shipping_cost: BigDecimal(50),
           direct_expense_amount: BigDecimal(20)
         )
-        # The follow-up charge carries no purchase links of its own: linkable
-        # sale items skip rows carried over from the originating order.
         create(:sale_item, sale: follow_up, product: plan_product, variant: nil, qty: 1)
 
         create_plan(parts: [

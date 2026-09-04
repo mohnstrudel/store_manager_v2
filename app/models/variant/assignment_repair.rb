@@ -37,73 +37,6 @@ class Variant::AssignmentRepair
     @integrity = integrity
   end
 
-  def repair_purchase!(purchase_id:, variant_id:)
-    Purchase.transaction do
-      purchase = Purchase.lock.find(purchase_id)
-      return :noop unless integrity.broken_purchase?(purchase.id)
-
-      product, variant = lock_repair_candidate!(purchase, variant_id)
-      sale_items = lock_relevant_sale_items(
-        source_ids: purchase.purchase_items.where.not(sale_item_id: nil).pluck(:sale_item_id),
-        target_relation: fillable_sale_items(product_id: product.id, variant_id: variant.id)
-      )
-      purchase_items = lock_relevant_purchase_items(
-        required_ids: purchase.purchase_items.ids,
-        sale_items:
-      )
-      return :noop unless integrity.broken_purchase?(purchase.id)
-      ensure_source_sale_items_locked!(purchase_items, sale_items)
-
-      # Historical repair must bypass normal assignability callbacks and notifications.
-      purchase.update_columns( # rubocop:disable Rails/SkipsModelValidations
-        product_id: product.id,
-        variant_id: variant.id,
-        updated_at: Time.current
-      ) # rubocop:enable Rails/SkipsModelValidations
-      purchase_items
-        .select { |purchase_item| purchase_item.purchase_id == purchase.id }
-        .each do |purchase_item|
-          # PurchaseItem identity is derived and already protected by the locked command.
-          purchase_item.update_columns( # rubocop:disable Rails/SkipsModelValidations
-            product_id: product.id,
-            variant_id: variant.id,
-            updated_at: Time.current
-          ) # rubocop:enable Rails/SkipsModelValidations
-        end
-
-      reconcile_locked_links!(sale_items:, purchase_items:)
-      :repaired
-    end
-  end
-
-  def repair_sale_item!(sale_item_id:, variant_id:, product_id: nil)
-    SaleItem.transaction do
-      sale_item = SaleItem.lock.find(sale_item_id)
-      return :noop unless integrity.broken_sale_item?(sale_item.id)
-
-      product, variant = lock_repair_candidate!(sale_item, variant_id, product_id:)
-      sale_items = SaleItem.where(id: sale_item.id).order(id: :asc).lock.to_a
-      purchase_items = lock_relevant_purchase_items(
-        required_ids: sale_item.purchase_items.ids,
-        sale_items:,
-        additional_identities: [[product.id, variant.id]]
-      )
-      return :noop unless integrity.broken_sale_item?(sale_item.id)
-      ensure_source_sale_items_locked!(purchase_items, sale_items)
-
-      # Historical repair must bypass normal assignability callbacks and notifications.
-      sale_item.update_columns( # rubocop:disable Rails/SkipsModelValidations
-        product_id: product.id,
-        variant_id: variant.id,
-        updated_at: Time.current
-      ) # rubocop:enable Rails/SkipsModelValidations
-      sale_items.first.assign_attributes(product_id: product.id, variant_id: variant.id)
-
-      reconcile_locked_links!(sale_items:, purchase_items:)
-      :repaired
-    end
-  end
-
   def repair_purchase_item_link!(purchase_item_id:)
     PurchaseItem.transaction do
       link = PurchaseItem.find(purchase_item_id)
@@ -183,9 +116,6 @@ class Variant::AssignmentRepair
       variant_ids = unlocked_infos.pluck(:storable_id)
       product_ids = Variant.where(id: variant_ids).distinct.pluck(:product_id)
 
-      # Reconciliation lock order is Purchases, SaleItems, Products, Variants,
-      # then StoreInfos. The parent-before-Product prefix matches the individual
-      # Purchase and SaleItem repair commands and prevents their lock inversion.
       Purchase.where(id: purchase_ids).order(id: :asc).lock.load
       SaleItem.where(id: sale_item_ids).order(id: :asc).lock.load
       Product.where(id: product_ids).order(id: :asc).lock.load
@@ -235,25 +165,73 @@ class Variant::AssignmentRepair
     end
   end
 
+  def repair_purchase!(purchase_id:, variant_id:)
+    Purchase.transaction do
+      purchase = Purchase.lock.find(purchase_id)
+      return :noop unless integrity.broken_purchase?(purchase.id)
+
+      product, variant = lock_repair_candidate!(purchase, variant_id)
+      sale_items = lock_relevant_sale_items(
+        source_ids: purchase.purchase_items.where.not(sale_item_id: nil).pluck(:sale_item_id),
+        target_relation: fillable_sale_items(product_id: product.id, variant_id: variant.id)
+      )
+      purchase_items = lock_relevant_purchase_items(
+        required_ids: purchase.purchase_items.ids,
+        sale_items:
+      )
+      return :noop unless integrity.broken_purchase?(purchase.id)
+      ensure_source_sale_items_locked!(purchase_items, sale_items)
+
+      purchase.update_columns( # rubocop:disable Rails/SkipsModelValidations
+        product_id: product.id,
+        variant_id: variant.id,
+        updated_at: Time.current
+      ) # rubocop:enable Rails/SkipsModelValidations
+      purchase_items
+        .select { |purchase_item| purchase_item.purchase_id == purchase.id }
+        .each do |purchase_item|
+          purchase_item.update_columns( # rubocop:disable Rails/SkipsModelValidations
+            product_id: product.id,
+            variant_id: variant.id,
+            updated_at: Time.current
+          ) # rubocop:enable Rails/SkipsModelValidations
+        end
+
+      reconcile_locked_links!(sale_items:, purchase_items:)
+      :repaired
+    end
+  end
+
+  def repair_sale_item!(sale_item_id:, variant_id:, product_id: nil)
+    SaleItem.transaction do
+      sale_item = SaleItem.lock.find(sale_item_id)
+      return :noop unless integrity.broken_sale_item?(sale_item.id)
+
+      product, variant = lock_repair_candidate!(sale_item, variant_id, product_id:)
+      sale_items = SaleItem.where(id: sale_item.id).order(id: :asc).lock.to_a
+      purchase_items = lock_relevant_purchase_items(
+        required_ids: sale_item.purchase_items.ids,
+        sale_items:,
+        additional_identities: [[product.id, variant.id]]
+      )
+      return :noop unless integrity.broken_sale_item?(sale_item.id)
+      ensure_source_sale_items_locked!(purchase_items, sale_items)
+
+      sale_item.update_columns( # rubocop:disable Rails/SkipsModelValidations
+        product_id: product.id,
+        variant_id: variant.id,
+        updated_at: Time.current
+      ) # rubocop:enable Rails/SkipsModelValidations
+      sale_items.first.assign_attributes(product_id: product.id, variant_id: variant.id)
+
+      reconcile_locked_links!(sale_items:, purchase_items:)
+      :repaired
+    end
+  end
+
   private
 
   attr_reader :integrity
-
-  def lock_repair_candidate!(record, variant_id, product_id: nil)
-    product = product_id ? Product.find_by(id: product_id) : record.product || record.variant&.product
-    raise InvalidCandidate, "No Product is available for this repair" unless product
-
-    product = Product.lock.find(product.id)
-    variant = product.variant_repair_candidates.lock.find_by(id: variant_id)
-    raise InvalidCandidate, "Variant is not an available repair candidate" unless variant
-
-    [product, variant]
-  end
-
-  def lock_relevant_sale_items(source_ids:, target_relation:)
-    ids = (Array(source_ids) + target_relation.ids).compact.uniq.sort
-    SaleItem.where(id: ids).order(id: :asc).lock.to_a
-  end
 
   def lock_relevant_purchase_items(required_ids:, sale_items:, additional_identities: [])
     ids = Array(required_ids)
@@ -272,13 +250,6 @@ class Variant::AssignmentRepair
     end
 
     PurchaseItem.where(id: ids.compact.map(&:to_i).uniq.sort).order(id: :asc).lock.to_a
-  end
-
-  def fillable_sale_items(product_id:, variant_id:)
-    SaleItem
-      .active
-      .where(origin_sale_item_id: nil, product_id:, variant_id:)
-      .order(id: :asc)
   end
 
   def ensure_source_sale_items_locked!(purchase_items, sale_items)
@@ -342,10 +313,30 @@ class Variant::AssignmentRepair
     end
   end
 
+  def lock_relevant_sale_items(source_ids:, target_relation:)
+    ids = (Array(source_ids) + target_relation.ids).compact.uniq.sort
+    SaleItem.where(id: ids).order(id: :asc).lock.to_a
+  end
+
+  def fillable_sale_items(product_id:, variant_id:)
+    SaleItem
+      .active
+      .where(origin_sale_item_id: nil, product_id:, variant_id:)
+      .order(id: :asc)
+  end
+
   def duplicate_shopify_infos(store_id)
     StoreInfo.shopify.where(
       storable_type: "Variant",
       store_id:
+    )
+  end
+
+  def noop_shopify_identity_reconciliation
+    ShopifyIdentityReconciliation.new(
+      removed_store_info_count: 0,
+      repaired_purchase_count: 0,
+      repaired_sale_item_count: 0
     )
   end
 
@@ -358,14 +349,6 @@ class Variant::AssignmentRepair
     with_pull_provenance.one? ? with_pull_provenance.first : nil
   end
 
-  def noop_shopify_identity_reconciliation
-    ShopifyIdentityReconciliation.new(
-      removed_store_info_count: 0,
-      repaired_purchase_count: 0,
-      repaired_sale_item_count: 0
-    )
-  end
-
   def repair_purchases_to_variant!(purchase_ids, canonical_variant)
     purchase_ids.count do |purchase_id|
       repair_purchase!(
@@ -373,6 +356,17 @@ class Variant::AssignmentRepair
         variant_id: canonical_variant.id
       ) == :repaired
     end
+  end
+
+  def lock_repair_candidate!(record, variant_id, product_id: nil)
+    product = product_id ? Product.find_by(id: product_id) : record.product || record.variant&.product
+    raise InvalidCandidate, "No Product is available for this repair" unless product
+
+    product = Product.lock.find(product.id)
+    variant = product.variant_repair_candidates.lock.find_by(id: variant_id)
+    raise InvalidCandidate, "Variant is not an available repair candidate" unless variant
+
+    [product, variant]
   end
 
   def repair_sale_items_to_variant!(sale_item_ids, canonical_variant)

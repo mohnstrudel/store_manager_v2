@@ -32,12 +32,6 @@ class SalePaymentPlan::Seal::Parser
 
   attr_reader :selling_plans_by_id, :subscription, :origin_date
 
-  def expected_parts
-    @expected_parts ||= Integer(subscription["billing_max_cycles"])
-  rescue ArgumentError, TypeError
-    1
-  end
-
   def plan_kind
     deposit_percent ? "deposit" : "installments"
   end
@@ -46,6 +40,12 @@ class SalePaymentPlan::Seal::Parser
     return unless expected_parts == 1
 
     payment_percent
+  end
+
+  def expected_parts
+    @expected_parts ||= Integer(subscription["billing_max_cycles"])
+  rescue ArgumentError, TypeError
+    1
   end
 
   def payment_percent
@@ -61,6 +61,14 @@ class SalePaymentPlan::Seal::Parser
     @payment_percent = percentages.first if percentages.none?(&:nil?) && percentages.uniq.one?
   end
 
+  def subscription_items
+    @subscription_items ||= Array(subscription["items"])
+  end
+
+  def selling_plan_for(item)
+    selling_plans_by_id[item["selling_plan_id"].to_s]
+  end
+
   def projected_total
     return unless unambiguous_pricing?
 
@@ -73,16 +81,16 @@ class SalePaymentPlan::Seal::Parser
     )
   end
 
-  def usd_amount(amount)
-    SalePaymentPlan.usd_amount(amount, currency: subscription["currency"], date: origin_date)
-  end
-
   def unambiguous_pricing?
     subscription_items.present? &&
       subscription_items.none? { |item|
         item["is_one_time_item"].to_i == 1 || Array(item["cycle_discounts"]).present?
       } &&
       payment_percent&.positive?
+  end
+
+  def usd_amount(amount)
+    SalePaymentPlan.usd_amount(amount, currency: subscription["currency"], date: origin_date)
   end
 
   def shipping_amount
@@ -92,12 +100,25 @@ class SalePaymentPlan::Seal::Parser
     ).to_d
   end
 
-  def subscription_items
-    @subscription_items ||= Array(subscription["items"])
+  def next_due_at
+    parse_datetime(scheduled_attempts.first&.dig("date"))
   end
 
-  def selling_plan_for(item)
-    selling_plans_by_id[item["selling_plan_id"].to_s]
+  def parse_datetime(value)
+    DateTime.parse(value) if value.present?
+  rescue ArgumentError
+    nil
+  end
+
+  def scheduled_attempts
+    @scheduled_attempts ||= Array(subscription["billing_attempts"])
+      .select { |attempt|
+        attempt["order_id"].blank? &&
+          attempt["completed_at"].blank? &&
+          attempt["date"].present? &&
+          attempt["status"].to_s.downcase != "failed"
+      }
+      .sort_by { |attempt| [attempt["date"].to_s, attempt["id"].to_i] }
   end
 
   def part_snapshots
@@ -126,26 +147,5 @@ class SalePaymentPlan::Seal::Parser
       .sort_by { |attempt| [attempt["completed_at"].to_s, attempt["id"].to_i] }
       .uniq { |attempt| attempt["order_id"].to_s }
       .first(expected_parts - 1)
-  end
-
-  def scheduled_attempts
-    @scheduled_attempts ||= Array(subscription["billing_attempts"])
-      .select { |attempt|
-        attempt["order_id"].blank? &&
-          attempt["completed_at"].blank? &&
-          attempt["date"].present? &&
-          attempt["status"].to_s.downcase != "failed"
-      }
-      .sort_by { |attempt| [attempt["date"].to_s, attempt["id"].to_i] }
-  end
-
-  def next_due_at
-    parse_datetime(scheduled_attempts.first&.dig("date"))
-  end
-
-  def parse_datetime(value)
-    DateTime.parse(value) if value.present?
-  rescue ArgumentError
-    nil
   end
 end

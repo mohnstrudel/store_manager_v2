@@ -19,16 +19,6 @@ module Authentication
 
   private
 
-  def authenticated?
-    resume_session
-  end
-
-  def current_user
-    if authenticated?
-      @current_user ||= Current.user
-    end
-  end
-
   def require_authentication
     resume_session || request_authentication
   end
@@ -64,6 +54,16 @@ module Authentication
 
   def redirect_if_authenticated
     redirect_to root_path if current_user
+  end
+
+  def current_user
+    if authenticated?
+      @current_user ||= Current.user
+    end
+  end
+
+  def authenticated?
+    resume_session
   end
 
   def choose_layout

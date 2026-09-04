@@ -190,7 +190,6 @@ describe("Purchases/Show/PurchaseItems", () => {
   it("auto-opens the shipping editor when editing tracking with no company (non-blank row)", async () => {
     const user = userEvent.setup();
 
-    // Has a tracking number → not a blank row; only shipping auto-opens, not cost
     render(
       <PurchaseItems
         {...defaultProps}

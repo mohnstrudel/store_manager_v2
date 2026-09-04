@@ -1,8 +1,3 @@
-// Every money figure in this app is a total — a sum, never an average or a
-// median. What differs between pages is *what* was summed: one line of a
-// sale, one whole sale, or every sale of a product. The definitions below
-// stay scope-neutral so one entry reads correctly everywhere, and each call
-// site closes the hint with the scope note that says what was added up.
 export const financialMetricHints = {
   actualOpEx: "Operating costs recorded for this month.",
   cashPositionToday:
@@ -34,8 +29,6 @@ export const financialMetricHints = {
     "Per unit: Selling Price minus Total landed cost divided by purchased units, minus OpEx.",
 } as const;
 
-// What a figure was added up from. Without one of these a reader cannot tell
-// a line total from a sale total from a product's lifetime total.
 export const metricScopeNotes = {
   sale: "For this sale.",
   product: "Across every unit purchased of this product.",
@@ -51,8 +44,6 @@ export function withScope(hint: string, note: string): string {
   return `${hint} ${note}`;
 }
 
-// Only a figure summed over several sales needs saying so. One sale is the
-// default reading of a product's figures, so it gets no note at all.
 export function salesScopeNote(countedSales: number): string {
   if (countedSales < 2) return "";
 

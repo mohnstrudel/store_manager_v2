@@ -27,10 +27,6 @@ class VariantAssignmentIssuesController < ApplicationController
 
   private
 
-  def authorize_resource
-    authorize :variant_assignment_issue, :index?
-  end
-
   def selected_issue_type
     requested = params[:issue_type].presence&.to_sym
     Variant::AssignmentIntegrity::ISSUE_TYPES.include?(requested) ? requested : :purchases
@@ -39,6 +35,16 @@ class VariantAssignmentIssuesController < ApplicationController
   def selected_reason(integrity, issue_type)
     requested = params[:reason].to_s
     integrity.reasons_for(issue_type).include?(requested) ? requested : nil
+  end
+
+  def reason_label(reason)
+    {
+      "missing_product" => "Missing Product",
+      "missing_variant" => "Missing Variant",
+      "product_mismatch" => "Product / Variant mismatch",
+      "purchase_identity" => "Purchase identity mismatch",
+      "sale_item_identity" => "SaleItem identity mismatch"
+    }.fetch(reason)
   end
 
   def issue_props(integrity, issue_type, issues)
@@ -130,13 +136,7 @@ class VariantAssignmentIssuesController < ApplicationController
     }
   end
 
-  def reason_label(reason)
-    {
-      "missing_product" => "Missing Product",
-      "missing_variant" => "Missing Variant",
-      "product_mismatch" => "Product / Variant mismatch",
-      "purchase_identity" => "Purchase identity mismatch",
-      "sale_item_identity" => "SaleItem identity mismatch"
-    }.fetch(reason)
+  def authorize_resource
+    authorize :variant_assignment_issue, :index?
   end
 end

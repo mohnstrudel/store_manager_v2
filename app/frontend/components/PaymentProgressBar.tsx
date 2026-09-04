@@ -49,6 +49,12 @@ export default function PaymentProgressBar({
 
 const UNKNOWN_AMOUNT = "unknown";
 
+function paidOfTotal(progress: PaymentProgress) {
+  if (!progress.price) return paidLabel(progress);
+
+  return `${paidLabel(progress)} of ${progress.price}`;
+}
+
 function paidLabel(progress: PaymentProgress) {
   if (progress.amounts_unknown) return UNKNOWN_AMOUNT;
 
@@ -59,10 +65,4 @@ function debtLabel(progress: PaymentProgress) {
   if (progress.amounts_unknown) return UNKNOWN_AMOUNT;
 
   return progress.debt;
-}
-
-function paidOfTotal(progress: PaymentProgress) {
-  if (!progress.price) return paidLabel(progress);
-
-  return `${paidLabel(progress)} of ${progress.price}`;
 }

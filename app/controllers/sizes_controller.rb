@@ -3,7 +3,6 @@
 class SizesController < ApplicationController
   before_action :set_size, only: %i[show edit update destroy]
 
-  # GET /sizes or /sizes.json
   def index
     @sizes = Size.order(:value)
 
@@ -14,7 +13,6 @@ class SizesController < ApplicationController
     }
   end
 
-  # GET /sizes/1 or /sizes/1.json
   def show
     @size = Size.includes(:products).find(params.expect(:id))
 
@@ -24,19 +22,16 @@ class SizesController < ApplicationController
     }
   end
 
-  # GET /sizes/new
   def new
     @size = Size.new
 
     render inertia: "Sizes/New", props: helpers.size_form_props(@size)
   end
 
-  # GET /sizes/1/edit
   def edit
     render inertia: "Sizes/Edit", props: helpers.size_form_props(@size)
   end
 
-  # POST /sizes or /sizes.json
   def create
     @size = Size.new(size_params)
 
@@ -51,7 +46,6 @@ class SizesController < ApplicationController
     end
   end
 
-  # PATCH/PUT /sizes/1 or /sizes/1.json
   def update
     respond_to do |format|
       if @size.update(size_params)
@@ -64,7 +58,6 @@ class SizesController < ApplicationController
     end
   end
 
-  # DELETE /sizes/1 or /sizes/1.json
   def destroy
     @size.destroy
 
@@ -76,13 +69,11 @@ class SizesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_size
-    @size = Size.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def size_params
     params.fetch(:size, {}).permit(:value)
+  end
+
+  def set_size
+    @size = Size.find(params.expect(:id))
   end
 end

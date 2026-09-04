@@ -40,92 +40,6 @@ export default function PurchaseItemExpenses({
   );
 }
 
-function ExpenseRow({
-  expense,
-  returnTo,
-}: {
-  expense: PurchaseItemExpenseRecord;
-  returnTo: string;
-}) {
-  const form = useForm({
-    description: expense.description,
-    amount: expense.amount,
-    return_to: returnTo,
-  });
-  const removeExpense = useConfirmAction("delete", expense.destroy_path, {
-    message: "Remove this expense?",
-  });
-
-  const saveExpense = useCallback(
-    (event: FormEvent) => {
-      event.preventDefault();
-      form.transform((data) => ({
-        purchase_expense: { description: data.description, amount: data.amount },
-        return_to: data.return_to,
-      }));
-      form.patch(expense.update_path, { preserveScroll: true });
-    },
-    [expense.update_path, form],
-  );
-
-  const changeDescription = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      form.clearErrors("description");
-      form.setData((data) => ({ ...data, description: event.target.value }));
-    },
-    [form],
-  );
-
-  const changeAmount = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      form.clearErrors("amount");
-      form.setData((data) => ({ ...data, amount: event.target.value }));
-    },
-    [form],
-  );
-
-  return (
-    <>
-      <tr>
-        <td>
-          <form className="hidden" id={`expense_${expense.id}`} onSubmit={saveExpense} />
-          <input
-            aria-label="Description"
-            form={`expense_${expense.id}`}
-            onChange={changeDescription}
-            value={form.data.description}
-          />
-        </td>
-        <td>
-          <input
-            aria-label="Amount"
-            form={`expense_${expense.id}`}
-            onChange={changeAmount}
-            step="any"
-            type="number"
-            value={form.data.amount}
-          />
-        </td>
-        <td>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="btn_rounded btn_lightamber"
-              form={`expense_${expense.id}`}
-              type="submit"
-            >
-              Update
-            </button>
-            <button className="btn_rounded btn_red" onClick={removeExpense} type="button">
-              Remove
-            </button>
-          </div>
-        </td>
-      </tr>
-      <ExpenseErrors errors={form.errors} />
-    </>
-  );
-}
-
 function NewExpenseRow({
   expense,
   returnTo,
@@ -218,6 +132,92 @@ function NewExpenseRow({
 
 function ExpenseErrors({ errors }: { errors: Record<string, string> }) {
   return Object.values(errors).map((error) => <ErrorRow error={error} key={error} />);
+}
+
+function ExpenseRow({
+  expense,
+  returnTo,
+}: {
+  expense: PurchaseItemExpenseRecord;
+  returnTo: string;
+}) {
+  const form = useForm({
+    description: expense.description,
+    amount: expense.amount,
+    return_to: returnTo,
+  });
+  const removeExpense = useConfirmAction("delete", expense.destroy_path, {
+    message: "Remove this expense?",
+  });
+
+  const saveExpense = useCallback(
+    (event: FormEvent) => {
+      event.preventDefault();
+      form.transform((data) => ({
+        purchase_expense: { description: data.description, amount: data.amount },
+        return_to: data.return_to,
+      }));
+      form.patch(expense.update_path, { preserveScroll: true });
+    },
+    [expense.update_path, form],
+  );
+
+  const changeDescription = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.clearErrors("description");
+      form.setData((data) => ({ ...data, description: event.target.value }));
+    },
+    [form],
+  );
+
+  const changeAmount = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.clearErrors("amount");
+      form.setData((data) => ({ ...data, amount: event.target.value }));
+    },
+    [form],
+  );
+
+  return (
+    <>
+      <tr>
+        <td>
+          <form className="hidden" id={`expense_${expense.id}`} onSubmit={saveExpense} />
+          <input
+            aria-label="Description"
+            form={`expense_${expense.id}`}
+            onChange={changeDescription}
+            value={form.data.description}
+          />
+        </td>
+        <td>
+          <input
+            aria-label="Amount"
+            form={`expense_${expense.id}`}
+            onChange={changeAmount}
+            step="any"
+            type="number"
+            value={form.data.amount}
+          />
+        </td>
+        <td>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="btn_rounded btn_lightamber"
+              form={`expense_${expense.id}`}
+              type="submit"
+            >
+              Update
+            </button>
+            <button className="btn_rounded btn_red" onClick={removeExpense} type="button">
+              Remove
+            </button>
+          </div>
+        </td>
+      </tr>
+      <ExpenseErrors errors={form.errors} />
+    </>
+  );
 }
 
 function ErrorRow({ error }: { error: string }) {

@@ -94,7 +94,6 @@ RSpec.describe Purchase do
   end
 
   describe "Associations" do
-    # Create a fully built purchase for association tests
     let(:purchase_for_associations) { create(:purchase) }
 
     it { expect(purchase_for_associations).to belong_to(:supplier) }
@@ -163,8 +162,6 @@ RSpec.describe Purchase do
       end
 
       it "has associated audits" do
-        # The has_associated_audits method is only available after the audited method has been called
-        # Since the Purchase model calls audited, we can check if it has the method
         expect(described_class.instance_methods).to include(:associated_audits)
       end
 

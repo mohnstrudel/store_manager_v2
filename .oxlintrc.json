@@ -19,6 +19,7 @@
   },
   "ignorePatterns": ["app/frontend/api/**/*"],
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "react-perf", "import", "vitest"],
+  "jsPlugins": ["./tools/source-policy/frontend/oxlint-plugin.js"],
   "settings": {
     "react": {
       "version": "19.2.6"
@@ -67,6 +68,8 @@
     "eslint/no-underscore-dangle": "off",
     "react/react-in-jsx-scope": "off",
     "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "warn"
+    "react/exhaustive-deps": "warn",
+    "source-policy/ordering": "error",
+    "source-policy/no-prose-comments": "error"
   }
 }

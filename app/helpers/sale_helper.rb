@@ -23,6 +23,15 @@ module SaleHelper
     )
   end
 
+  def sale_settlement_props(sale)
+    return {settlement_status: nil, payment_progress: nil} if sale.economically_excluded?
+
+    {
+      settlement_status: sale.settlement_status,
+      payment_progress: (sale.paid? || sale.not_fully_paid?) ? sale_payment_progress_props(sale) : nil
+    }
+  end
+
   def sale_payment_props(sale)
     pie = payment_pie_total(sale.expected_revenue, sale.received_revenue, sale.outstanding_revenue)
 
@@ -33,6 +42,15 @@ module SaleHelper
       price: format_money(pie),
       debt: format_money(sale.outstanding_revenue),
       payment_overdue: sale.payment_overdue
+    }
+  end
+
+  def sale_payment_context_props(sale)
+    plans = sale.payment_plans_for_display
+
+    {
+      partially_paid: plans.empty? && sale.partially_paid?,
+      payment_plans: plans.map { |plan| sale_payment_plan_props(plan, sale) }
     }
   end
 
@@ -145,94 +163,7 @@ module SaleHelper
     }
   end
 
-  def sale_payment_context_props(sale)
-    plans = sale.payment_plans_for_display
-
-    {
-      partially_paid: plans.empty? && sale.partially_paid?,
-      payment_plans: plans.map { |plan| sale_payment_plan_props(plan, sale) }
-    }
-  end
-
-  def sale_settlement_props(sale)
-    return {settlement_status: nil, payment_progress: nil} if sale.economically_excluded?
-
-    {
-      settlement_status: sale.settlement_status,
-      payment_progress: (sale.paid? || sale.not_fully_paid?) ? sale_payment_progress_props(sale) : nil
-    }
-  end
-
   private
-
-  def sale_profitability_props(sale, expense_fraction)
-    summary = sale.profitability_summary(expense_fraction:)
-    return if summary.nil?
-
-    {
-      scope: summary[:scope],
-      gross_revenue: format_money(summary[:gross_revenue]),
-      item_price_total: format_money(summary[:item_price_total]),
-      purchase_expenses: format_money(summary[:purchase_expenses]),
-      purchase_shipping_cost: format_money(summary[:purchase_shipping_cost]),
-      direct_expenses: format_money(summary[:direct_expenses]),
-      business_expenses: format_money(summary[:business_expenses]),
-      net_profit: format_money(summary[:net_profit]),
-      collected_revenue: format_money(summary[:collected_revenue]),
-      purchase_paid: format_money(summary[:purchase_paid]),
-      cash_position: format_money(summary[:cash_position])
-    }
-  end
-
-  def sale_payment_plan_props(plan, sale)
-    remainder = plan.projected_remainder
-
-    {
-      id: plan.id,
-      kind: plan.kind,
-      expected_parts: plan.expected_parts,
-      collected_parts: plan.collected_parts,
-      sale_part_number: plan.part_number_for(sale),
-      is_origin_sale: plan.origin_sale_id == sale.id,
-      deposit_percent: compact_number(plan.deposit_percent),
-      projected_total: format_money(plan.projected_total),
-      projected_collected: sale_payment_plan_collected_props(plan, remainder),
-      origin_sale: sale_payment_plan_origin_props(plan, sale),
-      payments: plan.linked_parts.map { |part| sale_payment_plan_payment_props(part, sale) }
-    }
-  end
-
-  def sale_payment_plan_collected_props(plan, remainder)
-    return if plan.projected_total.nil?
-
-    format_money(plan.projected_total - remainder)
-  end
-
-  def sale_payment_plan_origin_props(plan, sale)
-    origin = plan.origin_sale
-    return if origin.nil? || origin.id == sale.id
-
-    {path: sale_path(origin), identifier: sale_reference_identifier(origin)}
-  end
-
-  def sale_payment_plan_payment_props(part, sale)
-    {
-      sequence: part.sequence,
-      path: sale_path(part.sale),
-      identifier: sale_reference_identifier(part.sale),
-      is_current_sale: part.sale_id == sale.id
-    }
-  end
-
-  def sale_reference_identifier(sale)
-    sale.shop_identifier.presence || sale.id.to_s
-  end
-
-  def compact_number(value)
-    return if value.nil?
-
-    value.to_d.frac.zero? ? value.to_i : value.to_f
-  end
 
   def sale_base_props(sale)
     {
@@ -307,43 +238,6 @@ module SaleHelper
     )
   end
 
-  def sale_customer_props(customer)
-    {
-      id: customer.id,
-      path: customer_path(customer),
-      first_name: customer.first_name,
-      last_name: customer.last_name,
-      full_name: customer.full_name,
-      email: customer.email,
-      shopify_id_short: customer.shopify_info&.id_short,
-      shop_admin_url: customer_shop_link(customer)
-    }
-  end
-
-  def sale_address_props(address)
-    return nil unless address
-
-    {
-      address_1: address.address_1,
-      address_2: address.address_2,
-      city: address.city,
-      company: address.company,
-      country: address.country,
-      email: address.email,
-      first_name: address.first_name,
-      last_name: address.last_name,
-      phone: address.phone,
-      postcode: address.postcode,
-      state: address.state
-    }
-  end
-
-  def sale_address_form_props(address)
-    Sale::Addresses::ADDRESS_ATTRIBUTES.index_with { |attr|
-      address&.public_send(attr)
-    }
-  end
-
   def sale_index_item_props(item)
     {
       id: item.id,
@@ -362,6 +256,88 @@ module SaleHelper
     }
   end
 
+  def sale_payment_plan_props(plan, sale)
+    remainder = plan.projected_remainder
+
+    {
+      id: plan.id,
+      kind: plan.kind,
+      expected_parts: plan.expected_parts,
+      collected_parts: plan.collected_parts,
+      sale_part_number: plan.part_number_for(sale),
+      is_origin_sale: plan.origin_sale_id == sale.id,
+      deposit_percent: compact_number(plan.deposit_percent),
+      projected_total: format_money(plan.projected_total),
+      projected_collected: sale_payment_plan_collected_props(plan, remainder),
+      origin_sale: sale_payment_plan_origin_props(plan, sale),
+      payments: plan.linked_parts.map { |part| sale_payment_plan_payment_props(part, sale) }
+    }
+  end
+
+  def compact_number(value)
+    return if value.nil?
+
+    value.to_d.frac.zero? ? value.to_i : value.to_f
+  end
+
+  def sale_payment_plan_collected_props(plan, remainder)
+    return if plan.projected_total.nil?
+
+    format_money(plan.projected_total - remainder)
+  end
+
+  def sale_payment_plan_origin_props(plan, sale)
+    origin = plan.origin_sale
+    return if origin.nil? || origin.id == sale.id
+
+    {path: sale_path(origin), identifier: sale_reference_identifier(origin)}
+  end
+
+  def sale_reference_identifier(sale)
+    sale.shop_identifier.presence || sale.id.to_s
+  end
+
+  def sale_payment_plan_payment_props(part, sale)
+    {
+      sequence: part.sequence,
+      path: sale_path(part.sale),
+      identifier: sale_reference_identifier(part.sale),
+      is_current_sale: part.sale_id == sale.id
+    }
+  end
+
+  def sale_customer_props(customer)
+    {
+      id: customer.id,
+      path: customer_path(customer),
+      first_name: customer.first_name,
+      last_name: customer.last_name,
+      full_name: customer.full_name,
+      email: customer.email,
+      shopify_id_short: customer.shopify_info&.id_short,
+      shop_admin_url: customer_shop_link(customer)
+    }
+  end
+
+  def sale_profitability_props(sale, expense_fraction)
+    summary = sale.profitability_summary(expense_fraction:)
+    return if summary.nil?
+
+    {
+      scope: summary[:scope],
+      gross_revenue: format_money(summary[:gross_revenue]),
+      item_price_total: format_money(summary[:item_price_total]),
+      purchase_expenses: format_money(summary[:purchase_expenses]),
+      purchase_shipping_cost: format_money(summary[:purchase_shipping_cost]),
+      direct_expenses: format_money(summary[:direct_expenses]),
+      business_expenses: format_money(summary[:business_expenses]),
+      net_profit: format_money(summary[:net_profit]),
+      collected_revenue: format_money(summary[:collected_revenue]),
+      purchase_paid: format_money(summary[:purchase_paid]),
+      cash_position: format_money(summary[:cash_position])
+    }
+  end
+
   def sale_show_item_props(item, shipping_share, can_view_profitability: false, expense_fraction: ExpenseRate.combined_fraction)
     {
       id: item.id,
@@ -372,6 +348,22 @@ module SaleHelper
       purchase_items: item.purchase_items.map { |pi| sale_show_purchase_item_props(pi) },
       payment: sale_item_payment_props(item, shipping_share),
       profitability: can_view_profitability ? sale_item_profitability_props(item, expense_fraction) : nil
+    }
+  end
+
+  def sale_show_purchase_item_props(pi)
+    {
+      id: pi.id,
+      path: purchase_path(pi.purchase),
+      supplier_title: pi.purchase.supplier.title,
+      purchase_date: format_date(pi.purchase.date),
+      item_price: format_money(pi.purchase.item_price),
+      unlink_path: purchase_item_sale_item_link_path(pi),
+      current_warehouse_name: pi.warehouse.name,
+      current_warehouse_path: warehouse_path(pi.warehouse, selected: pi.id, anchor: pi.id),
+      warehouse_movements: pi.warehouse_movements.sort_by(&:moved_in).reverse.map { |m|
+        {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
+      }
     }
   end
 
@@ -397,19 +389,27 @@ module SaleHelper
     }
   end
 
-  def sale_show_purchase_item_props(pi)
+  def sale_address_props(address)
+    return nil unless address
+
     {
-      id: pi.id,
-      path: purchase_path(pi.purchase),
-      supplier_title: pi.purchase.supplier.title,
-      purchase_date: format_date(pi.purchase.date),
-      item_price: format_money(pi.purchase.item_price),
-      unlink_path: purchase_item_sale_item_link_path(pi),
-      current_warehouse_name: pi.warehouse.name,
-      current_warehouse_path: warehouse_path(pi.warehouse, selected: pi.id, anchor: pi.id),
-      warehouse_movements: pi.warehouse_movements.sort_by(&:moved_in).reverse.map { |m|
-        {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
-      }
+      address_1: address.address_1,
+      address_2: address.address_2,
+      city: address.city,
+      company: address.company,
+      country: address.country,
+      email: address.email,
+      first_name: address.first_name,
+      last_name: address.last_name,
+      phone: address.phone,
+      postcode: address.postcode,
+      state: address.state
+    }
+  end
+
+  def sale_address_form_props(address)
+    Sale::Addresses::ADDRESS_ATTRIBUTES.index_with { |attr|
+      address&.public_send(attr)
     }
   end
 

@@ -53,7 +53,6 @@ module Product::SalesHistory
 
   private
 
-  # Follow-up charges do not represent additional units sold.
   def merchandise_sale_items(scope)
     scope.order(created_at: :asc).reject { |sale_item| sale_item.sale.follow_up_payment? }
   end

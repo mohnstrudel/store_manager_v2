@@ -15,15 +15,15 @@ export default function Amount({ value, emphasizeSign = false }: AmountProps) {
   );
 }
 
-export function isNegativeAmount(value: string | null): boolean {
-  return value?.startsWith("-") ?? false;
-}
-
 function amountTone(value: string, emphasizeSign: boolean): "negative" | "positive" | undefined {
   if (isNegativeAmount(value)) return "negative";
   if (emphasizeSign) return "positive";
 
   return undefined;
+}
+
+export function isNegativeAmount(value: string | null): boolean {
+  return value?.startsWith("-") ?? false;
 }
 
 function typographicAmount(value: string): string {

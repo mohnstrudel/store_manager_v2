@@ -43,96 +43,6 @@ export default function Payments({ newPayment, payments, purchase }: PaymentsPro
   );
 }
 
-function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchasePath: string }) {
-  const form = useForm({
-    payment_date: payment.payment_date,
-    value: payment.value,
-    return_to: purchasePath,
-  });
-  const destroyPayment = useConfirmAction("delete", payment.destroy_path, {
-    message: "Remove this payment?",
-  });
-
-  const savePayment = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      form.transform((data) => ({
-        payment: { payment_date: data.payment_date, value: data.value },
-        return_to: data.return_to,
-      }));
-      form.patch(payment.update_path, { preserveScroll: true });
-    },
-    [form, payment.update_path],
-  );
-
-  const updateDate = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      form.clearErrors("payment_date");
-      form.setData((data) => ({ ...data, payment_date: event.target.value }));
-    },
-    [form],
-  );
-
-  const updateValue = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      form.clearErrors("value");
-      form.setData((data) => ({ ...data, value: event.target.value }));
-    },
-    [form],
-  );
-
-  return (
-    <>
-      <PaymentErrors errors={form.errors} />
-      <tr data-payment-id={payment.id}>
-        <td>
-          <form className="hidden" id={`payment_${payment.id}_inline`} onSubmit={savePayment} />
-          <label className="sr-only" htmlFor={`payment_${payment.id}_date`}>
-            Date
-          </label>
-          <input
-            form={`payment_${payment.id}_inline`}
-            id={`payment_${payment.id}_date`}
-            onChange={updateDate}
-            suppressHydrationWarning
-            type="date"
-            value={form.data.payment_date}
-          />
-        </td>
-        <td>
-          <label className="sr-only" htmlFor={`payment_${payment.id}_amount`}>
-            Amount
-          </label>
-          <input
-            form={`payment_${payment.id}_inline`}
-            id={`payment_${payment.id}_amount`}
-            onChange={updateValue}
-            placeholder="Amount"
-            step="any"
-            suppressHydrationWarning
-            type="number"
-            value={form.data.value}
-          />
-        </td>
-        <td>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="btn_rounded btn_lightamber"
-              form={`payment_${payment.id}_inline`}
-              type="submit"
-            >
-              Update
-            </button>
-            <button className="btn_rounded btn_red" onClick={destroyPayment} type="button">
-              Remove
-            </button>
-          </div>
-        </td>
-      </tr>
-    </>
-  );
-}
-
 function NewPaymentRow({
   newPayment,
   purchasePath,
@@ -238,5 +148,93 @@ function PaymentErrors({ errors }: { errors: Record<string, string> }) {
         </div>
       </td>
     </tr>
+  );
+}
+
+function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchasePath: string }) {
+  const form = useForm({
+    payment_date: payment.payment_date,
+    value: payment.value,
+    return_to: purchasePath,
+  });
+  const destroyPayment = useConfirmAction("delete", payment.destroy_path, {
+    message: "Remove this payment?",
+  });
+
+  const savePayment = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      form.transform((data) => ({
+        payment: { payment_date: data.payment_date, value: data.value },
+        return_to: data.return_to,
+      }));
+      form.patch(payment.update_path, { preserveScroll: true });
+    },
+    [form, payment.update_path],
+  );
+
+  const updateDate = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.setData((data) => ({ ...data, payment_date: event.target.value }));
+    },
+    [form],
+  );
+
+  const updateValue = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      form.setData((data) => ({ ...data, value: event.target.value }));
+    },
+    [form],
+  );
+
+  return (
+    <>
+      <PaymentErrors errors={form.errors} />
+      <tr data-payment-id={payment.id}>
+        <td>
+          <form className="hidden" id={`payment_${payment.id}_inline`} onSubmit={savePayment} />
+          <label className="sr-only" htmlFor={`payment_${payment.id}_date`}>
+            Date
+          </label>
+          <input
+            form={`payment_${payment.id}_inline`}
+            id={`payment_${payment.id}_date`}
+            onChange={updateDate}
+            suppressHydrationWarning
+            type="date"
+            value={form.data.payment_date}
+          />
+        </td>
+        <td>
+          <label className="sr-only" htmlFor={`payment_${payment.id}_amount`}>
+            Amount
+          </label>
+          <input
+            form={`payment_${payment.id}_inline`}
+            id={`payment_${payment.id}_amount`}
+            onChange={updateValue}
+            placeholder="Amount"
+            step="any"
+            suppressHydrationWarning
+            type="number"
+            value={form.data.value}
+          />
+        </td>
+        <td>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="btn_rounded btn_lightamber"
+              form={`payment_${payment.id}_inline`}
+              type="submit"
+            >
+              Update
+            </button>
+            <button className="btn_rounded btn_red" onClick={destroyPayment} type="button">
+              Remove
+            </button>
+          </div>
+        </td>
+      </tr>
+    </>
   );
 }

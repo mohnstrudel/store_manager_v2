@@ -96,24 +96,22 @@ class Sale < ApplicationRecord
     received_revenue.to_d.positive? && outstanding_revenue.to_d.positive?
   end
 
+  def follow_up_payment?
+    payment_plans_for_display.any? { |plan| plan.origin_sale_id != id && plan.part_number_for(self).present? }
+  end
+
   def payment_plans_for_display
     (origin_payment_plans.to_a + sale_payment_parts.map(&:sale_payment_plan))
       .uniq(&:id)
       .sort_by { |plan| [plan.created_at, plan.id] }
   end
 
-  def follow_up_payment?
-    payment_plans_for_display.any? { |plan| plan.origin_sale_id != id && plan.part_number_for(self).present? }
+  def reconcile_installment_attribution!(origin_item)
+    installment_payment_items.each { |item| item.apply_installment_origin!(origin_item) }
   end
 
-  # Payment items still needing—or previously given—Seal installment attribution:
-  # on the generic placeholder product, or already redirected by a prior reconciliation.
   def installment_payment_items
     scope = sale_items.joins(:product)
     scope.where(products: {non_catalog: true}).or(scope.where.not(sale_items: {origin_sale_item_id: nil}))
-  end
-
-  def reconcile_installment_attribution!(origin_item)
-    installment_payment_items.each { |item| item.apply_installment_origin!(origin_item) }
   end
 end

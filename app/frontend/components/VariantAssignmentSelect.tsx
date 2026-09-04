@@ -110,25 +110,6 @@ export default function VariantAssignmentSelect({
   );
 }
 
-function VariantAvailabilityMessage({
-  error,
-  inputId,
-  message,
-  name,
-}: {
-  error?: string;
-  inputId: string;
-  message: string;
-  name: string;
-}) {
-  return (
-    <FormControl error={error} htmlFor={inputId} label="Variant">
-      <input id={inputId} name={name} type="hidden" value="" />
-      <p>{message}</p>
-    </FormControl>
-  );
-}
-
 function useVariantAvailability(
   productId: number | null,
   initialProductId: number | null,
@@ -174,6 +155,25 @@ function useVariantAvailability(
   }, [productId]);
 
   return state;
+}
+
+function VariantAvailabilityMessage({
+  error,
+  inputId,
+  message,
+  name,
+}: {
+  error?: string;
+  inputId: string;
+  message: string;
+  name: string;
+}) {
+  return (
+    <FormControl error={error} htmlFor={inputId} label="Variant">
+      <input id={inputId} name={name} type="hidden" value="" />
+      <p>{message}</p>
+    </FormControl>
+  );
 }
 
 function selectedVariant(options: VariantAssignmentOption[], value: number | null) {

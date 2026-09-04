@@ -13,8 +13,6 @@ vi.mock("@/utils/resolvePage", () => ({
   resolvePage: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
-// Captured at module scope: createInertiaApp and router.on("navigate") run at
-// import time of "./inertia", before mockReset clears call history for test 1.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const createInertiaAppOptions = vi.mocked(createInertiaApp).mock.calls[0]?.[0] as
   | { layout: () => typeof AppLayout }
@@ -66,7 +64,6 @@ describe("Inertia navigation bridge", () => {
     enableInertiaNavigationBridge();
     document.body.innerHTML = '<div id="app"><a href="/products">Products</a></div>';
 
-    // Simulate Inertia <Link> calling event.preventDefault() in its onClick
     document.querySelector("a")!.addEventListener("click", (e) => e.preventDefault());
     document.querySelector("a")!.dispatchEvent(clickEvent());
 

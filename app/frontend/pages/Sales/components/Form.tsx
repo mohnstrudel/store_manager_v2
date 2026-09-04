@@ -22,10 +22,6 @@ type SaleFormProps = {
 
 type SaleFormState = ReturnType<typeof useSaleFormState>;
 
-function titleize(str: string): string {
-  return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 function newSaleItem(): SaleItemFormRecord {
   return {
     id: null,
@@ -68,6 +64,19 @@ export default function SaleForm({ isNew, options, sale, submitLabel }: SaleForm
   );
 }
 
+function useSaleFormState(sale: SaleFormRecord) {
+  const [customerId, setCustomerId] = useState<number | null>(sale.customer_id);
+  const saleItems = useDynamicSection(sale.sale_items, newSaleItem, {
+    keyForInitial: saleItemKey,
+  });
+
+  function selectCustomer(option: SaleFormOptions["customers"][number] | null) {
+    setCustomerId(option?.value ?? null);
+  }
+
+  return { customerId, saleItems, selectCustomer };
+}
+
 function SaleStatusField({ options, sale }: { options: SaleFormOptions; sale: SaleFormRecord }) {
   return (
     <section className="form_section_item">
@@ -108,6 +117,10 @@ function SaleStatusOption({
       </label>
     </div>
   );
+}
+
+function titleize(str: string): string {
+  return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function SaleCustomerField({
@@ -205,19 +218,6 @@ function SaleItemsSection({
       ))}
     </DynamicNestedForm>
   );
-}
-
-function useSaleFormState(sale: SaleFormRecord) {
-  const [customerId, setCustomerId] = useState<number | null>(sale.customer_id);
-  const saleItems = useDynamicSection(sale.sale_items, newSaleItem, {
-    keyForInitial: saleItemKey,
-  });
-
-  function selectCustomer(option: SaleFormOptions["customers"][number] | null) {
-    setCustomerId(option?.value ?? null);
-  }
-
-  return { customerId, saleItems, selectCustomer };
 }
 
 function saleItemKey(saleItem: SaleItemFormRecord, index: number) {

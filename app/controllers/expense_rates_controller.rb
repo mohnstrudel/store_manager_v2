@@ -50,11 +50,11 @@ class ExpenseRatesController < ApplicationController
 
   private
 
-  def set_expense_rate
-    @expense_rate = ExpenseRate.find(params.expect(:id))
-  end
-
   def expense_rate_params
     params.fetch(:expense_rate, {}).permit(:name, :rate_percent)
+  end
+
+  def set_expense_rate
+    @expense_rate = ExpenseRate.find(params.expect(:id))
   end
 end

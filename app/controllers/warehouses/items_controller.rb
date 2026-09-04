@@ -28,10 +28,6 @@ module Warehouses
 
     private
 
-    def authorize_resource
-      authorize :purchase_item
-    end
-
     def purchase_item_params
       params.expect(
         purchase_item: [:length,
@@ -45,6 +41,10 @@ module Warehouses
           :redirect_to_sale_item,
           :shipping_company_id]
       )
+    end
+
+    def authorize_resource
+      authorize :purchase_item
     end
   end
 end

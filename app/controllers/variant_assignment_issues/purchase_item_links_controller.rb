@@ -13,10 +13,6 @@ module VariantAssignmentIssues
 
     private
 
-    def authorize_resource
-      authorize :variant_assignment_issue, :update?
-    end
-
     def return_path
       params[:return_to].presence ||
         variant_assignment_issues_path(issue_type: "purchase_item_links")
@@ -28,6 +24,10 @@ module VariantAssignmentIssues
 
     def stale_repair_message
       "This issue changed while it was being repaired. Review it and try again"
+    end
+
+    def authorize_resource
+      authorize :variant_assignment_issue, :update?
     end
   end
 end

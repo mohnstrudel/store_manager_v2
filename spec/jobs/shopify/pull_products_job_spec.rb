@@ -61,11 +61,9 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
     end
 
     it "logs warnings when SKU collision errors occur" do
-      # Create an existing product with the same SKU
       product = create(:product)
       create(:variant, product:, sku: "malenia-001")
 
-      # Stub to raise SKU collision error
       allow(Product::Shopify::Importer).to receive(:import!).and_raise(
         StandardError.new("SKU has already been taken")
       )
@@ -73,7 +71,7 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
 
       expect { job.perform }.not_to raise_error
       expect(Rails.logger).to have_received(:warn).with(/Skipping item due to variant SKU collision/)
-      expect(Product.count).to eq(1) # No new product created
+      expect(Product.count).to eq(1)
     end
 
     it "re-raises non-SKU errors" do

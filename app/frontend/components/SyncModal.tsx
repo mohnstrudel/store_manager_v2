@@ -46,6 +46,44 @@ export default function SyncModal({
   );
 }
 
+function useSyncModalDismissal(onClose: () => void) {
+  useCloseOnEscape(true, onClose);
+
+  const closeModal = useCallback(() => onClose(), [onClose]);
+
+  const closeWhenBackdropIsClicked = useCallback(
+    (event: MouseEvent<HTMLDialogElement>) => {
+      if (event.target === event.currentTarget) onClose();
+    },
+    [onClose],
+  );
+
+  return { closeModal, closeWhenBackdropIsClicked };
+}
+
+type StoreSyncActionsOptions = {
+  onClose: () => void;
+  pullPath: string;
+};
+
+function useStoreSyncActions({ onClose, pullPath }: StoreSyncActionsOptions) {
+  const fetchStoreRecords = useCallback(
+    (limit?: number) => {
+      router.post(pullPath, limit ? { limit } : {});
+      onClose();
+    },
+    [onClose, pullPath],
+  );
+
+  const fetchEverything = useCallback(() => fetchStoreRecords(), [fetchStoreRecords]);
+  const fetchRecentRecords = useCallback(
+    () => fetchStoreRecords(LIMITED_SYNC_COUNT),
+    [fetchStoreRecords],
+  );
+
+  return { fetchEverything, fetchRecentRecords };
+}
+
 type SyncModalHeaderProps = {
   lastSyncAt?: string | null;
   onClose: () => void;
@@ -103,42 +141,4 @@ function SyncActions({
       </li>
     </menu>
   );
-}
-
-function useSyncModalDismissal(onClose: () => void) {
-  useCloseOnEscape(true, onClose);
-
-  const closeModal = useCallback(() => onClose(), [onClose]);
-
-  const closeWhenBackdropIsClicked = useCallback(
-    (event: MouseEvent<HTMLDialogElement>) => {
-      if (event.target === event.currentTarget) onClose();
-    },
-    [onClose],
-  );
-
-  return { closeModal, closeWhenBackdropIsClicked };
-}
-
-type StoreSyncActionsOptions = {
-  onClose: () => void;
-  pullPath: string;
-};
-
-function useStoreSyncActions({ onClose, pullPath }: StoreSyncActionsOptions) {
-  const fetchStoreRecords = useCallback(
-    (limit?: number) => {
-      router.post(pullPath, limit ? { limit } : {});
-      onClose();
-    },
-    [onClose, pullPath],
-  );
-
-  const fetchEverything = useCallback(() => fetchStoreRecords(), [fetchStoreRecords]);
-  const fetchRecentRecords = useCallback(
-    () => fetchStoreRecords(LIMITED_SYNC_COUNT),
-    [fetchStoreRecords],
-  );
-
-  return { fetchEverything, fetchRecentRecords };
 }

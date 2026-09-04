@@ -166,38 +166,6 @@ export default function VariantFields({
   );
 }
 
-function VariantActions({
-  index,
-  onMarkedForDeletionChange,
-  onRemove,
-  variant,
-}: {
-  index: number;
-  onMarkedForDeletionChange: (checked: boolean) => void;
-  onRemove: () => void;
-  variant: VariantFormData;
-}) {
-  if (variant.deactivated) {
-    return <span className="text-sm text-gray-500 dark:text-gray-400">(Deactivated)</span>;
-  }
-
-  if (!variant.id) {
-    return (
-      <button className="text-sm btn_rounded btn_red" onClick={onRemove} type="button">
-        Cancel
-      </button>
-    );
-  }
-
-  return (
-    <DestroyCheckbox
-      defaultChecked={variant._destroy}
-      name={`variants[${index}][_destroy]`}
-      onChange={onMarkedForDeletionChange}
-    />
-  );
-}
-
 function useVariantFieldState(
   variant: SectionRow<VariantFormData>,
   onChange: (clientKey: string, changes: Partial<VariantFormData>) => void,
@@ -249,6 +217,38 @@ function useVariantFieldState(
     sizeId,
     versionId,
   };
+}
+
+function VariantActions({
+  index,
+  onMarkedForDeletionChange,
+  onRemove,
+  variant,
+}: {
+  index: number;
+  onMarkedForDeletionChange: (checked: boolean) => void;
+  onRemove: () => void;
+  variant: VariantFormData;
+}) {
+  if (variant.deactivated) {
+    return <span className="text-sm text-gray-500 dark:text-gray-400">(Deactivated)</span>;
+  }
+
+  if (!variant.id) {
+    return (
+      <button className="text-sm btn_rounded btn_red" onClick={onRemove} type="button">
+        Cancel
+      </button>
+    );
+  }
+
+  return (
+    <DestroyCheckbox
+      defaultChecked={variant._destroy}
+      name={`variants[${index}][_destroy]`}
+      onChange={onMarkedForDeletionChange}
+    />
+  );
 }
 
 const EMPTY_ERRORS: Record<string, string> = {};

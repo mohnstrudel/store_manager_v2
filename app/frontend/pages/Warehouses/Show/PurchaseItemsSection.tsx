@@ -88,6 +88,16 @@ export function PurchaseItemsSection({
   );
 }
 
+function usePurchaseItemsSection() {
+  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
+    useWarehouseMoveSelection();
+
+  return {
+    clearSelectedIds,
+    selectedIds,
+    togglePurchaseItemSelection: toggleSelectedIdFromDataAttribute("purchaseItemId"),
+  };
+}
 function PurchaseItemsSectionHeader({
   pagination,
   warehouse,
@@ -122,12 +132,6 @@ function PurchaseItemsSearch({
       </div>
     </div>
   );
-}
-
-function PurchaseItemsEmptyState({ search }: { search: { q: string } }) {
-  if (!search.q) return null;
-
-  return <SearchResultsEmpty seed={search.q} />;
 }
 
 function PurchaseItemsTable({
@@ -183,6 +187,11 @@ function PaymentProgressLegend() {
     </div>
   );
 }
+function PurchaseItemsEmptyState({ search }: { search: { q: string } }) {
+  if (!search.q) return null;
+
+  return <SearchResultsEmpty seed={search.q} />;
+}
 
 function PurchaseItemRow({
   item,
@@ -237,6 +246,9 @@ function PurchaseItemRow({
   );
 }
 
+function purchaseItemRowClassName({ isSelected }: { isSelected: boolean }) {
+  return ["hoverable", isSelected ? "selected" : ""].filter(Boolean).join(" ");
+}
 function PurchaseItemTitle({ item }: { item: WarehousePurchaseItemRecord }) {
   return (
     <>
@@ -304,19 +316,4 @@ function PurchaseItemCustomer({ item }: { item: WarehousePurchaseItemRecord }) {
       </li>
     </ul>
   );
-}
-
-function usePurchaseItemsSection() {
-  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
-    useWarehouseMoveSelection();
-
-  return {
-    clearSelectedIds,
-    selectedIds,
-    togglePurchaseItemSelection: toggleSelectedIdFromDataAttribute("purchaseItemId"),
-  };
-}
-
-function purchaseItemRowClassName({ isSelected }: { isSelected: boolean }) {
-  return ["hoverable", isSelected ? "selected" : ""].filter(Boolean).join(" ");
 }

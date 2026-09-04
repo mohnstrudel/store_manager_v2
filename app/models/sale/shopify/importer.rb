@@ -46,22 +46,6 @@ class Sale::Shopify::Importer
       .merge(customer: Customer::Shopify::Importer.import!(parsed[:customer]))
   end
 
-  def address_attributes
-    (parsed[:addresses] || {}).reverse_merge(shipping: nil, billing: nil)
-  end
-
-  def update_addresses!
-    return unless parsed.key?(:addresses)
-
-    sale.upsert_addresses!(**address_attributes)
-  end
-
-  def update_or_create_sale_items!
-    parsed[:sale_items].each do |parsed_sale_item|
-      Sale::Shopify::SaleItemImporter.new(sale, parsed_sale_item).import!
-    end
-  end
-
   def reconcile_payment_plans!
     SalePaymentPlan.reconcile_sale!(sale)
     return if parsed[:payment_plan].blank?
@@ -71,6 +55,22 @@ class Sale::Shopify::Importer
       attributes: snapshot.fetch(:attributes).merge(synced_at: Time.current),
       parts: snapshot.fetch(:parts)
     )
+  end
+
+  def update_addresses!
+    return unless parsed.key?(:addresses)
+
+    sale.upsert_addresses!(**address_attributes)
+  end
+
+  def address_attributes
+    (parsed[:addresses] || {}).reverse_merge(shipping: nil, billing: nil)
+  end
+
+  def update_or_create_sale_items!
+    parsed[:sale_items].each do |parsed_sale_item|
+      Sale::Shopify::SaleItemImporter.new(sale, parsed_sale_item).import!
+    end
   end
 
   def handle_post_import_actions

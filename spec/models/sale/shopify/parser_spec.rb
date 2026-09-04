@@ -3,12 +3,9 @@
 require "rails_helper"
 
 RSpec.describe Sale::Shopify::Parser do
-  # This baseline rate predates every fixture order; date-sensitive examples override it.
   before do
     create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.0000"))
 
-    # Stub Product::Shopify::Parser to return a hash with shopify_id key
-    # This prevents recursive parsing
     allow(Product::Shopify::Parser).to receive(:parse).and_call_original
     allow(Product::Shopify::Parser).to receive(:parse).with(
       hash_including("id" => "gid://shopify/Product/333")

@@ -8,9 +8,10 @@ type PaymentPlanMarkerProps = {
   progress: SalePaymentProgress | null;
   settlementStatus: SettlementStatus;
 };
+const EMPTY_PLANS: SalePaymentPlanRecord[] = [];
 
 export default function PaymentPlanMarker({
-  plans = [],
+  plans = EMPTY_PLANS,
   progress,
   settlementStatus,
 }: PaymentPlanMarkerProps) {

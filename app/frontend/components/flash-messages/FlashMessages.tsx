@@ -47,36 +47,25 @@ export default function FlashMessages() {
   );
 }
 
-function FlashMessageContent({ flash }: { flash: FlashMessage }) {
-  if (typeof flash === "string") {
-    return <p className="text-base font-semibold lg:text-lg">{flash}</p>;
-  }
+function getActiveFlashKind(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
+  if (flash.alert) return "alert" as const;
+  if (flash.notice) return "notice" as const;
 
-  return (
-    <p className="text-base font-semibold lg:text-lg">
-      {flash.message}
-      {flash.link ? (
-        <>
-          {" "}
-          <Link className="link" href={flash.link.href}>
-            {flash.link.label}
-          </Link>
-          {flash.link.suffix ? ` ${flash.link.suffix}` : null}
-        </>
-      ) : null}
-    </p>
-  );
+  return null;
 }
+function getActiveFlash(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
+  return flash.alert || flash.notice;
+}
+function flashToken(kind: FlashToastKind, flash: FlashMessage) {
+  const message = flashMessageText(flash);
+  const link =
+    typeof flash === "string" ? "" : `${flash.link?.label ?? ""}:${flash.link?.href ?? ""}`;
 
-type FlashToastKind = keyof typeof FLASH_KIND;
-type FlashToastPhase = "entering" | "visible" | "leaving";
-type FlashToast = {
-  flash: FlashMessage;
-  kind: FlashToastKind;
-  phase: FlashToastPhase;
-  token: string;
-};
-
+  return `${kind}:${message ?? ""}:${link}`;
+}
+function flashMessageText(flash: FlashMessage | null) {
+  return typeof flash === "string" ? flash : flash?.message;
+}
 function useFlashToast(
   activeFlash: FlashMessage | null,
   activeKind: FlashToastKind | null,
@@ -141,26 +130,32 @@ function useFlashToast(
 
   return toast;
 }
+function FlashMessageContent({ flash }: { flash: FlashMessage }) {
+  if (typeof flash === "string") {
+    return <p className="text-base font-semibold lg:text-lg">{flash}</p>;
+  }
 
-function flashToken(kind: FlashToastKind, flash: FlashMessage) {
-  const message = flashMessageText(flash);
-  const link =
-    typeof flash === "string" ? "" : `${flash.link?.label ?? ""}:${flash.link?.href ?? ""}`;
-
-  return `${kind}:${message ?? ""}:${link}`;
+  return (
+    <p className="text-base font-semibold lg:text-lg">
+      {flash.message}
+      {flash.link ? (
+        <>
+          {" "}
+          <Link className="link" href={flash.link.href}>
+            {flash.link.label}
+          </Link>
+          {flash.link.suffix ? ` ${flash.link.suffix}` : null}
+        </>
+      ) : null}
+    </p>
+  );
 }
 
-function flashMessageText(flash: FlashMessage | null) {
-  return typeof flash === "string" ? flash : flash?.message;
-}
-
-function getActiveFlash(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
-  return flash.alert || flash.notice;
-}
-
-function getActiveFlashKind(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
-  if (flash.alert) return "alert" as const;
-  if (flash.notice) return "notice" as const;
-
-  return null;
-}
+type FlashToastKind = keyof typeof FLASH_KIND;
+type FlashToastPhase = "entering" | "visible" | "leaving";
+type FlashToast = {
+  flash: FlashMessage;
+  kind: FlashToastKind;
+  phase: FlashToastPhase;
+  token: string;
+};

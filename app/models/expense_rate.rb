@@ -19,7 +19,6 @@ class ExpenseRate < ApplicationRecord
 
   scope :ordered, -> { order(rate_percent: :desc, name: :asc) }
 
-  # Combined rate as a fraction of revenue, e.g. 17.5% -> 0.175
   def self.combined_fraction
     sum(:rate_percent) / 100
   end

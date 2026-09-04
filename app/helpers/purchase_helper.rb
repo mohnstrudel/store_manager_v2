@@ -8,6 +8,33 @@ module PurchaseHelper
     }
   end
 
+  def purchase_form_record_props(purchase)
+    {
+      id: purchase.id,
+      path: purchase.persisted? ? purchase_path(purchase) : "",
+      product_id: purchase_display_product(purchase)&.id,
+      variant_id: purchase.variant_id,
+      supplier_id: purchase.supplier_id,
+      order_reference: purchase.order_reference.to_s,
+      item_price: decimal_field_value(purchase.item_price),
+      amount: purchase.amount.to_s,
+      warehouse_id: purchase.warehouse_id,
+      payment_value: decimal_field_value(purchase.payment_value),
+      variant_availability: variant_availability_props(
+        purchase_display_product(purchase),
+        current_variant: purchase.variant
+      )
+    }
+  end
+
+  def purchase_form_options_props(products:, suppliers:, warehouses:)
+    {
+      products: select_option_props(products) { |product| product.build_full_title_with_shop_id },
+      suppliers: select_option_props(suppliers) { |supplier| supplier.title },
+      warehouses: select_option_props(warehouses) { |warehouse| warehouse.name }
+    }
+  end
+
   def purchase_show_props(purchase, purchase_items:, payments:, new_payment:)
     all_warehouses = Warehouse.order(name: :asc).to_a
     warehouses_by_id = all_warehouses.index_by(&:id)
@@ -19,28 +46,6 @@ module PurchaseHelper
       warehouses: all_warehouses.map { |warehouse| purchase_warehouse_props(warehouse) },
       warehouse_move_path: warehouse_move_path,
       shipping_companies: ShippingCompany.ordered.map { |sc| {id: sc.id, name: sc.name} }
-    }
-  end
-
-  def purchase_index_props(purchase)
-    {
-      id: purchase.id,
-      path: purchase_path(purchase),
-      edit_path: edit_purchase_path(purchase),
-      product_title: purchase_product_title(purchase),
-      product_thumb_url: purchase_product_thumb_url(purchase),
-      variant_title: purchase.variant&.title,
-      order_reference: purchase.order_reference,
-      supplier_title: purchase.supplier.title,
-      amount: purchase.amount.to_i,
-      purchase_items_count: purchase.purchase_items.size,
-      warehouse_counts: purchase.purchase_items.group_by(&:warehouse).map do |warehouse, purchase_items|
-        {
-          warehouse_name: warehouse.name,
-          count: purchase_items.count
-        }
-      end,
-      payment_progress: purchase_payment_progress_props(purchase)
     }
   end
 
@@ -70,6 +75,15 @@ module PurchaseHelper
     }
   end
 
+  def purchase_payment_progress_props(purchase)
+    {
+      progress: purchase.progress.to_f,
+      paid: format_money(purchase.item_paid),
+      price: format_money(purchase.item_price),
+      debt: format_money(purchase.item_debt)
+    }
+  end
+
   def purchase_item_props(purchase_item, warehouses_by_id: nil)
     {
       id: purchase_item.id,
@@ -94,59 +108,6 @@ module PurchaseHelper
     }
   end
 
-  def payment_props(payment, purchase:)
-    {
-      id: payment.id,
-      update_path: purchase_payment_path(purchase, payment),
-      destroy_path: purchase_payment_path(purchase, payment, return_to: purchase_path(purchase)),
-      payment_date: payment.payment_date&.to_date&.iso8601,
-      value: decimal_field_value(payment.value)
-    }
-  end
-
-  def unsaved_payment_props(payment, purchase:)
-    {
-      create_path: purchase_payments_path(purchase),
-      payment_date: (payment.payment_date&.to_date || Time.zone.today).iso8601,
-      value: decimal_field_value(payment.value)
-    }
-  end
-
-  def purchase_payment_progress_props(purchase)
-    {
-      progress: purchase.progress.to_f,
-      paid: format_money(purchase.item_paid),
-      price: format_money(purchase.item_price),
-      debt: format_money(purchase.item_debt)
-    }
-  end
-
-  def purchase_warehouse_props(warehouse)
-    {
-      id: warehouse.id,
-      name: warehouse.name
-    }
-  end
-
-  def purchase_form_record_props(purchase)
-    {
-      id: purchase.id,
-      path: purchase.persisted? ? purchase_path(purchase) : "",
-      product_id: purchase_display_product(purchase)&.id,
-      variant_id: purchase.variant_id,
-      supplier_id: purchase.supplier_id,
-      order_reference: purchase.order_reference.to_s,
-      item_price: decimal_field_value(purchase.item_price),
-      amount: purchase.amount.to_s,
-      warehouse_id: purchase.warehouse_id,
-      payment_value: decimal_field_value(purchase.payment_value),
-      variant_availability: variant_availability_props(
-        purchase_display_product(purchase),
-        current_variant: purchase.variant
-      )
-    }
-  end
-
   def purchase_expense_props(expense, purchase_item:)
     {
       id: expense.id,
@@ -165,11 +126,50 @@ module PurchaseHelper
     }
   end
 
-  def purchase_form_options_props(products:, suppliers:, warehouses:)
+  def payment_props(payment, purchase:)
     {
-      products: select_option_props(products) { |product| product.build_full_title_with_shop_id },
-      suppliers: select_option_props(suppliers) { |supplier| supplier.title },
-      warehouses: select_option_props(warehouses) { |warehouse| warehouse.name }
+      id: payment.id,
+      update_path: purchase_payment_path(purchase, payment),
+      destroy_path: purchase_payment_path(purchase, payment, return_to: purchase_path(purchase)),
+      payment_date: payment.payment_date&.to_date&.iso8601,
+      value: decimal_field_value(payment.value)
+    }
+  end
+
+  def unsaved_payment_props(payment, purchase:)
+    {
+      create_path: purchase_payments_path(purchase),
+      payment_date: (payment.payment_date&.to_date || Time.zone.today).iso8601,
+      value: decimal_field_value(payment.value)
+    }
+  end
+
+  def purchase_warehouse_props(warehouse)
+    {
+      id: warehouse.id,
+      name: warehouse.name
+    }
+  end
+
+  def purchase_index_props(purchase)
+    {
+      id: purchase.id,
+      path: purchase_path(purchase),
+      edit_path: edit_purchase_path(purchase),
+      product_title: purchase_product_title(purchase),
+      product_thumb_url: purchase_product_thumb_url(purchase),
+      variant_title: purchase.variant&.title,
+      order_reference: purchase.order_reference,
+      supplier_title: purchase.supplier.title,
+      amount: purchase.amount.to_i,
+      purchase_items_count: purchase.purchase_items.size,
+      warehouse_counts: purchase.purchase_items.group_by(&:warehouse).map do |warehouse, purchase_items|
+        {
+          warehouse_name: warehouse.name,
+          count: purchase_items.count
+        }
+      end,
+      payment_progress: purchase_payment_progress_props(purchase)
     }
   end
 

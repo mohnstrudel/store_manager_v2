@@ -5,7 +5,6 @@ RSpec::Matchers.define :appear_before do |later_content|
     earlier_index = page.body.index(earlier_content)
     later_index = page.body.index(later_content)
 
-    # Both contents should be found
     return false if earlier_index.nil? || later_index.nil?
 
     earlier_index < later_index

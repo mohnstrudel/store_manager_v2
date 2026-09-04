@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Structural interface checks do not replace behavioral examples.
 module DuckTyper
   def implement_canonical_interface(canonical, methods: nil)
     required = methods || canonical.public_instance_methods(false) + canonical.private_instance_methods(false)

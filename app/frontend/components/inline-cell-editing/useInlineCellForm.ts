@@ -8,41 +8,19 @@ import { useRecentlySaved } from "./useRecentlySaved";
 
 type InlineCellFormConfig<TRecord extends { id: number }> = {
   editedRecord: TRecord;
-  /** Attribute being edited, e.g. "tracking_number". Must exist on the record. */
   attributeName: keyof TRecord & string;
-  /** The js-from-routes PATCH helper. Provides the URL. */
   route: PathHelper;
-  /** Inertia page prop holding the collection, e.g. "purchase_items". */
   collection: string;
-  /** Strong-params root key for the PATCH body, e.g. "purchase_item". */
   paramKey: string;
-  /** Route param naming the record id, e.g. "purchase_item_id" or "id". */
   idParam: string;
-  /** Maps the new form value to the record state for the optimistic update.
-   *  Defaults to `{ [attributeName]: newValue }`. Override when the optimistic
-   *  row needs extra fields or type coercion (e.g. id + display name). */
   mapNewValueToState?: (newValue: string) => Partial<TRecord>;
-  /** Normalizes the submitted form value before patching and optimistic updates. */
   normalizeValueForSave?: (value: string) => string;
-  /** Defaults to the current page URL. Override only when saving should return elsewhere. */
   returnTo?: string;
-  /** Inertia props to reload after save. Defaults to the edited collection only. */
   reloadProps?: string[];
-  /** Reads a field error. Defaults to `errors[attributeName] || errors.base`. */
   errorFrom?: (errors: Record<string, string>) => string;
-  /** Side effect called when the user opens the editor (not via ref). */
   onOpen?: () => void;
 };
 
-/**
- * Drives a single editable table cell that patches one attribute via Inertia.
- *
- * Manages open state and derives the endpoint URL, strong-params key, and page
- * collection from the js-from-routes helper. Returns `open`, `close`, and
- * `openSilently` so callers don't manage their own useState / useCallback.
- * `openSilently` is for `useImperativeHandle` — it sets state without triggering
- * the `onOpen` side effect, preventing cascade when siblings open each other.
- */
 export function useInlineCellForm<TRecord extends { id: number }>({
   editedRecord,
   attributeName,

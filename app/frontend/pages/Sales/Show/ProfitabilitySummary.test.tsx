@@ -52,7 +52,6 @@ describe("Sales/Show/ProfitabilitySummary", () => {
     renderSummary({ net_profit: "-96" });
 
     expect(operatorGlyphs()).toEqual([]);
-    // The minus on a negative amount is part of the figure, not an operator.
     expect(within(card()).getByText("−96")).toBeInTheDocument();
   });
 
@@ -247,8 +246,6 @@ describe("Sales/Show/ProfitabilitySummary", () => {
       expect(screen.getByText(/For this sale\./)).toBeInTheDocument();
     });
 
-    // Every figure is a sum. Without a scope note a reader cannot tell a sale
-    // total from a line total from a product's lifetime total.
     it.each(TERM_ANCHORS)("closes the %s hint by naming what was added up", async (anchor) => {
       renderSummary({ scope: "sale" });
 
@@ -263,30 +260,28 @@ function renderSummary(overrides: Partial<SaleProfitabilityRecord> = {}) {
   return render(<ProfitabilitySummary profitability={makeSaleProfitability(overrides)} />);
 }
 
-function card() {
-  return screen.getByTestId("sale-profitability-card");
-}
-
 function term(anchor: string): HTMLElement | null {
   return screen.queryByTestId(`metric-${anchor}`);
 }
 
-function termOrFail(anchor: string): HTMLElement {
-  return screen.getByTestId(`metric-${anchor}`);
-}
-
-// An operator or arrow was an element holding nothing but a glyph. A negative
-// amount reads "−96", so matching the whole content tells the two apart.
 function operatorGlyphs(): string[] {
   return [...card().querySelectorAll("*")]
     .map((element) => element.textContent ?? "")
     .filter((text) => /^[−=→]$/.test(text));
 }
 
+function card() {
+  return screen.getByTestId("sale-profitability-card");
+}
+
 function amount(anchor: string): number {
   const text = termOrFail(anchor).querySelector(".economics_snapshot__value")?.textContent ?? "";
 
   return Number(text.replace(/−/g, "-").replace(/[^\d.-]/g, ""));
+}
+
+function termOrFail(anchor: string): HTMLElement {
+  return screen.getByTestId(`metric-${anchor}`);
 }
 
 async function openHint(anchor: string) {

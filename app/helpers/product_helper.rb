@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
 module ProductHelper
+  def render_product_timestamp_columns(record, attribute)
+    content_tag(:div, class: "grid grid-flow-col auto-cols-max gap-6", data: {timestamp_attribute: attribute}) do
+      safe_join(
+        product_timestamp_columns(record, attribute).map do |column|
+          content_tag(:div, class: "flex flex-col gap-1", data: {timestamp_column: column[:key]}) do
+            content_tag(:span, column[:label], class: "mt-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400") +
+              content_tag(:span, format_date(column[:value]), class: "text-sm")
+          end
+        end
+      )
+    end
+  end
+
   def product_timestamp_columns(record, attribute)
     columns = [{key: attribute.to_s.delete_suffix("_at"), label: "StoreMate", value: record.public_send(attribute)}]
 
@@ -13,19 +26,6 @@ module ProductHelper
     end
 
     columns
-  end
-
-  def render_product_timestamp_columns(record, attribute)
-    content_tag(:div, class: "grid grid-flow-col auto-cols-max gap-6", data: {timestamp_attribute: attribute}) do
-      safe_join(
-        product_timestamp_columns(record, attribute).map do |column|
-          content_tag(:div, class: "flex flex-col gap-1", data: {timestamp_column: column[:key]}) do
-            content_tag(:span, column[:label], class: "mt-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400") +
-              content_tag(:span, format_date(column[:value]), class: "text-sm")
-          end
-        end
-      )
-    end
   end
 
   def product_props(product)
@@ -82,16 +82,6 @@ module ProductHelper
     }
   end
 
-  def product_timestamp_columns_props(product, attribute)
-    product_timestamp_columns(product, attribute).map do |column|
-      {
-        key: column[:key],
-        label: column[:label],
-        value: format_date(column[:value])
-      }
-    end
-  end
-
   def shopify_info_props(product)
     info = product.shopify_info
     return nil unless info
@@ -112,6 +102,16 @@ module ProductHelper
       store_id: info.store_id,
       product_url: info.product_url
     }
+  end
+
+  def product_timestamp_columns_props(product, attribute)
+    product_timestamp_columns(product, attribute).map do |column|
+      {
+        key: column[:key],
+        label: column[:label],
+        value: format_date(column[:value])
+      }
+    end
   end
 
   def variant_props(variant, sales_sums, purchase_sums, purchase_cost_totals, can_view_profitability: false, expense_fraction: ExpenseRate.combined_fraction)
@@ -291,31 +291,6 @@ module ProductHelper
     }
   end
 
-  def variant_availability_props(product, current_variant: nil)
-    return nil unless product
-
-    assignable_variants = product.assignable_variants.includes(:color, :size, :version).to_a
-    mode = assignable_variants.any?(&:base_model?) ? "base" : "select"
-    variants = assignable_variants
-
-    if current_variant&.product_id == product.id && variants.none? { |variant| variant.id == current_variant.id }
-      variants = [*variants, current_variant]
-    end
-
-    {
-      mode:,
-      variants: variants.map { |variant| variant_assignment_option_props(variant) }
-    }
-  end
-
-  def variant_assignment_option_props(variant)
-    {
-      value: variant.id,
-      label: variant.title.to_s,
-      base_model: variant.base_model?
-    }
-  end
-
   def form_store_info_props(store_info)
     {
       id: store_info.id,
@@ -341,6 +316,31 @@ module ProductHelper
 
   def select_option(value, label)
     {value:, label:}
+  end
+
+  def variant_availability_props(product, current_variant: nil)
+    return nil unless product
+
+    assignable_variants = product.assignable_variants.includes(:color, :size, :version).to_a
+    mode = assignable_variants.any?(&:base_model?) ? "base" : "select"
+    variants = assignable_variants
+
+    if current_variant&.product_id == product.id && variants.none? { |variant| variant.id == current_variant.id }
+      variants = [*variants, current_variant]
+    end
+
+    {
+      mode:,
+      variants: variants.map { |variant| variant_assignment_option_props(variant) }
+    }
+  end
+
+  def variant_assignment_option_props(variant)
+    {
+      value: variant.id,
+      label: variant.title.to_s,
+      base_model: variant.base_model?
+    }
   end
 
   def default_purchase_props

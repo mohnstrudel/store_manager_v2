@@ -1,5 +1,4 @@
 @layer base {
-  /* Links & buttons */
   a,
   input[type="submit"],
   input[type="button"],
@@ -15,7 +14,6 @@
 }
 
 @layer components {
-  /* Buttons */
   .btn_xs {
     @apply w-fit text-xs px-1.5! py-1! gap-0.5!;
   }

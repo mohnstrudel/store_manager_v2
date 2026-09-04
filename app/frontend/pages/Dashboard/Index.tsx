@@ -142,6 +142,15 @@ function SalesDebtSection({ debtsPath, saleDebts, total }: SalesDebtSectionProps
   );
 }
 
+function DashboardSectionTitle({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <h3 className="flex justify-between px-3 pt-4">
+      <span>{label}</span>
+      <span>{value}</span>
+    </h3>
+  );
+}
+
 type SuppliersDebtSectionProps = {
   supplierDebts: SupplierDebtRecord[];
   totalDebt: string;
@@ -174,15 +183,6 @@ function SuppliersDebtSection({ supplierDebts, totalDebt }: SuppliersDebtSection
         </tbody>
       </table>
     </section>
-  );
-}
-
-function DashboardSectionTitle({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <h3 className="flex justify-between px-3 pt-4">
-      <span>{label}</span>
-      <span>{value}</span>
-    </h3>
   );
 }
 

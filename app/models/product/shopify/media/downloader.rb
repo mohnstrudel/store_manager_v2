@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-# Downloads the remote media files one by one.
-# It skips blank URLs, keeps successful downloads, and remembers which Shopify
-# store IDs failed so the caller can avoid deleting matching local media.
 module Product::Shopify::Media
   class Downloader
-    MAX_FILE_SIZE = 20 * 1024 * 1024 # 20MB
+    MAX_FILE_SIZE = 20 * 1024 * 1024
     DownloadedImage = Data.define(:file, :filename, :checksum)
 
     attr_reader :downloads_by_key, :failed_store_ids
@@ -49,14 +46,6 @@ module Product::Shopify::Media
       store_download(item, downloaded_file)
     end
 
-    def record_failed_download(item)
-      record_failed_store_id(item[:id])
-    end
-
-    def store_download(item, downloaded_file)
-      downloads_by_key[item[:key]] = downloaded_file
-    end
-
     def download_image(url)
       file = Down.download(
         url,
@@ -74,11 +63,19 @@ module Product::Shopify::Media
       nil
     end
 
+    def record_failed_download(item)
+      record_failed_store_id(item[:id])
+    end
+
     def record_failed_store_id(store_id)
       return if store_id.blank?
       return if failed_store_ids.include?(store_id)
 
       failed_store_ids << store_id
+    end
+
+    def store_download(item, downloaded_file)
+      downloads_by_key[item[:key]] = downloaded_file
     end
   end
 end

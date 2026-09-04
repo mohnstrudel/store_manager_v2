@@ -6,7 +6,6 @@ class PurchasesController < ApplicationController
   before_action :set_purchase, only: %i[edit update destroy]
   before_action :prepare_form_options, only: %i[new edit]
 
-  # GET /purchases or /purchases.json
   def index
     @purchases = Purchase.for_listing.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
@@ -23,7 +22,6 @@ class PurchasesController < ApplicationController
     }
   end
 
-  # GET /purchases/1 or /purchases/1.json
   def show
     render inertia: "Purchases/Show", props: helpers.purchase_show_props(
       @purchase,
@@ -33,7 +31,6 @@ class PurchasesController < ApplicationController
     )
   end
 
-  # GET /purchases/new
   def new
     @purchase = Purchase.new
 
@@ -48,7 +45,6 @@ class PurchasesController < ApplicationController
     )
   end
 
-  # GET /purchases/1/edit
   def edit
     @purchase.warehouse_id = @default_warehouse_id
 
@@ -60,7 +56,6 @@ class PurchasesController < ApplicationController
     )
   end
 
-  # POST /purchases or /purchases.json
   def create
     payload = Purchase::FormPayload.new(params:)
     @purchase = Purchase.new
@@ -80,7 +75,6 @@ class PurchasesController < ApplicationController
     end
   end
 
-  # PATCH/PUT /purchases/1 or /purchases/1.json
   def update
     payload = Purchase::FormPayload.new(params:)
 
@@ -97,7 +91,6 @@ class PurchasesController < ApplicationController
     end
   end
 
-  # DELETE /purchases/1 or /purchases/1.json
   def destroy
     @purchase.destroy
 
@@ -109,7 +102,14 @@ class PurchasesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
+  def append_initial_payment_errors(purchase, record)
+    return unless record.is_a?(Payment)
+
+    record.errors.full_messages.each do |message|
+      purchase.errors.add(:base, "Initial payment #{message}")
+    end
+  end
+
   def set_purchase_for_show
     @purchase = Purchase.for_details.friendly.find(params.expect(:id))
   end
@@ -126,13 +126,5 @@ class PurchasesController < ApplicationController
     @product_options = Product.with_store_references
     @suppliers = Supplier.order(title: :asc)
     @warehouse_options = Warehouse.order(name: :asc)
-  end
-
-  def append_initial_payment_errors(purchase, record)
-    return unless record.is_a?(Payment)
-
-    record.errors.full_messages.each do |message|
-      purchase.errors.add(:base, "Initial payment #{message}")
-    end
   end
 end

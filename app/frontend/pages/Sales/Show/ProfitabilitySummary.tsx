@@ -75,29 +75,12 @@ function profitGroups(profitability: SaleProfitabilityRecord): EconomicsTerm[][]
   ];
 }
 
-// How wide these figures reach: a lone sale totals itself, a plan totals every
-// sale in it, and the reader cannot tell which from the figures alone.
 function saleScope(profitability: SaleProfitabilityRecord): string {
   if (profitability.scope !== "plan") return metricScopeNotes.sale;
 
   return "Across every sale in this payment plan.";
 }
 
-// The shipping and direct-expense split has no term of its own, so it is
-// stated where a reader asks what Purchase Expenses is made of. The figures
-// are interpolated, so the hint is composed here.
-function purchaseExpensesHint(profitability: SaleProfitabilityRecord): string {
-  const scoped = withScope(financialMetricHints.purchaseExpenses, saleScope(profitability));
-
-  if (isBlank(profitability.direct_expenses)) return scoped;
-
-  const shipping = profitability.purchase_shipping_cost ?? "0";
-
-  return `${scoped} Here: ${shipping} in Shipping, plus ${profitability.direct_expenses} in Direct expenses.`;
-}
-
-// OpEx has no term of its own, so this is the only place it appears: the hover
-// names every figure the profit was netted from, OpEx included.
 function netProfitHint(profitability: SaleProfitabilityRecord): string {
   const scoped = withScope(financialMetricHints.netProfit, saleScope(profitability));
   const grossRevenue = profitability.gross_revenue ?? "0";
@@ -108,8 +91,16 @@ function netProfitHint(profitability: SaleProfitabilityRecord): string {
   return `${scoped}\n\nGross Revenue: ${grossRevenue}.\nPurchase Cost: ${purchaseCost}.\nPurchase Expenses: ${purchaseExpenses}.\nEstimated OpEx: ${estimatedOpEx}.`;
 }
 
-// The two halves are interpolated so the hover always names the figures behind
-// today's number.
+function purchaseExpensesHint(profitability: SaleProfitabilityRecord): string {
+  const scoped = withScope(financialMetricHints.purchaseExpenses, saleScope(profitability));
+
+  if (isBlank(profitability.direct_expenses)) return scoped;
+
+  const shipping = profitability.purchase_shipping_cost ?? "0";
+
+  return `${scoped} Here: ${shipping} in Shipping, plus ${profitability.direct_expenses} in Direct expenses.`;
+}
+
 function cashPositionHint(profitability: SaleProfitabilityRecord): string {
   const scoped = withScope(financialMetricHints.cashPositionToday, saleScope(profitability));
   const collected = profitability.collected_revenue ?? "0";

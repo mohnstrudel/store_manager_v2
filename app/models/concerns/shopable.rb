@@ -12,14 +12,6 @@ module Shopable
       dependent: :destroy, inverse_of: :storable
   end
 
-  def update_or_create_store_info!(store_name:, **attributes)
-    store_info = store_infos.find_or_initialize_by(store_name:)
-    store_info.assign_attributes(attributes)
-    store_info.save!
-    association(:"#{store_name}_info").target = store_info if respond_to?(:"#{store_name}_info")
-    store_info
-  end
-
   def woo_store_id
     woo_info&.store_id
   end
@@ -32,12 +24,20 @@ module Shopable
     update_or_create_store_info!(store_name: :woo, **attributes)
   end
 
-  def upsert_shopify_info!(**attributes)
-    update_or_create_store_info!(store_name: :shopify, **attributes)
+  def update_or_create_store_info!(store_name:, **attributes)
+    store_info = store_infos.find_or_initialize_by(store_name:)
+    store_info.assign_attributes(attributes)
+    store_info.save!
+    association(:"#{store_name}_info").target = store_info if respond_to?(:"#{store_name}_info")
+    store_info
   end
 
   def mark_shopify_pushed!(at: Time.current)
     upsert_shopify_info!(push_time: at)
+  end
+
+  def upsert_shopify_info!(**attributes)
+    update_or_create_store_info!(store_name: :shopify, **attributes)
   end
 
   def mark_shopify_pulled!(at: Time.zone.now)

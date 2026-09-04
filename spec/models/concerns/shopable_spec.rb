@@ -119,8 +119,6 @@ RSpec.describe Shopable do
       end
 
       it "returns false", :aggregate_failures do
-        # After destroy and reload, shopify_info should be nil
-        # since has_one associations don't auto-create
         expect(product.shopify_info).to be_nil
         expect(product.shopify_linked?).to be false
       end

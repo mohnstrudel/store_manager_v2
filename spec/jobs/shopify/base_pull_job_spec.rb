@@ -74,7 +74,6 @@ RSpec.describe Shopify::BasePullJob do
   let(:shopify_info) { instance_double("StoreInfo", update_column: true) }
   let(:record) { instance_double("Record", shopify_info: shopify_info) }
   let(:creator) { instance_double("Creator", update_or_create!: record) }
-  # Mock parser_class and creator_class as class method calls
   let(:parser_class) { class_double("ParserClass").as_stubbed_const }
   let(:creator_class) { class_double("CreatorClass").as_stubbed_const }
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }
@@ -83,7 +82,6 @@ RSpec.describe Shopify::BasePullJob do
     allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
     allow(api_client).to receive(:fetch_test_data).and_return(api_response)
 
-    # Mock the class method calls that the actual code uses
     allow(parser_class).to receive(:parse).and_return({})
     allow(creator_class).to receive(:import!).and_return(record)
 

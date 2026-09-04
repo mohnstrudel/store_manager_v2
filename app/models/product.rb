@@ -41,9 +41,6 @@ class Product < ApplicationRecord
 
   extend FriendlyId
 
-  # Seal Subscriptions bills every installment against this one generic Shopify
-  # product; reconciliation restores unresolved payment items to it by this ID
-  # rather than rediscovering it through a provider request.
   SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID = "gid://shopify/Product/9499506180425"
 
   audited associated_with: :franchise

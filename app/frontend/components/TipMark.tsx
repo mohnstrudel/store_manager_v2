@@ -18,9 +18,6 @@ type TipMarkProps = {
   size?: "regular" | "large";
   starClassName?: string;
   tone?: "orange";
-  // Overrides the "*" mark as the hover/focus target. When set, its own
-  // text serves as the accessible name instead of "More information" —
-  // the caller is supplying real, readable content, not a glyph.
   trigger?: ReactNode;
   triggerClassName?: string;
 };

@@ -48,10 +48,6 @@ class Variant::Shopify::Importer
     variant&.product_id != product.id
   end
 
-  def variant_attrs
-    @variant_attrs ||= build_variant_attrs
-  end
-
   def variant_identity_attrs
     @variant_identity_attrs ||= variant_attrs
       .except(:sku, :selling_price, :purchase_cost, :weight)
@@ -60,6 +56,10 @@ class Variant::Shopify::Importer
         size_id: nil,
         version_id: nil
       }
+  end
+
+  def variant_attrs
+    @variant_attrs ||= build_variant_attrs
   end
 
   def build_variant_attrs

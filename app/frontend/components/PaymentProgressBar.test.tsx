@@ -73,7 +73,6 @@ describe("PaymentProgressBar", () => {
       });
 
       expect(screen.getByText("n/p")).toBeInTheDocument();
-      // Price and debt are the same amount while nothing has been received.
       expect(screen.getAllByText("1 000")).toHaveLength(2);
     });
   });

@@ -140,8 +140,6 @@ export function makeProfitability(
   };
 }
 
-// ── Form factories (ProductFormRecord and its nested types) ───────────────────
-
 export function makeProductIndexRecord(
   overrides: Partial<ProductIndexRecord> = {},
 ): ProductIndexRecord {
@@ -156,24 +154,6 @@ export function makeProductIndexRecord(
     woo_store_id: "WOO-1",
     shopify_id_short: "SHOP-1",
     new_purchase_path: "/purchases/new?product=1",
-    ...overrides,
-  };
-}
-
-export function makeVariantForm(overrides: Partial<VariantFormData> = {}): VariantFormData {
-  return {
-    id: null,
-    base_model: true,
-    sku: "SKU-001",
-    size_id: null,
-    version_id: null,
-    color_id: null,
-    purchase_cost: "10",
-    selling_price: "20",
-    weight: "0.5",
-    deactivated: false,
-    has_sales_or_purchases: false,
-    _destroy: false,
     ...overrides,
   };
 }
@@ -213,6 +193,24 @@ export function makeProductForm(overrides: Partial<ProductFormRecord> = {}): Pro
     variants: [makeVariantForm()],
     store_infos: [],
     media: [],
+    ...overrides,
+  };
+}
+
+export function makeVariantForm(overrides: Partial<VariantFormData> = {}): VariantFormData {
+  return {
+    id: null,
+    base_model: true,
+    sku: "SKU-001",
+    size_id: null,
+    version_id: null,
+    color_id: null,
+    purchase_cost: "10",
+    selling_price: "20",
+    weight: "0.5",
+    deactivated: false,
+    has_sales_or_purchases: false,
+    _destroy: false,
     ...overrides,
   };
 }

@@ -16,6 +16,17 @@ export function makeCustomerForm(overrides: Partial<CustomerRecord> = {}): Custo
   };
 }
 
+export function makeCustomerDetail(
+  overrides: Partial<CustomerDetailRecord> = {},
+): CustomerDetailRecord {
+  return {
+    ...makeCustomer(),
+    shopify_id: "gid://shopify/Customer/1",
+    shopify_id_short: "SHOP-1",
+    ...overrides,
+  };
+}
+
 export function makeCustomer(overrides: Partial<CustomerRecord> = {}): CustomerRecord {
   return {
     id: 1,
@@ -28,17 +39,6 @@ export function makeCustomer(overrides: Partial<CustomerRecord> = {}): CustomerR
     created_at: "19. May '26 10:00",
     updated_at: "19. May '26 10:00",
     path: "/customers/1",
-    ...overrides,
-  };
-}
-
-export function makeCustomerDetail(
-  overrides: Partial<CustomerDetailRecord> = {},
-): CustomerDetailRecord {
-  return {
-    ...makeCustomer(),
-    shopify_id: "gid://shopify/Customer/1",
-    shopify_id_short: "SHOP-1",
     ...overrides,
   };
 }

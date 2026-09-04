@@ -57,18 +57,6 @@ export function makePurchaseItemFormRecord(
   };
 }
 
-export function makeWarehouseMovementRecord(
-  overrides: Partial<WarehouseMovementRecord> = {},
-): WarehouseMovementRecord {
-  return {
-    id: 1,
-    moved_in: "20 May 2026",
-    warehouse_name: "Main Warehouse",
-    warehouse_path: "/warehouses/1",
-    ...overrides,
-  };
-}
-
 export function makePurchaseItemShowRecord(
   overrides: Partial<PurchaseItemShowRecord> = {},
 ): PurchaseItemShowRecord {
@@ -107,6 +95,18 @@ export function makePurchaseItemShowRecord(
       },
     ],
     warehouse_movements: [makeWarehouseMovementRecord()],
+    ...overrides,
+  };
+}
+
+export function makeWarehouseMovementRecord(
+  overrides: Partial<WarehouseMovementRecord> = {},
+): WarehouseMovementRecord {
+  return {
+    id: 1,
+    moved_in: "20 May 2026",
+    warehouse_name: "Main Warehouse",
+    warehouse_path: "/warehouses/1",
     ...overrides,
   };
 }
