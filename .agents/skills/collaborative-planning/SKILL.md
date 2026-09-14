@@ -1,6 +1,6 @@
 ---
 name: collaborative-planning
-description: Create a collaborative, evidence-based plan for a new change owned by the coordinating task. Use before an unsolved implementation, refactor, bug fix, design change, documentation change, or skill update; ask focused questions, set boundaries, obtain approval for material decisions, and coordinate bounded reviews. Do not use for executing an approved spec or ticket, or for bounded delegated research or review.
+description: Create a collaborative, evidence-based plan for a new behavior-bearing or structurally uncertain change owned by the coordinating task. Use when an unsolved implementation, refactor, bug fix, design change, documentation change, or skill update may affect behavior, architecture, contracts, persistence, lifecycle, authority, or scope. Do not use for clearly mechanical changes, executing an approved spec or ticket, or bounded delegated research or review.
 ---
 
 # Collaborative Planning
@@ -9,10 +9,10 @@ Run the planning process with the user while applicable specialist skills supply
 
 ## Workflow
 
-1. Load every applicable specialist skill before gathering detailed evidence. Keep all relevant specialist skills active for cross-layer work.
+1. Load only specialist skills whose descriptions match an affected boundary. Do not load adjacent skills as general background; keep all matched skills active for cross-layer work.
 2. Inspect the relevant instructions, code, tests, contracts, and existing mechanisms.
 3. Classify the affected paths with the gates below. Complete any conditional architecture review before the applicable specialist gates or contracts.
-4. Complete the specialist gates or contracts, then share a visible plan with the goal, scope, affected boundaries, evidence, recommended approach, alternatives when material, validation strategy, and non-goals. For a material architecture decision, sketch two structurally different approaches with concrete tradeoffs before recommending one.
+4. Complete the specialist gates or contracts, then share a visible plan with the goal, observable success criteria, scope, affected boundaries, evidence, recommended approach, alternatives when material, validation strategy, and non-goals. For a material architecture decision, sketch two structurally different approaches with concrete tradeoffs before recommending one.
 5. Mark each statement as a fact, inference, proposal, or approved decision when that distinction matters.
 6. Ask focused questions only when an answer changes behavior, architecture, public contracts, persistence, lifecycle, or scope. State reasonable assumptions for everything else.
 7. The user approves material behavior, architecture, contract, persistence, lifecycle, or authority decisions. A concise plan is enough for a mechanical task with no such decision.

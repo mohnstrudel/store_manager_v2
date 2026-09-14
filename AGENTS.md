@@ -2,7 +2,7 @@
 
 ## Workflow entry points
 
-- For a new change owned by the coordinating task, start with `collaborative-planning`; it owns specialist-skill loading, planning, approval, serialization judgment, and the implementation loop for work that stays in that task.
+- For a new behavior-bearing or structurally uncertain change owned by the coordinating task, start with `collaborative-planning`; it owns specialist-skill loading, planning, approval, serialization judgment, and the implementation loop for work that stays in that task. Clearly mechanical changes proceed directly under Completion unless the user asks for planning.
 - For an approved spec or ticket, start with `implement`. Do not reload or rerun `collaborative-planning` unless implementation discovers a new material decision. Read only the selected spec, ticket, affected code, and applicable specialist skills.
 - For delegated research or review, follow only the assigned scope. Do not start planning, serialize work, implement, or delegate again unless the assignment explicitly requires it.
 - For Rails domain work, use `rails-domain-architecture` SKILL.md.
@@ -14,6 +14,10 @@
 ## Clear communication
 
 - Lead with the result and follow [the clear-communication guides](docs/plain-language.md), applying the matching guide for architecture and plans, LLM conversations, or interface text.
+
+## Source organization
+
+- Keep local methods and functions in depth-first call-site order; the applicable lint gate defines and enforces the exact rule.
 
 ## Completion
 
@@ -41,9 +45,7 @@ Required checks must be green. Fix failures caused by the change; report unrelat
 
 ## Code comments
 
-- Code must explain itself through precise domain names, cohesive units, and explicit control and data flow. Rewrite unclear code before considering a comment.
-- Add a comment only when omitting indispensable, non-inferable rationale or an external constraint would create a material risk of misuse or regression. If naming or structure can carry the information, do not comment.
-- Keep the comment to one short line explaining why. Never narrate, summarize, label sections, restate code, or document an API the code already exposes.
+- Do not add prose comments to code; use names, structure, and tests. Required directives and generated metadata are allowed only where the lint gate recognizes them.
 
 ## Safety
 
