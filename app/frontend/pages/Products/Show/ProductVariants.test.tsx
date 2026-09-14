@@ -30,10 +30,10 @@ describe("Products/Show/ProductVariants", () => {
 
       const row = screen.getByRole("row", { name: /Default/ });
 
-      expect(screen.getByRole("columnheader", { name: "List cost" })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "List cost (USD)" })).toBeInTheDocument();
       expect(within(row).getByRole("cell", { name: "0.5 kg" })).toBeInTheDocument();
-      expect(within(row).getByRole("cell", { name: "12.50" })).toBeInTheDocument();
-      expect(within(row).getByRole("cell", { name: "30.00" })).toBeInTheDocument();
+      expect(within(row).getByRole("cell", { name: "USD 12.50" })).toBeInTheDocument();
+      expect(within(row).getByRole("cell", { name: "USD 30.00" })).toBeInTheDocument();
     });
 
     it("renders nothing for zero weight and zero costs", () => {

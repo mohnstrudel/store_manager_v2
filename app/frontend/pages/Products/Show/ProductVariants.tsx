@@ -25,8 +25,8 @@ export default function ProductVariants({ variants }: ProductVariantsProps) {
             <th>Name</th>
             <th>Type</th>
             <th className="text-right">Weight</th>
-            <th className="text-right">List cost</th>
-            <th className="text-right">Selling Price</th>
+            <th className="text-right">List cost (USD)</th>
+            <th className="text-right">Selling Price (USD)</th>
             {showsEconomics && (
               <th className="text-right">
                 <MetricLabel
@@ -69,10 +69,10 @@ export default function ProductVariants({ variants }: ProductVariantsProps) {
                 {isEmptyValue(variant.weight) ? null : `${variant.weight} kg`}
               </td>
               <td className="text-right font-mono">
-                {isEmptyValue(variant.purchase_cost) ? null : variant.purchase_cost.toFixed(2)}
+                {isEmptyValue(variant.purchase_cost) ? null : `USD ${variant.purchase_cost.toFixed(2)}`}
               </td>
               <td className="text-right font-mono">
-                {isEmptyValue(variant.selling_price) ? null : variant.selling_price.toFixed(2)}
+                {isEmptyValue(variant.selling_price) ? null : `USD ${variant.selling_price.toFixed(2)}`}
               </td>
               {showsEconomics && (
                 <td className="text-right">

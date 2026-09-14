@@ -17,7 +17,7 @@ class Product::Shopify::Importer
   def update_or_create!
     update_or_create_product!
 
-    Shopify::PullVariantsJob.perform_later(product, parsed[:variants]) if parsed[:variants].present?
+    Shopify::PullVariantsJob.perform_later(product, converted_variants) if parsed[:variants].present?
     Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
 
     product
@@ -105,5 +105,18 @@ class Product::Shopify::Importer
     return parsed[:sku] if single_variant_variant
 
     nil
+  end
+
+  def converted_variants
+    return parsed[:variants] unless parsed[:variants].any? { |variant| variant[:selling_price].present? }
+
+    conversion = ExchangeRate.eur_to_usd_conversion(date: Time.zone.today)
+
+    parsed[:variants].map do |variant|
+      variant.merge(
+        usd_conversion_rate: conversion.rate,
+        usd_conversion_date: conversion.effective_date
+      )
+    end
   end
 end

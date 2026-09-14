@@ -36,7 +36,6 @@ module Shopify
           }
         )
         handle_query_errors(response, resource_name: "products")
-
         extract_pagination(response.body["data"], resource_name: "products")
       end
 

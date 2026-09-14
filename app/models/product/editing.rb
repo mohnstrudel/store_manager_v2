@@ -95,6 +95,13 @@ module Product::Editing
     end
 
     record.assign_attributes(attributes.except(:id, :client_key, :destroy))
+    clear_changed_shopify_money_snapshots(record) if association_name == :variants
+  end
+
+  def clear_changed_shopify_money_snapshots(variant)
+    return unless variant.will_save_change_to_selling_price?
+
+    variant.clear_shopify_money_snapshot!(:selling_price)
   end
 
   def sync_variant_option_ids

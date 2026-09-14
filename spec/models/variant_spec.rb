@@ -4,20 +4,24 @@
 #
 # Table name: variants
 #
-#  id             :bigint           not null, primary key
-#  deactivated_at :datetime
-#  purchase_cost  :decimal(10, 2)   default(0.0), not null
-#  selling_price  :decimal(10, 2)   default(0.0), not null
-#  sku            :string           not null
-#  weight         :decimal(10, 2)   default(0.0), not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  color_id       :bigint
-#  product_id     :bigint           not null
-#  shopify_id     :string
-#  size_id        :bigint
-#  version_id     :bigint
-#  woo_id         :string
+#  id                               :bigint           not null, primary key
+#  deactivated_at                   :datetime
+#  purchase_cost                    :decimal(10, 2)   default(0.0), not null
+#  selling_price                    :decimal(10, 2)   default(0.0), not null
+#  selling_price_exchange_rate      :decimal(18, 10)
+#  selling_price_exchange_rate_date :date
+#  selling_price_source_amount      :decimal(10, 2)
+#  selling_price_source_currency    :string
+#  sku                              :string           not null
+#  weight                           :decimal(10, 2)   default(0.0), not null
+#  created_at                       :datetime         not null
+#  updated_at                       :datetime         not null
+#  color_id                         :bigint
+#  product_id                       :bigint           not null
+#  shopify_id                       :string
+#  size_id                          :bigint
+#  version_id                       :bigint
+#  woo_id                           :string
 #
 require "rails_helper"
 

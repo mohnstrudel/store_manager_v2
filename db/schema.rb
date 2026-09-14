@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_04_125000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -418,7 +418,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
     t.index ["shopify_id"], name: "index_sales_on_shopify_id"
     t.index ["slug"], name: "index_sales_on_slug", unique: true
     t.check_constraint "presentment_currency IS NULL OR presentment_currency::text ~ '^[A-Z]{3}$'::text", name: "sales_presentment_currency_format"
-    t.check_constraint "settlement_status::text = ANY (ARRAY['paid'::character varying::text, 'not_fully_paid'::character varying::text, 'unknown'::character varying::text])", name: "sales_settlement_status_allowed_values"
+    t.check_constraint "settlement_status::text = ANY (ARRAY['paid'::character varying, 'not_fully_paid'::character varying, 'unknown'::character varying]::text[])", name: "sales_settlement_status_allowed_values"
     t.check_constraint "shop_currency IS NULL AND presentment_currency IS NULL AND usd_conversion_rate IS NULL AND exchange_rate_date IS NULL OR shop_currency IS NOT NULL AND presentment_currency IS NOT NULL AND usd_conversion_rate IS NOT NULL AND exchange_rate_date IS NOT NULL", name: "sales_currency_fields_all_or_none"
     t.check_constraint "shop_currency IS NULL OR shop_currency::text ~ '^[A-Z]{3}$'::text", name: "sales_shop_currency_format"
     t.check_constraint "usd_conversion_rate IS NULL OR usd_conversion_rate > 0::numeric", name: "sales_usd_conversion_rate_positive"
@@ -537,6 +537,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
     t.bigint "product_id", null: false
     t.decimal "purchase_cost", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "selling_price", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "selling_price_exchange_rate", precision: 18, scale: 10
+    t.date "selling_price_exchange_rate_date"
+    t.decimal "selling_price_source_amount", precision: 10, scale: 2
+    t.string "selling_price_source_currency"
     t.string "shopify_id"
     t.bigint "size_id"
     t.string "sku", null: false
@@ -553,6 +557,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
     t.index ["sku"], name: "index_variants_on_sku"
     t.index ["version_id"], name: "index_variants_on_version_id"
     t.index ["woo_id"], name: "index_variants_on_woo_id", unique: true, where: "(woo_id IS NOT NULL)"
+    t.check_constraint "selling_price_source_amount IS NULL AND selling_price_source_currency IS NULL AND selling_price_exchange_rate IS NULL AND selling_price_exchange_rate_date IS NULL OR selling_price_source_amount IS NOT NULL AND selling_price_source_currency::text = 'EUR'::text AND selling_price_exchange_rate > 0::numeric AND selling_price_exchange_rate_date IS NOT NULL", name: "variants_selling_price_source_snapshot_all_or_none"
   end
 
   create_table "versions", force: :cascade do |t|

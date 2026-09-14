@@ -65,7 +65,7 @@ class Variant::Shopify::Importer
   def build_variant_attrs
     attributes = {}
     attributes[:sku] = parsed[:sku].presence || generated_fallback_sku
-    attributes[:selling_price] = parsed[:selling_price] if parsed[:selling_price].present?
+    assign_shopify_selling_price(attributes)
     attributes[:purchase_cost] = parsed[:purchase_cost] if parsed[:purchase_cost].present?
     attributes[:weight] = parsed[:weight] if parsed[:weight].present?
 
@@ -91,5 +91,19 @@ class Variant::Shopify::Importer
   def generated_fallback_sku
     store_id_segment = parsed[:store_id].to_s.split("/").last.presence || SecureRandom.hex(4)
     "shopify-#{product.id}-#{store_id_segment}"
+  end
+
+  def assign_shopify_selling_price(attributes)
+    amount = parsed[:selling_price]
+    return if amount.blank?
+
+    rate = parsed[:usd_conversion_rate]
+    attributes[:selling_price] = rate ? (amount.to_d * rate).round(2) : amount
+    return unless rate
+
+    attributes[:selling_price_source_amount] = amount
+    attributes[:selling_price_source_currency] = "EUR"
+    attributes[:selling_price_exchange_rate] = rate
+    attributes[:selling_price_exchange_rate_date] = parsed.fetch(:usd_conversion_date)
   end
 end

@@ -146,7 +146,7 @@ export default function VariantFields({
         <FormInput
           className="w-full"
           defaultValue={variant.purchase_cost}
-          label="List cost"
+          label="List cost (USD)"
           min="0"
           name={`variants[${index}][purchase_cost]`}
           step="0.01"
@@ -155,7 +155,7 @@ export default function VariantFields({
         <FormInput
           className="w-full"
           defaultValue={variant.selling_price}
-          label="Selling Price"
+          label="Selling Price (USD)"
           min="0"
           name={`variants[${index}][selling_price]`}
           step="0.01"
