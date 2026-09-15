@@ -600,6 +600,22 @@ RSpec.describe "Sales" do
         expect(sale_props).to have_key(:shipping_total)
       end
 
+      it "batches sale_items across every related sale instead of querying them one by one" do
+        sale_item_queries = []
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+          sale_item_queries << payload[:sql] if payload[:sql].start_with?(%(SELECT "sale_items".* FROM "sale_items"))
+        end
+
+        begin
+          get sale_path(origin)
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+
+        expect(response).to have_http_status(:ok)
+        expect(sale_item_queries.size).to eq(2)
+      end
+
       it "leaves a Shopify payment_terms order unaffected, since its schedules all belong to the one order" do
         payment_terms_sale = create(:sale, shopify_store_id: "gid://shopify/Order/950")
         SalePaymentPlan.reconcile!(

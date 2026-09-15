@@ -123,7 +123,9 @@ class SalePaymentPlan < ApplicationRecord
   end
 
   def profitability(expense_fraction: ExpenseRate.combined_fraction)
-    summaries = related_sales.map { |sale| sale.profitability(expense_fraction:) }
+    sales = related_sales
+    ActiveRecord::Associations::Preloader.new(records: sales, associations: {sale_items: {purchase_items: :purchase}}).call
+    summaries = sales.map { |sale| sale.profitability(expense_fraction:) }
     terms = Sale::Profitability::ADDITIVE_TERMS.index_with { |term|
       total_across(summaries, term)
     }

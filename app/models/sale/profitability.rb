@@ -39,7 +39,7 @@ module Sale::Profitability
   end
 
   def profitability(expense_fraction: ExpenseRate.combined_fraction)
-    items = sale_items.includes(purchase_items: :purchase).to_a
+    items = profitability_sale_items
     terms = {
       expected_revenue: expected_revenue.to_d,
       collected_revenue:,
@@ -61,6 +61,12 @@ module Sale::Profitability
   end
 
   private
+
+  def profitability_sale_items
+    return sale_items.to_a if association(:sale_items).loaded?
+
+    sale_items.includes(purchase_items: :purchase).to_a
+  end
 
   def supplier_paid(items)
     items.flat_map(&:purchase_items).group_by(&:purchase).sum(0.to_d) { |purchase, linked|
