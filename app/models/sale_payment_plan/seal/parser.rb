@@ -70,34 +70,56 @@ class SalePaymentPlan::Seal::Parser
   end
 
   def projected_total
-    return unless unambiguous_pricing?
+    return unless eligible_items?
 
-    usd_amount(
-      SalePaymentPlan.projected_deposit_total(
-        deposit_merchandise_amount: subscription_items.sum { |item| item["final_amount"].to_d },
-        deposit_percent: payment_percent,
-        shipping_amount:
-      )
-    )
+    amount = (expected_parts == 1) ? deposit_amount : installment_amount
+    usd_amount(amount) if amount
   end
 
-  def unambiguous_pricing?
+  def eligible_items?
     subscription_items.present? &&
       subscription_items.none? { |item|
         item["is_one_time_item"].to_i == 1 || Array(item["cycle_discounts"]).present?
       } &&
-      payment_percent&.positive?
+      subscription_items.all? { |item| decimal(item["final_amount"]) }
+  end
+
+  def decimal(value)
+    return if value.blank?
+
+    BigDecimal(value.to_s, exception: false)
+  end
+
+  def deposit_amount
+    return unless payment_percent&.positive?
+    return if shipping_amount.nil?
+
+    SalePaymentPlan.projected_deposit_total(
+      deposit_merchandise_amount: merchandise_total,
+      deposit_percent: payment_percent,
+      shipping_amount:
+    )
+  end
+
+  def shipping_amount
+    decimal(
+      subscription["delivery_price_discounted"].presence ||
+      subscription["delivery_price"]
+    )
+  end
+
+  def merchandise_total
+    subscription_items.sum { |item| decimal(item["final_amount"]) }
+  end
+
+  def installment_amount
+    return if shipping_amount.nil?
+
+    (merchandise_total * expected_parts) + shipping_amount
   end
 
   def usd_amount(amount)
     SalePaymentPlan.usd_amount(amount, currency: subscription["currency"], date: origin_date)
-  end
-
-  def shipping_amount
-    (
-      subscription["delivery_price_discounted"].presence ||
-      subscription["delivery_price"]
-    ).to_d
   end
 
   def next_due_at

@@ -191,6 +191,53 @@ RSpec.describe Seal::SyncPaymentPlansJob do
     end
   end
 
+  describe "correcting a wrong stored projection" do
+    let(:rate_date) { Date.new(2026, 8, 21) }
+    let(:eight_cycle_subscription) do
+      {
+        "id" => 1,
+        "order_id" => "100",
+        "status" => "ACTIVE",
+        "billing_max_cycles" => 8,
+        "currency" => "EUR",
+        "delivery_price" => "20.00",
+        "items" => [
+          {
+            "id" => 10,
+            "selling_plan_id" => "plan-1",
+            "final_amount" => "56.25",
+            "is_one_time_item" => 0,
+            "cycle_discounts" => []
+          }
+        ],
+        "billing_attempts" => []
+      }
+    end
+
+    it "replaces the same record's wrong projection with the corrected installment total" do
+      create(:exchange_rate, date: rate_date, currency: "USD", rate: BigDecimal("1.1448"))
+      create(:sale, shopify_store_id: "gid://shopify/Order/100", shopify_created_at: rate_date.to_time)
+      plan = SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "1",
+          external_origin_order_id: "100",
+          kind: "installments",
+          expected_parts: 8,
+          projected_total: BigDecimal("280.48"),
+          synced_at: 1.day.ago
+        },
+        parts: []
+      )
+      allow(client).to receive(:each_subscription_detail).and_yield(eight_cycle_subscription)
+
+      described_class.perform_now
+
+      expect(SalePaymentPlan.sole.id).to eq(plan.id)
+      expect(plan.reload.projected_total).to eq(BigDecimal("538.06"))
+    end
+  end
+
   it "preserves the previous snapshot when the provider request fails" do
     plan = SalePaymentPlan.reconcile!(
       attributes: {

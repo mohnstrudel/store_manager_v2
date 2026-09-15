@@ -227,10 +227,30 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
         expect(summary[:item_price_total]).to eq(0)
         expect(summary[:purchase_expenses]).to eq(0)
       end
+
+      it "uses a corrected persisted projected total for gross revenue and OpEx without moving cash" do
+        cash_before = Sale.find(origin.id).profitability_summary[:cash_position]
+
+        create_plan(
+          parts: [
+            {sequence: 1, provider_part_id: "part-1", external_order_id: "900", amount: 300},
+            {sequence: 2, provider_part_id: "part-2", external_order_id: "901", amount: 700}
+          ],
+          projected_total: BigDecimal(1200)
+        )
+
+        summary = origin.reload.profitability_summary
+
+        expect(summary[:scope]).to eq(:plan)
+        expect(summary[:gross_revenue]).to eq(BigDecimal(1200))
+        expect(summary[:business_expenses]).to eq(BigDecimal(120))
+        expect(summary[:net_profit]).to eq(BigDecimal(510))
+        expect(summary[:cash_position]).to eq(cash_before)
+      end
     end
   end
 
-  def create_plan(parts:, external_id: "subscription-1")
+  def create_plan(parts:, external_id: "subscription-1", projected_total: nil)
     SalePaymentPlan.reconcile!(
       attributes: {
         provider: "seal",
@@ -239,6 +259,7 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
         kind: "installments",
         status: "active",
         expected_parts: 2,
+        projected_total:,
         synced_at: Time.current
       },
       parts:

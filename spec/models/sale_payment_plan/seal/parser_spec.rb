@@ -90,32 +90,81 @@ RSpec.describe SalePaymentPlan::Seal::Parser do
     )
   end
 
-  it "omits projections when provider pricing is ambiguous" do
+  it "eight-cycle installment uses recurring amount × subscription cycles" do
+    rate_date = Date.new(2024, 2, 1)
+    create(:exchange_rate, date: rate_date, currency: "USD", rate: BigDecimal("1.1448"))
+
+    result = described_class.parse(
+      subscription(max_cycles: 8, item_amount: "56.25", delivery_price: "20.00"),
+      selling_plans_by_id: {
+        "plan-1" => selling_plan(adjustment_value: "75", max_cycles: 8)
+      },
+      origin_date: rate_date
+    )
+
+    expect(result[:attributes]).to include(kind: "installments", projected_total: BigDecimal("538.06"))
+  end
+
+  it "projects full installment merchandise even when the selling plan's adjustment isn't a percentage" do
     result = described_class.parse(
       subscription(max_cycles: 4, item_amount: "250.00", delivery_price: "20.00"),
       selling_plans_by_id: {
         "plan-1" => selling_plan(adjustment_type: "FIXED_AMOUNT", adjustment_value: "75", max_cycles: 4)
-      }
+      },
+      origin_date:
     )
 
-    expect(result[:attributes]).to include(kind: "installments", projected_total: nil)
+    expect(result[:attributes]).to include(kind: "installments", projected_total: BigDecimal(1020))
   end
 
-  it "omits projections when any subscription item lacks authoritative pricing" do
-    data = subscription(max_cycles: 4, item_amount: "250.00", delivery_price: "20.00")
-    data["items"] << data["items"].first.merge(
-      "id" => 11,
-      "selling_plan_id" => "missing-plan"
-    )
+  it "omits an installment projection when any item is ineligible" do
+    plans = {"plan-1" => selling_plan(adjustment_value: "75", max_cycles: 4)}
+
+    ["", "not-a-number"].each do |final_amount|
+      data = subscription(max_cycles: 4, item_amount: final_amount, delivery_price: "20.00")
+      result = described_class.parse(data, selling_plans_by_id: plans, origin_date:)
+      expect(result[:attributes][:projected_total]).to be_nil
+    end
+
+    one_time = subscription(max_cycles: 4, item_amount: "250.00", delivery_price: "20.00")
+    one_time["items"].first["is_one_time_item"] = 1
+    result = described_class.parse(one_time, selling_plans_by_id: plans, origin_date:)
+    expect(result[:attributes][:projected_total]).to be_nil
+
+    cycle_discounted = subscription(max_cycles: 4, item_amount: "250.00", delivery_price: "20.00")
+    cycle_discounted["items"].first["cycle_discounts"] = [{"discount_amount" => "10"}]
+    result = described_class.parse(cycle_discounted, selling_plans_by_id: plans, origin_date:)
+    expect(result[:attributes][:projected_total]).to be_nil
+  end
+
+  it "omits a deposit projection without one uniform positive percentage" do
+    data = subscription(max_cycles: 1, item_amount: "300.00", delivery_price: "20.00")
+    data["items"] << data["items"].first.merge("id" => 11, "selling_plan_id" => "plan-2")
 
     result = described_class.parse(
       data,
       selling_plans_by_id: {
-        "plan-1" => selling_plan(adjustment_value: "75", max_cycles: 4)
-      }
+        "plan-1" => selling_plan(adjustment_value: "70", max_cycles: 1),
+        "plan-2" => selling_plan(adjustment_value: "60", max_cycles: 1)
+      },
+      origin_date:
     )
 
-    expect(result[:attributes]).to include(kind: "installments", projected_total: nil)
+    expect(result[:attributes][:projected_total]).to be_nil
+  end
+
+  it "omits a projection when required delivery money is missing or malformed" do
+    plans = {"plan-1" => selling_plan(adjustment_value: "75", max_cycles: 4)}
+
+    ["", "TBD"].each do |delivery_price|
+      result = described_class.parse(
+        subscription(max_cycles: 4, item_amount: "250.00", delivery_price:),
+        selling_plans_by_id: plans,
+        origin_date:
+      )
+
+      expect(result[:attributes][:projected_total]).to be_nil
+    end
   end
 
   def subscription(max_cycles:, item_amount:, delivery_price:)
