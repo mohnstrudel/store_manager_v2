@@ -1,5 +1,3 @@
-import type { PaymentProgress } from "@/types/payment";
-
 import type {
   SaleAddressFormRecord,
   SaleAddressRecord,
@@ -201,7 +199,7 @@ export function makeSaleShowSaleItem(
     product_path: "/products/pikachu",
     product_thumb_url: null,
     purchase_items: [makeSaleShowPurchaseItem()],
-    payment: makeSaleItemPayment(),
+    price: "1060",
     profitability: null,
     ...overrides,
   };
@@ -230,16 +228,6 @@ export function makeSalePurchaseMovement(
   return {
     moved_in: "18. May '26 08:30",
     warehouse_name: "Berlin Hub",
-    ...overrides,
-  };
-}
-
-export function makeSaleItemPayment(overrides: Partial<PaymentProgress> = {}): PaymentProgress {
-  return {
-    progress: 71,
-    paid: "750",
-    price: "1060",
-    debt: "310",
     ...overrides,
   };
 }

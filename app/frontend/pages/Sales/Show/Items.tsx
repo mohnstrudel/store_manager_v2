@@ -119,7 +119,7 @@ function SaleItemRow({
           </mark>
         )}
       </td>
-      <td className="text-right">{saleItem.payment.price}</td>
+      <td className="text-right">{saleItem.price}</td>
     </tr>
   );
 }

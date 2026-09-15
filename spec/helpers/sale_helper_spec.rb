@@ -51,23 +51,76 @@ RSpec.describe SaleHelper do
     end
   end
 
-  describe "sale item payment props" do
-    it "says a sale item's amounts are unknown when the order never stated its split" do
-      sale = create(:sale, status: "partially-paid", expected_revenue: 991.59, received_revenue: nil, outstanding_revenue: nil, shipping_total: 0)
-      create(:sale_item, sale:, shopify_id: nil, expected_revenue: 622.59, received_revenue: nil, outstanding_revenue: nil)
+  describe "#sale_show_origin_price" do
+    it "computes projected merchandise minus shipping for a single-item sale naming itself as plan origin" do
+      sale = create(:sale, shopify_store_id: "gid://shopify/Order/100", shipping_total: BigDecimal("22.90"))
+      create(:sale_item, sale:, expected_revenue: BigDecimal("87.29"))
+      reconcile_installment_plan(external_id: "sub-origin", order_id: "100", projected_total: BigDecimal("538.06"))
 
-      props = helper.sale_showing_props(sale.reload)[:sale_items].first[:payment]
-
-      expect(props).to include(amounts_unknown: true, paid: nil)
+      expect(helper.sale_show_origin_price(sale.reload)).to eq(BigDecimal("515.16"))
     end
 
-    it "does not call a stated sale item split unknown" do
+    it "is nil for every ineligible scenario", :aggregate_failures do
+      no_plan = create(:sale, shipping_total: BigDecimal(20))
+      create(:sale_item, sale: no_plan, expected_revenue: 300)
+      expect(helper.sale_show_origin_price(no_plan)).to be_nil
+
+      multi_item = create(:sale, shopify_store_id: "gid://shopify/Order/101", shipping_total: BigDecimal(20))
+      create(:sale_item, sale: multi_item, expected_revenue: 200)
+      create(:sale_item, sale: multi_item, expected_revenue: 100)
+      reconcile_installment_plan(external_id: "sub-multi-item", order_id: "101", projected_total: 1000)
+      expect(helper.sale_show_origin_price(multi_item.reload)).to be_nil
+
+      multi_plan = create(:sale, shopify_store_id: "gid://shopify/Order/102", shipping_total: BigDecimal(20))
+      create(:sale_item, sale: multi_plan, expected_revenue: 300)
+      reconcile_installment_plan(external_id: "sub-plan-a", order_id: "102", projected_total: 1000)
+      reconcile_installment_plan(external_id: "sub-plan-b", order_id: "102", projected_total: 500)
+      expect(helper.sale_show_origin_price(multi_plan.reload)).to be_nil
+
+      create(:sale, shopify_store_id: "gid://shopify/Order/900")
+      non_origin = create(:sale, shopify_store_id: "gid://shopify/Order/103", shipping_total: BigDecimal(20))
+      create(:sale_item, sale: non_origin, expected_revenue: 300)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal", external_id: "sub-non-origin", external_origin_order_id: "900",
+          kind: "installments", status: "active", expected_parts: 4,
+          projected_total: BigDecimal(1000), synced_at: Time.current
+        },
+        parts: [{provider_part_id: "sub-non-origin:1", sequence: 1, external_order_id: "103"}]
+      )
+      expect(helper.sale_show_origin_price(non_origin.reload)).to be_nil
+
+      unknown_shipping = create(:sale, shopify_store_id: "gid://shopify/Order/104", shipping_total: nil)
+      create(:sale_item, sale: unknown_shipping, expected_revenue: 300)
+      reconcile_installment_plan(external_id: "sub-unknown-shipping", order_id: "104", projected_total: 1000)
+      expect(helper.sale_show_origin_price(unknown_shipping.reload)).to be_nil
+
+      negative = create(:sale, shopify_store_id: "gid://shopify/Order/105", shipping_total: BigDecimal(50))
+      create(:sale_item, sale: negative, expected_revenue: 300)
+      reconcile_installment_plan(external_id: "sub-negative", order_id: "105", projected_total: 40)
+      expect(helper.sale_show_origin_price(negative.reload)).to be_nil
+    end
+  end
+
+  describe "sale-show item price" do
+    it "renders the plan's projected merchandise as Price while preserving Sale Total" do
+      sale = create(:sale, shopify_store_id: "gid://shopify/Order/106", shipping_total: BigDecimal("22.90"), total: BigDecimal("87.29"), expected_revenue: BigDecimal("87.29"), received_revenue: 0, outstanding_revenue: BigDecimal("87.29"))
+      create(:sale_item, sale:, expected_revenue: BigDecimal("87.29"), received_revenue: 0, outstanding_revenue: BigDecimal("87.29"))
+      reconcile_installment_plan(external_id: "sub-origin-2", order_id: "106", projected_total: BigDecimal("538.06"))
+
+      props = helper.sale_showing_props(sale.reload)
+
+      expect(props[:sale_items].first[:price]).to eq("515")
+      expect(props[:total]).to eq("87")
+    end
+
+    it "falls back to the order price without an eligible plan" do
       sale = create(:sale, expected_revenue: 900, received_revenue: 300, outstanding_revenue: 600, shipping_total: 0)
       create(:sale_item, sale:, expected_revenue: 900, received_revenue: 300, outstanding_revenue: 600)
 
-      props = helper.sale_showing_props(sale.reload)[:sale_items].first[:payment]
+      price = helper.sale_showing_props(sale.reload)[:sale_items].first[:price]
 
-      expect(props).to include(amounts_unknown: false, paid: "300", price: "900", debt: "600", progress: 33)
+      expect(price).to eq("900")
     end
   end
 
@@ -264,6 +317,41 @@ RSpec.describe SaleHelper do
       )
     end
 
+    it "falls back to sale-amount progress when more than one plan claims the sale" do
+      sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/200", expected_revenue: 1000, received_revenue: 300, outstanding_revenue: 700, refunded_revenue: 0)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-ambiguous-a",
+          external_origin_order_id: "200",
+          kind: "deposit",
+          status: "active",
+          expected_parts: 1,
+          deposit_percent: 30,
+          projected_total: 1400,
+          synced_at: Time.current
+        },
+        parts: [{provider_part_id: "subscription-ambiguous-a:1", sequence: 1, external_order_id: "200", amount: 420}]
+      )
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-ambiguous-b",
+          external_origin_order_id: nil,
+          kind: "installments",
+          status: "active",
+          expected_parts: 2,
+          projected_total: 900,
+          synced_at: Time.current
+        },
+        parts: [{provider_part_id: "subscription-ambiguous-b:1", sequence: 1, external_order_id: "200"}]
+      )
+
+      progress = helper.sale_settlement_props(sale.reload)[:payment_progress]
+
+      expect(progress).to include(source: "amount", percent: 30, paid: "$300", total: "$1,000", remaining: "$700")
+    end
+
     it "shows completed and expected parts for a real installment schedule" do
       sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/300", received_revenue: 300, refunded_revenue: 0)
       create(:sale, shopify_store_id: "gid://shopify/Order/301", received_revenue: 200, refunded_revenue: 0)
@@ -349,6 +437,22 @@ RSpec.describe SaleHelper do
         {provider_part_id: "subscription-1:1", sequence: 1, external_order_id: "100"},
         {provider_part_id: "subscription-1:2", sequence: 2, external_order_id: "101"}
       ]
+    )
+  end
+
+  def reconcile_installment_plan(external_id:, order_id:, projected_total:)
+    SalePaymentPlan.reconcile!(
+      attributes: {
+        provider: "seal",
+        external_id:,
+        external_origin_order_id: order_id,
+        kind: "installments",
+        status: "active",
+        expected_parts: 4,
+        projected_total:,
+        synced_at: Time.current
+      },
+      parts: []
     )
   end
 end

@@ -58,6 +58,7 @@ module SaleHelper
     shipping_shares = sale.shipping_shares_by_item_id
     expense_fraction = can_view_profitability ? ExpenseRate.combined_fraction : 0
     follow_up_payment = sale.follow_up_payment?
+    origin_price = sale_show_origin_price(sale)
 
     sale_base_props(sale).merge(
       edit_path: edit_sale_path(sale),
@@ -73,9 +74,23 @@ module SaleHelper
       warehouses: Warehouse.order(name: :asc).map { |w| purchase_warehouse_props(w) },
       warehouse_move_path: warehouse_move_path,
       sale_items: follow_up_payment ? [] : sale.sale_items.map { |item|
-        sale_show_item_props(item, shipping_shares.fetch(item.id, 0), can_view_profitability:, expense_fraction:)
+        sale_show_item_props(item, shipping_shares.fetch(item.id, 0), origin_price, can_view_profitability:, expense_fraction:)
       }
     ).merge(follow_up_payment ? {} : sale_order_only_props(sale))
+  end
+
+  def sale_show_origin_price(sale)
+    return if sale.sale_items.size != 1
+    return if sale.shipping_total.blank?
+
+    plans = sale.payment_plans_for_display
+    return unless plans.one?
+
+    plan = plans.first
+    return unless plan.origin_sale_id == sale.id && plan.projected_total
+
+    price = plan.projected_total - sale.shipping_total.to_d
+    price if price >= 0
   end
 
   def sale_order_only_props(sale)
@@ -186,10 +201,10 @@ module SaleHelper
   end
 
   def sale_payment_progress_props(sale)
-    plan = sale.payment_plans_for_display.first
+    plans = sale.payment_plans_for_display
 
-    if plan
-      sale_plan_payment_progress_props(plan, sale)
+    if plans.one?
+      sale_plan_payment_progress_props(plans.first, sale)
     elsif sale.outstanding_revenue.nil? && sale.expected_revenue.present?
       sale_woo_payment_progress_props(sale)
     else
@@ -338,7 +353,7 @@ module SaleHelper
     }
   end
 
-  def sale_show_item_props(item, shipping_share, can_view_profitability: false, expense_fraction: ExpenseRate.combined_fraction)
+  def sale_show_item_props(item, shipping_share, origin_price, can_view_profitability: false, expense_fraction: ExpenseRate.combined_fraction)
     {
       id: item.id,
       title: item.title,
@@ -346,7 +361,7 @@ module SaleHelper
       product_path: product_path(item.product),
       product_thumb_url: thumb_url(item.product),
       purchase_items: item.purchase_items.map { |pi| sale_show_purchase_item_props(pi) },
-      payment: sale_item_payment_props(item, shipping_share),
+      price: format_money(origin_price || item.expected_revenue.to_d + shipping_share),
       profitability: can_view_profitability ? sale_item_profitability_props(item, expense_fraction) : nil
     }
   end
@@ -364,20 +379,6 @@ module SaleHelper
       warehouse_movements: pi.warehouse_movements.sort_by(&:moved_in).reverse.map { |m|
         {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
       }
-    }
-  end
-
-  def sale_item_payment_props(item, shipping_share)
-    received = item.received_revenue.to_d
-    total = item.expected_revenue.to_d + shipping_share
-    debt = [total - received, 0].max
-
-    {
-      progress: [percent_of(received, total) || 0, 100].min,
-      amounts_unknown: item.payment_split_unknown?,
-      paid: format_money(received),
-      price: format_money(total),
-      debt: format_money(debt)
     }
   end
 

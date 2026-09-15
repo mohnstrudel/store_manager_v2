@@ -502,25 +502,19 @@ RSpec.describe "Sales" do
         )
       end
 
-      it "includes the paid amount, shipping-inclusive total, debt, and progress for admins" do
+      it "includes the shipping-inclusive Price for admins" do
         get sale_path(sale)
 
-        payment = inertia.props[:sale][:sale_items].first[:payment]
-        expect(payment[:paid]).to eq("40")
-        expect(payment[:price]).to eq("130")
-        expect(payment[:debt]).to eq("90")
-        expect(payment[:progress]).to eq(31)
+        expect(inertia.props[:sale][:sale_items].first[:price]).to eq("130")
       end
 
-      it "includes payment data for non-admins too, unlike profitability data" do
+      it "includes item Price for non-admins too, unlike profitability data" do
         log_out
         sign_in create(:user, :manager)
 
         get sale_path(sale)
 
-        payment = inertia.props[:sale][:sale_items].first[:payment]
-        expect(payment[:paid]).to eq("40")
-        expect(payment[:price]).to eq("130")
+        expect(inertia.props[:sale][:sale_items].first[:price]).to eq("130")
         expect(inertia.props[:sale][:sale_items].first[:profitability]).to be_nil
       end
 

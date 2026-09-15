@@ -121,7 +121,7 @@ export type SaleShowSaleItemRecord = {
   product_path: string;
   product_thumb_url: string | null;
   purchase_items: SaleShowPurchaseItemRecord[];
-  payment: PaymentProgress;
+  price: string | null;
   profitability: SaleItemProfitabilityRecord | null;
 };
 
