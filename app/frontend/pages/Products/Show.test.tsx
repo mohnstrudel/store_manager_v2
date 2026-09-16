@@ -74,6 +74,41 @@ describe("Products/Show", () => {
       expect(screen.getByText("A very electric mouse.")).toBeInTheDocument();
     });
 
+    it("keeps the active tab when the page remounts, as browser back/forward navigation does", async () => {
+      const user = userEvent.setup();
+      const props = { variants: [makeVariant()] };
+      const view = renderShow(props);
+
+      await user.click(screen.getByRole("tab", { name: "Variants 1" }));
+      view.unmount();
+
+      renderShow(props);
+
+      expect(screen.getByRole("tab", { name: "Variants 1" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByRole("heading", { name: "Variants" })).toBeInTheDocument();
+    });
+
+    it("reflects the active tab in the browser URL, and clears it back to overview", async () => {
+      const user = userEvent.setup();
+      renderShow({ purchases: [makePurchase()] });
+
+      await user.click(screen.getByRole("tab", { name: /Purchases/ }));
+
+      expect(window.location.search).toBe("?tab=purchases");
+      expect(router.push).toHaveBeenLastCalledWith({
+        preserveScroll: true,
+        preserveState: true,
+        url: "/?tab=purchases",
+      });
+
+      await user.click(screen.getByRole("tab", { name: "Overview" }));
+
+      expect(window.location.search).toBe("");
+    });
+
     it("shows sale and purchase counts in the tab labels", () => {
       renderShow({ activeSales: [makeSaleItem()], purchases: [makePurchase()] });
 

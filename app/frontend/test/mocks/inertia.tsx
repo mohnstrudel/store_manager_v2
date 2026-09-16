@@ -52,11 +52,21 @@ export const router = {
   patch: vi.fn<(...args: unknown[]) => unknown>(),
   post: vi.fn<(...args: unknown[]) => unknown>(),
   prefetch: vi.fn<(...args: unknown[]) => unknown>(),
+  push: vi.fn<(params: { url?: string }) => void>(({ url }) => {
+    if (url !== undefined) window.history.pushState(null, "", url);
+  }),
   put: vi.fn<(...args: unknown[]) => unknown>(),
+  replace: vi.fn<(params: { url?: string }) => void>(({ url }) => {
+    if (url !== undefined) window.history.replaceState(null, "", url);
+  }),
   visit: vi.fn<(...args: unknown[]) => unknown>(),
 };
 
 export const createInertiaApp = vi.fn<(...args: unknown[]) => unknown>();
+
+beforeEach(() => {
+  window.history.replaceState(null, "", "/");
+});
 
 type LinkStubProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   href: string;

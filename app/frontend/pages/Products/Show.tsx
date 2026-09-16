@@ -1,3 +1,4 @@
+import { router } from "@inertiajs/react";
 import { useCallback, useMemo, useState } from "react";
 
 import Button from "@/components/Button";
@@ -34,6 +35,23 @@ type ShowProps = {
 
 type TabId = "overview" | "variants" | "sales" | "purchases";
 
+const TAB_IDS: TabId[] = ["overview", "variants", "sales", "purchases"];
+
+function tabFromUrl(url: string): TabId {
+  const requested = new URL(url, window.location.origin).searchParams.get("tab");
+  return TAB_IDS.find((id) => id === requested) ?? "overview";
+}
+
+function urlWithTab(url: string, tab: TabId): string {
+  const next = new URL(url, window.location.origin);
+  if (tab === "overview") {
+    next.searchParams.delete("tab");
+  } else {
+    next.searchParams.set("tab", tab);
+  }
+  return `${next.pathname}${next.search}${next.hash}`;
+}
+
 type Tab = {
   id: TabId;
   label: string;
@@ -50,7 +68,7 @@ export default function Show({
   purchases,
   variants,
 }: ShowProps) {
-  const [tab, setTab] = useState<TabId>("overview");
+  const [requestedTab, setRequestedTab] = useState<TabId>(() => tabFromUrl(window.location.href));
   const destroyProduct = useConfirmAction("delete", product.path);
 
   const hasVariants = variants.length > 0;
@@ -71,6 +89,15 @@ export default function Show({
     ],
     [hasVariants, variants.length, salesCount, paymentsCount, purchases.length],
   );
+  const tab = tabs.find((candidate) => candidate.id === requestedTab)?.id ?? "overview";
+  const setTab = useCallback((nextTab: TabId) => {
+    setRequestedTab(nextTab);
+    router.push({
+      url: urlWithTab(window.location.href, nextTab),
+      preserveScroll: true,
+      preserveState: true,
+    });
+  }, []);
 
   return (
     <>
