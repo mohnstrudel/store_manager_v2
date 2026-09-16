@@ -53,11 +53,15 @@ export const router = {
   post: vi.fn<(...args: unknown[]) => unknown>(),
   prefetch: vi.fn<(...args: unknown[]) => unknown>(),
   push: vi.fn<(params: { url?: string }) => void>(({ url }) => {
-    if (url !== undefined) window.history.pushState(null, "", url);
+    if (url === undefined) return;
+    window.history.pushState(null, "", url);
+    usePage.mockReturnValue({ ...usePage(), url });
   }),
   put: vi.fn<(...args: unknown[]) => unknown>(),
   replace: vi.fn<(params: { url?: string }) => void>(({ url }) => {
-    if (url !== undefined) window.history.replaceState(null, "", url);
+    if (url === undefined) return;
+    window.history.replaceState(null, "", url);
+    usePage.mockReturnValue({ ...usePage(), url });
   }),
   visit: vi.fn<(...args: unknown[]) => unknown>(),
 };
