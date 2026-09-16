@@ -523,12 +523,12 @@ RSpec.describe Variant::Shopify::Importer do
         )
       end
 
-      it "stores converted USD selling price while preserving the EUR snapshot" do
+      it "stores converted USD selling price and purchase cost while preserving the EUR selling-price snapshot" do
         variant = described_class.import!(product, parsed_variant)
 
         expect(variant).to have_attributes(
           selling_price: BigDecimal("337.49"),
-          purchase_cost: BigDecimal("150.00"),
+          purchase_cost: BigDecimal("168.75"),
           selling_price_source_amount: BigDecimal("299.99"),
           selling_price_source_currency: "EUR",
           selling_price_exchange_rate: BigDecimal("1.125"),
