@@ -47,6 +47,9 @@ doc/
 plans
 opencode.json
 
+# Collaborative-planning specs and tickets — not version-controlled
+.specs/
+
 # Vite Ruby
 /public/vite*
 # Vite uses dotenv and suggests to ignore local-only env files. See
