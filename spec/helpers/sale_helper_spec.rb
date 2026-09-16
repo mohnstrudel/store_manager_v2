@@ -51,57 +51,6 @@ RSpec.describe SaleHelper do
     end
   end
 
-  describe "#sale_show_origin_price" do
-    it "computes projected merchandise minus shipping for a single-item sale naming itself as plan origin" do
-      sale = create(:sale, shopify_store_id: "gid://shopify/Order/100", shipping_total: BigDecimal("22.90"))
-      create(:sale_item, sale:, expected_revenue: BigDecimal("87.29"))
-      reconcile_installment_plan(external_id: "sub-origin", order_id: "100", projected_total: BigDecimal("538.06"))
-
-      expect(helper.sale_show_origin_price(sale.reload)).to eq(BigDecimal("515.16"))
-    end
-
-    it "is nil for every ineligible scenario", :aggregate_failures do
-      no_plan = create(:sale, shipping_total: BigDecimal(20))
-      create(:sale_item, sale: no_plan, expected_revenue: 300)
-      expect(helper.sale_show_origin_price(no_plan)).to be_nil
-
-      multi_item = create(:sale, shopify_store_id: "gid://shopify/Order/101", shipping_total: BigDecimal(20))
-      create(:sale_item, sale: multi_item, expected_revenue: 200)
-      create(:sale_item, sale: multi_item, expected_revenue: 100)
-      reconcile_installment_plan(external_id: "sub-multi-item", order_id: "101", projected_total: 1000)
-      expect(helper.sale_show_origin_price(multi_item.reload)).to be_nil
-
-      multi_plan = create(:sale, shopify_store_id: "gid://shopify/Order/102", shipping_total: BigDecimal(20))
-      create(:sale_item, sale: multi_plan, expected_revenue: 300)
-      reconcile_installment_plan(external_id: "sub-plan-a", order_id: "102", projected_total: 1000)
-      reconcile_installment_plan(external_id: "sub-plan-b", order_id: "102", projected_total: 500)
-      expect(helper.sale_show_origin_price(multi_plan.reload)).to be_nil
-
-      create(:sale, shopify_store_id: "gid://shopify/Order/900")
-      non_origin = create(:sale, shopify_store_id: "gid://shopify/Order/103", shipping_total: BigDecimal(20))
-      create(:sale_item, sale: non_origin, expected_revenue: 300)
-      SalePaymentPlan.reconcile!(
-        attributes: {
-          provider: "seal", external_id: "sub-non-origin", external_origin_order_id: "900",
-          kind: "installments", status: "active", expected_parts: 4,
-          projected_total: BigDecimal(1000), synced_at: Time.current
-        },
-        parts: [{provider_part_id: "sub-non-origin:1", sequence: 1, external_order_id: "103"}]
-      )
-      expect(helper.sale_show_origin_price(non_origin.reload)).to be_nil
-
-      unknown_shipping = create(:sale, shopify_store_id: "gid://shopify/Order/104", shipping_total: nil)
-      create(:sale_item, sale: unknown_shipping, expected_revenue: 300)
-      reconcile_installment_plan(external_id: "sub-unknown-shipping", order_id: "104", projected_total: 1000)
-      expect(helper.sale_show_origin_price(unknown_shipping.reload)).to be_nil
-
-      negative = create(:sale, shopify_store_id: "gid://shopify/Order/105", shipping_total: BigDecimal(50))
-      create(:sale_item, sale: negative, expected_revenue: 300)
-      reconcile_installment_plan(external_id: "sub-negative", order_id: "105", projected_total: 40)
-      expect(helper.sale_show_origin_price(negative.reload)).to be_nil
-    end
-  end
-
   describe "sale-show item price" do
     it "renders the plan's projected merchandise as Price while preserving Sale Total" do
       sale = create(:sale, shopify_store_id: "gid://shopify/Order/106", shipping_total: BigDecimal("22.90"), total: BigDecimal("87.29"), expected_revenue: BigDecimal("87.29"), received_revenue: 0, outstanding_revenue: BigDecimal("87.29"))

@@ -106,6 +106,20 @@ class Sale < ApplicationRecord
       .sort_by { |plan| [plan.created_at, plan.id] }
   end
 
+  def projected_item_price
+    return if sale_items.size != 1
+    return if shipping_total.blank?
+
+    plans = payment_plans_for_display
+    return unless plans.one?
+
+    plan = plans.first
+    return unless plan.origin_sale_id == id && plan.projected_total
+
+    price = plan.projected_total - shipping_total.to_d
+    price if price >= 0
+  end
+
   def reconcile_installment_attribution!(origin_item)
     installment_payment_items.each { |item| item.apply_installment_origin!(origin_item) }
   end

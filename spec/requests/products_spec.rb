@@ -106,6 +106,31 @@ RSpec.describe "Products" do
       expect(payment_props[:origin][:path]).to eq(sale_path(origin))
     end
 
+    it "prices a deposit plan's origin sale row at the projected selling price, not the deposit collected" do
+      product = create(:product)
+      variant = create(:variant, product:)
+      origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/950", shipping_total: BigDecimal("22.90"))
+      create(:sale_item, product:, variant:, sale: origin, qty: 1, price: BigDecimal("132.14"), expected_revenue: BigDecimal("132.14"))
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-deposit",
+          external_origin_order_id: "950",
+          kind: "deposit",
+          status: "active",
+          expected_parts: 1,
+          deposit_percent: 30,
+          projected_total: BigDecimal("538.06"),
+          synced_at: Time.current
+        },
+        parts: [{sequence: 1, provider_part_id: "origin", external_order_id: "950"}]
+      )
+
+      get product_path(product)
+
+      expect(inertia.props[:active_sales].first[:price]).to eq("515")
+    end
+
     it "includes variant total purchase cost and theoretical profit" do
       product = create(:product)
       variant = create(:variant, product:, selling_price: BigDecimal(200))

@@ -58,7 +58,7 @@ module SaleHelper
     shipping_shares = sale.shipping_shares_by_item_id
     expense_fraction = can_view_profitability ? ExpenseRate.combined_fraction : 0
     follow_up_payment = sale.follow_up_payment?
-    origin_price = sale_show_origin_price(sale)
+    origin_price = sale.projected_item_price
 
     sale_base_props(sale).merge(
       edit_path: edit_sale_path(sale),
@@ -77,20 +77,6 @@ module SaleHelper
         sale_show_item_props(item, shipping_shares.fetch(item.id, 0), origin_price, can_view_profitability:, expense_fraction:)
       }
     ).merge(follow_up_payment ? {} : sale_order_only_props(sale))
-  end
-
-  def sale_show_origin_price(sale)
-    return if sale.sale_items.size != 1
-    return if sale.shipping_total.blank?
-
-    plans = sale.payment_plans_for_display
-    return unless plans.one?
-
-    plan = plans.first
-    return unless plan.origin_sale_id == sale.id && plan.projected_total
-
-    price = plan.projected_total - sale.shipping_total.to_d
-    price if price >= 0
   end
 
   def sale_order_only_props(sale)

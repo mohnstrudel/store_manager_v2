@@ -189,6 +189,50 @@ RSpec.describe Sale do
     end
   end
 
+  describe "#projected_item_price" do
+    it "computes projected merchandise minus shipping for a single-item sale naming itself as plan origin" do
+      sale = create(:sale, shopify_store_id: "gid://shopify/Order/100", shipping_total: BigDecimal("22.90"))
+      create(:sale_item, sale:, expected_revenue: BigDecimal("87.29"))
+      create_plan(external_id: "sub-origin", external_origin_order_id: "100", projected_total: BigDecimal("538.06"), parts: [])
+
+      expect(sale.reload.projected_item_price).to eq(BigDecimal("515.16"))
+    end
+
+    it "is nil for every ineligible scenario", :aggregate_failures do
+      no_plan = create(:sale, shipping_total: BigDecimal(20))
+      create(:sale_item, sale: no_plan, expected_revenue: 300)
+      expect(no_plan.projected_item_price).to be_nil
+
+      multi_item = create(:sale, shopify_store_id: "gid://shopify/Order/101", shipping_total: BigDecimal(20))
+      create(:sale_item, sale: multi_item, expected_revenue: 200)
+      create(:sale_item, sale: multi_item, expected_revenue: 100)
+      create_plan(external_id: "sub-multi-item", external_origin_order_id: "101", projected_total: 1000, parts: [])
+      expect(multi_item.reload.projected_item_price).to be_nil
+
+      multi_plan = create(:sale, shopify_store_id: "gid://shopify/Order/102", shipping_total: BigDecimal(20))
+      create(:sale_item, sale: multi_plan, expected_revenue: 300)
+      create_plan(external_id: "sub-plan-a", external_origin_order_id: "102", projected_total: 1000, parts: [])
+      create_plan(external_id: "sub-plan-b", external_origin_order_id: "102", projected_total: 500, parts: [])
+      expect(multi_plan.reload.projected_item_price).to be_nil
+
+      create(:sale, shopify_store_id: "gid://shopify/Order/900")
+      non_origin = create(:sale, shopify_store_id: "gid://shopify/Order/103", shipping_total: BigDecimal(20))
+      create(:sale_item, sale: non_origin, expected_revenue: 300)
+      create_plan(external_id: "sub-non-origin", external_origin_order_id: "900", projected_total: BigDecimal(1000), parts: [{provider_part_id: "sub-non-origin:1", sequence: 1, external_order_id: "103"}])
+      expect(non_origin.reload.projected_item_price).to be_nil
+
+      unknown_shipping = create(:sale, shopify_store_id: "gid://shopify/Order/104", shipping_total: nil)
+      create(:sale_item, sale: unknown_shipping, expected_revenue: 300)
+      create_plan(external_id: "sub-unknown-shipping", external_origin_order_id: "104", projected_total: 1000, parts: [])
+      expect(unknown_shipping.reload.projected_item_price).to be_nil
+
+      negative = create(:sale, shopify_store_id: "gid://shopify/Order/105", shipping_total: BigDecimal(50))
+      create(:sale_item, sale: negative, expected_revenue: 300)
+      create_plan(external_id: "sub-negative", external_origin_order_id: "105", projected_total: 40, parts: [])
+      expect(negative.reload.projected_item_price).to be_nil
+    end
+  end
+
   describe "auditing" do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true
@@ -309,7 +353,7 @@ RSpec.describe Sale do
     end
   end
 
-  def create_plan(parts:, external_origin_order_id:, provider: "seal", kind: "installments", external_id: "subscription-1")
+  def create_plan(parts:, external_origin_order_id:, provider: "seal", kind: "installments", external_id: "subscription-1", projected_total: nil)
     SalePaymentPlan.reconcile!(
       attributes: {
         provider:,
@@ -317,7 +361,8 @@ RSpec.describe Sale do
         external_origin_order_id:,
         kind:,
         status: "active",
-        expected_parts: parts.size,
+        expected_parts: parts.empty? ? 1 : parts.size,
+        projected_total:,
         synced_at: Time.current
       },
       parts:

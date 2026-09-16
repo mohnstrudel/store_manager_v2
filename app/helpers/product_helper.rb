@@ -159,7 +159,7 @@ module ProductHelper
       country: sale.shipping_address&.country.presence || "",
       date: format_date(sale.woo_created_at.presence || sale_item.created_at),
       variant_title: product.variants.any? ? sale_item.variant&.title : nil,
-      price: format_money(sale_item.price),
+      price: format_money(sale.projected_item_price || sale_item.price),
       qty: sale_item.qty,
       status: sale.status,
       warehouse: purchase_item&.warehouse&.name.presence || "",
