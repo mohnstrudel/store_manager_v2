@@ -69,6 +69,9 @@
     "react/react-in-jsx-scope": "off",
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
+    "react/set-state-in-effect": "warn",
+    "react/refs": "warn",
+    "react/immutability": "warn",
     "source-policy/ordering": "error",
     "source-policy/no-prose-comments": "error"
   }
