@@ -131,6 +131,41 @@ RSpec.describe "Products" do
       expect(inertia.props[:active_sales].first[:price]).to eq("515")
     end
 
+    it "does not run a per-sale sale_items COUNT query when pricing projected deposit rows" do
+      product = create(:product)
+      variant = create(:variant, product:)
+      origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/951", shipping_total: BigDecimal("22.90"))
+      create(:sale_item, product:, variant:, sale: origin, qty: 1, price: BigDecimal("132.14"), expected_revenue: BigDecimal("132.14"))
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-deposit-2",
+          external_origin_order_id: "951",
+          kind: "deposit",
+          status: "active",
+          expected_parts: 1,
+          deposit_percent: 30,
+          projected_total: BigDecimal("538.06"),
+          synced_at: Time.current
+        },
+        parts: [{sequence: 1, provider_part_id: "origin", external_order_id: "951"}]
+      )
+
+      sale_items_count_queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        sale_items_count_queries << payload[:sql] if payload[:sql].start_with?(%(SELECT COUNT(*) FROM "sale_items"))
+      end
+
+      begin
+        get product_path(product)
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(sale_items_count_queries).to be_empty
+    end
+
     it "includes variant total purchase cost and theoretical profit" do
       product = create(:product)
       variant = create(:variant, product:, selling_price: BigDecimal(200))

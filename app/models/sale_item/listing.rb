@@ -25,6 +25,7 @@ module SaleItem::Listing
           :shopify_info,
           :woo_info,
           :shipping_address,
+          :sale_items,
           :origin_payment_plans,
           {sale_payment_parts: :sale_payment_plan}
         ],
