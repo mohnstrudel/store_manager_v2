@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useState, type ChangeEvent } from "react";
+import { forwardRef, useCallback, useState, type ChangeEvent } from "react";
 
 import {
   InlineCellEditor,
@@ -30,9 +30,7 @@ export const InlineShippingCostEditor = forwardRef<InlineCellEditorHandle, Shipp
       onOpen: onAutoOpen,
     });
 
-    useEffect(() => {
-      if (!form.isOpen) setHideDefaultZero(true);
-    }, [form.isOpen]);
+    if (!form.isOpen && !hideDefaultZero) setHideDefaultZero(true);
 
     const { onChange } = form;
     const handleChange = useCallback(
@@ -60,6 +58,7 @@ export const InlineShippingCostEditor = forwardRef<InlineCellEditorHandle, Shipp
         tdClassName="text-center min-w-24"
       >
         <input
+          // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
           autoFocus={autoFocus}
           className="border rounded px-2 py-1 text-sm w-full"
           id={fieldId}

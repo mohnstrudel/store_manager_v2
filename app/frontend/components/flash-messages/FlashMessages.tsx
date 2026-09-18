@@ -33,6 +33,7 @@ export default function FlashMessages() {
           "transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none",
         ].join(" ")}
         data-kind={toast.kind}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- keep article semantics
         role="status"
       >
         <i aria-hidden="true" className="icn text-2xl lg:text-3xl">
@@ -78,6 +79,7 @@ function useFlashToast(
   useEffect(() => {
     if (!activeFlash || !activeKind || !activeToken) return undefined;
 
+    // oxlint-disable-next-line react/set-state-in-effect -- toast state machine
     setToast((current) => {
       if (current && current.token === activeToken) {
         return current;

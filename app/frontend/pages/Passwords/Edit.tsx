@@ -25,6 +25,7 @@ export default function Edit({ token }: ResetPasswordProps) {
           <>
             <FormInput
               autoComplete="new-password"
+              // oxlint-disable-next-line jsx-a11y/no-autofocus -- auth first field
               autoFocus
               error={errors.password}
               label="New password"

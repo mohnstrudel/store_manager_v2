@@ -82,6 +82,7 @@ export default function Show({
             <table>
               <thead>
                 <tr>
+                  {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
                   <th />
                   <th>Warehouse</th>
                   <th>Length x Width x Height, cm</th>
@@ -110,6 +111,7 @@ export default function Show({
                   >
                     <td className="no_events text-center">
                       <input
+                        aria-label={`Select purchase item ${purchaseItem.id}`}
                         checked={selectedIds.includes(purchaseItem.id)}
                         data-purchase-item-id={purchaseItem.id}
                         onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}

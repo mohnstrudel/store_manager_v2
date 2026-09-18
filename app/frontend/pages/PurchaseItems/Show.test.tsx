@@ -47,12 +47,12 @@ describe("PurchaseItems/Show", () => {
       ],
     });
 
-    const movementGrid = screen.getByRole("grid");
-    const rows = within(movementGrid).getAllByRole("row");
+    const movementTable = screen.getByRole("table");
+    const rows = within(movementTable).getAllByRole("row");
     const secondRow = rows[2];
 
-    expect(within(movementGrid).getByText("Moved in")).toBeInTheDocument();
-    expect(within(movementGrid).getByText("21 May 2026")).toBeInTheDocument();
+    expect(within(movementTable).getByText("Moved in")).toBeInTheDocument();
+    expect(within(movementTable).getByText("21 May 2026")).toBeInTheDocument();
     expect(within(secondRow).getAllByRole("cell")[1]).toHaveTextContent("");
   });
 

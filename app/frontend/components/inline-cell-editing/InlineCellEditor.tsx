@@ -53,26 +53,9 @@ export function InlineCellTrigger({
   children: ReactNode;
   onOpen: () => void;
 }) {
-  const openFromKeyboard = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
-      event.stopPropagation();
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onOpen();
-      }
-    },
-    [onOpen],
-  );
-
   return (
     <>
-      <div
-        aria-label={ariaLabel}
-        className="inline_cell_display"
-        onKeyDown={openFromKeyboard}
-        role="button"
-        tabIndex={0}
-      >
+      <div aria-label={ariaLabel} className="inline_cell_display">
         {children}
       </div>
       <button
@@ -113,6 +96,7 @@ export function InlineCellForm({
   );
 
   return (
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- click barrier only
     <form
       className="flex flex-col gap-2 justify-self-center"
       onAuxClick={stopRowEvents}

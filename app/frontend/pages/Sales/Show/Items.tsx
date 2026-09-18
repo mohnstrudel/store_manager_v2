@@ -46,6 +46,7 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
       <table>
         <thead>
           <tr>
+            {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
             {showPurchaseColumn && <th />}
             <th className="text-center w-[106px] lg:w-[114px]">Image</th>
             <th>Product</th>

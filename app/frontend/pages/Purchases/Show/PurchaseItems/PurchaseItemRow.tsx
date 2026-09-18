@@ -90,6 +90,7 @@ export default function PurchaseItemRow({
       >
         <td className="no_events text-center">
           <input
+            aria-label={`Select purchase item ${purchaseItem.id}`}
             checked={selectedIds.includes(purchaseItem.id)}
             data-purchase-item-id={purchaseItem.id}
             onChange={toggleSelectedIdFromDataAttribute("purchaseItemId")}
@@ -100,6 +101,7 @@ export default function PurchaseItemRow({
         <td>{purchaseItem.id}</td>
         <td>
           <div className="flex flex-col gap-2 my-4">
+            {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- details click barrier */}
             <details className="group" onClick={stopRowNavigation}>
               <summary className={`w-fit flex items-center gap-2 ${summaryCursor}`}>
                 <span>
@@ -175,6 +177,7 @@ export default function PurchaseItemRow({
         <InlineTrackingNumberEditor
           ref={trackingRef}
           item={purchaseItem}
+          // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
           autoFocus={focusTarget === "tracking"}
           bulkError={bulkErrors.tracking_number}
           onAutoOpen={trackingAutoOpen}
@@ -183,6 +186,7 @@ export default function PurchaseItemRow({
         <InlineShippingCompanyEditor
           ref={shippingRef}
           item={purchaseItem}
+          // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
           autoFocus={focusTarget === "shipping_company"}
           bulkError={bulkErrors.shipping_company_id}
           onAutoOpen={shippingAutoOpen}
@@ -192,6 +196,7 @@ export default function PurchaseItemRow({
         <InlineShippingCostEditor
           ref={shippingCostRef}
           item={purchaseItem}
+          // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
           autoFocus={focusTarget === "shipping_cost"}
           onAutoOpen={costAutoOpen}
           onBulkSave={bulkSave}
@@ -227,6 +232,7 @@ export default function PurchaseItemRow({
           }
           colSpan={7}
         >
+          {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- details click barrier */}
           <details
             className="group"
             onClick={stopRowNavigation}

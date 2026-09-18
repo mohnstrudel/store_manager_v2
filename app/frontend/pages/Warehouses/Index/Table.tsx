@@ -29,7 +29,7 @@ type IndexTableProps = {
 
 export default function IndexTable({ onPositionChange, warehouses }: IndexTableProps) {
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>Position</th>

@@ -103,7 +103,7 @@ export default function Show({ purchase_item }: ShowProps) {
           </dl>
           {purchase_item.warehouse_movements.length > 0 && (
             <div className="card">
-              <table className="vertical thead_static" role="grid">
+              <table className="vertical thead_static">
                 <thead>
                   <tr>
                     <th>Moved in</th>

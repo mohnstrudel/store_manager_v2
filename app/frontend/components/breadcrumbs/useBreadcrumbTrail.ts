@@ -23,6 +23,7 @@ export function useBreadcrumbTrail() {
   useEffect(
     function syncTrail() {
       if (!breadcrumb) {
+        // oxlint-disable-next-line react/set-state-in-effect -- sessionStorage sync
         setTrail([]);
         return;
       }

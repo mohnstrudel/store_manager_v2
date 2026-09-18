@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormControl from "@/components/FormControl";
@@ -133,18 +133,22 @@ function useProductFormSections(
     [],
   );
 
-  useEffect(() => {
-    const candidateKeys = availability.variants.map((variant) => variant.value);
+  const variantClientKeys = useMemo(
+    () => availability.variants.map((variant) => variant.value),
+    [availability.variants],
+  );
+  const fallbackVariantClientKey =
+    availability.mode === "base" ? (variantClientKeys[0] ?? null) : null;
+  const selectedVariantClientKey =
+    availability.mode === "base"
+      ? fallbackVariantClientKey
+      : variantClientKey && !variantClientKeys.includes(variantClientKey)
+        ? null
+        : variantClientKey;
 
-    if (availability.mode === "base") {
-      setVariantClientKey(candidateKeys[0] ?? null);
-      return;
-    }
-
-    if (variantClientKey && !candidateKeys.includes(variantClientKey)) {
-      setVariantClientKey(null);
-    }
-  }, [availability, variantClientKey]);
+  if (variantClientKey !== selectedVariantClientKey) {
+    setVariantClientKey(selectedVariantClientKey);
+  }
 
   return {
     draftVariantAvailability: availability,

@@ -59,6 +59,7 @@ export default function TipMark({
         className={triggerClassName ?? `tip_mark__trigger ${starClassName}`.trim()}
         data-size={size}
         data-tone={tone}
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- ARIA tooltip focus trigger
         tabIndex={0}
         {...getReferenceProps(
           trigger === undefined ? { "aria-label": "More information" } : undefined,
@@ -69,6 +70,7 @@ export default function TipMark({
       {isOpen && (
         <FloatingPortal>
           <span
+            // oxlint-disable-next-line react/refs -- Floating UI callback ref
             ref={refs.setFloating}
             className="tip_mark__tooltip"
             data-placement={placement}

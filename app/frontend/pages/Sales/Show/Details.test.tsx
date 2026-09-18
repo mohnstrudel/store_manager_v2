@@ -28,7 +28,7 @@ describe("Sales/Show/Details", () => {
     const user = userEvent.setup();
     render(<Details sale={makeSaleShow()} />);
 
-    await user.click(screen.getByRole("button", { name: /Billing/ }));
+    await user.click(screen.getByRole("tab", { name: /Billing/ }));
 
     expect(screen.getByLabelText("More information")).toHaveTextContent("*");
     expect(screen.getByText("456 Side St")).toBeInTheDocument();

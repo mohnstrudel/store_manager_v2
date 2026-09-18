@@ -28,7 +28,7 @@ type IndexTableProps = {
 
 export default function IndexTable({ purchaseItems }: IndexTableProps) {
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>Purchase</th>

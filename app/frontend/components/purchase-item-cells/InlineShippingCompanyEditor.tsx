@@ -56,6 +56,7 @@ export const InlineShippingCompanyEditor = forwardRef<
       tdClassName="text-center min-w-32"
     >
       <select
+        // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
         autoFocus={autoFocus}
         className="border rounded px-2 py-1 text-sm w-full min-w-35"
         id={fieldId}

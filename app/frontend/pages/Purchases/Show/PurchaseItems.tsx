@@ -83,6 +83,7 @@ export default function PurchaseItems({
           <table>
             <thead>
               <tr>
+                {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
                 <th />
                 <th>ID</th>
                 <th>Purchased Item</th>

@@ -46,6 +46,7 @@ export default function IndexTable({ products }: IndexTableProps) {
             </td>
             <td>{emptyToNull(product.woo_store_id)}</td>
             <td>{emptyToNull(product.shopify_id_short)}</td>
+            {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action */}
             <td className="table_actions text-right" onClick={stopRowNavigation}>
               <div className="flex justify-end gap-2">
                 <Link href={product.edit_path} prefetch>

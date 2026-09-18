@@ -36,7 +36,7 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
       ],
     });
 
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await user.click(screen.getByLabelText("Edit tracking number"));
     await user.clear(screen.getByLabelText("Tracking number"));
     await user.type(screen.getByLabelText("Tracking number"), "TRACK-99");
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -50,11 +50,11 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
       expect.objectContaining({ preserveScroll: true }),
     );
     expect(screen.queryByLabelText("Tracking number")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit tracking number" }).closest("td")).toHaveClass(
+    expect(screen.getByLabelText("Edit tracking number").closest("td")).toHaveClass(
       "bg-lime-100/80",
     );
 
-    await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
+    await user.click(screen.getByLabelText("Edit shipping company"));
     await user.selectOptions(screen.getByLabelText("Shipping company"), "3");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
@@ -76,7 +76,7 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
 
     renderSection({ purchaseItems: [makeWarehousePurchaseItem({ shipping_company_id: null })] });
 
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await user.click(screen.getByLabelText("Edit tracking number"));
 
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
     await waitFor(() => {
@@ -93,7 +93,7 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
       ],
     });
 
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await user.click(screen.getByLabelText("Edit tracking number"));
 
     expect(screen.getByLabelText("Tracking number")).toBeInTheDocument();
     expect(screen.queryByLabelText("Shipping company")).not.toBeInTheDocument();
@@ -104,7 +104,7 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
 
     renderSection({ purchaseItems: [makeWarehousePurchaseItem({ shipping_company_id: null })] });
 
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await user.click(screen.getByLabelText("Edit tracking number"));
     await user.type(screen.getByLabelText("Tracking number"), "-updated");
     await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
 
@@ -117,12 +117,12 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
 
     renderSection({ purchaseItems: [makeWarehousePurchaseItem({ shipping_company_id: null })] });
 
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await user.click(screen.getByLabelText("Edit tracking number"));
     await user.click(screen.getAllByRole("button", { name: "Save" })[0]);
     expect(screen.getByText("Shipping company is required")).toBeInTheDocument();
 
     await user.click(screen.getAllByRole("button", { name: "Exit" })[0]);
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
+    await user.click(screen.getByLabelText("Edit tracking number"));
 
     expect(screen.queryByText("Shipping company is required")).not.toBeInTheDocument();
   });
@@ -153,8 +153,8 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
       ],
     });
 
-    await user.click(screen.getByRole("button", { name: "Edit tracking number" }));
-    await user.click(screen.getByRole("button", { name: "Edit shipping company" }));
+    await user.click(screen.getByLabelText("Edit tracking number"));
+    await user.click(screen.getByLabelText("Edit shipping company"));
 
     expect(screen.queryByText("Could not save tracking number")).not.toBeInTheDocument();
     expect(screen.queryByText("Could not save shipping company")).not.toBeInTheDocument();

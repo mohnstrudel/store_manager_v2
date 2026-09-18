@@ -151,6 +151,7 @@ function PurchaseItemsTable({
     <table>
       <thead>
         <tr>
+          {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
           <th />
           <th>Title</th>
           <th>Customer</th>
@@ -220,6 +221,7 @@ function PurchaseItemRow({
     >
       <td className="no_events text-center">
         <input
+          aria-label={`Select purchase item ${item.id}`}
           checked={isSelectionChecked}
           data-purchase-item-id={item.id}
           onChange={onToggleSelectedId}

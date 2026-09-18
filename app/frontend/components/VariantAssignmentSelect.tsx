@@ -124,7 +124,6 @@ function useVariantAvailability(
   useEffect(() => {
     if (productId == null) {
       loadedProductId.current = null;
-      setState({ availability: null, status: "empty" });
       return undefined;
     }
 
@@ -154,7 +153,7 @@ function useVariantAvailability(
     };
   }, [productId]);
 
-  return state;
+  return productId == null ? { availability: null, status: "empty" } : state;
 }
 
 function VariantAvailabilityMessage({

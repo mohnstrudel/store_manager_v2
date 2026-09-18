@@ -22,7 +22,7 @@ type IndexTableProps = {
 
 export default function IndexTable({ users }: IndexTableProps) {
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>Email</th>

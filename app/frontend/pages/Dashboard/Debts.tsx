@@ -89,7 +89,7 @@ function UnpaidPurchasesSection({ unpaidPurchases }: { unpaidPurchases: UnpaidPu
   return (
     <section className="table_card">
       <h3>Purchases Without Payments</h3>
-      <table role="grid">
+      <table>
         <thead>
           <tr>
             <th>Purchased Ago</th>

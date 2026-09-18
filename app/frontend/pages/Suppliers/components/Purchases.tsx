@@ -15,7 +15,7 @@ export default function Purchases({ purchases }: PurchasesProps) {
     <div className="flex flex-col gap-4">
       <div className="table_card">
         <h3>Purchases</h3>
-        <table role="grid">
+        <table>
           <thead>
             <tr>
               {columns.map((column) => (

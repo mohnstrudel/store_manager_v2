@@ -11,7 +11,7 @@ type TableProps = {
 
 export default function Table({ suppliers }: TableProps) {
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>ID</th>
@@ -40,6 +40,7 @@ export default function Table({ suppliers }: TableProps) {
               <td>{supplier.title}</td>
               <td>{supplier.created_at}</td>
               <td>{supplier.updated_at}</td>
+              {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action */}
               <td className="table_actions text-right">
                 <div className="flex flex-wrap justify-end gap-2">
                   <Link href={currentSupplierPath} onClick={stopRowNavigation} prefetch>

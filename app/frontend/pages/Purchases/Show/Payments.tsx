@@ -220,6 +220,7 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
             value={form.data.value}
           />
         </td>
+        {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled actions */}
         <td>
           <div className="flex flex-wrap gap-2">
             <button

@@ -31,6 +31,7 @@ export default function SyncModal({
   });
 
   return (
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop click
     <dialog id={id} onClick={closeWhenBackdropIsClicked} open>
       <div className="dialog_content rounded-lg shadow-lg w-xl p-4 pb-6 -translate-y-10">
         <SyncModalHeader lastSyncAt={lastSyncAt} onClose={closeModal} title={title} />

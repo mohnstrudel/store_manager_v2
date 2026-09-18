@@ -153,11 +153,15 @@ type SubmitMethod = "delete" | "get" | "patch" | "post" | "put";
 function useFormStub<TData extends Record<string, unknown>>(initialData: TData) {
   const [data, setDataState] = useState(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  let transformPayload: ((data: TData) => unknown) | null = null;
+  const transformPayloadRef = useRef<((data: TData) => unknown) | null>(null);
 
   const submit = (method: SubmitMethod, url: string, options: SubmitOptions = {}) => {
     options.onBefore?.();
-    router[method](url, transformPayload ? transformPayload(data) : data, options);
+    router[method](
+      url,
+      transformPayloadRef.current ? transformPayloadRef.current(data) : data,
+      options,
+    );
 
     const serverErrors = nextFormErrors();
     if (serverErrors) {
@@ -189,7 +193,7 @@ function useFormStub<TData extends Record<string, unknown>>(initialData: TData) 
       setDataState(initialData);
     },
     transform: (callback: (data: TData) => unknown) => {
-      transformPayload = callback;
+      transformPayloadRef.current = callback;
     },
     optimistic: (_callback: unknown) => form,
     delete: (url: string, options?: SubmitOptions) => submit("delete", url, options),

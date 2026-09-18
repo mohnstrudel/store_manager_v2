@@ -24,9 +24,10 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
   );
 
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
+          {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
           <th />
           <th className="text-center">Image</th>
           <th>Product</th>
@@ -48,6 +49,7 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
           <tr className="hoverable" key={purchase.id} {...rowNavigationProps(purchase.path)}>
             <td className="no_events text-center">
               <input
+                aria-label={`Select purchase ${purchase.id}`}
                 checked={selectedIds.includes(purchase.id)}
                 data-purchase-id={purchase.id}
                 onChange={handleTogglePurchase}

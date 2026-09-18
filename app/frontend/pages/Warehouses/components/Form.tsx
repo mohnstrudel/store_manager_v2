@@ -346,6 +346,7 @@ function TransitionTable({
         <thead>
           <tr>
             <th>Destination Warehouse</th>
+            {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
             <th />
           </tr>
         </thead>
@@ -375,6 +376,7 @@ function AddTransitionRow({ onAdd }: { onAdd: () => void }) {
           Add Transition
         </Button>
       </td>
+      {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
       <td />
     </tr>
   );

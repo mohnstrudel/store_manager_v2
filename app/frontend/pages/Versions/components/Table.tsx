@@ -11,7 +11,7 @@ type TableProps = {
 
 export default function Table({ versions }: TableProps) {
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>ID</th>
@@ -36,6 +36,7 @@ export default function Table({ versions }: TableProps) {
               <td>{version.value}</td>
               <td>{version.created_at}</td>
               <td>{version.updated_at}</td>
+              {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action */}
               <td className="table_actions text-right">
                 <div className="flex flex-wrap justify-end gap-2">
                   <Link href={currentVersionPath} onClick={stopRowNavigation} prefetch>

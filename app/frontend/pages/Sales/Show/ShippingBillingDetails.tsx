@@ -20,12 +20,13 @@ export default function ShippingBillingDetails({ sale }: { sale: SaleShowRecord 
 
   return (
     <div className="card w-full">
-      <div className="tab_bar">
+      <div className="tab_bar" role="tablist">
         <button
           aria-selected={tab === "shipping"}
           className="tab_btn"
           data-tab-panel="shipping"
           onClick={showShippingTab}
+          role="tab"
           type="button"
         >
           Shipping
@@ -35,6 +36,7 @@ export default function ShippingBillingDetails({ sale }: { sale: SaleShowRecord 
           className="tab_btn"
           data-tab-panel="billing"
           onClick={showBillingTab}
+          role="tab"
           type="button"
         >
           Billing

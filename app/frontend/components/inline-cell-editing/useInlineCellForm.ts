@@ -66,7 +66,7 @@ export function useInlineCellForm<TRecord extends { id: number }>({
   useEffect(() => {
     if (isOpen) return;
     syncToPersistedValue();
-  }, [isOpen, persistedValue, resolvedReturnTo]);
+  }, [isOpen]);
 
   const readError = errorFrom ?? defaultErrorReader(attributeName);
 

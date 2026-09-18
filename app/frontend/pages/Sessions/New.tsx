@@ -25,6 +25,7 @@ export default function New({ email_address }: SignInProps) {
           <>
             <FormInput
               autoComplete="username"
+              // oxlint-disable-next-line jsx-a11y/no-autofocus -- auth first field
               autoFocus
               defaultValue={email_address ?? ""}
               error={errors.email_address}

@@ -36,7 +36,7 @@ export default function Table({ expenseRates }: TableProps) {
   return (
     <div className="table_card">
       <h3>OpEx Rates</h3>
-      <table role="grid">
+      <table>
         <thead>
           <tr>
             <th>Name</th>
@@ -75,6 +75,7 @@ function ExpenseRateRow({ expenseRate }: { expenseRate: ExpenseRateRecord }) {
     >
       <td>{expenseRate.name}</td>
       <td className="text-right font-mono">{expenseRate.rate_percent}%</td>
+      {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action */}
       <td className="table_actions">
         <div className="flex justify-end gap-2">
           <Button onClick={deleteRate} variant="danger">

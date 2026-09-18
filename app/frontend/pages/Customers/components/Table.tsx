@@ -17,7 +17,7 @@ export default function Table({ customers, searchQuery = "" }: TableProps) {
   }
 
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>Woo ID</th>

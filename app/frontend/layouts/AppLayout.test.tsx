@@ -40,7 +40,7 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
 
-    const footerLink = container.querySelector("footer a")!;
+    const footerLink = container.querySelector("footer button")!;
     await user.click(footerLink);
 
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0 });
