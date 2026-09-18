@@ -106,6 +106,50 @@ RSpec.describe "Products" do
       expect(payment_props[:origin][:path]).to eq(sale_path(origin))
     end
 
+    it "preloads payment-plan parts for follow-up payment rows" do
+      product = create(:product)
+      variant = create(:variant, product:)
+      origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/910")
+      follow_up_sales = Array.new(3) { |index|
+        create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/#{911 + index}")
+      }
+
+      create(:sale_item, product:, variant:, sale: origin, qty: 1)
+      follow_up_sales.each { |sale| create(:sale_item, product:, variant:, sale:, qty: 1) }
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-preload",
+          external_origin_order_id: "910",
+          kind: "installments",
+          status: "active",
+          expected_parts: 4,
+          synced_at: Time.current
+        },
+        parts: [
+          {sequence: 1, provider_part_id: "part-910", external_order_id: "910"},
+          {sequence: 2, provider_part_id: "part-911", external_order_id: "911"},
+          {sequence: 3, provider_part_id: "part-912", external_order_id: "912"},
+          {sequence: 4, provider_part_id: "part-913", external_order_id: "913"}
+        ]
+      )
+
+      active_part_queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        sql = payload[:sql]
+        active_part_queries << sql if sql.include?(%(FROM "sale_payment_parts")) && sql.include?(%("sale_payment_parts"."active" =))
+      end
+      begin
+        get product_path(product)
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(inertia.props[:active_payments].pluck(:sequence)).to contain_exactly(2, 3, 4)
+      expect(active_part_queries).to be_empty
+    end
+
     it "prices a deposit plan's origin sale row at the projected selling price, not the deposit collected" do
       product = create(:product)
       variant = create(:variant, product:)

@@ -119,7 +119,12 @@ class SalePaymentPlan < ApplicationRecord
   end
 
   def part_number_for(sale)
-    parts.active.find { |part| part.sale_id == sale.id }&.sequence
+    if sale.association(:sale_payment_parts).loaded?
+      return sale.sale_payment_parts.find { |part| part.sale_payment_plan_id == id && part.active? }&.sequence
+    end
+
+    candidate_parts = parts.loaded? ? parts.select(&:active?) : parts.active
+    candidate_parts.find { |part| part.sale_id == sale.id }&.sequence
   end
 
   def profitability(expense_fraction: ExpenseRate.combined_fraction)

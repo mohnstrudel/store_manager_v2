@@ -140,6 +140,29 @@ RSpec.describe Product do
       expect(product.active_payment_items).to contain_exactly(follow_up_item)
     end
 
+    it "preloads payment part data used to classify follow-up sales" do
+      create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/905")
+      follow_up_item = create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/906")
+      create_plan(
+        external_id: "subscription-preload",
+        external_origin_order_id: "905",
+        parts: [
+          {sequence: 1, provider_part_id: "part-preload-1", external_order_id: "905"},
+          {sequence: 2, provider_part_id: "part-preload-2", external_order_id: "906"}
+        ]
+      )
+
+      active_payment_items = product.active_payment_items
+      sale = active_payment_items.first.sale
+      plan = sale.payment_plans_for_display.first
+
+      aggregate_failures do
+        expect(active_payment_items).to contain_exactly(follow_up_item)
+        expect(sale.association(:sale_payment_parts)).to be_loaded
+        expect(plan.part_number_for(sale)).to eq(2)
+      end
+    end
+
     it "keeps a Seal follow-up out of completed merchandise history and puts it in the completed payment group" do
       create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/910")
       follow_up_item = create_history_sale_item(product:, variant:, status: "completed", shopify_store_id: "gid://shopify/Order/911")

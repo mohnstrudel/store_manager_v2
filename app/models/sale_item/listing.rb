@@ -26,8 +26,8 @@ module SaleItem::Listing
           :woo_info,
           :shipping_address,
           :sale_items,
-          :origin_payment_plans,
-          {sale_payment_parts: :sale_payment_plan}
+          {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+          {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}}
         ],
         variant: [:version, :color, :size]
       )
