@@ -1,0 +1,24 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.xml
+    body:
+      encoding: US-ASCII
+      string: ""
+    headers:
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 503
+      message: Service Unavailable
+    headers:
+      Content-Type:
+      - text/plain
+    body:
+      encoding: UTF-8
+      string: ""
+    http_version:
+  recorded_at: Fri, 21 Aug 2026 12:00:00 GMT
+recorded_with: VCR 6.4.0

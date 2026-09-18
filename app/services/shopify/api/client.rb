@@ -1,15 +1,5 @@
 # frozen_string_literal: true
 
-# Shopify::Api::Client
-#
-# For executing GraphQL queries against the Shopify Admin API.
-# Handles session management, query execution, and error reporting.
-#
-# Usage:
-#   client = Shopify::Api::Client.new
-#   product = client.fetch_product("gid://shopify/Product/123")
-#   products = client.fetch_products(cursor: nil, batch_size: 50)
-#
 module Shopify
   module Api
     class Client
@@ -18,9 +8,6 @@ module Shopify
 
       class ApiError < StandardError; end
 
-      # Initialize a new API client with Shopify credentials.
-      #
-      # @return [Shopify::Api::Client]
       def initialize
         session = ShopifyAPI::Auth::Session.new(
           shop: ENV.fetch("SHOPIFY_DOMAIN"),
@@ -29,11 +16,6 @@ module Shopify
         @graphql_client = ShopifyAPI::Clients::Graphql::Admin.new(session:)
       end
 
-      # Fetch a single product by ID.
-      #
-      # @param product_store_id [String] The Shopify product ID (GID)
-      # @return [Hash] The product data
-      # @raise [ArgumentError] if product_store_id is blank
       def fetch_product(product_store_id)
         raise ArgumentError, "Product Shopify ID (store_id) is required" if product_store_id.blank?
 
@@ -45,11 +27,6 @@ module Shopify
         response.body.dig("data", "product")
       end
 
-      # Fetch products with pagination.
-      #
-      # @param cursor [String, nil] The pagination cursor
-      # @param batch_size [Integer] The number of items to fetch
-      # @return [Hash] Hash with :items, :has_next_page, and :end_cursor keys
       def fetch_products(cursor:, batch_size:)
         response = graphql_client.query(
           query: Shopify::Graphql::ProductQuery.list,
@@ -59,14 +36,9 @@ module Shopify
           }
         )
         handle_query_errors(response, resource_name: "products")
-
         extract_pagination(response.body["data"], resource_name: "products")
       end
 
-      # Create a new product.
-      #
-      # @param serialized_product [String] The serialized product input (as a GraphQL string)
-      # @return [Hash] The created product data
       def create_product(serialized_product)
         query = Shopify::Graphql::ProductMutation.create(serialized_product)
 
@@ -76,11 +48,6 @@ module Shopify
         response.body.dig("data", "productCreate", "product")
       end
 
-      # Update an existing product.
-      #
-      # @param product_store_id [String] The Shopify product ID (GID)
-      # @param serialized_product [Hash] The serialized product attributes
-      # @return [Hash] The updated product data
       def update_product(product_store_id, serialized_product)
         query = Shopify::Graphql::ProductMutation.update
 
@@ -94,11 +61,6 @@ module Shopify
         response.body.dig("data", "productUpdate", "product")
       end
 
-      # Create product options (variants).
-      #
-      # @param product_store_id [String] The Shopify product ID (GID)
-      # @param options [Array<Hash>] Array of option definitions
-      # @return [Hash] The updated product data with options and variants
       def create_product_options(product_store_id, options)
         query = Shopify::Graphql::ProductMutation.create_options
 
@@ -114,11 +76,6 @@ module Shopify
         response.body.dig("data", "productOptionsCreate", "product")
       end
 
-      # Fetch a single order by ID.
-      #
-      # @param order_id [String] The Shopify order ID (GID)
-      # @return [Hash] The order data
-      # @raise [ArgumentError] if order_id is blank
       def fetch_order(order_id)
         raise ArgumentError, "Order ID (sale's store_id) is required" if order_id.blank?
 
@@ -126,15 +83,14 @@ module Shopify
           query: Shopify::Graphql::OrderQuery.by_id,
           variables: {id: order_id}
         )
+        log_query_cost(response, operation: "order")
         handle_query_errors(response, resource_name: "order")
-        response.body.dig("data", "order")
+
+        order = response.body.dig("data", "order")
+        report_truncated_line_items([order])
+        order
       end
 
-      # Fetch orders with pagination.
-      #
-      # @param cursor [String, nil] The pagination cursor
-      # @param batch_size [Integer] The number of items to fetch
-      # @return [Hash] Hash with :items, :has_next_page, and :end_cursor keys
       def fetch_orders(cursor:, batch_size:)
         response = graphql_client.query(
           query: Shopify::Graphql::OrderQuery.list,
@@ -143,16 +99,15 @@ module Shopify
             after: cursor
           }
         )
+        query_cost = log_query_cost(response, operation: "orders")
         handle_query_errors(response, resource_name: "orders")
 
-        extract_pagination(response.body["data"], resource_name: "orders")
+        page = extract_pagination(response.body["data"], resource_name: "orders")
+        report_truncated_line_items(page[:items])
+
+        page.merge(query_cost:)
       end
 
-      # Attach media to a product.
-      #
-      # @param product_store_id [String] The Shopify product ID (GID)
-      # @param media_input [Array<Hash>] Array of media inputs
-      # @return [Array<Hash>] The created media nodes
       def attach_media(product_store_id, media_input)
         return [] if media_input.blank?
 
@@ -171,10 +126,6 @@ module Shopify
         media_nodes
       end
 
-      # Update media files.
-      #
-      # @param file_updates [Array<Hash>] Array of file update inputs
-      # @return [Array<Hash>] The updated file data
       def update_media(file_updates)
         return [] if file_updates.blank?
 
@@ -190,11 +141,6 @@ module Shopify
         response.body.dig("data", "fileUpdate", "files")
       end
 
-      # Reorder media on a product.
-      #
-      # @param product_store_id [String] The Shopify product ID (GID)
-      # @param moves [Array<Hash>] Array of move operations
-      # @return [Hash] The job data
       def reorder_media(product_store_id, moves)
         return if moves.blank?
 
@@ -213,11 +159,6 @@ module Shopify
 
       private
 
-      # Handle errors from a query response.
-      #
-      # @param response [Object] The response object from the API client
-      # @param resource_name [String] The name of the resource being queried
-      # @raise [ApiError] if errors are present
       def handle_query_errors(response, resource_name:)
         errors = response.body["errors"]
         return unless errors
@@ -226,12 +167,15 @@ module Shopify
         raise ApiError, "Failed to fetch #{resource_name}: #{error_messages}"
       end
 
-      # Handle errors from a mutation response.
-      #
-      # @param response [Object] The response object from the API client
-      # @param operation_name [String] The name of the mutation operation
-      # @param query [String] The query string (for error reporting)
-      # @raise [ApiError] if errors are present
+      def extract_pagination(response_data, resource_name:)
+        connection = response_data[resource_name]
+        {
+          items: connection["edges"].pluck("node"),
+          has_next_page: connection["pageInfo"]["hasNextPage"],
+          end_cursor: connection["pageInfo"]["endCursor"]
+        }
+      end
+
       def handle_mutation_errors(response, operation_name, query:)
         api_errors = response.body.dig("errors")
         user_errors = response.body.dig("data", operation_name, "userErrors")
@@ -262,25 +206,45 @@ module Shopify
         end
       end
 
-      # Extract paginated items from a connection response.
-      #
-      # @param response_data [Hash] The response data containing the connection
-      # @param resource_name [String] The name of the resource connection
-      # @return [Hash] Hash with :items, :has_next_page, and :end_cursor keys
-      def extract_pagination(response_data, resource_name:)
-        connection = response_data[resource_name]
-        {
-          items: connection["edges"].pluck("node"),
-          has_next_page: connection["pageInfo"]["hasNextPage"],
-          end_cursor: connection["pageInfo"]["endCursor"]
+      def log_query_cost(response, operation:)
+        cost = response.body.dig("extensions", "cost")
+        return if cost.blank?
+
+        throttle = cost["throttleStatus"] || {}
+        measured = {
+          requested: cost["requestedQueryCost"],
+          actual: cost["actualQueryCost"],
+          available: throttle["currentlyAvailable"],
+          maximum: throttle["maximumAvailable"],
+          restore_rate: throttle["restoreRate"]
         }
+
+        Rails.logger.info(
+          "Shopify #{operation} query cost: requested=#{measured[:requested]} " \
+          "actual=#{measured[:actual]} available=#{measured[:available]}/#{measured[:maximum]} " \
+          "restore_rate=#{measured[:restore_rate]}"
+        )
+
+        measured
       end
 
-      # Wait for media to become ready.
-      #
-      # @param media_nodes [Array<Hash>] The media nodes to wait for
-      # @param timeout [Integer] Maximum time to wait in seconds
-      # @param interval [Integer] Check interval in seconds
+      def report_truncated_line_items(orders)
+        truncated_ids = Array(orders).filter_map do |order|
+          order["id"] if order&.dig("lineItems", "pageInfo", "hasNextPage")
+        end
+        return if truncated_ids.empty?
+
+        message = "Shopify line items truncated for #{truncated_ids.size} order(s): #{truncated_ids.join(", ")}"
+
+        Rails.logger.error(message)
+        Sentry.capture_message(
+          message,
+          level: :error,
+          tags: {api: "shopify", operation: "lineItems"},
+          extra: {order_ids: truncated_ids}
+        )
+      end
+
       def wait_until_media_ready(media_nodes, timeout: 300, interval: 2)
         deadline = Time.zone.now + timeout
 
@@ -296,17 +260,12 @@ module Shopify
 
             sleep [interval, remaining].min
 
-            # Refresh the media status
             updated_status = query_media_status(media_node["id"])
             media_node.merge!(updated_status) if updated_status
           end
         end
       end
 
-      # Query media status.
-      #
-      # @param media_id [String] The media ID to query
-      # @return [Hash, nil] The media status data
       def query_media_status(media_id)
         query = Shopify::Graphql::MediaMutation.status_query
 

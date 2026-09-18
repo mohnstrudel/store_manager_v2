@@ -1,15 +1,65 @@
 # frozen_string_literal: true
 
 module SaleHelper
+  EMPTY_PAYMENT_PROGRESS = {
+    source: nil,
+    percent: nil,
+    paid: nil,
+    total: nil,
+    remaining: nil,
+    completed_parts: nil,
+    expected_parts: nil,
+    sale_part_number: nil,
+    plan_id: nil
+  }.freeze
+
   def sale_listing_props(sale)
     sale_base_props(sale).merge(
       customer_name: sale.customer.full_name,
       customer_email: sale.customer.email,
-      sale_items: sale.sale_items.map { |item| sale_index_item_props(item) }
+      sale_items: sale.sale_items.map { |item| sale_index_item_props(item) },
+      payment: sale_payment_props(sale),
+      **sale_payment_context_props(sale)
     )
   end
 
-  def sale_showing_props(sale)
+  def sale_settlement_props(sale) # rubocop:disable Project/PrivateMethodCandidate
+    return {settlement_status: nil, payment_progress: nil} if sale.economically_excluded?
+
+    {
+      settlement_status: sale.settlement_status,
+      payment_progress: (sale.paid? || sale.not_fully_paid?) ? sale_payment_progress_props(sale) : nil
+    }
+  end
+
+  def sale_payment_props(sale)
+    pie = payment_pie_total(sale.expected_revenue, sale.received_revenue, sale.outstanding_revenue)
+
+    {
+      progress: [percent_of(sale.received_revenue, pie) || 0, 100].min,
+      amounts_unknown: sale.payment_split_unknown?,
+      paid: format_money(sale.received_revenue),
+      price: format_money(pie),
+      debt: format_money(sale.outstanding_revenue),
+      payment_overdue: sale.payment_overdue
+    }
+  end
+
+  def sale_payment_context_props(sale)
+    plans = sale.payment_plans_for_display
+
+    {
+      partially_paid: plans.empty? && sale.partially_paid?,
+      payment_plans: plans.map { |plan| sale_payment_plan_props(plan, sale) }
+    }
+  end
+
+  def sale_showing_props(sale, can_view_profitability: false)
+    shipping_shares = sale.shipping_shares_by_item_id
+    expense_fraction = can_view_profitability ? ExpenseRate.combined_fraction : 0
+    follow_up_payment = sale.follow_up_payment?
+    origin_price = sale.projected_item_price
+
     sale_base_props(sale).merge(
       edit_path: edit_sale_path(sale),
       can_link_purchase_items: (sale.active? || sale.completed?) && sale.unlinked_sale_items?,
@@ -17,16 +67,26 @@ module SaleHelper
       pull_path: sale_pull_path(sale),
       shop_admin_url: sale_shop_link(sale),
       customer: sale_customer_props(sale.customer),
+      note: sale.note,
+      payment: sale_payment_props(sale),
+      **sale_payment_context_props(sale),
+      profitability: (can_view_profitability && !follow_up_payment) ? sale_profitability_props(sale, expense_fraction) : nil,
+      warehouses: Warehouse.order(name: :asc).map { |w| purchase_warehouse_props(w) },
+      warehouse_move_path: warehouse_move_path,
+      sale_items: follow_up_payment ? [] : sale.sale_items.map { |item|
+        sale_show_item_props(item, shipping_shares.fetch(item.id, 0), origin_price, can_view_profitability:, expense_fraction:)
+      }
+    ).merge(follow_up_payment ? {} : sale_order_only_props(sale))
+  end
+
+  def sale_order_only_props(sale)
+    {
       shipping_address: sale_address_props(sale.shipping_address),
       billing_address: sale_address_props(sale.billing_address),
       billing_differs_from_shipping: sale.billing_differs_from_shipping?,
-      note: sale.note,
       discount_total: format_money(sale.discount_total),
-      shipping_total: format_money(sale.shipping_total),
-      warehouses: Warehouse.order(name: :asc).map { |w| purchase_warehouse_props(w) },
-      warehouse_move_path: warehouse_move_path,
-      sale_items: sale.sale_items.map { |item| sale_show_item_props(item) }
-    )
+      shipping_total: format_money(sale.shipping_total)
+    }
   end
 
   def sale_form_props(sale)
@@ -120,7 +180,130 @@ module SaleHelper
       shopify_id: sale.shopify_id,
       shopify_id_short: sale.shopify_info&.id_short,
       woo_store_id: sale.woo_store_id,
-      shop_identifier: sale.shop_identifier
+      shop_identifier: sale.shop_identifier,
+      is_follow_up_payment: sale.follow_up_payment?,
+      **sale_settlement_props(sale)
+    }
+  end
+
+  def sale_payment_progress_props(sale)
+    plans = sale.payment_plans_for_display
+
+    if plans.one?
+      sale_plan_payment_progress_props(plans.first, sale)
+    elsif sale.outstanding_revenue.nil? && sale.expected_revenue.present?
+      sale_woo_payment_progress_props(sale)
+    else
+      sale_amount_progress_props(sale)
+    end
+  end
+
+  def sale_plan_payment_progress_props(plan, sale)
+    return sale_amount_progress_props(sale) if plan.projected_total.nil?
+
+    remainder = plan.projected_remainder
+    paid = plan.projected_total - remainder
+    schedule = plan.kind != "deposit" && plan.expected_parts > 1
+
+    EMPTY_PAYMENT_PROGRESS.merge(
+      source: schedule ? "plan_schedule" : "plan_deposit",
+      percent: [percent_of(paid, plan.projected_total) || 0, 100].min,
+      paid: format_usd(paid),
+      total: format_usd(plan.projected_total),
+      remaining: format_usd(remainder),
+      completed_parts: schedule ? plan.collected_parts : nil,
+      expected_parts: schedule ? plan.expected_parts : nil,
+      sale_part_number: schedule ? plan.part_number_for(sale) : nil,
+      plan_id: plan.id
+    )
+  end
+
+  def sale_amount_progress_props(sale)
+    pie = payment_pie_total(sale.expected_revenue, sale.received_revenue, sale.outstanding_revenue)
+    return EMPTY_PAYMENT_PROGRESS if pie.nil?
+
+    EMPTY_PAYMENT_PROGRESS.merge(
+      source: "amount",
+      percent: [percent_of(sale.received_revenue, pie) || 0, 100].min,
+      paid: format_usd(sale.received_revenue),
+      total: format_usd(pie),
+      remaining: sale.outstanding_revenue.to_d.positive? ? format_usd(sale.outstanding_revenue) : nil
+    )
+  end
+
+  def sale_woo_payment_progress_props(sale)
+    EMPTY_PAYMENT_PROGRESS.merge(
+      source: sale.received_revenue.present? ? "woo_deposit" : "woo_unavailable",
+      paid: format_usd(sale.received_revenue),
+      total: format_usd(sale.expected_revenue)
+    )
+  end
+
+  def sale_index_item_props(item)
+    {
+      id: item.id,
+      title: item.title,
+      qty: item.qty,
+      purchased_count: item.purchase_items.size,
+      product_thumb_url: thumb_url(item.product),
+      purchase_items: item.purchase_items.map { |pi|
+        {
+          id: pi.id,
+          path: purchase_item_path(pi),
+          warehouse_name: pi.warehouse.name,
+          expenses: format_money(pi.expenses)
+        }
+      }
+    }
+  end
+
+  def sale_payment_plan_props(plan, sale)
+    remainder = plan.projected_remainder
+
+    {
+      id: plan.id,
+      kind: plan.kind,
+      expected_parts: plan.expected_parts,
+      collected_parts: plan.collected_parts,
+      sale_part_number: plan.part_number_for(sale),
+      is_origin_sale: plan.origin_sale_id == sale.id,
+      deposit_percent: compact_number(plan.deposit_percent),
+      projected_total: format_money(plan.projected_total),
+      projected_collected: sale_payment_plan_collected_props(plan, remainder),
+      origin_sale: sale_payment_plan_origin_props(plan, sale),
+      payments: plan.linked_parts.map { |part| sale_payment_plan_payment_props(part, sale) }
+    }
+  end
+
+  def compact_number(value)
+    return if value.nil?
+
+    value.to_d.frac.zero? ? value.to_i : value.to_f
+  end
+
+  def sale_payment_plan_collected_props(plan, remainder)
+    return if plan.projected_total.nil?
+
+    format_money(plan.projected_total - remainder)
+  end
+
+  def sale_payment_plan_origin_props(plan, sale)
+    origin = plan.origin_sale
+    return if origin.nil? || origin.id == sale.id
+
+    {path: sale_path(origin), identifier: sale_reference_identifier(origin)}
+  end
+
+  def sale_reference_identifier(sale)
+    sale.shop_identifier.presence || sale.id.to_s
+  end
+
+  def sale_payment_plan_payment_props(part, sale)
+    {
+      sequence: part.sequence,
+      path: sale_path(part.sale),
+      identifier: sale_reference_identifier(part.sale),
+      is_current_sale: part.sale_id == sale.id
     }
   end
 
@@ -134,6 +317,62 @@ module SaleHelper
       email: customer.email,
       shopify_id_short: customer.shopify_info&.id_short,
       shop_admin_url: customer_shop_link(customer)
+    }
+  end
+
+  def sale_profitability_props(sale, expense_fraction)
+    summary = sale.profitability_summary(expense_fraction:)
+    return if summary.nil?
+
+    {
+      scope: summary[:scope],
+      gross_revenue: format_money(summary[:gross_revenue]),
+      item_price_total: format_money(summary[:item_price_total]),
+      purchase_expenses: format_money(summary[:purchase_expenses]),
+      purchase_shipping_cost: format_money(summary[:purchase_shipping_cost]),
+      direct_expenses: format_money(summary[:direct_expenses]),
+      business_expenses: format_money(summary[:business_expenses]),
+      net_profit: format_money(summary[:net_profit]),
+      collected_revenue: format_money(summary[:collected_revenue]),
+      purchase_paid: format_money(summary[:purchase_paid]),
+      cash_position: format_money(summary[:cash_position])
+    }
+  end
+
+  def sale_show_item_props(item, shipping_share, origin_price, can_view_profitability: false, expense_fraction: ExpenseRate.combined_fraction)
+    {
+      id: item.id,
+      title: item.title,
+      qty: item.qty,
+      product_path: product_path(item.product),
+      product_thumb_url: thumb_url(item.product),
+      purchase_items: item.purchase_items.map { |pi| sale_show_purchase_item_props(pi) },
+      price: format_money(origin_price || item.expected_revenue.to_d + shipping_share),
+      profitability: can_view_profitability ? sale_item_profitability_props(item, expense_fraction) : nil
+    }
+  end
+
+  def sale_show_purchase_item_props(pi)
+    {
+      id: pi.id,
+      path: purchase_path(pi.purchase),
+      supplier_title: pi.purchase.supplier.title,
+      purchase_date: format_date(pi.purchase.date),
+      item_price: format_money(pi.purchase.item_price),
+      unlink_path: purchase_item_sale_item_link_path(pi),
+      current_warehouse_name: pi.warehouse.name,
+      current_warehouse_path: warehouse_path(pi.warehouse, selected: pi.id, anchor: pi.id),
+      warehouse_movements: pi.warehouse_movements.sort_by(&:moved_in).reverse.map { |m|
+        {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
+      }
+    }
+  end
+
+  def sale_item_profitability_props(item, expense_fraction = ExpenseRate.combined_fraction)
+    {
+      expected_revenue: format_money(item.expected_revenue),
+      purchase_cost: format_money(item.purchase_cost),
+      expected_final_profit: format_money(item.expected_final_profit(expense_fraction))
     }
   end
 
@@ -161,53 +400,15 @@ module SaleHelper
     }
   end
 
-  def sale_index_item_props(item)
-    {
-      id: item.id,
-      title: item.title,
-      qty: item.qty,
-      purchased_count: item.purchase_items.size,
-      product_thumb_url: thumb_url(item.product),
-      purchase_items: item.purchase_items.map { |pi|
-        {
-          id: pi.id,
-          path: purchase_item_path(pi),
-          warehouse_name: pi.warehouse.name,
-          expenses: format_money(pi.expenses)
-        }
-      }
-    }
-  end
-
-  def sale_show_item_props(item)
-    {
-      id: item.id,
-      title: item.title,
-      price: format_money(item.price),
-      qty: item.qty,
-      product_path: product_path(item.product),
-      product_thumb_url: thumb_url(item.product),
-      purchase_items: item.purchase_items.map { |pi| sale_show_purchase_item_props(pi) }
-    }
-  end
-
-  def sale_show_purchase_item_props(pi)
-    {
-      id: pi.id,
-      path: purchase_path(pi.purchase),
-      supplier_title: pi.purchase.supplier.title,
-      purchase_date: format_date(pi.purchase.date),
-      item_price: format_money(pi.purchase.item_price),
-      unlink_path: purchase_item_sale_item_link_path(pi),
-      current_warehouse_name: pi.warehouse.name,
-      current_warehouse_path: warehouse_path(pi.warehouse, selected: pi.id, anchor: pi.id),
-      warehouse_movements: pi.warehouse_movements.sort_by(&:moved_in).reverse.map { |m|
-        {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}
-      }
-    }
-  end
-
   def sale_form_item_props(item)
-    {id: item.id, product_id: item.product_id, qty: item.qty.to_s, price: item.price.to_s, _destroy: false}
+    {
+      id: item.id,
+      product_id: item.product_id,
+      variant_id: item.variant_id,
+      qty: item.qty.to_s,
+      price: item.price.to_s,
+      _destroy: false,
+      variant_availability: variant_availability_props(item.product, current_variant: item.variant)
+    }
   end
 end

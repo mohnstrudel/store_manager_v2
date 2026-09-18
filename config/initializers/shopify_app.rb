@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 ShopifyApp.configure do |config|
-  config.api_version = "2025-10"
-  # Consult this page for more scope options:
-  # https://help.shopify.com/en/api/getting-started/authentication/oauth/scopes
-  config.scope = "read_products, write_products, read_orders, read_order_edits, read_customers, read_inventory, write_images, read_files, write_files"
+  config.api_version = "2026-07"
+  config.scope = "read_products, write_products, read_orders, read_all_orders, read_order_edits, read_customers, read_inventory, write_images, read_files, write_files, read_payment_terms, read_locations"
 
   config.root_url = "/shopify_app"
   config.login_callback_url = "/shopify_app/auth/shopify/callback"
@@ -26,21 +24,6 @@ ShopifyApp.configure do |config|
 
   config.api_key = ENV.fetch("SHOPIFY_API_KEY", "").presence
   config.secret = ENV.fetch("SHOPIFY_API_SECRET", "").presence
-
-  # You may want to charge merchants for using your app. Setting the billing configuration will cause the Authenticated
-  # controller concern to check that the session is for a merchant that has an active one-time payment or subscription.
-  # If no payment is found, it starts off the process and sends the merchant to a confirmation URL so that they can
-  # approve the purchase.
-  #
-  # Learn more about billing in our documentation: https://shopify.dev/apps/billing
-  # config.billing = ShopifyApp::BillingConfiguration.new(
-  #   charge_name: "My app billing charge",
-  #   amount: 5,
-  #   interval: ShopifyApp::BillingConfiguration::INTERVAL_EVERY_30_DAYS,
-  #   currency_code: "USD", # Only supports USD for now
-  #   trial_days: 0,
-  #   test: !ENV['SHOPIFY_TEST_CHARGES'].nil? ? ["true", "1"].include?(ENV['SHOPIFY_TEST_CHARGES']) : !Rails.env.production?
-  # )
 
   if defined? Rails::Server
     raise("Missing SHOPIFY_API_KEY. See https://github.com/Shopify/shopify_app#requirements") unless config.api_key

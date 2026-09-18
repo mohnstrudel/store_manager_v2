@@ -1,10 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { router } from "@inertiajs/react";
+
+import { makePurchase } from "../test/factories";
 import type { PurchaseRecord } from "../types";
 import PurchasesSection from "./PurchasesSection";
-import { makePurchase } from "../test/factories";
 
 describe("Products/Show/PurchasesSection", () => {
   it("renders nothing without purchases", () => {

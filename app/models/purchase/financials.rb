@@ -12,12 +12,16 @@ module Purchase::Financials
     }
   end
 
+  def item_debt
+    debt / amount
+  end
+
   def debt
     @debt ||= [cost_total - paid, 0].max
   end
 
-  def item_debt
-    debt / amount
+  def cost_total
+    item_price * amount + shipping_total
   end
 
   def item_paid
@@ -30,8 +34,8 @@ module Purchase::Financials
     [paid * 100.0 / cost_total, 100].min
   end
 
-  def cost_total
-    item_price * amount + shipping_total
+  def expenses_total
+    purchase_items.sum(:expenses)
   end
 
   def date

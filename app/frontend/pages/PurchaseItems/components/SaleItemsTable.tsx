@@ -1,5 +1,7 @@
 import { useCallback, type MouseEvent } from "react";
+
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import type { SaleItemTableRow } from "../types";
 
 type SaleItemsTableProps = {
@@ -82,7 +84,7 @@ function ItemCell({ row }: { row: SaleItemTableRow }) {
             <a className="link ml-2" href={row.linked_purchase_item.purchase_path}>
               #{row.linked_purchase_item.purchase_id} {row.linked_purchase_item.supplier_title},{" "}
               {row.linked_purchase_item.purchase_date}
-              {row.linked_purchase_item.item_price && `, $${row.linked_purchase_item.item_price}`}
+              {row.linked_purchase_item.item_price && `, ${row.linked_purchase_item.item_price}`}
             </a>
           </span>
         )}

@@ -48,10 +48,6 @@ class Variant::Shopify::Importer
     variant&.product_id != product.id
   end
 
-  def variant_attrs
-    @variant_attrs ||= build_variant_attrs
-  end
-
   def variant_identity_attrs
     @variant_identity_attrs ||= variant_attrs
       .except(:sku, :selling_price, :purchase_cost, :weight)
@@ -62,11 +58,15 @@ class Variant::Shopify::Importer
       }
   end
 
+  def variant_attrs
+    @variant_attrs ||= build_variant_attrs
+  end
+
   def build_variant_attrs
     attributes = {}
     attributes[:sku] = parsed[:sku].presence || generated_fallback_sku
-    attributes[:selling_price] = parsed[:selling_price] if parsed[:selling_price].present?
-    attributes[:purchase_cost] = parsed[:purchase_cost] if parsed[:purchase_cost].present?
+    assign_shopify_selling_price(attributes)
+    assign_shopify_purchase_cost(attributes)
     attributes[:weight] = parsed[:weight] if parsed[:weight].present?
 
     return attributes if parsed[:is_single_variant]
@@ -91,5 +91,30 @@ class Variant::Shopify::Importer
   def generated_fallback_sku
     store_id_segment = parsed[:store_id].to_s.split("/").last.presence || SecureRandom.hex(4)
     "shopify-#{product.id}-#{store_id_segment}"
+  end
+
+  def assign_shopify_selling_price(attributes)
+    amount = parsed[:selling_price]
+    return if amount.blank?
+
+    rate = parsed[:usd_conversion_rate]
+    attributes[:selling_price] = convert_to_usd(amount, rate)
+    return unless rate
+
+    attributes[:selling_price_source_amount] = amount
+    attributes[:selling_price_source_currency] = "EUR"
+    attributes[:selling_price_exchange_rate] = rate
+    attributes[:selling_price_exchange_rate_date] = parsed.fetch(:usd_conversion_date)
+  end
+
+  def convert_to_usd(amount, rate)
+    rate ? (amount.to_d * rate).round(2) : amount
+  end
+
+  def assign_shopify_purchase_cost(attributes)
+    amount = parsed[:purchase_cost]
+    return if amount.blank?
+
+    attributes[:purchase_cost] = convert_to_usd(amount, parsed[:usd_conversion_rate])
   end
 end

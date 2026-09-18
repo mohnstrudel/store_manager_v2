@@ -1,5 +1,6 @@
 import { router, Link } from "@inertiajs/react";
 import { useCallback, type MouseEvent } from "react";
+
 import { useCloseOnEscape } from "@/utils/useCloseOnEscape";
 
 type SyncModalProps = {
@@ -30,6 +31,7 @@ export default function SyncModal({
   });
 
   return (
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop click
     <dialog id={id} onClick={closeWhenBackdropIsClicked} open>
       <div className="dialog_content rounded-lg shadow-lg w-xl p-4 pb-6 -translate-y-10">
         <SyncModalHeader lastSyncAt={lastSyncAt} onClose={closeModal} title={title} />
@@ -43,6 +45,44 @@ export default function SyncModal({
       </div>
     </dialog>
   );
+}
+
+function useSyncModalDismissal(onClose: () => void) {
+  useCloseOnEscape(true, onClose);
+
+  const closeModal = useCallback(() => onClose(), [onClose]);
+
+  const closeWhenBackdropIsClicked = useCallback(
+    (event: MouseEvent<HTMLDialogElement>) => {
+      if (event.target === event.currentTarget) onClose();
+    },
+    [onClose],
+  );
+
+  return { closeModal, closeWhenBackdropIsClicked };
+}
+
+type StoreSyncActionsOptions = {
+  onClose: () => void;
+  pullPath: string;
+};
+
+function useStoreSyncActions({ onClose, pullPath }: StoreSyncActionsOptions) {
+  const fetchStoreRecords = useCallback(
+    (limit?: number) => {
+      router.post(pullPath, limit ? { limit } : {});
+      onClose();
+    },
+    [onClose, pullPath],
+  );
+
+  const fetchEverything = useCallback(() => fetchStoreRecords(), [fetchStoreRecords]);
+  const fetchRecentRecords = useCallback(
+    () => fetchStoreRecords(LIMITED_SYNC_COUNT),
+    [fetchStoreRecords],
+  );
+
+  return { fetchEverything, fetchRecentRecords };
 }
 
 type SyncModalHeaderProps = {
@@ -102,42 +142,4 @@ function SyncActions({
       </li>
     </menu>
   );
-}
-
-function useSyncModalDismissal(onClose: () => void) {
-  useCloseOnEscape(true, onClose);
-
-  const closeModal = useCallback(() => onClose(), [onClose]);
-
-  const closeWhenBackdropIsClicked = useCallback(
-    (event: MouseEvent<HTMLDialogElement>) => {
-      if (event.target === event.currentTarget) onClose();
-    },
-    [onClose],
-  );
-
-  return { closeModal, closeWhenBackdropIsClicked };
-}
-
-type StoreSyncActionsOptions = {
-  onClose: () => void;
-  pullPath: string;
-};
-
-function useStoreSyncActions({ onClose, pullPath }: StoreSyncActionsOptions) {
-  const fetchStoreRecords = useCallback(
-    (limit?: number) => {
-      router.post(pullPath, limit ? { limit } : {});
-      onClose();
-    },
-    [onClose, pullPath],
-  );
-
-  const fetchEverything = useCallback(() => fetchStoreRecords(), [fetchStoreRecords]);
-  const fetchRecentRecords = useCallback(
-    () => fetchStoreRecords(LIMITED_SYNC_COUNT),
-    [fetchStoreRecords],
-  );
-
-  return { fetchEverything, fetchRecentRecords };
 }

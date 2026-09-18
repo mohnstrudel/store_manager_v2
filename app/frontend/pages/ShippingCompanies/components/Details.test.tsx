@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Details from "./Details";
+
 import { makeShippingCompany } from "../test/factories";
 import type { ShippingCompanyRecord } from "../types";
+import Details from "./Details";
 
 describe("ShippingCompanies/components/Details", () => {
   it("renders the shipping company detail table", () => {

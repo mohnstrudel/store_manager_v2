@@ -20,7 +20,7 @@ export function makeWarehouseRecord(overrides: Partial<WarehouseRecord> = {}): W
     cbm: "12.5",
     purchase_items_count: 42,
     has_purchase_items: true,
-    payment_progress: { progress: 50, paid: "$500", price: "$1000", debt: "$500" },
+    payment_progress: { progress: 50, paid: "500", price: "1000", debt: "500" },
     ...overrides,
   };
 }
@@ -44,7 +44,7 @@ export function makeWarehouseShowRecord(
     is_default: false,
     created_at: "01 Jun 2026",
     media: [],
-    payment_progress: { progress: 0, paid: "", price: "", debt: "$0" },
+    payment_progress: { progress: 0, paid: "", price: "", debt: "0" },
     ...overrides,
   };
 }
@@ -67,7 +67,7 @@ export function makeWarehousePurchaseItem(
     tracking_number: "TRACK-1",
     shipping_company_id: null,
     shipping_company_name: "",
-    payment_progress: { debt: "$0", paid: "$0", price: "$0", progress: 0 },
+    payment_progress: { debt: "0", paid: "0", price: "0", progress: 0 },
     ...overrides,
   };
 }

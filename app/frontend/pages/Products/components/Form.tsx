@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -12,9 +13,6 @@ import { type SectionRow, useDynamicSection } from "@/utils/useDynamicSection";
 
 const TiptapEditor = lazy(() => import("./Form/TiptapEditor"));
 const TIPTAP_FALLBACK = <TiptapSkeleton />;
-import VariantFields from "./Form/VariantFields";
-import StoreInfoFields from "./Form/StoreInfoFields";
-import PurchaseFields from "./Form/PurchaseFields";
 import {
   type FormOptions,
   type MediaFormData,
@@ -23,7 +21,11 @@ import {
   type StoreInfoFormData,
   type VariantFormData,
 } from "../types";
+import PurchaseFields from "./Form/PurchaseFields";
+import StoreInfoFields from "./Form/StoreInfoFields";
+import VariantFields from "./Form/VariantFields";
 import { validateProductFormSubmission } from "./productFormValidation";
+import { draftVariantAvailability, visibleDraftVariants } from "./variantDrafts";
 
 type ProductFormProps = {
   isNew: boolean;
@@ -36,56 +38,14 @@ type ProductFormProps = {
 type ProductFormSections = ReturnType<typeof useProductFormSections>;
 type StoreInfoRow = SectionRow<StoreInfoFormData>;
 
-function defaultPurchase(): PurchaseFormData {
-  return {
-    supplier_id: null,
-    order_reference: "",
-    item_price: "",
-    amount: "",
-    warehouse_id: null,
-    payment_value: "",
-  };
+function TiptapSkeleton() {
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+      <div className="h-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 animate-pulse" />
+      <div className="min-h-48 animate-pulse bg-white dark:bg-gray-900" />
+    </div>
+  );
 }
-
-function newVariant(): VariantFormData {
-  return {
-    id: null,
-    sku: "",
-    size_id: null,
-    version_id: null,
-    color_id: null,
-    purchase_cost: "0",
-    selling_price: "0",
-    weight: "0",
-    deactivated: false,
-    has_sales_or_purchases: false,
-    _destroy: false,
-  };
-}
-
-function newStoreInfo(): StoreInfoFormData {
-  return {
-    id: null,
-    store_name: "",
-    tag_list: "",
-    _destroy: false,
-  };
-}
-
-function shouldShowPurchase(purchase: PurchaseFormData, errors: Record<string, string>) {
-  const hasPurchaseValues = [
-    purchase.supplier_id,
-    purchase.order_reference,
-    purchase.item_price,
-    purchase.amount,
-    purchase.payment_value,
-  ].some((value) => value !== null && value !== "");
-
-  const hasPurchaseErrors = Object.keys(errors).some((key) => key.startsWith("purchase."));
-
-  return hasPurchaseValues || hasPurchaseErrors || !!errors.initial_purchase;
-}
-
 export default function ProductForm({
   isNew,
   options,
@@ -124,7 +84,7 @@ export default function ProductForm({
             selectedFranchise={form.selectedFranchise}
           />
           <ProductDescriptionField errors={errors} product={product} />
-          <ProductVariantsSection errors={errors} form={form} options={options} />
+          <ProductVariantsSection errors={errors} form={form} isNew={isNew} options={options} />
           <ProductStoreInfoSection errors={errors} form={form} options={options} />
           <ImageUploader media={form.media} onMediaChange={form.setMedia} />
           {isNew && <InitialPurchaseSection errors={errors} form={form} options={options} />}
@@ -132,6 +92,113 @@ export default function ProductForm({
       )}
     </ResourceForm>
   );
+}
+function useProductFormSections(
+  product: ProductFormRecord,
+  purchase: PurchaseFormData | undefined,
+  options: FormOptions,
+) {
+  const initialPurchase = purchase ?? defaultPurchase();
+  const variants = useDynamicSection(product.variants, newVariant, {
+    keyForInitial: (variant, index) =>
+      variant.id ? `variant-${variant.id}` : `initial-variant-${index}`,
+  });
+  const storeInfos = useDynamicSection(product.store_infos, newStoreInfo, {
+    keyForInitial: (storeInfo, index) =>
+      storeInfo.id ? `store-info-${storeInfo.id}` : `initial-store-info-${index}`,
+  });
+  const [showPurchase, setShowPurchase] = useState(() => shouldShowPurchase(initialPurchase, {}));
+  const availability = useMemo(
+    () => draftVariantAvailability(variants.items, options),
+    [options, variants.items],
+  );
+  const [variantClientKey, setVariantClientKey] = useState<string | null>(
+    initialPurchase.variant_client_key,
+  );
+  const [media, setMedia] = useState<MediaFormData[]>(() => product.media);
+
+  const selectedFranchise = useMemo(
+    () => toSelectedOption(options.franchises, product.franchise_id),
+    [options.franchises, product.franchise_id],
+  );
+
+  const selectedBrands = useMemo(
+    () => options.brands.filter((brand) => product.brand_ids.includes(brand.value)),
+    [options.brands, product.brand_ids],
+  );
+
+  const showPurchaseForm = useCallback(() => setShowPurchase(true), []);
+  const selectDraftVariant = useCallback(
+    (clientKey: string | null) => setVariantClientKey(clientKey),
+    [],
+  );
+
+  const variantClientKeys = useMemo(
+    () => availability.variants.map((variant) => variant.value),
+    [availability.variants],
+  );
+  const fallbackVariantClientKey =
+    availability.mode === "base" ? (variantClientKeys[0] ?? null) : null;
+  const selectedVariantClientKey =
+    availability.mode === "base"
+      ? fallbackVariantClientKey
+      : variantClientKey && !variantClientKeys.includes(variantClientKey)
+        ? null
+        : variantClientKey;
+
+  if (variantClientKey !== selectedVariantClientKey) {
+    setVariantClientKey(selectedVariantClientKey);
+  }
+
+  return {
+    draftVariantAvailability: availability,
+    initialPurchase,
+    media,
+    selectDraftVariant,
+    selectedBrands,
+    selectedFranchise,
+    setMedia,
+    showPurchase,
+    showPurchaseForm,
+    storeInfos,
+    variants,
+    variantClientKey,
+  };
+}
+function defaultPurchase(): PurchaseFormData {
+  return {
+    supplier_id: null,
+    order_reference: "",
+    item_price: "",
+    amount: "",
+    warehouse_id: null,
+    payment_value: "",
+    variant_client_key: null,
+  };
+}
+function newStoreInfo(): StoreInfoFormData {
+  return {
+    id: null,
+    store_name: "",
+    tag_list: "",
+    _destroy: false,
+  };
+}
+function newVariant(): VariantFormData {
+  return {
+    id: null,
+    base_model: false,
+    sku: "",
+    size_id: null,
+    version_id: null,
+    color_id: null,
+    purchase_cost: "0",
+    selling_price: "0",
+    weight: "0",
+    deactivated: false,
+    has_sales_or_purchases: false,
+    _destroy: false,
+  };
 }
 
 function ProductIdentityFields({
@@ -190,7 +257,6 @@ function ProductIdentityFields({
     </FormRow>
   );
 }
-
 function ProductDescriptionField({
   errors,
   product,
@@ -208,34 +274,29 @@ function ProductDescriptionField({
     </div>
   );
 }
-
-function TiptapSkeleton() {
-  return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
-      <div className="h-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 animate-pulse" />
-      <div className="min-h-48 animate-pulse bg-white dark:bg-gray-900" />
-    </div>
-  );
-}
-
 function ProductVariantsSection({
   errors,
   form,
+  isNew,
   options,
 }: {
   errors: Record<string, string>;
   form: ProductFormSections;
+  isNew: boolean;
   options: FormOptions;
 }) {
+  const variants = isNew ? visibleDraftVariants(form.variants.items) : form.variants.items;
+
   return (
     <DynamicNestedForm name="Variant" onAdd={form.variants.add} title="Variants">
-      {form.variants.items.map((variant, index) => (
+      {variants.map((variant, index) => (
         <VariantFields
           colors={options.colors}
           errors={errors}
           index={index}
           key={variant.clientKey}
-          onRemove={form.variants.removeAt}
+          onChange={form.variants.update}
+          onRemove={form.variants.remove}
           sizes={options.sizes}
           variant={variant}
           versions={options.versions}
@@ -244,7 +305,6 @@ function ProductVariantsSection({
     </DynamicNestedForm>
   );
 }
-
 function ProductStoreInfoSection({
   errors,
   form,
@@ -274,7 +334,9 @@ function ProductStoreInfoSection({
     </DynamicNestedForm>
   );
 }
-
+function canAddStoreInfo(storeInfos: StoreInfoRow[], storeNames: string[]) {
+  return storeInfos.filter((storeInfo) => !storeInfo._destroy).length < storeNames.length;
+}
 function InitialPurchaseSection({
   errors,
   form,
@@ -301,58 +363,28 @@ function InitialPurchaseSection({
 
       {renderPurchase && (
         <PurchaseFields
+          draftAvailability={form.draftVariantAvailability}
           errors={errors}
+          onVariantChange={form.selectDraftVariant}
           purchase={form.initialPurchase}
           suppliers={options.suppliers}
+          variantClientKey={form.variantClientKey}
           warehouses={options.warehouses}
         />
       )}
     </section>
   );
 }
+function shouldShowPurchase(purchase: PurchaseFormData, errors: Record<string, string>) {
+  const hasPurchaseValues = [
+    purchase.supplier_id,
+    purchase.order_reference,
+    purchase.item_price,
+    purchase.amount,
+    purchase.payment_value,
+  ].some((value) => value !== null && value !== "");
 
-function useProductFormSections(
-  product: ProductFormRecord,
-  purchase: PurchaseFormData | undefined,
-  options: FormOptions,
-) {
-  const initialPurchase = purchase ?? defaultPurchase();
-  const variants = useDynamicSection(product.variants, newVariant, {
-    keyForInitial: (variant, index) =>
-      variant.id ? `variant-${variant.id}` : `initial-variant-${index}`,
-  });
-  const storeInfos = useDynamicSection(product.store_infos, newStoreInfo, {
-    keyForInitial: (storeInfo, index) =>
-      storeInfo.id ? `store-info-${storeInfo.id}` : `initial-store-info-${index}`,
-  });
-  const [showPurchase, setShowPurchase] = useState(() => shouldShowPurchase(initialPurchase, {}));
-  const [media, setMedia] = useState<MediaFormData[]>(() => product.media);
+  const hasPurchaseErrors = Object.keys(errors).some((key) => key.startsWith("purchase."));
 
-  const selectedFranchise = useMemo(
-    () => toSelectedOption(options.franchises, product.franchise_id),
-    [options.franchises, product.franchise_id],
-  );
-
-  const selectedBrands = useMemo(
-    () => options.brands.filter((brand) => product.brand_ids.includes(brand.value)),
-    [options.brands, product.brand_ids],
-  );
-
-  const showPurchaseForm = useCallback(() => setShowPurchase(true), []);
-
-  return {
-    initialPurchase,
-    media,
-    selectedBrands,
-    selectedFranchise,
-    setMedia,
-    showPurchase,
-    showPurchaseForm,
-    storeInfos,
-    variants,
-  };
-}
-
-function canAddStoreInfo(storeInfos: StoreInfoRow[], storeNames: string[]) {
-  return storeInfos.filter((storeInfo) => !storeInfo._destroy).length < storeNames.length;
+  return hasPurchaseValues || hasPurchaseErrors || !!errors.initial_purchase;
 }

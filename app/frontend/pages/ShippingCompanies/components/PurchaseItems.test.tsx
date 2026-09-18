@@ -1,10 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { describe, expect, it } from "vitest";
-import PurchaseItems from "./PurchaseItems";
+
 import { makeShippingCompanyPurchaseItem } from "../test/factories";
 import type { PurchaseItemRecord } from "../types";
+import PurchaseItems from "./PurchaseItems";
 
 describe("ShippingCompanies/components/PurchaseItems", () => {
   it("renders linked purchase items", () => {

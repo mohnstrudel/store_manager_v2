@@ -1,9 +1,10 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { describe, expect, it } from "vitest";
-import IndexTable from "./IndexTable";
+
 import { makeUser } from "../test/factories";
+import IndexTable from "./IndexTable";
 
 describe("Users/components/IndexTable", () => {
   it("renders user rows with an edit link", () => {

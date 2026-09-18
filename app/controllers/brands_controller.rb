@@ -3,7 +3,6 @@
 class BrandsController < ApplicationController
   before_action :set_brand, only: %i[show edit update destroy]
 
-  # GET /brands or /brands.json
   def index
     @brands = Brand.order(:title)
 
@@ -14,7 +13,6 @@ class BrandsController < ApplicationController
     }
   end
 
-  # GET /brands/1 or /brands/1.json
   def show
     @brand = Brand.includes(:products).find(params.expect(:id))
 
@@ -24,19 +22,16 @@ class BrandsController < ApplicationController
     }
   end
 
-  # GET /brands/new
   def new
     @brand = Brand.new
 
     render inertia: "Brands/New", props: helpers.brand_form_props(@brand)
   end
 
-  # GET /brands/1/edit
   def edit
     render inertia: "Brands/Edit", props: helpers.brand_form_props(@brand)
   end
 
-  # POST /brands or /brands.json
   def create
     @brand = Brand.new(brand_params)
 
@@ -51,7 +46,6 @@ class BrandsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /brands/1 or /brands/1.json
   def update
     respond_to do |format|
       if @brand.update(brand_params)
@@ -64,7 +58,6 @@ class BrandsController < ApplicationController
     end
   end
 
-  # DELETE /brands/1 or /brands/1.json
   def destroy
     @brand.destroy
 
@@ -76,13 +69,11 @@ class BrandsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_brand
-    @brand = Brand.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def brand_params
     params.fetch(:brand, {}).permit(:title)
+  end
+
+  def set_brand
+    @brand = Brand.find(params.expect(:id))
   end
 end

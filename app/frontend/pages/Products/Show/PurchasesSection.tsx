@@ -1,5 +1,6 @@
-import { type PurchaseRecord } from "../types";
 import { rowNavigationProps } from "@/utils/rowNavigation";
+
+import { type PurchaseRecord } from "../types";
 
 type PurchasesSectionProps = {
   purchases: PurchaseRecord[];
@@ -23,7 +24,7 @@ export default function PurchasesSection({ purchases }: PurchasesSectionProps) {
             <th>Ref</th>
             <th>Variant?</th>
             <th>Time ago</th>
-            <th className="text-right">Item Price, $</th>
+            <th className="text-right">Item Price</th>
             <th>Amount</th>
             <th>Warehouse</th>
           </tr>

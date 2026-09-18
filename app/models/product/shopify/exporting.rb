@@ -15,6 +15,15 @@ module Product::Shopify::Exporting
     "#{franchise.title} - #{title} | #{shopify_size_title_part}Resin #{shape} | by #{shopify_brand_titles}"
   end
 
+  def shopify_size_title_part
+    joined_sizes = sizes.pluck(:value).compact_blank.join("/")
+    joined_sizes.presence ? "#{joined_sizes} " : ""
+  end
+
+  def shopify_brand_titles
+    brands.pluck(:title).compact_blank.join(", ")
+  end
+
   def shopify_description_html
     return nil if description.body.blank?
 
@@ -23,14 +32,5 @@ module Product::Shopify::Exporting
 
   def shopify_tags
     shopify_info&.tag_list || []
-  end
-
-  def shopify_brand_titles
-    brands.pluck(:title).compact_blank.join(", ")
-  end
-
-  def shopify_size_title_part
-    joined_sizes = sizes.pluck(:value).compact_blank.join("/")
-    joined_sizes.presence ? "#{joined_sizes} " : ""
   end
 end

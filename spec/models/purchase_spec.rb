@@ -49,8 +49,9 @@ RSpec.describe Purchase do
     end
 
     describe "product or variant presence (on create)" do
+      subject(:purchase) { described_class.new(amount: 10, item_price: BigDecimal("100.0"), supplier:) }
+
       let(:supplier) { create(:supplier) }
-      subject(:purchase) { Purchase.new(amount: 10, item_price: BigDecimal("100.0"), supplier:) }
 
       context "when neither product nor variant is set" do
         it { is_expected.not_to be_valid }
@@ -73,10 +74,26 @@ RSpec.describe Purchase do
         it { is_expected.to be_valid }
       end
     end
+
+    it "rejects inventory with a Variant owned by another Product" do
+      product = create(:product)
+      other_product = create(:product)
+      other_variant = create(:variant, product: other_product)
+      mismatched_purchase = build(
+        :purchase,
+        product:,
+        variant: other_variant,
+        amount: 1,
+        item_price: BigDecimal(10),
+        supplier: create(:supplier)
+      )
+
+      expect(mismatched_purchase).not_to be_valid
+      expect(mismatched_purchase.errors[:variant]).to be_present
+    end
   end
 
   describe "Associations" do
-    # Create a fully built purchase for association tests
     let(:purchase_for_associations) { create(:purchase) }
 
     it { expect(purchase_for_associations).to belong_to(:supplier) }
@@ -90,7 +107,7 @@ RSpec.describe Purchase do
 
     describe "through variant associations" do
       let(:variant) { create(:variant) }
-      let(:purchase) { create(:purchase, variant:) }
+      let(:purchase) { create(:purchase, product: variant.product, variant:) }
 
       it "has many sizes through variant" do
         expect(purchase.sizes).to include(variant.size) if variant.size
@@ -145,8 +162,6 @@ RSpec.describe Purchase do
       end
 
       it "has associated audits" do
-        # The has_associated_audits method is only available after the audited method has been called
-        # Since the Purchase model calls audited, we can check if it has the method
         expect(described_class.instance_methods).to include(:associated_audits)
       end
 

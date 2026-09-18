@@ -15,10 +15,6 @@ module Purchases
 
     private
 
-    def authorize_resource
-      authorize :purchase, :move?
-    end
-
     def purchase_ids_for_movement
       params[:selected_items_ids].presence || params[:purchase_id]
     end
@@ -29,6 +25,10 @@ module Purchases
       else
         redirect_to purchases_path
       end
+    end
+
+    def authorize_resource
+      authorize :purchase, :move?
     end
   end
 end

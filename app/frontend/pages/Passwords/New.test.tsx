@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+
 import routes from "@/utils/routes";
+
 import New from "./New";
 
 describe("Passwords/New", () => {

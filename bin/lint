@@ -4,3 +4,4 @@ set -e
 
 pnpm lint
 pnpm format:check
+bundle exec rubocop

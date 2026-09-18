@@ -27,7 +27,7 @@
     {
       "product_woo_id": 11,
       "qty": 1,
-      "price": 235,
+      "price": "264.38",
       "order_woo_id": 7449,
       "variant": {
         "woo_id": 1111,
@@ -38,7 +38,7 @@
     {
       "product_woo_id": 11,
       "qty": 6,
-      "price": 228,
+      "price": "256.50",
       "order_woo_id": 666999,
       "variant": {
         "woo_id": 1234,

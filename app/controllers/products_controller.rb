@@ -19,17 +19,24 @@ class ProductsController < ApplicationController
 
   def show
     active_sales = @product.active_sale_items
+    active_payments = @product.active_payment_items
     complete_sales = @product.completed_sale_items
+    complete_payments = @product.completed_payment_items
     purchases = @product.purchases.includes(:supplier, :variant, purchase_items: :warehouse)
     variants_sales_sums = @product.variant_sales_sums
     variants_purchases_sums = @product.variant_purchase_sums
+    variants_purchase_cost_totals = @product.variant_purchase_cost_totals
+    can_view_profitability = policy(@product).view_profitability?
 
     render inertia: "Products/Show", props: {
       product: helpers.show_product_props(@product, can_pull_from_shopify: policy(@product).pull_from_shopify?),
-      variants: @product.variants.map { |variant| helpers.variant_props(variant, variants_sales_sums, variants_purchases_sums) },
+      variants: @product.variants.map { |variant| helpers.variant_props(variant, variants_sales_sums, variants_purchases_sums, variants_purchase_cost_totals, can_view_profitability:) },
       active_sales: active_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
+      active_payments: active_payments.map { |sale_item| helpers.product_payment_item_props(sale_item, @product) },
       completed_sales: complete_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
-      purchases: purchases.map { |purchase| helpers.purchase_props(purchase) }
+      completed_payments: complete_payments.map { |sale_item| helpers.product_payment_item_props(sale_item, @product) },
+      purchases: purchases.map { |purchase| helpers.purchase_props(purchase) },
+      profitability: can_view_profitability ? helpers.product_profitability_props(@product) : nil
     }
   end
 
@@ -57,6 +64,7 @@ class ProductsController < ApplicationController
       variants_attributes: payload.variants_attributes,
       store_infos_attributes: payload.store_infos_attributes,
       purchase_attributes: payload.purchase_attributes,
+      purchase_variant_client_key: payload.purchase_variant_client_key,
       media_attributes: extract_media_attributes
     )
 
@@ -88,14 +96,6 @@ class ProductsController < ApplicationController
 
   private
 
-  def set_product
-    @product = Product.for_details.friendly.find(params.expect(:id))
-  end
-
-  def set_product_for_edit
-    @product = Product.for_edit.friendly.find(params.expect(:id))
-  end
-
   def extract_media_attributes
     raw = params[:media]
     return [] if raw.blank?
@@ -113,5 +113,13 @@ class ProductsController < ApplicationController
         image: attrs[:image_blob_id]
       }.compact
     end
+  end
+
+  def set_product
+    @product = Product.for_details.friendly.find(params.expect(:id))
+  end
+
+  def set_product_for_edit
+    @product = Product.for_edit.friendly.find(params.expect(:id))
   end
 end

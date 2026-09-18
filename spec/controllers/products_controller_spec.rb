@@ -67,10 +67,12 @@ RSpec.describe ProductsController do
         },
         variants: {
           "0" => {
+            client_key: "new-product-base",
             sku: "new-product-with-purchase"
           }
         },
         purchase: {
+          variant_client_key: "new-product-base",
           supplier_id: supplier.id,
           amount: "2",
           item_price: "15",

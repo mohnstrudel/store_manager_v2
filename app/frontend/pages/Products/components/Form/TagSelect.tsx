@@ -1,5 +1,6 @@
-import CreatableSelect, { type CreatableProps } from "react-select/creatable";
 import { type GroupBase } from "react-select";
+import CreatableSelect, { type CreatableProps } from "react-select/creatable";
+
 import { reactSelectStyles } from "@/utils/reactSelectStyles";
 
 type TagSelectProps<Option, IsMulti extends boolean = false> = Omit<

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import Button from "@/components/Button";
 import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";

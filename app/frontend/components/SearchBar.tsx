@@ -1,5 +1,5 @@
-import { useCallback, useMemo, type ChangeEvent, type FormEvent, useState } from "react";
 import { router, Link } from "@inertiajs/react";
+import { useCallback, useMemo, type ChangeEvent, type FormEvent, useState } from "react";
 
 type SearchBarProps = {
   initialQuery: string;

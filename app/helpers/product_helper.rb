@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
 module ProductHelper
-  def format_relation(relationship, key)
-    return "-" if relationship.blank?
-    relationship.pluck(key).join(", ")
+  def render_product_timestamp_columns(record, attribute)
+    content_tag(:div, class: "grid grid-flow-col auto-cols-max gap-6", data: {timestamp_attribute: attribute}) do
+      safe_join(
+        product_timestamp_columns(record, attribute).map do |column|
+          content_tag(:div, class: "flex flex-col gap-1", data: {timestamp_column: column[:key]}) do
+            content_tag(:span, column[:label], class: "mt-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400") +
+              content_tag(:span, format_date(column[:value]), class: "text-sm")
+          end
+        end
+      )
+    end
   end
 
   def product_timestamp_columns(record, attribute)
@@ -18,19 +26,6 @@ module ProductHelper
     end
 
     columns
-  end
-
-  def render_product_timestamp_columns(record, attribute)
-    content_tag(:div, class: "grid grid-flow-col auto-cols-max gap-6", data: {timestamp_attribute: attribute}) do
-      safe_join(
-        product_timestamp_columns(record, attribute).map do |column|
-          content_tag(:div, class: "flex flex-col gap-1", data: {timestamp_column: column[:key]}) do
-            content_tag(:span, column[:label], class: "mt-1 text-xs/1 font-medium uppercase tracking-wide text-gray-400 dark:text-gray-400") +
-              content_tag(:span, format_date(column[:value]), class: "text-sm")
-          end
-        end
-      )
-    end
   end
 
   def product_props(product)
@@ -87,16 +82,6 @@ module ProductHelper
     }
   end
 
-  def product_timestamp_columns_props(product, attribute)
-    product_timestamp_columns(product, attribute).map do |column|
-      {
-        key: column[:key],
-        label: column[:label],
-        value: format_date(column[:value])
-      }
-    end
-  end
-
   def shopify_info_props(product)
     info = product.shopify_info
     return nil unless info
@@ -119,7 +104,19 @@ module ProductHelper
     }
   end
 
-  def variant_props(variant, sales_sums, purchase_sums)
+  def product_timestamp_columns_props(product, attribute)
+    product_timestamp_columns(product, attribute).map do |column|
+      {
+        key: column[:key],
+        label: column[:label],
+        value: format_date(column[:value])
+      }
+    end
+  end
+
+  def variant_props(variant, sales_sums, purchase_sums, purchase_cost_totals, can_view_profitability: false, expense_fraction: ExpenseRate.combined_fraction)
+    purchase_totals = purchase_cost_totals[variant.id]
+
     {
       id: variant.id,
       title: variant.title,
@@ -131,8 +128,20 @@ module ProductHelper
       active_sales_count: sales_sums[variant.id].to_i,
       purchases_count: purchase_sums[variant.id].to_i,
       shopify_id_short: variant.shopify_info&.id_short,
-      woo_store_id: variant.woo_info&.store_id
+      woo_store_id: variant.woo_info&.store_id,
+      total_purchase_cost: (can_view_profitability && purchase_totals) ? format_money(purchase_totals[:cost]) : nil,
+      theoretical_profit: can_view_profitability ? variant_theoretical_profit(variant, purchase_totals, expense_fraction) : nil
     }
+  end
+
+  def variant_theoretical_profit(variant, purchase_totals, expense_fraction)
+    return nil if purchase_totals.nil? || purchase_totals[:units].zero?
+
+    selling_price = variant.selling_price.to_d
+    return nil if selling_price.zero?
+
+    average_landed_cost = purchase_totals[:cost] / purchase_totals[:units]
+    format_money(selling_price - average_landed_cost - (selling_price * expense_fraction))
   end
 
   def product_sale_item_props(sale_item, product)
@@ -150,7 +159,7 @@ module ProductHelper
       country: sale.shipping_address&.country.presence || "",
       date: format_date(sale.woo_created_at.presence || sale_item.created_at),
       variant_title: product.variants.any? ? sale_item.variant&.title : nil,
-      price: format_money(sale_item.price),
+      price: format_money(sale.projected_item_price || sale_item.price),
       qty: sale_item.qty,
       status: sale.status,
       warehouse: purchase_item&.warehouse&.name.presence || "",
@@ -170,6 +179,45 @@ module ProductHelper
     end
   end
 
+  def product_payment_item_props(sale_item, product)
+    sale = sale_item.sale
+    purchase_item = sale_item.purchase_items.first
+    store_type, store_id = product_sale_info_for_sale(sale)
+    plan = product_follow_up_payment_plan(sale)
+
+    {
+      id: sale_item.id,
+      sale_path: sale_path(sale),
+      store_type: store_type,
+      store_id: store_id.presence || "",
+      customer_name: sale.customer.full_name,
+      customer_email: sale.customer.email,
+      date: format_date(sale.woo_created_at.presence || sale_item.created_at),
+      variant_title: product.variants.any? ? sale_item.variant&.title : nil,
+      price: format_money(sale_item.price),
+      qty: sale_item.qty,
+      status: sale.status,
+      warehouse: purchase_item&.warehouse&.name.presence || "",
+      purchase_item_path: purchase_item ? purchase_item_path(purchase_item) : nil,
+      sequence: plan&.part_number_for(sale),
+      expected_parts: plan&.expected_parts,
+      origin: product_payment_origin_props(plan, sale)
+    }
+  end
+
+  def product_follow_up_payment_plan(sale)
+    sale.payment_plans_for_display.find { |plan| plan.origin_sale_id != sale.id && plan.part_number_for(sale).present? }
+  end
+
+  def product_payment_origin_props(plan, sale)
+    return if plan.nil?
+
+    origin = plan.origin_sale
+    return if origin.nil? || origin.id == sale.id
+
+    {path: sale_path(origin), identifier: origin.shop_identifier.presence || origin.id.to_s}
+  end
+
   def purchase_props(purchase)
     {
       id: purchase.id,
@@ -186,6 +234,21 @@ module ProductHelper
           name: purchase_item.warehouse&.name
         }
       }
+    }
+  end
+
+  def product_profitability_props(product)
+    expense_fraction = ExpenseRate.combined_fraction
+    summary = product.profitability(expense_fraction:)
+
+    {
+      potential_sales: format_money(summary[:potential_sales]),
+      expected_total_cost: format_money(summary[:expected_total_cost]),
+      business_expenses: format_money(summary[:business_expenses]),
+      expected_net_profit: format_money(summary[:expected_net_profit]),
+      collected_revenue: format_money(summary[:collected_revenue]),
+      purchase_paid: format_money(summary[:purchase_paid]),
+      cash_position: format_money(summary[:cash_position])
     }
   end
 
@@ -214,6 +277,7 @@ module ProductHelper
   def form_variant_props(variant)
     {
       id: variant.id,
+      base_model: variant.base_model?,
       sku: variant.sku,
       size_id: variant.size_id,
       version_id: variant.version_id,
@@ -254,6 +318,31 @@ module ProductHelper
     {value:, label:}
   end
 
+  def variant_availability_props(product, current_variant: nil)
+    return nil unless product
+
+    assignable_variants = product.assignable_variants.includes(:color, :size, :version).to_a
+    mode = assignable_variants.any?(&:base_model?) ? "base" : "select"
+    variants = assignable_variants
+
+    if current_variant&.product_id == product.id && variants.none? { |variant| variant.id == current_variant.id }
+      variants = [*variants, current_variant]
+    end
+
+    {
+      mode:,
+      variants: variants.map { |variant| variant_assignment_option_props(variant) }
+    }
+  end
+
+  def variant_assignment_option_props(variant)
+    {
+      value: variant.id,
+      label: variant.title.to_s,
+      base_model: variant.base_model?
+    }
+  end
+
   def default_purchase_props
     default_warehouse = Warehouse.find_by(is_default: true)
     {
@@ -262,7 +351,8 @@ module ProductHelper
       item_price: "",
       amount: "",
       warehouse_id: default_warehouse&.id,
-      payment_value: ""
+      payment_value: "",
+      variant_client_key: nil
     }
   end
 

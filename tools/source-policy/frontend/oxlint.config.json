@@ -1,0 +1,17 @@
+{
+  "categories": {
+    "correctness": "off",
+    "suspicious": "off",
+    "style": "off",
+    "nursery": "off",
+    "pedantic": "off",
+    "perf": "off",
+    "restriction": "off"
+  },
+  "plugins": [],
+  "jsPlugins": ["./oxlint-plugin.js"],
+  "rules": {
+    "source-policy/ordering": "error",
+    "source-policy/no-prose-comments": "error"
+  }
+}

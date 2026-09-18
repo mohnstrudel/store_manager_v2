@@ -9,6 +9,23 @@ module MediaFormHandling
     media_form_params_for(record)[:new_images]
   end
 
+  def media_form_params_for(record)
+    param_key = record.class.model_name.param_key.to_sym
+    media_params = params.dig(param_key)&.slice(:media, :new_images)
+    permitted = media_params&.permit(
+      media: [[
+        :id,
+        :alt,
+        :position,
+        :_destroy,
+        :image,
+        :image_blob_id
+      ]],
+      new_images: []
+    ) || ActionController::Parameters.new
+    permitted.slice(:media, :new_images)
+  end
+
   def normalized_media_attributes_for(record)
     media_params = media_form_params_for(record)[:media]
     return [] if media_params.blank?
@@ -25,22 +42,5 @@ module MediaFormHandling
         image: attrs[:image_blob_id].presence || attrs[:image]
       }.compact
     end
-  end
-
-  def media_form_params_for(record)
-    param_key = record.class.model_name.param_key.to_sym
-    media_params = params.dig(param_key)&.slice(:media, :new_images)
-    permitted = media_params&.permit(
-      media: [[
-        :id,
-        :alt,
-        :position,
-        :_destroy,
-        :image,
-        :image_blob_id
-      ]],
-      new_images: []
-    ) || ActionController::Parameters.new
-    permitted.slice(:media, :new_images)
   end
 end

@@ -1,8 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import Details from "./Details";
+
+import { makeSalePaymentPlan, makeSalePaymentProgress } from "@/test/factories";
+
 import { makeSaleShow } from "../test/factories";
+import Details from "./Details";
 
 describe("Sales/Show/Details", () => {
   it("renders the customer, note, totals, and store identifiers", () => {
@@ -25,9 +28,9 @@ describe("Sales/Show/Details", () => {
     const user = userEvent.setup();
     render(<Details sale={makeSaleShow()} />);
 
-    await user.click(screen.getByRole("button", { name: /Billing/ }));
+    await user.click(screen.getByRole("tab", { name: /Billing/ }));
 
-    expect(screen.getByText("Billing address differs from shipping.")).toBeInTheDocument();
+    expect(screen.getByLabelText("More information")).toHaveTextContent("*");
     expect(screen.getByText("456 Side St")).toBeInTheDocument();
     expect(screen.getByText("Paris")).toBeInTheDocument();
   });
@@ -45,6 +48,342 @@ describe("Sales/Show/Details", () => {
     );
 
     expect(screen.queryByText("Leave at the door")).not.toBeInTheDocument();
+    expect(screen.queryByText("Note")).not.toBeInTheDocument();
     expect(screen.queryByText("Address 1")).not.toBeInTheDocument();
+  });
+
+  it("hides totals rows when there is no total, discount, or shipping data", () => {
+    render(<Details sale={makeSaleShow({ discount_total: "", shipping_total: "", total: "" })} />);
+
+    expect(screen.queryByText("Total", { selector: "dt" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Discount", { selector: "dt" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Shipping", { selector: "dt" })).not.toBeInTheDocument();
+  });
+
+  it("omits discount, shipping, and the whole address panel for a follow-up payment", () => {
+    render(
+      <Details
+        sale={makeSaleShow({
+          is_follow_up_payment: true,
+          discount_total: undefined,
+          shipping_total: undefined,
+          shipping_address: undefined,
+          billing_address: undefined,
+          billing_differs_from_shipping: undefined,
+        })}
+      />,
+    );
+
+    expect(screen.queryByText("Discount", { selector: "dt" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Shipping", { selector: "dt" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Shipping/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Billing/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Address 1")).not.toBeInTheDocument();
+
+    expect(screen.getByText("Processing")).toBeInTheDocument();
+    expect(screen.getByText("1060")).toBeInTheDocument();
+    expect(screen.getByText("ID", { selector: "dt" })).toBeInTheDocument();
+  });
+
+  it("shows the projected total right after the order total", () => {
+    render(
+      <Details
+        sale={makeSaleShow({
+          total: "300",
+          payment_plans: [makeSalePaymentPlan({ projected_total: "1 020 EUR" })],
+        })}
+      />,
+    );
+
+    const total = screen.getByText("Total", { selector: "dt" });
+    const projectedTotal = screen.getByText("Projected total", { selector: "dt" });
+
+    expect(screen.getByText("300")).toBeInTheDocument();
+    expect(screen.getByText("1 020 EUR")).toBeInTheDocument();
+    expect(total.nextElementSibling?.nextElementSibling).toBe(projectedTotal);
+  });
+
+  it("omits the projected total when no plan on the sale carries one", () => {
+    render(
+      <Details
+        sale={makeSaleShow({
+          payment_plans: [makeSalePaymentPlan({ projected_total: null })],
+        })}
+      />,
+    );
+
+    expect(screen.queryByText("Projected total", { selector: "dt" })).not.toBeInTheDocument();
+  });
+
+  it("omits the projected total when two plans on the sale disagree", () => {
+    render(
+      <Details
+        sale={makeSaleShow({
+          payment_plans: [
+            makeSalePaymentPlan({ id: 1, projected_total: "1 020 EUR" }),
+            makeSalePaymentPlan({ id: 2, projected_total: "990 EUR" }),
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.queryByText("Projected total", { selector: "dt" })).not.toBeInTheDocument();
+  });
+
+  it("shows the projected total when two plans on the sale agree", () => {
+    render(
+      <Details
+        sale={makeSaleShow({
+          payment_plans: [
+            makeSalePaymentPlan({ id: 1, projected_total: "1 020 EUR" }),
+            makeSalePaymentPlan({ id: 2, projected_total: "1 020 EUR" }),
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Projected total", { selector: "dt" })).toBeInTheDocument();
+    expect(screen.getByText("1 020 EUR")).toBeInTheDocument();
+  });
+
+  it("shows the origin sale as the first field of a follow-up payment", () => {
+    render(
+      <Details
+        sale={makeSaleShow({
+          is_follow_up_payment: true,
+          payment_plans: [
+            makeSalePaymentPlan({
+              is_origin_sale: false,
+              sale_part_number: 2,
+              origin_sale: { path: "/sales/9", identifier: "HSCM#1746" },
+            }),
+          ],
+        })}
+      />,
+    );
+
+    const originField = screen.getByText("Original Sale", { selector: "dt" });
+    expect(originField.nextElementSibling).toHaveTextContent("HSCM#1746");
+    expect(screen.getByRole("link", { name: "HSCM#1746" })).toHaveAttribute("href", "/sales/9");
+    expect(originField.previousElementSibling).toBeNull();
+  });
+
+  it("shows the follow-up payment's plan progress in place of the address card", () => {
+    const { container } = render(
+      <Details
+        sale={makeSaleShow({
+          is_follow_up_payment: true,
+          payment_plans: [
+            makeSalePaymentPlan({
+              expected_parts: 4,
+              sale_part_number: 2,
+              payments: [
+                { sequence: 1, path: "/sales/1", identifier: "HSCM#1", is_current_sale: false },
+                { sequence: 2, path: "/sales/2", identifier: "HSCM#2", is_current_sale: true },
+              ],
+            }),
+          ],
+        })}
+      />,
+    );
+
+    expect(container.querySelector(".plan_progress_bar")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Payment 1 of 4 · HSCM#1" })).toHaveAttribute(
+      "href",
+      "/sales/1",
+    );
+    expect(screen.getByText("Payment 2 of 4 · HSCM#2 (this sale)")).toBeInTheDocument();
+  });
+
+  it("lists a plan's payments inline in the details card for the originating sale", () => {
+    render(
+      <Details
+        sale={makeSaleShow({
+          is_follow_up_payment: false,
+          discount_total: "",
+          payment_plans: [
+            makeSalePaymentPlan({
+              expected_parts: 3,
+              sale_part_number: 1,
+              payments: [
+                { sequence: 1, path: "/sales/1", identifier: "HSCM#1", is_current_sale: true },
+                { sequence: 2, path: "/sales/2", identifier: "HSCM#2", is_current_sale: false },
+              ],
+            }),
+          ],
+        })}
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: "Payment 2 of 3 · HSCM#2" });
+    expect(link).toHaveAttribute("href", "/sales/2");
+    expect(screen.getByText("Payment 1 of 3 · HSCM#1 (this sale)")).toBeInTheDocument();
+    const totals = screen.getByText("Total", { selector: "dt" }).closest(".card");
+    expect(totals).not.toContainElement(link);
+    expect(link.closest(".card")).toContainElement(screen.getByText("This payment"));
+  });
+  describe("settlement summary", () => {
+    it("shows paid amount progress without a remaining-debt claim", () => {
+      render(
+        <Details
+          sale={makeSaleShow({
+            settlement_status: "paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "amount",
+              percent: 100,
+              paid: "$1,000",
+              total: "$1,000",
+              remaining: "$0",
+            }),
+          })}
+        />,
+      );
+
+      expect(screen.getByRole("heading", { name: "Paid" })).toBeInTheDocument();
+      expect(screen.getByText("100% · Paid $1,000 of $1,000")).toBeInTheDocument();
+      expect(screen.queryByText(/remaining/iu)).not.toBeInTheDocument();
+    });
+
+    it("shows continuous amount progress for a partially paid sale", () => {
+      const { container } = render(
+        <Details
+          sale={makeSaleShow({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "amount",
+              percent: 30,
+              paid: "$300",
+              total: "$1,000",
+              remaining: "$700",
+            }),
+          })}
+        />,
+      );
+
+      expect(screen.getByRole("heading", { name: "Not fully paid" })).toBeInTheDocument();
+      expect(screen.getByText("30% · Paid $300 of $1,000 · $700 remaining")).toBeInTheDocument();
+      expect(container.querySelector(".progress_container")).toBeInTheDocument();
+    });
+
+    it("uses scheduled payment progress instead of duplicating amount progress", () => {
+      const { container } = render(
+        <Details
+          sale={makeSaleShow({
+            settlement_status: "not_fully_paid",
+            payment_plans: [
+              makeSalePaymentPlan({
+                id: 9,
+                expected_parts: 4,
+                collected_parts: 2,
+                sale_part_number: 2,
+              }),
+            ],
+            payment_progress: makeSalePaymentProgress({
+              source: "plan_schedule",
+              percent: 80,
+              paid: "$800",
+              total: "$1,000",
+              remaining: "$200",
+              completed_parts: 2,
+              expected_parts: 4,
+              sale_part_number: 2,
+              plan_id: 9,
+            }),
+          })}
+        />,
+      );
+
+      expect(screen.getByText("Payment 2 of 4")).toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          "80% · 2 of 4 payments completed · Paid $800 of $1,000 · $200 remaining",
+        ),
+      ).not.toBeInTheDocument();
+      expect(container.querySelector(".progress_container")).not.toBeInTheDocument();
+    });
+
+    it("shows deposit amount progress without inventing a part count", () => {
+      render(
+        <Details
+          sale={makeSaleShow({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "plan_deposit",
+              percent: 30,
+              paid: "$420",
+              total: "$1,400",
+              remaining: "$980",
+            }),
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText("30% · Paid $420 of projected $1,400 · $980 remaining"),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/1 of 1/)).not.toBeInTheDocument();
+    });
+
+    it("shows a verified Woo deposit without fabricating remaining cash or percentage", () => {
+      const { container } = render(
+        <Details
+          sale={makeSaleShow({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "woo_deposit",
+              paid: "$196",
+              total: "$1,145",
+            }),
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText(
+          "Deposit $196 collected of total $1,145 · Remaining amount unavailable from WooCommerce",
+        ),
+      ).toBeInTheDocument();
+      expect(container.querySelector(".progress_container")).not.toBeInTheDocument();
+    });
+
+    it("shows the Woo total when payment amounts are unavailable", () => {
+      const { container } = render(
+        <Details
+          sale={makeSaleShow({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "woo_unavailable",
+              total: "$1,145",
+            }),
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText("Total $1,145 · Paid and remaining amounts unavailable from WooCommerce"),
+      ).toBeInTheDocument();
+      expect(container.querySelector(".progress_container")).not.toBeInTheDocument();
+    });
+
+    it("shows unknown without inventing money or progress", () => {
+      const { container } = render(
+        <Details
+          sale={makeSaleShow({
+            settlement_status: "unknown",
+            payment_progress: null,
+          })}
+        />,
+      );
+
+      expect(screen.getByRole("heading", { name: "Unknown" })).toBeInTheDocument();
+      expect(screen.getByText("Payment status unknown")).toBeInTheDocument();
+      expect(container.querySelector(".progress_container")).not.toBeInTheDocument();
+    });
+
+    it("omits settlement economics for an excluded sale", () => {
+      render(<Details sale={makeSaleShow({ settlement_status: null, payment_progress: null })} />);
+
+      expect(screen.queryByLabelText("Payment status")).not.toBeInTheDocument();
+    });
   });
 });

@@ -195,7 +195,6 @@ RSpec.describe Shopify::UpdateProductJob do
         begin
           described_class.perform_now(product_id)
         rescue Shopify::Api::Client::ApiError
-          # Expected error
         end
 
         product.shopify_info.reload
@@ -210,7 +209,6 @@ RSpec.describe Shopify::UpdateProductJob do
         begin
           described_class.perform_now(product_id)
         rescue Shopify::Api::Client::ApiError
-          # Expected error
         end
 
         expect(Shopify::PushMediaJob).not_to have_received(:perform_later)
@@ -222,7 +220,6 @@ RSpec.describe Shopify::UpdateProductJob do
         begin
           described_class.perform_now(product_id)
         rescue Shopify::Api::Client::ApiError
-          # Expected error
         end
 
         expect(Shopify::CreateOptionsAndVariantsJob).not_to have_received(:perform_later)
@@ -325,12 +322,10 @@ RSpec.describe Shopify::UpdateProductJob do
       let(:product_id_without_shopify) { product_without_shopify.id }
 
       before do
-        # The shopify_info method auto-creates if missing, so we need to ensure store_id is nil
         product_without_shopify.shopify_info.update!(store_id: nil)
       end
 
       it "passes nil to the API client" do
-        # The shopify_info auto-creates, but store_id is nil
         expect(product_without_shopify.reload.shopify_info.store_id).to be_nil
       end
     end
@@ -348,7 +343,6 @@ RSpec.describe Shopify::UpdateProductJob do
         begin
           described_class.perform_now(product_id)
         rescue Shopify::Api::Client::ApiError
-          # Expected error
         end
 
         expect(shopify_info.reload).to be_persisted
@@ -362,10 +356,8 @@ RSpec.describe Shopify::UpdateProductJob do
       let!(:media_4) { create(:media, mediaable: product) }
 
       before do
-        # Media 1 and 2 have shopify_info, media 3 does not (not pushed yet)
         media_1.store_infos.create(store_name: :shopify, store_id: "gid://shopify/MediaImage/123")
         media_2.store_infos.create(store_name: :shopify, store_id: "gid://shopify/MediaImage/456")
-        # media_3 has no shopify_info
       end
 
       context "when shopify response contains some media" do

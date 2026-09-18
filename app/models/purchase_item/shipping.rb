@@ -10,23 +10,30 @@ module PurchaseItem::Shipping
   private
 
   def should_update_purchase_shipping?
-    previously_new_record? || destroyed? || saved_change_to_shipping_cost?
+    previously_new_record? || destroyed? || saved_change_to_shipping_cost? || saved_change_to_purchase_id?
   end
 
   def update_purchase_shipping_total
-    delta =
-      if previously_new_record?
-        shipping_cost
-      elsif destroyed?
-        -shipping_cost
-      else
-        saved_change_to_shipping_cost.last - saved_change_to_shipping_cost.first
-      end
+    if previously_new_record?
+      adjust_purchase_shipping_total(purchase, shipping_cost)
+    elsif destroyed?
+      adjust_purchase_shipping_total(purchase, -shipping_cost)
+    elsif saved_change_to_purchase_id?
+      old_purchase_id, = saved_change_to_purchase_id
+      old_shipping_cost = saved_change_to_shipping_cost? ? saved_change_to_shipping_cost.first : shipping_cost
+      adjust_purchase_shipping_total(Purchase.find_by(id: old_purchase_id), -old_shipping_cost)
+      adjust_purchase_shipping_total(purchase, shipping_cost)
+    else
+      delta = saved_change_to_shipping_cost.last - saved_change_to_shipping_cost.first
+      adjust_purchase_shipping_total(purchase, delta)
+    end
+  end
 
-    return if delta.zero?
+  def adjust_purchase_shipping_total(target_purchase, delta)
+    return if target_purchase.nil? || target_purchase.destroyed? || delta.nil? || delta.zero?
 
-    purchase.with_lock do
-      purchase.update_column(:shipping_total, purchase.shipping_total + delta)
+    target_purchase.with_lock do
+      target_purchase.update_column(:shipping_total, target_purchase.shipping_total + delta)
     end
   end
 end

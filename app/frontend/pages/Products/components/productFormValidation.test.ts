@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+
 import { msg } from "@/utils/validationMessages";
-import { validateProductFormSubmission } from "./productFormValidation";
+
 import { makePurchaseForm, makeVariantForm } from "../test/factories";
+import { validateProductFormSubmission } from "./productFormValidation";
 
 const makeVariant = makeVariantForm;
 const makePurchase = makePurchaseForm;

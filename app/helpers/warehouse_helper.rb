@@ -40,14 +40,6 @@ module WarehouseHelper
     }
   end
 
-  def warehouse_new_props(warehouse)
-    warehouse_form_props(warehouse, positions_count: Warehouse.count + 1)
-  end
-
-  def warehouse_edit_props(warehouse)
-    warehouse_form_props(warehouse, positions_count: Warehouse.count)
-  end
-
   def warehouse_show_record_props(warehouse)
     {
       id: warehouse.id,
@@ -74,7 +66,50 @@ module WarehouseHelper
     }
   end
 
+  def warehouse_new_props(warehouse)
+    warehouse_form_props(warehouse, positions_count: Warehouse.count + 1)
+  end
+
+  def warehouse_edit_props(warehouse)
+    warehouse_form_props(warehouse, positions_count: Warehouse.count)
+  end
+
   private
+
+  def warehouse_details_purchase_item_props(item)
+    sale = item.sale
+
+    {
+      id: item.id,
+      path: purchase_item_path(item),
+      title: purchase_product_title(item.purchase),
+      variant_title: item.purchase.variant&.title,
+      sku: item.purchase.variant&.sku || purchase_display_product(item.purchase)&.base_variant&.sku,
+      sale_path: sale ? sale_path(sale) : nil,
+      sale_title: sale&.title,
+      sale_store_type: sale_store_type(sale),
+      sale_summary: sale ? sale_summary_for_warehouse(sale) : "",
+      sale_note: sale&.note,
+      customer_email: sale&.customer&.email,
+      tracking_number: item.tracking_number,
+      shipping_company_name: item.shipping_company&.name,
+      shipping_company_id: item.shipping_company_id,
+      payment_progress: {
+        progress: item.purchase.progress.to_f,
+        paid: format_money(item.purchase.item_paid),
+        price: format_money(item.purchase.item_price),
+        debt: format_money(item.purchase.item_debt)
+      }
+    }
+  end
+
+  def sale_store_type(sale)
+    return nil unless sale
+    return "shopify" if sale.shopify_name.present? || sale.shopify_id.present?
+    return "woo" if sale.woo_store_id.present?
+
+    nil
+  end
 
   def warehouse_form_props(warehouse, positions_count:)
     {
@@ -117,40 +152,5 @@ module WarehouseHelper
         _destroy: false
       }
     end
-  end
-
-  def warehouse_details_purchase_item_props(item)
-    sale = item.sale
-
-    {
-      id: item.id,
-      path: purchase_item_path(item),
-      title: purchase_product_title(item.purchase),
-      variant_title: item.purchase.variant&.title,
-      sku: item.purchase.variant&.sku || purchase_display_product(item.purchase)&.base_variant&.sku || "-",
-      sale_path: sale ? sale_path(sale) : nil,
-      sale_title: sale&.title,
-      sale_store_type: sale_store_type(sale),
-      sale_summary: sale ? sale_summary_for_warehouse(sale) : "",
-      sale_note: sale&.note,
-      customer_email: sale&.customer&.email,
-      tracking_number: item.tracking_number,
-      shipping_company_name: item.shipping_company&.name,
-      shipping_company_id: item.shipping_company_id,
-      payment_progress: {
-        progress: item.purchase.progress.to_f,
-        paid: format_money(item.purchase.item_paid),
-        price: format_money(item.purchase.item_price),
-        debt: format_money(item.purchase.item_debt)
-      }
-    }
-  end
-
-  def sale_store_type(sale)
-    return nil unless sale
-    return "shopify" if sale.shopify_name.present? || sale.shopify_id.present?
-    return "woo" if sale.woo_store_id.present?
-
-    nil
   end
 end

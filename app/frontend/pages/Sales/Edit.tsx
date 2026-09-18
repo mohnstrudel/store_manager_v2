@@ -1,6 +1,8 @@
-import ErrorNotice from "@/components/ErrorNotice";
 import { Link } from "@inertiajs/react";
+
+import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
+
 import Form from "./components/Form";
 import type { SaleFormOptions, SaleFormRecord } from "./types";
 

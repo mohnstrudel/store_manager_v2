@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe Product::Shopify::MediaImporting do
   let(:product) { create(:product) }
-  let(:downloaded_file) { instance_double("DownloadedFiles") }
+  let(:downloaded_file) { instance_double(Product::Shopify::Media::Downloader) }
   let(:upsert) { instance_double(Product::Shopify::Media::Upsert) }
 
   let(:parsed_media) do
@@ -41,7 +41,7 @@ RSpec.describe Product::Shopify::MediaImporting do
     allow(downloaded_file).to receive_messages(
       downloaded_checksums: ["checksum-one"],
       failed_store_ids: ["gid://shopify/MediaImage/2"],
-      downloads_by_key: {"gid://shopify/MediaImage/1" => instance_double("Download", checksum: "checksum-one")},
+      downloads_by_key: {"gid://shopify/MediaImage/1" => instance_double(Product::Shopify::Media::Downloader::DownloadedImage, checksum: "checksum-one")},
       close_downloads!: true
     )
   end
@@ -74,12 +74,12 @@ RSpec.describe Product::Shopify::MediaImporting do
         downloaded_checksums: [kept_media.image.blob.checksum],
         failed_store_ids: ["gid://shopify/MediaImage/2"],
         downloads_by_key: {
-          "gid://shopify/MediaImage/1" => instance_double("Download", checksum: kept_media.image.blob.checksum)
+          "gid://shopify/MediaImage/1" => instance_double(Product::Shopify::Media::Downloader::DownloadedImage, checksum: kept_media.image.blob.checksum)
         }
       )
 
+      allow(Product::Shopify::Media::Upsert).to receive(:new).with(product:).and_return(upsert)
       expect(Product::Shopify::Media::Downloader).to receive(:call).with(media_items: parsed_media)
-      expect(Product::Shopify::Media::Upsert).to receive(:new).with(product:).and_return(upsert)
       expect(upsert).to receive(:call).with(
         media_items: parsed_media,
         downloads_by_key: downloaded_file.downloads_by_key
@@ -93,6 +93,7 @@ RSpec.describe Product::Shopify::MediaImporting do
       expect(failed_media.reload).to be_persisted
       expect { obsolete_media.reload }.to raise_error(ActiveRecord::RecordNotFound)
       expect(downloaded_file).to have_received(:close_downloads!)
+      expect(Product::Shopify::Media::Upsert).to have_received(:new).with(product:)
     end
   end
 end

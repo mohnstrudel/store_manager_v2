@@ -62,7 +62,6 @@ RSpec.describe Shopify::PullVariantsJob do
     it "updates the pull_time on shopify_info" do
       shopify_id = parsed_variants.first[:store_id]
       variant = create(:variant, product:)
-      # Variant factory auto-creates store_infos, just update the shopify one
       variant.store_infos.shopify.first.update(store_id: shopify_id)
 
       freeze_time do

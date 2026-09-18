@@ -4,10 +4,8 @@ require "sidekiq/web"
 require "sidekiq-status/web"
 
 Rails.application.routes.draw do
-  # System
   get "up", to: "rails/health#show", as: :rails_health_chec
 
-  # Operations
   if Rails.env.development?
     mount PgHero::Engine, at: "pghero"
   end
@@ -19,17 +17,14 @@ Rails.application.routes.draw do
   mount ShopifyApp::Engine, at: "shopify_app"
   mount Sidekiq::Web => "jobs"
 
-  # External webhooks
   post "update-order", to: "webhooks/order_updates#create"
   post "sale-status", to: "webhooks/sale_statuses#create"
 
-  # MCP endpoint (unauthenticated, for external agents)
   post "mcp", to: "mcp/server#handle"
 
   defaults export: true do
     root "dashboard#index"
 
-    # Authentication
     resources :passwords, param: :token
 
     resources :users, except: %i[new create]
@@ -39,21 +34,28 @@ Rails.application.routes.draw do
     get "sign_in", to: "sessions#new", as: :sign_in
     post "log_out", to: "sessions#destroy", as: :log_out
 
-    # Dashboard
     get "debts", to: "dashboard/debts#show"
     get "debts/:page", to: "dashboard/debts#show"
     get "noop", to: "dashboard#noop", as: :noop
+
+    get "glossary", to: "glossary#show"
 
     scope module: :dashboard do
       resource :last_orders_pull, only: :create, path: "pull-last-orders"
     end
 
-    # Media
     post "media/uploads", to: "media_uploads#create", as: :media_uploads
 
-    # Inventory
+    resources :variant_assignment_issues, only: :index
+    namespace :variant_assignment_issues do
+      resources :purchases, only: :update
+      resources :sale_items, only: :update
+      resources :purchase_item_links, only: :update
+    end
+
     resources :products do
       scope module: :products do
+        resource :assignable_variants, only: :show
         resource :shopify_push, only: :create
         resource :shopify_pull, only: :create
 
@@ -89,7 +91,6 @@ Rails.application.routes.draw do
 
         collection do
           resource :move, only: :create
-          resource :product_variants, only: :show
         end
       end
 
@@ -108,6 +109,7 @@ Rails.application.routes.draw do
         resource :tracking_number, only: :update
         resource :shipping_company, only: :update
         resource :shipping_cost, only: :update
+        resources :expenses, only: %i[create update destroy]
         resource :shipping_details, only: :update
       end
     end
@@ -128,7 +130,7 @@ Rails.application.routes.draw do
       end
     end
 
-    # Reference data
     resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
+    resources :expense_rates, except: :show
   end
 end

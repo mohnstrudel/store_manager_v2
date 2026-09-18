@@ -1,5 +1,4 @@
 @layer components {
-  /* Preloadable images */
   .preloadable_img__container {
     @apply flex justify-center items-center;
   }
@@ -28,7 +27,6 @@
     @apply hidden;
   }
 
-  /* Image Uploader Card */
   .image_card__drag_handle {
     @apply backdrop-blur-xs absolute top-1 left-1 z-10 p-0.5 rounded
            bg-black/30 text-white cursor-grab active:cursor-grabbing touch-none

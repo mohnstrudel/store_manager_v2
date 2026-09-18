@@ -11,7 +11,8 @@ RSpec.describe SaleItem::Titling do
     end
 
     it "returns the product and variant title when variant is present" do
-      sale_item = create(:sale_item)
+      product = create(:product)
+      sale_item = create(:sale_item, product:, variant: create(:variant, product:))
 
       expect(sale_item.title).to eq("#{sale_item.product.full_title} → #{sale_item.variant.title}")
     end

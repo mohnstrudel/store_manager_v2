@@ -1,4 +1,5 @@
 import { useCallback, useState, type ChangeEvent } from "react";
+
 import Button from "@/components/Button";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
@@ -6,10 +7,11 @@ import FormRow from "@/components/FormRow";
 import FormSectionHeading from "@/components/FormSectionHeading";
 import ImageUploader from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
-import { useDynamicSection } from "@/utils/useDynamicSection";
 import { getFormString } from "@/utils/formSchema";
-import { validateWarehouseForm } from "./warehouseFormSchema";
+import { useDynamicSection } from "@/utils/useDynamicSection";
+
 import type { WarehouseFormOptions, WarehouseFormRecord, WarehouseOption } from "../types";
+import { validateWarehouseForm } from "./warehouseFormSchema";
 
 type WarehouseFormProps = {
   isNew: boolean;
@@ -61,6 +63,26 @@ export default function Form({ isNew, options, submitLabel, warehouse }: Warehou
   );
 }
 
+function useWarehouseFormState(warehouse: WarehouseFormRecord) {
+  const [media, setMedia] = useState(() => warehouse.media);
+  const transitionRows = useDynamicSection(
+    transitionRowsFromWarehouse(warehouse),
+    newTransitionRow,
+    {
+      keyForInitial: (row) => row.clientKey,
+    },
+  );
+
+  return { media, setMedia, transitionRows };
+}
+
+function transitionRowsFromWarehouse(warehouse: WarehouseFormRecord): TransitionRow[] {
+  return warehouse.transition_ids.map((toWarehouseId, index) => ({
+    clientKey: `transition-${toWarehouseId}-${index}`,
+    toWarehouseId,
+  }));
+}
+
 function WarehouseIdentityFields({
   errors,
   options,
@@ -104,6 +126,57 @@ function WarehouseIdentityFields({
       />
     </FormRow>
   );
+}
+
+function SelectField({
+  defaultValue,
+  error,
+  label,
+  name,
+  options,
+  className,
+}: {
+  defaultValue: string | number;
+  error?: string;
+  label: string;
+  name: string;
+  options: Array<{ label: string; value: string | number }>;
+  className?: string;
+}) {
+  const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
+  const classNames = ["w-full", className].filter(Boolean).join(" ");
+
+  return (
+    <FormControl className={classNames} error={error} htmlFor={id} label={label}>
+      <select
+        aria-describedby={error ? `${id}_error` : undefined}
+        aria-invalid={!!error}
+        defaultValue={defaultValue}
+        id={id}
+        name={name}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </FormControl>
+  );
+}
+
+function positionOptions(positions: number[]) {
+  return positions.map((position) => ({
+    label: String(position),
+    value: position,
+  }));
+}
+
+function defaultWarehouseOptions() {
+  return [
+    { label: "No", value: "0" },
+    { label: "Yes", value: "1" },
+  ];
 }
 
 function WarehouseExternalNamesFields({
@@ -156,6 +229,33 @@ function WarehouseDescriptionFields({
   );
 }
 
+function TextAreaField({
+  defaultValue,
+  error,
+  label,
+  name,
+}: {
+  defaultValue: string;
+  error?: string;
+  label: string;
+  name: string;
+}) {
+  const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
+
+  return (
+    <FormControl className="w-full" error={error} htmlFor={id} label={label}>
+      <textarea
+        aria-describedby={error ? `${id}_error` : undefined}
+        aria-invalid={!!error}
+        defaultValue={defaultValue}
+        id={id}
+        name={name}
+        rows={5}
+      />
+    </FormControl>
+  );
+}
+
 function WarehouseTrackingFields({
   errors,
   warehouse,
@@ -192,70 +292,6 @@ function WarehouseImagesSection({ form }: { form: WarehouseFormState }) {
       media={form.media}
       onMediaChange={form.setMedia}
     />
-  );
-}
-
-function SelectField({
-  defaultValue,
-  error,
-  label,
-  name,
-  options,
-  className,
-}: {
-  defaultValue: string | number;
-  error?: string;
-  label: string;
-  name: string;
-  options: Array<{ label: string; value: string | number }>;
-  className?: string;
-}) {
-  const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
-  const classNames = ["w-full", className].filter(Boolean).join(" ");
-
-  return (
-    <FormControl className={classNames} error={error} htmlFor={id} label={label}>
-      <select
-        aria-describedby={error ? `${id}_error` : undefined}
-        aria-invalid={!!error}
-        defaultValue={defaultValue}
-        id={id}
-        name={name}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </FormControl>
-  );
-}
-
-function TextAreaField({
-  defaultValue,
-  error,
-  label,
-  name,
-}: {
-  defaultValue: string;
-  error?: string;
-  label: string;
-  name: string;
-}) {
-  const id = name.replace(/\[|\]/g, "_").replace(/_+$/g, "");
-
-  return (
-    <FormControl className="w-full" error={error} htmlFor={id} label={label}>
-      <textarea
-        aria-describedby={error ? `${id}_error` : undefined}
-        aria-invalid={!!error}
-        defaultValue={defaultValue}
-        id={id}
-        name={name}
-        rows={5}
-      />
-    </FormControl>
   );
 }
 
@@ -310,6 +346,7 @@ function TransitionTable({
         <thead>
           <tr>
             <th>Destination Warehouse</th>
+            {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
             <th />
           </tr>
         </thead>
@@ -328,6 +365,20 @@ function TransitionTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+function AddTransitionRow({ onAdd }: { onAdd: () => void }) {
+  return (
+    <tr className="cursor-default hover:bg-transparent">
+      <td>
+        <Button className="btn_rounded" onClick={onAdd} type="button">
+          Add Transition
+        </Button>
+      </td>
+      {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
+      <td />
+    </tr>
   );
 }
 
@@ -383,56 +434,9 @@ function TransitionDestinationRow({
   );
 }
 
-function AddTransitionRow({ onAdd }: { onAdd: () => void }) {
-  return (
-    <tr className="cursor-default hover:bg-transparent">
-      <td>
-        <Button className="btn_rounded" onClick={onAdd} type="button">
-          Add Transition
-        </Button>
-      </td>
-      <td />
-    </tr>
-  );
-}
-
-function useWarehouseFormState(warehouse: WarehouseFormRecord) {
-  const [media, setMedia] = useState(() => warehouse.media);
-  const transitionRows = useDynamicSection(
-    transitionRowsFromWarehouse(warehouse),
-    newTransitionRow,
-    {
-      keyForInitial: (row) => row.clientKey,
-    },
-  );
-
-  return { media, setMedia, transitionRows };
-}
-
-function transitionRowsFromWarehouse(warehouse: WarehouseFormRecord): TransitionRow[] {
-  return warehouse.transition_ids.map((toWarehouseId, index) => ({
-    clientKey: `transition-${toWarehouseId}-${index}`,
-    toWarehouseId,
-  }));
-}
-
 function newTransitionRow(): TransitionRow {
   return {
     clientKey: crypto.randomUUID(),
     toWarehouseId: null,
   };
-}
-
-function positionOptions(positions: number[]) {
-  return positions.map((position) => ({
-    label: String(position),
-    value: position,
-  }));
-}
-
-function defaultWarehouseOptions() {
-  return [
-    { label: "No", value: "0" },
-    { label: "Yes", value: "1" },
-  ];
 }

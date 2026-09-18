@@ -15,7 +15,6 @@ module StoreInfo::References
     end
   end
 
-  # Store ID without GID prefix
   def id_short
     return if store_id.blank?
 

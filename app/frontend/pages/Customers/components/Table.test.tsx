@@ -1,10 +1,11 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { router } from "@inertiajs/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import Table from "./Table";
+
 import { makeCustomer } from "../test/factories";
 import type { CustomerRecord } from "../types";
+import Table from "./Table";
 
 describe("Customers/components/Table", () => {
   it("renders customer rows with edit links", () => {
@@ -29,6 +30,19 @@ describe("Customers/components/Table", () => {
     renderTable({ customers: [], searchQuery: "dale" });
 
     expect(screen.getByText("Nothing found")).toBeInTheDocument();
+  });
+
+  it("shows nothing for missing identifiers and contact details", () => {
+    renderTable({
+      customers: [makeCustomer({ woo_store_id: "", email: "", phone: "" })],
+    });
+
+    const row = screen.getByRole("cell", { name: "Dale Cooper" }).closest("tr")!;
+    const cells = within(row).getAllByRole("cell");
+
+    expect(cells[0]).toHaveTextContent("");
+    expect(cells[2]).toHaveTextContent("");
+    expect(cells[3]).toHaveTextContent("");
   });
 });
 

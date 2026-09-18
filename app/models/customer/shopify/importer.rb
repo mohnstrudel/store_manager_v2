@@ -44,16 +44,16 @@ class Customer::Shopify::Importer
     end
   end
 
+  def build_new_customer_store_info
+    return unless customer.new_record? && parsed[:store_info].present?
+
+    customer.store_infos.build(store_name: :shopify, **parsed[:store_info], pull_time: Time.zone.now)
+  end
+
   def handle_record_invalid(error)
     model_name = error.record.class.name
     detailed_errors = error.record.errors.full_messages.join(", ")
     store_id_details = parsed[:store_info] ? "Customer store_id: #{parsed[:store_info][:store_id]}" : nil
     raise Error, "Failed to process #{model_name}: #{detailed_errors}\n#{store_id_details}".strip
-  end
-
-  def build_new_customer_store_info
-    return unless customer.new_record? && parsed[:store_info].present?
-
-    customer.store_infos.build(store_name: :shopify, **parsed[:store_info], pull_time: Time.zone.now)
   end
 end

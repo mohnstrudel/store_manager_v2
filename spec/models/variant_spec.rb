@@ -4,20 +4,24 @@
 #
 # Table name: variants
 #
-#  id             :bigint           not null, primary key
-#  deactivated_at :datetime
-#  purchase_cost  :decimal(10, 2)   default(0.0), not null
-#  selling_price  :decimal(10, 2)   default(0.0), not null
-#  sku            :string           not null
-#  weight         :decimal(10, 2)   default(0.0), not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  color_id       :bigint
-#  product_id     :bigint           not null
-#  shopify_id     :string
-#  size_id        :bigint
-#  version_id     :bigint
-#  woo_id         :string
+#  id                               :bigint           not null, primary key
+#  deactivated_at                   :datetime
+#  purchase_cost                    :decimal(10, 2)   default(0.0), not null
+#  selling_price                    :decimal(10, 2)   default(0.0), not null
+#  selling_price_exchange_rate      :decimal(18, 10)
+#  selling_price_exchange_rate_date :date
+#  selling_price_source_amount      :decimal(10, 2)
+#  selling_price_source_currency    :string
+#  sku                              :string           not null
+#  weight                           :decimal(10, 2)   default(0.0), not null
+#  created_at                       :datetime         not null
+#  updated_at                       :datetime         not null
+#  color_id                         :bigint
+#  product_id                       :bigint           not null
+#  shopify_id                       :string
+#  size_id                          :bigint
+#  version_id                       :bigint
+#  woo_id                           :string
 #
 require "rails_helper"
 
@@ -62,7 +66,7 @@ RSpec.describe Variant do
     end
 
     context "when variant is deactivated" do
-      let(:variant) { create(:product).base_variant.tap { |base_variant| base_variant.update!(deactivated_at: Time.current) } }
+      let(:variant) { create(:variant).tap { |real_variant| real_variant.update!(deactivated_at: Time.current) } }
 
       it "returns true" do
         expect(variant.deactivated?).to be true
@@ -105,9 +109,29 @@ RSpec.describe Variant do
     end
   end
 
+  describe "historical assignment dependencies" do
+    it "refuses to nullify a Purchase assignment when a referenced Variant is deleted" do
+      product = create(:product)
+      variant = create(:variant, product:)
+      create(:purchase, product:, variant:)
+
+      expect { variant.destroy! }
+        .to raise_error(ActiveRecord::DeleteRestrictionError)
+    end
+
+    it "refuses to nullify a SaleItem assignment when a referenced Variant is deleted" do
+      product = create(:product)
+      variant = create(:variant, product:)
+      create(:sale_item, product:, variant:)
+
+      expect { variant.destroy! }
+        .to raise_error(ActiveRecord::DeleteRestrictionError)
+    end
+  end
+
   describe ".active scope" do
     let!(:active_variant) { create(:product).base_variant }
-    let!(:deactivated_variant) { create(:product).base_variant.tap { |variant| variant.update!(deactivated_at: Time.current) } }
+    let!(:deactivated_variant) { create(:variant).tap { |variant| variant.update!(deactivated_at: Time.current) } }
 
     it "includes active variants" do
       expect(described_class.active).to include(active_variant)
@@ -120,7 +144,7 @@ RSpec.describe Variant do
 
   describe ".deactivated scope" do
     let!(:active_variant) { create(:product).base_variant }
-    let!(:deactivated_variant) { create(:product).base_variant.tap { |variant| variant.update!(deactivated_at: Time.current) } }
+    let!(:deactivated_variant) { create(:variant).tap { |variant| variant.update!(deactivated_at: Time.current) } }
 
     it "includes deactivated variants" do
       expect(described_class.deactivated).to include(deactivated_variant)

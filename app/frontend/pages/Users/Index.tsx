@@ -1,4 +1,5 @@
 import ResourceIndexPage from "@/components/ResourceIndexPage";
+
 import IndexTable, { type UserRecord } from "./components/IndexTable";
 
 type IndexProps = {

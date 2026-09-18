@@ -75,8 +75,8 @@ RSpec.describe NotificationsMailer do
         expect(mail.body.encoded).to match("German description for Test Warehouse")
         expect(mail.body.encoded).to match("TRACK123")
         expect(mail.body.encoded).to match("https://example.com/tracking")
-        expect(mail.body.encoded).to match(/nachverfolgen/)
-        expect(mail.body.encoded).to match(/track your order/)
+        expect(mail.body.encoded).to include("nachverfolgen")
+        expect(mail.body.encoded).to include("track your order")
       end
 
       it "does not contain internal warehouse name" do # rubocop:todo RSpec/MultipleExpectations
@@ -173,8 +173,8 @@ RSpec.describe NotificationsMailer do
         expect(mail.body.encoded).to match("German description for New Warehouse")
         expect(mail.body.encoded).to match("TRACK456")
         expect(mail.body.encoded).to match("https://example.com/tracking/456")
-        expect(mail.body.encoded).to match(/nachverfolgen/)
-        expect(mail.body.encoded).to match(/track your order/)
+        expect(mail.body.encoded).to include("nachverfolgen")
+        expect(mail.body.encoded).to include("track your order")
       end
 
       it "does not contain previous status descriptions" do # rubocop:todo RSpec/MultipleExpectations

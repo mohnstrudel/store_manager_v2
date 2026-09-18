@@ -3,9 +3,17 @@
 module Variant::Options
   extend ActiveSupport::Concern
 
+  included do
+    scope :base_models, -> { where(size_id: nil, version_id: nil, color_id: nil) }
+    scope :real, -> {
+      where.not(size_id: nil)
+        .or(where.not(version_id: nil))
+        .or(where.not(color_id: nil))
+    }
+  end
+
   class_methods do
     def types
-      # Values should follow this rule: [English, German]
       {
         version: ["Version", "Variante"],
         size: ["Size", "Maßstab"],

@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { FlashMessage } from "@/types/inertia";
+
 import FlashMessages from "./FlashMessages";
 
 const flashState = vi.hoisted(() => ({

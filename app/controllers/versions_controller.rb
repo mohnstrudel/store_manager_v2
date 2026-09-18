@@ -3,7 +3,6 @@
 class VersionsController < ApplicationController
   before_action :set_version, only: %i[show edit update destroy]
 
-  # GET /versions or /versions.json
   def index
     @versions = Version.order(:value)
 
@@ -14,7 +13,6 @@ class VersionsController < ApplicationController
     }
   end
 
-  # GET /versions/1 or /versions/1.json
   def show
     @version = Version.includes(:products).find(params.expect(:id))
 
@@ -24,19 +22,16 @@ class VersionsController < ApplicationController
     }
   end
 
-  # GET /versions/new
   def new
     @version = Version.new
 
     render inertia: "Versions/New", props: helpers.version_form_props(@version)
   end
 
-  # GET /versions/1/edit
   def edit
     render inertia: "Versions/Edit", props: helpers.version_form_props(@version)
   end
 
-  # POST /versions or /versions.json
   def create
     @version = Version.new(version_params)
 
@@ -51,7 +46,6 @@ class VersionsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /versions/1 or /versions/1.json
   def update
     respond_to do |format|
       if @version.update(version_params)
@@ -64,7 +58,6 @@ class VersionsController < ApplicationController
     end
   end
 
-  # DELETE /versions/1 or /versions/1.json
   def destroy
     @version.destroy
 
@@ -76,13 +69,11 @@ class VersionsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_version
-    @version = Version.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def version_params
     params.fetch(:version, {}).permit(:value)
+  end
+
+  def set_version
+    @version = Version.find(params.expect(:id))
   end
 end

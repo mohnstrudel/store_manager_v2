@@ -1,6 +1,8 @@
 import { Link } from "@inertiajs/react";
+
 import Button from "@/components/Button";
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import { PurchaseItemsSection } from "./Show/PurchaseItemsSection";
 import { WarehouseDetails } from "./Show/WarehouseDetails";
 import type {

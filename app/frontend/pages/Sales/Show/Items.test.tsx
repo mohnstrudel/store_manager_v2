@@ -1,15 +1,17 @@
-import { render, screen } from "@testing-library/react";
+import { router } from "@inertiajs/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
+
 import type { WarehouseOption } from "@/types/warehouse";
-import Items from "./Items";
+
 import {
   makeSalePurchaseMovement,
   makeSaleShowPurchaseItem,
   makeSaleShowSaleItem,
 } from "../test/factories";
 import type { SaleShowSaleItemRecord } from "../types";
+import Items from "./Items";
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
@@ -53,7 +55,7 @@ describe("Sales/Show/Items", () => {
     );
   });
 
-  it("shows the unavailable image placeholder and no-purchase marker", () => {
+  it("shows the unavailable image placeholder and missing-purchases marker", () => {
     renderItems([
       makeSaleShowSaleItem({
         product_thumb_url: null,
@@ -62,7 +64,20 @@ describe("Sales/Show/Items", () => {
     ]);
 
     expect(screen.getByText("Image unavailable")).toBeInTheDocument();
-    expect(screen.getByText("NO PURCHASE")).toBeInTheDocument();
+    expect(screen.getByText("MISSING 2 PURCHASES")).toBeInTheDocument();
+  });
+
+  it("shows a singular missing-purchases marker alongside listed purchases when partially covered", () => {
+    renderItems([makeSaleShowSaleItem({ qty: 2, purchase_items: [makeSaleShowPurchaseItem()] })]);
+
+    expect(screen.getByRole("link", { name: /Acme Imports/ })).toBeInTheDocument();
+    expect(screen.getByText("MISSING 1 PURCHASE")).toBeInTheDocument();
+  });
+
+  it("shows no missing-purchases marker once fully purchased", () => {
+    renderItems([makeSaleShowSaleItem({ qty: 1, purchase_items: [makeSaleShowPurchaseItem()] })]);
+
+    expect(screen.queryByText(/MISSING/)).not.toBeInTheDocument();
   });
 
   it("hides the checkbox column when no sale items have linked purchases", () => {
@@ -93,6 +108,21 @@ describe("Sales/Show/Items", () => {
 
     expect(screen.getByText("Moved in")).toBeInTheDocument();
     expect(screen.getByText("Paris Hub")).toBeInTheDocument();
+  });
+
+  it("renders the price column", () => {
+    renderItems([makeSaleShowSaleItem()]);
+
+    expect(screen.getByRole("columnheader", { name: "Price" })).toBeInTheDocument();
+    const dataRow = screen.getAllByRole("row")[1];
+    const priceCell = within(dataRow).getAllByRole("cell")[3];
+    expect(priceCell).toHaveTextContent("1060");
+  });
+
+  it("always renders the price column regardless of profitability data", () => {
+    renderItems([makeSaleShowSaleItem({ profitability: null })]);
+
+    expect(screen.getByRole("columnheader", { name: "Price" })).toBeInTheDocument();
   });
 
   it("unlinks a purchase item after confirmation", async () => {

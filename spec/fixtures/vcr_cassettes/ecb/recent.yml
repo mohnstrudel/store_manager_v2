@@ -1,0 +1,37 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml
+    body:
+      encoding: US-ASCII
+      string: ""
+    headers:
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - text/xml; charset=UTF-8
+    body:
+      encoding: UTF-8
+      string: |
+        <?xml version="1.0" encoding="UTF-8"?>
+        <gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+          <Cube>
+            <Cube time="2026-08-21">
+              <Cube currency="USD" rate="1.1250"/>
+              <Cube currency="CHF" rate="0.9375"/>
+            </Cube>
+            <Cube time="2026-08-20">
+              <Cube currency="USD" rate="1.1200"/>
+              <Cube currency="CHF" rate="0.9350"/>
+            </Cube>
+          </Cube>
+        </gesmes:Envelope>
+    http_version:
+  recorded_at: Fri, 21 Aug 2026 12:00:00 GMT
+recorded_with: VCR 6.4.0

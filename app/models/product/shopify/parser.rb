@@ -71,21 +71,6 @@ class Product::Shopify::Parser
     }
   end
 
-  def parse_sku
-    first_variant_sku = payload.dig("variants", "edges", 0, "node", "sku")
-
-    @parsed_sku =
-      if parsed_variants.many?
-        nil
-      else
-        first_variant_sku || generate_sku
-      end
-  end
-
-  def generate_sku
-    "#{payload["title"].parameterize}-#{Random.alphanumeric(4)}"
-  end
-
   def parse_media
     @parsed_media = payload.dig("media", "nodes")&.map&.with_index do |node, index|
       {
@@ -136,5 +121,20 @@ class Product::Shopify::Parser
     options&.map do |option|
       {name: option["name"], value: option["value"]}
     end || []
+  end
+
+  def parse_sku
+    first_variant_sku = payload.dig("variants", "edges", 0, "node", "sku")
+
+    @parsed_sku =
+      if parsed_variants.many?
+        nil
+      else
+        first_variant_sku || generate_sku
+      end
+  end
+
+  def generate_sku
+    "#{payload["title"].parameterize}-#{Random.alphanumeric(4)}"
   end
 end

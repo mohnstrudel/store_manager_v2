@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { KeyboardEvent, MouseEvent } from "react";
 import { router } from "@inertiajs/react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { rowNavigationProps, stopRowNavigation } from "./rowNavigation";
 
 beforeEach(() => {

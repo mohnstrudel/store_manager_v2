@@ -71,6 +71,45 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       expect(described_class::SALE_FIELDS).to include("variantTitle")
     end
 
+    it "asks whether line items were truncated" do
+      aggregate_failures do
+        expect(described_class::SALE_FIELDS).to include("lineItems(first: 10)")
+        expect(described_class::SALE_FIELDS).to match(
+          /lineItems\(first: 10\) \{\s*pageInfo \{\s*hasNextPage\s*\}/
+        )
+      end
+    end
+
+    it "includes complete payment-term schedule fields" do
+      aggregate_failures do
+        expect(described_class::SALE_FIELDS).to include("paymentSchedules(first: 250)")
+        expect(described_class::SALE_FIELDS).to include("balanceDue")
+        expect(described_class::SALE_FIELDS).to include("totalBalance")
+        expect(described_class::SALE_FIELDS).to include("completedAt")
+        expect(described_class::SALE_FIELDS).to include("issuedAt")
+      end
+    end
+
+    it "requests the order's top-level currencyCode and presentmentCurrencyCode" do
+      expect(described_class::SALE_FIELDS).to include("currencyCode")
+      expect(described_class::SALE_FIELDS).to include("presentmentCurrencyCode")
+    end
+
+    it "does not select currencyCode beside any order-level or line-item shopMoney amount" do
+      %w[
+        totalDiscountsSet totalPriceSet totalShippingPriceSet currentTotalPriceSet
+        totalReceivedSet totalOutstandingSet netPaymentSet totalRefundedSet
+        originalTotalSet discountedTotalSet
+      ].each do |field|
+        expect(described_class::SALE_FIELDS).to match(/#{field} \{\s*shopMoney \{\s*amount\s*\}\s*\}/)
+      end
+    end
+
+    it "does not select currencyCode beside payment schedule balanceDue or totalBalance" do
+      expect(described_class::SALE_FIELDS).to match(/balanceDue \{\s*amount\s*\}/)
+      expect(described_class::SALE_FIELDS).to match(/totalBalance \{\s*amount\s*\}/)
+    end
+
     it "includes minimal product reference fields for sale item linking" do
       expect(described_class::SALE_FIELDS).to include("id")
       expect(described_class::SALE_FIELDS).to include("product {")

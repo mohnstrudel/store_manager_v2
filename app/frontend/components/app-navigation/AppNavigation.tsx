@@ -1,8 +1,10 @@
-import { useCallback } from "react";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link, router, usePage } from "@inertiajs/react";
-import routes from "@/utils/routes";
+import { useCallback } from "react";
+
 import type { PageProps } from "@/types/inertia";
+import routes from "@/utils/routes";
+
 import { useNavigationDropdown } from "./useNavigationDropdown";
 
 const emptyPagination = {
@@ -37,7 +39,7 @@ const primaryLinks: NavigationLink[] = [
       sale_debts_count: 0,
       sales_hook_disabled: false,
       suppliers_debts: [],
-      total_suppliers_debt: "$0",
+      total_suppliers_debt: "0",
     },
   },
   {
@@ -150,14 +152,41 @@ const overflowLinks: Array<NavigationLink | NavigationDivider> = [
     pageProps: { sizes: [] },
   },
   { divider: true, key: "divider-sections" },
+  {
+    href: routes.glossary.show.path(),
+    label: "Glossary",
+    component: "Glossary/Show",
+    pageProps: {},
+  },
 ];
 
-const usersLink: NavigationLink = {
-  href: routes.users.index.path(),
-  label: "Users",
-  component: "Users/Index",
-  pageProps: { users: [] },
-};
+const adminLinks: NavigationLink[] = [
+  {
+    href: routes.variantAssignmentIssues.index.path(),
+    label: "Variant Repairs",
+    component: "VariantAssignmentIssues/Index",
+    pageProps: {
+      counts: { purchases: 0, sale_items: 0, purchase_item_links: 0 },
+      filter: "",
+      filters: [],
+      issue_type: "purchases",
+      issues: [],
+      pagination: emptyPagination,
+    },
+  },
+  {
+    href: routes.expenseRates.index.path(),
+    label: "OpEx Rates",
+    component: "ExpenseRates/Index",
+    pageProps: { expenseRates: [] },
+  },
+  {
+    href: routes.users.index.path(),
+    label: "Users",
+    component: "Users/Index",
+    pageProps: { users: [] },
+  },
+];
 
 export default function AppNavigation() {
   const { auth } = usePage<PageProps>().props;
@@ -242,6 +271,26 @@ function NavigationPrimaryLinks({ onSelect }: { onSelect?: () => void }) {
   );
 }
 
+function NavigationLinkGroup({
+  links,
+  onSelect,
+}: {
+  links: NavigationLink[];
+  onSelect?: () => void;
+}) {
+  return (
+    <>
+      {links.map((link) => (
+        <NavigationLinkItem key={link.href} link={link} onSelect={onSelect} />
+      ))}
+    </>
+  );
+}
+
+function NavigationSeparator({ className = "hidden lg:block lg:ml-6" }: { className?: string }) {
+  return <li aria-hidden="true" className={className} />;
+}
+
 function NavigationOverflowMenu({
   closeDropdown,
   dropdownRef,
@@ -274,13 +323,16 @@ function NavigationOverflowMenu({
       </button>
       <ul className="navigation-dropdown_menu" aria-hidden={!isOpen} id="navigation-dropdown-links">
         <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />
-        {user?.role === "admin" ? (
-          <NavigationLinkItem
-            className="navigation-dropdown_link"
-            link={usersLink}
-            onSelect={closeDropdown}
-          />
-        ) : null}
+        {user?.role === "admin"
+          ? adminLinks.map((link) => (
+              <NavigationLinkItem
+                className="navigation-dropdown_link"
+                key={link.href}
+                link={link}
+                onSelect={closeDropdown}
+              />
+            ))
+          : null}
         <li>
           <button className="navigation-dropdown_link" onClick={handleLogOut} type="button">
             Log Out
@@ -288,22 +340,6 @@ function NavigationOverflowMenu({
         </li>
       </ul>
     </li>
-  );
-}
-
-function NavigationLinkGroup({
-  links,
-  onSelect,
-}: {
-  links: NavigationLink[];
-  onSelect?: () => void;
-}) {
-  return (
-    <>
-      {links.map((link) => (
-        <NavigationLinkItem key={link.href} link={link} onSelect={onSelect} />
-      ))}
-    </>
   );
 }
 
@@ -357,8 +393,11 @@ function NavigationLinkItem({
   );
 }
 
-function NavigationSeparator({ className = "hidden lg:block lg:ml-6" }: { className?: string }) {
-  return <li aria-hidden="true" className={className} />;
+function withSharedPageProps(pageProps: Record<string, unknown>) {
+  return (_currentProps: Record<string, unknown>, sharedProps: Record<string, unknown>) => ({
+    ...sharedProps,
+    ...pageProps,
+  });
 }
 
 function logOut(onLoggedOut?: () => void) {
@@ -366,11 +405,4 @@ function logOut(onLoggedOut?: () => void) {
 
   onLoggedOut?.();
   router.post(routes.sessions.destroy.path());
-}
-
-function withSharedPageProps(pageProps: Record<string, unknown>) {
-  return (_currentProps: Record<string, unknown>, sharedProps: Record<string, unknown>) => ({
-    ...sharedProps,
-    ...pageProps,
-  });
 }
