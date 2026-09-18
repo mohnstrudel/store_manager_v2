@@ -165,7 +165,7 @@ class Variant::AssignmentRepair
     end
   end
 
-  def repair_purchase!(purchase_id:, variant_id:)
+  def repair_purchase!(purchase_id:, variant_id:) # rubocop:disable Project/PrivateMethodCandidate
     Purchase.transaction do
       purchase = Purchase.lock.find(purchase_id)
       return :noop unless integrity.broken_purchase?(purchase.id)
@@ -202,7 +202,7 @@ class Variant::AssignmentRepair
     end
   end
 
-  def repair_sale_item!(sale_item_id:, variant_id:, product_id: nil)
+  def repair_sale_item!(sale_item_id:, variant_id:, product_id: nil) # rubocop:disable Project/PrivateMethodCandidate
     SaleItem.transaction do
       sale_item = SaleItem.lock.find(sale_item_id)
       return :noop unless integrity.broken_sale_item?(sale_item.id)

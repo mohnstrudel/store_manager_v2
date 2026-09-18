@@ -13,7 +13,7 @@ class Media::LegacyAttachments::Classification
     @unrecoverable ||= releasing_all.where.not(record_id: recoverable_owner_ids)
   end
 
-  def blocked
+  def blocked # rubocop:disable Project/PrivateMethodCandidate
     @blocked ||= live
       .where.not(record_id: owners_with_media_ids)
       .or(live.where(record_id: partial_owner_ids))

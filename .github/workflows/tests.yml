@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      BUNDLE_WITHOUT: development
       PGHOST: localhost
       PGUSER: postgres
       PGPASSWORD: postgres
@@ -95,4 +94,4 @@ jobs:
         run: pnpm lint
 
       - name: Run frontend tests
-        run: pnpm test:run
+        run: pnpm exec vitest run

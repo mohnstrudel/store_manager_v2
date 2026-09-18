@@ -14,7 +14,7 @@ module Purchase::Warehousing
     end
   end
 
-  def link_with_sales
+  def link_with_sales # rubocop:disable Project/PrivateMethodCandidate
     link_purchase_items
   end
 

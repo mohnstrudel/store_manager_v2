@@ -45,14 +45,14 @@ module PurchaseItem::Warehousing
     update!(warehouse_id:)
   end
 
-  def current_warehouse_arrived_at
+  def current_warehouse_arrived_at # rubocop:disable Project/PrivateMethodCandidate
     warehouse_movements
       .select { |movement| movement.warehouse&.id == warehouse_id }
       .map(&:moved_in)
       .max || created_at || Time.current
   end
 
-  def warehouse_movements(warehouses_by_id: nil)
+  def warehouse_movements(warehouses_by_id: nil) # rubocop:disable Project/PrivateMethodCandidate
     movement_data = audits.each_with_object([]) do |audit, rows|
       moved_warehouse_id = moved_warehouse_id_for(audit)
       next if moved_warehouse_id.blank?

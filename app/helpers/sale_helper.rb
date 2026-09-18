@@ -23,7 +23,7 @@ module SaleHelper
     )
   end
 
-  def sale_settlement_props(sale)
+  def sale_settlement_props(sale) # rubocop:disable Project/PrivateMethodCandidate
     return {settlement_status: nil, payment_progress: nil} if sale.economically_excluded?
 
     {

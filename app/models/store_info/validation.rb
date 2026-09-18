@@ -10,7 +10,7 @@ module StoreInfo::Validation
     validate :storable_store_info_limit
   end
 
-  def should_be_removed?
+  def should_be_removed? # rubocop:disable Project/PrivateMethodCandidate
     ActiveModel::Type::Boolean.new.cast(@_destroy) || marked_for_destruction? || destroyed?
   end
 
