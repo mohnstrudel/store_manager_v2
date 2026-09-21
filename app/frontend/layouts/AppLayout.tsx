@@ -3,8 +3,11 @@ import type { MouseEvent, ReactNode } from "react";
 import AppNavigation from "@/components/app-navigation/AppNavigation";
 import Breadcrumbs from "@/components/breadcrumbs/Breadcrumbs";
 import FlashMessages from "@/components/flash-messages/FlashMessages";
+import { useDocumentTitle } from "@/utils/useDocumentTitle";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  useDocumentTitle();
+
   return (
     <div className="flex flex-col min-h-screen">
       <AppNavigation />
