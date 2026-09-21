@@ -87,7 +87,7 @@ RSpec.describe Seal::SyncPaymentPlansJob do
   describe "single-flight locking" do
     def raw_pg_connection
       config = ActiveRecord::Base.connection_db_config.configuration_hash
-      PG.connect(dbname: config[:database], host: config[:host], port: config[:port], user: config[:username], password: config[:password])
+      PG.connect(**{dbname: config[:database], host: config[:host], port: config[:port], user: config[:username], password: config[:password]}.compact)
     end
 
     def hold_competing_lock
