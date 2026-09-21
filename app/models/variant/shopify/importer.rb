@@ -49,13 +49,11 @@ class Variant::Shopify::Importer
   end
 
   def variant_identity_attrs
-    @variant_identity_attrs ||= variant_attrs
-      .except(:sku, :selling_price, :purchase_cost, :weight)
-      .presence || {
-        color_id: nil,
-        size_id: nil,
-        version_id: nil
-      }
+    @variant_identity_attrs ||= {
+      color_id: variant_attrs[:color]&.id,
+      size_id: variant_attrs[:size]&.id,
+      version_id: variant_attrs[:version]&.id
+    }
   end
 
   def variant_attrs

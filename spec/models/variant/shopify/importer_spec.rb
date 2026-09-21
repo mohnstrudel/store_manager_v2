@@ -188,6 +188,30 @@ RSpec.describe Variant::Shopify::Importer do
       end
     end
 
+    context "when a base variant is unlinked and the payload has a currency conversion" do
+      let!(:existing_variant) { product.base_variant }
+      let(:parsed_variant) do
+        {
+          store_id: "gid://shopify/ProductVariant/12345",
+          sku: "TEST-SKU-001",
+          selling_price: "299.99",
+          options: [],
+          is_single_variant: true,
+          usd_conversion_rate: BigDecimal("1.125"),
+          usd_conversion_date: Date.new(2026, 9, 2)
+        }
+      end
+
+      it "links the existing base variant" do
+        imported_variant = nil
+
+        expect { imported_variant = described_class.import!(product, parsed_variant) }.not_to change(Variant, :count)
+
+        expect(imported_variant).to eq(existing_variant)
+        expect(existing_variant.reload.shopify_info.store_id).to eq(parsed_variant[:store_id])
+      end
+    end
+
     context "with blank options" do
       it "creates a base variant" do # rubocop:todo RSpec/MultipleExpectations
         result = described_class.import!(product, {options: []})
