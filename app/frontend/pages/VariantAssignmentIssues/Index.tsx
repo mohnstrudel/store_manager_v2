@@ -13,6 +13,7 @@ import type {
   PurchaseAssignmentIssue,
   PurchaseItemLinkIssue,
   SaleItemAssignmentIssue,
+  SkuCollisionIssue,
   VariantAssignmentIssuesPageProps,
 } from "./types";
 
@@ -22,6 +23,7 @@ const tabs: Array<{ type: IssueType; label: string }> = [
   { type: "purchases", label: "Purchases" },
   { type: "sale_items", label: "SaleItems" },
   { type: "purchase_item_links", label: "PurchaseItem links" },
+  { type: "sku_collisions", label: "SKU collisions" },
 ];
 
 export default function Index(props: VariantAssignmentIssuesPageProps) {
@@ -32,11 +34,13 @@ export default function Index(props: VariantAssignmentIssuesPageProps) {
       <PageHeader title="Variant Repairs" />
       <section className="section_wide">
         <IssueTabs counts={props.counts} selectedType={props.issue_type} />
-        <IssueFilterSelect
-          filter={props.filter}
-          filters={props.filters}
-          issueType={props.issue_type}
-        />
+        {props.filters.length > 1 && (
+          <IssueFilterSelect
+            filter={props.filter}
+            filters={props.filters}
+            issueType={props.issue_type}
+          />
+        )}
 
         {hasIssues ? (
           <>
@@ -65,19 +69,34 @@ function IssueTabs({
   selectedType: IssueType;
 }) {
   return (
-    <nav aria-label="Variant assignment issue types" className="tabs mb-6">
-      {tabs.map((tab) => (
-        <Link
-          aria-current={tab.type === selectedType ? "page" : undefined}
-          className={tab.type === selectedType ? "active" : undefined}
-          href={issuePath(tab.type)}
-          key={tab.type}
-          prefetch
-        >
-          {tab.label} {counts[tab.type]}
-        </Link>
-      ))}
-    </nav>
+    <div
+      aria-label="Variant assignment issue types"
+      className="tab_bar_underline flex-wrap mb-6"
+      role="tablist"
+    >
+      {tabs
+        .filter((tab) => counts[tab.type] > 0 || tab.type === selectedType)
+        .map((tab) => {
+          const active = tab.type === selectedType;
+
+          return (
+            <Link
+              aria-label={`${tab.label} ${counts[tab.type]}`}
+              aria-selected={active}
+              className="tab_btn_underline w-auto"
+              href={issuePath(tab.type)}
+              key={tab.type}
+              prefetch
+              role="tab"
+            >
+              {tab.label}
+              <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">
+                {counts[tab.type]}
+              </span>
+            </Link>
+          );
+        })}
+    </div>
   );
 }
 
@@ -123,6 +142,9 @@ function IssueTable({ issueType, issues }: { issueType: IssueType; issues: Assig
   if (issueType === "purchase_item_links") {
     return <LinkIssueTable issues={issues} />;
   }
+  if (issueType === "sku_collisions") {
+    return <SkuCollisionTable issues={issues} />;
+  }
 
   return <AssignmentIssueTable issueType={issueType} issues={issues} />;
 }
@@ -158,6 +180,45 @@ function LinkIssueTable({ issues }: { issues: AssignmentIssue[] }) {
                 <td>{linkImpact(issue)}</td>
                 <td>
                   <LinkRepairButton issue={issue} />
+                </td>
+              </tr>
+            ) : null,
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+function SkuCollisionTable({ issues }: { issues: AssignmentIssue[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Product / Variant</th>
+            <th>Colliding with</th>
+          </tr>
+        </thead>
+        <tbody>
+          {issues.map((issue) =>
+            isSkuCollisionIssue(issue) ? (
+              <tr
+                aria-label={`SKU collision ${issue.sku} on ${issue.product_title}`}
+                key={issue.id}
+              >
+                <td>{issue.sku}</td>
+                <td>
+                  <Link href={issue.edit_path}>
+                    {issue.product_title} / {issue.variant_label}
+                  </Link>
+                </td>
+                <td>
+                  {issue.colliding_with.map((other) => (
+                    <Link href={other.edit_path} key={other.variant_id}>
+                      {other.product_title} / {other.variant_label}
+                    </Link>
+                  ))}
                 </td>
               </tr>
             ) : null,
@@ -393,4 +454,8 @@ function isAssignmentIssue(
   issue: AssignmentIssue,
 ): issue is PurchaseAssignmentIssue | SaleItemAssignmentIssue {
   return issue.kind === "purchase" || issue.kind === "sale_item";
+}
+
+function isSkuCollisionIssue(issue: AssignmentIssue): issue is SkuCollisionIssue {
+  return issue.kind === "sku_collision";
 }

@@ -20,7 +20,7 @@ describe("VariantAssignmentIssues/Index", () => {
     const user = userEvent.setup();
 
     renderPage({
-      counts: { purchases: 28, sale_items: 3, purchase_item_links: 2 },
+      counts: { purchases: 28, sale_items: 3, purchase_item_links: 2, sku_collisions: 5 },
       pagination: makePagination({
         current_page: 2,
         total_pages: 2,
@@ -30,14 +30,16 @@ describe("VariantAssignmentIssues/Index", () => {
     });
 
     expect([
-      screen.getByRole("link", { name: "Purchases 28" }).getAttribute("aria-current"),
-      screen.getByRole("link", { name: "SaleItems 3" }).getAttribute("href"),
-      screen.getByRole("link", { name: "PurchaseItem links 2" }).getAttribute("href"),
+      screen.getByRole("tab", { name: "Purchases 28" }).getAttribute("aria-selected"),
+      screen.getByRole("tab", { name: "SaleItems 3" }).getAttribute("href"),
+      screen.getByRole("tab", { name: "PurchaseItem links 2" }).getAttribute("href"),
+      screen.getByRole("tab", { name: "SKU collisions 5" }).getAttribute("href"),
       screen.getByRole("link", { name: "Previous" }).getAttribute("href"),
     ]).toEqual([
-      "page",
+      "true",
       "/variant_assignment_issues?issue_type=sale_items",
       "/variant_assignment_issues?issue_type=purchase_item_links",
+      "/variant_assignment_issues?issue_type=sku_collisions",
       "/variant_assignment_issues?issue_type=purchases&reason=missing_variant&page=1",
     ]);
 
@@ -48,6 +50,21 @@ describe("VariantAssignmentIssues/Index", () => {
       { issue_type: "purchases", reason: undefined },
       { preserveState: true },
     );
+  });
+
+  it("hides tabs with no items, keeping the selected empty tab visible", () => {
+    renderPage({
+      counts: { purchases: 0, sale_items: 4, purchase_item_links: 0, sku_collisions: 0 },
+      issueType: "purchases",
+      issues: [],
+    });
+
+    expect([
+      screen.getByRole("tab", { name: "Purchases 0" }).getAttribute("aria-selected"),
+      screen.getByRole("tab", { name: "SaleItems 4" }).getAttribute("href"),
+      screen.queryByRole("tab", { name: /PurchaseItem links/ }),
+      screen.queryByRole("tab", { name: /SKU collisions/ }),
+    ]).toEqual(["true", "/variant_assignment_issues?issue_type=sale_items", null, null]);
   });
 
   it("repairs a Purchase with a Rails-owned historical candidate and reloads all issue props", async () => {
@@ -150,6 +167,46 @@ describe("VariantAssignmentIssues/Index", () => {
     );
   });
 
+  it("renders the sku_collisions tab with count badge and no repair action", () => {
+    const skuIssue: AssignmentIssue = {
+      kind: "sku_collision",
+      id: 21,
+      sku: "dup-1",
+      product_id: 3,
+      product_title: "Product A",
+      variant_label: "Active",
+      edit_path: "/products/3/edit",
+      colliding_with: [
+        {
+          product_id: 4,
+          product_title: "Product B",
+          variant_id: 22,
+          variant_label: "Base Model",
+          edit_path: "/products/4/edit",
+        },
+      ],
+    };
+
+    renderPage({
+      counts: { purchases: 1, sale_items: 0, purchase_item_links: 0, sku_collisions: 1 },
+      issueType: "sku_collisions",
+      filter: "",
+      filters: [],
+      issues: [skuIssue],
+    });
+
+    const row = screen.getByRole("row", { name: /SKU collision dup-1/ });
+
+    expect([
+      screen.getByRole("tab", { name: "SKU collisions 1" }).getAttribute("aria-selected"),
+      within(row).getByText("Product A / Active").textContent,
+      within(row).getByText("Product B / Base Model").textContent,
+      within(row).queryByRole("button"),
+      screen.queryByRole("combobox", { name: "Issue filter" }),
+      within(row).queryByRole("combobox"),
+    ]).toEqual(["true", "Product A / Active", "Product B / Base Model", null, null, null]);
+  });
+
   it("uses the approved empty state", () => {
     renderPage({ issues: [], pagination: makePagination({ total_count: 0 }) });
 
@@ -158,7 +215,7 @@ describe("VariantAssignmentIssues/Index", () => {
 });
 
 function renderPage({
-  counts = { purchases: 1, sale_items: 0, purchase_item_links: 0 },
+  counts = { purchases: 1, sale_items: 0, purchase_item_links: 0, sku_collisions: 0 },
   filter = "missing_variant",
   filters = [
     { value: "missing_product", label: "Missing Product" },
@@ -172,7 +229,7 @@ function renderPage({
   counts?: AssignmentIssueCounts;
   filter?: string;
   filters?: IssueFilter[];
-  issueType?: "purchases" | "sale_items" | "purchase_item_links";
+  issueType?: "purchases" | "sale_items" | "purchase_item_links" | "sku_collisions";
   issues?: AssignmentIssue[];
   pagination?: ReturnType<typeof makePagination>;
 } = {}) {

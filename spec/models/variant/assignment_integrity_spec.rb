@@ -84,7 +84,8 @@ RSpec.describe Variant::AssignmentIntegrity do
       expect(integrity.counts).to eq(
         purchases: 2,
         sale_items: 0,
-        purchase_item_links: 0
+        purchase_item_links: 0,
+        sku_collisions: 0
       )
       expect(
         integrity.relation_for(:purchases, reason: "missing_variant")
@@ -108,6 +109,43 @@ RSpec.describe Variant::AssignmentIntegrity do
         expect(page.total_count).to eq(2)
         expect(page.size).to eq(1)
       end
+    end
+
+    it "returns active variants that share a non-blank sku across different products, updating counts" do
+      variant_a = create(:variant, product:, sku: "dup-1")
+      variant_b = create(:variant, product: other_product, sku: "dup-1")
+
+      expect(integrity.duplicate_sku_variants).to contain_exactly(variant_a, variant_b)
+      expect(integrity.counts[:sku_collisions]).to eq(2)
+    end
+
+    it "returns active variants sharing a sku within the same product" do
+      variant_a = create(:variant, product:, sku: "dup-1")
+      variant_b = create(:variant, product:, sku: "dup-1")
+
+      expect(integrity.duplicate_sku_variants).to contain_exactly(variant_a, variant_b)
+    end
+
+    it "excludes a deactivated counterpart from the collision set" do
+      variant_a = create(:variant, product:, sku: "dup-1")
+      variant_b = create(:variant, product: other_product, sku: "dup-1")
+      create(:variant, product: create(:product), sku: "dup-1", deactivated_at: Time.current)
+
+      expect(integrity.duplicate_sku_variants).to contain_exactly(variant_a, variant_b)
+    end
+
+    it "includes active base-model variants sharing a sku" do
+      product.base_variant.update!(sku: "dup-1")
+      other_product.base_variant.update!(sku: "dup-1")
+
+      expect(integrity.duplicate_sku_variants).to contain_exactly(
+        product.base_variant,
+        other_product.base_variant
+      )
+    end
+
+    it "has no reason filters for sku_collisions" do
+      expect(integrity.reasons_for(:sku_collisions)).to eq([])
     end
   end
 

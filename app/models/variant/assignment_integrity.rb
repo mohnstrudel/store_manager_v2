@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Variant::AssignmentIntegrity
-  ISSUE_TYPES = %i[purchases sale_items purchase_item_links].freeze
+  ISSUE_TYPES = %i[purchases sale_items purchase_item_links sku_collisions].freeze
 
   ASSIGNMENT_REASONS = {
     "missing_product" => "%<table>s.product_id IS NULL",
@@ -31,7 +31,8 @@ class Variant::AssignmentIntegrity
     {
       purchases: broken_purchases.count,
       sale_items: broken_sale_items.count,
-      purchase_item_links: incompatible_purchase_item_links.count
+      purchase_item_links: incompatible_purchase_item_links.count,
+      sku_collisions: duplicate_sku_variants.count
     }
   end
 
@@ -49,6 +50,10 @@ class Variant::AssignmentIntegrity
       .left_joins(:purchase, :sale_item)
       .where(link_predicate)
       .distinct
+  end
+
+  def duplicate_sku_variants
+    Variant.active.where.not(sku: [nil, ""]).where(sku: duplicate_skus)
   end
 
   def broken_purchase?(purchase_or_id)
@@ -82,7 +87,11 @@ class Variant::AssignmentIntegrity
   end
 
   def reasons_for(issue_type)
-    (issue_type.to_sym == :purchase_item_links) ? LINK_REASONS.keys : ASSIGNMENT_REASONS.keys
+    case issue_type.to_sym
+    when :purchase_item_links then LINK_REASONS.keys
+    when :sku_collisions then []
+    else ASSIGNMENT_REASONS.keys
+    end
   end
 
   def relation_for(issue_type, reason: nil)
@@ -118,6 +127,10 @@ class Variant::AssignmentIntegrity
     LINK_REASONS.values.map { |predicate| "(#{predicate})" }.join(" OR ")
   end
 
+  def duplicate_skus
+    Variant.active.where.not(sku: [nil, ""]).group(:sku).having("COUNT(*) > 1").select(:sku)
+  end
+
   def record_id(record_or_id)
     record_or_id.respond_to?(:id) ? record_or_id.id : record_or_id
   end
@@ -126,7 +139,8 @@ class Variant::AssignmentIntegrity
     {
       purchases: :broken_purchases,
       sale_items: :broken_sale_items,
-      purchase_item_links: :incompatible_purchase_item_links
+      purchase_item_links: :incompatible_purchase_item_links,
+      sku_collisions: :duplicate_sku_variants
     }.fetch(issue_type)
   end
 

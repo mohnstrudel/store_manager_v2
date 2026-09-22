@@ -25,7 +25,8 @@ RSpec.describe "Variant assignment issues" do
         counts: {
           purchases: 1,
           sale_items: 0,
-          purchase_item_links: 0
+          purchase_item_links: 0,
+          sku_collisions: 0
         }
       )
       issue = inertia.props[:issues].sole
@@ -104,6 +105,57 @@ RSpec.describe "Variant assignment issues" do
           remaining_capacity_after_unlink: 2
         )
         expect(issue[:exact_replacement_ids]).to contain_exactly(exact_inventory.id)
+      end
+    end
+
+    it "renders every member of a three-variant collision group with edit links and no repair control" do
+      product_a = create(:product)
+      product_b = create(:product)
+      product_c = create(:product)
+      variant_a = create(:variant, product: product_a, sku: "dup-1")
+      variant_b = create(:variant, product: product_b, sku: "dup-1")
+      variant_c = create(:variant, product: product_c, sku: "dup-1")
+
+      get variant_assignment_issues_path, params: {issue_type: "sku_collisions"}
+
+      expect_inertia.to have_props(
+        issue_type: "sku_collisions",
+        filter: "",
+        counts: {
+          purchases: 0,
+          sale_items: 0,
+          purchase_item_links: 0,
+          sku_collisions: 3
+        }
+      )
+      expect(inertia.props[:issues].size).to eq(3)
+      issue = inertia.props[:issues].find { |row| row[:id] == variant_a.id }
+      aggregate_failures do
+        expect(issue).to include(
+          kind: "sku_collision",
+          sku: "dup-1",
+          product_id: product_a.id,
+          product_title: product_a.full_title,
+          variant_label: variant_a.assignment_label,
+          edit_path: edit_product_path(product_a)
+        )
+        expect(issue).not_to have_key(:candidates)
+        expect(issue[:colliding_with]).to contain_exactly(
+          {
+            product_id: product_b.id,
+            product_title: product_b.full_title,
+            variant_id: variant_b.id,
+            variant_label: variant_b.assignment_label,
+            edit_path: edit_product_path(product_b)
+          },
+          {
+            product_id: product_c.id,
+            product_title: product_c.full_title,
+            variant_id: variant_c.id,
+            variant_label: variant_c.assignment_label,
+            edit_path: edit_product_path(product_c)
+          }
+        )
       end
     end
 

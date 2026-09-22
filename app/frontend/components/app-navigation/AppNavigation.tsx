@@ -166,7 +166,7 @@ const adminLinks: NavigationLink[] = [
     label: "Variant Repairs",
     component: "VariantAssignmentIssues/Index",
     pageProps: {
-      counts: { purchases: 0, sale_items: 0, purchase_item_links: 0 },
+      counts: { purchases: 0, sale_items: 0, purchase_item_links: 0, sku_collisions: 0 },
       filter: "",
       filters: [],
       issue_type: "purchases",

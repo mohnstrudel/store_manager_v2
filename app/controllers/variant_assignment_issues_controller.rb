@@ -72,6 +72,9 @@ class VariantAssignmentIssuesController < ApplicationController
         purchase: [:product, {variant: %i[color size version]}],
         sale_item: [:product, :sale, {variant: %i[color size version]}]
       ).map { |purchase_item| link_issue_props(integrity, purchase_item) }
+    when :sku_collisions
+      siblings_by_sku = integrity.duplicate_sku_variants.includes(:product).group_by(&:sku)
+      issues.includes(:product).map { |variant| sku_collision_props(variant, siblings_by_sku) }
     end
   end
 
@@ -133,6 +136,31 @@ class VariantAssignmentIssuesController < ApplicationController
         sale_item.qty.to_i - sale_item.purchase_items_count.to_i + 1,
         0
       ].max
+    }
+  end
+
+  def sku_collision_props(variant, siblings_by_sku)
+    others = siblings_by_sku.fetch(variant.sku, []).reject { |sibling| sibling.id == variant.id }
+
+    {
+      kind: "sku_collision",
+      id: variant.id,
+      sku: variant.sku,
+      product_id: variant.product_id,
+      product_title: variant.product.full_title,
+      variant_label: variant.assignment_label,
+      edit_path: edit_product_path(variant.product),
+      colliding_with: others.map { |other| collision_reference(other) }
+    }
+  end
+
+  def collision_reference(variant)
+    {
+      product_id: variant.product_id,
+      product_title: variant.product.full_title,
+      variant_id: variant.id,
+      variant_label: variant.assignment_label,
+      edit_path: edit_product_path(variant.product)
     }
   end
 

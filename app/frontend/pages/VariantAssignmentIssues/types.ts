@@ -1,7 +1,7 @@
 import type { PaginationMeta } from "@/types/pagination";
 import type { VariantAssignmentOption } from "@/types/variantAssignment";
 
-export type IssueType = "purchases" | "sale_items" | "purchase_item_links";
+export type IssueType = "purchases" | "sale_items" | "purchase_item_links" | "sku_collisions";
 
 export type AssignmentIssueCounts = Record<IssueType, number>;
 
@@ -51,10 +51,30 @@ export type PurchaseItemLinkIssue = {
   remaining_capacity_after_unlink: number;
 };
 
+export type SkuCollisionReference = {
+  product_id: number;
+  product_title: string;
+  variant_id: number;
+  variant_label: string;
+  edit_path: string;
+};
+
+export type SkuCollisionIssue = {
+  kind: "sku_collision";
+  id: number;
+  sku: string;
+  product_id: number;
+  product_title: string;
+  variant_label: string;
+  edit_path: string;
+  colliding_with: SkuCollisionReference[];
+};
+
 export type AssignmentIssue =
   | PurchaseAssignmentIssue
   | SaleItemAssignmentIssue
-  | PurchaseItemLinkIssue;
+  | PurchaseItemLinkIssue
+  | SkuCollisionIssue;
 
 export type VariantAssignmentIssuesPageProps = {
   counts: AssignmentIssueCounts;
