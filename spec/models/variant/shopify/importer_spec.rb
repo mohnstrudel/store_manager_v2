@@ -559,6 +559,50 @@ RSpec.describe Variant::Shopify::Importer do
           selling_price_exchange_rate_date: Date.new(2026, 9, 2)
         )
       end
+
+      it "does not log a clamp warning for an in-range conversion" do
+        allow(Rails.logger).to receive(:warn)
+
+        described_class.import!(product, parsed_variant)
+
+        expect(Rails.logger).not_to have_received(:warn)
+      end
+    end
+
+    context "with a selling-price USD conversion that overflows decimal(10,2)" do
+      let(:parsed_variant) do
+        super().merge(
+          selling_price: "99999999.99",
+          purchase_cost: nil,
+          usd_conversion_rate: BigDecimal("1.146"),
+          usd_conversion_date: Date.new(2026, 9, 18)
+        )
+      end
+
+      it "clamps selling_price to the column's maximum representable magnitude and logs a warning" do # rubocop:todo RSpec/MultipleExpectations
+        allow(Rails.logger).to receive(:warn)
+
+        variant = described_class.import!(product, parsed_variant)
+
+        expect(variant.selling_price).to eq(BigDecimal("99999999.99"))
+        expect(Rails.logger).to have_received(:warn).with(/clamped selling_price/)
+      end
+    end
+
+    context "with a purchase-cost USD conversion that overflows decimal(10,2)" do
+      let(:parsed_variant) do
+        super().merge(
+          selling_price: nil,
+          purchase_cost: "99999999.99",
+          usd_conversion_rate: BigDecimal("1.146")
+        )
+      end
+
+      it "clamps purchase_cost to the column's maximum representable magnitude" do
+        variant = described_class.import!(product, parsed_variant)
+
+        expect(variant.purchase_cost).to eq(BigDecimal("99999999.99"))
+      end
     end
   end
 end

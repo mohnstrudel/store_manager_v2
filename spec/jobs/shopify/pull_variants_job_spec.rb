@@ -95,5 +95,31 @@ RSpec.describe Shopify::PullVariantsJob do
         expect(error.message).to include("variant_sku: blank")
       }
     end
+
+    it "imports a normal variant following an overflowing decoy in the same batch" do
+      decoy_and_normal = [
+        {
+          store_id: "gid://shopify/ProductVariant/11111",
+          sku: "decoy-sku",
+          selling_price: "99999999.99",
+          usd_conversion_rate: BigDecimal("1.146"),
+          usd_conversion_date: Date.new(2026, 9, 18),
+          options: [{value: "White", name: "Color"}]
+        },
+        {
+          store_id: "gid://shopify/ProductVariant/22222",
+          sku: "normal-sku",
+          selling_price: "750.00",
+          options: [{value: "Black", name: "Color"}]
+        }
+      ]
+
+      expect {
+        job.perform(product, decoy_and_normal)
+      }.to change(product.variants, :count).by(2)
+
+      normal_variant = Variant.find_by_shopify_id("gid://shopify/ProductVariant/22222")
+      expect(normal_variant.selling_price).to eq(BigDecimal("750.00"))
+    end
   end
 end

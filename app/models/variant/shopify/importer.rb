@@ -96,7 +96,7 @@ class Variant::Shopify::Importer
     return if amount.blank?
 
     rate = parsed[:usd_conversion_rate]
-    attributes[:selling_price] = convert_to_usd(amount, rate)
+    attributes[:selling_price] = convert_to_usd(amount, rate, :selling_price)
     return unless rate
 
     attributes[:selling_price_source_amount] = amount
@@ -105,14 +105,32 @@ class Variant::Shopify::Importer
     attributes[:selling_price_exchange_rate_date] = parsed.fetch(:usd_conversion_date)
   end
 
-  def convert_to_usd(amount, rate)
-    rate ? (amount.to_d * rate).round(2) : amount
+  def convert_to_usd(amount, rate, attribute)
+    value = rate ? (amount.to_d * rate).round(2) : amount.to_d
+    clamp_to_column(value, attribute)
+  end
+
+  def clamp_to_column(value, attribute)
+    limit = column_limit(attribute)
+    clamped = value.clamp(-limit, limit)
+    return clamped if clamped == value
+
+    Rails.logger.warn(
+      "Variant::Shopify::Importer: clamped #{attribute} from #{value} to #{clamped} " \
+      "for product_id=#{product.id} variant_store_id=#{parsed[:store_id].presence || "blank"}"
+    )
+    clamped
+  end
+
+  def column_limit(attribute)
+    type = Variant.type_for_attribute(attribute)
+    BigDecimal(10)**(type.precision - type.scale) - BigDecimal(10)**-type.scale
   end
 
   def assign_shopify_purchase_cost(attributes)
     amount = parsed[:purchase_cost]
     return if amount.blank?
 
-    attributes[:purchase_cost] = convert_to_usd(amount, parsed[:usd_conversion_rate])
+    attributes[:purchase_cost] = convert_to_usd(amount, parsed[:usd_conversion_rate], :purchase_cost)
   end
 end
