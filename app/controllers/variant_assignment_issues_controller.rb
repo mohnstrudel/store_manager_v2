@@ -73,8 +73,12 @@ class VariantAssignmentIssuesController < ApplicationController
         sale_item: [:product, :sale, {variant: %i[color size version]}]
       ).map { |purchase_item| link_issue_props(integrity, purchase_item) }
     when :sku_collisions
-      siblings_by_sku = integrity.duplicate_sku_variants.includes(:product).group_by(&:sku)
-      issues.includes(:product).map { |variant| sku_collision_props(variant, siblings_by_sku) }
+      siblings_by_sku = integrity.duplicate_sku_variants
+        .includes(:product, :color, :size, :version)
+        .group_by(&:sku)
+      issues.includes(:product, :color, :size, :version).map { |variant|
+        sku_collision_props(variant, siblings_by_sku)
+      }
     end
   end
 
