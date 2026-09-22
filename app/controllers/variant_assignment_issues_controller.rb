@@ -50,8 +50,14 @@ class VariantAssignmentIssuesController < ApplicationController
   def issue_props(integrity, issue_type, issues)
     case issue_type
     when :purchases
-      issues.includes(:variant, :purchase_items, product: {variants: %i[color size version]}).map { |purchase|
-        assignment_props(integrity, :purchases, purchase).merge(
+      loaded = issues.includes(
+        :purchase_items,
+        variant: [:color, :size, :version, {product: {variants: %i[color size version]}}],
+        product: {variants: %i[color size version]}
+      ).to_a
+      reasons = integrity.reasons_by_id(:purchases, loaded.map(&:id))
+      loaded.map { |purchase|
+        assignment_props(reasons, :purchases, purchase).merge(
           reference: purchase.order_reference.presence || "Purchase ##{purchase.id}",
           inventory_units: purchase.purchase_items.size,
           linked_units: purchase.purchase_items.count { |purchase_item| purchase_item.sale_item_id.present? },
@@ -59,8 +65,15 @@ class VariantAssignmentIssuesController < ApplicationController
         )
       }
     when :sale_items
-      issues.includes(:variant, :purchase_items, :sale, product: {variants: %i[color size version]}).map { |sale_item|
-        assignment_props(integrity, :sale_items, sale_item).merge(
+      loaded = issues.includes(
+        :purchase_items,
+        :sale,
+        variant: [:color, :size, :version, {product: {variants: %i[color size version]}}],
+        product: {variants: %i[color size version]}
+      ).to_a
+      reasons = integrity.reasons_by_id(:sale_items, loaded.map(&:id))
+      loaded.map { |sale_item|
+        assignment_props(reasons, :sale_items, sale_item).merge(
           reference: "Sale ##{sale_item.sale_id}, item ##{sale_item.id}",
           ordered_units: sale_item.qty.to_i,
           linked_units: sale_item.purchase_items.size,
@@ -68,10 +81,12 @@ class VariantAssignmentIssuesController < ApplicationController
         )
       }
     when :purchase_item_links
-      issues.includes(
+      loaded = issues.includes(
         purchase: [:product, {variant: %i[color size version]}],
         sale_item: [:product, :sale, {variant: %i[color size version]}]
-      ).map { |purchase_item| link_issue_props(integrity, purchase_item) }
+      ).to_a
+      reasons = integrity.reasons_by_id(:purchase_item_links, loaded.map(&:id))
+      loaded.map { |purchase_item| link_issue_props(reasons, purchase_item) }
     when :sku_collisions
       siblings_by_sku = integrity.duplicate_sku_variants
         .includes(:product, :color, :size, :version)
@@ -82,13 +97,13 @@ class VariantAssignmentIssuesController < ApplicationController
     end
   end
 
-  def assignment_props(integrity, issue_type, record)
+  def assignment_props(reasons, issue_type, record)
     product = record.product || record.variant&.product
 
     {
       kind: (issue_type == :purchases) ? "purchase" : "sale_item",
       id: record.id,
-      reason: integrity.reason_for(issue_type, record.id),
+      reason: reasons[record.id],
       product_id: record.product_id,
       product_title: product&.full_title || "Missing Product",
       variant_id: record.variant_id,
@@ -101,20 +116,21 @@ class VariantAssignmentIssuesController < ApplicationController
   def repair_candidates(product)
     return [] unless product
 
-    product
-      .variant_repair_candidates
-      .includes(:color, :size, :version)
-      .order(:id)
-      .map { |variant|
-        {
-          value: variant.id,
-          label: variant.assignment_label,
-          base_model: variant.base_model?
-        }
+    real, base_models = product.variants.partition { |variant| !variant.base_model? }
+    active_real = real.reject(&:deactivated?)
+    deactivated_real = real.select(&:deactivated?)
+    assignable = active_real.presence || base_models.reject(&:deactivated?)
+
+    (assignable + deactivated_real).sort_by(&:id).map { |variant|
+      {
+        value: variant.id,
+        label: variant.assignment_label,
+        base_model: variant.base_model?
       }
+    }
   end
 
-  def link_issue_props(integrity, purchase_item)
+  def link_issue_props(reasons, purchase_item)
     sale_item = purchase_item.sale_item
     replacements = PurchaseItem.where(
       sale_item_id: nil,
@@ -125,7 +141,7 @@ class VariantAssignmentIssuesController < ApplicationController
     {
       kind: "purchase_item_link",
       id: purchase_item.id,
-      reason: integrity.reason_for(:purchase_item_links, purchase_item.id),
+      reason: reasons[purchase_item.id],
       purchase_id: purchase_item.purchase_id,
       purchase_path: purchase_path(purchase_item.purchase),
       sale_item_id: sale_item.id,

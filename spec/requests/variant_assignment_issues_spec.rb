@@ -47,6 +47,30 @@ RSpec.describe "Variant assignment issues" do
       end
     end
 
+    it "does not run a per-row reason or repair-candidate query across distinct products" do
+      4.times do
+        purchase = create(:purchase, product: create(:product))
+        purchase.update_columns(variant_id: nil)
+      end
+
+      per_row_queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        sql = payload[:sql]
+        per_row_queries << sql if
+          sql.start_with?(%(SELECT 1 AS one FROM "purchases")) ||
+            sql.include?(%("variants"."product_id" = $))
+      end
+
+      begin
+        get variant_assignment_issues_path
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(per_row_queries).to be_empty
+    end
+
     it "keeps the selected tab, reason filter, and page in the URL-backed contract" do
       product = create(:product)
       26.times do

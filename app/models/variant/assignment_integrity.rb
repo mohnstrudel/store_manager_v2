@@ -111,6 +111,14 @@ class Variant::AssignmentIntegrity
     end
   end
 
+  def reasons_by_id(issue_type, ids)
+    return {} if ids.blank?
+
+    reasons_for(issue_type).each_with_object({}) do |reason, matched|
+      relation_for(issue_type, reason:).where(id: ids).ids.each { |id| matched[id] ||= reason }
+    end
+  end
+
   private
 
   def assignment_relation(model, table:)
