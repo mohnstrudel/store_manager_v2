@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rails Testing"
+  short_description: "Rails test boundaries, infrastructure, and contracts"
+  default_prompt: "Use $rails-testing for this Rails test boundary or shared-contract change."

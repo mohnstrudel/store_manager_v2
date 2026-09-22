@@ -3,10 +3,12 @@
 module Sale::Listing
   extend ActiveSupport::Concern
 
+  SHOP_CREATED_AT_SQL = "COALESCE(sales.shopify_created_at, sales.woo_created_at, sales.created_at)"
+
   included do
     scope :ordered_by_shop_created_at, -> {
       order(
-        Arel.sql("COALESCE(sales.shopify_created_at, sales.woo_created_at, sales.created_at) DESC")
+        Arel.sql("#{SHOP_CREATED_AT_SQL} DESC")
       )
     }
 
@@ -17,6 +19,8 @@ module Sale::Listing
         :woo_info,
         :shipping_address,
         :billing_address,
+        {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+        {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
           {purchase_items: [:warehouse, purchase: :supplier]},
@@ -36,6 +40,8 @@ module Sale::Listing
         :woo_info,
         :shipping_address,
         :billing_address,
+        {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+        {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
           {purchase_items: [:warehouse, {purchase: :supplier}]},

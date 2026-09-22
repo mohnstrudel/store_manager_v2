@@ -1,0 +1,190 @@
+# frozen_string_literal: true
+
+class VariantAssignmentIssuesController < ApplicationController
+  PER_PAGE = 25
+
+  def index
+    integrity = Variant::AssignmentIntegrity.new
+    issue_type = selected_issue_type
+    reason = selected_reason(integrity, issue_type)
+    issues = integrity
+      .relation_for(issue_type, reason:)
+      .order(updated_at: :desc, id: :desc)
+      .page(params[:page])
+      .per(PER_PAGE)
+
+    render inertia: "VariantAssignmentIssues/Index", props: {
+      issue_type: issue_type.to_s,
+      filter: reason.to_s,
+      counts: integrity.counts,
+      filters: integrity.reasons_for(issue_type).map { |value|
+        {value:, label: reason_label(value)}
+      },
+      issues: issue_props(integrity, issue_type, issues),
+      pagination: helpers.pagination_props(issues)
+    }
+  end
+
+  private
+
+  def selected_issue_type
+    requested = params[:issue_type].presence&.to_sym
+    Variant::AssignmentIntegrity::ISSUE_TYPES.include?(requested) ? requested : :purchases
+  end
+
+  def selected_reason(integrity, issue_type)
+    requested = params[:reason].to_s
+    integrity.reasons_for(issue_type).include?(requested) ? requested : nil
+  end
+
+  def reason_label(reason)
+    {
+      "missing_product" => "Missing Product",
+      "missing_variant" => "Missing Variant",
+      "product_mismatch" => "Product / Variant mismatch",
+      "purchase_identity" => "Purchase identity mismatch",
+      "sale_item_identity" => "SaleItem identity mismatch"
+    }.fetch(reason)
+  end
+
+  def issue_props(integrity, issue_type, issues)
+    case issue_type
+    when :purchases
+      loaded = issues.includes(
+        :purchase_items,
+        variant: [:color, :size, :version, {product: {variants: %i[color size version]}}],
+        product: {variants: %i[color size version]}
+      ).to_a
+      reasons = integrity.reasons_by_id(:purchases, loaded.map(&:id))
+      loaded.map { |purchase|
+        assignment_props(reasons, :purchases, purchase).merge(
+          reference: purchase.order_reference.presence || "Purchase ##{purchase.id}",
+          inventory_units: purchase.purchase_items.size,
+          linked_units: purchase.purchase_items.count { |purchase_item| purchase_item.sale_item_id.present? },
+          record_path: purchase_path(purchase)
+        )
+      }
+    when :sale_items
+      loaded = issues.includes(
+        :purchase_items,
+        :sale,
+        variant: [:color, :size, :version, {product: {variants: %i[color size version]}}],
+        product: {variants: %i[color size version]}
+      ).to_a
+      reasons = integrity.reasons_by_id(:sale_items, loaded.map(&:id))
+      loaded.map { |sale_item|
+        assignment_props(reasons, :sale_items, sale_item).merge(
+          reference: "Sale ##{sale_item.sale_id}, item ##{sale_item.id}",
+          ordered_units: sale_item.qty.to_i,
+          linked_units: sale_item.purchase_items.size,
+          record_path: sale_path(sale_item.sale)
+        )
+      }
+    when :purchase_item_links
+      loaded = issues.includes(
+        purchase: [:product, {variant: %i[color size version]}],
+        sale_item: [:product, :sale, {variant: %i[color size version]}]
+      ).to_a
+      reasons = integrity.reasons_by_id(:purchase_item_links, loaded.map(&:id))
+      loaded.map { |purchase_item| link_issue_props(reasons, purchase_item) }
+    when :sku_collisions
+      siblings_by_sku = integrity.duplicate_sku_variants
+        .includes(:product, :color, :size, :version)
+        .group_by(&:sku)
+      issues.includes(:product, :color, :size, :version).map { |variant|
+        sku_collision_props(variant, siblings_by_sku)
+      }
+    end
+  end
+
+  def assignment_props(reasons, issue_type, record)
+    product = record.product || record.variant&.product
+
+    {
+      kind: (issue_type == :purchases) ? "purchase" : "sale_item",
+      id: record.id,
+      reason: reasons[record.id],
+      product_id: record.product_id,
+      product_title: product&.full_title || "Missing Product",
+      variant_id: record.variant_id,
+      current_variant_label: record.variant&.assignment_label || "Missing Variant",
+      current_variant_product_id: record.variant&.product_id,
+      candidates: repair_candidates(product)
+    }
+  end
+
+  def repair_candidates(product)
+    return [] unless product
+
+    real, base_models = product.variants.partition { |variant| !variant.base_model? }
+    active_real = real.reject(&:deactivated?)
+    deactivated_real = real.select(&:deactivated?)
+    assignable = active_real.presence || base_models.reject(&:deactivated?)
+
+    (assignable + deactivated_real).sort_by(&:id).map { |variant|
+      {
+        value: variant.id,
+        label: variant.assignment_label,
+        base_model: variant.base_model?
+      }
+    }
+  end
+
+  def link_issue_props(reasons, purchase_item)
+    sale_item = purchase_item.sale_item
+    replacements = PurchaseItem.where(
+      sale_item_id: nil,
+      product_id: sale_item.product_id,
+      variant_id: sale_item.variant_id
+    ).order(:id)
+
+    {
+      kind: "purchase_item_link",
+      id: purchase_item.id,
+      reason: reasons[purchase_item.id],
+      purchase_id: purchase_item.purchase_id,
+      purchase_path: purchase_path(purchase_item.purchase),
+      sale_item_id: sale_item.id,
+      sale_path: sale_path(sale_item.sale),
+      purchase_product_title: purchase_item.purchase.product&.full_title || "Missing Product",
+      purchase_variant_label: purchase_item.purchase.variant&.assignment_label || "Missing Variant",
+      sale_product_title: sale_item.product&.full_title || "Missing Product",
+      sale_variant_label: sale_item.variant&.assignment_label || "Missing Variant",
+      exact_replacements_available: replacements.count,
+      exact_replacement_ids: replacements.ids,
+      remaining_capacity_after_unlink: [
+        sale_item.qty.to_i - sale_item.purchase_items_count.to_i + 1,
+        0
+      ].max
+    }
+  end
+
+  def sku_collision_props(variant, siblings_by_sku)
+    others = siblings_by_sku.fetch(variant.sku, []).reject { |sibling| sibling.id == variant.id }
+
+    {
+      kind: "sku_collision",
+      id: variant.id,
+      sku: variant.sku,
+      product_id: variant.product_id,
+      product_title: variant.product.full_title,
+      variant_label: variant.assignment_label,
+      edit_path: edit_product_path(variant.product),
+      colliding_with: others.map { |other| collision_reference(other) }
+    }
+  end
+
+  def collision_reference(variant)
+    {
+      product_id: variant.product_id,
+      product_title: variant.product.full_title,
+      variant_id: variant.id,
+      variant_label: variant.assignment_label,
+      edit_path: edit_product_path(variant.product)
+    }
+  end
+
+  def authorize_resource
+    authorize :variant_assignment_issue, :index?
+  end
+end

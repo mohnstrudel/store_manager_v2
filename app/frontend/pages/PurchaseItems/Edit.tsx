@@ -1,6 +1,8 @@
 import { Link } from "@inertiajs/react";
+
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
+
 import Form from "./components/Form";
 import SaleItemsTable from "./components/SaleItemsTable";
 import type { PurchaseItemFormOptions, PurchaseItemFormRecord, SaleItemTableRow } from "./types";

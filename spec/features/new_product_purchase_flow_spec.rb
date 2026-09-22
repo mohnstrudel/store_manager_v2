@@ -20,12 +20,9 @@ RSpec.describe "Creating a product with a purchase" do
     expect(page).to have_content("Title")
   end
 
-  scenario "creates both records from the new product form", :js do # rubocop:todo RSpec/MultipleExpectations
+  scenario "creates both records for a Base-only Product", :js do # rubocop:todo RSpec/MultipleExpectations
     franchise = create(:franchise)
     brand = create(:brand, title: "Featured Brand")
-    size = create(:size, value: "Large")
-    version = create(:version, value: "Deluxe")
-    color = create(:color, value: "Red")
     supplier = create(:supplier)
     warehouse = create(:warehouse, is_default: true)
 
@@ -39,24 +36,6 @@ RSpec.describe "Creating a product with a purchase" do
     expect(find("input[name='product[franchise_id]']", visible: false).value).to eq(franchise.id.to_s)
     expect(find("#product_shape").value).to eq("Bust")
     expect(all("input[name='product[brand_ids][]']", visible: false).map(&:value)).to include(brand.id.to_s)
-
-    click_button "Add Variant"
-
-    within(all(".variant-fields").last) do
-      choose_react_select(size.value, from: "Size")
-    end
-    within(all(".variant-fields").last) do
-      choose_react_select(version.value, from: "Version")
-    end
-    within(all(".variant-fields").last) do
-      choose_react_select(color.value, from: "Color")
-    end
-    within(all(".variant-fields").last) do
-      fill_in "SKU", with: "product-with-initial-purchase-variant"
-      fill_in "Weight (kg)", with: "1.5"
-      fill_in "Purchase Cost", with: "9.99"
-      fill_in "Selling Price", with: "19.99"
-    end
 
     click_button "Add Purchase"
 
@@ -73,14 +52,14 @@ RSpec.describe "Creating a product with a purchase" do
     click_button "Create Product"
 
     expect(page).to have_content("Product was successfully created")
-
-    created_product = Variant.find_by!(sku: "product-with-initial-purchase-variant").product
+    created_product = Product.find_by!(title: "Product With Purchase")
     purchase = created_product.purchases.last
 
     expect(page).to have_current_path(product_path(created_product))
     expect(created_product.brands).to include(brand)
     expect(created_product.description.body.to_html).to include("Product description")
     expect(purchase).to be_present
+    expect(purchase.variant).to eq(created_product.base_variant)
     expect(purchase.supplier).to eq(supplier)
     expect(purchase.purchase_items.count).to eq(2)
     expect(purchase.purchase_items.pluck(:warehouse_id).uniq).to eq([warehouse.id])
@@ -114,7 +93,7 @@ RSpec.describe "Creating a product with a purchase" do
     within(all(".variant-fields").last) do
       fill_in "SKU", with: "product-with-invalid-initial-purchase-variant"
       fill_in "Weight (kg)", with: "1.5"
-      fill_in "Purchase Cost", with: "9.99"
+      fill_in "List cost", with: "9.99"
       fill_in "Selling Price", with: "19.99"
     end
 
@@ -135,12 +114,12 @@ RSpec.describe "Creating a product with a purchase" do
     expect(find_field("purchase[payment_value]").value).to eq("30")
 
     within(all(".variant-fields").last) do
-      expect(find("input[name='variants[1][sku]']", visible: false).value).to eq(
+      expect(find("input[name='variants[0][sku]']", visible: false).value).to eq(
         "product-with-invalid-initial-purchase-variant"
       )
-      expect(find("input[name='variants[1][size_id]']", visible: false).value).to eq(size.id.to_s)
-      expect(find("input[name='variants[1][version_id]']", visible: false).value).to eq(version.id.to_s)
-      expect(find("input[name='variants[1][color_id]']", visible: false).value).to eq(color.id.to_s)
+      expect(find("input[name='variants[0][size_id]']", visible: false).value).to eq(size.id.to_s)
+      expect(find("input[name='variants[0][version_id]']", visible: false).value).to eq(version.id.to_s)
+      expect(find("input[name='variants[0][color_id]']", visible: false).value).to eq(color.id.to_s)
     end
   end
 

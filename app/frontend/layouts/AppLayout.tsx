@@ -1,9 +1,13 @@
 import type { MouseEvent, ReactNode } from "react";
+
+import AppNavigation from "@/components/app-navigation/AppNavigation";
 import Breadcrumbs from "@/components/breadcrumbs/Breadcrumbs";
 import FlashMessages from "@/components/flash-messages/FlashMessages";
-import AppNavigation from "@/components/app-navigation/AppNavigation";
+import { useDocumentTitle } from "@/utils/useDocumentTitle";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  useDocumentTitle();
+
   return (
     <div className="flex flex-col min-h-screen">
       <AppNavigation />
@@ -13,17 +17,20 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       <footer className="container mx-auto text-center mb-8 px-4 lg:px-0">
-        <a className="link no-underline hover:bg-transparent" href="" onClick={handleScrollToTop}>
+        <button
+          className="link no-underline hover:bg-transparent"
+          type="button"
+          onClick={handleScrollToTop}
+        >
           <i className="icn text-3xl text-gray-500" aria-hidden="true">
             😸
           </i>
-        </a>
+        </button>
       </footer>
     </div>
   );
 }
 
-function handleScrollToTop(event: MouseEvent<HTMLAnchorElement>) {
-  event.preventDefault();
+function handleScrollToTop(_event: MouseEvent<HTMLButtonElement>) {
   window.scrollTo({ top: 0 });
 }

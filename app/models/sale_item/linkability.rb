@@ -13,7 +13,7 @@ module SaleItem::Linkability
     }
 
     scope :linkable, -> {
-      where("qty > purchase_items_count")
+      where("qty > purchase_items_count").where(origin_sale_item_id: nil)
     }
   end
 
@@ -29,20 +29,28 @@ module SaleItem::Linkability
     end
 
     def for_edit_linking(purchase_item)
-      purchase_product_id = purchase_item.purchase&.product_id
-      return none unless purchase_product_id
+      return none unless purchase_item.product_id && purchase_item.variant_id
 
-      available = for_linking.linkable.where(product_id: purchase_product_id)
+      available = for_linking.linkable.where(
+        product_id: purchase_item.product_id,
+        variant_id: purchase_item.variant_id
+      )
       currently_linked = purchase_item.sale_item_id ? for_linking.where(id: purchase_item.sale_item_id) : none
 
       available.or(currently_linked).order(:id)
     end
 
     def for_linking_table(purchase_item)
-      purchase_product_id = purchase_item.purchase&.product_id
-      return none unless purchase_product_id
+      return none unless purchase_item.product_id && purchase_item.variant_id
 
-      where(product_id: purchase_product_id)
+      exact_matches = where(
+        product_id: purchase_item.product_id,
+        variant_id: purchase_item.variant_id
+      )
+      currently_linked = purchase_item.sale_item_id ? where(id: purchase_item.sale_item_id) : none
+
+      exact_matches
+        .or(currently_linked)
         .includes(:shopify_info, :woo_info, sale: [:customer, :woo_info], purchase_items: [:warehouse, {purchase: :supplier}])
         .order(purchase_items_count: :asc, id: :asc)
     end

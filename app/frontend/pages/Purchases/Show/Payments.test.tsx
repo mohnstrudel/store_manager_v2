@@ -1,9 +1,12 @@
+import { router } from "@inertiajs/react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
-import Payments from "./Payments";
+
+import { nextFormErrors } from "@/test/mocks/inertia";
+
 import { makeNewPayment, makePayment, makePurchaseShow } from "../test/factories";
+import Payments from "./Payments";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -26,13 +29,18 @@ describe("Purchases/Show/Payments", () => {
     await user.type(screen.getByLabelText("Amount"), "12");
     await user.click(screen.getByRole("button", { name: "Add payment" }));
 
-    expect(router.post).toHaveBeenCalledWith("/purchases/55/payments", {
-      payment: {
-        payment_date: "2026-05-21",
-        value: "12",
+    expect(router.post).toHaveBeenCalledWith(
+      "/purchases/55/payments",
+      {
+        payment: {
+          payment_date: "2026-05-21",
+          value: "12",
+        },
+        return_to: "/purchases/55",
       },
-      return_to: "/purchases/55",
-    });
+      expect.objectContaining({ preserveScroll: true }),
+    );
+    expect(screen.getByLabelText("Amount")).toHaveValue(10);
   });
 
   it("updates an existing payment row", async () => {
@@ -53,13 +61,33 @@ describe("Purchases/Show/Payments", () => {
     await user.type(screen.getAllByLabelText("Amount")[0], "15");
     await user.click(screen.getByRole("button", { name: "Update" }));
 
-    expect(router.patch).toHaveBeenCalledWith("/purchases/55/payments/1", {
-      payment: {
-        payment_date: "2026-05-22",
-        value: "15",
+    expect(router.patch).toHaveBeenCalledWith(
+      "/purchases/55/payments/1",
+      {
+        payment: {
+          payment_date: "2026-05-22",
+          value: "15",
+        },
+        return_to: "/purchases/55",
       },
-      return_to: "/purchases/55",
-    });
+      expect.objectContaining({ preserveScroll: true }),
+    );
+    expect(screen.getAllByLabelText("Amount")[0]).toHaveValue(15);
+  });
+
+  it("uses the direct-expense action colors and add icon", () => {
+    render(
+      <Payments
+        newPayment={makeNewPayment()}
+        payments={[makePayment()]}
+        purchase={makePurchaseShow()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Update" })).toHaveClass("btn_lightamber");
+    expect(screen.getByRole("button", { name: "Remove" })).toHaveClass("btn_red");
+    expect(screen.getByRole("button", { name: "Add payment" })).toHaveClass("btn_lightblue");
+    expect(screen.getByRole("button", { name: "Add payment" }).querySelector("svg")).not.toBeNull();
   });
 
   it("removes a payment after confirmation", async () => {
@@ -80,16 +108,26 @@ describe("Purchases/Show/Payments", () => {
     expect(router.delete).toHaveBeenCalledWith("/purchases/55/payments/1");
   });
 
-  it("renders validation errors for both the existing and new payment rows", () => {
+  it("keeps a failed payment update in its submitted row", async () => {
+    const user = userEvent.setup();
+    nextFormErrors.mockReturnValueOnce({ value: "can't be blank" });
+
     render(
       <Payments
-        newPayment={makeNewPayment({ errors: ["Could not add payment"] })}
-        payments={[makePayment({ errors: ["Could not save payment"] })]}
+        newPayment={makeNewPayment()}
+        payments={[makePayment()]}
         purchase={makePurchaseShow()}
       />,
     );
 
-    expect(screen.getByText("Could not save payment")).toBeInTheDocument();
-    expect(screen.getByText("Could not add payment")).toBeInTheDocument();
+    await user.clear(screen.getAllByLabelText("Amount")[0]);
+    await user.click(screen.getByRole("button", { name: "Update" }));
+
+    expect(screen.getByText("can't be blank")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Amount")[0]).toHaveValue(null);
+    expect(screen.getByText("can't be blank").closest("tr")?.nextElementSibling).toHaveAttribute(
+      "data-payment-id",
+      "1",
+    );
   });
 });

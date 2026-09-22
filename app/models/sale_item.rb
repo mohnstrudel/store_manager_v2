@@ -5,11 +5,16 @@
 # Table name: sale_items
 #
 #  id                   :bigint           not null, primary key
+#  expected_revenue     :decimal(8, 2)
+#  outstanding_revenue  :decimal(8, 2)
 #  price                :decimal(8, 2)
 #  purchase_items_count :integer          default(0), not null
 #  qty                  :integer
+#  received_revenue     :decimal(8, 2)
+#  refunded_revenue     :decimal(8, 2)
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  origin_sale_item_id  :bigint
 #  product_id           :bigint           not null
 #  sale_id              :bigint           not null
 #  shopify_id           :string
@@ -17,24 +22,41 @@
 #  woo_id               :string
 #
 class SaleItem < ApplicationRecord
-  # TODO: Remove after merging the Auth PR #141
-  self.ignored_columns += ["purchased_products_count"]
   attr_accessor :_destroy
 
   include HasAuditNotifications
   include Linkability
   include Listing
+  include Profitability
+  include RevenueDefaults
   include Shopable
   include Titling
+  include VariantAssignment
 
   audited associated_with: :sale
   validate :validate_unique_woo_store_id
 
+  scope :non_installment, -> { where(origin_sale_item_id: nil) }
+
   db_belongs_to :product, inverse_of: :sale_items
   db_belongs_to :sale, inverse_of: :sale_items
   belongs_to :variant, optional: true, inverse_of: :sale_items
+  belongs_to :origin_sale_item, class_name: "SaleItem", optional: true, inverse_of: :installment_sale_items
 
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
+  has_many :installment_sale_items, class_name: "SaleItem", foreign_key: :origin_sale_item_id, dependent: :nullify, inverse_of: :origin_sale_item
+
+  def apply_installment_origin!(origin_item)
+    self.skip_purchase_relink = true
+
+    if origin_item
+      update!(origin_sale_item: origin_item, product: origin_item.product, variant: origin_item.variant)
+    else
+      update!(origin_sale_item: nil, product: Product.seal_installment_placeholder, variant: nil)
+    end
+  ensure
+    self.skip_purchase_relink = false
+  end
 
   private
 

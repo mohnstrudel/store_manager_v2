@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Props as SelectProps } from "react-select";
+
 import FormControl from "./FormControl";
 import SmartSelect from "./lazySmartSelect";
 
@@ -14,6 +15,12 @@ type FormSmartSelectProps<Option, IsMulti extends boolean = false> = Omit<
   inputId: string;
   label: string;
 };
+
+export function SelectSkeleton() {
+  return (
+    <div className="h-10 w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 animate-pulse" />
+  );
+}
 
 export default function FormSmartSelect<Option, IsMulti extends boolean = false>({
   className = "",
@@ -33,11 +40,5 @@ export default function FormSmartSelect<Option, IsMulti extends boolean = false>
         />
       </Suspense>
     </FormControl>
-  );
-}
-
-export function SelectSkeleton() {
-  return (
-    <div className="h-10 w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 animate-pulse" />
   );
 }

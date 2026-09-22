@@ -24,12 +24,12 @@ RSpec.describe Purchases::PaymentsController do
     end
 
     context "with invalid params" do
-      it "does not create payment and returns unprocessable content" do # rubocop:disable RSpec/MultipleExpectations
+      it "does not create payment and redirects to the purchase show page" do # rubocop:disable RSpec/MultipleExpectations
         expect {
-          post :create, params: {purchase_id: purchase.id, payment: {value: nil}}
+          post :create, params: {purchase_id: purchase.id, payment: {value: nil}, return_to: purchases_path}
         }.not_to change(Payment, :count)
 
-        expect(response).to have_http_status(:unprocessable_content)
+        expect(response).to redirect_to(purchase_path(purchase))
       end
     end
   end

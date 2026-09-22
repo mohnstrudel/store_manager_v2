@@ -1,5 +1,4 @@
 @layer components {
-  /* Breadcrumbs */
   .breadcrumbs {
     @apply flex items-center gap-3 text-sm flex-wrap;
   }

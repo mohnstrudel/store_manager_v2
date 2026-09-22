@@ -9,20 +9,20 @@ class ShippingCompanyPolicy < ApplicationPolicy
     user.admin?
   end
 
-  def create?
-    user.admin?
-  end
-
   def new?
     create?
   end
 
-  def update?
+  def create?
     user.admin?
   end
 
   def edit?
     update?
+  end
+
+  def update?
+    user.admin?
   end
 
   def destroy?

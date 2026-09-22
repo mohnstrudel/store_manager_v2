@@ -54,10 +54,6 @@ class ActiveStorage::Blob::ReclaimableSpace
     raise UnsupportedService, "Configured Active Storage service does not support object listing"
   end
 
-  def service_name
-    service.name.to_s
-  end
-
   def reclaimable_candidates_for(objects)
     blob_states = blob_states_for(objects)
 
@@ -81,6 +77,17 @@ class ActiveStorage::Blob::ReclaimableSpace
       end
   end
 
+  def parent_blob_key(key)
+    return key unless key.start_with?(VARIANT_PREFIX)
+
+    parent_key, variation_key = key.delete_prefix(VARIANT_PREFIX).split("/", 2)
+    parent_key if parent_key.present? && variation_key.present?
+  end
+
+  def service_name
+    service.name.to_s
+  end
+
   def reclaimable_state(object, parent_key, blob_states)
     return if object.last_modified > cutoff
     return unless parent_key
@@ -88,12 +95,5 @@ class ActiveStorage::Blob::ReclaimableSpace
     return blob_states[parent_key] if blob_states.key?(parent_key)
 
     parent_key.match?(ACTIVE_STORAGE_KEY_PATTERN)
-  end
-
-  def parent_blob_key(key)
-    return key unless key.start_with?(VARIANT_PREFIX)
-
-    parent_key, variation_key = key.delete_prefix(VARIANT_PREFIX).split("/", 2)
-    parent_key if parent_key.present? && variation_key.present?
   end
 end

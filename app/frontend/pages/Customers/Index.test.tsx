@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Index from "./Index";
+
 import { makePagination } from "@/test/factories";
+
+import Index from "./Index";
 import { makeCustomer } from "./test/factories";
 import type { CustomerRecord, PaginationMeta } from "./types";
 

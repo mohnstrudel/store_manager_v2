@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Architecture"
+  short_description: "Design React and Inertia frontend boundaries"
+  default_prompt: "Use $frontend-architecture to plan or review this frontend change."

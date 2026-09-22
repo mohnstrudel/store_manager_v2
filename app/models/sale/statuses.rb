@@ -89,6 +89,10 @@ module Sale::Statuses
     self.class.completed_status_names.include?(status)
   end
 
+  def cancelled?
+    self.class.cancelled_status_names.include?(status)
+  end
+
   def item_tracking_payload
     sale_items.for_tracking_status.map do |sale_item|
       purchase_item = sale_item.purchase_items.first

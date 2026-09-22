@@ -5,7 +5,7 @@
 # Table name: configs
 #
 #  id                    :bigint           not null, primary key
-#  sales_hook_status     :integer          default("disabled")
+#  sales_hook_status     :integer          default(0)
 #  shopify_products_sync :datetime
 #  shopify_sales_sync    :datetime
 #  created_at            :datetime         not null

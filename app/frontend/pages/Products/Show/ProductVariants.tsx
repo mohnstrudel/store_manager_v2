@@ -1,3 +1,8 @@
+import Amount from "@/components/Amount";
+import MetricLabel from "@/components/profitability/MetricLabel";
+import { financialMetricHints } from "@/components/profitability/metricLabels";
+import { emptyToNull, isEmptyValue } from "@/utils/emptyValue";
+
 import { type VariantRecord } from "../types";
 
 type ProductVariantsProps = {
@@ -6,6 +11,9 @@ type ProductVariantsProps = {
 
 export default function ProductVariants({ variants }: ProductVariantsProps) {
   if (variants.length === 0) return null;
+  const showsEconomics = variants.some(
+    (variant) => variant.total_purchase_cost !== null || variant.theoretical_profit !== null,
+  );
 
   return (
     <div className="table_card">
@@ -17,8 +25,28 @@ export default function ProductVariants({ variants }: ProductVariantsProps) {
             <th>Name</th>
             <th>Type</th>
             <th className="text-right">Weight</th>
-            <th className="text-right">Purchase Cost</th>
+            <th className="text-right">List cost</th>
             <th className="text-right">Selling Price</th>
+            {showsEconomics && (
+              <th className="text-right">
+                <MetricLabel
+                  anchor="variantPurchaseCostTotal"
+                  hint={financialMetricHints.variantPurchaseCostTotal}
+                >
+                  Total landed cost
+                </MetricLabel>
+              </th>
+            )}
+            {showsEconomics && (
+              <th className="text-right">
+                <MetricLabel
+                  anchor="variantTheoreticalProfit"
+                  hint={financialMetricHints.variantTheoreticalProfit}
+                >
+                  Theoretical profit
+                </MetricLabel>
+              </th>
+            )}
             <th className="text-right">Active Sales</th>
             <th>Purchases</th>
             <th>Store ID</th>
@@ -37,16 +65,28 @@ export default function ProductVariants({ variants }: ProductVariantsProps) {
                 )}
               </td>
               <td>{variant.types_name}</td>
-              <td className="text-right">{variant.weight === 0 ? "-" : `${variant.weight} kg`}</td>
               <td className="text-right">
-                {variant.purchase_cost === 0 ? "-" : `$${variant.purchase_cost.toFixed(2)}`}
+                {isEmptyValue(variant.weight) ? null : `${variant.weight} kg`}
               </td>
-              <td className="text-right">
-                {variant.selling_price === 0 ? "-" : `$${variant.selling_price.toFixed(2)}`}
+              <td className="text-right font-mono">
+                {isEmptyValue(variant.purchase_cost) ? null : variant.purchase_cost.toFixed(2)}
               </td>
-              <td className="text-right">{variant.active_sales_count ?? ""}</td>
-              <td>{variant.purchases_count ?? ""}</td>
-              <td>{variant.shopify_id_short || variant.woo_store_id || ""}</td>
+              <td className="text-right font-mono">
+                {isEmptyValue(variant.selling_price) ? null : variant.selling_price.toFixed(2)}
+              </td>
+              {showsEconomics && (
+                <td className="text-right">
+                  <Amount value={variant.total_purchase_cost} />
+                </td>
+              )}
+              {showsEconomics && (
+                <td className="text-right">
+                  <Amount value={variant.theoretical_profit} />
+                </td>
+              )}
+              <td className="text-right">{emptyToNull(variant.active_sales_count)}</td>
+              <td>{emptyToNull(variant.purchases_count)}</td>
+              <td>{emptyToNull(variant.shopify_id_short) ?? emptyToNull(variant.woo_store_id)}</td>
             </tr>
           ))}
         </tbody>

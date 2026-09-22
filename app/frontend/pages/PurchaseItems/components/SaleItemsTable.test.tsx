@@ -1,9 +1,10 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
-import SaleItemsTable from "./SaleItemsTable";
+
 import { makeSaleItemTableRow } from "../test/factories";
+import SaleItemsTable from "./SaleItemsTable";
 
 describe("PurchaseItems/components/SaleItemsTable", () => {
   it("renders nothing without related sale item rows", () => {

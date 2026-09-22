@@ -15,6 +15,7 @@ describe SalePolicy do
     it { is_expected.to permit_action(:show) }
     it { is_expected.to permit_action(:pull) }
     it { is_expected.to permit_action(:link_purchase_items) }
+    it { is_expected.to permit_action(:view_profitability) }
   end
 
   context "when user is manager" do
@@ -23,6 +24,7 @@ describe SalePolicy do
     it { is_expected.to permit_action(:index) }
     it { is_expected.to permit_action(:show) }
     it { is_expected.to permit_action(:pull) }
+    it { is_expected.to forbid_action(:view_profitability) }
   end
 
   context "when user is support" do
@@ -32,6 +34,7 @@ describe SalePolicy do
     it { is_expected.to permit_action(:show) }
     it { is_expected.to permit_action(:pull) }
     it { is_expected.to forbid_action(:link_purchase_items) }
+    it { is_expected.to forbid_action(:view_profitability) }
   end
 
   context "when user is guest" do
@@ -41,5 +44,6 @@ describe SalePolicy do
     it { is_expected.to forbid_action(:show) }
     it { is_expected.to forbid_action(:pull) }
     it { is_expected.to forbid_action(:link_purchase_items) }
+    it { is_expected.to forbid_action(:view_profitability) }
   end
 end

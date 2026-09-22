@@ -1,16 +1,8 @@
 # frozen_string_literal: true
 
-# Shopify::Graphql::MediaMutation
-#
-# GraphQL mutations and queries for managing product media in Shopify.
-# Provides mutations for attaching, updating, and reordering media.
-#
 module Shopify
   module Graphql
     class MediaMutation
-      # Mutation for attaching media to a product
-      #
-      # @return [String] The GraphQL mutation string
       def self.attach
         <<~GQL
           mutation($product: ProductUpdateInput!, $media: [CreateMediaInput!]) {
@@ -39,10 +31,6 @@ module Shopify
         GQL
       end
 
-      # Query for fetching the status of a media item
-      # Used to check if media has finished processing
-      #
-      # @return [String] The GraphQL query string
       def self.status_query
         <<~GQL
           query($id: ID!) {
@@ -57,9 +45,6 @@ module Shopify
         GQL
       end
 
-      # Mutation for updating media attributes (e.g., alt text)
-      #
-      # @return [String] The GraphQL mutation string
       def self.update
         <<~GQL
           mutation($files: [FileUpdateInput!]!) {
@@ -84,9 +69,6 @@ module Shopify
         GQL
       end
 
-      # Mutation for reordering media on a product
-      #
-      # @return [String] The GraphQL mutation string
       def self.reorder
         <<~GQL
           mutation($id: ID!, $moves: [MoveInput!]!) {

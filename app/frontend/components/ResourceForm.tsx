@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState, type ComponentRef, type ReactNode } from "react";
 import { Form, Link } from "@inertiajs/react";
+import { useCallback, useRef, useState, type ComponentRef, type ReactNode } from "react";
+
 import Button from "@/components/Button";
 import ErrorNotice from "@/components/ErrorNotice";
 

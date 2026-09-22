@@ -10,7 +10,6 @@ describe DashboardController do
     let!(:suppliers) { create_list(:supplier, 3) }
 
     before do
-      # Create purchases with items and payments for realistic scenario
       suppliers.each do |supplier|
         purchases = create_list(:purchase, 2, supplier: supplier)
         purchases.each do |purchase|
@@ -84,23 +83,17 @@ describe DashboardController do
     let!(:customer) { create(:customer) }
 
     before do
-      # Create a sale that creates debt (more sold than purchased)
       sale = create(:sale, customer: customer, status: "processing")
       create(:sale_item, sale: sale, product: product, qty: 5)
 
-      # Create a purchase with fewer items than sold
       purchase = create(:purchase, supplier: supplier, product: product, amount: 2)
       create_list(:purchase_item, 2, purchase: purchase)
-
-      # This should create a debt situation where 5 are sold but only 2 are purchased
     end
 
     it "calculates sale debts correctly" do
       get :index
       sale_debts = inertia.props[:sale_debts]
 
-      # The sale_debts query should return results but we don't test specific values
-      # as the SQL is complex and the exact calculation depends on multiple factors
       expect(sale_debts).to respond_to(:each)
     end
   end

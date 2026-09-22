@@ -1,14 +1,19 @@
 import { Link } from "@inertiajs/react";
 import { type ChangeEvent, useCallback, useRef } from "react";
+
 import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+import { type InlineCellEditorHandle } from "@/components/inline-cell-editing";
+import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import Pagination from "@/components/Pagination";
+import PaymentProgressBar from "@/components/PaymentProgressBar";
+import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
+import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import TipMark from "@/components/TipMark";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
-import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
-import PaymentProgressBar from "@/components/PaymentProgressBar";
+
 import type {
   PaginationMeta,
   ShippingCompanyOption,
@@ -16,9 +21,6 @@ import type {
   WarehousePurchaseItemRecord,
   WarehouseShowRecord,
 } from "../types";
-import { type InlineCellEditorHandle } from "@/components/inline-cell-editing";
-import { InlineShippingCompanyEditor } from "@/components/purchase-item-cells/InlineShippingCompanyEditor";
-import { InlineTrackingNumberEditor } from "@/components/purchase-item-cells/InlineTrackingNumberEditor";
 
 type PurchaseItemsSectionProps = {
   pagination: PaginationMeta;
@@ -86,6 +88,16 @@ export function PurchaseItemsSection({
   );
 }
 
+function usePurchaseItemsSection() {
+  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
+    useWarehouseMoveSelection();
+
+  return {
+    clearSelectedIds,
+    selectedIds,
+    togglePurchaseItemSelection: toggleSelectedIdFromDataAttribute("purchaseItemId"),
+  };
+}
 function PurchaseItemsSectionHeader({
   pagination,
   warehouse,
@@ -97,7 +109,7 @@ function PurchaseItemsSectionHeader({
     <div className="flex justify-between align-center">
       <h3>Number of Items: {pagination.total_count}</h3>
       <div className="w-full max-w-45 px-3 mt-4 text-center lg:w-45">
-        <PaymentProgressBar onlyDebt progress={warehouse.payment_progress} />
+        <PaymentProgressBar caption="debtOnly" progress={warehouse.payment_progress} />
       </div>
     </div>
   );
@@ -122,12 +134,6 @@ function PurchaseItemsSearch({
   );
 }
 
-function PurchaseItemsEmptyState({ search }: { search: { q: string } }) {
-  if (!search.q) return null;
-
-  return <SearchResultsEmpty seed={search.q} />;
-}
-
 function PurchaseItemsTable({
   purchaseItems,
   selectedId,
@@ -145,6 +151,7 @@ function PurchaseItemsTable({
     <table>
       <thead>
         <tr>
+          {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- empty spacer */}
           <th />
           <th>Title</th>
           <th>Customer</th>
@@ -181,6 +188,11 @@ function PaymentProgressLegend() {
     </div>
   );
 }
+function PurchaseItemsEmptyState({ search }: { search: { q: string } }) {
+  if (!search.q) return null;
+
+  return <SearchResultsEmpty seed={search.q} />;
+}
 
 function PurchaseItemRow({
   item,
@@ -209,6 +221,7 @@ function PurchaseItemRow({
     >
       <td className="no_events text-center">
         <input
+          aria-label={`Select purchase item ${item.id}`}
           checked={isSelectionChecked}
           data-purchase-item-id={item.id}
           onChange={onToggleSelectedId}
@@ -235,6 +248,9 @@ function PurchaseItemRow({
   );
 }
 
+function purchaseItemRowClassName({ isSelected }: { isSelected: boolean }) {
+  return ["hoverable", isSelected ? "selected" : ""].filter(Boolean).join(" ");
+}
 function PurchaseItemTitle({ item }: { item: WarehousePurchaseItemRecord }) {
   return (
     <>
@@ -287,7 +303,11 @@ function PurchaseItemCustomer({ item }: { item: WarehousePurchaseItemRecord }) {
             text={item.sale_summary}
           />
           {item.sale_summary}
-          {item.sale_note && <TipMark starClassName="text-xl leading-0">{item.sale_note}</TipMark>}
+          {item.sale_note && (
+            <TipMark size="large" tone="orange">
+              {item.sale_note}
+            </TipMark>
+          )}
         </div>
       </li>
       <li className="mt-2">
@@ -298,19 +318,4 @@ function PurchaseItemCustomer({ item }: { item: WarehousePurchaseItemRecord }) {
       </li>
     </ul>
   );
-}
-
-function usePurchaseItemsSection() {
-  const { clearSelectedIds, selectedIds, toggleSelectedIdFromDataAttribute } =
-    useWarehouseMoveSelection();
-
-  return {
-    clearSelectedIds,
-    selectedIds,
-    togglePurchaseItemSelection: toggleSelectedIdFromDataAttribute("purchaseItemId"),
-  };
-}
-
-function purchaseItemRowClassName({ isSelected }: { isSelected: boolean }) {
-  return ["hoverable", isSelected ? "selected" : ""].filter(Boolean).join(" ");
 }

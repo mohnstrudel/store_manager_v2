@@ -14,16 +14,11 @@ RSpec.feature "Purchase items shipping cascade editing" do
       tracking_number: nil, shipping_company: nil, shipping_cost: "0")
   end
 
-  # On the purchase show page the three shipping editors coordinate through refs:
-  # opening one editor on a blank row auto-opens its siblings and saves all three
-  # together via the bulk shipping_details endpoint. That ref / imperative-handle
-  # cascade only runs in a real browser, so it needs a Cuprite spec.
   scenario "opening a blank row cascades the sibling editors and saves them together", :js do
     visit purchase_path(purchase)
 
     find("[aria-label='Edit tracking number']").trigger("click")
 
-    # The cascade auto-opens all three editors for a blank row.
     expect(page).to have_field("Tracking number")
     expect(page).to have_field("Shipping company")
     expect(page).to have_field("Shipping cost")

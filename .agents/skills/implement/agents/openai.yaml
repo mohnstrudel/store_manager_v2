@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement"
+  short_description: "Execute the next approved spec or ticket"
+  default_prompt: "Use $implement to execute the next approved spec or ticket."

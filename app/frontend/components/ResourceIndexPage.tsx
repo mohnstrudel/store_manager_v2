@@ -1,14 +1,21 @@
 import { Link } from "@inertiajs/react";
 import type { ReactNode } from "react";
+
 import PageHeader from "@/components/PageHeader";
 
 type ResourceIndexPageProps = {
+  bordered?: boolean;
   children: ReactNode;
   newPath?: string;
   title: ReactNode;
 };
 
-export default function ResourceIndexPage({ children, newPath, title }: ResourceIndexPageProps) {
+export default function ResourceIndexPage({
+  bordered = true,
+  children,
+  newPath,
+  title,
+}: ResourceIndexPageProps) {
   return (
     <>
       <PageHeader title={title}>
@@ -22,7 +29,9 @@ export default function ResourceIndexPage({ children, newPath, title }: Resource
         ) : null}
       </PageHeader>
 
-      <section className="section_border_base section_wide">{children}</section>
+      <section className={bordered ? "section_border_base section_wide" : "section_wide"}>
+        {children}
+      </section>
     </>
   );
 }

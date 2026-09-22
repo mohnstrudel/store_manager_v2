@@ -17,6 +17,7 @@ class Sale::Shopify::SaleItemImporter
       parsed[:product_store_id].present? && Product.find_by_shopify_id(parsed[:product_store_id]).nil?
 
     return create_title_only_sale_item! if only_product_title?
+    return if unresolvable_new_variant?
 
     ActiveRecord::Base.transaction do
       sale_item.assign_attributes(sale_item_attributes)
@@ -51,23 +52,21 @@ class Sale::Shopify::SaleItemImporter
     sale_item
   end
 
-  def sale_item_attributes
-    {
-      price: parsed[:price],
-      qty: parsed[:qty],
-      shopify_id: parsed[:store_id],
-      sale: sale,
-      product: resolved_product,
-      variant: imported_variant
-    }.compact
+  def resolved_product
+    @resolved_product ||= default_resolved_product
   end
 
-  def resolved_product
-    @resolved_product ||=
-      existing_product_from_store_id ||
+  def default_resolved_product
+    existing_product_from_store_id ||
       product_from_payload ||
       product_from_full_title ||
       placeholder_product
+  end
+
+  def existing_product_from_store_id
+    return nil if parsed[:product_store_id].blank?
+
+    Product.find_by_shopify_id(parsed[:product_store_id])
   end
 
   def product_from_payload
@@ -116,6 +115,20 @@ class Sale::Shopify::SaleItemImporter
       .find { |variant| variant.shopify_info&.store_id == parsed[:variant_store_id] }
   end
 
+  def normalized_variant_title
+    return @normalized_variant_title if defined?(@normalized_variant_title)
+
+    raw_title = parsed[:variant_title].to_s
+    return @normalized_variant_title = nil if raw_title.blank?
+
+    title = Sanitizable.sanitize(raw_title).presence
+    @normalized_variant_title = title
+  end
+
+  def base_model_variant_title?
+    normalized_variant_title == "Default Title"
+  end
+
   def create_custom_variant
     return nil if resolved_product.blank?
     return base_model_variant_for(resolved_product) if base_model_variant_title?
@@ -133,20 +146,6 @@ class Sale::Shopify::SaleItemImporter
     )
   end
 
-  def base_model_variant_title?
-    normalized_variant_title == "Default Title"
-  end
-
-  def normalized_variant_title
-    return @normalized_variant_title if defined?(@normalized_variant_title)
-
-    raw_title = parsed[:variant_title].to_s
-    return @normalized_variant_title = nil if raw_title.blank?
-
-    title = Sanitizable.sanitize(raw_title).presence
-    @normalized_variant_title = title
-  end
-
   def base_model_variant_for(product)
     return product.base_variant if product.base_variant
 
@@ -155,10 +154,27 @@ class Sale::Shopify::SaleItemImporter
     product.base_variant
   end
 
-  def existing_product_from_store_id
-    return nil if parsed[:product_store_id].blank?
+  def sale_item_attributes
+    {
+      price: parsed[:price],
+      expected_revenue: parsed[:expected_revenue],
+      qty: parsed[:qty],
+      shopify_id: parsed[:store_id],
+      sale: sale,
+      product: resolved_product,
+      variant: imported_variant
+    }.compact
+  end
 
-    Product.find_by_shopify_id(parsed[:product_store_id])
+  def unresolvable_new_variant?
+    return false if parsed[:variant_store_id].blank?
+    return false if Variant.find_by_shopify_id(parsed[:variant_store_id])
+    return false if parsed.dig(:product, :variants).present?
+    return false if resolved_product.blank?
+    return false if resolved_product.assignable_variants.base_models.exists?
+
+    Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if parsed[:product_store_id].present?
+    true
   end
 
   def handle_record_invalid(error)

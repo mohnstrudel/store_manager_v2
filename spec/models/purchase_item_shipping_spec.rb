@@ -60,5 +60,24 @@ describe PurchaseItem do
         expect(purchase.reload.shipping_total).to eq(0)
       end
     end
+
+    describe "when purchase_item is reassigned to a different purchase" do
+      let(:new_purchase) { create(:purchase, shipping_total: 0) }
+      let!(:purchase_item) { create(:purchase_item, purchase:, shipping_cost: 12.0) }
+
+      it "moves shipping_cost from the old purchase's total to the new purchase's total" do
+        purchase_item.update!(purchase_id: new_purchase.id)
+
+        expect(purchase.reload.shipping_total).to eq(0)
+        expect(new_purchase.reload.shipping_total).to eq(12.0)
+      end
+
+      it "uses the pre-change shipping_cost for the old purchase when both change in the same save" do
+        purchase_item.update!(purchase_id: new_purchase.id, shipping_cost: 20.0)
+
+        expect(purchase.reload.shipping_total).to eq(0)
+        expect(new_purchase.reload.shipping_total).to eq(20.0)
+      end
+    end
   end
 end

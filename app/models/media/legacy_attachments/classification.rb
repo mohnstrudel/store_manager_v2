@@ -9,30 +9,14 @@ class Media::LegacyAttachments::Classification
     @owner_class = owner_class
   end
 
-  def blocked
-    @blocked ||= live
-      .where.not(record_id: owners_with_media_ids)
-      .or(live.where(record_id: partial_owner_ids))
-  end
-
-  def retained
-    @retained ||= covered.where(blob_id: retained_blob_ids)
-  end
-
-  def releasing
-    @releasing ||= releasing_all.where(record_id: recoverable_owner_ids)
-  end
-
   def unrecoverable
     @unrecoverable ||= releasing_all.where.not(record_id: recoverable_owner_ids)
   end
 
-  def orphaned_retained
-    @orphaned_retained ||= orphaned.where(blob_id: retained_blob_ids)
-  end
-
-  def orphaned_releasing
-    @orphaned_releasing ||= orphaned.where.not(blob_id: retained_blob_ids)
+  def blocked # rubocop:disable Project/PrivateMethodCandidate
+    @blocked ||= live
+      .where.not(record_id: owners_with_media_ids)
+      .or(live.where(record_id: partial_owner_ids))
   end
 
   def deletable
@@ -43,40 +27,48 @@ class Media::LegacyAttachments::Classification
     retained.or(orphaned_retained)
   end
 
+  def retained
+    @retained ||= covered.where(blob_id: retained_blob_ids)
+  end
+
+  def orphaned_retained
+    @orphaned_retained ||= orphaned.where(blob_id: retained_blob_ids)
+  end
+
   def deletable_with_purge
     releasing.or(orphaned_releasing)
   end
 
+  def releasing
+    @releasing ||= releasing_all.where(record_id: recoverable_owner_ids)
+  end
+
+  def orphaned_releasing
+    @orphaned_releasing ||= orphaned.where.not(blob_id: retained_blob_ids)
+  end
+
   private
 
-  def legacy
-    @legacy ||= Media::LegacyAttachments.for_owner_class(owner_class)
-  end
-
-  def live
-    @live ||= legacy.where(record_id: owner_class.select(:id))
-  end
-
-  def orphaned
-    @orphaned ||= legacy.where.not(record_id: owner_class.select(:id))
+  def releasing_all
+    @releasing_all ||= covered.where.not(blob_id: retained_blob_ids)
   end
 
   def covered
     @covered ||= live.where.not(record_id: blocked.select(:record_id))
   end
 
-  def releasing_all
-    @releasing_all ||= covered.where.not(blob_id: retained_blob_ids)
+  def live
+    @live ||= legacy.where(record_id: owner_class.select(:id))
+  end
+
+  def legacy
+    @legacy ||= Media::LegacyAttachments.for_owner_class(owner_class)
   end
 
   def owners_with_media_ids
     Media.joins(:image_attachment)
       .where(mediaable_type: owner_class.name)
       .select(:mediaable_id)
-  end
-
-  def matched
-    @matched ||= legacy.joins(media_match_joins).distinct
   end
 
   def partial_owner_ids
@@ -86,17 +78,8 @@ class Media::LegacyAttachments::Classification
       .select(:record_id)
   end
 
-  def retained_blob_ids
-    ActiveStorage::Attachment
-      .where.not(name: Media::LegacyAttachments::NAME)
-      .select(:blob_id)
-  end
-
-  def recoverable_owner_ids
-    StoreInfo.shopify
-      .where(storable_type: owner_class.name)
-      .where.not(store_id: [nil, ""])
-      .select(:storable_id)
+  def matched
+    @matched ||= legacy.joins(media_match_joins).distinct
   end
 
   def media_match_joins
@@ -113,5 +96,22 @@ class Media::LegacyAttachments::Classification
       SQL
       owner_class.name
     ])
+  end
+
+  def retained_blob_ids
+    ActiveStorage::Attachment
+      .where.not(name: Media::LegacyAttachments::NAME)
+      .select(:blob_id)
+  end
+
+  def recoverable_owner_ids
+    StoreInfo.shopify
+      .where(storable_type: owner_class.name)
+      .where.not(store_id: [nil, ""])
+      .select(:storable_id)
+  end
+
+  def orphaned
+    @orphaned ||= legacy.where.not(record_id: owner_class.select(:id))
   end
 end

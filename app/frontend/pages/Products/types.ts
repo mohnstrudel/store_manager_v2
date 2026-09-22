@@ -50,6 +50,8 @@ export type VariantRecord = {
   purchases_count: number;
   shopify_id_short: string;
   woo_store_id: string;
+  total_purchase_cost: string | null;
+  theoretical_profit: string | null;
 };
 
 export type SaleItemRecord = {
@@ -67,6 +69,30 @@ export type SaleItemRecord = {
   status: string;
   warehouse: string;
   purchase_item_path: string | null;
+};
+
+export type PaymentOrigin = {
+  path: string;
+  identifier: string;
+};
+
+export type PaymentItemRecord = {
+  id: number;
+  sale_path: string;
+  store_type: "shopify" | "woo" | null;
+  store_id: string;
+  customer_name: string;
+  customer_email: string;
+  date: string;
+  variant_title: string | null;
+  price: string;
+  qty: number;
+  status: string;
+  warehouse: string;
+  purchase_item_path: string | null;
+  sequence: number | null;
+  expected_parts: number | null;
+  origin: PaymentOrigin | null;
 };
 
 export type PurchaseWarehouse = {
@@ -110,6 +136,16 @@ export type ProductShowRecord = {
   new_purchase_path: string;
 };
 
+export type ProfitabilityRecord = {
+  potential_sales: string | null;
+  expected_total_cost: string | null;
+  business_expenses: string | null;
+  expected_net_profit: string | null;
+  collected_revenue: string | null;
+  purchase_paid: string | null;
+  cash_position: string | null;
+};
+
 export type SelectOption<Value extends string | number = string | number> = {
   value: Value;
   label: string;
@@ -129,6 +165,7 @@ export type FormOptions = {
 
 export type VariantFormData = {
   id: number | null;
+  base_model: boolean;
   sku: string;
   size_id: number | null;
   version_id: number | null;
@@ -155,6 +192,7 @@ export type PurchaseFormData = {
   amount: string;
   warehouse_id: number | null;
   payment_value: string;
+  variant_client_key: string | null;
 };
 
 export type ProductFormData = {

@@ -32,7 +32,6 @@ RSpec.describe Media do
     let(:media) { create(:media, :for_product) }
 
     it "delegates missing methods to image" do
-      # Test that methods like url, filename, etc are delegated
       expect(media).to respond_to(:url)
       expect(media).to respond_to(:filename)
       expect(media).to respond_to(:variant)

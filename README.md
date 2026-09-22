@@ -116,7 +116,7 @@ Detailed, task-specific guidance lives in [`AGENTS.md`](AGENTS.md) and the skill
 - `frontend-architecture/SKILL.md` — Inertia + React UI work
 - `inline-cell-editor/SKILL.md` — adding or changing inline table-cell editors
 
-These live under both `.claude/skills/` and `.codex/skills/`.
+These live in `.agents/skills/`; `.claude/skills/` and `.codex/skills/` are symlinks to that canonical directory.
 
 ---
 
@@ -454,7 +454,7 @@ Examples: [`spec/models/product`](spec/models/product), [`spec/jobs`](spec/jobs)
 
 | Category | Technology |
 | --- | --- |
-| Language | Ruby 4.0.5 |
+| Language | Ruby 4.0.x |
 | Framework | Rails 8.x |
 | Database | PostgreSQL |
 | Search | `pg_search` |
@@ -472,7 +472,7 @@ Examples: [`spec/models/product`](spec/models/product), [`spec/jobs`](spec/jobs)
 
 ### Requirements
 
-- Ruby 4.0.5 and Node 24, pinned in `mise.toml`
+- Ruby 4.0 and Node 24, pinned in `mise.toml`
 - PostgreSQL
 - Redis
 

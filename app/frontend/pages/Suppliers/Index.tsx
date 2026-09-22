@@ -1,5 +1,6 @@
 import ResourceIndexPage from "@/components/ResourceIndexPage";
 import routes from "@/utils/routes";
+
 import Table from "./components/Table";
 import { SupplierRecord } from "./types";
 

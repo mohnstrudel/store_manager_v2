@@ -188,6 +188,30 @@ RSpec.describe Variant::Shopify::Importer do
       end
     end
 
+    context "when a base variant is unlinked and the payload has a currency conversion" do
+      let!(:existing_variant) { product.base_variant }
+      let(:parsed_variant) do
+        {
+          store_id: "gid://shopify/ProductVariant/12345",
+          sku: "TEST-SKU-001",
+          selling_price: "299.99",
+          options: [],
+          is_single_variant: true,
+          usd_conversion_rate: BigDecimal("1.125"),
+          usd_conversion_date: Date.new(2026, 9, 2)
+        }
+      end
+
+      it "links the existing base variant" do
+        imported_variant = nil
+
+        expect { imported_variant = described_class.import!(product, parsed_variant) }.not_to change(Variant, :count)
+
+        expect(imported_variant).to eq(existing_variant)
+        expect(existing_variant.reload.shopify_info.store_id).to eq(parsed_variant[:store_id])
+      end
+    end
+
     context "with blank options" do
       it "creates a base variant" do # rubocop:todo RSpec/MultipleExpectations
         result = described_class.import!(product, {options: []})
@@ -512,6 +536,72 @@ RSpec.describe Variant::Shopify::Importer do
         imported_variant = Variant.find_by_shopify_id(parsed_variant[:store_id])
         expect(imported_variant.product).to eq(product)
         expect(imported_variant.sku).to eq(parsed_variant[:sku])
+      end
+    end
+
+    context "with a captured EUR-to-USD selling-price conversion" do
+      let(:parsed_variant) do
+        super().merge(
+          usd_conversion_rate: BigDecimal("1.125"),
+          usd_conversion_date: Date.new(2026, 9, 2)
+        )
+      end
+
+      it "stores converted USD selling price and purchase cost while preserving the EUR selling-price snapshot" do
+        variant = described_class.import!(product, parsed_variant)
+
+        expect(variant).to have_attributes(
+          selling_price: BigDecimal("337.49"),
+          purchase_cost: BigDecimal("168.75"),
+          selling_price_source_amount: BigDecimal("299.99"),
+          selling_price_source_currency: "EUR",
+          selling_price_exchange_rate: BigDecimal("1.125"),
+          selling_price_exchange_rate_date: Date.new(2026, 9, 2)
+        )
+      end
+
+      it "does not log a clamp warning for an in-range conversion" do
+        allow(Rails.logger).to receive(:warn)
+
+        described_class.import!(product, parsed_variant)
+
+        expect(Rails.logger).not_to have_received(:warn)
+      end
+    end
+
+    context "with a selling-price USD conversion that overflows decimal(10,2)" do
+      let(:parsed_variant) do
+        super().merge(
+          selling_price: "99999999.99",
+          purchase_cost: nil,
+          usd_conversion_rate: BigDecimal("1.146"),
+          usd_conversion_date: Date.new(2026, 9, 18)
+        )
+      end
+
+      it "clamps selling_price to the column's maximum representable magnitude and logs a warning" do # rubocop:todo RSpec/MultipleExpectations
+        allow(Rails.logger).to receive(:warn)
+
+        variant = described_class.import!(product, parsed_variant)
+
+        expect(variant.selling_price).to eq(BigDecimal("99999999.99"))
+        expect(Rails.logger).to have_received(:warn).with(/clamped selling_price/)
+      end
+    end
+
+    context "with a purchase-cost USD conversion that overflows decimal(10,2)" do
+      let(:parsed_variant) do
+        super().merge(
+          selling_price: nil,
+          purchase_cost: "99999999.99",
+          usd_conversion_rate: BigDecimal("1.146")
+        )
+      end
+
+      it "clamps purchase_cost to the column's maximum representable magnitude" do
+        variant = described_class.import!(product, parsed_variant)
+
+        expect(variant.purchase_cost).to eq(BigDecimal("99999999.99"))
       end
     end
   end

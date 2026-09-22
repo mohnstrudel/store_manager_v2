@@ -52,6 +52,24 @@ RSpec.describe Product::Shopify::Importer do
       expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
     end
 
+    it "captures the EUR-to-USD rate before enqueuing priced variants" do
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
+      conversion = ExchangeRate::Conversion.new(
+        order_date: Date.new(2026, 9, 4),
+        effective_date: Date.new(2026, 9, 2),
+        rate: BigDecimal("1.1578")
+      )
+      allow(ExchangeRate).to receive(:eur_to_usd_conversion).and_return(conversion)
+      priced_variant = {store_id: "gid://shopify/ProductVariant/67890", selling_price: "450.00"}
+
+      product = described_class.import!(parsed_product.merge(variants: [priced_variant]))
+
+      expect(Shopify::PullVariantsJob).to have_received(:perform_later).with(
+        product,
+        [priced_variant.merge(usd_conversion_rate: BigDecimal("1.1578"), usd_conversion_date: Date.new(2026, 9, 2))]
+      )
+    end
+
     it "generates correct full title" do
       product = described_class.import!(parsed_product)
       expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")
@@ -81,7 +99,7 @@ RSpec.describe Product::Shopify::Importer do
 
     it "saves Shopify ID to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
       product = described_class.import!(parsed_product)
-      product.reload # Clear association cache to see newly created store_info
+      product.reload
       expect(product.shopify_info).to be_present
       expect(product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
       expect(product.shopify_info.shopify?).to be true

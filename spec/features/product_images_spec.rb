@@ -24,7 +24,6 @@ RSpec.describe "Product Image Management" do
 
   def attach_new_images(*paths)
     find("[data-testid='new-images-input']", visible: false).set(paths.map(&:to_s))
-    # Wait for all uploads to finish — each successful upload renders a pending badge
     expect(page).to have_css("[data-testid='image-pending-badge']", count: paths.size, wait: 15)
   end
 
@@ -80,7 +79,7 @@ RSpec.describe "Product Image Management" do
     expect(page).to have_content("Product was successfully updated")
 
     product.reload
-    expect(product.media.count).to eq(2) # 1 remaining + 1 new
+    expect(product.media.count).to eq(2)
     expect(product.media.pluck(:id)).not_to include(media1.id)
   end
 end

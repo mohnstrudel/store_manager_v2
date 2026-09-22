@@ -15,14 +15,49 @@
 #  width                :integer
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  product_id           :bigint
 #  purchase_id          :bigint
 #  sale_item_id         :bigint
 #  shipping_company_id  :bigint
+#  variant_id           :bigint
 #  warehouse_id         :bigint           not null
 #
 require "rails_helper"
 
 describe PurchaseItem do
+  describe "derived Variant identity" do
+    it "copies Product and Variant from its Purchase" do
+      purchase = create(:purchase)
+
+      purchase_item = create(:purchase_item, purchase:)
+
+      expect(purchase_item).to have_attributes(
+        product_id: purchase.product_id,
+        variant_id: purchase.variant_id
+      )
+    end
+
+    it "rejects database writes that disagree with the Purchase identity" do
+      purchase_item = create(:purchase_item)
+      other_product = create(:product)
+
+      expect {
+        described_class.where(id: purchase_item.id).update_all(product_id: other_product.id)
+        described_class.connection.execute("SET CONSTRAINTS fk_purchase_items_purchase_identity IMMEDIATE")
+      }.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
+    it "rejects database links that disagree with the SaleItem identity" do
+      purchase_item = create(:purchase_item)
+      other_sale_item = create(:sale_item)
+
+      expect {
+        described_class.where(id: purchase_item.id).update_all(sale_item_id: other_sale_item.id)
+        described_class.connection.execute("SET CONSTRAINTS fk_purchase_items_sale_item_identity IMMEDIATE")
+      }.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+  end
+
   describe "auditing" do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true

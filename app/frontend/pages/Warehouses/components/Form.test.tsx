@@ -1,11 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
-import Form from "./Form";
+
 import { makeWarehouseFormOptions, makeWarehouseFormRecord } from "../test/factories";
 import type { WarehouseFormOptions, WarehouseFormRecord } from "../types";
+import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
 

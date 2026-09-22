@@ -148,10 +148,8 @@ describe "Search works across products, sales, purchases, and debts", :js do
       expect(find(sold_amount_selector)).to have_text(sold_amount)
     end
 
-    # Open the row, then edit the product assignment
     find("tr.hoverable", text: batman.full_title).click
     find(:link, "Edit").click
-    # Change the franchise via react-select
     choose_react_select(dc_comics.title, from: "Franchise")
     scroll_to("button[type=submit]")
     find("button[type=submit]").click
@@ -175,14 +173,11 @@ describe "Search works across products, sales, purchases, and debts", :js do
     fill_in "q", with: purchase_batman.order_reference
     click_button "Search"
 
-    # Open the purchase row, then edit the product relation
     find("tr.hoverable", text: purchase_batman.order_reference).click
     find("a[href='/purchases/#{purchase_batman.friendly_id}/edit']", text: "Edit").click
 
-    # Click on the products dropdown select and select a different product
     choose_react_select(asuka.build_full_title_with_shop_id, from: "Product")
 
-    # Select a variant for the new product
     choose_react_select(asuka_variant.title, from: "Variant")
 
     scroll_to("button[type=submit]")

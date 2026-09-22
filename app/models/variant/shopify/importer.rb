@@ -48,25 +48,23 @@ class Variant::Shopify::Importer
     variant&.product_id != product.id
   end
 
-  def variant_attrs
-    @variant_attrs ||= build_variant_attrs
+  def variant_identity_attrs
+    @variant_identity_attrs ||= {
+      color_id: variant_attrs[:color]&.id,
+      size_id: variant_attrs[:size]&.id,
+      version_id: variant_attrs[:version]&.id
+    }
   end
 
-  def variant_identity_attrs
-    @variant_identity_attrs ||= variant_attrs
-      .except(:sku, :selling_price, :purchase_cost, :weight)
-      .presence || {
-        color_id: nil,
-        size_id: nil,
-        version_id: nil
-      }
+  def variant_attrs
+    @variant_attrs ||= build_variant_attrs
   end
 
   def build_variant_attrs
     attributes = {}
     attributes[:sku] = parsed[:sku].presence || generated_fallback_sku
-    attributes[:selling_price] = parsed[:selling_price] if parsed[:selling_price].present?
-    attributes[:purchase_cost] = parsed[:purchase_cost] if parsed[:purchase_cost].present?
+    assign_shopify_selling_price(attributes)
+    assign_shopify_purchase_cost(attributes)
     attributes[:weight] = parsed[:weight] if parsed[:weight].present?
 
     return attributes if parsed[:is_single_variant]
@@ -91,5 +89,48 @@ class Variant::Shopify::Importer
   def generated_fallback_sku
     store_id_segment = parsed[:store_id].to_s.split("/").last.presence || SecureRandom.hex(4)
     "shopify-#{product.id}-#{store_id_segment}"
+  end
+
+  def assign_shopify_selling_price(attributes)
+    amount = parsed[:selling_price]
+    return if amount.blank?
+
+    rate = parsed[:usd_conversion_rate]
+    attributes[:selling_price] = convert_to_usd(amount, rate, :selling_price)
+    return unless rate
+
+    attributes[:selling_price_source_amount] = amount
+    attributes[:selling_price_source_currency] = "EUR"
+    attributes[:selling_price_exchange_rate] = rate
+    attributes[:selling_price_exchange_rate_date] = parsed.fetch(:usd_conversion_date)
+  end
+
+  def convert_to_usd(amount, rate, attribute)
+    value = rate ? (amount.to_d * rate).round(2) : amount.to_d
+    clamp_to_column(value, attribute)
+  end
+
+  def clamp_to_column(value, attribute)
+    limit = column_limit(attribute)
+    clamped = value.clamp(-limit, limit)
+    return clamped if clamped == value
+
+    Rails.logger.warn(
+      "Variant::Shopify::Importer: clamped #{attribute} from #{value} to #{clamped} " \
+      "for product_id=#{product.id} variant_store_id=#{parsed[:store_id].presence || "blank"}"
+    )
+    clamped
+  end
+
+  def column_limit(attribute)
+    type = Variant.type_for_attribute(attribute)
+    BigDecimal(10)**(type.precision - type.scale) - BigDecimal(10)**-type.scale
+  end
+
+  def assign_shopify_purchase_cost(attributes)
+    amount = parsed[:purchase_cost]
+    return if amount.blank?
+
+    attributes[:purchase_cost] = convert_to_usd(amount, parsed[:usd_conversion_rate], :purchase_cost)
   end
 end

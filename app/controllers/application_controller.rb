@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
   inertia_share do
     {
       breadcrumb: helpers.breadcrumb_title,
+      environment: Rails.env.to_s,
       auth: {user: current_user&.slice(:id, :email_address, :role)},
       flash: {notice: flash.notice, alert: flash.alert},
       csrf_token: form_authenticity_token

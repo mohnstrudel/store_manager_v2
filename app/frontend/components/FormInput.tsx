@@ -39,6 +39,7 @@ export default function FormInput({
         aria-describedby={error ? `${id}_error` : undefined}
         aria-invalid={!!error}
         autoComplete={autoComplete}
+        // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
         autoFocus={autoFocus}
         defaultValue={defaultValue}
         id={id}

@@ -1,11 +1,14 @@
-import { forwardRef, useCallback, useEffect, useState, type ChangeEvent } from "react";
+import { forwardRef, useCallback, useState, type ChangeEvent } from "react";
+
 import {
   InlineCellEditor,
   type InlineCellEditorHandle,
   useInlineCellForm,
 } from "@/components/inline-cell-editing";
 import { purchaseItemResource } from "@/components/purchase-item-cells/resource";
+import { isEmptyValue } from "@/utils/emptyValue";
 import routes from "@/utils/routes";
+
 import type { PurchaseItemRecord } from "../types";
 
 type ShippingCostEditorProps = {
@@ -27,9 +30,7 @@ export const InlineShippingCostEditor = forwardRef<InlineCellEditorHandle, Shipp
       onOpen: onAutoOpen,
     });
 
-    useEffect(() => {
-      if (!form.isOpen) setHideDefaultZero(true);
-    }, [form.isOpen]);
+    if (!form.isOpen && !hideDefaultZero) setHideDefaultZero(true);
 
     const { onChange } = form;
     const handleChange = useCallback(
@@ -48,7 +49,7 @@ export const InlineShippingCostEditor = forwardRef<InlineCellEditorHandle, Shipp
         ref={ref}
         ariaLabel="Edit shipping cost"
         displayClassName="font-mono text-sm"
-        displayValue={Number(item.shipping_cost) > 0 ? item.shipping_cost : ""}
+        displayValue={isEmptyValue(Number(item.shipping_cost)) ? "" : item.shipping_cost}
         error={form.error}
         fieldId={fieldId}
         fieldLabel="Shipping cost"
@@ -57,6 +58,7 @@ export const InlineShippingCostEditor = forwardRef<InlineCellEditorHandle, Shipp
         tdClassName="text-center min-w-24"
       >
         <input
+          // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
           autoFocus={autoFocus}
           className="border rounded px-2 py-1 text-sm w-full"
           id={fieldId}

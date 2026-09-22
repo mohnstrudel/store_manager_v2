@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rails Domain Architecture"
+  short_description: "Design model-centric Rails domain changes"
+  default_prompt: "Use $rails-domain-architecture to plan this Rails domain change."

@@ -1,10 +1,11 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { router } from "@inertiajs/react";
 import { describe, expect, it } from "vitest";
-import Table from "./Table";
+
 import { makeShippingCompany } from "../test/factories";
 import type { ShippingCompanyRecord } from "../types";
+import Table from "./Table";
 
 describe("ShippingCompanies/components/Table", () => {
   it("renders shipping company rows with show and edit links", () => {

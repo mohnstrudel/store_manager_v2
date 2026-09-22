@@ -38,7 +38,6 @@ module Shopify
     end
 
     def serialize_option(collection)
-      # e.g. "Color", "Size", "Version"
       option_name = collection.proxy_association.klass.name
       {
         name: option_name,
@@ -57,8 +56,6 @@ module Shopify
         next unless association_name
 
         option["optionValues"].each do |option_value|
-          # We're getting product options through associations:
-          # e.g. product.product_colors.find { |pc| pc.color.value == option_value["name"] }
           item = product.public_send(association_name).find { |product_ass|
             product_ass.public_send(option["name"].downcase).value == option_value["name"]
           }

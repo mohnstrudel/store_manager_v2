@@ -33,7 +33,11 @@ describe PurchaseItem do
   describe "#link_to_sale_item!" do
     it "links the purchase item to a sale item" do
       purchase_item = create(:purchase_item)
-      sale_item = create(:sale_item)
+      sale_item = create(
+        :sale_item,
+        product: purchase_item.product,
+        variant: purchase_item.variant
+      )
 
       purchase_item.link_to_sale_item!(sale_item.id)
 

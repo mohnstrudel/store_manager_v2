@@ -1,8 +1,9 @@
+import FormInput from "@/components/FormInput";
+import ResourceForm from "@/components/ResourceForm";
 import { getFormString } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
-import FormInput from "@/components/FormInput";
-import ResourceForm from "@/components/ResourceForm";
+
 import { SupplierRecord } from "../types";
 
 type SupplierFormProps = {

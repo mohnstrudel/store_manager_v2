@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable RSpec/VerifiedDoubles, RSpec/VerifiedDoubleReference -- BasePullJob's template-method interface is tested generically; these doubles intentionally use placeholder names (Parser, Record, ParserClass, JobSetter) that don't correspond to any single concrete subclass's real collaborators
+
 require "rails_helper"
 
 RSpec.describe Shopify::BasePullJob do
@@ -44,6 +46,14 @@ RSpec.describe Shopify::BasePullJob do
           end
         end
       end
+
+      def handle_terminal_page
+        @terminal_page_handled = true
+      end
+
+      def terminal_page_handled?
+        @terminal_page_handled || false
+      end
     end
   end
 
@@ -64,7 +74,6 @@ RSpec.describe Shopify::BasePullJob do
   let(:shopify_info) { instance_double("StoreInfo", update_column: true) }
   let(:record) { instance_double("Record", shopify_info: shopify_info) }
   let(:creator) { instance_double("Creator", update_or_create!: record) }
-  # Mock parser_class and creator_class as class method calls
   let(:parser_class) { class_double("ParserClass").as_stubbed_const }
   let(:creator_class) { class_double("CreatorClass").as_stubbed_const }
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }
@@ -73,7 +82,6 @@ RSpec.describe Shopify::BasePullJob do
     allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
     allow(api_client).to receive(:fetch_test_data).and_return(api_response)
 
-    # Mock the class method calls that the actual code uses
     allow(parser_class).to receive(:parse).and_return({})
     allow(creator_class).to receive(:import!).and_return(record)
 
@@ -122,6 +130,11 @@ RSpec.describe Shopify::BasePullJob do
       expect(creator_class).to have_received(:import!).exactly(2).times
     end
 
+    it "invokes the terminal-page hook when there is no next page" do
+      perform_job
+      expect(job.terminal_page_handled?).to be(true)
+    end
+
     context "when processing with a limit" do
       let(:job_params) { {limit: 5} }
 
@@ -145,6 +158,11 @@ RSpec.describe Shopify::BasePullJob do
         allow(api_client).to receive(:fetch_test_data).and_return(api_response)
         perform_job
         expect(job_class).not_to have_received(:set)
+      end
+
+      it "invokes the terminal-page hook even when Shopify reports another page" do
+        perform_job
+        expect(job.terminal_page_handled?).to be(true)
       end
     end
 
@@ -171,6 +189,11 @@ RSpec.describe Shopify::BasePullJob do
         perform_job
         expect(job_class).to have_received(:set).with(wait: 15.seconds)
         expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: nil, limit: nil)
+      end
+
+      it "does not invoke the terminal-page hook while retrying" do
+        perform_job
+        expect(job.terminal_page_handled?).to be(false)
       end
 
       it "raises other Shopify API errors" do
@@ -204,6 +227,11 @@ RSpec.describe Shopify::BasePullJob do
         expect(job_class).to have_received(:set).with(wait: 1.second)
         expect(job_setter).to have_received(:perform_later)
           .with(cursor: modified_api_response[:end_cursor])
+      end
+
+      it "does not invoke the terminal-page hook for an intermediate page" do
+        perform_job
+        expect(job.terminal_page_handled?).to be(false)
       end
 
       it "does not schedule next job when there are no more pages" do
@@ -246,3 +274,4 @@ RSpec.describe Shopify::BasePullJob do
     end
   end
 end
+# rubocop:enable RSpec/VerifiedDoubles, RSpec/VerifiedDoubleReference
