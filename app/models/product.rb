@@ -7,6 +7,7 @@
 #  id           :bigint           not null, primary key
 #  full_title   :string
 #  image        :string
+#  non_catalog  :boolean          default(FALSE), not null
 #  published_at :datetime
 #  shape        :string           default("Statue"), not null
 #  slug         :string
@@ -25,6 +26,7 @@ class Product < ApplicationRecord
   include HasPreviewImages
   include Listing
   include Editing
+  include Profitability
   include SalesHistory
   include Searchable
   include Shapes
@@ -35,8 +37,11 @@ class Product < ApplicationRecord
   include Shopify::MediaImporting
   include StoreReferences
   include Titling
+  include VariantAvailability
 
   extend FriendlyId
+
+  SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID = "gid://shopify/Product/9499506180425"
 
   audited associated_with: :franchise
   has_associated_audits
@@ -57,6 +62,7 @@ class Product < ApplicationRecord
 
   validates :title, presence: true
   validates_associated :variants
+  before_destroy :destroy_variant_assignments
 
   db_belongs_to :franchise, inverse_of: :products
 
@@ -80,4 +86,15 @@ class Product < ApplicationRecord
   has_many :purchase_items, through: :purchases
 
   has_rich_text :description
+
+  def self.seal_installment_placeholder
+    find_by(shopify_id: SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID)
+  end
+
+  private
+
+  def destroy_variant_assignments
+    sale_items.destroy_all
+    purchases.destroy_all
+  end
 end

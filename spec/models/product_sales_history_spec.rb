@@ -121,6 +121,113 @@ RSpec.describe Product do
     end
   end
 
+  describe "follow-up payment role" do
+    let(:product) { create(:product) }
+    let(:variant) { create(:variant, product:) }
+
+    it "keeps a Seal follow-up out of active merchandise history and puts it in the active payment group" do
+      origin_item = create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/900")
+      follow_up_item = create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/901")
+      create_plan(
+        external_origin_order_id: "900",
+        parts: [
+          {sequence: 1, provider_part_id: "part-1", external_order_id: "900"},
+          {sequence: 2, provider_part_id: "part-2", external_order_id: "901"}
+        ]
+      )
+
+      expect(product.active_sale_items).to contain_exactly(origin_item)
+      expect(product.active_payment_items).to contain_exactly(follow_up_item)
+    end
+
+    it "preloads payment part data used to classify follow-up sales" do
+      create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/905")
+      follow_up_item = create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/906")
+      create_plan(
+        external_id: "subscription-preload",
+        external_origin_order_id: "905",
+        parts: [
+          {sequence: 1, provider_part_id: "part-preload-1", external_order_id: "905"},
+          {sequence: 2, provider_part_id: "part-preload-2", external_order_id: "906"}
+        ]
+      )
+
+      active_payment_items = product.active_payment_items
+      sale = active_payment_items.first.sale
+      plan = sale.payment_plans_for_display.first
+
+      aggregate_failures do
+        expect(active_payment_items).to contain_exactly(follow_up_item)
+        expect(sale.association(:sale_payment_parts)).to be_loaded
+        expect(plan.part_number_for(sale)).to eq(2)
+      end
+    end
+
+    it "keeps a Seal follow-up out of completed merchandise history and puts it in the completed payment group" do
+      create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/910")
+      follow_up_item = create_history_sale_item(product:, variant:, status: "completed", shopify_store_id: "gid://shopify/Order/911")
+      create_plan(
+        external_id: "subscription-2",
+        external_origin_order_id: "910",
+        parts: [
+          {sequence: 1, provider_part_id: "part-3", external_order_id: "910"},
+          {sequence: 2, provider_part_id: "part-4", external_order_id: "911"}
+        ]
+      )
+
+      expect(product.completed_sale_items).to eq([])
+      expect(product.completed_payment_items).to contain_exactly(follow_up_item)
+    end
+
+    it "keeps the deposit origin order a merchandise sale, never a payment" do
+      origin_item = create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/920")
+      create_plan(
+        kind: "deposit",
+        external_id: "subscription-3",
+        external_origin_order_id: "920",
+        parts: [{sequence: 1, provider_part_id: "part-5", external_order_id: "920"}]
+      )
+
+      expect(product.active_sale_items).to contain_exactly(origin_item)
+      expect(product.active_payment_items).to eq([])
+    end
+
+    it "keeps every schedule of a Shopify same-order payment_terms plan as merchandise" do
+      item = create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/930")
+      create_plan(
+        provider: "shopify",
+        kind: "payment_terms",
+        external_id: "terms-1",
+        external_origin_order_id: "930",
+        parts: [
+          {sequence: 1, provider_part_id: "sched-1", external_order_id: "930"},
+          {sequence: 2, provider_part_id: "sched-2", external_order_id: "930"}
+        ]
+      )
+
+      expect(product.active_sale_items).to contain_exactly(item)
+      expect(product.active_payment_items).to eq([])
+    end
+
+    it "does not duplicate product quantity or cost when a merchandise sale has several follow-up payments" do
+      origin_item = create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/940", qty: 2)
+      create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/941")
+      create_history_sale_item(product:, variant:, status: "processing", shopify_store_id: "gid://shopify/Order/942")
+      create_plan(
+        external_id: "subscription-4",
+        external_origin_order_id: "940",
+        parts: [
+          {sequence: 1, provider_part_id: "part-6", external_order_id: "940"},
+          {sequence: 2, provider_part_id: "part-7", external_order_id: "941"},
+          {sequence: 3, provider_part_id: "part-8", external_order_id: "942"}
+        ]
+      )
+
+      expect(product.active_sale_items).to contain_exactly(origin_item)
+      expect(product.variant_sales_sums).to eq(variant.id => 2)
+    end
+  end
+
   describe "#variant_sales_sums" do
     let(:product) { create(:product) }
     let(:primary_variant) { create(:variant, product:) }
@@ -135,6 +242,26 @@ RSpec.describe Product do
     it "sums active sale quantities per variant" do
       expect(product.variant_sales_sums).to eq(
         primary_variant.id => 2,
+        secondary_variant.id => 5
+      )
+    end
+
+    it "excludes a Seal follow-up payment from the sold quantity" do
+      origin_sale = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/950")
+      follow_up_sale = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/951")
+      create(:sale_item, product:, variant: primary_variant, sale: origin_sale, qty: 3)
+      create(:sale_item, product:, variant: primary_variant, sale: follow_up_sale, qty: 3)
+      create_plan(
+        external_id: "subscription-5",
+        external_origin_order_id: "950",
+        parts: [
+          {sequence: 1, provider_part_id: "part-9", external_order_id: "950"},
+          {sequence: 2, provider_part_id: "part-10", external_order_id: "951"}
+        ]
+      )
+
+      expect(product.variant_sales_sums).to eq(
+        primary_variant.id => 5,
         secondary_variant.id => 5
       )
     end
@@ -157,5 +284,59 @@ RSpec.describe Product do
         secondary_variant.id => 7
       )
     end
+  end
+
+  describe "#variant_purchase_cost_totals" do
+    let(:product) { create(:product) }
+    let(:primary_variant) { create(:variant, product:) }
+    let(:secondary_variant) { create(:variant, product:) }
+
+    before do
+      primary_purchase = create(:purchase, product:, variant: primary_variant, item_price: BigDecimal(10))
+      create(:purchase_item, :with_direct_expense, purchase: primary_purchase, shipping_cost: BigDecimal(2), direct_expense_amount: BigDecimal(1))
+      create(:purchase_item, purchase: primary_purchase, shipping_cost: BigDecimal(3), expenses: BigDecimal(0))
+
+      secondary_purchase = create(:purchase, product:, variant: secondary_variant, item_price: BigDecimal(20))
+      create(:purchase_item, :with_direct_expense, purchase: secondary_purchase, shipping_cost: BigDecimal(5), direct_expense_amount: BigDecimal(2))
+    end
+
+    it "sums item price, shipping cost, and direct expenses per variant" do
+      expect(product.variant_purchase_cost_totals).to eq(
+        primary_variant.id => {cost: BigDecimal(26), units: 2},
+        secondary_variant.id => {cost: BigDecimal(27), units: 1}
+      )
+    end
+
+    it "counts one unit per purchase item so the cost can be averaged back" do
+      totals = product.variant_purchase_cost_totals.fetch(primary_variant.id)
+
+      expect(totals[:cost] / totals[:units]).to eq(BigDecimal(13))
+    end
+
+    it "omits variants without linked purchase items" do
+      untouched_variant = create(:variant, product:)
+
+      expect(product.variant_purchase_cost_totals).not_to have_key(untouched_variant.id)
+    end
+  end
+
+  def create_plan(parts:, external_origin_order_id:, provider: "seal", kind: "installments", external_id: "subscription-1")
+    SalePaymentPlan.reconcile!(
+      attributes: {
+        provider:,
+        external_id:,
+        external_origin_order_id:,
+        kind:,
+        status: "active",
+        expected_parts: parts.size,
+        synced_at: Time.current
+      },
+      parts:
+    )
+  end
+
+  def create_history_sale_item(product:, variant:, status:, shopify_store_id:, qty: 1)
+    sale = create(:sale, status:, shopify_store_id:)
+    create(:sale_item, product:, variant:, sale:, qty:)
   end
 end

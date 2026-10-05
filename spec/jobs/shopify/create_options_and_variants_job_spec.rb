@@ -9,7 +9,6 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
     let(:shopify_product_id) { "gid://shopify/Product/12345" }
     let(:api_client) { instance_spy(Shopify::Api::Client) }
 
-    # Test data for options
     let(:size) { create(:size, value: "Large") }
     let(:version) { create(:version, value: "v1") }
     let(:color) { create(:color, value: "Red") }
@@ -20,7 +19,6 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       create(:variant, product: product, size: size, version: version, color: color)
     end
 
-    # Expected serialized options
     let(:expected_options) do
       [
         {
@@ -38,7 +36,6 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       ]
     end
 
-    # Mock API response
     let(:options_response) do
       {
         "options" => [
@@ -97,7 +94,6 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
     end
 
     it "calls create_product_options with correct parameters" do
-      # Setup product with all options
       product_size
       product_version
       product_color
@@ -264,7 +260,6 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         begin
           described_class.perform_now(product_id, shopify_product_id)
         rescue Shopify::Api::Client::ApiError
-          # Expected error
         end
 
         expect(StoreInfo).not_to have_received(:find_or_initialize_by)
@@ -311,7 +306,6 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
       before do
         product_size
         product.variants << unmatched_variant
-        # Remove the shopify store_info that the factory creates
         unmatched_variant.store_infos.where(store_name: :shopify).destroy_all
         allow(api_client).to receive(:create_product_options).and_return(variant_response)
       end

@@ -42,11 +42,9 @@ RSpec.describe Shopify::ImportMediaJob do
   before do
     File.write(temp_file_path, test_image_content)
 
-    # Stub Down.download to return a tempfile with original_filename method
     temp_file = Tempfile.new(["test_", ".jpg"], Rails.root.join("tmp"))
     temp_file.write(test_image_content)
     temp_file.rewind
-    # Add original_filename method to mimic Down's behavior
     filename_value = test_filename
     temp_file.define_singleton_method(:original_filename) do
       filename_value
@@ -62,7 +60,6 @@ RSpec.describe Shopify::ImportMediaJob do
     it { expect(described_class.new.queue_name).to eq "default" }
   end
 
-  # Contract test: ensure test data structure matches expectations
   describe "media contract" do
     let(:parsed_media) do
       [{
@@ -171,14 +168,13 @@ RSpec.describe Shopify::ImportMediaJob do
         create(:store_info, :shopify,
           storable: media,
           store_id: shopify_image_id,
-          ext_updated_at: 1.hour.ago, # Old timestamp
+          ext_updated_at: 1.hour.ago,
           checksum: test_checksum)
       end
       let(:new_ext_updated_at) { 5.minutes.ago.iso8601 }
 
       before do
         media.image.attach(io: File.open(temp_file_path), filename: test_filename)
-        # Update parsed_media to have new timestamp and position (simulating reordering)
         parsed_media[0][:position] = 5
         parsed_media[0][:store_info][:ext_updated_at] = new_ext_updated_at
       end
@@ -213,7 +209,6 @@ RSpec.describe Shopify::ImportMediaJob do
       # rubocop:enable RSpec/LetSetup
 
       before do
-        # старая картинка с другим содержимым
         media.image.attach(io: StringIO.new("old content"), filename: "old.jpg")
       end
 
@@ -248,7 +243,6 @@ RSpec.describe Shopify::ImportMediaJob do
       end
 
       before do
-        # First URL returns a proper tempfile, second URL raises Down::Error
         temp_file = Tempfile.new(["test_", ".jpg"], Rails.root.join("tmp"))
         temp_file.write(test_image_content)
         temp_file.rewind

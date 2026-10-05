@@ -1,13 +1,15 @@
 import { useCallback, useState } from "react";
+
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
+import VariantAssignmentSelect from "@/components/VariantAssignmentSelect";
 import { getFormString } from "@/utils/formSchema";
 import { toSelectedOption } from "@/utils/selectOptions";
-import { validatePurchaseForm } from "./purchaseFormSchema";
-import ProductVariantSelect from "./Form/ProductVariantSelect";
+
 import { type PurchaseFormOptions, type PurchaseFormRecord } from "../types";
+import { validatePurchaseForm } from "./purchaseFormSchema";
 
 type PurchaseFormProps = {
   isNew: boolean;
@@ -79,11 +81,14 @@ export default function Form({ isNew, options, purchase, submitLabel }: Purchase
             />
           </FormRow>
 
-          <ProductVariantSelect
-            initialVariants={purchase.variant_options}
+          <VariantAssignmentSelect
+            error={errors.variant || errors.variant_id}
+            initialAvailability={purchase.variant_availability}
+            initialProductId={purchase.product_id}
+            inputId="purchase_variant_id"
+            name="purchase[variant_id]"
             onChange={setVariantId}
             productId={productId}
-            productVariantsPath={options.product_variants_path}
             value={variantId}
           />
 

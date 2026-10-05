@@ -16,6 +16,30 @@ class Woo::Variant
       }
     end
 
+    def prepare_options(attributes)
+      attributes.map do |attr|
+        next if attr[:option].blank?
+
+        case attr[:name].downcase
+        when "farbe", "color"
+          {
+            name: "color",
+            value: smart_titleize(attr[:option])
+          }
+        when "maßstab", "scale", "size"
+          {
+            name: "size",
+            value: Size.sanitize_size(attr[:option])
+          }
+        when "version", "edition", "variant", "variante", "variants"
+          {
+            name: "version",
+            value: smart_titleize(sanitize(attr[:option]))
+          }
+        end
+      end.compact
+    end
+
     def deserialize_from_order_response(variant_api_response)
       possible_option_names = ["farbe", "color", "maßstab", "scale", "size", "version", "edition", "variant", "variante", "variants"]
       attributes = variant_api_response[:meta_data]
@@ -23,7 +47,6 @@ class Woo::Variant
 
       return if attributes.blank?
 
-      # Rename keys for compatibility
       attributes = attributes.map do |parsed_option|
         parsed_option.slice(:display_key, :display_value)
           .transform_keys({
@@ -47,7 +70,6 @@ class Woo::Variant
       product = Product.find_by_woo_id(parsed_variant[:product_woo_id])
       return if product.blank?
 
-      # We need to find or create parsed options on the parent product first
       prepared_options = parsed_variant[:options].reduce({}) do |acc, parsed_option|
         option_relation_name = parsed_option[:name].pluralize
         value = product.send(option_relation_name).find_or_create_by(value: parsed_option[:value])
@@ -82,31 +104,7 @@ class Woo::Variant
 
       variant
     end
-
-    private
-
-    def prepare_options(attributes)
-      attributes.map do |attr|
-        next if attr[:option].blank?
-
-        case attr[:name].downcase
-        when "farbe", "color"
-          {
-            name: "color",
-            value: smart_titleize(attr[:option])
-          }
-        when "maßstab", "scale", "size"
-          {
-            name: "size",
-            value: Size.sanitize_size(attr[:option])
-          }
-        when "version", "edition", "variant", "variante", "variants"
-          {
-            name: "version",
-            value: smart_titleize(sanitize(attr[:option]))
-          }
-        end
-      end.compact
-    end
   end
+
+  private_class_method :prepare_options
 end

@@ -14,12 +14,12 @@ module PurchaseItems
 
     private
 
-    def authorize_resource
-      authorize :purchase_item, :update_tracking_number?
-    end
-
     def return_path
       params[:return_to].presence || purchase_item_path(@purchase_item)
+    end
+
+    def authorize_resource
+      authorize :purchase_item, :update_tracking_number?
     end
   end
 end

@@ -228,7 +228,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
           .and_return(imported_product)
       end
 
-      it "creates sale item with product and no variant" do
+      it "creates a sale item with the Product Base Variant" do
         expect {
           described_class.new(sale, parsed_sale_item).import!
         }.to change(SaleItem, :count).by(1)
@@ -236,7 +236,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
         sale_item = SaleItem.last
         expect(sale_item.product).to eq(imported_product)
-        expect(sale_item.variant).to be_nil
+        expect(sale_item.variant).to eq(imported_product.base_variant)
       end
     end
 
@@ -271,7 +271,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
           .and_return(imported_product)
       end
 
-      it "creates sale item with product and no variant" do
+      it "creates a sale item with the Product Base Variant" do
         expect {
           described_class.new(sale, parsed_sale_item).import!
         }.to change(SaleItem, :count).by(1)
@@ -279,7 +279,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
         sale_item = SaleItem.last
         expect(sale_item.product).to eq(imported_product)
-        expect(sale_item.variant).to be_nil
+        expect(sale_item.variant).to eq(imported_product.base_variant)
       end
     end
 
@@ -356,6 +356,76 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         described_class.new(sale, parsed_sale_item).import!
 
         expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
+      end
+    end
+
+    context "when the sale item references a new variant of an already-known multi-variant product" do
+      let!(:existing_real_variant) { create(:variant, :with_version, product:) }
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/new-variant",
+          price: "40.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          product: nil,
+          variant_store_id: variant_store_id,
+          variant_title: "New Size"
+        }
+      end
+
+      before do
+        allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(product)
+        allow(Shopify::PullProductJob).to receive(:perform_later)
+      end
+
+      it "defers the sale item instead of failing variant validation" do
+        expect {
+          expect(described_class.new(sale, parsed_sale_item).import!).to be_nil
+        }.not_to change(SaleItem, :count)
+      end
+
+      it "enqueues a background product pull to backfill the missing variant" do
+        described_class.new(sale, parsed_sale_item).import!
+
+        expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
+      end
+
+      it "still resolves once the variant is locally cached from that backfill" do
+        variant.shopify_info.update!(store_id: variant_store_id)
+
+        expect {
+          result = described_class.new(sale, parsed_sale_item).import!
+          expect(result).to be_persisted
+          expect(result.variant).to eq(variant)
+        }.to change(SaleItem, :count).by(1)
+      end
+    end
+
+    context "when the resolved product is flagged non_catalog (a Seal installment placeholder)" do
+      let(:placeholder_product) { create(:product, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/installment-1",
+          price: "130.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_store_id: variant_store_id
+        }
+      end
+
+      before do
+        allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(placeholder_product)
+      end
+
+      it "imports the sale item on the placeholder product without redirecting or linking an origin item" do
+        real_product = create(:product, title: "Astarion")
+        origin_sale = create(:sale, customer: sale.customer)
+        create(:sale_item, sale: origin_sale, product: real_product)
+
+        result = described_class.new(sale, parsed_sale_item).import!
+
+        expect(result.product).to eq(placeholder_product)
+        expect(result.origin_sale_item).to be_nil
       end
     end
   end

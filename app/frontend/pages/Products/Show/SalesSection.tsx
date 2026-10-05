@@ -1,5 +1,7 @@
 import { Link } from "@inertiajs/react";
+
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import { type SaleItemRecord } from "../types";
 
 type SalesSectionProps = {
@@ -26,7 +28,7 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
             </th>
             <th>Date</th>
             {hasVariants && <th>Variant?</th>}
-            <th className="text-right">Price, $</th>
+            <th className="text-right">Price</th>
             <th>Amount</th>
             <th>
               Status <span className="font-normal text-sm pl-4">+ Warehouse</span>

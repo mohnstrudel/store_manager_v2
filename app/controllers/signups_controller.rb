@@ -22,10 +22,6 @@ class SignupsController < ApplicationController
 
   private
 
-  def authorize_resource
-    authorize :user
-  end
-
   def user_params
     params.expect(
       user: [
@@ -37,5 +33,9 @@ class SignupsController < ApplicationController
         :role
       ]
     )
+  end
+
+  def authorize_resource
+    authorize :user
   end
 end

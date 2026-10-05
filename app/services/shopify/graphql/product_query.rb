@@ -1,14 +1,8 @@
 # frozen_string_literal: true
 
-# Shopify::Graphql::ProductQuery
-#
-# GraphQL queries for fetching products from Shopify.
-# Provides queries for both individual products and paginated product lists.
-#
 module Shopify
   module Graphql
     class ProductQuery
-      # GraphQL fields for a product including media and variants
       PRODUCT_FIELDS = <<~GQL
         id
         title
@@ -63,9 +57,6 @@ module Shopify
         }
       GQL
 
-      # Query for fetching a single product by ID
-      #
-      # @return [String] The GraphQL query string
       def self.by_id
         <<~GQL
           query ProductById($id: ID!) {
@@ -76,9 +67,6 @@ module Shopify
         GQL
       end
 
-      # Query for fetching paginated list of products
-      #
-      # @return [String] The GraphQL query string
       def self.list
         <<~GQL
           query FetchProducts($first: Int!, $after: String) {

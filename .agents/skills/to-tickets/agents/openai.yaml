@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Tickets"
+  short_description: "Create implementation-ready tickets"
+  default_prompt: "Use $to-tickets to turn the approved spec into implementation-ready tickets."

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import AppLayout from "./AppLayout";
 
 vi.mock("@/components/app-navigation/AppNavigation", () => ({
@@ -29,6 +30,16 @@ describe("AppLayout", () => {
     expect(screen.getByText("Page Content")).toBeInTheDocument();
   });
 
+  it("sets the browser title", () => {
+    render(
+      <AppLayout>
+        <div />
+      </AppLayout>,
+    );
+
+    expect(document.title).toBe("[DEV] Test Page — Store Mate");
+  });
+
   it("scrolls to the top when the footer link is clicked", async () => {
     const user = userEvent.setup();
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
@@ -39,7 +50,7 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
 
-    const footerLink = container.querySelector("footer a")!;
+    const footerLink = container.querySelector("footer button")!;
     await user.click(footerLink);
 
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0 });

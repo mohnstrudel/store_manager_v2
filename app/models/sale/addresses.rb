@@ -39,6 +39,23 @@ module Sale::Addresses
 
   private
 
+  def comparable_address_attributes(address)
+    normalize_address_attributes(address)
+      .slice(*ADDRESS_COMPARISON_ATTRIBUTES)
+      .transform_values { |value| value.to_s.strip.presence }
+  end
+
+  def normalize_address_attributes(attributes)
+    return {} if attributes.blank?
+
+    case attributes
+    when SaleAddress
+      attributes.attributes.symbolize_keys.slice(*ADDRESS_ATTRIBUTES)
+    else
+      attributes.to_h.with_indifferent_access.slice(*ADDRESS_ATTRIBUTES)
+    end
+  end
+
   def upsert_address!(kind, attributes)
     attributes = normalize_address_attributes(attributes)
     address = addresses.find_or_initialize_by(kind:)
@@ -54,24 +71,7 @@ module Sale::Addresses
     association(:"#{kind}_address").target = address
   end
 
-  def normalize_address_attributes(attributes)
-    return {} if attributes.blank?
-
-    case attributes
-    when SaleAddress
-      attributes.attributes.symbolize_keys.slice(*ADDRESS_ATTRIBUTES)
-    else
-      attributes.to_h.with_indifferent_access.slice(*ADDRESS_ATTRIBUTES)
-    end
-  end
-
   def blank_address_attributes?(attributes)
     attributes.values.all?(&:blank?)
-  end
-
-  def comparable_address_attributes(address)
-    normalize_address_attributes(address)
-      .slice(*ADDRESS_COMPARISON_ATTRIBUTES)
-      .transform_values { |value| value.to_s.strip.presence }
   end
 end

@@ -3,7 +3,6 @@
 class SuppliersController < ApplicationController
   before_action :set_supplier, only: %i[show edit update destroy]
 
-  # GET /suppliers or /suppliers.json
   def index
     @suppliers = Supplier.order(:title)
 
@@ -14,7 +13,6 @@ class SuppliersController < ApplicationController
     }
   end
 
-  # GET /suppliers/1 or /suppliers/1.json
   def show
     @purchases = @supplier.purchases.for_supplier_details
 
@@ -24,19 +22,16 @@ class SuppliersController < ApplicationController
     }
   end
 
-  # GET /suppliers/new
   def new
     @supplier = Supplier.new
 
     render inertia: "Suppliers/New", props: helpers.supplier_form_props(@supplier)
   end
 
-  # GET /suppliers/1/edit
   def edit
     render inertia: "Suppliers/Edit", props: helpers.supplier_form_props(@supplier)
   end
 
-  # POST /suppliers or /suppliers.json
   def create
     @supplier = Supplier.new(supplier_params)
 
@@ -51,7 +46,6 @@ class SuppliersController < ApplicationController
     end
   end
 
-  # PATCH/PUT /suppliers/1 or /suppliers/1.json
   def update
     respond_to do |format|
       if @supplier.update(supplier_params.merge(slug: nil))
@@ -64,7 +58,6 @@ class SuppliersController < ApplicationController
     end
   end
 
-  # DELETE /suppliers/1 or /suppliers/1.json
   def destroy
     @supplier.destroy
 
@@ -76,13 +69,11 @@ class SuppliersController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_supplier
-    @supplier = Supplier.friendly.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def supplier_params
     params.fetch(:supplier, {}).permit(:title)
+  end
+
+  def set_supplier
+    @supplier = Supplier.friendly.find(params.expect(:id))
   end
 end

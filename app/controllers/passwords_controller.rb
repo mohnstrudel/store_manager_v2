@@ -33,7 +33,6 @@ class PasswordsController < ApplicationController
   private
 
   def set_user_by_token
-    # Rails generates this token-aware finder; `find_by!` cannot validate signed reset tokens.
     # rubocop:disable Rails/DynamicFindBy
     @user = User.find_by_password_reset_token!(params.expect(:token))
     # rubocop:enable Rails/DynamicFindBy

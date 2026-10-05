@@ -3,7 +3,6 @@
 class CustomersController < ApplicationController
   before_action :set_customer, only: %i[show edit update destroy]
 
-  # GET /customers
   def index
     @customers = Customer.order(:created_at)
     @customers = @customers.search(params[:q]) if params[:q].present?
@@ -18,7 +17,6 @@ class CustomersController < ApplicationController
     }
   end
 
-  # GET /customers/1
   def show
     @active_sales = @customer.sales.active.for_details.ordered_by_shop_created_at
     @completed_sales = @customer.sales.completed.for_details.ordered_by_shop_created_at
@@ -30,19 +28,16 @@ class CustomersController < ApplicationController
     }
   end
 
-  # GET /customers/new
   def new
     @customer = Customer.new
 
     render inertia: "Customers/New", props: helpers.customer_form_props(@customer)
   end
 
-  # GET /customers/1/edit
   def edit
     render inertia: "Customers/Edit", props: helpers.customer_form_props(@customer)
   end
 
-  # POST /customers
   def create
     @customer = Customer.new(customer_params)
 
@@ -53,7 +48,6 @@ class CustomersController < ApplicationController
     end
   end
 
-  # PATCH/PUT /customers/1
   def update
     if @customer.update(customer_params)
       redirect_to @customer, notice: "Customer was successfully updated", status: :see_other
@@ -62,7 +56,6 @@ class CustomersController < ApplicationController
     end
   end
 
-  # DELETE /customers/1
   def destroy
     @customer.destroy!
     redirect_to customers_url, notice: "Customer was successfully destroyed", status: :see_other
@@ -70,11 +63,11 @@ class CustomersController < ApplicationController
 
   private
 
-  def set_customer
-    @customer = Customer.includes(:shopify_info, :woo_info).find(params.expect(:id))
-  end
-
   def customer_params
     params.fetch(:customer, {}).permit(:email, :first_name, :last_name, :phone)
+  end
+
+  def set_customer
+    @customer = Customer.includes(:shopify_info, :woo_info).find(params.expect(:id))
   end
 end

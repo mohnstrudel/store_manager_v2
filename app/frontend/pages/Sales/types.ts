@@ -1,3 +1,10 @@
+import type {
+  PaymentProgress,
+  SalePaymentPlanRecord,
+  SalePaymentProgress,
+  SettlementStatus,
+} from "@/types/payment";
+import type { VariantAvailability } from "@/types/variantAssignment";
 import type { WarehouseOption } from "@/types/warehouse";
 
 export type SelectOption<Value extends string | number = string | number> = {
@@ -28,13 +35,16 @@ export type SaleIndexSaleItemRecord = {
   purchase_items: SaleIndexPurchaseItemRecord[];
 };
 
+export type SalePaymentRecord = PaymentProgress & {
+  payment_overdue: boolean;
+};
+
 export type SaleIndexRecord = {
   id: number;
   path: string;
   customer_name: string;
   customer_email: string;
   sale_items: SaleIndexSaleItemRecord[];
-  total: string;
   created_at: string;
   updated_at: string;
   active: boolean;
@@ -43,6 +53,12 @@ export type SaleIndexRecord = {
   shopify_id: string;
   shopify_id_short: string;
   woo_store_id: string;
+  payment: SalePaymentRecord;
+  payment_plans: SalePaymentPlanRecord[];
+  payment_progress: SalePaymentProgress | null;
+  partially_paid: boolean;
+  settlement_status: SettlementStatus;
+  is_follow_up_payment: boolean;
 };
 
 export type SaleAddressRecord = {
@@ -76,14 +92,37 @@ export type SaleShowPurchaseItemRecord = {
   warehouse_movements: SalePurchaseMovementRecord[];
 };
 
+export type SaleItemProfitabilityRecord = {
+  expected_revenue: string | null;
+  purchase_cost: string | null;
+  expected_final_profit: string | null;
+};
+
+export type SaleProfitabilityScope = "plan" | "sale";
+
+export type SaleProfitabilityRecord = {
+  scope: SaleProfitabilityScope;
+  gross_revenue: string | null;
+  item_price_total: string | null;
+  purchase_expenses: string | null;
+  purchase_shipping_cost: string | null;
+  direct_expenses: string | null;
+  business_expenses: string | null;
+  net_profit: string | null;
+  collected_revenue: string | null;
+  purchase_paid: string | null;
+  cash_position: string | null;
+};
+
 export type SaleShowSaleItemRecord = {
   id: number;
   title: string;
-  price: string;
   qty: number;
   product_path: string;
   product_thumb_url: string | null;
   purchase_items: SaleShowPurchaseItemRecord[];
+  price: string | null;
+  profitability: SaleItemProfitabilityRecord | null;
 };
 
 export type SaleAddressFormRecord = {
@@ -103,9 +142,11 @@ export type SaleAddressFormRecord = {
 export type SaleItemFormRecord = {
   id: number | null;
   product_id: number | null;
+  variant_id: number | null;
   qty: string;
   price: string;
   _destroy: boolean;
+  variant_availability: VariantAvailability | null;
 };
 
 export type SaleFormRecord = {
@@ -153,8 +194,6 @@ export type SaleShowRecord = {
   active: boolean;
   completed: boolean;
   total: string;
-  discount_total: string;
-  shipping_total: string;
   note: string;
   created_at: string;
   updated_at: string;
@@ -163,9 +202,18 @@ export type SaleShowRecord = {
   shopify_id_short: string;
   woo_store_id: string;
   shop_identifier: string;
-  billing_differs_from_shipping: boolean;
+  is_follow_up_payment: boolean;
+  discount_total?: string;
+  shipping_total?: string;
+  billing_differs_from_shipping?: boolean;
   customer: SaleCustomerRecord;
-  shipping_address: SaleAddressRecord | null;
-  billing_address: SaleAddressRecord | null;
+  shipping_address?: SaleAddressRecord | null;
+  billing_address?: SaleAddressRecord | null;
   sale_items: SaleShowSaleItemRecord[];
+  payment: SalePaymentRecord;
+  payment_plans: SalePaymentPlanRecord[];
+  payment_progress: SalePaymentProgress | null;
+  partially_paid: boolean;
+  settlement_status: SettlementStatus;
+  profitability: SaleProfitabilityRecord | null;
 };

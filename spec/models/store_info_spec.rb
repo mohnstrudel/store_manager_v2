@@ -13,7 +13,7 @@
 #  push_time      :datetime
 #  slug           :string
 #  storable_type  :string           not null
-#  store_name     :integer          default("not_assigned"), not null
+#  store_name     :integer          default(0), not null
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  storable_id    :bigint           not null

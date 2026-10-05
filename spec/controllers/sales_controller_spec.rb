@@ -27,7 +27,6 @@ RSpec.describe SalesController do
     end
 
     it "orders sales by shop created_at" do
-      # Clean up any existing sales first
       Sale.delete_all
 
       create(:sale, woo_created_at: 1.day.ago)
@@ -39,7 +38,6 @@ RSpec.describe SalesController do
     end
 
     it "places older sales last in order" do
-      # Clean up any existing sales first
       Sale.delete_all
 
       older_sale = create(:sale, woo_created_at: 1.day.ago)

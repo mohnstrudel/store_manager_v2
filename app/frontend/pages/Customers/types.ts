@@ -1,3 +1,5 @@
+import type { SalePaymentPlanRecord, SalePaymentProgress, SettlementStatus } from "@/types/payment";
+
 export type CustomerRecord = {
   id: number | null;
   first_name: string;
@@ -19,6 +21,9 @@ export type CustomerDetailRecord = CustomerRecord & {
 export type SaleRecord = {
   id: number;
   path: string;
+  payment_plans: SalePaymentPlanRecord[];
+  payment_progress: SalePaymentProgress | null;
+  partially_paid: boolean;
   store_id: string;
   sale_identifier: string;
   sold_product_name: string;
@@ -32,6 +37,8 @@ export type SaleRecord = {
   note: string;
   created_at: string;
   updated_at: string;
+  settlement_status: SettlementStatus;
+  is_follow_up_payment: boolean;
 };
 
 export type PaginationMeta = {

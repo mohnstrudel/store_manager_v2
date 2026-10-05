@@ -28,25 +28,23 @@ module Warehouses
 
     private
 
-    def authorize_resource
-      authorize :purchase_item
-    end
-
     def purchase_item_params
       params.expect(
         purchase_item: [:length,
           :width,
           :height,
           :weight,
-          :expenses,
           :shipping_cost,
           :tracking_number,
           :warehouse_id,
           :purchase_id,
-          :sale_item_id,
           :redirect_to_sale_item,
           :shipping_company_id]
       )
+    end
+
+    def authorize_resource
+      authorize :purchase_item
     end
   end
 end

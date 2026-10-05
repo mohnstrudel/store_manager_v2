@@ -1,6 +1,8 @@
 import { Link } from "@inertiajs/react";
+
 import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+
 import { ColorRecord } from "../types";
 
 type TableProps = {
@@ -9,7 +11,7 @@ type TableProps = {
 
 export default function Table({ colors }: TableProps) {
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>ID</th>
@@ -36,8 +38,9 @@ export default function Table({ colors }: TableProps) {
               <td>{color.value}</td>
               <td>{color.created_at}</td>
               <td>{color.updated_at}</td>
+              {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action */}
               <td className="table_actions text-right">
-                <div className="flex flex-wrap justify-end gap-3">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Link href={showPath} onClick={stopRowNavigation} prefetch>
                     <i className="icn">📄</i>
                     Show

@@ -1,5 +1,4 @@
 @layer components {
-  /* Rich text content (product descriptions) */
   .rich_text {
     text-rendering: optimizeSpeed;
 

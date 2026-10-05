@@ -1,6 +1,7 @@
-import { useCallback } from "react";
 import { router, Link } from "@inertiajs/react";
+import { useCallback } from "react";
 import type { ReactNode } from "react";
+
 import PageHeader from "@/components/PageHeader";
 import { rowNavigationProps } from "@/utils/rowNavigation";
 
@@ -111,13 +112,13 @@ type SalesDebtSectionProps = {
 function SalesDebtSection({ debtsPath, saleDebts, total }: SalesDebtSectionProps) {
   return (
     <section className="section_border_base section_wide">
-      <DashboardSectionTitle label="Sales Debt" value={total} />
+      <DashboardSectionTitle label="Products Short" value={total} />
       <table>
         <thead>
           <tr>
             <th>Title</th>
             <th>Variant</th>
-            <th>Amount</th>
+            <th>Unit shortfall</th>
           </tr>
         </thead>
         <tbody>
@@ -141,6 +142,15 @@ function SalesDebtSection({ debtsPath, saleDebts, total }: SalesDebtSectionProps
   );
 }
 
+function DashboardSectionTitle({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <h3 className="flex justify-between px-3 pt-4">
+      <span>{label}</span>
+      <span>{value}</span>
+    </h3>
+  );
+}
+
 type SuppliersDebtSectionProps = {
   supplierDebts: SupplierDebtRecord[];
   totalDebt: string;
@@ -149,7 +159,7 @@ type SuppliersDebtSectionProps = {
 function SuppliersDebtSection({ supplierDebts, totalDebt }: SuppliersDebtSectionProps) {
   return (
     <section className="section_border_base section_wide">
-      <DashboardSectionTitle label="Suppliers Debt" value={totalDebt} />
+      <DashboardSectionTitle label="Supplier Debt" value={totalDebt} />
       <table>
         <thead>
           <tr>
@@ -173,15 +183,6 @@ function SuppliersDebtSection({ supplierDebts, totalDebt }: SuppliersDebtSection
         </tbody>
       </table>
     </section>
-  );
-}
-
-function DashboardSectionTitle({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <h3 className="flex justify-between px-3 pt-4">
-      <span>{label}</span>
-      <span>{value}</span>
-    </h3>
   );
 }
 

@@ -40,7 +40,6 @@ export function makePurchaseItemFormRecord(
     width: "20",
     height: "15",
     weight: "2.5",
-    expenses: "100.00",
     shipping_cost: "25.00",
     tracking_number: "TRK-001",
     media: [
@@ -54,18 +53,6 @@ export function makePurchaseItemFormRecord(
       },
     ],
     redirect_to_sale_item: false,
-    ...overrides,
-  };
-}
-
-export function makeWarehouseMovementRecord(
-  overrides: Partial<WarehouseMovementRecord> = {},
-): WarehouseMovementRecord {
-  return {
-    id: 1,
-    moved_in: "20 May 2026",
-    warehouse_name: "Main Warehouse",
-    warehouse_path: "/warehouses/1",
     ...overrides,
   };
 }
@@ -108,6 +95,18 @@ export function makePurchaseItemShowRecord(
       },
     ],
     warehouse_movements: [makeWarehouseMovementRecord()],
+    ...overrides,
+  };
+}
+
+export function makeWarehouseMovementRecord(
+  overrides: Partial<WarehouseMovementRecord> = {},
+): WarehouseMovementRecord {
+  return {
+    id: 1,
+    moved_in: "20 May 2026",
+    warehouse_name: "Main Warehouse",
+    warehouse_path: "/warehouses/1",
     ...overrides,
   };
 }

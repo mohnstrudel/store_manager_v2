@@ -8,8 +8,6 @@ module Webhooks
 
     private
 
-    # "x-wc-webhook-signature" is a HMAC:
-    # a base64 encoded HMAC-SHA256 hash of the payload
     def verify_webhook(secret)
       payload = request.body.read
       req_sign = request.headers["x-wc-webhook-signature"]

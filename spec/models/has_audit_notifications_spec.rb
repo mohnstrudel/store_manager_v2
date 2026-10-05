@@ -3,13 +3,11 @@
 require "rails_helper"
 
 describe HasAuditNotifications do
-  # Create a dummy model for testing the concern
   before do
     stub_const("DummyModel", Class.new(ApplicationRecord) do
-      self.table_name = "customers" # Use an existing table for simplicity
+      self.table_name = "customers"
       include HasAuditNotifications
 
-      # Simulate auditing enabled
       def self.auditing_enabled
         true
       end

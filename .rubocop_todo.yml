@@ -1,0 +1,19 @@
+# These associations need write-path review before adding database existence checks.
+DatabaseValidations/BelongsTo:
+  Exclude:
+    - app/models/purchase_item.rb
+    - app/models/sale_payment_part.rb
+
+# Conditional provider-part uniqueness needs a reviewed migration before changing validators.
+DatabaseValidations/UniquenessOf:
+  Exclude:
+    - app/models/sale_payment_part.rb
+
+# These intentional validation-skipping writes require call-site review before replacement.
+Rails/SkipsModelValidations:
+  Exclude:
+    - spec/**/*
+    - app/models/purchase_item/expenses.rb
+    - app/models/purchase_item/linking.rb
+    - app/models/purchase_item/shipping.rb
+    - app/models/sale_payment_plan.rb

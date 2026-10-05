@@ -1,4 +1,5 @@
 import { rowNavigationProps } from "@/utils/rowNavigation";
+
 import { PurchaseRecord } from "../types";
 
 type PurchasesProps = {
@@ -8,13 +9,13 @@ type PurchasesProps = {
 export default function Purchases({ purchases }: PurchasesProps) {
   if (purchases.length === 0) return null;
 
-  const columns = ["Title", "Variant", "Purchased ago", "Item Price, $", "Qty", "Debt"];
+  const columns = ["Title", "Variant", "Purchased ago", "Item Price", "Qty", "Debt"];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="table_card">
         <h3>Purchases</h3>
-        <table role="grid">
+        <table>
           <thead>
             <tr>
               {columns.map((column) => (

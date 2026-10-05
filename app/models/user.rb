@@ -9,7 +9,7 @@
 #  first_name      :string
 #  last_name       :string
 #  password_digest :string           not null
-#  role            :integer          default("guest"), not null
+#  role            :integer          default(0), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #

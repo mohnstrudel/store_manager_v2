@@ -9,7 +9,16 @@ module Shopify
       response = client.fetch_order(sale_store_id)
 
       parsed = Sale::Shopify::Parser.parse(response)
-      Sale::Shopify::Importer.import!(parsed)
+      sale = Sale::Shopify::Importer.import!(parsed)
+
+      Seal::ReconcileInstallmentSaleItemsJob.perform_later(sale_id: sale.id) if linked_to_payment_plan?(sale)
+    end
+
+    private
+
+    def linked_to_payment_plan?(sale)
+      SalePaymentPlan.exists?(origin_sale_id: sale.id) ||
+        SalePaymentPart.exists?(sale_id: sale.id, active: true)
     end
   end
 end

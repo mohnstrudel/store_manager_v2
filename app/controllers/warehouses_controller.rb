@@ -5,7 +5,6 @@ class WarehousesController < ApplicationController
 
   before_action :set_warehouse, only: %i[edit update destroy]
 
-  # GET /warehouses
   def index
     @warehouses = Warehouse.for_listing.order(:position)
 
@@ -16,18 +15,15 @@ class WarehousesController < ApplicationController
     }
   end
 
-  # GET /warehouses/new
   def new
     @warehouse = Warehouse.new
     render inertia: "Warehouses/New", props: helpers.warehouse_new_props(@warehouse)
   end
 
-  # GET /warehouses/1/edit
   def edit
     render inertia: "Warehouses/Edit", props: helpers.warehouse_edit_props(@warehouse)
   end
 
-  # POST /warehouses
   def create
     attributes = warehouse_params.to_h
     @warehouse = Warehouse.new(attributes.except("to_warehouse_ids"))
@@ -42,7 +38,6 @@ class WarehousesController < ApplicationController
     redirect_to new_warehouse_path, inertia: inertia_errors(@warehouse.errors)
   end
 
-  # PATCH/PUT /warehouses/1
   def update
     result = @warehouse.apply_form_changes!(
       attributes: warehouse_params.to_h,
@@ -61,7 +56,6 @@ class WarehousesController < ApplicationController
     redirect_to edit_warehouse_path(@warehouse), inertia: inertia_errors(@warehouse.errors)
   end
 
-  # DELETE /warehouses/1
   def destroy
     warehouse_name = @warehouse.name
 
@@ -74,12 +68,6 @@ class WarehousesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_warehouse
-    @warehouse = Warehouse.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def warehouse_params
     params.expect(
       warehouse: [:cbm,
@@ -94,5 +82,9 @@ class WarehousesController < ApplicationController
         :position,
         to_warehouse_ids: []]
     )
+  end
+
+  def set_warehouse
+    @warehouse = Warehouse.find(params.expect(:id))
   end
 end

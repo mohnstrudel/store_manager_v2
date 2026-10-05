@@ -1,4 +1,5 @@
 import type { PaginationMeta } from "@/types/pagination";
+import type { SalePaymentPlanRecord, SalePaymentProgress } from "@/types/payment";
 
 type HasId = { id: number };
 
@@ -12,8 +13,42 @@ export function makePagination(overrides: Partial<PaginationMeta> = {}): Paginat
   };
 }
 
-// Like FactoryBot's create_list: builds `count` records from `factory`, auto-incrementing
-// `id` so each record has a unique key. Override other fields via the third argument.
+export function makeSalePaymentPlan(
+  overrides: Partial<SalePaymentPlanRecord> = {},
+): SalePaymentPlanRecord {
+  return {
+    id: 1,
+    kind: "installments",
+    expected_parts: 8,
+    collected_parts: 3,
+    sale_part_number: null,
+    is_origin_sale: true,
+    deposit_percent: null,
+    projected_total: null,
+    projected_collected: null,
+    origin_sale: null,
+    payments: [],
+    ...overrides,
+  };
+}
+
+export function makeSalePaymentProgress(
+  overrides: Partial<SalePaymentProgress> = {},
+): SalePaymentProgress {
+  return {
+    source: null,
+    percent: null,
+    paid: null,
+    total: null,
+    remaining: null,
+    completed_parts: null,
+    expected_parts: null,
+    sale_part_number: null,
+    plan_id: null,
+    ...overrides,
+  };
+}
+
 export function makeList<T extends HasId>(
   factory: (overrides?: Partial<T>) => T,
   count: number,

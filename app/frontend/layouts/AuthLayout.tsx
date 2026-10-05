@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import type { ReactNode } from "react";
-import FlashMessages from "@/components/flash-messages/FlashMessages";
 
-// Layout for unauthenticated screens: sign in, sign up, password reset
+import FlashMessages from "@/components/flash-messages/FlashMessages";
+import { useDocumentTitle } from "@/utils/useDocumentTitle";
+
 export default function AuthLayout({ children }: { children: ReactNode }) {
   useBodyBackgroundImage();
+  useDocumentTitle();
 
   return (
     <div className="flex min-h-screen flex-col items-center py-4">

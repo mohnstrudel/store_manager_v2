@@ -24,6 +24,17 @@ module Sales
 
     private
 
+    def unlink_purchase_items
+      PurchaseItem.link_exact!(
+        assignments: [],
+        unlink_purchase_items: @sale_item.purchase_items.to_a
+      )
+    end
+
+    def redirect_path
+      params[:return_to].presence || sale_path(@sale)
+    end
+
     def authorize_resource
       authorize :sale_item
     end
@@ -42,14 +53,6 @@ module Sales
       else
         @sale.sale_items
       end
-    end
-
-    def unlink_purchase_items
-      @sale_item.purchase_items.find_each { |purchase_item| purchase_item.update!(sale_item_id: nil) }
-    end
-
-    def redirect_path
-      params[:return_to].presence || sale_path(@sale)
     end
   end
 end

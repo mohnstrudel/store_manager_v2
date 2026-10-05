@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
 import { Form } from "@inertiajs/react";
-import AuthLayout from "@/layouts/AuthLayout";
-import FormInput from "@/components/FormInput";
+import type { ReactNode } from "react";
+
 import Button from "@/components/Button";
+import FormInput from "@/components/FormInput";
+import AuthLayout from "@/layouts/AuthLayout";
 import routes from "@/utils/routes";
 
 type ResetPasswordProps = {
@@ -24,6 +25,7 @@ export default function Edit({ token }: ResetPasswordProps) {
           <>
             <FormInput
               autoComplete="new-password"
+              // oxlint-disable-next-line jsx-a11y/no-autofocus -- auth first field
               autoFocus
               error={errors.password}
               label="New password"

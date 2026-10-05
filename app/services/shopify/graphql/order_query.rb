@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-# Shopify::Graphql::OrderQuery
-#
-# GraphQL queries for fetching orders from Shopify.
-# Provides queries for both individual orders and paginated order lists.
-#
 module Shopify
   module Graphql
     class OrderQuery
@@ -12,7 +7,6 @@ module Shopify
         id
       GQL
 
-      # GraphQL fields for an order including customer and line items
       SALE_FIELDS = <<~GQL
         cancelledAt
         cancelReason
@@ -20,12 +14,14 @@ module Shopify
         closedAt
         confirmed
         createdAt
+        currencyCode
         displayFinancialStatus
         displayFulfillmentStatus
         fullyPaid
         id
         name
         note
+        presentmentCurrencyCode
         returnStatus
         statusPageUrl
         totalDiscountsSet {
@@ -41,6 +37,53 @@ module Shopify
         totalShippingPriceSet {
           shopMoney {
             amount
+          }
+        }
+        currentTotalPriceSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalReceivedSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalOutstandingSet {
+          shopMoney {
+            amount
+          }
+        }
+        netPaymentSet {
+          shopMoney {
+            amount
+          }
+        }
+        totalRefundedSet {
+          shopMoney {
+            amount
+          }
+        }
+        paymentGatewayNames
+        paymentTerms {
+          id
+          paymentTermsName
+          paymentTermsType
+          overdue
+          paymentSchedules(first: 250) {
+            nodes {
+              id
+              balanceDue {
+                amount
+              }
+              totalBalance {
+                amount
+              }
+              completedAt
+              due
+              dueAt
+              issuedAt
+            }
           }
         }
         unpaid
@@ -87,10 +130,18 @@ module Shopify
           phone
         }
         lineItems(first: 10) {
+          pageInfo {
+            hasNextPage
+          }
           nodes {
             id
             quantity
             originalTotalSet {
+              shopMoney {
+                amount
+              }
+            }
+            discountedTotalSet {
               shopMoney {
                 amount
               }
@@ -110,9 +161,6 @@ module Shopify
         }
       GQL
 
-      # Query for fetching a single order by ID
-      #
-      # @return [String] The GraphQL query string
       def self.by_id
         <<~GQL
           query($id: ID!) {
@@ -123,9 +171,6 @@ module Shopify
         GQL
       end
 
-      # Query for fetching paginated list of orders
-      #
-      # @return [String] The GraphQL query string
       def self.list
         <<~GQL
           query($first: Int!, $after: String) {

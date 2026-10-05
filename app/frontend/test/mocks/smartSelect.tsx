@@ -1,22 +1,3 @@
-// Canonical test double for "@/components/SmartSelect".
-//
-// Activate per test file with:
-//   vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
-//
-// If the component under test uses SmartSelect only through FormSmartSelect
-// (i.e. no direct SmartSelect import in the component file), add a side-effect
-// import BEFORE vi.mock to prime the module cache for React.lazy resolution:
-//   import "@/components/SmartSelect";
-//   vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
-//
-// Renders a native <select> so tests can interact with standard HTML:
-//   - id={inputId} — enables <label htmlFor> associations (getByLabelText)
-//   - data-testid={inputId ?? name} — for direct testid queries
-//   - hidden <input name> — for form-submission assertions via querySelector
-//   - onChange fires with the matching option object (or null for empty value)
-//   - Controlled (value prop) and uncontrolled (defaultValue prop) modes
-//   - isMulti, isDisabled, isClearable passthrough
-
 type AnyOption = { value: string | number; label: string };
 
 const EMPTY_OPTIONS: AnyOption[] = [];

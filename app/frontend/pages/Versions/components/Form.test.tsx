@@ -1,11 +1,13 @@
+import { usePage } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { usePage } from "@inertiajs/react";
+
 import { mockPageProps } from "@/test/mocks/inertia";
-import Form from "./Form";
+
 import { makeVersion } from "../test/factories";
 import type { VersionRecord } from "../types";
+import Form from "./Form";
 
 type ResourceFormProps = {
   action: string;

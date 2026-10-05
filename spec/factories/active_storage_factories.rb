@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# FactoryBot factories for ActiveStorage models
-# Used in migration specs
-
 FactoryBot.define do
   factory :blob, class: "ActiveStorage::Blob" do
     skip_create
@@ -35,7 +32,6 @@ FactoryBot.define do
     end
 
     to_create do |attachment, evaluator|
-      # Update record info from transient record attribute if provided
       if evaluator.record
         attachment.record_type = evaluator.record.class.to_s
         attachment.record_id = evaluator.record.id

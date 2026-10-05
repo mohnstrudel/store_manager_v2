@@ -1,5 +1,4 @@
 @layer components {
-  /* Sections & layout helpers */
   .section_border_base,
   .table_card,
   .form_section_item {
@@ -12,10 +11,6 @@
 
   .table_actions {
     @apply text-right;
-  }
-
-  .table_actions a:not(:first-child) {
-    @apply ml-2;
   }
 
   .page_search {

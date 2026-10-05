@@ -1,15 +1,17 @@
 import { useCallback, useState } from "react";
-import { useDynamicSection } from "@/utils/useDynamicSection";
-import { validateSaleForm } from "./saleFormSchema";
-import { toSelectedOption } from "@/utils/selectOptions";
+
 import DynamicNestedForm from "@/components/DynamicNestedForm";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
 import ResourceForm from "@/components/ResourceForm";
+import { toSelectedOption } from "@/utils/selectOptions";
+import { useDynamicSection } from "@/utils/useDynamicSection";
+
+import type { SaleFormOptions, SaleFormRecord, SaleItemFormRecord } from "../types";
 import AddressFields from "./Form/AddressFields";
 import SaleItemFields from "./Form/SaleItemFields";
-import type { SaleFormOptions, SaleFormRecord, SaleItemFormRecord } from "../types";
+import { validateSaleForm } from "./saleFormSchema";
 
 type SaleFormProps = {
   isNew: boolean;
@@ -20,12 +22,16 @@ type SaleFormProps = {
 
 type SaleFormState = ReturnType<typeof useSaleFormState>;
 
-function titleize(str: string): string {
-  return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 function newSaleItem(): SaleItemFormRecord {
-  return { id: null, product_id: null, qty: "", price: "", _destroy: false };
+  return {
+    id: null,
+    product_id: null,
+    variant_id: null,
+    qty: "",
+    price: "",
+    _destroy: false,
+    variant_availability: null,
+  };
 }
 
 export default function SaleForm({ isNew, options, sale, submitLabel }: SaleFormProps) {
@@ -51,11 +57,24 @@ export default function SaleForm({ isNew, options, sale, submitLabel }: SaleForm
           <SaleNoteField sale={sale} />
           <SaleTotalsFields sale={sale} />
           <SaleAddressSections sale={sale} />
-          <SaleItemsSection form={form} options={options} />
+          <SaleItemsSection errors={errors} form={form} options={options} />
         </>
       )}
     </ResourceForm>
   );
+}
+
+function useSaleFormState(sale: SaleFormRecord) {
+  const [customerId, setCustomerId] = useState<number | null>(sale.customer_id);
+  const saleItems = useDynamicSection(sale.sale_items, newSaleItem, {
+    keyForInitial: saleItemKey,
+  });
+
+  function selectCustomer(option: SaleFormOptions["customers"][number] | null) {
+    setCustomerId(option?.value ?? null);
+  }
+
+  return { customerId, saleItems, selectCustomer };
 }
 
 function SaleStatusField({ options, sale }: { options: SaleFormOptions; sale: SaleFormRecord }) {
@@ -98,6 +117,10 @@ function SaleStatusOption({
       </label>
     </div>
   );
+}
+
+function titleize(str: string): string {
+  return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function SaleCustomerField({
@@ -172,11 +195,20 @@ function SaleAddressSections({ sale }: { sale: SaleFormRecord }) {
   );
 }
 
-function SaleItemsSection({ form, options }: { form: SaleFormState; options: SaleFormOptions }) {
+function SaleItemsSection({
+  errors,
+  form,
+  options,
+}: {
+  errors: Record<string, string>;
+  form: SaleFormState;
+  options: SaleFormOptions;
+}) {
   return (
     <DynamicNestedForm name="Product" onAdd={form.saleItems.add}>
       {form.saleItems.items.map((saleItem, index) => (
         <SaleItemFields
+          errors={errors}
           index={index}
           key={saleItem.clientKey}
           onRemove={form.saleItems.remove}
@@ -186,19 +218,6 @@ function SaleItemsSection({ form, options }: { form: SaleFormState; options: Sal
       ))}
     </DynamicNestedForm>
   );
-}
-
-function useSaleFormState(sale: SaleFormRecord) {
-  const [customerId, setCustomerId] = useState<number | null>(sale.customer_id);
-  const saleItems = useDynamicSection(sale.sale_items, newSaleItem, {
-    keyForInitial: saleItemKey,
-  });
-
-  function selectCustomer(option: SaleFormOptions["customers"][number] | null) {
-    setCustomerId(option?.value ?? null);
-  }
-
-  return { customerId, saleItems, selectCustomer };
 }
 
 function saleItemKey(saleItem: SaleItemFormRecord, index: number) {

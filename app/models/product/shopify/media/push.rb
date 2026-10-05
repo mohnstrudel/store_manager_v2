@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# Pushes local product media to Shopify.
-# It attaches new media, updates changed media, reorders the remote product,
-# and clears Shopify references if the product no longer exists remotely.
 module Product::Shopify::Media
   class Push
     def self.call(product_id:, product_store_id:)

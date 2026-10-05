@@ -1,4 +1,5 @@
 import { createInertiaApp, router } from "@inertiajs/react";
+
 import AppLayout from "@/layouts/AppLayout";
 import { resolvePage } from "@/utils/resolvePage";
 
@@ -22,15 +23,6 @@ void createInertiaApp({
   resolve: resolvePage,
 });
 
-export function disableAutocorrect(root: ParentNode = document) {
-  root.querySelectorAll("input, textarea").forEach((element) => {
-    element.setAttribute("autocomplete", "off");
-    element.setAttribute("autocorrect", "off");
-    element.setAttribute("autocapitalize", "off");
-    element.setAttribute("spellcheck", "false");
-  });
-}
-
 export function enableAutocorrectDisabler() {
   if (autocorrectDisablerEnabled) return;
 
@@ -38,20 +30,11 @@ export function enableAutocorrectDisabler() {
   router.on("navigate", () => disableAutocorrectAfterRender());
 }
 
-function disableAutocorrectAfterRender(root: ParentNode = document) {
-  requestAnimationFrame(() => disableAutocorrect(root));
-}
-
 export function enableInertiaNavigationBridge() {
   if (inertiaNavigationBridgeEnabled) return;
 
   inertiaNavigationBridgeEnabled = true;
 
-  // Bubbling phase runs after React's synthetic event handlers, so Inertia <Link>
-  // components that call event.preventDefault() are already handled and skipped
-  // via the defaultPrevented guard. Plain <a href> tags inside the app (which have
-  // no React onClick) reach this handler and get routed through Inertia instead of
-  // triggering a full page reload.
   document.addEventListener("click", (event) => {
     if (
       event.defaultPrevented ||
@@ -85,4 +68,17 @@ function loadFonts() {
   link.rel = "stylesheet";
   link.href = "/fonts.css";
   document.head.appendChild(link);
+}
+
+function disableAutocorrectAfterRender(root: ParentNode = document) {
+  requestAnimationFrame(() => disableAutocorrect(root));
+}
+
+export function disableAutocorrect(root: ParentNode = document) {
+  root.querySelectorAll("input, textarea").forEach((element) => {
+    element.setAttribute("autocomplete", "off");
+    element.setAttribute("autocorrect", "off");
+    element.setAttribute("autocapitalize", "off");
+    element.setAttribute("spellcheck", "false");
+  });
 }

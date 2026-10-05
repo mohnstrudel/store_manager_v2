@@ -164,7 +164,7 @@ RSpec.describe Shopify::PullProductJob do
         it "finds and destroys the product's shopify store_info" do # rubocop:todo RSpec/MultipleExpectations
           expect {
             job.perform(product_id)
-          }.to change(StoreInfo, :count).by(-3) # product shopify + first_media shopify + second_media shopify
+          }.to change(StoreInfo, :count).by(-3)
 
           expect(StoreInfo.find_by(id: store_info.id)).to be_nil
         end

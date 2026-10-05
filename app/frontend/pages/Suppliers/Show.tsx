@@ -1,8 +1,10 @@
 import { Link } from "@inertiajs/react";
+
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
+
 import Details from "./components/Details";
 import Purchases from "./components/Purchases";
 import { PurchaseRecord, SupplierRecord } from "./types";

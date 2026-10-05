@@ -5,8 +5,8 @@ module UserHelper
     {
       id: user.id,
       email_address: user.email_address,
-      first_name: user.first_name.presence || "-",
-      last_name: user.last_name.presence || "-",
+      first_name: user.first_name.presence,
+      last_name: user.last_name.presence,
       role: user.role.humanize,
       created_at: format_date(user.created_at),
       updated_at: format_date(user.updated_at),

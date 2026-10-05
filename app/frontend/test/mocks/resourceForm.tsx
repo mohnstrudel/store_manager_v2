@@ -1,26 +1,3 @@
-// Canonical test double for "@/components/ResourceForm".
-//
-// Activate per test file with:
-//   vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"))
-//
-// ResourceForm reads errors from page props, so also mock inertia:
-//   vi.mock("@inertiajs/react", () => import("@/test/mocks/inertia"))
-//
-// Drive error state:
-//   import { mockPageProps } from "@/test/mocks/inertia";
-//   mockPageProps({ errors: { field: "message" } });  // before render()
-//
-// Assert which props were passed to ResourceForm (action, method, validate, etc.):
-//   import { lastCapturedProps } from "@/test/mocks/resourceForm";
-//   expect(lastCapturedProps()).toEqual({ action: "...", ... });
-//   // lastCapturedProps resets automatically (captureProps is a vi.fn reset by mockReset: true)
-//
-// Renders:
-//   <form action data-cancel-href data-method data-testid="resource-form">
-//     {children({ errors })}
-//     <button type="submit">{submitLabel}</button>
-//   </form>
-
 import { usePage } from "@inertiajs/react";
 import type { ReactNode } from "react";
 

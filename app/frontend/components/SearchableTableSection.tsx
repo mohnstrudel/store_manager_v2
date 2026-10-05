@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";

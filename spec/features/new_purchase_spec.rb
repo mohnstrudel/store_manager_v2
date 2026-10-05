@@ -113,6 +113,7 @@ RSpec.describe "Creating a new purchase" do
     end
 
     visit product_path(product)
+    find("button[role='tab']", text: "Purchases").click
 
     expect(page).to have_selector("h3", text: "Purchases")
   end

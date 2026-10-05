@@ -14,8 +14,6 @@ feature "Link sales with purchases flow" do
   # rubocop:todo RSpec/MultipleExpectations
   scenario "creates a sale, links it with a purchase and verifies order items", :js do
     # rubocop:enable RSpec/MultipleExpectations
-    # Start with creating a purchase
-    # because we don't want it to be automatically linked to the sale
     visit purchases_path
 
     click_on "Add New Record"
@@ -32,14 +30,12 @@ feature "Link sales with purchases flow" do
     fill_in "payment_amount", with: "250"
     click_button "Add payment"
 
-    # Create a sale
     expect(page).to have_content("Payment was successfully created")
 
     visit sales_path
 
     click_on "Add New Record"
 
-    # Set an active status so the sale will be visible in the list
     choose "Processing"
 
     choose_react_select(customer.email, from: "Customer")
@@ -55,12 +51,10 @@ feature "Link sales with purchases flow" do
 
     expect(page).to have_content("Sale was successfully created")
 
-    # Verify the sale items are shown with purchase info
     expect(page).to have_content(product.full_title)
     expect(page).to have_content(supplier.title)
     expect(page).to have_content(warehouse.name)
 
-    # Purchased/Sold ratio is correct
-    expect(page).to have_selector(".mark_gray", text: "1 / 1", normalize_ws: true)
+    expect(page).not_to have_content(/MISSING \d+ PURCHASE/)
   end
 end

@@ -35,17 +35,17 @@ class NotifyAboutRecordChanges < ApplicationJob
     end
   end
 
-  def record_details
-    @record
-      .attributes
-      .map { |k, v| " - #{k.titleize}: #{v}" }
-      .join("\n")
-  end
-
   def changes
     @audit
       .audited_changes
       .map { |k, v| " - #{k.titleize}: #{v.first} -> #{v.last}" }
+      .join("\n")
+  end
+
+  def record_details
+    @record
+      .attributes
+      .map { |k, v| " - #{k.titleize}: #{v}" }
       .join("\n")
   end
 end

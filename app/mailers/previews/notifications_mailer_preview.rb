@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Preview at http://localhost:3000/rails/mailers/notifications_mailer
 class NotificationsMailerPreview < ActionMailer::Preview
   def order_status_updated_email
     NotificationsMailer.order_status_updated_email(

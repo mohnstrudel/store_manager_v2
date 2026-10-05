@@ -1,17 +1,8 @@
 # frozen_string_literal: true
 
-# Shopify::Graphql::ProductMutation
-#
-# GraphQL mutations for products in Shopify.
-# Provides mutations for product creation, updates, and option management.
-#
 module Shopify
   module Graphql
     class ProductMutation
-      # Mutation for creating a new product
-      #
-      # @param serialized_product [Hash] Product data in Shopify format
-      # @return [String] The GraphQL mutation string
       def self.create(serialized_product)
         <<~GQL
           mutation {
@@ -30,9 +21,6 @@ module Shopify
         GQL
       end
 
-      # Mutation for updating an existing product
-      #
-      # @return [String] The GraphQL mutation string
       def self.update
         <<~GQL
           mutation productUpdate($product: ProductUpdateInput!) {
@@ -56,9 +44,6 @@ module Shopify
         GQL
       end
 
-      # Mutation for creating product options (e.g., Size, Color)
-      #
-      # @return [String] The GraphQL mutation string
       def self.create_options
         <<~GQL
           mutation createOptions($productId: ID!, $options: [OptionCreateInput!]!, $variantStrategy: ProductOptionCreateVariantStrategy) {

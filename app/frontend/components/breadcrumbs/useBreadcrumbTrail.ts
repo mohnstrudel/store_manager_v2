@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
 import { usePage } from "@inertiajs/react";
+import { useEffect, useState } from "react";
+
 import type { PageProps } from "@/types/inertia";
 
 const MAX_BREADCRUMBS = 4;
@@ -15,7 +16,6 @@ export function useBreadcrumbTrail() {
   const currentUrl = normalizeUrl(page.url);
   const breadcrumb = page.props.breadcrumb;
 
-  // Initial state matches SSR output: just the current page (no sessionStorage on server).
   const [trail, setTrail] = useState<Breadcrumb[]>(() =>
     breadcrumb ? [{ name: breadcrumb, url: currentUrl }] : [],
   );
@@ -23,6 +23,7 @@ export function useBreadcrumbTrail() {
   useEffect(
     function syncTrail() {
       if (!breadcrumb) {
+        // oxlint-disable-next-line react/set-state-in-effect -- sessionStorage sync
         setTrail([]);
         return;
       }
@@ -36,6 +37,10 @@ export function useBreadcrumbTrail() {
   return trail;
 }
 
+function normalizeUrl(url: string) {
+  return url.split("?")[0].split("#")[0];
+}
+
 function buildTrail(previousTrail: Breadcrumb[], breadcrumb: string, currentUrl: string) {
   let trail = previousTrail.filter((item) => item.url !== currentUrl);
 
@@ -43,10 +48,6 @@ function buildTrail(previousTrail: Breadcrumb[], breadcrumb: string, currentUrl:
   trail = trail.slice(-MAX_BREADCRUMBS);
 
   return trail;
-}
-
-function normalizeUrl(url: string) {
-  return url.split("?")[0].split("#")[0];
 }
 
 function readTrail() {
@@ -63,12 +64,6 @@ function readTrail() {
   }
 }
 
-function saveTrail(trail: Breadcrumb[]) {
-  if (typeof window === "undefined") return;
-
-  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail));
-}
-
 function isBreadcrumbTrail(value: unknown): value is Breadcrumb[] {
   return Array.isArray(value) && value.every(isBreadcrumb);
 }
@@ -82,4 +77,10 @@ function isBreadcrumb(value: unknown): value is Breadcrumb {
     typeof (value as { name?: unknown }).name === "string" &&
     typeof (value as { url?: unknown }).url === "string"
   );
+}
+
+function saveTrail(trail: Breadcrumb[]) {
+  if (typeof window === "undefined") return;
+
+  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trail));
 }

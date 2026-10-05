@@ -12,11 +12,12 @@ RSpec.describe "GET /_inertia_smoke" do
     expect_inertia.to render_component("Hello/Index")
   end
 
-  it "shares auth and flash props" do
+  it "shares auth, environment, and flash props" do
     get "/_inertia_smoke"
 
     expect_inertia.to have_props(
-      auth: {user: {id: admin.id, email_address: admin.email_address, role: admin.role}}
+      auth: {user: {id: admin.id, email_address: admin.email_address, role: admin.role}},
+      environment: Rails.env.to_s
     )
   end
 end

@@ -3,15 +3,12 @@
 require "rails_helper"
 
 RSpec.describe MediaFormHandling do
-  # Use a real controller that already includes the concern
   describe WarehousesController do
     before { sign_in_as_admin }
     after { log_out }
 
-    # Helper to create an uploaded file that passes image_like? checks
     def create_test_image(filename: "test.jpg", content_type: "image/jpeg")
       tempfile = Tempfile.new(["test", ".jpg"])
-      # Write a minimal JPEG header
       tempfile.write("\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9")
       tempfile.rewind
 

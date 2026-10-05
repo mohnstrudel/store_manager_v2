@@ -3,7 +3,6 @@
 class FranchisesController < ApplicationController
   before_action :set_franchise, only: %i[show edit update destroy]
 
-  # GET /franchises or /franchises.json
   def index
     @franchises = Franchise.order(:title)
 
@@ -14,7 +13,6 @@ class FranchisesController < ApplicationController
     }
   end
 
-  # GET /franchises/1 or /franchises/1.json
   def show
     @franchise = Franchise.includes(:products).find(params.expect(:id))
 
@@ -24,19 +22,16 @@ class FranchisesController < ApplicationController
     }
   end
 
-  # GET /franchises/new
   def new
     @franchise = Franchise.new
 
     render inertia: "Franchises/New", props: helpers.franchise_form_props(@franchise)
   end
 
-  # GET /franchises/1/edit
   def edit
     render inertia: "Franchises/Edit", props: helpers.franchise_form_props(@franchise)
   end
 
-  # POST /franchises or /franchises.json
   def create
     @franchise = Franchise.new(franchise_params)
 
@@ -51,7 +46,6 @@ class FranchisesController < ApplicationController
     end
   end
 
-  # PATCH/PUT /franchises/1 or /franchises/1.json
   def update
     respond_to do |format|
       if @franchise.update(franchise_params)
@@ -64,7 +58,6 @@ class FranchisesController < ApplicationController
     end
   end
 
-  # DELETE /franchises/1 or /franchises/1.json
   def destroy
     @franchise.destroy
 
@@ -76,13 +69,11 @@ class FranchisesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_franchise
-    @franchise = Franchise.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def franchise_params
     params.fetch(:franchise, {}).permit(:title)
+  end
+
+  def set_franchise
+    @franchise = Franchise.find(params.expect(:id))
   end
 end

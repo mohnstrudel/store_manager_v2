@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Products from "./Products";
+
 import { makeVersionProduct } from "../test/factories";
+import Products from "./Products";
 
 describe("Versions/components/Products", () => {
   it("renders linked products", () => {

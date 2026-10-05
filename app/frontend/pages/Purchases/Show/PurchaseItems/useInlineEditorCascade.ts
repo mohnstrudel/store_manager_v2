@@ -1,6 +1,8 @@
-import { useCallback, useRef, useState } from "react";
 import { useForm, usePage } from "@inertiajs/react";
+import { useCallback, useRef, useState } from "react";
+
 import routes from "@/utils/routes";
+
 import type { PurchaseItemRecord } from "../../types";
 
 type EditorRef = { open(): void; close(): void; getValue(): string };

@@ -4,27 +4,15 @@ require_relative "boot"
 
 require "rails/all"
 
-# Require the gems listed in Gemfile, including any gems
-# you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
 module StoreManagerV2
   class Application < Rails::Application
-    # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
-
-    # Configuration for the application, engines, and railties goes here.
-    #
-    # These settings can be overridden in specific environments using the files
-    # in config/environments, which are processed later.
-    #
-    # config.time_zone = "Central Time (US & Canada)"
-    # config.eager_load_paths << Rails.root.join("extras")
     jobs_concers_path = Rails.root.join("app/jobs/concerns")
     config.autoload_paths << jobs_concers_path
     config.eager_load_paths << jobs_concers_path
 
-    # Add app/services to autoload paths for Shopify services
     services_path = Rails.root.join("app/services")
     config.autoload_paths << services_path
     config.eager_load_paths << services_path
@@ -34,7 +22,6 @@ module StoreManagerV2
     config.action_mailer.preview_paths << Rails.root.join("app/mailers/previews").to_s
 
     config.generators do |generate|
-      # generate.assets false
       generate.helper false
       generate.stylesheets false
       generate.controller_specs false

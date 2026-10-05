@@ -1,10 +1,12 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { router } from "@inertiajs/react";
-import { mockPage } from "@/test/mocks/inertia";
-import Show from "./Show";
+
 import { makePagination } from "@/test/factories";
+import { mockPage } from "@/test/mocks/inertia";
+
+import Show from "./Show";
 import { makeWarehousePurchaseItem, makeWarehouseShowRecord } from "./test/factories";
 import type { WarehousePurchaseItemRecord, WarehouseShowRecord } from "./types";
 

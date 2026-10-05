@@ -60,30 +60,6 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
       expect { job.perform }.to change(Product, :count).by(1)
     end
 
-    it "logs warnings when SKU collision errors occur" do
-      # Create an existing product with the same SKU
-      product = create(:product)
-      create(:variant, product:, sku: "malenia-001")
-
-      # Stub to raise SKU collision error
-      allow(Product::Shopify::Importer).to receive(:import!).and_raise(
-        StandardError.new("SKU has already been taken")
-      )
-      allow(Rails.logger).to receive(:warn)
-
-      expect { job.perform }.not_to raise_error
-      expect(Rails.logger).to have_received(:warn).with(/Skipping item due to variant SKU collision/)
-      expect(Product.count).to eq(1) # No new product created
-    end
-
-    it "re-raises non-SKU errors" do
-      allow(Product::Shopify::Importer).to receive(:import!).and_raise(
-        StandardError.new("API rate limit exceeded")
-      )
-
-      expect { job.perform }.to raise_error(StandardError, "API rate limit exceeded")
-    end
-
     context "when product already exists" do
       before { create(:product, shopify_id: "gid://shopify/Product/123") }
 

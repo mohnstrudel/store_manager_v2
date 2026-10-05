@@ -1,7 +1,9 @@
-import ErrorNotice from "@/components/ErrorNotice";
 import { Link } from "@inertiajs/react";
+
+import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
+
 import Form from "./components/Form";
 import { SizeRecord } from "./types";
 

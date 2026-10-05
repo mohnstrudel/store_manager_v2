@@ -1,6 +1,8 @@
 import type {
   NewPaymentRecord,
+  NewPurchaseItemExpenseRecord,
   PaymentRecord,
+  PurchaseItemExpenseRecord,
   PurchaseFormOptions,
   PurchaseFormRecord,
   PurchaseIndexRecord,
@@ -68,6 +70,7 @@ export function makePurchaseShow(overrides: Partial<PurchaseShowRecord> = {}): P
     item_price: "100.00",
     cost_total: "210.00",
     shipping_total: "10.00",
+    expenses_total: "5.00",
     paid: "50.00",
     debt: "160.00",
     supplier_title: "Acme Imports",
@@ -101,6 +104,12 @@ export function makePurchaseItem(overrides: Partial<PurchaseItemRecord> = {}): P
     shipping_company_id: null,
     shipping_company_name: "",
     shipping_cost: "0",
+    purchase_expenses: [],
+    new_purchase_expense: {
+      description: "",
+      amount: "",
+      create_path: "/purchase_items/10/expenses",
+    },
     ...overrides,
   };
 }
@@ -112,7 +121,6 @@ export function makePayment(overrides: Partial<PaymentRecord> = {}): PaymentReco
     destroy_path: "/purchases/55/payments/1",
     payment_date: "2026-05-20",
     value: "10.00",
-    errors: [],
     ...overrides,
   };
 }
@@ -122,7 +130,30 @@ export function makeNewPayment(overrides: Partial<NewPaymentRecord> = {}): NewPa
     create_path: "/purchases/55/payments",
     payment_date: "2026-05-21",
     value: "10.00",
-    errors: [],
+    ...overrides,
+  };
+}
+
+export function makeNewPurchaseItemExpense(
+  overrides: Partial<NewPurchaseItemExpenseRecord> = {},
+): NewPurchaseItemExpenseRecord {
+  return {
+    description: "",
+    amount: "",
+    create_path: "/purchase_items/10/expenses",
+    ...overrides,
+  };
+}
+
+export function makePurchaseItemExpense(
+  overrides: Partial<PurchaseItemExpenseRecord> = {},
+): PurchaseItemExpenseRecord {
+  return {
+    id: 1,
+    description: "Extra tax",
+    amount: "10",
+    update_path: "/purchase_items/10/expenses/1",
+    destroy_path: "/purchase_items/10/expenses/1",
     ...overrides,
   };
 }
@@ -139,7 +170,7 @@ export function makePurchaseForm(overrides: Partial<PurchaseFormRecord> = {}): P
     amount: "",
     warehouse_id: null,
     payment_value: "",
-    variant_options: [],
+    variant_availability: null,
     ...overrides,
   };
 }
@@ -148,7 +179,6 @@ export function makePurchaseFormOptions(
   overrides: Partial<PurchaseFormOptions> = {},
 ): PurchaseFormOptions {
   return {
-    product_variants_path: "/products/:product_id/variants",
     products: [{ value: 1, label: "Moon Statue" }],
     suppliers: [{ value: 10, label: "Acme Supplies" }],
     warehouses: [{ value: 20, label: "Main Warehouse" }],

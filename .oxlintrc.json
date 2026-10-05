@@ -18,7 +18,18 @@
     "typeCheck": true
   },
   "ignorePatterns": ["app/frontend/api/**/*"],
-  "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "react-perf", "import", "vitest"],
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "oxc",
+    "react",
+    "react-perf",
+    "import",
+    "vitest",
+    "jsx-a11y"
+  ],
+  "jsPlugins": ["./tools/source-policy/frontend/oxlint-plugin.js"],
   "settings": {
     "react": {
       "version": "19.2.6"
@@ -67,6 +78,20 @@
     "eslint/no-underscore-dangle": "off",
     "react/react-in-jsx-scope": "off",
     "react/rules-of-hooks": "error",
-    "react/exhaustive-deps": "warn"
+    "react/hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/exhaustive-effect-dependencies": "error",
+    "react/set-state-in-effect": "error",
+    "react/memo-dependencies": "error",
+    "react/refs": "error",
+    "react/immutability": "error",
+    "react/no-unstable-nested-components": "error",
+    "react/capitalized-calls": "error",
+    "react/jsx-no-comment-textnodes": "error",
+    "react/jsx-no-script-url": "error",
+    "react/no-namespace": "error",
+    "react/style-prop-object": "error",
+    "source-policy/ordering": "error",
+    "source-policy/no-prose-comments": "error"
   }
 }

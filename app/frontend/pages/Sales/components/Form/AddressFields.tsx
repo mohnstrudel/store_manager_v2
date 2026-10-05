@@ -1,6 +1,7 @@
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import NestedFormContainer from "@/components/NestedFormContainer";
+
 import type { SaleAddressFormRecord } from "../../types";
 
 type AddressFieldsProps = {

@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { mockPageProps } from "@/test/mocks/inertia";
 import routes from "@/utils/routes";
+
 import New from "./New";
 
 vi.mock("@/components/flash-messages/FlashMessages", () => ({

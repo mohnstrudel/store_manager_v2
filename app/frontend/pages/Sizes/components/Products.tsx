@@ -1,4 +1,5 @@
 import { rowNavigationProps } from "@/utils/rowNavigation";
+
 import { ProductRecord } from "../types";
 
 type ProductsProps = {

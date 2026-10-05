@@ -9,7 +9,6 @@ class UserPolicy < ApplicationPolicy
     admin?
   end
 
-  # We allow everyone to create an account
   def new?
     true
   end

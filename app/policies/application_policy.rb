@@ -17,20 +17,20 @@ class ApplicationPolicy
     admin? || manager?
   end
 
-  def create?
-    admin?
-  end
-
   def new?
     create?
   end
 
-  def update?
+  def create?
     admin?
   end
 
   def edit?
     update?
+  end
+
+  def update?
+    admin?
   end
 
   def destroy?

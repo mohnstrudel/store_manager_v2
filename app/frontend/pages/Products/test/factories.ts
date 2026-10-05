@@ -1,7 +1,9 @@
 import type {
+  PaymentItemRecord,
   ProductFormRecord,
   ProductIndexRecord,
   ProductShowRecord,
+  ProfitabilityRecord,
   PurchaseFormData,
   PurchaseRecord,
   SaleItemRecord,
@@ -60,6 +62,8 @@ export function makeVariant(overrides: Partial<VariantRecord> = {}): VariantReco
     purchases_count: 1,
     shopify_id_short: "SHOP-V1",
     woo_store_id: "WOO-V1",
+    total_purchase_cost: "150",
+    theoretical_profit: "50",
     ...overrides,
   };
 }
@@ -84,6 +88,28 @@ export function makeSaleItem(overrides: Partial<SaleItemRecord> = {}): SaleItemR
   };
 }
 
+export function makePaymentItem(overrides: Partial<PaymentItemRecord> = {}): PaymentItemRecord {
+  return {
+    id: 1,
+    sale_path: "/sales/1",
+    store_type: "shopify",
+    store_id: "#1002",
+    customer_name: "Ash Ketchum",
+    customer_email: "ash@example.com",
+    date: "20 May 2026",
+    variant_title: null,
+    price: "30.00",
+    qty: 1,
+    status: "active",
+    warehouse: "Tokyo",
+    purchase_item_path: null,
+    sequence: 2,
+    expected_parts: 4,
+    origin: { path: "/sales/1", identifier: "#1001" },
+    ...overrides,
+  };
+}
+
 export function makePurchase(overrides: Partial<PurchaseRecord> = {}): PurchaseRecord {
   return {
     id: 1,
@@ -99,7 +125,20 @@ export function makePurchase(overrides: Partial<PurchaseRecord> = {}): PurchaseR
   };
 }
 
-// ── Form factories (ProductFormRecord and its nested types) ───────────────────
+export function makeProfitability(
+  overrides: Partial<ProfitabilityRecord> = {},
+): ProfitabilityRecord {
+  return {
+    potential_sales: "1 000",
+    expected_total_cost: "400",
+    business_expenses: "100",
+    expected_net_profit: "500",
+    collected_revenue: "700",
+    purchase_paid: "620",
+    cash_position: "80",
+    ...overrides,
+  };
+}
 
 export function makeProductIndexRecord(
   overrides: Partial<ProductIndexRecord> = {},
@@ -115,23 +154,6 @@ export function makeProductIndexRecord(
     woo_store_id: "WOO-1",
     shopify_id_short: "SHOP-1",
     new_purchase_path: "/purchases/new?product=1",
-    ...overrides,
-  };
-}
-
-export function makeVariantForm(overrides: Partial<VariantFormData> = {}): VariantFormData {
-  return {
-    id: null,
-    sku: "SKU-001",
-    size_id: null,
-    version_id: null,
-    color_id: null,
-    purchase_cost: "10",
-    selling_price: "20",
-    weight: "0.5",
-    deactivated: false,
-    has_sales_or_purchases: false,
-    _destroy: false,
     ...overrides,
   };
 }
@@ -154,6 +176,7 @@ export function makePurchaseForm(overrides: Partial<PurchaseFormData> = {}): Pur
     amount: "",
     warehouse_id: null,
     payment_value: "",
+    variant_client_key: null,
     ...overrides,
   };
 }
@@ -170,6 +193,24 @@ export function makeProductForm(overrides: Partial<ProductFormRecord> = {}): Pro
     variants: [makeVariantForm()],
     store_infos: [],
     media: [],
+    ...overrides,
+  };
+}
+
+export function makeVariantForm(overrides: Partial<VariantFormData> = {}): VariantFormData {
+  return {
+    id: null,
+    base_model: true,
+    sku: "SKU-001",
+    size_id: null,
+    version_id: null,
+    color_id: null,
+    purchase_cost: "10",
+    selling_price: "20",
+    weight: "0.5",
+    deactivated: false,
+    has_sales_or_purchases: false,
+    _destroy: false,
     ...overrides,
   };
 }

@@ -32,6 +32,10 @@ class Media::LegacyAttachments::Backfill
     owner_class.where(id: owner_ids)
   end
 
+  def legacy_attachments(owner_class)
+    Media::LegacyAttachments.for_owner_class(owner_class)
+  end
+
   def backfill_owner!(owner)
     created_count = 0
 
@@ -71,9 +75,5 @@ class Media::LegacyAttachments::Backfill
 
   def unrelated_media_exists?(media_blob_ids, legacy_blob_ids)
     media_blob_ids.any? && media_blob_ids.intersection(legacy_blob_ids).empty?
-  end
-
-  def legacy_attachments(owner_class)
-    Media::LegacyAttachments.for_owner_class(owner_class)
   end
 end

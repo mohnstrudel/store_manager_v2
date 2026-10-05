@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+
+import { makeProduct } from "../test/factories";
 import type { ProductShowRecord } from "../types";
 import ProductOverview from "./ProductOverview";
-import { makeProduct } from "../test/factories";
 
 vi.mock("@/components/ImageGallery", () => ({
   default: ({ media }: { media: { length: number } }) => (
@@ -42,10 +43,12 @@ describe("Products/Show/ProductOverview", () => {
       expect(screen.getByText("Classic, Limited")).toBeInTheDocument();
     });
 
-    it("renders '-' for empty list attributes", () => {
+    it("hides the label rows for empty list attributes", () => {
       renderProductOverview({ brands: [], sizes: [], versions: [], colors: [] });
 
-      expect(screen.getAllByText("-")).not.toHaveLength(0);
+      for (const label of ["Version", "Brand", "Size", "Color"]) {
+        expect(screen.queryByText(label)).not.toBeInTheDocument();
+      }
     });
   });
 
@@ -88,14 +91,12 @@ describe("Products/Show/ProductOverview", () => {
         expect(screen.getByText("WOO-1")).toBeInTheDocument();
       });
 
-      it("renders '-' when there is no store id", () => {
-        const { container } = renderProductOverview({
+      it("hides the row when there is no store id", () => {
+        renderProductOverview({
           woo_info: { store_id: null, product_url: null },
         });
 
-        expect(
-          container.querySelector('[data-copy-to-clipboard-text-value="WOO-1"]'),
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText("Woo ID")).not.toBeInTheDocument();
       });
     });
 
@@ -112,12 +113,13 @@ describe("Products/Show/ProductOverview", () => {
         ).toBeInTheDocument();
       });
 
-      it("renders '-' when there is no shopify id", () => {
+      it("hides the row when there is no shopify id", () => {
         renderProductOverview({
           shopify_info: { store_id: null, id_short: null, tag_list: [], product_url: null },
         });
 
         expect(screen.queryByRole("link", { name: /SHOP/ })).not.toBeInTheDocument();
+        expect(screen.queryByText("Shopify ID")).not.toBeInTheDocument();
       });
     });
 

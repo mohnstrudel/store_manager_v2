@@ -14,6 +14,8 @@
 @import "./application/gallery";
 @import "./application/dialogs";
 @import "./application/widgets";
+@import "./application/payment-plans";
+@import "./application/profitability";
 @import "./application/tabs";
 @import "./application/breadcrumbs";
 @import "./application/rich-text";

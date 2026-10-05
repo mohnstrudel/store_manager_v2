@@ -1,4 +1,5 @@
 import { rowNavigationProps } from "@/utils/rowNavigation";
+
 import { PurchaseItemRecord } from "../types";
 
 type PurchaseItemsProps = {
@@ -12,7 +13,7 @@ export default function PurchaseItems({ purchaseItems }: PurchaseItemsProps) {
     <div className="flex flex-col gap-4">
       <div className="table_card">
         <h3>Purchase Items</h3>
-        <table role="grid">
+        <table>
           <thead>
             <tr>
               <th>Product</th>

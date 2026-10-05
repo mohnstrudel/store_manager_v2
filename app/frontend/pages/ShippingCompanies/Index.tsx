@@ -1,4 +1,5 @@
 import ResourceIndexPage from "@/components/ResourceIndexPage";
+
 import Table from "./components/Table";
 import { ShippingCompanyRecord } from "./types";
 

@@ -4,20 +4,24 @@
 #
 # Table name: variants
 #
-#  id             :bigint           not null, primary key
-#  deactivated_at :datetime
-#  purchase_cost  :decimal(10, 2)   default(0.0), not null
-#  selling_price  :decimal(10, 2)   default(0.0), not null
-#  sku            :string           not null
-#  weight         :decimal(10, 2)   default(0.0), not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  color_id       :bigint
-#  product_id     :bigint           not null
-#  shopify_id     :string
-#  size_id        :bigint
-#  version_id     :bigint
-#  woo_id         :string
+#  id                               :bigint           not null, primary key
+#  deactivated_at                   :datetime
+#  purchase_cost                    :decimal(10, 2)   default(0.0), not null
+#  selling_price                    :decimal(10, 2)   default(0.0), not null
+#  selling_price_exchange_rate      :decimal(18, 10)
+#  selling_price_exchange_rate_date :date
+#  selling_price_source_amount      :decimal(10, 2)
+#  selling_price_source_currency    :string
+#  sku                              :string           not null
+#  weight                           :decimal(10, 2)   default(0.0), not null
+#  created_at                       :datetime         not null
+#  updated_at                       :datetime         not null
+#  color_id                         :bigint
+#  product_id                       :bigint           not null
+#  shopify_id                       :string
+#  size_id                          :bigint
+#  version_id                       :bigint
+#  woo_id                           :string
 #
 class Variant < ApplicationRecord
   include HasAuditNotifications
@@ -34,8 +38,8 @@ class Variant < ApplicationRecord
   belongs_to :size, optional: true, inverse_of: :variants
   belongs_to :version, optional: true, inverse_of: :variants
 
-  has_many :sale_items, dependent: :nullify, inverse_of: :variant
-  has_many :purchases, dependent: :nullify, inverse_of: :variant
+  has_many :sale_items, inverse_of: :variant # rubocop:disable Rails/HasManyOrHasOneDependent
+  has_many :purchases, inverse_of: :variant # rubocop:disable Rails/HasManyOrHasOneDependent
 
   scope :active, -> { where(deactivated_at: nil) }
   scope :deactivated, -> { where.not(deactivated_at: nil) }
@@ -48,8 +52,15 @@ class Variant < ApplicationRecord
     sale_items.exists? || purchases.exists?
   end
 
-  # Price tracking has been removed from StoreInfo
-  # This method returns 0.0 for backwards compatibility
+  def clear_shopify_money_snapshot!(field)
+    assign_attributes(
+      "#{field}_source_amount": nil,
+      "#{field}_source_currency": nil,
+      "#{field}_exchange_rate": nil,
+      "#{field}_exchange_rate_date": nil
+    )
+  end
+
   def price
     0.0
   end

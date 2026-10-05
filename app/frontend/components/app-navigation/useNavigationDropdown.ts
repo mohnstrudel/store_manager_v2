@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useCloseOnEscape } from "@/utils/useCloseOnEscape";
 
 export function useNavigationDropdown() {

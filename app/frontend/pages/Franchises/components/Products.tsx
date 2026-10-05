@@ -1,5 +1,7 @@
 import { Link } from "@inertiajs/react";
+
 import routes from "@/utils/routes";
+
 import { ProductRecord } from "../types";
 
 type ProductsProps = {

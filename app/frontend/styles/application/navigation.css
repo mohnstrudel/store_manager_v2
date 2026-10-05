@@ -1,5 +1,4 @@
 @layer components {
-  /* Navigation */
   .navigation-main ul {
     @apply flex items-center;
   }

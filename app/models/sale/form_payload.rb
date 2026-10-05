@@ -52,13 +52,6 @@ class Sale::FormPayload
 
   attr_reader :params
 
-  def address_params_for(kind)
-    nested = params.dig(:sale, kind)
-    return {} if nested.blank?
-
-    nested.permit(*ADDRESS_FIELDS).to_h.symbolize_keys
-  end
-
   def sale_params
     params.expect(
       sale: [
@@ -72,8 +65,32 @@ class Sale::FormPayload
     )
   end
 
+  def address_params_for(kind)
+    nested = params.dig(:sale, kind)
+    return {} if nested.blank?
+
+    nested.permit(*ADDRESS_FIELDS).to_h.symbolize_keys
+  end
+
   def submitted_sale_item_attributes
     row_values(params[:sale_items]).map { |attrs| attrs.symbolize_keys }
+  end
+
+  def row_values(value)
+    case value
+    when ActionController::Parameters
+      value.to_unsafe_h.values
+    when Hash
+      value.values
+    when Array
+      value.map { |v| v.is_a?(ActionController::Parameters) ? v.to_unsafe_h : v }
+    else
+      []
+    end
+  end
+
+  def boolean_type
+    @boolean_type ||= ActiveModel::Type::Boolean.new
   end
 
   def build_sale_item(sale:, attrs:, invalid_record:, index:)
@@ -95,22 +112,5 @@ class Sale::FormPayload
 
   def first_new_sale_item_index
     @first_new_sale_item_index ||= submitted_sale_item_attributes.find_index { |attrs| attrs[:id].blank? }
-  end
-
-  def boolean_type
-    @boolean_type ||= ActiveModel::Type::Boolean.new
-  end
-
-  def row_values(value)
-    case value
-    when ActionController::Parameters
-      value.to_unsafe_h.values
-    when Hash
-      value.values
-    when Array
-      value.map { |v| v.is_a?(ActionController::Parameters) ? v.to_unsafe_h : v }
-    else
-      []
-    end
   end
 end

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Inline Cell Editor"
+  short_description: "Build persisted inline table editors"
+  default_prompt: "Use $inline-cell-editor to plan and implement this persisted inline table-cell editor."

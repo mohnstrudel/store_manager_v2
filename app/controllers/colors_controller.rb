@@ -3,7 +3,6 @@
 class ColorsController < ApplicationController
   before_action :set_color, only: %i[show edit update destroy]
 
-  # GET /colors or /colors.json
   def index
     @colors = Color.order(:value)
 
@@ -14,7 +13,6 @@ class ColorsController < ApplicationController
     }
   end
 
-  # GET /colors/1 or /colors/1.json
   def show
     @color = Color.includes(:products).find(params.expect(:id))
 
@@ -24,19 +22,16 @@ class ColorsController < ApplicationController
     }
   end
 
-  # GET /colors/new
   def new
     @color = Color.new
 
     render inertia: "Colors/New", props: helpers.color_form_props(@color)
   end
 
-  # GET /colors/1/edit
   def edit
     render inertia: "Colors/Edit", props: helpers.color_form_props(@color)
   end
 
-  # POST /colors or /colors.json
   def create
     @color = Color.new(color_params)
 
@@ -51,7 +46,6 @@ class ColorsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /colors/1 or /colors/1.json
   def update
     respond_to do |format|
       if @color.update(color_params)
@@ -64,7 +58,6 @@ class ColorsController < ApplicationController
     end
   end
 
-  # DELETE /colors/1 or /colors/1.json
   def destroy
     @color.destroy
 
@@ -76,13 +69,11 @@ class ColorsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_color
-    @color = Color.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def color_params
     params.expect(color: [:value])
+  end
+
+  def set_color
+    @color = Color.find(params.expect(:id))
   end
 end

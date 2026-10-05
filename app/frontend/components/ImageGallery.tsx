@@ -37,12 +37,6 @@ type GalleryContextValue = {
 
 const GalleryContext = createContext<GalleryContextValue | null>(null);
 
-function useGallery(): GalleryContextValue {
-  const value = useContext(GalleryContext);
-  if (!value) throw new Error("useGallery must be used within ImageGallery");
-  return value;
-}
-
 export default function ImageGallery({ media }: ImageGalleryProps) {
   const value = useGalleryState(media);
   if (!value) return null;
@@ -50,103 +44,6 @@ export default function ImageGallery({ media }: ImageGalleryProps) {
     <GalleryContext.Provider value={value}>
       {value.hasMultipleImages ? <CarouselGallery /> : <SingleGallery />}
     </GalleryContext.Provider>
-  );
-}
-
-function SingleGallery() {
-  const { current, loaded } = useGallery();
-  const isLoading = !loaded.has(current.id);
-  return (
-    <div className="gallery_viewbox gallery_viewbox--single" data-loading={isLoading || undefined}>
-      <GalleryMainImage />
-    </div>
-  );
-}
-
-function CarouselGallery() {
-  return (
-    <div className="grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-150 lg:h-150 lg:flex-row">
-      <ThumbnailNavigation />
-      <CarouselStage />
-    </div>
-  );
-}
-
-function ThumbnailNavigation() {
-  const { media } = useGallery();
-  return (
-    <div className="gallery_nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
-      {media.map((image, index) => (
-        <GalleryThumbnail image={image} index={index} key={image.id} />
-      ))}
-    </div>
-  );
-}
-
-function GalleryThumbnail({ index, image }: { index: number; image: ImageGalleryMedia }) {
-  const { selectedIndex, loaded, markLoaded, selectImage, registerImage, registerThumbnailButton } =
-    useGallery();
-
-  const isActive = index === selectedIndex;
-  const isLoading = !loaded.has(image.id);
-  const handleClick = useCallback(() => selectImage(index), [selectImage, index]);
-  const handleLoadOrError = useCallback(() => markLoaded(image.id), [markLoaded, image.id]);
-
-  return (
-    <button
-      aria-label={image.alt || ""}
-      className="gallery_thumb"
-      data-active={isActive || undefined}
-      onClick={handleClick}
-      ref={registerThumbnailButton(index)}
-      type="button"
-    >
-      <div className="gallery_thumb__frame" data-loading={isLoading || undefined}>
-        <img
-          alt={image.alt || ""}
-          className="gallery_thumb__image w-full h-full object-cover object-center"
-          onError={handleLoadOrError}
-          onLoad={handleLoadOrError}
-          ref={registerImage(image.id)}
-          src={image.thumb_url}
-        />
-      </div>
-    </button>
-  );
-}
-
-function CarouselStage() {
-  const { current, loaded, showPreviousImage, showNextImage } = useGallery();
-  const isLoading = !loaded.has(current.id);
-  return (
-    <div className="gallery_viewbox flex relative w-full h-80 max-h-full items-center overflow-hidden rounded-lg hover:overflow-visible lg:h-full">
-      <button className="gallery_btn left-0" onClick={showPreviousImage} type="button">
-        ←
-      </button>
-      <button className="gallery_btn right-0" onClick={showNextImage} type="button">
-        →
-      </button>
-      <div className="gallery_main__frame" data-loading={isLoading || undefined}>
-        <GalleryMainImage />
-      </div>
-    </div>
-  );
-}
-
-function GalleryMainImage() {
-  const { current, markLoaded, registerImage } = useGallery();
-  const handleLoadOrError = useCallback(() => markLoaded(current.id), [markLoaded, current.id]);
-
-  return (
-    <img
-      alt={current.alt || ""}
-      className="gallery_main__image"
-      key={current.preview_url}
-      onError={handleLoadOrError}
-      onLoad={handleLoadOrError}
-      ref={registerImage(current.id)}
-      src={current.preview_url}
-    />
   );
 }
 
@@ -247,6 +144,109 @@ function useScrollSelectedThumbnailIntoView(
       inline: "start",
     });
   }
+}
+
+function CarouselGallery() {
+  return (
+    <div className="grow flex flex-col gap-4 w-full max-w-full items-center lg:shrink-0 lg:w-150 lg:h-150 lg:flex-row">
+      <ThumbnailNavigation />
+      <CarouselStage />
+    </div>
+  );
+}
+
+function ThumbnailNavigation() {
+  const { media } = useGallery();
+  return (
+    <div className="gallery_nav flex flex-row items-center gap-4 w-full h-auto lg:p-4 overflow-x-auto overflow-y-hidden lg:flex-col lg:w-30 lg:h-70 lg:overflow-y-scroll lg:overflow-x-hidden">
+      {media.map((image, index) => (
+        <GalleryThumbnail image={image} index={index} key={image.id} />
+      ))}
+    </div>
+  );
+}
+
+function useGallery(): GalleryContextValue {
+  const value = useContext(GalleryContext);
+  if (!value) throw new Error("useGallery must be used within ImageGallery");
+  return value;
+}
+
+function CarouselStage() {
+  const { current, loaded, showPreviousImage, showNextImage } = useGallery();
+  const isLoading = !loaded.has(current.id);
+  return (
+    <div className="gallery_viewbox flex relative w-full h-80 max-h-full items-center overflow-hidden rounded-lg hover:overflow-visible lg:h-full">
+      <button className="gallery_btn left-0" onClick={showPreviousImage} type="button">
+        ←
+      </button>
+      <button className="gallery_btn right-0" onClick={showNextImage} type="button">
+        →
+      </button>
+      <div className="gallery_main__frame" data-loading={isLoading || undefined}>
+        <GalleryMainImage />
+      </div>
+    </div>
+  );
+}
+
+function GalleryMainImage() {
+  const { current, markLoaded, registerImage } = useGallery();
+  const handleLoadOrError = useCallback(() => markLoaded(current.id), [markLoaded, current.id]);
+
+  return (
+    <img
+      alt={current.alt || ""}
+      className="gallery_main__image"
+      key={current.preview_url}
+      onError={handleLoadOrError}
+      onLoad={handleLoadOrError}
+      ref={registerImage(current.id)}
+      src={current.preview_url}
+    />
+  );
+}
+
+function SingleGallery() {
+  const { current, loaded } = useGallery();
+  const isLoading = !loaded.has(current.id);
+  return (
+    <div className="gallery_viewbox gallery_viewbox--single" data-loading={isLoading || undefined}>
+      <GalleryMainImage />
+    </div>
+  );
+}
+
+function GalleryThumbnail({ index, image }: { index: number; image: ImageGalleryMedia }) {
+  const { selectedIndex, loaded, markLoaded, selectImage, registerImage, registerThumbnailButton } =
+    useGallery();
+
+  const isActive = index === selectedIndex;
+  const isLoading = !loaded.has(image.id);
+  const handleClick = useCallback(() => selectImage(index), [selectImage, index]);
+  const handleLoadOrError = useCallback(() => markLoaded(image.id), [markLoaded, image.id]);
+
+  return (
+    <button
+      aria-label={image.alt || ""}
+      className="gallery_thumb"
+      data-active={isActive || undefined}
+      onClick={handleClick}
+      ref={registerThumbnailButton(index)}
+      type="button"
+    >
+      <div className="gallery_thumb__frame" data-loading={isLoading || undefined}>
+        <img
+          alt={image.alt || ""}
+          className="gallery_thumb__image w-full h-full object-cover object-center"
+          onError={handleLoadOrError}
+          onLoad={handleLoadOrError}
+          ref={registerImage(image.id)}
+          src={image.thumb_url}
+        />
+      </div>
+    </button>
+  );
 }
 
 function previousImageIndex(currentIndex: number, imageCount: number) {

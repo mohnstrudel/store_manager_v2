@@ -50,10 +50,6 @@ class UsersController < ApplicationController
 
   private
 
-  def set_user
-    @user = User.find(params.expect(:id))
-  end
-
   def user_params
     params.expect(
       user: [
@@ -63,5 +59,9 @@ class UsersController < ApplicationController
         :role
       ]
     )
+  end
+
+  def set_user
+    @user = User.find(params.expect(:id))
   end
 end

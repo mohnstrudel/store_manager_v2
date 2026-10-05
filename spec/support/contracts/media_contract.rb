@@ -1,16 +1,6 @@
 # frozen_string_literal: true
 
-# Shared contract test to verify data structure compatibility between
-# components that produce and consume parsed media data.
-#
-# Usage: Define `parsed_media` as a let in your spec, then:
-#   it_behaves_like "valid media contract"
-#
-# This ensures that parsers produce output that jobs can consume.
-
 RSpec.shared_examples "valid media contract" do
-  # The including spec must define `parsed_media` as a let
-
   it "has a non-empty array of media items" do
     expect(parsed_media).to be_an(Array)
     expect(parsed_media).not_to be_empty

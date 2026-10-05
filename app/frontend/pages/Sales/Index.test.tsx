@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+
+import { makePagination, makeSalePaymentProgress } from "@/test/factories";
+
 import Index from "./Index";
-import { makePagination } from "@/test/factories";
 import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord } from "./types";
 
@@ -24,6 +26,19 @@ describe("Sales/Index", () => {
     expect(screen.getByText("Pikachu Figure")).toBeInTheDocument();
   });
 
+  it("renders a paginated row when plan context is missing", () => {
+    const saleWithoutPlanContext = {
+      ...makeSaleIndexRecord(),
+      payment_plans: undefined,
+    };
+
+    expect(() => {
+      // @ts-expect-error A stale partial response can omit this field at runtime.
+      renderIndex({ sales: [saleWithoutPlanContext] });
+    }).not.toThrow();
+    expect(screen.getByText("Dale Cooper")).toBeInTheDocument();
+  });
+
   it("renders a search form with the current query", () => {
     renderIndex({ search: { q: "dale" } });
 
@@ -36,6 +51,112 @@ describe("Sales/Index", () => {
     const warehouseLink = screen.getByRole("link", { name: /Berlin Hub/ });
     expect(warehouseLink).toHaveAttribute("href", "/purchase_items/101");
     expect(screen.queryByText("Processing")).not.toBeInTheDocument();
+  });
+
+  describe("payment progress marker", () => {
+    it("shows scheduled payment progress before the sale details", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "plan_schedule",
+              percent: 42,
+              sale_part_number: 2,
+              expected_parts: 8,
+              total: "$245",
+            }),
+          }),
+        ],
+      });
+
+      const marker = screen.getByText("Payment 2 of 8 · 42% collected · Projected total $245");
+      expect(marker.parentElement?.firstElementChild).toBe(marker);
+    });
+
+    it("shows deposit progress without a fabricated part count", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "plan_deposit",
+              percent: 42,
+              total: "$245",
+            }),
+          }),
+        ],
+      });
+
+      expect(
+        screen.getByText("Deposit · 42% collected · Projected total $245"),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/1 of 1/)).not.toBeInTheDocument();
+    });
+
+    it("shows amount-only progress", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "amount",
+              percent: 42,
+              total: "$245",
+            }),
+          }),
+        ],
+      });
+
+      expect(screen.getByText("Not fully paid · 42% collected · Total $245")).toBeInTheDocument();
+    });
+
+    it("shows a verified Woo deposit without a percentage", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "woo_deposit",
+              paid: "$196",
+              total: "$1,145",
+            }),
+          }),
+        ],
+      });
+
+      expect(
+        screen.getByText("Not fully paid · Deposit $196 collected · Total $1,145"),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/% collected/)).not.toBeInTheDocument();
+    });
+
+    it("shows unavailable Woo payment amounts without a percentage", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({
+            settlement_status: "not_fully_paid",
+            payment_progress: makeSalePaymentProgress({
+              source: "woo_unavailable",
+              total: "$1,145",
+            }),
+          }),
+        ],
+      });
+
+      expect(screen.getByText("Not fully paid · Payment amounts unavailable")).toBeInTheDocument();
+      expect(screen.queryByText(/% collected/)).not.toBeInTheDocument();
+    });
+
+    it("uses the backend-owned follow-up classification", () => {
+      const { container } = renderIndex({
+        sales: [makeSaleIndexRecord(), makeSaleIndexRecord({ id: 2, is_follow_up_payment: true })],
+      });
+
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows[0]).not.toHaveAttribute("data-follow-up");
+      expect(rows[1]).toHaveAttribute("data-follow-up");
+    });
   });
 
   it("renders an empty state when a search has no matches", () => {

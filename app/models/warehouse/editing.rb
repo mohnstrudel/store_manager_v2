@@ -37,22 +37,10 @@ module Warehouse::Editing
     update!(position:)
   end
 
-  def blocking_default_warehouse
-    @blocking_default_warehouse ||= find_blocking_default_warehouse
-  end
-
   private
-
-  def transitions_only_update?(attributes)
-    attributes.one? { |key, _value| key.to_s == "to_warehouse_ids" }
-  end
 
   def form_attributes(attributes)
     attributes.except(:to_warehouse_ids, "to_warehouse_ids")
-  end
-
-  def transition_ids_for(attributes)
-    attributes[:to_warehouse_ids] || attributes["to_warehouse_ids"]
   end
 
   def validate_default_warehouse_choice!
@@ -62,9 +50,21 @@ module Warehouse::Editing
     raise ActiveRecord::RecordInvalid, self
   end
 
+  def blocking_default_warehouse
+    @blocking_default_warehouse ||= find_blocking_default_warehouse
+  end
+
   def find_blocking_default_warehouse
     return unless is_default?
 
     self.class.where(is_default: true).where.not(id: id).first
+  end
+
+  def transition_ids_for(attributes)
+    attributes[:to_warehouse_ids] || attributes["to_warehouse_ids"]
+  end
+
+  def transitions_only_update?(attributes)
+    attributes.one? { |key, _value| key.to_s == "to_warehouse_ids" }
   end
 end

@@ -74,15 +74,18 @@ RSpec.describe Sale do
 
     context "when sale_items have variants" do
       let(:sale) { create(:sale, status: active_status) }
-      let(:variant_a) { create(:variant, :with_version, version_value: "A") }
-      let(:variant_b) { create(:variant, :with_version, version_value: "B") }
+      let(:variant_a) { create(:variant, :with_version, product:, version_value: "A") }
+      let(:variant_b) { create(:variant, :with_version, product:, version_value: "B") }
+      let(:variant_c) { create(:variant, :with_version, product:, version_value: "C") }
+      let(:variant_without_sale) { create(:variant, :with_version, product:, version_value: "D") }
       let!(:sale_item_a) { create(:sale_item, sale:, product:, variant: variant_a, qty: 2) }
       let!(:sale_item_b) { create(:sale_item, sale:, product:, variant: variant_b, qty: 1) }
-      let!(:sale_item_none) { create(:sale_item, sale:, product:, variant: nil, qty: 1) }
+      let!(:sale_item_c) { create(:sale_item, sale:, product:, variant: variant_c, qty: 1) }
 
       let!(:purchase_a) { create(:purchase, product:, variant: variant_a, amount: 2) }
       let!(:purchase_b) { create(:purchase, product:, variant: variant_b, amount: 1) }
-      let!(:purchase_none) { create(:purchase, product:, variant: nil, amount: 1) }
+      let!(:purchase_c) { create(:purchase, product:, variant: variant_c, amount: 1) }
+      let!(:purchase_without_sale) { create(:purchase, product:, variant: variant_without_sale, amount: 1) }
 
       # rubocop:todo RSpec/IndexedLet
       let!(:purchase_item_a1) { create(:purchase_item, purchase: purchase_a, warehouse:) }
@@ -91,8 +94,8 @@ RSpec.describe Sale do
       let!(:purchase_item_a2) { create(:purchase_item, purchase: purchase_a, warehouse:) }
       # rubocop:enable RSpec/IndexedLet
       let!(:purchase_item_b1) { create(:purchase_item, purchase: purchase_b, warehouse:) }
-      let!(:purchase_item_none) { create(:purchase_item, purchase: purchase_none, warehouse:) }
-      let!(:purchase_item_wrong_variant) { create(:purchase_item, purchase:, warehouse:) }
+      let!(:purchase_item_c1) { create(:purchase_item, purchase: purchase_c, warehouse:) }
+      let!(:purchase_item_wrong_variant) { create(:purchase_item, purchase: purchase_without_sale, warehouse:) }
 
       before { sale.link_with_purchase_items }
 
@@ -101,7 +104,7 @@ RSpec.describe Sale do
           expect(purchase_item_a1.reload.sale_item_id).to eq(sale_item_a.id)
           expect(purchase_item_a2.reload.sale_item_id).to eq(sale_item_a.id)
           expect(purchase_item_b1.reload.sale_item_id).to eq(sale_item_b.id)
-          expect(purchase_item_none.reload.sale_item_id).to eq(sale_item_none.id)
+          expect(purchase_item_c1.reload.sale_item_id).to eq(sale_item_c.id)
         end
       end
 
@@ -141,18 +144,11 @@ RSpec.describe Sale do
 
     before do
       allow(sale).to receive(:link_with_purchase_items).and_return(purchase_item_ids)
-      allow(PurchaseItem).to receive(:notify_order_status!)
     end
 
-    it "links sale items and notifies purchase item changes" do
-      sale.link_purchase_items!
-
-      aggregate_failures do
-        expect(sale).to have_received(:link_with_purchase_items)
-        expect(PurchaseItem).to have_received(:notify_order_status!).with(
-          purchase_item_ids:
-        )
-      end
+    it "delegates to the exact-link flow" do
+      expect(sale.link_purchase_items!).to eq(purchase_item_ids)
+      expect(sale).to have_received(:link_with_purchase_items)
     end
   end
 

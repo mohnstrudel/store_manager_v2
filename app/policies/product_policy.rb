@@ -16,4 +16,8 @@ class ProductPolicy < ApplicationPolicy
   def pull?
     admin? || manager?
   end
+
+  def view_profitability?
+    admin?
+  end
 end

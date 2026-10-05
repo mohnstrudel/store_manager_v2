@@ -6,7 +6,6 @@ class PurchaseItemsController < ApplicationController
   before_action :set_purchase_item_for_show, only: :show
   before_action :set_purchase_item, only: %i[edit update destroy]
 
-  # GET /warehouse_products
   def index
     @purchase_items = PurchaseItem
       .ordered_by_updated_date
@@ -23,21 +22,18 @@ class PurchaseItemsController < ApplicationController
     }
   end
 
-  # GET /purchase_items/1
   def show
     render inertia: "PurchaseItems/Show", props: {
       purchase_item: helpers.purchase_item_show_props(@purchase_item)
     }
   end
 
-  # GET /purchase_items/1/edit
   def edit
     redirect_to_sale_item = params[:redirect_to_sale_item].present?
     render inertia: "PurchaseItems/Edit",
       props: helpers.purchase_item_edit_props(@purchase_item, redirect_to_sale_item:)
   end
 
-  # PATCH/PUT /purchase_items/1
   def update
     @purchase_item.apply_form_changes!(
       attributes: purchase_item_params.except(:redirect_to_sale_item).to_h,
@@ -54,7 +50,6 @@ class PurchaseItemsController < ApplicationController
     redirect_to edit_purchase_item_path(@purchase_item), inertia: inertia_errors(@purchase_item.errors)
   end
 
-  # DELETE /purchase_items/1
   def destroy
     warehouse = @purchase_item.warehouse
     @purchase_item.destroy!
@@ -66,29 +61,26 @@ class PurchaseItemsController < ApplicationController
 
   private
 
-  def set_purchase_item_for_show
-    @purchase_item = PurchaseItem.for_show.find(params.expect(:id))
-  end
-
-  def set_purchase_item
-    @purchase_item = PurchaseItem.with_media.find(params.expect(:id))
-  end
-
-  # Only allow a list of trusted parameters through.
   def purchase_item_params
     params.expect(
       purchase_item: [:length,
         :width,
         :height,
         :weight,
-        :expenses,
         :shipping_cost,
         :tracking_number,
         :warehouse_id,
         :purchase_id,
-        :sale_item_id,
         :redirect_to_sale_item,
         :shipping_company_id]
     )
+  end
+
+  def set_purchase_item_for_show
+    @purchase_item = PurchaseItem.for_show.find(params.expect(:id))
+  end
+
+  def set_purchase_item
+    @purchase_item = PurchaseItem.with_media.find(params.expect(:id))
   end
 end

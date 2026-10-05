@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
@@ -21,7 +22,7 @@ type IndexTableProps = {
 
 export default function IndexTable({ users }: IndexTableProps) {
   return (
-    <table role="grid">
+    <table>
       <thead>
         <tr>
           <th>Email</th>

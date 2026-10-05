@@ -57,7 +57,6 @@ module Woo
       variant_types = [variant_types] if variant_types.is_a? Hash
 
       mapped_variant_types = variant_types.map do |variant_type|
-        # type_name == "size", "version" or "color"
         type_name = TYPES.find { |type|
           type.include? variant_type[:type]
         }&.first&.downcase
@@ -73,7 +72,6 @@ module Woo
         })
 
         begin
-          # e.g. product.send(:product_sizes).find_or_create_by!({size: #<Size id: 5, value: "1:43">})
           product.send(:"product_#{type_name.pluralize}")
             .find_or_create_by!({type_name => type_instance})
         rescue ActiveRecord::RecordNotUnique

@@ -1,7 +1,9 @@
 import { Link } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { useFlash } from "./useFlash";
+
 import type { FlashMessage } from "@/types/inertia";
+
+import { useFlash } from "./useFlash";
 
 const AUTO_DISMISS_DELAY = 5000;
 const TOAST_EXIT_DURATION = 300;
@@ -31,6 +33,7 @@ export default function FlashMessages() {
           "transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none",
         ].join(" ")}
         data-kind={toast.kind}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- keep article semantics
         role="status"
       >
         <i aria-hidden="true" className="icn text-2xl lg:text-3xl">
@@ -45,36 +48,25 @@ export default function FlashMessages() {
   );
 }
 
-function FlashMessageContent({ flash }: { flash: FlashMessage }) {
-  if (typeof flash === "string") {
-    return <p className="text-base font-semibold lg:text-lg">{flash}</p>;
-  }
+function getActiveFlashKind(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
+  if (flash.alert) return "alert" as const;
+  if (flash.notice) return "notice" as const;
 
-  return (
-    <p className="text-base font-semibold lg:text-lg">
-      {flash.message}
-      {flash.link ? (
-        <>
-          {" "}
-          <Link className="link" href={flash.link.href}>
-            {flash.link.label}
-          </Link>
-          {flash.link.suffix ? ` ${flash.link.suffix}` : null}
-        </>
-      ) : null}
-    </p>
-  );
+  return null;
 }
+function getActiveFlash(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
+  return flash.alert || flash.notice;
+}
+function flashToken(kind: FlashToastKind, flash: FlashMessage) {
+  const message = flashMessageText(flash);
+  const link =
+    typeof flash === "string" ? "" : `${flash.link?.label ?? ""}:${flash.link?.href ?? ""}`;
 
-type FlashToastKind = keyof typeof FLASH_KIND;
-type FlashToastPhase = "entering" | "visible" | "leaving";
-type FlashToast = {
-  flash: FlashMessage;
-  kind: FlashToastKind;
-  phase: FlashToastPhase;
-  token: string;
-};
-
+  return `${kind}:${message ?? ""}:${link}`;
+}
+function flashMessageText(flash: FlashMessage | null) {
+  return typeof flash === "string" ? flash : flash?.message;
+}
 function useFlashToast(
   activeFlash: FlashMessage | null,
   activeKind: FlashToastKind | null,
@@ -87,6 +79,7 @@ function useFlashToast(
   useEffect(() => {
     if (!activeFlash || !activeKind || !activeToken) return undefined;
 
+    // oxlint-disable-next-line react/set-state-in-effect -- toast state machine
     setToast((current) => {
       if (current && current.token === activeToken) {
         return current;
@@ -139,26 +132,32 @@ function useFlashToast(
 
   return toast;
 }
+function FlashMessageContent({ flash }: { flash: FlashMessage }) {
+  if (typeof flash === "string") {
+    return <p className="text-base font-semibold lg:text-lg">{flash}</p>;
+  }
 
-function flashToken(kind: FlashToastKind, flash: FlashMessage) {
-  const message = flashMessageText(flash);
-  const link =
-    typeof flash === "string" ? "" : `${flash.link?.label ?? ""}:${flash.link?.href ?? ""}`;
-
-  return `${kind}:${message ?? ""}:${link}`;
+  return (
+    <p className="text-base font-semibold lg:text-lg">
+      {flash.message}
+      {flash.link ? (
+        <>
+          {" "}
+          <Link className="link" href={flash.link.href}>
+            {flash.link.label}
+          </Link>
+          {flash.link.suffix ? ` ${flash.link.suffix}` : null}
+        </>
+      ) : null}
+    </p>
+  );
 }
 
-function flashMessageText(flash: FlashMessage | null) {
-  return typeof flash === "string" ? flash : flash?.message;
-}
-
-function getActiveFlash(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
-  return flash.alert || flash.notice;
-}
-
-function getActiveFlashKind(flash: { alert: FlashMessage | null; notice: FlashMessage | null }) {
-  if (flash.alert) return "alert" as const;
-  if (flash.notice) return "notice" as const;
-
-  return null;
-}
+type FlashToastKind = keyof typeof FLASH_KIND;
+type FlashToastPhase = "entering" | "visible" | "leaving";
+type FlashToast = {
+  flash: FlashMessage;
+  kind: FlashToastKind;
+  phase: FlashToastPhase;
+  token: string;
+};

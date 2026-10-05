@@ -117,6 +117,10 @@ class Media::LegacyAttachments::Cleanup
     [queued_batch_count, scheduled_attachment_count]
   end
 
+  def normalize_ids(ids)
+    Array(ids).map { |id| Integer(id) }.uniq
+  end
+
   def delete_safe_attachments!(owner_class, attachment_ids, purge_blob_ids)
     return if attachment_ids.empty?
 
@@ -141,6 +145,10 @@ class Media::LegacyAttachments::Cleanup
     end
   end
 
+  def legacy_attachments(owner_class)
+    Media::LegacyAttachments.for_owner_class(owner_class)
+  end
+
   def enqueue_purge_jobs!(blob_ids)
     ActiveStorage::Blob.where(id: blob_ids).find_each do |blob|
       job = blob.purge_later
@@ -148,13 +156,5 @@ class Media::LegacyAttachments::Cleanup
 
       raise EnqueueFailed, "Failed to enqueue purge for blob #{blob.id}"
     end
-  end
-
-  def normalize_ids(ids)
-    Array(ids).map { |id| Integer(id) }.uniq
-  end
-
-  def legacy_attachments(owner_class)
-    Media::LegacyAttachments.for_owner_class(owner_class)
   end
 end

@@ -5,7 +5,7 @@
 # Table name: configs
 #
 #  id                    :bigint           not null, primary key
-#  sales_hook_status     :integer          default("disabled")
+#  sales_hook_status     :integer          default(0)
 #  shopify_products_sync :datetime
 #  shopify_sales_sync    :datetime
 #  created_at            :datetime         not null
@@ -34,23 +34,23 @@ class Config < ApplicationRecord
     CONFIG.update(shopify_products_sync: Time.current)
   end
 
-  def self.shopify_products_sync_at
-    CONFIG.shopify_products_sync
-  end
-
   def self.shopify_products_sync_time
     shopify_products_sync_at&.in_time_zone&.strftime("%d.%m at %H:%M")
+  end
+
+  def self.shopify_products_sync_at
+    CONFIG.shopify_products_sync
   end
 
   def self.update_shopify_sales_sync_time
     CONFIG.update(shopify_sales_sync: Time.current)
   end
 
-  def self.shopify_sales_sync_at
-    CONFIG.shopify_sales_sync
-  end
-
   def self.shopify_sales_sync_time
     shopify_sales_sync_at&.in_time_zone&.strftime("%d.%m at %H:%M")
+  end
+
+  def self.shopify_sales_sync_at
+    CONFIG.shopify_sales_sync
   end
 end

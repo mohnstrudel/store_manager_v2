@@ -1,6 +1,9 @@
+inherit_from: .rubocop_todo.yml
+
 require:
   - standard
   - database_validations/rubocop/cops
+  - ./lib/rubocop/cop/project
 
 plugins:
   - rubocop-performance
@@ -68,41 +71,37 @@ Layout/ClassStructure:
 RSpec:
   Enabled: true # enable rubocop-rspec cops
 RSpec/DescribeClass:
-  Enabled: false # ignore missing comments on classes
+  Enabled: false # workflow/constraint/config specs (spec/integration, spec/config, cross-object reconciliation specs) that don't map to one class; request/feature specs are already exempted by the cop itself
 RSpec/MultipleExpectations:
-  Enabled: false
+  Enabled: false # four-phase specs assert several facts about one behavior with aggregate_failures; ~400 examples rely on this
 RSpec/MultipleMemoizedHelpers:
-  Enabled: false # ignore multiple memoized helpers
+  Enabled: false # self-contained specs commonly need several related lets; ~190 examples rely on this
 RSpec/ExampleLength:
-  Enabled: false
+  Enabled: false # four-phase specs with real setup are long by nature; ~700 examples rely on this
 RSpec/SpecFilePathFormat:
-  Enabled: false # project uses subdirectory spec organization
+  Enabled: false # capability-grouped spec subdirectories (e.g. spec/models/purchase_item/warehousing_spec.rb describing PurchaseItem) per the app/models/<model>/<capability> architecture
 RSpec/MessageSpies:
-  Enabled: false
+  Enabled: false # expect(...).to receive(...) is the established verification style throughout the suite; ~30 examples rely on this
 RSpec/AnyInstance:
-  Enabled: false
+  Enabled: false # used when the code under test loads its own instance internally with no exposed handle to stub directly (e.g. a job re-fetching a record from the DB)
 RSpec/MessageChain:
-  Enabled: false
-RSpec/VerifiedDoubles:
-  Enabled: false
-RSpec/VerifiedDoubleReference:
-  Enabled: false
+  Enabled: false # stubs ActiveJob's .set(...).perform_later(...) two-step scheduling chain; no simpler single-message alternative
 RSpec/LetSetup:
-  Enabled: false
+  Enabled: false # let! commonly creates background records for scope/query specs without being referenced directly in the example
 RSpec/NestedGroups:
   Max: 5
 RSpec/IndexedLet:
-  Enabled: false
-FactoryBot/ExcessiveCreateList:
-  Enabled: false
-Rails/SkipsModelValidations:
-  Exclude:
-    - spec/**/*
-RSpec/StubbedMock:
-  Enabled: false
+  Enabled: false # numeric-suffixed lets (size_1, size_2...) name genuinely interchangeable fixtures in multi-item scenarios
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we will have duplicated gems when dual booting
 
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
+
+Project/DepthFirstCallOrder:
+  Enabled: true
+Project/NoProseComments:
+  Enabled: true
+Project/PrivateMethodCandidate:
+  Enabled: true
