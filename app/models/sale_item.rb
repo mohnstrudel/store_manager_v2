@@ -48,6 +48,7 @@ class SaleItem < ApplicationRecord
 
   def apply_installment_origin!(origin_item)
     self.skip_purchase_relink = true
+    self.skip_variant_assignability_check = true
 
     if origin_item
       update!(origin_sale_item: origin_item, product: origin_item.product, variant: origin_item.variant)
@@ -56,6 +57,7 @@ class SaleItem < ApplicationRecord
     end
   ensure
     self.skip_purchase_relink = false
+    self.skip_variant_assignability_check = false
   end
 
   private

@@ -44,6 +44,18 @@ RSpec.describe SaleItem do
       )
     end
 
+    it "assigns a real variant the origin bought even after that variant is later deactivated" do
+      real_product = create(:product)
+      real_variant = create(:variant, product: real_product)
+      create(:variant, product: real_product, sku: "still-active-sku")
+      origin_item = create(:sale_item, product: real_product, variant: real_variant)
+      real_variant.remove_or_deactivate!
+
+      payment_item.apply_installment_origin!(origin_item)
+
+      expect(payment_item.reload).to have_attributes(product: real_product, variant: real_variant)
+    end
+
     it "restores the placeholder product and clears the origin when given nil" do
       real_product = create(:product)
       origin_item = create(:sale_item, product: real_product)

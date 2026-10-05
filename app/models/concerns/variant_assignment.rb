@@ -4,7 +4,7 @@ module VariantAssignment
   extend ActiveSupport::Concern
 
   included do
-    attr_accessor :skip_purchase_relink
+    attr_accessor :skip_purchase_relink, :skip_variant_assignability_check
 
     before_validation :normalize_variant_assignment
     validate :validate_variant_assignment
@@ -61,6 +61,7 @@ module VariantAssignment
       return
     end
 
+    return if skip_variant_assignability_check
     return unless new_or_changed_variant_identity?
     return if product.assignable_variants.exists?(id: variant_id)
 
