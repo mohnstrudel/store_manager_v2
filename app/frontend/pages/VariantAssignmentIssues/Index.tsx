@@ -27,6 +27,17 @@ const tabs: Array<{ type: IssueType; label: string }> = [
   { type: "sku_collisions", label: "SKU collisions" },
 ];
 
+const issueDescriptions: Record<IssueType, string> = {
+  purchases:
+    "Purchases with a missing Product, a missing Variant, or a Variant from another Product. Open the Purchase, find what was bought, and choose the right Variant. The fix updates the Purchase and its PurchaseItems. It also removes links that no longer match and fills open slots with matching unlinked PurchaseItems.",
+  sale_items:
+    "SaleItems with a missing Product, a missing Variant, or a Variant from another Product. Open the SaleItem, find what was sold, and choose the right Variant. The fix updates only this SaleItem. It also removes links that no longer match and fills open slots with matching unlinked PurchaseItems.",
+  purchase_item_links:
+    "PurchaseItems linked to a SaleItem, where the Product or Variant differs from their Purchase or from that SaleItem. Repair link does not change any Product or Variant. It removes the mismatched link and links other unlinked PurchaseItems with the same Product and Variant to the open slots. If a Product or Variant is wrong, fix it in the Purchases or SaleItems tab.",
+  sku_collisions:
+    "Active Variants that share a SKU. Open each Variant and give it a unique SKU. Nothing is repaired here.",
+};
+
 export default function Index(props: VariantAssignmentIssuesPageProps) {
   const hasIssues = props.issues.length > 0;
   const runBackfill = useConfirmAction(
@@ -59,6 +70,9 @@ export default function Index(props: VariantAssignmentIssuesPageProps) {
             issueType={props.issue_type}
           />
         )}
+        <p className="my-4 text-sm text-gray-600 dark:text-gray-300">
+          {issueDescriptions[props.issue_type]}
+        </p>
 
         {hasIssues ? (
           <>
