@@ -4,6 +4,7 @@ import { useCallback, type ChangeEvent } from "react";
 import { InlineCellEditor, useInlineCellForm } from "@/components/inline-cell-editing";
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 
 import type {
   AssignmentIssue,
@@ -17,7 +18,7 @@ import type {
   VariantAssignmentIssuesPageProps,
 } from "./types";
 
-const reloadProps = ["issues", "counts", "pagination"];
+const reloadProps = ["issues", "counts", "pagination", "repairable"];
 
 const tabs: Array<{ type: IssueType; label: string }> = [
   { type: "purchases", label: "Purchases" },
@@ -28,10 +29,27 @@ const tabs: Array<{ type: IssueType; label: string }> = [
 
 export default function Index(props: VariantAssignmentIssuesPageProps) {
   const hasIssues = props.issues.length > 0;
+  const runBackfill = useConfirmAction(
+    "post",
+    routes.variantAssignmentIssuesBackfills.create.path(),
+    {
+      message:
+        "Run deterministic Variant assignment backfill now? Ambiguous cases (products with multiple real variants) are skipped and still need manual review.",
+    },
+  );
 
   return (
     <>
-      <PageHeader title="Variant Repairs" />
+      <PageHeader title="Variant Repairs">
+        {props.repairable && (
+          <li>
+            <button className="btn_rounded" onClick={runBackfill} type="button">
+              <i className="icn">🧑‍🔧</i>
+              Repair Broken
+            </button>
+          </li>
+        )}
+      </PageHeader>
       <section className="section_wide">
         <IssueTabs counts={props.counts} selectedType={props.issue_type} />
         {props.filters.length > 1 && (

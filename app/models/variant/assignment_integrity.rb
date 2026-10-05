@@ -56,6 +56,12 @@ class Variant::AssignmentIntegrity
     Variant.active.where.not(sku: [nil, ""]).where(sku: duplicate_skus)
   end
 
+  def repairable?
+    incompatible_purchase_item_links.exists? ||
+      resolvable_identity?(broken_purchases, allow_single_real_variant: false) ||
+      resolvable_identity?(broken_sale_items, allow_single_real_variant: true)
+  end
+
   def broken_purchase?(purchase_or_id)
     broken_purchases.exists?(id: record_id(purchase_or_id))
   end
@@ -137,6 +143,17 @@ class Variant::AssignmentIntegrity
 
   def duplicate_skus
     Variant.active.where.not(sku: [nil, ""]).group(:sku).having("COUNT(*) > 1").select(:sku)
+  end
+
+  def resolvable_identity?(relation, allow_single_real_variant:)
+    product_ids = relation.where.not(product_id: nil).distinct.pluck(:product_id)
+    return false if product_ids.empty?
+
+    real_variant_counts = Variant.real.where(product_id: product_ids).group(:product_id).count
+    product_ids.any? do |product_id|
+      count = real_variant_counts.fetch(product_id, 0)
+      count.zero? || (allow_single_real_variant && count == 1)
+    end
   end
 
   def record_id(record_or_id)

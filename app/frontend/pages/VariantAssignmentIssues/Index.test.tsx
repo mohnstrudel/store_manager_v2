@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { makePagination } from "@/test/factories";
 import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
+import type { PaginationMeta } from "@/types/pagination";
 
 import Index from "./Index";
 import type { AssignmentIssue, AssignmentIssueCounts, IssueFilter } from "./types";
@@ -91,7 +92,7 @@ describe("VariantAssignmentIssues/Index", () => {
         return_to: "/variant_assignment_issues?issue_type=purchases&reason=missing_variant",
       },
       expect.objectContaining({
-        only: ["issues", "counts", "pagination"],
+        only: ["issues", "counts", "pagination", "repairable"],
       }),
     );
   });
@@ -161,7 +162,7 @@ describe("VariantAssignmentIssues/Index", () => {
         return_to: "/variant_assignment_issues?issue_type=purchases&reason=missing_variant",
       },
       expect.objectContaining({
-        only: ["issues", "counts", "pagination"],
+        only: ["issues", "counts", "pagination", "repairable"],
         preserveScroll: true,
       }),
     );
@@ -207,6 +208,18 @@ describe("VariantAssignmentIssues/Index", () => {
     ]).toEqual(["true", "Product A / Active", "Product B / Base Model", null, null, null]);
   });
 
+  it("hides the Repair Broken button when nothing is backfill-fixable", () => {
+    renderPage({ repairable: false });
+
+    expect(screen.queryByRole("button", { name: /Repair Broken/ })).not.toBeInTheDocument();
+  });
+
+  it("shows the Repair Broken button when a backfill-fixable issue exists", () => {
+    renderPage({ repairable: true });
+
+    expect(screen.getByRole("button", { name: /Repair Broken/ })).toBeInTheDocument();
+  });
+
   it("uses the approved empty state", () => {
     renderPage({ issues: [], pagination: makePagination({ total_count: 0 }) });
 
@@ -225,13 +238,15 @@ function renderPage({
   issueType = "purchases",
   issues = [makePurchaseIssue()],
   pagination = makePagination({ total_count: issues.length }),
+  repairable = true,
 }: {
   counts?: AssignmentIssueCounts;
   filter?: string;
   filters?: IssueFilter[];
   issueType?: "purchases" | "sale_items" | "purchase_item_links" | "sku_collisions";
   issues?: AssignmentIssue[];
-  pagination?: ReturnType<typeof makePagination>;
+  pagination?: PaginationMeta;
+  repairable?: boolean;
 } = {}) {
   return render(
     <Index
@@ -241,6 +256,7 @@ function renderPage({
       issue_type={issueType}
       issues={issues}
       pagination={pagination}
+      repairable={repairable}
     />,
   );
 }

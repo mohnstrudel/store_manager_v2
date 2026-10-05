@@ -48,6 +48,7 @@ Rails.application.routes.draw do
 
     resources :variant_assignment_issues, only: :index
     namespace :variant_assignment_issues do
+      resource :backfill, only: :create
       resources :purchases, only: :update
       resources :sale_items, only: :update
       resources :purchase_item_links, only: :update

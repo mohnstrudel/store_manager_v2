@@ -83,4 +83,5 @@ export type VariantAssignmentIssuesPageProps = {
   issue_type: IssueType;
   issues: AssignmentIssue[];
   pagination: PaginationMeta;
+  repairable: boolean;
 };

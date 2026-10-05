@@ -17,6 +17,7 @@ class VariantAssignmentIssuesController < ApplicationController
       issue_type: issue_type.to_s,
       filter: reason.to_s,
       counts: integrity.counts,
+      repairable: integrity.repairable?,
       filters: integrity.reasons_for(issue_type).map { |value|
         {value:, label: reason_label(value)}
       },

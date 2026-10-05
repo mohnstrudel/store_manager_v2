@@ -56,6 +56,41 @@ RSpec.describe Variant::AssignmentIntegrity do
       expect(integrity.incompatible_purchase_item_links).to contain_exactly(incompatible_link)
     end
 
+    it "is not repairable when every broken Purchase/SaleItem has an ambiguous Product" do
+      broken_purchase = create(:purchase, product:)
+      broken_purchase.update_columns(variant_id: nil)
+      create(:variant, :with_version, product:)
+
+      expect(integrity.repairable?).to be(false)
+    end
+
+    it "is repairable when a broken Purchase's Product has no real Variant" do
+      broken_purchase = create(:purchase, product:)
+      broken_purchase.update_columns(variant_id: nil)
+
+      expect(integrity.repairable?).to be(true)
+    end
+
+    it "is repairable when a broken SaleItem's Product has exactly one real Variant" do
+      broken_sale_item = create(:sale_item, product:)
+      broken_sale_item.update_columns(variant_id: nil)
+      create(:variant, :with_version, product:)
+
+      expect(integrity.repairable?).to be(true)
+    end
+
+    it "is repairable when only an incompatible PurchaseItem link exists" do
+      purchase = create(:purchase, product:, variant: product.base_variant)
+      sale_item = create(:sale_item, product:, variant: product.base_variant)
+      create(:purchase_item, purchase:, sale_item:)
+      sale_item.update_columns(
+        product_id: other_product.id,
+        variant_id: other_product.base_variant.id
+      )
+
+      expect(integrity.repairable?).to be(true)
+    end
+
     it "audits Purchase identity for every PurchaseItem, including unlinked rows" do
       purchase = create(:purchase, product:, variant: product.base_variant)
       linked = create(
