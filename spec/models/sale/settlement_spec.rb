@@ -80,6 +80,12 @@ RSpec.describe Sale::Settlement do
       end
     end
 
+    it "maps every status in Sale.status_names", :aggregate_failures do
+      Sale.status_names.each do |status|
+        expect { Sale.settlement_status_from_woo(status:, date_paid: nil) }.not_to raise_error
+      end
+    end
+
     it "raises for an unmapped Woo status instead of persisting a placeholder" do
       expect {
         Sale.settlement_status_from_woo(status: "checkout-draft-unknown", date_paid: nil)

@@ -9,10 +9,6 @@ module Sale::Settlement
     PENDING AUTHORIZED PARTIALLY_AUTHORIZED PARTIALLY_PAID VOIDED EXPIRED
   ].freeze
 
-  KNOWN_WOO_STATUSES = %w[
-    pending processing on-hold completed cancelled refunded failed trash checkout-draft auto-draft
-  ].freeze
-
   WOO_PARTIALLY_PAID_STATUS = "partially-paid"
 
   included do
@@ -51,7 +47,7 @@ module Sale::Settlement
       return "not_fully_paid" if status == WOO_PARTIALLY_PAID_STATUS
 
       case status
-      when *KNOWN_WOO_STATUSES
+      when *status_names
         date_paid.present? ? "paid" : "not_fully_paid"
       else
         raise ArgumentError, "Unmapped Woo status: #{status.inspect}"
