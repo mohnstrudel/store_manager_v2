@@ -112,7 +112,7 @@ module PurchaseItem::Linking
         end
         notification_ids.uniq!
 
-        schedule_link_notifications(notification_ids)
+        record_link_notifications!(purchase_item_ids: notification_ids)
       end
 
       notification_ids
@@ -222,14 +222,6 @@ module PurchaseItem::Linking
         next if final_counts.fetch(sale_item.id, 0) <= sale_item.qty.to_i
 
         raise CapacityExceeded, "SaleItem #{sale_item.id} has no remaining link capacity"
-      end
-    end
-
-    def schedule_link_notifications(purchase_item_ids)
-      return if purchase_item_ids.empty?
-
-      ActiveRecord.after_all_transactions_commit do
-        PurchaseItem.notify_order_status!(purchase_item_ids:)
       end
     end
   end

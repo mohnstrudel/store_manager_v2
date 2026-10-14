@@ -155,81 +155,210 @@ RSpec.describe PurchaseItem::Linking do
       end
     end
 
-    it "schedules one deduplicated notification after all transactions commit" do
+    it "records one deduplicated intent for duplicate assignments" do
       purchase_item = create(:purchase_item, purchase:)
-      callbacks = []
-      allow(ActiveRecord).to receive(:after_all_transactions_commit) { |&callback| callbacks << callback }
-      allow(PurchaseItem).to receive(:notify_order_status!)
 
       result = PurchaseItem.link_exact!(
         assignments: [
           {purchase_item:, sale_item:},
-          {purchase_item:, sale_item:}
-        ]
-      )
-
-      aggregate_failures do
-        expect(result).to eq([purchase_item.id])
-        expect(callbacks.size).to eq(1)
-        expect(PurchaseItem).not_to have_received(:notify_order_status!)
-      end
-
-      callbacks.first.call
-
-      expect(PurchaseItem).to have_received(:notify_order_status!).once.with(
-        purchase_item_ids: [purchase_item.id]
-      )
-    end
-
-    it "deduplicates separately loaded instances with the same target" do
-      purchase_item = create(:purchase_item, purchase:)
-      callbacks = []
-      allow(ActiveRecord).to receive(:after_all_transactions_commit) { |&callback| callbacks << callback }
-      allow(PurchaseItem).to receive(:notify_order_status!)
-
-      result = PurchaseItem.link_exact!(
-        assignments: [
-          {purchase_item: PurchaseItem.find(purchase_item.id), sale_item:},
           {purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}
         ]
       )
 
       expect(result).to eq([purchase_item.id])
-      expect(callbacks.size).to eq(1)
-
-      callbacks.first.call
-      expect(PurchaseItem).to have_received(:notify_order_status!).once.with(
-        purchase_item_ids: [purchase_item.id]
-      )
+      expect(OutboundEmail.where(purchase_item_id: purchase_item.id).count).to eq(1)
     end
 
     it "treats a repeated existing link as a silent no-op" do
       purchase_item = create(:purchase_item, purchase:, sale_item:)
-      allow(ActiveRecord).to receive(:after_all_transactions_commit)
 
-      result = PurchaseItem.link_exact!(
-        assignments: [{purchase_item:, sale_item:}]
-      )
-
-      aggregate_failures do
-        expect(result).to eq([])
-        expect(ActiveRecord).not_to have_received(:after_all_transactions_commit)
-      end
+      expect {
+        expect(PurchaseItem.link_exact!(assignments: [{purchase_item:, sale_item:}])).to eq([])
+      }.not_to change(OutboundEmail, :count)
     end
 
-    it "does not schedule notifications for unlink-only changes" do
+    it "does not record an intent for unlink-only changes" do
       purchase_item = create(:purchase_item, purchase:, sale_item:)
-      allow(ActiveRecord).to receive(:after_all_transactions_commit)
 
-      result = PurchaseItem.link_exact!(
-        assignments: [],
-        unlink_purchase_items: [purchase_item]
-      )
-
-      aggregate_failures do
+      expect {
+        result = PurchaseItem.link_exact!(assignments: [], unlink_purchase_items: [purchase_item])
         expect(result).to eq([])
-        expect(purchase_item.reload.sale_item_id).to be_nil
-        expect(ActiveRecord).not_to have_received(:after_all_transactions_commit)
+      }.not_to change(OutboundEmail, :count)
+
+      expect(purchase_item.reload.sale_item_id).to be_nil
+    end
+
+    describe "order-status intents" do
+      include ActiveJob::TestHelper
+
+      let(:other_sale_item) { create(:sale_item, sale:, product:, variant:) }
+
+      def link(purchase_item, target)
+        PurchaseItem.link_exact!(assignments: [{purchase_item: purchase_item.reload, sale_item: target}])
+      end
+
+      def unlink(purchase_item)
+        PurchaseItem.link_exact!(assignments: [], unlink_purchase_items: [purchase_item.reload])
+      end
+
+      def ledger_for(purchase_item)
+        OutboundEmail.where(purchase_item_id: purchase_item.id).order(:id)
+      end
+
+      def record_current_pair(purchase_item, state:)
+        pair = {
+          purchase_item_id: purchase_item.id,
+          sale_item_id: purchase_item.sale_item_id,
+          warehouse_id: purchase_item.warehouse_id
+        }
+        case state
+        when "assumed_baseline" then create(:outbound_email, :assumed_baseline, **pair)
+        when "accepted" then create(:outbound_email, state:, accepted_at: Time.current, **pair)
+        else create(:outbound_email, state:, **pair)
+        end
+      end
+
+      it "snapshots one pending status-updated email for a first eligible link" do
+        purchase_item = create(:purchase_item, purchase:)
+
+        expect { link(purchase_item, sale_item) }.to change(OutboundEmail, :count).by(1)
+
+        email = ledger_for(purchase_item).sole
+        expect(email).to have_attributes(
+          source: "link", mail_kind: "order_status_updated", state: "pending",
+          purchase_item_id: purchase_item.id, sale_item_id: sale_item.id,
+          warehouse_id: purchase_item.warehouse_id, recipient: sale.customer.email,
+          sender: "HandsomeCake Goodies <store@handsomecake.com>",
+          subject: %(HandsomeCake Goodies. We updated your order, new status: "#{purchase_item.warehouse.external_name_en}")
+        )
+        expect(email.body).to include(
+          "Hello #{sale.customer.full_name}", sale_item.title, purchase_item.warehouse.external_name_de
+        )
+      end
+
+      %w[assumed_baseline pending accepted simulated].each do |state|
+        it "creates nothing when relinking the same pair after a #{state} latest row" do
+          purchase_item = create(:purchase_item, purchase:, sale_item:)
+          record_current_pair(purchase_item, state:)
+          unlink(purchase_item)
+
+          expect {
+            expect { link(purchase_item, sale_item) }.not_to change(OutboundEmail, :count)
+          }.not_to have_enqueued_job(OutboundEmailDeliveryJob)
+        end
+      end
+
+      it "creates a new intent for a different sale item of the same customer" do
+        purchase_item = create(:purchase_item, purchase:, sale_item:)
+        record_current_pair(purchase_item, state: "assumed_baseline")
+
+        link(purchase_item, other_sale_item)
+
+        expect(ledger_for(purchase_item).last).to have_attributes(
+          state: "pending", sale_item_id: other_sale_item.id, recipient: sale.customer.email
+        )
+      end
+
+      it "creates a new intent for a sale item of another customer" do
+        other_customer = create(:customer, email: "someone.else@example.com")
+        other_customer_sale_item = create(:sale_item, sale: create(:sale, customer: other_customer), product:, variant:)
+        purchase_item = create(:purchase_item, purchase:, sale_item:)
+        record_current_pair(purchase_item, state: "assumed_baseline")
+
+        link(purchase_item, other_customer_sale_item)
+
+        expect(ledger_for(purchase_item).last).to have_attributes(
+          state: "pending", sale_item_id: other_customer_sale_item.id, recipient: "someone.else@example.com"
+        )
+      end
+
+      it "creates a new intent when the warehouse differs from the latest pair" do
+        purchase_item = create(:purchase_item, purchase:, sale_item:)
+        record_current_pair(purchase_item, state: "accepted")
+        unlink(purchase_item)
+        new_warehouse = create(:warehouse)
+        purchase_item.update_columns(warehouse_id: new_warehouse.id)
+
+        link(purchase_item, sale_item)
+
+        expect(ledger_for(purchase_item).last).to have_attributes(
+          state: "pending", sale_item_id: sale_item.id, warehouse_id: new_warehouse.id
+        )
+      end
+
+      it "notifies on both changes of an A to B to A sequence" do
+        purchase_item = create(:purchase_item, purchase:)
+
+        [sale_item, other_sale_item, sale_item].each { |target| link(purchase_item, target) }
+
+        expect(ledger_for(purchase_item).pluck(:sale_item_id))
+          .to eq([sale_item.id, other_sale_item.id, sale_item.id])
+      end
+
+      it "creates nothing and keeps the latest pair when the customer has no email" do
+        emailless_sale_item = create(:sale_item, sale: create(:sale, customer: create(:customer, email: nil)), product:, variant:)
+        purchase_item = create(:purchase_item, purchase:, sale_item:)
+        record_current_pair(purchase_item, state: "assumed_baseline")
+
+        expect {
+          link(purchase_item, emailless_sale_item)
+          link(purchase_item, sale_item)
+        }.not_to change(OutboundEmail, :count)
+      end
+
+      it "stays silent on a customer email edit and snapshots the new address on a later changed pair" do
+        purchase_item = create(:purchase_item, purchase:)
+        original_email = sale.customer.email
+        link(purchase_item, sale_item)
+
+        expect { sale.customer.update!(email: "new.address@example.com") }.not_to change(OutboundEmail, :count)
+
+        link(purchase_item, other_sale_item)
+
+        expect(ledger_for(purchase_item).pluck(:recipient)).to eq([original_email, "new.address@example.com"])
+      end
+
+      it "leaves no row and no delivery job when the outer transaction rolls back" do
+        purchase_item = create(:purchase_item, purchase:)
+
+        expect {
+          PurchaseItem.transaction do
+            link(purchase_item, sale_item)
+            raise ActiveRecord::Rollback
+          end
+        }.not_to have_enqueued_job(OutboundEmailDeliveryJob)
+
+        expect(ledger_for(purchase_item)).to be_empty
+      end
+
+      it "enqueues the delivery job once, only after the outermost commit" do
+        purchase_item = create(:purchase_item, purchase:)
+
+        expect {
+          PurchaseItem.transaction do
+            link(purchase_item, sale_item)
+            expect(OutboundEmailDeliveryJob).not_to have_been_enqueued
+          end
+        }.to have_enqueued_job(OutboundEmailDeliveryJob).once
+
+        expect(OutboundEmailDeliveryJob).to have_been_enqueued.with(ledger_for(purchase_item).sole.id)
+      end
+
+      it "keeps the committed link and one pending intent when enqueueing fails" do
+        purchase_item = create(:purchase_item, purchase:)
+        logged = []
+        allow(Rails.logger).to receive(:error) { |message| logged << message }
+        allow(OutboundEmailDeliveryJob).to receive(:perform_later).and_raise("queue offline")
+
+        expect(link(purchase_item, sale_item)).to eq([purchase_item.id])
+
+        email = ledger_for(purchase_item).sole
+        expect(purchase_item.reload.sale_item_id).to eq(sale_item.id)
+        expect(email).to be_pending
+        expect(logged.join("\n")).to include("OutboundEmail #{email.id}", "queue offline")
+
+        unlink(purchase_item)
+        expect { link(purchase_item, sale_item) }.not_to change(OutboundEmail, :count)
       end
     end
 

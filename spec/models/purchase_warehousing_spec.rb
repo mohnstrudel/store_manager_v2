@@ -19,19 +19,15 @@ RSpec.describe Purchase do
 
     it "relocates existing purchase items to the destination warehouse" do
       origin = create(:warehouse)
-      purchase_items = create_list(:purchase_item, 2, purchase:, warehouse: origin)
       destination = create(:warehouse)
-      allow(PurchaseItem).to receive(:notify_order_status_change!)
+      create(:warehouse_transition, notification: create(:notification, event_type: :warehouse_changed, status: :active), from_warehouse: origin, to_warehouse: destination)
+      linked_items = create_list(:purchase_item, 2, purchase:, warehouse: origin, sale_item: create(:sale_item))
 
       moved_count = purchase.move_to_warehouse!(destination.id)
 
       expect(moved_count).to eq(2)
-      expect(purchase_items.map { |item| item.reload.warehouse_id }).to all(eq(destination.id))
-      expect(PurchaseItem).to have_received(:notify_order_status_change!).with(
-        purchase_item_ids: purchase_items.map(&:id),
-        from_id: origin.id,
-        to_id: destination.id
-      )
+      expect(linked_items.map { |item| item.reload.warehouse_id }).to all(eq(destination.id))
+      expect(OutboundEmail.where(source: "warehouse_move").pluck(:purchase_item_id)).to match_array(linked_items.map(&:id))
     end
 
     context "when amount is zero" do
@@ -70,27 +66,15 @@ RSpec.describe Purchase do
       expect(purchase).to receive(:link_purchase_items).and_return([purchase_item1.id, purchase_item2.id])
       # rubocop:enable RSpec/MessageSpies
       # rubocop:enable RSpec/StubbedMock
-      allow(PurchaseItem).to receive(:notify_order_status!)
 
       purchase.link_with_sales
-    end
-
-    it "leaves notification scheduling to the exact-link command" do
-      allow(purchase).to receive(:link_purchase_items).and_return([purchase_item1.id, purchase_item2.id])
-      allow(PurchaseItem).to receive(:notify_order_status!)
-      purchase.link_with_sales
-
-      expect(PurchaseItem).not_to have_received(:notify_order_status!)
     end
 
     it "does nothing when purchase has no purchase_items" do
       purchase.purchase_items.destroy_all
       allow(purchase).to receive(:link_purchase_items).and_return([])
-      allow(PurchaseItem).to receive(:notify_order_status!)
 
-      purchase.link_with_sales
-
-      expect(PurchaseItem).not_to have_received(:notify_order_status!)
+      expect { purchase.link_with_sales }.not_to change(OutboundEmail, :count)
     end
   end
 end

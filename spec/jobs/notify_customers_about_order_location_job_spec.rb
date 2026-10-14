@@ -18,23 +18,17 @@ RSpec.describe NotifyCustomersAboutOrderLocationJob do
       sale_item: nil)
   end
 
-  before do
-    allow(PurchaseItem).to receive(:notify_order_status!)
-  end
-
   describe "#perform" do
-    it "creates notifications for purchased products with sales" do # rubocop:todo RSpec/MultipleExpectations
+    it "creates an explicit-resend intent only for purchased products with sales" do
       described_class.perform_now
 
-      expect(PurchaseItem).to have_received(:notify_order_status!)
-        .with(purchase_item_ids: [purchase_item_with_sale.id])
+      expect(OutboundEmail.pluck(:source, :purchase_item_id)).to eq([["explicit_resend", purchase_item_with_sale.id]])
     end
 
-    it "does not create notifications for purchased products without sales" do
-      described_class.perform_now
+    it "creates a fresh intent on every run" do
+      2.times { described_class.perform_now }
 
-      expect(PurchaseItem).not_to have_received(:notify_order_status!)
-        .with(purchase_item_ids: [purchase_item_without_sale.id])
+      expect(OutboundEmail.where(purchase_item_id: purchase_item_with_sale.id).count).to eq(2)
     end
   end
 end

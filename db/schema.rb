@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_04_125000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -161,6 +161,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_04_125000) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["event_type", "status"], name: "index_notifications_on_event_type_and_status"
+  end
+
+  create_table "outbound_emails", force: :cascade do |t|
+    t.datetime "accepted_at"
+    t.integer "attempts", default: 0, null: false
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.bigint "customer_id"
+    t.datetime "last_attempt_at"
+    t.string "last_error"
+    t.string "mail_kind"
+    t.text "product_title"
+    t.bigint "purchase_item_id", null: false
+    t.string "recipient"
+    t.string "recipient_name"
+    t.bigint "sale_item_id", null: false
+    t.string "sender"
+    t.string "source", null: false
+    t.string "state", default: "pending", null: false
+    t.string "subject"
+    t.bigint "warehouse_id", null: false
+    t.index ["id"], name: "index_outbound_emails_on_id_where_pending", where: "((state)::text = 'pending'::text)"
+    t.index ["purchase_item_id"], name: "index_outbound_emails_on_purchase_item_id"
+    t.index ["sale_item_id"], name: "index_outbound_emails_on_sale_item_id"
+    t.check_constraint "(state::text = 'accepted'::text) = (accepted_at IS NOT NULL)", name: "outbound_emails_accepted_at_only_when_accepted"
+    t.check_constraint "mail_kind IS NULL OR (mail_kind::text = ANY (ARRAY['order_status_updated'::character varying, 'order_status_changed'::character varying]::text[]))", name: "outbound_emails_mail_kind_allowed_values"
+    t.check_constraint "source::text = ANY (ARRAY['link'::character varying, 'warehouse_move'::character varying, 'explicit_resend'::character varying, 'baseline'::character varying]::text[])", name: "outbound_emails_source_allowed_values"
+    t.check_constraint "state::text = 'assumed_baseline'::text AND source::text = 'baseline'::text AND mail_kind IS NULL AND recipient IS NULL AND sender IS NULL AND subject IS NULL AND body IS NULL AND attempts = 0 AND last_attempt_at IS NULL AND last_error IS NULL AND accepted_at IS NULL OR state::text <> 'assumed_baseline'::text AND source::text <> 'baseline'::text AND mail_kind IS NOT NULL AND recipient IS NOT NULL AND sender IS NOT NULL AND subject IS NOT NULL AND body IS NOT NULL", name: "outbound_emails_baseline_or_message"
+    t.check_constraint "state::text = ANY (ARRAY['pending'::character varying, 'accepted'::character varying, 'simulated'::character varying, 'assumed_baseline'::character varying]::text[])", name: "outbound_emails_state_allowed_values"
   end
 
   create_table "payments", force: :cascade do |t|

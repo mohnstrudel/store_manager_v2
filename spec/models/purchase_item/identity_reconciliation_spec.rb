@@ -20,11 +20,8 @@ RSpec.describe "PurchaseItem identity reconciliation" do
     new_sale_item = create(:sale_item, sale: active_sale, product:, variant: variant_b)
     purchase_item = create(:purchase_item, purchase: purchase_a, sale_item: old_sale_item)
     create(:purchase_item, purchase: purchase_b)
-    callbacks = []
-    allow(ActiveRecord).to receive(:after_all_transactions_commit) { |&callback| callbacks << callback }
-    allow(PurchaseItem).to receive(:notify_order_status!)
 
-    purchase_a.update!(variant: variant_b)
+    expect { purchase_a.update!(variant: variant_b) }.to have_enqueued_job(OutboundEmailDeliveryJob).once
 
     aggregate_failures do
       expect(purchase_item.reload).to have_attributes(
@@ -33,13 +30,9 @@ RSpec.describe "PurchaseItem identity reconciliation" do
         sale_item_id: new_sale_item.id
       )
       expect(old_sale_item.reload.purchase_items_count).to eq(0)
-      expect(callbacks.size).to eq(1)
+      expect(OutboundEmail.where(purchase_item_id: purchase_item.id).pluck(:source, :sale_item_id))
+        .to eq([["link", new_sale_item.id]])
     end
-
-    callbacks.first.call
-    expect(PurchaseItem).to have_received(:notify_order_status!).with(
-      purchase_item_ids: [purchase_item.id]
-    )
   end
 
   it "leaves an incompatible PurchaseItem unlinked when exact capacity is unavailable" do
@@ -61,15 +54,14 @@ RSpec.describe "PurchaseItem identity reconciliation" do
     sale_item = create(:sale_item, sale: active_sale, product:, variant: variant_a)
     old_purchase_item = create(:purchase_item, purchase: purchase_a, sale_item:)
     new_purchase_item = create(:purchase_item, purchase: purchase_b)
-    callbacks = []
-    allow(ActiveRecord).to receive(:after_all_transactions_commit) { |&callback| callbacks << callback }
 
-    sale_item.update!(variant: variant_b)
+    expect { sale_item.update!(variant: variant_b) }.to have_enqueued_job(OutboundEmailDeliveryJob).once
 
     aggregate_failures do
       expect(old_purchase_item.reload.sale_item_id).to be_nil
       expect(new_purchase_item.reload.sale_item_id).to eq(sale_item.id)
-      expect(callbacks.size).to eq(1)
+      expect(OutboundEmail.where(purchase_item_id: new_purchase_item.id).pluck(:source, :sale_item_id))
+        .to eq([["link", sale_item.id]])
     end
   end
 end

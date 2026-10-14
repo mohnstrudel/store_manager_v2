@@ -345,7 +345,6 @@ RSpec.describe Variant::AssignmentBackfill do
         variant_id: other_product.base_variant.id,
         sale_item_id: wrong_sale_item.id
       )
-      allow(PurchaseItem).to receive(:notify_order_status!)
 
       described_class.new(apply: true, output: StringIO.new).call
 
@@ -355,7 +354,7 @@ RSpec.describe Variant::AssignmentBackfill do
           variant_id: product.base_variant.id,
           sale_item_id: exact_sale_item.id
         )
-        expect(PurchaseItem).not_to have_received(:notify_order_status!)
+        expect(OutboundEmail).not_to exist
         expect(
           Variant::AssignmentIntegrity.new.purchase_item_purchase_identity_mismatches
         ).to be_empty

@@ -19,8 +19,6 @@ RSpec.describe PurchaseItems::WarehouseMovesController do
       }
     end
 
-    before { allow(PurchaseItem).to receive(:notify_order_status_change!) }
-
     it "moves products to destination warehouse" do
       post :create, params: valid_params
 
@@ -29,14 +27,15 @@ RSpec.describe PurchaseItems::WarehouseMovesController do
       end
     end
 
-    it "notifies about warehouse change" do
-      post :create, params: valid_params
+    it "records a status-changed intent for linked items with an active transition" do
+      notification = create(:notification, event_type: :warehouse_changed, status: :active)
+      create(:warehouse_transition, notification:, from_warehouse:, to_warehouse:)
+      linked_item = create(:purchase_item, warehouse: from_warehouse, sale_item: create(:sale_item))
 
-      expect(PurchaseItem).to have_received(:notify_order_status_change!).with(
-        purchase_item_ids: purchase_items.map(&:id),
-        from_id: from_warehouse.id,
-        to_id: to_warehouse.id
-      )
+      post :create, params: valid_params.merge(selected_items_ids: [linked_item.id])
+
+      expect(OutboundEmail.where(purchase_item_id: linked_item.id).pluck(:source, :warehouse_id))
+        .to eq([["warehouse_move", to_warehouse.id]])
     end
 
     it "flashes the destination warehouse link" do
