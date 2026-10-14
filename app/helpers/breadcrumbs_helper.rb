@@ -32,8 +32,13 @@ module BreadcrumbsHelper
       "dashboard/debts#show" => -> { "Debts" },
       "dashboard#index" => -> { "Dashboard" },
       "dashboard#noop" => -> { "Dashboard" },
+      "outbound_emails#show" => -> { record&.subject },
       "warehouses/details#show" => -> { instance_variable_get(:@warehouse)&.name }
     }
+  end
+
+  def record
+    @record ||= instance_variable_get("@#{controller_name.singularize}")
   end
 
   def record_name
@@ -46,10 +51,6 @@ module BreadcrumbsHelper
     elsif record.respond_to?(:value)
       record.value
     end
-  end
-
-  def record
-    @record ||= instance_variable_get("@#{controller_name.singularize}")
   end
 
   def controller_name_singular

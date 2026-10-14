@@ -188,6 +188,13 @@ const adminLinks: NavigationLink[] = [
   },
 ];
 
+const outboundEmailsLink: NavigationLink = {
+  href: routes.outboundEmails.index.path(),
+  label: "Email History",
+  component: "OutboundEmails/Index",
+  pageProps: { outbound_emails: [], pagination: emptyPagination, search: emptySearch },
+};
+
 export default function AppNavigation() {
   const { auth } = usePage<PageProps>().props;
   const user = auth.user;
@@ -323,6 +330,13 @@ function NavigationOverflowMenu({
       </button>
       <ul className="navigation-dropdown_menu" aria-hidden={!isOpen} id="navigation-dropdown-links">
         <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />
+        {user?.role === "admin" || user?.role === "manager" ? (
+          <NavigationLinkItem
+            className="navigation-dropdown_link"
+            link={outboundEmailsLink}
+            onSelect={closeDropdown}
+          />
+        ) : null}
         {user?.role === "admin"
           ? adminLinks.map((link) => (
               <NavigationLinkItem

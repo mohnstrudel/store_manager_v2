@@ -133,5 +133,6 @@ Rails.application.routes.draw do
 
     resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
     resources :expense_rates, except: :show
+    resources :outbound_emails, only: %i[index show]
   end
 end
