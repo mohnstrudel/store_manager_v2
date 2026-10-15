@@ -155,6 +155,24 @@ RSpec.describe "Warehouses" do
       expect(warehouse.reload.name).to eq("Main Stock")
     end
 
+    it "saves name and descriptions when the form also submits transition destinations" do
+      warehouse = create(:warehouse, name: "Old Name", desc_en: "Old EN", desc_de: "Old DE")
+      destination = create(:warehouse)
+
+      patch warehouse_path(warehouse), params: {
+        warehouse: {
+          name: "New Name",
+          desc_en: "New EN",
+          desc_de: "New DE",
+          to_warehouse_ids: [destination.id.to_s]
+        }
+      }
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(warehouse.reload).to have_attributes(name: "New Name", desc_en: "New EN", desc_de: "New DE")
+      expect(warehouse.from_transitions.pluck(:to_warehouse_id)).to eq([destination.id])
+    end
+
     it "redirects to edit with errors when another default warehouse already exists" do
       warehouse = create(:warehouse)
       create(:warehouse, :default)
