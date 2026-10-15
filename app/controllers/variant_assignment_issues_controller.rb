@@ -95,6 +95,10 @@ class VariantAssignmentIssuesController < ApplicationController
       issues.includes(:product, :color, :size, :version).map { |variant|
         sku_collision_props(variant, siblings_by_sku)
       }
+    when :shopify_conflicts
+      issues.includes(:product, conflicting_variant: %i[color size version]).map { |conflict|
+        shopify_conflict_props(conflict)
+      }
     end
   end
 
@@ -182,6 +186,21 @@ class VariantAssignmentIssuesController < ApplicationController
       variant_id: variant.id,
       variant_label: variant.assignment_label,
       edit_path: edit_product_path(variant.product)
+    }
+  end
+
+  def shopify_conflict_props(conflict)
+    {
+      kind: "shopify_conflict",
+      id: conflict.id,
+      sku: conflict.sku,
+      store_id: conflict.store_id,
+      shopify_options: conflict.options.map { |option| option.slice("name", "value").symbolize_keys },
+      product_id: conflict.product_id,
+      product_title: conflict.product.full_title,
+      edit_path: edit_product_path(conflict.product),
+      conflicting_variant_label: conflict.conflicting_variant&.assignment_label,
+      conflicting_variant_sku: conflict.conflicting_variant&.sku
     }
   end
 

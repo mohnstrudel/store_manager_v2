@@ -14,6 +14,7 @@ import type {
   PurchaseAssignmentIssue,
   PurchaseItemLinkIssue,
   SaleItemAssignmentIssue,
+  ShopifyConflictIssue,
   SkuCollisionIssue,
   VariantAssignmentIssuesPageProps,
 } from "./types";
@@ -25,6 +26,7 @@ const tabs: Array<{ type: IssueType; label: string }> = [
   { type: "sale_items", label: "SaleItems" },
   { type: "purchase_item_links", label: "PurchaseItem links" },
   { type: "sku_collisions", label: "SKU collisions" },
+  { type: "shopify_conflicts", label: "Shopify conflicts" },
 ];
 
 const issueDescriptions: Record<IssueType, string> = {
@@ -36,6 +38,8 @@ const issueDescriptions: Record<IssueType, string> = {
     "PurchaseItems linked to a SaleItem, where the Product or Variant differs from their Purchase or from that SaleItem. Repair link does not change any Product or Variant. It removes the mismatched link and links other unlinked PurchaseItems with the same Product and Variant to the open slots. If a Product or Variant is wrong, fix it in the Purchases or SaleItems tab.",
   sku_collisions:
     "Active Variants that share a SKU. Open each Variant and give it a unique SKU. Nothing is repaired here.",
+  shopify_conflicts:
+    "Shopify Variants that were not imported because another Variant of the same Product already has the same options. Nothing is repaired here. In Shopify, give every Variant of the Product unique options, for example by removing a duplicate option. The next pull of the Product imports the Variant and clears its row.",
 };
 
 export default function Index(props: VariantAssignmentIssuesPageProps) {
@@ -177,6 +181,9 @@ function IssueTable({ issueType, issues }: { issueType: IssueType; issues: Assig
   if (issueType === "sku_collisions") {
     return <SkuCollisionTable issues={issues} />;
   }
+  if (issueType === "shopify_conflicts") {
+    return <ShopifyConflictTable issues={issues} />;
+  }
 
   return <AssignmentIssueTable issueType={issueType} issues={issues} />;
 }
@@ -251,6 +258,52 @@ function SkuCollisionTable({ issues }: { issues: AssignmentIssue[] }) {
                       {other.product_title} / {other.variant_label}
                     </Link>
                   ))}
+                </td>
+              </tr>
+            ) : null,
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ShopifyConflictTable({ issues }: { issues: AssignmentIssue[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Shopify Variant</th>
+            <th>Shopify options</th>
+            <th>Already used by</th>
+          </tr>
+        </thead>
+        <tbody>
+          {issues.map((issue) =>
+            isShopifyConflictIssue(issue) ? (
+              <tr
+                aria-label={`Shopify conflict ${issue.store_id} on ${issue.product_title}`}
+                key={issue.id}
+              >
+                <td>
+                  <Link href={issue.edit_path}>{issue.product_title}</Link>
+                </td>
+                <td>
+                  {issue.sku || "No SKU"}
+                  <br />
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{issue.store_id}</span>
+                </td>
+                <td>
+                  {issue.shopify_options
+                    .map((option) => `${option.name}: ${option.value}`)
+                    .join(" / ")}
+                </td>
+                <td>
+                  {issue.conflicting_variant_label
+                    ? `${issue.conflicting_variant_label} (${issue.conflicting_variant_sku || "No SKU"})`
+                    : "Deleted Variant"}
                 </td>
               </tr>
             ) : null,
@@ -490,4 +543,8 @@ function isAssignmentIssue(
 
 function isSkuCollisionIssue(issue: AssignmentIssue): issue is SkuCollisionIssue {
   return issue.kind === "sku_collision";
+}
+
+function isShopifyConflictIssue(issue: AssignmentIssue): issue is ShopifyConflictIssue {
+  return issue.kind === "shopify_conflict";
 }

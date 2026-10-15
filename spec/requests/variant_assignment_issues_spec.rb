@@ -26,7 +26,8 @@ RSpec.describe "Variant assignment issues" do
           purchases: 1,
           sale_items: 0,
           purchase_item_links: 0,
-          sku_collisions: 0
+          sku_collisions: 0,
+          shopify_conflicts: 0
         }
       )
       issue = inertia.props[:issues].sole
@@ -149,7 +150,8 @@ RSpec.describe "Variant assignment issues" do
           purchases: 0,
           sale_items: 0,
           purchase_item_links: 0,
-          sku_collisions: 3
+          sku_collisions: 3,
+          shopify_conflicts: 0
         }
       )
       expect(inertia.props[:issues].size).to eq(3)
@@ -181,6 +183,38 @@ RSpec.describe "Variant assignment issues" do
           }
         )
       end
+    end
+
+    it "renders stored Shopify import conflicts with the colliding variant and Shopify options" do
+      product = create(:product)
+      holder = create(:variant, product:, sku: "holder-sku")
+      conflict = create(
+        :variant_import_conflict,
+        product:,
+        conflicting_variant: holder,
+        store_id: "gid://shopify/ProductVariant/42",
+        sku: "incoming-sku",
+        options: [{"name" => "Edition", "value" => "B"}, {"name" => "Version", "value" => "A"}]
+      )
+
+      get variant_assignment_issues_path, params: {issue_type: "shopify_conflicts"}
+
+      expect_inertia.to have_props(
+        issue_type: "shopify_conflicts",
+        counts: {purchases: 0, sale_items: 0, purchase_item_links: 0, sku_collisions: 0, shopify_conflicts: 1}
+      )
+      expect(inertia.props[:issues].sole).to include(
+        kind: "shopify_conflict",
+        id: conflict.id,
+        sku: "incoming-sku",
+        store_id: "gid://shopify/ProductVariant/42",
+        shopify_options: [{name: "Edition", value: "B"}, {name: "Version", value: "A"}],
+        product_id: product.id,
+        product_title: product.full_title,
+        edit_path: edit_product_path(product),
+        conflicting_variant_label: holder.assignment_label,
+        conflicting_variant_sku: "holder-sku"
+      )
     end
 
     it "denies the page to non-administrators" do

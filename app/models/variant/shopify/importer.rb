@@ -1,37 +1,29 @@
 # frozen_string_literal: true
 
 class Variant::Shopify::Importer
-  attr_reader :product, :parsed, :variant
-  private :product, :parsed, :variant
+  attr_reader :product, :parsed, :sibling_store_ids, :variant
+  private :product, :parsed, :sibling_store_ids, :variant
 
-  def self.import!(product, parsed_payload)
+  def self.import!(product, parsed_payload, sibling_store_ids: [])
     raise ArgumentError, "Product cannot be blank" if product.blank?
     raise ArgumentError, "Payload cannot be blank" if parsed_payload.blank?
 
-    new(product, parsed_payload).update_or_create!
+    new(product, parsed_payload, sibling_store_ids).update_or_create!
   end
 
-  def initialize(product, parsed_payload)
+  def initialize(product, parsed_payload, sibling_store_ids)
     @product = product
     @parsed = parsed_payload
+    @sibling_store_ids = sibling_store_ids
   end
 
   def update_or_create!
     product.with_lock do
       find_or_initialize_variant
       variant.assign_attributes(variant_attrs)
-      variant.save!
-      if parsed[:store_id]
-        variant.upsert_shopify_info!(
-          store_id: parsed[:store_id],
-          ext_created_at: parsed.dig(:store_info, :ext_created_at),
-          ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
-          pull_time: Time.zone.now
-        )
-      end
+      holder = identity_holder
+      holder ? record_conflict(holder) : import_variant
     end
-
-    variant
   end
 
   private
@@ -132,5 +124,41 @@ class Variant::Shopify::Importer
     return if amount.blank?
 
     attributes[:purchase_cost] = convert_to_usd(amount, parsed[:usd_conversion_rate], :purchase_cost)
+  end
+
+  def identity_holder
+    return variant if linked_to_sibling?
+
+    product.variants.where(variant.slice(:color_id, :size_id, :version_id)).where.not(id: variant.id).first
+  end
+
+  def linked_to_sibling?
+    linked_store_id = variant.shopify_info&.store_id
+    linked_store_id.present? && linked_store_id != parsed[:store_id] && sibling_store_ids.include?(linked_store_id)
+  end
+
+  def record_conflict(holder)
+    VariantImportConflict.record!(
+      store_id: parsed[:store_id],
+      product:,
+      sku: parsed[:sku],
+      options: Array(parsed[:options]),
+      conflicting_variant: holder
+    )
+    nil
+  end
+
+  def import_variant
+    variant.save!
+    if parsed[:store_id]
+      variant.upsert_shopify_info!(
+        store_id: parsed[:store_id],
+        ext_created_at: parsed.dig(:store_info, :ext_created_at),
+        ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
+        pull_time: Time.zone.now
+      )
+      VariantImportConflict.resolve!(parsed[:store_id])
+    end
+    variant
   end
 end

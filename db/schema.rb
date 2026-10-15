@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -559,6 +559,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_110000) do
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
+  create_table "variant_import_conflicts", force: :cascade do |t|
+    t.bigint "conflicting_variant_id"
+    t.datetime "created_at", null: false
+    t.jsonb "options", default: [], null: false
+    t.bigint "product_id", null: false
+    t.string "sku"
+    t.string "store_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conflicting_variant_id"], name: "index_variant_import_conflicts_on_conflicting_variant_id"
+    t.index ["product_id"], name: "index_variant_import_conflicts_on_product_id"
+    t.index ["store_id"], name: "index_variant_import_conflicts_on_store_id", unique: true
+  end
+
   create_table "variants", force: :cascade do |t|
     t.bigint "color_id"
     t.datetime "created_at", null: false
@@ -658,6 +671,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_110000) do
   add_foreign_key "sales", "customers"
   add_foreign_key "sessions", "users"
   add_foreign_key "taggings", "tags"
+  add_foreign_key "variant_import_conflicts", "products", on_delete: :cascade
+  add_foreign_key "variant_import_conflicts", "variants", column: "conflicting_variant_id", on_delete: :nullify
   add_foreign_key "variants", "colors"
   add_foreign_key "variants", "products"
   add_foreign_key "variants", "sizes"
