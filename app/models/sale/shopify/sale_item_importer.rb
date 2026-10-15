@@ -110,8 +110,11 @@ class Sale::Shopify::SaleItemImporter
     return existing_variant if existing_variant
     return nil if parsed.dig(:product, :variants).blank?
 
-    parsed[:product][:variants]
-      .map { |parsed_variant| Variant::Shopify::Importer.import!(resolved_product, parsed_variant) }
+    parsed_variants = parsed[:product][:variants]
+    sibling_store_ids = parsed_variants.pluck(:store_id)
+    parsed_variants
+      .map { |parsed_variant| Variant::Shopify::Importer.import!(resolved_product, parsed_variant, sibling_store_ids:) }
+      .compact
       .find { |variant| variant.shopify_info&.store_id == parsed[:variant_store_id] }
   end
 

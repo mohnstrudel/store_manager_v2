@@ -1,7 +1,12 @@
 import type { PaginationMeta } from "@/types/pagination";
 import type { VariantAssignmentOption } from "@/types/variantAssignment";
 
-export type IssueType = "purchases" | "sale_items" | "purchase_item_links" | "sku_collisions";
+export type IssueType =
+  | "purchases"
+  | "sale_items"
+  | "purchase_item_links"
+  | "sku_collisions"
+  | "shopify_conflicts";
 
 export type AssignmentIssueCounts = Record<IssueType, number>;
 
@@ -70,11 +75,25 @@ export type SkuCollisionIssue = {
   colliding_with: SkuCollisionReference[];
 };
 
+export type ShopifyConflictIssue = {
+  kind: "shopify_conflict";
+  id: number;
+  sku: string | null;
+  store_id: string;
+  shopify_options: Array<{ name: string; value: string }>;
+  product_id: number;
+  product_title: string;
+  edit_path: string;
+  conflicting_variant_label: string | null;
+  conflicting_variant_sku: string | null;
+};
+
 export type AssignmentIssue =
   | PurchaseAssignmentIssue
   | SaleItemAssignmentIssue
   | PurchaseItemLinkIssue
-  | SkuCollisionIssue;
+  | SkuCollisionIssue
+  | ShopifyConflictIssue;
 
 export type VariantAssignmentIssuesPageProps = {
   counts: AssignmentIssueCounts;

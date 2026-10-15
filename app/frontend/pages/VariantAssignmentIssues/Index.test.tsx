@@ -8,7 +8,7 @@ import { mockPage, nextFormErrors } from "@/test/mocks/inertia";
 import type { PaginationMeta } from "@/types/pagination";
 
 import Index from "./Index";
-import type { AssignmentIssue, AssignmentIssueCounts, IssueFilter } from "./types";
+import type { AssignmentIssue, AssignmentIssueCounts, IssueFilter, IssueType } from "./types";
 
 describe("VariantAssignmentIssues/Index", () => {
   beforeEach(() => {
@@ -21,7 +21,13 @@ describe("VariantAssignmentIssues/Index", () => {
     const user = userEvent.setup();
 
     renderPage({
-      counts: { purchases: 28, sale_items: 3, purchase_item_links: 2, sku_collisions: 5 },
+      counts: {
+        purchases: 28,
+        sale_items: 3,
+        purchase_item_links: 2,
+        sku_collisions: 5,
+        shopify_conflicts: 0,
+      },
       pagination: makePagination({
         current_page: 2,
         total_pages: 2,
@@ -55,7 +61,13 @@ describe("VariantAssignmentIssues/Index", () => {
 
   it("hides tabs with no items, keeping the selected empty tab visible", () => {
     renderPage({
-      counts: { purchases: 0, sale_items: 4, purchase_item_links: 0, sku_collisions: 0 },
+      counts: {
+        purchases: 0,
+        sale_items: 4,
+        purchase_item_links: 0,
+        sku_collisions: 0,
+        shopify_conflicts: 0,
+      },
       issueType: "purchases",
       issues: [],
     });
@@ -189,7 +201,13 @@ describe("VariantAssignmentIssues/Index", () => {
     };
 
     renderPage({
-      counts: { purchases: 1, sale_items: 0, purchase_item_links: 0, sku_collisions: 1 },
+      counts: {
+        purchases: 1,
+        sale_items: 0,
+        purchase_item_links: 0,
+        sku_collisions: 1,
+        shopify_conflicts: 0,
+      },
       issueType: "sku_collisions",
       filter: "",
       filters: [],
@@ -206,6 +224,54 @@ describe("VariantAssignmentIssues/Index", () => {
       screen.queryByRole("combobox", { name: "Issue filter" }),
       within(row).queryByRole("combobox"),
     ]).toEqual(["true", "Product A / Active", "Product B / Base Model", null, null, null]);
+  });
+
+  it("renders the shopify_conflicts tab with Shopify options, the Variant already using them, and no repair action", () => {
+    const conflict: AssignmentIssue = {
+      kind: "shopify_conflict",
+      id: 31,
+      sku: "zoldyck-b",
+      store_id: "gid://shopify/ProductVariant/42",
+      shopify_options: [
+        { name: "Edition", value: "B" },
+        { name: "Version", value: "A" },
+      ],
+      product_id: 3,
+      product_title: "Killua Zoldyck",
+      edit_path: "/products/3/edit",
+      conflicting_variant_label: "1:1 | A",
+      conflicting_variant_sku: "zoldyck-a",
+    };
+
+    renderPage({
+      counts: {
+        purchases: 0,
+        sale_items: 0,
+        purchase_item_links: 0,
+        sku_collisions: 0,
+        shopify_conflicts: 1,
+      },
+      issueType: "shopify_conflicts",
+      filter: "",
+      filters: [],
+      issues: [conflict],
+    });
+
+    const row = screen.getByRole("row", { name: /Shopify conflict .*42 on Killua Zoldyck/ });
+
+    expect([
+      screen.getByRole("tab", { name: "Shopify conflicts 1" }).getAttribute("aria-selected"),
+      within(row).getByRole("link", { name: "Killua Zoldyck" }).getAttribute("href"),
+      within(row).getByText("Edition: B / Version: A").textContent,
+      within(row).getByText("1:1 | A (zoldyck-a)").textContent,
+      within(row).queryByRole("button"),
+    ]).toEqual([
+      "true",
+      "/products/3/edit",
+      "Edition: B / Version: A",
+      "1:1 | A (zoldyck-a)",
+      null,
+    ]);
   });
 
   it("hides the Repair Broken button when nothing is backfill-fixable", () => {
@@ -228,7 +294,13 @@ describe("VariantAssignmentIssues/Index", () => {
 });
 
 function renderPage({
-  counts = { purchases: 1, sale_items: 0, purchase_item_links: 0, sku_collisions: 0 },
+  counts = {
+    purchases: 1,
+    sale_items: 0,
+    purchase_item_links: 0,
+    sku_collisions: 0,
+    shopify_conflicts: 0,
+  },
   filter = "missing_variant",
   filters = [
     { value: "missing_product", label: "Missing Product" },
@@ -243,7 +315,7 @@ function renderPage({
   counts?: AssignmentIssueCounts;
   filter?: string;
   filters?: IssueFilter[];
-  issueType?: "purchases" | "sale_items" | "purchase_item_links" | "sku_collisions";
+  issueType?: IssueType;
   issues?: AssignmentIssue[];
   pagination?: PaginationMeta;
   repairable?: boolean;

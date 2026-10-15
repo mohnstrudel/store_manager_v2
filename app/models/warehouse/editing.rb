@@ -65,6 +65,6 @@ module Warehouse::Editing
   end
 
   def transitions_only_update?(attributes)
-    attributes.one? { |key, _value| key.to_s == "to_warehouse_ids" }
+    attributes.keys.map(&:to_s) == ["to_warehouse_ids"]
   end
 end

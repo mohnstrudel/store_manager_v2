@@ -39,20 +39,6 @@ RSpec.describe Shopify::PullVariantsJob do
   end
 
   describe "#perform" do
-    it "processes each variant using Variant::Shopify::Importer" do # rubocop:todo RSpec/MultipleExpectations
-      importer_class = Variant::Shopify::Importer
-      variant = instance_double(Variant)
-
-      allow(importer_class).to receive(:import!)
-        .with(product, parsed_variants.first)
-        .and_return(variant)
-
-      job.perform(product, parsed_variants)
-
-      expect(importer_class).to have_received(:import!)
-        .with(product, parsed_variants.first)
-    end
-
     it "creates variants from parsed data" do
       expect {
         job.perform(product, parsed_variants)
@@ -120,6 +106,31 @@ RSpec.describe Shopify::PullVariantsJob do
 
       normal_variant = Variant.find_by_shopify_id("gid://shopify/ProductVariant/22222")
       expect(normal_variant.selling_price).to eq(BigDecimal("750.00"))
+    end
+
+    context "when two Shopify variants map to the same options" do
+      let(:parsed_variants) do
+        [
+          {store_id: "gid://shopify/ProductVariant/1", sku: "a", options: [{name: "Edition", value: "A"}, {name: "Version", value: "A"}]},
+          {store_id: "gid://shopify/ProductVariant/2", sku: "b", options: [{name: "Edition", value: "B"}, {name: "Version", value: "A"}]},
+          {store_id: "gid://shopify/ProductVariant/3", sku: "c", options: [{name: "Version", value: "C"}]}
+        ]
+      end
+
+      it "records the conflict and still imports the other variants" do # rubocop:todo RSpec/MultipleExpectations
+        expect { job.perform(product, parsed_variants) }.not_to raise_error
+
+        expect(VariantImportConflict.pluck(:store_id)).to eq(["gid://shopify/ProductVariant/2"])
+        expect(Variant.find_by_shopify_id("gid://shopify/ProductVariant/3").version.value).to eq("C")
+      end
+
+      it "drops conflicts for Shopify variants that are no longer in the payload" do
+        create(:variant_import_conflict, product:, store_id: "gid://shopify/ProductVariant/deleted")
+
+        job.perform(product, parsed_variants)
+
+        expect(VariantImportConflict.pluck(:store_id)).to eq(["gid://shopify/ProductVariant/2"])
+      end
     end
   end
 end

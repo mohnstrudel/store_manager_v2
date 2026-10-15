@@ -120,7 +120,8 @@ RSpec.describe Variant::AssignmentIntegrity do
         purchases: 2,
         sale_items: 0,
         purchase_item_links: 0,
-        sku_collisions: 0
+        sku_collisions: 0,
+        shopify_conflicts: 0
       )
       expect(
         integrity.relation_for(:purchases, reason: "missing_variant")
@@ -181,6 +182,14 @@ RSpec.describe Variant::AssignmentIntegrity do
 
     it "has no reason filters for sku_collisions" do
       expect(integrity.reasons_for(:sku_collisions)).to eq([])
+    end
+
+    it "returns stored Shopify import conflicts and counts them" do
+      conflict = create(:variant_import_conflict, product:)
+
+      expect(integrity.relation_for(:shopify_conflicts)).to contain_exactly(conflict)
+      expect(integrity.counts[:shopify_conflicts]).to eq(1)
+      expect(integrity.reasons_for(:shopify_conflicts)).to eq([])
     end
   end
 

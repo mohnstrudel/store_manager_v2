@@ -188,6 +188,83 @@ RSpec.describe Variant::Shopify::Importer do
       end
     end
 
+    context "when the incoming options are already taken by another variant of the product" do
+      let!(:holder) do
+        create(:variant, product: product, version: create(:version, value: "A"), shopify_store_id: "gid://shopify/ProductVariant/1")
+      end
+      let!(:moved) do
+        create(:variant, product: product, version: create(:version, value: "B"), shopify_store_id: "gid://shopify/ProductVariant/2")
+      end
+      let(:colliding_payload) do
+        {
+          store_id: "gid://shopify/ProductVariant/2",
+          sku: "colliding-sku",
+          options: [{name: "Edition", value: "A"}, {name: "Version", value: "A"}]
+        }
+      end
+
+      it "skips the variant instead of raising" do # rubocop:todo RSpec/MultipleExpectations
+        result = nil
+
+        expect { result = described_class.import!(product, colliding_payload) }.not_to raise_error
+        expect(result).to be_nil
+        expect(moved.reload).to have_attributes(sku: moved.sku, version: have_attributes(value: "B"))
+      end
+
+      it "records the conflict with the variant that holds the options" do
+        described_class.import!(product, colliding_payload)
+
+        expect(VariantImportConflict.sole).to have_attributes(
+          product: product,
+          store_id: "gid://shopify/ProductVariant/2",
+          sku: "colliding-sku",
+          conflicting_variant: holder,
+          options: [{"name" => "Edition", "value" => "A"}, {"name" => "Version", "value" => "A"}]
+        )
+      end
+
+      it "resolves the conflict once the options no longer collide" do # rubocop:todo RSpec/MultipleExpectations
+        described_class.import!(product, colliding_payload)
+        described_class.import!(product, colliding_payload.merge(options: [{name: "Version", value: "C"}]))
+
+        expect(VariantImportConflict.count).to eq(0)
+        expect(moved.reload.version.value).to eq("C")
+      end
+    end
+
+    context "when options match a variant linked to a Shopify variant that is gone" do
+      let!(:stale) do
+        create(:variant, product: product, version: create(:version, value: "A"), shopify_store_id: "gid://shopify/ProductVariant/old")
+      end
+      let(:recreated_payload) do
+        {store_id: "gid://shopify/ProductVariant/new", sku: "same-sku", options: [{name: "Version", value: "A"}]}
+      end
+
+      it "relinks the existing variant to the recreated Shopify variant" do # rubocop:todo RSpec/MultipleExpectations
+        result = described_class.import!(product, recreated_payload, sibling_store_ids: ["gid://shopify/ProductVariant/new"])
+
+        expect(result).to eq(stale)
+        expect(stale.reload.shopify_info.store_id).to eq("gid://shopify/ProductVariant/new")
+        expect(VariantImportConflict.count).to eq(0)
+      end
+    end
+
+    context "when the payload omits option dimensions the variant already has" do
+      let!(:existing_variant) do
+        create(:variant, product: product, version: create(:version, value: "A"), shopify_store_id: "gid://shopify/ProductVariant/1")
+      end
+
+      it "imports without flagging the product's base variant as a conflict" do # rubocop:todo RSpec/MultipleExpectations
+        result = described_class.import!(
+          product,
+          {store_id: "gid://shopify/ProductVariant/1", sku: "kept", options: [{name: "Title", value: "Standard"}]}
+        )
+
+        expect(result).to eq(existing_variant)
+        expect(VariantImportConflict.count).to eq(0)
+      end
+    end
+
     context "when a base variant is unlinked and the payload has a currency conversion" do
       let!(:existing_variant) { product.base_variant }
       let(:parsed_variant) do

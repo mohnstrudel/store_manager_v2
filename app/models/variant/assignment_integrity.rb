@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Variant::AssignmentIntegrity
-  ISSUE_TYPES = %i[purchases sale_items purchase_item_links sku_collisions].freeze
+  ISSUE_TYPES = %i[purchases sale_items purchase_item_links sku_collisions shopify_conflicts].freeze
 
   ASSIGNMENT_REASONS = {
     "missing_product" => "%<table>s.product_id IS NULL",
@@ -32,7 +32,8 @@ class Variant::AssignmentIntegrity
       purchases: broken_purchases.count,
       sale_items: broken_sale_items.count,
       purchase_item_links: incompatible_purchase_item_links.count,
-      sku_collisions: duplicate_sku_variants.count
+      sku_collisions: duplicate_sku_variants.count,
+      shopify_conflicts: shopify_conflicts.count
     }
   end
 
@@ -54,6 +55,10 @@ class Variant::AssignmentIntegrity
 
   def duplicate_sku_variants
     Variant.active.where.not(sku: [nil, ""]).where(sku: duplicate_skus)
+  end
+
+  def shopify_conflicts
+    VariantImportConflict.all
   end
 
   def repairable?
@@ -95,7 +100,7 @@ class Variant::AssignmentIntegrity
   def reasons_for(issue_type)
     case issue_type.to_sym
     when :purchase_item_links then LINK_REASONS.keys
-    when :sku_collisions then []
+    when :sku_collisions, :shopify_conflicts then []
     else ASSIGNMENT_REASONS.keys
     end
   end
@@ -165,7 +170,8 @@ class Variant::AssignmentIntegrity
       purchases: :broken_purchases,
       sale_items: :broken_sale_items,
       purchase_item_links: :incompatible_purchase_item_links,
-      sku_collisions: :duplicate_sku_variants
+      sku_collisions: :duplicate_sku_variants,
+      shopify_conflicts: :shopify_conflicts
     }.fetch(issue_type)
   end
 

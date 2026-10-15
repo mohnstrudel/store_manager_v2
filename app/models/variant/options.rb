@@ -21,6 +21,14 @@ module Variant::Options
         brand: ["Brand", "Marke"]
       }.freeze
     end
+
+    def shopify_types
+      {
+        version: ["Version", "Edition", "Variant", "Variante", "Variants"],
+        size: ["Size", "Scale"],
+        color: ["Color"]
+      }.freeze
+    end
   end
 
   def base_model?

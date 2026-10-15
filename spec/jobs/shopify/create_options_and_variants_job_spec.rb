@@ -78,6 +78,9 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
 
     before do
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
+      allow(api_client).to receive(:fetch_product).and_return(
+        {"variants" => {"edges" => [{"node" => {"selectedOptions" => [{"name" => "Title", "value" => "Default Title"}]}}]}}
+      )
     end
 
     it "finds the product by ID" do
@@ -225,6 +228,33 @@ RSpec.describe Shopify::CreateOptionsAndVariantsJob do
         size_store_info = product_size.store_infos.find_by(store_name: :shopify)
         expect(size_store_info).to be_present
         expect(size_store_info.store_id).to eq("gid://shopify/ProductOptionValue/1")
+      end
+    end
+
+    context "when the Shopify product already has an option for the same dimension" do
+      let(:legacy_edition_payload) do
+        {
+          "variants" => {
+            "edges" => [
+              {"node" => {"selectedOptions" => [{"name" => "Edition", "value" => "A"}]}}
+            ]
+          }
+        }
+      end
+
+      before do
+        product_size
+        product_version
+        allow(api_client).to receive(:fetch_product).with(shopify_product_id).and_return(legacy_edition_payload)
+        allow(api_client).to receive(:create_product_options)
+          .and_return({"options" => [], "variants" => {"nodes" => []}})
+      end
+
+      it "pushes only the dimensions Shopify does not have yet" do
+        described_class.perform_now(product_id, shopify_product_id)
+
+        expect(api_client).to have_received(:create_product_options)
+          .with(shopify_product_id, [{name: "Size", values: [{name: "Large"}]}])
       end
     end
 
