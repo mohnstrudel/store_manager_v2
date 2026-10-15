@@ -766,16 +766,12 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
       end
 
-      it "notifies customers about linked products" do
-        callbacks = []
-        allow(ActiveRecord).to receive(:after_all_transactions_commit) { |&callback| callbacks << callback }
-        allow(PurchaseItem).to receive(:notify_order_status!)
+      it "records a pending link intent for each linked purchase item" do
+        order_with_email = valid_parsed_order.deep_merge(customer: {email: "jimmy@example.com"})
 
-        import_order
+        expect { import_order(order_with_email) }.to have_enqueued_job(OutboundEmailDeliveryJob).at_least(:once)
 
-        expect(PurchaseItem).not_to have_received(:notify_order_status!)
-        callbacks.each(&:call)
-        expect(PurchaseItem).to have_received(:notify_order_status!).at_least(:once)
+        expect(OutboundEmail.where(source: "link", state: "pending", recipient: "jimmy@example.com", purchase_item_id: purchase_items.map(&:id))).to be_present
       end
     end
   end

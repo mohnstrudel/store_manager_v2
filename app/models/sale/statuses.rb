@@ -40,7 +40,9 @@ module Sale::Statuses
 
     def status_names
       [
+        "auto-draft",
         "cancelled",
+        "checkout-draft",
         "completed",
         "container-shipped",
         "failed",
@@ -48,11 +50,13 @@ module Sale::Statuses
         "on-hold",
         "partial-shipped",
         "partially-paid",
+        "pending",
         "po_fully_paid",
         "pre-ordered",
         "processing",
         "ready-to-fullfill",
         "refunded",
+        "trash",
         "updated-tracking"
       ].freeze
     end

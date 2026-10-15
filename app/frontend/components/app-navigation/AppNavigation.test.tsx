@@ -91,6 +91,38 @@ describe("AppNavigation", () => {
     expect(screen.queryByRole("link", { name: "Inventory Planner" })).not.toBeInTheDocument();
   });
 
+  it("shows email history in the admin menu", async () => {
+    const user = userEvent.setup();
+    render(<AppNavigation />);
+
+    await user.click(screen.getByRole("button", { name: "More navigation links" }));
+
+    expect(screen.getByRole("link", { name: "Email History" })).toHaveAttribute(
+      "href",
+      "/outbound_emails",
+    );
+  });
+
+  it("shows email history to managers but not support staff", async () => {
+    const user = userEvent.setup();
+    mockPageProps({
+      auth: { user: { id: 2, email_address: "manager@example.com", role: "manager" } },
+    });
+    const { rerender } = render(<AppNavigation />);
+
+    await user.click(screen.getByRole("button", { name: "More navigation links" }));
+    expect(screen.getByRole("link", { name: "Email History" })).toHaveAttribute(
+      "href",
+      "/outbound_emails",
+    );
+
+    mockPageProps({
+      auth: { user: { id: 3, email_address: "support@example.com", role: "support" } },
+    });
+    rerender(<AppNavigation />);
+    expect(screen.queryByRole("link", { name: "Email History" })).not.toBeInTheDocument();
+  });
+
   it("closes the overflow menu when a navigation link is selected", async () => {
     const user = userEvent.setup();
 

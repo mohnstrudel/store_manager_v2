@@ -16,7 +16,6 @@ RSpec.describe Variant::AssignmentRepair do
       purchase_item = create(:purchase_item, purchase:, sale_item: current_sale_item)
       historical_variant.update!(deactivated_at: Time.current)
       purchase.update_columns(variant_id: nil)
-      allow(PurchaseItem).to receive(:notify_order_status!)
       lock_queries = capture_lock_queries do
         expect(
           described_class.repair_purchase!(
@@ -33,7 +32,7 @@ RSpec.describe Variant::AssignmentRepair do
           variant_id: historical_variant.id,
           sale_item_id: historical_sale_item.id
         )
-        expect(PurchaseItem).not_to have_received(:notify_order_status!)
+        expect(OutboundEmail).not_to exist
         expect(lock_queries.grep(/FROM "sale_items"/)).to include(
           a_string_including('ORDER BY "sale_items"."id" ASC')
         )
@@ -83,7 +82,6 @@ RSpec.describe Variant::AssignmentRepair do
       old_purchase_item = create(:purchase_item, purchase: current_purchase, sale_item:)
       exact_purchase_item = create(:purchase_item, purchase: repaired_purchase)
       sale_item.update_columns(variant_id: nil)
-      allow(PurchaseItem).to receive(:notify_order_status!)
 
       lock_queries = capture_lock_queries do
         expect(
@@ -98,7 +96,7 @@ RSpec.describe Variant::AssignmentRepair do
         expect(sale_item.reload.variant_id).to eq(repaired_variant.id)
         expect(old_purchase_item.reload.sale_item_id).to be_nil
         expect(exact_purchase_item.reload.sale_item_id).to eq(sale_item.id)
-        expect(PurchaseItem).not_to have_received(:notify_order_status!)
+        expect(OutboundEmail).not_to exist
         expect(lock_queries.grep(/FROM "sale_items"/)).to include(
           a_string_including('ORDER BY "sale_items"."id" ASC')
         )
@@ -126,7 +124,6 @@ RSpec.describe Variant::AssignmentRepair do
         product_id: exact_product.id,
         variant_id: exact_product.base_variant.id
       )
-      allow(PurchaseItem).to receive(:notify_order_status!)
 
       lock_queries = capture_lock_queries do
         expect(
@@ -139,7 +136,7 @@ RSpec.describe Variant::AssignmentRepair do
       aggregate_failures do
         expect(mismatched_purchase_item.reload.sale_item_id).to be_nil
         expect(exact_purchase_item.reload.sale_item_id).to eq(sale_item.id)
-        expect(PurchaseItem).not_to have_received(:notify_order_status!)
+        expect(OutboundEmail).not_to exist
         expect(integrity.incompatible_purchase_item_link?(mismatched_purchase_item.id)).to be(
           false
         )
@@ -195,7 +192,6 @@ RSpec.describe Variant::AssignmentRepair do
         variant_id: other_product.base_variant.id,
         sale_item_id: wrong_sale_item.id
       )
-      allow(PurchaseItem).to receive(:notify_order_status!)
 
       expect(
         described_class.repair_purchase_item_identity!(
@@ -209,7 +205,7 @@ RSpec.describe Variant::AssignmentRepair do
           variant_id: purchase.variant_id,
           sale_item_id: exact_sale_item.id
         )
-        expect(PurchaseItem).not_to have_received(:notify_order_status!)
+        expect(OutboundEmail).not_to exist
       end
     end
 

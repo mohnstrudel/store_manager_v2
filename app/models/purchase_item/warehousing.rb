@@ -18,26 +18,25 @@ module PurchaseItem::Warehousing
 
     def move_to_warehouse!(purchase_item_ids:, warehouse_id:)
       warehouse_id = warehouse_id.to_i
-      purchase_items = where(id: purchase_item_ids).in_order_of(:id, purchase_item_ids).to_a
-      return NOTHING_MOVED if purchase_items.blank?
+      existing_ids = where(id: purchase_item_ids).order(:id).ids
+      return NOTHING_MOVED if existing_ids.blank?
 
-      purchase_item_ids_by_origin = purchase_items
-        .group_by(&:warehouse_id)
-        .transform_values { |items| items.pluck(:id) }
+      existing_ids.each do |purchase_item_id|
+        move_and_record_notification!(purchase_item_id, warehouse_id)
+      end
 
-      purchase_items.each do |purchase_item|
+      existing_ids.size
+    end
+
+    private
+
+    def move_and_record_notification!(purchase_item_id, warehouse_id)
+      transaction do
+        purchase_item = lock.find(purchase_item_id)
+        from_id = purchase_item.warehouse_id
         purchase_item.move_to_warehouse!(warehouse_id)
+        record_status_change_notifications!(purchase_item_ids: [purchase_item_id], from_id:, to_id: warehouse_id)
       end
-
-      purchase_item_ids_by_origin.each do |from_id, ids|
-        PurchaseItem.notify_order_status_change!(
-          purchase_item_ids: ids,
-          from_id:,
-          to_id: warehouse_id
-        )
-      end
-
-      purchase_items.size
     end
   end
 
