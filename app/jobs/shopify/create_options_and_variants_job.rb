@@ -13,7 +13,8 @@ module Shopify
         .find(product_id)
       client = Shopify::Api::Client.new
 
-      serialized_options = serialize_options(product)
+      shopify_option_names = existing_option_names(client, shopify_product_id)
+      serialized_options = serialize_options(product, shopify_option_names)
 
       if serialized_options.any?
         options_response = client.create_product_options(shopify_product_id, serialized_options)
@@ -27,14 +28,17 @@ module Shopify
 
     private
 
-    def serialize_options(product)
-      options = []
+    def existing_option_names(client, shopify_product_id)
+      selected_options = client.fetch_product(shopify_product_id)&.dig("variants", "edges", 0, "node", "selectedOptions")
+      selected_options.to_a.pluck("name")
+    end
 
-      options << serialize_option(product.sizes) if product.sizes.any?
-      options << serialize_option(product.versions) if product.versions.any?
-      options << serialize_option(product.colors) if product.colors.any?
+    def serialize_options(product, shopify_option_names)
+      {size: product.sizes, version: product.versions, color: product.colors}.filter_map do |type, collection|
+        next if collection.none? || (Variant.shopify_types[type] & shopify_option_names).any?
 
-      options
+        serialize_option(collection)
+      end
     end
 
     def serialize_option(collection)

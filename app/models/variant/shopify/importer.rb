@@ -71,13 +71,13 @@ class Variant::Shopify::Importer
 
     parsed[:options].each do |option|
       case option[:name]
-      when "Color"
+      when *Variant.shopify_types[:color]
         attributes[:color] = Color.find_or_create_by(value: option[:value])
         product.colors |= [attributes[:color]]
-      when "Size", "Scale"
+      when *Variant.shopify_types[:size]
         attributes[:size] = Size.find_or_create_by(value: option[:value])
         product.sizes |= [attributes[:size]]
-      when "Version", "Edition", "Variant", "Variante", "Variants"
+      when *Variant.shopify_types[:version]
         attributes[:version] = Version.find_or_create_by(value: option[:value])
         product.versions |= [attributes[:version]]
       end
