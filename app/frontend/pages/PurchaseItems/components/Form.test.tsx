@@ -81,26 +81,38 @@ describe("PurchaseItems/components/Form", () => {
     it("renders linking, dimensions, shipping fields, and media uploader", () => {
       renderForm();
 
-      expect(screen.getByLabelText("Warehouse")).toHaveValue("1");
-      expect(screen.getByLabelText("Purchase")).toHaveValue("10");
-      expect(screen.getByLabelText("Length, cm")).toHaveValue("30");
-      expect(screen.getByLabelText("Width, cm")).toHaveValue("20");
-      expect(screen.getByLabelText("Height, cm")).toHaveValue("15");
-      expect(screen.getByLabelText("Weight, kg")).toHaveValue("2.5");
-      expect(screen.queryByLabelText("Expenses")).not.toBeInTheDocument();
-      expect(document.querySelector('[name="purchase_item[expenses]"]')).toBeNull();
-      expect(screen.getByLabelText("Shipping")).toHaveValue("25.00");
-      expect(screen.getByLabelText("Tracking Number")).toHaveValue("TRK-001");
-      expect(screen.getByLabelText("Shipping Company")).toHaveValue("20");
-      expect(screen.getByTestId("image-uploader")).toHaveAttribute(
-        "data-field-name-prefix",
-        "purchase_item[media]",
-      );
-      expect(screen.getByTestId("image-uploader")).toHaveAttribute(
-        "data-image-field-name",
-        "image",
-      );
-      expect(screen.getByTestId("image-uploader")).toHaveAttribute("data-media-count", "1");
+      const imageUploader = screen.getByTestId("image-uploader");
+      expect({
+        warehouse: formFieldValue("Warehouse"),
+        purchase: formFieldValue("Purchase"),
+        length: formFieldValue("Length, cm"),
+        width: formFieldValue("Width, cm"),
+        height: formFieldValue("Height, cm"),
+        weight: formFieldValue("Weight, kg"),
+        expensesLabel: screen.queryByLabelText("Expenses"),
+        expenseField: document.querySelector('[name="purchase_item[expenses]"]'),
+        shipping: formFieldValue("Shipping"),
+        trackingNumber: formFieldValue("Tracking Number"),
+        shippingCompany: formFieldValue("Shipping Company"),
+        mediaFieldNamePrefix: imageUploader.getAttribute("data-field-name-prefix"),
+        imageFieldName: imageUploader.getAttribute("data-image-field-name"),
+        mediaCount: imageUploader.getAttribute("data-media-count"),
+      }).toEqual({
+        warehouse: "1",
+        purchase: "10",
+        length: "30",
+        width: "20",
+        height: "15",
+        weight: "2.5",
+        expensesLabel: null,
+        expenseField: null,
+        shipping: "25.00",
+        trackingNumber: "TRK-001",
+        shippingCompany: "20",
+        mediaFieldNamePrefix: "purchase_item[media]",
+        imageFieldName: "image",
+        mediaCount: "1",
+      });
     });
 
     it("omits the redirect_to_sale_item hidden field when the flag is false", () => {
@@ -198,4 +210,17 @@ function renderForm({
       submitLabel={submitLabel}
     />,
   );
+}
+
+function formFieldValue(label: string) {
+  const field = screen.getByLabelText(label);
+  if (
+    field instanceof HTMLInputElement ||
+    field instanceof HTMLSelectElement ||
+    field instanceof HTMLTextAreaElement
+  ) {
+    return field.value;
+  }
+
+  throw new Error(`Expected ${label} to be a form field`);
 }

@@ -74,6 +74,28 @@ RSpec.describe Product do
       expect(editing_store_info.errors[:store_name]).to include("has already been taken")
     end
 
+    it "validates loaded store connections without reloading siblings for each record" do
+      store_infos = product.store_infos.order(:id).to_a
+      sibling_queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        sql = payload[:sql]
+        sibling_queries << sql if sql.start_with?('SELECT "store_infos".* FROM "store_infos"') && sql.include?('"storable_id"')
+      end
+
+      begin
+        product.save_editing!(
+          product_attributes: editing_product_attributes(product),
+          variants_attributes: [],
+          store_infos_attributes: store_infos.map { |store_info| {id: store_info.id, store_id: store_info.store_id} },
+          media_attributes: []
+        )
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      expect(sibling_queries.size).to eq(1)
+    end
+
     def editing_product_attributes(product)
       {
         title: product.title,

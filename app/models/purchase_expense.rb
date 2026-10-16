@@ -25,8 +25,6 @@ class PurchaseExpense < ApplicationRecord
 
   after_commit :recalculate_purchase_item_expenses
 
-  scope :for_display, -> { order(created_at: :asc, id: :asc) }
-
   private
 
   def purchase_item_cannot_change

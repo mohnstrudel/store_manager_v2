@@ -59,6 +59,7 @@ group :development, :test do
   gem "rubocop-factory_bot", require: false
   gem "factory_bot_rails"
   gem "parallel_tests"
+  gem "prosopite"
   gem "dotenv"
   gem "js_from_routes", "~> 4.0"
 end
@@ -72,7 +73,6 @@ group :development do
   gem "rubocop-slim"
   gem "pry"
   gem "pghero"
-  gem "prosopite"
   gem "standard", require: false
   gem "letter_opener"
   gem "rails-mcp-server"

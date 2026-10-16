@@ -295,7 +295,7 @@ module ProductHelper
     {
       id: store_info.id,
       store_name: store_info.store_name,
-      tag_list: store_info.tag_list.join(", "),
+      tag_list: store_info.tags.map(&:name).join(", "),
       _destroy: false
     }
   end

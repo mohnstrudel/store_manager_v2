@@ -103,7 +103,7 @@ module PurchaseHelper
       shipping_company_id: purchase_item.shipping_company_id,
       shipping_company_name: purchase_item.shipping_company&.name.to_s,
       shipping_cost: purchase_item.shipping_cost.to_i.to_s,
-      purchase_expenses: purchase_item.purchase_expenses.for_display.map { |expense| purchase_expense_props(expense, purchase_item:) },
+      purchase_expenses: purchase_item.purchase_expenses.sort_by { |expense| [expense.created_at, expense.id] }.map { |expense| purchase_expense_props(expense, purchase_item:) },
       new_purchase_expense: unsaved_purchase_expense_props(purchase_item:)
     }
   end

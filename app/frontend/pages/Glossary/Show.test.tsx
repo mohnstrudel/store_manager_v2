@@ -50,7 +50,7 @@ describe("Glossary/Show", () => {
   it("groups terms into sections and links to each one from the jump list", () => {
     render(<Show />);
 
-    const sections = [
+    const sectionLinks = [
       ["Money from customers", "money-from-customers"],
       ["What the goods cost", "what-the-goods-cost"],
       ["Overheads", "overheads"],
@@ -59,7 +59,7 @@ describe("Glossary/Show", () => {
     ];
     const navigation = screen.getByRole("navigation", { name: "Glossary sections" });
 
-    for (const [title, id] of sections) {
+    for (const [title, id] of sectionLinks) {
       expect(screen.getByRole("heading", { level: 2, name: title })).toHaveAttribute("id", id);
       expect(within(navigation).getByRole("link", { name: title })).toHaveAttribute(
         "href",

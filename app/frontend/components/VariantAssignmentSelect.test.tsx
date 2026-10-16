@@ -107,6 +107,19 @@ describe("VariantAssignmentSelect", () => {
     expect(screen.getByText("must be selected")).toBeInTheDocument();
     expect(screen.getByLabelText("Variant").parentElement).toHaveClass("field_with_errors");
   });
+
+  it("shows a load error for an invalid availability response", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ mode: "invalid", variants: [] }), { status: 200 }),
+    );
+
+    renderSelect({ productId: 1 });
+    await flushLazySelect();
+
+    expect(
+      screen.getByText("Could not load Variants. Choose the Product again to retry."),
+    ).toBeInTheDocument();
+  });
 });
 
 function renderSelect(
@@ -156,11 +169,7 @@ async function resolveResponse(
   body: VariantAvailability,
 ) {
   await act(async () => {
-    deferred.resolve({
-      json: async () => body,
-      ok: true,
-      status: 200,
-    } as Response);
+    deferred.resolve(new Response(JSON.stringify(body), { status: 200 }));
     await deferred.promise;
   });
 }

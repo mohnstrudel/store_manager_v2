@@ -34,4 +34,8 @@ Rails.application.configure do
 
   config.autoload_paths_unfreeze = true
   config.active_job.queue_adapter = :test
+
+  config.after_initialize do
+    Prosopite.raise = true
+  end
 end

@@ -30,19 +30,21 @@ module StoreInfo::Validation
   end
 
   def persisted_sibling_store_infos
+    return [] if storable_store_infos_association? && storable.association(:store_infos).loaded?
+
     relation = self.class.where(storable: storable)
     relation = relation.where.not(id: id) if id.present?
     relation.to_a
+  end
+
+  def storable_store_infos_association?
+    storable&.class&.reflect_on_association(:store_infos).present?
   end
 
   def in_memory_sibling_store_infos
     return [] unless storable_store_infos_association?
 
     storable.association(:store_infos).target
-  end
-
-  def storable_store_infos_association?
-    storable&.class&.reflect_on_association(:store_infos).present?
   end
 
   def same_store_info?(store_info)

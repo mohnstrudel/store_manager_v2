@@ -52,7 +52,7 @@
         "vitest/valid-expect": "error",
         "vitest/no-duplicate-hooks": "error",
         "vitest/prefer-hooks-on-top": "warn",
-        "vitest/max-expects": ["warn", { "max": 4 }]
+        "vitest/max-expects": ["warn", { "max": 12 }]
       }
     },
     {
