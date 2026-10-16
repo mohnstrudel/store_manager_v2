@@ -29,8 +29,7 @@ export type SaleRecord = {
   sold_product_name: string;
   product_thumb_url: string | null;
   store_type: "shopify" | "woo" | null;
-  status: string;
-  active: boolean;
+  warehouses: { name: string; path: string }[];
   total: string;
   country: string;
   city: string;

@@ -52,8 +52,7 @@ module CustomerHelper
       sold_product_name: customer_sale_product_name(sale),
       product_thumb_url: customer_sale_product_thumb_url(sale),
       store_type: store_type,
-      status: sale.status,
-      active: sale.active?,
+      warehouses: customer_sale_warehouses(sale),
       total: format_money(sale.total),
       country: sale.shipping_address&.country,
       city: sale.shipping_address&.city,
@@ -81,5 +80,11 @@ module CustomerHelper
     return unless first_item&.product
 
     thumb_url(first_item.product)
+  end
+
+  def customer_sale_warehouses(sale)
+    sale.sale_items.flat_map(&:purchase_items).map(&:warehouse).uniq.map do |warehouse|
+      {name: warehouse.name, path: warehouse_path(warehouse)}
+    end
   end
 end

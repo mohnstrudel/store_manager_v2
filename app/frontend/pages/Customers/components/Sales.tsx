@@ -21,7 +21,7 @@ export default function Sales({ heading, sales }: SalesProps) {
           <tr>
             <th className="text-center">Image</th>
             <th>Sale</th>
-            <th>Status</th>
+            <th>Warehouse</th>
             <th>Price</th>
             <th>Country</th>
             <th>City</th>
@@ -71,12 +71,17 @@ export default function Sales({ heading, sales }: SalesProps) {
                 />
               </td>
               <td>
-                <span className={sale.active ? "text-lime-700" : "text-red-900"}>
-                  {sale.status
-                    .split("-")
-                    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                    .join(" ")}
-                </span>
+                {sale.warehouses.length === 0 ? (
+                  <mark className="block uppercase tracking-wide text-xs w-fit -ml-1">
+                    <span className="font-semibold">NO PURCHASE</span>
+                  </mark>
+                ) : (
+                  sale.warehouses.map((warehouse) => (
+                    <Link className="link block" href={warehouse.path} key={warehouse.path}>
+                      {warehouse.name}
+                    </Link>
+                  ))
+                )}
               </td>
               <td className="font-mono whitespace-nowrap">{sale.total ?? ""}</td>
               <td>{sale.country ?? ""}</td>
