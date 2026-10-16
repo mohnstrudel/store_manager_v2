@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-unassigned-import
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 const originalConsoleError = console.error.bind(console);
 

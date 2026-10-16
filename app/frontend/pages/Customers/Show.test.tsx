@@ -22,12 +22,11 @@ describe("Customers/Show", () => {
     renderShow({
       active_sales: [
         makeCustomerSale({
-          active: true,
+          warehouses: [{ name: "Berlin Hub", path: "/warehouses/1" }],
           id: 9,
           path: "/sales/9",
           sale_identifier: "HSCM#1957",
           sold_product_name: "Twin Peaks Coffee",
-          status: "active",
           total: "50.00",
         }),
       ],
@@ -46,7 +45,16 @@ describe("Customers/Show", () => {
       "/sales/10",
     );
     expect(screen.getByText("Twin Peaks Cherry Pie")).toHaveClass("group-hover:text-blue-600");
-    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Berlin Hub/ })).toHaveAttribute(
+      "href",
+      "/warehouses/1",
+    );
+  });
+
+  it("flags a sale without a purchase", () => {
+    renderShow({ active_sales: [makeCustomerSale()] });
+
+    expect(screen.getByText("NO PURCHASE")).toBeInTheDocument();
   });
 
   it("marks a follow-up payment so it does not read as a duplicate order", () => {

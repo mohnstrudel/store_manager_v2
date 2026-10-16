@@ -66,6 +66,20 @@ RSpec.describe "Customers" do
       )
     end
 
+    it "lists the distinct warehouses holding a sale's purchase items" do
+      customer = create(:customer)
+      sale = create(:sale, customer:, status: "completed")
+      sale_item = create(:sale_item, sale:, qty: 2)
+      warehouse = create(:warehouse)
+      create_list(:purchase_item, 2, sale_item:, warehouse:)
+      create(:sale, customer:, status: "completed")
+
+      get customer_path(customer)
+
+      warehouses = inertia.props[:completed_sales].pluck(:warehouses)
+      expect(warehouses).to contain_exactly([{name: warehouse.name, path: warehouse_path(warehouse)}], [])
+    end
+
     it "carries payment-plan context so instalments do not read as duplicate orders" do
       customer = create(:customer)
       origin = create(:sale, customer:, shopify_name: "HSCM#1746", shopify_store_id: "gid://shopify/Order/100")
