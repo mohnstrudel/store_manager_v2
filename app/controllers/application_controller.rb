@@ -26,8 +26,10 @@ class ApplicationController < ActionController::Base
     before_action do
       ActiveStorage::Current.url_options = {host: "http://localhost:3000"}
     end
+  end
 
-    around_action :n_plus_one_detection
+  if Rails.env.local?
+    around_action :n_plus_one_detection, if: -> { request.get? || request.head? }
 
     def n_plus_one_detection
       Prosopite.scan

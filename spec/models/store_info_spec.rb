@@ -85,5 +85,14 @@ RSpec.describe StoreInfo do
       expect(duplicate_store_info).not_to be_valid
       expect(duplicate_store_info.errors[:store_name]).to include("has already been taken")
     end
+
+    it "checks persisted siblings when the owner's association is not loaded" do
+      product = create(:product)
+      product.association(:store_infos).reset
+      duplicate = described_class.new(storable: product, store_name: :shopify)
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:store_name]).to include("has already been taken")
+    end
   end
 end

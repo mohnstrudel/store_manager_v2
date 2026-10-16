@@ -54,5 +54,41 @@ RSpec.describe Warehouse do
 
       expect(media_item.reload.alt).to eq("Original")
     end
+
+    it "loads submitted media in one owner-scoped query" do
+      second = create(:media, :for_warehouse, mediaable: warehouse, position: 1)
+      third = create(:media, :for_warehouse, mediaable: warehouse, position: 2)
+      lookups = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        sql = payload[:sql]
+        lookups << sql if sql.start_with?('SELECT "media".* FROM "media"') && sql.include?('"media"."id"')
+      end
+
+      begin
+        warehouse.update_media_from_form!([
+          {id: media_item.id, alt: "First"},
+          {id: second.id, alt: "Second"},
+          {id: third.id, alt: "Third"}
+        ])
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      expect(lookups.size).to eq(1)
+      expect([media_item, second, third].map { |item| item.reload.alt }).to eq(%w[First Second Third])
+    end
+
+    it "ignores foreign media and repeated ids after destruction" do
+      foreign_media = create(:media, :for_warehouse, mediaable: create(:warehouse), alt: "Foreign")
+
+      warehouse.update_media_from_form!([
+        {id: media_item.id, _destroy: true},
+        {id: media_item.id, alt: "Restored"},
+        {id: foreign_media.id, alt: "Changed"}
+      ])
+
+      expect(Media.exists?(media_item.id)).to be(false)
+      expect(foreign_media.reload.alt).to eq("Foreign")
+    end
   end
 end

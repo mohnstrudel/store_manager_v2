@@ -187,7 +187,33 @@ async function loadAvailability(productId: number, signal: AbortSignal) {
   });
   if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
 
-  return (await response.json()) as VariantAvailability;
+  const availability: unknown = await response.json();
+  if (!isVariantAvailability(availability))
+    throw new Error("Invalid variant availability response");
+
+  return availability;
+}
+
+function isVariantAvailability(value: unknown): value is VariantAvailability {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "mode" in value &&
+    (value.mode === "base" || value.mode === "select") &&
+    "variants" in value &&
+    Array.isArray(value.variants) &&
+    value.variants.every(
+      (variant) =>
+        typeof variant === "object" &&
+        variant !== null &&
+        "value" in variant &&
+        typeof variant.value === "number" &&
+        "label" in variant &&
+        typeof variant.label === "string" &&
+        "base_model" in variant &&
+        typeof variant.base_model === "boolean",
+    )
+  );
 }
 
 function isAbortError(error: unknown) {

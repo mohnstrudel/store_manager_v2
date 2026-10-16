@@ -21,6 +21,7 @@ type ResourceFormProps = {
 let resourceFormProps: Omit<ResourceFormProps, "children"> | null = null;
 
 vi.mock("@/components/ResourceForm", () => ({
+  // oxlint-disable-next-line unicorn/consistent-function-scoping -- The stub must be declared inside the hoisted mock factory.
   default: function ResourceFormStub({
     action,
     cancelHref,

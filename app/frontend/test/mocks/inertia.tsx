@@ -185,9 +185,7 @@ function useFormStub<TData extends Record<string, unknown>>(initialData: TData) 
       });
     },
     setData: (update: TData | ((data: TData) => TData)) => {
-      setDataState((currentData) =>
-        typeof update === "function" ? (update as (data: TData) => TData)(currentData) : update,
-      );
+      setDataState((currentData) => (typeof update === "function" ? update(currentData) : update));
     },
     reset: () => {
       setDataState(initialData);

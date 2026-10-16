@@ -19,6 +19,7 @@ inherit_gem:
 
 AllCops:
   NewCops: enable
+  SuggestExtensions: false
   TargetRubyVersion: 3.4
   Exclude:
     - node_modules/**/*
@@ -92,6 +93,8 @@ RSpec/NestedGroups:
   Max: 5
 RSpec/IndexedLet:
   Enabled: false # numeric-suffixed lets (size_1, size_2...) name genuinely interchangeable fixtures in multi-item scenarios
+RSpecRails/ReceivePerformLater:
+  Enabled: false # existing job tests verify scheduler calls with message spies; converting them requires restructuring each example
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we will have duplicated gems when dual booting
 

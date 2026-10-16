@@ -166,6 +166,8 @@ function settlementStatusLabel(status: Exclude<SettlementStatus, null>) {
     case "unknown":
       return "Unknown";
   }
+
+  return "Unknown";
 }
 
 function SettlementProgress({ progress }: { progress: SalePaymentProgress }) {

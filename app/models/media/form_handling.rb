@@ -22,6 +22,8 @@ module Media::FormHandling
   def update_media_from_form!(media_attributes)
     return if media_attributes.blank?
 
+    existing_media = media.where(id: media_attributes.filter_map { |attrs| attrs[:id].presence }).index_by { |item| item.id.to_s }
+
     media_attributes.each do |attrs|
       if attrs[:id].blank?
         attachable = resolve_attachable(attrs[:image])
@@ -35,11 +37,12 @@ module Media::FormHandling
         next
       end
 
-      media_item = media.find_by(id: attrs[:id])
+      media_item = existing_media[attrs[:id].to_s]
       next unless media_item
 
       if truthy?(attrs[:_destroy])
         media_item.destroy!
+        existing_media.delete(attrs[:id].to_s)
         next
       end
 

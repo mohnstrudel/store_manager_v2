@@ -8,7 +8,6 @@ import {
   useState,
   type ChangeEvent,
   type ComponentProps,
-  type Ref,
 } from "react";
 
 import routes from "@/utils/routes";
@@ -285,7 +284,7 @@ function SortableImageCard({
     <div ref={ref} style={cardStyle}>
       <div className="relative">
         <button
-          ref={handleRef as Ref<HTMLButtonElement>}
+          ref={handleRef}
           aria-label="Drag to reorder"
           className="image_card__drag_handle peer/drag"
           type="button"
