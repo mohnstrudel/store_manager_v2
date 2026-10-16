@@ -7,25 +7,25 @@ import TipMark from "./TipMark";
 describe("TipMark", () => {
   beforeEach(() => {
     setViewportSize(1_024, 768);
-    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(
-      function (this: HTMLElement) {
-        return this.classList.contains("tip_mark__tooltip") ? 256 : 16;
-      },
-    );
-    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(
-      function (this: HTMLElement) {
-        return this.classList.contains("tip_mark__tooltip") ? 80 : 16;
-      },
-    );
-    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
-      function (this: HTMLElement) {
-        return this.classList.contains("tip_mark__tooltip")
-          ? makeRect({ width: 256, height: 80 })
-          : this.getAttribute("aria-label") === "More information"
-            ? makeRect({ x: 100, y: 100, width: 16, height: 16 })
-            : makeRect();
-      },
-    );
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.classList.contains("tip_mark__tooltip") ? 256 : 16;
+    });
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.classList.contains("tip_mark__tooltip") ? 80 : 16;
+    });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.classList.contains("tip_mark__tooltip")
+        ? makeRect({ width: 256, height: 80 })
+        : this.getAttribute("aria-label") === "More information"
+          ? makeRect({ x: 100, y: 100, width: 16, height: 16 })
+          : makeRect();
+    });
   });
 
   afterEach(() => {
@@ -101,15 +101,15 @@ describe("TipMark", () => {
     async (placement, width, height, triggerRect) => {
       const user = userEvent.setup();
       setViewportSize(width, height);
-      vi.mocked(HTMLElement.prototype.getBoundingClientRect).mockImplementation(
-        function (this: HTMLElement) {
-          return this.classList.contains("tip_mark__tooltip")
-            ? makeRect({ width: 256, height: 80 })
-            : this.getAttribute("aria-label") === "More information"
-              ? triggerRect
-              : makeRect();
-        },
-      );
+      vi.mocked(HTMLElement.prototype.getBoundingClientRect).mockImplementation(function (
+        this: HTMLElement,
+      ) {
+        return this.classList.contains("tip_mark__tooltip")
+          ? makeRect({ width: 256, height: 80 })
+          : this.getAttribute("aria-label") === "More information"
+            ? triggerRect
+            : makeRect();
+      });
       render(<TipMark>Helpful context.</TipMark>);
 
       await user.hover(screen.getByLabelText("More information"));
