@@ -21,7 +21,7 @@ export default function Sales({ heading, sales }: SalesProps) {
           <tr>
             <th className="text-center">Image</th>
             <th>Sale</th>
-            <th>Warehouse</th>
+            <th>Purchase Status</th>
             <th>Price</th>
             <th>Country</th>
             <th>City</th>
@@ -70,17 +70,20 @@ export default function Sales({ heading, sales }: SalesProps) {
                   settlementStatus={sale.settlement_status}
                 />
               </td>
-              <td>
+              <td className="text-sm">
                 {sale.warehouses.length === 0 ? (
                   <mark className="block uppercase tracking-wide text-xs w-fit -ml-1">
                     <span className="font-semibold">NO PURCHASE</span>
                   </mark>
                 ) : (
-                  sale.warehouses.map((warehouse) => (
-                    <Link className="link block" href={warehouse.path} key={warehouse.path}>
-                      {warehouse.name}
-                    </Link>
-                  ))
+                  <div className="flex flex-col items-start gap-2">
+                    {sale.warehouses.map((warehouse) => (
+                      <Link href={warehouse.path} key={warehouse.path} prefetch>
+                        <i className="icn">📦</i>
+                        {warehouse.name}
+                      </Link>
+                    ))}
+                  </div>
                 )}
               </td>
               <td className="font-mono whitespace-nowrap">{sale.total ?? ""}</td>

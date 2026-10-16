@@ -45,7 +45,7 @@ describe("Customers/Show", () => {
       "/sales/10",
     );
     expect(screen.getByText("Twin Peaks Cherry Pie")).toHaveClass("group-hover:text-blue-600");
-    expect(screen.getByRole("link", { name: "Berlin Hub" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Berlin Hub/ })).toHaveAttribute(
       "href",
       "/warehouses/1",
     );
