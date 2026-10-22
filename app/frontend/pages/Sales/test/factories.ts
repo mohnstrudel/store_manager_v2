@@ -216,6 +216,7 @@ export function makeSaleShowPurchaseItem(
     item_price: "1030",
     unlink_path: "/purchase_items/101/unlink",
     current_warehouse_name: "Berlin Hub",
+    current_warehouse_moved_in: "18. May ’26",
     current_warehouse_path: "/warehouses/1?selected=101#101",
     warehouse_movements: [makeSalePurchaseMovement()],
     ...overrides,

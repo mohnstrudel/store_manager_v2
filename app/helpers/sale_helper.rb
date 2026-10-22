@@ -361,6 +361,7 @@ module SaleHelper
       item_price: format_money(pi.purchase.item_price),
       unlink_path: purchase_item_sale_item_link_path(pi),
       current_warehouse_name: pi.warehouse.name,
+      current_warehouse_moved_in: format_date(pi.current_warehouse_arrived_at),
       current_warehouse_path: warehouse_path(pi.warehouse, selected: pi.id, anchor: pi.id),
       warehouse_movements: pi.warehouse_movements.sort_by(&:moved_in).reverse.map { |m|
         {moved_in: format_datetime(m.moved_in), warehouse_name: m.warehouse&.name}

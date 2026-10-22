@@ -127,7 +127,7 @@ function SaleItemRow({
 
 function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemRecord }) {
   const hasMovementHistory = purchaseItem.warehouse_movements.length > 1;
-  const previousMovements = purchaseItem.warehouse_movements.slice(1);
+  const movements = purchaseItem.warehouse_movements;
   const summaryCursor = hasMovementHistory ? "cursor-pointer" : "cursor-default";
 
   const unlinkPurchaseItem = useConfirmAction("delete", purchaseItem.unlink_path, {
@@ -175,6 +175,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
               <Link className="link ml-2" href={purchaseItem.current_warehouse_path} prefetch>
                 {purchaseItem.current_warehouse_name}
               </Link>
+              <span className="ml-1 text_muted">({purchaseItem.current_warehouse_moved_in})</span>
             </span>
 
             {hasMovementHistory && <DetailsChevron />}
@@ -190,7 +191,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
                   </tr>
                 </thead>
                 <tbody>
-                  {previousMovements.map((movement) => (
+                  {movements.map((movement) => (
                     <tr className="cursor-auto" key={`${purchaseItem.id}-${movement.moved_in}`}>
                       <td className="pr-2 text_muted whitespace-nowrap">{movement.moved_in}</td>
                       <td>{movement.warehouse_name}</td>

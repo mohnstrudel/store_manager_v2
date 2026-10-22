@@ -88,6 +88,7 @@ export type SaleShowPurchaseItemRecord = {
   item_price: string;
   unlink_path: string;
   current_warehouse_name: string;
+  current_warehouse_moved_in: string;
   current_warehouse_path: string;
   warehouse_movements: SalePurchaseMovementRecord[];
 };
