@@ -36,6 +36,20 @@ describe("Products/Show/ProductVariants", () => {
       expect(within(row).getByRole("cell", { name: "30.00" })).toBeInTheDocument();
     });
 
+    it("shows the original currency amount in parentheses after the USD selling price", () => {
+      renderProductVariants([
+        makeVariant({
+          selling_price: 47.1,
+          selling_price_source_amount: 42,
+          selling_price_source_currency: "EUR",
+        }),
+      ]);
+
+      const row = screen.getByRole("row", { name: /Default/ });
+
+      expect(within(row).getByRole("cell", { name: "47.10 (42.00 EUR)" })).toBeInTheDocument();
+    });
+
     it("renders nothing for zero weight and zero costs", () => {
       renderProductVariants([makeVariant({ weight: 0, purchase_cost: 0, selling_price: 0 })]);
 

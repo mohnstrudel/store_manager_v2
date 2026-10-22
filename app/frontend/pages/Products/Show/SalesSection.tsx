@@ -56,7 +56,9 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
               </td>
               <td>{item.date}</td>
               {hasVariants && <td>{item.variant_title ?? ""}</td>}
-              <td className="text-right font-mono">{item.price}</td>
+              <td className="text-right font-mono">
+                {item.price_original ? `${item.price} (${item.price_original})` : item.price}
+              </td>
               <td>{item.qty}</td>
               <td>
                 {item.status.charAt(0).toUpperCase() + item.status.slice(1)}

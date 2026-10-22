@@ -86,6 +86,26 @@ RSpec.describe ProductHelper do
     end
   end
 
+  describe "#product_sale_item_props" do
+    let(:product) { create(:product) }
+
+    it "adds the original shop-currency price recovered from the order's USD rate" do
+      sale = create(:sale, shop_currency: "EUR", presentment_currency: "EUR", usd_conversion_rate: BigDecimal("1.1214"), exchange_rate_date: Date.new(2026, 9, 2))
+      sale_item = create(:sale_item, product:, sale:, price: BigDecimal("47.10"))
+
+      props = helper.product_sale_item_props(sale_item, product)
+
+      expect(props).to include(price: "47", price_original: "42 EUR")
+    end
+
+    it "omits the original price when the sale has no conversion rate" do
+      sale = create(:sale, shop_currency: nil, usd_conversion_rate: nil)
+      sale_item = create(:sale_item, product:, sale:, price: BigDecimal("47.10"))
+
+      expect(helper.product_sale_item_props(sale_item, product)[:price_original]).to be_nil
+    end
+  end
+
   describe "#product_timestamp_columns" do
     it "returns the local timestamp first and only includes populated store timestamps" do
       product = create(:product)

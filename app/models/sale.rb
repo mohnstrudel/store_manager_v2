@@ -120,6 +120,12 @@ class Sale < ApplicationRecord
     price if price >= 0
   end
 
+  def shop_currency_amount(usd_amount)
+    return if usd_amount.nil? || shop_currency.blank? || shop_currency == "USD" || !usd_conversion_rate&.positive?
+
+    (usd_amount.to_d / usd_conversion_rate).round(2)
+  end
+
   def reconcile_installment_attribution!(origin_item)
     installment_payment_items.each { |item| item.apply_installment_origin!(origin_item) }
   end

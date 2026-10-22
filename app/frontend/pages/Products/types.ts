@@ -45,6 +45,8 @@ export type VariantRecord = {
   weight: number;
   purchase_cost: number;
   selling_price: number;
+  selling_price_source_amount: number | null;
+  selling_price_source_currency: string | null;
   deactivated: boolean;
   active_sales_count: number;
   purchases_count: number;
@@ -65,6 +67,7 @@ export type SaleItemRecord = {
   date: string;
   variant_title: string | null;
   price: string;
+  price_original: string | null;
   qty: number;
   status: string;
   warehouse: string;
