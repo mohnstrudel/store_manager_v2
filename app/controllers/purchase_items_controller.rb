@@ -69,6 +69,7 @@ class PurchaseItemsController < ApplicationController
         :weight,
         :shipping_cost,
         :tracking_number,
+        :shipped_at,
         :warehouse_id,
         :purchase_id,
         :redirect_to_sale_item,

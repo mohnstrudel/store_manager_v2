@@ -124,6 +124,8 @@ module ProductHelper
       weight: variant.weight.to_f,
       purchase_cost: variant.purchase_cost.to_f,
       selling_price: variant.selling_price.to_f,
+      selling_price_source_amount: variant.selling_price_source_amount&.to_f,
+      selling_price_source_currency: variant.selling_price_source_currency,
       deactivated: variant.deactivated?,
       active_sales_count: sales_sums[variant.id].to_i,
       purchases_count: purchase_sums[variant.id].to_i,
@@ -146,6 +148,7 @@ module ProductHelper
 
   def product_sale_item_props(sale_item, product)
     sale = sale_item.sale
+    price = sale.projected_item_price || sale_item.price
     purchase_item = sale_item.purchase_items.first
     store_type, store_id = product_sale_info_for_sale(sale)
 
@@ -159,7 +162,8 @@ module ProductHelper
       country: sale.shipping_address&.country.presence || "",
       date: format_date(sale.woo_created_at.presence || sale_item.created_at),
       variant_title: product.variants.any? ? sale_item.variant&.title : nil,
-      price: format_money(sale.projected_item_price || sale_item.price),
+      price: format_money(price),
+      price_original: format_money(sale.shop_currency_amount(price), sale.shop_currency),
       qty: sale_item.qty,
       status: sale.status,
       warehouse: purchase_item&.warehouse&.name.presence || "",

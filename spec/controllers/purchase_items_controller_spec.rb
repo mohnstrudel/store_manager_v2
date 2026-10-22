@@ -21,6 +21,7 @@ describe PurchaseItemsController do
         expect_inertia.to render_component("PurchaseItems/Edit")
         expect(inertia.props[:purchase_item][:id]).to eq(purchase_item.id)
         expect(inertia.props[:purchase_item][:redirect_to_sale_item]).to be false
+        expect(inertia.props[:purchase_item][:shipped_at]).to eq("")
         expect(inertia.props[:options].keys).to contain_exactly("warehouses", "purchases", "shipping_companies")
         expect(inertia.props[:sale_items_table]).to be_an(Array)
       end
@@ -75,6 +76,14 @@ describe PurchaseItemsController do
       }
 
       expect(purchase_item.reload.sale_item_id).to be_nil
+    end
+
+    it "updates the shipped date" do
+      purchase_item = create(:purchase_item, tracking_number: "TRK-1", shipping_company: create(:shipping_company))
+
+      patch :update, params: {id: purchase_item.id, purchase_item: {shipped_at: "2025-12-24"}}
+
+      expect(purchase_item.reload.shipped_at).to eq(Time.zone.local(2025, 12, 24))
     end
   end
 

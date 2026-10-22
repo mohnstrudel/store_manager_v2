@@ -13,7 +13,7 @@ type FormInputProps = {
   placeholder?: string;
   required?: boolean;
   step?: string;
-  type?: "text" | "url" | "email" | "number" | "password";
+  type?: "text" | "url" | "email" | "number" | "password" | "date";
 };
 
 export default function FormInput({

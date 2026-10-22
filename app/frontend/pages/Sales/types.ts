@@ -86,6 +86,9 @@ export type SaleShowPurchaseItemRecord = {
   supplier_title: string;
   purchase_date: string;
   item_price: string;
+  tracking_number: string;
+  shipping_company_name: string;
+  shipped_at: string | null;
   unlink_path: string;
   current_warehouse_name: string;
   current_warehouse_moved_in: string;

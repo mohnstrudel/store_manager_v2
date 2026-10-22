@@ -44,7 +44,7 @@ module Sale::Listing
         {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
         sale_items: [
           {product: {media: {image_attachment: :blob}}},
-          {purchase_items: [:warehouse, {purchase: :supplier}]},
+          {purchase_items: [:warehouse, :shipping_company, {purchase: :supplier}]},
           {variant: [:version, :color, :size]}
         ]
       )

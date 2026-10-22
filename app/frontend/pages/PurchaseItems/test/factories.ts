@@ -42,6 +42,7 @@ export function makePurchaseItemFormRecord(
     weight: "2.5",
     shipping_cost: "25.00",
     tracking_number: "TRK-001",
+    shipped_at: "2026-05-21",
     media: [
       {
         id: 1,

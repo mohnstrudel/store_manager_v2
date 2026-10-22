@@ -168,6 +168,13 @@ function PurchaseItemShippingFields({
         label="Tracking Number"
         name="purchase_item[tracking_number]"
       />
+      <FormInput
+        defaultValue={purchase_item.shipped_at}
+        error={errors.shipped_at}
+        label="Shipped"
+        name="purchase_item[shipped_at]"
+        type="date"
+      />
       <FormSmartSelect<SelectOption>
         defaultValue={toSelectedOption(
           options.shipping_companies,

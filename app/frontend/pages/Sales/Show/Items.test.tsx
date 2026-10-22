@@ -117,8 +117,31 @@ describe("Sales/Show/Items", () => {
 
     expect(screen.getByRole("columnheader", { name: "Price" })).toBeInTheDocument();
     const dataRow = screen.getAllByRole("row")[1];
-    const priceCell = within(dataRow).getAllByRole("cell")[3];
+    const priceCell = within(dataRow).getAllByRole("cell")[4];
     expect(priceCell).toHaveTextContent("1060");
+  });
+
+  it("renders tracking, company and shipped date for each purchase item with a number", () => {
+    renderItems([makeSaleShowSaleItem()]);
+
+    expect(screen.getByRole("columnheader", { name: "Shipment" })).toBeInTheDocument();
+    expect(screen.getByText("TRK-001")).toBeInTheDocument();
+    expect(screen.getByText("DHL")).toBeInTheDocument();
+    expect(screen.getByText("21. May ’26")).toBeInTheDocument();
+  });
+
+  it("shows a dash for an unknown shipped date and skips purchase items without a number", () => {
+    renderItems([
+      makeSaleShowSaleItem({
+        purchase_items: [
+          makeSaleShowPurchaseItem({ id: 1, shipped_at: null }),
+          makeSaleShowPurchaseItem({ id: 2, tracking_number: "" }),
+        ],
+      }),
+    ]);
+
+    expect(screen.getAllByText("TRK-001")).toHaveLength(1);
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("always renders the price column regardless of profitability data", () => {

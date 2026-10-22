@@ -50,6 +50,7 @@ export default function Items({ saleId, saleItems, warehouseMovePath, warehouses
             {showPurchaseColumn && <th />}
             <th className="text-center w-[106px] lg:w-[114px]">Image</th>
             <th>Product</th>
+            <th>Shipment</th>
             <th className="text-right">Price</th>
           </tr>
         </thead>
@@ -120,8 +121,48 @@ function SaleItemRow({
           </mark>
         )}
       </td>
+      <td>
+        <menu>
+          {saleItem.purchase_items
+            .filter((purchaseItem) => purchaseItem.tracking_number)
+            .map((purchaseItem) => (
+              <ShipmentBlock key={purchaseItem.id} purchaseItem={purchaseItem} />
+            ))}
+        </menu>
+      </td>
       <td className="text-right">{saleItem.price}</td>
     </tr>
+  );
+}
+
+function ShipmentBlock({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemRecord }) {
+  return (
+    <li className="mt-4 first:mt-0">
+      <div className="w-fit flex items-center gap-2">
+        <div>
+          <span className="text-gray-500">
+            <i className="icn">🧾</i>&nbsp;Tracking:
+          </span>
+          <span className="ml-2">{purchaseItem.tracking_number}</span>
+        </div>
+      </div>
+      <div className="w-fit flex items-center gap-2 my-2">
+        <div>
+          <span className="text-gray-500">
+            <i className="icn">🚚</i>&nbsp;Company:
+          </span>
+          <span className="ml-2">{purchaseItem.shipping_company_name}</span>
+        </div>
+      </div>
+      <div className="w-fit flex items-center gap-2">
+        <div>
+          <span className="text-gray-500">
+            <i className="icn">📅</i>&nbsp;Shipped:
+          </span>
+          <span className="ml-2">{purchaseItem.shipped_at ?? "—"}</span>
+        </div>
+      </div>
+    </li>
   );
 }
 

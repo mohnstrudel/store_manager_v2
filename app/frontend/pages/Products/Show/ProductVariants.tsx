@@ -72,7 +72,7 @@ export default function ProductVariants({ variants }: ProductVariantsProps) {
                 {isEmptyValue(variant.purchase_cost) ? null : variant.purchase_cost.toFixed(2)}
               </td>
               <td className="text-right font-mono">
-                {isEmptyValue(variant.selling_price) ? null : variant.selling_price.toFixed(2)}
+                {isEmptyValue(variant.selling_price) ? null : formatSellingPrice(variant)}
               </td>
               {showsEconomics && (
                 <td className="text-right">
@@ -93,4 +93,12 @@ export default function ProductVariants({ variants }: ProductVariantsProps) {
       </table>
     </div>
   );
+}
+
+function formatSellingPrice(variant: VariantRecord) {
+  const usd = variant.selling_price.toFixed(2);
+  if (variant.selling_price_source_amount === null || !variant.selling_price_source_currency) {
+    return usd;
+  }
+  return `${usd} (${variant.selling_price_source_amount.toFixed(2)} ${variant.selling_price_source_currency})`;
 }

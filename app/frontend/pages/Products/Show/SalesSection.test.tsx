@@ -29,6 +29,12 @@ describe("Products/Show/SalesSection", () => {
     expect(screen.getByRole("cell", { name: "1" })).toBeInTheDocument();
   });
 
+  it("shows the original currency price in parentheses after the USD price", () => {
+    renderSalesSection({ sales: [makeSaleItem({ price: "47", price_original: "42 EUR" })] });
+
+    expect(screen.getByRole("cell", { name: "47 (42 EUR)" })).toBeInTheDocument();
+  });
+
   it("capitalizes the sale status", () => {
     renderSalesSection({ sales: [makeSaleItem({ status: "active" })] });
 
