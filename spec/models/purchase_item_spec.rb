@@ -8,6 +8,7 @@
 #  expenses             :decimal(8, 2)
 #  height               :integer
 #  length               :integer
+#  shipped_at           :datetime
 #  shipping_cost        :decimal(8, 2)    default(0.0), not null
 #  tracking_number      :string
 #  warehouse_arrived_at :datetime         not null

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -277,6 +277,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_100000) do
     t.bigint "product_id"
     t.bigint "purchase_id"
     t.bigint "sale_item_id"
+    t.datetime "shipped_at"
     t.bigint "shipping_company_id"
     t.decimal "shipping_cost", precision: 8, scale: 2, default: "0.0", null: false
     t.string "tracking_number"

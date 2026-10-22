@@ -4,10 +4,24 @@ module PurchaseItem::Shipping
   extend ActiveSupport::Concern
 
   included do
+    before_save :stamp_shipped_at, if: :stamp_shipped_at?
     after_commit :update_purchase_shipping_total, if: :should_update_purchase_shipping?
   end
 
+  def shipped_at=(value) # rubocop:disable Project/PrivateMethodCandidate
+    parsed = value&.in_time_zone
+    super((parsed&.to_date == shipped_at&.to_date) ? shipped_at : parsed)
+  end
+
   private
+
+  def stamp_shipped_at?
+    will_save_change_to_tracking_number? && !will_save_change_to_shipped_at?
+  end
+
+  def stamp_shipped_at
+    self.shipped_at = tracking_number.present? ? Time.current : nil
+  end
 
   def should_update_purchase_shipping?
     previously_new_record? || destroyed? || saved_change_to_shipping_cost? || saved_change_to_purchase_id?

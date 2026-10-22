@@ -47,6 +47,7 @@ export type PurchaseItemFormRecord = {
   weight: string;
   shipping_cost: string;
   tracking_number: string;
+  shipped_at: string;
   media: MediaFormData[];
   redirect_to_sale_item: boolean;
 };

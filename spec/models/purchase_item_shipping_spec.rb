@@ -3,6 +3,60 @@
 require "rails_helper"
 
 describe PurchaseItem do
+  describe "shipped_at" do
+    let(:company) { create(:shipping_company) }
+    let(:shipped_at) { Time.zone.local(2026, 1, 1, 10) }
+    let!(:item) { travel_to(shipped_at) { create(:purchase_item, tracking_number: "TRK-1", shipping_company: company) } }
+
+    it "is nil without a tracking number" do
+      expect(create(:purchase_item, tracking_number: nil).shipped_at).to be_nil
+    end
+
+    it "is the time the tracking number was set" do
+      expect(item.shipped_at).to eq(shipped_at)
+    end
+
+    it "moves to the time the tracking number changed" do
+      changed_at = Time.zone.local(2026, 2, 1, 10)
+      travel_to(changed_at) { item.update!(tracking_number: "TRK-2") }
+
+      expect(item.reload.shipped_at).to eq(changed_at)
+    end
+
+    it "is cleared with the tracking number" do
+      item.update!(tracking_number: nil, shipping_company: nil)
+
+      expect(item.reload.shipped_at).to be_nil
+    end
+
+    it "is unchanged by edits that keep the tracking number, past the audit history limit" do
+      travel_to(Time.zone.local(2026, 10, 22, 10)) do
+        110.times { |index| item.update!(weight: index + 1) }
+      end
+
+      expect(item.reload.shipped_at).to eq(shipped_at)
+    end
+
+    it "takes an explicit value over the automatic stamp" do
+      explicit = Time.zone.local(2025, 12, 24)
+      item.update!(tracking_number: "TRK-2", shipped_at: explicit)
+
+      expect(item.reload.shipped_at).to eq(explicit)
+    end
+
+    it "ignores a value that is the same day as the stored one" do
+      item.update!(shipped_at: shipped_at.to_date.iso8601, weight: 3)
+
+      expect(item.reload.shipped_at).to eq(shipped_at)
+    end
+
+    it "can be cleared while the tracking number stays" do
+      item.update!(shipped_at: "")
+
+      expect(item.reload.shipped_at).to be_nil
+    end
+  end
+
   describe "#cost" do
     let(:purchase) { create(:purchase, item_price: 50.0) }
     let(:purchase_item) { create(:purchase_item, purchase:, shipping_cost: 10.0) }

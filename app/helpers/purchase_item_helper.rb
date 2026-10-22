@@ -94,6 +94,7 @@ module PurchaseItemHelper
       weight: purchase_item.weight.to_s,
       shipping_cost: purchase_item.shipping_cost.to_s,
       tracking_number: purchase_item.tracking_number.to_s,
+      shipped_at: purchase_item.shipped_at&.to_date&.iso8601.to_s,
       media: purchase_item_media_form_props(purchase_item),
       redirect_to_sale_item:
     }
@@ -207,6 +208,7 @@ module PurchaseItemHelper
       weight: "",
       shipping_cost: "",
       tracking_number: "",
+      shipped_at: "",
       media: [],
       redirect_to_sale_item: false
     }
