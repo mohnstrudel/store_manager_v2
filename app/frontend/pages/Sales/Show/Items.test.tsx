@@ -53,6 +53,7 @@ describe("Sales/Show/Items", () => {
       "href",
       "/warehouses/1?selected=101#101",
     );
+    expect(screen.getByText("(18. May ’26)")).toBeInTheDocument();
   });
 
   it("shows the unavailable image placeholder and missing-purchases marker", () => {
@@ -108,6 +109,7 @@ describe("Sales/Show/Items", () => {
 
     expect(screen.getByText("Moved in")).toBeInTheDocument();
     expect(screen.getByText("Paris Hub")).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Berlin Hub" })).toBeInTheDocument();
   });
 
   it("renders the price column", () => {
