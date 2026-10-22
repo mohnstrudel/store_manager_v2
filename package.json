@@ -16,8 +16,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@dnd-kit/helpers": "^0.5.0",
-    "@dnd-kit/react": "^0.5.0",
+    "@dnd-kit/helpers": "^0.5.1",
+    "@dnd-kit/react": "^0.5.1",
     "@floating-ui/react": "^0.27.20",
     "@heroicons/react": "^2.2.0",
     "@inertiajs/react": "^3.9.1",
@@ -40,20 +40,20 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^26.6.5",
-    "@types/rails__activestorage": "^8.0.1",
+    "@types/rails__activestorage": "^8.0.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "@vitest/coverage-v8": "^5.0.4",
+    "@vitest/coverage-v8": "^5.0.5",
     "eslint-plugin-testing-library": "^7.16.2",
     "jsdom": "^30.1.3",
-    "oxfmt": "^0.73.0",
-    "oxlint": "^1.88.0",
+    "oxfmt": "^0.74.0",
+    "oxlint": "^1.89.0",
     "oxlint-tsgolint": "^7.0.2004",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4",
-    "vite-plugin-ruby": "^5.2.5",
-    "vitest": "^5.0.4"
+    "vite": "^8.3.5",
+    "vite-plugin-ruby": "^5.2.6",
+    "vitest": "^5.0.5"
   },
   "engines": {
     "node": "24.x"
