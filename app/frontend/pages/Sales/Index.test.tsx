@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { router } from "@inertiajs/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
@@ -6,7 +7,7 @@ import { makePagination, makeSalePaymentProgress } from "@/test/factories";
 
 import Index from "./Index";
 import { makeSaleIndexRecord } from "./test/factories";
-import type { PaginationMeta, SaleIndexRecord } from "./types";
+import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
 
 describe("Sales/Index", () => {
   it("renders the sales heading and add new record link", () => {
@@ -169,6 +170,347 @@ describe("Sales/Index", () => {
     expect(screen.getByText("Nothing found")).toBeInTheDocument();
   });
 
+  describe("search form", () => {
+    it("applies a sort tab click immediately with the typed query and without the old page", async () => {
+      const user = userEvent.setup();
+      renderIndex({ pagination: makePagination({ current_page: 3, total_pages: 5 }) });
+
+      await user.type(screen.getByRole("searchbox"), "dale");
+      await user.click(screen.getByRole("tab", { name: "Oldest first" }));
+
+      expect(router.get).toHaveBeenCalledTimes(1);
+      expect(router.get).toHaveBeenCalledWith(
+        "/sales",
+        { q: "dale", sort: "oldest" },
+        expect.objectContaining({
+          only: ["sales", "pagination", "search", "sort", "filters"],
+          preserveState: true,
+        }),
+      );
+    });
+
+    it("applies the typed query with the Search button", async () => {
+      const user = userEvent.setup();
+      renderIndex({ sort: "oldest" });
+
+      await user.type(screen.getByRole("searchbox"), "dale");
+      await user.click(screen.getByRole("button", { name: /Search/ }));
+
+      expect(router.get).toHaveBeenCalledTimes(1);
+      expect(router.get).toHaveBeenCalledWith(
+        "/sales",
+        { q: "dale", sort: "oldest" },
+        expect.anything(),
+      );
+    });
+
+    it("omits default settings from the request", async () => {
+      const user = userEvent.setup();
+      renderIndex({ search: { q: "dale" }, sort: "oldest" });
+
+      await user.clear(screen.getByRole("searchbox"));
+      await user.click(screen.getByRole("tab", { name: "Newest first" }));
+
+      expect(router.get).toHaveBeenCalledWith("/sales", {}, expect.anything());
+    });
+
+    it("preserves the applied query and sort in both pagination areas", () => {
+      renderIndex({
+        pagination: makePagination({ current_page: 2, total_pages: 3 }),
+        search: { q: "dale" },
+        sort: "oldest",
+      });
+
+      const navigations = screen.getAllByRole("navigation", { name: "Pagination" });
+
+      expect(navigations).toHaveLength(2);
+      for (const navigation of navigations) {
+        const hrefs = within(navigation)
+          .getAllByRole("link")
+          .map((link) => link.getAttribute("href"));
+
+        expect(hrefs).toEqual([
+          "/sales?page=1&q=dale&sort=oldest",
+          "/sales?page=1&q=dale&sort=oldest",
+          "/sales?page=3&q=dale&sort=oldest",
+          "/sales?page=3&q=dale&sort=oldest",
+        ]);
+      }
+    });
+
+    it("keeps pagination links on the applied query while typing", async () => {
+      const user = userEvent.setup();
+      renderIndex({ pagination: makePagination({ current_page: 1, total_pages: 2 }) });
+
+      await user.type(screen.getByRole("searchbox"), "dale");
+
+      for (const link of screen.getAllByRole("link", { name: "Next" })) {
+        expect(link).toHaveAttribute("href", "/sales?page=2");
+      }
+    });
+
+    it("clears the search while keeping the applied sort", () => {
+      renderIndex({ search: { q: "dale" }, sort: "oldest" });
+
+      expect(screen.getByRole("link", { name: /Clear search/ })).toHaveAttribute(
+        "href",
+        "/sales?sort=oldest",
+      );
+    });
+
+    it("offers no clear link for the default listing", () => {
+      renderIndex();
+
+      expect(screen.queryByRole("link", { name: /Clear search/ })).not.toBeInTheDocument();
+    });
+
+    it("offers no separate reset link", () => {
+      renderIndex({ search: { q: "dale" }, sort: "oldest" });
+
+      expect(screen.queryByRole("link", { name: "Reset" })).not.toBeInTheDocument();
+    });
+
+    it("marks the applied sort tab as selected and applies a new choice on click", async () => {
+      const user = userEvent.setup();
+      renderIndex({ sort: "oldest" });
+
+      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByRole("tab", { name: "Newest first" })).toHaveAttribute(
+        "aria-selected",
+        "false",
+      );
+
+      await user.click(screen.getByRole("tab", { name: "Newest first" }));
+
+      expect(screen.getByRole("tab", { name: "Newest first" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(router.get).toHaveBeenCalledTimes(1);
+      expect(router.get).toHaveBeenCalledWith("/sales", {}, expect.anything());
+    });
+
+    it("restores controls and the created marker when applied props change", () => {
+      const { rerender } = renderIndex({ search: { q: "dale" } });
+      expect(screen.getByRole("columnheader", { name: /Created/ })).toHaveTextContent("▾");
+
+      rerender(
+        indexElement({
+          filters: { hide_partial_payments: true, show_missing_purchases: true },
+          search: { q: "pikachu" },
+          sort: "oldest",
+        }),
+      );
+
+      expect(screen.getByRole("searchbox")).toHaveValue("pikachu");
+      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByRole("checkbox", { name: "Hide Partial Payments" })).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Show Missing Purchases" })).toBeChecked();
+      expect(screen.getByRole("columnheader", { name: /Created/ })).toHaveTextContent("▴");
+    });
+
+    it("keeps text typed while a sort request is pending when the response arrives", async () => {
+      const user = userEvent.setup();
+      const { rerender } = renderIndex();
+
+      await user.click(screen.getByRole("tab", { name: "Oldest first" }));
+      await user.type(screen.getByRole("searchbox"), "dale");
+      rerender(indexElement({ sort: "oldest" }));
+
+      expect(screen.getByRole("searchbox")).toHaveValue("dale");
+      expect(screen.getByRole("searchbox")).toHaveFocus();
+      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByRole("columnheader", { name: /Created/ })).toHaveTextContent("▴");
+    });
+
+    it("keeps the controls on an empty listing", () => {
+      renderIndex({
+        pagination: makePagination({ total_count: 0 }),
+        sales: [],
+        search: { q: "missing sale" },
+        sort: "oldest",
+      });
+
+      expect(screen.getByRole("searchbox")).toHaveValue("missing sale");
+      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByRole("button", { name: /Search/ })).toBeInTheDocument();
+    });
+  });
+
+  describe("Hide Partial Payments filter", () => {
+    const hidePartialPayments = { hide_partial_payments: true, show_missing_purchases: false };
+
+    it("is unchecked by default and checked when the applied filter is on", () => {
+      const { unmount } = renderIndex();
+      expect(screen.getByRole("checkbox", { name: "Hide Partial Payments" })).not.toBeChecked();
+      unmount();
+
+      renderIndex({ filters: hidePartialPayments });
+      expect(screen.getByRole("checkbox", { name: "Hide Partial Payments" })).toBeChecked();
+    });
+
+    it("applies the toggled filter immediately as 1 with the typed query", async () => {
+      const user = userEvent.setup();
+      renderIndex({ pagination: makePagination({ current_page: 2, total_pages: 3 }) });
+
+      await user.type(screen.getByRole("searchbox"), "dale");
+      await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
+
+      expect(router.get).toHaveBeenCalledTimes(1);
+      expect(router.get).toHaveBeenCalledWith(
+        "/sales",
+        { q: "dale", hide_partial_payments: "1" },
+        expect.anything(),
+      );
+    });
+
+    it("omits the filter from the request once unchecked", async () => {
+      const user = userEvent.setup();
+      renderIndex({ filters: hidePartialPayments });
+
+      await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
+
+      expect(router.get).toHaveBeenCalledWith("/sales", {}, expect.anything());
+    });
+
+    it("keeps the filter when clearing the search", () => {
+      renderIndex({ filters: hidePartialPayments, search: { q: "dale" }, sort: "oldest" });
+
+      expect(screen.getByRole("link", { name: /Clear search/ })).toHaveAttribute(
+        "href",
+        "/sales?sort=oldest&hide_partial_payments=1",
+      );
+    });
+
+    it("keeps both pagination areas on the applied filter while a change is pending", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        filters: hidePartialPayments,
+        pagination: makePagination({ current_page: 1, total_pages: 2 }),
+      });
+
+      await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
+
+      const nextLinks = screen.getAllByRole("link", { name: "Next" });
+      expect(nextLinks).toHaveLength(2);
+      for (const link of nextLinks) {
+        expect(link).toHaveAttribute("href", "/sales?page=2&hide_partial_payments=1");
+      }
+    });
+
+    it("shows Nothing found with usable controls when only the filter empties the listing", () => {
+      renderIndex({
+        filters: hidePartialPayments,
+        pagination: makePagination({ total_count: 0 }),
+        sales: [],
+      });
+
+      expect(screen.getByText("Nothing found")).toBeInTheDocument();
+      expect(screen.getByRole("checkbox", { name: "Hide Partial Payments" })).toBeChecked();
+      expect(screen.getByRole("button", { name: /Search/ })).toBeInTheDocument();
+    });
+  });
+
+  describe("Show Missing Purchases filter", () => {
+    const showMissingPurchases = { hide_partial_payments: false, show_missing_purchases: true };
+    const bothFilters = { hide_partial_payments: true, show_missing_purchases: true };
+
+    it("is unchecked by default and checked when the applied filter is on", () => {
+      const { unmount } = renderIndex();
+      expect(screen.getByRole("checkbox", { name: "Show Missing Purchases" })).not.toBeChecked();
+      unmount();
+
+      renderIndex({ filters: showMissingPurchases });
+      expect(screen.getByRole("checkbox", { name: "Show Missing Purchases" })).toBeChecked();
+    });
+
+    it("sends every setting with each change so the last request carries the full form", async () => {
+      const user = userEvent.setup();
+      renderIndex({ pagination: makePagination({ current_page: 2, total_pages: 3 }) });
+
+      await user.type(screen.getByRole("searchbox"), "dale");
+      await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
+      await user.click(screen.getByRole("checkbox", { name: "Show Missing Purchases" }));
+      await user.click(screen.getByRole("tab", { name: "Oldest first" }));
+
+      expect(router.get).toHaveBeenCalledTimes(3);
+      expect(router.get).toHaveBeenLastCalledWith(
+        "/sales",
+        {
+          q: "dale",
+          sort: "oldest",
+          hide_partial_payments: "1",
+          show_missing_purchases: "1",
+        },
+        expect.anything(),
+      );
+    });
+
+    it("keeps both flags and the sort when clearing the search", () => {
+      renderIndex({ filters: bothFilters, search: { q: "dale" }, sort: "oldest" });
+
+      expect(screen.getByRole("link", { name: /Clear search/ })).toHaveAttribute(
+        "href",
+        "/sales?sort=oldest&hide_partial_payments=1&show_missing_purchases=1",
+      );
+    });
+
+    it("keeps both pagination areas on the applied state while changes are pending", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        filters: showMissingPurchases,
+        pagination: makePagination({ current_page: 1, total_pages: 2 }),
+        search: { q: "dale" },
+        sort: "oldest",
+      });
+
+      await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
+      await user.click(screen.getByRole("checkbox", { name: "Show Missing Purchases" }));
+
+      const nextLinks = screen.getAllByRole("link", { name: "Next" });
+      expect(nextLinks).toHaveLength(2);
+      for (const link of nextLinks) {
+        expect(link).toHaveAttribute(
+          "href",
+          "/sales?page=2&q=dale&sort=oldest&show_missing_purchases=1",
+        );
+      }
+    });
+
+    it("shows Nothing found and keeps the form recoverable when only the filters empty the listing", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        filters: bothFilters,
+        pagination: makePagination({ total_count: 0 }),
+        sales: [],
+      });
+
+      expect(screen.getByText("Nothing found")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("checkbox", { name: "Show Missing Purchases" }));
+
+      expect(router.get).toHaveBeenCalledTimes(1);
+      expect(router.get).toHaveBeenCalledWith(
+        "/sales",
+        { hide_partial_payments: "1" },
+        expect.anything(),
+      );
+      expect(screen.getByRole("checkbox", { name: "Hide Partial Payments" })).toBeChecked();
+    });
+  });
+
   describe("Store Sync dialog", () => {
     it("renders the Store Sync button", () => {
       renderIndex();
@@ -209,18 +551,35 @@ describe("Sales/Index", () => {
   });
 });
 
-function renderIndex({
-  sales = [makeSaleIndexRecord()],
-  pagination = makePagination(),
-  search = { q: "" },
-  last_sync_time = "20.05 at 10:00",
-}: {
+function renderIndex(options: IndexOptions = {}) {
+  return render(indexElement(options));
+}
+
+type IndexOptions = {
   sales?: SaleIndexRecord[];
   pagination?: PaginationMeta;
   search?: { q: string };
+  sort?: SaleSort;
+  filters?: SalesFilters;
   last_sync_time?: string | null;
-} = {}) {
-  return render(
-    <Index last_sync_time={last_sync_time} pagination={pagination} sales={sales} search={search} />,
+};
+
+function indexElement({
+  sales = [makeSaleIndexRecord()],
+  pagination = makePagination(),
+  search = { q: "" },
+  sort = "newest",
+  filters = { hide_partial_payments: false, show_missing_purchases: false },
+  last_sync_time = "20.05 at 10:00",
+}: IndexOptions = {}) {
+  return (
+    <Index
+      filters={filters}
+      last_sync_time={last_sync_time}
+      pagination={pagination}
+      sales={sales}
+      search={search}
+      sort={sort}
+    />
   );
 }

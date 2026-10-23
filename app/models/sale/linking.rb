@@ -3,6 +3,12 @@
 module Sale::Linking
   extend ActiveSupport::Concern
 
+  included do
+    scope :with_missing_purchases, -> {
+      where(id: SaleItem.short_of_purchases.select(:sale_id)).without_follow_up_payments
+    }
+  end
+
   def link_purchase_items!
     link_with_purchase_items
   end

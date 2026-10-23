@@ -38,6 +38,375 @@ RSpec.describe "Sales" do
       expect(inertia.props[:sales].pluck(:id)).to eq([matching.id])
     end
 
+    describe "sorting" do
+      def create_dated_sale(day, **attributes)
+        create(:sale, woo_created_at: Time.utc(2024, 1, day), **attributes)
+      end
+
+      def listed_ids
+        inertia.props[:sales].pluck(:id)
+      end
+
+      it "defaults to newest first for an absent or invalid sort" do
+        older = create_dated_sale(1)
+        newer = create_dated_sale(2)
+
+        [{}, {sort: "bogus"}, {sort: ["oldest"]}].each do |params|
+          get sales_path, params: params
+
+          expect_inertia.to have_props(sort: "newest")
+          expect(listed_ids).to eq([newer.id, older.id])
+        end
+      end
+
+      it "lists oldest first and returns the normalized sort" do
+        older = create_dated_sale(1)
+        newer = create_dated_sale(2)
+        create_dated_sale(3, status: "completed")
+
+        get sales_path, params: {sort: "oldest", q: ""}
+
+        expect_inertia.to have_props(sort: "oldest", search: {q: ""})
+        expect(listed_ids).to eq([older.id, newer.id])
+      end
+
+      it "keeps search results under oldest first for support users" do
+        log_out
+        sign_in create(:user, :support)
+        older = create_dated_sale(1, shopify_name: "HSCM#1")
+        newer = create_dated_sale(2, shopify_name: "HSCM#2")
+        create_dated_sale(3, shopify_name: "Other order")
+
+        get sales_path, params: {q: "HSCM", sort: "oldest"}
+
+        expect(response).to have_http_status(:ok)
+        expect(listed_ids).to eq([older.id, newer.id])
+      end
+
+      it "denies users without sales access when listing parameters are supplied" do
+        log_out
+        sign_in create(:user, :guest)
+        create_dated_sale(1)
+
+        get sales_path, params: {sort: "oldest", show_missing_purchases: "1", hide_partial_payments: "1"}
+
+        expect(response).to redirect_to(noop_path)
+      end
+
+      it "pages oldest first across the page boundary" do
+        sales = (1..51).map { |day| create(:sale, woo_created_at: Time.utc(2024, 1, 1) + day.days) }
+
+        get sales_path, params: {sort: "oldest"}
+        expect(listed_ids).to eq(sales.first(50).map(&:id))
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 51, limit: 50})
+
+        get sales_path, params: {sort: "oldest", page: 2}
+        expect(listed_ids).to eq([sales.last.id])
+      end
+
+      it "returns the normalized criteria with listing props on a partial reload" do
+        sale = create_dated_sale(1)
+
+        get sales_path,
+          params: {sort: "oldest", q: ""},
+          headers: {
+            "X-Inertia" => "true",
+            "X-Inertia-Partial-Component" => "Sales/Index",
+            "X-Inertia-Partial-Data" => "sales,pagination,search,sort"
+          }
+
+        expect_inertia.to have_props(
+          pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50},
+          search: {q: ""},
+          sort: "oldest"
+        )
+        expect(listed_ids).to eq([sale.id])
+      end
+    end
+
+    describe "hiding partial payments" do
+      let!(:origin) { create(:sale, woo_created_at: Time.utc(2024, 1, 1), shopify_store_id: "gid://shopify/Order/900", note: "batch") }
+      let!(:follow_up) { create(:sale, woo_created_at: Time.utc(2024, 1, 2), shopify_store_id: "gid://shopify/Order/901", note: "batch") }
+      let!(:ordinary) { create(:sale, woo_created_at: Time.utc(2024, 1, 3), note: "batch") }
+
+      before do
+        SalePaymentPlan.reconcile!(
+          attributes: {
+            provider: "seal",
+            external_id: "subscription-900",
+            external_origin_order_id: "900",
+            kind: "installments",
+            status: "active",
+            expected_parts: 2,
+            synced_at: Time.current
+          },
+          parts: [
+            {provider_part_id: "900-1", sequence: 1, external_order_id: "900"},
+            {provider_part_id: "900-2", sequence: 2, external_order_id: "901"}
+          ]
+        )
+      end
+
+      it "enables the filter only for the exact value 1" do
+        [{}, {hide_partial_payments: "0"}, {hide_partial_payments: "true"}, {hide_partial_payments: "yes"}].each do |params|
+          get sales_path, params: params.merge(sort: "oldest")
+
+          expect_inertia.to have_props(filters: {hide_partial_payments: false, show_missing_purchases: false})
+          expect(inertia.props[:sales].pluck(:id)).to eq([origin.id, follow_up.id, ordinary.id])
+        end
+
+        get sales_path, params: {hide_partial_payments: "1", sort: "oldest"}
+
+        expect_inertia.to have_props(
+          filters: {hide_partial_payments: true, show_missing_purchases: false},
+          sort: "oldest",
+          pagination: {current_page: 1, total_pages: 1, total_count: 2, limit: 50}
+        )
+        expect(inertia.props[:sales].pluck(:id)).to eq([origin.id, ordinary.id])
+      end
+
+      it "applies search and sort before and with the filter" do
+        get sales_path, params: {q: "batch", sort: "newest", hide_partial_payments: "1"}
+
+        expect_inertia.to have_props(search: {q: "batch"}, filters: {hide_partial_payments: true, show_missing_purchases: false})
+        expect(inertia.props[:sales].pluck(:id)).to eq([ordinary.id, origin.id])
+      end
+
+      it "returns an empty result instead of falling back to text when an exact Store ID is filtered out" do
+        create(:sale, note: "customer asked about 901")
+
+        get sales_path, params: {q: "901", hide_partial_payments: "1"}
+
+        expect(inertia.props[:sales]).to be_empty
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 0, total_count: 0, limit: 50})
+      end
+
+      it "returns the normalized filter on a partial reload" do
+        get sales_path,
+          params: {hide_partial_payments: "1"},
+          headers: {
+            "X-Inertia" => "true",
+            "X-Inertia-Partial-Component" => "Sales/Index",
+            "X-Inertia-Partial-Data" => "sales,pagination,search,sort,filters"
+          }
+
+        expect_inertia.to have_props(filters: {hide_partial_payments: true, show_missing_purchases: false})
+      end
+
+      it "serves a fresh response when the checkbox changes but the visible rows do not" do
+        follow_up.destroy
+        get sales_path
+        etag = response.headers["ETag"]
+
+        get sales_path, params: {hide_partial_payments: "1"}, headers: {"If-None-Match" => etag}
+
+        expect(response).to have_http_status(:ok)
+        expect_inertia.to have_props(filters: {hide_partial_payments: true, show_missing_purchases: false})
+      end
+    end
+
+    describe "showing missing purchases" do
+      def create_sale_with_line(day: 1, qty: 1, linked: 0, **attributes)
+        sale = create(:sale, woo_created_at: Time.utc(2024, 1, 1) + day.days, **attributes)
+        product = create(:product)
+        sale_item = create(:sale_item, sale:, product:, qty:)
+        link_purchase_items(sale_item, linked)
+        sale
+      end
+
+      def link_purchase_items(sale_item, count)
+        return if count.zero?
+
+        purchase = create(:purchase, product: sale_item.product, amount: count)
+        create_list(:purchase_item, count, purchase:, sale_item:)
+      end
+
+      def listed_ids
+        inertia.props[:sales].pluck(:id)
+      end
+
+      it "enables the filter only for the exact value 1" do
+        short = create_sale_with_line(day: 1)
+        covered = create_sale_with_line(day: 2, linked: 1)
+
+        [{}, {show_missing_purchases: "0"}, {show_missing_purchases: "true"}].each do |params|
+          get sales_path, params: params.merge(sort: "oldest")
+
+          expect_inertia.to have_props(filters: {hide_partial_payments: false, show_missing_purchases: false})
+          expect(listed_ids).to eq([short.id, covered.id])
+        end
+
+        get sales_path, params: {show_missing_purchases: "1", sort: "oldest"}
+
+        expect_inertia.to have_props(
+          filters: {hide_partial_payments: false, show_missing_purchases: true},
+          pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50}
+        )
+        expect(listed_ids).to eq([short.id])
+      end
+
+      it "renders every line and purchase link of a matching sale once" do
+        sale = create(:sale)
+        short_item = create(:sale_item, sale:, product: create(:product), qty: 2)
+        covered_item = create(:sale_item, sale:, product: create(:product), qty: 1)
+        other_short_item = create(:sale_item, sale:, product: create(:product), qty: 3)
+        link_purchase_items(short_item, 1)
+        link_purchase_items(covered_item, 1)
+
+        get sales_path, params: {show_missing_purchases: "1"}
+
+        expect(listed_ids).to eq([sale.id])
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50})
+        lines = inertia.props[:sales].first[:sale_items]
+        expect(lines.pluck(:id)).to contain_exactly(short_item.id, covered_item.id, other_short_item.id)
+        expect(lines.to_h { |line| [line[:id], line[:purchase_items].size] })
+          .to eq(short_item.id => 1, covered_item.id => 1, other_short_item.id => 0)
+      end
+
+      it "combines with the partial-payment filter, search and sort" do
+        origin = create_sale_with_line(day: 1, shopify_store_id: "gid://shopify/Order/900", note: "batch")
+        follow_up = create_sale_with_line(day: 2, shopify_store_id: "gid://shopify/Order/901", note: "batch")
+        ordinary = create_sale_with_line(day: 3, note: "batch", received_revenue: 100, outstanding_revenue: 100)
+        covered = create_sale_with_line(day: 4, linked: 1, note: "batch")
+        SalePaymentPlan.reconcile!(
+          attributes: {
+            provider: "seal",
+            external_id: "subscription-900",
+            external_origin_order_id: "900",
+            kind: "installments",
+            status: "active",
+            expected_parts: 2,
+            synced_at: Time.current
+          },
+          parts: [
+            {provider_part_id: "900-1", sequence: 1, external_order_id: "900"},
+            {provider_part_id: "900-2", sequence: 2, external_order_id: "901"}
+          ]
+        )
+        expected = {
+          {} => [origin, follow_up, ordinary, covered],
+          {hide_partial_payments: "1"} => [origin, ordinary, covered],
+          {show_missing_purchases: "1"} => [origin, ordinary],
+          {hide_partial_payments: "1", show_missing_purchases: "1"} => [origin, ordinary]
+        }
+
+        expected.each do |filters, sales|
+          get sales_path, params: filters.merge(q: "batch", sort: "oldest")
+
+          expect(listed_ids).to eq(sales.map(&:id))
+          expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 1, total_count: sales.size, limit: 50}, search: {q: "batch"}, sort: "oldest")
+        end
+      end
+
+      it "returns an empty result when the exact Store ID target has no shortage" do
+        create_sale_with_line(linked: 1, shopify_store_id: "gid://shopify/Order/777")
+        create_sale_with_line(note: "customer asked about 777")
+
+        get sales_path, params: {q: "777", show_missing_purchases: "1"}
+
+        expect(listed_ids).to be_empty
+      end
+
+      it "pages 51 matching sales oldest first among nonmatching orders" do
+        matching = (1..51).map { |day| create_sale_with_line(day:) }
+        create_sale_with_line(day: 60, linked: 1)
+
+        get sales_path, params: {show_missing_purchases: "1", sort: "oldest"}
+        expect(listed_ids).to eq(matching.first(50).map(&:id))
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 51, limit: 50})
+
+        get sales_path, params: {show_missing_purchases: "1", sort: "oldest", page: 2}
+        expect(listed_ids).to eq([matching.last.id])
+      end
+
+      it "returns both normalized filters on a partial reload" do
+        create_sale_with_line
+
+        get sales_path,
+          params: {show_missing_purchases: "1"},
+          headers: {
+            "X-Inertia" => "true",
+            "X-Inertia-Partial-Component" => "Sales/Index",
+            "X-Inertia-Partial-Data" => "sales,pagination,search,sort,filters"
+          }
+
+        expect_inertia.to have_props(filters: {hide_partial_payments: false, show_missing_purchases: true})
+      end
+
+      it "serves a fresh response when only an off-page shortage changes" do
+        older_short = create_sale_with_line(day: 1)
+        50.times { |index| create_sale_with_line(day: 10 + index) }
+        get sales_path, params: {show_missing_purchases: "1"}
+        etag = response.headers["ETag"]
+        first_page_ids = listed_ids
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 51, limit: 50})
+
+        link_purchase_items(older_short.sale_items.first, 1)
+        get sales_path, params: {show_missing_purchases: "1"}, headers: {"If-None-Match" => etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(listed_ids).to eq(first_page_ids)
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 1, total_count: 50, limit: 50})
+      end
+    end
+
+    describe "conditional requests" do
+      def create_dated_sale(day)
+        create(:sale, woo_created_at: Time.utc(2024, 1, day))
+      end
+
+      def get_with_etag(etag, **params)
+        get sales_path, params:, headers: {"If-None-Match" => etag}
+      end
+
+      it "serves a fresh response when only the sort changes" do
+        older = create_dated_sale(1)
+        newer = create_dated_sale(2)
+        get sales_path
+        newest_etag = response.headers["ETag"]
+
+        get_with_etag(newest_etag, sort: "oldest")
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:sales].pluck(:id)).to eq([older.id, newer.id])
+      end
+
+      it "serves a fresh response when only an off-page total changes" do
+        50.times { |index| create(:sale, woo_created_at: Time.utc(2024, 3, 1) + index.days) }
+        create_dated_sale(1)
+        get sales_path
+        etag = response.headers["ETag"]
+        first_page_ids = inertia.props[:sales].pluck(:id)
+
+        create_dated_sale(2)
+        get_with_etag(etag)
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:sales].pluck(:id)).to eq(first_page_ids)
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 52, limit: 50})
+      end
+
+      it "serves a fresh response when only the echoed query text changes" do
+        create_dated_sale(1)
+        get sales_path, params: {q: ""}
+        etag = response.headers["ETag"]
+
+        get_with_etag(etag, q: " ")
+
+        expect(response).to have_http_status(:ok)
+        expect_inertia.to have_props(search: {q: " "})
+      end
+
+      it "answers not modified when nothing changed" do
+        create_dated_sale(1)
+        get sales_path, params: {sort: "oldest"}
+
+        get_with_etag(response.headers["ETag"], sort: "oldest")
+
+        expect(response).to have_http_status(:not_modified)
+      end
+    end
+
     describe "payment props" do
       before do
         create(

@@ -58,4 +58,28 @@ describe("Pagination", () => {
 
     expect(screen.queryByRole("navigation", { name: "Pagination" })).not.toBeInTheDocument();
   });
+
+  it("appends extra params to every link", () => {
+    render(
+      <Pagination
+        pagination={{ current_page: 2, total_pages: 3 }}
+        params={{ sort: "oldest" }}
+        path="/items"
+        query="makima"
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Previous" })).toHaveAttribute(
+      "href",
+      "/items?page=1&q=makima&sort=oldest",
+    );
+    expect(screen.getByRole("link", { name: "3" })).toHaveAttribute(
+      "href",
+      "/items?page=3&q=makima&sort=oldest",
+    );
+    expect(screen.getByRole("link", { name: "Next" })).toHaveAttribute(
+      "href",
+      "/items?page=3&q=makima&sort=oldest",
+    );
+  });
 });
