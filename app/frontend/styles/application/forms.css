@@ -81,6 +81,14 @@
     background-repeat: no-repeat;
   }
 
+  input[type="checkbox"].small {
+    @apply h-4 w-4 mt-0;
+  }
+
+  input[type="checkbox"].small:checked {
+    background-size: 1rem;
+  }
+
   input[type="radio"] {
     @apply rounded-full checked:bg-white dark:checked:bg-gray-800 checked:border-6;
   }

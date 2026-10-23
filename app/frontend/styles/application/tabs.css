@@ -11,6 +11,16 @@
     @apply shadow-sm bg-white/80 dark:bg-gray-700 text-gray-600 dark:text-gray-200;
   }
 
+  .tab_bar_outline {
+    @apply bg-white dark:bg-gray-900 border-3 border-gray-200 dark:border-gray-700;
+
+    border-block-style: unset;
+  }
+
+  .tab_bar_outline .tab_btn[aria-selected="true"] {
+    @apply shadow-none bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+  }
+
   .tab_bar_underline {
     @apply w-full flex items-end gap-1 border-b border-gray-200 dark:border-gray-800;
   }
