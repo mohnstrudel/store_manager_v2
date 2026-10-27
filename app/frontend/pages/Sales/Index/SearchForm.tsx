@@ -1,4 +1,4 @@
-import { Link, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
 
 import routes from "@/utils/routes";
@@ -59,6 +59,8 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
     [draft, submit],
   );
 
+  const handleClear = useCallback(() => applyChange({ q: "" }), [applyChange]);
+
   const handleSortSelect = useCallback(
     (value: SaleSort) => applyChange({ sort: value }),
     [applyChange],
@@ -87,21 +89,16 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
           Search
         </button>
         {hasSearch && (
-          <Link
-            className="btn_rounded btn_red"
-            href={listingHref({ q: "", sort, ...filters })}
-            prefetch
-          >
+          <button className="btn_rounded btn_red" onClick={handleClear} type="button">
             <i className="icn">❎</i>
             Clear search
-          </Link>
+          </button>
         )}
       </div>
       <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-6 px-4">
-        <div
+        <fieldset
           aria-label="Sort sales"
           className="tab_bar tab_bar_outline shrink-0 sm:w-fit mt-0 mb-0"
-          role="tablist"
         >
           {SORT_OPTIONS.map(({ value, label }) => (
             <SortTab
@@ -112,7 +109,7 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
               value={value}
             />
           ))}
-        </div>
+        </fieldset>
         <FilterCheckbox
           checked={draft.hide_partial_payments}
           label="Hide Partial Payments"
@@ -170,10 +167,9 @@ function SortTab({ label, onSelect, selected, value }: SortTabProps) {
 
   return (
     <button
-      aria-selected={selected}
+      aria-pressed={selected}
       className="tab_btn whitespace-nowrap"
       onClick={handleClick}
-      role="tab"
       type="button"
     >
       {label}

@@ -70,7 +70,7 @@ describe "GET /sales" do
 
     def expect_controls(q:, sort:, hide:, show:)
       expect(page).to have_field("q", with: q)
-      expect(page).to have_css("[role='tab'][aria-selected='true']", text: sort, exact_text: true)
+      expect(page).to have_css("button[aria-pressed='true']", text: sort, exact_text: true)
       expect(page).to have_field("Hide Partial Payments", checked: hide)
       expect(page).to have_field("Missing Purchases Only", checked: show)
     end
@@ -173,11 +173,11 @@ describe "GET /sales" do
       page.driver.resize(360, 844)
 
       expect(page).to have_button("Search")
-      expect(page).to have_link("Clear search")
-      expect(page).to have_css("[role='tablist'] [role='tab']", count: 2)
+      expect(page).to have_button("Clear search")
+      expect(page).to have_css("fieldset[aria-label='Sort sales'] button", count: 2)
       expect(page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth + 1")).to be(true)
 
-      click_link "Clear search"
+      click_button "Clear search"
 
       expect(page).to have_css("tbody tr", count: 50)
       expect(first("tbody tr")).to have_text("BATCH-001")

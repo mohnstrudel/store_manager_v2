@@ -176,7 +176,7 @@ describe("Sales/Index", () => {
       renderIndex({ pagination: makePagination({ current_page: 3, total_pages: 5 }) });
 
       await user.type(screen.getByRole("searchbox"), "dale");
-      await user.click(screen.getByRole("tab", { name: "Oldest first" }));
+      await user.click(screen.getByRole("button", { name: "Oldest first" }));
 
       expect(router.get).toHaveBeenCalledTimes(1);
       expect(router.get).toHaveBeenCalledWith(
@@ -209,7 +209,7 @@ describe("Sales/Index", () => {
       renderIndex({ search: { q: "dale" }, sort: "oldest" });
 
       await user.clear(screen.getByRole("searchbox"));
-      await user.click(screen.getByRole("tab", { name: "Newest first" }));
+      await user.click(screen.getByRole("button", { name: "Newest first" }));
 
       expect(router.get).toHaveBeenCalledWith("/sales", {}, expect.anything());
     });
@@ -249,19 +249,33 @@ describe("Sales/Index", () => {
       }
     });
 
-    it("clears the search while keeping the applied sort", () => {
+    it("clears the search while keeping the applied sort", async () => {
+      const user = userEvent.setup();
       renderIndex({ search: { q: "dale" }, sort: "oldest" });
 
-      expect(screen.getByRole("link", { name: /Clear search/ })).toHaveAttribute(
-        "href",
-        "/sales?sort=oldest",
+      await user.click(screen.getByRole("button", { name: /Clear search/ }));
+
+      expect(router.get).toHaveBeenLastCalledWith("/sales", { sort: "oldest" }, expect.anything());
+    });
+
+    it("clears the search with the latest filter choice", async () => {
+      const user = userEvent.setup();
+      renderIndex({ search: { q: "dale" } });
+
+      await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
+      await user.click(screen.getByRole("button", { name: /Clear search/ }));
+
+      expect(router.get).toHaveBeenLastCalledWith(
+        "/sales",
+        { hide_partial_payments: "1" },
+        expect.anything(),
       );
     });
 
     it("offers no clear link for the default listing", () => {
       renderIndex();
 
-      expect(screen.queryByRole("link", { name: /Clear search/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Clear search/ })).not.toBeInTheDocument();
     });
 
     it("offers no separate reset link", () => {
@@ -274,19 +288,19 @@ describe("Sales/Index", () => {
       const user = userEvent.setup();
       renderIndex({ sort: "oldest" });
 
-      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
-        "aria-selected",
+      expect(screen.getByRole("button", { name: "Oldest first" })).toHaveAttribute(
+        "aria-pressed",
         "true",
       );
-      expect(screen.getByRole("tab", { name: "Newest first" })).toHaveAttribute(
-        "aria-selected",
+      expect(screen.getByRole("button", { name: "Newest first" })).toHaveAttribute(
+        "aria-pressed",
         "false",
       );
 
-      await user.click(screen.getByRole("tab", { name: "Newest first" }));
+      await user.click(screen.getByRole("button", { name: "Newest first" }));
 
-      expect(screen.getByRole("tab", { name: "Newest first" })).toHaveAttribute(
-        "aria-selected",
+      expect(screen.getByRole("button", { name: "Newest first" })).toHaveAttribute(
+        "aria-pressed",
         "true",
       );
       expect(router.get).toHaveBeenCalledTimes(1);
@@ -306,8 +320,8 @@ describe("Sales/Index", () => {
       );
 
       expect(screen.getByRole("searchbox")).toHaveValue("pikachu");
-      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
-        "aria-selected",
+      expect(screen.getByRole("button", { name: "Oldest first" })).toHaveAttribute(
+        "aria-pressed",
         "true",
       );
       expect(screen.getByRole("checkbox", { name: "Hide Partial Payments" })).toBeChecked();
@@ -319,14 +333,14 @@ describe("Sales/Index", () => {
       const user = userEvent.setup();
       const { rerender } = renderIndex();
 
-      await user.click(screen.getByRole("tab", { name: "Oldest first" }));
+      await user.click(screen.getByRole("button", { name: "Oldest first" }));
       await user.type(screen.getByRole("searchbox"), "dale");
       rerender(indexElement({ sort: "oldest" }));
 
       expect(screen.getByRole("searchbox")).toHaveValue("dale");
       expect(screen.getByRole("searchbox")).toHaveFocus();
-      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
-        "aria-selected",
+      expect(screen.getByRole("button", { name: "Oldest first" })).toHaveAttribute(
+        "aria-pressed",
         "true",
       );
       expect(screen.getByRole("columnheader", { name: /Created/ })).toHaveTextContent("▴");
@@ -341,8 +355,8 @@ describe("Sales/Index", () => {
       });
 
       expect(screen.getByRole("searchbox")).toHaveValue("missing sale");
-      expect(screen.getByRole("tab", { name: "Oldest first" })).toHaveAttribute(
-        "aria-selected",
+      expect(screen.getByRole("button", { name: "Oldest first" })).toHaveAttribute(
+        "aria-pressed",
         "true",
       );
       expect(screen.getByRole("button", { name: /Search/ })).toBeInTheDocument();
@@ -385,12 +399,16 @@ describe("Sales/Index", () => {
       expect(router.get).toHaveBeenCalledWith("/sales", {}, expect.anything());
     });
 
-    it("keeps the filter when clearing the search", () => {
+    it("keeps the filter when clearing the search", async () => {
+      const user = userEvent.setup();
       renderIndex({ filters: hidePartialPayments, search: { q: "dale" }, sort: "oldest" });
 
-      expect(screen.getByRole("link", { name: /Clear search/ })).toHaveAttribute(
-        "href",
-        "/sales?sort=oldest&hide_partial_payments=1",
+      await user.click(screen.getByRole("button", { name: /Clear search/ }));
+
+      expect(router.get).toHaveBeenLastCalledWith(
+        "/sales",
+        { sort: "oldest", hide_partial_payments: "1" },
+        expect.anything(),
       );
     });
 
@@ -443,7 +461,7 @@ describe("Sales/Index", () => {
       await user.type(screen.getByRole("searchbox"), "dale");
       await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
       await user.click(screen.getByRole("checkbox", { name: "Missing Purchases Only" }));
-      await user.click(screen.getByRole("tab", { name: "Oldest first" }));
+      await user.click(screen.getByRole("button", { name: "Oldest first" }));
 
       expect(router.get).toHaveBeenCalledTimes(3);
       expect(router.get).toHaveBeenLastCalledWith(
@@ -458,12 +476,16 @@ describe("Sales/Index", () => {
       );
     });
 
-    it("keeps both flags and the sort when clearing the search", () => {
+    it("keeps both flags and the sort when clearing the search", async () => {
+      const user = userEvent.setup();
       renderIndex({ filters: bothFilters, search: { q: "dale" }, sort: "oldest" });
 
-      expect(screen.getByRole("link", { name: /Clear search/ })).toHaveAttribute(
-        "href",
-        "/sales?sort=oldest&hide_partial_payments=1&missing_purchases_only=1",
+      await user.click(screen.getByRole("button", { name: /Clear search/ }));
+
+      expect(router.get).toHaveBeenLastCalledWith(
+        "/sales",
+        { sort: "oldest", hide_partial_payments: "1", missing_purchases_only: "1" },
+        expect.anything(),
       );
     });
 
