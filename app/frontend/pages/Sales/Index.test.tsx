@@ -299,7 +299,7 @@ describe("Sales/Index", () => {
 
       rerender(
         indexElement({
-          filters: { hide_partial_payments: true, show_missing_purchases: true },
+          filters: { hide_partial_payments: true, missing_purchases_only: true },
           search: { q: "pikachu" },
           sort: "oldest",
         }),
@@ -311,7 +311,7 @@ describe("Sales/Index", () => {
         "true",
       );
       expect(screen.getByRole("checkbox", { name: "Hide Partial Payments" })).toBeChecked();
-      expect(screen.getByRole("checkbox", { name: "Show Missing Purchases" })).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Missing Purchases Only" })).toBeChecked();
       expect(screen.getByRole("columnheader", { name: /Created/ })).toHaveTextContent("▴");
     });
 
@@ -350,7 +350,7 @@ describe("Sales/Index", () => {
   });
 
   describe("Hide Partial Payments filter", () => {
-    const hidePartialPayments = { hide_partial_payments: true, show_missing_purchases: false };
+    const hidePartialPayments = { hide_partial_payments: true, missing_purchases_only: false };
 
     it("is unchecked by default and checked when the applied filter is on", () => {
       const { unmount } = renderIndex();
@@ -423,17 +423,17 @@ describe("Sales/Index", () => {
     });
   });
 
-  describe("Show Missing Purchases filter", () => {
-    const showMissingPurchases = { hide_partial_payments: false, show_missing_purchases: true };
-    const bothFilters = { hide_partial_payments: true, show_missing_purchases: true };
+  describe("Missing Purchases Only filter", () => {
+    const missingPurchasesOnly = { hide_partial_payments: false, missing_purchases_only: true };
+    const bothFilters = { hide_partial_payments: true, missing_purchases_only: true };
 
     it("is unchecked by default and checked when the applied filter is on", () => {
       const { unmount } = renderIndex();
-      expect(screen.getByRole("checkbox", { name: "Show Missing Purchases" })).not.toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Missing Purchases Only" })).not.toBeChecked();
       unmount();
 
-      renderIndex({ filters: showMissingPurchases });
-      expect(screen.getByRole("checkbox", { name: "Show Missing Purchases" })).toBeChecked();
+      renderIndex({ filters: missingPurchasesOnly });
+      expect(screen.getByRole("checkbox", { name: "Missing Purchases Only" })).toBeChecked();
     });
 
     it("sends every setting with each change so the last request carries the full form", async () => {
@@ -442,7 +442,7 @@ describe("Sales/Index", () => {
 
       await user.type(screen.getByRole("searchbox"), "dale");
       await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
-      await user.click(screen.getByRole("checkbox", { name: "Show Missing Purchases" }));
+      await user.click(screen.getByRole("checkbox", { name: "Missing Purchases Only" }));
       await user.click(screen.getByRole("tab", { name: "Oldest first" }));
 
       expect(router.get).toHaveBeenCalledTimes(3);
@@ -452,7 +452,7 @@ describe("Sales/Index", () => {
           q: "dale",
           sort: "oldest",
           hide_partial_payments: "1",
-          show_missing_purchases: "1",
+          missing_purchases_only: "1",
         },
         expect.anything(),
       );
@@ -463,28 +463,28 @@ describe("Sales/Index", () => {
 
       expect(screen.getByRole("link", { name: /Clear search/ })).toHaveAttribute(
         "href",
-        "/sales?sort=oldest&hide_partial_payments=1&show_missing_purchases=1",
+        "/sales?sort=oldest&hide_partial_payments=1&missing_purchases_only=1",
       );
     });
 
     it("keeps both pagination areas on the applied state while changes are pending", async () => {
       const user = userEvent.setup();
       renderIndex({
-        filters: showMissingPurchases,
+        filters: missingPurchasesOnly,
         pagination: makePagination({ current_page: 1, total_pages: 2 }),
         search: { q: "dale" },
         sort: "oldest",
       });
 
       await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
-      await user.click(screen.getByRole("checkbox", { name: "Show Missing Purchases" }));
+      await user.click(screen.getByRole("checkbox", { name: "Missing Purchases Only" }));
 
       const nextLinks = screen.getAllByRole("link", { name: "Next" });
       expect(nextLinks).toHaveLength(2);
       for (const link of nextLinks) {
         expect(link).toHaveAttribute(
           "href",
-          "/sales?page=2&q=dale&sort=oldest&show_missing_purchases=1",
+          "/sales?page=2&q=dale&sort=oldest&missing_purchases_only=1",
         );
       }
     });
@@ -499,7 +499,7 @@ describe("Sales/Index", () => {
 
       expect(screen.getByText("Nothing found")).toBeInTheDocument();
 
-      await user.click(screen.getByRole("checkbox", { name: "Show Missing Purchases" }));
+      await user.click(screen.getByRole("checkbox", { name: "Missing Purchases Only" }));
 
       expect(router.get).toHaveBeenCalledTimes(1);
       expect(router.get).toHaveBeenCalledWith(
@@ -569,7 +569,7 @@ function indexElement({
   pagination = makePagination(),
   search = { q: "" },
   sort = "newest",
-  filters = { hide_partial_payments: false, show_missing_purchases: false },
+  filters = { hide_partial_payments: false, missing_purchases_only: false },
   last_sync_time = "20.05 at 10:00",
 }: IndexOptions = {}) {
   return (

@@ -120,9 +120,9 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
           onToggle={handleFilterToggle}
         />
         <FilterCheckbox
-          checked={draft.show_missing_purchases}
-          label="Show Missing Purchases"
-          name="show_missing_purchases"
+          checked={draft.missing_purchases_only}
+          label="Missing Purchases Only"
+          name="missing_purchases_only"
           onToggle={handleFilterToggle}
         />
       </div>

@@ -11,10 +11,10 @@ module Sale::Listing
       SORT_DIRECTIONS.key?(value) ? value : "newest"
     end
 
-    def listing(query:, sort:, hide_partial_payments: false, show_missing_purchases: false)
+    def listing(query:, sort:, hide_partial_payments: false, missing_purchases_only: false)
       matches = for_listing.except_cancelled_or_completed.search_by(query)
       matches = matches.without_follow_up_payments if hide_partial_payments
-      matches = matches.with_missing_purchases if show_missing_purchases
+      matches = matches.with_missing_purchases if missing_purchases_only
       matches.sorted_by(sort)
     end
   end

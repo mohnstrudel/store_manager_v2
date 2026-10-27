@@ -22,7 +22,7 @@ describe "GET /sales" do
 
   describe "procurement queue", :js do
     let(:applied_query) do
-      {"q" => "batch", "sort" => "oldest", "hide_partial_payments" => "1", "show_missing_purchases" => "1"}
+      {"q" => "batch", "sort" => "oldest", "hide_partial_payments" => "1", "missing_purchases_only" => "1"}
     end
 
     def create_batch_sale(name, day:, linked: 0, **attributes)
@@ -72,7 +72,7 @@ describe "GET /sales" do
       expect(page).to have_field("q", with: q)
       expect(page).to have_css("[role='tab'][aria-selected='true']", text: sort, exact_text: true)
       expect(page).to have_field("Hide Partial Payments", checked: hide)
-      expect(page).to have_field("Show Missing Purchases", checked: show)
+      expect(page).to have_field("Missing Purchases Only", checked: show)
     end
 
     def pagination_link(label)
@@ -124,7 +124,7 @@ describe "GET /sales" do
       expect_applied_query("q" => "batch", "sort" => "oldest")
       check "Hide Partial Payments"
       expect_applied_query("q" => "batch", "sort" => "oldest", "hide_partial_payments" => "1")
-      check "Show Missing Purchases"
+      check "Missing Purchases Only"
       expect_applied_query(applied_query)
 
       expect(page).to have_css("tbody tr", count: 50)
@@ -187,8 +187,8 @@ describe "GET /sales" do
       click_button "Newest first"
       expect_applied_query(applied_query.except("q", "sort"))
       uncheck "Hide Partial Payments"
-      expect_applied_query("show_missing_purchases" => "1")
-      uncheck "Show Missing Purchases"
+      expect_applied_query("missing_purchases_only" => "1")
+      uncheck "Missing Purchases Only"
       expect_applied_query({})
 
       expect(page).to have_css("tbody tr", count: 50)

@@ -18,14 +18,14 @@ export function listingParams({
   q,
   sort,
   hide_partial_payments,
-  show_missing_purchases,
+  missing_purchases_only,
 }: SalesListingSettings): Record<string, string> {
   const params: Record<string, string> = {};
 
   if (q) params.q = q;
   if (sort !== "newest") params.sort = sort;
   if (hide_partial_payments) params.hide_partial_payments = "1";
-  if (show_missing_purchases) params.show_missing_purchases = "1";
+  if (missing_purchases_only) params.missing_purchases_only = "1";
 
   return params;
 }

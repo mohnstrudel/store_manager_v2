@@ -43,7 +43,7 @@ export type SaleSort = "newest" | "oldest";
 
 export type SalesFilters = {
   hide_partial_payments: boolean;
-  show_missing_purchases: boolean;
+  missing_purchases_only: boolean;
 };
 
 export type SaleIndexRecord = {

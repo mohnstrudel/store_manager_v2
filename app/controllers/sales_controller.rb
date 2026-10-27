@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SalesController < ApplicationController
-  LISTING_FILTERS = %i[hide_partial_payments show_missing_purchases].freeze
+  LISTING_FILTERS = %i[hide_partial_payments missing_purchases_only].freeze
 
   before_action :set_sale_for_show, only: :show
   before_action :set_sale, only: %i[edit update destroy]

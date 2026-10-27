@@ -88,7 +88,7 @@ RSpec.describe "Sales" do
         sign_in create(:user, :guest)
         create_dated_sale(1)
 
-        get sales_path, params: {sort: "oldest", show_missing_purchases: "1", hide_partial_payments: "1"}
+        get sales_path, params: {sort: "oldest", missing_purchases_only: "1", hide_partial_payments: "1"}
 
         expect(response).to redirect_to(noop_path)
       end
@@ -151,14 +151,14 @@ RSpec.describe "Sales" do
         [{}, {hide_partial_payments: "0"}, {hide_partial_payments: "true"}, {hide_partial_payments: "yes"}].each do |params|
           get sales_path, params: params.merge(sort: "oldest")
 
-          expect_inertia.to have_props(filters: {hide_partial_payments: false, show_missing_purchases: false})
+          expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false})
           expect(inertia.props[:sales].pluck(:id)).to eq([origin.id, follow_up.id, ordinary.id])
         end
 
         get sales_path, params: {hide_partial_payments: "1", sort: "oldest"}
 
         expect_inertia.to have_props(
-          filters: {hide_partial_payments: true, show_missing_purchases: false},
+          filters: {hide_partial_payments: true, missing_purchases_only: false},
           sort: "oldest",
           pagination: {current_page: 1, total_pages: 1, total_count: 2, limit: 50}
         )
@@ -168,7 +168,7 @@ RSpec.describe "Sales" do
       it "applies search and sort before and with the filter" do
         get sales_path, params: {q: "batch", sort: "newest", hide_partial_payments: "1"}
 
-        expect_inertia.to have_props(search: {q: "batch"}, filters: {hide_partial_payments: true, show_missing_purchases: false})
+        expect_inertia.to have_props(search: {q: "batch"}, filters: {hide_partial_payments: true, missing_purchases_only: false})
         expect(inertia.props[:sales].pluck(:id)).to eq([ordinary.id, origin.id])
       end
 
@@ -190,7 +190,7 @@ RSpec.describe "Sales" do
             "X-Inertia-Partial-Data" => "sales,pagination,search,sort,filters"
           }
 
-        expect_inertia.to have_props(filters: {hide_partial_payments: true, show_missing_purchases: false})
+        expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: false})
       end
 
       it "serves a fresh response when the checkbox changes but the visible rows do not" do
@@ -201,7 +201,7 @@ RSpec.describe "Sales" do
         get sales_path, params: {hide_partial_payments: "1"}, headers: {"If-None-Match" => etag}
 
         expect(response).to have_http_status(:ok)
-        expect_inertia.to have_props(filters: {hide_partial_payments: true, show_missing_purchases: false})
+        expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: false})
       end
     end
 
@@ -229,17 +229,17 @@ RSpec.describe "Sales" do
         short = create_sale_with_line(day: 1)
         covered = create_sale_with_line(day: 2, linked: 1)
 
-        [{}, {show_missing_purchases: "0"}, {show_missing_purchases: "true"}].each do |params|
+        [{}, {missing_purchases_only: "0"}, {missing_purchases_only: "true"}].each do |params|
           get sales_path, params: params.merge(sort: "oldest")
 
-          expect_inertia.to have_props(filters: {hide_partial_payments: false, show_missing_purchases: false})
+          expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false})
           expect(listed_ids).to eq([short.id, covered.id])
         end
 
-        get sales_path, params: {show_missing_purchases: "1", sort: "oldest"}
+        get sales_path, params: {missing_purchases_only: "1", sort: "oldest"}
 
         expect_inertia.to have_props(
-          filters: {hide_partial_payments: false, show_missing_purchases: true},
+          filters: {hide_partial_payments: false, missing_purchases_only: true},
           pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50}
         )
         expect(listed_ids).to eq([short.id])
@@ -253,7 +253,7 @@ RSpec.describe "Sales" do
         link_purchase_items(short_item, 1)
         link_purchase_items(covered_item, 1)
 
-        get sales_path, params: {show_missing_purchases: "1"}
+        get sales_path, params: {missing_purchases_only: "1"}
 
         expect(listed_ids).to eq([sale.id])
         expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50})
@@ -286,8 +286,8 @@ RSpec.describe "Sales" do
         expected = {
           {} => [origin, follow_up, ordinary, covered],
           {hide_partial_payments: "1"} => [origin, ordinary, covered],
-          {show_missing_purchases: "1"} => [origin, ordinary],
-          {hide_partial_payments: "1", show_missing_purchases: "1"} => [origin, ordinary]
+          {missing_purchases_only: "1"} => [origin, ordinary],
+          {hide_partial_payments: "1", missing_purchases_only: "1"} => [origin, ordinary]
         }
 
         expected.each do |filters, sales|
@@ -302,7 +302,7 @@ RSpec.describe "Sales" do
         create_sale_with_line(linked: 1, shopify_store_id: "gid://shopify/Order/777")
         create_sale_with_line(note: "customer asked about 777")
 
-        get sales_path, params: {q: "777", show_missing_purchases: "1"}
+        get sales_path, params: {q: "777", missing_purchases_only: "1"}
 
         expect(listed_ids).to be_empty
       end
@@ -311,11 +311,11 @@ RSpec.describe "Sales" do
         matching = (1..51).map { |day| create_sale_with_line(day:) }
         create_sale_with_line(day: 60, linked: 1)
 
-        get sales_path, params: {show_missing_purchases: "1", sort: "oldest"}
+        get sales_path, params: {missing_purchases_only: "1", sort: "oldest"}
         expect(listed_ids).to eq(matching.first(50).map(&:id))
         expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 51, limit: 50})
 
-        get sales_path, params: {show_missing_purchases: "1", sort: "oldest", page: 2}
+        get sales_path, params: {missing_purchases_only: "1", sort: "oldest", page: 2}
         expect(listed_ids).to eq([matching.last.id])
       end
 
@@ -323,26 +323,26 @@ RSpec.describe "Sales" do
         create_sale_with_line
 
         get sales_path,
-          params: {show_missing_purchases: "1"},
+          params: {missing_purchases_only: "1"},
           headers: {
             "X-Inertia" => "true",
             "X-Inertia-Partial-Component" => "Sales/Index",
             "X-Inertia-Partial-Data" => "sales,pagination,search,sort,filters"
           }
 
-        expect_inertia.to have_props(filters: {hide_partial_payments: false, show_missing_purchases: true})
+        expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: true})
       end
 
       it "serves a fresh response when only an off-page shortage changes" do
         older_short = create_sale_with_line(day: 1)
         50.times { |index| create_sale_with_line(day: 10 + index) }
-        get sales_path, params: {show_missing_purchases: "1"}
+        get sales_path, params: {missing_purchases_only: "1"}
         etag = response.headers["ETag"]
         first_page_ids = listed_ids
         expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 51, limit: 50})
 
         link_purchase_items(older_short.sale_items.first, 1)
-        get sales_path, params: {show_missing_purchases: "1"}, headers: {"If-None-Match" => etag}
+        get sales_path, params: {missing_purchases_only: "1"}, headers: {"If-None-Match" => etag}
 
         expect(response).to have_http_status(:ok)
         expect(listed_ids).to eq(first_page_ids)
