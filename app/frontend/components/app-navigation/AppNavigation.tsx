@@ -61,6 +61,8 @@ const primaryLinks: NavigationLink[] = [
       sales: [],
       pagination: emptyPagination,
       search: emptySearch,
+      sort: "newest",
+      filters: { hide_partial_payments: false, missing_purchases_only: false },
       last_sync_at: null,
       last_sync_time: null,
     },
