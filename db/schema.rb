@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_27_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -452,6 +452,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_100000) do
     t.check_constraint "shop_currency IS NULL AND presentment_currency IS NULL AND usd_conversion_rate IS NULL AND exchange_rate_date IS NULL OR shop_currency IS NOT NULL AND presentment_currency IS NOT NULL AND usd_conversion_rate IS NOT NULL AND exchange_rate_date IS NOT NULL", name: "sales_currency_fields_all_or_none"
     t.check_constraint "shop_currency IS NULL OR shop_currency::text ~ '^[A-Z]{3}$'::text", name: "sales_shop_currency_format"
     t.check_constraint "usd_conversion_rate IS NULL OR usd_conversion_rate > 0::numeric", name: "sales_usd_conversion_rate_positive"
+  end
+
+  create_table "sales_tags", force: :cascade do |t|
+    t.string "color", default: "gray", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "normalized_name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["normalized_name"], name: "index_sales_tags_on_normalized_name", unique: true
   end
 
   create_table "sessions", force: :cascade do |t|

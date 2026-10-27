@@ -123,6 +123,20 @@ describe("AppNavigation", () => {
     expect(screen.queryByRole("link", { name: "Email History" })).not.toBeInTheDocument();
   });
 
+  it("shows the sales tags catalog link to admins only", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<AppNavigation />);
+
+    await user.click(screen.getByRole("button", { name: "More navigation links" }));
+    expect(screen.getByRole("link", { name: "Sales Tags" })).toHaveAttribute("href", "/sales_tags");
+
+    for (const role of ["manager", "support"]) {
+      mockPageProps({ auth: { user: { id: 2, email_address: `${role}@example.com`, role } } });
+      rerender(<AppNavigation />);
+      expect(screen.queryByRole("link", { name: "Sales Tags" })).not.toBeInTheDocument();
+    }
+  });
+
   it("closes the overflow menu when a navigation link is selected", async () => {
     const user = userEvent.setup();
 
