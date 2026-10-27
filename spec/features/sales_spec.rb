@@ -6,6 +6,34 @@ describe "GET /sales" do
   before { sign_in_as_admin }
   after { log_out }
 
+  it "renders Sales navigation before the server responds and then loads the listing", :js do
+    create(:sale, shopify_name: "NAVIGATION-SALE")
+    visit customers_path
+    expect(page).to have_css("h1", text: "Customers")
+
+    page.execute_script(<<~JS)
+      window.heldNavigationRequests = [];
+      window.originalNavigationSend = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function (...args) {
+        window.heldNavigationRequests.push(() => window.originalNavigationSend.apply(this, args));
+      };
+    JS
+
+    within("nav[aria-label='Main navigation']") { click_link "Sales" }
+
+    expect(page).to have_css("h1", text: "Sales")
+    expect(page).to have_css("button[aria-pressed='true']", text: "Newest first")
+    expect(page).to have_field("Hide Partial Payments", checked: false)
+    expect(page).to have_field("Missing Purchases Only", checked: false)
+
+    page.execute_script(<<~JS)
+      XMLHttpRequest.prototype.send = window.originalNavigationSend;
+      window.heldNavigationRequests.splice(0).forEach((send) => send());
+    JS
+
+    expect(page).to have_text("NAVIGATION-SALE")
+  end
+
   it "shows warehouse buttons instead of sale status on the index page", :js do
     sale = create(:sale, status: Sale.active_status_names.first)
     product = create(:product)
