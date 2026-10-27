@@ -5,13 +5,14 @@ import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
-import type { SaleIndexRecord } from "../types";
+import type { SaleIndexRecord, SaleSort } from "../types";
 
 type TableProps = {
   sales: SaleIndexRecord[];
+  sort: SaleSort;
 };
 
-export default function Table({ sales }: TableProps) {
+export default function Table({ sales, sort }: TableProps) {
   if (sales.length === 0) return null;
 
   return (
@@ -24,7 +25,7 @@ export default function Table({ sales }: TableProps) {
           </th>
           <th className="w-80">Purchase Status</th>
           <th>
-            Created&nbsp;&nbsp;▾
+            Created&nbsp;&nbsp;{sort === "oldest" ? "▴" : "▾"}
             <br />
             <span className="font-normal text-gray-500">Updated</span>
           </th>

@@ -39,6 +39,13 @@ export type SalePaymentRecord = PaymentProgress & {
   payment_overdue: boolean;
 };
 
+export type SaleSort = "newest" | "oldest";
+
+export type SalesFilters = {
+  hide_partial_payments: boolean;
+  missing_purchases_only: boolean;
+};
+
 export type SaleIndexRecord = {
   id: number;
   path: string;

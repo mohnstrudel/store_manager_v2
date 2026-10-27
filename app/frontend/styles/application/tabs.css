@@ -7,8 +7,20 @@
     @apply w-full flex items-center justify-center rounded-full px-4 py-1 bg-transparent dark:bg-transparent hover:bg-transparent dark:hover:bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-150 text-sm font-medium;
   }
 
-  .tab_btn[aria-selected="true"] {
+  .tab_btn[aria-selected="true"],
+  .tab_btn[aria-pressed="true"] {
     @apply shadow-sm bg-white/80 dark:bg-gray-700 text-gray-600 dark:text-gray-200;
+  }
+
+  .tab_bar_outline {
+    @apply bg-white dark:bg-gray-900 border-3 border-gray-200 dark:border-gray-700;
+
+    border-block-style: unset;
+  }
+
+  .tab_bar_outline .tab_btn[aria-selected="true"],
+  .tab_bar_outline .tab_btn[aria-pressed="true"] {
+    @apply shadow-none bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100;
   }
 
   .tab_bar_underline {

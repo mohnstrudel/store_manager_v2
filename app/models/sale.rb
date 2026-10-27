@@ -49,6 +49,7 @@ class Sale < ApplicationRecord
   include Addresses
   include BookedRevenue
   include Editing
+  include FollowUpPayments
   include HasAuditNotifications
   include Linking
   include Listing
@@ -96,16 +97,6 @@ class Sale < ApplicationRecord
     received_revenue.to_d.positive? && outstanding_revenue.to_d.positive?
   end
 
-  def follow_up_payment?
-    payment_plans_for_display.any? { |plan| plan.origin_sale_id != id && plan.part_number_for(self).present? }
-  end
-
-  def payment_plans_for_display
-    (origin_payment_plans.to_a + sale_payment_parts.map(&:sale_payment_plan))
-      .uniq(&:id)
-      .sort_by { |plan| [plan.created_at, plan.id] }
-  end
-
   def projected_item_price
     return if sale_items.size != 1
     return if shipping_total.blank?
@@ -118,6 +109,12 @@ class Sale < ApplicationRecord
 
     price = plan.projected_total - shipping_total.to_d
     price if price >= 0
+  end
+
+  def payment_plans_for_display
+    (origin_payment_plans.to_a + sale_payment_parts.map(&:sale_payment_plan))
+      .uniq(&:id)
+      .sort_by { |plan| [plan.created_at, plan.id] }
   end
 
   def shop_currency_amount(usd_amount)

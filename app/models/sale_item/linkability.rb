@@ -15,6 +15,13 @@ module SaleItem::Linkability
     scope :linkable, -> {
       where("qty > purchase_items_count").where(origin_sale_item_id: nil)
     }
+
+    scope :short_of_purchases, -> {
+      non_installment
+        .joins(:product)
+        .where(products: {non_catalog: false})
+        .where("sale_items.qty > (SELECT COUNT(*) FROM purchase_items WHERE purchase_items.sale_item_id = sale_items.id)")
+    }
   end
 
   class_methods do

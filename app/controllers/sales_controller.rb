@@ -1,23 +1,24 @@
 # frozen_string_literal: true
 
 class SalesController < ApplicationController
+  LISTING_FILTERS = %i[hide_partial_payments missing_purchases_only].freeze
+
   before_action :set_sale_for_show, only: :show
   before_action :set_sale, only: %i[edit update destroy]
 
   def index
-    @sales = Sale
-      .for_listing
-      .except_cancelled_or_completed
-      .ordered_by_shop_created_at
-      .search_by(params[:q])
-      .page(params[:page])
+    criteria = listing_criteria
+    @sales = Sale.listing(**criteria).page(params[:page])
+    pagination = helpers.pagination_props(@sales)
 
-    return unless stale?(etag: [@sales, request.inertia?], last_modified: @sales.maximum(:updated_at))
+    return unless stale?(etag: [@sales, request.inertia?, criteria, pagination], last_modified: @sales.maximum(:updated_at))
 
     render inertia: "Sales/Index", props: {
       sales: @sales.map { |sale| helpers.sale_listing_props(sale) },
-      pagination: helpers.pagination_props(@sales),
-      search: {q: params[:q].to_s},
+      pagination:,
+      search: {q: criteria[:query]},
+      sort: criteria[:sort],
+      filters: criteria.slice(*LISTING_FILTERS),
       last_sync_at: helpers.format_last_fetched_at(Config.shopify_sales_sync_at),
       last_sync_time: Config.shopify_sales_sync_time
     }
@@ -75,6 +76,14 @@ class SalesController < ApplicationController
   end
 
   private
+
+  def listing_criteria
+    {
+      query: params[:q].to_s,
+      sort: Sale.listing_sort(params[:sort]),
+      **LISTING_FILTERS.index_with { |name| params[name] == "1" }
+    }
+  end
 
   def append_sale_item_errors(record, payload:)
     return unless record.is_a?(SaleItem)

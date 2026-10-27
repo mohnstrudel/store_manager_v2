@@ -189,6 +189,78 @@ RSpec.describe Sale do
     end
   end
 
+  describe ".follow_up_payments" do
+    it "selects later plan parts regardless of payment balance and keeps origins and ordinary sales" do
+      origin = create(:sale, shopify_store_id: "gid://shopify/Order/900", received_revenue: 0, outstanding_revenue: 500)
+      follow_up = create(:sale, shopify_store_id: "gid://shopify/Order/901", received_revenue: 500, outstanding_revenue: 0)
+      ordinary = create(:sale, received_revenue: 100, outstanding_revenue: 100)
+      create_plan(
+        external_origin_order_id: "900",
+        parts: [
+          {sequence: 1, provider_part_id: "part-1", external_order_id: "900"},
+          {sequence: 2, provider_part_id: "part-2", external_order_id: "901"}
+        ]
+      )
+
+      expect(described_class.follow_up_payments).to contain_exactly(follow_up)
+      expect(described_class.without_follow_up_payments).to contain_exactly(origin, ordinary)
+    end
+
+    it "agrees with the record predicate for every plan shape without duplicating sales" do
+      no_plan = create(:sale)
+      origin = create(:sale, shopify_store_id: "gid://shopify/Order/900")
+      follow_up = create(:sale, shopify_store_id: "gid://shopify/Order/901")
+      create_plan(
+        external_id: "sub-regular",
+        external_origin_order_id: "900",
+        parts: [
+          {sequence: 1, provider_part_id: "regular-1", external_order_id: "900"},
+          {sequence: 2, provider_part_id: "regular-2", external_order_id: "901"}
+        ]
+      )
+      second_plan_origin = create(:sale, shopify_store_id: "gid://shopify/Order/902")
+      create_plan(
+        external_id: "sub-second",
+        external_origin_order_id: "902",
+        parts: [
+          {sequence: 1, provider_part_id: "second-1", external_order_id: "902"},
+          {sequence: 2, provider_part_id: "second-2", external_order_id: "901"}
+        ]
+      )
+      schedule_order = create(:sale, shopify_store_id: "gid://shopify/Order/950")
+      create_plan(
+        provider: "shopify",
+        kind: "payment_terms",
+        external_id: "terms-950",
+        external_origin_order_id: "950",
+        parts: [
+          {sequence: 1, provider_part_id: "sched-1", external_order_id: "950"},
+          {sequence: 2, provider_part_id: "sched-2", external_order_id: "950"}
+        ]
+      )
+      inactive_part_sale = create(:sale, shopify_store_id: "gid://shopify/Order/960")
+      create_plan(
+        external_id: "sub-inactive",
+        external_origin_order_id: "961",
+        parts: [{sequence: 1, provider_part_id: "inactive-1", external_order_id: "960"}]
+      )
+      SalePaymentPart.where(sale: inactive_part_sale).update_all(active: false)
+      nil_origin_follow_up = create(:sale, shopify_store_id: "gid://shopify/Order/970")
+      create_plan(
+        external_id: "sub-orphan",
+        external_origin_order_id: "971",
+        parts: [{sequence: 1, provider_part_id: "orphan-1", external_order_id: "970"}]
+      )
+
+      expected_follow_ups = [follow_up, nil_origin_follow_up]
+      expected_retained = [no_plan, origin, second_plan_origin, schedule_order, inactive_part_sale]
+
+      expect(described_class.follow_up_payments.pluck(:id)).to match_array(expected_follow_ups.map(&:id))
+      expect(described_class.without_follow_up_payments.pluck(:id)).to match_array(expected_retained.map(&:id))
+      expect(described_class.all.select(&:follow_up_payment?)).to match_array(expected_follow_ups)
+    end
+  end
+
   describe "#projected_item_price" do
     it "computes projected merchandise minus shipping for a single-item sale naming itself as plan origin" do
       sale = create(:sale, shopify_store_id: "gid://shopify/Order/100", shipping_total: BigDecimal("22.90"))

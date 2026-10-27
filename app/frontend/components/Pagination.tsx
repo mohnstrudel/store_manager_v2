@@ -9,6 +9,7 @@ type PaginationProps = {
   className?: string;
   label?: string;
   pagination: PaginationMeta;
+  params?: Record<string, string>;
   query?: string;
   path: string;
 };
@@ -21,6 +22,7 @@ export default function Pagination({
   className = "",
   label = "Pagination",
   pagination,
+  params,
   query,
   path,
 }: PaginationProps) {
@@ -31,15 +33,28 @@ export default function Pagination({
 
   return (
     <nav aria-label={label} className={`pagination ${className}`}>
-      <PreviousPageLink currentPage={current_page} path={path} query={query} />
-      <PageList currentPage={current_page} items={visibleItems} path={path} query={query} />
-      <NextPageLink currentPage={current_page} path={path} query={query} totalPages={total_pages} />
+      <PreviousPageLink currentPage={current_page} params={params} path={path} query={query} />
+      <PageList
+        currentPage={current_page}
+        items={visibleItems}
+        params={params}
+        path={path}
+        query={query}
+      />
+      <NextPageLink
+        currentPage={current_page}
+        params={params}
+        path={path}
+        query={query}
+        totalPages={total_pages}
+      />
     </nav>
   );
 }
 
 type PreviousPageLinkProps = {
   currentPage: number;
+  params?: Record<string, string>;
   path: string;
   query?: string;
 };
@@ -85,13 +100,13 @@ function buildVisiblePaginationItems(currentPage: number, totalPages: number): P
 
   return visiblePages;
 }
-function PreviousPageLink({ currentPage, path, query }: PreviousPageLinkProps) {
+function PreviousPageLink({ currentPage, params, path, query }: PreviousPageLinkProps) {
   if (currentPage <= 1) return null;
 
   return (
     <Link
       className="pagination_previous"
-      href={hrefForPage(path, currentPage - 1, query)}
+      href={hrefForPage(path, currentPage - 1, query, params)}
       rel="prev"
       prefetch
     >
@@ -100,12 +115,14 @@ function PreviousPageLink({ currentPage, path, query }: PreviousPageLinkProps) {
   );
 }
 
-function hrefForPage(path: string, page: number, query?: string) {
+function hrefForPage(path: string, page: number, query?: string, params?: Record<string, string>) {
   const searchParams = new URLSearchParams();
 
   searchParams.set("page", String(page));
 
   if (query) searchParams.set("q", query);
+
+  for (const [name, value] of Object.entries(params ?? {})) searchParams.set(name, value);
 
   return `${path}?${searchParams.toString()}`;
 }
@@ -113,11 +130,12 @@ function hrefForPage(path: string, page: number, query?: string) {
 type PageListProps = {
   currentPage: number;
   items: PaginationItem[];
+  params?: Record<string, string>;
   path: string;
   query?: string;
 };
 
-function PageList({ currentPage, items, path, query }: PageListProps) {
+function PageList({ currentPage, items, params, path, query }: PageListProps) {
   return (
     <div className="pagination_pages">
       {items.map((item) => (
@@ -125,6 +143,7 @@ function PageList({ currentPage, items, path, query }: PageListProps) {
           currentPage={currentPage}
           item={item}
           key={itemKey(item)}
+          params={params}
           path={path}
           query={query}
         />
@@ -136,24 +155,26 @@ function PageList({ currentPage, items, path, query }: PageListProps) {
 type PageListItemProps = {
   currentPage: number;
   item: PaginationItem;
+  params?: Record<string, string>;
   path: string;
   query?: string;
 };
 
 type NextPageLinkProps = {
   currentPage: number;
+  params?: Record<string, string>;
   path: string;
   query?: string;
   totalPages: number;
 };
 
-function NextPageLink({ currentPage, path, query, totalPages }: NextPageLinkProps) {
+function NextPageLink({ currentPage, params, path, query, totalPages }: NextPageLinkProps) {
   if (currentPage >= totalPages) return null;
 
   return (
     <Link
       className="pagination_next"
-      href={hrefForPage(path, currentPage + 1, query)}
+      href={hrefForPage(path, currentPage + 1, query, params)}
       rel="next"
       prefetch
     >
@@ -162,7 +183,7 @@ function NextPageLink({ currentPage, path, query, totalPages }: NextPageLinkProp
   );
 }
 
-function PageListItem({ currentPage, item, path, query }: PageListItemProps) {
+function PageListItem({ currentPage, item, params, path, query }: PageListItemProps) {
   if (item.type === "gap") {
     return <span className="pagination_gap">…</span>;
   }
@@ -176,7 +197,7 @@ function PageListItem({ currentPage, item, path, query }: PageListItemProps) {
   }
 
   return (
-    <Link className="pagination_link" href={hrefForPage(path, item.page, query)} prefetch>
+    <Link className="pagination_link" href={hrefForPage(path, item.page, query, params)} prefetch>
       {item.page}
     </Link>
   );

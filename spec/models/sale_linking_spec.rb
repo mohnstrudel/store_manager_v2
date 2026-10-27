@@ -189,4 +189,116 @@ RSpec.describe Sale do
       end
     end
   end
+
+  describe ".with_missing_purchases" do
+    def sale_with_line(qty:, linked:, product: create(:product), **sale_attributes)
+      sale = create(:sale, status: active_status, **sale_attributes)
+      sale_item = create(:sale_item, sale:, product:, qty:)
+      link_purchase_items(sale_item, linked)
+      sale
+    end
+
+    def link_purchase_items(sale_item, count)
+      return if count.zero?
+
+      purchase = create(:purchase, supplier:, product: sale_item.product, amount: count)
+      create_list(:purchase_item, count, purchase:, warehouse:, sale_item:)
+    end
+
+    def create_follow_up_plan(origin_order_id:, follow_up_order_id:)
+      SalePaymentPlan.reconcile!(
+        attributes: {
+          provider: "seal",
+          external_id: "subscription-#{origin_order_id}",
+          external_origin_order_id: origin_order_id,
+          kind: "installments",
+          status: "active",
+          expected_parts: 2,
+          synced_at: Time.current
+        },
+        parts: [
+          {provider_part_id: "#{origin_order_id}-1", sequence: 1, external_order_id: origin_order_id},
+          {provider_part_id: "#{origin_order_id}-2", sequence: 2, external_order_id: follow_up_order_id}
+        ]
+      )
+    end
+
+    it "matches a line whose sold quantity exceeds its actual linked purchase items" do
+      none_linked = sale_with_line(qty: 3, linked: 0)
+      some_linked = sale_with_line(qty: 3, linked: 1)
+      sale_with_line(qty: 3, linked: 3)
+      sale_with_line(qty: 3, linked: 4)
+
+      expect(described_class.with_missing_purchases).to contain_exactly(none_linked, some_linked)
+    end
+
+    it "does not let one overcovered line offset another short line" do
+      sale = create(:sale, status: active_status)
+      overcovered = create(:sale_item, sale:, product: create(:product), qty: 2)
+      short = create(:sale_item, sale:, product: create(:product), qty: 2)
+      link_purchase_items(overcovered, 3)
+      link_purchase_items(short, 1)
+
+      expect(described_class.with_missing_purchases).to contain_exactly(sale)
+    end
+
+    it "returns a sale with several short lines once" do
+      sale = create(:sale, status: active_status)
+      create(:sale_item, sale:, product: create(:product), qty: 2)
+      create(:sale_item, sale:, product: create(:product), qty: 1)
+
+      expect(described_class.with_missing_purchases.pluck(:id)).to eq([sale.id])
+    end
+
+    it "ignores orders without eligible merchandise demand" do
+      create(:sale, status: active_status)
+      sale_with_line(qty: 2, linked: 0, product: create(:product, non_catalog: true))
+      sale_with_line(qty: nil, linked: 0)
+      sale_with_line(qty: 0, linked: 0)
+      sale_with_line(qty: -1, linked: 0)
+      origin_item = create(:sale_item, sale: create(:sale, status: active_status), qty: 1)
+      link_purchase_items(origin_item, 1)
+      attributed = create(:sale, status: active_status)
+      create(:sale_item, sale: attributed, product: origin_item.product, qty: 1, origin_sale_item: origin_item)
+
+      expect(described_class.with_missing_purchases).to be_empty
+    end
+
+    it "ignores a recognized follow-up payment before and after its line is attributed" do
+      origin = create(:sale, status: active_status, shopify_store_id: "gid://shopify/Order/900")
+      origin_item = create(:sale_item, sale: origin, product:, qty: 1)
+      link_purchase_items(origin_item, 1)
+      follow_up = create(:sale, status: active_status, shopify_store_id: "gid://shopify/Order/901")
+      follow_up_item = create(:sale_item, sale: follow_up, product: create(:product), qty: 1)
+      create_follow_up_plan(origin_order_id: "900", follow_up_order_id: "901")
+
+      expect(described_class.with_missing_purchases).to be_empty
+
+      follow_up_item.apply_installment_origin!(origin_item)
+
+      expect(described_class.with_missing_purchases).to be_empty
+    end
+
+    it "uses persisted purchase links instead of the cached count" do
+      cache_says_covered = sale_with_line(qty: 1, linked: 0)
+      cache_says_covered.sale_items.first.update_columns(purchase_items_count: 1)
+      cache_says_short = sale_with_line(qty: 1, linked: 1)
+      cache_says_short.sale_items.first.update_columns(purchase_items_count: 0)
+
+      expect(described_class.with_missing_purchases).to contain_exactly(cache_says_covered)
+    end
+
+    it "follows link and unlink changes" do
+      sale = sale_with_line(qty: 1, linked: 0)
+      sale_item = sale.sale_items.first
+
+      expect(described_class.with_missing_purchases).to contain_exactly(sale)
+
+      link_purchase_items(sale_item, 1)
+      expect(described_class.with_missing_purchases).to be_empty
+
+      PurchaseItem.where(sale_item:).update_all(sale_item_id: nil)
+      expect(described_class.with_missing_purchases).to contain_exactly(sale)
+    end
+  end
 end
