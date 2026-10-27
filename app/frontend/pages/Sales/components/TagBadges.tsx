@@ -7,6 +7,8 @@ type TagBadgesProps = {
 };
 
 export default function TagBadges({ tags }: TagBadgesProps) {
+  if (tags.length === 0) return null;
+
   return (
     <ul className="sales_tags">
       {tags.map((tag) => (

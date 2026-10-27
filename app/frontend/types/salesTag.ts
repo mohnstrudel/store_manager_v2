@@ -1,4 +1,4 @@
-export type SalesTagColor = "gray" | "red" | "yellow" | "green" | "blue" | "violet" | "fuchsia";
+export type SalesTagColor = "red" | "yellow" | "green" | "blue" | "violet" | "fuchsia";
 
 export type SalesTagRecord = {
   id: number;

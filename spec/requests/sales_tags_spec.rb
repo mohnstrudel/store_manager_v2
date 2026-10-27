@@ -19,7 +19,21 @@ RSpec.describe "SalesTags" do
         {id: zebra.id, name: "Zebra", color: "red", usage_count: 0}
       ])
       expect(inertia.props[:search].deep_symbolize_keys).to eq(q: "")
-      expect(inertia.props[:tag_colors]).to eq(%w[gray red yellow green blue violet fuchsia])
+      expect(inertia.props[:tag_colors]).to eq(%w[red yellow green blue violet fuchsia])
+    end
+
+    it "counts every assigned sale once per tag regardless of sale status" do
+      vip = create(:sales_tag, name: "VIP")
+      unused = create(:sales_tag, name: "Unused")
+      %w[processing completed cancelled].each do |status|
+        SaleTagging.create!(sale: create(:sale, status:), sales_tag: vip)
+      end
+
+      get sales_tags_path(q: "vip")
+      expect(inertia.props[:sales_tags].map(&:deep_symbolize_keys)).to eq([{id: vip.id, name: "VIP", color: "yellow", usage_count: 3}])
+
+      get sales_tags_path
+      expect(inertia.props[:sales_tags].to_h { |tag| [tag[:id], tag[:usage_count]] }).to eq(vip.id => 3, unused.id => 0)
     end
 
     it "searches by case-insensitive literal substring" do
@@ -66,10 +80,10 @@ RSpec.describe "SalesTags" do
       expect(existing.reload).to have_attributes(name: "VIP Order", color: "blue")
     end
 
-    it "defaults the color to gray" do
+    it "defaults the color to yellow" do
       post sales_tags_path, params: {sales_tag: {name: "Rush"}}
 
-      expect(SalesTag.last).to have_attributes(name: "Rush", color: "gray")
+      expect(SalesTag.last).to have_attributes(name: "Rush", color: "yellow")
     end
 
     it "redirects with 303 and name and color errors for invalid input" do

@@ -2,7 +2,7 @@
 
 module SalesTagHelper
   def sales_tag_catalog_props(sales_tag)
-    sales_tag_props(sales_tag).merge(usage_count: 0)
+    sales_tag_props(sales_tag).merge(usage_count: sales_tag.usage_count)
   end
 
   def sales_tag_props(sales_tag)

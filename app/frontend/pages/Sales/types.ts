@@ -4,6 +4,7 @@ import type {
   SalePaymentProgress,
   SettlementStatus,
 } from "@/types/payment";
+import type { SalesTagRecord } from "@/types/salesTag";
 import type { VariantAvailability } from "@/types/variantAssignment";
 import type { WarehouseOption } from "@/types/warehouse";
 
@@ -52,6 +53,7 @@ export type SaleIndexRecord = {
   customer_name: string;
   customer_email: string;
   sale_items: SaleIndexSaleItemRecord[];
+  tags: SalesTagRecord[];
   created_at: string;
   updated_at: string;
   active: boolean;

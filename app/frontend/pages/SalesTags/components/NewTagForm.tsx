@@ -12,7 +12,7 @@ type NewTagFormProps = {
   tagColors: SalesTagColor[];
 };
 
-const defaultColor: SalesTagColor = "gray";
+const defaultColor: SalesTagColor = "yellow";
 
 export default function NewTagForm({ query, tagColors }: NewTagFormProps) {
   const { changeName, form, selectColor, submit } = useNewTagForm(query);

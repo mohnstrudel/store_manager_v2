@@ -13,6 +13,10 @@ class SalePolicy < ApplicationPolicy
     admin? || manager? || support?
   end
 
+  def update_tags?
+    admin? || manager? || support?
+  end
+
   def link_purchase_items?
     admin?
   end

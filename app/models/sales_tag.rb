@@ -5,15 +5,17 @@
 # Table name: sales_tags
 #
 #  id              :bigint           not null, primary key
-#  color           :string           default("gray"), not null
+#  color           :string           default("yellow"), not null
 #  name            :string           not null
 #  normalized_name :string           not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #
 class SalesTag < ApplicationRecord
-  COLORS = %w[gray red yellow green blue violet fuchsia].freeze
+  COLORS = %w[red yellow green blue violet fuchsia].freeze
   MAX_NAME_LENGTH = 30
+
+  has_many :sale_taggings, dependent: nil, inverse_of: :sales_tag
 
   normalizes :name, with: ->(name) { name.unicode_normalize(:nfkc).gsub(/[[:space:]]+/, " ").strip }
 
@@ -30,8 +32,11 @@ class SalesTag < ApplicationRecord
     key = normalize_value_for(:name, query.to_s).downcase
     key.empty? ? all : where("normalized_name LIKE ?", "%#{sanitize_sql_like(key)}%")
   }
+  scope :with_usage_count, -> {
+    left_joins(:sale_taggings).group(:id).select("sales_tags.*", "COUNT(sale_taggings.id) AS usage_count")
+  }
 
-  def self.find_or_create_normalized!(name:, color: "gray")
+  def self.find_or_create_normalized!(name:, color: "yellow")
     candidate = new(name:, color:)
     candidate.validate!
     find_by(normalized_name: candidate.normalized_name) || candidate.tap(&:save!)
@@ -48,6 +53,10 @@ class SalesTag < ApplicationRecord
     raise ActiveRecord::RecordInvalid, candidate
   end
   private_class_method :raise_winner_missing
+
+  def sort_key
+    [normalized_name, id]
+  end
 
   private
 

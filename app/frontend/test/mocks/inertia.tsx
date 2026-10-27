@@ -58,6 +58,7 @@ export const router = {
     usePage.mockReturnValue({ ...usePage(), url });
   }),
   put: vi.fn<(...args: unknown[]) => unknown>(),
+  reload: vi.fn<(...args: unknown[]) => unknown>(),
   replace: vi.fn<(params: { url?: string }) => void>(({ url }) => {
     if (url === undefined) return;
     window.history.replaceState(null, "", url);

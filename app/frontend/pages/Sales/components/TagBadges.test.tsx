@@ -20,4 +20,10 @@ describe("TagBadges", () => {
     expect(screen.getByText("Rush")).toHaveAttribute("data-color", "red");
     expect(screen.getByText("VIP Order")).toHaveAttribute("data-color", "blue");
   });
+
+  it("renders nothing for an untagged sale", () => {
+    const { container } = render(<TagBadges tags={[]} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

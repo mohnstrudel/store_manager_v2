@@ -10,8 +10,10 @@ class SalesController < ApplicationController
     criteria = listing_criteria
     @sales = Sale.listing(**criteria).page(params[:page])
     pagination = helpers.pagination_props(@sales)
+    catalog = SalesTag.order(:id).to_a
+    can_tag_sales = policy(:sale).update_tags?
 
-    return unless stale?(etag: [@sales, request.inertia?, criteria, pagination], last_modified: @sales.maximum(:updated_at))
+    return unless stale?(etag: index_etag(criteria, pagination, catalog, can_tag_sales))
 
     render inertia: "Sales/Index", props: {
       sales: @sales.map { |sale| helpers.sale_listing_props(sale) },
@@ -19,6 +21,9 @@ class SalesController < ApplicationController
       search: {q: criteria[:query]},
       sort: criteria[:sort],
       filters: criteria.slice(*LISTING_FILTERS),
+      tag_options: catalog.sort_by(&:sort_key).map { |tag| helpers.sales_tag_props(tag) },
+      tag_colors: SalesTag::COLORS,
+      can_tag_sales:,
       last_sync_at: helpers.format_last_fetched_at(Config.shopify_sales_sync_at),
       last_sync_time: Config.shopify_sales_sync_time
     }
@@ -83,6 +88,15 @@ class SalesController < ApplicationController
       sort: Sale.listing_sort(params[:sort]),
       **LISTING_FILTERS.index_with { |name| params[name] == "1" }
     }
+  end
+
+  def index_etag(criteria, pagination, catalog, can_tag_sales)
+    [
+      @sales, request.inertia?, criteria, pagination,
+      @sales.map { |sale| [sale.id, sale.sales_tags.map(&:id).sort] },
+      catalog.map { |tag| [tag.id, tag.name, tag.color, tag.updated_at.to_fs(:usec)] },
+      can_tag_sales, current_user.role
+    ]
   end
 
   def append_sale_item_errors(record, payload:)

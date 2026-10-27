@@ -8,7 +8,7 @@ import Index from "./Index";
 import { makeSalesTagCatalogRecord } from "./test/factories";
 import type { SalesTagCatalogRecord } from "./types";
 
-const tagColors = ["gray", "red", "yellow", "green", "blue", "violet", "fuchsia"] as const;
+const tagColors = ["red", "yellow", "green", "blue", "violet", "fuchsia"] as const;
 
 function renderIndex(salesTags: SalesTagCatalogRecord[] = [], query = "") {
   return render(<Index sales_tags={salesTags} search={{ q: query }} tag_colors={[...tagColors]} />);
@@ -47,19 +47,19 @@ describe("SalesTags/Index", () => {
     expect(screen.getByText("No sales tags match “vip”.")).toBeInTheDocument();
   });
 
-  it("offers the seven named colors with gray selected by default", async () => {
+  it("offers the six named colors with yellow selected by default", async () => {
     const user = userEvent.setup();
     renderIndex();
 
     const colors = within(screen.getByRole("group", { name: "Color" })).getAllByRole("radio");
 
     expect(colors.map((radio) => radio.getAttribute("value"))).toEqual([...tagColors]);
-    expect(screen.getByRole("radio", { name: "gray" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "yellow" })).toBeChecked();
 
     await user.click(screen.getByRole("radio", { name: "violet" }));
 
     expect(screen.getByRole("radio", { name: "violet" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "gray" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "yellow" })).not.toBeChecked();
   });
 
   it("posts the draft name and color to the catalog, keeping the management search, then clears the draft", async () => {
@@ -76,7 +76,7 @@ describe("SalesTags/Index", () => {
       expect.objectContaining({ preserveState: true }),
     );
     expect(screen.getByRole("textbox", { name: "Tag name" })).toHaveValue("");
-    expect(screen.getByRole("radio", { name: "gray" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "yellow" })).toBeChecked();
   });
 
   it("keeps the draft and shows field errors when the server rejects the tag", async () => {

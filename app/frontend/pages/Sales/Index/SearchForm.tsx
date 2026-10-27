@@ -4,15 +4,18 @@ import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
 import routes from "@/utils/routes";
 
 import type { SaleSort, SalesFilters } from "../types";
-import { listingHref, listingParams, type SalesListingSettings } from "./salesListing";
+import {
+  LISTING_PROPS,
+  listingHref,
+  listingParams,
+  type SalesListingSettings,
+} from "./salesListing";
 
 type SearchFormProps = {
   q: string;
   sort: SaleSort;
   filters: SalesFilters;
 };
-
-const LISTING_PROPS = ["sales", "pagination", "search", "sort", "filters"];
 
 const SORT_OPTIONS: { value: SaleSort; label: string }[] = [
   { value: "newest", label: "Newest first" },

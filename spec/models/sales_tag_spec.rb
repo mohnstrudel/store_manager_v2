@@ -7,7 +7,7 @@ require "rails_helper"
 # Table name: sales_tags
 #
 #  id              :bigint           not null, primary key
-#  color           :string           default("gray"), not null
+#  color           :string           default("yellow"), not null
 #  name            :string           not null
 #  normalized_name :string           not null
 #  created_at      :datetime         not null
@@ -24,7 +24,13 @@ RSpec.describe SalesTag do
     it "folds compatibility characters with NFKC" do
       tag = described_class.find_or_create_normalized!(name: "ＶＩＰ")
 
-      expect(tag).to have_attributes(name: "VIP", normalized_name: "vip", color: "gray")
+      expect(tag).to have_attributes(name: "VIP", normalized_name: "vip", color: "yellow")
+    end
+
+    it "no longer offers gray" do
+      expect(described_class::COLORS).not_to include("gray")
+      expect { described_class.find_or_create_normalized!(name: "Rush", color: "gray") }
+        .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[:color]).to eq(["is not included in the list"]) }
     end
 
     it "reuses an existing identity and keeps its name and color" do

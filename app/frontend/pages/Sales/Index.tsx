@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import SyncModal from "@/components/SyncModal";
+import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 import routes from "@/utils/routes";
 import { useModalVisibility } from "@/utils/useModalVisibility";
 
@@ -19,6 +20,9 @@ type IndexProps = {
   search: { q: string };
   sort: SaleSort;
   filters: SalesFilters;
+  tag_options: SalesTagRecord[];
+  tag_colors: SalesTagColor[];
+  can_tag_sales: boolean;
   last_sync_time: string | null;
 };
 
@@ -28,6 +32,8 @@ export default function Index({
   search,
   sort,
   filters,
+  tag_options,
+  can_tag_sales,
   last_sync_time,
 }: IndexProps) {
   const { close: closeSync, isOpen: syncOpen, open: openSync } = useModalVisibility();
@@ -74,7 +80,7 @@ export default function Index({
         </div>
 
         {hasSales ? (
-          <Table sales={sales} sort={sort} />
+          <Table canTagSales={can_tag_sales} sales={sales} sort={sort} tagOptions={tag_options} />
         ) : (
           <EmptyResults hasCriteria={hasCriteria} seed={search.q} />
         )}

@@ -3,7 +3,7 @@
 class SalesTagsController < ApplicationController
   def index
     render inertia: "SalesTags/Index", props: {
-      sales_tags: SalesTag.matching(query).alphabetical.map { |tag| helpers.sales_tag_catalog_props(tag) },
+      sales_tags: SalesTag.matching(query).with_usage_count.alphabetical.map { |tag| helpers.sales_tag_catalog_props(tag) },
       search: {q: query},
       tag_colors: SalesTag::COLORS
     }

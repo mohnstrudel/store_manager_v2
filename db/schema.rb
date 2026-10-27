@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_27_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_27_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_stat_statements"
@@ -404,6 +404,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_120000) do
     t.index ["provider", "external_id"], name: "index_sale_payment_plans_on_provider_and_external_id", unique: true
   end
 
+  create_table "sale_taggings", force: :cascade do |t|
+    t.bigint "sale_id", null: false
+    t.bigint "sales_tag_id", null: false
+    t.index ["sale_id", "sales_tag_id"], name: "index_sale_taggings_on_sale_id_and_sales_tag_id", unique: true
+    t.index ["sale_id"], name: "index_sale_taggings_on_sale_id"
+    t.index ["sales_tag_id"], name: "index_sale_taggings_on_sales_tag_id"
+  end
+
   create_table "sales", force: :cascade do |t|
     t.string "cancel_reason"
     t.datetime "cancelled_at"
@@ -455,7 +463,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_120000) do
   end
 
   create_table "sales_tags", force: :cascade do |t|
-    t.string "color", default: "gray", null: false
+    t.string "color", default: "yellow", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.string "normalized_name", null: false
@@ -678,6 +686,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_120000) do
   add_foreign_key "sale_payment_parts", "sale_payment_plans"
   add_foreign_key "sale_payment_parts", "sales"
   add_foreign_key "sale_payment_plans", "sales", column: "origin_sale_id"
+  add_foreign_key "sale_taggings", "sales", on_delete: :cascade
+  add_foreign_key "sale_taggings", "sales_tags", on_delete: :cascade
   add_foreign_key "sales", "customers"
   add_foreign_key "sessions", "users"
   add_foreign_key "taggings", "tags"

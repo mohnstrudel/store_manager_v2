@@ -38,6 +38,7 @@ module Sale::Listing
         :woo_info,
         :shipping_address,
         :billing_address,
+        :sales_tags,
         {origin_payment_plans: [:origin_sale, {parts: :sale}]},
         {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
         sale_items: [

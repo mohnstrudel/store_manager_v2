@@ -61,6 +61,20 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(SaleItem.count).to eq(1)
       end
 
+      it "keeps local sales tags when the same order is imported again" do
+        order = valid_parsed_order.deep_dup
+        order[:store_info] = order[:store_info].merge(store_id: "gid://shopify/Order/tagged")
+        import_order(order)
+        sale = Sale.last
+        tag = create(:sales_tag, name: "VIP")
+        SaleTagging.create!(sale:, sales_tag: tag)
+
+        import_order(order)
+
+        expect(Sale.pluck(:id)).to eq([sale.id])
+        expect(sale.reload.sales_tags).to eq([tag])
+      end
+
       it "associates customer with sale" do
         import_order
         expect(Sale.last.customer).to eq(Customer.last)

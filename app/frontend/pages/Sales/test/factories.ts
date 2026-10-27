@@ -24,6 +24,7 @@ export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): S
     customer_name: "Dale Cooper",
     customer_email: "dale@fbi.gov",
     sale_items: [makeSaleIndexSaleItem()],
+    tags: [],
     created_at: "20. May '26 10:00",
     updated_at: "20. May '26 11:00",
     active: true,

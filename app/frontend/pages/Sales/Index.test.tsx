@@ -1,13 +1,19 @@
 import { router } from "@inertiajs/react";
 import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { makePagination, makeSalePaymentProgress } from "@/test/factories";
+import { nextFormErrors } from "@/test/mocks/inertia";
+import type { SalesTagRecord } from "@/types/salesTag";
 
 import Index from "./Index";
 import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
+
+const tagColors = ["red", "yellow", "green", "blue", "violet", "fuchsia"] as const;
+
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/multiSmartSelect"));
 
 describe("Sales/Index", () => {
   it("renders the sales heading and add new record link", () => {
@@ -183,7 +189,16 @@ describe("Sales/Index", () => {
         "/sales",
         { q: "dale", sort: "oldest" },
         expect.objectContaining({
-          only: ["sales", "pagination", "search", "sort", "filters"],
+          only: [
+            "sales",
+            "pagination",
+            "search",
+            "sort",
+            "filters",
+            "tag_options",
+            "tag_colors",
+            "can_tag_sales",
+          ],
           preserveState: true,
         }),
       );
@@ -571,6 +586,165 @@ describe("Sales/Index", () => {
       expect(screen.queryByText("Sales Synchronization")).not.toBeInTheDocument();
     });
   });
+
+  describe("Tags column", () => {
+    const rush: SalesTagRecord = { id: 4, name: "Rush", color: "red" };
+    const vip: SalesTagRecord = { id: 2, name: "VIP", color: "blue" };
+    const wholesale: SalesTagRecord = { id: 9, name: "Wholesale", color: "green" };
+    const catalog = [rush, vip, wholesale];
+    const tagsPath = "/sales/1/tags";
+    const reloadedProps = ["sales", "pagination", "tag_options", "tag_colors", "can_tag_sales"];
+
+    function renderTagged(tags: SalesTagRecord[] = [vip], options: IndexOptions = {}) {
+      return renderIndex({
+        sales: [makeSaleIndexRecord({ tags })],
+        tag_options: catalog,
+        ...options,
+      });
+    }
+
+    it("sits third, after Customer + Products and before Purchase Status", () => {
+      renderTagged();
+
+      const headers = screen.getAllByRole("columnheader").map((header) => header.textContent);
+
+      expect(headers.slice(0, 4)).toEqual([
+        "Image",
+        "Customer + Products",
+        "Tags",
+        "Purchase Status",
+      ]);
+    });
+
+    it("shows the given tags as badges in the given order", () => {
+      const { container } = renderTagged([rush, vip]);
+
+      const badges = Array.from(container.querySelectorAll(".sales_tags li"));
+
+      expect(badges.map((badge) => badge.textContent)).toEqual(["Rush", "VIP"]);
+    });
+
+    it("offers a quiet Edit control and no empty list for an untagged sale", () => {
+      const { container } = renderTagged([]);
+
+      expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+      expect(container.querySelector(".sales_tags")).not.toBeInTheDocument();
+    });
+
+    it("shows badges without an editor for users who cannot tag sales", () => {
+      renderTagged([vip], { can_tag_sales: false });
+
+      expect(screen.getByText("VIP")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    });
+
+    it("saves the draft with the marker, original ids and the current page as return target", async () => {
+      const user = userEvent.setup();
+      renderTagged([vip]);
+
+      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(router.patch).toHaveBeenCalledTimes(1);
+      expect(router.patch).toHaveBeenCalledWith(
+        tagsPath,
+        {
+          sale: { tagging: { submitted: "1", ids: [4, 2], original_ids: [2] } },
+          return_to: "/",
+        },
+        expect.objectContaining({ only: reloadedProps, preserveScroll: true }),
+      );
+    });
+
+    it("clears all tags by sending an empty selection with the original ids", async () => {
+      const user = userEvent.setup();
+      renderTagged([rush, vip]);
+
+      await user.deselectOptions(await openEditor(user), ["Rush", "VIP"]);
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(router.patch).toHaveBeenCalledWith(
+        tagsPath,
+        { sale: { tagging: { submitted: "1", ids: [], original_ids: [4, 2] } }, return_to: "/" },
+        expect.anything(),
+      );
+    });
+
+    it("closes the editor once the save is confirmed", async () => {
+      const user = userEvent.setup();
+      renderTagged([vip]);
+
+      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(screen.queryByRole("listbox", { name: "Tags" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+    });
+
+    it("discards the draft on Cancel without sending anything", async () => {
+      const user = userEvent.setup();
+      renderTagged([vip]);
+
+      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+      expect(router.patch).not.toHaveBeenCalled();
+      await openEditor(user);
+      expect(selectedLabels()).toEqual(["VIP"]);
+    });
+
+    it("cancels with Escape", async () => {
+      const user = userEvent.setup();
+      renderTagged([vip]);
+
+      (await openEditor(user)).focus();
+      await user.keyboard("{Escape}");
+
+      expect(screen.queryByRole("listbox", { name: "Tags" })).not.toBeInTheDocument();
+      expect(router.patch).not.toHaveBeenCalled();
+    });
+
+    it("keeps the draft and shows the error after an ordinary rejection", async () => {
+      const user = userEvent.setup();
+      nextFormErrors.mockReturnValueOnce({ tags: "must be one or two words" });
+      renderTagged([vip]);
+
+      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await user.click(screen.getByRole("button", { name: "Save" }));
+
+      expect(screen.getByText("must be one or two words")).toBeInTheDocument();
+      expect(selectedLabels()).toEqual(["Rush", "VIP"]);
+      expect(screen.queryByRole("button", { name: /Reload tags/ })).not.toBeInTheDocument();
+    });
+
+    it.each([
+      "Tags changed since you opened this editor. Reload tags and try again.",
+      "A selected tag is no longer available. Reload tags and try again.",
+    ])("offers an explicit reload that discards the draft after: %s", async (message) => {
+      const user = userEvent.setup();
+      nextFormErrors.mockReturnValueOnce({ tags: message });
+      renderTagged([vip]);
+
+      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await user.click(screen.getByRole("button", { name: "Save" }));
+      expect(router.reload).not.toHaveBeenCalled();
+
+      await user.click(screen.getByRole("button", { name: "Reload tags (discards your changes)" }));
+
+      expect(router.reload).toHaveBeenCalledWith(expect.objectContaining({ only: reloadedProps }));
+    });
+
+    it("does not open the sale when the tags cell is used", async () => {
+      const user = userEvent.setup();
+      renderTagged([vip]);
+
+      await openEditor(user);
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+      await user.click(screen.getByText("VIP"));
+
+      expect(router.visit).not.toHaveBeenCalled();
+    });
+  });
 });
 
 function renderIndex(options: IndexOptions = {}) {
@@ -583,6 +757,8 @@ type IndexOptions = {
   search?: { q: string };
   sort?: SaleSort;
   filters?: SalesFilters;
+  tag_options?: SalesTagRecord[];
+  can_tag_sales?: boolean;
   last_sync_time?: string | null;
 };
 
@@ -592,16 +768,33 @@ function indexElement({
   search = { q: "" },
   sort = "newest",
   filters = { hide_partial_payments: false, missing_purchases_only: false },
+  tag_options = [],
+  can_tag_sales = true,
   last_sync_time = "20.05 at 10:00",
 }: IndexOptions = {}) {
   return (
     <Index
+      can_tag_sales={can_tag_sales}
       filters={filters}
       last_sync_time={last_sync_time}
       pagination={pagination}
       sales={sales}
       search={search}
       sort={sort}
+      tag_colors={[...tagColors]}
+      tag_options={tag_options}
     />
   );
+}
+
+async function openEditor(user: UserEvent) {
+  await user.click(screen.getByRole("button", { name: "Edit" }));
+  return screen.findByRole("listbox", { name: "Tags" });
+}
+
+function selectedLabels() {
+  const picker = screen.getByRole("listbox", { name: "Tags" });
+  return Array.from(picker.querySelectorAll("option"))
+    .filter((option) => option.selected)
+    .map((option) => option.textContent);
 }

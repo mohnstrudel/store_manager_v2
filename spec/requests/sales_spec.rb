@@ -1041,6 +1041,117 @@ RSpec.describe "Sales" do
     end
   end
 
+  describe "GET /sales tags" do
+    let(:sale) { create(:sale) }
+    let!(:zebra) { create(:sales_tag, name: "Zebra", color: "red") }
+    let!(:apple) { create(:sales_tag, name: "apple", color: "green") }
+
+    def assign(target, *tags)
+      tags.each { |tag| SaleTagging.create!(sale: target, sales_tag: tag) }
+    end
+
+    it "lists each sale's tags alphabetically and the catalog options with colors and capability" do
+      assign(sale, zebra, apple)
+      create(:sale).tap { |other| assign(other, zebra) }
+
+      get sales_path
+
+      tags_by_sale = inertia.props[:sales].to_h { |row| [row[:id], row[:tags].map(&:deep_symbolize_keys)] }
+      expect(tags_by_sale[sale.id]).to eq([
+        {id: apple.id, name: "apple", color: "green"},
+        {id: zebra.id, name: "Zebra", color: "red"}
+      ])
+      expect(inertia.props[:tag_options].map(&:deep_symbolize_keys)).to eq([
+        {id: apple.id, name: "apple", color: "green"},
+        {id: zebra.id, name: "Zebra", color: "red"}
+      ])
+      expect(inertia.props[:tag_colors]).to eq(%w[red yellow green blue violet fuchsia])
+      expect(inertia.props[:can_tag_sales]).to be(true)
+    end
+
+    it "gives untagged sales an empty tag list" do
+      sale
+
+      get sales_path
+
+      expect(inertia.props[:sales].first[:tags]).to eq([])
+    end
+
+    %i[manager support].each do |role|
+      it "lets #{role} users tag sales" do
+        log_out
+        sign_in create(:user, role)
+        sale
+
+        get sales_path
+
+        expect(inertia.props[:can_tag_sales]).to be(true)
+      end
+    end
+
+    describe "conditional requests" do
+      before do
+        sale.update_columns(updated_at: 1.day.ago)
+        assign(sale, apple)
+      end
+
+      def etag
+        get sales_path
+        response.headers["ETag"]
+      end
+
+      it "answers not modified for the latest ETag" do
+        get sales_path, headers: {"If-None-Match" => etag}
+
+        expect(response).to have_http_status(:not_modified)
+      end
+
+      it "serves fresh props after the sole assignment is removed without touching the sale" do
+        old_etag = etag
+        stamp = sale.reload.updated_at
+
+        SaleTagging.where(sale:).delete_all
+        get sales_path, headers: {"If-None-Match" => old_etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:sales].first[:tags]).to eq([])
+        expect(sale.reload.updated_at).to eq(stamp)
+        expect(response.headers["ETag"]).not_to eq(old_etag)
+      end
+
+      it "serves fresh props after an assignment is added" do
+        old_etag = etag
+
+        assign(sale, zebra)
+        get sales_path, headers: {"If-None-Match" => old_etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:sales].first[:tags].pluck(:name)).to eq(%w[apple Zebra])
+      end
+
+      it "serves fresh props after a catalog tag is recolored or a new tag appears" do
+        old_etag = etag
+
+        apple.update!(color: "blue")
+        get sales_path, headers: {"If-None-Match" => old_etag}
+        expect(response).to have_http_status(:ok)
+
+        recolored_etag = response.headers["ETag"]
+        create(:sales_tag, name: "Fresh")
+        get sales_path, headers: {"If-None-Match" => recolored_etag}
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:tag_options].pluck(:name)).to eq(%w[apple Fresh Zebra])
+      end
+
+      it "serves a full response when only If-Modified-Since is sent" do
+        get sales_path, headers: {"If-Modified-Since" => 1.hour.from_now.httpdate}
+
+        expect(response).to have_http_status(:ok)
+        expect(response.headers).not_to have_key("Last-Modified")
+      end
+    end
+  end
+
   describe "GET /sales/:id settlement and progress props" do
     it "includes the normalized settlement status and payment progress" do
       sale = create(:sale, settlement_status: "paid", expected_revenue: 1000, received_revenue: 1000, outstanding_revenue: 0)

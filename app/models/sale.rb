@@ -60,6 +60,7 @@ class Sale < ApplicationRecord
   include ShopSync
   include Shopable
   include Statuses
+  include Tagging
   include Titling
 
   extend FriendlyId

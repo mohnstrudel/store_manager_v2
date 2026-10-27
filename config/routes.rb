@@ -75,6 +75,7 @@ Rails.application.routes.draw do
         resources :items, only: %i[show destroy], controller: :items
         resource :purchase_item_link, only: :create, path: "link_purchase_items"
         resource :pull, only: :create
+        resource :tagging, only: :update, path: "tags"
 
         collection do
           resource :sales_bulk_pull, only: :create, path: "pull", controller: :bulk_pulls
