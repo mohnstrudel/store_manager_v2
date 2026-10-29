@@ -11,9 +11,9 @@ import Index from "./Index";
 import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
 
-const tagColors = ["red", "yellow", "green", "blue", "violet", "fuchsia"] as const;
+const tagColors = ["green", "pink", "taupe", "sky", "violet", "fuchsia", "mauve", "olive"] as const;
 
-vi.mock("@/components/SmartSelect", () => import("@/test/mocks/multiSmartSelect"));
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/singleSmartSelect"));
 
 describe("Sales/Index", () => {
   it("renders the sales heading and add new record link", () => {
@@ -588,8 +588,8 @@ describe("Sales/Index", () => {
   });
 
   describe("Tags column", () => {
-    const rush: SalesTagRecord = { id: 4, name: "Rush", color: "red" };
-    const vip: SalesTagRecord = { id: 2, name: "VIP", color: "blue" };
+    const rush: SalesTagRecord = { id: 4, name: "Rush", color: "pink" };
+    const vip: SalesTagRecord = { id: 2, name: "VIP", color: "sky" };
     const wholesale: SalesTagRecord = { id: 9, name: "Wholesale", color: "green" };
     const catalog = [rush, vip, wholesale];
     const tagsPath = "/sales/1/tags";
@@ -649,7 +649,7 @@ describe("Sales/Index", () => {
       expect(router.patch).toHaveBeenCalledWith(
         tagsPath,
         {
-          sale: { tagging: { submitted: "1", ids: [4, 2], original_ids: [2] } },
+          sale: { tagging: { submitted: "1", ids: [2, 4], original_ids: [2] } },
           return_to: "/",
         },
         expect.objectContaining({ only: reloadedProps, preserveScroll: true }),
@@ -660,14 +660,29 @@ describe("Sales/Index", () => {
       const user = userEvent.setup();
       renderTagged([rush, vip]);
 
-      await user.deselectOptions(await openEditor(user), ["Rush", "VIP"]);
+      await openEditor(user);
+      await user.click(screen.getByRole("button", { name: "Remove Rush" }));
+      await user.click(screen.getByRole("button", { name: "Remove VIP" }));
       await user.click(screen.getByRole("button", { name: "Save" }));
 
       expect(router.patch).toHaveBeenCalledWith(
         tagsPath,
-        { sale: { tagging: { submitted: "1", ids: [], original_ids: [4, 2] } }, return_to: "/" },
+        {
+          sale: { tagging: { submitted: "1", ids: [], original_ids: [4, 2] } },
+          return_to: "/",
+        },
         expect.anything(),
       );
+    });
+
+    it("offers no way to create a tag from the index", async () => {
+      const user = userEvent.setup();
+      renderTagged([vip]);
+
+      await openEditor(user);
+
+      expect(screen.queryByRole("textbox", { name: "New tag name" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("group", { name: "New tag color" })).not.toBeInTheDocument();
     });
 
     it("closes the editor once the save is confirmed", async () => {
@@ -677,7 +692,7 @@ describe("Sales/Index", () => {
       await user.selectOptions(await openEditor(user), ["Rush"]);
       await user.click(screen.getByRole("button", { name: "Save" }));
 
-      expect(screen.queryByRole("listbox", { name: "Tags" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("combobox", { name: "Tags" })).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
     });
 
@@ -700,7 +715,7 @@ describe("Sales/Index", () => {
       (await openEditor(user)).focus();
       await user.keyboard("{Escape}");
 
-      expect(screen.queryByRole("listbox", { name: "Tags" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("combobox", { name: "Tags" })).not.toBeInTheDocument();
       expect(router.patch).not.toHaveBeenCalled();
     });
 
@@ -789,12 +804,14 @@ function indexElement({
 
 async function openEditor(user: UserEvent) {
   await user.click(screen.getByRole("button", { name: "Edit" }));
-  return screen.findByRole("listbox", { name: "Tags" });
+  return screen.findByRole("combobox", { name: "Tags" });
 }
 
 function selectedLabels() {
-  const picker = screen.getByRole("listbox", { name: "Tags" });
-  return Array.from(picker.querySelectorAll("option"))
-    .filter((option) => option.selected)
-    .map((option) => option.textContent);
+  const selection = screen.queryByRole("list", { name: "Selected tags" });
+  if (!selection) return [];
+
+  return within(selection)
+    .getAllByRole("button")
+    .map((button) => button.getAttribute("aria-label")?.replace("Remove ", ""));
 }

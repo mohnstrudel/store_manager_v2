@@ -6,7 +6,7 @@ export function makeSalesTagCatalogRecord(
   return {
     id: 1,
     name: "VIP Order",
-    color: "blue",
+    color: "sky",
     usage_count: 0,
     ...overrides,
   };

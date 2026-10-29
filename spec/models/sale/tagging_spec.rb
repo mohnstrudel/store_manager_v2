@@ -114,14 +114,117 @@ RSpec.describe Sale::Tagging do
       expect(assigned_ids).to eq([first.id])
     end
 
-    it "rejects new tags until creation is supported" do
-      expect {
-        sale.replace_tags!(ids: [first.id], original_ids: [], new_tags: [{name: "Rush", color: "blue"}])
-      }.to raise_error(ActiveRecord::RecordInvalid)
+    describe "proposed tags" do
+      let(:rush) { {name: "Rush", color: "sky"} }
 
-      expect(tags_error).to be_present
-      expect(SalesTag.exists?(name: "Rush")).to be(false)
-      expect(assigned_ids).to eq([])
+      it "creates the proposal and assigns it together with the selected existing tags" do
+        sale.replace_tags!(ids: [first.id], original_ids: [], new_tags: [rush])
+
+        created = SalesTag.find_by!(normalized_name: "rush")
+        expect(created).to have_attributes(name: "Rush", color: "sky")
+        expect(assigned_ids).to eq([first.id, created.id].sort)
+      end
+
+      it "reuses an existing identity with its original spelling and color" do
+        vip_order = create(:sales_tag, name: "VIP Order", color: "sky")
+
+        sale.replace_tags!(ids: [], original_ids: [], new_tags: [{name: " vip order ", color: "pink"}])
+
+        expect(assigned_ids).to eq([vip_order.id])
+        expect(SalesTag.where(normalized_name: "vip order").count).to eq(1)
+        expect(vip_order.reload).to have_attributes(name: "VIP Order", color: "sky")
+      end
+
+      it "turns duplicate proposals and an already selected match into one identity and one assignment" do
+        sale.replace_tags!(
+          ids: [first.id],
+          original_ids: [],
+          new_tags: [rush, {name: " rush ", color: "pink"}, {name: "FIRST", color: "green"}]
+        )
+
+        created = SalesTag.where(normalized_name: "rush")
+        expect(created.pluck(:name, :color)).to eq([%w[Rush sky]])
+        expect(assigned_ids).to eq([first.id, created.first.id].sort)
+        expect(SalesTag.where(normalized_name: "first").count).to eq(1)
+      end
+
+      it "fails as stale before creating anything when the originals differ from the current set" do
+        assign(first, second)
+
+        expect {
+          sale.replace_tags!(ids: [first.id], original_ids: [first.id], new_tags: [rush])
+        }.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(tags_error).to eq(Sale::Tagging::STALE_ASSIGNMENT_MESSAGE)
+        expect(SalesTag.exists?(normalized_name: "rush")).to be(false)
+        expect(assigned_ids).to eq([first.id, second.id])
+      end
+
+      it "does not apply an already successful request a second time" do
+        sale.replace_tags!(ids: [], original_ids: [], new_tags: [rush])
+        created = SalesTag.find_by!(normalized_name: "rush")
+        SaleTagging.where(sale:).delete_all
+        assign(first)
+
+        expect { sale.replace_tags!(ids: [], original_ids: [], new_tags: [rush]) }
+          .to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(tags_error).to eq(Sale::Tagging::STALE_ASSIGNMENT_MESSAGE)
+        expect(assigned_ids).to eq([first.id])
+        expect(SalesTag.where(id: created.id).count).to eq(1)
+      end
+
+      it "persists neither a valid proposal nor the assignment when another proposal is invalid" do
+        expect {
+          sale.replace_tags!(ids: [first.id], original_ids: [], new_tags: [rush, {name: "Way Too Rushed", color: "sky"}])
+        }.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(tags_error).to include("one or two words")
+        expect(SalesTag.exists?(normalized_name: "rush")).to be(false)
+        expect(assigned_ids).to eq([])
+      end
+
+      it "reports an invalid color through the tags error and changes nothing" do
+        assign(first)
+
+        expect {
+          sale.replace_tags!(ids: [], original_ids: [first.id], new_tags: [{name: "Rush", color: "orange"}])
+        }.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(tags_error).to include("Color")
+        expect(SalesTag.exists?(normalized_name: "rush")).to be(false)
+        expect(assigned_ids).to eq([first.id])
+      end
+
+      it "rolls back every proposal when a selected tag disappears during the replacement" do
+        assign(first)
+        allow(SaleTagging).to receive(:insert_all!).and_wrap_original do |original, *args, **kwargs|
+          second.delete
+          original.call(*args, **kwargs)
+        end
+
+        expect {
+          sale.replace_tags!(ids: [second.id], original_ids: [first.id], new_tags: [rush])
+        }.to raise_error(ActiveRecord::RecordInvalid)
+
+        expect(tags_error).to include("A selected tag is no longer available")
+        expect(SalesTag.exists?(normalized_name: "rush")).to be(false)
+        expect(assigned_ids).to eq([first.id])
+      end
+
+      it "rejects unreadable proposals before changing anything" do
+        assign(first)
+
+        [[["Rush"]], "Rush", [nil], [{name: ["Rush"], color: "sky"}], [{name: "Rush", color: 1}]].each do |bad|
+          sale.errors.clear
+          expect { sale.replace_tags!(ids: [], original_ids: [first.id], new_tags: bad) }
+            .to raise_error(ActiveRecord::RecordInvalid)
+          expect(tags_error).to eq(Sale::Tagging::UNREADABLE_INPUT_MESSAGE)
+        end
+
+        expect(SalesTag.exists?(normalized_name: "rush")).to be(false)
+        expect(assigned_ids).to eq([first.id])
+      end
     end
 
     it "does not save, touch or announce the sale" do

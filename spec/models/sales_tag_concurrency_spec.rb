@@ -20,7 +20,7 @@ RSpec.describe SalesTag, ".find_or_create_normalized!" do
       winner = Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
           described_class.transaction do
-            tag = described_class.find_or_create_normalized!(name: "VIP Order", color: "blue")
+            tag = described_class.find_or_create_normalized!(name: "VIP Order", color: "sky")
             inserted << true
             release_winner.pop(timeout: 5)
             tag
@@ -32,7 +32,7 @@ RSpec.describe SalesTag, ".find_or_create_normalized!" do
       loser = Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do |connection|
           loser_pid << connection.raw_connection.backend_pid
-          described_class.find_or_create_normalized!(name: "vip order", color: "red")
+          described_class.find_or_create_normalized!(name: "vip order", color: "pink")
         end
       end
       wait_for_lock(loser_pid.pop(timeout: 5))
@@ -41,7 +41,42 @@ RSpec.describe SalesTag, ".find_or_create_normalized!" do
 
       expect(reused_tag.id).to eq(winning_tag.id)
       expect(described_class.where(normalized_name: "vip order").count).to eq(1)
-      expect(described_class.find(winning_tag.id)).to have_attributes(name: "VIP Order", color: "blue")
+      expect(described_class.find(winning_tag.id)).to have_attributes(name: "VIP Order", color: "sky")
+    ensure
+      release_winner&.push(true)
+      [winner, loser].compact.each { |thread| thread.join(5) }
+    end
+
+    it "lets creators on different sales share one identity and each keep their assignment" do
+      first_sale, second_sale = create_list(:sale, 2)
+      inserted = Queue.new
+      release_winner = Queue.new
+      loser_pid = Queue.new
+
+      winner = Thread.new do
+        ActiveRecord::Base.connection_pool.with_connection do
+          ActiveRecord::Base.transaction do
+            first_sale.replace_tags!(ids: [], original_ids: [], new_tags: [{name: "VIP Order", color: "sky"}])
+            inserted << true
+            release_winner.pop(timeout: 5)
+          end
+        end
+      end
+      inserted.pop(timeout: 5)
+
+      loser = Thread.new do
+        ActiveRecord::Base.connection_pool.with_connection do |connection|
+          loser_pid << connection.raw_connection.backend_pid
+          second_sale.replace_tags!(ids: [], original_ids: [], new_tags: [{name: "vip order", color: "pink"}])
+        end
+      end
+      wait_for_lock(loser_pid.pop(timeout: 5))
+      release_winner << true
+      [winner, loser].each(&:value)
+
+      expect(described_class.where(normalized_name: "vip order").pluck(:name, :color)).to eq([["VIP Order", "sky"]])
+      expect(SaleTagging.pluck(:sale_id)).to contain_exactly(first_sale.id, second_sale.id)
+      expect(SaleTagging.distinct.pluck(:sales_tag_id).size).to eq(1)
     ensure
       release_winner&.push(true)
       [winner, loser].compact.each { |thread| thread.join(5) }

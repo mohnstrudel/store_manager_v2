@@ -10,20 +10,20 @@ RSpec.feature "Sales tags catalog", :js do
     visit sales_tags_path
 
     fill_in "Tag name", with: "VIP Order"
-    choose "blue", allow_label_click: true
+    choose "sky", allow_label_click: true
     click_button "Add tag"
 
     expect(page).to have_css("tbody tr", text: "VIP Order", count: 1)
     expect(page).to have_field("Tag name", with: "")
-    expect(find_field("yellow", type: "radio", visible: :all)).to be_checked
+    expect(find_field("green", type: "radio", visible: :all)).to be_checked
 
     fill_in "Tag name", with: " vip   order "
-    choose "red", allow_label_click: true
+    choose "pink", allow_label_click: true
     click_button "Add tag"
 
     expect(page).to have_field("Tag name", with: "")
     expect(page).to have_css("tbody tr", count: 1)
-    expect(SalesTag.pluck(:name, :color)).to eq([["VIP Order", "blue"]])
+    expect(SalesTag.pluck(:name, :color)).to eq([["VIP Order", "sky"]])
 
     page.refresh
 
@@ -52,17 +52,17 @@ RSpec.feature "Sales tags catalog", :js do
 
     visit sales_tags_path
     fill_in "Tag name", with: "VIP Order"
-    choose "blue", allow_label_click: true
+    choose "sky", allow_label_click: true
     click_button "Add tag"
 
     expect(page).to have_field("Tag name", with: "VIP Order", disabled: true)
-    expect(page).to have_field("yellow", type: "radio", disabled: true, visible: :all)
+    expect(page).to have_field("green", type: "radio", disabled: true, visible: :all)
     expect(page).to have_button("Add tag", disabled: true)
 
     release << true
 
     expect(page).to have_field("Tag name", with: "", disabled: false)
-    expect(SalesTag.pluck(:name, :color)).to eq([["VIP Order", "blue"]])
+    expect(SalesTag.pluck(:name, :color)).to eq([["VIP Order", "sky"]])
   ensure
     release&.push(true)
   end
@@ -117,8 +117,8 @@ RSpec.feature "Sales tags catalog", :js do
   describe "on the sales index" do
     let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2)) }
     let!(:other_sale) { create(:sale, shopify_name: "HSCM#1002", woo_created_at: Time.utc(2024, 1, 1)) }
-    let!(:vip) { create(:sales_tag, name: "VIP", color: "blue") }
-    let!(:rush) { create(:sales_tag, name: "Rush", color: "red") }
+    let!(:vip) { create(:sales_tag, name: "VIP", color: "sky") }
+    let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
 
     def tags_cell(target)
       find("tbody tr", text: target.shopify_name).find("td:nth-child(3)")
@@ -130,7 +130,7 @@ RSpec.feature "Sales tags catalog", :js do
     end
 
     def pick(target, name)
-      find("#sale-#{target.id}-tags-picker").click
+      within(tags_cell(target)) { find(".rs__control").click }
       find(".rs__option", text: name).click
     end
 
@@ -154,8 +154,8 @@ RSpec.feature "Sales tags catalog", :js do
 
       within(tags_cell(sale)) { expect(page.all(".sales_tag").map(&:text)).to eq(%w[Rush VIP]) }
       open_editor(sale)
-      expect(page).to have_css(".rs__multi-value__label", text: "Rush")
-      expect(page).to have_css(".rs__multi-value__label", text: "VIP")
+      expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "Rush")
+      expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "VIP")
     end
 
     scenario "removing a tag from one sale keeps it on the other" do
@@ -193,7 +193,7 @@ RSpec.feature "Sales tags catalog", :js do
       within(tags_cell(sale)) { click_button "Save" }
 
       expect(page).to have_content("Tags changed since you opened this editor. Reload tags and try again.")
-      expect(page).to have_css(".rs__multi-value__label", text: "Rush")
+      expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "Rush")
       expect(sale.sales_tags.pluck(:name)).to eq(["Rush"])
 
       click_button "Reload tags (discards your changes)"
@@ -219,8 +219,8 @@ RSpec.feature "Sales tags catalog", :js do
       within(tags_cell(sale)) do
         expect(page).to have_button("Saving…", disabled: true)
         expect(page).to have_button("Cancel", disabled: true)
-        expect(page).to have_css(".rs__multi-value__label", text: "Rush")
-        expect(page).to have_no_css(".sales_tag")
+        expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "Rush")
+        expect(page).to have_no_css(".sales_tags")
       end
 
       release << true
@@ -235,12 +235,12 @@ RSpec.feature "Sales tags catalog", :js do
       visit sales_path
 
       open_editor(sale)
-      find("#sale-#{sale.id}-tags-picker").click
-      find("#sale-#{sale.id}-tags-picker").send_keys(:enter)
+      within(tags_cell(sale)) { find(".rs__control").click }
+      find("#sale-#{sale.id}-tags-picker", visible: :all).send_keys(:enter)
       within(tags_cell(sale)) { find("form").click }
 
       expect(page).to have_current_path(sales_path)
-      expect(page).to have_css("#sale-#{sale.id}-tags-picker")
+      expect(page).to have_css("#sale-#{sale.id}-tags-picker", visible: :all)
     end
 
     scenario "closes the menu with the first Escape and cancels with the second" do
@@ -269,6 +269,28 @@ RSpec.feature "Sales tags catalog", :js do
       within(tags_cell(sale)) { click_button "Save" }
 
       within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "Rush") }
+    end
+
+    scenario "searches existing tags by typing and stops offering the ones already selected" do
+      visit sales_path
+
+      open_editor(sale)
+      picker = find("#sale-#{sale.id}-tags-picker", visible: :all)
+      picker.send_keys("vi")
+      expect(page).to have_css(".rs__option", text: "VIP")
+      expect(page).to have_no_css(".rs__option", text: "Rush")
+      find(".rs__option", text: "VIP").click
+
+      within(tags_cell(sale)) { expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "VIP") }
+      within(tags_cell(sale)) { find(".rs__control").click }
+      expect(page).to have_css(".rs__option", text: "Rush")
+      expect(page).to have_no_css(".rs__option", text: "VIP")
+      find("#sale-#{sale.id}-tags-picker", visible: :all).send_keys(:escape)
+      expect(page).to have_no_css(".rs__option")
+
+      within(tags_cell(sale)) { click_button "Save" }
+      within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "VIP") }
+      expect(sale.sales_tags.pluck(:name)).to eq(["VIP"])
     end
   end
 end

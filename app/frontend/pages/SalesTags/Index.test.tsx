@@ -8,7 +8,7 @@ import Index from "./Index";
 import { makeSalesTagCatalogRecord } from "./test/factories";
 import type { SalesTagCatalogRecord } from "./types";
 
-const tagColors = ["red", "yellow", "green", "blue", "violet", "fuchsia"] as const;
+const tagColors = ["green", "pink", "taupe", "sky", "violet", "fuchsia", "mauve", "olive"] as const;
 
 function renderIndex(salesTags: SalesTagCatalogRecord[] = [], query = "") {
   return render(<Index sales_tags={salesTags} search={{ q: query }} tag_colors={[...tagColors]} />);
@@ -17,7 +17,7 @@ function renderIndex(salesTags: SalesTagCatalogRecord[] = [], query = "") {
 describe("SalesTags/Index", () => {
   it("lists catalog tags in the given order with their sale counts", () => {
     renderIndex([
-      makeSalesTagCatalogRecord({ id: 2, name: "Rush", color: "red", usage_count: 3 }),
+      makeSalesTagCatalogRecord({ id: 2, name: "Rush", color: "pink", usage_count: 3 }),
       makeSalesTagCatalogRecord({ id: 1, name: "VIP Order", usage_count: 0 }),
     ]);
 
@@ -47,19 +47,19 @@ describe("SalesTags/Index", () => {
     expect(screen.getByText("No sales tags match “vip”.")).toBeInTheDocument();
   });
 
-  it("offers the six named colors with yellow selected by default", async () => {
+  it("offers the eight named colors with green selected by default", async () => {
     const user = userEvent.setup();
     renderIndex();
 
     const colors = within(screen.getByRole("group", { name: "Color" })).getAllByRole("radio");
 
     expect(colors.map((radio) => radio.getAttribute("value"))).toEqual([...tagColors]);
-    expect(screen.getByRole("radio", { name: "yellow" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "green" })).toBeChecked();
 
     await user.click(screen.getByRole("radio", { name: "violet" }));
 
     expect(screen.getByRole("radio", { name: "violet" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "yellow" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "green" })).not.toBeChecked();
   });
 
   it("posts the draft name and color to the catalog, keeping the management search, then clears the draft", async () => {
@@ -67,16 +67,16 @@ describe("SalesTags/Index", () => {
     renderIndex([], "vip");
 
     await user.type(screen.getByRole("textbox", { name: "Tag name" }), "VIP Order");
-    await user.click(screen.getByRole("radio", { name: "blue" }));
+    await user.click(screen.getByRole("radio", { name: "sky" }));
     await user.click(screen.getByRole("button", { name: "Add tag" }));
 
     expect(router.post).toHaveBeenCalledWith(
       "/sales_tags?q=vip",
-      { sales_tag: { name: "VIP Order", color: "blue" } },
+      { sales_tag: { name: "VIP Order", color: "sky" } },
       expect.objectContaining({ preserveState: true }),
     );
     expect(screen.getByRole("textbox", { name: "Tag name" })).toHaveValue("");
-    expect(screen.getByRole("radio", { name: "yellow" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "green" })).toBeChecked();
   });
 
   it("keeps the draft and shows field errors when the server rejects the tag", async () => {
@@ -88,7 +88,7 @@ describe("SalesTags/Index", () => {
     renderIndex();
 
     await user.type(screen.getByRole("textbox", { name: "Tag name" }), "one two three");
-    await user.click(screen.getByRole("radio", { name: "red" }));
+    await user.click(screen.getByRole("radio", { name: "pink" }));
     await user.click(screen.getByRole("button", { name: "Add tag" }));
 
     expect(screen.getByRole("textbox", { name: "Tag name" })).toHaveValue("one two three");
@@ -96,6 +96,6 @@ describe("SalesTags/Index", () => {
       "must be one or two words",
     );
     expect(screen.getByText("is not included in the list")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "red" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "pink" })).toBeChecked();
   });
 });

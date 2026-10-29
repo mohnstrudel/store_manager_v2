@@ -109,7 +109,7 @@ RSpec.describe "Sale tags" do
 
     it "rejects new tags and creates nothing" do
       expect {
-        patch_tags(tagging: tagging(ids: [vip.id], new_tags: [{name: "Fresh", color: "blue"}]))
+        patch_tags(tagging: tagging(ids: [vip.id], new_tags: [{name: "Fresh", color: "sky"}]))
       }.not_to change(SalesTag, :count)
 
       expect(response).to have_http_status(:see_other)

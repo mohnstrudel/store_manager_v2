@@ -5,14 +5,14 @@
 # Table name: sales_tags
 #
 #  id              :bigint           not null, primary key
-#  color           :string           default("yellow"), not null
+#  color           :string           default("green"), not null
 #  name            :string           not null
 #  normalized_name :string           not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #
 class SalesTag < ApplicationRecord
-  COLORS = %w[red yellow green blue violet fuchsia].freeze
+  COLORS = %w[green pink taupe sky violet fuchsia mauve olive].freeze
   MAX_NAME_LENGTH = 30
 
   has_many :sale_taggings, dependent: nil, inverse_of: :sales_tag
@@ -36,7 +36,24 @@ class SalesTag < ApplicationRecord
     left_joins(:sale_taggings).group(:id).select("sales_tags.*", "COUNT(sale_taggings.id) AS usage_count")
   }
 
-  def self.find_or_create_normalized!(name:, color: "yellow")
+  def self.find_or_create_all_normalized!(descriptors)
+    candidates = descriptors.map { |descriptor| validated_candidate(**descriptor) }
+
+    candidates.uniq(&:normalized_name).sort_by(&:normalized_name).map do |candidate|
+      find_or_create_normalized!(name: candidate.name, color: candidate.color)
+    end
+  end
+
+  def self.validated_candidate(name:, color:)
+    new(name:, color:).tap do |candidate|
+      candidate.valid?
+      candidate.errors.delete(:normalized_name)
+      raise ActiveRecord::RecordInvalid, candidate if candidate.errors.any?
+    end
+  end
+  private_class_method :validated_candidate
+
+  def self.find_or_create_normalized!(name:, color: "green")
     candidate = new(name:, color:)
     candidate.validate!
     find_by(normalized_name: candidate.normalized_name) || candidate.tap(&:save!)

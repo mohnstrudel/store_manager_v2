@@ -2,28 +2,29 @@ import type { ChangeEvent, KeyboardEvent } from "react";
 
 type Option = { value: number; label: string };
 
-type MultiSmartSelectProps = {
+type SingleSmartSelectProps = {
   "aria-describedby"?: string;
   inputId?: string;
   isDisabled?: boolean;
-  onChange?: (options: Option[]) => void;
+  onChange?: (option: Option | null) => void;
   onKeyDown?: (event: KeyboardEvent<HTMLSelectElement>) => void;
   options: Option[];
-  value: Option[];
+  placeholder?: string;
+  value: Option | null;
 };
 
-export default function MultiSmartSelect({
+export default function SingleSmartSelect({
   "aria-describedby": describedBy,
   inputId,
   isDisabled = false,
   onChange,
   onKeyDown,
   options,
+  placeholder = "",
   value,
-}: MultiSmartSelectProps) {
+}: SingleSmartSelectProps) {
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const chosen = new Set(Array.from(event.target.selectedOptions, (element) => element.value));
-    onChange?.(options.filter((option) => chosen.has(String(option.value))));
+    onChange?.(options.find((option) => String(option.value) === event.target.value) ?? null);
   };
 
   return (
@@ -31,11 +32,11 @@ export default function MultiSmartSelect({
       aria-describedby={describedBy}
       disabled={isDisabled}
       id={inputId}
-      multiple
       onChange={handleChange}
       onKeyDown={onKeyDown}
-      value={value.map((option) => String(option.value))}
+      value={value ? String(value.value) : ""}
     >
+      <option value="">{placeholder}</option>
       {options.map((option) => (
         <option key={option.value} value={String(option.value)}>
           {option.label}

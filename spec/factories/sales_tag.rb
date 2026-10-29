@@ -3,6 +3,6 @@
 FactoryBot.define do
   factory :sales_tag do
     sequence(:name) { |n| "Tag#{n}" }
-    color { "yellow" }
+    color { "green" }
   end
 end

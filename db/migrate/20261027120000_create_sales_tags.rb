@@ -5,7 +5,7 @@ class CreateSalesTags < ActiveRecord::Migration[8.1]
     create_table :sales_tags do |t|
       t.string :name, null: false
       t.string :normalized_name, null: false
-      t.string :color, null: false, default: "yellow"
+      t.string :color, null: false, default: "green"
       t.timestamps
     end
 

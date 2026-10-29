@@ -1043,7 +1043,7 @@ RSpec.describe "Sales" do
 
   describe "GET /sales tags" do
     let(:sale) { create(:sale) }
-    let!(:zebra) { create(:sales_tag, name: "Zebra", color: "red") }
+    let!(:zebra) { create(:sales_tag, name: "Zebra", color: "pink") }
     let!(:apple) { create(:sales_tag, name: "apple", color: "green") }
 
     def assign(target, *tags)
@@ -1059,13 +1059,13 @@ RSpec.describe "Sales" do
       tags_by_sale = inertia.props[:sales].to_h { |row| [row[:id], row[:tags].map(&:deep_symbolize_keys)] }
       expect(tags_by_sale[sale.id]).to eq([
         {id: apple.id, name: "apple", color: "green"},
-        {id: zebra.id, name: "Zebra", color: "red"}
+        {id: zebra.id, name: "Zebra", color: "pink"}
       ])
       expect(inertia.props[:tag_options].map(&:deep_symbolize_keys)).to eq([
         {id: apple.id, name: "apple", color: "green"},
-        {id: zebra.id, name: "Zebra", color: "red"}
+        {id: zebra.id, name: "Zebra", color: "pink"}
       ])
-      expect(inertia.props[:tag_colors]).to eq(%w[red yellow green blue violet fuchsia])
+      expect(inertia.props[:tag_colors]).to eq(%w[green pink taupe sky violet fuchsia mauve olive])
       expect(inertia.props[:can_tag_sales]).to be(true)
     end
 
@@ -1132,7 +1132,7 @@ RSpec.describe "Sales" do
       it "serves fresh props after a catalog tag is recolored or a new tag appears" do
         old_etag = etag
 
-        apple.update!(color: "blue")
+        apple.update!(color: "sky")
         get sales_path, headers: {"If-None-Match" => old_etag}
         expect(response).to have_http_status(:ok)
 

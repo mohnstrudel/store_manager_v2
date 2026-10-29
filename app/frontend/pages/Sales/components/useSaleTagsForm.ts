@@ -59,7 +59,13 @@ export function useSaleTagsForm({
 
   const save = () => {
     form.transform((data) => ({
-      sale: { tagging: { submitted: "1", ids: data.ids, original_ids: data.original_ids } },
+      sale: {
+        tagging: {
+          submitted: "1",
+          ids: data.ids,
+          original_ids: data.original_ids,
+        },
+      },
       return_to: returnTo ?? page.url,
     }));
     form.patch(routes.salesTaggings.update.path({ sale_id: saleId }), {

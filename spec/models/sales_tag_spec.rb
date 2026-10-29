@@ -7,7 +7,7 @@ require "rails_helper"
 # Table name: sales_tags
 #
 #  id              :bigint           not null, primary key
-#  color           :string           default("yellow"), not null
+#  color           :string           default("green"), not null
 #  name            :string           not null
 #  normalized_name :string           not null
 #  created_at      :datetime         not null
@@ -16,15 +16,15 @@ require "rails_helper"
 RSpec.describe SalesTag do
   describe ".find_or_create_normalized!" do
     it "trims, collapses Unicode whitespace, preserves case and derives the lowercase key" do
-      tag = described_class.find_or_create_normalized!(name: "  VIP \u00A0\u3000 Order  ", color: "blue")
+      tag = described_class.find_or_create_normalized!(name: "  VIP \u00A0\u3000 Order  ", color: "sky")
 
-      expect(tag).to have_attributes(name: "VIP Order", normalized_name: "vip order", color: "blue")
+      expect(tag).to have_attributes(name: "VIP Order", normalized_name: "vip order", color: "sky")
     end
 
     it "folds compatibility characters with NFKC" do
       tag = described_class.find_or_create_normalized!(name: "ＶＩＰ")
 
-      expect(tag).to have_attributes(name: "VIP", normalized_name: "vip", color: "yellow")
+      expect(tag).to have_attributes(name: "VIP", normalized_name: "vip", color: "green")
     end
 
     it "no longer offers gray" do
@@ -34,13 +34,13 @@ RSpec.describe SalesTag do
     end
 
     it "reuses an existing identity and keeps its name and color" do
-      original = described_class.find_or_create_normalized!(name: "VIP Order", color: "blue")
+      original = described_class.find_or_create_normalized!(name: "VIP Order", color: "sky")
 
-      reused = described_class.find_or_create_normalized!(name: "vip order", color: "red")
+      reused = described_class.find_or_create_normalized!(name: "vip order", color: "pink")
 
       expect(reused).to eq(original)
       expect(described_class.count).to eq(1)
-      expect(reused.reload).to have_attributes(name: "VIP Order", color: "blue")
+      expect(reused.reload).to have_attributes(name: "VIP Order", color: "sky")
     end
 
     it "accepts thirty characters and counts codepoints rather than bytes" do
@@ -58,20 +58,20 @@ RSpec.describe SalesTag do
           .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[attribute]).to eq([message]) }
       end
 
-      expect { described_class.find_or_create_normalized!(name: "Rush", color: "pink") }
+      expect { described_class.find_or_create_normalized!(name: "Rush", color: "orange") }
         .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[:color]).to eq(["is not included in the list"]) }
       expect(described_class.count).to eq(0)
     end
 
     it "does not reuse an existing identity when another field is invalid and reports only name and color errors" do
-      original = create(:sales_tag, name: "VIP Order", color: "blue")
+      original = create(:sales_tag, name: "VIP Order", color: "sky")
 
-      expect { described_class.find_or_create_normalized!(name: "vip order", color: "pink") }
+      expect { described_class.find_or_create_normalized!(name: "vip order", color: "orange") }
         .to raise_error(ActiveRecord::RecordInvalid) { |error|
           expect(error.record.errors.attribute_names).to eq([:color])
         }
       expect(described_class.count).to eq(1)
-      expect(original.reload).to have_attributes(name: "VIP Order", color: "blue")
+      expect(original.reload).to have_attributes(name: "VIP Order", color: "sky")
     end
 
     it "returns a validation error when the winning tag disappears after a collision" do

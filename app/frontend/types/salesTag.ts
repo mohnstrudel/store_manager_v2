@@ -1,4 +1,12 @@
-export type SalesTagColor = "red" | "yellow" | "green" | "blue" | "violet" | "fuchsia";
+export type SalesTagColor =
+  | "green"
+  | "pink"
+  | "taupe"
+  | "sky"
+  | "violet"
+  | "fuchsia"
+  | "mauve"
+  | "olive";
 
 export type SalesTagRecord = {
   id: number;

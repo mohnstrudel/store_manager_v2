@@ -463,7 +463,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_130000) do
   end
 
   create_table "sales_tags", force: :cascade do |t|
-    t.string "color", default: "yellow", null: false
+    t.string "color", default: "green", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.string "normalized_name", null: false

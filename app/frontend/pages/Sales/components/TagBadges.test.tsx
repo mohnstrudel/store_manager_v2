@@ -8,8 +8,8 @@ describe("TagBadges", () => {
     render(
       <TagBadges
         tags={[
-          { id: 2, name: "Rush", color: "red" },
-          { id: 1, name: "VIP Order", color: "blue" },
+          { id: 2, name: "Rush", color: "pink" },
+          { id: 1, name: "VIP Order", color: "sky" },
         ]}
       />,
     );
@@ -17,8 +17,8 @@ describe("TagBadges", () => {
     const items = within(screen.getByRole("list")).getAllByRole("listitem");
 
     expect(items.map((item) => item.textContent)).toEqual(["Rush", "VIP Order"]);
-    expect(screen.getByText("Rush")).toHaveAttribute("data-color", "red");
-    expect(screen.getByText("VIP Order")).toHaveAttribute("data-color", "blue");
+    expect(screen.getByText("Rush")).toHaveAttribute("data-color", "pink");
+    expect(screen.getByText("VIP Order")).toHaveAttribute("data-color", "sky");
   });
 
   it("renders nothing for an untagged sale", () => {
