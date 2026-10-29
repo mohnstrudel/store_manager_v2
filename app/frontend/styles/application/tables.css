@@ -50,6 +50,10 @@
     @apply dark:hover:bg-sky-900/20 dark:hover:ring-sky-800/40;
   }
 
+  .inline_cell_edit {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
   .inline_editable:hover button {
     @apply text-sky-700 bg-sky-100 hover:bg-sky-200/76 dark:text-sky-300 dark:bg-sky-900/50 dark:hover:bg-sky-900;
   }
