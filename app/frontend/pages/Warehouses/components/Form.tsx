@@ -372,7 +372,7 @@ function AddTransitionRow({ onAdd }: { onAdd: () => void }) {
   return (
     <tr className="cursor-default hover:bg-transparent">
       <td>
-        <Button className="btn_rounded" onClick={onAdd} type="button">
+        <Button onClick={onAdd} type="button">
           Add Transition
         </Button>
       </td>

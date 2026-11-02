@@ -242,6 +242,24 @@ describe "GET /sales" do
     end
   end
 
+  describe "button shape", :js do
+    it "gives every regular header button the same very squircle shape" do
+      visit sales_path
+      expect(page).to have_css("header menu button", text: "Store Sync")
+
+      shapes = page.evaluate_script(<<~JS)
+        [...document.querySelectorAll("header menu a, header menu button")].map((element) => {
+          const style = getComputedStyle(element);
+          return [element.textContent.trim(), style.cornerShape, parseFloat(style.borderTopLeftRadius)];
+        })
+      JS
+
+      expect(shapes.size).to be >= 2
+      expect(shapes.map { |_, corner_shape, _| corner_shape }.uniq).to eq(["superellipse(1.25)"])
+      expect(shapes.map { |_, _, radius| radius }).to all(be >= 20)
+    end
+  end
+
   describe "store sync dialog" do
     it "centers the close button on the title, not on the title with its subtitle", :js do
       allow(Config).to receive(:shopify_sales_sync_time).and_return("20.05 at 10:00")

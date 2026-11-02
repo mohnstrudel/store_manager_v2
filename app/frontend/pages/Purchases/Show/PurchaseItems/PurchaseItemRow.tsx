@@ -204,11 +204,7 @@ export default function PurchaseItemRow({
         <td className="table_actions">
           <div className="flex justify-end gap-2">
             {purchaseItem.sale_path && (
-              <button
-                className="no_events btn_red btn_rounded"
-                onClick={handleUnlinkClick}
-                type="button"
-              >
+              <button className="no_events btn_red" onClick={handleUnlinkClick} type="button">
                 <i className="icn">✂︎</i>
                 Unlink
               </button>

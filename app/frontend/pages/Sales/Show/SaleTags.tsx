@@ -32,7 +32,7 @@ export default function SaleTags({ saleId, tags, options, colors, canTagSales }:
         <TagBadges tags={tags} />
         {canTagSales ? (
           <button
-            className="btn_rounded btn_xs text-gray-600 dark:text-gray-400"
+            className="btn_xs text-gray-600 dark:text-gray-400"
             onClick={form.open}
             type="button"
           >

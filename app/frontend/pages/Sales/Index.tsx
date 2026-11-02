@@ -47,7 +47,7 @@ export default function Index({
     <>
       <PageHeader title="Sales">
         <li>
-          <button className="btn_rounded" onClick={openSync} type="button">
+          <button onClick={openSync} type="button">
             <ArrowPathIcon height={20} width={20} />
             Store Sync
           </button>

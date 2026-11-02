@@ -163,7 +163,7 @@ function PurchaseItemUnlinkButton({ purchaseItem }: { purchaseItem: SaleItemPurc
   );
 
   return (
-    <button className="no_events btn_red btn_rounded" onClick={handleUnlinkClick} type="button">
+    <button className="no_events btn_red" onClick={handleUnlinkClick} type="button">
       <i className="icn">✂︎</i>
       Unlink
     </button>

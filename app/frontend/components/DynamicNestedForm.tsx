@@ -23,7 +23,7 @@ export default function DynamicNestedForm({
       />
       <div className="grid grid-cols-1 gap-x-4 gap-y-6 lg:grid-cols-2">{children}</div>
       {canAdd && (
-        <button className="btn_rounded mt-4" onClick={onAdd} type="button">
+        <button className="mt-4" onClick={onAdd} type="button">
           Add {name}
         </button>
       )}

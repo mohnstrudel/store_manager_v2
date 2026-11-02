@@ -59,7 +59,7 @@ export function InlineCellTrigger({
         {children}
       </div>
       <button
-        className="inline_cell_edit btn_rounded btn_xs mt-2"
+        className="inline_cell_edit btn_xs mt-2"
         onClick={onOpen}
         onKeyDown={stopRowEvents}
         type="button"
@@ -106,10 +106,10 @@ export function InlineCellForm({
     >
       {children}
       <div className="flex gap-1 justify-center">
-        <button className="btn_rounded btn_xs btn_green" type="submit">
+        <button className="btn_xs btn_green" type="submit">
           Save
         </button>
-        <button className="btn_red btn_xs btn_rounded" onClick={onCancel} type="button">
+        <button className="btn_red btn_xs" onClick={onCancel} type="button">
           Exit
         </button>
       </div>

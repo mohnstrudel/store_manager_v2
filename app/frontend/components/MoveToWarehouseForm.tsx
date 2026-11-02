@@ -85,7 +85,7 @@ export default function MoveToWarehouseForm({
           placeholder="Select a warehouse"
           value={destination}
         />
-        <button className="btn_rounded btn_blue h-11 w-full lg:w-auto" type="submit">
+        <button className="btn_blue h-11 w-full lg:w-auto" type="submit">
           <i className="icn">🚚</i>
           Move
           {selectedIds.length > 0 && (

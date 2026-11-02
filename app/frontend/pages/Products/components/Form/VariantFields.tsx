@@ -236,7 +236,7 @@ function VariantActions({
 
   if (!variant.id) {
     return (
-      <button className="text-sm btn_rounded btn_red" onClick={onRemove} type="button">
+      <button className="text-sm btn_red" onClick={onRemove} type="button">
         Cancel
       </button>
     );

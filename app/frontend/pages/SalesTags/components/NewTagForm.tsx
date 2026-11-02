@@ -49,7 +49,7 @@ export default function NewTagForm({ query, tagColors }: NewTagFormProps) {
             ))}
           </div>
         </fieldset>
-        <button className="btn_rounded btn_blue w-fit" disabled={form.processing} type="submit">
+        <button className="btn_blue w-fit" disabled={form.processing} type="submit">
           Add tag
         </button>
       </div>

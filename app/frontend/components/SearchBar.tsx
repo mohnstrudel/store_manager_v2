@@ -37,12 +37,12 @@ export default function SearchBar({ initialQuery, path, resourceName }: SearchBa
         type="search"
         value={query}
       />
-      <button className="mt-2 lg:mt-0 lg:ml-2 btn_rounded" type="submit">
+      <button className="mt-2 lg:mt-0 lg:ml-2" type="submit">
         <i className="icn">🔎</i>
         Search
       </button>
       {initialQuery && (
-        <Link className="mt-2 lg:mt-0 lg:ml-2 btn_rounded btn_red" href={path} prefetch>
+        <Link className="mt-2 lg:mt-0 lg:ml-2 btn_red" href={path} prefetch>
           <i className="icn">❎</i>
           Exit
         </Link>

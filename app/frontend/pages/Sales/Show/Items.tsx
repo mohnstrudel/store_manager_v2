@@ -200,7 +200,7 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
           </Link>
         </div>
 
-        <button className="btn_xs btn_red btn_rounded" onClick={handleUnlinkClick} type="button">
+        <button className="btn_xs btn_red" onClick={handleUnlinkClick} type="button">
           <i className="icn">✂︎</i>
           Unlink
         </button>

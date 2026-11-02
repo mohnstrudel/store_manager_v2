@@ -58,7 +58,7 @@ export default function Index(props: VariantAssignmentIssuesPageProps) {
       <PageHeader title="Variant Repairs">
         {props.repairable && (
           <li>
-            <button className="btn_rounded" onClick={runBackfill} type="button">
+            <button onClick={runBackfill} type="button">
               <i className="icn">🧑‍🔧</i>
               Repair Broken
             </button>
@@ -515,7 +515,7 @@ function LinkRepairButton({ issue }: { issue: PurchaseItemLinkIssue }) {
   return (
     <button
       aria-label={`Repair PurchaseItem link ${issue.id}`}
-      className="btn_rounded btn_xs btn_green"
+      className="btn_xs btn_green"
       onClick={repair}
       type="button"
     >

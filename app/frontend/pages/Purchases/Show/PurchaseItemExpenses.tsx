@@ -116,7 +116,7 @@ function NewExpenseRow({
         </td>
         <td>
           <button
-            className="btn_rounded btn_lightblue"
+            className="btn_lightblue"
             form={`new_expense_${expense.create_path}`}
             type="submit"
           >
@@ -203,14 +203,10 @@ function ExpenseRow({
         {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled actions */}
         <td>
           <div className="flex flex-wrap gap-2">
-            <button
-              className="btn_rounded btn_lightamber"
-              form={`expense_${expense.id}`}
-              type="submit"
-            >
+            <button className="btn_lightamber" form={`expense_${expense.id}`} type="submit">
               Update
             </button>
-            <button className="btn_rounded btn_red" onClick={removeExpense} type="button">
+            <button className="btn_red" onClick={removeExpense} type="button">
               Remove
             </button>
           </div>

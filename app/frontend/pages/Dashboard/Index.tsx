@@ -91,7 +91,7 @@ function WebhookWarning({ lastOrdersPullPath }: { lastOrdersPullPath: string }) 
         <li className="mt-2">
           Afterward, hide this notification using this button:
           <button
-            className="btn_rounded btn_red bg-red-200/60 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900/70 text-sm ml-2"
+            className="btn_red bg-red-200/60 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900/70 text-sm ml-2"
             onClick={confirmWebhookActive}
             type="button"
           >

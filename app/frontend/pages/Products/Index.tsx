@@ -23,7 +23,7 @@ export default function Index({ products, pagination, search, last_sync_at }: In
     <>
       <PageHeader title="Products">
         <li>
-          <button className="btn_rounded" onClick={openSync} type="button">
+          <button onClick={openSync} type="button">
             <ArrowPathIcon height={20} width={20} />
             Store Sync
           </button>

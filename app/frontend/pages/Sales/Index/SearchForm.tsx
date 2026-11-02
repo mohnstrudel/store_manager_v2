@@ -87,12 +87,12 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
           type="search"
           value={draft.q}
         />
-        <button className="btn_rounded" type="submit">
+        <button type="submit">
           <i className="icn">🔎</i>
           Search
         </button>
         {hasSearch && (
-          <button className="btn_rounded btn_red" onClick={handleClear} type="button">
+          <button className="btn_red" onClick={handleClear} type="button">
             <i className="icn">❎</i>
             Clear search
           </button>

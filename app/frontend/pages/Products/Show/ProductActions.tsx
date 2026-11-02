@@ -12,7 +12,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
     <>
       {canFetchFromShopify(product) && (
         <li>
-          <Link className="btn_rounded" href={product.shopify_pull_path} method="post">
+          <Link href={product.shopify_pull_path} method="post">
             <ChevronDoubleDownIcon height={20} width={20} />
             Fetch
           </Link>

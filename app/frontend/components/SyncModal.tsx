@@ -80,12 +80,12 @@ function SyncActions({
   return (
     <menu className="flex flex-col gap-4">
       <li>
-        <button className="w-full h-15 btn_blue btn_rounded" onClick={onFetchAll} type="button">
+        <button className="w-full h-15 btn_blue" onClick={onFetchAll} type="button">
           {fetchAllLabel}
         </button>
       </li>
       <li>
-        <button className="w-full h-15 btn_rounded" onClick={onFetchLimited} type="button">
+        <button className="w-full h-15" onClick={onFetchLimited} type="button">
           {fetchLimitedLabel}
         </button>
       </li>

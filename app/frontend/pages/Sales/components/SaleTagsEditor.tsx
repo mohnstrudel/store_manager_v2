@@ -52,16 +52,16 @@ export default function SaleTagsEditor({ form, idPrefix, options }: SaleTagsEdit
       />
       <FormError id={errorId}>{form.error}</FormError>
       {form.needsReload ? (
-        <button className="btn_rounded btn_xs self-center" onClick={form.reload} type="button">
+        <button className="btn_xs self-center" onClick={form.reload} type="button">
           Reload tags (discards your changes)
         </button>
       ) : null}
       <div className="flex gap-1 justify-center">
-        <button className="btn_rounded btn_xs btn_green" disabled={form.processing} type="submit">
+        <button className="btn_xs btn_green" disabled={form.processing} type="submit">
           {form.processing ? "Saving…" : "Save"}
         </button>
         <button
-          className="btn_red btn_xs btn_rounded"
+          className="btn_red btn_xs"
           disabled={form.processing}
           onClick={form.cancel}
           type="button"

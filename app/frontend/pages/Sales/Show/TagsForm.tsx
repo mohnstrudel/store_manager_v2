@@ -99,7 +99,7 @@ export default function TagsForm({ colors, form, id, options }: TagsFormProps) {
 
       <FormError>{form.error}</FormError>
       {form.needsReload ? (
-        <button className="btn_rounded w-fit" onClick={form.reload} type="button">
+        <button className="w-fit" onClick={form.reload} type="button">
           Reload tags (discards your changes)
         </button>
       ) : null}
@@ -116,7 +116,7 @@ export function TagsFormActions({ form, formId }: TagsFormActionsProps) {
   return (
     <>
       <button
-        className="btn_rounded btn_blue border border-transparent"
+        className="btn_blue border border-transparent"
         disabled={form.processing}
         form={formId}
         type="submit"
@@ -124,7 +124,7 @@ export function TagsFormActions({ form, formId }: TagsFormActionsProps) {
         {form.processing ? "Saving…" : "Save"}
       </button>
       <button
-        className="btn_rounded border border-gray-200 bg-white shadow-xs hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10"
+        className="border border-gray-200 bg-white shadow-xs hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10"
         disabled={form.processing}
         onClick={form.cancel}
         type="button"

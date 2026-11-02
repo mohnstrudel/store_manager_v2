@@ -119,7 +119,7 @@ function ActionCell({ row }: { row: SaleItemTableRow }) {
   if (row.is_current) {
     return (
       <td className="text-right">
-        <button className="btn_red btn_rounded" onClick={stop(unlink)} type="button">
+        <button className="btn_red" onClick={stop(unlink)} type="button">
           Unlink
         </button>
       </td>
@@ -129,7 +129,7 @@ function ActionCell({ row }: { row: SaleItemTableRow }) {
   if (row.is_available) {
     return (
       <td className="text-right">
-        <button className="btn_green btn_rounded" onClick={stop(link)} type="button">
+        <button className="btn_green" onClick={stop(link)} type="button">
           Link
         </button>
       </td>
@@ -138,7 +138,7 @@ function ActionCell({ row }: { row: SaleItemTableRow }) {
 
   return (
     <td className="text-right">
-      <button className="btn_red btn_rounded" onClick={stop(relink)} type="button">
+      <button className="btn_red" onClick={stop(relink)} type="button">
         Relink
       </button>
     </td>

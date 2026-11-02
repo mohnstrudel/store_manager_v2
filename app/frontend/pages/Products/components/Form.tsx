@@ -356,7 +356,7 @@ function InitialPurchaseSection({
       />
 
       {!renderPurchase && (
-        <button className="btn_rounded" onClick={form.showPurchaseForm} type="button">
+        <button onClick={form.showPurchaseForm} type="button">
           Add Purchase
         </button>
       )}

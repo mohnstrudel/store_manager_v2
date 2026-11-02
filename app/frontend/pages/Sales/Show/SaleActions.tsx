@@ -13,11 +13,7 @@ export default function SaleActions({ sale }: SaleActionsProps) {
     <>
       {sale.can_link_purchase_items && (
         <li>
-          <Link
-            className="btn_rounded btn_lightblue"
-            href={sale.link_purchase_items_path}
-            method="post"
-          >
+          <Link className="btn_lightblue" href={sale.link_purchase_items_path} method="post">
             <i className="icn">🔗</i>
             Link with purchases
           </Link>
@@ -25,7 +21,7 @@ export default function SaleActions({ sale }: SaleActionsProps) {
       )}
       {canFetchSale(sale) && (
         <li>
-          <Link className="btn_rounded" href={sale.pull_path} method="post">
+          <Link href={sale.pull_path} method="post">
             <ChevronDoubleDownIcon height={20} width={20} />
             Fetch
           </Link>
