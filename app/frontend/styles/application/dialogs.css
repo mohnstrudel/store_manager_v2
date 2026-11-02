@@ -12,7 +12,15 @@
     display: none;
   }
 
+  dialog::backdrop {
+    @apply bg-transparent;
+  }
+
   .dialog_content {
-    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-full lg:max-w-3xl p-4 pb-6 translate-y-0 lg:-translate-y-10;
+    @apply relative bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-xl p-4 pb-6 translate-y-0 lg:-translate-y-10;
+  }
+
+  .dialog_close {
+    @apply absolute top-3 right-3 p-1.5!;
   }
 }

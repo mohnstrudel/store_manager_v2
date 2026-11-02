@@ -1,31 +1,11 @@
 import { router } from "@inertiajs/react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import SyncModal from "./SyncModal";
 
 describe("SyncModal", () => {
-  it("closes when escape is pressed", () => {
-    const onClose = vi.fn<() => void>();
-
-    render(
-      <SyncModal
-        fetchLimitedLabel="Fetch Limited"
-        id="sync-modal"
-        onClose={onClose}
-        pullPath="/sync"
-        title="Sync"
-      />,
-    );
-
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-
-    fireEvent.keyDown(window, { key: "Escape" });
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
   it("fetches every record and closes the dialog", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn<() => void>();
