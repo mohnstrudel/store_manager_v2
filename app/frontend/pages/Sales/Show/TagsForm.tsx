@@ -124,7 +124,7 @@ export function TagsFormActions({ form, formId }: TagsFormActionsProps) {
         {form.processing ? "Saving…" : "Save"}
       </button>
       <button
-        className="btn_rounded"
+        className="btn_rounded bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
         disabled={form.processing}
         onClick={form.cancel}
         type="button"
