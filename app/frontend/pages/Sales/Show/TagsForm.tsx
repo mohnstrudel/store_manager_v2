@@ -142,7 +142,9 @@ function TagChoice({ checked, disabled, onToggle, tag }: TagChoiceProps) {
         type="checkbox"
       />
       <TagBadge color={tag.color}>
-        <CheckIcon aria-hidden className={checked ? "" : "invisible"} height={12} width={12} />
+        <span aria-hidden className="sales_tag_check">
+          <CheckIcon height={12} width={12} />
+        </span>
         {tag.name}
       </TagBadge>
     </label>

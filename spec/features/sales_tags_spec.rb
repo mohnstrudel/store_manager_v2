@@ -316,6 +316,16 @@ RSpec.feature "Sales tags catalog", :js do
       page.evaluate_script("document.querySelector(#{selector.to_json}).getBoundingClientRect().#{dimension}")
     end
 
+    def chip_style(name, property)
+      page.evaluate_script(<<~JS)
+        (() => {
+          const chip = [...document.querySelectorAll("dialog label.sales_tag_choice .sales_tag")]
+            .find((element) => element.textContent.trim() === #{name.to_json});
+          return getComputedStyle(chip).#{property};
+        })()
+      JS
+    end
+
     scenario "saves a selection beneath the heading, keeps it after reload and shows it on the index" do
       visit sale_path(sale)
 
@@ -511,15 +521,10 @@ RSpec.feature "Sales tags catalog", :js do
       expect(page.all("dialog label.sales_tag_choice").map(&:text)).to eq(%w[zebra Rush Alpha VIP])
     end
 
-    scenario "does not change the dialog height while filtering or the chip width when toggling" do
+    scenario "does not change the dialog height while filtering" do
       visit sale_path(sale)
       click_button "Add tags"
       full_height = measure(".dialog_content", "height")
-      chip_width = measure("label.sales_tag_choice", "width")
-
-      toggle("Rush")
-      expect(page).to have_css("label.sales_tag_choice:has(input:checked)", text: "Rush")
-      expect(measure("label.sales_tag_choice", "width")).to eq(chip_width)
 
       find(filter_field).set("ru")
       expect(page).to have_no_css("label.sales_tag_choice", text: "VIP")
@@ -528,6 +533,24 @@ RSpec.feature "Sales tags catalog", :js do
       find(filter_field).set("zzz")
       expect(page).to have_content("No tags match")
       expect(measure(".dialog_content", "height")).to eq(full_height)
+    end
+
+    scenario "marks a selected tag by a border and a checkmark, never by opacity" do
+      visit sale_path(sale)
+      click_button "Add tags"
+      selected_check = "label.sales_tag_choice:has(input:checked) .sales_tag_check"
+      unselected_check = "label.sales_tag_choice:not(:has(input:checked)) .sales_tag_check"
+
+      toggle("Rush")
+
+      expect(page).to have_css("label.sales_tag_choice:has(input:checked)", text: "Rush")
+      page.document.synchronize do
+        raise Capybara::ExpectationNotMet, "checkmark has not appeared" unless measure(selected_check, "width") >= 12
+      end
+      expect(measure(unselected_check, "width")).to eq(0)
+      expect(chip_style("Rush", "opacity")).to eq(chip_style("VIP", "opacity"))
+      expect(chip_style("Rush", "boxShadow")).not_to eq("none")
+      expect(chip_style("VIP", "boxShadow")).to eq("none")
     end
 
     scenario "puts Save and Cancel at the left edge of the form" do

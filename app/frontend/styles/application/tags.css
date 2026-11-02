@@ -52,11 +52,15 @@
   }
 
   .sales_tag_choice[data-literal] .sales_tag {
-    @apply inline-flex items-center gap-1 normal-case py-1 text-sm;
+    @apply inline-flex items-center normal-case py-1 text-sm;
   }
 
-  .sales_tag_choice[data-literal]:not(:has(:checked)) .sales_tag {
-    @apply opacity-60;
+  .sales_tag_check {
+    @apply inline-flex max-w-0 overflow-hidden transition-[max-width,margin] duration-150 motion-reduce:transition-none;
+  }
+
+  .sales_tag_choice:has(:checked) .sales_tag_check {
+    @apply mr-1 max-w-3;
   }
 
   .sales_tag_choice:has(:checked) .sales_tag {
