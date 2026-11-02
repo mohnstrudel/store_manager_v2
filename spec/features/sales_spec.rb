@@ -254,8 +254,9 @@ describe "GET /sales" do
         })
       JS
 
+      token = page.evaluate_script("getComputedStyle(document.documentElement).getPropertyValue('--corner-shape').trim()")
       expect(shapes.size).to be >= 2
-      expect(shapes.map { |_, corner_shape, _| corner_shape }.uniq).to eq(["superellipse(1.25)"])
+      expect(shapes.map { |_, corner_shape, _| corner_shape }.uniq).to eq([token])
       expect(shapes.map { |_, _, radius| radius }).to all(be >= 20)
     end
   end

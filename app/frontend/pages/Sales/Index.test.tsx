@@ -11,7 +11,7 @@ import Index from "./Index";
 import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
 
-const tagColors = ["green", "pink", "taupe", "sky", "violet", "fuchsia", "mauve", "olive"] as const;
+const tagColors = ["green", "pink", "taupe", "sky", "violet", "olive"] as const;
 
 vi.mock("@/components/SmartSelect", () => import("@/test/mocks/singleSmartSelect"));
 

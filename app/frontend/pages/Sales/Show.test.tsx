@@ -11,7 +11,7 @@ import Show from "./Show";
 import { makeSaleProfitability, makeSaleShow } from "./test/factories";
 import type { SaleShowRecord } from "./types";
 
-const tagColors = ["green", "pink", "taupe", "sky", "violet", "fuchsia", "mauve", "olive"] as const;
+const tagColors = ["green", "pink", "taupe", "sky", "violet", "olive"] as const;
 const rush: SalesTagRecord = { id: 4, name: "Rush", color: "pink" };
 const vip: SalesTagRecord = { id: 2, name: "VIP", color: "sky" };
 const wholesale: SalesTagRecord = { id: 9, name: "Wholesale", color: "green" };

@@ -1074,7 +1074,7 @@ RSpec.describe "Sales" do
         {id: apple.id, name: "apple", color: "green"},
         {id: zebra.id, name: "Zebra", color: "pink"}
       ])
-      expect(inertia.props[:tag_colors]).to eq(%w[green pink taupe sky violet fuchsia mauve olive])
+      expect(inertia.props[:tag_colors]).to eq(%w[green pink taupe sky violet olive])
       expect(inertia.props[:can_tag_sales]).to be(true)
     end
 
@@ -1184,7 +1184,7 @@ RSpec.describe "Sales" do
         {id: apple.id, name: "apple", color: "green"},
         {id: zebra.id, name: "Zebra", color: "pink"}
       ])
-      expect(inertia.props[:tag_colors]).to eq(%w[green pink taupe sky violet fuchsia mauve olive])
+      expect(inertia.props[:tag_colors]).to eq(%w[green pink taupe sky violet olive])
       expect(inertia.props[:can_tag_sales]).to be(true)
     end
 

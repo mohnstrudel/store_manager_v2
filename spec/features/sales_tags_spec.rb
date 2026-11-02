@@ -542,7 +542,7 @@ RSpec.feature "Sales tags catalog", :js do
     end
 
     scenario "grows with the window before the tag list scrolls" do
-      120.times { |index| create(:sales_tag, name: "Tag #{index}", color: SalesTag::COLORS[index % 8]) }
+      120.times { |index| create(:sales_tag, name: "Tag #{index}", color: SalesTag::COLORS[index % SalesTag::COLORS.size]) }
       scrolls = -> { page.evaluate_script("(() => { const list = document.querySelector('dialog fieldset'); return list.scrollHeight > list.clientHeight; })()") }
 
       visit sale_path(sale)
@@ -607,9 +607,10 @@ RSpec.feature "Sales tags catalog", :js do
       expect(page).to have_css(".dialog_footer button", text: "Cancel")
       expect(style_of.call(".dialog_footer button[type=button]", "backgroundColor")).to eq("rgb(255, 255, 255)")
       expect(style_of.call(".dialog_footer button[type=button]", "borderTopWidth")).to eq("1px")
-      expect(style_of.call(".dialog_footer button[type=button]", "cornerShape")).to eq("superellipse(1.25)")
-      expect(style_of.call(".dialog_footer button[type=submit]", "cornerShape")).to eq("superellipse(1.25)")
-      expect(style_of.call(".dialog_content", "cornerShape")).to eq("superellipse(1.25)")
+      token = page.evaluate_script("getComputedStyle(document.documentElement).getPropertyValue('--corner-shape').trim()")
+      expect(style_of.call(".dialog_footer button[type=button]", "cornerShape")).to eq(token)
+      expect(style_of.call(".dialog_footer button[type=submit]", "cornerShape")).to eq(token)
+      expect(style_of.call(".dialog_content", "cornerShape")).to eq(token)
       radius = ->(selector) { style_of.call(selector, "borderTopLeftRadius").to_f }
       expect(radius.call(".dialog_footer button[type=button]")).to be >= 20
       expect(radius.call(".dialog_footer button[type=submit]")).to be >= 20

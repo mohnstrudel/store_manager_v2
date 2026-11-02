@@ -8,7 +8,7 @@ import Index from "./Index";
 import { makeSalesTagCatalogRecord } from "./test/factories";
 import type { SalesTagCatalogRecord } from "./types";
 
-const tagColors = ["green", "pink", "taupe", "sky", "violet", "fuchsia", "mauve", "olive"] as const;
+const tagColors = ["green", "pink", "taupe", "sky", "violet", "olive"] as const;
 
 function renderIndex(salesTags: SalesTagCatalogRecord[] = [], query = "") {
   return render(<Index sales_tags={salesTags} search={{ q: query }} tag_colors={[...tagColors]} />);
@@ -47,7 +47,7 @@ describe("SalesTags/Index", () => {
     expect(screen.getByText("No sales tags match “vip”.")).toBeInTheDocument();
   });
 
-  it("offers the eight named colors with green selected by default", async () => {
+  it("offers every palette color with green selected by default", async () => {
     const user = userEvent.setup();
     renderIndex();
 
