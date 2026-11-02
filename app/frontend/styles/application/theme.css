@@ -8,6 +8,7 @@
 }
 
 :root {
+  --corner-shape: superellipse(1.25);
   --react-select-bg: #ffffff;
   --react-select-menu-bg: #ffffff;
   --react-select-text: #111827;

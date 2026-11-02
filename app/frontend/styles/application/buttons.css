@@ -21,7 +21,8 @@
 
   .btn_rounded,
   button[data-variant="danger"] {
-    @apply rounded-full px-2.5 border-gray-200 dark:border-gray-600;
+    @apply rounded-4xl px-2.5 border-gray-200 dark:border-gray-600;
+    corner-shape: var(--corner-shape);
   }
 
   .btn_red,

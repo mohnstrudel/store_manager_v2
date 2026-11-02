@@ -592,6 +592,8 @@ RSpec.feature "Sales tags catalog", :js do
     end
 
     scenario "draws the close button without a background and the actions on a full-width footer" do
+      emulate_scheme = ->(value) { page.driver.browser.page.command("Emulation.setEmulatedMedia", features: [{name: "prefers-color-scheme", value:}]) }
+      emulate_scheme.call("light")
       visit sale_path(sale)
       click_button "Add tags"
       style_of = ->(selector, property) { page.evaluate_script("getComputedStyle(document.querySelector(#{selector.to_json})).#{property}") }
@@ -605,7 +607,16 @@ RSpec.feature "Sales tags catalog", :js do
       expect(page).to have_css(".dialog_footer button", text: "Cancel")
       expect(style_of.call(".dialog_footer button[type=button]", "backgroundColor")).to eq("rgb(255, 255, 255)")
       expect(style_of.call(".dialog_footer button[type=button]", "borderTopWidth")).to eq("1px")
+      expect(style_of.call(".dialog_footer button[type=button]", "cornerShape")).to eq("superellipse(1.25)")
+      expect(style_of.call(".dialog_footer button[type=submit]", "cornerShape")).to eq("superellipse(1.25)")
+      expect(style_of.call(".dialog_content", "cornerShape")).to eq("superellipse(1.25)")
+      radius = ->(selector) { style_of.call(selector, "borderTopLeftRadius").to_f }
+      expect(radius.call(".dialog_footer button[type=button]")).to be >= 20
+      expect(radius.call(".dialog_footer button[type=submit]")).to be >= 20
+      expect(radius.call(".dialog_content")).to be >= 32
       expect(measure(".dialog_footer button[type=button]", "height")).to eq(measure(".dialog_footer button[type=submit]", "height"))
+    ensure
+      emulate_scheme&.call("")
     end
 
     scenario "puts Save and Cancel at the left edge of the form" do

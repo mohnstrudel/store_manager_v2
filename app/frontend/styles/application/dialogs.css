@@ -17,14 +17,17 @@
   }
 
   .dialog_content {
-    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg ring-1 ring-gray-950/10 dark:ring-white/10 w-full max-w-2xl translate-y-0 lg:-translate-y-10;
+    @apply bg-white dark:bg-gray-900 rounded-4xl shadow-lg ring-1 ring-gray-950/10 dark:ring-white/10 w-full max-w-2xl translate-y-0 lg:-translate-y-10;
+    corner-shape: var(--corner-shape);
   }
 
   .dialog_close {
-    @apply shrink-0 rounded-full bg-transparent p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:bg-transparent dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100;
+    @apply shrink-0 rounded-2xl bg-transparent p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:bg-transparent dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100;
+    corner-shape: var(--corner-shape);
   }
 
   .dialog_footer {
-    @apply flex gap-2 rounded-b-lg border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/40;
+    @apply flex gap-2 rounded-b-4xl border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/40;
+    corner-shape: var(--corner-shape);
   }
 }
