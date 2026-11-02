@@ -223,6 +223,7 @@ export type SaleShowRecord = {
   shipping_address?: SaleAddressRecord | null;
   billing_address?: SaleAddressRecord | null;
   sale_items: SaleShowSaleItemRecord[];
+  tags: SalesTagRecord[];
   payment: SalePaymentRecord;
   payment_plans: SalePaymentPlanRecord[];
   payment_progress: SalePaymentProgress | null;

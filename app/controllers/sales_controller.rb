@@ -21,9 +21,7 @@ class SalesController < ApplicationController
       search: {q: criteria[:query]},
       sort: criteria[:sort],
       filters: criteria.slice(*LISTING_FILTERS),
-      tag_options: catalog.sort_by(&:sort_key).map { |tag| helpers.sales_tag_props(tag) },
-      tag_colors: SalesTag::COLORS,
-      can_tag_sales:,
+      **tag_props(catalog, can_tag_sales),
       last_sync_at: helpers.format_last_fetched_at(Config.shopify_sales_sync_at),
       last_sync_time: Config.shopify_sales_sync_time
     }
@@ -31,7 +29,8 @@ class SalesController < ApplicationController
 
   def show
     render inertia: "Sales/Show", props: {
-      sale: helpers.sale_showing_props(@sale, can_view_profitability: policy(@sale).view_profitability?)
+      sale: helpers.sale_showing_props(@sale, can_view_profitability: policy(@sale).view_profitability?),
+      **tag_props(SalesTag.all, policy(:sale).update_tags?)
     }
   end
 
@@ -97,6 +96,14 @@ class SalesController < ApplicationController
       catalog.map { |tag| [tag.id, tag.name, tag.color, tag.updated_at.to_fs(:usec)] },
       can_tag_sales, current_user.role
     ]
+  end
+
+  def tag_props(catalog, can_tag_sales)
+    {
+      tag_options: catalog.sort_by(&:sort_key).map { |tag| helpers.sales_tag_props(tag) },
+      tag_colors: SalesTag::COLORS,
+      can_tag_sales:
+    }
   end
 
   def append_sale_item_errors(record, payload:)

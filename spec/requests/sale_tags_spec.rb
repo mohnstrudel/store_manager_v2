@@ -199,6 +199,39 @@ RSpec.describe "Sale tags" do
         end
       end
     end
+
+    describe "from the sale page" do
+      before do
+        log_out
+        sign_in create(:user, role: :support)
+      end
+
+      it "lets support staff save and lands back on the sale page showing the new tags" do
+        patch_tags(tagging: tagging(ids: [vip.id, rush.id]), return_to: sale_path(sale))
+        follow_redirect!
+
+        expect(response).to have_http_status(:ok)
+        expect_inertia.to render_component("Sales/Show")
+        expect(inertia.props[:sale][:tags].pluck(:name)).to eq(%w[Rush VIP])
+      end
+
+      it "grants no access to the full sale editor" do
+        get edit_sale_path(sale)
+
+        expect(response).to redirect_to(noop_path)
+      end
+
+      it "returns a deleted selection to the sale page as a tags error" do
+        deleted_id = rush.id
+        rush.destroy
+
+        patch_tags(tagging: tagging(ids: [deleted_id]), return_to: sale_path(sale))
+        follow_redirect!
+
+        expect_inertia.to render_component("Sales/Show")
+        expect(inertia.props[:errors].deep_symbolize_keys).to eq(tags: "A selected tag is no longer available. Reload tags and try again.")
+      end
+    end
   end
 
   describe "role access" do

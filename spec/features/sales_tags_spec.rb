@@ -293,4 +293,249 @@ RSpec.feature "Sales tags catalog", :js do
       expect(sale.sales_tags.pluck(:name)).to eq(["VIP"])
     end
   end
+
+  describe "on the sale page" do
+    let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2)) }
+    let!(:vip) { create(:sales_tag, name: "VIP", color: "sky") }
+    let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
+    let(:filter_field) { "input[aria-label='Filter tags']" }
+
+    def toggle(name)
+      find("label.sales_tag_choice", text: name).click
+    end
+
+    def press(key)
+      page.driver.browser.keyboard.type(key)
+    end
+
+    def click_backdrop
+      page.driver.browser.mouse.click(x: 5, y: 5)
+    end
+
+    def measure(selector, dimension)
+      page.evaluate_script("document.querySelector(#{selector.to_json}).getBoundingClientRect().#{dimension}")
+    end
+
+    scenario "saves a selection beneath the heading, keeps it after reload and shows it on the index" do
+      visit sale_path(sale)
+
+      click_button "Add tags"
+      expect(page).to have_css("dialog h2", text: "Add tags")
+      toggle("Rush")
+      toggle("VIP")
+      click_button "Save"
+
+      expect(page).to have_css("header + div .sales_tag", text: "Rush")
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_current_path(sale_path(sale))
+      expect(sale.sales_tags.pluck(:name)).to match_array(%w[Rush VIP])
+
+      page.refresh
+
+      expect(page.all("header + div .sales_tag").map(&:text)).to eq(%w[Rush VIP])
+      expect(page).to have_button("Edit tags")
+
+      visit sales_path
+
+      within("tbody tr", text: "HSCM#1001") { expect(page.all(".sales_tag").map(&:text)).to eq(%w[Rush VIP]) }
+    end
+
+    scenario "unchecks a tag, cancels without saving, then saves the removal" do
+      SaleTagging.create!(sale:, sales_tag: vip)
+      visit sale_path(sale)
+
+      click_button "Edit tags"
+      expect(page).to have_css("dialog label.sales_tag_choice:has(input:checked)", text: "VIP")
+      toggle("VIP")
+      click_button "Cancel"
+
+      expect(page).to have_css("header + div .sales_tag", text: "VIP")
+      expect(SaleTagging.where(sale:).count).to eq(1)
+
+      click_button "Edit tags"
+      toggle("VIP")
+      click_button "Save"
+
+      expect(page).to have_button("Add tags")
+      expect(page).to have_no_css("header + div .sales_tag")
+      expect(SaleTagging.where(sale:).count).to eq(0)
+      expect(SalesTag.where(id: vip.id)).to exist
+    end
+
+    scenario "opens from the keyboard, toggles a tag with Space and closes with Escape" do
+      visit sale_path(sale)
+      page.execute_script("arguments[0].focus()", find_button("Add tags"))
+
+      press(:enter)
+      expect(page).to have_css("#{filter_field}:focus")
+
+      press(:tab)
+      expect(page).to have_css("label.sales_tag_choice input:focus", visible: :all)
+      press(" ")
+      expect(page).to have_css("label.sales_tag_choice:has(input:checked)", text: "Rush")
+
+      press(:escape)
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_css("button:focus", text: "Add tags")
+      expect(SaleTagging.count).to eq(0)
+    end
+
+    scenario "does not save when Enter is pressed in the filter" do
+      visit sale_path(sale)
+      click_button "Add tags"
+      toggle("Rush")
+      find(filter_field).click
+      press(:enter)
+
+      expect(page).to have_css("dialog")
+      expect(SaleTagging.count).to eq(0)
+    end
+
+    scenario "keeps Tab out of the page behind the dialog and returns focus to the control when it closes" do
+      visit sale_path(sale)
+      click_button "Add tags"
+      expect(page).to have_css("#{filter_field}:focus")
+
+      10.times do
+        press(:tab)
+        expect(page.evaluate_script("document.activeElement === document.body || !!document.activeElement.closest('dialog')")).to be(true)
+      end
+
+      click_button "Cancel"
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_css("button:focus", text: "Add tags")
+    end
+
+    scenario "closes with Escape after focus left the form" do
+      visit sale_path(sale)
+      click_button "Add tags"
+
+      find("dialog h2").click
+      press(:escape)
+
+      expect(page).to have_no_css("dialog")
+      expect(SaleTagging.count).to eq(0)
+    end
+
+    scenario "closes with the cross button" do
+      visit sale_path(sale)
+      click_button "Add tags"
+
+      find("dialog [aria-label='Close']").click
+
+      expect(page).to have_no_css("dialog")
+    end
+
+    scenario "closes from a backdrop click without saving" do
+      visit sale_path(sale)
+      click_button "Add tags"
+      toggle("Rush")
+
+      click_backdrop
+
+      expect(page).to have_no_css("dialog")
+      expect(SaleTagging.count).to eq(0)
+    end
+
+    scenario "keeps the dialog open and locked while saving" do
+      SaleTagging.create!(sale:, sales_tag: vip)
+      release = Queue.new
+      allow(SaleTagging).to receive(:insert_all!).and_wrap_original do |original, *args, **kwargs|
+        release.pop(timeout: 5)
+        original.call(*args, **kwargs)
+      end
+      visit sale_path(sale)
+      click_button "Edit tags"
+      toggle("Rush")
+      click_button "Save"
+
+      within("dialog") do
+        expect(page).to have_button("Saving…", disabled: true)
+        expect(page).to have_button("Cancel", disabled: true)
+        expect(page).to have_css("input[type=checkbox][disabled]", count: 2, visible: :all)
+      end
+      click_backdrop
+      expect(page).to have_css("dialog label.sales_tag_choice:has(input:checked)", text: "Rush")
+
+      release << true
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_css("header + div .sales_tag", text: "Rush")
+      expect(sale.sales_tags.pluck(:name)).to match_array(%w[Rush VIP])
+    ensure
+      release&.push(true)
+    end
+
+    scenario "rejects a stale editor, keeps the draft and reloads only on request" do
+      SaleTagging.create!(sale:, sales_tag: vip)
+      visit sale_path(sale)
+      click_button "Edit tags"
+      toggle("Rush")
+
+      SaleTagging.where(sale:).delete_all
+      SaleTagging.create!(sale:, sales_tag: rush)
+      click_button "Save"
+
+      expect(page).to have_content("Tags changed since you opened this editor. Reload tags and try again.")
+      expect(page).to have_css("dialog label.sales_tag_choice:has(input:checked)", text: "Rush")
+      expect(sale.sales_tags.pluck(:name)).to eq(["Rush"])
+
+      click_button "Reload tags (discards your changes)"
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_css("header + div .sales_tag", text: "Rush", count: 1)
+    end
+
+    scenario "lets support staff tag the sale" do
+      log_out
+      sign_in create(:user, :support)
+      visit sale_path(sale)
+
+      click_button "Add tags"
+      toggle("VIP")
+      click_button "Save"
+
+      expect(page).to have_css("header + div .sales_tag", text: "VIP")
+      expect(sale.sales_tags.pluck(:name)).to eq(["VIP"])
+    end
+
+    scenario "lists tags by palette color and then alphabetically" do
+      create(:sales_tag, name: "Alpha", color: "sky")
+      create(:sales_tag, name: "zebra", color: "green")
+      visit sale_path(sale)
+
+      click_button "Add tags"
+
+      expect(page).to have_css("dialog label.sales_tag_choice", count: 4)
+      expect(page.all("dialog label.sales_tag_choice").map(&:text)).to eq(%w[zebra Rush Alpha VIP])
+    end
+
+    scenario "does not change the dialog height while filtering or the chip width when toggling" do
+      visit sale_path(sale)
+      click_button "Add tags"
+      full_height = measure(".dialog_content", "height")
+      chip_width = measure("label.sales_tag_choice", "width")
+
+      toggle("Rush")
+      expect(page).to have_css("label.sales_tag_choice:has(input:checked)", text: "Rush")
+      expect(measure("label.sales_tag_choice", "width")).to eq(chip_width)
+
+      find(filter_field).set("ru")
+      expect(page).to have_no_css("label.sales_tag_choice", text: "VIP")
+      expect(measure(".dialog_content", "height")).to eq(full_height)
+
+      find(filter_field).set("zzz")
+      expect(page).to have_content("No tags match")
+      expect(measure(".dialog_content", "height")).to eq(full_height)
+    end
+
+    scenario "puts Save and Cancel at the left edge of the form" do
+      visit sale_path(sale)
+      click_button "Add tags"
+
+      expect(measure("dialog button[type=submit]", "left")).to eq(measure(filter_field, "left"))
+      expect(page).to have_css("dialog button[type=submit] + button", text: "Cancel")
+    end
+  end
 end

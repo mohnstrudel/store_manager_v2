@@ -51,6 +51,14 @@
     @apply capitalize;
   }
 
+  .sales_tag_choice[data-literal] .sales_tag {
+    @apply inline-flex items-center gap-1 normal-case py-1 text-sm;
+  }
+
+  .sales_tag_choice[data-literal]:not(:has(:checked)) .sales_tag {
+    @apply opacity-60;
+  }
+
   .sales_tag_choice:has(:checked) .sales_tag {
     @apply ring-1 ring-current;
   }

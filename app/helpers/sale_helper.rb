@@ -18,7 +18,6 @@ module SaleHelper
       customer_name: sale.customer.full_name,
       customer_email: sale.customer.email,
       sale_items: sale.sale_items.map { |item| sale_index_item_props(item) },
-      tags: sale.sales_tags.sort_by(&:sort_key).map { |tag| sales_tag_props(tag) },
       payment: sale_payment_props(sale),
       **sale_payment_context_props(sale)
     )
@@ -183,6 +182,7 @@ module SaleHelper
       woo_store_id: sale.woo_store_id,
       shop_identifier: sale.shop_identifier,
       is_follow_up_payment: sale.follow_up_payment?,
+      tags: sale.sales_tags.sort_by(&:sort_key).map { |tag| sales_tag_props(tag) },
       **sale_settlement_props(sale)
     }
   end

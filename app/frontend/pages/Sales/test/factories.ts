@@ -148,6 +148,7 @@ export function makeSaleShow(overrides: Partial<SaleShowRecord> = {}): SaleShowR
       postcode: "75001",
     }),
     sale_items: [makeSaleShowSaleItem()],
+    tags: [],
     payment: makeSalePayment(),
     payment_plans: [],
     payment_progress: null,

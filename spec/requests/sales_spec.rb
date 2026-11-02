@@ -966,6 +966,15 @@ RSpec.describe "Sales" do
         expect(sale_props).to have_key(:shipping_total)
       end
 
+      it "shows each charge only its own tags" do
+        tag = create(:sales_tag, name: "VIP")
+        SaleTagging.create!(sale: origin, sales_tag: tag)
+
+        get sale_path(follow_up)
+
+        expect(inertia.props[:sale][:tags]).to eq([])
+      end
+
       it "batches sale_items across every related sale instead of querying them one by one" do
         sale_item_queries = []
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
@@ -1148,6 +1157,51 @@ RSpec.describe "Sales" do
 
         expect(response).to have_http_status(:ok)
         expect(response.headers).not_to have_key("Last-Modified")
+      end
+    end
+  end
+
+  describe "GET /sales/:id tags" do
+    let(:sale) { create(:sale) }
+    let!(:zebra) { create(:sales_tag, name: "Zebra", color: "pink") }
+    let!(:apple) { create(:sales_tag, name: "apple", color: "green") }
+
+    def assign(target, *tags)
+      tags.each { |tag| SaleTagging.create!(sale: target, sales_tag: tag) }
+    end
+
+    it "lists the sale's tags alphabetically and the catalog options with colors and capability" do
+      assign(sale, zebra, apple)
+      create(:sale).tap { |other| assign(other, zebra) }
+
+      get sale_path(sale)
+
+      expect(inertia.props[:sale][:tags].map(&:deep_symbolize_keys)).to eq([
+        {id: apple.id, name: "apple", color: "green"},
+        {id: zebra.id, name: "Zebra", color: "pink"}
+      ])
+      expect(inertia.props[:tag_options].map(&:deep_symbolize_keys)).to eq([
+        {id: apple.id, name: "apple", color: "green"},
+        {id: zebra.id, name: "Zebra", color: "pink"}
+      ])
+      expect(inertia.props[:tag_colors]).to eq(%w[green pink taupe sky violet fuchsia mauve olive])
+      expect(inertia.props[:can_tag_sales]).to be(true)
+    end
+
+    it "gives an untagged sale an empty tag list" do
+      get sale_path(sale)
+
+      expect(inertia.props[:sale][:tags]).to eq([])
+    end
+
+    %i[manager support].each do |role|
+      it "lets #{role} users tag the sale without edit access" do
+        log_out
+        sign_in create(:user, role)
+
+        get sale_path(sale)
+
+        expect(inertia.props[:can_tag_sales]).to be(true)
       end
     end
   end
