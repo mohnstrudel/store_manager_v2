@@ -9,7 +9,10 @@
     corner-shape: var(--corner-shape);
   }
 
-  input[type="submit"], input[type="button"], button {
+  a,
+  input[type="submit"],
+  input[type="button"],
+  button {
     @apply border border-transparent;
   }
 
@@ -21,7 +24,7 @@
 
 @layer components {
   .btn_xs {
-    @apply w-fit text-xs px-1.5! py-1! gap-0.5!;
+    @apply w-fit text-xs px-1! py-0.5! gap-0.5!;
   }
 
   .btn_red,
