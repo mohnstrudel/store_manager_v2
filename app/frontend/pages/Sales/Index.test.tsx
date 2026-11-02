@@ -11,7 +11,7 @@ import Index from "./Index";
 import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
 
-const tagColors = ["green", "pink", "mauve", "sky", "violet", "olive"] as const;
+const tagColors = ["green", "pink", "sky", "violet", "olive"] as const;
 
 describe("Sales/Index", () => {
   it("renders the sales heading and add new record link", () => {

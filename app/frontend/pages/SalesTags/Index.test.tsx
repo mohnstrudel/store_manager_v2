@@ -8,7 +8,7 @@ import Index from "./Index";
 import { makeSalesTagCatalogRecord } from "./test/factories";
 import type { SalesTagCatalogRecord } from "./types";
 
-const tagColors = ["green", "pink", "mauve", "sky", "violet", "olive"] as const;
+const tagColors = ["green", "pink", "sky", "violet", "olive"] as const;
 
 function renderIndex(salesTags: SalesTagCatalogRecord[] = [], query = "") {
   return render(<Index sales_tags={salesTags} search={{ q: query }} tag_colors={[...tagColors]} />);

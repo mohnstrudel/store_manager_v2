@@ -12,7 +12,7 @@
 #  updated_at      :datetime         not null
 #
 class SalesTag < ApplicationRecord
-  COLORS = %w[green pink mauve sky violet olive].freeze
+  COLORS = %w[green pink sky violet olive].freeze
   MAX_NAME_LENGTH = 30
 
   has_many :sale_taggings, dependent: nil, inverse_of: :sales_tag

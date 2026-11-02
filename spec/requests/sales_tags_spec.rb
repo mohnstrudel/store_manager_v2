@@ -19,7 +19,7 @@ RSpec.describe "SalesTags" do
         {id: zebra.id, name: "Zebra", color: "pink", usage_count: 0}
       ])
       expect(inertia.props[:search].deep_symbolize_keys).to eq(q: "")
-      expect(inertia.props[:tag_colors]).to eq(%w[green pink mauve sky violet olive])
+      expect(inertia.props[:tag_colors]).to eq(%w[green pink sky violet olive])
     end
 
     it "counts every assigned sale once per tag regardless of sale status" do
