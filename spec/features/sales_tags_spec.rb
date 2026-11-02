@@ -532,6 +532,24 @@ RSpec.feature "Sales tags catalog", :js do
       expect(chip_top("Alpha")).to eq(chip_top("VIP"))
     end
 
+    scenario "grows with the window before the tag list scrolls" do
+      120.times { |index| create(:sales_tag, name: "Tag #{index}", color: SalesTag::COLORS[index % 8]) }
+      scrolls = -> { page.evaluate_script("(() => { const list = document.querySelector('dialog fieldset'); return list.scrollHeight > list.clientHeight; })()") }
+
+      visit sale_path(sale)
+      click_button "Add tags"
+      expect(page).to have_css("dialog label.sales_tag_choice", count: 122)
+
+      expect(measure("dialog fieldset", "height")).to be > 320
+      expect(measure(".dialog_content", "top")).to be >= 0
+      expect(measure(".dialog_content", "bottom")).to be <= page.evaluate_script("window.innerHeight")
+      expect(scrolls.call).to be(true)
+
+      find(filter_field).set("Tag 9")
+      expect(page).to have_no_css("label.sales_tag_choice", text: "Tag 2")
+      expect(scrolls.call).to be(false)
+    end
+
     scenario "does not change the dialog height while filtering" do
       visit sale_path(sale)
       click_button "Add tags"

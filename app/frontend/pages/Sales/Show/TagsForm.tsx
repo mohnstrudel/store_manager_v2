@@ -72,7 +72,7 @@ export default function TagsForm({ colors, form, options }: TagsFormProps) {
         value={query}
       />
 
-      <fieldset className="mb-0 min-h-[5.5rem] max-h-72 overflow-y-auto p-1.5">
+      <fieldset className="mb-0 min-h-[5.5rem] max-h-[calc(100dvh-23rem)] overflow-y-auto p-1.5">
         <legend className="sr-only">Tags</legend>
         {visibleLines.length > 0 ? (
           <div className="flex flex-col gap-3">
