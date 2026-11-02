@@ -241,4 +241,17 @@ describe "GET /sales" do
       expect(query_params).to eq("sort" => "oldest")
     end
   end
+
+  describe "store sync dialog" do
+    it "centers the close button on the title, not on the title with its subtitle", :js do
+      allow(Config).to receive(:shopify_sales_sync_time).and_return("20.05 at 10:00")
+      visit sales_path
+
+      click_button "Store Sync"
+
+      expect(page).to have_css("dialog p", text: "Last sync: 20.05 at 10:00")
+      center = ->(selector) { page.evaluate_script("(() => { const box = document.querySelector(#{selector.to_json}).getBoundingClientRect(); return box.top + box.height / 2; })()") }
+      expect(center.call("dialog h2")).to be_within(1).of(center.call("dialog [aria-label='Close']"))
+    end
+  end
 end

@@ -69,9 +69,11 @@ export default function Modal({
       onClick={handleBackdropClick}
     >
       <div className="dialog_content">
-        <header className="mb-6 flex items-center justify-between gap-4">
+        <header className="mb-6 flex items-start justify-between gap-4">
           <hgroup>
-            <h2 id={titleId}>{title}</h2>
+            <h2 className="flex min-h-8 items-center" id={titleId}>
+              {title}
+            </h2>
             {subtitle ? <p className="mt-1 text-gray-500 dark:text-gray-400">{subtitle}</p> : null}
           </hgroup>
           <button
