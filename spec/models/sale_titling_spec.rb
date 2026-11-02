@@ -47,4 +47,24 @@ RSpec.describe Sale do
       expect(sale.full_title).to eq("")
     end
   end
+
+  describe "#link_title" do
+    it "lists the shop identifier, customer name, email and every item title, comma separated" do
+      sale = create(:sale, shopify_name: "HSCM#2377")
+      first_item = create(:sale_item, sale:, variant: nil)
+      second_item = create(:sale_item, sale:, variant: nil)
+
+      expect(sale.reload.link_title).to eq(
+        "HSCM#2377, Michele Pomarico, italy_mp@web.de, #{first_item.title}, #{second_item.title}"
+      )
+    end
+
+    it "uses the record id when the sale has no shop identifier and skips a sale without items" do
+      sale = create(:sale, shopify_name: nil, shopify_id: nil, woo_id: nil)
+      sale.shopify_info&.destroy
+      sale.woo_info&.destroy
+
+      expect(sale.reload.link_title).to eq("#{sale.id}, Michele Pomarico, italy_mp@web.de")
+    end
+  end
 end

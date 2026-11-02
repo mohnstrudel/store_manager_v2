@@ -6,112 +6,431 @@ RSpec.feature "Sales tags catalog", :js do
   before { sign_in_as_admin }
   after { log_out }
 
-  scenario "creates a tag, reuses its identity for case variants and keeps it after reload" do
-    visit sales_tags_path
+  let(:filter_field) { "input[aria-label='Filter tags']" }
 
-    fill_in "Tag name", with: "VIP Order"
-    choose "sky", allow_label_click: true
-    click_button "Add tag"
-
-    expect(page).to have_css("tbody tr", text: "VIP Order", count: 1)
-    expect(page).to have_field("Tag name", with: "")
-    expect(find_field("green", type: "radio", visible: :all)).to be_checked
-
-    fill_in "Tag name", with: " vip   order "
-    choose "pink", allow_label_click: true
-    click_button "Add tag"
-
-    expect(page).to have_field("Tag name", with: "")
-    expect(page).to have_css("tbody tr", count: 1)
-    expect(SalesTag.pluck(:name, :color)).to eq([["VIP Order", "sky"]])
-
-    page.refresh
-
-    expect(page).to have_css("tbody tr", text: "VIP Order", count: 1)
+  def press(key)
+    page.driver.browser.keyboard.type(key)
   end
 
-  scenario "keeps the draft and shows the error when the name is rejected" do
-    visit sales_tags_path
-
-    fill_in "Tag name", with: "x" * 31
-    choose "green", allow_label_click: true
-    click_button "Add tag"
-
-    expect(page).to have_content("is too long (maximum is 30 characters)")
-    expect(find_field("Tag name").value).to eq("x" * 31)
-    expect(find_field("green", type: "radio", visible: :all)).to be_checked
-    expect(SalesTag.count).to eq(0)
+  def save_in_dialog(name:, color: nil, submit: "Create")
+    within("dialog") do
+      fill_in "Name", with: name
+      choose color, allow_label_click: true if color
+      click_button submit
+    end
   end
 
-  scenario "locks the form while a tag is being saved so a newer draft cannot be lost" do
-    release = Queue.new
-    allow(SalesTag).to receive(:find_or_create_normalized!).and_wrap_original do |original, **attributes|
-      release.pop(timeout: 5)
-      original.call(**attributes)
+  describe "adding" do
+    let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
+
+    scenario "opens a modal at its own URL, saves, reuses an existing identity and keeps the tag after reload" do
+      visit sales_tags_path
+      click_link "Add New Record"
+
+      expect(page).to have_css("dialog h2", text: "New tag")
+      expect(page).to have_current_path(new_sales_tag_path)
+      expect(page).to have_css("tbody tr", text: "Rush")
+      expect(find_field("green", type: "radio", visible: :all)).to be_checked
+
+      save_in_dialog(name: "  VIP   Order ", color: "sky")
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_css("tbody tr", text: "VIP Order", count: 1)
+      expect(page).to have_content("Sales tag saved")
+      expect(SalesTag.order(:id).pluck(:name, :color)).to eq([["Rush", "pink"], ["VIP Order", "sky"]])
+
+      click_link "Add New Record"
+      save_in_dialog(name: "vip order", color: "olive")
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_css("tbody tr", count: 2)
+      expect(SalesTag.order(:id).pluck(:name, :color)).to eq([["Rush", "pink"], ["VIP Order", "sky"]])
+
+      page.refresh
+
+      expect(page).to have_css("tbody tr", text: "VIP Order", count: 1)
     end
 
-    visit sales_tags_path
-    fill_in "Tag name", with: "VIP Order"
-    choose "sky", allow_label_click: true
-    click_button "Add tag"
+    scenario "spaces the color chips below their legend like the name input below its label" do
+      visit new_sales_tag_path
+      expect(page).to have_css("dialog h2", text: "New tag")
+      gap = lambda do |above, below|
+        page.evaluate_script("document.querySelector(#{below.to_json}).getBoundingClientRect().top - document.querySelector(#{above.to_json}).getBoundingClientRect().bottom")
+      end
 
-    expect(page).to have_field("Tag name", with: "VIP Order", disabled: true)
-    expect(page).to have_field("green", type: "radio", disabled: true, visible: :all)
-    expect(page).to have_button("Add tag", disabled: true)
+      name_gap = gap.call("dialog label[for]", "dialog input:not([type=radio])")
 
-    release << true
+      expect(name_gap).to be > 0
+      expect(gap.call("dialog legend", "dialog .sales_tag_choices")).to eq(name_gap)
+    end
 
-    expect(page).to have_field("Tag name", with: "", disabled: false)
-    expect(SalesTag.pluck(:name, :color)).to eq([["VIP Order", "sky"]])
-  ensure
-    release&.push(true)
+    scenario "leaves the same space under the color chips as the tag dialog leaves under its chips" do
+      sale = create(:sale)
+      SalesTag::COLORS.each { |color| 3.times { |index| create(:sales_tag, name: "#{color} #{index}", color:) } }
+      space_below_chips = lambda do
+        page.evaluate_script(<<~JS)
+          (() => {
+            const fieldset = document.querySelector("dialog fieldset");
+            const footer = document.querySelector(".dialog_footer");
+            return footer.getBoundingClientRect().top - fieldset.getBoundingClientRect().bottom + parseFloat(getComputedStyle(fieldset).paddingBottom);
+          })()
+        JS
+      end
+
+      visit sale_path(sale)
+      click_button "Add tags"
+      expect(page).to have_css("dialog h2", text: "Add tags")
+      tag_dialog_space = space_below_chips.call
+
+      visit new_sales_tag_path
+      expect(page).to have_css("dialog h2", text: "New tag")
+
+      expect(space_below_chips.call).to eq(tag_dialog_space)
+    end
+
+    scenario "opens the same modal from its URL over the list, also after a reload" do
+      visit new_sales_tag_path
+
+      expect(page).to have_css("dialog h2", text: "New tag")
+      expect(page).to have_css("tbody tr", text: "Rush")
+
+      page.refresh
+
+      expect(page).to have_css("dialog h2", text: "New tag")
+      expect(find_field("Name").value).to eq("")
+      expect(find_field("green", type: "radio", visible: :all)).to be_checked
+    end
+
+    scenario "offers the colors as large chips like the tag dialog, checkmarking the selected one" do
+      visit new_sales_tag_path
+      chip = ->(color) { "dialog label.sales_tag_choice:has(input[value=#{color}])" }
+      width = ->(selector) { page.evaluate_script("document.querySelector(#{selector.to_json}).getBoundingClientRect().width") }
+      check_width = ->(color) { width.call("#{chip.call(color)} .sales_tag_check") }
+      wait_for_check = lambda do |color|
+        page.document.synchronize do
+          raise Capybara::ExpectationNotMet, "checkmark of #{color} has not appeared" unless check_width.call(color) >= 12
+        end
+      end
+
+      expect(page).to have_css("#{chip.call("green")}:has(input:checked)", text: "Green")
+      wait_for_check.call("green")
+      expect(check_width.call("sky")).to eq(0)
+
+      find(chip.call("sky")).click
+
+      expect(page).to have_css("#{chip.call("sky")}:has(input:checked)")
+      wait_for_check.call("sky")
+      page.document.synchronize do
+        raise Capybara::ExpectationNotMet, "checkmark of green has not gone" unless check_width.call("green").zero?
+      end
+
+      style = page.evaluate_script(<<~JS)
+        (() => {
+          const chip = getComputedStyle(document.querySelector("dialog .sales_tag_choice .sales_tag"));
+          return {fontSize: chip.fontSize, paddingLeft: chip.paddingLeft};
+        })()
+      JS
+      expect(style).to eq("fontSize" => "14px", "paddingLeft" => "10px")
+    end
+
+    scenario "keeps the dialog open with the draft and the error when the name is rejected" do
+      visit new_sales_tag_path
+
+      save_in_dialog(name: "x" * 31, color: "pink")
+
+      expect(page).to have_css("dialog", text: "is too long (maximum is 30 characters)")
+      expect(page).to have_current_path(new_sales_tag_path)
+      expect(find_field("Name").value).to eq("x" * 31)
+      expect(find_field("pink", type: "radio", visible: :all)).to be_checked
+      expect(SalesTag.count).to eq(1)
+    end
+
+    scenario "locks the dialog while a tag is being saved so a newer draft cannot be lost" do
+      release = Queue.new
+      allow(SalesTag).to receive(:find_or_create_normalized!).and_wrap_original do |original, **attributes|
+        release.pop(timeout: 5)
+        original.call(**attributes)
+      end
+
+      visit new_sales_tag_path
+      save_in_dialog(name: "VIP Order", color: "sky")
+
+      within("dialog") do
+        expect(page).to have_button("Creating…", disabled: true)
+        expect(page).to have_button("Cancel", disabled: true)
+        expect(page).to have_field("Name", with: "VIP Order", disabled: true)
+        expect(page).to have_field("green", type: "radio", disabled: true, visible: :all)
+      end
+
+      release << true
+
+      expect(page).to have_no_css("dialog")
+      expect(SalesTag.pluck(:name)).to include("VIP Order")
+    ensure
+      release&.push(true)
+    end
+
+    scenario "closes with Escape back onto the list and returns focus to the Add New Record link" do
+      visit sales_tags_path
+      click_link "Add New Record"
+      expect(page).to have_css("dialog h2", text: "New tag")
+
+      press(:escape)
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_css("a:focus", text: "Add New Record")
+      expect(SalesTag.count).to eq(1)
+    end
+
+    scenario "closes with Back, and Escape or Save replace the history entry so Back never reopens the dialog" do
+      visit sales_tags_path
+
+      click_link "Add New Record"
+      expect(page).to have_current_path(new_sales_tag_path)
+      expect(page).to have_css("dialog h2", text: "New tag")
+      page.go_back
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_no_css("dialog")
+
+      click_link "Add New Record"
+      expect(page).to have_css("dialog")
+      press(:escape)
+      expect(page).to have_no_css("dialog")
+      page.go_back
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_no_css("dialog")
+
+      click_link "Add New Record"
+      save_in_dialog(name: "VIP Order")
+      expect(page).to have_no_css("dialog")
+      page.go_back
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_no_css("dialog")
+    end
+
+    scenario "invites adding the first tag when the catalog is empty" do
+      SalesTag.delete_all
+      visit sales_tags_path
+
+      click_link "Add your first sales tag"
+
+      expect(page).to have_css("dialog h2", text: "New tag")
+      expect(page).to have_current_path(new_sales_tag_path)
+    end
   end
 
-  scenario "lays out the add form on one row on desktop" do
-    visit sales_tags_path
-    expect(page).to have_field("Tag name")
-
-    centers = page.evaluate_script(<<~JS)
-      ["#sales_tag_name", ".sales_tag_choices", "form button[type='submit']"].map((selector) => {
-        const rect = document.querySelector(selector).getBoundingClientRect();
-        return rect.top + rect.height / 2;
-      })
-    JS
-
-    expect(centers.max - centers.min).to be < 2
-  end
-
-  scenario "searches by name, keeps the search across creation and survives reload" do
+  scenario "filters the list by name as you type without changing the URL" do
     create(:sales_tag, name: "VIP Order")
+    create(:sales_tag, name: "vip club")
     create(:sales_tag, name: "Rush")
-
     visit sales_tags_path
-    fill_in "q", with: "vip"
-    click_button "Search"
 
-    expect(page).to have_current_path(sales_tags_path(q: "vip"))
-    expect(page).to have_css("tbody tr", text: "VIP Order", count: 1)
+    find(filter_field).set(" VIP ")
+
+    expect(page).to have_css("tbody tr", count: 2)
     expect(page).to have_no_css("tbody tr", text: "Rush")
+    expect(page).to have_current_path(sales_tags_path)
 
-    fill_in "Tag name", with: "VIP Rush"
-    click_button "Add tag"
+    find(filter_field).set("zzz")
 
-    expect(page).to have_css("tbody tr", count: 2)
-    expect(page).to have_current_path(sales_tags_path(q: "vip"))
+    expect(page).to have_content("No tags match “zzz”.")
 
-    page.refresh
+    find(filter_field).set("")
 
-    expect(page).to have_css("tbody tr", count: 2)
+    expect(page).to have_css("tbody tr", count: 3)
   end
 
-  scenario "does not let support staff open the catalog" do
+  describe "editing" do
+    let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2)) }
+    let!(:other_sale) { create(:sale, shopify_name: "HSCM#1002", woo_created_at: Time.utc(2024, 1, 1)) }
+    let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
+    let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
+
+    before { [sale, other_sale].each { |target| SaleTagging.create!(sale: target, sales_tag: vip) } }
+
+    scenario "opens from the Edit link at its own URL with the saved values, also after a reload" do
+      visit sales_tags_path
+
+      within("tbody tr", text: "VIP Order") { click_link "Edit" }
+
+      expect(page).to have_css("dialog h2", text: "Edit tag")
+      expect(page).to have_current_path(edit_sales_tag_path(vip))
+      expect(find_field("Name").value).to eq("VIP Order")
+      expect(find_field("sky", type: "radio", visible: :all)).to be_checked
+
+      page.refresh
+
+      expect(page).to have_css("dialog h2", text: "Edit tag")
+      expect(find_field("Name").value).to eq("VIP Order")
+    end
+
+    scenario "updates a tag used by two sales everywhere without touching the sales" do
+      stamps = -> { Sale.where(id: [sale, other_sale]).order(:id).pluck(:id, :updated_at) }
+      before_stamps = stamps.call
+      visit sales_tags_path
+
+      within("tbody tr", text: "VIP Order") { click_link "Edit" }
+      save_in_dialog(name: "  VIP   Client ", color: "olive", submit: "Update")
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_css("tbody tr", text: "VIP Client")
+      expect(vip.reload).to have_attributes(name: "VIP Client", color: "olive")
+      expect(stamps.call).to eq(before_stamps)
+
+      visit sales_path
+
+      [sale, other_sale].each do |target|
+        within("tbody tr", text: target.shopify_name) { expect(page).to have_css(".sales_tag[data-color='olive']", text: "VIP Client") }
+      end
+
+      visit sale_path(sale)
+
+      expect(page).to have_css("header + div .sales_tag[data-color='olive']", text: "VIP Client")
+      click_button "Edit tags"
+      expect(page).to have_css("dialog label.sales_tag_choice:has(input:checked)", text: "VIP Client")
+    end
+
+    scenario "rejects a rename onto another tag's name, keeps the draft, and Cancel leaves both tags alone" do
+      visit sales_tags_path
+
+      within("tbody tr", text: "Rush") { click_link "Edit" }
+      save_in_dialog(name: " vip   order ", color: "olive", submit: "Update")
+
+      expect(page).to have_css("dialog", text: "has already been taken")
+      expect(page).to have_current_path(edit_sales_tag_path(rush))
+      expect(find_field("Name").value).to eq(" vip   order ")
+      expect(find_field("olive", type: "radio", visible: :all)).to be_checked
+      expect(SalesTag.order(:id).pluck(:name, :color)).to eq([["VIP Order", "sky"], ["Rush", "pink"]])
+
+      click_button "Cancel"
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_css("tbody tr", text: "Rush")
+      expect(SalesTag.order(:id).pluck(:name, :color)).to eq([["VIP Order", "sky"], ["Rush", "pink"]])
+    end
+
+    scenario "keeps the filter text when a dialog opens and closes over the list" do
+      visit sales_tags_path
+      find(filter_field).set("vip")
+      expect(page).to have_css("tbody tr", count: 1)
+
+      within("tbody tr", text: "VIP Order") { click_link "Edit" }
+      expect(page).to have_css("dialog h2", text: "Edit tag")
+      click_button "Cancel"
+
+      expect(page).to have_no_css("dialog")
+      expect(find(filter_field).value).to eq("vip")
+      expect(page).to have_css("tbody tr", count: 1)
+    end
+  end
+
+  describe "details" do
+    let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
+    let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2)) }
+    let!(:older_sale) { create(:sale, shopify_name: "HSCM#1002", woo_created_at: Time.utc(2024, 1, 1)) }
+    let!(:product) { create(:product).tap { |record| create(:media, :for_product, mediaable: record) } }
+    let!(:item) { create(:sale_item, sale:, product:, variant: nil) }
+
+    before { [sale, older_sale].each { |target| SaleTagging.create!(sale: target, sales_tag: vip) } }
+
+    def rows
+      page.all("ol[aria-label='Sales with this tag'] > li")
+    end
+
+    def sale_links
+      page.all("ol[aria-label='Sales with this tag'] a").map(&:text)
+    end
+
+    def style_of(selector, property)
+      page.evaluate_script("getComputedStyle(document.querySelector(#{selector.to_json})).#{property}")
+    end
+
+    scenario "opens from a row click at its own URL with a numbered list of sales, also after a reload" do
+      visit sales_tags_path
+
+      find("tbody tr", text: "VIP Order").click
+
+      expect(page).to have_css("dialog h2 .sales_tag_title[data-color='sky']", text: "VIP Order")
+      expect(page).to have_current_path(sales_tag_path(vip))
+      expect(sale_links).to eq([
+        "HSCM#1001, Michele Pomarico, italy_mp@web.de, #{item.title}",
+        "HSCM#1002, Michele Pomarico, italy_mp@web.de"
+      ])
+      expect(rows.map { |row| row.text[/\A\d+\./] }).to eq(%w[1. 2.])
+
+      page.refresh
+
+      expect(page).to have_css("dialog h2", text: "VIP Order")
+      expect(sale_links.size).to eq(2)
+    end
+
+    scenario "shows a 25 wide 3:4 preview slot for every sale, a placeholder when it has no usable picture" do
+      visit sales_tag_path(vip)
+      expect(page).to have_css("ol[aria-label='Sales with this tag'] > li", count: 2)
+      size = lambda do |selector|
+        page.evaluate_script("(() => { const r = document.querySelector(#{selector.to_json}).getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })()")
+      end
+
+      expect(size.call("ol li:first-child img, ol li:first-child [role=img]")).to eq([100, 133])
+      expect(size.call("ol li:last-child [role=img]")).to eq([100, 133])
+    end
+
+    scenario "gives the heading the tag's own background in the heading font" do
+      visit sales_tag_path(vip)
+      expect(page).to have_css("dialog h2 .sales_tag_title")
+
+      expect(style_of("dialog h2 .sales_tag_title", "backgroundColor")).not_to eq("rgba(0, 0, 0, 0)")
+      expect(style_of("dialog h2 .sales_tag_title", "fontSize")).to eq(style_of("dialog h2", "fontSize"))
+      expect(style_of("dialog h2 .sales_tag_title", "fontWeight")).to eq(style_of("dialog h2", "fontWeight"))
+    end
+
+    scenario "follows a sale link to the sale page" do
+      visit sales_tag_path(vip)
+
+      click_link "HSCM#1002, Michele Pomarico, italy_mp@web.de"
+
+      expect(page).to have_current_path(sale_path(older_sale))
+    end
+
+    scenario "closes with Escape onto the list, and Back never reopens it" do
+      visit sales_tags_path
+      find("tbody tr", text: "VIP Order").click
+      expect(page).to have_css("dialog h2", text: "VIP Order")
+
+      press(:escape)
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_current_path(sales_tags_path)
+      page.go_back
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_no_css("dialog")
+    end
+
+    scenario "keeps the Edit link on the row for the edit dialog" do
+      visit sales_tags_path
+
+      within("tbody tr", text: "VIP Order") { click_link "Edit" }
+
+      expect(page).to have_css("dialog h2", text: "Edit tag")
+      expect(page).to have_current_path(edit_sales_tag_path(vip))
+    end
+  end
+
+  scenario "does not let support staff open the catalog or its dialogs" do
     log_out
     sign_in create(:user, :support)
+    tag = create(:sales_tag, name: "Existing")
 
-    visit sales_tags_path
+    [sales_tags_path, new_sales_tag_path, edit_sales_tag_path(tag)].each do |path|
+      visit path
 
-    expect(page).to have_current_path(noop_path)
-    expect(page).to have_no_field("Tag name")
+      expect(page).to have_current_path(noop_path)
+      expect(page).to have_no_css("dialog")
+    end
   end
 
   describe "on the sales index" do

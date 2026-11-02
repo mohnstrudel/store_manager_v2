@@ -42,6 +42,18 @@ describe("rowNavigationProps", () => {
       expect(router.visit).toHaveBeenCalledWith("/products/1");
     });
 
+    it("passes the visit options through when given", () => {
+      const props = rowNavigationProps("/sales_tags/1/edit", { preserveScroll: true });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+      props.onClick({
+        metaKey: false,
+        ctrlKey: false,
+      } as unknown as MouseEvent<HTMLTableRowElement>);
+
+      expect(router.visit).toHaveBeenCalledWith("/sales_tags/1/edit", { preserveScroll: true });
+    });
+
     it("opens a new tab when metaKey is held", () => {
       const props = rowNavigationProps("/products/1");
 

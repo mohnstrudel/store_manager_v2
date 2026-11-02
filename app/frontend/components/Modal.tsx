@@ -17,7 +17,7 @@ type ModalProps = {
   isBusy?: boolean;
   onClose: () => void;
   subtitle?: string | null;
-  title: string;
+  title: ReactNode;
 };
 
 function stopPropagation(event: { stopPropagation(): void }) {

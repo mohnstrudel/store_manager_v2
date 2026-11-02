@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 type ResourceIndexPageProps = {
   bordered?: boolean;
   children: ReactNode;
+  newOpensModal?: boolean;
   newPath?: string;
   title: ReactNode;
 };
@@ -13,6 +14,7 @@ type ResourceIndexPageProps = {
 export default function ResourceIndexPage({
   bordered = true,
   children,
+  newOpensModal,
   newPath,
   title,
 }: ResourceIndexPageProps) {
@@ -21,7 +23,12 @@ export default function ResourceIndexPage({
       <PageHeader title={title}>
         {newPath ? (
           <li>
-            <Link href={newPath} prefetch>
+            <Link
+              href={newPath}
+              preserveScroll={newOpensModal}
+              preserveState={newOpensModal}
+              prefetch
+            >
               <i className="icn">🐣</i>
               Add New Record
             </Link>

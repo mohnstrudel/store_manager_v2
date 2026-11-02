@@ -192,7 +192,7 @@ const adminLinks: NavigationLink[] = [
     href: routes.salesTags.index.path(),
     label: "Sales Tags",
     component: "SalesTags/Index",
-    pageProps: { sales_tags: [], search: emptySearch, tag_colors: [] },
+    pageProps: { sales_tag: null, sales_tag_detail: null, sales_tags: [], tag_colors: [] },
   },
   {
     href: routes.users.index.path(),

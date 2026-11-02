@@ -1,4 +1,3 @@
-import { CheckIcon } from "@heroicons/react/16/solid";
 import {
   useCallback,
   useMemo,
@@ -11,7 +10,7 @@ import {
 import FormError from "@/components/FormError";
 import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 
-import { TagBadge } from "./TagBadges";
+import TagChoice from "./TagChoice";
 import type { SaleTagsForm } from "./useSaleTagsForm";
 
 type TagsFormProps = {
@@ -83,10 +82,14 @@ export default function TagsForm({ colors, form, id, options }: TagsFormProps) {
                   <li key={tag.id}>
                     <TagChoice
                       checked={selectedIds.includes(tag.id)}
+                      color={tag.color}
                       disabled={form.processing}
-                      onToggle={toggle}
-                      tag={tag}
-                    />
+                      onChange={toggle}
+                      type="checkbox"
+                      value={tag.id}
+                    >
+                      {tag.name}
+                    </TagChoice>
                   </li>
                 ))}
               </ul>
@@ -107,34 +110,6 @@ export default function TagsForm({ colors, form, id, options }: TagsFormProps) {
   );
 }
 
-type TagsFormActionsProps = {
-  form: SaleTagsForm;
-  formId: string;
-};
-
-export function TagsFormActions({ form, formId }: TagsFormActionsProps) {
-  return (
-    <>
-      <button
-        className="btn_blue border border-transparent"
-        disabled={form.processing}
-        form={formId}
-        type="submit"
-      >
-        {form.processing ? "Saving…" : "Save"}
-      </button>
-      <button
-        className="border border-gray-200 bg-white shadow-xs hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10"
-        disabled={form.processing}
-        onClick={form.cancel}
-        type="button"
-      >
-        Cancel
-      </button>
-    </>
-  );
-}
-
 type ColorLine = { color: SalesTagColor; tags: SalesTagRecord[] };
 
 function groupByColor(options: SalesTagRecord[], colors: SalesTagColor[]): ColorLine[] {
@@ -147,35 +122,5 @@ function sortedByName(tags: SalesTagRecord[]) {
   // oxlint-disable-next-line unicorn/no-array-sort -- callers pass a fresh array; the ES2020 lib has no toSorted
   return tags.sort(
     (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }) || a.id - b.id,
-  );
-}
-
-type TagChoiceProps = {
-  checked: boolean;
-  disabled: boolean;
-  onToggle: (id: number) => void;
-  tag: SalesTagRecord;
-};
-
-function TagChoice({ checked, disabled, onToggle, tag }: TagChoiceProps) {
-  const { id } = tag;
-  const toggle = useCallback(() => onToggle(id), [onToggle, id]);
-
-  return (
-    <label className="sales_tag_choice" data-literal>
-      <input
-        checked={checked}
-        className="sr-only"
-        disabled={disabled}
-        onChange={toggle}
-        type="checkbox"
-      />
-      <TagBadge color={tag.color}>
-        <span aria-hidden className="sales_tag_check">
-          <CheckIcon height={12} width={12} />
-        </span>
-        {tag.name}
-      </TagBadge>
-    </label>
   );
 }

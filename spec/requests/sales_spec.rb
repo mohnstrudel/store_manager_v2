@@ -1152,6 +1152,21 @@ RSpec.describe "Sales" do
         expect(inertia.props[:tag_options].pluck(:name)).to eq(%w[apple Fresh Zebra])
       end
 
+      it "serves fresh props once after an admin renames and recolors a tag, without touching the sale" do
+        old_etag = etag
+        stamp = sale.reload.updated_at
+
+        patch sales_tag_path(apple), params: {sales_tag: {name: "Apple Pie", color: "violet"}}
+        get sales_path, headers: {"If-None-Match" => old_etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:sales].first[:tags].map(&:deep_symbolize_keys)).to eq([{id: apple.id, name: "Apple Pie", color: "violet"}])
+        expect(sale.reload.updated_at).to eq(stamp)
+
+        get sales_path, headers: {"If-None-Match" => etag}
+        expect(response).to have_http_status(:not_modified)
+      end
+
       it "serves a full response when only If-Modified-Since is sent" do
         get sales_path, headers: {"If-Modified-Since" => 1.hour.from_now.httpdate}
 

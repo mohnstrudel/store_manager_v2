@@ -14,6 +14,20 @@ require "rails_helper"
 #  updated_at      :datetime         not null
 #
 RSpec.describe SalesTag do
+  describe "default color" do
+    it "is green in the model, whatever default the column carries" do
+      described_class.transaction(requires_new: true) do
+        described_class.connection.change_column_default(:sales_tags, :color, "yellow")
+        described_class.reset_column_information
+
+        expect(described_class.new.color).to eq("green")
+        raise ActiveRecord::Rollback
+      end
+    ensure
+      described_class.reset_column_information
+    end
+  end
+
   describe ".find_or_create_normalized!" do
     it "trims, collapses Unicode whitespace, preserves case and derives the lowercase key" do
       tag = described_class.find_or_create_normalized!(name: "  VIP \u00A0\u3000 Order  ", color: "sky")
@@ -86,16 +100,49 @@ RSpec.describe SalesTag do
     end
   end
 
-  describe ".matching" do
-    it "treats the query as a case-insensitive literal substring of the normalized name" do
-      vip = create(:sales_tag, name: "VIP Order")
-      create(:sales_tag, name: "Rush")
-      percent = create(:sales_tag, name: "50%_off")
+  describe "#revise!" do
+    let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
+    let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
+    let(:sale) { create(:sale) }
 
-      expect(described_class.matching(" vip ")).to contain_exactly(vip)
-      expect(described_class.matching("%")).to contain_exactly(percent)
-      expect(described_class.matching("_")).to contain_exactly(percent)
-      expect(described_class.matching("").count).to eq(3)
+    before { [vip, rush].each { |tag| SaleTagging.create!(sale:, sales_tag: tag) } }
+
+    it "rejects a rename onto another tag's identity as a name error, merging nothing" do
+      expect { rush.revise!(name: " vip   order ") }
+        .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors.to_hash).to eq(name: ["has already been taken"]) }
+
+      expect(rush.reload).to have_attributes(name: "Rush", color: "pink")
+      expect(vip.reload).to have_attributes(name: "VIP Order", color: "sky")
+      expect(SaleTagging.where(sale:).pluck(:sales_tag_id)).to contain_exactly(vip.id, rush.id)
+    end
+
+    it "renames in place, normalizing the name and keeping the identity and assignments" do
+      vip.revise!(name: "  VIP \u00A0 Client ")
+
+      expect(vip.reload).to have_attributes(name: "VIP Client", normalized_name: "vip client", color: "sky")
+      expect(SaleTagging.where(sales_tag: vip).pluck(:sale_id)).to eq([sale.id])
+    end
+
+    it "lets a tag change the case of its own name" do
+      vip.revise!(name: "vip order")
+
+      expect(vip.reload.name).to eq("vip order")
+    end
+
+    it "recolors without changing the name" do
+      vip.revise!(color: "olive")
+
+      expect(vip.reload).to have_attributes(name: "VIP Order", color: "olive")
+    end
+
+    it "rejects an unknown color, a blank name and an overlong name without saving" do
+      {{color: "orange"} => [:color, "is not included in the list"],
+       {name: " \u00A0 "} => [:name, "can't be blank"],
+       {name: "x" * 31} => [:name, "is too long (maximum is 30 characters)"]}.each do |attributes, (attribute, message)|
+        expect { vip.revise!(attributes) }
+          .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[attribute]).to eq([message]) }
+        expect(vip.reload).to have_attributes(name: "VIP Order", color: "sky")
+      end
     end
   end
 

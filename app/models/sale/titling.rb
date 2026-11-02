@@ -3,6 +3,10 @@
 module Sale::Titling
   extend ActiveSupport::Concern
 
+  included do
+    scope :for_link_title, -> { includes(:customer, sale_items: [{product: {media: {image_attachment: :blob}}}, :variant]) }
+  end
+
   def title
     [status&.titleize, shop_identifier].compact_blank.join(" | ")
   end
@@ -21,6 +25,10 @@ module Sale::Titling
 
   def full_title
     [customer&.name_and_email, woo_store_id.presence].compact.join(" | ")
+  end
+
+  def link_title
+    [shop_identifier.presence || id, customer&.full_name, customer&.email, *sale_items.map(&:title)].compact_blank.join(", ")
   end
 
   private

@@ -13,9 +13,13 @@
 #
 class SalesTag < ApplicationRecord
   COLORS = %w[green pink sky violet olive].freeze
+  DEFAULT_COLOR = COLORS.first
   MAX_NAME_LENGTH = 30
 
   has_many :sale_taggings, dependent: nil, inverse_of: :sales_tag
+  has_many :sales, through: :sale_taggings
+
+  attribute :color, default: DEFAULT_COLOR
 
   normalizes :name, with: ->(name) { name.unicode_normalize(:nfkc).gsub(/[[:space:]]+/, " ").strip }
 
@@ -27,10 +31,6 @@ class SalesTag < ApplicationRecord
   validates_db_uniqueness_of :normalized_name
 
   scope :alphabetical, -> { order(:normalized_name, :id) }
-  scope :matching, lambda { |query|
-    key = normalize_value_for(:name, query.to_s).downcase
-    key.empty? ? all : where("normalized_name LIKE ?", "%#{sanitize_sql_like(key)}%")
-  }
   scope :with_usage_count, -> {
     left_joins(:sale_taggings).group(:id).select("sales_tags.*", "COUNT(sale_taggings.id) AS usage_count")
   }
@@ -52,7 +52,7 @@ class SalesTag < ApplicationRecord
   end
   private_class_method :validated_candidate
 
-  def self.find_or_create_normalized!(name:, color: "green")
+  def self.find_or_create_normalized!(name:, color: DEFAULT_COLOR)
     candidate = new(name:, color:)
     candidate.validate!
     find_by(normalized_name: candidate.normalized_name) || candidate.tap(&:save!)
@@ -69,6 +69,13 @@ class SalesTag < ApplicationRecord
     raise ActiveRecord::RecordInvalid, candidate
   end
   private_class_method :raise_winner_missing
+
+  def revise!(attributes)
+    update!(attributes)
+  rescue ActiveRecord::RecordInvalid
+    errors.add(:name, :taken) if errors.delete(:normalized_name).present?
+    raise
+  end
 
   def sort_key
     [normalized_name, id]
