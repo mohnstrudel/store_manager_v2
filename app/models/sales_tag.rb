@@ -23,7 +23,6 @@ class SalesTag < ApplicationRecord
 
   validates :name, presence: true
   validates :name, length: {maximum: MAX_NAME_LENGTH}, allow_blank: true
-  validates :name, format: {with: /\A\S+( \S+)?\z/, message: "must be one or two words"}, allow_blank: true
   validates :color, inclusion: {in: COLORS}
   validates_db_uniqueness_of :normalized_name
 

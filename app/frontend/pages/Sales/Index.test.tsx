@@ -721,13 +721,13 @@ describe("Sales/Index", () => {
 
     it("keeps the draft and shows the error after an ordinary rejection", async () => {
       const user = userEvent.setup();
-      nextFormErrors.mockReturnValueOnce({ tags: "must be one or two words" });
+      nextFormErrors.mockReturnValueOnce({ tags: "Name is too long (maximum is 30 characters)" });
       renderTagged([vip]);
 
       await user.selectOptions(await openEditor(user), ["Rush"]);
       await user.click(screen.getByRole("button", { name: "Save" }));
 
-      expect(screen.getByText("must be one or two words")).toBeInTheDocument();
+      expect(screen.getByText("Name is too long (maximum is 30 characters)")).toBeInTheDocument();
       expect(selectedLabels()).toEqual(["Rush", "VIP"]);
       expect(screen.queryByRole("button", { name: /Reload tags/ })).not.toBeInTheDocument();
     });

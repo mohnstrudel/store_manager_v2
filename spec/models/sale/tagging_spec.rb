@@ -176,10 +176,10 @@ RSpec.describe Sale::Tagging do
 
       it "persists neither a valid proposal nor the assignment when another proposal is invalid" do
         expect {
-          sale.replace_tags!(ids: [first.id], original_ids: [], new_tags: [rush, {name: "Way Too Rushed", color: "sky"}])
+          sale.replace_tags!(ids: [first.id], original_ids: [], new_tags: [rush, {name: "x" * 31, color: "sky"}])
         }.to raise_error(ActiveRecord::RecordInvalid)
 
-        expect(tags_error).to include("one or two words")
+        expect(tags_error).to include("too long")
         expect(SalesTag.exists?(normalized_name: "rush")).to be(false)
         expect(assigned_ids).to eq([])
       end

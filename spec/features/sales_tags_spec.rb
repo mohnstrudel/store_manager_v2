@@ -33,12 +33,12 @@ RSpec.feature "Sales tags catalog", :js do
   scenario "keeps the draft and shows the error when the name is rejected" do
     visit sales_tags_path
 
-    fill_in "Tag name", with: "one two three"
+    fill_in "Tag name", with: "x" * 31
     choose "green", allow_label_click: true
     click_button "Add tag"
 
-    expect(page).to have_content("must be one or two words")
-    expect(find_field("Tag name").value).to eq("one two three")
+    expect(page).to have_content("is too long (maximum is 30 characters)")
+    expect(find_field("Tag name").value).to eq("x" * 31)
     expect(find_field("green", type: "radio", visible: :all)).to be_checked
     expect(SalesTag.count).to eq(0)
   end

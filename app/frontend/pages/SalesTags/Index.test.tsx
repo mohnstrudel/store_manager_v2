@@ -81,19 +81,19 @@ describe("SalesTags/Index", () => {
 
   it("keeps the draft and shows field errors when the server rejects the tag", async () => {
     nextFormErrors.mockReturnValue({
-      name: "must be one or two words",
+      name: "is too long (maximum is 30 characters)",
       color: "is not included in the list",
     });
     const user = userEvent.setup();
     renderIndex();
 
-    await user.type(screen.getByRole("textbox", { name: "Tag name" }), "one two three");
+    await user.type(screen.getByRole("textbox", { name: "Tag name" }), "x".repeat(31));
     await user.click(screen.getByRole("radio", { name: "pink" }));
     await user.click(screen.getByRole("button", { name: "Add tag" }));
 
-    expect(screen.getByRole("textbox", { name: "Tag name" })).toHaveValue("one two three");
+    expect(screen.getByRole("textbox", { name: "Tag name" })).toHaveValue("x".repeat(31));
     expect(screen.getByRole("textbox", { name: "Tag name" })).toHaveAccessibleDescription(
-      "must be one or two words",
+      "is too long (maximum is 30 characters)",
     );
     expect(screen.getByText("is not included in the list")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "pink" })).toBeChecked();

@@ -88,14 +88,14 @@ RSpec.describe "SalesTags" do
 
     it "redirects with 303 and name and color errors for invalid input" do
       expect {
-        post sales_tags_path(q: "ru"), params: {sales_tag: {name: "one two three", color: "orange"}}
+        post sales_tags_path(q: "ru"), params: {sales_tag: {name: "x" * 31, color: "orange"}}
       }.not_to change(SalesTag, :count)
 
       expect(response).to have_http_status(:see_other)
       expect(response).to redirect_to(sales_tags_path(q: "ru"))
       follow_redirect!
       expect(inertia.props[:errors].deep_symbolize_keys).to eq(
-        name: "must be one or two words",
+        name: "is too long (maximum is 30 characters)",
         color: "is not included in the list"
       )
     end

@@ -48,10 +48,13 @@ RSpec.describe SalesTag do
       expect(described_class.find_or_create_normalized!(name: "é" * 30).name).to eq("é" * 30)
     end
 
+    it "accepts any number of words" do
+      expect(described_class.find_or_create_normalized!(name: "one two three").name).to eq("one two three")
+    end
+
     it "rejects invalid names and colors without creating a record" do
       {
         "x" * 31 => [:name, "is too long (maximum is 30 characters)"],
-        "one two three" => [:name, "must be one or two words"],
         " \u00A0 " => [:name, "can't be blank"]
       }.each do |name, (attribute, message)|
         expect { described_class.find_or_create_normalized!(name:) }
