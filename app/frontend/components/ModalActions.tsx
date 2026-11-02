@@ -15,20 +15,10 @@ export default function ModalActions({
 }: ModalActionsProps) {
   return (
     <>
-      <button
-        className="btn_blue"
-        disabled={processing}
-        form={formId}
-        type="submit"
-      >
+      <button className="btn_blue" disabled={processing} form={formId} type="submit">
         {processing ? processingLabel : submitLabel}
       </button>
-      <button
-        className="btn_white"
-        disabled={processing}
-        onClick={onCancel}
-        type="button"
-      >
+      <button className="btn_white" disabled={processing} onClick={onCancel} type="button">
         Cancel
       </button>
     </>
