@@ -3,6 +3,10 @@
     @apply flex flex-wrap gap-1;
   }
 
+  .sales_tags li {
+    @apply flex;
+  }
+
   .sales_tag,
   .sales_tag_title {
     @apply inline-block max-w-full rounded-xs px-1.5 py-1 wrap-anywhere;

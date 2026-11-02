@@ -819,6 +819,15 @@ RSpec.feature "Sales tags catalog", :js do
       expect(chip_top("Alpha")).to eq(chip_top("VIP"))
     end
 
+    scenario "lines the tags up with the Edit tags button at the same height and position" do
+      [vip, rush].each { |tag| SaleTagging.create!(sale:, sales_tag: tag) }
+      visit sale_path(sale)
+      expect(page).to have_button("Edit tags")
+
+      expect(measure("ul.sales_tags + button", "height")).to eq(measure("ul.sales_tags .sales_tag", "height"))
+      expect(measure("ul.sales_tags + button", "top")).to eq(measure("ul.sales_tags .sales_tag", "top"))
+    end
+
     scenario "centers the dialog title with the close button on one row" do
       visit sale_path(sale)
       click_button "Add tags"
