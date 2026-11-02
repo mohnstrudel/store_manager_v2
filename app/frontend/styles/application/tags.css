@@ -20,7 +20,7 @@
   }
 
   .sales_tag[data-color="sky"] {
-    @apply bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300;
+    @apply bg-sky-200/60 text-sky-800 dark:bg-sky-900 dark:text-sky-300;
   }
 
   .sales_tag[data-color="violet"] {
@@ -28,7 +28,7 @@
   }
 
   .sales_tag[data-color="olive"] {
-    @apply bg-olive-100 text-olive-800 dark:bg-olive-700/90 dark:text-olive-300;
+    @apply bg-olive-300/50 text-olive-700 dark:bg-olive-700/90 dark:text-olive-300;
   }
 
   .sales_tag_choices {
@@ -69,18 +69,6 @@
 
   .sales_tag_choice:has(:focus-visible) {
     @apply outline-2 outline-offset-2 outline-blue-600 dark:outline-blue-400;
-  }
-
-  .sales_tag_drafts {
-    @apply flex flex-wrap gap-1;
-  }
-
-  .sales_tag_remove {
-    @apply -mr-1 ml-0.5 rounded-sm bg-transparent px-1 py-0 leading-4 opacity-60 hover:bg-transparent hover:opacity-100;
-  }
-
-  .sales_tag_picker {
-    @apply min-w-56 text-left;
   }
 
   .sales_tags_cell {

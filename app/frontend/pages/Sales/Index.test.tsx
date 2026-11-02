@@ -1,7 +1,7 @@
 import { router } from "@inertiajs/react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { makePagination, makeSalePaymentProgress } from "@/test/factories";
 import { nextFormErrors } from "@/test/mocks/inertia";
@@ -12,8 +12,6 @@ import { makeSaleIndexRecord } from "./test/factories";
 import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
 
 const tagColors = ["green", "pink", "mauve", "sky", "violet", "olive"] as const;
-
-vi.mock("@/components/SmartSelect", () => import("@/test/mocks/singleSmartSelect"));
 
 describe("Sales/Index", () => {
   it("renders the sales heading and add new record link", () => {
@@ -638,11 +636,31 @@ describe("Sales/Index", () => {
       expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
     });
 
+    it("opens the shared tags dialog from the Edit control", async () => {
+      const user = userEvent.setup();
+      renderTagged([vip]);
+
+      const dialog = await openEditor(user);
+
+      expect(within(dialog).getByRole("checkbox", { name: "VIP" })).toBeChecked();
+      expect(within(dialog).getByRole("checkbox", { name: "Rush" })).not.toBeChecked();
+    });
+
+    it("titles the dialog Add tags for an untagged sale", async () => {
+      const user = userEvent.setup();
+      renderTagged([]);
+
+      await user.click(screen.getByRole("button", { name: "Edit" }));
+
+      expect(await screen.findByRole("dialog", { name: "Add tags" })).toBeInTheDocument();
+    });
+
     it("saves the draft with the marker, original ids and the current page as return target", async () => {
       const user = userEvent.setup();
       renderTagged([vip]);
 
-      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await openEditor(user);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
       await user.click(screen.getByRole("button", { name: "Save" }));
 
       expect(router.patch).toHaveBeenCalledTimes(1);
@@ -656,13 +674,13 @@ describe("Sales/Index", () => {
       );
     });
 
-    it("clears all tags by sending an empty selection with the original ids", async () => {
+    it("clears all tags by unchecking them and sending the original ids", async () => {
       const user = userEvent.setup();
       renderTagged([rush, vip]);
 
       await openEditor(user);
-      await user.click(screen.getByRole("button", { name: "Remove Rush" }));
-      await user.click(screen.getByRole("button", { name: "Remove VIP" }));
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
+      await user.click(screen.getByRole("checkbox", { name: "VIP" }));
       await user.click(screen.getByRole("button", { name: "Save" }));
 
       expect(router.patch).toHaveBeenCalledWith(
@@ -675,24 +693,15 @@ describe("Sales/Index", () => {
       );
     });
 
-    it("offers no way to create a tag from the index", async () => {
+    it("closes the dialog once the save is confirmed", async () => {
       const user = userEvent.setup();
       renderTagged([vip]);
 
       await openEditor(user);
-
-      expect(screen.queryByRole("textbox", { name: "New tag name" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("group", { name: "New tag color" })).not.toBeInTheDocument();
-    });
-
-    it("closes the editor once the save is confirmed", async () => {
-      const user = userEvent.setup();
-      renderTagged([vip]);
-
-      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
       await user.click(screen.getByRole("button", { name: "Save" }));
 
-      expect(screen.queryByRole("combobox", { name: "Tags" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
     });
 
@@ -700,23 +709,13 @@ describe("Sales/Index", () => {
       const user = userEvent.setup();
       renderTagged([vip]);
 
-      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await openEditor(user);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
       await user.click(screen.getByRole("button", { name: "Cancel" }));
 
       expect(router.patch).not.toHaveBeenCalled();
       await openEditor(user);
-      expect(selectedLabels()).toEqual(["VIP"]);
-    });
-
-    it("cancels with Escape", async () => {
-      const user = userEvent.setup();
-      renderTagged([vip]);
-
-      (await openEditor(user)).focus();
-      await user.keyboard("{Escape}");
-
-      expect(screen.queryByRole("combobox", { name: "Tags" })).not.toBeInTheDocument();
-      expect(router.patch).not.toHaveBeenCalled();
+      expect(screen.getByRole("checkbox", { name: "Rush" })).not.toBeChecked();
     });
 
     it("keeps the draft and shows the error after an ordinary rejection", async () => {
@@ -724,11 +723,12 @@ describe("Sales/Index", () => {
       nextFormErrors.mockReturnValueOnce({ tags: "Name is too long (maximum is 30 characters)" });
       renderTagged([vip]);
 
-      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await openEditor(user);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
       await user.click(screen.getByRole("button", { name: "Save" }));
 
       expect(screen.getByText("Name is too long (maximum is 30 characters)")).toBeInTheDocument();
-      expect(selectedLabels()).toEqual(["Rush", "VIP"]);
+      expect(screen.getByRole("checkbox", { name: "Rush" })).toBeChecked();
       expect(screen.queryByRole("button", { name: /Reload tags/ })).not.toBeInTheDocument();
     });
 
@@ -740,7 +740,8 @@ describe("Sales/Index", () => {
       nextFormErrors.mockReturnValueOnce({ tags: message });
       renderTagged([vip]);
 
-      await user.selectOptions(await openEditor(user), ["Rush"]);
+      await openEditor(user);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
       await user.click(screen.getByRole("button", { name: "Save" }));
       expect(router.reload).not.toHaveBeenCalled();
 
@@ -749,11 +750,13 @@ describe("Sales/Index", () => {
       expect(router.reload).toHaveBeenCalledWith(expect.objectContaining({ only: reloadedProps }));
     });
 
-    it("does not open the sale when the tags cell is used", async () => {
+    it("does not open the sale when the cell or the dialog is used", async () => {
       const user = userEvent.setup();
       renderTagged([vip]);
 
       await openEditor(user);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
+      await user.click(screen.getByRole("heading", { name: "Edit tags" }));
       await user.click(screen.getByRole("button", { name: "Cancel" }));
       await user.click(screen.getByText("VIP"));
 
@@ -804,14 +807,5 @@ function indexElement({
 
 async function openEditor(user: UserEvent) {
   await user.click(screen.getByRole("button", { name: "Edit" }));
-  return screen.findByRole("combobox", { name: "Tags" });
-}
-
-function selectedLabels() {
-  const selection = screen.queryByRole("list", { name: "Selected tags" });
-  if (!selection) return [];
-
-  return within(selection)
-    .getAllByRole("button")
-    .map((button) => button.getAttribute("aria-label")?.replace("Remove ", ""));
+  return screen.findByRole("dialog", { name: "Edit tags" });
 }

@@ -27,11 +27,12 @@
   .pagination_link {
     font-weight: 480;
     font-stretch: 98%;
-    @apply inline-flex items-center justify-center min-w-9 gap-1.5 px-2 py-1.5 rounded-sm;
+    @apply inline-flex items-center justify-center min-w-9 gap-1.5 px-2 py-1.5 rounded-4xl bg-transparent hover:bg-gray-100 dark:bg-transparent dark:hover:bg-gray-800;
+    corner-shape: var(--corner-shape);
   }
 
   .pagination_link.is_current {
-    @apply bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-default;
+    @apply bg-transparent hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent ring-1 ring-inset ring-gray-900/10 dark:ring-white/10 cursor-default;
   }
 
   .pagination_gap {

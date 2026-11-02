@@ -2,7 +2,7 @@ import { Link } from "@inertiajs/react";
 
 import PaymentPlanMarker from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
-import type { SalesTagRecord } from "@/types/salesTag";
+import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
@@ -13,11 +13,12 @@ import TagsCell from "./TagsCell";
 type TableProps = {
   sales: SaleIndexRecord[];
   sort: SaleSort;
+  tagColors: SalesTagColor[];
   tagOptions: SalesTagRecord[];
   canTagSales: boolean;
 };
 
-export default function Table({ sales, sort, tagOptions, canTagSales }: TableProps) {
+export default function Table({ sales, sort, tagColors, tagOptions, canTagSales }: TableProps) {
   if (sales.length === 0) return null;
 
   return (
@@ -90,7 +91,12 @@ export default function Table({ sales, sort, tagOptions, canTagSales }: TablePro
               </td>
 
               {canTagSales ? (
-                <TagsCell options={tagOptions} saleId={sale.id} tags={sale.tags} />
+                <TagsCell
+                  colors={tagColors}
+                  options={tagOptions}
+                  saleId={sale.id}
+                  tags={sale.tags}
+                />
               ) : (
                 <td className="sales_tags_cell">
                   <TagBadges tags={sale.tags} />

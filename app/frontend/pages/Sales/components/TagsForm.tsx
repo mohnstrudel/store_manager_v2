@@ -11,8 +11,8 @@ import {
 import FormError from "@/components/FormError";
 import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 
-import { TagBadge } from "../components/TagBadges";
-import type { SaleTagsForm } from "../components/useSaleTagsForm";
+import { TagBadge } from "./TagBadges";
+import type { SaleTagsForm } from "./useSaleTagsForm";
 
 type TagsFormProps = {
   colors: SalesTagColor[];

@@ -20,6 +20,10 @@ type ModalProps = {
   title: string;
 };
 
+function stopPropagation(event: { stopPropagation(): void }) {
+  event.stopPropagation();
+}
+
 export default function Modal({
   children,
   footer,
@@ -56,6 +60,7 @@ export default function Modal({
 
   const handleBackdropClick = useCallback(
     (event: MouseEvent<HTMLDialogElement>) => {
+      event.stopPropagation();
       if (event.target === event.currentTarget) requestClose();
     },
     [requestClose],
@@ -68,7 +73,9 @@ export default function Modal({
       aria-labelledby={titleId}
       id={id}
       onCancel={handleCancel}
+      onAuxClick={stopPropagation}
       onClick={handleBackdropClick}
+      onKeyDown={stopPropagation}
     >
       <div className="dialog_content">
         <header className="flex items-start justify-between gap-4 p-6">

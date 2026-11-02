@@ -126,27 +126,23 @@ RSpec.feature "Sales tags catalog", :js do
 
     def open_editor(target)
       within(tags_cell(target)) { click_button "Edit" }
-      expect(page).to have_css("#sale-#{target.id}-tags-picker")
+      expect(page).to have_css("dialog h2", text: /\A(Edit|Add) tags\z/)
     end
 
-    def pick(target, name)
-      within(tags_cell(target)) { find(".rs__control").click }
-      find(".rs__option", text: name).click
+    def toggle(name)
+      find("dialog label.sales_tag_choice", text: name).click
     end
 
-    scenario "saves a selection, reopens with it and keeps it after reload" do
+    scenario "saves a selection in the modal, stays on the index and keeps it after reload" do
       visit sales_path
 
       open_editor(sale)
-      pick(sale, "Rush")
-      pick(sale, "VIP")
-      within(tags_cell(sale)) { click_button "Save" }
+      toggle("Rush")
+      toggle("VIP")
+      click_button "Save"
 
-      within(tags_cell(sale)) do
-        expect(page).to have_css(".sales_tag", text: "Rush")
-        expect(page).to have_css(".sales_tag", text: "VIP")
-        expect(page).to have_no_button("Save")
-      end
+      expect(page).to have_no_css("dialog")
+      within(tags_cell(sale)) { expect(page.all(".sales_tag").map(&:text)).to eq(%w[Rush VIP]) }
       expect(page).to have_current_path(sales_path)
       expect(sale.sales_tags.pluck(:name)).to match_array(%w[Rush VIP])
 
@@ -154,8 +150,7 @@ RSpec.feature "Sales tags catalog", :js do
 
       within(tags_cell(sale)) { expect(page.all(".sales_tag").map(&:text)).to eq(%w[Rush VIP]) }
       open_editor(sale)
-      expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "Rush")
-      expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "VIP")
+      expect(page).to have_css("dialog label.sales_tag_choice:has(input:checked)", count: 2)
     end
 
     scenario "removing a tag from one sale keeps it on the other" do
@@ -163,9 +158,10 @@ RSpec.feature "Sales tags catalog", :js do
       visit sales_path
 
       open_editor(sale)
-      within(tags_cell(sale)) { find("[aria-label='Remove VIP']").click }
-      within(tags_cell(sale)) { click_button "Save" }
+      toggle("VIP")
+      click_button "Save"
 
+      expect(page).to have_no_css("dialog")
       within(tags_cell(sale)) { expect(page).to have_no_css(".sales_tag") }
       within(tags_cell(other_sale)) { expect(page).to have_css(".sales_tag", text: "VIP") }
       expect(SaleTagging.where(sales_tag: vip).pluck(:sale_id)).to eq([other_sale.id])
@@ -175,9 +171,10 @@ RSpec.feature "Sales tags catalog", :js do
       visit sales_path
 
       open_editor(sale)
-      pick(sale, "Rush")
-      within(tags_cell(sale)) { click_button "Cancel" }
+      toggle("Rush")
+      click_button "Cancel"
 
+      expect(page).to have_no_css("dialog")
       within(tags_cell(sale)) { expect(page).to have_no_css(".sales_tag") }
       expect(SaleTagging.count).to eq(0)
     end
@@ -186,25 +183,23 @@ RSpec.feature "Sales tags catalog", :js do
       SaleTagging.create!(sale:, sales_tag: vip)
       visit sales_path
       open_editor(sale)
-      pick(sale, "Rush")
+      toggle("Rush")
 
       SaleTagging.where(sale:).delete_all
       SaleTagging.create!(sale:, sales_tag: rush)
-      within(tags_cell(sale)) { click_button "Save" }
+      click_button "Save"
 
       expect(page).to have_content("Tags changed since you opened this editor. Reload tags and try again.")
-      expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "Rush")
+      expect(page).to have_css("dialog label.sales_tag_choice:has(input:checked)", text: "Rush")
       expect(sale.sales_tags.pluck(:name)).to eq(["Rush"])
 
       click_button "Reload tags (discards your changes)"
 
-      within(tags_cell(sale)) do
-        expect(page).to have_no_button("Save")
-        expect(page).to have_css(".sales_tag", text: "Rush", count: 1)
-      end
+      expect(page).to have_no_css("dialog")
+      within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "Rush", count: 1) }
     end
 
-    scenario "keeps the saved badges and locks the editor while saving" do
+    scenario "keeps the saved badges and locks the modal while saving" do
       SaleTagging.create!(sale:, sales_tag: vip)
       release = Queue.new
       allow(SaleTagging).to receive(:insert_all!).and_wrap_original do |original, *args, **kwargs|
@@ -213,49 +208,44 @@ RSpec.feature "Sales tags catalog", :js do
       end
       visit sales_path
       open_editor(sale)
-      pick(sale, "Rush")
-      within(tags_cell(sale)) { click_button "Save" }
+      toggle("Rush")
+      click_button "Save"
 
-      within(tags_cell(sale)) do
+      within("dialog") do
         expect(page).to have_button("Saving…", disabled: true)
         expect(page).to have_button("Cancel", disabled: true)
-        expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "Rush")
-        expect(page).to have_no_css(".sales_tags")
       end
+      within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "VIP", count: 1) }
 
       release << true
 
+      expect(page).to have_no_css("dialog")
       within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "Rush") }
       expect(sale.sales_tags.pluck(:name)).to match_array(%w[Rush VIP])
     ensure
       release&.push(true)
     end
 
-    scenario "does not open the sale from clicks or keys inside the editor" do
+    scenario "does not open the sale from clicks or keys inside the modal" do
       visit sales_path
 
       open_editor(sale)
-      within(tags_cell(sale)) { find(".rs__control").click }
-      find("#sale-#{sale.id}-tags-picker", visible: :all).send_keys(:enter)
-      within(tags_cell(sale)) { find("form").click }
+      find("dialog h2").click
+      toggle("Rush")
+      page.driver.browser.keyboard.type(:enter)
 
       expect(page).to have_current_path(sales_path)
-      expect(page).to have_css("#sale-#{sale.id}-tags-picker", visible: :all)
+      expect(page).to have_css("dialog")
     end
 
-    scenario "closes the menu with the first Escape and cancels with the second" do
+    scenario "closes the modal with Escape" do
       visit sales_path
 
       open_editor(sale)
-      find("#sale-#{sale.id}-tags-picker").click
-      expect(page).to have_css(".rs__option", text: "Rush")
+      page.driver.browser.keyboard.type(:escape)
 
-      find("#sale-#{sale.id}-tags-picker").send_keys(:escape)
-      expect(page).to have_no_css(".rs__option")
-      expect(page).to have_css("#sale-#{sale.id}-tags-picker")
-
-      find("#sale-#{sale.id}-tags-picker").send_keys(:escape)
-      expect(page).to have_no_css("#sale-#{sale.id}-tags-picker")
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_current_path(sales_path)
     end
 
     scenario "lets support staff tag sales" do
@@ -265,32 +255,10 @@ RSpec.feature "Sales tags catalog", :js do
       visit sales_path
 
       open_editor(sale)
-      pick(sale, "Rush")
-      within(tags_cell(sale)) { click_button "Save" }
+      toggle("Rush")
+      click_button "Save"
 
       within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "Rush") }
-    end
-
-    scenario "searches existing tags by typing and stops offering the ones already selected" do
-      visit sales_path
-
-      open_editor(sale)
-      picker = find("#sale-#{sale.id}-tags-picker", visible: :all)
-      picker.send_keys("vi")
-      expect(page).to have_css(".rs__option", text: "VIP")
-      expect(page).to have_no_css(".rs__option", text: "Rush")
-      find(".rs__option", text: "VIP").click
-
-      within(tags_cell(sale)) { expect(page).to have_css(".sales_tag_drafts .sales_tag", text: "VIP") }
-      within(tags_cell(sale)) { find(".rs__control").click }
-      expect(page).to have_css(".rs__option", text: "Rush")
-      expect(page).to have_no_css(".rs__option", text: "VIP")
-      find("#sale-#{sale.id}-tags-picker", visible: :all).send_keys(:escape)
-      expect(page).to have_no_css(".rs__option")
-
-      within(tags_cell(sale)) { click_button "Save" }
-      within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "VIP") }
-      expect(sale.sales_tags.pluck(:name)).to eq(["VIP"])
     end
   end
 

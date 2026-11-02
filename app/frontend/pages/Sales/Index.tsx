@@ -33,6 +33,7 @@ export default function Index({
   sort,
   filters,
   tag_options,
+  tag_colors,
   can_tag_sales,
   last_sync_time,
 }: IndexProps) {
@@ -80,7 +81,13 @@ export default function Index({
         </div>
 
         {hasSales ? (
-          <Table canTagSales={can_tag_sales} sales={sales} sort={sort} tagOptions={tag_options} />
+          <Table
+            canTagSales={can_tag_sales}
+            sales={sales}
+            sort={sort}
+            tagColors={tag_colors}
+            tagOptions={tag_options}
+          />
         ) : (
           <EmptyResults hasCriteria={hasCriteria} seed={search.q} />
         )}

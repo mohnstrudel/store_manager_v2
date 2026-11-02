@@ -51,7 +51,7 @@
   }
 
   .inline_cell_edit {
-    @apply text-gray-600 dark:text-gray-300;
+    @apply bg-transparent text-gray-600 dark:bg-transparent dark:text-gray-300;
   }
 
   .inline_editable:hover button {
