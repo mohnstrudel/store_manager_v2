@@ -11,7 +11,6 @@ type SaleTagsFormConfig = {
   saleId: number;
   tags: SalesTagRecord[];
   reloadProps: string[];
-  returnTo?: string;
 };
 
 export type SaleTagsForm = {
@@ -27,12 +26,7 @@ export type SaleTagsForm = {
   reload: () => void;
 };
 
-export function useSaleTagsForm({
-  saleId,
-  tags,
-  reloadProps,
-  returnTo,
-}: SaleTagsFormConfig): SaleTagsForm {
+export function useSaleTagsForm({ saleId, tags, reloadProps }: SaleTagsFormConfig): SaleTagsForm {
   const page = usePage();
   const savedIds = tags.map((tag) => tag.id);
   const [isOpen, setIsOpen] = useState(false);
@@ -66,7 +60,7 @@ export function useSaleTagsForm({
           original_ids: data.original_ids,
         },
       },
-      return_to: returnTo ?? page.url,
+      return_to: page.url,
     }));
     form.patch(routes.salesTaggings.update.path({ sale_id: saleId }), {
       only: reloadProps,
