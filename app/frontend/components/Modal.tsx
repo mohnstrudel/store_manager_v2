@@ -76,7 +76,7 @@ export default function Modal({
             <h2 className="flex min-h-8 items-center" id={titleId}>
               {title}
             </h2>
-            {subtitle ? <p className="mt-1 text-gray-500 dark:text-gray-400">{subtitle}</p> : null}
+            {subtitle ? <p className="text-gray-500 dark:text-gray-400">{subtitle}</p> : null}
           </hgroup>
           <button
             aria-label="Close"

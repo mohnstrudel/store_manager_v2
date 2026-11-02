@@ -604,6 +604,8 @@ RSpec.feature "Sales tags catalog", :js do
       expect(page).to have_css(".dialog_footer button[type=submit]", text: "Save")
       expect(page).to have_css(".dialog_footer button", text: "Cancel")
       expect(style_of.call(".dialog_footer button[type=button]", "backgroundColor")).to eq("rgb(255, 255, 255)")
+      expect(style_of.call(".dialog_footer button[type=button]", "borderTopWidth")).to eq("1px")
+      expect(measure(".dialog_footer button[type=button]", "height")).to eq(measure(".dialog_footer button[type=submit]", "height"))
     end
 
     scenario "puts Save and Cancel at the left edge of the form" do

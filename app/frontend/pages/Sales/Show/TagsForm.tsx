@@ -116,7 +116,7 @@ export function TagsFormActions({ form, formId }: TagsFormActionsProps) {
   return (
     <>
       <button
-        className="btn_rounded btn_blue"
+        className="btn_rounded btn_blue border border-transparent"
         disabled={form.processing}
         form={formId}
         type="submit"
@@ -124,7 +124,7 @@ export function TagsFormActions({ form, formId }: TagsFormActionsProps) {
         {form.processing ? "Saving…" : "Save"}
       </button>
       <button
-        className="btn_rounded bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
+        className="btn_rounded border border-gray-300 bg-white hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
         disabled={form.processing}
         onClick={form.cancel}
         type="button"
