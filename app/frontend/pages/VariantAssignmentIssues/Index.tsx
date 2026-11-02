@@ -1,3 +1,4 @@
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import { Link, router, usePage } from "@inertiajs/react";
 import { useCallback, type ChangeEvent } from "react";
 
@@ -360,6 +361,7 @@ function IssuePagination({
           href={issuePath(issueType, filter, pagination.current_page - 1)}
           rel="prev"
         >
+          <ChevronLeftIcon aria-hidden="true" />
           Previous
         </Link>
       ) : null}
@@ -373,6 +375,7 @@ function IssuePagination({
           rel="next"
         >
           Next
+          <ChevronRightIcon aria-hidden="true" />
         </Link>
       ) : null}
     </nav>

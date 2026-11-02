@@ -1,3 +1,4 @@
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import { Link } from "@inertiajs/react";
 
 type PaginationMeta = {
@@ -110,6 +111,7 @@ function PreviousPageLink({ currentPage, params, path, query }: PreviousPageLink
       rel="prev"
       prefetch
     >
+      <ChevronLeftIcon aria-hidden="true" />
       Previous
     </Link>
   );
@@ -179,6 +181,7 @@ function NextPageLink({ currentPage, params, path, query, totalPages }: NextPage
       prefetch
     >
       Next
+      <ChevronRightIcon aria-hidden="true" />
     </Link>
   );
 }

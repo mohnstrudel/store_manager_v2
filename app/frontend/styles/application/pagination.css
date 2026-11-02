@@ -17,7 +17,15 @@
 
   .pagination_previous,
   .pagination_next {
-    @apply min-w-24;
+    @apply inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-4xl bg-transparent hover:bg-gray-100 dark:bg-transparent dark:hover:bg-gray-800;
+    font-weight: 480;
+    font-stretch: 98%;
+    corner-shape: var(--corner-shape);
+  }
+
+  .pagination_previous svg,
+  .pagination_next svg {
+    @apply size-4;
   }
 
   .pagination_pages {
