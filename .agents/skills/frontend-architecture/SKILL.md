@@ -11,7 +11,7 @@ description: Design or refactor React and Inertia frontend code with clear behav
 - Load `rails-domain-architecture` at the same time when work needs new backend data, routes, authorization, persistence, or domain behavior.
 - Read [components.md](references/components.md) when adding a component or structurally refactoring a component or page. Routine content edits do not require the reference.
 - Read [testing.md](references/testing.md) when adding or changing frontend tests, or when choosing a test strategy is part of the design. Routine verification of a mechanical change does not require the reference.
-- Read [styling.md](references/styling.md) when work changes CSS, layout, responsive or dark-mode behavior, visual state, or presentation markup.
+- Read [styling.md](references/styling.md) when work changes CSS, layout, responsive or dark-mode behavior, visual state, or presentation markup, and always before adding a modal, form, list, or control that has a sibling elsewhere in the app. Its Sibling Consistency rules decide spacing and sizing.
 - Read `docs/plain-language/interface-text.md` when writing or changing user-facing copy: labels, buttons, errors, empty states, or confirmations.
 - For a persisted table-cell editor, also use `inline-cell-editor`; it supplements this skill and the Rails skill.
 - Load `rails-testing` alongside this skill when work touches request specs, Cuprite specs, Rails test infrastructure, or shared Ruby contracts. This skill's `testing.md` owns the frontend seam choice; `rails-testing` owns the Rails-side boundary.
