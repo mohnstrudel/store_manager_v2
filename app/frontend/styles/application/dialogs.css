@@ -17,7 +17,7 @@
   }
 
   .dialog_content {
-    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl translate-y-0 lg:-translate-y-10;
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg ring-1 ring-gray-950/10 dark:ring-white/10 w-full max-w-2xl translate-y-0 lg:-translate-y-10;
   }
 
   .dialog_close {
@@ -25,6 +25,6 @@
   }
 
   .dialog_footer {
-    @apply flex gap-2 rounded-b-lg border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-gray-800 dark:bg-gray-800/40;
+    @apply flex gap-2 rounded-b-lg border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/40;
   }
 }
