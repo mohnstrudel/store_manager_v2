@@ -532,6 +532,15 @@ RSpec.feature "Sales tags catalog", :js do
       expect(chip_top("Alpha")).to eq(chip_top("VIP"))
     end
 
+    scenario "centers the dialog title with the close button on one row" do
+      visit sale_path(sale)
+      click_button "Add tags"
+      center = ->(selector) { measure(selector, "top") + (measure(selector, "height") / 2) }
+
+      expect(center.call("dialog h2")).to be_within(1).of(center.call("dialog [aria-label='Close']"))
+      expect(measure("dialog [aria-label='Close']", "right")).to be > measure("dialog h2", "right")
+    end
+
     scenario "grows with the window before the tag list scrolls" do
       120.times { |index| create(:sales_tag, name: "Tag #{index}", color: SalesTag::COLORS[index % 8]) }
       scrolls = -> { page.evaluate_script("(() => { const list = document.querySelector('dialog fieldset'); return list.scrollHeight > list.clientHeight; })()") }

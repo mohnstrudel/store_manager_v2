@@ -17,10 +17,10 @@
   }
 
   .dialog_content {
-    @apply relative bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl p-6 pb-8 translate-y-0 lg:-translate-y-10;
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl p-6 pb-8 translate-y-0 lg:-translate-y-10;
   }
 
   .dialog_close {
-    @apply absolute top-4 right-4 p-1.5!;
+    @apply shrink-0 p-1.5!;
   }
 }

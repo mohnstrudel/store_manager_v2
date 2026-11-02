@@ -69,20 +69,22 @@ export default function Modal({
       onClick={handleBackdropClick}
     >
       <div className="dialog_content">
-        <hgroup className="mb-6 pr-10">
-          <h2 id={titleId}>{title}</h2>
-          {subtitle ? <p className="mt-1 text-gray-500 dark:text-gray-400">{subtitle}</p> : null}
-        </hgroup>
+        <header className="mb-6 flex items-center justify-between gap-4">
+          <hgroup>
+            <h2 id={titleId}>{title}</h2>
+            {subtitle ? <p className="mt-1 text-gray-500 dark:text-gray-400">{subtitle}</p> : null}
+          </hgroup>
+          <button
+            aria-label="Close"
+            className="dialog_close btn_rounded"
+            disabled={isBusy}
+            onClick={requestClose}
+            type="button"
+          >
+            <XMarkIcon height={20} width={20} />
+          </button>
+        </header>
         {isShown ? children : null}
-        <button
-          aria-label="Close"
-          className="dialog_close btn_rounded"
-          disabled={isBusy}
-          onClick={requestClose}
-          type="button"
-        >
-          <XMarkIcon height={20} width={20} />
-        </button>
       </div>
     </dialog>
   );
