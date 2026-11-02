@@ -22,9 +22,14 @@ type TagsFormProps = {
 
 export default function TagsForm({ colors, form, options }: TagsFormProps) {
   const [query, setQuery] = useState("");
-  const groupedOptions = useMemo(() => groupByColor(options, colors), [options, colors]);
+  const colorLines = useMemo(() => groupByColor(options, colors), [options, colors]);
   const needle = query.trim().toLowerCase();
-  const visibleOptions = groupedOptions.filter((tag) => tag.name.toLowerCase().includes(needle));
+  const visibleLines = colorLines
+    .map(({ color, tags }) => ({
+      color,
+      tags: tags.filter((tag) => tag.name.toLowerCase().includes(needle)),
+    }))
+    .filter((line) => line.tags.length > 0);
   const { save, select, selectedIds } = form;
 
   const submit = useCallback(
@@ -67,21 +72,25 @@ export default function TagsForm({ colors, form, options }: TagsFormProps) {
         value={query}
       />
 
-      <fieldset className="mb-0 min-h-[4.5rem] max-h-64 overflow-y-auto p-1">
+      <fieldset className="mb-0 min-h-[5.5rem] max-h-72 overflow-y-auto p-1.5">
         <legend className="sr-only">Tags</legend>
-        {visibleOptions.length > 0 ? (
-          <ul className="sales_tag_choices">
-            {visibleOptions.map((tag) => (
-              <li key={tag.id}>
-                <TagChoice
-                  checked={selectedIds.includes(tag.id)}
-                  disabled={form.processing}
-                  onToggle={toggle}
-                  tag={tag}
-                />
-              </li>
+        {visibleLines.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {visibleLines.map((line) => (
+              <ul className="sales_tag_choices gap-2.5" key={line.color}>
+                {line.tags.map((tag) => (
+                  <li key={tag.id}>
+                    <TagChoice
+                      checked={selectedIds.includes(tag.id)}
+                      disabled={form.processing}
+                      onToggle={toggle}
+                      tag={tag}
+                    />
+                  </li>
+                ))}
+              </ul>
             ))}
-          </ul>
+          </div>
         ) : (
           <p className="text-gray-500 dark:text-gray-400">No tags match “{query.trim()}”.</p>
         )}
@@ -111,13 +120,18 @@ export default function TagsForm({ colors, form, options }: TagsFormProps) {
   );
 }
 
-function groupByColor(options: SalesTagRecord[], colors: SalesTagColor[]) {
-  // oxlint-disable-next-line unicorn/no-array-sort -- sorts a fresh copy; the ES2020 lib has no toSorted
-  return [...options].sort(
-    (a, b) =>
-      colors.indexOf(a.color) - colors.indexOf(b.color) ||
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }) ||
-      a.id - b.id,
+type ColorLine = { color: SalesTagColor; tags: SalesTagRecord[] };
+
+function groupByColor(options: SalesTagRecord[], colors: SalesTagColor[]): ColorLine[] {
+  return colors
+    .map((color) => ({ color, tags: sortedByName(options.filter((tag) => tag.color === color)) }))
+    .filter((line) => line.tags.length > 0);
+}
+
+function sortedByName(tags: SalesTagRecord[]) {
+  // oxlint-disable-next-line unicorn/no-array-sort -- callers pass a fresh array; the ES2020 lib has no toSorted
+  return tags.sort(
+    (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }) || a.id - b.id,
   );
 }
 

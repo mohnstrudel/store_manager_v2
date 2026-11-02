@@ -241,7 +241,7 @@ describe("Sales/Show", () => {
       expect(screen.getByRole("button", { name: "Edit tags" })).toBeInTheDocument();
     });
 
-    it("groups tags by palette color, alphabetically within a color", async () => {
+    it("gives each palette color its own line, alphabetical within it", async () => {
       const user = userEvent.setup();
       const apple: SalesTagRecord = { id: 11, name: "apple", color: "green" };
       const zed: SalesTagRecord = { id: 12, name: "Zed", color: "green" };
@@ -250,11 +250,14 @@ describe("Sales/Show", () => {
 
       const dialog = await openEditor(user, "Add tags");
 
-      expect(
-        within(dialog)
-          .getAllByRole("checkbox")
-          .map((box) => box.closest("label")?.textContent),
-      ).toEqual(["apple", "Zed", "Rush", "Alpha", "VIP"]);
+      const lines = within(dialog)
+        .getAllByRole("list")
+        .map((line) =>
+          within(line)
+            .getAllByRole("checkbox")
+            .map((box) => box.closest("label")?.textContent),
+        );
+      expect(lines).toEqual([["apple", "Zed"], ["Rush"], ["Alpha", "VIP"]]);
     });
 
     it("filters the list by part of a name, ignoring case", async () => {

@@ -326,6 +326,14 @@ RSpec.feature "Sales tags catalog", :js do
       JS
     end
 
+    def chip_top(name)
+      page.evaluate_script(<<~JS)
+        [...document.querySelectorAll("dialog label.sales_tag_choice")]
+          .find((element) => element.textContent.trim() === #{name.to_json})
+          .getBoundingClientRect().top
+      JS
+    end
+
     scenario "saves a selection beneath the heading, keeps it after reload and shows it on the index" do
       visit sale_path(sale)
 
@@ -510,7 +518,7 @@ RSpec.feature "Sales tags catalog", :js do
       expect(sale.sales_tags.pluck(:name)).to eq(["VIP"])
     end
 
-    scenario "lists tags by palette color and then alphabetically" do
+    scenario "gives each palette color its own line, alphabetical within it" do
       create(:sales_tag, name: "Alpha", color: "sky")
       create(:sales_tag, name: "zebra", color: "green")
       visit sale_path(sale)
@@ -519,6 +527,9 @@ RSpec.feature "Sales tags catalog", :js do
 
       expect(page).to have_css("dialog label.sales_tag_choice", count: 4)
       expect(page.all("dialog label.sales_tag_choice").map(&:text)).to eq(%w[zebra Rush Alpha VIP])
+      expect(chip_top("zebra")).to be < chip_top("Rush")
+      expect(chip_top("Rush")).to be < chip_top("Alpha")
+      expect(chip_top("Alpha")).to eq(chip_top("VIP"))
     end
 
     scenario "does not change the dialog height while filtering" do
@@ -549,7 +560,7 @@ RSpec.feature "Sales tags catalog", :js do
       end
       expect(measure(unselected_check, "width")).to eq(0)
       expect(chip_style("Rush", "opacity")).to eq(chip_style("VIP", "opacity"))
-      expect(chip_style("Rush", "boxShadow")).not_to eq("none")
+      expect(chip_style("Rush", "boxShadow")).to include("1.5px")
       expect(chip_style("VIP", "boxShadow")).to eq("none")
     end
 

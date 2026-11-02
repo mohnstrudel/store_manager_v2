@@ -52,7 +52,7 @@
   }
 
   .sales_tag_choice[data-literal] .sales_tag {
-    @apply inline-flex items-center normal-case py-1 text-sm;
+    @apply inline-flex items-center normal-case px-2.5 py-1.5 text-sm;
   }
 
   .sales_tag_check {
@@ -65,6 +65,10 @@
 
   .sales_tag_choice:has(:checked) .sales_tag {
     @apply ring-1 ring-current;
+  }
+
+  .sales_tag_choice[data-literal]:has(:checked) .sales_tag {
+    @apply ring-[1.5px];
   }
 
   .sales_tag_choice:has(:disabled) {
