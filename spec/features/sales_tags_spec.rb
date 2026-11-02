@@ -591,6 +591,20 @@ RSpec.feature "Sales tags catalog", :js do
       expect(chip_style("VIP", "boxShadow")).to eq("none")
     end
 
+    scenario "draws the close button without a background and the actions on a full-width footer" do
+      visit sale_path(sale)
+      click_button "Add tags"
+      style_of = ->(selector, property) { page.evaluate_script("getComputedStyle(document.querySelector(#{selector.to_json})).#{property}") }
+      transparent = "rgba(0, 0, 0, 0)"
+
+      expect(style_of.call("dialog [aria-label='Close']", "backgroundColor")).to eq(transparent)
+      expect(style_of.call(".dialog_footer", "backgroundColor")).not_to eq(transparent)
+      expect(measure(".dialog_footer", "left")).to eq(measure(".dialog_content", "left"))
+      expect(measure(".dialog_footer", "width")).to eq(measure(".dialog_content", "width"))
+      expect(page).to have_css(".dialog_footer button[type=submit]", text: "Save")
+      expect(page).to have_css(".dialog_footer button", text: "Cancel")
+    end
+
     scenario "puts Save and Cancel at the left edge of the form" do
       visit sale_path(sale)
       click_button "Add tags"

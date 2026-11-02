@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import Modal from "./Modal";
@@ -66,12 +67,27 @@ describe("Modal", () => {
 
     expect(close).toHaveBeenCalledTimes(1);
   });
+
+  it("renders the footer after the body inside the dialog", () => {
+    renderModal({ footer: <button type="button">Save</button> });
+
+    const footerButton = within(screen.getByRole("dialog")).getByRole("button", { name: "Save" });
+
+    expect(
+      screen.getByText("Body").compareDocumentPosition(footerButton) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });
 
-function renderModal({ isBusy = false, subtitle }: { isBusy?: boolean; subtitle?: string } = {}) {
+function renderModal({
+  footer,
+  isBusy = false,
+  subtitle,
+}: { footer?: ReactNode; isBusy?: boolean; subtitle?: string } = {}) {
   const onClose = vi.fn<() => void>();
   const view = render(
-    <Modal isBusy={isBusy} onClose={onClose} subtitle={subtitle} title="Edit tags">
+    <Modal footer={footer} isBusy={isBusy} onClose={onClose} subtitle={subtitle} title="Edit tags">
       <p>Body</p>
     </Modal>,
   );

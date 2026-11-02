@@ -12,6 +12,7 @@ import {
 
 type ModalProps = {
   children: ReactNode;
+  footer?: ReactNode;
   id?: string;
   isBusy?: boolean;
   onClose: () => void;
@@ -21,6 +22,7 @@ type ModalProps = {
 
 export default function Modal({
   children,
+  footer,
   id,
   isBusy = false,
   onClose,
@@ -69,7 +71,7 @@ export default function Modal({
       onClick={handleBackdropClick}
     >
       <div className="dialog_content">
-        <header className="mb-6 flex items-start justify-between gap-4">
+        <header className="flex items-start justify-between gap-4 p-6">
           <hgroup>
             <h2 className="flex min-h-8 items-center" id={titleId}>
               {title}
@@ -78,7 +80,7 @@ export default function Modal({
           </hgroup>
           <button
             aria-label="Close"
-            className="dialog_close btn_rounded"
+            className="dialog_close"
             disabled={isBusy}
             onClick={requestClose}
             type="button"
@@ -86,7 +88,8 @@ export default function Modal({
             <XMarkIcon height={20} width={20} />
           </button>
         </header>
-        {isShown ? children : null}
+        <div className="px-6 pb-6">{isShown ? children : null}</div>
+        {footer ? <div className="dialog_footer">{footer}</div> : null}
       </div>
     </dialog>
   );

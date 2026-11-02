@@ -17,10 +17,11 @@ import type { SaleTagsForm } from "../components/useSaleTagsForm";
 type TagsFormProps = {
   colors: SalesTagColor[];
   form: SaleTagsForm;
+  id: string;
   options: SalesTagRecord[];
 };
 
-export default function TagsForm({ colors, form, options }: TagsFormProps) {
+export default function TagsForm({ colors, form, id, options }: TagsFormProps) {
   const [query, setQuery] = useState("");
   const colorLines = useMemo(() => groupByColor(options, colors), [options, colors]);
   const needle = query.trim().toLowerCase();
@@ -49,18 +50,18 @@ export default function TagsForm({ colors, form, options }: TagsFormProps) {
   }, []);
 
   const toggle = useCallback(
-    (id: number) => {
+    (tagId: number) => {
       select(
-        selectedIds.includes(id)
-          ? selectedIds.filter((selectedId) => selectedId !== id)
-          : [...selectedIds, id],
+        selectedIds.includes(tagId)
+          ? selectedIds.filter((selectedId) => selectedId !== tagId)
+          : [...selectedIds, tagId],
       );
     },
     [select, selectedIds],
   );
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={submit}>
+    <form className="flex flex-col gap-4" id={id} onSubmit={submit}>
       <input
         aria-label="Filter tags"
         autoFocus // oxlint-disable-line jsx-a11y/no-autofocus -- the form mounts inside a modal the user just opened
@@ -102,21 +103,35 @@ export default function TagsForm({ colors, form, options }: TagsFormProps) {
           Reload tags (discards your changes)
         </button>
       ) : null}
-
-      <div className="flex gap-2">
-        <button className="btn_rounded btn_blue" disabled={form.processing} type="submit">
-          {form.processing ? "Saving…" : "Save"}
-        </button>
-        <button
-          className="btn_rounded"
-          disabled={form.processing}
-          onClick={form.cancel}
-          type="button"
-        >
-          Cancel
-        </button>
-      </div>
     </form>
+  );
+}
+
+type TagsFormActionsProps = {
+  form: SaleTagsForm;
+  formId: string;
+};
+
+export function TagsFormActions({ form, formId }: TagsFormActionsProps) {
+  return (
+    <>
+      <button
+        className="btn_rounded btn_blue"
+        disabled={form.processing}
+        form={formId}
+        type="submit"
+      >
+        {form.processing ? "Saving…" : "Save"}
+      </button>
+      <button
+        className="btn_rounded"
+        disabled={form.processing}
+        onClick={form.cancel}
+        type="button"
+      >
+        Cancel
+      </button>
+    </>
   );
 }
 
