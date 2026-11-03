@@ -20,7 +20,6 @@ Convert what this conversation has already settled into a new iteration under `.
 - Record required behavior as observable outcomes, including boundaries and failure behavior that implementation tickets must preserve.
 - In Testing decisions, list the behavior cases that need coverage and identify the fast seam for each case. Mark behavior-bearing cases that should enter the implementation loop as failing tests first.
 - Reject speculative defensive work. Do not add validation, retries, fallbacks, compatibility layers, abstractions, or edge-case handling unless approved behavior or repository evidence requires it.
-- Require self-explanatory implementation through names, cohesion, and explicit flow. Do not request comments unless indispensable rationale or an external constraint cannot be encoded or inferred and omitting it would create material misuse or regression risk.
 - Keep the spec decision-dense and short. Skip narration, user stories, issue-tracker formatting.
 - The spec is the reference for `to-tickets`, for implementing sessions, and for reviewing the result (`/code-review` against the spec).
 
@@ -38,4 +37,4 @@ Convert what this conversation has already settled into a new iteration under `.
 ## Open proposals
 ```
 
-Omit a section only when it is genuinely empty, and keep Open proposals even when empty (`None`) so its absence is never ambiguous.
+Omit a section only when it is empty, and keep Open proposals even when empty (`None`) so its absence is never ambiguous.

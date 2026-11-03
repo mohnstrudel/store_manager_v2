@@ -7,14 +7,14 @@ description: Design or refactor the backend side of Ruby on Rails codebases towa
 
 ## Usage
 
-- Use `collaborative-planning` to run the planning process. During planning, use this skill to inspect Rails code and draft the Domain Contract; after approval, keep using it through implementation and validation.
+- Use this skill while planning to inspect Rails code and draft the Domain Contract, and keep it active through implementation and validation.
 - Treat this as the default architecture skill for backend and domain work in this repo.
 - For React components, hooks, browser state, and frontend tests, use `frontend-architecture` instead.
 - Load `rails-testing` when work touches request specs, Rails test infrastructure, or shared Ruby contracts; it supplies the repository-specific rules behind the Tests label below.
 
 ## Required Domain Contract
 
-Before planning a behavior-bearing backend change or a refactor that affects or calls into question ownership, authority, state, or boundaries, write every label. Write `Not applicable — <reason>` when a label genuinely does not apply. When collaborative planning loads `architecture-review.md`, incorporate its relevant lifecycle and public-contract decisions through these labels instead of creating a separate Rails checklist:
+Before planning a behavior-bearing backend change or a refactor that affects or calls into question ownership, authority, state, or boundaries, write every label. Write `Not applicable — <reason>` when a label does not apply. When collaborative planning loads `architecture-review.md`, incorporate its relevant lifecycle and public-contract decisions through these labels instead of creating a separate Rails checklist:
 
 - **Owner and boundary:** Name the owning model, domain, or subsystem and the authorized request entry relation. A namespace or file location alone is not a boundary.
 - **State:** Classify affected values as authoritative, external, or derived. Name each source and permitted writer.
@@ -28,12 +28,12 @@ Before planning a behavior-bearing backend change or a refactor that affects or 
 1. Inspect current behavior, persistence, writers, callbacks, request boundaries, and tests. Treat current placement as evidence, not proof of correct ownership.
 2. Start from an authorized, access-scoped relation and call the owning domain command.
 3. Place code by ownership and cohesion:
-   - Use `app/models/<model>/<capability>.rb` when behavior forms one coherent capability of a record or relation; do not extract a module merely to shorten a model.
-   - Use `app/models/concerns` only for behavior genuinely shared by multiple models.
+   - Use `app/models/<model>/<capability>.rb` when behavior forms one coherent capability of a record or relation; do not extract a module only to shorten a model. Extend the capability that already serves the same payload instead of adding a near-identical sibling, and name capabilities for exactly what they hold.
+   - Use `app/models/concerns` only for behavior shared by multiple models.
    - Use a namespaced object when it has independent inputs, results, collaborators, or adapter responsibility.
-   - Reserve query objects for first-class read subsystems and services for infrastructure-heavy or genuinely cross-domain work.
+   - Reserve query objects for first-class read subsystems and services for infrastructure-heavy or cross-domain work.
 4. Keep boundaries explicit: controllers own parameters, authorization, scoped loading, responses, and rendering; jobs own async scheduling, delivery, and retries; integration clients own external protocols; parsers translate external data; importers map it and call domain commands. Domain commands remain the only invariant-bearing writers.
-5. Keep reusable reads as named, relation-returning scopes with deliberate preload shapes. Build Inertia props or JSON at the rendering edge without reconstructing domain data.
+5. Keep reusable reads as named, relation-returning scopes with deliberate preload shapes, written with hash syntax or Arel nodes; use `Arel.sql` only when no native equivalent exists. Build Inertia props or JSON at the rendering edge without reconstructing domain data.
 6. Represent command endpoints as small resources using write HTTP verbs. Reuse controller scoping concerns only across a real controller family.
 
 ## Refactor Safety

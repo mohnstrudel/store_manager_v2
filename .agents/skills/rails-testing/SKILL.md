@@ -5,7 +5,7 @@ description: Repository-specific Rails test boundaries, test infrastructure, ver
 
 # Rails Testing
 
-Use `collaborative-planning` for the process. Load this skill with the owning architecture skill when work touches the boundaries or infrastructure below.
+Load this skill with the owning architecture skill when work touches the boundaries or infrastructure below.
 
 ## Boundaries
 

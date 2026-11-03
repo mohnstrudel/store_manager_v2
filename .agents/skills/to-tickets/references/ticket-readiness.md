@@ -17,8 +17,7 @@ Before writing tickets, verify that:
 - every requirement owned by a ticket appears as an observable acceptance criterion, not only as prose in What to build, Anchors, or a conditional section;
 - every behavior-bearing implementation ticket identifies its test-first cases and fast test seam, or explains why no fast seam exists and names the approved verification route;
 - expected values come from approved examples or independent hand calculation, never from implementation output;
-- tickets contain no speculative defensive work: validation, retries, fallbacks, compatibility layers, abstractions, and edge-case handling require an approved behavior or repository evidence; and
-- tickets require self-explanatory code first. A requested comment must preserve indispensable rationale or an external constraint that cannot be encoded or inferred and whose omission creates material misuse or regression risk.
+- tickets contain no speculative defensive work: validation, retries, fallbacks, compatibility layers, abstractions, and edge-case handling require an approved behavior or repository evidence.
 
 If any item fails, revise the slices. Return missing application behavior or architecture to `collaborative-planning` as one precise delta. Create a separate investigation ticket for implementation uncertainty that can be resolved without choosing product behavior or architecture.
 
@@ -58,7 +57,7 @@ Blocked by: none
 
 Verify every code and test anchor immediately before writing. Prefer a stable symbol or behavior name in the note so the implementer can relocate an anchor if earlier tickets shift its lines.
 
-Every acceptance criterion must trace to an approved requirement or necessary repository constraint. Do not bury requirements in descriptive sections or turn comments into implementation deliverables.
+Every acceptance criterion must trace to an approved requirement or necessary repository constraint. Do not bury requirements in descriptive sections.
 
 Include TDD cases for behavior-bearing implementation tickets. Omit the section for mechanical or investigation tickets. When no fast seam exists, replace it with one sentence naming the approved verification route and why test-first does not apply.
 
@@ -78,4 +77,4 @@ Add only what the slice needs:
 
 ## Final coverage audit
 
-Compare the complete ticket set with the spec and report only gaps: omitted decisions or requirements, duplicate ownership, hidden dependencies, unverifiable slices, unjustified horizontal tickets, implementation tickets that hide investigation, unresolved product or architecture questions, missing anchors or expected values, missing test-first cases, speculative defensive bloat, comment requests that code should express, and tickets too large for one fresh session. Do not redesign an otherwise ready breakdown.
+Compare the complete ticket set with the spec and report only gaps: omitted decisions or requirements, duplicate ownership, hidden dependencies, unverifiable slices, unjustified horizontal tickets, implementation tickets that hide investigation, unresolved product or architecture questions, missing anchors or expected values, missing test-first cases, speculative defensive bloat, and tickets too large for one fresh session. Do not redesign an otherwise ready breakdown.

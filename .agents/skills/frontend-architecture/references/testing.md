@@ -14,3 +14,7 @@ Read this reference when a frontend change needs a test-seam decision or uses th
 - `nextFormErrors` drives component error handling only. It does not prove redirect-with-errors across Rails, Inertia, and React.
 - Vitest uses `mockReset: true`; configure shared mocks per test or in `beforeEach`, never at module or `describe` scope.
 - The current form double drops optimistic callbacks and always reports `processing: false`. A component test using it cannot prove optimistic or processing-state behavior. Exercise the real lifecycle with Cuprite, or improve the canonical double once when the behavior is purely component-owned.
+
+## Shared Factories
+
+- Cross-domain factories such as `makePagination` and `makeList` live in `@/test/factories`; import them from there and never redefine them in per-page factories or test files. Per-page factories cover only records typed from that page's own `types.ts`.
