@@ -200,19 +200,6 @@ const adminLinks: NavigationLink[] = [
   },
 ];
 
-const salesTagsLink: NavigationLink = {
-  href: routes.salesTags.index.path(),
-  label: "Sales Tags",
-  component: "SalesTags/Index",
-  pageProps: {
-    can_manage_sales_tags: false,
-    sales_tag: null,
-    sales_tag_detail: null,
-    sales_tags: [],
-    tag_colors: [],
-  },
-};
-
 const outboundEmailsLink: NavigationLink = {
   href: routes.outboundEmails.index.path(),
   label: "Email History",
@@ -353,11 +340,6 @@ function NavigationOverflowMenu({
       </button>
       <ul className="navigation-dropdown_menu" aria-hidden={!isOpen} id="navigation-dropdown-links">
         <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />
-        <NavigationLinkItem
-          className="navigation-dropdown_link"
-          link={salesTagsLink}
-          onSelect={closeDropdown}
-        />
         {user?.role === "admin" || user?.role === "manager" ? (
           <NavigationLinkItem
             className="navigation-dropdown_link"

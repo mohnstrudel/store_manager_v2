@@ -24,7 +24,7 @@
   }
 
   .navigation-dropdown_button {
-    @apply inline-flex items-center justify-center p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 cursor-pointer;
+    @apply inline-flex items-center justify-center p-2 rounded-sm border-0 bg-transparent shadow-none dark:bg-transparent hover:bg-transparent dark:hover:bg-transparent transition-all duration-150 cursor-pointer;
   }
 
   .navigation-main {
@@ -37,11 +37,6 @@
 
   .navigation-links > .navigation-dropdown {
     @apply relative;
-  }
-
-  .navigation-dropdown_button:hover,
-  .navigation-dropdown[data-open="true"] > .navigation-dropdown_button {
-    @apply bg-gray-100 dark:bg-gray-700;
   }
 
   .navigation-dropdown_menu {

@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { PlusIcon, RefreshCwIcon } from "lucide-react";
+import { PlusIcon, RefreshCwIcon, TagsIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
@@ -47,6 +47,12 @@ export default function Index({
   return (
     <>
       <PageHeader title="Sales">
+        <li>
+          <Link href={routes.salesTags.index.path()} prefetch>
+            <TagsIcon />
+            Tags
+          </Link>
+        </li>
         <li>
           <button onClick={openSync} type="button">
             <RefreshCwIcon />
