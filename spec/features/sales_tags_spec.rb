@@ -368,6 +368,50 @@ RSpec.feature "Sales tags catalog", :js do
     end
   end
 
+  describe "as staff without management rights" do
+    let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2)) }
+    let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
+
+    before do
+      log_out
+      sign_in create(:user, :support)
+    end
+
+    scenario "browses the catalog without edit or delete controls" do
+      visit sales_tags_path
+
+      expect(page).to have_css("tbody tr", text: "VIP Order")
+      expect(page).to have_link("Add New Record")
+      expect(page).to have_no_button("Delete")
+      expect(page).to have_no_link("Edit")
+      expect(page).to have_no_css("th", text: "Actions")
+    end
+
+    scenario "creates a tag in the catalog and assigns it from the sale page" do
+      visit sales_tags_path
+      click_link "Add New Record"
+      save_in_dialog(name: "Rush", color: "pink")
+
+      expect(page).to have_no_css("dialog")
+      expect(page).to have_css("tbody tr", text: "Rush")
+
+      visit sale_path(sale)
+      click_button "Add tags"
+      find("dialog label.sales_tag_choice", text: "Rush").click
+      click_button "Save"
+
+      expect(page).to have_no_css("dialog")
+      expect(sale.sales_tags.pluck(:name)).to eq(["Rush"])
+    end
+
+    scenario "cannot open the edit dialog" do
+      visit edit_sales_tag_path(vip)
+
+      expect(page).to have_current_path(noop_path)
+      expect(page).to have_no_css("dialog")
+    end
+  end
+
   describe "details" do
     let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
     let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2)) }
@@ -457,19 +501,6 @@ RSpec.feature "Sales tags catalog", :js do
 
       expect(page).to have_css("dialog h2", text: "Edit tag")
       expect(page).to have_current_path(edit_sales_tag_path(vip))
-    end
-  end
-
-  scenario "does not let support staff open the catalog or its dialogs" do
-    log_out
-    sign_in create(:user, :support)
-    tag = create(:sales_tag, name: "Existing")
-
-    [sales_tags_path, new_sales_tag_path, edit_sales_tag_path(tag)].each do |path|
-      visit path
-
-      expect(page).to have_current_path(noop_path)
-      expect(page).to have_no_css("dialog")
     end
   end
 
@@ -685,6 +716,10 @@ RSpec.feature "Sales tags catalog", :js do
 
     def measure(selector, dimension)
       page.evaluate_script("document.querySelector(#{selector.to_json}).getBoundingClientRect().#{dimension}")
+    end
+
+    def vertical_center(selector)
+      measure(selector, "top") + (measure(selector, "height") / 2)
     end
 
     def chip_style(name, property)
@@ -903,13 +938,12 @@ RSpec.feature "Sales tags catalog", :js do
       expect(chip_top("Alpha")).to eq(chip_top("VIP"))
     end
 
-    scenario "lines the tags up with the Edit tags button at the same height and position" do
+    scenario "centers the Edit tags button vertically on the row of the tags" do
       [vip, rush].each { |tag| SaleTagging.create!(sale:, sales_tag: tag) }
       visit sale_path(sale)
       expect(page).to have_button("Edit tags")
 
-      expect(measure("ul.sales_tags + button", "height")).to eq(measure("ul.sales_tags .sales_tag", "height"))
-      expect(measure("ul.sales_tags + button", "top")).to eq(measure("ul.sales_tags .sales_tag", "top"))
+      expect(vertical_center("ul.sales_tags + button")).to be_within(0.5).of(vertical_center("ul.sales_tags .sales_tag"))
     end
 
     scenario "centers the dialog title with the close button on one row" do

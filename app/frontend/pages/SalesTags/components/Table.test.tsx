@@ -16,7 +16,7 @@ function bodyRows() {
 
 describe("SalesTags/Table", () => {
   it("lists tags in the given order with their sale counts and an edit link", () => {
-    render(<Table salesTags={[rush, vip]} />);
+    render(<Table canManage salesTags={[rush, vip]} />);
 
     expect(
       bodyRows().map((row) =>
@@ -41,7 +41,7 @@ describe("SalesTags/Table", () => {
 
   it("opens the tag details from a row click, keeping the list and its scroll position", async () => {
     const user = userEvent.setup();
-    render(<Table salesTags={[rush, vip]} />);
+    render(<Table canManage salesTags={[rush, vip]} />);
 
     await user.click(within(bodyRows()[1]).getByText("VIP Order"));
 
@@ -53,7 +53,7 @@ describe("SalesTags/Table", () => {
 
   it("filters rows by a case-insensitive part of the name as you type, and restores them", async () => {
     const user = userEvent.setup();
-    render(<Table salesTags={[rush, vip]} />);
+    render(<Table canManage salesTags={[rush, vip]} />);
 
     const filter = screen.getByRole("searchbox", { name: "Filter tags" });
     await user.type(filter, " vIP ");
@@ -69,7 +69,7 @@ describe("SalesTags/Table", () => {
 
   it("says when no tag matches the filter", async () => {
     const user = userEvent.setup();
-    render(<Table salesTags={[rush, vip]} />);
+    render(<Table canManage salesTags={[rush, vip]} />);
 
     await user.type(screen.getByRole("searchbox", { name: "Filter tags" }), "zzz");
 
@@ -78,7 +78,7 @@ describe("SalesTags/Table", () => {
   });
 
   it("invites adding the first tag when the catalog is empty", () => {
-    render(<Table salesTags={[]} />);
+    render(<Table canManage={false} salesTags={[]} />);
 
     expect(screen.getByRole("link", { name: /Add your first sales tag/ })).toHaveAttribute(
       "href",

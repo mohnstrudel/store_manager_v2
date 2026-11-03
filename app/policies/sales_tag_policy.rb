@@ -2,10 +2,20 @@
 
 class SalesTagPolicy < ApplicationPolicy
   def index?
-    admin?
+    staff?
   end
 
   def show?
-    admin?
+    staff?
+  end
+
+  def create?
+    staff?
+  end
+
+  private
+
+  def staff?
+    admin? || manager? || support?
   end
 end

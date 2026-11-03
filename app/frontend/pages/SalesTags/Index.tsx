@@ -8,13 +8,20 @@ import TagFormModal from "./components/TagFormModal";
 import type { SalesTagCatalogRecord, SalesTagDetailRecord, SalesTagFormRecord } from "./types";
 
 type IndexProps = {
+  can_manage_sales_tags: boolean;
   sales_tag: SalesTagFormRecord | null;
   sales_tag_detail: SalesTagDetailRecord | null;
   sales_tags: SalesTagCatalogRecord[];
   tag_colors: SalesTagColor[];
 };
 
-export default function Index({ sales_tag, sales_tag_detail, sales_tags, tag_colors }: IndexProps) {
+export default function Index({
+  can_manage_sales_tags,
+  sales_tag,
+  sales_tag_detail,
+  sales_tags,
+  tag_colors,
+}: IndexProps) {
   return (
     <>
       <ResourceIndexPage
@@ -23,7 +30,7 @@ export default function Index({ sales_tag, sales_tag_detail, sales_tags, tag_col
         newPath={routes.salesTags.new.path()}
         title="Sales Tags"
       >
-        <Table salesTags={sales_tags} />
+        <Table canManage={can_manage_sales_tags} salesTags={sales_tags} />
       </ResourceIndexPage>
 
       {sales_tag ? (

@@ -12,10 +12,11 @@ import type { SalesTagCatalogRecord } from "../types";
 import { keepPageVisit } from "./modalVisits";
 
 type TableProps = {
+  canManage: boolean;
   salesTags: SalesTagCatalogRecord[];
 };
 
-export default function Table({ salesTags }: TableProps) {
+export default function Table({ canManage, salesTags }: TableProps) {
   const [filter, setFilter] = useState("");
   const changeFilter = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setFilter(event.target.value);
@@ -59,12 +60,12 @@ export default function Table({ salesTags }: TableProps) {
             <tr>
               <th>Tag</th>
               <th className="text-right">Sales</th>
-              <th className="text-right">Actions</th>
+              {canManage ? <th className="text-right">Actions</th> : null}
             </tr>
           </thead>
           <tbody>
             {visibleTags.map((tag) => (
-              <SalesTagRow key={tag.id} tag={tag} />
+              <SalesTagRow canManage={canManage} key={tag.id} tag={tag} />
             ))}
           </tbody>
         </table>
@@ -77,8 +78,21 @@ export default function Table({ salesTags }: TableProps) {
   );
 }
 
-function SalesTagRow({ tag }: { tag: SalesTagCatalogRecord }) {
+function SalesTagRow({ canManage, tag }: { canManage: boolean; tag: SalesTagCatalogRecord }) {
   const showPath = routes.salesTags.show.path({ id: tag.id });
+
+  return (
+    <tr className="hoverable" {...rowNavigationProps(showPath, keepPageVisit)}>
+      <td>
+        <TagBadge color={tag.color}>{tag.name}</TagBadge>
+      </td>
+      <td className="text-right font-mono">{tag.usage_count}</td>
+      {canManage ? <ManagementActions tag={tag} /> : null}
+    </tr>
+  );
+}
+
+function ManagementActions({ tag }: { tag: SalesTagCatalogRecord }) {
   const editPath = routes.salesTags.edit.path({ id: tag.id });
   const confirmDelete = useConfirmAction("delete", routes.salesTags.destroy.path({ id: tag.id }), {
     message: deleteQuestion(tag),
@@ -92,36 +106,30 @@ function SalesTagRow({ tag }: { tag: SalesTagCatalogRecord }) {
   );
 
   return (
-    <tr className="hoverable" {...rowNavigationProps(showPath, keepPageVisit)}>
-      <td>
-        <TagBadge color={tag.color}>{tag.name}</TagBadge>
-      </td>
-      <td className="text-right font-mono">{tag.usage_count}</td>
-      {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action */}
-      <td className="table_actions">
-        <div className="flex justify-end gap-2">
-          <Button
-            aria-label={`Delete ${tag.name}`}
-            onClick={deleteTag}
-            onKeyDown={stopRowNavigation}
-            variant="danger"
-          >
-            <Trash2Icon />
-            Delete
-          </Button>
-          <Link
-            aria-label={`Edit ${tag.name}`}
-            href={editPath}
-            onClick={stopRowNavigation}
-            {...keepPageVisit}
-            prefetch
-          >
-            <PencilIcon />
-            Edit
-          </Link>
-        </div>
-      </td>
-    </tr>
+    // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action
+    <td className="table_actions">
+      <div className="flex justify-end gap-2">
+        <Button
+          aria-label={`Delete ${tag.name}`}
+          onClick={deleteTag}
+          onKeyDown={stopRowNavigation}
+          variant="danger"
+        >
+          <Trash2Icon />
+          Delete
+        </Button>
+        <Link
+          aria-label={`Edit ${tag.name}`}
+          href={editPath}
+          onClick={stopRowNavigation}
+          {...keepPageVisit}
+          prefetch
+        >
+          <PencilIcon />
+          Edit
+        </Link>
+      </div>
+    </td>
   );
 }
 

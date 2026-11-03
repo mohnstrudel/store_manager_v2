@@ -21,6 +21,7 @@ RSpec.describe "SalesTags" do
       expect(inertia.props[:tag_colors]).to eq(%w[green pink sky violet olive])
       expect(inertia.props[:sales_tag]).to be_nil
       expect(inertia.props).not_to have_key(:search)
+      expect(inertia.props[:can_manage_sales_tags]).to be(true)
     end
 
     it "counts every assigned sale once per tag regardless of sale status" do
@@ -296,19 +297,28 @@ RSpec.describe "SalesTags" do
   end
 
   describe "role access" do
-    %i[manager support guest].each do |role|
-      it "keeps catalog management away from #{role} users" do
+    %i[manager support].each do |role|
+      it "lets #{role} users browse, open details and create tags without management rights" do
         sign_in create(:user, role:)
         existing = create(:sales_tag, name: "Existing")
 
-        [sales_tags_path, sales_tag_path(existing), new_sales_tag_path, edit_sales_tag_path(existing)].each do |path|
+        [sales_tags_path, sales_tag_path(existing), new_sales_tag_path].each do |path|
           get path
-          expect(response).to redirect_to(noop_path)
+          expect(response).to have_http_status(:ok)
+          expect(inertia.props[:can_manage_sales_tags]).to be(false)
         end
 
         expect {
           post sales_tags_path, params: {sales_tag: {name: "Rush", color: "sky"}}
-        }.not_to change(SalesTag, :count)
+        }.to change(SalesTag, :count).by(1)
+        expect(response).to redirect_to(sales_tags_path)
+      end
+
+      it "keeps editing and deleting away from #{role} users" do
+        sign_in create(:user, role:)
+        existing = create(:sales_tag, name: "Existing")
+
+        get edit_sales_tag_path(existing)
         expect(response).to redirect_to(noop_path)
 
         patch sales_tag_path(existing), params: {sales_tag: {name: "Renamed", color: "pink"}}
@@ -318,6 +328,26 @@ RSpec.describe "SalesTags" do
         expect { delete sales_tag_path(existing) }.not_to change(SalesTag, :count)
         expect(response).to redirect_to(noop_path)
       end
+    end
+
+    it "keeps the catalog away from guest users" do
+      sign_in create(:user, role: :guest)
+      existing = create(:sales_tag, name: "Existing")
+
+      [sales_tags_path, sales_tag_path(existing), new_sales_tag_path, edit_sales_tag_path(existing)].each do |path|
+        get path
+        expect(response).to redirect_to(noop_path)
+      end
+
+      expect {
+        post sales_tags_path, params: {sales_tag: {name: "Rush", color: "sky"}}
+      }.not_to change(SalesTag, :count)
+      expect(response).to redirect_to(noop_path)
+
+      patch sales_tag_path(existing), params: {sales_tag: {name: "Renamed", color: "pink"}}
+      expect(existing.reload).to have_attributes(name: "Existing", color: "green")
+
+      expect { delete sales_tag_path(existing) }.not_to change(SalesTag, :count)
     end
   end
 end

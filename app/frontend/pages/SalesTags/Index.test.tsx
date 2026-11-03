@@ -16,9 +16,11 @@ function renderIndex(
   salesTags: SalesTagCatalogRecord[] = [
     makeSalesTagCatalogRecord({ id: 1, name: "VIP Order", usage_count: 2 }),
   ],
+  canManage = true,
 ) {
   return render(
     <Index
+      can_manage_sales_tags={canManage}
       sales_tag={salesTag}
       sales_tag_detail={salesTagDetail}
       sales_tags={salesTags}
@@ -123,6 +125,17 @@ describe("SalesTags/Index", () => {
 
       expect(router.delete).toHaveBeenCalledWith("/sales_tags/1");
       expect(router.visit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("for users who cannot manage tags", () => {
+    it("keeps browsing and adding but offers no edit or delete", () => {
+      renderIndex(null, null, undefined, false);
+
+      expect(screen.getByRole("link", { name: /Add New Record/ })).toBeInTheDocument();
+      expect(screen.getByRole("cell", { name: "VIP Order" })).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Edit VIP Order" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Delete VIP Order" })).not.toBeInTheDocument();
     });
   });
 });

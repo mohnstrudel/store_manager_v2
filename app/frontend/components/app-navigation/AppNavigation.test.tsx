@@ -123,7 +123,7 @@ describe("AppNavigation", () => {
     expect(screen.queryByRole("link", { name: "Email History" })).not.toBeInTheDocument();
   });
 
-  it("shows the sales tags catalog link to admins only", async () => {
+  it("shows the sales tags catalog link to every staff role but not to guests", async () => {
     const user = userEvent.setup();
     const { rerender } = render(<AppNavigation />);
 
@@ -133,8 +133,15 @@ describe("AppNavigation", () => {
     for (const role of ["manager", "support"]) {
       mockPageProps({ auth: { user: { id: 2, email_address: `${role}@example.com`, role } } });
       rerender(<AppNavigation />);
-      expect(screen.queryByRole("link", { name: "Sales Tags" })).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Sales Tags" })).toHaveAttribute(
+        "href",
+        "/sales_tags",
+      );
     }
+
+    mockPageProps({ auth: { user: { id: 4, email_address: "guest@example.com", role: "guest" } } });
+    rerender(<AppNavigation />);
+    expect(screen.queryByRole("link", { name: "Sales Tags" })).not.toBeInTheDocument();
   });
 
   it("closes the overflow menu when a navigation link is selected", async () => {
