@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PencilIcon } from "lucide-react";
 
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import { emptyToNull } from "@/utils/emptyValue";
@@ -40,7 +41,7 @@ export default function Table({ customers, searchQuery = "" }: TableProps) {
             <td>{emptyToNull(customer.phone)}</td>
             <td className="table_actions">
               <Link href={`/customers/${customer.id}/edit`} onClick={stopRowNavigation} prefetch>
-                <i className="icn">✏</i>
+                <PencilIcon />
                 Edit
               </Link>
             </td>

@@ -128,7 +128,7 @@ function StoreInfoActions({
 }) {
   if (!storeInfo.id) {
     return (
-      <button className="btn_rounded btn_red text-sm" onClick={onRemove} type="button">
+      <button className="btn_red text-sm" onClick={onRemove} type="button">
         Cancel
       </button>
     );

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
@@ -18,7 +19,7 @@ export default function Edit({ supplier }: EditProps) {
       <PageHeader className="mb-8" title="Edit Supplier">
         <li>
           <Link href={currentSupplierPath} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View Supplier Page
           </Link>
         </li>

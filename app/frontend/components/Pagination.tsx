@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 type PaginationMeta = {
   current_page: number;
@@ -110,6 +111,7 @@ function PreviousPageLink({ currentPage, params, path, query }: PreviousPageLink
       rel="prev"
       prefetch
     >
+      <ChevronLeftIcon aria-hidden="true" />
       Previous
     </Link>
   );
@@ -179,6 +181,7 @@ function NextPageLink({ currentPage, params, path, query, totalPages }: NextPage
       prefetch
     >
       Next
+      <ChevronRightIcon aria-hidden="true" />
     </Link>
   );
 }

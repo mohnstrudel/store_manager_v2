@@ -76,7 +76,7 @@ describe("Breadcrumbs", () => {
         { name: "Four", url: "/four" },
       ]),
     );
-    mockPage({ url: "/products/5?tab=all#top", props: { breadcrumb: "📦 Product" } });
+    mockPage({ url: "/products/5?tab=all#top", props: { breadcrumb: "Product" } });
     render(<Breadcrumbs />);
 
     expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("Breadcrumbs", () => {
         { name: "Two", url: "/two" },
         { name: "Three", url: "/three" },
         { name: "Four", url: "/four" },
-        { name: "📦 Product", url: "/products/5" },
+        { name: "Product", url: "/products/5" },
       ]);
     });
   });

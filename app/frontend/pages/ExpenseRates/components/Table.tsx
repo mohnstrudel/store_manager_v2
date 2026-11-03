@@ -1,5 +1,5 @@
-import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+import { CirclePlusIcon, PencilIcon, ScissorsIcon } from "lucide-react";
 import { useCallback } from "react";
 
 import Button from "@/components/Button";
@@ -25,7 +25,7 @@ export default function Table({ expenseRates }: TableProps) {
             profitability.
           </p>
           <Link className="btn_blue" href={routes.expenseRates.new.path()} prefetch>
-            <PlusCircleIcon height={20} width={20} />
+            <CirclePlusIcon />
             Add your first OpEx rate
           </Link>
         </div>
@@ -79,7 +79,7 @@ function ExpenseRateRow({ expenseRate }: { expenseRate: ExpenseRateRecord }) {
       <td className="table_actions">
         <div className="flex justify-end gap-2">
           <Button onClick={deleteRate} variant="danger">
-            <i className="icn">✂︎</i>
+            <ScissorsIcon />
             Delete
           </Button>
           <Link
@@ -87,7 +87,7 @@ function ExpenseRateRow({ expenseRate }: { expenseRate: ExpenseRateRecord }) {
             onClick={stopRowNavigation}
             prefetch
           >
-            <i className="icn">✏</i>
+            <PencilIcon />
             Edit
           </Link>
         </div>

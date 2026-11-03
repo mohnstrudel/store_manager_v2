@@ -1,4 +1,8 @@
 @layer base {
+  .lucide {
+    @apply inline-block size-[1em] shrink-0 align-[-0.125em];
+  }
+
   * {
     font-optical-sizing: auto;
   }

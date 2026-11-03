@@ -4,6 +4,7 @@ import type {
   SalePaymentProgress,
   SettlementStatus,
 } from "@/types/payment";
+import type { SalesTagRecord } from "@/types/salesTag";
 import type { VariantAvailability } from "@/types/variantAssignment";
 import type { WarehouseOption } from "@/types/warehouse";
 
@@ -44,6 +45,7 @@ export type SaleSort = "newest" | "oldest";
 export type SalesFilters = {
   hide_partial_payments: boolean;
   missing_purchases_only: boolean;
+  tag_id: number | null;
 };
 
 export type SaleIndexRecord = {
@@ -52,6 +54,7 @@ export type SaleIndexRecord = {
   customer_name: string;
   customer_email: string;
   sale_items: SaleIndexSaleItemRecord[];
+  tags: SalesTagRecord[];
   created_at: string;
   updated_at: string;
   active: boolean;
@@ -221,6 +224,7 @@ export type SaleShowRecord = {
   shipping_address?: SaleAddressRecord | null;
   billing_address?: SaleAddressRecord | null;
   sale_items: SaleShowSaleItemRecord[];
+  tags: SalesTagRecord[];
   payment: SalePaymentRecord;
   payment_plans: SalePaymentPlanRecord[];
   payment_progress: SalePaymentProgress | null;

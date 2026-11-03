@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PencilIcon } from "lucide-react";
 
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
@@ -92,7 +93,7 @@ export default function IndexTable({ purchaseItems }: IndexTableProps) {
             <td>{purchaseItem.updated_at}</td>
             <td className="table_actions text-right">
               <Link href={purchaseItem.edit_path} onClick={stopRowNavigation} prefetch>
-                <i className="icn">✏</i>
+                <PencilIcon />
                 Edit
               </Link>
             </td>

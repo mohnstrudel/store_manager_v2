@@ -58,6 +58,7 @@ export const router = {
     usePage.mockReturnValue({ ...usePage(), url });
   }),
   put: vi.fn<(...args: unknown[]) => unknown>(),
+  reload: vi.fn<(...args: unknown[]) => unknown>(),
   replace: vi.fn<(params: { url?: string }) => void>(({ url }) => {
     if (url === undefined) return;
     window.history.replaceState(null, "", url);
@@ -76,6 +77,8 @@ type LinkStubProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   href: string;
   method?: string;
   prefetch?: unknown;
+  preserveScroll?: unknown;
+  preserveState?: unknown;
   component?: unknown;
   pageProps?: unknown;
 };
@@ -86,6 +89,8 @@ export function Link({
   method,
   onClick,
   prefetch: _prefetch,
+  preserveScroll: _preserveScroll,
+  preserveState: _preserveState,
   component: _component,
   pageProps: _pageProps,
   ...anchorProps

@@ -1,10 +1,11 @@
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+import { PlusIcon, RefreshCwIcon, TagsIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import SyncModal from "@/components/SyncModal";
+import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 import routes from "@/utils/routes";
 import { useModalVisibility } from "@/utils/useModalVisibility";
 
@@ -19,6 +20,9 @@ type IndexProps = {
   search: { q: string };
   sort: SaleSort;
   filters: SalesFilters;
+  tag_options: SalesTagRecord[];
+  tag_colors: SalesTagColor[];
+  can_tag_sales: boolean;
   last_sync_time: string | null;
 };
 
@@ -28,6 +32,9 @@ export default function Index({
   search,
   sort,
   filters,
+  tag_options,
+  tag_colors,
+  can_tag_sales,
   last_sync_time,
 }: IndexProps) {
   const { close: closeSync, isOpen: syncOpen, open: openSync } = useModalVisibility();
@@ -41,14 +48,20 @@ export default function Index({
     <>
       <PageHeader title="Sales">
         <li>
-          <button className="btn_rounded" onClick={openSync} type="button">
-            <ArrowPathIcon height={20} width={20} />
+          <Link href={routes.salesTags.index.path()} prefetch>
+            <TagsIcon />
+            Tags
+          </Link>
+        </li>
+        <li>
+          <button onClick={openSync} type="button">
+            <RefreshCwIcon />
             Store Sync
           </button>
         </li>
         <li>
           <Link href="/sales/new" prefetch>
-            <i className="icn">🐣</i>
+            <PlusIcon />
             Add New Record
           </Link>
         </li>
@@ -67,14 +80,26 @@ export default function Index({
 
       <section className="section_border_base section_wide">
         <div className="page_search lg:items-start">
-          <SearchForm filters={filters} q={search.q} sort={sort} />
+          <SearchForm
+            filters={filters}
+            q={search.q}
+            sort={sort}
+            tagColors={tag_colors}
+            tagOptions={tag_options}
+          />
           <div className="pagination_top lg:min-w-0 lg:shrink-0 lg:pt-0.5">
             <Pagination pagination={pagination} params={appliedParams} path={salesPath} />
           </div>
         </div>
 
         {hasSales ? (
-          <Table sales={sales} sort={sort} />
+          <Table
+            canTagSales={can_tag_sales}
+            sales={sales}
+            sort={sort}
+            tagColors={tag_colors}
+            tagOptions={tag_options}
+          />
         ) : (
           <EmptyResults hasCriteria={hasCriteria} seed={search.q} />
         )}

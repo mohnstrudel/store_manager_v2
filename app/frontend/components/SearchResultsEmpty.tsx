@@ -1,15 +1,27 @@
-const EMPTY_ICONS = ["👻", "👽", "💩", "🪆", "🎭"] as const;
+import {
+  AlienIcon,
+  GhostIcon,
+  NestingDollsIcon,
+  PerformingArtsIcon,
+  PoopIcon,
+} from "./EmptyStateIcons";
+
+const EMPTY_ICONS = [
+  <GhostIcon className="size-44" key="ghost" />,
+  <AlienIcon className="size-44" key="alien" />,
+  <PoopIcon className="size-44" key="poop" />,
+  <NestingDollsIcon className="size-44" key="nesting-dolls" />,
+  <PerformingArtsIcon className="size-44" key="performing-arts" />,
+] as const;
 
 type SearchResultsEmptyProps = {
   seed?: string;
 };
 
 export default function SearchResultsEmpty({ seed = "" }: SearchResultsEmptyProps) {
-  const icon = iconForSeed(seed);
-
   return (
     <div className="search_results_empty flex flex-col justify-center items-center h-100">
-      <i className="icn text-[180px]">{icon}</i>
+      {iconForSeed(seed)}
       <h2 className="text-center">Nothing found</h2>
     </div>
   );

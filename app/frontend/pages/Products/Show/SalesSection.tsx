@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PackageIcon } from "lucide-react";
 
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
@@ -70,7 +71,7 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
                       onClick={stopRowNavigation}
                       prefetch
                     >
-                      <i className="icn">📦</i>
+                      <PackageIcon />
                       {item.warehouse || "Purchase Item"}
                     </Link>
                   </div>

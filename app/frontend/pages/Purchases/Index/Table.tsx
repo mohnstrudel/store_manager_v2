@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PencilIcon } from "lucide-react";
 import { useCallback, type ChangeEvent } from "react";
 
 import PaymentProgressBar from "@/components/PaymentProgressBar";
@@ -94,7 +95,7 @@ export default function IndexTable({ onTogglePurchase, purchases, selectedIds }:
                 onClick={stopRowNavigation}
                 prefetch
               >
-                <i className="icn">✏</i>
+                <PencilIcon />
                 Edit
               </Link>
             </td>

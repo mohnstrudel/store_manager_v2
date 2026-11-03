@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
@@ -19,7 +20,7 @@ export default function Edit({ options, sale }: EditProps) {
       <PageHeader className="mb-8" title="Edit Sale">
         <li>
           <Link href={sale.path} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View Sale
           </Link>
         </li>

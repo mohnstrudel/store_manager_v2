@@ -1,18 +1,25 @@
 import { Link } from "@inertiajs/react";
+import { PackageIcon } from "lucide-react";
 
 import PaymentPlanMarker from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
+import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
+import TagBadges from "../components/TagBadges";
 import type { SaleIndexRecord, SaleSort } from "../types";
+import TagsCell from "./TagsCell";
 
 type TableProps = {
   sales: SaleIndexRecord[];
   sort: SaleSort;
+  tagColors: SalesTagColor[];
+  tagOptions: SalesTagRecord[];
+  canTagSales: boolean;
 };
 
-export default function Table({ sales, sort }: TableProps) {
+export default function Table({ sales, sort, tagColors, tagOptions, canTagSales }: TableProps) {
   if (sales.length === 0) return null;
 
   return (
@@ -23,6 +30,7 @@ export default function Table({ sales, sort }: TableProps) {
           <th>
             <span>Customer</span> <span className="font-normal text-sm pl-4">+ Products</span>
           </th>
+          <th className="text-center">Tags</th>
           <th className="w-80">Purchase Status</th>
           <th>
             Created&nbsp;&nbsp;{sort === "oldest" ? "▴" : "▾"}
@@ -83,6 +91,19 @@ export default function Table({ sales, sort }: TableProps) {
                 </ul>
               </td>
 
+              {canTagSales ? (
+                <TagsCell
+                  colors={tagColors}
+                  options={tagOptions}
+                  saleId={sale.id}
+                  tags={sale.tags}
+                />
+              ) : (
+                <td className="sales_tags_cell">
+                  <TagBadges tags={sale.tags} />
+                </td>
+              )}
+
               <td className="text-sm">
                 {purchaseItems.length > 0 ? (
                   <div className="flex flex-col items-start gap-2">
@@ -94,7 +115,7 @@ export default function Table({ sales, sort }: TableProps) {
                         onClick={stopRowNavigation}
                         prefetch
                       >
-                        <i className="icn">📦</i>
+                        <PackageIcon />
                         {purchaseItem.warehouse_name}
                         {purchaseItem.expenses != null && (
                           <>

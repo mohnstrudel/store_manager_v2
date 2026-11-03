@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PencilIcon } from "lucide-react";
 
 import Button from "@/components/Button";
 import routes from "@/utils/routes";
@@ -34,7 +35,7 @@ export default function Show({ user }: ShowProps) {
         <menu className="nav_menu">
           <li>
             <Link href={currentEditPath} prefetch>
-              <i className="icn">✏</i>
+              <PencilIcon />
               Edit
             </Link>
           </li>

@@ -1,4 +1,12 @@
 import { Link } from "@inertiajs/react";
+import {
+  CalendarIcon,
+  CircleDollarSignIcon,
+  PackageIcon,
+  ReceiptIcon,
+  ScissorsIcon,
+  TruckIcon,
+} from "lucide-react";
 import { useCallback, type ChangeEvent, type MouseEvent } from "react";
 
 import DetailsChevron from "@/components/DetailsChevron";
@@ -141,7 +149,8 @@ function ShipmentBlock({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemRec
       <div className="w-fit flex items-center gap-2">
         <div>
           <span className="text-gray-500">
-            <i className="icn">🧾</i>&nbsp;Tracking:
+            <ReceiptIcon />
+            &nbsp;Tracking:
           </span>
           <span className="ml-2">{purchaseItem.tracking_number}</span>
         </div>
@@ -149,7 +158,8 @@ function ShipmentBlock({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemRec
       <div className="w-fit flex items-center gap-2 my-2">
         <div>
           <span className="text-gray-500">
-            <i className="icn">🚚</i>&nbsp;Company:
+            <TruckIcon />
+            &nbsp;Company:
           </span>
           <span className="ml-2">{purchaseItem.shipping_company_name}</span>
         </div>
@@ -157,7 +167,8 @@ function ShipmentBlock({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemRec
       <div className="w-fit flex items-center gap-2">
         <div>
           <span className="text-gray-500">
-            <i className="icn">📅</i>&nbsp;Shipped:
+            <CalendarIcon />
+            &nbsp;Shipped:
           </span>
           <span className="ml-2">{purchaseItem.shipped_at ?? "—"}</span>
         </div>
@@ -187,7 +198,8 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
       <div className="w-fit flex items-center gap-2">
         <div>
           <span className="text-gray-500">
-            <i className="icn">💰</i>&nbsp;Purchase:
+            <CircleDollarSignIcon />
+            &nbsp;Purchase:
           </span>
           <Link className="link ml-2" href={purchaseItem.path} prefetch>
             {purchaseItem.supplier_title}, {purchaseItem.purchase_date}
@@ -200,8 +212,8 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
           </Link>
         </div>
 
-        <button className="btn_xs btn_red btn_rounded" onClick={handleUnlinkClick} type="button">
-          <i className="icn">✂︎</i>
+        <button className="btn_xs btn_red" onClick={handleUnlinkClick} type="button">
+          <ScissorsIcon />
           Unlink
         </button>
       </div>
@@ -211,7 +223,8 @@ function PurchaseItemRow({ purchaseItem }: { purchaseItem: SaleShowPurchaseItemR
           <summary className={`w-fit flex items-center gap-2 ${summaryCursor}`}>
             <span>
               <span className="text-gray-500">
-                <i className="icn">📦</i>&nbsp;Status:
+                <PackageIcon />
+                &nbsp;Status:
               </span>
               <Link className="link ml-2" href={purchaseItem.current_warehouse_path} prefetch>
                 {purchaseItem.current_warehouse_name}

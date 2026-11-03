@@ -1,18 +1,23 @@
 import { useMemo } from "react";
 
 import PageHeader from "@/components/PageHeader";
+import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 
 import Details from "./Show/Details";
 import Items from "./Show/Items";
 import ProfitabilitySummary from "./Show/ProfitabilitySummary";
 import SaleActions from "./Show/SaleActions";
+import SaleTags from "./Show/SaleTags";
 import type { SaleShowRecord } from "./types";
 
 type ShowProps = {
   sale: SaleShowRecord;
+  tag_options: SalesTagRecord[];
+  tag_colors: SalesTagColor[];
+  can_tag_sales: boolean;
 };
 
-export default function Show({ sale }: ShowProps) {
+export default function Show({ sale, tag_options, tag_colors, can_tag_sales }: ShowProps) {
   const title = useMemo(() => <SaleTitle sale={sale} />, [sale]);
 
   return (
@@ -20,6 +25,14 @@ export default function Show({ sale }: ShowProps) {
       <PageHeader title={title}>
         <SaleActions sale={sale} />
       </PageHeader>
+
+      <SaleTags
+        canTagSales={can_tag_sales}
+        colors={tag_colors}
+        options={tag_options}
+        saleId={sale.id}
+        tags={sale.tags}
+      />
 
       <div className="section_wide flex flex-col gap-8 mt-8">
         <ProfitabilitySummary profitability={sale.profitability} />
@@ -35,7 +48,7 @@ export default function Show({ sale }: ShowProps) {
   );
 }
 
-function SaleTitle({ sale }: ShowProps) {
+function SaleTitle({ sale }: Pick<ShowProps, "sale">) {
   const noun = sale.is_follow_up_payment ? "Payment" : "Sale";
 
   if (sale.shopify_name || sale.shopify_id) {

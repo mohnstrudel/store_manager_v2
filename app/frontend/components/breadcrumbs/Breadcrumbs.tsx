@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { ChevronRightIcon } from "lucide-react";
 
 import { useBreadcrumbTrail } from "./useBreadcrumbTrail";
 
@@ -43,7 +44,7 @@ function BreadcrumbItem({
     <>
       {index > 0 ? (
         <span className="breadcrumb_separator" aria-hidden="true">
-          ↦
+          <ChevronRightIcon />
         </span>
       ) : null}
       <li
@@ -51,10 +52,10 @@ function BreadcrumbItem({
         style={breadcrumbOpacityStyle(index, total)}
       >
         {isLast ? (
-          <BreadcrumbLabel name={item.name} />
+          <span>{item.name}</span>
         ) : (
           <Link href={item.url} prefetch>
-            <BreadcrumbLabel name={item.name} />
+            <span>{item.name}</span>
           </Link>
         )}
       </li>
@@ -69,32 +70,4 @@ function breadcrumbOpacityStyle(index: number, total: number) {
   const opacity = Math.max(0.4, 1 - positionFromEnd * 0.2);
 
   return { opacity };
-}
-
-function BreadcrumbLabel({ name }: { name: string }) {
-  const { icon, label } = splitBreadcrumbIcon(name);
-
-  return (
-    <>
-      {icon ? (
-        <i aria-hidden="true" className="icn mr-2">
-          {icon}
-        </i>
-      ) : null}
-      <span>{label}</span>
-    </>
-  );
-}
-
-function splitBreadcrumbIcon(name: string) {
-  const [firstCharacter, ...rest] = Array.from(name);
-  if (!firstCharacter || !isEmoji(firstCharacter)) {
-    return { icon: null, label: name };
-  }
-
-  return { icon: firstCharacter, label: rest.join("").trimStart() };
-}
-
-function isEmoji(character: string) {
-  return /\p{Extended_Pictographic}/u.test(character);
 }

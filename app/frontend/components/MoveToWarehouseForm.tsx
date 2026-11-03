@@ -1,4 +1,5 @@
 import { router } from "@inertiajs/react";
+import { TruckIcon } from "lucide-react";
 import { useCallback, type FormEvent, useMemo, useState } from "react";
 
 import SmartSelect from "@/components/SmartSelect";
@@ -85,8 +86,8 @@ export default function MoveToWarehouseForm({
           placeholder="Select a warehouse"
           value={destination}
         />
-        <button className="btn_rounded btn_blue h-11 w-full lg:w-auto" type="submit">
-          <i className="icn">🚚</i>
+        <button className="btn_blue h-11 w-full lg:w-auto" type="submit">
+          <TruckIcon />
           Move
           {selectedIds.length > 0 && (
             <span className="text-nowrap -ml-1">&nbsp;{selectedIds.length}</span>

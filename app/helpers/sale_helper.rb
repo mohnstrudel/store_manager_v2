@@ -182,6 +182,7 @@ module SaleHelper
       woo_store_id: sale.woo_store_id,
       shop_identifier: sale.shop_identifier,
       is_follow_up_payment: sale.follow_up_payment?,
+      tags: sale.sales_tags.sort_by(&:sort_key).map { |tag| sales_tag_props(tag) },
       **sale_settlement_props(sale)
     }
   end

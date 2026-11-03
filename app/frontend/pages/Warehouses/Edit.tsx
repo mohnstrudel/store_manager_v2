@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
@@ -21,7 +22,7 @@ export default function Edit({ options, warehouse }: EditProps) {
       <PageHeader className="mb-8" title="Edit Warehouse">
         <li>
           <Link href={warehousePath} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View Warehouse Page
           </Link>
         </li>

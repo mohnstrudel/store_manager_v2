@@ -1,7 +1,8 @@
 import { TextAlign } from "@tiptap/extension-text-align";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { useCallback, useState } from "react";
+import { Redo2Icon, Undo2Icon } from "lucide-react";
+import { useCallback, useState, type ReactNode } from "react";
 
 type ToolbarAction =
   | "bold"
@@ -24,7 +25,7 @@ type ToolbarButtonProps = {
   action: ToolbarAction;
   active?: boolean;
   disabled?: boolean;
-  label: string;
+  label: ReactNode;
   onAction: (action: ToolbarAction) => void;
 };
 
@@ -39,7 +40,7 @@ type ToolbarButtonConfig = {
   action: ToolbarAction;
   isActive?: (editor: TiptapEditorInstance) => boolean;
   isDisabled?: (editor: TiptapEditorInstance) => boolean;
-  label: string;
+  label: ReactNode;
 };
 
 const TOOLBAR_GROUPS: ToolbarButtonConfig[][] = [
@@ -119,8 +120,8 @@ const TOOLBAR_GROUPS: ToolbarButtonConfig[][] = [
     },
   ],
   [
-    { action: "undo", label: "↩" },
-    { action: "redo", label: "↪" },
+    { action: "undo", label: <Undo2Icon aria-label="Undo" /> },
+    { action: "redo", label: <Redo2Icon aria-label="Redo" /> },
   ],
 ];
 

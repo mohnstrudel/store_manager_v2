@@ -10,6 +10,15 @@ Read this reference when work changes CSS, layout, responsive or dark-mode behav
 - Keep styles grouped by UI concept under `app/frontend/styles/application`. Keep third-party component styling isolated.
 - Prefer UI or domain names over generic names such as `wrapper`, `inner`, or `box` when the surrounding block does not provide meaning.
 
+## Sibling Consistency
+
+- Before building UI, find the nearest existing sibling that shows the same concept or follows the same pattern: another modal, form, table, chip, or footer. Read its markup and CSS and measure its rendered spacing in the browser.
+- Reuse the sibling's component or class. When two UIs need the same thing, extract one shared component or class instead of retyping class strings or recreating the look from memory.
+- Use only spacing, gaps, widths, heights, and type sizes that the sibling already uses or that a global style defines, such as the label-to-control gap. A value that no sibling uses needs an explicit user decision. Never invent a size to make a layout feel right.
+- Compare, do not assume: render the new UI next to its sibling in the same viewport and compare measured gaps (top, bottom, left, content-to-footer). Treat every difference as a defect until the user approves it.
+- When the user asks for consistency or a mismatch has already been reported, pin it with a browser spec that measures the new UI against its sibling.
+- Check UI defaults and data-driven states in the development environment as well as the test database; the test database can hide drift.
+
 ## State and Accessibility
 
 - Let the React owner decide state and let CSS own presentation. Do not make CSS a second source of behavior.

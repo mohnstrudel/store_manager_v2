@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PlusIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
@@ -18,7 +19,7 @@ export default function Index({ customers, pagination, search }: IndexProps) {
       <PageHeader title="Customers">
         <li>
           <Link href="/customers/new" prefetch>
-            <i className="icn">🐣</i>
+            <PlusIcon />
             Add New Record
           </Link>
         </li>

@@ -1,5 +1,5 @@
-import { ChevronDoubleDownIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+import { ChevronsDownIcon, CircleDollarSignIcon, PencilIcon } from "lucide-react";
 
 import { type ProductShowRecord } from "../types";
 
@@ -12,21 +12,21 @@ export default function ProductActions({ product }: ProductActionsProps) {
     <>
       {canFetchFromShopify(product) && (
         <li>
-          <Link className="btn_rounded" href={product.shopify_pull_path} method="post">
-            <ChevronDoubleDownIcon height={20} width={20} />
+          <Link href={product.shopify_pull_path} method="post">
+            <ChevronsDownIcon />
             Fetch
           </Link>
         </li>
       )}
       <li>
         <Link href={product.new_purchase_path} prefetch>
-          <i className="icn">💰</i>
+          <CircleDollarSignIcon />
           New Purchase
         </Link>
       </li>
       <li>
         <Link href={product.edit_path} prefetch>
-          <i className="icn">✏</i>
+          <PencilIcon />
           Edit
         </Link>
       </li>

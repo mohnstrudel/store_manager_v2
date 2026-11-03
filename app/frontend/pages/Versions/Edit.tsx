@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
@@ -18,7 +19,7 @@ export default function Edit({ version }: EditProps) {
       <PageHeader className="mb-8" title="Edit Version">
         <li>
           <Link href={currentVersionPath} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View Version Page
           </Link>
         </li>

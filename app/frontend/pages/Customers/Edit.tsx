@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 
@@ -17,7 +18,7 @@ export default function Edit({ customer }: EditProps) {
       <PageHeader className="mb-8" title="Edit Customer">
         <li>
           <Link href={customerPath} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View Customer Page
           </Link>
         </li>

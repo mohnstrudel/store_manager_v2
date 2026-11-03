@@ -1,4 +1,5 @@
 import { Link, router, usePage } from "@inertiajs/react";
+import { ChevronLeftIcon, ChevronRightIcon, WrenchIcon } from "lucide-react";
 import { useCallback, type ChangeEvent } from "react";
 
 import { InlineCellEditor, useInlineCellForm } from "@/components/inline-cell-editing";
@@ -58,8 +59,8 @@ export default function Index(props: VariantAssignmentIssuesPageProps) {
       <PageHeader title="Variant Repairs">
         {props.repairable && (
           <li>
-            <button className="btn_rounded" onClick={runBackfill} type="button">
-              <i className="icn">🧑‍🔧</i>
+            <button onClick={runBackfill} type="button">
+              <WrenchIcon />
               Repair Broken
             </button>
           </li>
@@ -360,6 +361,7 @@ function IssuePagination({
           href={issuePath(issueType, filter, pagination.current_page - 1)}
           rel="prev"
         >
+          <ChevronLeftIcon aria-hidden="true" />
           Previous
         </Link>
       ) : null}
@@ -373,6 +375,7 @@ function IssuePagination({
           rel="next"
         >
           Next
+          <ChevronRightIcon aria-hidden="true" />
         </Link>
       ) : null}
     </nav>
@@ -515,7 +518,7 @@ function LinkRepairButton({ issue }: { issue: PurchaseItemLinkIssue }) {
   return (
     <button
       aria-label={`Repair PurchaseItem link ${issue.id}`}
-      className="btn_rounded btn_xs btn_green"
+      className="btn_xs btn_green"
       onClick={repair}
       type="button"
     >

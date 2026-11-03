@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PencilIcon } from "lucide-react";
 
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
@@ -24,7 +25,7 @@ export default function Show({ purchases, supplier }: ShowProps) {
       <PageHeader subtitle={`Supplier ${supplier.id}`} title={supplier.title}>
         <li>
           <Link href={currentEditPath} prefetch>
-            <i className="icn">✏</i>
+            <PencilIcon />
             Edit
           </Link>
         </li>

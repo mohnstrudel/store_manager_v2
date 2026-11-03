@@ -11,8 +11,9 @@ module Sale::Listing
       SORT_DIRECTIONS.key?(value) ? value : "newest"
     end
 
-    def listing(query:, sort:, hide_partial_payments: false, missing_purchases_only: false)
+    def listing(query:, sort:, hide_partial_payments: false, missing_purchases_only: false, tag_id: nil)
       matches = for_listing.except_cancelled_or_completed.search_by(query)
+      matches = matches.tagged_with(tag_id) if tag_id
       matches = matches.without_follow_up_payments if hide_partial_payments
       matches = matches.with_missing_purchases if missing_purchases_only
       matches.sorted_by(sort)
@@ -38,6 +39,7 @@ module Sale::Listing
         :woo_info,
         :shipping_address,
         :billing_address,
+        :sales_tags,
         {origin_payment_plans: [:origin_sale, {parts: :sale}]},
         {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
         sale_items: [

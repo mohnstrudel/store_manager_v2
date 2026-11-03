@@ -5,7 +5,15 @@
   button {
     font-weight: 480;
     font-stretch: 98%;
-    @apply cursor-pointer no-underline inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-150;
+    @apply cursor-pointer no-underline inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-4xl border-gray-200 dark:border-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-150;
+    corner-shape: var(--corner-shape);
+  }
+
+  a,
+  input[type="submit"],
+  input[type="button"],
+  button {
+    @apply border border-transparent;
   }
 
   a.link,
@@ -16,12 +24,7 @@
 
 @layer components {
   .btn_xs {
-    @apply w-fit text-xs px-1.5! py-1! gap-0.5!;
-  }
-
-  .btn_rounded,
-  button[data-variant="danger"] {
-    @apply rounded-full px-2.5 border-gray-200 dark:border-gray-600;
+    @apply w-fit text-xs px-1.25! py-0.75! gap-0.75!;
   }
 
   .btn_red,
@@ -47,11 +50,11 @@
     @apply text-amber-800 dark:text-amber-300 bg-amber-200/40 dark:bg-amber-900/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/70;
   }
 
-  .icn {
-    @apply font-normal font-icn not-italic;
+  .btn_lightblue {
+    @apply text-sky-700 bg-sky-100 hover:bg-sky-200/76 dark:text-sky-300 dark:bg-sky-900/50 dark:hover:bg-sky-900 border border-transparent;
   }
 
-  .btn_lightblue {
-    @apply text-sky-700 bg-sky-100 hover:bg-sky-200/76 dark:text-sky-300 dark:bg-sky-900/50 dark:hover:bg-sky-900;
+  .btn_white {
+    @apply border border-gray-200 bg-white shadow-xs hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10;
   }
 }

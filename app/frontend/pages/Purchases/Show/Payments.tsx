@@ -1,5 +1,5 @@
-import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { useForm } from "@inertiajs/react";
+import { CirclePlusIcon } from "lucide-react";
 import { useCallback, type ChangeEvent, type FormEvent } from "react";
 
 import { useConfirmAction } from "@/utils/useConfirmAction";
@@ -124,8 +124,8 @@ function NewPaymentRow({
           />
         </td>
         <td>
-          <button className="btn_rounded btn_lightblue" form="new_payment_inline" type="submit">
-            <PlusCircleIcon height={20} width={20} />
+          <button className="btn_lightblue" form="new_payment_inline" type="submit">
+            <CirclePlusIcon />
             Add payment
           </button>
         </td>
@@ -223,14 +223,10 @@ function PaymentRow({ payment, purchasePath }: { payment: PaymentRecord; purchas
         {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled actions */}
         <td>
           <div className="flex flex-wrap gap-2">
-            <button
-              className="btn_rounded btn_lightamber"
-              form={`payment_${payment.id}_inline`}
-              type="submit"
-            >
+            <button className="btn_lightamber" form={`payment_${payment.id}_inline`} type="submit">
               Update
             </button>
-            <button className="btn_rounded btn_red" onClick={destroyPayment} type="button">
+            <button className="btn_red" onClick={destroyPayment} type="button">
               Remove
             </button>
           </div>

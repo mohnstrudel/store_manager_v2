@@ -1,7 +1,8 @@
-import { Bars3Icon } from "@heroicons/react/24/outline";
 import { Link, router, usePage } from "@inertiajs/react";
+import { MenuIcon } from "lucide-react";
 import { useCallback } from "react";
 
+import GrinningCatIcon from "@/components/GrinningCatIcon";
 import type { PageProps } from "@/types/inertia";
 import routes from "@/utils/routes";
 
@@ -62,7 +63,10 @@ const primaryLinks: NavigationLink[] = [
       pagination: emptyPagination,
       search: emptySearch,
       sort: "newest",
-      filters: { hide_partial_payments: false, missing_purchases_only: false },
+      filters: { hide_partial_payments: false, missing_purchases_only: false, tag_id: null },
+      tag_options: [],
+      tag_colors: [],
+      can_tag_sales: false,
       last_sync_at: null,
       last_sync_time: null,
     },
@@ -224,9 +228,7 @@ function NavigationBrand() {
   return (
     <ul className="navigation-logo flex w-full items-center justify-between lg:w-auto">
       <li className="text-gray-700 dark:text-gray-500">
-        <i className="icn mr-2 text-2xl" aria-hidden="true">
-          😸
-        </i>
+        <GrinningCatIcon className="mr-2 text-2xl" />
         <strong className="align-text-bottom">StoreMate</strong>
       </li>
     </ul>
@@ -334,7 +336,7 @@ function NavigationOverflowMenu({
         onClick={onToggle}
         type="button"
       >
-        <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+        <MenuIcon className="h-5 w-5" aria-hidden="true" />
       </button>
       <ul className="navigation-dropdown_menu" aria-hidden={!isOpen} id="navigation-dropdown-links">
         <NavigationDropdownItems items={overflowLinks} onSelect={closeDropdown} />

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import PageHeader from "@/components/PageHeader";
@@ -6,6 +7,7 @@ import PageHeader from "@/components/PageHeader";
 type ResourceIndexPageProps = {
   bordered?: boolean;
   children: ReactNode;
+  newOpensModal?: boolean;
   newPath?: string;
   title: ReactNode;
 };
@@ -13,6 +15,7 @@ type ResourceIndexPageProps = {
 export default function ResourceIndexPage({
   bordered = true,
   children,
+  newOpensModal,
   newPath,
   title,
 }: ResourceIndexPageProps) {
@@ -21,8 +24,13 @@ export default function ResourceIndexPage({
       <PageHeader title={title}>
         {newPath ? (
           <li>
-            <Link href={newPath} prefetch>
-              <i className="icn">🐣</i>
+            <Link
+              href={newPath}
+              preserveScroll={newOpensModal}
+              preserveState={newOpensModal}
+              prefetch
+            >
+              <PlusIcon />
               Add New Record
             </Link>
           </li>

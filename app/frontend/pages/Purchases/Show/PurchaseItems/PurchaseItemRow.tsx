@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PackageIcon, PencilIcon, ScissorsIcon, ShoppingCartIcon, SmileIcon } from "lucide-react";
 import {
   type ChangeEvent,
   type MouseEvent,
@@ -106,7 +107,8 @@ export default function PurchaseItemRow({
               <summary className={`w-fit flex items-center gap-2 ${summaryCursor}`}>
                 <span>
                   <span className="text-gray-500">
-                    <i className="icn">📦</i>&nbsp;Status:
+                    <PackageIcon />
+                    &nbsp;Status:
                   </span>
                   <Link
                     className="link no_events ml-2"
@@ -143,7 +145,8 @@ export default function PurchaseItemRow({
             {purchaseItem.sale_path && (
               <span>
                 <span className="text-gray-500">
-                  <i className="icn">🛒</i>&nbsp;Sale:
+                  <ShoppingCartIcon />
+                  &nbsp;Sale:
                 </span>
                 <Link
                   className="link no_events ml-2"
@@ -158,7 +161,8 @@ export default function PurchaseItemRow({
             {purchaseItem.sale_path && (
               <span className="flex items-center gap-2">
                 <span className="text-gray-500">
-                  <i className="icn">🙂</i>&nbsp;Customer:
+                  <SmileIcon />
+                  &nbsp;Customer:
                 </span>
                 <CopyToClipboardButton
                   className="text-xs btn_xs"
@@ -204,12 +208,8 @@ export default function PurchaseItemRow({
         <td className="table_actions">
           <div className="flex justify-end gap-2">
             {purchaseItem.sale_path && (
-              <button
-                className="no_events btn_red btn_rounded"
-                onClick={handleUnlinkClick}
-                type="button"
-              >
-                <i className="icn">✂︎</i>
+              <button className="no_events btn_red" onClick={handleUnlinkClick} type="button">
+                <ScissorsIcon />
                 Unlink
               </button>
             )}
@@ -219,7 +219,7 @@ export default function PurchaseItemRow({
               onClick={stopRowNavigation}
               prefetch
             >
-              <i className="icn">✏</i>
+              <PencilIcon />
               Edit
             </Link>
           </div>

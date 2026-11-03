@@ -3,6 +3,7 @@ import type { MouseEvent, ReactNode } from "react";
 import AppNavigation from "@/components/app-navigation/AppNavigation";
 import Breadcrumbs from "@/components/breadcrumbs/Breadcrumbs";
 import FlashMessages from "@/components/flash-messages/FlashMessages";
+import GrinningCatIcon from "@/components/GrinningCatIcon";
 import { useDocumentTitle } from "@/utils/useDocumentTitle";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -22,9 +23,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           type="button"
           onClick={handleScrollToTop}
         >
-          <i className="icn text-3xl text-gray-500" aria-hidden="true">
-            😸
-          </i>
+          <GrinningCatIcon className="text-3xl text-gray-500" />
         </button>
       </footer>
     </div>

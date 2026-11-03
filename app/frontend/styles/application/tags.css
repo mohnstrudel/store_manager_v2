@@ -1,0 +1,86 @@
+@layer components {
+  .sales_tags {
+    @apply flex flex-wrap gap-1;
+  }
+
+  .sales_tags li {
+    @apply flex;
+  }
+
+  .sales_tag,
+  .sales_tag_title {
+    @apply inline-block max-w-full rounded-xs px-1.5 py-1 wrap-anywhere;
+  }
+
+  .sales_tag {
+    @apply text-xs/4 font-normal;
+  }
+
+  :is(.sales_tag, .sales_tag_title)[data-color="green"] {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+  }
+
+  :is(.sales_tag, .sales_tag_title)[data-color="pink"] {
+    @apply bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200;
+  }
+
+  :is(.sales_tag, .sales_tag_title)[data-color="sky"] {
+    @apply bg-sky-200/60 text-sky-800 dark:bg-sky-900 dark:text-sky-300;
+  }
+
+  :is(.sales_tag, .sales_tag_title)[data-color="violet"] {
+    @apply bg-violet-100 text-violet-800 dark:bg-violet-900/80 dark:text-violet-300;
+  }
+
+  :is(.sales_tag, .sales_tag_title)[data-color="olive"] {
+    @apply bg-olive-500/20 text-olive-600 dark:bg-olive-700/90 dark:text-olive-300;
+  }
+
+  .sales_tag_choices {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .sales_tag_choice {
+    @apply relative m-0 inline-flex w-auto cursor-pointer rounded font-normal;
+  }
+
+  .sales_tag_choice .sales_tag {
+    @apply capitalize;
+  }
+
+  .sales_tag_choice[data-literal] .sales_tag {
+    @apply inline-flex items-center normal-case px-2.5 py-1.5 text-sm;
+  }
+
+  .sales_tag_check {
+    @apply inline-flex max-w-0 overflow-hidden transition-[max-width,margin] duration-150 motion-reduce:transition-none;
+  }
+
+  .sales_tag_choice:has(:checked) .sales_tag_check {
+    @apply mr-1 max-w-3.5;
+  }
+
+  .sales_tag_choice:has(:checked) .sales_tag {
+    @apply ring-1 ring-current;
+  }
+
+  .sales_tag_choice[data-literal]:has(:checked) .sales_tag {
+    @apply ring-[1.5px];
+  }
+
+  .sales_tag_choice:has(:disabled) {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .sales_tag_choice:has(:focus-visible) {
+    @apply outline-2 outline-offset-2 outline-blue-600 dark:outline-blue-400;
+  }
+
+  .sales_tags_cell {
+    @apply text-center;
+  }
+
+  .sales_tags_cell .sales_tags {
+    @apply justify-center;
+  }
+}
