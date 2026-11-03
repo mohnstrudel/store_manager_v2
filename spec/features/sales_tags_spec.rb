@@ -328,6 +328,46 @@ RSpec.feature "Sales tags catalog", :js do
     end
   end
 
+  describe "deleting" do
+    let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2), status: "processing") }
+    let!(:completed_sale) { create(:sale, shopify_name: "HSCM#1002", woo_created_at: Time.utc(2024, 1, 1), status: "completed") }
+    let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
+    let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
+    let(:question) { 'Delete "VIP Order" from 2 sales? Sales will be kept.' }
+
+    before do
+      [sale, completed_sale].each { |target| SaleTagging.create!(sale: target, sales_tag: vip) }
+      SaleTagging.create!(sale:, sales_tag: rush)
+    end
+
+    scenario "changes nothing when the question is declined" do
+      visit sales_tags_path
+
+      dismiss_confirm(question) { within("tbody tr", text: "VIP Order") { click_button "Delete" } }
+
+      expect(page).to have_current_path(sales_tags_path)
+      expect(page).to have_css("tbody tr", text: "VIP Order")
+      expect(SalesTag.pluck(:name)).to contain_exactly("VIP Order", "Rush")
+      expect(SaleTagging.count).to eq(3)
+    end
+
+    scenario "removes the tag from every sale after confirmation and keeps the sales and their other tags" do
+      visit sales_tags_path
+
+      accept_confirm(question) { within("tbody tr", text: "VIP Order") { click_button "Delete" } }
+
+      expect(page).to have_content("Sales tag deleted")
+      expect(page).to have_no_css("tbody tr", text: "VIP Order")
+      expect(page).to have_css("tbody tr", text: "Rush")
+      expect(Sale.where(id: [sale, completed_sale]).count).to eq(2)
+      expect(SaleTagging.pluck(:sale_id, :sales_tag_id)).to eq([[sale.id, rush.id]])
+
+      visit sales_path
+
+      within("tbody tr", text: "HSCM#1001") { expect(page.all(".sales_tag").map(&:text)).to eq(["Rush"]) }
+    end
+  end
+
   describe "details" do
     let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
     let!(:sale) { create(:sale, shopify_name: "HSCM#1001", woo_created_at: Time.utc(2024, 1, 2)) }
@@ -516,6 +556,50 @@ RSpec.feature "Sales tags catalog", :js do
 
       expect(page).to have_no_css("dialog")
       within(tags_cell(sale)) { expect(page).to have_css(".sales_tag", text: "Rush", count: 1) }
+    end
+
+    scenario "keeps the draft and the stale error through further changes after the tag it opened with was deleted, and never recreates it" do
+      SaleTagging.create!(sale:, sales_tag: vip)
+      visit sales_path
+      open_editor(sale)
+      toggle("Rush")
+
+      vip.destroy!
+      click_button "Save"
+
+      expect(page).to have_content("Tags changed since you opened this editor. Reload tags and try again.")
+      expect(page).to have_css("dialog label.sales_tag_choice:has(input:checked)", text: "Rush")
+      toggle("Rush")
+      expect(page).to have_content("Tags changed since you opened this editor. Reload tags and try again.")
+      expect(page).to have_no_css("dialog label.sales_tag_choice:has(input:checked)", text: "Rush")
+      expect(SalesTag.exists?(vip.id)).to be(false)
+
+      click_button "Reload tags (discards your changes)"
+
+      expect(page).to have_no_css("dialog")
+      within(tags_cell(sale)) { expect(page).to have_no_css(".sales_tag") }
+      open_editor(sale)
+      expect(page).to have_no_css("dialog label.sales_tag_choice", text: "VIP")
+      expect(SalesTag.pluck(:name)).to eq(["Rush"])
+    end
+
+    scenario "reports a selected tag deleted meanwhile without creating anything, then recovers on Reload" do
+      visit sales_path
+      open_editor(sale)
+      toggle("Rush")
+
+      rush.destroy!
+      click_button "Save"
+
+      expect(page).to have_content("A selected tag is no longer available. Reload tags and try again.")
+      expect(SalesTag.pluck(:name)).to eq(["VIP"])
+      expect(SaleTagging.count).to eq(0)
+
+      click_button "Reload tags (discards your changes)"
+
+      expect(page).to have_no_css("dialog")
+      open_editor(sale)
+      expect(page).to have_no_css("dialog label.sales_tag_choice", text: "Rush")
     end
 
     scenario "keeps the saved badges and locks the modal while saving" do

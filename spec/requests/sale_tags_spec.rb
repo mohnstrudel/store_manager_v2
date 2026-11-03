@@ -136,6 +136,27 @@ RSpec.describe "Sale tags" do
       expect(assigned_ids).to eq([])
     end
 
+    it "reports a stale set, not a missing tag, when an editor opened on a tag that an admin then deleted" do
+      SaleTagging.create!(sale:, sales_tag: vip)
+      delete sales_tag_path(vip)
+
+      patch_tags(tagging: tagging(ids: [vip.id], original_ids: [vip.id]))
+
+      expect(errors_after_redirect).to eq(tags: "Tags changed since you opened this editor. Reload tags and try again.")
+      expect(SalesTag.exists?(vip.id)).to be(false)
+      expect(assigned_ids).to eq([])
+    end
+
+    it "reports a missing tag without recreating it when an unchanged editor selects one an admin deleted" do
+      delete sales_tag_path(vip)
+
+      expect { patch_tags(tagging: tagging(ids: [vip.id])) }.not_to change(SalesTag, :count)
+
+      expect(errors_after_redirect).to eq(tags: "A selected tag is no longer available. Reload tags and try again.")
+      expect(SalesTag.exists?(vip.id)).to be(false)
+      expect(assigned_ids).to eq([])
+    end
+
     it "rejects malformed IDs" do
       patch_tags(tagging: tagging(ids: ["abc"]))
 

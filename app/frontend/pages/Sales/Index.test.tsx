@@ -750,6 +750,30 @@ describe("Sales/Index", () => {
       expect(router.reload).toHaveBeenCalledWith(expect.objectContaining({ only: reloadedProps }));
     });
 
+    it.each([
+      "Tags changed since you opened this editor. Reload tags and try again.",
+      "A selected tag is no longer available. Reload tags and try again.",
+    ])(
+      "keeps the draft and the error through further selection until Reload is chosen after: %s",
+      async (message) => {
+        const user = userEvent.setup();
+        nextFormErrors.mockReturnValueOnce({ tags: message });
+        renderTagged([vip]);
+
+        await openEditor(user);
+        await user.click(screen.getByRole("checkbox", { name: "Rush" }));
+        await user.click(screen.getByRole("button", { name: "Save" }));
+        await user.click(screen.getByRole("checkbox", { name: "Wholesale" }));
+
+        expect(screen.getByText(message)).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: "Reload tags (discards your changes)" }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("checkbox", { name: "Rush" })).toBeChecked();
+        expect(screen.getByRole("checkbox", { name: "Wholesale" })).toBeChecked();
+      },
+    );
+
     it("does not open the sale when the cell or the dialog is used", async () => {
       const user = userEvent.setup();
       renderTagged([vip]);

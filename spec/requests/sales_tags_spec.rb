@@ -227,6 +227,74 @@ RSpec.describe "SalesTags" do
     end
   end
 
+  describe "DELETE /sales_tags/:id" do
+    include ActiveJob::TestHelper
+
+    let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
+    let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
+    let!(:processing_sale) { create(:sale, status: "processing") }
+    let!(:completed_sale) { create(:sale, status: "completed") }
+
+    before do
+      sign_in_as_admin
+      [processing_sale, completed_sale].each { |sale| SaleTagging.create!(sale:, sales_tag: vip) }
+      SaleTagging.create!(sale: processing_sale, sales_tag: rush)
+    end
+
+    it "removes the tag and its assignments everywhere, keeping every sale and its other tags" do
+      delete sales_tag_path(vip)
+
+      expect(response).to have_http_status(:see_other)
+      expect(response).to redirect_to(sales_tags_path)
+      expect(flash[:notice]).to eq("Sales tag deleted")
+      expect(SalesTag.exists?(vip.id)).to be(false)
+      expect(SaleTagging.where(sales_tag_id: vip.id)).to be_empty
+      expect(Sale.where(id: [processing_sale.id, completed_sale.id]).count).to eq(2)
+      expect(processing_sale.sales_tags).to eq([rush])
+      expect(completed_sale.sales_tags).to be_empty
+      expect(rush.reload).to have_attributes(name: "Rush", color: "pink")
+    end
+
+    it "leaves product and store tags alone" do
+      create(:product).shopify_info.update!(tag_list: ["VIP Order"])
+
+      expect { delete sales_tag_path(vip) }.not_to change { [ActsAsTaggableOn::Tag.count, ActsAsTaggableOn::Tagging.count] }
+    end
+
+    it "does not touch, save or announce the sales" do
+      sales = [processing_sale, completed_sale]
+      sales.each { |sale| sale.update_columns(updated_at: 1.day.ago) }
+      stamps = sales.map { |sale| sale.reload.updated_at }
+      clear_enqueued_jobs
+      audits_before = Audited::Audit.count
+
+      expect { delete sales_tag_path(vip) }.not_to have_enqueued_job
+
+      expect(sales.map { |sale| sale.reload.updated_at }).to eq(stamps)
+      expect(Audited::Audit.count).to eq(audits_before)
+    end
+
+    it "succeeds for a tag that is already gone" do
+      vip.destroy!
+
+      expect { delete sales_tag_path(vip.id) }.not_to change(SalesTag, :count)
+
+      expect(response).to have_http_status(:see_other)
+      expect(response).to redirect_to(sales_tags_path)
+    end
+
+    it "drops the tag from the next catalog and from the sale picker options" do
+      delete sales_tag_path(vip)
+      follow_redirect!
+
+      expect(inertia.props[:sales_tags].pluck(:id)).to eq([rush.id])
+
+      get sales_path
+
+      expect(inertia.props[:tag_options].pluck(:id)).to eq([rush.id])
+    end
+  end
+
   describe "role access" do
     %i[manager support guest].each do |role|
       it "keeps catalog management away from #{role} users" do
@@ -246,6 +314,9 @@ RSpec.describe "SalesTags" do
         patch sales_tag_path(existing), params: {sales_tag: {name: "Renamed", color: "pink"}}
         expect(response).to redirect_to(noop_path)
         expect(existing.reload).to have_attributes(name: "Existing", color: "green")
+
+        expect { delete sales_tag_path(existing) }.not_to change(SalesTag, :count)
+        expect(response).to redirect_to(noop_path)
       end
     end
   end

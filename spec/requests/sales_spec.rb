@@ -1167,6 +1167,20 @@ RSpec.describe "Sales" do
         expect(response).to have_http_status(:not_modified)
       end
 
+      it "serves fresh props once the last catalog tag is deleted, although no sale row or assignment changed" do
+        delete sales_tag_path(apple)
+        stamp = sale.reload.updated_at
+        old_etag = etag
+
+        delete sales_tag_path(zebra)
+        get sales_path, headers: {"If-None-Match" => old_etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:tag_options]).to eq([])
+        expect(sale.reload.updated_at).to eq(stamp)
+        expect(response.headers["ETag"]).not_to eq(old_etag)
+      end
+
       it "serves a full response when only If-Modified-Since is sent" do
         get sales_path, headers: {"If-Modified-Since" => 1.hour.from_now.httpdate}
 

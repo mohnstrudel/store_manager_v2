@@ -1,9 +1,11 @@
 import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
-import { useCallback, useState, type ChangeEvent } from "react";
+import { useCallback, useState, type ChangeEvent, type MouseEvent } from "react";
 
+import Button from "@/components/Button";
 import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
+import { useConfirmAction } from "@/utils/useConfirmAction";
 
 import { TagBadge } from "../../Sales/components/TagBadges";
 import type { SalesTagCatalogRecord } from "../types";
@@ -78,6 +80,16 @@ export default function Table({ salesTags }: TableProps) {
 function SalesTagRow({ tag }: { tag: SalesTagCatalogRecord }) {
   const showPath = routes.salesTags.show.path({ id: tag.id });
   const editPath = routes.salesTags.edit.path({ id: tag.id });
+  const confirmDelete = useConfirmAction("delete", routes.salesTags.destroy.path({ id: tag.id }), {
+    message: deleteQuestion(tag),
+  });
+  const deleteTag = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      stopRowNavigation(event);
+      confirmDelete();
+    },
+    [confirmDelete],
+  );
 
   return (
     <tr className="hoverable" {...rowNavigationProps(showPath, keepPageVisit)}>
@@ -88,6 +100,14 @@ function SalesTagRow({ tag }: { tag: SalesTagCatalogRecord }) {
       {/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- nested labeled action */}
       <td className="table_actions">
         <div className="flex justify-end gap-2">
+          <Button
+            aria-label={`Delete ${tag.name}`}
+            onClick={deleteTag}
+            onKeyDown={stopRowNavigation}
+            variant="danger"
+          >
+            Delete
+          </Button>
           <Link
             aria-label={`Edit ${tag.name}`}
             href={editPath}
@@ -102,4 +122,11 @@ function SalesTagRow({ tag }: { tag: SalesTagCatalogRecord }) {
       </td>
     </tr>
   );
+}
+
+function deleteQuestion(tag: SalesTagCatalogRecord) {
+  if (tag.usage_count === 0) return `Delete "${tag.name}"?`;
+
+  const sales = tag.usage_count === 1 ? "sale" : "sales";
+  return `Delete "${tag.name}" from ${tag.usage_count} ${sales}? Sales will be kept.`;
 }

@@ -34,6 +34,7 @@ export function useSaleTagsForm({ saleId, tags, reloadProps }: SaleTagsFormConfi
   const { clearErrors, setData } = form;
   const errors: Record<string, string> = form.errors;
   const error = errors.tags;
+  const needsReload = error === STALE_TAGS_ERROR || error === MISSING_TAG_ERROR;
 
   const discardDraft = useCallback(() => {
     clearErrors();
@@ -47,7 +48,7 @@ export function useSaleTagsForm({ saleId, tags, reloadProps }: SaleTagsFormConfi
   };
 
   const select = (ids: number[]) => {
-    clearErrors();
+    if (!needsReload) clearErrors();
     setData((data) => ({ ...data, ids }));
   };
 
@@ -79,7 +80,7 @@ export function useSaleTagsForm({ saleId, tags, reloadProps }: SaleTagsFormConfi
     processing: form.processing,
     selectedIds: form.data.ids,
     error,
-    needsReload: error === STALE_TAGS_ERROR || error === MISSING_TAG_ERROR,
+    needsReload,
     open,
     cancel: discardDraft,
     select,

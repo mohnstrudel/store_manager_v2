@@ -35,6 +35,12 @@ class SalesTagsController < ApplicationController
     redirect_to edit_sales_tag_path(@sales_tag), inertia: inertia_errors(error.record.errors), status: :see_other
   end
 
+  def destroy
+    SalesTag.find_by(id: params.expect(:id))&.destroy!
+
+    redirect_to sales_tags_path, notice: "Sales tag deleted", status: :see_other
+  end
+
   private
 
   def render_catalog(form: nil, detail: nil)
