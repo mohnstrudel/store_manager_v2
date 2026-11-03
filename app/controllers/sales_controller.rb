@@ -2,15 +2,19 @@
 
 class SalesController < ApplicationController
   LISTING_FILTERS = %i[hide_partial_payments missing_purchases_only].freeze
+  TAG_ID_FORMAT = /\A[1-9]\d*\z/
+  UNAVAILABLE_TAG_NOTICE = "That tag is no longer available. Showing all tags."
 
   before_action :set_sale_for_show, only: :show
   before_action :set_sale, only: %i[edit update destroy]
 
   def index
-    criteria = listing_criteria
+    catalog = SalesTag.order(:id).to_a
+    return redirect_without_unavailable_tag if unavailable_tag_requested?(catalog)
+
+    criteria = listing_criteria(catalog)
     @sales = Sale.listing(**criteria).page(params[:page])
     pagination = helpers.pagination_props(@sales)
-    catalog = SalesTag.order(:id).to_a
     can_tag_sales = policy(:sale).update_tags?
 
     return unless stale?(etag: index_etag(criteria, pagination, catalog, can_tag_sales))
@@ -20,7 +24,7 @@ class SalesController < ApplicationController
       pagination:,
       search: {q: criteria[:query]},
       sort: criteria[:sort],
-      filters: criteria.slice(*LISTING_FILTERS),
+      filters: criteria.slice(*LISTING_FILTERS, :tag_id),
       **tag_props(catalog, can_tag_sales),
       last_sync_at: helpers.format_last_fetched_at(Config.shopify_sales_sync_at),
       last_sync_time: Config.shopify_sales_sync_time
@@ -81,12 +85,41 @@ class SalesController < ApplicationController
 
   private
 
-  def listing_criteria
+  def unavailable_tag_requested?(catalog)
+    params[:tag_id].present? && available_tag_id(catalog).nil?
+  end
+
+  def available_tag_id(catalog)
+    tag_id = requested_tag_id
+    tag_id if catalog.any? { |tag| tag.id == tag_id }
+  end
+
+  def requested_tag_id
+    value = params[:tag_id]
+    value.to_i if value.is_a?(String) && value.match?(TAG_ID_FORMAT)
+  end
+
+  def redirect_without_unavailable_tag
+    criteria = base_listing_criteria
+    canonical = {
+      q: criteria[:query].presence,
+      sort: (criteria[:sort] unless criteria[:sort] == "newest"),
+      **LISTING_FILTERS.index_with { |name| "1" if criteria[name] }
+    }.compact
+
+    redirect_to sales_path(canonical), notice: UNAVAILABLE_TAG_NOTICE
+  end
+
+  def base_listing_criteria
     {
       query: params[:q].to_s,
       sort: Sale.listing_sort(params[:sort]),
       **LISTING_FILTERS.index_with { |name| params[name] == "1" }
     }
+  end
+
+  def listing_criteria(catalog)
+    {**base_listing_criteria, tag_id: available_tag_id(catalog)}
   end
 
   def index_etag(criteria, pagination, catalog, can_tag_sales)

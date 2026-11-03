@@ -26,6 +26,12 @@ export type SaleTagsForm = {
   reload: () => void;
 };
 
+export type TagPickerForm = Pick<
+  SaleTagsForm,
+  "cancel" | "processing" | "save" | "select" | "selectedIds"
+> &
+  Partial<Pick<SaleTagsForm, "error" | "needsReload" | "reload">>;
+
 export function useSaleTagsForm({ saleId, tags, reloadProps }: SaleTagsFormConfig): SaleTagsForm {
   const page = usePage();
   const savedIds = tags.map((tag) => tag.id);

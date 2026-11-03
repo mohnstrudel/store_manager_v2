@@ -5,16 +5,23 @@ import ModalActions from "@/components/ModalActions";
 import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 
 import TagsForm from "./TagsForm";
-import type { SaleTagsForm } from "./useSaleTagsForm";
+import type { TagPickerForm } from "./useSaleTagsForm";
 
 type SaleTagsDialogProps = {
   colors: SalesTagColor[];
-  form: SaleTagsForm;
+  form: TagPickerForm;
   options: SalesTagRecord[];
+  submitLabel?: string;
   title: string;
 };
 
-export default function SaleTagsDialog({ colors, form, options, title }: SaleTagsDialogProps) {
+export default function SaleTagsDialog({
+  colors,
+  form,
+  options,
+  submitLabel = "Save",
+  title,
+}: SaleTagsDialogProps) {
   const formId = useId();
   const actions = useMemo(
     () => (
@@ -23,10 +30,10 @@ export default function SaleTagsDialog({ colors, form, options, title }: SaleTag
         onCancel={form.cancel}
         processing={form.processing}
         processingLabel="Saving…"
-        submitLabel="Save"
+        submitLabel={submitLabel}
       />
     ),
-    [form.cancel, form.processing, formId],
+    [form.cancel, form.processing, formId, submitLabel],
   );
 
   return (

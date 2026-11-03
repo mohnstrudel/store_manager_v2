@@ -101,4 +101,48 @@ RSpec.describe Sale::Listing do
       expect(listed_ids(query: "901", hide_partial_payments: false).size).to eq(1)
     end
   end
+
+  describe ".listing with tag_id" do
+    let!(:vip) { create(:sales_tag, name: "VIP") }
+    let!(:blue) { create(:sales_tag, name: "Blue") }
+    let!(:sale_a) { create_batch_sale(1, vip) }
+    let!(:sale_b) { create_batch_sale(2, vip, linked: 1) }
+    let!(:sale_c) { create_batch_sale(3, blue) }
+    let!(:sale_d) { create_batch_sale(4, vip, status: "completed") }
+
+    def create_batch_sale(day, tag, linked: 0, status: "processing")
+      sale = create(:sale, woo_created_at: Time.utc(2024, 1, day), note: "batch", status:)
+      sale_item = create(:sale_item, sale:, product: create(:product), qty: 1)
+      create(:purchase_item, purchase: create(:purchase, product: sale_item.product), sale_item:) if linked.positive?
+      SaleTagging.create!(sale:, sales_tag: tag)
+      sale
+    end
+
+    def listed_ids(sort: "oldest", tag_id: nil, **filters)
+      Sale.listing(query: "batch", sort:, tag_id:, **filters).map(&:id)
+    end
+
+    it "lists every open sale when no tag is chosen" do
+      expect(listed_ids).to eq([sale_a.id, sale_b.id, sale_c.id])
+    end
+
+    it "keeps only the open sales carrying the tag, in the selected order" do
+      expect(listed_ids(tag_id: vip.id)).to eq([sale_a.id, sale_b.id])
+      expect(listed_ids(tag_id: vip.id, sort: "newest")).to eq([sale_b.id, sale_a.id])
+    end
+
+    it "combines with the procurement filter" do
+      expect(listed_ids(tag_id: vip.id, missing_purchases_only: true)).to eq([sale_a.id])
+    end
+
+    it "lists a sale once however many tags it carries and counts it once" do
+      SaleTagging.create!(sale: sale_a, sales_tag: blue)
+
+      listing = Sale.listing(query: "batch", sort: "oldest", tag_id: vip.id)
+
+      expect(listing.map(&:id)).to eq([sale_a.id, sale_b.id])
+      expect(listing.page(1).total_count).to eq(2)
+      expect(listed_ids(tag_id: blue.id)).to eq([sale_a.id, sale_c.id])
+    end
+  end
 end

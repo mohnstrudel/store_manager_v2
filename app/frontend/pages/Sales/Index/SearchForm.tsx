@@ -2,6 +2,7 @@ import { router } from "@inertiajs/react";
 import { SearchIcon, XIcon } from "lucide-react";
 import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
 
+import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 import routes from "@/utils/routes";
 
 import type { SaleSort, SalesFilters } from "../types";
@@ -11,19 +12,24 @@ import {
   listingParams,
   type SalesListingSettings,
 } from "./salesListing";
+import TagFilter from "./TagFilter";
 
 type SearchFormProps = {
   q: string;
   sort: SaleSort;
   filters: SalesFilters;
+  tagColors: SalesTagColor[];
+  tagOptions: SalesTagRecord[];
 };
+
+type FlagFilter = Exclude<keyof SalesFilters, "tag_id">;
 
 const SORT_OPTIONS: { value: SaleSort; label: string }[] = [
   { value: "newest", label: "Newest first" },
   { value: "oldest", label: "Oldest first" },
 ];
 
-export default function SearchForm({ q, sort, filters }: SearchFormProps) {
+export default function SearchForm({ q, sort, filters, tagColors, tagOptions }: SearchFormProps) {
   const applied: SalesListingSettings = { q, sort, ...filters };
   const appliedHref = listingHref(applied);
   const [form, setForm] = useState({ appliedHref, synced: applied, draft: applied });
@@ -71,13 +77,21 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
   );
 
   const handleFilterToggle = useCallback(
-    (name: keyof SalesFilters, checked: boolean) => applyChange({ [name]: checked }),
+    (name: FlagFilter, checked: boolean) => applyChange({ [name]: checked }),
+    [applyChange],
+  );
+
+  const handleTagChange = useCallback(
+    (tagId: number | null) => applyChange({ tag_id: tagId }),
     [applyChange],
   );
 
   return (
-    <form className="flex flex-col gap-3 w-full max-w-full lg:max-w-2/3" onSubmit={handleSubmit}>
-      <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-2">
+    <div className="flex flex-col gap-3 w-full max-w-full lg:max-w-2/3">
+      <form
+        className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-2"
+        onSubmit={handleSubmit}
+      >
         <input
           aria-label="Search sales"
           className={`lg:w-auto lg:grow lg:basis-56 ${hasSearch ? "border-2" : "border"}`}
@@ -98,8 +112,8 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
             Clear search
           </button>
         )}
-      </div>
-      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-6 px-4">
+      </form>
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-6">
         <fieldset
           aria-label="Sort sales"
           className="tab_bar tab_bar_outline shrink-0 sm:w-fit mt-0 mb-0"
@@ -126,16 +140,22 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
           name="missing_purchases_only"
           onToggle={handleFilterToggle}
         />
+        <TagFilter
+          colors={tagColors}
+          onApply={handleTagChange}
+          options={tagOptions}
+          selectedId={draft.tag_id}
+        />
       </div>
-    </form>
+    </div>
   );
 }
 
 type FilterCheckboxProps = {
   checked: boolean;
   label: string;
-  name: keyof SalesFilters;
-  onToggle: (name: keyof SalesFilters, checked: boolean) => void;
+  name: FlagFilter;
+  onToggle: (name: FlagFilter, checked: boolean) => void;
 };
 
 function FilterCheckbox({ checked, label, name, onToggle }: FilterCheckboxProps) {

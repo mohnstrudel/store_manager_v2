@@ -633,6 +633,32 @@ RSpec.feature "Sales tags catalog", :js do
       expect(page).to have_no_css("dialog label.sales_tag_choice", text: "Rush")
     end
 
+    scenario "filters by a tag assigned from the editor and drops the filter once the catalog deletes the tag" do
+      visit sales_path
+      open_editor(sale)
+      toggle("VIP")
+      click_button "Save"
+      expect(page).to have_no_css("dialog")
+
+      click_button "Filter by tag"
+      toggle("VIP")
+      click_button "Apply filter"
+
+      expect(page).to have_css("tbody tr", count: 1)
+      expect(page).to have_css("tbody tr", text: "HSCM#1001")
+      expect(page).to have_current_path(sales_path(tag_id: vip.id))
+
+      visit sales_tags_path
+      accept_confirm { within("tbody tr", text: "VIP") { click_button "Delete" } }
+      expect(page).to have_no_css("tbody tr", text: "VIP")
+
+      visit sales_path(tag_id: vip.id)
+
+      expect(page).to have_content("That tag is no longer available. Showing all tags.")
+      expect(page).to have_css("tbody tr", count: 2)
+      expect(page).to have_current_path(sales_path)
+    end
+
     scenario "keeps the saved badges and locks the modal while saving" do
       SaleTagging.create!(sale:, sales_tag: vip)
       release = Queue.new

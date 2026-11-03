@@ -11,11 +11,11 @@ import FormError from "@/components/FormError";
 import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 
 import TagChoice from "./TagChoice";
-import type { SaleTagsForm } from "./useSaleTagsForm";
+import type { TagPickerForm } from "./useSaleTagsForm";
 
 type TagsFormProps = {
   colors: SalesTagColor[];
-  form: SaleTagsForm;
+  form: TagPickerForm;
   id: string;
   options: SalesTagRecord[];
 };

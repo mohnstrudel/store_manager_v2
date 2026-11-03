@@ -151,14 +151,14 @@ RSpec.describe "Sales" do
         [{}, {hide_partial_payments: "0"}, {hide_partial_payments: "true"}, {hide_partial_payments: "yes"}].each do |params|
           get sales_path, params: params.merge(sort: "oldest")
 
-          expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false})
+          expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false, tag_id: nil})
           expect(inertia.props[:sales].pluck(:id)).to eq([origin.id, follow_up.id, ordinary.id])
         end
 
         get sales_path, params: {hide_partial_payments: "1", sort: "oldest"}
 
         expect_inertia.to have_props(
-          filters: {hide_partial_payments: true, missing_purchases_only: false},
+          filters: {hide_partial_payments: true, missing_purchases_only: false, tag_id: nil},
           sort: "oldest",
           pagination: {current_page: 1, total_pages: 1, total_count: 2, limit: 50}
         )
@@ -168,7 +168,7 @@ RSpec.describe "Sales" do
       it "applies search and sort before and with the filter" do
         get sales_path, params: {q: "batch", sort: "newest", hide_partial_payments: "1"}
 
-        expect_inertia.to have_props(search: {q: "batch"}, filters: {hide_partial_payments: true, missing_purchases_only: false})
+        expect_inertia.to have_props(search: {q: "batch"}, filters: {hide_partial_payments: true, missing_purchases_only: false, tag_id: nil})
         expect(inertia.props[:sales].pluck(:id)).to eq([ordinary.id, origin.id])
       end
 
@@ -190,7 +190,7 @@ RSpec.describe "Sales" do
             "X-Inertia-Partial-Data" => "sales,pagination,search,sort,filters"
           }
 
-        expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: false})
+        expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: false, tag_id: nil})
       end
 
       it "serves a fresh response when the checkbox changes but the visible rows do not" do
@@ -201,7 +201,7 @@ RSpec.describe "Sales" do
         get sales_path, params: {hide_partial_payments: "1"}, headers: {"If-None-Match" => etag}
 
         expect(response).to have_http_status(:ok)
-        expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: false})
+        expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: false, tag_id: nil})
       end
     end
 
@@ -232,14 +232,14 @@ RSpec.describe "Sales" do
         [{}, {missing_purchases_only: "0"}, {missing_purchases_only: "true"}].each do |params|
           get sales_path, params: params.merge(sort: "oldest")
 
-          expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false})
+          expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false, tag_id: nil})
           expect(listed_ids).to eq([short.id, covered.id])
         end
 
         get sales_path, params: {missing_purchases_only: "1", sort: "oldest"}
 
         expect_inertia.to have_props(
-          filters: {hide_partial_payments: false, missing_purchases_only: true},
+          filters: {hide_partial_payments: false, missing_purchases_only: true, tag_id: nil},
           pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50}
         )
         expect(listed_ids).to eq([short.id])
@@ -330,7 +330,7 @@ RSpec.describe "Sales" do
             "X-Inertia-Partial-Data" => "sales,pagination,search,sort,filters"
           }
 
-        expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: true})
+        expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: true, tag_id: nil})
       end
 
       it "serves a fresh response when only an off-page shortage changes" do
@@ -347,6 +347,165 @@ RSpec.describe "Sales" do
         expect(response).to have_http_status(:ok)
         expect(listed_ids).to eq(first_page_ids)
         expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 1, total_count: 50, limit: 50})
+      end
+    end
+
+    describe "filtering by tag" do
+      let!(:vip) { create(:sales_tag, name: "VIP") }
+      let!(:blue) { create(:sales_tag, name: "Blue") }
+      let!(:sale_a) { create_batch_sale(1, vip) }
+      let!(:sale_b) { create_batch_sale(2, vip, linked: 1) }
+      let!(:sale_c) { create_batch_sale(3, blue) }
+      let!(:sale_d) { create_batch_sale(4, vip, status: "completed") }
+      let(:batch_query) { {q: "batch", sort: "oldest"} }
+      let(:unavailable_notice) { "That tag is no longer available. Showing all tags." }
+
+      def create_batch_sale(day, tag, linked: 0, **attributes)
+        sale = create(:sale, woo_created_at: Time.utc(2024, 1, day), note: "batch", **attributes)
+        sale_item = create(:sale_item, sale:, product: create(:product), qty: 1)
+        create(:purchase_item, purchase: create(:purchase, product: sale_item.product), sale_item:) if linked.positive?
+        SaleTagging.create!(sale:, sales_tag: tag)
+        sale
+      end
+
+      def listed_ids
+        inertia.props[:sales].pluck(:id)
+      end
+
+      it "lists every open sale and reports no tag when none is chosen" do
+        get sales_path, params: batch_query
+
+        expect(listed_ids).to eq([sale_a.id, sale_b.id, sale_c.id])
+        expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false, tag_id: nil})
+      end
+
+      it "narrows the listing to the chosen tag and echoes it, composing with order and procurement" do
+        get sales_path, params: batch_query.merge(tag_id: vip.id)
+        expect(listed_ids).to eq([sale_a.id, sale_b.id])
+        expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false, tag_id: vip.id})
+
+        get sales_path, params: batch_query.merge(tag_id: vip.id, missing_purchases_only: "1")
+        expect(listed_ids).to eq([sale_a.id])
+
+        get sales_path, params: {q: "batch", sort: "newest", tag_id: vip.id}
+        expect(listed_ids).to eq([sale_b.id, sale_a.id])
+      end
+
+      it "lists a sale once when it carries other tags too" do
+        SaleTagging.create!(sale: sale_a, sales_tag: blue)
+
+        get sales_path, params: batch_query.merge(tag_id: vip.id)
+
+        expect(listed_ids).to eq([sale_a.id, sale_b.id])
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 1, total_count: 2, limit: 50})
+      end
+
+      it "treats a blank tag_id as all tags without a notice" do
+        get sales_path, params: batch_query.merge(tag_id: "")
+
+        expect(response).to have_http_status(:ok)
+        expect(listed_ids).to eq([sale_a.id, sale_b.id, sale_c.id])
+        expect(inertia.props[:flash].compact).to be_empty
+      end
+
+      it "redirects an invalid or deleted tag_id to the canonical listing with the explanation and no loop" do
+        deleted_id = create(:sales_tag, name: "Gone").tap(&:destroy!).id
+        criteria = {q: "batch", sort: "oldest", hide_partial_payments: "1", missing_purchases_only: "1", page: "2"}
+
+        ["abc", "0", "-1", "1.5", " 1", "#{vip.id}x", "99999999", deleted_id.to_s].each do |bad|
+          get sales_path, params: criteria.merge(tag_id: bad)
+
+          expect(response).to redirect_to(sales_path(q: "batch", sort: "oldest", hide_partial_payments: "1", missing_purchases_only: "1"))
+          follow_redirect!
+          expect(response).to have_http_status(:ok)
+          expect(inertia.props[:flash]["notice"]).to eq(unavailable_notice)
+          expect_inertia.to have_props(filters: {hide_partial_payments: true, missing_purchases_only: true, tag_id: nil})
+        end
+      end
+
+      it "redirects a malformed array tag_id and drops the default sort from the canonical URL" do
+        get sales_path, params: {tag_id: [vip.id], sort: "newest", q: "batch"}
+
+        expect(response).to redirect_to(sales_path(q: "batch"))
+      end
+
+      it "keeps the tag filter through a rename or recolor" do
+        vip.update!(name: "VIP Client", color: "olive")
+
+        get sales_path, params: batch_query.merge(tag_id: vip.id)
+
+        expect(listed_ids).to eq([sale_a.id, sale_b.id])
+      end
+
+      it "returns the normalized tag filter on a partial reload" do
+        get sales_path,
+          params: batch_query.merge(tag_id: vip.id),
+          headers: {
+            "X-Inertia" => "true",
+            "X-Inertia-Partial-Component" => "Sales/Index",
+            "X-Inertia-Partial-Data" => "sales,pagination,search,sort,filters,tag_options"
+          }
+
+        expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false, tag_id: vip.id})
+        expect(inertia.props[:tag_options].pluck(:id)).to eq([blue.id, vip.id])
+      end
+
+      it "searches before filtering, so a tag that excludes the exact Store ID does not fall back to full text" do
+        exact = create(:sale, shopify_store_id: "gid://shopify/Order/900")
+        mention = create(:sale, note: "customer asked about 900")
+        SaleTagging.create!(sale: mention, sales_tag: vip)
+
+        get sales_path, params: {q: "900", tag_id: vip.id}
+        expect(listed_ids).to be_empty
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 0, total_count: 0, limit: 50})
+
+        get sales_path, params: {q: "900"}
+        expect(listed_ids).to eq([exact.id])
+      end
+
+      it "pages the filtered rows and keeps the first page when an off-page tagged sale appears" do
+        allow(Sale).to receive(:default_per_page).and_return(2)
+        sale_e = create_batch_sale(5, vip)
+
+        get sales_path, params: batch_query.merge(tag_id: vip.id)
+        etag = response.headers["ETag"]
+        expect(listed_ids).to eq([sale_a.id, sale_b.id])
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 3, limit: 2})
+
+        get sales_path, params: batch_query.merge(tag_id: vip.id, page: 2)
+        expect(listed_ids).to eq([sale_e.id])
+
+        create_batch_sale(6, vip)
+        get sales_path, params: batch_query.merge(tag_id: vip.id), headers: {"If-None-Match" => etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(listed_ids).to eq([sale_a.id, sale_b.id])
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 2, total_count: 4, limit: 2})
+      end
+
+      it "serves a fresh response when only the tag filter changes but the visible rows do not" do
+        sale_c.sale_taggings.destroy_all
+        SaleTagging.create!(sale: sale_c, sales_tag: vip)
+        get sales_path, params: batch_query
+        etag = response.headers["ETag"]
+
+        get sales_path, params: batch_query.merge(tag_id: vip.id), headers: {"If-None-Match" => etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(listed_ids).to eq([sale_a.id, sale_b.id, sale_c.id])
+        expect_inertia.to have_props(filters: {hide_partial_payments: false, missing_purchases_only: false, tag_id: vip.id})
+      end
+
+      it "updates rows and totals when the active tag leaves a visible sale" do
+        get sales_path, params: batch_query.merge(tag_id: vip.id)
+        etag = response.headers["ETag"]
+
+        SaleTagging.where(sale: sale_a, sales_tag: vip).delete_all
+        get sales_path, params: batch_query.merge(tag_id: vip.id), headers: {"If-None-Match" => etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(listed_ids).to eq([sale_b.id])
+        expect_inertia.to have_props(pagination: {current_page: 1, total_pages: 1, total_count: 1, limit: 50})
       end
     end
 

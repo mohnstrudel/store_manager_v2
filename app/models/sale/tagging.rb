@@ -10,6 +10,8 @@ module Sale::Tagging
   included do
     has_many :sale_taggings, dependent: nil, inverse_of: :sale
     has_many :sales_tags, through: :sale_taggings
+
+    scope :tagged_with, ->(sales_tag_id) { where(id: SaleTagging.where(sales_tag_id:).select(:sale_id)) }
   end
 
   def replace_tags!(ids:, original_ids:)

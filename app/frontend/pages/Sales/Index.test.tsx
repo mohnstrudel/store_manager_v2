@@ -196,6 +196,7 @@ describe("Sales/Index", () => {
             "tag_options",
             "tag_colors",
             "can_tag_sales",
+            "flash",
           ],
           preserveState: true,
         }),
@@ -326,7 +327,7 @@ describe("Sales/Index", () => {
 
       rerender(
         indexElement({
-          filters: { hide_partial_payments: true, missing_purchases_only: true },
+          filters: { hide_partial_payments: true, missing_purchases_only: true, tag_id: null },
           search: { q: "pikachu" },
           sort: "oldest",
         }),
@@ -377,7 +378,11 @@ describe("Sales/Index", () => {
   });
 
   describe("Hide Partial Payments filter", () => {
-    const hidePartialPayments = { hide_partial_payments: true, missing_purchases_only: false };
+    const hidePartialPayments = {
+      hide_partial_payments: true,
+      missing_purchases_only: false,
+      tag_id: null,
+    };
 
     it("is unchecked by default and checked when the applied filter is on", () => {
       const { unmount } = renderIndex();
@@ -455,8 +460,12 @@ describe("Sales/Index", () => {
   });
 
   describe("Missing Purchases Only filter", () => {
-    const missingPurchasesOnly = { hide_partial_payments: false, missing_purchases_only: true };
-    const bothFilters = { hide_partial_payments: true, missing_purchases_only: true };
+    const missingPurchasesOnly = {
+      hide_partial_payments: false,
+      missing_purchases_only: true,
+      tag_id: null,
+    };
+    const bothFilters = { hide_partial_payments: true, missing_purchases_only: true, tag_id: null };
 
     it("is unchecked by default and checked when the applied filter is on", () => {
       const { unmount } = renderIndex();
@@ -546,6 +555,229 @@ describe("Sales/Index", () => {
     });
   });
 
+  describe("Tag filter", () => {
+    const vip: SalesTagRecord = { id: 2, name: "VIP", color: "sky" };
+    const rush: SalesTagRecord = { id: 4, name: "Rush", color: "pink" };
+    const noFilters = { hide_partial_payments: false, missing_purchases_only: false, tag_id: null };
+    const vipFilters = { ...noFilters, tag_id: vip.id };
+    const bothFiltersWithVip = {
+      ...vipFilters,
+      hide_partial_payments: true,
+      missing_purchases_only: true,
+    };
+
+    it("offers a Filter by tag button after the last filter and no badge until a tag is applied", () => {
+      renderIndex({ tag_options: [rush, vip] });
+
+      expect(
+        within(tagFilter()).getByRole("button", { name: "Filter by tag" }),
+      ).toBeInTheDocument();
+      expect(
+        within(tagFilter()).queryByRole("button", { name: /^Remove / }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows the applied tag as a removable badge beside the button", () => {
+      renderIndex({ filters: vipFilters, tag_options: [rush, vip] });
+
+      expect(
+        within(tagFilter()).getByRole("button", { name: "Remove VIP from the tag filter" }),
+      ).toHaveTextContent("VIP");
+      expect(
+        within(tagFilter()).getByRole("button", { name: "Filter by tag" }),
+      ).toBeInTheDocument();
+    });
+
+    it("removes the filter when the applied tag is clicked, keeping the other settings", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        filters: bothFiltersWithVip,
+        pagination: makePagination({ current_page: 2, total_pages: 3 }),
+        search: { q: "dale" },
+        sort: "oldest",
+        tag_options: [rush, vip],
+      });
+
+      await user.click(
+        within(tagFilter()).getByRole("button", { name: "Remove VIP from the tag filter" }),
+      );
+
+      expect(router.get).toHaveBeenCalledTimes(1);
+      expect(router.get).toHaveBeenCalledWith(
+        "/sales",
+        { q: "dale", sort: "oldest", hide_partial_payments: "1", missing_purchases_only: "1" },
+        expect.objectContaining({ preserveState: true }),
+      );
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("opens the shared tag dialog with the applied tag checked", async () => {
+      const user = userEvent.setup();
+      renderIndex({ filters: vipFilters, tag_options: [rush, vip] });
+
+      const dialog = await openTagFilter(user);
+
+      expect(within(dialog).getByRole("checkbox", { name: "VIP" })).toBeChecked();
+      expect(within(dialog).getByRole("checkbox", { name: "Rush" })).not.toBeChecked();
+      expect(within(dialog).getByRole("searchbox", { name: "Filter tags" })).toBeInTheDocument();
+      expect(router.get).not.toHaveBeenCalled();
+    });
+
+    it("applies the chosen tag with the full form and without the old page", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        filters: { ...noFilters, hide_partial_payments: true, missing_purchases_only: true },
+        pagination: makePagination({ current_page: 2, total_pages: 3 }),
+        search: { q: "dale" },
+        sort: "oldest",
+        tag_options: [rush, vip],
+      });
+
+      const dialog = await openTagFilter(user);
+      await user.click(within(dialog).getByRole("checkbox", { name: "VIP" }));
+      await user.click(within(dialog).getByRole("button", { name: "Apply filter" }));
+
+      expect(router.get).toHaveBeenCalledTimes(1);
+      expect(router.get).toHaveBeenCalledWith(
+        "/sales",
+        {
+          q: "dale",
+          sort: "oldest",
+          hide_partial_payments: "1",
+          missing_purchases_only: "1",
+          tag_id: "2",
+        },
+        expect.objectContaining({ preserveState: true }),
+      );
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("keeps one tag: choosing another replaces the previous choice", async () => {
+      const user = userEvent.setup();
+      renderIndex({ filters: vipFilters, tag_options: [rush, vip] });
+
+      const dialog = await openTagFilter(user);
+      await user.click(within(dialog).getByRole("checkbox", { name: "Rush" }));
+
+      expect(within(dialog).getByRole("checkbox", { name: "Rush" })).toBeChecked();
+      expect(within(dialog).getByRole("checkbox", { name: "VIP" })).not.toBeChecked();
+
+      await user.click(within(dialog).getByRole("button", { name: "Apply filter" }));
+
+      expect(router.get).toHaveBeenCalledWith("/sales", { tag_id: "4" }, expect.anything());
+    });
+
+    it("omits tag_id once the tag is unchecked and applied, keeping the other settings", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        filters: bothFiltersWithVip,
+        search: { q: "dale" },
+        sort: "oldest",
+        tag_options: [rush, vip],
+      });
+
+      const dialog = await openTagFilter(user);
+      await user.click(within(dialog).getByRole("checkbox", { name: "VIP" }));
+      await user.click(within(dialog).getByRole("button", { name: "Apply filter" }));
+
+      expect(router.get).toHaveBeenLastCalledWith(
+        "/sales",
+        { q: "dale", sort: "oldest", hide_partial_payments: "1", missing_purchases_only: "1" },
+        expect.anything(),
+      );
+    });
+
+    it("applies nothing when the dialog is cancelled and starts from the applied tag next time", async () => {
+      const user = userEvent.setup();
+      renderIndex({ filters: vipFilters, tag_options: [rush, vip] });
+
+      const dialog = await openTagFilter(user);
+      await user.click(within(dialog).getByRole("checkbox", { name: "Rush" }));
+      await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+      expect(router.get).not.toHaveBeenCalled();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      const reopened = await openTagFilter(user);
+      expect(within(reopened).getByRole("checkbox", { name: "VIP" })).toBeChecked();
+      expect(within(reopened).getByRole("checkbox", { name: "Rush" })).not.toBeChecked();
+    });
+
+    it("keeps the tag when the search is cleared or another setting changes", async () => {
+      const user = userEvent.setup();
+      renderIndex({ filters: vipFilters, search: { q: "dale" }, tag_options: [rush, vip] });
+
+      await user.click(screen.getByRole("button", { name: /Clear search/ }));
+      expect(router.get).toHaveBeenLastCalledWith("/sales", { tag_id: "2" }, expect.anything());
+
+      await user.click(screen.getByRole("checkbox", { name: "Hide Partial Payments" }));
+      expect(router.get).toHaveBeenLastCalledWith(
+        "/sales",
+        { hide_partial_payments: "1", tag_id: "2" },
+        expect.anything(),
+      );
+    });
+
+    it("keeps both pagination areas on the applied tag", () => {
+      renderIndex({
+        filters: vipFilters,
+        pagination: makePagination({ current_page: 1, total_pages: 2 }),
+        search: { q: "dale" },
+        tag_options: [rush, vip],
+      });
+
+      const nextLinks = screen.getAllByRole("link", { name: "Next" });
+      expect(nextLinks).toHaveLength(2);
+      for (const link of nextLinks) {
+        expect(link).toHaveAttribute("href", "/sales?page=2&q=dale&tag_id=2");
+      }
+    });
+
+    it("shows Nothing found with the tag still clearable when only the tag empties the listing", async () => {
+      const user = userEvent.setup();
+      renderIndex({
+        filters: vipFilters,
+        pagination: makePagination({ total_count: 0 }),
+        sales: [],
+        tag_options: [rush, vip],
+      });
+
+      expect(screen.getByText("Nothing found")).toBeInTheDocument();
+      const dialog = await openTagFilter(user);
+      await user.click(within(dialog).getByRole("checkbox", { name: "VIP" }));
+      await user.click(within(dialog).getByRole("button", { name: "Apply filter" }));
+
+      expect(router.get).toHaveBeenCalledWith("/sales", {}, expect.anything());
+    });
+
+    it("drops the badge when the applied props drop the tag", () => {
+      const { rerender } = renderIndex({ filters: vipFilters, tag_options: [rush, vip] });
+      expect(within(tagFilter()).getByText("VIP")).toBeInTheDocument();
+
+      rerender(indexElement({ tag_options: [rush] }));
+
+      expect(within(tagFilter()).queryByText("VIP")).not.toBeInTheDocument();
+      expect(
+        within(tagFilter()).queryByRole("button", { name: /^Remove / }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("keeps text typed while a tag request is pending when the response arrives", async () => {
+      const user = userEvent.setup();
+      const { rerender } = renderIndex({ tag_options: [rush, vip] });
+
+      const dialog = await openTagFilter(user);
+      await user.click(within(dialog).getByRole("checkbox", { name: "VIP" }));
+      await user.click(within(dialog).getByRole("button", { name: "Apply filter" }));
+      await user.type(screen.getByRole("searchbox", { name: "Search sales" }), "dale");
+      rerender(indexElement({ filters: vipFilters, tag_options: [rush, vip] }));
+
+      expect(screen.getByRole("searchbox", { name: "Search sales" })).toHaveValue("dale");
+      expect(screen.getByRole("searchbox", { name: "Search sales" })).toHaveFocus();
+      expect(within(tagFilter()).getByText("VIP")).toBeInTheDocument();
+    });
+  });
+
   describe("Store Sync dialog", () => {
     it("renders the Store Sync button", () => {
       renderIndex();
@@ -591,7 +823,15 @@ describe("Sales/Index", () => {
     const wholesale: SalesTagRecord = { id: 9, name: "Wholesale", color: "green" };
     const catalog = [rush, vip, wholesale];
     const tagsPath = "/sales/1/tags";
-    const reloadedProps = ["sales", "pagination", "tag_options", "tag_colors", "can_tag_sales"];
+    const reloadedProps = [
+      "sales",
+      "pagination",
+      "filters",
+      "tag_options",
+      "tag_colors",
+      "can_tag_sales",
+      "flash",
+    ];
 
     function renderTagged(tags: SalesTagRecord[] = [vip], options: IndexOptions = {}) {
       return renderIndex({
@@ -809,7 +1049,7 @@ function indexElement({
   pagination = makePagination(),
   search = { q: "" },
   sort = "newest",
-  filters = { hide_partial_payments: false, missing_purchases_only: false },
+  filters = { hide_partial_payments: false, missing_purchases_only: false, tag_id: null },
   tag_options = [],
   can_tag_sales = true,
   last_sync_time = "20.05 at 10:00",
@@ -832,4 +1072,13 @@ function indexElement({
 async function openEditor(user: UserEvent) {
   await user.click(screen.getByRole("button", { name: "Edit" }));
   return screen.findByRole("dialog", { name: "Edit tags" });
+}
+
+async function openTagFilter(user: UserEvent) {
+  await user.click(within(tagFilter()).getByRole("button", { name: "Filter by tag" }));
+  return screen.findByRole("dialog", { name: "Filter by tag" });
+}
+
+function tagFilter() {
+  return screen.getByRole("group", { name: "Tag filter" });
 }
