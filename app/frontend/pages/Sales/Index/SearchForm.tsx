@@ -87,9 +87,9 @@ export default function SearchForm({ q, sort, filters, tagColors, tagOptions }: 
   );
 
   return (
-    <div className="flex flex-col gap-3 w-full max-w-full lg:max-w-2/3">
+    <div className="contents">
       <form
-        className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-2"
+        className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-2 lg:col-start-1 lg:row-start-1"
         onSubmit={handleSubmit}
       >
         <input
@@ -113,7 +113,7 @@ export default function SearchForm({ q, sort, filters, tagColors, tagOptions }: 
           </button>
         )}
       </form>
-      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-6">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-6 lg:col-span-2 lg:row-start-2">
         <fieldset
           aria-label="Sort sales"
           className="tab_bar tab_bar_outline shrink-0 sm:w-fit mt-0 mb-0"

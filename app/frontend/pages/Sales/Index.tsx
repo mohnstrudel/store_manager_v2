@@ -79,7 +79,7 @@ export default function Index({
       )}
 
       <section className="section_border_base section_wide">
-        <div className="page_search lg:items-start">
+        <div className="page_search lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-12 lg:gap-y-3 lg:items-start">
           <SearchForm
             filters={filters}
             q={search.q}
@@ -87,7 +87,7 @@ export default function Index({
             tagColors={tag_colors}
             tagOptions={tag_options}
           />
-          <div className="pagination_top lg:min-w-0 lg:shrink-0 lg:pt-0.5">
+          <div className="pagination_top lg:min-w-0 lg:shrink-0 lg:pt-0.5 lg:col-start-2 lg:row-start-1">
             <Pagination pagination={pagination} params={appliedParams} path={salesPath} />
           </div>
         </div>
