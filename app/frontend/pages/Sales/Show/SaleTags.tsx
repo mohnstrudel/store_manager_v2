@@ -1,3 +1,5 @@
+import { TagIcon } from "lucide-react";
+
 import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 
 import SaleTagsDialog from "../components/SaleTagsDialog";
@@ -27,10 +29,11 @@ export default function SaleTags({ saleId, tags, options, colors, canTagSales }:
         <TagBadges tags={tags} />
         {canTagSales ? (
           <button
-            className="text-gray-600 dark:text-gray-400 btn_xs border-0"
+            className="btn_xs"
             onClick={form.open}
             type="button"
           >
+            <TagIcon />
             {title}
           </button>
         ) : null}

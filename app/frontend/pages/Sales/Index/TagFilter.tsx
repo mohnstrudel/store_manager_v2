@@ -1,4 +1,4 @@
-import { XIcon } from "lucide-react";
+import { TagIcon, XIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import SaleTagsDialog from "@/pages/Sales/components/SaleTagsDialog";
@@ -53,10 +53,11 @@ export default function TagFilter({ colors, onApply, options, selectedId }: TagF
         </button>
       ) : null}
       <button
-        className="btn_white btn_xs bg-gray-50 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10"
+        className="btn_xs"
         onClick={open}
         type="button"
       >
+        <TagIcon />
         Filter by tag
       </button>
       {isOpen ? (

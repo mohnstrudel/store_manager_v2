@@ -16,7 +16,7 @@
   }
 
   .navigation-main a {
-    @apply rounded-sm uppercase lg:normal-case tracking-wide lg:tracking-normal text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 lg:border-0 lg:bg-transparent lg:dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700;
+    @apply rounded-4xl uppercase lg:normal-case tracking-wide lg:tracking-normal text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 lg:border-0 lg:bg-transparent lg:dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 
   .navigation-dropdown_link {

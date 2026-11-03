@@ -24,7 +24,7 @@
 
 @layer components {
   .btn_xs {
-    @apply w-fit text-xs px-1! py-0.5! gap-0.5!;
+    @apply w-fit text-xs px-1.25! py-0.75! gap-0.75!;
   }
 
   .btn_red,
