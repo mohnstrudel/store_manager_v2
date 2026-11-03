@@ -35,23 +35,6 @@ class SalesTag < ApplicationRecord
     left_joins(:sale_taggings).group(:id).select("sales_tags.*", "COUNT(sale_taggings.id) AS usage_count")
   }
 
-  def self.find_or_create_all_normalized!(descriptors)
-    candidates = descriptors.map { |descriptor| validated_candidate(**descriptor) }
-
-    candidates.uniq(&:normalized_name).sort_by(&:normalized_name).map do |candidate|
-      find_or_create_normalized!(name: candidate.name, color: candidate.color)
-    end
-  end
-
-  def self.validated_candidate(name:, color:)
-    new(name:, color:).tap do |candidate|
-      candidate.valid?
-      candidate.errors.delete(:normalized_name)
-      raise ActiveRecord::RecordInvalid, candidate if candidate.errors.any?
-    end
-  end
-  private_class_method :validated_candidate
-
   def self.find_or_create_normalized!(name:, color: DEFAULT_COLOR)
     candidate = new(name:, color:)
     candidate.validate!

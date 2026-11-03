@@ -12,14 +12,10 @@ module Sale::Tagging
     has_many :sales_tags, through: :sale_taggings
   end
 
-  def replace_tags!(ids:, original_ids:, new_tags: [])
+  def replace_tags!(ids:, original_ids:)
     transaction(requires_new: true) do
       lock!
-      replace_assignments!(
-        ids: tag_ids_from(ids),
-        original_ids: tag_ids_from(original_ids),
-        descriptors: tag_descriptors_from(new_tags)
-      )
+      replace_assignments!(ids: tag_ids_from(ids), original_ids: tag_ids_from(original_ids))
     end
   rescue ActiveRecord::InvalidForeignKey => error
     raise unless error.message.include?("sales_tags")
@@ -29,12 +25,11 @@ module Sale::Tagging
 
   private
 
-  def replace_assignments!(ids:, original_ids:, descriptors:)
+  def replace_assignments!(ids:, original_ids:)
     current_ids = sale_taggings.pluck(:sales_tag_id).sort
     reject_tags!(STALE_ASSIGNMENT_MESSAGE) unless original_ids == current_ids
     reject_tags!(MISSING_SELECTION_MESSAGE) unless SalesTag.where(id: ids).count == ids.size
 
-    ids |= proposed_tag_ids(descriptors)
     sale_taggings.where.not(sales_tag_id: ids).delete_all
     added_ids = ids - current_ids
     SaleTagging.insert_all!(added_ids.map { |tag_id| {sale_id: id, sales_tag_id: tag_id} }) if added_ids.any? # rubocop:disable Rails/SkipsModelValidations -- foreign keys own integrity; assignment rows carry no callbacks
@@ -43,12 +38,6 @@ module Sale::Tagging
   def reject_tags!(message)
     errors.add(:tags, message)
     raise ActiveRecord::RecordInvalid, self
-  end
-
-  def proposed_tag_ids(descriptors)
-    SalesTag.find_or_create_all_normalized!(descriptors).map(&:id)
-  rescue ActiveRecord::RecordInvalid => error
-    reject_tags!(error.record.errors.full_messages.to_sentence)
   end
 
   def tag_ids_from(values)
@@ -62,20 +51,5 @@ module Sale::Tagging
   def positive_integer(value)
     number = value.is_a?(String) ? Integer(value, 10, exception: false) : value
     number if number.is_a?(Integer) && number.positive?
-  end
-
-  def tag_descriptors_from(values)
-    return [] if values.nil?
-
-    reject_tags!(UNREADABLE_INPUT_MESSAGE) unless values.is_a?(Array)
-
-    values.map { |value| tag_descriptor(value) || reject_tags!(UNREADABLE_INPUT_MESSAGE) }
-  end
-
-  def tag_descriptor(value)
-    return unless value.is_a?(Hash)
-
-    name, color = value.with_indifferent_access.values_at(:name, :color)
-    {name:, color:} if [name, color].all? { |field| field.nil? || field.is_a?(String) }
   end
 end

@@ -47,41 +47,6 @@ RSpec.describe SalesTag do
         release_winner&.push(true)
         [winner, loser].compact.each { |thread| thread.join(5) }
       end
-
-      it "lets creators on different sales share one identity and each keep their assignment" do
-        first_sale, second_sale = create_list(:sale, 2)
-        inserted = Queue.new
-        release_winner = Queue.new
-        loser_pid = Queue.new
-
-        winner = Thread.new do
-          ActiveRecord::Base.connection_pool.with_connection do
-            ActiveRecord::Base.transaction do
-              first_sale.replace_tags!(ids: [], original_ids: [], new_tags: [{name: "VIP Order", color: "sky"}])
-              inserted << true
-              release_winner.pop(timeout: 5)
-            end
-          end
-        end
-        inserted.pop(timeout: 5)
-
-        loser = Thread.new do
-          ActiveRecord::Base.connection_pool.with_connection do |connection|
-            loser_pid << connection.raw_connection.backend_pid
-            second_sale.replace_tags!(ids: [], original_ids: [], new_tags: [{name: "vip order", color: "pink"}])
-          end
-        end
-        wait_for_lock(loser_pid.pop(timeout: 5))
-        release_winner << true
-        [winner, loser].each(&:value)
-
-        expect(described_class.where(normalized_name: "vip order").pluck(:name, :color)).to eq([["VIP Order", "sky"]])
-        expect(SaleTagging.pluck(:sale_id)).to contain_exactly(first_sale.id, second_sale.id)
-        expect(SaleTagging.distinct.pluck(:sales_tag_id).size).to eq(1)
-      ensure
-        release_winner&.push(true)
-        [winner, loser].compact.each { |thread| thread.join(5) }
-      end
     end
   end
 
@@ -123,7 +88,7 @@ RSpec.describe SalesTag do
       [assigner, deleter].compact.each { |thread| thread.join(5) }
     end
 
-    it "fails an assignment that waited on a deletion without creating its proposed tag or changing the sale" do
+    it "fails an assignment that waited on a deletion and keeps the sale's existing tags" do
       sale = create(:sale)
       zebra, vip = %w[Zebra VIP].map { |name| create(:sales_tag, name:) }
       SaleTagging.create!(sale:, sales_tag: zebra)
@@ -147,7 +112,7 @@ RSpec.describe SalesTag do
           assigner_pid << connection.raw_connection.backend_pid
           target = Sale.find(sale.id)
           begin
-            target.replace_tags!(ids: [zebra.id, vip.id], original_ids: [zebra.id], new_tags: [{name: "Rush", color: "pink"}])
+            target.replace_tags!(ids: [zebra.id, vip.id], original_ids: [zebra.id])
           rescue ActiveRecord::RecordInvalid
             target.errors[:tags]
           end
@@ -159,7 +124,6 @@ RSpec.describe SalesTag do
 
       expect(assigner.value).to eq([Sale::Tagging::MISSING_SELECTION_MESSAGE])
       expect(described_class.exists?(vip.id)).to be(false)
-      expect(described_class.exists?(normalized_name: "rush")).to be(false)
       expect(SaleTagging.where(sale_id: sale.id).pluck(:sales_tag_id)).to eq([zebra.id])
     ensure
       release_deletion&.push(true)
