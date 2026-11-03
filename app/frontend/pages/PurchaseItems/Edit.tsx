@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PackageIcon } from "lucide-react";
 
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
@@ -21,7 +22,7 @@ export default function Edit({ options, purchase_item, sale_items_table }: EditP
       <PageHeader className="mb-8" title={`Edit Purchase Item ${purchase_item.id}`}>
         <li>
           <Link href={purchase_item.path} prefetch>
-            <i className="icn">📦</i>
+            <PackageIcon />
             View Purchase Item
           </Link>
         </li>

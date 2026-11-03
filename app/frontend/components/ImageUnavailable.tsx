@@ -1,4 +1,4 @@
-import { PhotoIcon } from "@heroicons/react/24/outline";
+import { ImageIcon } from "lucide-react";
 
 type ImageUnavailableProps = {
   alt: string;
@@ -13,7 +13,7 @@ export default function ImageUnavailable({ alt, className }: ImageUnavailablePro
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- failure placeholder
       role="img"
     >
-      <PhotoIcon className="h-5 w-5 shrink-0" />
+      <ImageIcon className="h-5 w-5 shrink-0" />
       <span>Image unavailable</span>
     </div>
   );

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { CircleDollarSignIcon, PencilIcon } from "lucide-react";
 
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
 import { emptyToNull } from "@/utils/emptyValue";
@@ -50,11 +51,11 @@ export default function IndexTable({ products }: IndexTableProps) {
             <td className="table_actions text-right" onClick={stopRowNavigation}>
               <div className="flex justify-end gap-2">
                 <Link href={product.edit_path} prefetch>
-                  <i className="icn">✏</i>
+                  <PencilIcon />
                   Edit
                 </Link>
                 <Link href={product.new_purchase_path} prefetch>
-                  <i className="icn">💰</i>
+                  <CircleDollarSignIcon />
                   Purchase
                 </Link>
               </div>

@@ -68,7 +68,7 @@ describe("ImageGallery", () => {
 
     render(<ImageGallery media={media} />);
 
-    await user.click(screen.getByRole("button", { name: "→" }));
+    await user.click(screen.getByRole("button", { name: "Next image" }));
 
     expect(screen.getByRole("button", { name: "Side" })).toHaveAttribute("data-active");
     expect(document.querySelector(".gallery_main__image")).toHaveAttribute(
@@ -99,8 +99,8 @@ describe("ImageGallery", () => {
     const { container } = render(<ImageGallery media={[media[0]]} />);
 
     expect(screen.getByRole("img", { name: "Front" })).toHaveClass("gallery_main__image");
-    expect(screen.queryByRole("button", { name: "←" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "→" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Previous image" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Next image" })).not.toBeInTheDocument();
     expect(container.querySelector(".gallery_viewbox")).toHaveClass(
       "gallery_viewbox",
       "gallery_viewbox--single",

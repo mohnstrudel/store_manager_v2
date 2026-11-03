@@ -1,3 +1,4 @@
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import {
   createContext,
   useCallback,
@@ -177,11 +178,21 @@ function CarouselStage() {
   const isLoading = !loaded.has(current.id);
   return (
     <div className="gallery_viewbox flex relative w-full h-80 max-h-full items-center overflow-hidden rounded-lg hover:overflow-visible lg:h-full">
-      <button className="gallery_btn left-0" onClick={showPreviousImage} type="button">
-        ←
+      <button
+        aria-label="Previous image"
+        className="gallery_btn left-0"
+        onClick={showPreviousImage}
+        type="button"
+      >
+        <ArrowLeftIcon />
       </button>
-      <button className="gallery_btn right-0" onClick={showNextImage} type="button">
-        →
+      <button
+        aria-label="Next image"
+        className="gallery_btn right-0"
+        onClick={showNextImage}
+        type="button"
+      >
+        <ArrowRightIcon />
       </button>
       <div className="gallery_main__frame" data-loading={isLoading || undefined}>
         <GalleryMainImage />

@@ -1,6 +1,6 @@
 import { DragDropProvider } from "@dnd-kit/react";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
-import { ArrowsRightLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftRightIcon, XIcon } from "lucide-react";
 import {
   useCallback,
   useMemo,
@@ -289,7 +289,7 @@ function SortableImageCard({
           className="image_card__drag_handle peer/drag"
           type="button"
         >
-          <ArrowsRightLeftIcon className="w-8 h-8" />
+          <ArrowLeftRightIcon className="w-8 h-8" />
         </button>
         <button
           aria-label="Remove image"
@@ -298,7 +298,7 @@ function SortableImageCard({
           onClick={removeImage}
           type="button"
         >
-          <XMarkIcon className="w-8 h-8" />
+          <XIcon className="w-8 h-8" />
         </button>
         {isPendingImage(image) && (
           <span className="image_card__pending_badge" data-testid="image-pending-badge">

@@ -1,3 +1,4 @@
+import { ClipboardCheckIcon, ClipboardIcon } from "lucide-react";
 import { useCallback, useState, type MouseEvent } from "react";
 
 type CopyToClipboardButtonProps = {
@@ -30,7 +31,7 @@ export default function CopyToClipboardButton({
       title="Copy to clipboard"
       type="button"
     >
-      <span className="icn h-4 w-4">{copied ? "👍" : "📋"}</span>
+      {copied ? <ClipboardCheckIcon /> : <ClipboardIcon />}
       <span className="text-nowrap">{copied ? "Done" : label}</span>
     </button>
   );

@@ -1,6 +1,5 @@
-import { ChevronDoubleDownIcon } from "@heroicons/react/20/solid";
-import { BuildingStorefrontIcon } from "@heroicons/react/24/outline";
 import { Link } from "@inertiajs/react";
+import { ChevronsDownIcon, Link2Icon, PencilIcon, StoreIcon } from "lucide-react";
 
 import type { SaleShowRecord } from "../types";
 
@@ -14,7 +13,7 @@ export default function SaleActions({ sale }: SaleActionsProps) {
       {sale.can_link_purchase_items && (
         <li>
           <Link className="btn_lightblue" href={sale.link_purchase_items_path} method="post">
-            <i className="icn">🔗</i>
+            <Link2Icon />
             Link with purchases
           </Link>
         </li>
@@ -22,7 +21,7 @@ export default function SaleActions({ sale }: SaleActionsProps) {
       {canFetchSale(sale) && (
         <li>
           <Link href={sale.pull_path} method="post">
-            <ChevronDoubleDownIcon height={20} width={20} />
+            <ChevronsDownIcon />
             Fetch
           </Link>
         </li>
@@ -30,14 +29,14 @@ export default function SaleActions({ sale }: SaleActionsProps) {
       {sale.shop_admin_url && (
         <li>
           <a href={sale.shop_admin_url} rel="noopener noreferrer" target="_blank">
-            <BuildingStorefrontIcon height={20} width={20} />
+            <StoreIcon />
             Go to {storeAdminLabel(sale)}
           </a>
         </li>
       )}
       <li>
         <Link href={sale.edit_path} prefetch>
-          <i className="icn">✏</i>
+          <PencilIcon />
           Edit
         </Link>
       </li>

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { CircleDollarSignIcon, PencilIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import Button from "@/components/Button";
@@ -45,7 +46,7 @@ export default function Show({
       <PageHeader title={title}>
         <li>
           <Link href={purchase.edit_path} prefetch>
-            <i className="icn">✏</i>
+            <PencilIcon />
             Edit
           </Link>
         </li>
@@ -73,7 +74,7 @@ export default function Show({
 function PurchaseTitle({ id }: { id: number }) {
   return (
     <>
-      <i className="icn mr-2">💰</i>
+      <CircleDollarSignIcon className="mr-2" />
       Purchase {id}
     </>
   );

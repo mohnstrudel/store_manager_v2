@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { CircleDollarSignIcon, PackageIcon, PencilIcon, ShoppingCartIcon } from "lucide-react";
 
 import Button from "@/components/Button";
 import Field from "@/components/Field";
@@ -24,21 +25,21 @@ export default function Show({ purchase_item }: ShowProps) {
       <header className="nav_header">
         <div className="flex gap-4">
           <h1>
-            <i className="icn mr-2">📦</i>
+            <PackageIcon className="mr-2" />
             Purchase Item {purchase_item.id}
           </h1>
         </div>
         <menu className="nav_menu">
           <li>
             <Link href={purchase_item.purchase_path} prefetch>
-              <i className="icn">💰</i>
+              <CircleDollarSignIcon />
               Purchase
             </Link>
           </li>
           {purchase_item.sale_path && (
             <li>
               <Link href={purchase_item.sale_path} prefetch>
-                <i className="icn">🛒</i>
+                <ShoppingCartIcon />
                 Sale
               </Link>
             </li>
@@ -52,7 +53,7 @@ export default function Show({ purchase_item }: ShowProps) {
           )}
           <li>
             <Link href={purchase_item.edit_path} prefetch>
-              <i className="icn">✏</i>
+              <PencilIcon />
               Edit
             </Link>
           </li>

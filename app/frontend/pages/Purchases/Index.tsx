@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PlusIcon } from "lucide-react";
 
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
 import PageHeader from "@/components/PageHeader";
@@ -30,7 +31,7 @@ export default function Index({
       <PageHeader title="Purchases">
         <li>
           <Link href="/purchases/new" prefetch>
-            <i className="icn">🐣</i>
+            <PlusIcon />
             Add New Record
           </Link>
         </li>

@@ -1,4 +1,5 @@
 import { router, Link } from "@inertiajs/react";
+import { WebhookIcon } from "lucide-react";
 import { useCallback } from "react";
 import type { ReactNode } from "react";
 
@@ -69,11 +70,11 @@ function WebhookWarning({ lastOrdersPullPath }: { lastOrdersPullPath: string }) 
       className="h-fit mx-auto bg-red-100 rounded-xl mb-8 text-center text-red-700 lg:text-left dark:bg-red-800/60 dark:text-red-300"
     >
       <header className="p-0 flex flex-col justify-between items-center gap-2 border-b-4 border-red-800/5 dark:border-red-950/30 lg:p-8 lg:h-24 lg:flex-row lg:gap-0">
-        <i className="icn text-2xl lg:text-3xl">🪝</i>
+        <WebhookIcon className="text-2xl lg:text-3xl" />
         <p className="text-base font-semibold lg:text-lg">
           The WooCommerce Sales Webhook is Deactivated
         </p>
-        <i className="icn text-2xl lg:text-3xl">🪝</i>
+        <WebhookIcon className="text-2xl lg:text-3xl" />
       </header>
       <ol className="list-decimal h-fit min-h-24 p-8 pl-16 text-lg">
         <li className="mt-1">

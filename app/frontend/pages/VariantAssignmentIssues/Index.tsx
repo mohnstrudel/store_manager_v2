@@ -1,5 +1,5 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import { Link, router, usePage } from "@inertiajs/react";
+import { ChevronLeftIcon, ChevronRightIcon, WrenchIcon } from "lucide-react";
 import { useCallback, type ChangeEvent } from "react";
 
 import { InlineCellEditor, useInlineCellForm } from "@/components/inline-cell-editing";
@@ -60,7 +60,7 @@ export default function Index(props: VariantAssignmentIssuesPageProps) {
         {props.repairable && (
           <li>
             <button onClick={runBackfill} type="button">
-              <i className="icn">🧑‍🔧</i>
+              <WrenchIcon />
               Repair Broken
             </button>
           </li>

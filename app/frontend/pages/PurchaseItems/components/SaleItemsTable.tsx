@@ -1,3 +1,4 @@
+import { CircleDollarSignIcon, PackageIcon, ShoppingCartIcon } from "lucide-react";
 import { useCallback, type MouseEvent } from "react";
 
 import { useConfirmAction } from "@/utils/useConfirmAction";
@@ -56,7 +57,8 @@ function ItemCell({ row }: { row: SaleItemTableRow }) {
       <div className="flex flex-col gap-2 my-4">
         <span>
           <span className="text-gray-500">
-            <i className="icn">🛒</i>&nbsp;Sale:
+            <ShoppingCartIcon />
+            &nbsp;Sale:
           </span>
           <a className="link ml-2" href={row.sale_path}>
             {row.sale_label}
@@ -65,7 +67,8 @@ function ItemCell({ row }: { row: SaleItemTableRow }) {
         {row.warehouse && (
           <span>
             <span className="text-gray-500">
-              <i className="icn">📦</i>&nbsp;Status:
+              <PackageIcon />
+              &nbsp;Status:
             </span>
             {row.warehouse_path ? (
               <a className="link ml-2" href={row.warehouse_path}>
@@ -79,7 +82,8 @@ function ItemCell({ row }: { row: SaleItemTableRow }) {
         {row.linked_purchase_item && (
           <span>
             <span className="text-gray-500">
-              <i className="icn">💰</i>&nbsp;Purchase:
+              <CircleDollarSignIcon />
+              &nbsp;Purchase:
             </span>
             <a className="link ml-2" href={row.linked_purchase_item.purchase_path}>
               #{row.linked_purchase_item.purchase_id} {row.linked_purchase_item.supplier_title},{" "}

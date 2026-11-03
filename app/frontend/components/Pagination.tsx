@@ -1,5 +1,5 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/16/solid";
 import { Link } from "@inertiajs/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 type PaginationMeta = {
   current_page: number;

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
@@ -22,7 +23,7 @@ export default function Edit({ size }: EditProps) {
       <PageHeader className="mb-8" title="Edit Size">
         <li>
           <Link href={currentSizePath} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View Size Page
           </Link>
         </li>

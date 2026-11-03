@@ -1,4 +1,4 @@
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { ChevronLeftIcon } from "lucide-react";
 
 export default function DetailsChevron() {
   return (

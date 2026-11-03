@@ -1,4 +1,4 @@
-import { PhotoIcon } from "@heroicons/react/24/outline";
+import { ImageIcon } from "lucide-react";
 
 export default function ProductPreview({
   title,
@@ -17,7 +17,7 @@ export default function ProductPreview({
           src={imageUrl}
         />
       ) : (
-        <PhotoIcon className="h-14 w-14 shrink-0 text-gray-400" />
+        <ImageIcon className="h-14 w-14 shrink-0 text-gray-400" />
       )}
       <span>{title || "Product name not recorded"}</span>
     </div>

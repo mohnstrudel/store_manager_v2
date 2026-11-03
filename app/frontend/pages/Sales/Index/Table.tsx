@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PackageIcon } from "lucide-react";
 
 import PaymentPlanMarker from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
@@ -114,7 +115,7 @@ export default function Table({ sales, sort, tagColors, tagOptions, canTagSales 
                         onClick={stopRowNavigation}
                         prefetch
                       >
-                        <i className="icn">📦</i>
+                        <PackageIcon />
                         {purchaseItem.warehouse_name}
                         {purchaseItem.expenses != null && (
                           <>

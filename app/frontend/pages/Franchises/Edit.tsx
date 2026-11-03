@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
@@ -21,7 +22,7 @@ export default function Edit({ franchise }: EditProps) {
       <PageHeader className="mb-8" title="Edit Franchise">
         <li>
           <Link href={currentFranchisePath} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View Franchise Page
           </Link>
         </li>

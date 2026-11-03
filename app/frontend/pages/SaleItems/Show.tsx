@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PencilIcon, ScissorsIcon, ShoppingCartIcon, ToyBrickIcon } from "lucide-react";
 import { useCallback, type MouseEvent } from "react";
 
 import MoveToWarehouseForm from "@/components/MoveToWarehouseForm";
@@ -50,13 +51,13 @@ export default function Show({
         <menu className="nav_menu">
           <li>
             <Link href={sale_item.product_path} prefetch>
-              <i className="icn">🧸</i>
+              <ToyBrickIcon />
               Product
             </Link>
           </li>
           <li>
             <Link href={sale_item.sale_path} prefetch>
-              <i className="icn">🛒</i>
+              <ShoppingCartIcon />
               Sale
             </Link>
           </li>
@@ -133,7 +134,7 @@ export default function Show({
                           onClick={stopRowNavigation}
                           prefetch
                         >
-                          <i className="icn">✏</i>
+                          <PencilIcon />
                           Edit
                         </Link>
                       </div>
@@ -164,7 +165,7 @@ function PurchaseItemUnlinkButton({ purchaseItem }: { purchaseItem: SaleItemPurc
 
   return (
     <button className="no_events btn_red" onClick={handleUnlinkClick} type="button">
-      <i className="icn">✂︎</i>
+      <ScissorsIcon />
       Unlink
     </button>
   );

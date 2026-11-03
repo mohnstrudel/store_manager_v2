@@ -1,5 +1,5 @@
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+import { PlusIcon, RefreshCwIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
@@ -49,13 +49,13 @@ export default function Index({
       <PageHeader title="Sales">
         <li>
           <button onClick={openSync} type="button">
-            <ArrowPathIcon height={20} width={20} />
+            <RefreshCwIcon />
             Store Sync
           </button>
         </li>
         <li>
           <Link href="/sales/new" prefetch>
-            <i className="icn">🐣</i>
+            <PlusIcon />
             Add New Record
           </Link>
         </li>

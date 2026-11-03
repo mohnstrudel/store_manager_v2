@@ -1,4 +1,4 @@
-import { CheckIcon } from "@heroicons/react/16/solid";
+import { CheckIcon } from "lucide-react";
 import { useCallback, type ReactNode } from "react";
 
 import type { SalesTagColor } from "@/types/salesTag";
@@ -41,7 +41,7 @@ export default function TagChoice<Value extends string | number>({
       />
       <TagBadge color={color}>
         <span aria-hidden className="sales_tag_check">
-          <CheckIcon height={12} width={12} />
+          <CheckIcon className="size-3.5" strokeWidth={3} />
         </span>
         {children}
       </TagBadge>

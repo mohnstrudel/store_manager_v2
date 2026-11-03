@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import PageHeader from "@/components/PageHeader";
@@ -29,7 +30,7 @@ export default function ResourceIndexPage({
               preserveState={newOpensModal}
               prefetch
             >
-              <i className="icn">🐣</i>
+              <PlusIcon />
               Add New Record
             </Link>
           </li>

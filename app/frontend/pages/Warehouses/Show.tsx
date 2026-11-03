@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PackageIcon, PencilIcon } from "lucide-react";
 
 import Button from "@/components/Button";
 import { useConfirmAction } from "@/utils/useConfirmAction";
@@ -54,13 +55,13 @@ function WarehouseHeader({ warehouse }: { warehouse: WarehouseShowRecord }) {
       <menu className="nav_menu">
         <li>
           <Link href={warehouse.new_item_path} prefetch>
-            <i className="icn">📦</i>
+            <PackageIcon />
             Add product
           </Link>
         </li>
         <li>
           <Link href={warehouse.edit_path} prefetch>
-            <i className="icn">✏</i>
+            <PencilIcon />
             Edit
           </Link>
         </li>

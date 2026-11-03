@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FactoryIcon } from "lucide-react";
 
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
@@ -21,7 +22,7 @@ export default function New({ cancel_path, form_action, options, purchase_item }
       <PageHeader className="mb-8" title="New Purchase Item">
         <li>
           <Link href={cancel_path} prefetch>
-            <i className="icn">🏭</i>
+            <FactoryIcon />
             Back to Warehouse
           </Link>
         </li>

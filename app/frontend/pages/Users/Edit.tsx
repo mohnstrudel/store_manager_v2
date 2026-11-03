@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
@@ -19,7 +20,7 @@ export default function Edit({ is_admin, role_options, user }: EditProps) {
       <PageHeader className="mb-8" title="Edit User">
         <li>
           <Link href={currentUserPath} prefetch>
-            <i className="icn">📄</i>
+            <FileTextIcon />
             View User Page
           </Link>
         </li>

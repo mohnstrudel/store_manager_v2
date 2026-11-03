@@ -50,10 +50,6 @@
     @apply text-amber-800 dark:text-amber-300 bg-amber-200/40 dark:bg-amber-900/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/70;
   }
 
-  .icn {
-    @apply font-normal font-icn not-italic;
-  }
-
   .btn_lightblue {
     @apply text-sky-700 bg-sky-100 hover:bg-sky-200/76 dark:text-sky-300 dark:bg-sky-900/50 dark:hover:bg-sky-900 border border-transparent;
   }

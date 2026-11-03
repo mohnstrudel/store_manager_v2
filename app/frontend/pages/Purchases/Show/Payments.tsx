@@ -1,5 +1,5 @@
-import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { useForm } from "@inertiajs/react";
+import { CirclePlusIcon } from "lucide-react";
 import { useCallback, type ChangeEvent, type FormEvent } from "react";
 
 import { useConfirmAction } from "@/utils/useConfirmAction";
@@ -125,7 +125,7 @@ function NewPaymentRow({
         </td>
         <td>
           <button className="btn_lightblue" form="new_payment_inline" type="submit">
-            <PlusCircleIcon height={20} width={20} />
+            <CirclePlusIcon />
             Add payment
           </button>
         </td>

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon, PencilIcon } from "lucide-react";
 
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
@@ -55,7 +56,7 @@ export default function Table({ shippingCompanies }: TableProps) {
                   onClick={stopRowNavigation}
                   prefetch
                 >
-                  <i className="icn">📄</i>
+                  <FileTextIcon />
                   Show
                 </Link>
                 <Link
@@ -63,7 +64,7 @@ export default function Table({ shippingCompanies }: TableProps) {
                   onClick={stopRowNavigation}
                   prefetch
                 >
-                  <i className="icn">✏</i>
+                  <PencilIcon />
                   Edit
                 </Link>
               </div>

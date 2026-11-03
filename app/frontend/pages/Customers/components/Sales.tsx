@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PackageIcon } from "lucide-react";
 
 import PaymentPlanMarker from "@/components/PaymentPlanMarker";
 import ZoomableThumbnail from "@/components/ZoomableThumbnail";
@@ -79,7 +80,7 @@ export default function Sales({ heading, sales }: SalesProps) {
                   <div className="flex flex-col items-start gap-2">
                     {sale.warehouses.map((warehouse) => (
                       <Link href={warehouse.path} key={warehouse.path} prefetch>
-                        <i className="icn">📦</i>
+                        <PackageIcon />
                         {warehouse.name}
                       </Link>
                     ))}

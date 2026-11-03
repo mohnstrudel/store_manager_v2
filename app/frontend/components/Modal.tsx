@@ -1,4 +1,4 @@
-import { XMarkIcon } from "@heroicons/react/20/solid";
+import { XIcon } from "lucide-react";
 import {
   useCallback,
   useId,
@@ -92,7 +92,7 @@ export default function Modal({
             onClick={requestClose}
             type="button"
           >
-            <XMarkIcon height={20} width={20} />
+            <XIcon className="size-5" />
           </button>
         </header>
         <div className="px-6 pb-6">{isShown ? children : null}</div>

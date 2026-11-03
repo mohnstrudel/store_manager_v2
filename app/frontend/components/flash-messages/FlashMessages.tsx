@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { PartyPopperIcon, TriangleAlertIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import type { FlashMessage } from "@/types/inertia";
@@ -9,8 +10,8 @@ const AUTO_DISMISS_DELAY = 5000;
 const TOAST_EXIT_DURATION = 300;
 const TOAST_ENTER_DELAY = 0;
 const FLASH_KIND = {
-  alert: { icon: "🚨" },
-  notice: { icon: "🙏" },
+  alert: { Icon: TriangleAlertIcon },
+  notice: { Icon: PartyPopperIcon },
 };
 
 export default function FlashMessages() {
@@ -21,6 +22,8 @@ export default function FlashMessages() {
   const toast = useFlashToast(activeFlash, activeKind, activeToken);
 
   if (!toast) return null;
+
+  const { Icon } = FLASH_KIND[toast.kind];
 
   return (
     <div aria-live="polite" className="flash_toast_region" id="flash-messages">
@@ -36,13 +39,9 @@ export default function FlashMessages() {
         // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- keep article semantics
         role="status"
       >
-        <i aria-hidden="true" className="icn text-2xl lg:text-3xl">
-          {FLASH_KIND[toast.kind].icon}
-        </i>
+        <Icon className="text-2xl lg:text-3xl" />
         <FlashMessageContent flash={toast.flash} />
-        <i aria-hidden="true" className="icn text-2xl lg:text-3xl">
-          {FLASH_KIND[toast.kind].icon}
-        </i>
+        <Icon className="text-2xl lg:text-3xl" />
       </article>
     </div>
   );

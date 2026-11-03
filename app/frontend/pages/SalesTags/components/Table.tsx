@@ -1,5 +1,5 @@
-import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
+import { CirclePlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useState, type ChangeEvent, type MouseEvent } from "react";
 
 import Button from "@/components/Button";
@@ -31,7 +31,7 @@ export default function Table({ salesTags }: TableProps) {
             from the sales list or a sale page.
           </p>
           <Link className="btn_blue" href={routes.salesTags.new.path()} {...keepPageVisit} prefetch>
-            <PlusCircleIcon height={20} width={20} />
+            <CirclePlusIcon />
             Add your first sales tag
           </Link>
         </div>
@@ -106,6 +106,7 @@ function SalesTagRow({ tag }: { tag: SalesTagCatalogRecord }) {
             onKeyDown={stopRowNavigation}
             variant="danger"
           >
+            <Trash2Icon />
             Delete
           </Button>
           <Link
@@ -115,7 +116,7 @@ function SalesTagRow({ tag }: { tag: SalesTagCatalogRecord }) {
             {...keepPageVisit}
             prefetch
           >
-            <i className="icn">✏</i>
+            <PencilIcon />
             Edit
           </Link>
         </div>

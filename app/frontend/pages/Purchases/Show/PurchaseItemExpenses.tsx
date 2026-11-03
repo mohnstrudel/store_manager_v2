@@ -1,5 +1,5 @@
-import { PlusCircleIcon } from "@heroicons/react/20/solid";
 import { useForm } from "@inertiajs/react";
+import { CirclePlusIcon } from "lucide-react";
 import { useCallback, type ChangeEvent, type FormEvent } from "react";
 
 import { useConfirmAction } from "@/utils/useConfirmAction";
@@ -120,7 +120,7 @@ function NewExpenseRow({
             form={`new_expense_${expense.create_path}`}
             type="submit"
           >
-            <PlusCircleIcon height={20} width={20} />
+            <CirclePlusIcon />
             Add expense
           </button>
         </td>

@@ -1,4 +1,5 @@
 import { router, Link } from "@inertiajs/react";
+import { SearchIcon, XIcon } from "lucide-react";
 import { useCallback, useMemo, type ChangeEvent, type FormEvent, useState } from "react";
 
 type SearchBarProps = {
@@ -38,12 +39,12 @@ export default function SearchBar({ initialQuery, path, resourceName }: SearchBa
         value={query}
       />
       <button className="mt-2 lg:mt-0 lg:ml-2" type="submit">
-        <i className="icn">🔎</i>
+        <SearchIcon />
         Search
       </button>
       {initialQuery && (
         <Link className="mt-2 lg:mt-0 lg:ml-2 btn_red" href={path} prefetch>
-          <i className="icn">❎</i>
+          <XIcon />
           Exit
         </Link>
       )}

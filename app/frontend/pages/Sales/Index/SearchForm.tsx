@@ -1,4 +1,5 @@
 import { router } from "@inertiajs/react";
+import { SearchIcon, XIcon } from "lucide-react";
 import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
 
 import routes from "@/utils/routes";
@@ -88,12 +89,12 @@ export default function SearchForm({ q, sort, filters }: SearchFormProps) {
           value={draft.q}
         />
         <button type="submit">
-          <i className="icn">🔎</i>
+          <SearchIcon />
           Search
         </button>
         {hasSearch && (
           <button className="btn_red" onClick={handleClear} type="button">
-            <i className="icn">❎</i>
+            <XIcon />
             Clear search
           </button>
         )}

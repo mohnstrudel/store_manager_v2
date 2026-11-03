@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { FileTextIcon, PencilIcon } from "lucide-react";
 
 import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
@@ -42,11 +43,11 @@ export default function Table({ colors }: TableProps) {
               <td className="table_actions text-right">
                 <div className="flex flex-wrap justify-end gap-2">
                   <Link href={showPath} onClick={stopRowNavigation} prefetch>
-                    <i className="icn">📄</i>
+                    <FileTextIcon />
                     Show
                   </Link>
                   <Link href={editPath} onClick={stopRowNavigation} prefetch>
-                    <i className="icn">✏</i>
+                    <PencilIcon />
                     Edit
                   </Link>
                 </div>

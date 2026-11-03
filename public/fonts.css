@@ -8,14 +8,6 @@
 
 @font-face {
   font-style: normal;
-  font-weight: 400;
-  src: url("/fonts/noto-emoji-400.woff2") format("woff2");
-  font-family: "Noto Emoji";
-  font-display: swap;
-}
-
-@font-face {
-  font-style: normal;
   font-weight: 200 800;
   font-stretch: 75% 100%;
   src: url("/fonts/BricolageGrotesque-var.woff2") format("woff2");

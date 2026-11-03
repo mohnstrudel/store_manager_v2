@@ -57,7 +57,7 @@
   }
 
   .sales_tag_choice:has(:checked) .sales_tag_check {
-    @apply mr-1 max-w-3;
+    @apply mr-1 max-w-3.5;
   }
 
   .sales_tag_choice:has(:checked) .sales_tag {
