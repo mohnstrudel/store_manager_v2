@@ -145,8 +145,7 @@ RSpec.describe "Customers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Customers/New")
 
-      customer_props = inertia.props[:customer]
-      expect(customer_props[:id]).to be_nil
+      expect_inertia.to have_props(customer: {first_name: nil, last_name: nil, email: nil, phone: nil})
     end
   end
 

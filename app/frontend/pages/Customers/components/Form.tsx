@@ -2,10 +2,10 @@ import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import ResourceForm from "@/components/ResourceForm";
 
-import { CustomerRecord } from "../types";
+import { CustomerFormRecord } from "../types";
 
 type CustomerFormProps = {
-  customer: CustomerRecord;
+  customer: CustomerFormRecord;
   method: "post" | "patch";
   submitLabel: string;
   url: string;

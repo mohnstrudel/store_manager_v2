@@ -5,7 +5,7 @@ import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 
 import { makeCustomer, makeCustomerForm } from "../test/factories";
-import type { CustomerRecord } from "../types";
+import type { CustomerFormRecord } from "../types";
 import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -70,7 +70,7 @@ function renderForm({
   submitLabel = "Update Customer",
   url = "/customers/1",
 }: {
-  customer?: CustomerRecord;
+  customer?: CustomerFormRecord;
   method?: "post" | "patch";
   pageErrors?: Record<string, string>;
   submitLabel?: string;
