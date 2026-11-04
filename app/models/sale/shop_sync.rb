@@ -4,10 +4,6 @@ module Sale::ShopSync
   extend ActiveSupport::Concern
 
   class_methods do
-    def update_order(sale)
-      Woo::PushSaleJob.perform_later(sale)
-    end
-
     def find_recent_by_order_id(shop_order_id)
       if shop_order_id.upcase.include?("HSCM#")
         Sale.find_by(shopify_name: shop_order_id)
@@ -33,6 +29,14 @@ module Sale::ShopSync
   end
 
   def sync_status_change_to_shop!
-    self.class.update_order(self)
+    push_status_to_woo_later
+  end
+
+  def push_status_to_woo_later
+    Woo::PushSaleJob.perform_later(self)
+  end
+
+  def push_status_to_woo_now
+    Woo::Api::Client.new.update_order_status(woo_store_id, status)
   end
 end

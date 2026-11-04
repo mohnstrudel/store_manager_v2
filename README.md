@@ -139,8 +139,9 @@ Store-specific translation stays close to the business area it updates rather th
 - `Product::Shopify::Parser`, `Product::Shopify::Importer`, `Product::Shopify::Payload`
 - `Sale::Shopify::Importer`, `Sale::Shopify::SaleItemImporter`
 - `Customer::Shopify::Importer`
+- `Sale::Woo::Parser`, `Sale::Woo::Importer`, `Product::Woo::Parser`, `Product::Woo::Importer`, `Customer::Woo::Importer`
 
-Lower-level HTTP or GraphQL client code lives under its integration namespace in `app/models` when it is mainly about talking to an external API — `app/models/shopify/api/client.rb`, `app/models/shopify/graphql/*`, `app/models/seal/api/client.rb`.
+Lower-level HTTP or GraphQL client code lives under its integration namespace in `app/models` when it is mainly about talking to an external API — `app/models/shopify/api/client.rb`, `app/models/shopify/graphql/*`, `app/models/seal/api/client.rb`, `app/models/woo/api/client.rb`.
 
 ### 4. Background jobs
 

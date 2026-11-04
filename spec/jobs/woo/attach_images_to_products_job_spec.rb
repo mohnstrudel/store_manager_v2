@@ -6,7 +6,7 @@ RSpec.describe Woo::AttachImagesToProductsJob do
   include ActiveJob::TestHelper
 
   let(:subject_job) { described_class.new }
-  let(:sync_woo_products_job) { instance_double(Woo::PullProductsJob) }
+  let(:client) { instance_double(Woo::Api::Client) }
   let(:product) { create(:product, woo_store_id: "123") }
   let(:img_url) { "http://example.com/image.jpg" }
   let(:parsed_product) { {woo_id: "123", images: [img_url]} }
@@ -17,15 +17,15 @@ RSpec.describe Woo::AttachImagesToProductsJob do
 
   describe "#perform" do
     it "attaches images to products" do # rubocop:todo RSpec/MultipleExpectations
-      allow(Woo::PullProductsJob).to receive(:new).and_return(sync_woo_products_job)
-      allow(sync_woo_products_job).to receive(:get_woo_products)
-      allow(sync_woo_products_job).to receive(:parse_all).and_return([parsed_product])
+      allow(Woo::Api::Client).to receive(:new).and_return(client)
+      allow(client).to receive(:fetch_products).with(Woo::PullProductsJob::PRODUCTS_SIZE).and_return([{id: 123}])
+      allow(Product::Woo::Parser).to receive(:parse_all).with([{id: 123}]).and_return([parsed_product])
       allow(Product).to receive(:where_woo_ids).with(["123"]).and_return([product])
 
       perform_enqueued_jobs { subject_job.perform_now }
 
-      expect(sync_woo_products_job).to have_received(:get_woo_products)
-      expect(sync_woo_products_job).to have_received(:parse_all)
+      expect(client).to have_received(:fetch_products)
+      expect(Product::Woo::Parser).to have_received(:parse_all)
       expect(Product).to have_received(:where_woo_ids).with(["123"])
       expect(subject_job).to have_received(:attach_images).with(product, img_url)
     end

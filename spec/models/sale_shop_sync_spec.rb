@@ -72,13 +72,24 @@ RSpec.describe Sale do
   end
 
   describe "#sync_status_change_to_shop!" do
-    it "pushes the sale through the class-level sync entrypoint" do
+    it "enqueues the Woo status push" do
       sale = create(:sale)
-      allow(described_class).to receive(:update_order)
 
-      sale.sync_status_change_to_shop!
+      expect { sale.sync_status_change_to_shop! }
+        .to have_enqueued_job(Woo::PushSaleJob).with(sale)
+    end
+  end
 
-      expect(described_class).to have_received(:update_order).with(sale)
+  describe "#push_status_to_woo_now" do
+    it "posts the sale status to its Woo order" do
+      sale = create(:sale, woo_store_id: "4321", status: "completed")
+      client = instance_double(Woo::Api::Client)
+      allow(Woo::Api::Client).to receive(:new).and_return(client)
+      allow(client).to receive(:update_order_status)
+
+      sale.push_status_to_woo_now
+
+      expect(client).to have_received(:update_order_status).with("4321", "completed")
     end
   end
 end

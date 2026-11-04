@@ -1,0 +1,337 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe Sale::Woo::Importer do
+  let(:woo_orders) {
+    JSON.parse(file_fixture("api_orders.json").read, symbolize_names: true)
+  }
+  let(:parsed_woo_orders) {
+    JSON.parse(file_fixture("parsed_orders.json").read, symbolize_names: true)
+  }
+  let(:sample_order) { woo_orders.first }
+  let(:sample_parsed_order) { parsed_woo_orders.first }
+  let(:partially_paid_order) {
+    JSON.parse(file_fixture("api_partially_paid_order.json").read, symbolize_names: true)
+  }
+  let(:partially_paid_order_with_deposit) {
+    partially_paid_order.deep_dup.tap do |order|
+      order[:meta_data] = [
+        {id: 1, key: "_awcdp_deposits_deposit_amount", value: "50.00"},
+        {id: 2, key: "_awcdp_deposits_deposit_paid", value: "yes"}
+      ]
+    end
+  }
+  let(:to_money) { ->(value) { value.nil? ? nil : BigDecimal(value.to_s) } }
+
+  before do
+    create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
+  end
+
+  describe ".import!" do
+    let(:parsed_sale) { sample_parsed_order[:sale] }
+    let(:parsed_customer) { sample_parsed_order[:customer] }
+
+    it "creates a new sale when none exists", :aggregate_failures do
+      sale = described_class.import!({sale: parsed_sale, customer: parsed_customer, products: []})
+
+      expect(sale).to be_persisted
+      expect(sale.woo_store_id.to_s).to eq(parsed_sale[:woo_id].to_s)
+      expect(sale.total).to eq(BigDecimal(parsed_sale[:total]))
+      expect(sale.customer.woo_store_id).to eq(parsed_customer[:woo_id].to_s)
+    end
+
+    it "updates the existing sale", :aggregate_failures do
+      existing_sale = create(:sale, woo_store_id: parsed_sale[:woo_id], total: 100)
+
+      described_class.import!({sale: parsed_sale.merge(total: 200), customer: parsed_customer, products: []})
+
+      expect(existing_sale.reload.total).to eq(200)
+      expect(Sale.count).to eq(1)
+    end
+
+    it "updates address snapshots for an existing sale", :aggregate_failures do
+      existing_sale = create(:sale, woo_store_id: parsed_sale[:woo_id])
+
+      described_class.import!({
+        sale: parsed_sale,
+        customer: parsed_customer,
+        addresses: {
+          shipping: {address_1: "Updated Shipping St", city: "Berlin"},
+          billing: {address_1: "Updated Billing St", city: "Munich"}
+        },
+        products: []
+      })
+
+      existing_sale.reload
+      expect(existing_sale.shipping_address).to have_attributes(address_1: "Updated Shipping St", city: "Berlin")
+      expect(existing_sale.billing_address).to have_attributes(address_1: "Updated Billing St", city: "Munich")
+    end
+  end
+
+  describe ".import_all!" do
+    let(:denpasar) { "Denpasar" }
+    let(:weird_link) { "hey ho, let's go" }
+
+    context "when we parsed orders from Woo API" do
+      before do
+        create(:sale, woo_store_id: parsed_woo_orders.first[:sale][:woo_id], total: 50)
+        parsed_woo_orders.pluck(:products).flatten.each do |p|
+          create(:product, woo_store_id: p[:product_woo_id])
+        end
+        first_product = Product.find_by_woo_id(
+          parsed_woo_orders.first[:products].first[:product_woo_id]
+        )
+        create(
+          :variant,
+          product: first_product,
+          woo_store_id: parsed_woo_orders.first[:products].first[:variant][:woo_id]
+        ).tap do |e|
+          e.woo_info.update(slug: weird_link)
+        end
+        described_class.import_all!(parsed_woo_orders)
+      end
+
+      it "saves each product to the DB" do
+        expect(Sale.all.size).to eq(parsed_woo_orders.size)
+      end
+
+      it "assigns every product sale to a Variant" do
+        with_variant = SaleItem.where.not(variant_id: nil)
+        parsed_products_count = parsed_woo_orders.pluck(:products).flatten.size
+        expect(with_variant.size).to eq(parsed_products_count)
+      end
+
+      it "reuses existing sales" do
+        existing_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
+        expect(existing_sale.total).not_to eq(50)
+      end
+
+      it "updates the existing sale status from the pulled Woo payload" do
+        existing_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
+        expect(existing_sale.status).to eq(parsed_woo_orders.first[:sale][:status])
+      end
+
+      it "persists the Woo order timestamp on the sale for analytics" do
+        first_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
+
+        expect(first_sale.woo_created_at).to be_within(1.second).of(Time.zone.parse(parsed_woo_orders.first[:sale][:woo_created_at]))
+      end
+
+      it "reuses existing variants" do
+        existing_variant = Variant.find_by_woo_id(parsed_woo_orders.first[:products].first[:variant][:woo_id])
+        expect(existing_variant.woo_info.slug).to eq(weird_link)
+      end
+
+      it "allocates order-level revenue down to sale items", :aggregate_failures do
+        first_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
+        item = first_sale.sale_items.first
+
+        expect(item.expected_revenue).to eq(BigDecimal(parsed_woo_orders.first[:products].first[:expected_revenue]))
+        expect(item.received_revenue).to eq(BigDecimal(parsed_woo_orders.first[:sale][:received_revenue]))
+        expect(item.outstanding_revenue).to eq(BigDecimal(parsed_woo_orders.first[:sale][:outstanding_revenue]))
+      end
+
+      it "keeps allocated item revenue summing to the converted order-level totals", :aggregate_failures do
+        first_sale = Sale.find_by_woo_id(parsed_woo_orders.first[:sale][:woo_id])
+
+        expect(first_sale.sale_items.sum(&:received_revenue)).to eq(first_sale.received_revenue)
+        expect(first_sale.sale_items.sum(&:outstanding_revenue)).to eq(first_sale.outstanding_revenue)
+      end
+    end
+
+    context "when parsed orders include separate addresses" do
+      before do
+        Sale::Woo::Parser.parse_all(woo_orders).pluck(:products).flatten.each do |p|
+          create(:product, woo_store_id: p[:product_woo_id])
+        end
+      end
+
+      it "persists shipping and billing address snapshots" do
+        described_class.import_all!(Sale::Woo::Parser.parse_all(woo_orders))
+
+        sale = Sale.find_by_woo_id(sample_order[:id])
+        expect(sale.shipping_address).to have_attributes(
+          address_1: sample_order[:shipping][:address_1],
+          city: sample_order[:shipping][:city]
+        )
+        expect(sale.billing_address).to have_attributes(
+          address_1: sample_order[:billing][:address_1],
+          email: sample_order[:billing][:email]
+        )
+      end
+
+      it "updates existing address snapshots" do
+        parsed_orders = Sale::Woo::Parser.parse_all(woo_orders)
+        described_class.import_all!(parsed_orders)
+
+        updated_orders = Sale::Woo::Parser.parse_all(woo_orders).tap do |orders|
+          orders.first[:addresses][:shipping][:address_1] = "Updated Shipping St"
+          orders.first[:addresses][:billing][:address_1] = "Updated Billing St"
+        end
+
+        described_class.import_all!(updated_orders)
+
+        sale = Sale.find_by_woo_id(sample_order[:id])
+        expect(sale.addresses.count).to eq(2)
+        expect(sale.shipping_address).to have_attributes(address_1: "Updated Shipping St")
+        expect(sale.billing_address).to have_attributes(address_1: "Updated Billing St")
+      end
+    end
+
+    context "when product needs to be fetched from Woo" do
+      let(:product_woo_id) { "999" }
+      let(:parsed_order_with_missing_product) do
+        parsed_woo_orders.first.tap do |order|
+          order[:products].first[:product_woo_id] = product_woo_id
+        end
+      end
+
+      it "fetches missing product from Woo" do
+        Product.where_woo_ids([product_woo_id]).destroy_all
+        allow(Product::Woo::Importer).to receive(:fetch_and_import).with(product_woo_id)
+
+        described_class.import_all!([parsed_order_with_missing_product])
+
+        expect(Product::Woo::Importer).to have_received(:fetch_and_import).with(product_woo_id)
+      end
+
+      it "links the sale item to the product Woo returns" do
+        allow(Product::Woo::Importer).to receive(:fetch_and_import).with(product_woo_id) do
+          create(:product, woo_store_id: product_woo_id)
+        end
+
+        described_class.import_all!([parsed_order_with_missing_product])
+
+        sale = Sale.find_by_woo_id(parsed_order_with_missing_product[:sale][:woo_id])
+        expect(sale.sale_items.map(&:product)).to include(Product.find_by_woo_id(product_woo_id))
+      end
+
+      it "skips the line item when Woo returns no product" do
+        allow(Product::Woo::Importer).to receive(:fetch_and_import).and_return(nil)
+
+        expect { described_class.import_all!([parsed_order_with_missing_product]) }.not_to raise_error
+      end
+    end
+
+    context "when an existing Woo line omits Variant metadata" do
+      it "preserves the stored Variant while updating the Sale status" do
+        product = create(:product, woo_store_id: "woo-product")
+        stored_variant = create(
+          :variant,
+          :with_version,
+          product:,
+          woo_store_id: "woo-variant"
+        )
+        sale = create(:sale, woo_store_id: "woo-order", status: "processing")
+        sale_item = create(
+          :sale_item,
+          product:,
+          variant: stored_variant,
+          sale:,
+          woo_store_id: "woo-line"
+        )
+        parsed_order = {
+          sale: {
+            woo_id: "woo-order",
+            status: "completed",
+            total: "10.00",
+            expected_revenue: "10.00",
+            received_revenue: "10.00",
+            outstanding_revenue: "0",
+            refunded_revenue: "0"
+          },
+          customer: {
+            email: "woo@example.com",
+            first_name: "Woo",
+            last_name: "Customer",
+            phone: nil,
+            woo_id: "woo-customer"
+          },
+          products: [{
+            sale_item_woo_id: "woo-line",
+            product_woo_id: "woo-product",
+            price: "10.00",
+            expected_revenue: "10.00",
+            qty: 1
+          }]
+        }
+
+        described_class.import_all!([parsed_order])
+
+        aggregate_failures do
+          expect(sale_item.reload.variant_id).to eq(stored_variant.id)
+          expect(sale.reload.status).to eq("completed")
+        end
+      end
+    end
+
+    context "when Woo reports a partially paid order" do
+      it "leaves the unknown split unset on the sale and on its items", :aggregate_failures do
+        partially_paid_order[:line_items].each do |line_item|
+          create(:product, woo_store_id: line_item[:product_id].to_s)
+        end
+
+        described_class.import_all!(Sale::Woo::Parser.parse_all([partially_paid_order]))
+
+        sale = Sale.find_by_woo_id(partially_paid_order[:id])
+        expect(sale).to have_attributes(
+          settlement_status: "not_fully_paid",
+          expected_revenue: BigDecimal("1115.54"),
+          received_revenue: nil,
+          outstanding_revenue: nil,
+          refunded_revenue: BigDecimal(0)
+        )
+        expect(sale.sale_items.map(&:expected_revenue)).to contain_exactly(
+          BigDecimal("700.41"), BigDecimal("415.13")
+        )
+        expect(sale.sale_items.map(&:received_revenue)).to all(be_nil)
+        expect(sale.sale_items.map(&:outstanding_revenue)).to all(be_nil)
+        expect(sale.sale_items.map(&:refunded_revenue)).to all(eq(BigDecimal(0)))
+      end
+
+      it "persists the converted plugin deposit as received revenue when a verified deposit exists", :aggregate_failures do
+        partially_paid_order_with_deposit[:line_items].each do |line_item|
+          create(:product, woo_store_id: line_item[:product_id].to_s)
+        end
+
+        described_class.import_all!(Sale::Woo::Parser.parse_all([partially_paid_order_with_deposit]))
+
+        sale = Sale.find_by_woo_id(partially_paid_order_with_deposit[:id])
+        expect(sale).to have_attributes(
+          settlement_status: "not_fully_paid",
+          received_revenue: BigDecimal("56.25"),
+          outstanding_revenue: nil
+        )
+      end
+    end
+
+    context "when a Woo order is cancelled, failed, or refunded" do
+      it "excludes it from positive economics while keeping a real settlement mapping" do
+        excluded_order = sample_order.deep_dup.merge(status: "cancelled")
+        excluded_order[:line_items].each { |line_item| create(:product, woo_store_id: line_item[:product_id].to_s) }
+
+        described_class.import_all!(Sale::Woo::Parser.parse_all([excluded_order]))
+
+        sale = Sale.find_by_woo_id(excluded_order[:id])
+        expect(sale.settlement_status).to eq("paid")
+        expect(Sale.economically_excluded).to include(sale)
+      end
+    end
+
+    context "when an unexpected error happens while processing an order" do
+      it "keeps the current order available for rescue logging" do
+        allow(Customer::Woo::Importer).to receive(:import!).and_raise(StandardError, "boom")
+        allow(Rails.logger).to receive(:error)
+
+        expect do
+          described_class.import_all!([sample_parsed_order])
+        end.to raise_error(StandardError, "boom")
+
+        expect(Rails.logger).to have_received(:error).with(
+          /Unexpected error for order #{sample_parsed_order[:sale][:woo_id]}: StandardError - boom/
+        )
+      end
+    end
+  end
+end

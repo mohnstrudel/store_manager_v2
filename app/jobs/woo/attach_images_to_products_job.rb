@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require "open-uri"
+
 module Woo
   class AttachImagesToProductsJob < ApplicationJob
     queue_as :default
 
     def perform
-      product_job = Woo::PullProductsJob.new
-      parsed_products = product_job.parse_all(product_job.get_woo_products)
+      woo_products = Woo::Api::Client.new.fetch_products(Woo::PullProductsJob::PRODUCTS_SIZE)
+      parsed_products = Product::Woo::Parser.parse_all(woo_products)
       products = Product.where_woo_ids(parsed_products.pluck(:woo_id))
 
       products.each do |product|

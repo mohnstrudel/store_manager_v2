@@ -7,9 +7,7 @@ module Webhooks
       return head(:unauthorized) unless verified
 
       request_payload = JSON.parse(request.body.read, symbolize_names: true)
-      job = Woo::PullSalesJob.new
-      parsed_order = job.parse(request_payload)
-      job.create_sales([parsed_order])
+      Sale::Woo::Importer.import_all!([Sale::Woo::Parser.parse(request_payload)])
 
       head(:no_content)
     end

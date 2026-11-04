@@ -4,18 +4,18 @@ module Woo
   class PullVariantsJob < ApplicationJob
     queue_as :default
 
-    include Gettable
     include Sanitizable
 
     TYPES = ::Variant.types.values
 
     def perform(products_with_variants)
-      variants_api_response = get_variants(products_with_variants, "publish")
+      variants_api_response = get_variants(products_with_variants)
       parsed_woo_variants = parse(variants_api_response)
       create(parsed_woo_variants)
     end
 
-    def get_variants(products_with_variants, status)
+    def get_variants(products_with_variants)
+      client = Woo::Api::Client.new
       progress = 0
       total = products_with_variants.size
       products = Product.where_woo_ids(products_with_variants)
@@ -27,10 +27,7 @@ module Woo
         next if products.find { |p| p.woo_store_id == product_woo_id.to_s }
           .variants.present?
 
-        api_get(
-          "https://store.handsomecake.com/wp-json/wc/v3/products/#{product_woo_id}/editions",
-          status
-        )
+        client.fetch_product_editions(product_woo_id)
       end.flatten.compact_blank
     end
 

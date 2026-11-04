@@ -9,9 +9,6 @@ Bundler.require(*Rails.groups)
 module StoreManagerV2
   class Application < Rails::Application
     config.load_defaults 7.0
-    jobs_concers_path = Rails.root.join("app/jobs/concerns")
-    config.autoload_paths << jobs_concers_path
-    config.eager_load_paths << jobs_concers_path
 
     config.active_job.queue_adapter = :sidekiq
 
