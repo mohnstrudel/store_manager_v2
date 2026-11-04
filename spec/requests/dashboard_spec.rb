@@ -16,7 +16,19 @@ RSpec.describe "Dashboard" do
   end
 
   describe "GET /" do
-    it "lists unpurchased sold products and suppliers with debts", :aggregate_failures do
+    it "renders the page without waiting for the debt reports", :aggregate_failures do
+      sell(batman)
+
+      get root_path
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Dashboard/Index")
+      expect(inertia).to have_deferred_props(:sale_debts, group: :sale_debts)
+      expect(inertia).to have_deferred_props(:supplier_debts, group: :supplier_debts)
+      expect(inertia.props).not_to include(:sale_debts, :supplier_debts)
+    end
+
+    it "loads unpurchased sold products and suppliers with debts after the page", :aggregate_failures do
       sell(asuka)
       sell(batman, qty: 2)
       sell(guts)
@@ -24,11 +36,25 @@ RSpec.describe "Dashboard" do
       create(:purchase, product: batman, amount: 1, supplier: supplier_agk)
 
       get root_path
+      inertia_load_deferred_props
 
-      expect(response).to have_http_status(:ok)
-      expect_inertia.to render_component("Dashboard/Index")
-      expect(inertia.props[:sale_debts].pluck(:title)).to contain_exactly(batman.full_title, guts.full_title)
-      expect(inertia.props[:suppliers_debts].pluck(:supplier_title)).to contain_exactly("FNC", "AnitoysGK")
+      expect(inertia.props[:sale_debts][:rows].pluck(:title)).to contain_exactly(batman.full_title, guts.full_title)
+      expect(inertia.props[:sale_debts][:count]).to eq(2)
+      expect(inertia.props[:supplier_debts][:rows].pluck(:supplier_title)).to contain_exactly("FNC", "AnitoysGK")
+      expect(inertia.props[:supplier_debts][:total]).to be_present
+    end
+
+    it "reports each supplier's purchase count, cost, payments, and debt", :aggregate_failures do
+      purchase = create(:purchase, supplier: supplier_fnc, amount: 1)
+      create(:payment, purchase:, value: 10)
+
+      get root_path
+      inertia_load_deferred_props(:supplier_debts)
+
+      expect(inertia.props[:supplier_debts][:rows].sole).to include(
+        supplier_title: "FNC", total_size: 1, total_cost: be_present, paid: be_present, total_debt: be_present
+      )
+      expect(inertia.props).not_to include(:sale_debts)
     end
   end
 

@@ -69,6 +69,23 @@ export const router = {
 
 export const createInertiaApp = vi.fn<(...args: unknown[]) => unknown>();
 
+type DeferredStubProps = {
+  children: ReactNode | ((slot: { reloading: boolean }) => ReactNode);
+  data: string | string[];
+  fallback: ReactNode | (() => ReactNode);
+};
+
+export function Deferred({ children, data, fallback }: DeferredStubProps) {
+  const { props } = usePage();
+  const keys = Array.isArray(data) ? data : [data];
+
+  if (keys.every((key) => props[key] !== undefined)) {
+    return typeof children === "function" ? children({ reloading: false }) : children;
+  }
+
+  return typeof fallback === "function" ? fallback() : fallback;
+}
+
 beforeEach(() => {
   window.history.replaceState(null, "", "/");
 });

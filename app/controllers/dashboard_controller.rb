@@ -3,7 +3,7 @@
 class DashboardController < ApplicationController
   def index
     render_inertia "Dashboard/Index", serializer: Dashboard::IndexResource,
-      locals: {sale_debts: Product.with_sale_debts, suppliers_debts: Supplier.debt_summaries}
+      locals: {sale_debts: Product.with_sale_debts, suppliers: Supplier.all}
   end
 
   def noop

@@ -11,25 +11,19 @@ class Dashboard::IndexResource < ApplicationResource
     last_orders_pull_path
   end
 
-  typelize "Array<DashboardSaleDebt>"
-  attribute :sale_debts do |page|
-    Dashboard::SaleDebtResource.new(page.fetch(:sale_debts).first(5)).serializable_hash
+  typelize({rows: "Array<DashboardSaleDebt>", count: :number})
+  attribute :sale_debts, inertia: {defer: {group: "sale_debts"}} do |page|
+    debts = page.fetch(:sale_debts)
+    {rows: Dashboard::SaleDebtResource.new(debts.first(5)).serializable_hash, count: debts.length}
   end
 
-  typelize :number
-  attribute :sale_debts_count do |page|
-    page.fetch(:sale_debts).length
-  end
-
-  typelize "Array<DashboardSupplierDebt>"
-  attribute :suppliers_debts do |page|
-    debts = page.fetch(:suppliers_debts).reject { |supplier_debt| supplier_debt[:total_debt].zero? }
-    Dashboard::SupplierDebtResource.new(debts).serializable_hash
-  end
-
-  typelize :string, nullable: true
-  attribute :total_suppliers_debt do |page|
-    format_money(page.fetch(:suppliers_debts).sum { |supplier_debt| supplier_debt[:total_debt] })
+  typelize({rows: "Array<DashboardSupplierDebt>", total: "string | null"})
+  attribute :supplier_debts, inertia: {defer: {group: "supplier_debts"}} do |page|
+    debts = page.fetch(:suppliers).debt_summaries.reject { |supplier_debt| supplier_debt[:total_debt].zero? }
+    {
+      rows: Dashboard::SupplierDebtResource.new(debts).serializable_hash,
+      total: format_money(debts.sum { |supplier_debt| supplier_debt[:total_debt] })
+    }
   end
 
   typelize :string

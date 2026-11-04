@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import type { DashboardSaleDebt, DashboardSupplierDebt } from "@/types/serializers";
+import { mockPageProps } from "@/test/mocks/inertia";
+import type { DashboardIndex, DashboardSaleDebt, DashboardSupplierDebt } from "@/types/serializers";
 
 import Index from "./Index";
 
@@ -34,46 +35,71 @@ function makeSupplierDebt(overrides: Partial<SupplierDebtRecord> = {}): Supplier
   };
 }
 
-const defaultProps = {
+const defaultProps: Required<DashboardIndex> = {
   debts_path: "/debts",
   last_orders_pull_path: "/orders/pull",
-  sale_debts: [makeSaleDebt()],
-  sale_debts_count: 1,
+  sale_debts: { rows: [makeSaleDebt()], count: 1 },
   sales_hook_disabled: false,
-  suppliers_debts: [],
-  total_suppliers_debt: "0.00",
+  supplier_debts: { rows: [], total: "0.00" },
 };
+
+function renderIndex(overrides: Partial<typeof defaultProps> = {}) {
+  const props = { ...defaultProps, ...overrides };
+  mockPageProps(props);
+  return render(<Index {...props} />);
+}
 
 describe("Dashboard/Index", () => {
   it("renders the Dashboard heading and sale debt rows", () => {
-    render(<Index {...defaultProps} />);
+    renderIndex();
 
     expect(screen.getByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByText("Moon Statue")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "See More..." })).toHaveAttribute("href", "/debts");
   });
 
-  it("shows the suppliers debt section when suppliers_debts is non-empty", () => {
-    render(<Index {...defaultProps} suppliers_debts={[makeSupplierDebt()]} />);
+  it("shows loading sections until the debt reports arrive", () => {
+    mockPageProps({ debts_path: "/debts", sales_hook_disabled: false });
+    render(
+      <Index
+        debts_path="/debts"
+        last_orders_pull_path="/orders/pull"
+        sales_hook_disabled={false}
+      />,
+    );
 
-    expect(screen.getByText("Acme Imports")).toBeInTheDocument();
-    expect(screen.getByText("300.00")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Products Short" })).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+    expect(screen.getByRole("region", { name: "Supplier Debt" })).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+    expect(screen.queryByText("Moon Statue")).not.toBeInTheDocument();
   });
 
-  it("hides the suppliers debt section when suppliers_debts is empty", () => {
-    render(<Index {...defaultProps} suppliers_debts={[]} />);
+  it("shows the suppliers debt section when supplier debts are present", () => {
+    renderIndex({ supplier_debts: { rows: [makeSupplierDebt()], total: "300.00" } });
+
+    expect(screen.getByText("Acme Imports")).toBeInTheDocument();
+    expect(screen.getAllByText("300.00")).toHaveLength(2);
+  });
+
+  it("hides the suppliers debt section when there are no supplier debts", () => {
+    renderIndex();
 
     expect(screen.queryByText("Supplier Debt")).not.toBeInTheDocument();
   });
 
   it("shows the webhook warning when sales_hook_disabled is true", () => {
-    render(<Index {...defaultProps} sales_hook_disabled />);
+    renderIndex({ sales_hook_disabled: true });
 
     expect(screen.getByText("The WooCommerce Sales Webhook is Deactivated")).toBeInTheDocument();
   });
 
   it("hides the webhook warning when sales_hook_disabled is false", () => {
-    render(<Index {...defaultProps} sales_hook_disabled={false} />);
+    renderIndex();
 
     expect(
       screen.queryByText("The WooCommerce Sales Webhook is Deactivated"),
