@@ -7,11 +7,11 @@ class PasswordsController < ApplicationController
   skip_after_action :verify_authorized
 
   def new
-    render inertia: "Passwords/New", props: {email_address: params[:email_address]}
+    render_inertia "Passwords/New", serializer: EmailAddressPrefillResource, locals: {email_address: params[:email_address]}
   end
 
   def edit
-    render inertia: "Passwords/Edit", props: {token: params[:token]}
+    render_inertia "Passwords/Edit", serializer: Passwords::EditResource, locals: {token: params.expect(:token)}
   end
 
   def create
