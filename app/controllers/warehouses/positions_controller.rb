@@ -4,11 +4,9 @@ module Warehouses
   class PositionsController < ApplicationController
     include WarehouseScoped
 
+    before_action :ensure_position_is_positive
+
     def update
-      new_position = params.expect(:position).to_i
-
-      return head :bad_request unless new_position.positive?
-
       prev_position = @warehouse.position
       @warehouse.move_to_position(new_position)
 
@@ -20,6 +18,14 @@ module Warehouses
     end
 
     private
+
+    def new_position
+      @new_position ||= params.expect(:position).to_i
+    end
+
+    def ensure_position_is_positive
+      head :bad_request unless new_position.positive?
+    end
 
     def authorize_resource
       authorize :warehouse, :change_position?

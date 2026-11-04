@@ -10,6 +10,17 @@ RSpec.describe Webhooks::OrderUpdatesController do
     JSON.parse(file_fixture("parsed_hooks_order.json").read, symbolize_names: true)
   }
 
+  it "rejects a payload with a wrong signature without importing it" do
+    allow(Rails.application.credentials).to receive(:dig).and_call_original
+    allow(Rails.application.credentials).to receive(:dig).with(:hooks, :order).and_return("order-secret")
+
+    expect {
+      post "/update-order", params: request_body, headers: {"CONTENT_TYPE" => "application/json", "x-wc-webhook-signature" => "wrong"}
+    }.not_to change(Sale, :count)
+
+    expect(response).to have_http_status(:unauthorized)
+  end
+
   # rubocop:disable RSpec/ExampleLength
   describe "when we receive a payload from Webhook" do
     before do

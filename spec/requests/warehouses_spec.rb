@@ -241,5 +241,14 @@ RSpec.describe "Warehouses" do
       expect(warehouses.pluck(:id)).to eq([second.id, first.id, third.id])
       expect(warehouses.first[:positions]).to eq([1, 2, 3])
     end
+
+    it "rejects a non-positive position without moving the warehouse" do
+      warehouse = create(:warehouse, position: 1)
+
+      patch warehouse_position_path(warehouse), params: {position: "0"}
+
+      expect(response).to have_http_status(:bad_request)
+      expect(warehouse.reload.position).to eq(1)
+    end
   end
 end
