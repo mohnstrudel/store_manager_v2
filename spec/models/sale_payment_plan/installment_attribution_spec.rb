@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe SalePaymentPlan do
-  describe "#reconcile_installment_attribution!" do
+  describe "#reconcile_installment_attribution" do
     let(:origin_sale) { create(:sale, shopify_store_id: "gid://shopify/Order/100") }
     let(:follow_up_sale) { create(:sale, shopify_store_id: "gid://shopify/Order/101") }
     let(:placeholder_product) do
@@ -36,7 +36,7 @@ RSpec.describe SalePaymentPlan do
         origin_item = create(:sale_item, sale: origin_sale, product: real_product, variant: real_variant)
         plan = build_plan
 
-        plan.reconcile_installment_attribution!
+        plan.reconcile_installment_attribution
 
         expect(payment_item.reload).to have_attributes(
           product: real_product,
@@ -50,7 +50,7 @@ RSpec.describe SalePaymentPlan do
       it "leaves the payment item generic and unassigned" do
         plan = build_plan
 
-        plan.reconcile_installment_attribution!
+        plan.reconcile_installment_attribution
 
         expect(payment_item.reload).to have_attributes(
           product: placeholder_product,
@@ -66,7 +66,7 @@ RSpec.describe SalePaymentPlan do
         create(:sale_item, sale: origin_sale, product: create(:product))
         plan = build_plan
 
-        plan.reconcile_installment_attribution!
+        plan.reconcile_installment_attribution
 
         expect(payment_item.reload).to have_attributes(product: placeholder_product, origin_sale_item: nil)
       end
@@ -76,7 +76,7 @@ RSpec.describe SalePaymentPlan do
       it "leaves the payment item generic and unassigned" do
         plan = build_plan(external_origin_order_id: "999")
 
-        plan.reconcile_installment_attribution!
+        plan.reconcile_installment_attribution
 
         expect(payment_item.reload).to have_attributes(product: placeholder_product, origin_sale_item: nil)
       end
@@ -87,7 +87,7 @@ RSpec.describe SalePaymentPlan do
         create(:sale_item, sale: origin_sale, product: placeholder_product)
         plan = build_plan
 
-        plan.reconcile_installment_attribution!
+        plan.reconcile_installment_attribution
 
         expect(payment_item.reload).to have_attributes(product: placeholder_product, origin_sale_item: nil)
       end
@@ -99,7 +99,7 @@ RSpec.describe SalePaymentPlan do
         create(:sale_item, sale: origin_sale, product: create(:product), origin_sale_item: other_real_item)
         plan = build_plan
 
-        plan.reconcile_installment_attribution!
+        plan.reconcile_installment_attribution
 
         expect(payment_item.reload).to have_attributes(product: placeholder_product, origin_sale_item: nil)
       end
@@ -113,7 +113,7 @@ RSpec.describe SalePaymentPlan do
       origin_item = create(:sale_item, sale: origin_sale, product: real_product)
       plan = build_plan
 
-      plan.reconcile_installment_attribution!
+      plan.reconcile_installment_attribution
 
       expect(payment_item.reload).to have_attributes(product: real_product, origin_sale_item: origin_item)
     end
@@ -122,12 +122,12 @@ RSpec.describe SalePaymentPlan do
       real_product = create(:product)
       origin_item = create(:sale_item, sale: origin_sale, product: real_product)
       plan = build_plan
-      plan.reconcile_installment_attribution!
+      plan.reconcile_installment_attribution
       expect(payment_item.reload.origin_sale_item).to eq(origin_item)
 
       create(:sale_item, sale: origin_sale, product: create(:product))
 
-      plan.reconcile_installment_attribution!
+      plan.reconcile_installment_attribution
 
       expect(payment_item.reload).to have_attributes(product: placeholder_product, origin_sale_item: nil)
     end
@@ -136,10 +136,10 @@ RSpec.describe SalePaymentPlan do
       real_product = create(:product)
       origin_item = create(:sale_item, sale: origin_sale, product: real_product)
       plan = build_plan
-      plan.reconcile_installment_attribution!
+      plan.reconcile_installment_attribution
 
       expect {
-        3.times { plan.reconcile_installment_attribution! }
+        3.times { plan.reconcile_installment_attribution }
       }.not_to change(SaleItem, :count)
 
       expect(payment_item.reload).to have_attributes(product: real_product, origin_sale_item: origin_item)
@@ -150,7 +150,7 @@ RSpec.describe SalePaymentPlan do
       expect(Seal::Api::Client).not_to receive(:new)
 
       create(:sale_item, sale: origin_sale, product: create(:product))
-      build_plan.reconcile_installment_attribution!
+      build_plan.reconcile_installment_attribution
     end
   end
 end

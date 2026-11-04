@@ -1,31 +1,31 @@
 # frozen_string_literal: true
 
-module Sale::Editing
+module Sale::Revisable
   extend ActiveSupport::Concern
 
-  def record!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
+  def record(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
     attributes = normalize_form_attributes(attributes, raw_attributes)
 
     transaction do
       assign_attributes(attributes)
       save!
-      upsert_addresses!(shipping: shipping_address, billing: billing_address)
-      apply_sale_item_attributes!(sale_item_attributes)
-      link_purchase_items!
+      address(shipping: shipping_address, billing: billing_address)
+      apply_sale_item_attributes(sale_item_attributes)
+      link_purchase_items
     end
   end
 
-  def revise!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
+  def revise(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
     attributes = normalize_form_attributes(attributes, raw_attributes)
 
     transaction do
       assign_attributes(attributes.merge(slug: nil))
       status_changed = will_save_change_to_status?
       save!
-      upsert_addresses!(shipping: shipping_address, billing: billing_address)
-      apply_sale_item_attributes!(sale_item_attributes)
-      sync_status_change_to_shop! if status_changed
-      link_purchase_items!
+      address(shipping: shipping_address, billing: billing_address)
+      apply_sale_item_attributes(sale_item_attributes)
+      push_status_to_woo_later if status_changed
+      link_purchase_items
     end
   end
 
@@ -35,13 +35,13 @@ module Sale::Editing
     attributes.presence || raw_attributes
   end
 
-  def apply_sale_item_attributes!(sale_item_attributes)
+  def apply_sale_item_attributes(sale_item_attributes)
     sale_item_attributes.each do |attributes|
-      apply_single_sale_item_attributes!(attributes)
+      apply_single_sale_item_attributes(attributes)
     end
   end
 
-  def apply_single_sale_item_attributes!(attributes)
+  def apply_single_sale_item_attributes(attributes)
     if attributes[:destroy]
       destroy_sale_item(attributes[:id])
     elsif attributes[:id].present?

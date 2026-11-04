@@ -11,7 +11,7 @@ module Sales
       tagging = tagging_params
       reject_unreadable!(tagging)
 
-      @sale.replace_tags!(ids: tagging[:ids], original_ids: tagging[:original_ids])
+      @sale.retag(ids: tagging[:ids], original_ids: tagging[:original_ids])
       redirect_to return_path, notice: "Tags saved", status: :see_other
     rescue ActiveRecord::RecordInvalid
       redirect_to return_path, inertia: inertia_errors(@sale.errors), status: :see_other
@@ -28,7 +28,7 @@ module Sales
     def reject_unreadable!(tagging)
       return if tagging[:submitted] == "1" && tagging[:new_tags].blank?
 
-      @sale.errors.add(:tags, Sale::Tagging::UNREADABLE_INPUT_MESSAGE)
+      @sale.errors.add(:tags, Sale::Taggable::UNREADABLE_INPUT_MESSAGE)
       raise ActiveRecord::RecordInvalid, @sale
     end
 

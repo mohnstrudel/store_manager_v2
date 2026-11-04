@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Sale::Addresses
+module Sale::Addressable
   extend ActiveSupport::Concern
 
   ADDRESS_ATTRIBUTES = %i[
@@ -32,9 +32,9 @@ module Sale::Addresses
     comparable_address_attributes(shipping_address) != comparable_address_attributes(billing_address)
   end
 
-  def upsert_addresses!(shipping:, billing:)
-    upsert_address!(:shipping, shipping)
-    upsert_address!(:billing, billing)
+  def address(shipping:, billing:)
+    upsert_address(:shipping, shipping)
+    upsert_address(:billing, billing)
   end
 
   private
@@ -56,7 +56,7 @@ module Sale::Addresses
     end
   end
 
-  def upsert_address!(kind, attributes)
+  def upsert_address(kind, attributes)
     attributes = normalize_address_attributes(attributes)
     address = addresses.find_or_initialize_by(kind:)
 

@@ -25,10 +25,10 @@ class Sale::Shopify::Importer
       reconcile_payment_plans!
       update_addresses!
       update_or_create_sale_items!
-      sale.allocate_revenue_to_items!
+      sale.allocate_revenue_to_items
     end
 
-    handle_post_import_actions
+    sale.link_purchase_items
     sale
   rescue ActiveRecord::RecordInvalid => e
     handle_record_invalid(e)
@@ -60,7 +60,7 @@ class Sale::Shopify::Importer
   def update_addresses!
     return unless parsed.key?(:addresses)
 
-    sale.upsert_addresses!(**address_attributes)
+    sale.address(**address_attributes)
   end
 
   def address_attributes
@@ -71,16 +71,6 @@ class Sale::Shopify::Importer
     parsed[:sale_items].each do |parsed_sale_item|
       Sale::Shopify::SaleItemImporter.new(sale, parsed_sale_item).import!
     end
-  end
-
-  def handle_post_import_actions
-    return unless should_link_items?
-
-    sale.link_with_purchase_items
-  end
-
-  def should_link_items?
-    sale.active? || sale.completed?
   end
 
   def handle_record_invalid(error)

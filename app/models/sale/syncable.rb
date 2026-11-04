@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Sale::ShopSync
+module Sale::Syncable
   extend ActiveSupport::Concern
 
   class_methods do
@@ -28,8 +28,10 @@ module Sale::ShopSync
     shopify_info&.ext_updated_at || woo_updated_at
   end
 
-  def sync_status_change_to_shop!
-    push_status_to_woo_later
+  def shop_currency_amount(usd_amount)
+    return if usd_amount.nil? || shop_currency.blank? || shop_currency == "USD" || !usd_conversion_rate&.positive?
+
+    (usd_amount.to_d / usd_conversion_rate).round(2)
   end
 
   def push_status_to_woo_later

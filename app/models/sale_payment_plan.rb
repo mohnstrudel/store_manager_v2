@@ -152,10 +152,10 @@ class SalePaymentPlan < ApplicationRecord
     )
   end
 
-  def reconcile_installment_attribution!
+  def reconcile_installment_attribution
     origin_item = eligible_origin_item
 
-    follow_up_sales.each { |sale| sale.reconcile_installment_attribution!(origin_item) }
+    follow_up_sales.each { |sale| sale.reconcile_installment_attribution(origin_item) }
   end
 
   def eligible_origin_item

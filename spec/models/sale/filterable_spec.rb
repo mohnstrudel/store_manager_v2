@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Sale::Listing do
+RSpec.describe Sale::Filterable do
   describe ".listing_sort" do
     it "keeps known sorts and falls back to newest" do
       expect([nil, "", "oldest", "newest", "id", ["oldest"]].map { |value| Sale.listing_sort(value) })

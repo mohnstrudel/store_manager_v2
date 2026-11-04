@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Sale::Tagging
+module Sale::Taggable
   extend ActiveSupport::Concern
 
   STALE_ASSIGNMENT_MESSAGE = "Tags changed since you opened this editor. Reload tags and try again."
@@ -14,30 +14,30 @@ module Sale::Tagging
     scope :tagged_with, ->(sales_tag_id) { where(id: SaleTagging.where(sales_tag_id:).select(:sale_id)) }
   end
 
-  def replace_tags!(ids:, original_ids:)
+  def retag(ids:, original_ids:)
     transaction(requires_new: true) do
       lock!
-      replace_assignments!(ids: tag_ids_from(ids), original_ids: tag_ids_from(original_ids))
+      replace_assignments(ids: tag_ids_from(ids), original_ids: tag_ids_from(original_ids))
     end
   rescue ActiveRecord::InvalidForeignKey => error
     raise unless error.message.include?("sales_tags")
 
-    reject_tags!(MISSING_SELECTION_MESSAGE)
+    reject_tags(MISSING_SELECTION_MESSAGE)
   end
 
   private
 
-  def replace_assignments!(ids:, original_ids:)
+  def replace_assignments(ids:, original_ids:)
     current_ids = sale_taggings.pluck(:sales_tag_id).sort
-    reject_tags!(STALE_ASSIGNMENT_MESSAGE) unless original_ids == current_ids
-    reject_tags!(MISSING_SELECTION_MESSAGE) unless SalesTag.where(id: ids).count == ids.size
+    reject_tags(STALE_ASSIGNMENT_MESSAGE) unless original_ids == current_ids
+    reject_tags(MISSING_SELECTION_MESSAGE) unless SalesTag.where(id: ids).count == ids.size
 
     sale_taggings.where.not(sales_tag_id: ids).delete_all
     added_ids = ids - current_ids
     SaleTagging.insert_all!(added_ids.map { |tag_id| {sale_id: id, sales_tag_id: tag_id} }) if added_ids.any? # rubocop:disable Rails/SkipsModelValidations -- foreign keys own integrity; assignment rows carry no callbacks
   end
 
-  def reject_tags!(message)
+  def reject_tags(message)
     errors.add(:tags, message)
     raise ActiveRecord::RecordInvalid, self
   end
@@ -45,9 +45,9 @@ module Sale::Tagging
   def tag_ids_from(values)
     return [] if values.nil?
 
-    reject_tags!(UNREADABLE_INPUT_MESSAGE) unless values.is_a?(Array)
+    reject_tags(UNREADABLE_INPUT_MESSAGE) unless values.is_a?(Array)
 
-    values.map { |value| positive_integer(value) || reject_tags!(UNREADABLE_INPUT_MESSAGE) }.uniq.sort
+    values.map { |value| positive_integer(value) || reject_tags(UNREADABLE_INPUT_MESSAGE) }.uniq.sort
   end
 
   def positive_integer(value)

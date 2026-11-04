@@ -19,6 +19,17 @@ module Sale::Settlement
     }
 
     scope :economically_included, -> { where.not(id: economically_excluded) }
+    scope :uncancelled, -> { where.not(status: Sale::CANCELLED_STATUSES) }
+  end
+
+  class_methods do
+    def shop_created_expr
+      sales = arel_table
+      Arel::Nodes::NamedFunction.new(
+        "COALESCE",
+        [sales[:shopify_created_at], sales[:woo_created_at], sales[:created_at]]
+      )
+    end
   end
 
   def economically_excluded?
@@ -27,5 +38,9 @@ module Sale::Settlement
 
   def fully_refunded?
     refunded_revenue.present? && total.present? && refunded_revenue >= total
+  end
+
+  def partially_paid?
+    received_revenue.to_d.positive? && outstanding_revenue.to_d.positive?
   end
 end

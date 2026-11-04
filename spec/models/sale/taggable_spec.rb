@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Sale::Tagging do
+RSpec.describe Sale::Taggable do
   include ActiveJob::TestHelper
 
   let(:sale) { create(:sale) }
@@ -22,17 +22,17 @@ RSpec.describe Sale::Tagging do
     sale.errors[:tags].to_sentence
   end
 
-  describe "#replace_tags!" do
+  describe "#retag" do
     it "replaces the assignments with the requested set, comparing originals as a set" do
       assign(first, second)
 
-      sale.replace_tags!(ids: [second.id], original_ids: [second.id, first.id, first.id])
+      sale.retag(ids: [second.id], original_ids: [second.id, first.id, first.id])
 
       expect(assigned_ids).to eq([second.id])
     end
 
     it "assigns a duplicated requested ID once" do
-      sale.replace_tags!(ids: [first.id, first.id, second.id.to_s], original_ids: [])
+      sale.retag(ids: [first.id, first.id, second.id.to_s], original_ids: [])
 
       expect(assigned_ids).to eq([first.id, second.id])
     end
@@ -40,7 +40,7 @@ RSpec.describe Sale::Tagging do
     it "clears all assignments" do
       assign(first)
 
-      sale.replace_tags!(ids: [], original_ids: [first.id])
+      sale.retag(ids: [], original_ids: [first.id])
 
       expect(assigned_ids).to eq([])
     end
@@ -49,7 +49,7 @@ RSpec.describe Sale::Tagging do
       assign(first, second)
       kept_id = sale.sale_taggings.find_by(sales_tag: first).id
 
-      sale.replace_tags!(ids: [first.id, third.id], original_ids: [first.id, second.id])
+      sale.retag(ids: [first.id, third.id], original_ids: [first.id, second.id])
 
       expect(sale.sale_taggings.find_by(sales_tag: first).id).to eq(kept_id)
       expect(assigned_ids).to eq([first.id, third.id])
@@ -58,7 +58,7 @@ RSpec.describe Sale::Tagging do
     it "fails with the stale message and changes nothing when the originals differ from the current set" do
       assign(first, second)
 
-      expect { sale.replace_tags!(ids: [third.id], original_ids: [first.id]) }
+      expect { sale.retag(ids: [third.id], original_ids: [first.id]) }
         .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record).to eq(sale) }
 
       expect(tags_error).to eq("Tags changed since you opened this editor. Reload tags and try again.")
@@ -68,7 +68,7 @@ RSpec.describe Sale::Tagging do
     it "treats missing originals as empty and fails when the sale is already tagged" do
       assign(first)
 
-      expect { sale.replace_tags!(ids: [], original_ids: nil) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { sale.retag(ids: [], original_ids: nil) }.to raise_error(ActiveRecord::RecordInvalid)
 
       expect(tags_error).to include("Tags changed since you opened this editor")
       expect(assigned_ids).to eq([first.id])
@@ -78,7 +78,7 @@ RSpec.describe Sale::Tagging do
       assign(first)
       first.destroy
 
-      expect { sale.replace_tags!(ids: [], original_ids: [first.id]) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { sale.retag(ids: [], original_ids: [first.id]) }.to raise_error(ActiveRecord::RecordInvalid)
 
       expect(tags_error).to include("Tags changed since you opened this editor")
     end
@@ -86,7 +86,7 @@ RSpec.describe Sale::Tagging do
     it "reports a requested deleted ID as missing when nothing else changed" do
       first.destroy
 
-      expect { sale.replace_tags!(ids: [first.id], original_ids: []) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { sale.retag(ids: [first.id], original_ids: []) }.to raise_error(ActiveRecord::RecordInvalid)
 
       expect(tags_error).to eq("A selected tag is no longer available. Reload tags and try again.")
       expect(assigned_ids).to eq([])
@@ -95,7 +95,7 @@ RSpec.describe Sale::Tagging do
     it "applies nothing when a valid ID is mixed with an unknown one" do
       assign(first)
 
-      expect { sale.replace_tags!(ids: [second.id, SalesTag.maximum(:id) + 1], original_ids: [first.id]) }
+      expect { sale.retag(ids: [second.id, SalesTag.maximum(:id) + 1], original_ids: [first.id]) }
         .to raise_error(ActiveRecord::RecordInvalid)
 
       expect(tags_error).to include("A selected tag is no longer available")
@@ -107,7 +107,7 @@ RSpec.describe Sale::Tagging do
 
       [["abc"], ["1.5"], [-1], [0], [nil], [[1]], "1"].each do |bad|
         sale.errors.clear
-        expect { sale.replace_tags!(ids: bad, original_ids: [first.id]) }.to raise_error(ActiveRecord::RecordInvalid)
+        expect { sale.retag(ids: bad, original_ids: [first.id]) }.to raise_error(ActiveRecord::RecordInvalid)
         expect(tags_error).to be_present
       end
 
@@ -121,7 +121,7 @@ RSpec.describe Sale::Tagging do
       clear_enqueued_jobs
       audits_before = Audited::Audit.count
 
-      expect { sale.replace_tags!(ids: [second.id], original_ids: [first.id]) }
+      expect { sale.retag(ids: [second.id], original_ids: [first.id]) }
         .not_to have_enqueued_job
 
       expect(sale.reload.updated_at).to eq(stamp)
@@ -135,7 +135,7 @@ RSpec.describe Sale::Tagging do
         original.call(*args, **kwargs)
       end
 
-      expect { sale.replace_tags!(ids: [second.id], original_ids: [first.id]) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { sale.retag(ids: [second.id], original_ids: [first.id]) }.to raise_error(ActiveRecord::RecordInvalid)
 
       expect(tags_error).to include("A selected tag is no longer available")
       expect(assigned_ids).to eq([first.id])

@@ -3,16 +3,16 @@
 require "rails_helper"
 
 RSpec.describe Sale do
-  describe "#record!" do
+  describe "#record" do
     let(:customer) { create(:customer) }
     let(:sale) { described_class.new }
 
     before do
-      allow(sale).to receive(:link_purchase_items!)
+      allow(sale).to receive(:link_purchase_items)
     end
 
     it "assigns attributes, saves the sale, and links purchase items" do
-      sale.record!(
+      sale.record(
         customer_id: customer.id,
         status: "processing",
         total: 100
@@ -23,18 +23,18 @@ RSpec.describe Sale do
         expect(sale.customer_id).to eq(customer.id)
         expect(sale.status).to eq("processing")
         expect(sale.total).to eq(BigDecimal(100))
-        expect(sale).to have_received(:link_purchase_items!)
+        expect(sale).to have_received(:link_purchase_items)
       end
     end
   end
 
-  describe "#revise!" do
+  describe "#revise" do
     let(:sale) { create(:sale, status: "processing", slug: "sale-slug") }
 
     it "regenerates slug and persists form attributes" do
       previous_slug = sale.slug
 
-      sale.revise!(status: "processing", note: "Updated")
+      sale.revise(status: "processing", note: "Updated")
 
       aggregate_failures do
         expect(sale.reload.slug).not_to eq(previous_slug)
@@ -43,19 +43,19 @@ RSpec.describe Sale do
     end
 
     it "syncs the shop order when status changes" do
-      allow(sale).to receive(:sync_status_change_to_shop!)
+      allow(sale).to receive(:push_status_to_woo_later)
 
-      sale.revise!(status: "completed")
+      sale.revise(status: "completed")
 
-      expect(sale).to have_received(:sync_status_change_to_shop!)
+      expect(sale).to have_received(:push_status_to_woo_later)
     end
 
     it "does not sync the shop order when status stays the same" do
-      allow(sale).to receive(:sync_status_change_to_shop!)
+      allow(sale).to receive(:push_status_to_woo_later)
 
-      sale.revise!(status: sale.status)
+      sale.revise(status: sale.status)
 
-      expect(sale).not_to have_received(:sync_status_change_to_shop!)
+      expect(sale).not_to have_received(:push_status_to_woo_later)
     end
   end
 end

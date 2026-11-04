@@ -11,7 +11,7 @@ RSpec.describe Sale do
   let(:completed_status) { described_class::COMPLETED_STATUSES.first }
   let(:cancelled_status) { described_class::CANCELLED_STATUSES.first }
 
-  describe "#link_with_purchase_items" do
+  describe "#link_purchase_items" do
     context "when sale is active" do
       let(:sale) { create(:sale, status: active_status) }
       let!(:sale_item) { create(:sale_item, sale:, product:, qty: 2) }
@@ -22,12 +22,12 @@ RSpec.describe Sale do
 
       it "links up to qty purchased products to sale_item" do
         expect {
-          sale.link_with_purchase_items
+          sale.link_purchase_items
         }.to change { PurchaseItem.where(sale_item_id: sale_item.id).count }.from(0).to(2)
       end
 
       it "returns the ids of linked purchased products" do
-        linked_ids = sale.link_with_purchase_items
+        linked_ids = sale.link_purchase_items
 
         aggregate_failures do
           expect(linked_ids.size).to eq(2)
@@ -37,7 +37,7 @@ RSpec.describe Sale do
 
       it "does not link more than needed purchased products" do
         create_list(:purchase_item, 2, sale_item:, purchase:, warehouse:)
-        expect(sale.link_with_purchase_items.size).to eq(0)
+        expect(sale.link_purchase_items.size).to eq(0)
       end
     end
 
@@ -51,7 +51,7 @@ RSpec.describe Sale do
 
       it "links purchased products" do
         expect {
-          sale.link_with_purchase_items
+          sale.link_purchase_items
         }.to change { PurchaseItem.where(sale_item_id: sale_item.id).count }.from(0).to(1)
       end
     end
@@ -66,7 +66,7 @@ RSpec.describe Sale do
 
       it "does not link any purchased products" do
         aggregate_failures do
-          expect(sale.link_with_purchase_items).to be_nil
+          expect(sale.link_purchase_items).to be_nil
           expect(PurchaseItem.where(sale_item_id: sale_item.id).count).to eq(0)
         end
       end
@@ -97,7 +97,7 @@ RSpec.describe Sale do
       let!(:purchase_item_c1) { create(:purchase_item, purchase: purchase_c, warehouse:) }
       let!(:purchase_item_wrong_variant) { create(:purchase_item, purchase: purchase_without_sale, warehouse:) }
 
-      before { sale.link_with_purchase_items }
+      before { sale.link_purchase_items }
 
       it "links only purchased products with matching variant to sale_item" do
         aggregate_failures do
@@ -114,7 +114,7 @@ RSpec.describe Sale do
 
       it "does not link more purchased products than sale_item qty" do
         extra = create(:purchase_item, purchase: purchase_a, warehouse:)
-        sale.link_with_purchase_items
+        sale.link_purchase_items
 
         aggregate_failures do
           expect([purchase_item_a1, purchase_item_a2, extra].count { |purchase_item| purchase_item.reload.sale_item_id == sale_item_a.id }).to eq(2)
@@ -124,7 +124,7 @@ RSpec.describe Sale do
 
       it "does not relink already linked purchased products" do
         purchase_item_a1.update!(sale_item_id: sale_item_a.id)
-        sale.link_with_purchase_items
+        sale.link_purchase_items
         expect(purchase_item_a1.reload.sale_item_id).to eq(sale_item_a.id)
       end
     end
@@ -133,22 +133,8 @@ RSpec.describe Sale do
       let(:sale) { create(:sale, status: active_status) }
 
       it "returns an empty array" do
-        expect(sale.link_with_purchase_items).to eq([])
+        expect(sale.link_purchase_items).to eq([])
       end
-    end
-  end
-
-  describe "#link_purchase_items!" do
-    let(:sale) { create(:sale, status: active_status) }
-    let(:purchase_item_ids) { [1, 2, 3] }
-
-    before do
-      allow(sale).to receive(:link_with_purchase_items).and_return(purchase_item_ids)
-    end
-
-    it "delegates to the exact-link flow" do
-      expect(sale.link_purchase_items!).to eq(purchase_item_ids)
-      expect(sale).to have_received(:link_with_purchase_items)
     end
   end
 
@@ -161,8 +147,8 @@ RSpec.describe Sale do
         create_list(:purchase_item, 2, sale_item:, purchase:, warehouse:)
       end
 
-      it "returns nil" do
-        expect(sale.unlinked_sale_items?).to be_nil
+      it "returns false" do
+        expect(sale.unlinked_sale_items?).to be false
       end
     end
 

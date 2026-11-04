@@ -3,5 +3,5 @@
 class Sales::FormAddressResource < ApplicationResource
   typelize_from SaleAddress
 
-  attributes(*Sale::Addresses::ADDRESS_ATTRIBUTES)
+  attributes(*Sale::Addressable::ADDRESS_ATTRIBUTES)
 end

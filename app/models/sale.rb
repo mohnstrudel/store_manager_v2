@@ -46,22 +46,21 @@
 #  woo_id                :string
 #
 class Sale < ApplicationRecord
-  include Addresses
-  include BookedRevenue
-  include Editing
+  include Addressable
+  include Filterable
   include FollowUpPayments
   include HasAuditNotifications
-  include Linking
-  include Listing
+  include Linkable
   include Profitability
   include RevenueAllocation
+  include Revisable
   include Searchable
   include Settlement
-  include ShopSync
   include Shopable
   include Statuses
-  include Tagging
-  include Titling
+  include Syncable
+  include Taggable
+  include Titled
 
   extend FriendlyId
 
@@ -90,42 +89,42 @@ class Sale < ApplicationRecord
     inverse_of: :origin_sale
   has_many :sale_payment_parts, dependent: :nullify, inverse_of: :sale
 
-  def partially_paid?
-    received_revenue.to_d.positive? && outstanding_revenue.to_d.positive?
-  end
+  scope :for_listing, -> {
+    includes(
+      :customer,
+      :shopify_info,
+      :woo_info,
+      :shipping_address,
+      :billing_address,
+      :sales_tags,
+      {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+      {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
+      sale_items: [
+        {product: {media: {image_attachment: :blob}}},
+        {purchase_items: [:warehouse, purchase: :supplier]},
+        {variant: [:version, :color, :size]}
+      ]
+    )
+  }
 
-  def projected_item_price
-    return if sale_items.size != 1
-    return if shipping_total.blank?
+  scope :for_edit, -> {
+    includes(:sale_items, :shipping_address, :billing_address)
+  }
 
-    plans = payment_plans
-    return unless plans.one?
-
-    plan = plans.first
-    return unless plan.origin_sale_id == id && plan.projected_total
-
-    price = plan.projected_total - shipping_total.to_d
-    price if price >= 0
-  end
-
-  def payment_plans
-    (origin_payment_plans.to_a + sale_payment_parts.map(&:sale_payment_plan))
-      .uniq(&:id)
-      .sort_by { |plan| [plan.created_at, plan.id] }
-  end
-
-  def shop_currency_amount(usd_amount)
-    return if usd_amount.nil? || shop_currency.blank? || shop_currency == "USD" || !usd_conversion_rate&.positive?
-
-    (usd_amount.to_d / usd_conversion_rate).round(2)
-  end
-
-  def reconcile_installment_attribution!(origin_item)
-    installment_payment_items.each { |item| item.apply_installment_origin!(origin_item) }
-  end
-
-  def installment_payment_items
-    scope = sale_items.joins(:product)
-    scope.where(products: {non_catalog: true}).or(scope.where.not(sale_items: {origin_sale_item_id: nil}))
-  end
+  scope :for_details, -> {
+    includes(
+      :customer,
+      :shopify_info,
+      :woo_info,
+      :shipping_address,
+      :billing_address,
+      {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+      {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
+      sale_items: [
+        {product: {media: {image_attachment: :blob}}},
+        {purchase_items: [:warehouse, :shipping_company, {purchase: :supplier}]},
+        {variant: [:version, :color, :size]}
+      ]
+    )
+  }
 end

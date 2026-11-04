@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Sale::Titling
+module Sale::Titled
   extend ActiveSupport::Concern
 
   included do

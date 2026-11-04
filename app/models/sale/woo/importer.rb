@@ -38,7 +38,7 @@ class Sale::Woo::Importer
     ActiveRecord::Base.transaction do
       upsert_sale!
       parsed_order[:products].each { |parsed_item| import_sale_item!(parsed_item) }
-      sale.allocate_revenue_to_items!
+      sale.allocate_revenue_to_items
       sale
     end
   end
@@ -53,7 +53,7 @@ class Sale::Woo::Importer
     sale.assign_attributes(parsed_sale.slice(*Sale.attribute_names.map(&:to_sym)).except(:woo_id, :store_id))
     sale.save!
     sale.upsert_woo_info!(store_id: parsed_sale[:woo_id], pull_time: pulled_at) if parsed_sale[:woo_id].present?
-    sale.upsert_addresses!(**addresses.reverse_merge(shipping: nil, billing: nil)) unless addresses.nil?
+    sale.address(**addresses.reverse_merge(shipping: nil, billing: nil)) unless addresses.nil?
   end
 
   def import_customer!

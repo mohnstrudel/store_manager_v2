@@ -11,8 +11,8 @@ RSpec.describe RuboCop::Cop::Project::CapabilityModuleName, :config do
   context "with concerns" do
     it "flags a compact-named concern ending in `ing`" do
       expect_offense(<<~RUBY)
-        module Sale::Editing
-               ^^^^^^^^^^^^^ `Sale::Editing` is named for a screen, job, or mechanism; name the capability for what the record can be (`Revisable`, `Linkable`, `Titled`).
+        module Sale::Reviewing
+               ^^^^^^^^^^^^^^^ `Sale::Reviewing` is named for a screen, job, or mechanism; name the capability for what the record can be (`Revisable`, `Linkable`, `Titled`).
           extend ActiveSupport::Concern
         end
       RUBY

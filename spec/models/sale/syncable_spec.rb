@@ -71,11 +71,11 @@ RSpec.describe Sale do
     end
   end
 
-  describe "#sync_status_change_to_shop!" do
+  describe "#push_status_to_woo_later" do
     it "enqueues the Woo status push" do
       sale = create(:sale)
 
-      expect { sale.sync_status_change_to_shop! }
+      expect { sale.push_status_to_woo_later }
         .to have_enqueued_job(Woo::PushSaleJob).with(sale)
     end
   end

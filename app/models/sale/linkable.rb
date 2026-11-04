@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Sale::Linking
+module Sale::Linkable
   extend ActiveSupport::Concern
 
   included do
@@ -9,11 +9,7 @@ module Sale::Linking
     }
   end
 
-  def link_purchase_items!
-    link_with_purchase_items
-  end
-
-  def link_with_purchase_items
+  def link_purchase_items
     return unless active? || completed?
 
     PurchaseItem.link_available_to_sale_items!(
@@ -25,7 +21,7 @@ module Sale::Linking
     total_sold = sale_items.non_installment.sum(:qty)
     total_purchased = sale_items.sum { |sale_item| sale_item.purchase_items.size }
 
-    return if total_sold == total_purchased
+    return false if total_sold == total_purchased
 
     identities = sale_items.non_installment.pluck(:product_id, :variant_id)
 

@@ -11,13 +11,13 @@ RSpec.describe Sales::PurchaseItemLinksController do
 
     before do
       allow(Sale).to receive_message_chain(:friendly, :find).with(sale.id.to_s).and_return(sale)
-      allow(sale).to receive(:link_purchase_items!)
+      allow(sale).to receive(:link_purchase_items)
     end
 
     it "delegates linking workflow to the sale model" do
       post :create, params: {sale_id: sale.id}
 
-      expect(sale).to have_received(:link_purchase_items!)
+      expect(sale).to have_received(:link_purchase_items)
     end
 
     it "redirects to sale with success notice" do
