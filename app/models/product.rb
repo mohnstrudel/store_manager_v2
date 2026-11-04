@@ -19,13 +19,12 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
-  attr_accessor :initial_purchase
-
   include VariantGeneration
   include HasAuditNotifications
   include HasPreviewImages
   include Listing
   include Editing
+  include InitialPurchase
   include Profitability
   include SalesHistory
   include Searchable

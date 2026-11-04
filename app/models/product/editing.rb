@@ -11,8 +11,7 @@ module Product::Editing
     purchase_variant_client_key: nil,
     media_attributes: []
   )
-    creating = new_record?
-    self.initial_purchase = build_initial_purchase(purchase_attributes, creating)
+    draft_initial_purchase(purchase_attributes)
 
     assign_product_attributes(product_attributes)
     draft_variants = assign_collection_attributes(:variants, variants_attributes)
@@ -33,7 +32,7 @@ module Product::Editing
       store_infos.each { |store_info| save_store_info(store_info) }
       variants.each { |variant| save_variant(variant) }
       update_media!(media_attributes)
-      save_initial_purchase!(
+      place_initial_purchase!(
         draft_variants:,
         variant_client_key: purchase_variant_client_key
       )
@@ -41,12 +40,6 @@ module Product::Editing
   end
 
   private
-
-  def build_initial_purchase(purchase_attributes, creating)
-    return unless creating && purchase_attributes.present?
-
-    Purchase.new(purchase_attributes)
-  end
 
   def assign_product_attributes(attributes)
     assign_attributes(attributes.merge(slug: nil))
@@ -204,21 +197,6 @@ module Product::Editing
     association(:store_infos).target.reject(&:should_be_removed?)
   end
 
-  def validate_initial_purchase
-    return if initial_purchase.blank?
-
-    initial_purchase.valid?
-    relevant_errors = initial_purchase.errors.reject { |e|
-      e.attribute == :product_id ||
-        (e.attribute == :base && e.message == "must have a product or variant")
-    }
-    relevant_errors.each do |error|
-      nested_attribute = (error.attribute == :base) ? "base" : error.attribute
-      errors.add("purchase.0.#{nested_attribute}", error.message)
-    end
-    errors.add(:initial_purchase, :invalid) if relevant_errors.any?
-  end
-
   def save_store_info(store_info)
     if store_info.marked_for_destruction?
       store_info.destroy! if store_info.persisted?
@@ -237,31 +215,5 @@ module Product::Editing
     end
 
     variant.save! if variant.new_record? || variant.changed?
-  end
-
-  def save_initial_purchase!(draft_variants:, variant_client_key:)
-    return unless initial_purchase
-
-    variant = draft_variants[variant_client_key]
-    unless variant_client_key.present? && variant&.persisted? && !variant.should_be_removed?
-      message = variant_client_key.present? ? "is invalid" : "must be selected"
-      initial_purchase.errors.add(:variant_client_key, message)
-      errors.add("purchase.0.variant_client_key", message)
-      errors.add(:initial_purchase, :invalid)
-      raise ActiveRecord::RecordInvalid.new(self)
-    end
-
-    initial_purchase.product = self
-    initial_purchase.variant = variant
-    initial_purchase.place!
-  rescue ActiveRecord::RecordInvalid => error
-    raise if error.record.equal?(self)
-
-    error.record.errors.each do |record_error|
-      nested_attribute = (record_error.attribute == :base) ? "base" : record_error.attribute
-      errors.add("purchase.0.#{nested_attribute}", record_error.message)
-    end
-    errors.add(:initial_purchase, :invalid)
-    raise ActiveRecord::RecordInvalid.new(self)
   end
 end
