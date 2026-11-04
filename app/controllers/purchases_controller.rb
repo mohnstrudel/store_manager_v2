@@ -47,7 +47,7 @@ class PurchasesController < ApplicationController
     @purchase = Purchase.new
 
     respond_to do |format|
-      @purchase.place!(
+      @purchase.place(
         attributes: payload.attributes,
         warehouse_id: payload.initial_warehouse_id,
         payment_value: payload.initial_payment_value

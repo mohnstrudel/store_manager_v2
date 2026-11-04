@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module PurchaseItem::Titling
+module PurchaseItem::Titled
   extend ActiveSupport::Concern
 
   def name

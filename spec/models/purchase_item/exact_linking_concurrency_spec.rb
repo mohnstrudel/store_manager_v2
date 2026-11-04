@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe PurchaseItem::Linking, ".link_exact!" do
+RSpec.describe PurchaseItem::Linkable, ".link_exact" do
   context "with concurrent same-pair links" do
     self.use_transactional_tests = false
 
@@ -23,7 +23,7 @@ RSpec.describe PurchaseItem::Linking, ".link_exact!" do
       first = Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
           PurchaseItem.transaction do
-            PurchaseItem.link_exact!(assignments: [{purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}])
+            PurchaseItem.link_exact(assignments: [{purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}])
             linked << true
             release_link.pop(timeout: 5)
           end
@@ -34,7 +34,7 @@ RSpec.describe PurchaseItem::Linking, ".link_exact!" do
       second = Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do |connection|
           second_pid << connection.raw_connection.backend_pid
-          PurchaseItem.link_exact!(assignments: [{purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}])
+          PurchaseItem.link_exact(assignments: [{purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}])
         end
       end
       wait_for_lock(second_pid.pop(timeout: 5))
@@ -66,7 +66,7 @@ RSpec.describe PurchaseItem::Linking, ".link_exact!" do
       mover = Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
           PurchaseItem.transaction do
-            PurchaseItem.move_to_warehouse!(purchase_item_ids: [purchase_item.id], warehouse_id: destination.id)
+            PurchaseItem.move_to_warehouse(purchase_item_ids: [purchase_item.id], warehouse_id: destination.id)
             moved << true
             release_move.pop(timeout: 5)
           end
@@ -77,8 +77,8 @@ RSpec.describe PurchaseItem::Linking, ".link_exact!" do
       relinker = Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do |connection|
           relink_pid << connection.raw_connection.backend_pid
-          PurchaseItem.link_exact!(assignments: [], unlink_purchase_items: [PurchaseItem.find(purchase_item.id)])
-          PurchaseItem.link_exact!(assignments: [{purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}])
+          PurchaseItem.link_exact(assignments: [], unlink_purchase_items: [PurchaseItem.find(purchase_item.id)])
+          PurchaseItem.link_exact(assignments: [{purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}])
         end
       end
       wait_for_lock(relink_pid.pop(timeout: 5))

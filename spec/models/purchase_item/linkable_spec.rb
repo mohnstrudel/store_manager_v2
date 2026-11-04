@@ -2,14 +2,14 @@
 
 require "rails_helper"
 
-RSpec.describe PurchaseItem::Linking do
+RSpec.describe PurchaseItem::Linkable do
   let(:product) { create(:product) }
   let(:variant) { product.base_variant }
   let(:purchase) { create(:purchase, product:, variant:) }
   let(:sale) { create(:sale, status: Sale::ACTIVE_STATUSES.first) }
   let(:sale_item) { create(:sale_item, sale:, product:, variant:, qty: 2) }
 
-  describe ".link_exact!" do
+  describe ".link_exact" do
     it "locks SaleItems and PurchaseItems in ascending ID order" do
       purchase_items = create_list(:purchase_item, 2, purchase:)
       lock_queries = []
@@ -17,7 +17,7 @@ RSpec.describe PurchaseItem::Linking do
         lock_queries << payload[:sql] if payload[:sql].include?("FOR UPDATE")
       end
 
-      PurchaseItem.link_exact!(
+      PurchaseItem.link_exact(
         assignments: purchase_items.reverse.map { |purchase_item| {purchase_item:, sale_item:} }
       )
 
@@ -33,10 +33,10 @@ RSpec.describe PurchaseItem::Linking do
       mismatched_sale_item = create(:sale_item, sale:, product:, variant: other_variant)
 
       expect {
-        PurchaseItem.link_exact!(
+        PurchaseItem.link_exact(
           assignments: [{purchase_item:, sale_item: mismatched_sale_item}]
         )
-      }.to raise_error(PurchaseItem::Linking::IdentityMismatch)
+      }.to raise_error(PurchaseItem::Linkable::IdentityMismatch)
 
       expect(purchase_item.reload.sale_item_id).to be_nil
     end
@@ -51,21 +51,21 @@ RSpec.describe PurchaseItem::Linking do
       missing_product_purchase_item.update_columns(product_id: nil)
 
       expect {
-        PurchaseItem.link_exact!(
+        PurchaseItem.link_exact(
           assignments: [{
             purchase_item: missing_variant_purchase_item,
             sale_item: missing_variant_sale_item
           }]
         )
-      }.to raise_error(PurchaseItem::Linking::IdentityMismatch)
+      }.to raise_error(PurchaseItem::Linkable::IdentityMismatch)
       expect {
-        PurchaseItem.link_exact!(
+        PurchaseItem.link_exact(
           assignments: [{
             purchase_item: missing_product_purchase_item,
             sale_item: missing_product_sale_item
           }]
         )
-      }.to raise_error(PurchaseItem::Linking::IdentityMismatch)
+      }.to raise_error(PurchaseItem::Linkable::IdentityMismatch)
 
       expect(missing_variant_purchase_item.reload.sale_item_id).to be_nil
       expect(missing_product_purchase_item.reload.sale_item_id).to be_nil
@@ -77,8 +77,8 @@ RSpec.describe PurchaseItem::Linking do
       sale_item.update_column(:qty, 1)
 
       expect {
-        PurchaseItem.link_exact!(assignments: [{purchase_item: extra, sale_item:}])
-      }.to raise_error(PurchaseItem::Linking::CapacityExceeded)
+        PurchaseItem.link_exact(assignments: [{purchase_item: extra, sale_item:}])
+      }.to raise_error(PurchaseItem::Linkable::CapacityExceeded)
 
       aggregate_failures do
         expect(linked.reload.sale_item_id).to eq(sale_item.id)
@@ -94,10 +94,10 @@ RSpec.describe PurchaseItem::Linking do
       PurchaseItem.where(id: purchase_item.id).update_all(sale_item_id: source_sale_item.id)
 
       expect {
-        PurchaseItem.link_exact!(
+        PurchaseItem.link_exact(
           assignments: [{purchase_item: stale_purchase_item, sale_item: target_sale_item}]
         )
-      }.to raise_error(PurchaseItem::Linking::StaleLinkState)
+      }.to raise_error(PurchaseItem::Linkable::StaleLinkState)
 
       expect(purchase_item.reload.sale_item_id).to eq(source_sale_item.id)
     end
@@ -109,13 +109,13 @@ RSpec.describe PurchaseItem::Linking do
       mismatched_sale_item = create(:sale_item, product: other_product, variant: other_product.base_variant)
 
       expect {
-        PurchaseItem.link_exact!(
+        PurchaseItem.link_exact(
           assignments: [
             {purchase_item: valid, sale_item:},
             {purchase_item: invalid, sale_item: mismatched_sale_item}
           ]
         )
-      }.to raise_error(PurchaseItem::Linking::IdentityMismatch)
+      }.to raise_error(PurchaseItem::Linkable::IdentityMismatch)
 
       expect([valid.reload.sale_item_id, invalid.reload.sale_item_id]).to eq([nil, nil])
     end
@@ -125,7 +125,7 @@ RSpec.describe PurchaseItem::Linking do
       other_sale_item = create(:sale_item, sale:, product:, variant:)
 
       expect {
-        PurchaseItem.link_exact!(
+        PurchaseItem.link_exact(
           assignments: [
             {purchase_item: PurchaseItem.find(purchase_item.id), sale_item:},
             {purchase_item: PurchaseItem.find(purchase_item.id), sale_item: other_sale_item}
@@ -144,7 +144,7 @@ RSpec.describe PurchaseItem::Linking do
       replacement = create(:purchase_item, purchase:)
       sale_item.update_column(:qty, 1)
 
-      PurchaseItem.link_exact!(
+      PurchaseItem.link_exact(
         assignments: [{purchase_item: replacement, sale_item:}],
         unlink_purchase_items: [existing]
       )
@@ -158,7 +158,7 @@ RSpec.describe PurchaseItem::Linking do
     it "records one deduplicated intent for duplicate assignments" do
       purchase_item = create(:purchase_item, purchase:)
 
-      result = PurchaseItem.link_exact!(
+      result = PurchaseItem.link_exact(
         assignments: [
           {purchase_item:, sale_item:},
           {purchase_item: PurchaseItem.find(purchase_item.id), sale_item:}
@@ -173,7 +173,7 @@ RSpec.describe PurchaseItem::Linking do
       purchase_item = create(:purchase_item, purchase:, sale_item:)
 
       expect {
-        expect(PurchaseItem.link_exact!(assignments: [{purchase_item:, sale_item:}])).to eq([])
+        expect(PurchaseItem.link_exact(assignments: [{purchase_item:, sale_item:}])).to eq([])
       }.not_to change(OutboundEmail, :count)
     end
 
@@ -181,7 +181,7 @@ RSpec.describe PurchaseItem::Linking do
       purchase_item = create(:purchase_item, purchase:, sale_item:)
 
       expect {
-        result = PurchaseItem.link_exact!(assignments: [], unlink_purchase_items: [purchase_item])
+        result = PurchaseItem.link_exact(assignments: [], unlink_purchase_items: [purchase_item])
         expect(result).to eq([])
       }.not_to change(OutboundEmail, :count)
 
@@ -194,11 +194,11 @@ RSpec.describe PurchaseItem::Linking do
       let(:other_sale_item) { create(:sale_item, sale:, product:, variant:) }
 
       def link(purchase_item, target)
-        PurchaseItem.link_exact!(assignments: [{purchase_item: purchase_item.reload, sale_item: target}])
+        PurchaseItem.link_exact(assignments: [{purchase_item: purchase_item.reload, sale_item: target}])
       end
 
       def unlink(purchase_item)
-        PurchaseItem.link_exact!(assignments: [], unlink_purchase_items: [purchase_item.reload])
+        PurchaseItem.link_exact(assignments: [], unlink_purchase_items: [purchase_item.reload])
       end
 
       def ledger_for(purchase_item)
@@ -364,7 +364,7 @@ RSpec.describe PurchaseItem::Linking do
 
     it "does not expose a notification suppression argument" do
       expect {
-        PurchaseItem.link_exact!(assignments: [], notify: false)
+        PurchaseItem.link_exact(assignments: [], notify: false)
       }.to raise_error(ArgumentError, /unknown keyword: :notify/)
     end
   end

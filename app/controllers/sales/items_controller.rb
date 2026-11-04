@@ -20,7 +20,7 @@ module Sales
     private
 
     def unlink_purchase_items
-      PurchaseItem.link_exact!(
+      PurchaseItem.link_exact(
         assignments: [],
         unlink_purchase_items: @sale_item.purchase_items.to_a
       )

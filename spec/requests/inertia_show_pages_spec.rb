@@ -19,7 +19,7 @@ RSpec.describe "Inertia show pages", :aggregate_failures do
     first_warehouse = create(:warehouse, name: "Warehouse One")
     second_warehouse = create(:warehouse, name: "Warehouse Two")
     purchase_item = create(:purchase_item, warehouse: first_warehouse)
-    purchase_item.move_to_warehouse!(second_warehouse.id)
+    purchase_item.move_to_warehouse(second_warehouse.id)
 
     get purchase_item_path(purchase_item)
 
@@ -33,7 +33,7 @@ RSpec.describe "Inertia show pages", :aggregate_failures do
     first_warehouse = create(:warehouse)
     second_warehouse = create(:warehouse)
     purchase_items = create_list(:purchase_item, 2, purchase:, warehouse: first_warehouse)
-    purchase_items.each { |purchase_item| purchase_item.move_to_warehouse!(second_warehouse.id) }
+    purchase_items.each { |purchase_item| purchase_item.move_to_warehouse(second_warehouse.id) }
     audit_queries = []
 
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|

@@ -10,7 +10,7 @@ module VariantAssignmentIssues
       redirect_to return_path, notice: success_notice(result)
     rescue Variant::AssignmentRepair::InvalidCandidate => error
       redirect_to return_path, inertia: {errors: {variant_id: error.message}}
-    rescue PurchaseItem::Linking::StaleLinkState
+    rescue PurchaseItem::Linkable::StaleLinkState
       redirect_to return_path, inertia: {errors: {base: stale_repair_message}}
     end
 

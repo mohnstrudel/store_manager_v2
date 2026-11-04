@@ -3,7 +3,7 @@
 require "rails_helper"
 
 # rubocop:todo RSpec/MultipleExpectations
-RSpec.describe SaleItem::Linkability do
+RSpec.describe SaleItem::Linkable do
   describe ".active" do
     let!(:active_sale_item) { create(:sale_item, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first)) }
     let!(:completed_sale_item) { create(:sale_item, sale: create(:sale, status: Sale::COMPLETED_STATUSES.first)) }
@@ -84,7 +84,7 @@ RSpec.describe SaleItem::Linkability do
 
     it "always includes the currently linked sale item even if at capacity" do
       fully_linked_item.update_column(:purchase_items_count, 0)
-      PurchaseItem.link_exact!(
+      PurchaseItem.link_exact(
         assignments: [{purchase_item:, sale_item: fully_linked_item}]
       )
       purchase_item.reload

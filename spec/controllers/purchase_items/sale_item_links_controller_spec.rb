@@ -12,7 +12,7 @@ RSpec.describe PurchaseItems::SaleItemLinksController do
       sale_item = create(:sale_item, product: purchase.product, variant: purchase.variant)
       existing = create(:purchase_item, purchase:, sale_item:)
       replacement = create(:purchase_item, purchase:)
-      allow(PurchaseItem).to receive(:link_exact!)
+      allow(PurchaseItem).to receive(:link_exact)
 
       post :create, params: {
         purchase_item_id: replacement.id,
@@ -20,7 +20,7 @@ RSpec.describe PurchaseItems::SaleItemLinksController do
         purchase_item_to_unlink_id: existing.id
       }
 
-      expect(PurchaseItem).to have_received(:link_exact!).with(
+      expect(PurchaseItem).to have_received(:link_exact).with(
         assignments: [{purchase_item: replacement, sale_item:}],
         unlink_purchase_items: [existing]
       )
@@ -32,12 +32,12 @@ RSpec.describe PurchaseItems::SaleItemLinksController do
     let(:purchase_item) { create(:purchase_item, sale_item: sale_item) }
 
     it "unlinks the sale item" do
-      allow(PurchaseItem).to receive(:link_exact!).and_call_original
+      allow(PurchaseItem).to receive(:link_exact).and_call_original
 
       delete :destroy, params: {purchase_item_id: purchase_item.id}
 
       expect(purchase_item.reload.sale_item).to be_nil
-      expect(PurchaseItem).to have_received(:link_exact!).with(
+      expect(PurchaseItem).to have_received(:link_exact).with(
         assignments: [],
         unlink_purchase_items: [purchase_item]
       )

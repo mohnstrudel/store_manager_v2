@@ -104,7 +104,7 @@ This repo borrows the business-ownership idea from DDD but expresses it in plain
 - [`app/models/product/revisable/payload.rb`](app/models/product/revisable/payload.rb)
 - [`app/models/product/shopify/importer.rb`](app/models/product/shopify/importer.rb)
 - [`app/models/sale/statuses.rb`](app/models/sale/statuses.rb)
-- [`app/models/purchase/linking.rb`](app/models/purchase/linking.rb)
+- [`app/models/purchase/linkable.rb`](app/models/purchase/linkable.rb)
 
 instead of a broad top-level split across `app/forms`, `app/importers`, `app/queries`, and `app/services`. For file-placement defaults, see [Where to put new code](#where-to-put-new-code).
 
@@ -238,8 +238,8 @@ app/models/product/
 
 app/models/purchase/
   financials.rb
-  linking.rb
-  placement.rb
+  linkable.rb
+  placeable.rb
   warehousing.rb
 
 app/models/sale/

@@ -12,7 +12,7 @@ module Sale::Linkable
   def link_purchase_items
     return unless active? || completed?
 
-    PurchaseItem.link_available_to_sale_items!(
+    PurchaseItem.link_available_to_sale_items(
       sale_items: sale_items.linkable.order(:id).to_a
     )
   end

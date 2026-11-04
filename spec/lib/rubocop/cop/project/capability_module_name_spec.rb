@@ -90,8 +90,8 @@ RSpec.describe RuboCop::Cop::Project::CapabilityModuleName, :config do
 
     it "still flags names that are not allowed" do
       expect_offense(<<~RUBY)
-        module PurchaseItem::Listing
-               ^^^^^^^^^^^^^^^^^^^^^ `PurchaseItem::Listing` is named for a screen, job, or mechanism; name the capability for what the record can be (`Revisable`, `Linkable`, `Titled`).
+        module Sale::Listing
+               ^^^^^^^^^^^^^ `Sale::Listing` is named for a screen, job, or mechanism; name the capability for what the record can be (`Revisable`, `Linkable`, `Titled`).
           extend ActiveSupport::Concern
         end
       RUBY

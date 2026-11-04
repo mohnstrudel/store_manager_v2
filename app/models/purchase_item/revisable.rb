@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module PurchaseItem::Editing
+module PurchaseItem::Revisable
   extend ActiveSupport::Concern
 
-  def create_with_media!(attributes, new_media_images:)
+  def record(attributes, new_media_images:)
     transaction do
       assign_attributes(attributes)
       save!
@@ -11,7 +11,7 @@ module PurchaseItem::Editing
     end
   end
 
-  def update_with_media!(attributes:, media_attributes:, new_media_images:)
+  def revise(attributes:, media_attributes:, new_media_images:)
     transaction do
       update!(attributes)
       update_media!(media_attributes)

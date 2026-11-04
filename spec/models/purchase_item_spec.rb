@@ -121,8 +121,8 @@ describe PurchaseItem do
       third_warehouse = create(:warehouse, name: "Third Warehouse")
       purchase_item = create(:purchase_item, warehouse: first_warehouse)
 
-      purchase_item.move_to_warehouse!(second_warehouse.id)
-      purchase_item.move_to_warehouse!(third_warehouse.id)
+      purchase_item.move_to_warehouse(second_warehouse.id)
+      purchase_item.move_to_warehouse(third_warehouse.id)
 
       expect(
         purchase_item.reload.warehouse_movements.map { |movement| [movement.warehouse&.name, movement.moved_in.to_i] }
@@ -131,6 +131,22 @@ describe PurchaseItem do
         ["Second Warehouse", purchase_item.audits.second.created_at.to_i],
         ["Third Warehouse", purchase_item.audits.third.created_at.to_i]
       ])
+    end
+  end
+
+  describe ".for_warehouse_details" do
+    it "preloads product variants through the purchase for warehouse rows" do
+      purchase_item = create(:purchase_item)
+      create(:variant, product: purchase_item.purchase.product)
+
+      item = described_class.for_warehouse_details.find(purchase_item.id)
+      product = item.purchase.product
+
+      aggregate_failures do
+        expect(item.association(:purchase)).to be_loaded
+        expect(item.purchase.association(:product)).to be_loaded
+        expect(product.association(:variants)).to be_loaded
+      end
     end
   end
 end

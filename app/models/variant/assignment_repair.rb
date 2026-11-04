@@ -257,7 +257,7 @@ class Variant::AssignmentRepair
       purchase_items.pluck(:sale_item_id).compact.uniq - sale_items.pluck(:id)
     return if unlocked_source_ids.empty?
 
-    raise PurchaseItem::Linking::StaleLinkState,
+    raise PurchaseItem::Linkable::StaleLinkState,
       "PurchaseItem link state changed before all source SaleItems could be locked"
   end
 

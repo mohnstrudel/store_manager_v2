@@ -36,6 +36,6 @@ class PurchaseExpense < ApplicationRecord
   def recalculate_purchase_item_expenses
     return if purchase_item.destroyed?
 
-    purchase_item.recalculate_expenses!
+    purchase_item.recalculate_expenses
   end
 end

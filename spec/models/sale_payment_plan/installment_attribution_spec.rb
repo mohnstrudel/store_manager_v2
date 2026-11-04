@@ -108,7 +108,7 @@ RSpec.describe SalePaymentPlan do
     it "corrects a previous wrong guess once the origin resolves uniquely" do
       wrong_product = create(:product)
       wrong_origin_item = create(:sale_item, product: wrong_product)
-      payment_item.apply_installment_origin!(wrong_origin_item)
+      payment_item.apply_installment_origin(wrong_origin_item)
       real_product = create(:product)
       origin_item = create(:sale_item, sale: origin_sale, product: real_product)
       plan = build_plan

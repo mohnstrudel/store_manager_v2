@@ -25,18 +25,16 @@ class SaleItem < ApplicationRecord
   attr_accessor :_destroy
 
   include HasAuditNotifications
-  include Linkability
-  include Listing
+  include Installments
+  include Linkable
   include Profitability
   include RevenueDefaults
   include Shopable
-  include Titling
+  include Titled
   include VariantAssignment
 
   audited associated_with: :sale
   validate :validate_unique_woo_store_id
-
-  scope :non_installment, -> { where(origin_sale_item_id: nil) }
 
   db_belongs_to :product, inverse_of: :sale_items
   db_belongs_to :sale, inverse_of: :sale_items
@@ -46,19 +44,38 @@ class SaleItem < ApplicationRecord
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
   has_many :installment_sale_items, class_name: "SaleItem", foreign_key: :origin_sale_item_id, dependent: :nullify, inverse_of: :origin_sale_item
 
-  def apply_installment_origin!(origin_item)
-    self.skip_purchase_relink = true
-    self.skip_variant_assignability_check = true
+  scope :for_details, -> { includes(purchase_items: :warehouse) }
 
-    if origin_item
-      update!(origin_sale_item: origin_item, product: origin_item.product, variant: origin_item.variant)
-    else
-      update!(origin_sale_item: nil, product: Product.seal_installment_placeholder, variant: nil)
-    end
-  ensure
-    self.skip_purchase_relink = false
-    self.skip_variant_assignability_check = false
-  end
+  scope :for_linking, -> {
+    includes(
+      :product,
+      :shopify_info,
+      :woo_info,
+      sale: [:customer],
+      variant: [:color, :size, :version]
+    )
+  }
+
+  scope :for_history, -> {
+    includes(
+      :product,
+      purchase_items: :warehouse,
+      sale: [
+        :customer,
+        :shopify_info,
+        :woo_info,
+        :shipping_address,
+        :sale_items,
+        {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+        {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}}
+      ],
+      variant: [:version, :color, :size]
+    )
+  }
+
+  scope :for_tracking_status, -> {
+    includes(:product, variant: [:version, :color, :size], purchase_items: :warehouse)
+  }
 
   private
 

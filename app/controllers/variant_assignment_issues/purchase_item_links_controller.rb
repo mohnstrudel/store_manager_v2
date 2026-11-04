@@ -7,7 +7,7 @@ module VariantAssignmentIssues
         purchase_item_id: params.expect(:id)
       )
       redirect_to return_path, notice: success_notice(result)
-    rescue PurchaseItem::Linking::StaleLinkState
+    rescue PurchaseItem::Linkable::StaleLinkState
       redirect_to return_path, alert: stale_repair_message
     end
 

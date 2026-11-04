@@ -46,7 +46,7 @@ module Purchase::Financials
     payments_count.zero?
   end
 
-  def record_payment!(value)
+  def record_payment(value)
     payments.create!(value:)
   end
 end

@@ -48,7 +48,7 @@ module Sale::FollowUpPayments
   end
 
   def reconcile_installment_attribution(origin_item)
-    installment_payment_items.each { |item| item.apply_installment_origin!(origin_item) }
+    installment_payment_items.each { |item| item.apply_installment_origin(origin_item) }
   end
 
   def installment_payment_items

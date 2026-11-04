@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe SaleItem::Titling do
+RSpec.describe SaleItem::Titled do
   describe "#title" do
     it "returns the product title when there is no variant" do
       sale_item = create(:sale_item, variant: nil)

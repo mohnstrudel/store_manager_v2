@@ -30,7 +30,7 @@ class PurchaseItemsController < ApplicationController
   end
 
   def update
-    @purchase_item.update_with_media!(
+    @purchase_item.revise(
       attributes: purchase_item_params.except(:redirect_to_sale_item).to_h,
       media_attributes: normalized_media_attributes_for(@purchase_item),
       new_media_images: media_new_images_for(@purchase_item)

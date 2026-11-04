@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module PurchaseItem::Linking
+module PurchaseItem::Linkable
   extend ActiveSupport::Concern
 
   IdentityMismatch = Class.new(StandardError)
@@ -20,7 +20,7 @@ module PurchaseItem::Linking
   end
 
   class_methods do
-    def link_available_to_sale_items!(sale_items:, purchase_items: all)
+    def link_available_to_sale_items(sale_items:, purchase_items: all)
       reserved_purchase_item_ids = []
       assignments = Array(sale_items).sort_by(&:id).flat_map do |sale_item|
         remaining_capacity = sale_item.qty.to_i - sale_item.purchase_items.count
@@ -36,23 +36,23 @@ module PurchaseItem::Linking
         candidates.map { |purchase_item| {purchase_item:, sale_item:} }
       end
 
-      link_exact!(assignments:)
+      link_exact(assignments:)
     end
 
-    def reconcile_identity_change!(parent)
+    def reconcile_identity_change(parent)
       transaction do
         case parent
         when Purchase
-          reconcile_purchase_identity_change!(parent) { yield }
+          reconcile_purchase_identity_change(parent) { yield }
         when SaleItem
-          reconcile_sale_item_identity_change!(parent) { yield }
+          reconcile_sale_item_identity_change(parent) { yield }
         else
           raise ArgumentError, "Unsupported identity owner: #{parent.class.name}"
         end
       end
     end
 
-    def link_exact!(assignments:, unlink_purchase_items: [])
+    def link_exact(assignments:, unlink_purchase_items: [])
       normalized_assignments = normalize_assignments(assignments)
       requested_purchase_items = normalized_assignments.values.pluck(:purchase_item)
       requested_sale_items = normalized_assignments.values.pluck(:sale_item)
@@ -67,7 +67,7 @@ module PurchaseItem::Linking
         ).compact.uniq.sort
 
         locked_sale_items = SaleItem.where(id: sale_item_ids).order(id: :asc).lock.to_a
-        ensure_all_found!(locked_sale_items, sale_item_ids, SaleItem)
+        ensure_all_found(locked_sale_items, sale_item_ids, SaleItem)
 
         purchase_item_ids = (
           requested_purchase_items.pluck(:id) +
@@ -75,8 +75,8 @@ module PurchaseItem::Linking
           where(sale_item_id: sale_item_ids).pluck(:id)
         ).uniq.sort
         locked_purchase_items = where(id: purchase_item_ids).order(id: :asc).lock.to_a
-        ensure_all_found!(locked_purchase_items, purchase_item_ids, self)
-        ensure_source_sale_items_locked!(locked_purchase_items, sale_item_ids)
+        ensure_all_found(locked_purchase_items, purchase_item_ids, self)
+        ensure_source_sale_items_locked(locked_purchase_items, sale_item_ids)
 
         sale_items_by_id = locked_sale_items.index_by(&:id)
         purchase_items_by_id = locked_purchase_items.index_by(&:id)
@@ -85,8 +85,8 @@ module PurchaseItem::Linking
         end
         unlink_ids = requested_unlinks.pluck(:id).uniq - assignments_by_id.keys
 
-        validate_exact_identity!(assignments_by_id, purchase_items_by_id)
-        validate_capacity!(
+        validate_exact_identity(assignments_by_id, purchase_items_by_id)
+        validate_capacity(
           assignments_by_id:,
           unlink_ids:,
           purchase_items: locked_purchase_items,
@@ -112,7 +112,7 @@ module PurchaseItem::Linking
         end
         notification_ids.uniq!
 
-        record_link_notifications!(purchase_item_ids: notification_ids)
+        record_link_notifications(purchase_item_ids: notification_ids)
       end
 
       notification_ids
@@ -120,7 +120,7 @@ module PurchaseItem::Linking
 
     private
 
-    def reconcile_purchase_identity_change!(purchase)
+    def reconcile_purchase_identity_change(purchase)
       incompatible_purchase_items = purchase.purchase_items
         .joins(:sale_item)
         .where.not( # rubocop:disable Rails/WhereNotWithMultipleConditions -- intentional: NOT(A AND B) = any-field-mismatch = "incompatible" is the desired semantics here, not an all-fields-differ check
@@ -131,7 +131,7 @@ module PurchaseItem::Linking
         ) # rubocop:enable Rails/WhereNotWithMultipleConditions
         .to_a
 
-      link_exact!(assignments: [], unlink_purchase_items: incompatible_purchase_items)
+      link_exact(assignments: [], unlink_purchase_items: incompatible_purchase_items)
       yield
       purchase.purchase_items.update_all(
         product_id: purchase.product_id,
@@ -141,17 +141,17 @@ module PurchaseItem::Linking
       purchase.link_purchase_items
     end
 
-    def reconcile_sale_item_identity_change!(sale_item)
+    def reconcile_sale_item_identity_change(sale_item)
       incompatible_purchase_items = sale_item.purchase_items
-        .where.not( # rubocop:disable Rails/WhereNotWithMultipleConditions -- same intentional any-field-mismatch semantics as reconcile_purchase_identity_change!
+        .where.not( # rubocop:disable Rails/WhereNotWithMultipleConditions -- same intentional any-field-mismatch semantics as reconcile_purchase_identity_change
           product_id: sale_item.product_id,
           variant_id: sale_item.variant_id
         ) # rubocop:enable Rails/WhereNotWithMultipleConditions
         .to_a
 
-      link_exact!(assignments: [], unlink_purchase_items: incompatible_purchase_items)
+      link_exact(assignments: [], unlink_purchase_items: incompatible_purchase_items)
       yield
-      link_available_to_sale_items!(sale_items: [sale_item])
+      link_available_to_sale_items(sale_items: [sale_item])
     end
 
     def normalize_assignments(assignments)
@@ -169,14 +169,14 @@ module PurchaseItem::Linking
       end
     end
 
-    def ensure_all_found!(records, requested_ids, model)
+    def ensure_all_found(records, requested_ids, model)
       missing_ids = requested_ids - records.pluck(:id)
       return if missing_ids.empty?
 
       raise ActiveRecord::RecordNotFound, "Couldn't find #{model.name} with IDs #{missing_ids.join(", ")}"
     end
 
-    def validate_exact_identity!(assignments_by_id, purchase_items_by_id)
+    def validate_exact_identity(assignments_by_id, purchase_items_by_id)
       assignments_by_id.each do |purchase_item_id, sale_item|
         purchase_item = purchase_items_by_id.fetch(purchase_item_id)
         next if exact_identity?(purchase_item, sale_item)
@@ -195,7 +195,7 @@ module PurchaseItem::Linking
         purchase_item.variant_id == sale_item.variant_id
     end
 
-    def ensure_source_sale_items_locked!(purchase_items, locked_sale_item_ids)
+    def ensure_source_sale_items_locked(purchase_items, locked_sale_item_ids)
       unlocked_source_ids = purchase_items.pluck(:sale_item_id).compact.uniq - locked_sale_item_ids
       return if unlocked_source_ids.empty?
 
@@ -203,7 +203,7 @@ module PurchaseItem::Linking
         "PurchaseItem link state changed before all source SaleItems could be locked"
     end
 
-    def validate_capacity!(assignments_by_id:, unlink_ids:, purchase_items:, sale_items_by_id:)
+    def validate_capacity(assignments_by_id:, unlink_ids:, purchase_items:, sale_items_by_id:)
       final_sale_item_ids = purchase_items.to_h do |purchase_item|
         target_id =
           if assignments_by_id.key?(purchase_item.id)
@@ -226,13 +226,7 @@ module PurchaseItem::Linking
     end
   end
 
-  def link_to_sale_item!(sale_item_id)
-    self.class.link_exact!(
-      assignments: [{purchase_item: self, sale_item: SaleItem.find(sale_item_id)}]
-    )
-  end
-
-  def unlink_from_sale_item!
-    self.class.link_exact!(assignments: [], unlink_purchase_items: [self])
+  def unlink_from_sale_item
+    self.class.link_exact(assignments: [], unlink_purchase_items: [self])
   end
 end

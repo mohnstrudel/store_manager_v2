@@ -19,10 +19,10 @@ RSpec.describe PurchaseItem do
     OutboundEmail.where(purchase_item_id: item.id).order(:id)
   end
 
-  describe ".notify_order_status!" do
+  describe ".notify_order_status" do
     it "snapshots a pending explicit-resend status-updated email and enqueues its delivery" do
       expect {
-        described_class.notify_order_status!(purchase_item_ids: [purchase_item.id])
+        described_class.notify_order_status(purchase_item_ids: [purchase_item.id])
       }.to have_enqueued_job(OutboundEmailDeliveryJob).once
 
       expect(ledger_for(purchase_item).sole).to have_attributes(
@@ -35,17 +35,17 @@ RSpec.describe PurchaseItem do
     end
 
     it "creates a fresh intent on every explicit selection, even when the latest pair already matches" do
-      2.times { described_class.notify_order_status!(purchase_item_ids: [purchase_item.id]) }
+      2.times { described_class.notify_order_status(purchase_item_ids: [purchase_item.id]) }
 
       expect(ledger_for(purchase_item).pluck(:source)).to eq(%w[explicit_resend explicit_resend])
     end
 
     it "makes a later relink to the resent pair silent" do
-      described_class.notify_order_status!(purchase_item_ids: [purchase_item.id])
-      described_class.link_exact!(assignments: [], unlink_purchase_items: [purchase_item.reload])
+      described_class.notify_order_status(purchase_item_ids: [purchase_item.id])
+      described_class.link_exact(assignments: [], unlink_purchase_items: [purchase_item.reload])
 
       expect {
-        described_class.link_exact!(assignments: [{purchase_item: purchase_item.reload, sale_item:}])
+        described_class.link_exact(assignments: [{purchase_item: purchase_item.reload, sale_item:}])
       }.not_to change(OutboundEmail, :count)
     end
 
@@ -54,19 +54,19 @@ RSpec.describe PurchaseItem do
       customer.update!(email: nil)
 
       expect {
-        described_class.notify_order_status!(purchase_item_ids: [unlinked.id, purchase_item.id])
+        described_class.notify_order_status(purchase_item_ids: [unlinked.id, purchase_item.id])
       }.not_to change(OutboundEmail, :count)
     end
   end
 
-  describe ".record_status_change_notifications!" do
+  describe ".record_status_change_notifications" do
     before do
       create(:warehouse_transition, notification:, from_warehouse: warehouse, to_warehouse:)
       purchase_item.update!(warehouse: to_warehouse)
     end
 
     def record(from: warehouse, to: to_warehouse)
-      described_class.record_status_change_notifications!(
+      described_class.record_status_change_notifications(
         purchase_item_ids: [purchase_item.id], from_id: from.id, to_id: to.id
       )
     end
@@ -101,10 +101,10 @@ RSpec.describe PurchaseItem do
 
     it "makes a later relink to the notified pair silent" do
       record
-      described_class.link_exact!(assignments: [], unlink_purchase_items: [purchase_item.reload])
+      described_class.link_exact(assignments: [], unlink_purchase_items: [purchase_item.reload])
 
       expect {
-        described_class.link_exact!(assignments: [{purchase_item: purchase_item.reload, sale_item:}])
+        described_class.link_exact(assignments: [{purchase_item: purchase_item.reload, sale_item:}])
       }.not_to change(OutboundEmail, :count)
     end
   end

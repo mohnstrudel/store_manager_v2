@@ -283,7 +283,7 @@ RSpec.describe "Variant assignment issues" do
     it "keeps a concurrently changed unresolved row retryable" do
       purchase = create(:purchase)
       allow(Variant::AssignmentRepair).to receive(:repair_purchase!).and_raise(
-        PurchaseItem::Linking::StaleLinkState
+        PurchaseItem::Linkable::StaleLinkState
       )
 
       patch variant_assignment_issues_purchase_path(purchase), params: {
@@ -367,7 +367,7 @@ RSpec.describe "Variant assignment issues" do
       allow(
         Variant::AssignmentRepair
       ).to receive(:repair_purchase_item_link!).and_raise(
-        PurchaseItem::Linking::StaleLinkState
+        PurchaseItem::Linkable::StaleLinkState
       )
 
       patch variant_assignment_issues_purchase_item_link_path(purchase_item), params: {

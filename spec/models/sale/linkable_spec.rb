@@ -260,7 +260,7 @@ RSpec.describe Sale do
 
       expect(described_class.with_missing_purchases).to be_empty
 
-      follow_up_item.apply_installment_origin!(origin_item)
+      follow_up_item.apply_installment_origin(origin_item)
 
       expect(described_class.with_missing_purchases).to be_empty
     end

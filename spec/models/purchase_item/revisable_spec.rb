@@ -12,14 +12,14 @@ RSpec.describe PurchaseItem do
     Rack::Test::UploadedFile.new(tempfile.path, content_type, original_filename: filename)
   end
 
-  describe "#create_with_media!" do
+  describe "#record" do
     let(:purchase) { create(:purchase) }
     let(:warehouse) { create(:warehouse) }
     let(:purchase_item) { described_class.new }
 
     it "creates the purchase item and adds new media" do
       expect {
-        purchase_item.create_with_media!(
+        purchase_item.record(
           {
             purchase_id: purchase.id,
             warehouse_id: warehouse.id,
@@ -38,13 +38,13 @@ RSpec.describe PurchaseItem do
     end
   end
 
-  describe "#update_with_media!" do
+  describe "#revise" do
     let(:purchase_item) { create(:purchase_item, weight: 1) }
 
     it "updates attributes and media together" do
       media_item = create(:media, :for_purchase_item, mediaable: purchase_item, alt: "Old")
 
-      purchase_item.update_with_media!(
+      purchase_item.revise(
         attributes: {weight: 5},
         media_attributes: [{id: media_item.id, alt: "Updated"}],
         new_media_images: []

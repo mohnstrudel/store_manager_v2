@@ -24,17 +24,16 @@
 #  warehouse_id         :bigint           not null
 #
 class PurchaseItem < ApplicationRecord
-  include Editing
+  include Revisable
   include Expenses
   include HasAuditNotifications
   include HasPreviewImages
-  include Linking
-  include Listing
+  include Linkable
   include Financials
   include Notifications
   include Searchable
   include Shipping
-  include Titling
+  include Titled
   include Warehousing
 
   audited associated_with: :purchase
@@ -67,6 +66,62 @@ class PurchaseItem < ApplicationRecord
   has_one :sale, through: :sale_item
   has_one :customer, through: :sale
   has_one :woo_info, through: :sale, source: :woo_info
+
+  scope :ordered_by_updated_date, -> { order(updated_at: :desc) }
+
+  scope :with_media, -> { includes(media: {image_attachment: :blob}) }
+
+  scope :for_show, -> {
+    includes(
+      :audits,
+      :warehouse,
+      :shipping_company,
+      :sale,
+      :sale_item,
+      purchase: [:supplier, :product, :variant],
+      media: {image_attachment: :blob}
+    )
+  }
+
+  scope :for_purchase_details, -> {
+    includes(
+      :audits,
+      :warehouse,
+      :shipping_company,
+      :purchase_expenses,
+      :sale_item,
+      purchase: :payments,
+      sale: [:customer, :shopify_info, :woo_info, :shipping_address]
+    ).ordered_by_updated_date
+  }
+
+  scope :for_warehouse_details, -> {
+    includes(
+      :shipping_company,
+      sale: [:customer, :shipping_address],
+      purchase: [
+        :payments,
+        :purchase_items,
+        {variant: [:size, :version, :color]},
+        {product: :variants}
+      ]
+    )
+  }
+
+  scope :for_shipping_details, -> {
+    includes(:product, :purchase)
+  }
+
+  scope :for_notifications, -> {
+    includes(
+      :warehouse,
+      sale: :customer,
+      sale_item: [
+        :product,
+        variant: [:size, :version, :color]
+      ]
+    )
+  }
 
   private
 

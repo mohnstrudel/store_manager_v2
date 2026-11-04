@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SaleItem::Titling
+module SaleItem::Titled
   extend ActiveSupport::Concern
 
   def build_title_for_select
