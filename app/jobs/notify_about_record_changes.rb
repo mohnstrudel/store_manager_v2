@@ -8,7 +8,7 @@ class NotifyAboutRecordChanges < ApplicationJob
   WEBHOOK_URL = ENV["SLACK_WEBHOOK_URL"]
 
   def perform(record)
-    return if WEBHOOK_URL.nil? || record.nil?
+    return if WEBHOOK_URL.nil?
 
     @record = record
     @audit = record.audits.last

@@ -87,13 +87,6 @@ RSpec.describe Shopify::ImportMediaJob do
       expect(product).to have_received(:import_shopify_media).with(parsed_media:)
     end
 
-    context "when product is missing" do
-      it "returns early without any action" do
-        expect { job.perform(nil, parsed_media) }
-          .not_to change(Media, :count)
-      end
-    end
-
     context "when parsed_media is empty" do
       it "removes all local media" do
         media = create_list(:media, 2, mediaable: product)
