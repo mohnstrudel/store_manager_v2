@@ -1,26 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import type { DashboardSaleDebt, DashboardSupplierDebt } from "@/types/serializers";
+
 import Index from "./Index";
 
-type SaleDebtRecord = {
-  id: number;
-  path: string;
-  row_id: number;
-  title: string;
-  variant_name: string;
-  debt: number;
-};
+type SaleDebtRecord = DashboardSaleDebt;
 
-type SupplierDebtRecord = {
-  supplier_id: number;
-  supplier_title: string;
-  supplier_path: string;
-  total_cost: string;
-  total_size: number;
-  paid: string;
-  total_debt: string;
-};
+type SupplierDebtRecord = DashboardSupplierDebt;
 
 function makeSaleDebt(overrides: Partial<SaleDebtRecord> = {}): SaleDebtRecord {
   return {

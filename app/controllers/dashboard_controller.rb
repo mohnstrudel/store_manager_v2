@@ -18,16 +18,9 @@ class DashboardController < ApplicationController
         }
       }
       .sort_by { |supplier_debt| -supplier_debt[:total_debt] }
-    total_suppliers_debt = suppliers_debts.pluck(:total_debt).sum
 
-    render inertia: "Dashboard/Index", props: helpers.dashboard_index_props(
-      sale_debts: sale_debts,
-      suppliers_debts: suppliers_debts,
-      total_suppliers_debt: total_suppliers_debt,
-      sales_hook_disabled: Config.sales_hook_disabled?,
-      last_orders_pull_path: last_orders_pull_path,
-      debts_path: debts_path
-    )
+    render_inertia "Dashboard/Index", serializer: Dashboard::IndexResource,
+      locals: {sale_debts:, suppliers_debts:}
   end
 
   def noop

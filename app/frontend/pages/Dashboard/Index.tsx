@@ -4,36 +4,10 @@ import { useCallback } from "react";
 import type { ReactNode } from "react";
 
 import PageHeader from "@/components/PageHeader";
+import type { DashboardIndex, DashboardSaleDebt, DashboardSupplierDebt } from "@/types/serializers";
 import { rowNavigationProps } from "@/utils/rowNavigation";
 
-type SaleDebtRecord = {
-  id: number;
-  path: string;
-  row_id: number;
-  title: string;
-  variant_name: string;
-  debt: number;
-};
-
-type SupplierDebtRecord = {
-  supplier_id: number;
-  supplier_title: string;
-  supplier_path: string;
-  total_cost: string;
-  total_size: number;
-  paid: string;
-  total_debt: string;
-};
-
-type IndexProps = {
-  debts_path: string;
-  last_orders_pull_path: string;
-  sale_debts: SaleDebtRecord[];
-  sale_debts_count: number;
-  sales_hook_disabled: boolean;
-  suppliers_debts: SupplierDebtRecord[];
-  total_suppliers_debt: string;
-};
+type IndexProps = DashboardIndex;
 
 export default function Index({
   debts_path,
@@ -106,7 +80,7 @@ function WebhookWarning({ lastOrdersPullPath }: { lastOrdersPullPath: string }) 
 
 type SalesDebtSectionProps = {
   debtsPath: string;
-  saleDebts: SaleDebtRecord[];
+  saleDebts: DashboardSaleDebt[];
   total: number;
 };
 
@@ -153,8 +127,8 @@ function DashboardSectionTitle({ label, value }: { label: string; value: ReactNo
 }
 
 type SuppliersDebtSectionProps = {
-  supplierDebts: SupplierDebtRecord[];
-  totalDebt: string;
+  supplierDebts: DashboardSupplierDebt[];
+  totalDebt: string | null;
 };
 
 function SuppliersDebtSection({ supplierDebts, totalDebt }: SuppliersDebtSectionProps) {

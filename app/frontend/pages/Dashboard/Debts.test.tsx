@@ -2,28 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { makePagination } from "@/test/factories";
+import type { DashboardDebt, DashboardUnpaidPurchase } from "@/types/serializers";
 
 import Debts from "./Debts";
 
-type DebtRecord = {
-  id: number;
-  path: string;
-  row_id: number;
-  title: string;
-  variant_name: string;
-  sold_amount: number;
-  purchased_amount: number;
-  debt: number;
-};
+type DebtRecord = DashboardDebt;
 
-type UnpaidPurchaseRecord = {
-  id: number;
-  path: string;
-  purchased_ago: string;
-  supplier_title: string;
-  item_price: string;
-  amount: number;
-};
+type UnpaidPurchaseRecord = DashboardUnpaidPurchase;
 
 function makeDebt(overrides: Partial<DebtRecord> = {}): DebtRecord {
   return {

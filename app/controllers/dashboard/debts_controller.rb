@@ -19,11 +19,8 @@ module Dashboard
       end
       @debts = Kaminari.paginate_array(@debts).page(params[:page]).per(25)
 
-      render inertia: "Dashboard/Debts", props: helpers.dashboard_debts_props(
-        @debts,
-        unpaid_purchases: @unpaid_purchases,
-        search: {q: params[:q].to_s}
-      )
+      render_inertia "Dashboard/Debts", serializer: Dashboard::DebtsResource,
+        locals: {debts: @debts, unpaid_purchases: @unpaid_purchases, query: params[:q].to_s}
     end
 
     private
