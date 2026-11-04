@@ -28,7 +28,8 @@ module PurchaseItems
       target_path = sale_item_path(sale_item.sale, sale_item) if sale_item
 
       if @purchase_item.unlink_from_sale_item
-        redirect_to (request.referer || target_path),
+        redirect_back_or_to target_path,
+          allow_other_host: false,
           notice: "Purchase item was successfully unlinked",
           status: :see_other
       else

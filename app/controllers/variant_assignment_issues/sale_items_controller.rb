@@ -2,6 +2,8 @@
 
 module VariantAssignmentIssues
   class SaleItemsController < ApplicationController
+    include ReturnPath
+
     def update
       result = Variant::AssignmentRepair.repair_sale_item(
         sale_item_id: params.expect(:id),
@@ -20,16 +22,16 @@ module VariantAssignmentIssues
       params.expect(sale_item: [:variant_id])
     end
 
-    def return_path
-      params[:return_to].presence || variant_assignment_issues_path(issue_type: "sale_items")
-    end
-
     def success_notice(result)
       (result == :noop) ? "Variant assignment is already repaired" : "SaleItem Variant was repaired"
     end
 
     def stale_repair_message
       "This issue changed while it was being repaired. Review it and try again"
+    end
+
+    def default_return_path
+      variant_assignment_issues_path(issue_type: "sale_items")
     end
 
     def authorize_resource

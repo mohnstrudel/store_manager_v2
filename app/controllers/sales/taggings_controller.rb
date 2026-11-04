@@ -2,8 +2,7 @@
 
 module Sales
   class TaggingsController < ApplicationController
-    LOCAL_RETURN_PATH = %r{\A/sales(?:/[[:graph:]&&[^?#\\]]*)?(?:\?[[:graph:]&&[^#\\]]*)?\z}
-    DOT_SEGMENT = /\A(?:\.|%2e){1,2}\z/i
+    include ReturnPath
 
     before_action :set_sale
 
@@ -32,14 +31,8 @@ module Sales
       raise ActiveRecord::RecordInvalid, @sale
     end
 
-    def return_path
-      candidate = params[:return_to].to_s
-      local_sales_path?(candidate) ? candidate : sale_path(@sale)
-    end
-
-    def local_sales_path?(candidate)
-      path = candidate.split("?", 2).first
-      candidate.match?(LOCAL_RETURN_PATH) && path.exclude?("//") && path.split("/").none?(DOT_SEGMENT)
+    def default_return_path
+      sale_path(@sale)
     end
 
     def authorize_resource

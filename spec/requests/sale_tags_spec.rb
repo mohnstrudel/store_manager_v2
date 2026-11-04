@@ -211,9 +211,14 @@ RSpec.describe "Sale tags" do
         expect(response).to redirect_to("/sales/#{sale.id}")
       end
 
+      it "accepts another page on this host" do
+        patch_tags(return_to: "/purchases")
+
+        expect(response).to redirect_to("/purchases")
+      end
+
       [
-        "https://evil.example/sales", "//evil.example/sales", "/\\evil.example", "/sales\\x", "/sales//evil",
-        "/purchases", "/salesx", "/sales/../purchases", "/sales/%2e%2e/purchases", "/sales#frag", "sales", "javascript:alert(1)", ""
+        "https://evil.example/sales", "//evil.example/sales", "/\\evil.example", "sales", "javascript:alert(1)", ""
       ].each do |unsafe|
         it "falls back to the sale for #{unsafe.inspect}" do
           patch_tags(return_to: unsafe)

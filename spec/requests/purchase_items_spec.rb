@@ -21,6 +21,26 @@ RSpec.describe "Purchase items" do
     )
   end
 
+  describe "DELETE /purchase_items/:purchase_item_id/sale_item_link" do
+    it "returns to a same-host referer" do
+      purchase_item = create(:purchase_item, sale_item: create(:sale_item))
+
+      delete purchase_item_sale_item_link_path(purchase_item), headers: {"Referer" => "http://www.example.com/warehouses"}
+
+      expect(response).to redirect_to("http://www.example.com/warehouses")
+    end
+
+    it "falls back to the sale item when the referer is another host" do
+      sale_item = create(:sale_item)
+      purchase_item = create(:purchase_item, sale_item:)
+
+      delete purchase_item_sale_item_link_path(purchase_item), headers: {"Referer" => "https://evil.example/warehouses"}
+
+      expect(response).to redirect_to(sale_item_path(sale_item.sale, sale_item))
+      expect(purchase_item.reload.sale_item).to be_nil
+    end
+  end
+
   describe "PATCH /purchase_items/:id" do
     it "attaches an image uploaded by the media uploader", :aggregate_failures do
       purchase_item = create(:purchase_item)

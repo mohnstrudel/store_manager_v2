@@ -2,6 +2,8 @@
 
 module Sales
   class ItemsController < ApplicationController
+    include ReturnPath
+
     before_action :set_sale
     before_action :set_sale_item, only: %i[show destroy]
 
@@ -12,7 +14,7 @@ module Sales
     def destroy
       unlink_purchase_items
       @sale_item.destroy!
-      redirect_to redirect_path,
+      redirect_to return_path,
         notice: "Sale item was successfully destroyed",
         status: :see_other
     end
@@ -26,8 +28,8 @@ module Sales
       )
     end
 
-    def redirect_path
-      params[:return_to].presence || sale_path(@sale)
+    def default_return_path
+      sale_path(@sale)
     end
 
     def authorize_resource

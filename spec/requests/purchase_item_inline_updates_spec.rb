@@ -20,6 +20,17 @@ RSpec.describe "Purchase item inline updates" do
       expect(purchase_item.reload.tracking_number).to eq("TRACK-99")
     end
 
+    it "falls back to the purchase item when return_to points to another host" do
+      purchase_item = create(:purchase_item)
+
+      patch purchase_item_tracking_number_path(purchase_item), params: {
+        purchase_item: {tracking_number: "TRACK-99"},
+        return_to: "https://evil.example/warehouses"
+      }
+
+      expect(response).to redirect_to(purchase_item_path(purchase_item))
+    end
+
     it "redirects with Inertia errors instead of rendering the old inline partial" do
       warehouse = create(:warehouse)
       purchase_item = create(:purchase_item, warehouse: warehouse)

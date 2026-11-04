@@ -2,6 +2,7 @@
 
 module PurchaseItems
   class TrackingNumbersController < ApplicationController
+    include ReturnPath
     include PurchaseItemScoped
 
     def update
@@ -18,8 +19,8 @@ module PurchaseItems
       params.expect(purchase_item: [:tracking_number])
     end
 
-    def return_path
-      params[:return_to].presence || purchase_item_path(@purchase_item)
+    def default_return_path
+      purchase_item_path(@purchase_item)
     end
 
     def authorize_resource

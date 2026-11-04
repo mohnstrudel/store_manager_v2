@@ -18,7 +18,7 @@ description: Add or change a persisted inline table-cell editor in this Rails, I
 - Keep controllers responsible for parameters, authorization, request loading, redirect targets, and Inertia errors. Route domain validation and invariant-bearing writes through the backend owner.
 - Allow a direct owner-model update only when the simple attribute update is the public write API and model or database enforcement keeps every invariant intact.
 - Keep backend values authoritative. React may perform a convenience check before submit, but it must not become another source of domain truth.
-- Keep `return_to` in the request contract; default it from `usePage().url` so the editor returns to the current page.
+- Keep `return_to` in the request contract; default it from `usePage().url` so the editor returns to the current page. The controller includes `ReturnPath` and defines `default_return_path`; `return_path` honors only a same-host `return_to`.
 - Keep generated helpers from `@/utils/routes` as the route contract. Do not pass new per-field update paths in page props or hand-edit files under `app/frontend/api`.
 - Expose the displayed value and any required label or denormalized field in page props and TypeScript types.
 

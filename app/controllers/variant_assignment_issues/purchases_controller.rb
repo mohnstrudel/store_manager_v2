@@ -2,6 +2,8 @@
 
 module VariantAssignmentIssues
   class PurchasesController < ApplicationController
+    include ReturnPath
+
     def update
       result = Variant::AssignmentRepair.repair_purchase(
         purchase_id: Purchase.friendly.find(params.expect(:id)).id,
@@ -20,16 +22,16 @@ module VariantAssignmentIssues
       params.expect(purchase: [:variant_id])
     end
 
-    def return_path
-      params[:return_to].presence || variant_assignment_issues_path
-    end
-
     def success_notice(result)
       (result == :noop) ? "Variant assignment is already repaired" : "Purchase Variant was repaired"
     end
 
     def stale_repair_message
       "This issue changed while it was being repaired. Review it and try again"
+    end
+
+    def default_return_path
+      variant_assignment_issues_path
     end
 
     def authorize_resource
