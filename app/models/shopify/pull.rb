@@ -1,0 +1,48 @@
+# frozen_string_literal: true
+
+class Shopify::Pull
+  Page = Data.define(:imported_count, :next_cursor, :failures)
+  Failure = Data.define(:store_id, :message)
+
+  def self.page(cursor: nil, limit: nil)
+    new.page(cursor:, limit:)
+  end
+
+  def page(cursor:, limit:)
+    payload = fetch(Shopify::Api::Client.new, cursor:, batch_size: Integer(limit || batch_size))
+    failures = []
+    imported_count = payload[:items].count { |item| import(item, failures) }
+
+    Page.new(imported_count:, next_cursor: (payload[:end_cursor] if payload[:has_next_page]), failures:)
+  end
+
+  private
+
+  def fetch(api_client, cursor:, batch_size:)
+    raise NotImplementedError, "#{self.class} must implement #fetch"
+  end
+
+  def batch_size
+    raise NotImplementedError, "#{self.class} must implement #batch_size"
+  end
+
+  def import(item, failures)
+    importer_class.import(parser_class.parse(item))
+    true
+  rescue *skippable_errors => error
+    failures << Failure.new(store_id: item["id"], message: error.message)
+    false
+  end
+
+  def importer_class
+    raise NotImplementedError, "#{self.class} must implement #importer_class"
+  end
+
+  def parser_class
+    raise NotImplementedError, "#{self.class} must implement #parser_class"
+  end
+
+  def skippable_errors
+    []
+  end
+end
