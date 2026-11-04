@@ -207,9 +207,9 @@ RSpec.describe Purchase do
         allow(Rails.env).to receive_messages(production?: true, staging?: false)
       end
 
-      it "enqueues NotifyAboutRecordChanges after commit in production" do
+      it "enqueues NotifyAboutRecordChanges after a commit that writes an audit in production" do
         expect {
-          purchase.save!
+          purchase.update!(order_reference: "CHANGED-1")
         }.to have_enqueued_job(NotifyAboutRecordChanges).with(purchase)
       end
 

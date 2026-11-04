@@ -6,27 +6,47 @@ describe AuditNotifiable do
   before do
     stub_const("DummyModel", Class.new(ApplicationRecord) do
       self.table_name = "customers"
+      audited
       include AuditNotifiable
-
-      def self.auditing_enabled
-        true
-      end
     end)
     allow(Rails.env).to receive_messages(production?: true, staging?: false)
   end
 
   let(:dummy) { DummyModel.new(email: "test@example.com") }
 
-  it "enqueues NotifyAboutRecordChanges after commit if audited and in production" do
+  it "enqueues NotifyAboutRecordChanges after a commit that wrote an audit" do
     expect {
       dummy.save!
     }.to have_enqueued_job(NotifyAboutRecordChanges).with(dummy)
   end
 
-  it "does not enqueue job if not audited" do
-    allow(DummyModel).to receive(:auditing_enabled).and_return(false)
+  it "enqueues again when a later update writes an audit" do
+    dummy.save!
+
+    expect {
+      dummy.update!(email: "changed@example.com")
+    }.to have_enqueued_job(NotifyAboutRecordChanges).with(dummy)
+  end
+
+  it "does not enqueue when a touch commits without an audit" do
+    dummy.save!
+
+    expect {
+      dummy.touch
+    }.not_to have_enqueued_job(NotifyAboutRecordChanges)
+  end
+
+  it "does not enqueue when a save changes nothing" do
+    dummy.save!
+
     expect {
       dummy.save!
+    }.not_to have_enqueued_job(NotifyAboutRecordChanges)
+  end
+
+  it "does not enqueue when auditing is disabled" do
+    expect {
+      DummyModel.without_auditing { dummy.save! }
     }.not_to have_enqueued_job(NotifyAboutRecordChanges)
   end
 
