@@ -14,7 +14,7 @@ module Warehouses
     def create
       @purchase_item = PurchaseItem.new
 
-      @purchase_item.create_from_form!(
+      @purchase_item.create_with_media!(
         purchase_item_params.to_h,
         new_media_images: media_new_images_for(@purchase_item)
       )

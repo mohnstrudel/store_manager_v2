@@ -3,7 +3,7 @@
 module PurchaseItem::Editing
   extend ActiveSupport::Concern
 
-  def create_from_form!(attributes, new_media_images:)
+  def create_with_media!(attributes, new_media_images:)
     transaction do
       assign_attributes(attributes)
       save!
@@ -11,7 +11,7 @@ module PurchaseItem::Editing
     end
   end
 
-  def apply_form_changes!(attributes:, media_attributes:, new_media_images:)
+  def update_with_media!(attributes:, media_attributes:, new_media_images:)
     transaction do
       update!(attributes)
       update_media!(media_attributes)
