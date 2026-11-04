@@ -310,12 +310,14 @@ function PurchaseItemCustomer({ item }: { item: WarehousePurchaseItemRecord }) {
           )}
         </div>
       </li>
-      <li className="mt-2">
-        <div className="inline-flex items-center gap-2">
-          <CopyToClipboardButton className="text-xs btn_xs" text={item.customer_email} />
-          {item.customer_email}
-        </div>
-      </li>
+      {item.customer_email && (
+        <li className="mt-2">
+          <div className="inline-flex items-center gap-2">
+            <CopyToClipboardButton className="text-xs btn_xs" text={item.customer_email} />
+            {item.customer_email}
+          </div>
+        </li>
+      )}
     </ul>
   );
 }

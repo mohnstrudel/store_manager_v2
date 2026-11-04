@@ -15,23 +15,18 @@ class PurchaseItemsController < ApplicationController
 
     return unless stale?(etag: [@purchase_items, request.inertia?], last_modified: @purchase_items.maximum(:updated_at))
 
-    render inertia: "PurchaseItems/Index", props: {
-      purchase_items: @purchase_items.map { |purchase_item| helpers.purchase_item_index_props(purchase_item) },
-      pagination: helpers.pagination_props(@purchase_items),
-      search: {q: params[:q].to_s}
-    }
+    render_inertia "PurchaseItems/Index", serializer: PurchaseItems::IndexResource,
+      locals: {purchase_items: @purchase_items, query: params[:q].to_s}
   end
 
   def show
-    render inertia: "PurchaseItems/Show", props: {
-      purchase_item: helpers.purchase_item_show_props(@purchase_item)
-    }
+    render_inertia "PurchaseItems/Show", serializer: PurchaseItems::ShowResource,
+      locals: {purchase_item: @purchase_item}
   end
 
   def edit
-    redirect_to_sale_item = params[:redirect_to_sale_item].present?
-    render inertia: "PurchaseItems/Edit",
-      props: helpers.purchase_item_edit_props(@purchase_item, redirect_to_sale_item:)
+    render_inertia "PurchaseItems/Edit", serializer: PurchaseItems::EditResource,
+      locals: {purchase_item: @purchase_item, redirect_to_sale_item: params[:redirect_to_sale_item].present?}
   end
 
   def update

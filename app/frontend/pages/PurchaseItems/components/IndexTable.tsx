@@ -3,25 +3,9 @@ import { PencilIcon } from "lucide-react";
 
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
-export type PurchaseItemRecord = {
-  id: number;
-  path: string;
-  edit_path: string;
-  purchase_path: string;
-  purchase_title: string;
-  product_path: string | null;
-  product_title: string;
-  variant_title: string | null;
-  warehouse_name: string;
-  warehouse_path: string;
-  sale_path: string | null;
-  sale_title: string;
-  customer_email: string;
-  tracking_number: string;
-  shipping_company_name: string;
-  shipping_cost: string;
-  updated_at: string;
-};
+import type { PurchaseItemIndexRecord } from "../types";
+
+export type PurchaseItemRecord = PurchaseItemIndexRecord;
 
 type IndexTableProps = {
   purchaseItems: PurchaseItemRecord[];

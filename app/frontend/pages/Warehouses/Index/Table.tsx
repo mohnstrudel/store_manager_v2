@@ -4,24 +4,11 @@ import type { ChangeEvent } from "react";
 
 import PaymentProgressBar from "@/components/PaymentProgressBar";
 import TipMark from "@/components/TipMark";
-import type { PaymentProgress } from "@/types/payment";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
-export type WarehouseRecord = {
-  id: number;
-  path: string;
-  edit_path: string;
-  position_path: string;
-  position: number;
-  positions: number[];
-  name: string;
-  is_default: boolean;
-  external_name_en: string;
-  cbm: string;
-  purchase_items_count: number;
-  has_purchase_items: boolean;
-  payment_progress: PaymentProgress;
-};
+import type { WarehouseIndexRecord } from "../types";
+
+export type WarehouseRecord = WarehouseIndexRecord;
 
 type IndexTableProps = {
   onPositionChange: (event: ChangeEvent<HTMLSelectElement>) => void;

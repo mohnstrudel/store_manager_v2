@@ -7,8 +7,8 @@ module Warehouses
 
     def new
       @purchase_item = PurchaseItem.new(warehouse: @warehouse)
-      render inertia: "PurchaseItems/New",
-        props: helpers.purchase_item_new_props(@purchase_item, warehouse: @warehouse)
+      render_inertia "PurchaseItems/New", serializer: PurchaseItems::NewResource,
+        locals: {purchase_item: @purchase_item, warehouse: @warehouse}
     end
 
     def create

@@ -13,13 +13,14 @@ module Warehouses
       @total_purchase_items = @warehouse.purchase_items.size
       @purchase_items = @purchase_items.search(params[:q]) if params[:q].present?
 
-      render inertia: "Warehouses/Show", props: helpers.warehouse_show_props(
-        @warehouse,
-        purchase_items: @purchase_items,
-        search: {q: params[:q].to_s},
-        selected_id: @selected_id,
-        total_purchase_items: @total_purchase_items
-      )
+      render_inertia "Warehouses/Show", serializer: Warehouses::ShowResource,
+        locals: {
+          warehouse: @warehouse,
+          purchase_items: @purchase_items,
+          query: params[:q].to_s,
+          selected_id: @selected_id,
+          total_purchase_items: @total_purchase_items
+        }
     end
 
     private

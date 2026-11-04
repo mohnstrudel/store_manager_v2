@@ -13,22 +13,18 @@ class PurchasesController < ApplicationController
 
     return unless stale?(etag: [@purchases, @warehouses, request.inertia?], last_modified: @purchases.maximum(:updated_at))
 
-    render inertia: "Purchases/Index", props: {
-      purchases: @purchases.map { |purchase| helpers.purchase_index_props(purchase) },
-      pagination: helpers.pagination_props(@purchases),
-      search: {q: params[:q].to_s},
-      warehouses: @warehouses.map { |warehouse| helpers.purchase_warehouse_props(warehouse) },
-      move_path: move_path
-    }
+    render_inertia "Purchases/Index", serializer: Purchases::IndexResource,
+      locals: {purchases: @purchases, query: params[:q].to_s, warehouses: @warehouses}
   end
 
   def show
-    render inertia: "Purchases/Show", props: helpers.purchase_show_props(
-      @purchase,
-      purchase_items: @purchase.purchase_items.for_purchase_details,
-      payments: @purchase.payments.chronological,
-      new_payment: @purchase.payments.new(payment_date: Time.zone.today)
-    )
+    render_inertia "Purchases/Show", serializer: Purchases::ShowResource,
+      locals: {
+        purchase: @purchase,
+        purchase_items: @purchase.purchase_items.for_purchase_details,
+        payments: @purchase.payments.chronological,
+        new_payment: @purchase.payments.new(payment_date: Time.zone.today)
+      }
   end
 
   def new
@@ -37,23 +33,13 @@ class PurchasesController < ApplicationController
     @purchase.product = Product.friendly.find(params.expect(:product)) if params[:product].present?
     @purchase.warehouse_id = @default_warehouse_id
 
-    render inertia: "Purchases/New", props: helpers.purchase_form_props(
-      @purchase,
-      products: @product_options,
-      suppliers: @suppliers,
-      warehouses: @warehouse_options
-    )
+    render_inertia "Purchases/New", serializer: Purchases::FormResource, locals: form_locals
   end
 
   def edit
     @purchase.warehouse_id = @default_warehouse_id
 
-    render inertia: "Purchases/Edit", props: helpers.purchase_form_props(
-      @purchase,
-      products: @product_options,
-      suppliers: @suppliers,
-      warehouses: @warehouse_options
-    )
+    render_inertia "Purchases/Edit", serializer: Purchases::FormResource, locals: form_locals
   end
 
   def create
@@ -101,6 +87,10 @@ class PurchasesController < ApplicationController
   end
 
   private
+
+  def form_locals
+    {purchase: @purchase, products: @product_options, suppliers: @suppliers, warehouses: @warehouse_options}
+  end
 
   def append_initial_payment_errors(purchase, record)
     return unless record.is_a?(Payment)

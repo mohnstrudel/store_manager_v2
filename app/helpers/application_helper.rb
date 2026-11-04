@@ -38,11 +38,4 @@ module ApplicationHelper
   def purchase_product_image_url(purchase)
     purchase_display_product(purchase)&.image.presence
   end
-
-  def purchase_product_thumb_url(purchase)
-    product = purchase_display_product(purchase)
-    return unless product
-
-    thumb_url(product)
-  end
 end

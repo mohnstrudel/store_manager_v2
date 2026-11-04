@@ -5,7 +5,7 @@ import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSectionHeading from "@/components/FormSectionHeading";
-import ImageUploader from "@/components/ImageUploader";
+import ImageUploader, { type ImageUploaderMedia } from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
 import { getFormString } from "@/utils/formSchema";
 import { useDynamicSection } from "@/utils/useDynamicSection";
@@ -64,7 +64,7 @@ export default function Form({ isNew, options, submitLabel, warehouse }: Warehou
 }
 
 function useWarehouseFormState(warehouse: WarehouseFormRecord) {
-  const [media, setMedia] = useState(() => warehouse.media);
+  const [media, setMedia] = useState<ImageUploaderMedia[]>(() => warehouse.media);
   const transitionRows = useDynamicSection(
     transitionRowsFromWarehouse(warehouse),
     newTransitionRow,
@@ -214,13 +214,13 @@ function WarehouseDescriptionFields({
   return (
     <FormRow>
       <TextAreaField
-        defaultValue={warehouse.desc_en}
+        defaultValue={warehouse.desc_en ?? ""}
         error={errors.desc_en}
         label="English Description"
         name="warehouse[desc_en]"
       />
       <TextAreaField
-        defaultValue={warehouse.desc_de}
+        defaultValue={warehouse.desc_de ?? ""}
         error={errors.desc_de}
         label="German Description"
         name="warehouse[desc_de]"

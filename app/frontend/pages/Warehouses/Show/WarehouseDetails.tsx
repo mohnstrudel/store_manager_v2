@@ -33,7 +33,7 @@ function WarehouseLogisticsCard({ warehouse }: { warehouse: WarehouseShowRecord 
       <Field label="Courier Tracking URL" value={warehouse.courier_tracking_url}>
         <a
           className="link"
-          href={warehouse.courier_tracking_url}
+          href={warehouse.courier_tracking_url ?? undefined}
           rel="noopener noreferrer"
           target="_blank"
         >

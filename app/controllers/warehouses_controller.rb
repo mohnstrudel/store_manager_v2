@@ -10,18 +10,18 @@ class WarehousesController < ApplicationController
 
     return unless stale?(etag: [@warehouses, request.inertia?], last_modified: @warehouses.maximum(:updated_at))
 
-    render inertia: "Warehouses/Index", props: {
-      warehouses: @warehouses.map { |warehouse| helpers.warehouse_listing_props(warehouse, @warehouses.size) }
-    }
+    render_inertia "Warehouses/Index", serializer: Warehouses::IndexResource, locals: {warehouses: @warehouses}
   end
 
   def new
     @warehouse = Warehouse.new
-    render inertia: "Warehouses/New", props: helpers.warehouse_new_props(@warehouse)
+    render_inertia "Warehouses/New", serializer: Warehouses::FormResource,
+      locals: {warehouse: @warehouse, positions_count: Warehouse.count + 1}
   end
 
   def edit
-    render inertia: "Warehouses/Edit", props: helpers.warehouse_edit_props(@warehouse)
+    render_inertia "Warehouses/Edit", serializer: Warehouses::FormResource,
+      locals: {warehouse: @warehouse, positions_count: Warehouse.count}
   end
 
   def create
