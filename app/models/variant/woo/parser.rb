@@ -4,15 +4,27 @@ class Variant::Woo::Parser
   include Sanitizable
 
   class << self
-    def parse(variant_api_response)
-      return if variant_api_response.blank?
-      return if variant_api_response[:attributes].blank?
+    def parse_order_line_item(variant_api_response)
+      possible_option_names = ["farbe", "color", "maßstab", "scale", "size", "version", "edition", "variant", "variante", "variants"]
+      attributes = variant_api_response[:meta_data]
+        .select { |el| el[:display_key].downcase.in? possible_option_names }
+
+      return if attributes.blank?
+
+      attributes = attributes.map do |parsed_option|
+        parsed_option.slice(:display_key, :display_value)
+          .transform_keys({
+            display_key: :name,
+            display_value: :option
+          })
+      end
+
+      woo_id = variant_api_response[:variation_id] if variant_api_response[:variation_id].to_i.positive?
 
       {
-        woo_id: variant_api_response[:id],
-        product_woo_id: variant_api_response[:parent_id],
-        store_link: variant_api_response[:permalink],
-        options: prepare_options(variant_api_response[:attributes])
+        woo_id:,
+        product_woo_id: variant_api_response[:product_id],
+        options: prepare_options(attributes)
       }
     end
 
@@ -38,30 +50,6 @@ class Variant::Woo::Parser
           }
         end
       end.compact
-    end
-
-    def parse_order_line_item(variant_api_response)
-      possible_option_names = ["farbe", "color", "maßstab", "scale", "size", "version", "edition", "variant", "variante", "variants"]
-      attributes = variant_api_response[:meta_data]
-        .select { |el| el[:display_key].downcase.in? possible_option_names }
-
-      return if attributes.blank?
-
-      attributes = attributes.map do |parsed_option|
-        parsed_option.slice(:display_key, :display_value)
-          .transform_keys({
-            display_key: :name,
-            display_value: :option
-          })
-      end
-
-      woo_id = variant_api_response[:variation_id] if variant_api_response[:variation_id].to_i.positive?
-
-      {
-        woo_id:,
-        product_woo_id: variant_api_response[:product_id],
-        options: prepare_options(attributes)
-      }
     end
   end
 

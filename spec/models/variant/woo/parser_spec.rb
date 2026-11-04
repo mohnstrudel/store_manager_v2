@@ -7,15 +7,6 @@ RSpec.describe Variant::Woo::Parser do
     JSON.parse(file_fixture("api_orders.json").read, symbolize_names: true).first
   }
 
-  describe ".parse" do
-    it "parses variants from the Woo API" do
-      api_variants = JSON.parse(file_fixture("api_variants.json").read, symbolize_names: true)
-      pre_parsed_variants = JSON.parse(file_fixture("parsed_variants.json").read, symbolize_names: true)
-
-      expect(api_variants.map { described_class.parse(it) }.compact).to eq(pre_parsed_variants)
-    end
-  end
-
   describe ".parse_order_line_item" do
     let(:line_item) { sample_order[:line_items].first }
 

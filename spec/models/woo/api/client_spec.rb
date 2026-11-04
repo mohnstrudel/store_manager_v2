@@ -68,22 +68,6 @@ RSpec.describe Woo::Api::Client do
     end
   end
 
-  describe "#fetch_products" do
-    it "requests published products page by page" do
-      allow(HTTParty).to receive(:get).and_return(json_response)
-
-      client.fetch_products(150)
-
-      [1, 2].each do |page|
-        expect(HTTParty).to have_received(:get).with(
-          described_class::PRODUCTS_URL,
-          query: {status: "publish", per_page: 100, page:},
-          basic_auth:
-        )
-      end
-    end
-  end
-
   describe "#fetch_product" do
     it "requests one published product" do
       allow(HTTParty).to receive(:get).and_return(json_response)
@@ -92,20 +76,6 @@ RSpec.describe Woo::Api::Client do
 
       expect(HTTParty).to have_received(:get).with(
         "#{described_class::PRODUCTS_URL}42",
-        query: {status: "publish"},
-        basic_auth:
-      )
-    end
-  end
-
-  describe "#fetch_product_editions" do
-    it "requests the published editions of one product" do
-      allow(HTTParty).to receive(:get).and_return(json_response)
-
-      client.fetch_product_editions(42)
-
-      expect(HTTParty).to have_received(:get).with(
-        "#{described_class::PRODUCTS_URL}42/editions",
         query: {status: "publish"},
         basic_auth:
       )

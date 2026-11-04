@@ -25,16 +25,8 @@ module Woo
         get(ORDERS_URL, per_page: PER_PAGE, page: 1, orderby: ORDERS_ORDER_BY)
       end
 
-      def fetch_products(total_records)
-        fetch_all(PRODUCTS_URL, total_records, nil, status: PUBLISHED_STATUS)
-      end
-
       def fetch_product(woo_id)
         get("#{PRODUCTS_URL}#{woo_id}", status: PUBLISHED_STATUS)
-      end
-
-      def fetch_product_editions(product_woo_id)
-        get("#{PRODUCTS_URL}#{product_woo_id}/editions", status: PUBLISHED_STATUS)
       end
 
       def update_order_status(order_id, status)

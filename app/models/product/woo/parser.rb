@@ -4,10 +4,6 @@ class Product::Woo::Parser
   include Sanitizable
 
   class << self
-    def parse_all(woo_products)
-      woo_products.map { |woo_product| parse(woo_product) }.compact_blank
-    end
-
     def parse(woo_product)
       return if woo_product.blank?
 

@@ -4,9 +4,8 @@ require "rails_helper"
 
 RSpec.describe Variant::Woo::Importer do
   let(:products_variants) { JSON.parse(file_fixture("products_variants.json").read, symbolize_names: true) }
-  let(:api_variants) { JSON.parse(file_fixture("api_variants.json").read, symbolize_names: true) }
   let(:pre_parsed_variants) { JSON.parse(file_fixture("parsed_variants.json").read, symbolize_names: true) }
-  let(:parsed_variants) { api_variants.map { Variant::Woo::Parser.parse(it) }.compact }
+  let(:parsed_variants) { pre_parsed_variants }
 
   before do
     products_variants.each do |product|
