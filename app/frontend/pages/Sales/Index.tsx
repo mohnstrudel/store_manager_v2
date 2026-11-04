@@ -79,17 +79,18 @@ export default function Index({
       )}
 
       <section className="section_border_base section_wide">
-        <div className="page_search lg:items-start">
+        <div className="page_search">
           <SearchForm
             filters={filters}
             q={search.q}
             sort={sort}
             tagColors={tag_colors}
             tagOptions={tag_options}
-          />
-          <div className="pagination_top lg:min-w-0 lg:shrink-0 lg:pt-0.5">
-            <Pagination pagination={pagination} params={appliedParams} path={salesPath} />
-          </div>
+          >
+            <div className="pagination_top lg:min-w-0">
+              <Pagination pagination={pagination} params={appliedParams} path={salesPath} />
+            </div>
+          </SearchForm>
         </div>
 
         {hasSales ? (
