@@ -7,6 +7,6 @@ class Variant::AssignmentBackfillJob < ApplicationJob
     result = Variant::AssignmentBackfill.call(env: {"APPLY" => "1"})
     return if result.failures.empty?
 
-    raise "Variant assignment backfill recorded #{result.failures.size} failure(s): #{result.failures.inspect}"
+    raise Variant::AssignmentBackfill::Failed, result.failures
   end
 end
