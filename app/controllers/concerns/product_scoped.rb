@@ -10,6 +10,6 @@ module ProductScoped
   private
 
   def set_product
-    @product = Product.preloaded.friendly.find(params.expect(:product_id))
+    @product = policy_scope(Product).preloaded.friendly.find(params.expect(:product_id))
   end
 end

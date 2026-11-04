@@ -10,6 +10,6 @@ module WarehouseScoped
   private
 
   def set_warehouse
-    @warehouse = Warehouse.find(params.expect(:warehouse_id))
+    @warehouse = policy_scope(Warehouse).find(params.expect(:warehouse_id))
   end
 end
