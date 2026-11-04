@@ -4,21 +4,6 @@ require "rails_helper"
 
 RSpec.describe "Creating a product with a purchase" do
   before { sign_in_as_admin }
-  after { log_out }
-
-  scenario "shows validation errors when the new product form is submitted untouched", :aggregate_failures, :js do
-    create(:franchise)
-
-    visit new_product_path
-
-    expect {
-      click_button "Create Product"
-    }.not_to change(Product, :count)
-
-    expect(page).to have_current_path(new_product_path, ignore_query: true)
-    expect(page).to have_content("Fix errors and try again")
-    expect(page).to have_content("Title")
-  end
 
   scenario "creates both records for a Base-only Product", :js do # rubocop:todo RSpec/MultipleExpectations
     franchise = create(:franchise)
@@ -103,11 +88,10 @@ RSpec.describe "Creating a product with a purchase" do
     fill_in "Amount", with: "2"
     fill_in "What did you pay in total?", with: "30"
 
-    expect {
-      click_button "Create Product"
-    }.not_to change(Product, :count)
+    click_button "Create Product"
 
     expect(page).to have_content("Fix errors and try again")
+    expect(Product.count).to eq(0)
     expect(page).to have_content("Purchase Supplier")
     expect(find_field("purchase[item_price]").value).to eq("15")
     expect(find_field("purchase[amount]").value).to eq("2")
@@ -121,49 +105,6 @@ RSpec.describe "Creating a product with a purchase" do
       expect(find("input[name='variants[0][version_id]']", visible: false).value).to eq(version.id.to_s)
       expect(find("input[name='variants[0][color_id]']", visible: false).value).to eq(color.id.to_s)
     end
-  end
-
-  scenario "re-renders with purchase field errors when the purchase is left blank", :js do # rubocop:disable RSpec/MultipleExpectations
-    franchise = create(:franchise)
-    create(:warehouse, is_default: true)
-
-    visit new_product_path
-
-    fill_in "Title", with: "Product With Blank Purchase"
-    choose_react_select(franchise.title, from: "Franchise")
-    expect(find("#product_shape").value).to eq(Product.default_shape)
-    click_button "Add Purchase"
-
-    expect {
-      click_button "Create Product"
-    }.not_to change(Product, :count)
-
-    expect(page).to have_content("Fix errors and try again")
-    expect(page).to have_css(".purchase-fields")
-    within ".purchase-fields" do
-      expect(page).to have_content("Supplier")
-      expect(page).to have_content("can't be blank")
-    end
-  end
-
-  scenario "creates a product without a purchase when the purchase block stays closed", :js do # rubocop:disable RSpec/MultipleExpectations
-    franchise = create(:franchise)
-
-    visit new_product_path
-
-    expect(page).to have_button("Add Purchase")
-    expect(page).not_to have_field("purchase[item_price]", visible: :all)
-
-    fill_in "Title", with: "Product Without Purchase"
-    choose_react_select(franchise.title, from: "Franchise")
-    expect(find("#product_shape").value).to eq(Product.default_shape)
-
-    expect { click_button "Create Product" }.to change(Product, :count).by(1)
-    expect(Purchase.count).to eq(0)
-
-    created_product = Product.order(:id).last
-    expect(page).to have_current_path(product_path(created_product))
-    expect(page).to have_content("Product was successfully created")
   end
   # rubocop:enable RSpec/MultipleExpectations
 end

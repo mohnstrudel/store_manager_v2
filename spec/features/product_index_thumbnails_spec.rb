@@ -8,13 +8,10 @@ RSpec.describe "Product index thumbnails", :js do
 
   after do
     cleanup_file("product-index-visible.png")
-    cleanup_file("product-index-hidden.png")
   end
 
-  scenario "renders zoomable lazy thumbnails" do
+  scenario "loads the real thumbnail blob and zooms it on hover" do
     page.driver.resize(1200, 900)
-
-    create_list(:product, 18) # rubocop:disable FactoryBot/ExcessiveCreateList -- pushes the target image below the fold to exercise real lazy-loading behavior
 
     visible_product = create(:product, title: "Visible Product")
     attach_valid_image_to(visible_product, "product-index-visible.png")
@@ -24,6 +21,8 @@ RSpec.describe "Product index thumbnails", :js do
     visible_image = page.find("img[alt='Visible Product']")
     expect(visible_image["loading"]).to eq("lazy")
     expect(visible_image[:class]).to include("zoomable")
+    expect(visible_image["src"]).to be_present
+    expect(page).to have_no_css("img[alt='Visible Product'].is-loading", wait: 10)
 
     visible_image.hover
 

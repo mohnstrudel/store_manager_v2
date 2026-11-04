@@ -261,6 +261,12 @@ RSpec.describe "Sales" do
         expect(lines.pluck(:id)).to contain_exactly(short_item.id, covered_item.id, other_short_item.id)
         expect(lines.to_h { |line| [line[:id], line[:purchase_items].size] })
           .to eq(short_item.id => 1, covered_item.id => 1, other_short_item.id => 0)
+        short_purchase_item = PurchaseItem.find_by!(sale_item: short_item)
+        expect(lines.find { |line| line[:id] == short_item.id }[:purchase_items].sole).to include(
+          id: short_purchase_item.id,
+          path: purchase_item_path(short_purchase_item),
+          warehouse_name: short_purchase_item.warehouse.name
+        )
       end
 
       it "combines with the partial-payment filter, search and sort" do
@@ -772,6 +778,7 @@ RSpec.describe "Sales" do
       product = create(:product)
       sale = create(:sale, customer:, status: "processing")
       sale_item = create(:sale_item, sale:, product:, qty: 1, price: 100)
+      removed_item = create(:sale_item, sale:, product: create(:product), variant: nil, qty: 2, price: 100)
 
       patch sale_path(sale), params: {
         sale: {
@@ -786,6 +793,13 @@ RSpec.describe "Sales" do
             qty: "3",
             price: "150.00",
             _destroy: "0"
+          },
+          "1" => {
+            id: removed_item.id,
+            product_id: removed_item.product_id,
+            qty: "2",
+            price: "100.00",
+            _destroy: "1"
           }
         }
       }
@@ -794,6 +808,7 @@ RSpec.describe "Sales" do
 
       expect(response).to redirect_to(sale_path(sale))
       expect(sale.status).to eq("completed")
+      expect(sale.sale_items).to contain_exactly(sale_item)
       expect(sale_item.reload.qty).to eq(3)
       expect(sale_item.price).to eq(BigDecimal("150.00"))
     end

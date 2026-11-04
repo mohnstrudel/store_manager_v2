@@ -1021,6 +1021,12 @@ describe("Sales/Index", () => {
       await openEditor(user);
       await user.click(screen.getByRole("checkbox", { name: "Rush" }));
       await user.click(screen.getByRole("heading", { name: "Edit tags" }));
+      screen.getByRole("checkbox", { name: "Rush" }).focus();
+      await user.keyboard("{Enter}");
+
+      expect(screen.getByRole("dialog", { name: "Edit tags" })).toBeInTheDocument();
+      expect(router.patch).not.toHaveBeenCalled();
+
       await user.click(screen.getByRole("button", { name: "Cancel" }));
       await user.click(screen.getByText("VIP"));
 

@@ -4,7 +4,6 @@ require "rails_helper"
 
 describe "GET /sales" do
   before { sign_in_as_admin }
-  after { log_out }
 
   it "renders Sales navigation before the server responds and then loads the listing", :js do
     create(:sale, shopify_name: "NAVIGATION-SALE")
@@ -32,20 +31,6 @@ describe "GET /sales" do
     JS
 
     expect(page).to have_text("NAVIGATION-SALE")
-  end
-
-  it "shows warehouse buttons instead of sale status on the index page", :js do
-    sale = create(:sale, status: Sale::ACTIVE_STATUSES.first)
-    product = create(:product)
-    sale_item = create(:sale_item, sale:, product:)
-    warehouse = create(:warehouse, name: "Berlin Hub")
-    purchase = create(:purchase, product:)
-    purchase_item = create(:purchase_item, purchase:, warehouse:, sale_item:)
-
-    visit sales_path
-
-    expect(page).to have_css("a[href='#{purchase_item_path(purchase_item)}']", text: "Berlin Hub")
-    expect(page).not_to have_text(sale.status.titleize)
   end
 
   describe "procurement queue", :js do
@@ -140,10 +125,11 @@ describe "GET /sales" do
     end
 
     it "keeps the oldest-first queue consistent across pages, reload, history, recovery and failure" do
+      allow(Sale).to receive(:default_per_page).and_return(2)
       create_batch_sale("BATCH-FOLLOW-UP", day: 0, shopify_store_id: "gid://shopify/Order/901")
       create_batch_sale("BATCH-COVERED", day: 0, linked: 1)
       create_batch_sale("BATCH-001", day: 1, shopify_store_id: "gid://shopify/Order/900", received_revenue: 0, outstanding_revenue: 500)
-      (2..51).each { |day| create_batch_sale(format("BATCH-%03d", day), day:) }
+      (2..3).each { |day| create_batch_sale(format("BATCH-%03d", day), day:) }
       create_follow_up_plan
 
       visit sales_path
@@ -155,7 +141,7 @@ describe "GET /sales" do
       check "Missing Purchases Only"
       expect_applied_query(applied_query)
 
-      expect(page).to have_css("tbody tr", count: 50)
+      expect(page).to have_css("tbody tr", count: 2)
       expect(first("tbody tr")).to have_text("BATCH-001")
       expect(page).to have_no_text("BATCH-FOLLOW-UP")
       expect(page).to have_no_text("BATCH-COVERED")
@@ -166,19 +152,19 @@ describe "GET /sales" do
       pagination_link("2")
 
       expect(page).to have_css("tbody tr", count: 1)
-      expect(first("tbody tr")).to have_text("BATCH-051")
+      expect(first("tbody tr")).to have_text("BATCH-003")
       expect(query_params).to eq(applied_query.merge("page" => "2"))
       expect_controls(q: "batch", sort: "Oldest first", hide: true, show: true)
 
       page.refresh
 
       expect(page).to have_css("tbody tr", count: 1)
-      expect(first("tbody tr")).to have_text("BATCH-051")
+      expect(first("tbody tr")).to have_text("BATCH-003")
       expect_controls(q: "batch", sort: "Oldest first", hide: true, show: true)
 
       page.go_back
 
-      expect(page).to have_css("tbody tr", count: 50)
+      expect(page).to have_css("tbody tr", count: 2)
       expect(first("tbody tr")).to have_text("BATCH-001")
       expect(query_params).to eq(applied_query)
       expect_controls(q: "batch", sort: "Oldest first", hide: true, show: true)
@@ -188,7 +174,7 @@ describe "GET /sales" do
       click_button "Search"
 
       expect(page).to have_css("body[data-visit-finished]")
-      expect(page).to have_css("tbody tr", count: 50)
+      expect(page).to have_css("tbody tr", count: 2)
       expect(first("tbody tr")).to have_text("BATCH-001")
       expect(page).to have_field("q", with: "nothing-matches")
 
@@ -207,7 +193,7 @@ describe "GET /sales" do
 
       click_button "Clear search"
 
-      expect(page).to have_css("tbody tr", count: 50)
+      expect(page).to have_css("tbody tr", count: 2)
       expect(first("tbody tr")).to have_text("BATCH-001")
       expect(query_params).to eq(applied_query.except("q"))
       expect_controls(q: "", sort: "Oldest first", hide: true, show: true)
@@ -219,7 +205,7 @@ describe "GET /sales" do
       uncheck "Missing Purchases Only"
       expect_applied_query({})
 
-      expect(page).to have_css("tbody tr", count: 50)
+      expect(page).to have_css("tbody tr", count: 2)
       expect(query_params).to be_empty
       expect_controls(q: "", sort: "Newest first", hide: false, show: false)
     ensure
@@ -274,8 +260,11 @@ describe "GET /sales" do
     end
 
     def expect_rows(*names)
-      expect(page).to have_css("tbody tr", count: names.size)
-      expect(page.all("tbody tr").map { |row| names.find { |name| row.has_text?(name) } }).to eq(names)
+      page.document.synchronize do
+        texts = page.all("tbody tr", wait: false).map(&:text)
+        matches = texts.size == names.size && texts.zip(names).all? { |text, name| text.include?(name) }
+        raise Capybara::ExpectationNotMet, "expected rows #{names.inspect}, got #{texts.inspect}" unless matches
+      end
     end
 
     def expect_selected_tag(name)

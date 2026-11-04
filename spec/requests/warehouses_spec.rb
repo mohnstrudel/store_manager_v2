@@ -74,11 +74,14 @@ RSpec.describe "Warehouses" do
         id: shipping_company.id,
         name: "Skyline"
       )
+      expect(inertia.props[:warehouse_move_path]).to eq(warehouse_move_path(warehouse_id: warehouse.id))
     end
   end
 
   describe "POST /warehouses" do
-    it "creates a warehouse and redirects to show" do
+    it "creates a warehouse with a transition destination and redirects to show" do
+      destination = create(:warehouse, name: "Destination")
+
       expect {
         post warehouses_path, params: {
           warehouse: {
@@ -92,14 +95,16 @@ RSpec.describe "Warehouses" do
             courier_tracking_url: "https://track.me/CONT-1",
             is_default: "0",
             position: "1",
-            to_warehouse_ids: []
+            to_warehouse_ids: [destination.id.to_s]
           }
         }
       }.to change(Warehouse, :count).by(1)
 
       warehouse = Warehouse.order(:id).last
       expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(flash[:notice]).to eq("Warehouse was successfully created")
       expect(warehouse.name).to eq("Main Stock")
+      expect(warehouse.from_transitions.pluck(:to_warehouse_id)).to eq([destination.id])
     end
 
     it "redirects to new with errors when the name is blank" do
@@ -173,6 +178,30 @@ RSpec.describe "Warehouses" do
       expect(warehouse.from_transitions.pluck(:to_warehouse_id)).to eq([destination.id])
     end
 
+    it "attaches uploaded images to the warehouse" do
+      warehouse = create(:warehouse)
+      blobs = %w[warehouse1.jpg warehouse2.jpg].map do |filename|
+        ActiveStorage::Blob.create_and_upload!(
+          io: StringIO.new("\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9"),
+          filename:,
+          content_type: "image/jpeg"
+        )
+      end
+
+      patch warehouse_path(warehouse), params: {
+        warehouse: {
+          name: warehouse.name,
+          media: blobs.each_with_index.to_h do |blob, index|
+            [index.to_s, {alt: "", position: index.to_s, image: blob.signed_id, _destroy: "0"}]
+          end
+        }
+      }
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(flash[:notice]).to eq("Warehouse was successfully updated")
+      expect(warehouse.reload.media.count).to eq(2)
+    end
+
     it "redirects to edit with errors when another default warehouse already exists" do
       warehouse = create(:warehouse)
       create(:warehouse, :default)
@@ -191,6 +220,26 @@ RSpec.describe "Warehouses" do
       expect_inertia.to render_component("Warehouses/Edit")
       expect(inertia.props[:errors]).to be_present
       expect(inertia.props[:errors][:is_default]).to eq("another default warehouse already exists")
+    end
+  end
+
+  describe "PATCH /warehouses/:id/change_position" do
+    it "moves the warehouse to the new position and lists warehouses in the new order" do
+      first = create(:warehouse, name: "Warehouse 1", position: 1)
+      second = create(:warehouse, name: "Warehouse 2", position: 2)
+      third = create(:warehouse, name: "Warehouse 3", position: 3)
+
+      patch warehouse_position_path(second), params: {position: "1"}
+
+      expect(response).to redirect_to(warehouses_url)
+      expect(response).to have_http_status(:see_other)
+      expect(flash[:notice]).to eq("We changed \"Warehouse 2\" position from 2 to 1")
+
+      follow_redirect!
+
+      warehouses = inertia.props[:warehouses]
+      expect(warehouses.pluck(:id)).to eq([second.id, first.id, third.id])
+      expect(warehouses.first[:positions]).to eq([1, 2, 3])
     end
   end
 end

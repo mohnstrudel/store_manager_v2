@@ -4,9 +4,8 @@ require "rails_helper"
 
 RSpec.describe "Product form error styling" do
   before { sign_in_as_admin }
-  after { log_out }
 
-  scenario "keeps the supplier error absolute and the select border red on invalid purchase submit", :js do
+  scenario "keeps the supplier error absolute and the select border red on invalid purchase submit", :js do # rubocop:disable RSpec/MultipleExpectations
     franchise = create(:franchise)
     create(:warehouse, is_default: true)
 
@@ -16,10 +15,14 @@ RSpec.describe "Product form error styling" do
     choose_react_select(franchise.title, from: "Franchise")
     click_button "Add Purchase"
 
-    expect {
-      click_button "Create Product"
-    }.not_to change(Product, :count)
+    click_button "Create Product"
 
+    expect(page).to have_content("Fix errors and try again")
+    expect(Product.count).to eq(0)
+    within ".purchase-fields" do
+      expect(page).to have_content("Supplier")
+      expect(page).to have_content("can't be blank")
+    end
     expect(page).to have_css(".purchase-fields .field_with_errors .text_error.absolute", visible: :all)
     expect(
       page.evaluate_script(

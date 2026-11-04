@@ -22,33 +22,34 @@ module Helpers
     def sign_in(user)
       Current.session = user.sessions.create!
       if feature_test?
-        sign_in_browser(user)
+        set_session_cookie_in_browser(Current.session.id)
       else
         set_session_cookie_in_request(Current.session.id)
       end
     end
 
-    def sign_in_browser(user)
-      visit sign_in_path
-      fill_in "email_address", with: user.email_address
-      fill_in "password", with: "password"
-      click_on "Sign in"
-      expect(page).to have_current_path(noop_path)
+    def set_session_cookie_in_browser(id)
+      page.driver.set_cookie(
+        "session_id",
+        Rack::Utils.escape(signed_session_cookie(id)),
+        domain: page.server.host,
+        path: "/",
+        httponly: true
+      )
+    end
+
+    def signed_session_cookie(id)
+      ActionDispatch::TestRequest.create.cookie_jar.tap { |cookie_jar|
+        cookie_jar.signed[:session_id] = id
+      }[:session_id]
     end
 
     def set_session_cookie_in_request(id)
-      ActionDispatch::TestRequest.create.cookie_jar.tap do |cookie_jar|
-        cookie_jar.signed[:session_id] = id
-        cookies[:session_id] = cookie_jar[:session_id]
-      end
+      cookies[:session_id] = signed_session_cookie(id)
     end
 
     def admin
       @admin ||= create(:user, :admin)
-    end
-
-    def sign_in_browser_as_admin
-      sign_in_browser(admin)
     end
   end
 end

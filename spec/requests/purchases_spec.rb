@@ -8,7 +8,9 @@ RSpec.describe "Purchases" do
 
   describe "GET /purchases" do
     it "renders the index Inertia component with pagination and search" do
-      purchase = create(:purchase, order_reference: "PO-BOOK-1")
+      product = create(:product)
+      create(:media, :for_product, mediaable: product)
+      purchase = create(:purchase, product:, order_reference: "PO-BOOK-1")
       create(:purchase, order_reference: "OTHER")
 
       get purchases_path, params: {q: "PO-BOOK"}
@@ -23,6 +25,39 @@ RSpec.describe "Purchases" do
       purchases = inertia.props[:purchases]
       expect(purchases.pluck(:id)).to eq([purchase.id])
       expect(purchases.first[:order_reference]).to eq("PO-BOOK-1")
+      expect(purchases.first[:product_thumb_url]).to include("/rails/active_storage/representations/")
+    end
+
+    it "filters purchases by product full title" do
+      asuka_purchase = create(:purchase, product: create(:product, title: "Asuka"))
+      create(:purchase, product: create(:product, title: "Batman"))
+
+      get purchases_path, params: {q: asuka_purchase.product.full_title}
+
+      expect(inertia.props[:purchases].pluck(:id)).to eq([asuka_purchase.id])
+    end
+
+    it "lists a purchase under its new product and variant after an update" do
+      asuka = create(:product, title: "Asuka")
+      asuka_variant = create(:variant, product: asuka)
+      purchase = create(:purchase, product: create(:product, title: "Batman"), order_reference: "123")
+
+      patch purchase_path(purchase), params: {
+        purchase: {
+          supplier_id: purchase.supplier_id,
+          product_id: asuka.id,
+          variant_id: asuka_variant.id,
+          item_price: purchase.item_price.to_s,
+          amount: purchase.amount.to_s,
+          order_reference: "123"
+        }
+      }
+      get purchases_path, params: {q: "123"}
+
+      listing = inertia.props[:purchases].sole
+      expect(listing[:id]).to eq(purchase.id)
+      expect(listing[:product_title]).to eq(asuka.full_title)
+      expect(listing[:variant_title]).to eq(asuka_variant.title)
     end
   end
 
@@ -228,7 +263,32 @@ RSpec.describe "Purchases" do
       expect(inertia.props[:errors]).to include(
         supplier_id: "can't be blank",
         item_price: "can't be blank",
-        amount: "can't be blank"
+        amount: "can't be blank",
+        base: "must have a product or variant"
+      )
+    end
+  end
+
+  describe "POST /purchases/move" do
+    it "moves every item of the selected purchases and returns to the index", :aggregate_failures do
+      from_warehouse = create(:warehouse, name: "Warehouse From")
+      to_warehouse = create(:warehouse, name: "Warehouse To")
+      purchase = create(:purchase)
+      purchase_items = create_list(:purchase_item, 3, purchase:, warehouse: from_warehouse)
+
+      post move_path, params: {selected_items_ids: [purchase.id], destination_id: to_warehouse.id.to_s}
+
+      expect(response).to redirect_to(purchases_path)
+      expect(flash[:notice]).to eq(
+        message: "Success! 3 purchased products moved to:",
+        link: {label: "Warehouse To", href: warehouse_path(to_warehouse)}
+      )
+      expect(to_warehouse.purchase_items).to match_array(purchase_items)
+
+      follow_redirect!
+
+      expect(inertia.props[:purchases].sole[:warehouse_counts]).to eq(
+        [{"warehouse_name" => "Warehouse To", "count" => 3}]
       )
     end
   end

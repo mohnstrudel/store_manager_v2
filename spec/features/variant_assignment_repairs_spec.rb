@@ -4,7 +4,6 @@ require "rails_helper"
 
 RSpec.feature "Variant assignment repairs" do
   before { sign_in_as_admin }
-  after { log_out }
 
   scenario "shows a real inline error, then reloads away a repaired row", :js do
     product = create(:product)

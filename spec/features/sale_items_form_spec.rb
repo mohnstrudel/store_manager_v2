@@ -4,7 +4,6 @@ require "rails_helper"
 
 RSpec.describe "Sale items form" do
   before { sign_in_as_admin }
-  after { log_out }
 
   scenario "removes an existing sale item from a sale", :js do # rubocop:todo RSpec/MultipleExpectations
     sale = create(:sale)

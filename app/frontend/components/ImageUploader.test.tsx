@@ -41,8 +41,11 @@ const media: ImageUploaderMedia[] = [
 
 class FakeXMLHttpRequest {
   static requests: FakeXMLHttpRequest[] = [];
+  static signedIds: string[] = [];
 
-  responseText = JSON.stringify({ signed_id: "new-signed-id" });
+  responseText = JSON.stringify({
+    signed_id: FakeXMLHttpRequest.signedIds.shift() ?? "new-signed-id",
+  });
   status = 201;
   upload = new FakeEventTarget();
   private listeners = new FakeEventTarget();
@@ -88,6 +91,7 @@ describe("ImageUploader", () => {
 
   beforeEach(() => {
     FakeXMLHttpRequest.requests = [];
+    FakeXMLHttpRequest.signedIds = [];
     vi.stubGlobal("XMLHttpRequest", FakeXMLHttpRequest);
     vi.stubGlobal("URL", { ...URL, createObjectURL });
     createObjectURL.mockClear();
@@ -150,6 +154,39 @@ describe("ImageUploader", () => {
       ]);
     });
     expect(FakeXMLHttpRequest.requests[0].open).toHaveBeenCalledWith("POST", "/media/uploads");
+  });
+
+  it("uploads every selected file and appends them in selection order", async () => {
+    const user = userEvent.setup();
+    const onMediaChange = vi.fn<(media: ImageUploaderMedia[]) => void>();
+    const files = ["one.png", "two.png", "three.png"].map(
+      (name) => new File(["image"], name, { type: "image/png" }),
+    );
+    FakeXMLHttpRequest.signedIds = ["signed-one", "signed-two", "signed-three"];
+
+    render(<ImageUploader media={media} onMediaChange={onMediaChange} />);
+
+    await user.upload(screen.getByTestId("new-images-input"), files);
+
+    const newImage = (image_blob_id: string, position: number): ImageUploaderMedia => ({
+      alt: "",
+      id: null,
+      image_blob_id,
+      position,
+      preview_url: "blob:preview",
+      thumb_url: "blob:preview",
+      _destroy: false,
+    });
+    await waitFor(() => {
+      expect(onMediaChange).toHaveBeenCalledWith([
+        ...media,
+        newImage("signed-one", 1),
+        newImage("signed-two", 2),
+        newImage("signed-three", 3),
+      ]);
+    });
+    expect(onMediaChange).toHaveBeenCalledOnce();
+    expect(FakeXMLHttpRequest.requests).toHaveLength(3);
   });
 
   it("marks uploaded but unsaved images as pending", () => {

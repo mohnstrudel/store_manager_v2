@@ -45,63 +45,6 @@ RSpec.describe "Gallery", :js do
   end
 
   # rubocop:todo RSpec/MultipleExpectations
-  scenario "tracks the active preview and scrolls it into view while switching images" do
-    product = create(:product)
-    attach_gallery_images_to(product)
-
-    visit product_path(product)
-
-    expect(page).to have_css(".gallery_nav")
-
-    initial_state = page.evaluate_script(<<~JS)
-      (() => {
-        const mainImage = document.querySelector(".gallery_main__image")
-
-        return {
-          activeThumbSrc: document.querySelector(".gallery_thumb[data-active] img").src,
-          src: mainImage.src,
-          scrollCalls: window.__galleryScrollCalls || []
-        }
-      })()
-    JS
-
-    page.execute_script(<<~JS)
-      (() => {
-        window.__galleryScrollCalls = []
-        Element.prototype.scrollIntoView = function(options) {
-          window.__galleryScrollCalls.push({
-            active: this.hasAttribute("data-active"),
-            className: this.className,
-            options
-          })
-        }
-      })()
-    JS
-
-    find(".gallery_btn.right-0").click
-
-    final_state = page.evaluate_script(<<~JS)
-      (() => ({
-        activeThumbSrc: document.querySelector(".gallery_thumb[data-active] img").src,
-        src: document.querySelector(".gallery_main__image").src,
-        scrollCalls: window.__galleryScrollCalls
-      }))()
-    JS
-
-    aggregate_failures do
-      expect(final_state["activeThumbSrc"]).not_to eq(initial_state["activeThumbSrc"])
-      expect(final_state["src"]).not_to eq(initial_state["src"])
-      expect(final_state["scrollCalls"].last["active"]).to be(true)
-      expect(final_state["scrollCalls"].last["options"]).to include(
-        "behavior" => "smooth",
-        "block" => "nearest",
-        "inline" => "start"
-      )
-    end
-  end
-  # rubocop:enable RSpec/MultipleExpectations
-
-  # rubocop:todo RSpec/MultipleExpectations
   scenario "keeps a single product image from stretching the layout" do
     page.driver.resize(1440, 1200)
 

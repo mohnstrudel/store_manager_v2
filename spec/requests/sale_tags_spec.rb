@@ -27,8 +27,9 @@ RSpec.describe "Sale tags" do
   describe "PATCH /sales/:sale_id/tags" do
     before { sign_in_as_admin }
 
-    it "replaces assignments and redirects 303 to the sale with a notice" do
-      SaleTagging.create!(sale:, sales_tag: vip)
+    it "replaces assignments, keeping the removed tag on other sales, and redirects 303 to the sale with a notice" do
+      other_sale = create(:sale)
+      [sale, other_sale].each { |target| SaleTagging.create!(sale: target, sales_tag: vip) }
 
       patch_tags(tagging: tagging(ids: [rush.id], original_ids: [vip.id]))
 
@@ -36,6 +37,7 @@ RSpec.describe "Sale tags" do
       expect(response).to redirect_to(sale_path(sale))
       expect(flash[:notice]).to eq("Tags saved")
       expect(assigned_ids).to eq([rush.id])
+      expect(SaleTagging.where(sales_tag: vip).pluck(:sale_id)).to eq([other_sale.id])
     end
 
     it "accepts HTML digit strings and the friendly slug" do
