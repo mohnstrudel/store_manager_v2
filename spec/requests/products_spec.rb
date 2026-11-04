@@ -898,4 +898,75 @@ RSpec.describe "Products" do
       expect(product.reload.description.body.to_html.strip).to eq(html)
     end
   end
+
+  describe "GET /products/:id media and missing records" do
+    it "renders the show component with the product media", :aggregate_failures do
+      product = create(:product)
+      media = create_list(:media, 2, :for_product, mediaable: product)
+
+      get product_path(product)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/Show")
+      expect(inertia.props[:product][:media].pluck(:id)).to match_array(media.map(&:id))
+      expect(inertia.props[:product][:media].pluck(:alt)).to match_array(media.map(&:alt))
+    end
+
+    it "returns 404 for a product that does not exist" do
+      get product_path(0)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "returns 404 when updating a product that does not exist" do
+      patch product_path(0), params: {product: {title: "Missing"}}
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "returns 404 when deleting a product that does not exist" do
+      delete product_path(0)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "PATCH /products/:id failed update" do
+    it "redirects to edit and renders the validation errors there", :aggregate_failures do
+      product = create(:product, title: "Original Title")
+
+      patch product_path(product), params: {product: {title: "", franchise_id: product.franchise_id, shape: product.shape}}
+
+      expect(response).to redirect_to(edit_product_path(product))
+      expect(product.reload.title).to eq("Original Title")
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/Edit")
+      expect(inertia.props[:errors][:title]).to include("can't be blank")
+    end
+  end
+
+  describe "POST /products initial purchase failure" do
+    it "redirects to new with an initial purchase error and creates no product", :aggregate_failures do
+      franchise = create(:franchise)
+      warehouse = create(:warehouse, is_default: true)
+
+      expect {
+        post products_path, params: {
+          product: {title: "Broken Purchase Product", franchise_id: franchise.id, shape: Product.default_shape},
+          purchase: {amount: "2", item_price: "15", payment_value: "30", warehouse_id: warehouse.id}
+        }
+      }.not_to change(Product, :count)
+
+      expect(response).to redirect_to(new_product_path)
+
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Products/New")
+      expect(inertia.props[:errors][:initial_purchase]).to include("is invalid")
+    end
+  end
 end

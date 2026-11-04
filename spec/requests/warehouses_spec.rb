@@ -251,4 +251,95 @@ RSpec.describe "Warehouses" do
       expect(warehouse.reload.position).to eq(1)
     end
   end
+
+  describe "PATCH /warehouses/:id transitions" do
+    let(:warehouse) { create(:warehouse) }
+    let(:to_warehouse) { create(:warehouse) }
+
+    it "creates transitions with the transition notification for selected destinations", :aggregate_failures do
+      notification = create(:notification, name: "Warehouse transition")
+
+      patch warehouse_path(warehouse), params: {warehouse: {to_warehouse_ids: [to_warehouse.id]}}
+
+      transition = WarehouseTransition.last
+      expect(transition.from_warehouse).to eq(warehouse)
+      expect(transition.to_warehouse).to eq(to_warehouse)
+      expect(transition.notification).to eq(notification)
+    end
+
+    it "removes transitions that are no longer selected" do
+      unused_warehouse = create(:warehouse)
+      create(:notification, name: "Warehouse transition")
+      create(:warehouse_transition, from_warehouse: warehouse, to_warehouse: unused_warehouse)
+
+      patch warehouse_path(warehouse), params: {warehouse: {to_warehouse_ids: [to_warehouse.id]}}
+
+      expect(WarehouseTransition.where(to_warehouse: unused_warehouse)).to be_empty
+    end
+
+    it "keeps another warehouse from becoming the default", :aggregate_failures do
+      create(:warehouse, :default, name: "Default Warehouse")
+
+      patch warehouse_path(warehouse), params: {warehouse: {is_default: "1"}}
+
+      expect(response).to redirect_to(edit_warehouse_path(warehouse))
+      expect(warehouse.reload.is_default).to be(false)
+    end
+
+    it "returns 404 for a warehouse that does not exist" do
+      patch warehouse_path(0), params: {warehouse: {name: "Missing"}}
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "DELETE /warehouses/:id" do
+    it "redirects back with an alert when the warehouse still has purchase items", :aggregate_failures do
+      warehouse = create(:warehouse)
+      create(:purchase_item, warehouse:)
+
+      delete warehouse_path(warehouse)
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(flash[:alert]).to include("move out all purchased products")
+      expect(Warehouse.exists?(warehouse.id)).to be(true)
+    end
+
+    it "returns 404 for a warehouse that does not exist" do
+      delete warehouse_path(0)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "GET /warehouses/:id inventory" do
+    it "lists only the warehouse's purchase items and its media", :aggregate_failures do
+      warehouse = create(:warehouse)
+      matching_item = create(:purchase_item, warehouse:)
+      create(:purchase_item)
+      media = create(:media, :for_warehouse, mediaable: warehouse)
+
+      get warehouse_path(warehouse)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Warehouses/Show")
+      expect(inertia.props[:warehouse][:id]).to eq(warehouse.id)
+      expect(inertia.props[:warehouse][:media].first[:id]).to eq(media.id)
+      expect(inertia.props[:purchase_items].pluck(:id)).to eq([matching_item.id])
+    end
+
+    it "returns 404 for a warehouse that does not exist" do
+      get warehouse_path(0)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "PATCH /warehouses/:id/change_position missing record" do
+    it "returns 404 for a warehouse that does not exist" do
+      patch warehouse_position_path(0), params: {position: "1"}
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

@@ -128,4 +128,27 @@ RSpec.describe "Products Sync API" do
       end
     end
   end
+
+  describe "missing products" do
+    before do
+      allow(Shopify::PullProductJob).to receive(:perform_later)
+      allow(Shopify::UpdateProductJob).to receive(:perform_later)
+      allow(Shopify::CreateProductJob).to receive(:perform_later)
+    end
+
+    it "returns 404 and enqueues nothing when pulling a product that does not exist", :aggregate_failures do
+      post product_shopify_pull_path(0)
+
+      expect(response).to have_http_status(:not_found)
+      expect(Shopify::PullProductJob).not_to have_received(:perform_later)
+    end
+
+    it "returns 404 and enqueues nothing when pushing a product that does not exist", :aggregate_failures do
+      post product_shopify_push_path(0)
+
+      expect(response).to have_http_status(:not_found)
+      expect(Shopify::UpdateProductJob).not_to have_received(:perform_later)
+      expect(Shopify::CreateProductJob).not_to have_received(:perform_later)
+    end
+  end
 end

@@ -254,4 +254,16 @@ RSpec.describe "Customers" do
       expect(Customer.exists?(customer.id)).to be(false)
     end
   end
+
+  describe "GET /customers store information" do
+    it "lists the matching customer with its Woo store id" do
+      customer = create(:customer, first_name: "Michele", woo_store_id: "woo-customer-1")
+      create(:customer, first_name: "Alice", woo_store_id: "woo-customer-2")
+
+      get customers_path, params: {q: "Michele"}
+
+      expect(response).to have_http_status(:ok)
+      expect(inertia.props[:customers].sole).to include(id: customer.id, woo_store_id: "woo-customer-1")
+    end
+  end
 end

@@ -59,6 +59,16 @@ RSpec.describe "Dashboard" do
   end
 
   describe "GET /debts" do
+    it "lists unpurchased sold products without a search query", :aggregate_failures do
+      sell(batman)
+
+      get debts_path
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Dashboard/Debts")
+      expect(inertia.props[:debts].pluck(:title)).to eq([batman.full_title])
+    end
+
     it "filters debts by product title", :aggregate_failures do
       sell(batman)
       sell(guts)
@@ -85,6 +95,20 @@ RSpec.describe "Dashboard" do
       expect(debt[:title]).to eq(batman.reload.full_title)
       expect(debt[:title]).to include("DC Comics")
       expect(debt[:sold_amount]).to eq(6)
+    end
+  end
+
+  describe "POST /pull-last-orders" do
+    it "enqueues the Woo sync, re-enables the sales hook, and redirects back with a notice", :aggregate_failures do
+      allow(Woo::PullSalesJob).to receive(:perform_later).with(pages: 2)
+      allow(Config).to receive(:enable_sales_hook)
+
+      post last_orders_pull_path, headers: {"Referer" => "http://www.example.com/dashboard"}
+
+      expect(Woo::PullSalesJob).to have_received(:perform_later).with(pages: 2)
+      expect(Config).to have_received(:enable_sales_hook)
+      expect(response).to redirect_to("http://www.example.com/dashboard")
+      expect(flash[:notice]).to eq("Started getting missing sales. It'll take around 5–10 minutes")
     end
   end
 end
