@@ -94,7 +94,7 @@ Many Rails codebases organize logic by technical role (`app/forms`, `app/present
 | Main organizing question | "What kind of object is this?" | "Which business concept is responsible for this rule?" |
 | How business rules are usually grouped | Split by object type such as form, query, presenter, or service | Grouped near the business area that owns the rule |
 | How screen logic is usually grouped | Often in presenters, decorators, or screen-focused service objects | Usually kept in Inertia page props, React page components, and small helpers |
-| How external integrations are usually grouped | Often coordinated by top-level services | Parsers and importers live near the business area they update; low-level API clients stay in `app/services` |
+| How external integrations are usually grouped | Often coordinated by top-level services | Parsers and importers live near the business area they update; low-level API clients live under their integration namespace in `app/models` |
 | What becomes easier | Finding all objects of the same technical kind | Tracing one feature end to end |
 | What becomes harder | Understanding one business feature across many folders | Keeping model folders focused and not turning them into catch-all buckets |
 
@@ -140,7 +140,7 @@ Store-specific translation stays close to the business area it updates rather th
 - `Sale::Shopify::Importer`, `Sale::Shopify::SaleItemImporter`
 - `Customer::Shopify::Importer`
 
-Lower-level HTTP or GraphQL client code stays in `app/services` when it is mainly about talking to an external API — `app/services/shopify/api/client.rb`, `app/services/shopify/graphql/*`, `app/services/woo/variant.rb`.
+Lower-level HTTP or GraphQL client code lives under its integration namespace in `app/models` when it is mainly about talking to an external API — `app/models/shopify/api/client.rb`, `app/models/shopify/graphql/*`, `app/models/seal/api/client.rb`.
 
 ### 4. Background jobs
 
@@ -369,7 +369,7 @@ Examples: `app/frontend/pages/Products/*`, `app/frontend/pages/Purchases/Show/*`
 | a repeated business query or common loading shape | named scope on the owning model | Prefer scopes over controller SQL or tiny query wrappers. |
 | request setup, params normalization, response format | controller or controller concern | Keep business branching and transactions out of the controller. |
 | background retries, scheduling, pagination | `app/jobs/...` | Jobs should call one clear model method or importer. |
-| store API or GraphQL client code | `app/services/shopify/...` or another explicit integration folder | Keep low-level API code separate from business behavior. |
+| store API or GraphQL client code | `app/models/shopify/...` or another integration namespace in `app/models` | Keep low-level API code separate from business behavior. |
 | parser, importer, payload builder tied to one business area | `app/models/<model>/<integration>/...` | Keep store-specific translation near the business area it updates. |
 | screen-only rendering logic | Inertia page component, local React component or hook, or focused helper | Do not move screen wording or screen branching into models by default. |
 | small screen-only view-data shaping for one page or widget | helper or focused page-prop builder | Prefer simple edge code over a presenter; keep it mechanical and presentation-only. |

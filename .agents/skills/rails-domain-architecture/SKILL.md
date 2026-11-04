@@ -31,7 +31,8 @@ Before planning a behavior-bearing backend change or a refactor that affects or 
    - Use `app/models/<model>/<capability>.rb` when behavior forms one coherent capability of a record or relation; do not extract a module only to shorten a model. Extend the capability that already serves the same payload instead of adding a near-identical sibling, and name capabilities for exactly what they hold.
    - Use `app/models/concerns` only for behavior shared by multiple models.
    - Use a namespaced object when it has independent inputs, results, collaborators, or adapter responsibility.
-   - Reserve query objects for first-class read subsystems and services for infrastructure-heavy or cross-domain work.
+   - Reserve query objects for first-class read subsystems.
+   - Put plain Ruby objects in `app/models` and name them for what they are (`Client`, `Parser`, `Importer`); there is no `app/services` category. External API transport lives under its integration namespace, such as `app/models/shopify/api/client.rb`.
 4. Keep boundaries explicit: controllers own parameters, authorization, scoped loading, responses, and rendering; jobs own async scheduling, delivery, and retries; integration clients own external protocols; parsers translate external data; importers map it and call domain commands. Domain commands remain the only invariant-bearing writers.
 5. Keep reusable reads as named, relation-returning scopes with deliberate preload shapes, written with hash syntax or Arel nodes; use `Arel.sql` only when no native equivalent exists. Build Inertia props or JSON at the rendering edge without reconstructing domain data.
 6. Represent command endpoints as small resources using write HTTP verbs. Reuse controller scoping concerns only across a real controller family.

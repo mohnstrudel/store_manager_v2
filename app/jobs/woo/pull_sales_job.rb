@@ -148,7 +148,7 @@ module Woo
     end
 
     def parse_variant(line_item)
-      Woo::Variant.deserialize_from_order_response(line_item)
+      Variant::Woo::Parser.parse_order_line_item(line_item)
     end
 
     def create_sales(parsed_orders)
@@ -172,7 +172,7 @@ module Woo
             next if product.blank?
 
             product.with_lock do
-              variant = Woo::Variant.import(order_product[:variant])
+              variant = Variant::Woo::Importer.import(order_product[:variant])
 
               sale_item = SaleItem.find_by_woo_id(order_product[:sale_item_woo_id]) || SaleItem.new
 

@@ -35,11 +35,11 @@ module Woo
     end
 
     def parse(variants_api_response)
-      variants_api_response.map { Woo::Variant.deserialize(it) }.compact
+      variants_api_response.map { Variant::Woo::Parser.parse(it) }.compact
     end
 
     def create(parsed_variants_api_response)
-      parsed_variants_api_response.each { Woo::Variant.import(it) }
+      parsed_variants_api_response.each { Variant::Woo::Importer.import(it) }
     end
 
     def create_variant(
@@ -48,7 +48,7 @@ module Woo
       variant_types:,
       store_link: nil
     )
-      Woo::Variant.import(
+      Variant::Woo::Importer.import(
         woo_id: variant_woo_id,
         product_woo_id: product.woo_store_id,
         store_link: store_link,
