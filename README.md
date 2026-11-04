@@ -94,17 +94,17 @@ Many Rails codebases organize logic by technical role (`app/forms`, `app/present
 | Main organizing question | "What kind of object is this?" | "Which business concept is responsible for this rule?" |
 | How business rules are usually grouped | Split by object type such as form, query, presenter, or service | Grouped near the business area that owns the rule |
 | How screen logic is usually grouped | Often in presenters, decorators, or screen-focused service objects | Usually kept in Inertia page props, React page components, and small helpers |
-| How external integrations are usually grouped | Often coordinated by top-level services | Parsers and importers live near the business area they update; low-level API clients stay in `app/services` |
+| How external integrations are usually grouped | Often coordinated by top-level services | Parsers and importers live near the business area they update; low-level API clients live under their integration namespace in `app/models` |
 | What becomes easier | Finding all objects of the same technical kind | Tracing one feature end to end |
 | What becomes harder | Understanding one business feature across many folders | Keeping model folders focused and not turning them into catch-all buckets |
 
 This repo borrows the business-ownership idea from DDD but expresses it in plain Rails terms — scopes, helpers, and nearby model files come before repositories, application services, or separate domain-layer objects. So you will see files such as:
 
-- [`app/models/product/editing.rb`](app/models/product/editing.rb)
-- [`app/models/product/editing/payload.rb`](app/models/product/editing/payload.rb)
+- [`app/models/product/revisable.rb`](app/models/product/revisable.rb)
+- [`app/models/product/revisable/payload.rb`](app/models/product/revisable/payload.rb)
 - [`app/models/product/shopify/importer.rb`](app/models/product/shopify/importer.rb)
 - [`app/models/sale/statuses.rb`](app/models/sale/statuses.rb)
-- [`app/models/purchase/linking.rb`](app/models/purchase/linking.rb)
+- [`app/models/purchase/linkable.rb`](app/models/purchase/linkable.rb)
 
 instead of a broad top-level split across `app/forms`, `app/importers`, `app/queries`, and `app/services`. For file-placement defaults, see [Where to put new code](#where-to-put-new-code).
 
@@ -126,7 +126,7 @@ These live in `.agents/skills/`; `.claude/skills/` and `.codex/skills/` are syml
 
 Controllers load the starting record or relation, normalize params, choose a response format, and render or redirect. They are not the main home for business rules.
 
-`ProductsController` is representative: it builds a small form-translation object (`Product::Editing::Payload`) and hands its attributes to a model method (`Product#save_editing!`). Small params normalization may stay in the controller; once a form needs several normalization helpers or failed-submit rebuilding, extract a small object near the business area it belongs to (e.g. `app/models/product/editing/payload.rb`, `app/models/purchase/form_payload.rb`). These are translators for one specific business form, not generic service objects.
+`ProductsController` is representative: it builds a small form-translation object (`Product::Revisable::Payload`) and hands its attributes to a model method (`Product#revise`). Small params normalization may stay in the controller; once a form needs several normalization helpers or failed-submit rebuilding, extract a small object near the business area it belongs to (e.g. `app/models/product/revisable/payload.rb`, `app/models/purchase/form_payload.rb`). These are translators for one specific business form, not generic service objects.
 
 ### 2. Business rules and model areas
 
@@ -139,8 +139,9 @@ Store-specific translation stays close to the business area it updates rather th
 - `Product::Shopify::Parser`, `Product::Shopify::Importer`, `Product::Shopify::Payload`
 - `Sale::Shopify::Importer`, `Sale::Shopify::SaleItemImporter`
 - `Customer::Shopify::Importer`
+- `Sale::Woo::Parser`, `Sale::Woo::Importer`, `Product::Woo::Parser`, `Product::Woo::Importer`, `Customer::Woo::Importer`
 
-Lower-level HTTP or GraphQL client code stays in `app/services` when it is mainly about talking to an external API — `app/services/shopify/api/client.rb`, `app/services/shopify/graphql/*`, `app/services/woo/variant.rb`.
+Lower-level HTTP or GraphQL client code lives under its integration namespace in `app/models` when it is mainly about talking to an external API — `app/models/shopify/api/client.rb`, `app/models/shopify/graphql/*`, `app/models/seal/api/client.rb`, `app/models/woo/api/client.rb`.
 
 ### 4. Background jobs
 
@@ -164,7 +165,7 @@ The UI runs through `inertia_rails`: Rails controllers render Inertia pages and 
 - `@inertiajs/react` owns links, forms, visits, shared page props, and client-side navigation
 - Vite Ruby builds the frontend entrypoints, including Inertia SSR; Tailwind CSS compiles through the Vite Tailwind plugin
 
-The division of labor: let Rails load records, authorize requests, and prepare page props (usually in helpers and focused prop builders); keep screen wording, branching, and view-data shaping at the Inertia boundary; organize React pages by resource under `app/frontend/pages`, splitting large screens into local components and hooks; reuse shared components from `app/frontend/components`; and use generated `js-from-routes` helpers from `app/frontend/api` instead of hand-written path strings.
+The division of labor: let Rails load records, authorize requests, and prepare page props with Alba resources in `app/resources/` (Typelizer generates their TypeScript types into `app/frontend/types/serializers/`); keep screen wording, branching, and view-data shaping at the Inertia boundary; organize React pages by resource under `app/frontend/pages`, splitting large screens into local components and hooks; reuse shared components from `app/frontend/components`; and use generated `js-from-routes` helpers from `app/frontend/api` instead of hand-written path strings.
 
 UI tests are part of the design, not a polish step. Because screens combine Rails-prepared props, Inertia navigation, React state, and CSS, risky UI work should include focused component or browser-level coverage for things the code alone cannot guarantee — Inertia form submissions and validation errors, client-side navigation and shared layout behavior, dialog open/close, image/gallery state transitions, and geometry staying stable while assets load.
 
@@ -176,8 +177,8 @@ Shared model concerns are reserved for behavior that truly applies across severa
 | --- | --- |
 | `Searchable` | shared `pg_search` setup and search helpers |
 | `Shopable` | shared store lookup helpers such as `find_by_shopify_id` |
-| `HasAuditNotifications` | audit-triggered background notifications |
-| `HasPreviewImages` | image handling and preview variants |
+| `AuditNotifiable` | audit-triggered background notifications |
+| `Illustrated` | image handling and preview variants |
 | `Sanitizable` | HTML or payload sanitizing helpers used by sync flows |
 
 ---
@@ -237,7 +238,8 @@ app/models/product/
 
 app/models/purchase/
   financials.rb
-  linking.rb
+  linkable.rb
+  placeable.rb
   warehousing.rb
 
 app/models/sale/
@@ -260,8 +262,8 @@ app/models/sale/
 
 ```text
 ProductsController
-  -> Product::Editing::Payload normalizes product, variant, store-info, purchase, and media params
-  -> Product#save_editing!
+  -> Product::Revisable::Payload normalizes product, variant, store-info, purchase, and media params
+  -> Product#revise
     -> assign product, variant, and store-info attributes
     -> sync variant options and ensure SKUs
     -> validate, then save in a transaction
@@ -276,7 +278,7 @@ Shopify::PullProductsJob
   -> Shopify::BasePullJob
     -> Shopify::Api::Client
     -> Product::Shopify::Parser.parse
-    -> Product::Shopify::Importer.import!
+    -> Product::Shopify::Importer.import
       -> update Product
       -> update StoreInfo
       -> enqueue variant and media follow-up jobs
@@ -287,7 +289,7 @@ Shopify::PullProductsJob
 ```text
 Shopify::PullSalesJob
   -> Sale::Shopify::Parser.parse
-  -> Sale::Shopify::Importer.import!
+  -> Sale::Shopify::Importer.import
     -> update Sale
     -> update Sale store info
     -> import SaleItems
@@ -337,9 +339,9 @@ app/
 
 ```text
 app/models/product.rb
-app/models/product/editing.rb
-app/models/product/listing.rb
-app/models/product/titling.rb
+app/models/product/revisable.rb
+app/models/product/variant_availability.rb
+app/models/product/titled.rb
 app/models/product/shopify/importer.rb
 ```
 
@@ -357,7 +359,7 @@ app/frontend/
   types/             shared frontend types
 ```
 
-Examples: `app/frontend/pages/Products/*`, `app/frontend/pages/Purchases/Show/*`, `app/frontend/pages/Sales/Show/*`, `app/frontend/components/*`. Helpers remain the default place for small server-side page-prop preparation.
+Examples: `app/frontend/pages/Products/*`, `app/frontend/pages/Purchases/Show/*`, `app/frontend/pages/Sales/Show/*`, `app/frontend/components/*`. Page props come from Alba resources in `app/resources/`; helpers hold the formatting those resources share with views.
 
 ### Where to put new code
 
@@ -369,10 +371,10 @@ Examples: `app/frontend/pages/Products/*`, `app/frontend/pages/Purchases/Show/*`
 | a repeated business query or common loading shape | named scope on the owning model | Prefer scopes over controller SQL or tiny query wrappers. |
 | request setup, params normalization, response format | controller or controller concern | Keep business branching and transactions out of the controller. |
 | background retries, scheduling, pagination | `app/jobs/...` | Jobs should call one clear model method or importer. |
-| store API or GraphQL client code | `app/services/shopify/...` or another explicit integration folder | Keep low-level API code separate from business behavior. |
+| store API or GraphQL client code | `app/models/shopify/...` or another integration namespace in `app/models` | Keep low-level API code separate from business behavior. |
 | parser, importer, payload builder tied to one business area | `app/models/<model>/<integration>/...` | Keep store-specific translation near the business area it updates. |
 | screen-only rendering logic | Inertia page component, local React component or hook, or focused helper | Do not move screen wording or screen branching into models by default. |
-| small screen-only view-data shaping for one page or widget | helper or focused page-prop builder | Prefer simple edge code over a presenter; keep it mechanical and presentation-only. |
+| Inertia page props | page resource in `app/resources/<pages>/` composed from shared record resources | Annotate computed attributes with `typelize`; run `bin/rails typelizer:generate`; never hand-write the TypeScript types. |
 | coordination across several business areas or infrastructure-heavy logic | explicit folder under `app/models/<name>/` or another clear boundary | Reach for this only when a direct model API would be unnatural. |
 
 ### Naming bias

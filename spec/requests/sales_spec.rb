@@ -130,7 +130,7 @@ RSpec.describe "Sales" do
       let!(:ordinary) { create(:sale, woo_created_at: Time.utc(2024, 1, 3), note: "batch") }
 
       before do
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-900",
@@ -261,6 +261,12 @@ RSpec.describe "Sales" do
         expect(lines.pluck(:id)).to contain_exactly(short_item.id, covered_item.id, other_short_item.id)
         expect(lines.to_h { |line| [line[:id], line[:purchase_items].size] })
           .to eq(short_item.id => 1, covered_item.id => 1, other_short_item.id => 0)
+        short_purchase_item = PurchaseItem.find_by!(sale_item: short_item)
+        expect(lines.find { |line| line[:id] == short_item.id }[:purchase_items].sole).to include(
+          id: short_purchase_item.id,
+          path: purchase_item_path(short_purchase_item),
+          warehouse_name: short_purchase_item.warehouse.name
+        )
       end
 
       it "combines with the partial-payment filter, search and sort" do
@@ -268,7 +274,7 @@ RSpec.describe "Sales" do
         follow_up = create_sale_with_line(day: 2, shopify_store_id: "gid://shopify/Order/901", note: "batch")
         ordinary = create_sale_with_line(day: 3, note: "batch", received_revenue: 100, outstanding_revenue: 100)
         covered = create_sale_with_line(day: 4, linked: 1, note: "batch")
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-900",
@@ -603,8 +609,8 @@ RSpec.describe "Sales" do
 
       it "includes exact payment-plan context" do
         sale = Sale.order(:id).last
-        sale.upsert_shopify_info!(store_id: "gid://shopify/Order/100")
-        SalePaymentPlan.reconcile!(
+        sale.upsert_shopify_info(store_id: "gid://shopify/Order/100")
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-1",
@@ -652,7 +658,7 @@ RSpec.describe "Sales" do
       expect(inertia.props[:sale][:sale_items]).to eq([])
       expect(inertia.props[:options][:customers].pluck(:value)).to include(customer.id)
       expect(inertia.props[:options][:products].pluck(:value)).to include(product.id)
-      expect(inertia.props[:options][:status_names]).to eq(Sale.status_names)
+      expect(inertia.props[:options][:status_names]).to eq(Sale::STATUSES)
     end
   end
 
@@ -687,7 +693,23 @@ RSpec.describe "Sales" do
       expect(inertia.props[:sale][:sale_items].first[:variant_availability]).to include(
         mode: "base"
       )
-      expect(inertia.props[:options][:status_names]).to eq(Sale.status_names)
+      expect(inertia.props[:options][:status_names]).to eq(Sale::STATUSES)
+    end
+
+    it "renders variant availability for every sale item without repeated queries" do
+      sale = create(:sale)
+      sale_items = create_list(:product, 2).map do |product|
+        variant = create(:variant, product:)
+        create(:sale_item, sale:, product:, variant:)
+      end
+
+      get edit_sale_path(sale)
+
+      expect(response).to have_http_status(:ok)
+      availabilities = inertia.props[:sale][:sale_items].pluck(:variant_availability)
+      expect(availabilities.pluck(:mode)).to eq(%w[select select])
+      expect(availabilities.map { |availability| availability[:variants].pluck(:value) })
+        .to eq(sale_items.map { |item| [item.variant_id] })
     end
   end
 
@@ -772,6 +794,7 @@ RSpec.describe "Sales" do
       product = create(:product)
       sale = create(:sale, customer:, status: "processing")
       sale_item = create(:sale_item, sale:, product:, qty: 1, price: 100)
+      removed_item = create(:sale_item, sale:, product: create(:product), variant: nil, qty: 2, price: 100)
 
       patch sale_path(sale), params: {
         sale: {
@@ -786,6 +809,13 @@ RSpec.describe "Sales" do
             qty: "3",
             price: "150.00",
             _destroy: "0"
+          },
+          "1" => {
+            id: removed_item.id,
+            product_id: removed_item.product_id,
+            qty: "2",
+            price: "100.00",
+            _destroy: "1"
           }
         }
       }
@@ -794,6 +824,7 @@ RSpec.describe "Sales" do
 
       expect(response).to redirect_to(sale_path(sale))
       expect(sale.status).to eq("completed")
+      expect(sale.sale_items).to contain_exactly(sale_item)
       expect(sale_item.reload.qty).to eq(3)
       expect(sale_item.price).to eq(BigDecimal("150.00"))
     end
@@ -821,7 +852,7 @@ RSpec.describe "Sales" do
   describe "GET /sales/:id" do
     it "renders the show Inertia component with nested sale data" do
       customer = create(:customer)
-      customer.upsert_shopify_info!(store_id: "gid://shopify/Customer/9341147185481")
+      customer.upsert_shopify_info(store_id: "gid://shopify/Customer/9341147185481")
 
       sale = create(
         :sale,
@@ -983,7 +1014,7 @@ RSpec.describe "Sales" do
           shipping_cost: BigDecimal(0)
         )
 
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-deposit",
@@ -1069,7 +1100,7 @@ RSpec.describe "Sales" do
         create(:sale_address, sale: follow_up, kind: :shipping)
         create(:expense_rate, rate_percent: 10)
 
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-1",
@@ -1152,7 +1183,7 @@ RSpec.describe "Sales" do
 
       it "leaves a Shopify payment_terms order unaffected, since its schedules all belong to the one order" do
         payment_terms_sale = create(:sale, shopify_store_id: "gid://shopify/Order/950")
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "shopify",
             external_id: "terms-1",

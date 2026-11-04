@@ -14,6 +14,6 @@ Rails/SkipsModelValidations:
   Exclude:
     - spec/**/*
     - app/models/purchase_item/expenses.rb
-    - app/models/purchase_item/linking.rb
+    - app/models/purchase_item/linkable.rb
     - app/models/purchase_item/shipping.rb
     - app/models/sale_payment_plan.rb

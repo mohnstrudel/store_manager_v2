@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 export RUBOCOP_CACHE_ROOT="${RUBOCOP_CACHE_ROOT:-tmp/rubocop_cache}"
+export PARALLEL_TEST_PROCESSORS="${PARALLEL_TEST_PROCESSORS:-6}"
 TEST_LOG_DIR="${TEST_LOG_DIR:-tmp/test-logs}"
 TEST_LOG_TAIL="${TEST_LOG_TAIL:-80}"
 
@@ -82,8 +83,7 @@ wait_for_background_commands() {
 run backend-rubocop bin/bundle exec rubocop --format quiet --force-exclusion --cache-root "$RUBOCOP_CACHE_ROOT"
 run backend-parallel-db bin/bundle exec rake parallel:create parallel:prepare
 
-run backend-rspec bin/rspec --exclude-pattern 'spec/features/**/*_spec.rb' --format progress --no-profile
-run backend-feature-rspec env PARALLEL_RSPEC_SKIP_SETUP=1 bin/parallel-rspec --test-options '--format progress --no-profile' spec/features
+run backend-rspec env PARALLEL_RSPEC_SKIP_SETUP=1 bin/parallel-rspec spec
 
 run_in_background frontend-lint pnpm lint
 run_in_background frontend-lint-perf pnpm exec oxlint app/frontend -D perf --quiet --format unix

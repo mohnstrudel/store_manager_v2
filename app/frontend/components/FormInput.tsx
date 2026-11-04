@@ -4,7 +4,7 @@ type FormInputProps = {
   autoComplete?: string;
   autoFocus?: boolean;
   className?: string;
-  defaultValue?: string | number;
+  defaultValue?: string | number | null;
   error?: string;
   label: string;
   maxLength?: number;
@@ -41,7 +41,7 @@ export default function FormInput({
         autoComplete={autoComplete}
         // oxlint-disable-next-line jsx-a11y/no-autofocus -- user-opened editor focus
         autoFocus={autoFocus}
-        defaultValue={defaultValue}
+        defaultValue={defaultValue ?? ""}
         id={id}
         maxLength={maxLength}
         min={min}

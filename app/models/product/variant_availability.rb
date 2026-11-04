@@ -18,9 +18,15 @@ module Product::VariantAvailability
     variants.active.base_models
   end
 
-  def synchronize_variant_availability!
+  def assignable_variants_with_options
+    return assignable_among(variants.reject(&:deactivated?)) if variants.loaded?
+
+    assignable_variants.includes(:color, :size, :version).to_a
+  end
+
+  def synchronize_variant_availability
     transaction do
-      with_variant_availability_lock { synchronize_variant_availability_under_lock! }
+      with_variant_availability_lock { synchronize_variant_availability_under_lock }
     end
   end
 
@@ -35,7 +41,11 @@ module Product::VariantAvailability
 
   private
 
-  def synchronize_variant_availability_under_lock!
+  def assignable_among(active_variants)
+    active_variants.reject(&:base_model?).presence || active_variants.select(&:base_model?)
+  end
+
+  def synchronize_variant_availability_under_lock
     return if association(:variants).target.any? { |variant| variant.base_model? && variant.new_record? }
 
     base = variants.base_models.first!
@@ -44,7 +54,7 @@ module Product::VariantAvailability
 
     @synchronizing_variant_availability = true
     base.association(:product).target = self
-    base.update!(deactivated_at: should_deactivate_base ? Time.current : nil)
+    should_deactivate_base ? base.deactivate : base.reactivate
   ensure
     @synchronizing_variant_availability = false
   end

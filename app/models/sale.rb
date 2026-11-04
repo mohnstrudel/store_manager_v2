@@ -46,22 +46,21 @@
 #  woo_id                :string
 #
 class Sale < ApplicationRecord
-  include Addresses
-  include BookedRevenue
-  include Editing
+  include Addressable
+  include Filterable
   include FollowUpPayments
-  include HasAuditNotifications
-  include Linking
-  include Listing
+  include AuditNotifiable
+  include Linkable
   include Profitability
   include RevenueAllocation
+  include Revisable
   include Searchable
   include Settlement
-  include ShopSync
   include Shopable
   include Statuses
-  include Tagging
-  include Titling
+  include Syncable
+  include Taggable
+  include Titled
 
   extend FriendlyId
 
@@ -83,53 +82,59 @@ class Sale < ApplicationRecord
 
   has_many :sale_items, dependent: :destroy, inverse_of: :sale
   has_many :products, through: :sale_items
-  has_many :origin_payment_plans,
-    class_name: "SalePaymentPlan",
-    foreign_key: :origin_sale_id,
-    dependent: :nullify,
-    inverse_of: :origin_sale
-  has_many :sale_payment_parts, dependent: :nullify, inverse_of: :sale
 
-  def created_at_for_display
-    woo_created_at || created_at
-  end
+  scope :with_payment_plans, -> {
+    includes(
+      {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+      {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}}
+    )
+  }
 
-  def partially_paid?
-    received_revenue.to_d.positive? && outstanding_revenue.to_d.positive?
-  end
+  scope :preloaded_for_listing, -> {
+    with_payment_plans.includes(
+      :customer,
+      :shopify_info,
+      :woo_info,
+      :shipping_address,
+      :billing_address,
+      :sales_tags,
+      sale_items: [
+        {product: {media: {image_attachment: :blob}}},
+        {purchase_items: [:warehouse, purchase: :supplier]},
+        {variant: [:version, :color, :size]}
+      ]
+    )
+  }
 
-  def projected_item_price
-    return if sale_items.size != 1
-    return if shipping_total.blank?
+  scope :with_items_and_addresses, -> {
+    includes(:sale_items, :shipping_address, :billing_address)
+  }
 
-    plans = payment_plans_for_display
-    return unless plans.one?
+  scope :with_item_variant_options_and_addresses, -> {
+    with_items_and_addresses.includes(
+      sale_items: [
+        {variant: [:color, :size, :version]},
+        {product: {variants: [:color, :size, :version]}}
+      ]
+    )
+  }
 
-    plan = plans.first
-    return unless plan.origin_sale_id == id && plan.projected_total
+  scope :preloaded, -> {
+    with_payment_plans.includes(
+      :customer,
+      :shopify_info,
+      :woo_info,
+      :shipping_address,
+      :billing_address,
+      sale_items: [
+        {product: {media: {image_attachment: :blob}}},
+        {purchase_items: [:warehouse, :shipping_company, {purchase: :supplier}]},
+        {variant: [:version, :color, :size]}
+      ]
+    )
+  }
 
-    price = plan.projected_total - shipping_total.to_d
-    price if price >= 0
-  end
-
-  def payment_plans_for_display
-    (origin_payment_plans.to_a + sale_payment_parts.map(&:sale_payment_plan))
-      .uniq(&:id)
-      .sort_by { |plan| [plan.created_at, plan.id] }
-  end
-
-  def shop_currency_amount(usd_amount)
-    return if usd_amount.nil? || shop_currency.blank? || shop_currency == "USD" || !usd_conversion_rate&.positive?
-
-    (usd_amount.to_d / usd_conversion_rate).round(2)
-  end
-
-  def reconcile_installment_attribution!(origin_item)
-    installment_payment_items.each { |item| item.apply_installment_origin!(origin_item) }
-  end
-
-  def installment_payment_items
-    scope = sale_items.joins(:product)
-    scope.where(products: {non_catalog: true}).or(scope.where.not(sale_items: {origin_sale_item_id: nil}))
-  end
+  scope :with_customer_and_item_products, -> {
+    includes(:customer, sale_items: [{product: {media: {image_attachment: :blob}}}, :variant])
+  }
 end

@@ -84,7 +84,7 @@ RSpec.describe "Customers" do
       customer = create(:customer)
       origin = create(:sale, customer:, shopify_name: "HSCM#1746", shopify_store_id: "gid://shopify/Order/100")
       follow_up = create(:sale, customer:, shopify_name: "HSCM#1747", shopify_store_id: "gid://shopify/Order/101")
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-1",
@@ -145,8 +145,7 @@ RSpec.describe "Customers" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Customers/New")
 
-      customer_props = inertia.props[:customer]
-      expect(customer_props[:id]).to be_nil
+      expect_inertia.to have_props(customer: {first_name: nil, last_name: nil, email: nil, phone: nil})
     end
   end
 
@@ -226,7 +225,7 @@ RSpec.describe "Customers" do
     end
 
     it "rerenders the edit Inertia component when invalid" do
-      customer = create(:customer)
+      customer = create(:customer, :synced)
       customer.woo_info.destroy!
 
       patch customer_path(customer), params: {
@@ -253,6 +252,18 @@ RSpec.describe "Customers" do
 
       expect(response).to redirect_to(customers_path)
       expect(Customer.exists?(customer.id)).to be(false)
+    end
+  end
+
+  describe "GET /customers store information" do
+    it "lists the matching customer with its Woo store id" do
+      customer = create(:customer, first_name: "Michele", woo_store_id: "woo-customer-1")
+      create(:customer, first_name: "Alice", woo_store_id: "woo-customer-2")
+
+      get customers_path, params: {q: "Michele"}
+
+      expect(response).to have_http_status(:ok)
+      expect(inertia.props[:customers].sole).to include(id: customer.id, woo_store_id: "woo-customer-1")
     end
   end
 end

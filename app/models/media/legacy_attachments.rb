@@ -9,7 +9,7 @@ module Media::LegacyAttachments
     ActiveStorage::Attachment.where(name: NAME, record_type: owner_class.name)
   end
 
-  def self.owner_class_for!(name)
+  def self.owner_class_for(name)
     OWNER_CLASSES_BY_NAME.fetch(name)
   rescue KeyError
     raise ArgumentError, "Unsupported legacy attachment owner type: #{name.inspect}"

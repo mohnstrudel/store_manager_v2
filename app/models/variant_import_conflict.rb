@@ -19,15 +19,15 @@ class VariantImportConflict < ApplicationRecord
 
   validates :store_id, presence: true
 
-  def self.record!(store_id:, **attributes)
+  def self.record(store_id:, **attributes)
     find_or_initialize_by(store_id:).update!(attributes)
   end
 
-  def self.resolve!(store_id)
+  def self.resolve(store_id)
     where(store_id:).delete_all
   end
 
-  def self.keep_only!(product, store_ids)
+  def self.keep_only(product, store_ids)
     where(product:).where.not(store_id: store_ids).delete_all
   end
 end

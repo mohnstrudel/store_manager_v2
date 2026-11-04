@@ -29,6 +29,9 @@ export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): S
     updated_at: "20. May '26 11:00",
     active: true,
     completed: false,
+    status: "processing",
+    total: "1060",
+    shop_identifier: "HSCM#1746",
     shopify_name: "HSCM#1746",
     shopify_id: "gid://shopify/Order/7383283466569",
     shopify_id_short: "7383283466569",
@@ -72,6 +75,7 @@ export function makeSaleIndexPurchaseItem(
 export function makeSalePayment(overrides: Partial<SalePaymentRecord> = {}): SalePaymentRecord {
   return {
     progress: 71,
+    amounts_unknown: false,
     paid: "750",
     price: "1060",
     debt: "310",

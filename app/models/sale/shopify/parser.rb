@@ -3,6 +3,12 @@
 class Sale::Shopify::Parser
   include Sanitizable
 
+  FULLY_COLLECTED_FINANCIAL_STATUSES = %w[PAID PARTIALLY_REFUNDED REFUNDED].freeze
+  NOT_FULLY_PAID_FINANCIAL_STATUSES = %w[
+    PENDING AUTHORIZED PARTIALLY_AUTHORIZED PARTIALLY_PAID VOIDED EXPIRED
+  ].freeze
+  private_constant :FULLY_COLLECTED_FINANCIAL_STATUSES, :NOT_FULLY_PAID_FINANCIAL_STATUSES
+
   def self.parse(payload)
     raise ArgumentError, "Payload cannot be blank" if payload.blank?
     return payload if payload.key?(:store_id)
@@ -52,10 +58,7 @@ class Sale::Shopify::Parser
       shopify_created_at: shopify_created_at,
       status: derive_status,
       total: converted_money(@order["totalPriceSet"]),
-      settlement_status: Sale.settlement_status_from_shopify(
-        financial_status: @order["displayFinancialStatus"],
-        outstanding_revenue: payment[:outstanding_revenue]
-      ),
+      settlement_status: settlement_status(payment[:outstanding_revenue]),
       **payment,
       **currency_attributes
     }
@@ -116,7 +119,36 @@ class Sale::Shopify::Parser
   end
 
   def derive_status
-    Sale.derive_status_from_shopify(@order["displayFulfillmentStatus"], @order["displayFinancialStatus"])
+    case [@order["displayFulfillmentStatus"], @order["displayFinancialStatus"]]
+    when ["FULFILLED", "PAID"]
+      "completed"
+    when ["UNFULFILLED", "PAID"]
+      "pre-ordered"
+    when ["UNFULFILLED", "PENDING"]
+      "processing"
+    when ["UNFULFILLED", "PARTIALLY_PAID"]
+      "partially-paid"
+    when ["FULFILLED", "REFUNDED"]
+      "refunded"
+    when ["UNFULFILLED", "REFUNDED"]
+      "cancelled"
+    else
+      "processing"
+    end
+  end
+
+  def settlement_status(outstanding_revenue)
+    return "not_fully_paid" if outstanding_revenue.to_d.positive?
+
+    financial_status = @order["displayFinancialStatus"]
+    case financial_status
+    when *FULLY_COLLECTED_FINANCIAL_STATUSES
+      "paid"
+    when *NOT_FULLY_PAID_FINANCIAL_STATUSES
+      "not_fully_paid"
+    else
+      raise ArgumentError, "Unmapped Shopify financial status: #{financial_status.inspect}"
+    end
   end
 
   def currency_attributes

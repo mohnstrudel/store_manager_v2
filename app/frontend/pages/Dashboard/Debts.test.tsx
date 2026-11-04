@@ -1,29 +1,16 @@
+import { router } from "@inertiajs/react";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { makePagination } from "@/test/factories";
+import type { DashboardDebt, DashboardUnpaidPurchase } from "@/types/serializers";
 
 import Debts from "./Debts";
 
-type DebtRecord = {
-  id: number;
-  path: string;
-  row_id: number;
-  title: string;
-  variant_name: string;
-  sold_amount: number;
-  purchased_amount: number;
-  debt: number;
-};
+type DebtRecord = DashboardDebt;
 
-type UnpaidPurchaseRecord = {
-  id: number;
-  path: string;
-  purchased_ago: string;
-  supplier_title: string;
-  item_price: string;
-  amount: number;
-};
+type UnpaidPurchaseRecord = DashboardUnpaidPurchase;
 
 function makeDebt(overrides: Partial<DebtRecord> = {}): DebtRecord {
   return {
@@ -65,6 +52,20 @@ describe("Dashboard/Debts", () => {
     expect(screen.getByRole("heading", { name: "Debts" })).toBeInTheDocument();
     expect(screen.getByText("Moon Statue")).toBeInTheDocument();
     expect(screen.getByText("Gold")).toBeInTheDocument();
+  });
+
+  it("reloads only the debt list props when searching", async () => {
+    const user = userEvent.setup();
+    render(<Debts {...defaultProps} />);
+
+    await user.type(screen.getByRole("searchbox"), "Batman");
+    await user.click(screen.getByRole("button", { name: /Search/ }));
+
+    expect(router.get).toHaveBeenCalledWith(
+      "/debts",
+      { q: "Batman" },
+      expect.objectContaining({ only: ["debts", "pagination", "search"], preserveState: true }),
+    );
   });
 
   it("shows the unpaid purchases section when unpaid_purchases is non-empty", () => {

@@ -12,8 +12,8 @@
 #  purchase_id  :bigint           not null
 #
 class Payment < ApplicationRecord
-  include HasAuditNotifications
-  include PurchasePaidSync
+  include AuditNotifiable
+  include Payable
 
   audited associated_with: :purchase
 

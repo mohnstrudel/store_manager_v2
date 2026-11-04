@@ -12,7 +12,7 @@
 #  purchase_item_id :bigint           not null
 #
 class PurchaseExpense < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited associated_with: :purchase
 
@@ -36,6 +36,6 @@ class PurchaseExpense < ApplicationRecord
   def recalculate_purchase_item_expenses
     return if purchase_item.destroyed?
 
-    purchase_item.recalculate_expenses!
+    purchase_item.recalculate_expenses
   end
 end

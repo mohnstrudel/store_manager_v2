@@ -100,7 +100,7 @@ RSpec.describe "Colors" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Colors/New")
       expect_inertia.to have_props(
-        color: {created_at: nil, id: nil, updated_at: nil, value: ""},
+        color: {value: ""},
         errors: {value: "can't be blank"}
       )
     end

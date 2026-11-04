@@ -8,11 +8,12 @@ class SessionsController < ApplicationController
   skip_after_action :verify_authorized, only: %i[new create destroy]
 
   def new
-    render inertia: "Sessions/New", props: {email_address: params[:email_address]}
+    render_inertia "Sessions/New", serializer: EmailAddressPrefillResource, locals: {email_address: params[:email_address]}
   end
 
   def create
-    if (user = User.authenticate_by(params.permit(:email_address, :password)))
+    email_address, password = params.expect(:email_address, :password)
+    if (user = User.authenticate_by(email_address:, password:))
       start_new_session_for user
       redirect_to after_authentication_url
     else

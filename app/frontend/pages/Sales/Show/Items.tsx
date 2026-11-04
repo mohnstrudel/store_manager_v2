@@ -85,7 +85,7 @@ function SaleItemRow({
   toggleSelectedIdFromDataAttribute,
 }: { saleItem: SaleShowSaleItemRecord } & SelectionProps) {
   const hasPurchaseItems = saleItem.purchase_items.length > 0;
-  const missingPurchasesCount = Math.max(0, saleItem.qty - saleItem.purchase_items.length);
+  const missingPurchasesCount = Math.max(0, (saleItem.qty ?? 0) - saleItem.purchase_items.length);
 
   return (
     <tr className="cursor-default">

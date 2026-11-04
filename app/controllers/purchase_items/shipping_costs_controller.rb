@@ -2,10 +2,11 @@
 
 module PurchaseItems
   class ShippingCostsController < ApplicationController
+    include ReturnPath
     include PurchaseItemScoped
 
     def update
-      if @purchase_item.update(shipping_cost: params[:purchase_item][:shipping_cost])
+      if @purchase_item.update(shipping_cost: purchase_item_params[:shipping_cost])
         redirect_to return_path, notice: "Shipping cost was successfully updated"
       else
         redirect_to return_path, inertia: inertia_errors(@purchase_item.errors)
@@ -14,8 +15,12 @@ module PurchaseItems
 
     private
 
-    def return_path
-      params[:return_to].presence || purchase_item_path(@purchase_item)
+    def purchase_item_params
+      params.expect(purchase_item: [:shipping_cost])
+    end
+
+    def default_return_path
+      purchase_item_path(@purchase_item)
     end
 
     def authorize_resource

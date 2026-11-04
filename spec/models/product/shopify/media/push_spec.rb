@@ -6,7 +6,7 @@ RSpec.describe Product::Shopify::Media::Push do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:shopify_product_id) { "gid://shopify/Product/123" }
-  let(:product) { create(:product_with_brands) }
+  let(:product) { create(:product_with_brands, :synced) }
   let(:api_client) { instance_spy(Shopify::Api::Client) }
   let(:first_media) { create(:media, mediaable: product, alt: "Image 1", position: 0) }
   let(:second_media) { create(:media, mediaable: product, alt: "Image 2", position: 1) }

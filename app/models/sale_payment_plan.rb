@@ -32,6 +32,15 @@ class SalePaymentPlan < ApplicationRecord
     inverse_of: :sale_payment_plan
 
   scope :seal, -> { where(provider: "seal") }
+  scope :affecting_sale, ->(sale_id) {
+    next all if sale_id.blank?
+
+    with_parts = left_joins(:parts)
+    with_parts
+      .where(origin_sale_id: sale_id)
+      .or(with_parts.where(sale_payment_parts: {sale_id:, active: true}))
+      .distinct
+  }
   validates :provider, inclusion: {in: PROVIDERS}
   validates :kind, inclusion: {in: KINDS}
   validates :external_id, presence: true
@@ -42,7 +51,7 @@ class SalePaymentPlan < ApplicationRecord
     allow_nil: true
   validates_db_uniqueness_of :external_id, scope: :provider
 
-  def self.reconcile!(attributes:, parts:)
+  def self.reconcile(attributes:, parts:)
     plan_attributes = attributes.to_h.symbolize_keys
     provider = plan_attributes.fetch(:provider)
     external_id = plan_attributes.fetch(:external_id).to_s
@@ -58,12 +67,12 @@ class SalePaymentPlan < ApplicationRecord
       )
       plan.origin_sale = Sale::Shopify::OrderId.find_sale(plan.external_origin_order_id)
       plan.save!
-      plan.reconcile_parts!(parts)
+      plan.reconcile_parts(parts)
       plan
     end
   end
 
-  def self.reconcile_sale!(sale)
+  def self.reconcile_sale(sale)
     normalized_order_id = Sale::Shopify::OrderId.normalize(sale.shopify_store_id)
     return if normalized_order_id.blank?
 
@@ -94,11 +103,11 @@ class SalePaymentPlan < ApplicationRecord
     ExchangeRate.usd_amount(amount, currency:, date:)
   end
 
-  def reconcile_parts!(part_snapshots)
+  def reconcile_parts(part_snapshots)
     parts.update_all(active: false)
 
     Array(part_snapshots).each do |snapshot|
-      reconcile_part!(snapshot.to_h.symbolize_keys)
+      reconcile_part(snapshot.to_h.symbolize_keys)
     end
 
     parts.where(active: false, sale_id: nil).delete_all
@@ -108,7 +117,7 @@ class SalePaymentPlan < ApplicationRecord
   def collected_parts
     return shopify_collected_parts if provider == "shopify"
 
-    parts.active.includes(:sale).count { |part| settled_with_positive_cash?(part.sale) }
+    active_parts.count { |part| settled_with_positive_cash?(part.sale) }
   end
 
   def projected_remainder
@@ -123,8 +132,7 @@ class SalePaymentPlan < ApplicationRecord
       return sale.sale_payment_parts.find { |part| part.sale_payment_plan_id == id && part.active? }&.sequence
     end
 
-    candidate_parts = parts.loaded? ? parts.select(&:active?) : parts.active
-    candidate_parts.find { |part| part.sale_id == sale.id }&.sequence
+    active_parts.find { |part| part.sale_id == sale.id }&.sequence
   end
 
   def profitability(expense_fraction: ExpenseRate.combined_fraction)
@@ -144,10 +152,10 @@ class SalePaymentPlan < ApplicationRecord
     )
   end
 
-  def reconcile_installment_attribution!
+  def reconcile_installment_attribution
     origin_item = eligible_origin_item
 
-    follow_up_sales.each { |sale| sale.reconcile_installment_attribution!(origin_item) }
+    follow_up_sales.each { |sale| sale.reconcile_installment_attribution(origin_item) }
   end
 
   def eligible_origin_item
@@ -167,7 +175,7 @@ class SalePaymentPlan < ApplicationRecord
 
   private
 
-  def reconcile_part!(snapshot)
+  def reconcile_part(snapshot)
     provider_part_id = snapshot[:provider_part_id].presence&.to_s
     sequence = snapshot.fetch(:sequence)
     part = parts.find_by(provider_part_id:) if provider_part_id
@@ -189,7 +197,7 @@ class SalePaymentPlan < ApplicationRecord
   def shopify_collected_parts
     return 0 unless positive_net_cash(origin_sale).positive?
 
-    parts.active.count { |part| part.provider_completed_at.present? }
+    active_parts.count { |part| part.provider_completed_at.present? }
   end
 
   def positive_net_cash(sale)
@@ -198,12 +206,16 @@ class SalePaymentPlan < ApplicationRecord
     [sale.received_revenue.to_d - sale.refunded_revenue.to_d, 0.to_d].max
   end
 
+  def active_parts
+    parts.loaded? ? parts.select(&:active?) : parts.active.includes(:sale)
+  end
+
   def settled_with_positive_cash?(sale)
     sale && sale.outstanding_revenue.to_d <= 0 && positive_net_cash(sale).positive?
   end
 
   def related_sales
-    ([origin_sale] + parts.active.includes(:sale).map(&:sale)).compact.uniq
+    ([origin_sale] + active_parts.map(&:sale)).compact.uniq
   end
 
   def total_across(summaries, term)

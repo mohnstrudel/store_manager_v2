@@ -20,7 +20,7 @@ Use this mode for requests such as "catch me up," "what changed," or "explain th
 6. Separate behavior changes from refactors and maintenance.
 7. End with the one theme most worth exploring or testing next.
 
-For a very large range, provide a first-pass map rather than a shallow summary of every file. Name the themes not yet examined.
+For a large range, provide a first-pass map rather than a shallow summary of every file. Name the themes not yet examined.
 
 ## Deep dive
 
@@ -82,7 +82,7 @@ Use this mode only when interaction will clarify a difficult rule better than an
 5. Reveal the outcome with the correct evidence label:
    - say **Expected by the test** when the scenario was read but not executed;
    - say **Implemented in the code** for a static code conclusion;
-   - say **Observed in this session** only after a safe run actually produced the result.
+   - say **Observed in this session** only after a safe run produced the result.
 6. Change one condition and ask a transfer question if it tests the same rule without adding noise.
 
 Do not invent runtime evidence. Illustrative values are acceptable when labeled and when the result follows unambiguously from checked code or a test fixture.

@@ -18,6 +18,7 @@ Capybara.register_driver(:better_cuprite) do |app|
       :"window-size" => "1200,768"
     },
     process_timeout: 20,
+    timeout: 15,
     inspector: true,
     headless: !ENV["HEADLESS"].in?(%w[n 0 no false])
   )
@@ -36,30 +37,15 @@ module CupriteHelpers
   end
 end
 
-module BrowserStorageHelpers
-  def clear_browser_storage
-    return unless Capybara.current_session.driver.respond_to?(:browser)
-
-    page.execute_script("window.sessionStorage.clear(); window.localStorage.clear();")
-  rescue
-  end
-end
-
 RSpec.configure do |config|
   config.include CupriteHelpers, type: :feature
-  config.include BrowserStorageHelpers, type: :feature
 
-  config.before(:each, type: :feature) do
-    clear_browser_storage
-  end
-
-  config.before(:each, :js, type: :feature) do
-    Capybara.current_driver = :better_cuprite
-    clear_browser_storage
-  end
-
-  config.after(:each, :js, type: :feature) do
-    clear_browser_storage
-    Capybara.current_driver = Capybara.default_driver
+  config.before(:suite) do
+    if RSpec.world.example_groups.any? { |group| group.metadata[:type] == :feature }
+      Rails.root.join("tmp/vite-test-build.lock").open(File::RDWR | File::CREAT) do |lock|
+        lock.flock(File::LOCK_EX)
+        ViteRuby.commands.build || abort("Vite test build failed")
+      end
+    end
   end
 end

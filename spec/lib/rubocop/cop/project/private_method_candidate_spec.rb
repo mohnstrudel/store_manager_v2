@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rubocop"
+require "database_validations/rubocop/cops"
 require "rubocop/database_validations/plugin"
 require "rubocop/rspec/support"
 require_relative "../../../../../lib/rubocop/cop/project/private_method_candidate"

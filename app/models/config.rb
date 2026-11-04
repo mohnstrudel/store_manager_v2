@@ -12,26 +12,29 @@
 #  updated_at            :datetime         not null
 #
 class Config < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
   enum :sales_hook_status, {disabled: 0, active: 1}
-  CONFIG = Config.first_or_create
 
   def self.sales_hook_disabled?
-    CONFIG.sales_hook_status == "disabled"
+    current.sales_hook_status == "disabled"
+  end
+
+  def self.current
+    first_or_create
   end
 
   def self.enable_sales_hook
-    CONFIG.update(sales_hook_status: :active)
+    current.update(sales_hook_status: :active)
   end
 
   def self.disable_sales_hook
-    CONFIG.update(sales_hook_status: :disabled)
+    current.update(sales_hook_status: :disabled)
   end
 
   def self.update_shopify_products_sync_time
-    CONFIG.update(shopify_products_sync: Time.current)
+    current.update(shopify_products_sync: Time.current)
   end
 
   def self.shopify_products_sync_time
@@ -39,11 +42,11 @@ class Config < ApplicationRecord
   end
 
   def self.shopify_products_sync_at
-    CONFIG.shopify_products_sync
+    current.shopify_products_sync
   end
 
   def self.update_shopify_sales_sync_time
-    CONFIG.update(shopify_sales_sync: Time.current)
+    current.update(shopify_sales_sync: Time.current)
   end
 
   def self.shopify_sales_sync_time
@@ -51,6 +54,6 @@ class Config < ApplicationRecord
   end
 
   def self.shopify_sales_sync_at
-    CONFIG.shopify_sales_sync
+    current.shopify_sales_sync
   end
 end

@@ -38,7 +38,7 @@ RSpec.describe "ExpenseRates" do
 
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("ExpenseRates/New")
-      expect(inertia.props[:expenseRate]).to include(id: nil, name: "")
+      expect_inertia.to have_props(expenseRate: {name: "", rate_percent: 0.0})
     end
   end
 

@@ -5,7 +5,7 @@ module Sale::RevenueAllocation
 
   ALLOCATED_FIELDS = %i[received_revenue outstanding_revenue refunded_revenue].freeze
 
-  def allocate_revenue_to_items!
+  def allocate_revenue_to_items
     known_fields = ALLOCATED_FIELDS.reject { |field| public_send(field).nil? }
     return if known_fields.empty?
 

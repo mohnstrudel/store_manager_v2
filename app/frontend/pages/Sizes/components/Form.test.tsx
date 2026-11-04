@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 
-import { makeSize } from "../test/factories";
-import type { SizeRecord } from "../types";
+import { makeSizeForm } from "../test/factories";
+import type { SizeFormRecord } from "../types";
 import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -15,7 +15,7 @@ describe("Sizes/components/Form", () => {
     it("configures action, method, and labels for a new size", () => {
       renderForm({
         method: "post",
-        size: makeSize({ id: null, value: "", created_at: null, updated_at: null }),
+        size: makeSizeForm({ value: "" }),
         submitLabel: "Create Size",
         url: "/sizes",
       });
@@ -82,13 +82,13 @@ describe("Sizes/components/Form", () => {
 function renderForm({
   method = "patch",
   pageErrors = {},
-  size = makeSize(),
+  size = makeSizeForm(),
   submitLabel = "Update Size",
   url = "/sizes/1",
 }: {
   method?: "post" | "patch";
   pageErrors?: Record<string, string>;
-  size?: SizeRecord;
+  size?: SizeFormRecord;
   submitLabel?: string;
   url?: string;
 } = {}) {

@@ -217,7 +217,7 @@ RSpec.describe Seal::SyncPaymentPlansJob do
     it "replaces the same record's wrong projection with the corrected installment total" do
       create(:exchange_rate, date: rate_date, currency: "USD", rate: BigDecimal("1.1448"))
       create(:sale, shopify_store_id: "gid://shopify/Order/100", shopify_created_at: rate_date.to_time)
-      plan = SalePaymentPlan.reconcile!(
+      plan = SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "1",
@@ -239,7 +239,7 @@ RSpec.describe Seal::SyncPaymentPlansJob do
   end
 
   it "preserves the previous snapshot when the provider request fails" do
-    plan = SalePaymentPlan.reconcile!(
+    plan = SalePaymentPlan.reconcile(
       attributes: {
         provider: "seal",
         external_id: "1",

@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 
-import { makeShippingCompany } from "../test/factories";
-import type { ShippingCompanyRecord } from "../types";
+import { makeShippingCompanyForm } from "../test/factories";
+import type { ShippingCompanyFormRecord } from "../types";
 import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -14,13 +14,7 @@ describe("ShippingCompanies/components/Form", () => {
   describe("form shell", () => {
     it("configures action, method, and labels for a new shipping company", () => {
       renderForm({
-        shippingCompany: makeShippingCompany({
-          id: null,
-          name: "",
-          tracking_url: null,
-          created_at: null,
-          updated_at: null,
-        }),
+        shippingCompany: makeShippingCompanyForm({ name: "", tracking_url: null }),
         method: "post",
         submitLabel: "Create Shipping Company",
         url: "/shipping_companies",
@@ -88,13 +82,13 @@ describe("ShippingCompanies/components/Form", () => {
 
 function renderForm({
   pageErrors = {},
-  shippingCompany = makeShippingCompany(),
+  shippingCompany = makeShippingCompanyForm(),
   method = "patch",
   submitLabel = "Update Shipping Company",
   url = "/shipping_companies/1",
 }: {
   pageErrors?: Record<string, string>;
-  shippingCompany?: ShippingCompanyRecord;
+  shippingCompany?: ShippingCompanyFormRecord;
   method?: "post" | "patch";
   submitLabel?: string;
   url?: string;

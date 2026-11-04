@@ -1,0 +1,22 @@
+# frozen_string_literal: true
+
+module SaleItem::Titled
+  extend ActiveSupport::Concern
+
+  def build_title_for_select
+    status = sale.status&.titleize
+    email = sale.customer.email
+    pretty_sale_id = "Sale ID: #{sale_id}"
+    pretty_woo_id = woo_store_id && "Woo: #{woo_store_id}"
+    pretty_shopify_id = shopify_store_id && "Shopify: #{shopify_info.id_short}"
+
+    [id, status, title, email, pretty_sale_id, pretty_woo_id, pretty_shopify_id].compact.join(" | ")
+  end
+
+  def title
+    if variant_id.present? && variant.title != "Base Model"
+      return "#{product.full_title} → #{variant.title}"
+    end
+    product.full_title
+  end
+end

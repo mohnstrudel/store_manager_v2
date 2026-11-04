@@ -20,7 +20,7 @@ RSpec.describe Shopable do
   end
 
   describe ".find_by_shopify_id" do
-    let(:product) { create(:product) }
+    let(:product) { create(:product, :synced) }
 
     context "when store info exists" do
       before do
@@ -46,7 +46,7 @@ RSpec.describe Shopable do
     end
 
     context "when store_id belongs to different storable_type" do
-      let(:variant) { create(:variant) }
+      let(:variant) { create(:variant, :synced) }
 
       before do
         variant.shopify_info.update!(store_id: "gid://shopify/Product/12345")
@@ -59,7 +59,7 @@ RSpec.describe Shopable do
   end
 
   describe ".find_by_woo_id" do
-    let(:product) { create(:product) }
+    let(:product) { create(:product, :synced) }
 
     context "when store info exists" do
       before do
@@ -87,7 +87,7 @@ RSpec.describe Shopable do
 
   describe "#shopify_linked?" do
     context "when shopify_info has store_id" do
-      let(:product) { create(:product) }
+      let(:product) { create(:product, :synced) }
 
       before do
         product.shopify_info.update!(store_id: "gid://shopify/Product/12345")
@@ -99,7 +99,7 @@ RSpec.describe Shopable do
     end
 
     context "when shopify_info exists but has no store_id" do
-      let(:product) { create(:product) }
+      let(:product) { create(:product, :synced) }
 
       before do
         product.shopify_info.update!(store_id: nil)
@@ -111,7 +111,7 @@ RSpec.describe Shopable do
     end
 
     context "when shopify_info is nil" do
-      let(:product) { create(:product) }
+      let(:product) { create(:product, :synced) }
 
       before do
         product.shopify_info.destroy

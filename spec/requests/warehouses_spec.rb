@@ -74,11 +74,14 @@ RSpec.describe "Warehouses" do
         id: shipping_company.id,
         name: "Skyline"
       )
+      expect(inertia.props[:warehouse_move_path]).to eq(warehouse_move_path(warehouse_id: warehouse.id))
     end
   end
 
   describe "POST /warehouses" do
-    it "creates a warehouse and redirects to show" do
+    it "creates a warehouse with a transition destination and redirects to show" do
+      destination = create(:warehouse, name: "Destination")
+
       expect {
         post warehouses_path, params: {
           warehouse: {
@@ -92,14 +95,16 @@ RSpec.describe "Warehouses" do
             courier_tracking_url: "https://track.me/CONT-1",
             is_default: "0",
             position: "1",
-            to_warehouse_ids: []
+            to_warehouse_ids: [destination.id.to_s]
           }
         }
       }.to change(Warehouse, :count).by(1)
 
       warehouse = Warehouse.order(:id).last
       expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(flash[:notice]).to eq("Warehouse was successfully created")
       expect(warehouse.name).to eq("Main Stock")
+      expect(warehouse.from_transitions.pluck(:to_warehouse_id)).to eq([destination.id])
     end
 
     it "redirects to new with errors when the name is blank" do
@@ -173,6 +178,30 @@ RSpec.describe "Warehouses" do
       expect(warehouse.from_transitions.pluck(:to_warehouse_id)).to eq([destination.id])
     end
 
+    it "attaches uploaded images to the warehouse" do
+      warehouse = create(:warehouse)
+      blobs = %w[warehouse1.jpg warehouse2.jpg].map do |filename|
+        ActiveStorage::Blob.create_and_upload!(
+          io: StringIO.new("\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9"),
+          filename:,
+          content_type: "image/jpeg"
+        )
+      end
+
+      patch warehouse_path(warehouse), params: {
+        warehouse: {
+          name: warehouse.name,
+          media: blobs.each_with_index.to_h do |blob, index|
+            [index.to_s, {alt: "", position: index.to_s, image: blob.signed_id, _destroy: "0"}]
+          end
+        }
+      }
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(flash[:notice]).to eq("Warehouse was successfully updated")
+      expect(warehouse.reload.media.count).to eq(2)
+    end
+
     it "redirects to edit with errors when another default warehouse already exists" do
       warehouse = create(:warehouse)
       create(:warehouse, :default)
@@ -191,6 +220,126 @@ RSpec.describe "Warehouses" do
       expect_inertia.to render_component("Warehouses/Edit")
       expect(inertia.props[:errors]).to be_present
       expect(inertia.props[:errors][:is_default]).to eq("another default warehouse already exists")
+    end
+  end
+
+  describe "PATCH /warehouses/:id/change_position" do
+    it "moves the warehouse to the new position and lists warehouses in the new order" do
+      first = create(:warehouse, name: "Warehouse 1", position: 1)
+      second = create(:warehouse, name: "Warehouse 2", position: 2)
+      third = create(:warehouse, name: "Warehouse 3", position: 3)
+
+      patch warehouse_position_path(second), params: {position: "1"}
+
+      expect(response).to redirect_to(warehouses_url)
+      expect(response).to have_http_status(:see_other)
+      expect(flash[:notice]).to eq("We changed \"Warehouse 2\" position from 2 to 1")
+
+      follow_redirect!
+
+      warehouses = inertia.props[:warehouses]
+      expect(warehouses.pluck(:id)).to eq([second.id, first.id, third.id])
+      expect(warehouses.first[:positions]).to eq([1, 2, 3])
+    end
+
+    it "rejects a non-positive position without moving the warehouse" do
+      warehouse = create(:warehouse, position: 1)
+
+      patch warehouse_position_path(warehouse), params: {position: "0"}
+
+      expect(response).to have_http_status(:bad_request)
+      expect(warehouse.reload.position).to eq(1)
+    end
+  end
+
+  describe "PATCH /warehouses/:id transitions" do
+    let(:warehouse) { create(:warehouse) }
+    let(:to_warehouse) { create(:warehouse) }
+
+    it "creates transitions with the transition notification for selected destinations", :aggregate_failures do
+      notification = create(:notification, name: "Warehouse transition")
+
+      patch warehouse_path(warehouse), params: {warehouse: {to_warehouse_ids: [to_warehouse.id]}}
+
+      transition = WarehouseTransition.last
+      expect(transition.from_warehouse).to eq(warehouse)
+      expect(transition.to_warehouse).to eq(to_warehouse)
+      expect(transition.notification).to eq(notification)
+    end
+
+    it "removes transitions that are no longer selected" do
+      unused_warehouse = create(:warehouse)
+      create(:notification, name: "Warehouse transition")
+      create(:warehouse_transition, from_warehouse: warehouse, to_warehouse: unused_warehouse)
+
+      patch warehouse_path(warehouse), params: {warehouse: {to_warehouse_ids: [to_warehouse.id]}}
+
+      expect(WarehouseTransition.where(to_warehouse: unused_warehouse)).to be_empty
+    end
+
+    it "keeps another warehouse from becoming the default", :aggregate_failures do
+      create(:warehouse, :default, name: "Default Warehouse")
+
+      patch warehouse_path(warehouse), params: {warehouse: {is_default: "1"}}
+
+      expect(response).to redirect_to(edit_warehouse_path(warehouse))
+      expect(warehouse.reload.is_default).to be(false)
+    end
+
+    it "returns 404 for a warehouse that does not exist" do
+      patch warehouse_path(0), params: {warehouse: {name: "Missing"}}
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "DELETE /warehouses/:id" do
+    it "redirects back with an alert when the warehouse still has purchase items", :aggregate_failures do
+      warehouse = create(:warehouse)
+      create(:purchase_item, warehouse:)
+
+      delete warehouse_path(warehouse)
+
+      expect(response).to redirect_to(warehouse_path(warehouse))
+      expect(flash[:alert]).to include("move out all purchased products")
+      expect(Warehouse.exists?(warehouse.id)).to be(true)
+    end
+
+    it "returns 404 for a warehouse that does not exist" do
+      delete warehouse_path(0)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "GET /warehouses/:id inventory" do
+    it "lists only the warehouse's purchase items and its media", :aggregate_failures do
+      warehouse = create(:warehouse)
+      matching_item = create(:purchase_item, warehouse:)
+      create(:purchase_item)
+      media = create(:media, :for_warehouse, mediaable: warehouse)
+
+      get warehouse_path(warehouse)
+
+      expect(response).to have_http_status(:ok)
+      expect_inertia.to render_component("Warehouses/Show")
+      expect(inertia.props[:warehouse][:id]).to eq(warehouse.id)
+      expect(inertia.props[:warehouse][:media].first[:id]).to eq(media.id)
+      expect(inertia.props[:purchase_items].pluck(:id)).to eq([matching_item.id])
+    end
+
+    it "returns 404 for a warehouse that does not exist" do
+      get warehouse_path(0)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "PATCH /warehouses/:id/change_position missing record" do
+    it "returns 404 for a warehouse that does not exist" do
+      patch warehouse_position_path(0), params: {position: "1"}
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

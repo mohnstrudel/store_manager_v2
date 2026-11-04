@@ -3,96 +3,6 @@
 require "rails_helper"
 
 RSpec.describe Sale::Settlement do
-  describe ".settlement_status_from_shopify" do
-    it "persists paid for PAID with zero outstanding revenue" do
-      expect(
-        Sale.settlement_status_from_shopify(financial_status: "PAID", outstanding_revenue: BigDecimal("0.00"))
-      ).to eq("paid")
-    end
-
-    it "persists paid for PAID with nil outstanding revenue" do
-      expect(
-        Sale.settlement_status_from_shopify(financial_status: "PAID", outstanding_revenue: nil)
-      ).to eq("paid")
-    end
-
-    it "persists not_fully_paid for PAID with positive outstanding revenue" do
-      expect(
-        Sale.settlement_status_from_shopify(financial_status: "PAID", outstanding_revenue: BigDecimal("10.00"))
-      ).to eq("not_fully_paid")
-    end
-
-    it "persists not_fully_paid for PENDING" do
-      expect(
-        Sale.settlement_status_from_shopify(financial_status: "PENDING", outstanding_revenue: nil)
-      ).to eq("not_fully_paid")
-    end
-
-    it "persists not_fully_paid for PARTIALLY_PAID" do
-      expect(
-        Sale.settlement_status_from_shopify(financial_status: "PARTIALLY_PAID", outstanding_revenue: nil)
-      ).to eq("not_fully_paid")
-    end
-
-    it "keeps a settlement mapping for VOIDED instead of leaving it unmapped" do
-      expect(
-        Sale.settlement_status_from_shopify(financial_status: "VOIDED", outstanding_revenue: nil)
-      ).to eq("not_fully_paid")
-    end
-
-    it "keeps a settlement mapping for a fully refunded order with zero outstanding revenue" do
-      expect(
-        Sale.settlement_status_from_shopify(financial_status: "REFUNDED", outstanding_revenue: BigDecimal("0.00"))
-      ).to eq("paid")
-    end
-
-    it "raises for an unmapped financial status instead of persisting a placeholder" do
-      expect {
-        Sale.settlement_status_from_shopify(financial_status: "SOMETHING_NEW", outstanding_revenue: nil)
-      }.to raise_error(ArgumentError, 'Unmapped Shopify financial status: "SOMETHING_NEW"')
-    end
-  end
-
-  describe ".settlement_status_from_woo" do
-    it "persists paid for a known status with a payment date" do
-      expect(
-        Sale.settlement_status_from_woo(status: "completed", date_paid: "2023-11-25T10:00:00")
-      ).to eq("paid")
-    end
-
-    it "persists not_fully_paid for a known status without a payment date" do
-      expect(
-        Sale.settlement_status_from_woo(status: "on-hold", date_paid: nil)
-      ).to eq("not_fully_paid")
-    end
-
-    it "persists not_fully_paid for partially-paid regardless of a payment date" do
-      expect(
-        Sale.settlement_status_from_woo(status: "partially-paid", date_paid: "2023-08-17T05:57:51")
-      ).to eq("not_fully_paid")
-    end
-
-    it "keeps a settlement mapping for cancelled, failed, and refunded orders instead of leaving them unmapped", :aggregate_failures do
-      %w[cancelled failed refunded].each do |status|
-        expect(
-          Sale.settlement_status_from_woo(status: status, date_paid: "2023-11-25T10:00:00")
-        ).to eq("paid")
-      end
-    end
-
-    it "maps every status in Sale.status_names", :aggregate_failures do
-      Sale.status_names.each do |status|
-        expect { Sale.settlement_status_from_woo(status:, date_paid: nil) }.not_to raise_error
-      end
-    end
-
-    it "raises for an unmapped Woo status instead of persisting a placeholder" do
-      expect {
-        Sale.settlement_status_from_woo(status: "checkout-draft-unknown", date_paid: nil)
-      }.to raise_error(ArgumentError, 'Unmapped Woo status: "checkout-draft-unknown"')
-    end
-  end
-
   describe "settlement_status enum" do
     it "exposes paid, not_fully_paid, and unknown predicate methods" do
       sale = build(:sale, settlement_status: "not_fully_paid")
@@ -148,6 +58,27 @@ RSpec.describe Sale::Settlement do
       sale = create(:sale, status: "processing", total: BigDecimal("100.00"), refunded_revenue: BigDecimal("40.00"))
 
       expect(Sale.economically_included).to include(sale)
+    end
+  end
+
+  describe ".fully_refunded" do
+    it "selects sales whose refund reaches the total and agrees with the record predicate" do
+      equal = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal("100.00"))
+      over = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal("100.01"))
+      zero_total_zero_refund = create(:sale, total: BigDecimal(0), refunded_revenue: BigDecimal(0))
+      partial = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal("99.99"))
+      zero_refund = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal(0))
+      nil_refund = create(:sale, total: BigDecimal("100.00"), refunded_revenue: nil)
+      nil_total = create(:sale, total: nil, refunded_revenue: BigDecimal("100.00"))
+      nil_both = create(:sale, total: nil, refunded_revenue: nil)
+      all_sales = [equal, over, zero_total_zero_refund, partial, zero_refund, nil_refund, nil_total, nil_both]
+
+      expect(Sale.fully_refunded).to contain_exactly(equal, over, zero_total_zero_refund)
+      expect(all_sales.select(&:fully_refunded?)).to contain_exactly(equal, over, zero_total_zero_refund)
+    end
+
+    it "selects nothing when no sale exists" do
+      expect(Sale.fully_refunded).to be_empty
     end
   end
 

@@ -5,20 +5,12 @@ module Products
     include ProductScoped
 
     def create
-      enqueue_push_job
+      @product.push_to_shopify_later
 
       redirect_back_or_to product_path(@product), notice: notice_message
     end
 
     private
-
-    def enqueue_push_job
-      if @product.shopify_linked?
-        Shopify::UpdateProductJob.perform_later(@product.id)
-      else
-        Shopify::CreateProductJob.perform_later(@product.id)
-      end
-    end
 
     def notice_message
       "Product is being pushed to Shopify"

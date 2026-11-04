@@ -2,29 +2,13 @@ import { Link } from "@inertiajs/react";
 
 import Field from "@/components/Field";
 import PageHeader from "@/components/PageHeader";
+import type { OutboundEmailsShow } from "@/types/serializers";
 import routes from "@/utils/routes";
 
-import { formatTimestamp, stateDetails, type EmailState } from "./display";
+import { formatTimestamp, stateDetails } from "./display";
 import ProductPreview from "./ProductPreview";
 
-type OutboundEmailRecord = {
-  id: number;
-  recipient: string | null;
-  recipient_name: string | null;
-  sender: string | null;
-  subject: string;
-  body: string | null;
-  product_title: string | null;
-  product_thumb_url: string | null;
-  state: EmailState;
-  attempts: number;
-  last_attempt_at: string | null;
-  last_error: string | null;
-  accepted_at: string | null;
-  created_at: string;
-};
-
-export default function Show({ outbound_email: email }: { outbound_email: OutboundEmailRecord }) {
+export default function Show({ outbound_email: email }: OutboundEmailsShow) {
   return (
     <>
       <PageHeader title={email.subject}>
@@ -38,7 +22,7 @@ export default function Show({ outbound_email: email }: { outbound_email: Outbou
         <div className="cards items-start">
           <dl className="card min-w-0 grow lg:basis-0">
             <Field label="Recipient" value={email.recipient_name || "Name not recorded"} />
-            <Field label="Email address" value={email.recipient ?? "Not recorded"} />
+            <Field label="Email address" value={email.recipient} />
             <dt>Product</dt>
             <dd>
               <ProductPreview title={email.product_title} imageUrl={email.product_thumb_url} />
@@ -80,12 +64,12 @@ export default function Show({ outbound_email: email }: { outbound_email: Outbou
             <h2 className="mt-3 text-xl font-semibold">{email.subject}</h2>
             <dl className="mt-5 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[max-content_1fr]">
               <dt className="text-gray-500 dark:text-gray-400">From</dt>
-              <dd className="break-all">{email.sender ?? "Not recorded"}</dd>
+              <dd className="break-all">{email.sender}</dd>
               <dt className="text-gray-500 dark:text-gray-400">To</dt>
               <dd className="break-all">
-                {email.recipient_name && email.recipient
+                {email.recipient_name
                   ? `${email.recipient_name} <${email.recipient}>`
-                  : (email.recipient_name ?? email.recipient ?? "Not recorded")}
+                  : email.recipient}
               </dd>
               <dt className="text-gray-500 dark:text-gray-400">Recorded</dt>
               <dd>{formatTimestamp(email.created_at)}</dd>

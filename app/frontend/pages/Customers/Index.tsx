@@ -3,9 +3,10 @@ import { PlusIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
+import type { PaginationMeta } from "@/types/pagination";
 
 import Table from "./components/Table";
-import { CustomerRecord, PaginationMeta } from "./types";
+import { CustomerRecord } from "./types";
 
 type IndexProps = {
   customers: CustomerRecord[];

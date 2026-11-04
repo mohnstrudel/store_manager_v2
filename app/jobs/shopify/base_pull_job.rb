@@ -3,75 +3,31 @@
 module Shopify
   class BasePullJob < ApplicationJob
     queue_as :default
-    include Sanitizable
+    discard_on(Shopify::Pull::Failed) { |_job, error| Sentry.capture_exception(error) }
 
     def perform(attempts: 0, cursor: nil, limit: nil)
-      fetch_shopify_data(cursor:, limit:)
-      process_items
+      page = pull_class.page(cursor:, limit:)
 
-      if limit.blank? && @api_payload[:has_next_page]
-        schedule_next_page
+      if limit.blank? && page.next_cursor
+        self.class.set(wait: 1.second).perform_later(cursor: page.next_cursor)
       else
         handle_terminal_page
       end
+
+      raise Shopify::Pull::Failed, page.failures if page.failures.any?
     rescue ShopifyAPI::Errors::HttpResponseError => e
-      handle_api_error(e, attempts, cursor, limit)
+      raise unless e.response.code == 429
+
+      self.class.set(wait: (attempts * 5 + 5).seconds).perform_later(attempts: attempts + 1, cursor:, limit:)
     end
 
     private
 
-    def fetch_shopify_data(cursor:, limit:)
-      limit ||= batch_size
-      limit = Integer(limit) if limit.is_a?(String)
-      api_client = Shopify::Api::Client.new
-      @api_payload = fetch_from_api(api_client, cursor: cursor, batch_size: limit)
-    end
-
-    def batch_size
-      raise NotImplementedError, "#{self.class} must implement #batch_size"
-    end
-
-    def fetch_from_api(api_client, cursor:, batch_size:)
-      raise NotImplementedError, "#{self.class} must implement #fetch_from_api"
-    end
-
-    def process_items
-      @api_payload[:items].each do |api_item|
-        process_item(api_item)
-      end
-    end
-
-    def process_item(api_item)
-      parsed_item = parser_class.parse(api_item)
-      creator_class.import!(parsed_item)
-    end
-
-    def parser_class
-      raise NotImplementedError, "#{self.class} must implement #parser_class"
-    end
-
-    def creator_class
-      raise NotImplementedError, "#{self.class} must implement #creator_class"
-    end
-
-    def schedule_next_page
-      self.class
-        .set(wait: 1.second)
-        .perform_later(cursor: @api_payload[:end_cursor])
+    def pull_class
+      raise NotImplementedError, "#{self.class} must implement #pull_class"
     end
 
     def handle_terminal_page
-    end
-
-    def handle_api_error(error, attempts, cursor, limit)
-      if error.response.code == 429
-        retry_delay = attempts * 5 + 5
-        self.class
-          .set(wait: retry_delay.seconds)
-          .perform_later(attempts: attempts + 1, cursor:, limit:)
-      else
-        raise error
-      end
     end
   end
 end

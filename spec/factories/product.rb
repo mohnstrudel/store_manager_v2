@@ -9,6 +9,7 @@ FactoryBot.define do
     transient do
       woo_store_id { nil }
       shopify_store_id { nil }
+      synced { false }
     end
 
     franchise
@@ -22,8 +23,17 @@ FactoryBot.define do
     end
 
     after(:create) do |product, evaluator|
-      product.upsert_woo_info!(store_id: evaluator.woo_store_id || product[:woo_id])
-      product.upsert_shopify_info!(store_id: evaluator.shopify_store_id || product.shopify_id)
+      if evaluator.synced || evaluator.woo_store_id
+        product.upsert_woo_info(store_id: evaluator.woo_store_id || product[:woo_id])
+      end
+
+      if evaluator.synced || evaluator.shopify_store_id
+        product.upsert_shopify_info(store_id: evaluator.shopify_store_id || product.shopify_id)
+      end
+    end
+
+    trait :synced do
+      synced { true }
     end
 
     trait :with_brand do

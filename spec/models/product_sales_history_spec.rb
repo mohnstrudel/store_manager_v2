@@ -154,7 +154,7 @@ RSpec.describe Product do
 
       active_payment_items = product.active_payment_items
       sale = active_payment_items.first.sale
-      plan = sale.payment_plans_for_display.first
+      plan = sale.payment_plans.first
 
       aggregate_failures do
         expect(active_payment_items).to contain_exactly(follow_up_item)
@@ -321,7 +321,7 @@ RSpec.describe Product do
   end
 
   def create_plan(parts:, external_origin_order_id:, provider: "seal", kind: "installments", external_id: "subscription-1")
-    SalePaymentPlan.reconcile!(
+    SalePaymentPlan.reconcile(
       attributes: {
         provider:,
         external_id:,

@@ -16,13 +16,13 @@ module PurchaseItem::Warehousing
       order(warehouse_arrived_at: :desc, id: :desc)
     end
 
-    def move_to_warehouse!(purchase_item_ids:, warehouse_id:)
+    def move_to_warehouse(purchase_item_ids:, warehouse_id:)
       warehouse_id = warehouse_id.to_i
       existing_ids = where(id: purchase_item_ids).order(:id).ids
       return NOTHING_MOVED if existing_ids.blank?
 
       existing_ids.each do |purchase_item_id|
-        move_and_record_notification!(purchase_item_id, warehouse_id)
+        move_and_record_notification(purchase_item_id, warehouse_id)
       end
 
       existing_ids.size
@@ -30,17 +30,17 @@ module PurchaseItem::Warehousing
 
     private
 
-    def move_and_record_notification!(purchase_item_id, warehouse_id)
+    def move_and_record_notification(purchase_item_id, warehouse_id)
       transaction do
         purchase_item = lock.find(purchase_item_id)
         from_id = purchase_item.warehouse_id
-        purchase_item.move_to_warehouse!(warehouse_id)
-        record_status_change_notifications!(purchase_item_ids: [purchase_item_id], from_id:, to_id: warehouse_id)
+        purchase_item.move_to_warehouse(warehouse_id)
+        record_status_change_notifications(purchase_item_ids: [purchase_item_id], from_id:, to_id: warehouse_id)
       end
     end
   end
 
-  def move_to_warehouse!(warehouse_id)
+  def move_to_warehouse(warehouse_id)
     update!(warehouse_id:)
   end
 

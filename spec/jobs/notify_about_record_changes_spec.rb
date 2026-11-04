@@ -33,14 +33,6 @@ describe NotifyAboutRecordChanges do
       end
     end
 
-    context "when record is nil" do
-      it "does not send notification" do
-        described_class.perform_now(nil)
-
-        expect(HTTParty).not_to have_received(:post)
-      end
-    end
-
     context "when webhook URL and record are present" do
       let(:expected_payload) do
         {

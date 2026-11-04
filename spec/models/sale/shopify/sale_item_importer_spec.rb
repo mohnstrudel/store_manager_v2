@@ -6,17 +6,17 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
   let(:sale) { create(:sale) }
   let(:product_store_id) { "gid://shopify/Product/123" }
   let(:variant_store_id) { "gid://shopify/ProductVariant/456" }
-  let(:product) { create(:product, shopify_id: product_store_id, title: "Existing Product") }
-  let(:variant) { create(:variant, product:) }
+  let(:product) { create(:product, :synced, shopify_id: product_store_id, title: "Existing Product") }
+  let(:variant) { create(:variant, :synced, product:) }
 
-  describe "#import!" do
+  describe "#import" do
     context "when no product data is present" do
       it "returns nil" do
         result = described_class.new(sale, {
           store_id: "gid://shopify/LineItem/1",
           price: "10.00",
           qty: 1
-        }).import!
+        }).import
 
         expect(result).to be_nil
       end
@@ -45,7 +45,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
       it "creates the sale item with the existing product and variant" do
         expect {
-          result = described_class.new(sale, parsed_sale_item).import!
+          result = described_class.new(sale, parsed_sale_item).import
           expect(result).to be_persisted
         }.to change(SaleItem, :count).by(1)
 
@@ -78,21 +78,21 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
       before do
         allow(Product).to receive(:find_by_shopify_id).with(product_store_id).and_return(nil)
-        allow(Product::Shopify::Importer).to receive(:import!)
+        allow(Product::Shopify::Importer).to receive(:import)
           .with(parsed_sale_item[:product])
           .and_return(imported_product)
         allow(Shopify::PullProductJob).to receive(:perform_later)
       end
 
       it "imports the product payload before creating the sale item" do
-        result = described_class.new(sale, parsed_sale_item).import!
+        result = described_class.new(sale, parsed_sale_item).import
 
         expect(result).to be_persisted
         expect(result.product).to eq(imported_product)
       end
 
       it "enqueues a canonical product pull for missing local Shopify products" do
-        described_class.new(sale, parsed_sale_item).import!
+        described_class.new(sale, parsed_sale_item).import
 
         expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
       end
@@ -124,7 +124,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Parser).to receive(:parse)
           .with({"title" => parsed_sale_item[:full_title]})
           .and_return(parsed_product)
-        allow(Product::Shopify::Importer).to receive(:import!)
+        allow(Product::Shopify::Importer).to receive(:import)
           .with(parsed_product)
           .and_return(imported_product)
         allow(Shopify::PullProductJob).to receive(:perform_later)
@@ -132,7 +132,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
       it "creates a product and custom variant from the title" do
         expect {
-          described_class.new(sale, parsed_sale_item).import!
+          described_class.new(sale, parsed_sale_item).import
         }.to change(SaleItem, :count).by(1)
           .and change(Variant, :count).by(1)
 
@@ -142,7 +142,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
 
       it "does not enqueue a product pull without a Shopify product id" do
-        described_class.new(sale, parsed_sale_item).import!
+        described_class.new(sale, parsed_sale_item).import
 
         expect(Shopify::PullProductJob).not_to have_received(:perform_later)
       end
@@ -169,7 +169,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         }
       end
       let(:imported_product) do
-        create(:product, shopify_id: "gid://shopify/Product/999", title: "Princess Leia")
+        create(:product, :synced, shopify_id: "gid://shopify/Product/999", title: "Princess Leia")
       end
 
       before do
@@ -177,21 +177,21 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Parser).to receive(:parse)
           .with({"title" => parsed_sale_item[:full_title]})
           .and_return(parsed_product)
-        allow(Product::Shopify::Importer).to receive(:import!)
+        allow(Product::Shopify::Importer).to receive(:import)
           .with(parsed_product.merge(store_id: "gid://shopify/Product/999"))
           .and_return(imported_product)
         allow(Shopify::PullProductJob).to receive(:perform_later)
       end
 
       it "passes the known Shopify product id into the imported product payload" do
-        result = described_class.new(sale, parsed_sale_item).import!
+        result = described_class.new(sale, parsed_sale_item).import
 
         expect(result).to be_persisted
         expect(result.product).to eq(imported_product)
       end
 
       it "enqueues a canonical product pull after rebuilding from title" do
-        described_class.new(sale, parsed_sale_item).import!
+        described_class.new(sale, parsed_sale_item).import
 
         expect(Shopify::PullProductJob).to have_received(:perform_later).with("gid://shopify/Product/999")
       end
@@ -223,14 +223,14 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Parser).to receive(:parse)
           .with({"title" => parsed_sale_item[:full_title]})
           .and_return(parsed_product)
-        allow(Product::Shopify::Importer).to receive(:import!)
+        allow(Product::Shopify::Importer).to receive(:import)
           .with(parsed_product)
           .and_return(imported_product)
       end
 
       it "creates a sale item with the Product Base Variant" do
         expect {
-          described_class.new(sale, parsed_sale_item).import!
+          described_class.new(sale, parsed_sale_item).import
         }.to change(SaleItem, :count).by(1)
           .and change(Variant, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
@@ -266,14 +266,14 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Parser).to receive(:parse)
           .with({"title" => parsed_sale_item[:full_title]})
           .and_return(parsed_product)
-        allow(Product::Shopify::Importer).to receive(:import!)
+        allow(Product::Shopify::Importer).to receive(:import)
           .with(parsed_product)
           .and_return(imported_product)
       end
 
       it "creates a sale item with the Product Base Variant" do
         expect {
-          described_class.new(sale, parsed_sale_item).import!
+          described_class.new(sale, parsed_sale_item).import
         }.to change(SaleItem, :count).by(1)
           .and change(Variant, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
@@ -309,14 +309,14 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         allow(Product::Shopify::Parser).to receive(:parse)
           .with({"title" => parsed_sale_item[:full_title]})
           .and_return(parsed_product)
-        allow(Product::Shopify::Importer).to receive(:import!)
+        allow(Product::Shopify::Importer).to receive(:import)
           .with(parsed_product)
           .and_return(imported_product)
       end
 
       it "creates sale item with the base model variant" do
         expect {
-          described_class.new(sale, parsed_sale_item).import!
+          described_class.new(sale, parsed_sale_item).import
         }.to change(SaleItem, :count).by(1)
           .and change(Variant, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
@@ -344,7 +344,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
       it "creates and uses a placeholder product instead of raising" do
         expect {
-          result = described_class.new(sale, parsed_sale_item).import!
+          result = described_class.new(sale, parsed_sale_item).import
           expect(result).to be_persisted
           expect(result.product.shopify_info.store_id).to eq(product_store_id)
           expect(result.product.title).to include("[BROKEN SHOPIFY PRODUCT]")
@@ -353,7 +353,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
 
       it "enqueues a background pull for the missing Shopify product" do
-        described_class.new(sale, parsed_sale_item).import!
+        described_class.new(sale, parsed_sale_item).import
 
         expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
       end
@@ -380,12 +380,12 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
 
       it "defers the sale item instead of failing variant validation" do
         expect {
-          expect(described_class.new(sale, parsed_sale_item).import!).to be_nil
+          expect(described_class.new(sale, parsed_sale_item).import).to be_nil
         }.not_to change(SaleItem, :count)
       end
 
       it "enqueues a background product pull to backfill the missing variant" do
-        described_class.new(sale, parsed_sale_item).import!
+        described_class.new(sale, parsed_sale_item).import
 
         expect(Shopify::PullProductJob).to have_received(:perform_later).with(product_store_id)
       end
@@ -394,7 +394,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         variant.shopify_info.update!(store_id: variant_store_id)
 
         expect {
-          result = described_class.new(sale, parsed_sale_item).import!
+          result = described_class.new(sale, parsed_sale_item).import
           expect(result).to be_persisted
           expect(result.variant).to eq(variant)
         }.to change(SaleItem, :count).by(1)
@@ -402,7 +402,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
     end
 
     context "when the resolved product is flagged non_catalog (a Seal installment placeholder)" do
-      let(:placeholder_product) { create(:product, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
+      let(:placeholder_product) { create(:product, :synced, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
       let(:parsed_sale_item) do
         {
           store_id: "gid://shopify/LineItem/installment-1",
@@ -422,7 +422,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         origin_sale = create(:sale, customer: sale.customer)
         create(:sale_item, sale: origin_sale, product: real_product)
 
-        result = described_class.new(sale, parsed_sale_item).import!
+        result = described_class.new(sale, parsed_sale_item).import
 
         expect(result.product).to eq(placeholder_product)
         expect(result.origin_sale_item).to be_nil

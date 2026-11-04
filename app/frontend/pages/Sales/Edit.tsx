@@ -3,14 +3,11 @@ import { FileTextIcon } from "lucide-react";
 
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
+import type { SalesForm } from "@/types/serializers";
 
 import Form from "./components/Form";
-import type { SaleFormOptions, SaleFormRecord } from "./types";
 
-type EditProps = {
-  options: SaleFormOptions;
-  sale: SaleFormRecord;
-};
+type EditProps = SalesForm;
 
 export default function Edit({ options, sale }: EditProps) {
   return (

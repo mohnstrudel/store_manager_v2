@@ -46,9 +46,9 @@ RSpec.describe Payment do
       end
     end
 
-    describe "HasAuditNotifications" do
-      it "includes HasAuditNotifications concern" do
-        expect(described_class).to include(HasAuditNotifications)
+    describe "AuditNotifiable" do
+      it "includes AuditNotifiable concern" do
+        expect(described_class).to include(AuditNotifiable)
       end
     end
   end

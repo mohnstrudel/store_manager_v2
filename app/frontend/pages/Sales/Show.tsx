@@ -1,21 +1,15 @@
 import { useMemo } from "react";
 
 import PageHeader from "@/components/PageHeader";
-import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
+import type { SalesShow } from "@/types/serializers";
 
 import Details from "./Show/Details";
 import Items from "./Show/Items";
 import ProfitabilitySummary from "./Show/ProfitabilitySummary";
 import SaleActions from "./Show/SaleActions";
 import SaleTags from "./Show/SaleTags";
-import type { SaleShowRecord } from "./types";
 
-type ShowProps = {
-  sale: SaleShowRecord;
-  tag_options: SalesTagRecord[];
-  tag_colors: SalesTagColor[];
-  can_tag_sales: boolean;
-};
+type ShowProps = SalesShow;
 
 export default function Show({ sale, tag_options, tag_colors, can_tag_sales }: ShowProps) {
   const title = useMemo(() => <SaleTitle sale={sale} />, [sale]);

@@ -2,10 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { makePagination } from "@/test/factories";
+import type { PaginationMeta } from "@/types/pagination";
 
 import Index from "./Index";
 import { makeCustomer } from "./test/factories";
-import type { CustomerRecord, PaginationMeta } from "./types";
+import type { CustomerRecord } from "./types";
 
 describe("Customers/Index", () => {
   it("renders the customers table and new-record link", () => {

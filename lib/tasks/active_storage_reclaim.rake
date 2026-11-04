@@ -7,7 +7,7 @@ namespace :active_storage do
     abort "CUTOFF_DAYS must be positive" unless cutoff_days.positive?
 
     cutoff = cutoff_days.days.ago
-    ActiveStorage::Blob::Reclamation.enqueue!(cutoff:)
+    ActiveStorage::Blob::Reclamation.enqueue(cutoff:)
 
     puts "Queued safe Active Storage reclamation for objects older than #{cutoff.iso8601}."
   rescue ActiveStorage::Blob::Reclamation::EnqueueFailed => e

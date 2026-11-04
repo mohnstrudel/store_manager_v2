@@ -1,51 +1,21 @@
 # frozen_string_literal: true
 
-# rubocop:disable RSpec/VerifiedDoubles, RSpec/VerifiedDoubleReference -- BasePullJob's template-method interface is tested generically; these doubles intentionally use placeholder names (Parser, Record, ParserClass, JobSetter) that don't correspond to any single concrete subclass's real collaborators
-
 require "rails_helper"
 
 RSpec.describe Shopify::BasePullJob do
   include ActiveJob::TestHelper
 
+  let(:pull_class) { class_double(Shopify::Pull) }
+  let(:page) { Shopify::Pull::Page.new(imported_count: 2, next_cursor: nil, failures: []) }
   let(:job_class) do
+    pull_class = self.pull_class
+
     Class.new(described_class) do
       def self.name
         "TestJob"
       end
 
-      def batch_size
-        10
-      end
-
-      def fetch_from_api(api_client, cursor:, batch_size:)
-        api_client.fetch_test_data(cursor: cursor, batch_size: batch_size)
-      end
-
-      def parser_class
-        @parser_class ||= Class.new do
-          def initialize(item)
-            @item = item
-          end
-
-          def parse
-            {}
-          end
-        end
-      end
-
-      def creator_class
-        @creator_class ||= Class.new do
-          def initialize(parsed_item:)
-            @parsed_item = parsed_item
-          end
-
-          def update_or_create!
-            @mock_record ||= Struct.new(:shopify_info).new(
-              Struct.new(:update_column).new { true }
-            )
-          end
-        end
-      end
+      define_method(:pull_class) { pull_class }
 
       def handle_terminal_page
         @terminal_page_handled = true
@@ -56,222 +26,93 @@ RSpec.describe Shopify::BasePullJob do
       end
     end
   end
-
   let(:job) { job_class.new }
-  let(:api_client) { spy("Shopify::Api::Client") }
-  let(:api_response) do
-    {
-      items: [
-        {"id" => "1"},
-        {"id" => "2"}
-      ],
-      has_next_page: false,
-      end_cursor: "end_cursor_value"
-    }
-  end
-
-  let(:parser) { instance_double("Parser", parse: {}) }
-  let(:shopify_info) { instance_double("StoreInfo", update_column: true) }
-  let(:record) { instance_double("Record", shopify_info: shopify_info) }
-  let(:creator) { instance_double("Creator", update_or_create!: record) }
-  let(:parser_class) { class_double("ParserClass").as_stubbed_const }
-  let(:creator_class) { class_double("CreatorClass").as_stubbed_const }
-  let(:job_setter) { instance_double("JobSetter", perform_later: true) }
+  let(:job_setter) { instance_double(ActiveJob::ConfiguredJob, perform_later: true) }
 
   before do
-    allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
-    allow(api_client).to receive(:fetch_test_data).and_return(api_response)
-
-    allow(parser_class).to receive(:parse).and_return({})
-    allow(creator_class).to receive(:import!).and_return(record)
-
-    allow(job).to receive_messages(parser_class: parser_class, creator_class: creator_class)
+    allow(pull_class).to receive(:page).and_return(page)
     allow(job_class).to receive(:set).and_return(job_setter)
   end
 
-  describe ".queue_as" do
-    it "enqueues on the default queue" do
-      expect {
-        job_class.perform_later
-      }.to have_enqueued_job(job_class).on_queue("default")
-    end
+  it "enqueues on the default queue" do
+    expect { job_class.perform_later }.to have_enqueued_job(job_class).on_queue("default")
   end
 
-  describe ".perform_later" do
-    it "enqueues the job" do
-      expect {
-        job_class.perform_later
-      }.to have_enqueued_job(job_class)
-    end
+  describe "#perform" do
+    it "pulls the page for the given cursor and limit" do
+      job.perform(cursor: "abc", limit: 5)
 
-    it "enqueues the job with custom arguments" do
-      expect {
-        job_class.perform_later(attempts: 1, cursor: "abc", limit: 5)
-      }.to have_enqueued_job(job_class)
-    end
-  end
-
-  describe "#perform_now" do
-    subject(:perform_job) { job.perform(**job_params) }
-
-    let(:job_params) { {} }
-
-    it "uses the configured batch size" do
-      perform_job
-      expect(api_client).to have_received(:fetch_test_data).with(
-        cursor: nil,
-        batch_size: 10
-      )
-    end
-
-    it "processes each item through parser and creator" do
-      perform_job
-      expect(parser_class).to have_received(:parse).exactly(2).times
-      expect(creator_class).to have_received(:import!).exactly(2).times
+      expect(pull_class).to have_received(:page).with(cursor: "abc", limit: 5)
     end
 
     it "invokes the terminal-page hook when there is no next page" do
-      perform_job
+      job.perform
+
+      expect(job_class).not_to have_received(:set)
       expect(job.terminal_page_handled?).to be(true)
     end
 
-    context "when processing with a limit" do
-      let(:job_params) { {limit: 5} }
+    context "when Shopify reports another page" do
+      let(:page) { Shopify::Pull::Page.new(imported_count: 2, next_cursor: "next", failures: []) }
 
-      it "uses the provided limit" do
-        perform_job
-        expect(api_client).to have_received(:fetch_test_data).with(
-          cursor: nil,
-          batch_size: 5
-        )
+      it "schedules the next page without invoking the terminal-page hook" do
+        job.perform
+
+        expect(job_class).to have_received(:set).with(wait: 1.second)
+        expect(job_setter).to have_received(:perform_later).with(cursor: "next")
+        expect(job.terminal_page_handled?).to be(false)
       end
 
-      it "converts string limit to integer" do
-        job.perform(limit: "10")
-        expect(api_client).to have_received(:fetch_test_data).with(
-          cursor: nil,
-          batch_size: 10
-        )
-      end
+      it "treats a limited pull as terminal" do
+        job.perform(limit: 5)
 
-      it "does not schedule next job when there are no more pages" do
-        allow(api_client).to receive(:fetch_test_data).and_return(api_response)
-        perform_job
         expect(job_class).not_to have_received(:set)
-      end
-
-      it "invokes the terminal-page hook even when Shopify reports another page" do
-        perform_job
         expect(job.terminal_page_handled?).to be(true)
       end
     end
 
-    context "when handling rate limits" do
-      let(:job_params) { {attempts: 2} }
-      let(:http_response) do
-        ShopifyAPI::Clients::HttpResponse.new(
-          code: 429,
-          headers: {},
-          body: "Rate limit exceeded"
-        )
+    context "when items on the page failed to import" do
+      let(:failures) { [Shopify::Pull::Failure.new(store_id: "gid://1", message: "boom")] }
+      let(:page) { Shopify::Pull::Page.new(imported_count: 1, next_cursor: "next", failures:) }
+
+      before { allow(Sentry).to receive(:capture_exception) }
+
+      it "schedules the next page before raising the failures" do
+        expect { job.perform }.to raise_error(Shopify::Pull::Failed) { |error| expect(error.failures).to eq(failures) }
+
+        expect(job_setter).to have_received(:perform_later).with(cursor: "next")
       end
-      let(:rate_limit_error) do
+
+      it "reports the failures and discards the job instead of retrying the page" do
+        job_class.perform_now
+
+        expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
+        expect(job_setter).to have_received(:perform_later).once
+      end
+    end
+
+    context "when Shopify responds with an HTTP error" do
+      def http_error(code)
         ShopifyAPI::Errors::HttpResponseError.new(
-          response: http_response
+          response: ShopifyAPI::Clients::HttpResponse.new(code:, headers: {}, body: "error")
         )
       end
 
-      before do
-        allow(api_client).to receive(:fetch_test_data).and_raise(rate_limit_error)
-      end
+      it "re-enqueues a rate-limited page with linear backoff" do
+        allow(pull_class).to receive(:page).and_raise(http_error(429))
 
-      it "retries with exponential backoff" do
-        perform_job
+        job.perform(attempts: 2, cursor: "abc")
+
         expect(job_class).to have_received(:set).with(wait: 15.seconds)
-        expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: nil, limit: nil)
-      end
-
-      it "does not invoke the terminal-page hook while retrying" do
-        perform_job
+        expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: "abc", limit: nil)
         expect(job.terminal_page_handled?).to be(false)
       end
 
       it "raises other Shopify API errors" do
-        other_response = ShopifyAPI::Clients::HttpResponse.new(
-          code: 500,
-          headers: {},
-          body: "Internal server error"
-        )
-        other_error = ShopifyAPI::Errors::HttpResponseError.new(
-          response: other_response
-        )
-        allow(api_client).to receive(:fetch_test_data).and_raise(other_error)
+        allow(pull_class).to receive(:page).and_raise(http_error(500))
 
-        expect { perform_job }.to raise_error(ShopifyAPI::Errors::HttpResponseError)
+        expect { job.perform }.to raise_error(ShopifyAPI::Errors::HttpResponseError)
       end
-    end
-
-    context "when handling pagination" do
-      let(:modified_api_response) do
-        api_response.dup.tap do |data|
-          data[:has_next_page] = true
-        end
-      end
-
-      before do
-        allow(api_client).to receive(:fetch_test_data).and_return(modified_api_response)
-      end
-
-      it "schedules next job when there are more pages" do
-        perform_job
-        expect(job_class).to have_received(:set).with(wait: 1.second)
-        expect(job_setter).to have_received(:perform_later)
-          .with(cursor: modified_api_response[:end_cursor])
-      end
-
-      it "does not invoke the terminal-page hook for an intermediate page" do
-        perform_job
-        expect(job.terminal_page_handled?).to be(false)
-      end
-
-      it "does not schedule next job when there are no more pages" do
-        allow(api_client).to receive(:fetch_test_data).and_return(api_response)
-        perform_job
-        expect(job_class).not_to have_received(:set)
-      end
-    end
-
-    context "when item processing fails" do
-      before do
-        allow(creator_class).to receive(:import!).and_raise(
-          "Validation failed: Sku mogu-studio-tifa has already been taken"
-        )
-      end
-
-      it "re-raises the error" do
-        expect { perform_job }.to raise_error(RuntimeError, /already been taken/)
-      end
-    end
-  end
-
-  describe "required methods" do
-    let(:base_job) { described_class.new }
-
-    it "raises NotImplementedError for fetch_from_api" do
-      expect { base_job.send(:fetch_from_api, nil, cursor: nil, batch_size: 10) }.to raise_error(NotImplementedError)
-    end
-
-    it "raises NotImplementedError for parser_class" do
-      expect { base_job.send(:parser_class) }.to raise_error(NotImplementedError)
-    end
-
-    it "raises NotImplementedError for creator_class" do
-      expect { base_job.send(:creator_class) }.to raise_error(NotImplementedError)
-    end
-
-    it "raises NotImplementedError for batch_size" do
-      expect { base_job.send(:batch_size) }.to raise_error(NotImplementedError)
     end
   end
 end
-# rubocop:enable RSpec/VerifiedDoubles, RSpec/VerifiedDoubleReference

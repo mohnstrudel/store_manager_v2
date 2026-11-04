@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
-  describe "#allocate_revenue_to_items!" do
+  describe "#allocate_revenue_to_items" do
     let(:product) { create(:product) }
     let(:sale) do
       create(
@@ -22,7 +22,7 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
       small_item = create_item(BigDecimal(100))
       large_item = create_item(BigDecimal(200))
 
-      sale.allocate_revenue_to_items!
+      sale.allocate_revenue_to_items
 
       expect(small_item.reload).to have_attributes(
         received_revenue: BigDecimal(30),
@@ -40,7 +40,7 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
       sale.update!(received_revenue: BigDecimal(100), outstanding_revenue: nil, refunded_revenue: nil)
       items = Array.new(3) { create_item(BigDecimal(100)) }
 
-      sale.allocate_revenue_to_items!
+      sale.allocate_revenue_to_items
 
       received = items.map { |item| item.reload.received_revenue }
       expect(received).to eq([BigDecimal("33.33"), BigDecimal("33.33"), BigDecimal("33.34")])
@@ -52,7 +52,7 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
       first_item = create_item(nil)
       second_item = create_item(nil)
 
-      sale.allocate_revenue_to_items!
+      sale.allocate_revenue_to_items
 
       expect(first_item.reload.received_revenue).to eq(BigDecimal(25))
       expect(second_item.reload.received_revenue).to eq(BigDecimal(25))
@@ -63,7 +63,7 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
       small_item = create_item(BigDecimal(100))
       large_item = create_item(BigDecimal(200))
 
-      sale.allocate_revenue_to_items!
+      sale.allocate_revenue_to_items
 
       expect(small_item.reload).to have_attributes(
         received_revenue: nil,
@@ -81,7 +81,7 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
       sale.update!(received_revenue: nil, outstanding_revenue: nil, refunded_revenue: nil)
       item = create_item(BigDecimal(100))
 
-      sale.allocate_revenue_to_items!
+      sale.allocate_revenue_to_items
 
       expect(item.reload).to have_attributes(
         received_revenue: nil,
@@ -91,7 +91,7 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
     end
 
     it "does nothing without sale items" do
-      expect { sale.allocate_revenue_to_items! }.not_to raise_error
+      expect { sale.allocate_revenue_to_items }.not_to raise_error
     end
   end
 

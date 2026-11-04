@@ -115,7 +115,9 @@ function useProductFormSections(
   const [variantClientKey, setVariantClientKey] = useState<string | null>(
     initialPurchase.variant_client_key,
   );
-  const [media, setMedia] = useState<MediaFormData[]>(() => product.media);
+  const [media, setMedia] = useState<MediaFormData[]>(() =>
+    product.media.map((medium) => ({ ...medium, _destroy: false })),
+  );
 
   const selectedFranchise = useMemo(
     () => toSelectedOption(options.franchises, product.franchise_id),
@@ -268,7 +270,7 @@ function ProductDescriptionField({
     <div>
       <label htmlFor="product[description]">Description</label>
       <Suspense fallback={TIPTAP_FALLBACK}>
-        <TiptapEditor defaultValue={product.description_html} name="product[description]" />
+        <TiptapEditor defaultValue={product.description_html ?? ""} name="product[description]" />
       </Suspense>
       {errors.description && <p className="text_error mt-2">{errors.description}</p>}
     </div>

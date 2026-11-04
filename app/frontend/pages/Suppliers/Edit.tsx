@@ -12,7 +12,7 @@ type EditProps = {
 };
 
 export default function Edit({ supplier }: EditProps) {
-  const currentSupplierPath = routes.suppliers.show.path({ id: supplier.id! });
+  const currentSupplierPath = routes.suppliers.show.path({ id: supplier.id });
 
   return (
     <>

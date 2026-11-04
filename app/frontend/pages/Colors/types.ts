@@ -1,12 +1,7 @@
-export type ColorRecord = {
-  created_at: string | null;
-  id: number | null;
-  updated_at: string | null;
-  value: string;
-};
+import type { Color, ColorsNew, ProductLink } from "@/types/serializers";
 
-export type ProductRecord = {
-  full_title: string;
-  id: number;
-  path: string;
-};
+export type ColorRecord = Color;
+
+export type ColorFormRecord = ColorsNew["color"];
+
+export type ProductRecord = ProductLink;

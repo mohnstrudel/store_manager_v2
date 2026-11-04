@@ -7,59 +7,40 @@ class ProductsController < ApplicationController
   def index
     @products = Product.listed.search_by(params[:q]).page(params[:page])
 
-    return unless stale?(etag: [@products, request.inertia?], last_modified: @products.maximum(:updated_at))
+    return unless stale?(etag: [@products], last_modified: @products.maximum(:updated_at))
 
-    render inertia: "Products/Index", props: {
-      products: @products.map { |product| helpers.index_product_props(product) },
-      pagination: helpers.pagination_props(@products),
-      search: {q: params[:q].to_s},
-      last_sync_at: helpers.format_last_fetched_at(Config.shopify_products_sync_at)
-    }
+    render_inertia "Products/Index", serializer: Products::IndexResource,
+      locals: {products: @products, query: params[:q]}
   end
 
   def show
-    active_sales = @product.active_sale_items
-    active_payments = @product.active_payment_items
-    complete_sales = @product.completed_sale_items
-    complete_payments = @product.completed_payment_items
-    purchases = @product.purchases.includes(:supplier, :variant, purchase_items: :warehouse)
-    variants_sales_sums = @product.variant_sales_sums
-    variants_purchases_sums = @product.variant_purchase_sums
-    variants_purchase_cost_totals = @product.variant_purchase_cost_totals
-    can_view_profitability = policy(@product).view_profitability?
-
-    render inertia: "Products/Show", props: {
-      product: helpers.show_product_props(@product, can_pull_from_shopify: policy(@product).pull_from_shopify?),
-      variants: @product.variants.map { |variant| helpers.variant_props(variant, variants_sales_sums, variants_purchases_sums, variants_purchase_cost_totals, can_view_profitability:) },
-      active_sales: active_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
-      active_payments: active_payments.map { |sale_item| helpers.product_payment_item_props(sale_item, @product) },
-      completed_sales: complete_sales.map { |sale_item| helpers.product_sale_item_props(sale_item, @product) },
-      completed_payments: complete_payments.map { |sale_item| helpers.product_payment_item_props(sale_item, @product) },
-      purchases: purchases.map { |purchase| helpers.purchase_props(purchase) },
-      profitability: can_view_profitability ? helpers.product_profitability_props(@product) : nil
-    }
+    render_inertia "Products/Show", serializer: Products::ShowResource,
+      locals: {
+        product: @product,
+        purchases: @product.purchases.includes(:supplier, :variant, purchase_items: :warehouse),
+        can_pull_from_shopify: policy(@product).pull_from_shopify?,
+        can_view_profitability: policy(@product).view_profitability?
+      }
   end
 
   def new
     @product = Product.new
     @product.build_base_variant
 
-    render inertia: "Products/New", props: helpers.product_form_props(@product).merge(
-      purchase: helpers.default_purchase_props
-    )
+    render_inertia "Products/New", serializer: Products::NewResource, locals: {product: @product}
   end
 
   def edit
     @product.build_base_variant
 
-    render inertia: "Products/Edit", props: helpers.product_form_props(@product)
+    render_inertia "Products/Edit", serializer: Products::FormResource, locals: {product: @product}
   end
 
   def create
-    payload = Product::Editing::Payload.new(params:)
+    payload = Product::Revisable::Payload.new(params:)
     @product = Product.new
 
-    @product.save_editing!(
+    @product.revise(
       product_attributes: payload.product_attributes,
       variants_attributes: payload.variants_attributes,
       store_infos_attributes: payload.store_infos_attributes,
@@ -74,9 +55,9 @@ class ProductsController < ApplicationController
   end
 
   def update
-    payload = Product::Editing::Payload.new(params:)
+    payload = Product::Revisable::Payload.new(params:)
 
-    @product.save_editing!(
+    @product.revise(
       product_attributes: payload.product_attributes,
       variants_attributes: payload.variants_attributes,
       store_infos_attributes: payload.store_infos_attributes,
@@ -116,10 +97,10 @@ class ProductsController < ApplicationController
   end
 
   def set_product
-    @product = Product.for_details.friendly.find(params.expect(:id))
+    @product = Product.preloaded.friendly.find(params.expect(:id))
   end
 
   def set_product_for_edit
-    @product = Product.for_edit.friendly.find(params.expect(:id))
+    @product = Product.with_brands_variants_and_media.friendly.find(params.expect(:id))
   end
 end

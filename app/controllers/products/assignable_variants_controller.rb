@@ -3,7 +3,7 @@
 module Products
   class AssignableVariantsController < ApplicationController
     def show
-      render json: helpers.variant_availability_props(@product)
+      render json: VariantAvailabilityResource.new(@product).serializable_hash
     end
 
     private

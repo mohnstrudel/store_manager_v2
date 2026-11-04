@@ -4,13 +4,13 @@ import { getFormString } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 
-import { VersionRecord } from "../types";
+import { VersionFormRecord } from "../types";
 
 type VersionFormProps = {
   method: "post" | "patch";
   submitLabel: string;
   url: string;
-  version: VersionRecord;
+  version: VersionFormRecord;
 };
 
 function validate(formData: FormData) {

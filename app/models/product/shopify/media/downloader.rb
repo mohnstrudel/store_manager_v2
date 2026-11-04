@@ -29,7 +29,7 @@ module Product::Shopify::Media
       downloads_by_key.values.map(&:checksum)
     end
 
-    def close_downloads!
+    def close_downloads
       downloads_by_key.each_value { |downloaded| downloaded.file.close }
     end
 
@@ -59,7 +59,7 @@ module Product::Shopify::Media
 
       DownloadedImage.new(file:, filename:, checksum:)
     rescue Down::Error => e
-      Rails.logger.error "[Product::Shopify::MediaImporting] Download failed #{url} - #{e.class}: #{e.message}"
+      Rails.logger.error "[Product::Shopify::MediaImportable] Download failed #{url} - #{e.class}: #{e.message}"
       nil
     end
 

@@ -6,65 +6,49 @@ class ColorsController < ApplicationController
   def index
     @colors = Color.order(:value)
 
-    return unless stale?(etag: [@colors, request.inertia?], last_modified: @colors.maximum(:updated_at))
+    return unless stale?(etag: [@colors], last_modified: @colors.maximum(:updated_at))
 
-    render inertia: "Colors/Index", props: {
-      colors: @colors.map { |color| helpers.color_props(color) }
-    }
+    render_inertia "Colors/Index", serializer: Colors::IndexResource, locals: {colors: @colors}
   end
 
   def show
     @color = Color.includes(:products).find(params.expect(:id))
 
-    render inertia: "Colors/Show", props: {
-      color: helpers.color_props(@color),
-      products: @color.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Colors/Show", serializer: Colors::ShowResource, locals: {color: @color}
   end
 
   def new
     @color = Color.new
 
-    render inertia: "Colors/New", props: helpers.color_form_props(@color)
+    render_inertia "Colors/New", serializer: Colors::NewResource, locals: {color: @color}
   end
 
   def edit
-    render inertia: "Colors/Edit", props: helpers.color_form_props(@color)
+    render_inertia "Colors/Edit", serializer: Colors::EditResource, locals: {color: @color}
   end
 
   def create
     @color = Color.new(color_params)
 
-    respond_to do |format|
-      if @color.save
-        format.html { redirect_to color_url(@color), notice: "Color was successfully created" }
-        format.json { render :show, status: :created, location: @color }
-      else
-        format.html { redirect_to new_color_url, inertia: inertia_errors(@color.errors) }
-        format.json { render json: @color.errors, status: :unprocessable_content }
-      end
+    if @color.save
+      redirect_to color_url(@color), notice: "Color was successfully created"
+    else
+      redirect_to new_color_url, inertia: inertia_errors(@color.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @color.update(color_params)
-        format.html { redirect_to color_url(@color), notice: "Color was successfully updated" }
-        format.json { render :show, status: :ok, location: @color }
-      else
-        format.html { redirect_to edit_color_url(@color), inertia: inertia_errors(@color.errors) }
-        format.json { render json: @color.errors, status: :unprocessable_content }
-      end
+    if @color.update(color_params)
+      redirect_to color_url(@color), notice: "Color was successfully updated"
+    else
+      redirect_to edit_color_url(@color), inertia: inertia_errors(@color.errors)
     end
   end
 
   def destroy
     @color.destroy
 
-    respond_to do |format|
-      format.html { redirect_to colors_url, notice: "Color was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to colors_url, notice: "Color was successfully destroyed"
   end
 
   private

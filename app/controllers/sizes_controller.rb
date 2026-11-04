@@ -6,71 +6,55 @@ class SizesController < ApplicationController
   def index
     @sizes = Size.order(:value)
 
-    return unless stale?(etag: [@sizes, request.inertia?], last_modified: @sizes.maximum(:updated_at))
+    return unless stale?(etag: [@sizes], last_modified: @sizes.maximum(:updated_at))
 
-    render inertia: "Sizes/Index", props: {
-      sizes: @sizes.map { |size| helpers.size_props(size) }
-    }
+    render_inertia "Sizes/Index", serializer: Sizes::IndexResource, locals: {sizes: @sizes}
   end
 
   def show
     @size = Size.includes(:products).find(params.expect(:id))
 
-    render inertia: "Sizes/Show", props: {
-      size: helpers.size_props(@size),
-      products: @size.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Sizes/Show", serializer: Sizes::ShowResource, locals: {size: @size}
   end
 
   def new
     @size = Size.new
 
-    render inertia: "Sizes/New", props: helpers.size_form_props(@size)
+    render_inertia "Sizes/New", serializer: Sizes::NewResource, locals: {size: @size}
   end
 
   def edit
-    render inertia: "Sizes/Edit", props: helpers.size_form_props(@size)
+    render_inertia "Sizes/Edit", serializer: Sizes::EditResource, locals: {size: @size}
   end
 
   def create
     @size = Size.new(size_params)
 
-    respond_to do |format|
-      if @size.save
-        format.html { redirect_to size_url(@size), notice: "Size was successfully created" }
-        format.json { render :show, status: :created, location: @size }
-      else
-        format.html { redirect_to new_size_url, inertia: inertia_errors(@size.errors) }
-        format.json { render json: @size.errors, status: :unprocessable_content }
-      end
+    if @size.save
+      redirect_to size_url(@size), notice: "Size was successfully created"
+    else
+      redirect_to new_size_url, inertia: inertia_errors(@size.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @size.update(size_params)
-        format.html { redirect_to size_url(@size), notice: "Size was successfully updated" }
-        format.json { render :show, status: :ok, location: @size }
-      else
-        format.html { redirect_to edit_size_url(@size), inertia: inertia_errors(@size.errors) }
-        format.json { render json: @size.errors, status: :unprocessable_content }
-      end
+    if @size.update(size_params)
+      redirect_to size_url(@size), notice: "Size was successfully updated"
+    else
+      redirect_to edit_size_url(@size), inertia: inertia_errors(@size.errors)
     end
   end
 
   def destroy
     @size.destroy
 
-    respond_to do |format|
-      format.html { redirect_to sizes_url, notice: "Size was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to sizes_url, notice: "Size was successfully destroyed"
   end
 
   private
 
   def size_params
-    params.fetch(:size, {}).permit(:value)
+    params.expect(size: [:value])
   end
 
   def set_size

@@ -50,7 +50,7 @@ class OutboundEmail < ApplicationRecord
 
   after_create_commit :enqueue_delivery, if: :pending?
 
-  def deliver!
+  def deliver
     failure = nil
     with_lock { failure = attempt_delivery if pending? }
     raise failure if failure
@@ -61,17 +61,17 @@ class OutboundEmail < ApplicationRecord
   def attempt_delivery
     if OutboundEmailMailer.perform_deliveries
       OutboundEmailMailer.stored(self).deliver_now
-      record_attempt!(state: :accepted, accepted_at: Time.current)
+      record_attempt(state: :accepted, accepted_at: Time.current)
     else
-      record_attempt!(state: :simulated)
+      record_attempt(state: :simulated)
     end
     nil
   rescue => error
-    record_attempt!(last_error: "#{error.class}: #{error.message}".truncate(500))
+    record_attempt(last_error: "#{error.class}: #{error.message}".truncate(500))
     error
   end
 
-  def record_attempt!(last_error: nil, **attributes)
+  def record_attempt(last_error: nil, **attributes)
     update!(attempts: attempts + 1, last_attempt_at: Time.current, last_error:, **attributes)
   end
 

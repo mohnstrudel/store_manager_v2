@@ -10,7 +10,7 @@
 #  updated_at :datetime         not null
 #
 class Size < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
   include Size::Parsing
 
   audited

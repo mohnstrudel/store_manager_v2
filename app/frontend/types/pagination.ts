@@ -1,6 +1,1 @@
-export type PaginationMeta = {
-  current_page: number;
-  total_pages: number;
-  total_count: number;
-  limit: number;
-};
+export type { Pagination as PaginationMeta } from "@/types/serializers";

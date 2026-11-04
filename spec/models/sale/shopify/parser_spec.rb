@@ -696,6 +696,44 @@ RSpec.describe Sale::Shopify::Parser do
     end
   end
 
+  describe "status" do
+    def status_for(fulfillment_status, financial_status)
+      order = api_order.deep_dup.merge(
+        "displayFulfillmentStatus" => fulfillment_status,
+        "displayFinancialStatus" => financial_status
+      )
+      described_class.parse(order)[:sale][:status]
+    end
+
+    it "returns completed for fulfilled and paid" do
+      expect(status_for("FULFILLED", "PAID")).to eq("completed")
+    end
+
+    it "returns pre-ordered for unfulfilled and paid" do
+      expect(status_for("UNFULFILLED", "PAID")).to eq("pre-ordered")
+    end
+
+    it "returns processing for unfulfilled and pending" do
+      expect(status_for("UNFULFILLED", "PENDING")).to eq("processing")
+    end
+
+    it "returns partially-paid for unfulfilled and partially paid" do
+      expect(status_for("UNFULFILLED", "PARTIALLY_PAID")).to eq("partially-paid")
+    end
+
+    it "returns refunded for fulfilled and refunded" do
+      expect(status_for("FULFILLED", "REFUNDED")).to eq("refunded")
+    end
+
+    it "returns cancelled for unfulfilled and refunded" do
+      expect(status_for("UNFULFILLED", "REFUNDED")).to eq("cancelled")
+    end
+
+    it "defaults to processing for an unknown status combination" do
+      expect(status_for("UNKNOWN", "AUTHORIZED")).to eq("processing")
+    end
+  end
+
   describe "settlement_status" do
     it "persists paid for PAID with no outstanding evidence" do
       result = described_class.parse(api_order)
@@ -717,6 +755,33 @@ RSpec.describe Sale::Shopify::Parser do
       result = described_class.parse(voided_order)
 
       expect(result[:sale][:settlement_status]).to eq("not_fully_paid")
+    end
+
+    it "persists paid for PAID with zero outstanding revenue" do
+      settled_order = api_order.deep_dup.merge("totalOutstandingSet" => {"shopMoney" => {"amount" => "0.00"}})
+
+      expect(described_class.parse(settled_order)[:sale][:settlement_status]).to eq("paid")
+    end
+
+    it "persists not_fully_paid for PAID with positive outstanding revenue" do
+      outstanding_order = api_order.deep_dup.merge("totalOutstandingSet" => {"shopMoney" => {"amount" => "10.00"}})
+
+      expect(described_class.parse(outstanding_order)[:sale][:settlement_status]).to eq("not_fully_paid")
+    end
+
+    it "persists not_fully_paid for PENDING" do
+      pending_order = api_order.deep_dup.merge("displayFinancialStatus" => "PENDING")
+
+      expect(described_class.parse(pending_order)[:sale][:settlement_status]).to eq("not_fully_paid")
+    end
+
+    it "keeps a settlement mapping for a fully refunded order with zero outstanding revenue" do
+      refunded_order = api_order.deep_dup.merge(
+        "displayFinancialStatus" => "REFUNDED",
+        "totalOutstandingSet" => {"shopMoney" => {"amount" => "0.00"}}
+      )
+
+      expect(described_class.parse(refunded_order)[:sale][:settlement_status]).to eq("paid")
     end
 
     it "raises for an unmapped Shopify financial status instead of persisting a placeholder" do

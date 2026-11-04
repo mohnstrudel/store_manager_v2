@@ -17,7 +17,7 @@
     "typeAware": true,
     "typeCheck": true
   },
-  "ignorePatterns": ["app/frontend/api/**/*"],
+  "ignorePatterns": ["app/frontend/api/**/*", "app/frontend/types/serializers/**/*"],
   "plugins": [
     "eslint",
     "typescript",

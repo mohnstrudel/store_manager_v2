@@ -12,7 +12,10 @@ Run the planning process with the user while applicable specialist skills supply
 1. Load only specialist skills whose descriptions match an affected boundary. Do not load adjacent skills as general background; keep all matched skills active for cross-layer work.
 2. Inspect the relevant instructions, code, tests, contracts, and existing mechanisms.
 3. Classify the affected paths with the gates below. Complete any conditional architecture review before the applicable specialist gates or contracts.
-4. Complete the specialist gates or contracts, then share a visible plan with the goal, observable success criteria, scope, affected boundaries, evidence, recommended approach, alternatives when material, validation strategy, and non-goals. For a material architecture decision, sketch two structurally different approaches with concrete tradeoffs before recommending one.
+4. Complete the specialist gates or contracts, then share a visible plan:
+   - goal, observable success criteria, scope, affected boundaries, evidence, recommended approach, alternatives when material, validation strategy, and non-goals;
+   - decision-first: recommended direction before evidence, a named owner for each behavior, flows in execution order, the common path before exceptions, and tradeoffs as concrete effects on behavior, ownership, or coupling;
+   - for a material architecture decision, two structurally different approaches with concrete tradeoffs before the recommendation.
 5. Mark each statement as a fact, inference, proposal, or approved decision when that distinction matters.
 6. Ask focused questions only when an answer changes behavior, architecture, public contracts, persistence, lifecycle, or scope. State reasonable assumptions for everything else.
 7. The user approves material behavior, architecture, contract, persistence, lifecycle, or authority decisions. A concise plan is enough for a mechanical task with no such decision.
@@ -30,17 +33,7 @@ Read [architecture-review.md](references/architecture-review.md) before completi
 
 ## Review Delegation
 
-Apply the behavior and architecture gates before delegating; the reviewer is a second check, not a replacement for repository inspection.
-
-Skip review for mechanical work unless the user asks for it. Use one fresh-context reviewer when the user asks or the plan changes material behavior, a public contract, persistence, lifecycle, authority, cross-layer data flow, an integration protocol, or a security boundary. A broad refactor is not automatically design-sensitive; classify its affected paths first.
-
-Assign a concrete review lens from the actual risk, such as ownership and boundaries, behavior and edge cases, integration and security, or plan-blocking feasibility and validation. Do not rely on a generic job title to create useful review.
-
-Give the reviewer the task, relevant code and contracts, the draft plan, and approved decisions. Its reporting contract is the Review Gate in [architecture-review.md](references/architecture-review.md), plus evidence-backed unsupported assumptions and missing material behavior scenarios.
-
-Do not let the reviewer edit files, implement, reopen approved decisions without a concrete blocker, or redesign a sufficient plan. Use one reviewer and one pass by default. Use at most two reviewers when a second, independent high-risk lens is necessary, and do not allow nested delegation.
-
-Verify each finding against the repository, revise the plan, and show the user material review-driven changes and unresolved decisions. Mention a rejected finding only when the disagreement matters. Stop reviewing when no material finding remains.
+Skip review for mechanical work. Use one fresh-context reviewer, one pass, when the user asks or the plan changes material behavior, a public contract, persistence, lifecycle, authority, cross-layer data flow, an integration protocol, or a security boundary. Give it the task, relevant code and contracts, the draft plan, approved decisions, and a concrete review lens drawn from the actual risk; its reporting contract is the Review Gate in [architecture-review.md](references/architecture-review.md). The reviewer does not edit, implement, reopen approved decisions without a concrete blocker, or redesign a sufficient plan. Verify each finding against the repository before revising the plan, and show the user material review-driven changes and unresolved decisions.
 
 ## Handoff
 

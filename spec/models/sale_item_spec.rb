@@ -24,7 +24,7 @@
 require "rails_helper"
 
 RSpec.describe SaleItem do
-  describe "#apply_installment_origin!" do
+  describe "#apply_installment_origin" do
     let(:placeholder_product) do
       create(:product, shopify_id: Product::SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID, non_catalog: true)
     end
@@ -35,7 +35,7 @@ RSpec.describe SaleItem do
       real_variant = create(:variant, product: real_product)
       origin_item = create(:sale_item, product: real_product, variant: real_variant)
 
-      payment_item.apply_installment_origin!(origin_item)
+      payment_item.apply_installment_origin(origin_item)
 
       expect(payment_item.reload).to have_attributes(
         product: real_product,
@@ -49,9 +49,9 @@ RSpec.describe SaleItem do
       real_variant = create(:variant, product: real_product)
       create(:variant, product: real_product, sku: "still-active-sku")
       origin_item = create(:sale_item, product: real_product, variant: real_variant)
-      real_variant.remove_or_deactivate!
+      real_variant.remove_or_deactivate
 
-      payment_item.apply_installment_origin!(origin_item)
+      payment_item.apply_installment_origin(origin_item)
 
       expect(payment_item.reload).to have_attributes(product: real_product, variant: real_variant)
     end
@@ -59,9 +59,9 @@ RSpec.describe SaleItem do
     it "restores the placeholder product and clears the origin when given nil" do
       real_product = create(:product)
       origin_item = create(:sale_item, product: real_product)
-      payment_item.apply_installment_origin!(origin_item)
+      payment_item.apply_installment_origin(origin_item)
 
-      payment_item.apply_installment_origin!(nil)
+      payment_item.apply_installment_origin(nil)
 
       expect(payment_item.reload).to have_attributes(product: placeholder_product, origin_sale_item: nil)
     end
@@ -77,7 +77,7 @@ RSpec.describe SaleItem do
 
       expect(NotificationsMailer).not_to receive(:order_status_updated_email)
 
-      payment_item.apply_installment_origin!(origin_item)
+      payment_item.apply_installment_origin(origin_item)
 
       expect(available_purchase_item.reload.sale_item_id).to be_nil
       expect(payment_item.reload.purchase_items).to be_empty
@@ -87,7 +87,7 @@ RSpec.describe SaleItem do
       real_product = create(:product)
       origin_item = create(:sale_item, product: real_product)
 
-      expect { payment_item.apply_installment_origin!(origin_item) }.to change { payment_item.audits.count }.by(1)
+      expect { payment_item.apply_installment_origin(origin_item) }.to change { payment_item.audits.count }.by(1)
     end
   end
 

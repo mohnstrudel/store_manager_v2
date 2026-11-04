@@ -11,7 +11,7 @@
 #  product_id :bigint
 #
 class ProductColor < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
 

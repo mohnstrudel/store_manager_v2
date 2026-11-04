@@ -6,71 +6,59 @@ class ShippingCompaniesController < ApplicationController
   def index
     @shipping_companies = ShippingCompany.order(:name)
 
-    return unless stale?(etag: [@shipping_companies, request.inertia?], last_modified: @shipping_companies.maximum(:updated_at))
+    return unless stale?(etag: [@shipping_companies], last_modified: @shipping_companies.maximum(:updated_at))
 
-    render inertia: "ShippingCompanies/Index", props: {
-      shippingCompanies: @shipping_companies.map { |shipping_company| helpers.shipping_company_props(shipping_company) }
-    }
+    render_inertia "ShippingCompanies/Index", serializer: ShippingCompanies::IndexResource,
+      locals: {shipping_companies: @shipping_companies}
   end
 
   def show
-    @purchase_items = @shipping_company.purchase_items.for_shipping_details
+    @purchase_items = @shipping_company.purchase_items.with_product_and_purchase
 
-    render inertia: "ShippingCompanies/Show", props: {
-      purchaseItems: @purchase_items.map { |purchase_item| helpers.shipping_company_purchase_item_props(purchase_item) },
-      shippingCompany: helpers.shipping_company_props(@shipping_company)
-    }
+    render_inertia "ShippingCompanies/Show", serializer: ShippingCompanies::ShowResource,
+      locals: {purchase_items: @purchase_items, shipping_company: @shipping_company}
   end
 
   def new
     @shipping_company = ShippingCompany.new
 
-    render inertia: "ShippingCompanies/New", props: helpers.shipping_company_form_props(@shipping_company)
+    render_inertia "ShippingCompanies/New", serializer: ShippingCompanies::NewResource,
+      locals: {shipping_company: @shipping_company}
   end
 
   def edit
-    render inertia: "ShippingCompanies/Edit", props: helpers.shipping_company_form_props(@shipping_company)
+    render_inertia "ShippingCompanies/Edit", serializer: ShippingCompanies::EditResource,
+      locals: {shipping_company: @shipping_company}
   end
 
   def create
     @shipping_company = ShippingCompany.new(shipping_company_params)
 
-    respond_to do |format|
-      if @shipping_company.save
-        format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully created" }
-        format.json { render :show, status: :created, location: @shipping_company }
-      else
-        format.html { redirect_to new_shipping_company_url, inertia: inertia_errors(@shipping_company.errors) }
-        format.json { render json: @shipping_company.errors, status: :unprocessable_content }
-      end
+    if @shipping_company.save
+      redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully created"
+    else
+      redirect_to new_shipping_company_url, inertia: inertia_errors(@shipping_company.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @shipping_company.update(shipping_company_params)
-        format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully updated" }
-        format.json { render :show, status: :ok, location: @shipping_company }
-      else
-        format.html { redirect_to edit_shipping_company_url(@shipping_company), inertia: inertia_errors(@shipping_company.errors) }
-        format.json { render json: @shipping_company.errors, status: :unprocessable_content }
-      end
+    if @shipping_company.update(shipping_company_params)
+      redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully updated"
+    else
+      redirect_to edit_shipping_company_url(@shipping_company), inertia: inertia_errors(@shipping_company.errors)
     end
   end
 
   def destroy
     @shipping_company.destroy
 
-    respond_to do |format|
-      format.html { redirect_to shipping_companies_url, notice: "Shipping company was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to shipping_companies_url, notice: "Shipping company was successfully destroyed"
   end
 
   private
 
   def shipping_company_params
-    params.fetch(:shipping_company, {}).permit(:name, :tracking_url)
+    params.expect(shipping_company: [:name, :tracking_url])
   end
 
   def set_shipping_company

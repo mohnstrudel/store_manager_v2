@@ -3,17 +3,6 @@
 require "rails_helper"
 
 RSpec.describe Variant::Options do
-  describe ".types" do
-    it "returns the Woo option-name matrix used for variant mapping" do
-      expect(Variant.types).to eq(
-        version: ["Version", "Variante"],
-        size: ["Size", "Maßstab"],
-        color: ["Color", "Farbe"],
-        brand: ["Brand", "Marke"]
-      )
-    end
-  end
-
   describe "#base_model?" do
     context "when variant has no options" do
       let(:variant) { create(:product).base_variant }

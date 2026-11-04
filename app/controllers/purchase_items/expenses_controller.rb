@@ -2,6 +2,8 @@
 
 module PurchaseItems
   class ExpensesController < ApplicationController
+    include ReturnPath
+
     before_action :set_purchase_item
     before_action :set_expense, only: %i[update destroy]
 
@@ -29,11 +31,11 @@ module PurchaseItems
       params.expect(purchase_expense: [:description, :amount])
     end
 
-    def return_path
-      params[:return_to].presence || purchase_path(@purchase)
+    def failure_path
+      purchase_path(@purchase)
     end
 
-    def failure_path
+    def default_return_path
       purchase_path(@purchase)
     end
 

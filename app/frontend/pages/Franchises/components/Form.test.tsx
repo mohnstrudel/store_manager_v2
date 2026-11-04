@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 
-import { makeFranchise } from "../test/factories";
-import type { FranchiseRecord } from "../types";
+import { makeFranchiseForm } from "../test/factories";
+import type { FranchiseFormRecord } from "../types";
 import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -14,12 +14,7 @@ describe("Franchises/components/Form", () => {
   describe("form shell", () => {
     it("configures action, method, and labels for a new franchise", () => {
       renderForm({
-        franchise: makeFranchise({
-          id: null,
-          title: "",
-          created_at: null,
-          updated_at: null,
-        }),
+        franchise: makeFranchiseForm({ title: "" }),
         method: "post",
         submitLabel: "Create Franchise",
         url: "/franchises",
@@ -85,13 +80,13 @@ describe("Franchises/components/Form", () => {
 });
 
 function renderForm({
-  franchise = makeFranchise(),
+  franchise = makeFranchiseForm(),
   method = "patch",
   pageErrors = {},
   submitLabel = "Update Franchise",
   url = "/franchises/1",
 }: {
-  franchise?: FranchiseRecord;
+  franchise?: FranchiseFormRecord;
   method?: "post" | "patch";
   pageErrors?: Record<string, string>;
   submitLabel?: string;

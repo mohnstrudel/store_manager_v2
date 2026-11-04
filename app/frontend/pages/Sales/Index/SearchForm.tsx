@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import { SearchIcon, XIcon } from "lucide-react";
-import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 
 import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
 import routes from "@/utils/routes";
@@ -15,6 +15,7 @@ import {
 import TagFilter from "./TagFilter";
 
 type SearchFormProps = {
+  children: ReactNode;
   q: string;
   sort: SaleSort;
   filters: SalesFilters;
@@ -29,7 +30,14 @@ const SORT_OPTIONS: { value: SaleSort; label: string }[] = [
   { value: "oldest", label: "Oldest first" },
 ];
 
-export default function SearchForm({ q, sort, filters, tagColors, tagOptions }: SearchFormProps) {
+export default function SearchForm({
+  children,
+  q,
+  sort,
+  filters,
+  tagColors,
+  tagOptions,
+}: SearchFormProps) {
   const applied: SalesListingSettings = { q, sort, ...filters };
   const appliedHref = listingHref(applied);
   const [form, setForm] = useState({ appliedHref, synced: applied, draft: applied });
@@ -87,33 +95,36 @@ export default function SearchForm({ q, sort, filters, tagColors, tagOptions }: 
   );
 
   return (
-    <div className="flex flex-col gap-3 w-full max-w-full lg:max-w-2/3">
-      <form
-        className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-2"
-        onSubmit={handleSubmit}
-      >
-        <input
-          aria-label="Search sales"
-          className={`lg:w-auto lg:grow lg:basis-56 ${hasSearch ? "border-2" : "border"}`}
-          name="q"
-          onChange={handleQueryChange}
-          placeholder="Find what you need..."
-          suppressHydrationWarning
-          type="search"
-          value={draft.q}
-        />
-        <button type="submit">
-          <SearchIcon />
-          Search
-        </button>
-        {hasSearch && (
-          <button className="btn_red" onClick={handleClear} type="button">
-            <XIcon />
-            Clear search
+    <div className="flex flex-col gap-3 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <form
+          className="flex flex-col lg:flex-row lg:items-center gap-2 lg:w-3/5 lg:shrink-0"
+          onSubmit={handleSubmit}
+        >
+          <input
+            aria-label="Search sales"
+            className={`lg:w-auto lg:grow lg:basis-56 ${hasSearch ? "border-2" : "border"}`}
+            name="q"
+            onChange={handleQueryChange}
+            placeholder="Find what you need..."
+            suppressHydrationWarning
+            type="search"
+            value={draft.q}
+          />
+          <button type="submit">
+            <SearchIcon />
+            Search
           </button>
-        )}
-      </form>
-      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-6">
+          {hasSearch && (
+            <button className="btn_red" onClick={handleClear} type="button">
+              <XIcon />
+              Clear search
+            </button>
+          )}
+        </form>
+        {children}
+      </div>
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-6 w-full">
         <fieldset
           aria-label="Sort sales"
           className="tab_bar tab_bar_outline shrink-0 sm:w-fit mt-0 mb-0"

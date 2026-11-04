@@ -9,4 +9,16 @@ describe("ErrorNotice", () => {
 
     expect(screen.getByText("Fix errors and try again").closest("article")).toHaveClass("w-full");
   });
+
+  it("lists top-level errors by a readable name and leaves nested field errors to their fields", () => {
+    render(
+      <ErrorNotice
+        errors={{ variants: "is invalid", "variants.0.sku": "has already been taken" }}
+      />,
+    );
+
+    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      "Variants: is invalid",
+    ]);
+  });
 });

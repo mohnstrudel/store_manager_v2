@@ -12,10 +12,7 @@ type EditProps = {
 };
 
 export default function Edit({ franchise }: EditProps) {
-  const currentFranchisePath =
-    franchise.id === null
-      ? routes.franchises.index.path()
-      : routes.franchises.show.path({ id: franchise.id });
+  const currentFranchisePath = routes.franchises.show.path({ id: franchise.id });
 
   return (
     <>

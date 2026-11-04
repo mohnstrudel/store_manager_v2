@@ -7,14 +7,14 @@ module Warehouses
 
     def new
       @purchase_item = PurchaseItem.new(warehouse: @warehouse)
-      render inertia: "PurchaseItems/New",
-        props: helpers.purchase_item_new_props(@purchase_item, warehouse: @warehouse)
+      render_inertia "PurchaseItems/New", serializer: PurchaseItems::NewResource,
+        locals: {purchase_item: @purchase_item, warehouse: @warehouse}
     end
 
     def create
       @purchase_item = PurchaseItem.new
 
-      @purchase_item.create_from_form!(
+      @purchase_item.record(
         purchase_item_params.to_h,
         new_media_images: media_new_images_for(@purchase_item)
       )

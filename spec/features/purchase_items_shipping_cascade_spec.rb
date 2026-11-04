@@ -4,7 +4,6 @@ require "rails_helper"
 
 RSpec.feature "Purchase items shipping cascade editing" do
   before { sign_in_as_admin }
-  after { log_out }
 
   let!(:warehouse) { create(:warehouse) }
   let!(:shipping_company) { create(:shipping_company, name: "Skyline") }

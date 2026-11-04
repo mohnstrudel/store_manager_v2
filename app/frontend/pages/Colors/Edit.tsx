@@ -12,8 +12,7 @@ type EditProps = {
 };
 
 export default function Edit({ color }: EditProps) {
-  const currentColorPath =
-    color.id === null ? routes.colors.index.path() : routes.colors.show.path({ id: color.id });
+  const currentColorPath = routes.colors.show.path({ id: color.id });
 
   return (
     <>

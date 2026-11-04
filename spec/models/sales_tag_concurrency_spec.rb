@@ -11,7 +11,7 @@ RSpec.describe SalesTag do
     )
   end
 
-  describe ".find_or_create_normalized!" do
+  describe ".find_or_create_normalized" do
     context "with concurrent creators of the same identity" do
       it "returns the committed winner to the waiting creator without changing its name or color" do
         inserted = Queue.new
@@ -21,7 +21,7 @@ RSpec.describe SalesTag do
         winner = Thread.new do
           ActiveRecord::Base.connection_pool.with_connection do
             described_class.transaction do
-              tag = described_class.find_or_create_normalized!(name: "VIP Order", color: "sky")
+              tag = described_class.find_or_create_normalized(name: "VIP Order", color: "sky")
               inserted << true
               release_winner.pop(timeout: 5)
               tag
@@ -33,7 +33,7 @@ RSpec.describe SalesTag do
         loser = Thread.new do
           ActiveRecord::Base.connection_pool.with_connection do |connection|
             loser_pid << connection.raw_connection.backend_pid
-            described_class.find_or_create_normalized!(name: "vip order", color: "pink")
+            described_class.find_or_create_normalized(name: "vip order", color: "pink")
           end
         end
         wait_for_lock(loser_pid.pop(timeout: 5))
@@ -61,7 +61,7 @@ RSpec.describe SalesTag do
       assigner = Thread.new do
         ActiveRecord::Base.connection_pool.with_connection do
           ActiveRecord::Base.transaction do
-            Sale.find(sale.id).replace_tags!(ids: [vip.id, rush.id], original_ids: [])
+            Sale.find(sale.id).retag(ids: [vip.id, rush.id], original_ids: [])
             assigned << true
             release_assignment.pop(timeout: 5)
           end
@@ -112,7 +112,7 @@ RSpec.describe SalesTag do
           assigner_pid << connection.raw_connection.backend_pid
           target = Sale.find(sale.id)
           begin
-            target.replace_tags!(ids: [zebra.id, vip.id], original_ids: [zebra.id])
+            target.retag(ids: [zebra.id, vip.id], original_ids: [zebra.id])
           rescue ActiveRecord::RecordInvalid
             target.errors[:tags]
           end
@@ -122,7 +122,7 @@ RSpec.describe SalesTag do
       release_deletion << true
       deleter.value
 
-      expect(assigner.value).to eq([Sale::Tagging::MISSING_SELECTION_MESSAGE])
+      expect(assigner.value).to eq([Sale::Taggable::MISSING_SELECTION_MESSAGE])
       expect(described_class.exists?(vip.id)).to be(false)
       expect(SaleTagging.where(sale_id: sale.id).pluck(:sales_tag_id)).to eq([zebra.id])
     ensure

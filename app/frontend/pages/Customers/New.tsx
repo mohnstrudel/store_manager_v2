@@ -1,10 +1,10 @@
 import PageHeader from "@/components/PageHeader";
 
 import Form from "./components/Form";
-import { CustomerRecord } from "./types";
+import { CustomerFormRecord } from "./types";
 
 type NewProps = {
-  customer: CustomerRecord;
+  customer: CustomerFormRecord;
 };
 
 export default function New({ customer }: NewProps) {

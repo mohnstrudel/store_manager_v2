@@ -16,14 +16,10 @@ type ShowProps = {
 };
 
 export default function Show({ active_sales, completed_sales, customer }: ShowProps) {
-  const editPath = customer.path ? `${customer.path}/edit` : "#";
-  const destroyPath = customer.path || "#";
-  const destroyCustomer = useConfirmAction("delete", destroyPath);
-  const title =
-    customer.full_name ||
-    customer.email ||
-    (customer.id != null ? `Customer ${customer.id}` : "Customer");
-  const subtitle = customer.id != null ? `Customer ${customer.id}` : undefined;
+  const editPath = `${customer.path}/edit`;
+  const destroyCustomer = useConfirmAction("delete", customer.path);
+  const title = customer.full_name || customer.email || `Customer ${customer.id}`;
+  const subtitle = `Customer ${customer.id}`;
 
   return (
     <>

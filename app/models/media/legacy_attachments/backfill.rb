@@ -3,17 +3,17 @@
 class Media::LegacyAttachments::Backfill
   Result = Data.define(:created_count, :owners_backfilled)
 
-  def self.apply!
-    new.apply!
+  def self.apply
+    new.apply
   end
 
-  def apply!
+  def apply
     created_count = 0
     owners_backfilled = 0
 
     Media::LegacyAttachments::OWNER_CLASSES.each do |owner_class|
       owners_with_legacy_attachments(owner_class).find_each do |owner|
-        created = backfill_owner!(owner)
+        created = backfill_owner(owner)
         next if created.zero?
 
         created_count += created
@@ -36,7 +36,7 @@ class Media::LegacyAttachments::Backfill
     Media::LegacyAttachments.for_owner_class(owner_class)
   end
 
-  def backfill_owner!(owner)
+  def backfill_owner(owner)
     created_count = 0
 
     owner.with_lock do

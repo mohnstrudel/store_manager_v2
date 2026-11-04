@@ -6,71 +6,55 @@ class VersionsController < ApplicationController
   def index
     @versions = Version.order(:value)
 
-    return unless stale?(etag: [@versions, request.inertia?], last_modified: @versions.maximum(:updated_at))
+    return unless stale?(etag: [@versions], last_modified: @versions.maximum(:updated_at))
 
-    render inertia: "Versions/Index", props: {
-      versions: @versions.map { |version| helpers.version_props(version) }
-    }
+    render_inertia "Versions/Index", serializer: Versions::IndexResource, locals: {versions: @versions}
   end
 
   def show
     @version = Version.includes(:products).find(params.expect(:id))
 
-    render inertia: "Versions/Show", props: {
-      version: helpers.version_props(@version),
-      products: @version.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Versions/Show", serializer: Versions::ShowResource, locals: {version: @version}
   end
 
   def new
     @version = Version.new
 
-    render inertia: "Versions/New", props: helpers.version_form_props(@version)
+    render_inertia "Versions/New", serializer: Versions::FormResource, locals: {version: @version}
   end
 
   def edit
-    render inertia: "Versions/Edit", props: helpers.version_form_props(@version)
+    render_inertia "Versions/Edit", serializer: Versions::FormResource, locals: {version: @version}
   end
 
   def create
     @version = Version.new(version_params)
 
-    respond_to do |format|
-      if @version.save
-        format.html { redirect_to version_url(@version), notice: "Version was successfully created" }
-        format.json { render :show, status: :created, location: @version }
-      else
-        format.html { redirect_to new_version_url, inertia: inertia_errors(@version.errors) }
-        format.json { render json: @version.errors, status: :unprocessable_content }
-      end
+    if @version.save
+      redirect_to version_url(@version), notice: "Version was successfully created"
+    else
+      redirect_to new_version_url, inertia: inertia_errors(@version.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @version.update(version_params)
-        format.html { redirect_to version_url(@version), notice: "Version was successfully updated" }
-        format.json { render :show, status: :ok, location: @version }
-      else
-        format.html { redirect_to edit_version_url(@version), inertia: inertia_errors(@version.errors) }
-        format.json { render json: @version.errors, status: :unprocessable_content }
-      end
+    if @version.update(version_params)
+      redirect_to version_url(@version), notice: "Version was successfully updated"
+    else
+      redirect_to edit_version_url(@version), inertia: inertia_errors(@version.errors)
     end
   end
 
   def destroy
     @version.destroy
 
-    respond_to do |format|
-      format.html { redirect_to versions_url, notice: "Version was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to versions_url, notice: "Version was successfully destroyed"
   end
 
   private
 
   def version_params
-    params.fetch(:version, {}).permit(:value)
+    params.expect(version: [:value])
   end
 
   def set_version

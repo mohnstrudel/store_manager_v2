@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 
 import New from "./New";
-import { makeExpenseRate } from "./test/factories";
+import { makeExpenseRateForm } from "./test/factories";
 
-const emptyExpenseRate = () => makeExpenseRate({ id: null, name: "", rate_percent: 0 });
+const emptyExpenseRate = () => makeExpenseRateForm({ name: "", rate_percent: 0 });
 
 describe("ExpenseRates/New", () => {
   it("renders the form", () => {

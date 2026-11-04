@@ -7,28 +7,24 @@ class PurchasesController < ApplicationController
   before_action :prepare_form_options, only: %i[new edit]
 
   def index
-    @purchases = Purchase.for_listing.order(id: :desc).page(params[:page])
+    @purchases = Purchase.preloaded_with_item_warehouses.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
     @warehouses = Warehouse.order(name: :asc)
 
-    return unless stale?(etag: [@purchases, @warehouses, request.inertia?], last_modified: @purchases.maximum(:updated_at))
+    return unless stale?(etag: [@purchases, @warehouses], last_modified: @purchases.maximum(:updated_at))
 
-    render inertia: "Purchases/Index", props: {
-      purchases: @purchases.map { |purchase| helpers.purchase_index_props(purchase) },
-      pagination: helpers.pagination_props(@purchases),
-      search: {q: params[:q].to_s},
-      warehouses: @warehouses.map { |warehouse| helpers.purchase_warehouse_props(warehouse) },
-      move_path: move_path
-    }
+    render_inertia "Purchases/Index", serializer: Purchases::IndexResource,
+      locals: {purchases: @purchases, query: params[:q].to_s, warehouses: @warehouses}
   end
 
   def show
-    render inertia: "Purchases/Show", props: helpers.purchase_show_props(
-      @purchase,
-      purchase_items: @purchase.purchase_items.for_purchase_details,
-      payments: @purchase.payments.chronological,
-      new_payment: @purchase.payments.new(payment_date: Time.zone.today)
-    )
+    render_inertia "Purchases/Show", serializer: Purchases::ShowResource,
+      locals: {
+        purchase: @purchase,
+        purchase_items: @purchase.purchase_items.preloaded_for_purchase.ordered_by_updated_date,
+        payments: @purchase.payments.chronological,
+        new_payment: @purchase.payments.new(payment_date: Time.zone.today)
+      }
   end
 
   def new
@@ -37,70 +33,53 @@ class PurchasesController < ApplicationController
     @purchase.product = Product.friendly.find(params.expect(:product)) if params[:product].present?
     @purchase.warehouse_id = @default_warehouse_id
 
-    render inertia: "Purchases/New", props: helpers.purchase_form_props(
-      @purchase,
-      products: @product_options,
-      suppliers: @suppliers,
-      warehouses: @warehouse_options
-    )
+    render_inertia "Purchases/New", serializer: Purchases::FormResource, locals: form_locals
   end
 
   def edit
     @purchase.warehouse_id = @default_warehouse_id
 
-    render inertia: "Purchases/Edit", props: helpers.purchase_form_props(
-      @purchase,
-      products: @product_options,
-      suppliers: @suppliers,
-      warehouses: @warehouse_options
-    )
+    render_inertia "Purchases/Edit", serializer: Purchases::FormResource, locals: form_locals
   end
 
   def create
     payload = Purchase::FormPayload.new(params:)
     @purchase = Purchase.new
 
-    respond_to do |format|
-      @purchase.create_from_form!(
-        attributes: payload.attributes,
-        initial_warehouse_id: payload.initial_warehouse_id,
-        initial_payment_value: payload.initial_payment_value
-      )
-      format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
-      format.json { render :show, status: :created, location: @purchase }
-    rescue ActiveRecord::RecordInvalid => e
-      append_initial_payment_errors(@purchase, e.record)
-      format.html { redirect_to new_purchase_url, inertia: inertia_errors(@purchase.errors) }
-      format.json { render json: @purchase.errors, status: :unprocessable_content }
-    end
+    @purchase.place(
+      attributes: payload.attributes,
+      warehouse_id: payload.initial_warehouse_id,
+      payment_value: payload.initial_payment_value
+    )
+    redirect_to purchase_url(@purchase), notice: "Purchase was successfully created"
+  rescue ActiveRecord::RecordInvalid => e
+    append_initial_payment_errors(@purchase, e.record)
+    redirect_to new_purchase_url, inertia: inertia_errors(@purchase.errors)
   end
 
   def update
     payload = Purchase::FormPayload.new(params:)
 
-    respond_to do |format|
-      @purchase.update_from_form!(attributes: payload.attributes.merge(slug: nil))
-      format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
-      format.json { render :show, status: :ok, location: @purchase }
-    rescue ActiveRecord::RecordInvalid => e
-      append_initial_payment_errors(@purchase, e.record)
-      errors = @purchase.errors.dup
-      @purchase.reload
-      format.html { redirect_to edit_purchase_url(@purchase), inertia: inertia_errors(errors) }
-      format.json { render json: errors, status: :unprocessable_content }
-    end
+    @purchase.update!(payload.attributes.merge(slug: nil))
+    redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated"
+  rescue ActiveRecord::RecordInvalid => e
+    append_initial_payment_errors(@purchase, e.record)
+    errors = @purchase.errors.dup
+    @purchase.reload
+    redirect_to edit_purchase_url(@purchase), inertia: inertia_errors(errors)
   end
 
   def destroy
     @purchase.destroy
 
-    respond_to do |format|
-      format.html { redirect_to purchases_url, notice: "Purchase was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to purchases_url, notice: "Purchase was successfully destroyed"
   end
 
   private
+
+  def form_locals
+    {purchase: @purchase, products: @product_options, suppliers: @suppliers, warehouses: @warehouse_options}
+  end
 
   def append_initial_payment_errors(purchase, record)
     return unless record.is_a?(Payment)
@@ -111,7 +90,7 @@ class PurchasesController < ApplicationController
   end
 
   def set_purchase_for_show
-    @purchase = Purchase.for_details.friendly.find(params.expect(:id))
+    @purchase = Purchase.preloaded.friendly.find(params.expect(:id))
   end
 
   def set_purchase

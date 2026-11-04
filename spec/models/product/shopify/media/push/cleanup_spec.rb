@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Product::Shopify::Media::Push::Cleanup do
-  let(:product) { create(:product) }
+  let(:product) { create(:product, :synced) }
   let(:media) { create(:media, mediaable: product) }
   let(:other_media) { create(:media, mediaable: product) }
   let(:error) { StandardError.new(error_message) }

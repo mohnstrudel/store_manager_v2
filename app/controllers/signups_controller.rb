@@ -6,7 +6,7 @@ class SignupsController < ApplicationController
 
   def new
     @user = User.new
-    render inertia: "Signups/New", props: {email_address: params[:email_address]}
+    render_inertia "Signups/New", serializer: EmailAddressPrefillResource, locals: {email_address: params[:email_address]}
   end
 
   def create

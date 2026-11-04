@@ -11,7 +11,7 @@ type EditProps = {
 };
 
 export default function Edit({ customer }: EditProps) {
-  const customerPath = customer.path || "#";
+  const customerPath = customer.path;
 
   return (
     <>

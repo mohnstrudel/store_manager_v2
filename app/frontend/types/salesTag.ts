@@ -1,7 +1,5 @@
-export type SalesTagColor = "green" | "pink" | "sky" | "violet" | "olive";
+import type { SalesTag } from "@/types/serializers";
 
-export type SalesTagRecord = {
-  id: number;
-  name: string;
-  color: SalesTagColor;
-};
+export type SalesTagColor = SalesTag["color"];
+
+export type SalesTagRecord = SalesTag;

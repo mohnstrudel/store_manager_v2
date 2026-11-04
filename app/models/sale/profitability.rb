@@ -29,7 +29,7 @@ module Sale::Profitability
   def profitability_summary(expense_fraction: ExpenseRate.combined_fraction)
     return if cancelled?
 
-    plans = payment_plans_for_display
+    plans = payment_plans
 
     if plans.one?
       plans.first.profitability(expense_fraction:).merge(scope: :plan)

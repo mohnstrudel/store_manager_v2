@@ -4,20 +4,11 @@ import { describe, expect, it } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 
 import New from "./New";
-import { makeVersion } from "./test/factories";
+import { makeNewVersionForm } from "./test/factories";
 
 describe("Versions/New", () => {
   it("renders the form", () => {
-    render(
-      <New
-        version={makeVersion({
-          id: null,
-          value: "",
-          created_at: null,
-          updated_at: null,
-        })}
-      />,
-    );
+    render(<New version={makeNewVersionForm()} />);
 
     expect(screen.getByRole("heading", { name: "New Version" })).toBeInTheDocument();
     expect(screen.getByLabelText("Value")).toBeInTheDocument();
@@ -27,16 +18,7 @@ describe("Versions/New", () => {
   it("renders field validation errors", () => {
     mockPageProps({ errors: { value: "can't be blank" } });
 
-    render(
-      <New
-        version={makeVersion({
-          id: null,
-          value: "",
-          created_at: null,
-          updated_at: null,
-        })}
-      />,
-    );
+    render(<New version={makeNewVersionForm()} />);
 
     expect(screen.getByText("Fix errors and try again")).toBeInTheDocument();
     expect(screen.getAllByText("can't be blank").length).toBeGreaterThan(0);

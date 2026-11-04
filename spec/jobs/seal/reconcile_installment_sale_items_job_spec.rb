@@ -8,7 +8,7 @@ RSpec.describe Seal::ReconcileInstallmentSaleItemsJob do
   end
 
   def create_plan(external_origin_order_id:, external_id: "subscription-1")
-    SalePaymentPlan.reconcile!(
+    SalePaymentPlan.reconcile(
       attributes: {
         provider: "seal",
         external_id:,
@@ -50,7 +50,7 @@ RSpec.describe Seal::ReconcileInstallmentSaleItemsJob do
     it "leaves a Shopify payment_terms plan's items untouched" do
       sale = create(:sale, shopify_store_id: "300")
       item = create(:sale_item, sale:, product: create(:product))
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "shopify",
           external_id: "terms-1",

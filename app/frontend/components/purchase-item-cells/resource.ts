@@ -5,10 +5,7 @@ export type PurchaseItemCellRecord = {
   shipping_company_name: string;
 };
 
-export type ShippingCompanyOption = {
-  id: number;
-  name: string;
-};
+export type { ShippingCompanyOption } from "@/types/serializers";
 
 export const purchaseItemResource = {
   collection: "purchase_items",

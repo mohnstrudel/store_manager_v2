@@ -1,4 +1,6 @@
-export type EmailState = "pending" | "accepted" | "simulated";
+import type { OutboundEmail } from "@/types/serializers";
+
+export type EmailState = OutboundEmail["state"];
 
 export const stateDetails: Record<EmailState, { label: string; description: string }> = {
   pending: { label: "Waiting to send", description: "Not sent yet. It is waiting its turn." },

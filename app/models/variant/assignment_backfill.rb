@@ -48,7 +48,7 @@ class Variant::AssignmentBackfill
     @phase_counts = {}
     @failures = []
     @halted = false
-    validate_resume_options!
+    validate_resume_options
   end
 
   def call
@@ -84,7 +84,7 @@ class Variant::AssignmentBackfill
     :repair,
     :resume_from
 
-  def validate_resume_options!
+  def validate_resume_options
     return if resume_from.blank? && after_id.blank?
     raise ArgumentError, "RESUME_FROM is required with AFTER_ID" if resume_from.blank?
     raise ArgumentError, "Unknown resume phase: #{resume_from}" unless PHASES.include?(resume_from)
@@ -160,7 +160,7 @@ class Variant::AssignmentBackfill
       )
     end
     process_candidates(:sync_base_activation, candidates) do |candidate|
-      Product.find(candidate.id).synchronize_variant_availability!
+      Product.find(candidate.id).synchronize_variant_availability
     end
   end
 
@@ -264,7 +264,7 @@ class Variant::AssignmentBackfill
       candidates,
       unresolved: ->(candidate) { candidate.record.blank? }
     ) do |candidate|
-      repair.reconcile_duplicate_shopify_identity!(
+      repair.reconcile_duplicate_shopify_identity(
         store_id: candidate.details.fetch(:store_id),
         canonical_store_info_id: candidate.record.id
       )
@@ -302,7 +302,7 @@ class Variant::AssignmentBackfill
       candidates,
       unresolved: ->(candidate) { candidate.record.blank? }
     ) do |candidate|
-      repair.repair_purchase!(
+      repair.repair_purchase(
         purchase_id: candidate.id,
         variant_id: candidate.details.fetch(:variant_id)
       )
@@ -335,7 +335,7 @@ class Variant::AssignmentBackfill
       candidates,
       unresolved: ->(candidate) { candidate.record.blank? }
     ) do |candidate|
-      repair.repair_sale_item!(
+      repair.repair_sale_item(
         sale_item_id: candidate.id,
         product_id: candidate.details.fetch(:product_id),
         variant_id: candidate.details.fetch(:variant_id)
@@ -371,7 +371,7 @@ class Variant::AssignmentBackfill
         )
       end
     process_candidates(:backfill_purchase_item_identity, candidates) do |candidate|
-      repair.repair_purchase_item_identity!(purchase_item_id: candidate.id)
+      repair.repair_purchase_item_identity(purchase_item_id: candidate.id)
     end
   end
 
@@ -384,7 +384,7 @@ class Variant::AssignmentBackfill
       )
     end
     process_candidates(:repair_purchase_item_links, candidates) do |candidate|
-      repair.repair_purchase_item_link!(purchase_item_id: candidate.id)
+      repair.repair_purchase_item_link(purchase_item_id: candidate.id)
     end
   end
 

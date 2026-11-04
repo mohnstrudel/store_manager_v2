@@ -16,10 +16,8 @@ type ShowProps = {
 };
 
 export default function Show({ brand, products }: ShowProps) {
-  const currentBrandPath =
-    brand.id === null ? routes.brands.index.path() : routes.brands.show.path({ id: brand.id });
-  const currentEditPath =
-    brand.id === null ? routes.brands.new.path() : routes.brands.edit.path({ id: brand.id });
+  const currentBrandPath = routes.brands.show.path({ id: brand.id });
+  const currentEditPath = routes.brands.edit.path({ id: brand.id });
   const destroyBrand = useConfirmAction("delete", currentBrandPath);
 
   return (

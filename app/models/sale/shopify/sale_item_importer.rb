@@ -9,14 +9,14 @@ class Sale::Shopify::SaleItemImporter
     @parsed = parsed_sale_item
   end
 
-  def import!
+  def import
     return if no_product_data?
 
     find_or_initialize_sale_item
     missing_product_reference =
       parsed[:product_store_id].present? && Product.find_by_shopify_id(parsed[:product_store_id]).nil?
 
-    return create_title_only_sale_item! if only_product_title?
+    return create_title_only_sale_item if only_product_title?
     return if unresolvable_new_variant?
 
     ActiveRecord::Base.transaction do
@@ -44,7 +44,7 @@ class Sale::Shopify::SaleItemImporter
     parsed[:full_title].present? && parsed[:variant_store_id].blank? && parsed[:product_store_id].blank?
   end
 
-  def create_title_only_sale_item!
+  def create_title_only_sale_item
     return unless resolved_product || imported_variant
 
     sale_item.assign_attributes(sale_item_attributes)
@@ -72,7 +72,7 @@ class Sale::Shopify::SaleItemImporter
   def product_from_payload
     return nil if parsed[:product].blank?
 
-    Product::Shopify::Importer.import!(parsed[:product])
+    Product::Shopify::Importer.import(parsed[:product])
   end
 
   def product_from_full_title
@@ -83,13 +83,13 @@ class Sale::Shopify::SaleItemImporter
 
   def create_product_from_full_title
     parsed_product = Product::Shopify::Parser.parse({"title" => parsed[:full_title]})
-    Product::Shopify::Importer.import!(parsed_product.merge(store_id: parsed[:product_store_id] || parsed_product[:store_id]))
+    Product::Shopify::Importer.import(parsed_product.merge(store_id: parsed[:product_store_id] || parsed_product[:store_id]))
   end
 
   def placeholder_product
     return nil if parsed[:product_store_id].blank?
 
-    Product.find_or_create_shopify_placeholder!(store_id: parsed[:product_store_id])
+    Product.find_or_create_shopify_placeholder(store_id: parsed[:product_store_id])
   end
 
   def imported_variant
@@ -113,7 +113,7 @@ class Sale::Shopify::SaleItemImporter
     parsed_variants = parsed[:product][:variants]
     sibling_store_ids = parsed_variants.pluck(:store_id)
     parsed_variants
-      .map { |parsed_variant| Variant::Shopify::Importer.import!(resolved_product, parsed_variant, sibling_store_ids:) }
+      .map { |parsed_variant| Variant::Shopify::Importer.import(resolved_product, parsed_variant, sibling_store_ids:) }
       .compact
       .find { |variant| variant.shopify_info&.store_id == parsed[:variant_store_id] }
   end

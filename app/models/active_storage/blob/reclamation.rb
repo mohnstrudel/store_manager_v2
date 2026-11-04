@@ -6,11 +6,11 @@ class ActiveStorage::Blob::Reclamation
 
   Result = Data.define(:deleted_object_count, :deleted_bytes)
 
-  def self.apply!(cutoff:, service: ActiveStorage::Blob.service)
-    new(cutoff:, service:).apply!
+  def self.apply(cutoff:, service: ActiveStorage::Blob.service)
+    new(cutoff:, service:).apply
   end
 
-  def self.enqueue!(cutoff: ActiveStorage::Blob::ReclaimableSpace::DEFAULT_CUTOFF_AGE.ago)
+  def self.enqueue(cutoff: ActiveStorage::Blob::ReclaimableSpace::DEFAULT_CUTOFF_AGE.ago)
     job = ActiveStorage::Blob::ReclamationJob.perform_later(cutoff: cutoff.iso8601)
     return job if job.respond_to?(:successfully_enqueued?) && job.successfully_enqueued?
 
@@ -22,15 +22,15 @@ class ActiveStorage::Blob::Reclamation
     @service = service
   end
 
-  def apply!
+  def apply
     deleted_object_count = 0
     deleted_bytes = 0
 
     reclaimable_space.each_reclaimable_batch do |candidates|
-      safe_candidates = revalidate_and_release_blobs!(candidates)
+      safe_candidates = revalidate_and_release_blobs(candidates)
       next if safe_candidates.empty?
 
-      delete_objects!(safe_candidates)
+      delete_objects(safe_candidates)
       deleted_object_count += safe_candidates.size
       deleted_bytes += safe_candidates.sum(&:size)
     end
@@ -46,7 +46,7 @@ class ActiveStorage::Blob::Reclamation
     ActiveStorage::Blob::ReclaimableSpace.new(cutoff:, service:)
   end
 
-  def revalidate_and_release_blobs!(candidates)
+  def revalidate_and_release_blobs(candidates)
     parent_keys = candidates.map(&:parent_key).uniq
     safe_parent_keys = []
 
@@ -70,7 +70,7 @@ class ActiveStorage::Blob::Reclamation
     blob.service_name == service.name.to_s && blob.created_at <= cutoff && attachment_counts[blob.id].to_i.zero?
   end
 
-  def delete_objects!(candidates)
+  def delete_objects(candidates)
     response = service.bucket.delete_objects(
       delete: {objects: candidates.map { |candidate| {key: candidate.key} }}
     )

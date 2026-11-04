@@ -5,7 +5,7 @@ description: Repository-specific Rails test boundaries, test infrastructure, ver
 
 # Rails Testing
 
-Use `collaborative-planning` for the process. Load this skill with the owning architecture skill when work touches the boundaries or infrastructure below.
+Load this skill with the owning architecture skill when work touches the boundaries or infrastructure below.
 
 ## Boundaries
 
@@ -14,7 +14,7 @@ Use `collaborative-planning` for the process. Load this skill with the owning ar
 
 ## Test Infrastructure
 
-- `sign_in(user)` signs in that user: request and controller specs receive a signed session cookie; Cuprite specs drive the sign-in form. Use `sign_in_as_admin` when the scenario requires an admin.
+- `sign_in(user)` signs in that user: request specs receive a signed session cookie; Cuprite specs receive the same signed cookie in the browser before their first visit; `spec/features/sign_in_spec.rb` owns the real sign-in form. Use `sign_in_as_admin` when the scenario requires an admin.
 - `verify_partial_doubles` checks stubs on real objects; it does not verify plain `double` objects. Use `instance_double`, `class_double`, or `object_double` for stand-ins.
 
 ### External HTTP
