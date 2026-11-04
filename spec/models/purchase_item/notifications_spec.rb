@@ -15,10 +15,6 @@ RSpec.describe PurchaseItem do
   let(:purchase_item) { create(:purchase_item, purchase:, warehouse:, sale_item:) }
   let(:notification) { create(:notification, event_type: :warehouse_changed, status: :active) }
 
-  def ledger_for(item)
-    OutboundEmail.where(purchase_item_id: item.id).order(:id)
-  end
-
   describe ".notify_order_status" do
     it "snapshots a pending explicit-resend status-updated email and enqueues its delivery" do
       expect {

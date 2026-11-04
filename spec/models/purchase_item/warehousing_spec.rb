@@ -20,10 +20,6 @@ RSpec.describe PurchaseItem do
       described_class.move_to_warehouse(purchase_item_ids: items.map(&:id), warehouse_id: to.id)
     end
 
-    def ledger_for(item)
-      OutboundEmail.where(purchase_item_id: item.id).order(:id)
-    end
-
     it "moves existing purchase items to the destination warehouse" do
       purchase_items = create_list(:purchase_item, 3, warehouse: origin)
 

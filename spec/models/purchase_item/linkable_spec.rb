@@ -201,10 +201,6 @@ RSpec.describe PurchaseItem::Linkable do
         PurchaseItem.link_exact(assignments: [], unlink_purchase_items: [purchase_item.reload])
       end
 
-      def ledger_for(purchase_item)
-        OutboundEmail.where(purchase_item_id: purchase_item.id).order(:id)
-      end
-
       def record_current_pair(purchase_item, state:)
         pair = {
           purchase_item_id: purchase_item.id,
