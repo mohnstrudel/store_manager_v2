@@ -32,7 +32,7 @@ module Sale::Addressable
     comparable_address_attributes(shipping_address) != comparable_address_attributes(billing_address)
   end
 
-  def address(shipping:, billing:)
+  def save_addresses(shipping:, billing:)
     upsert_address(:shipping, shipping)
     upsert_address(:billing, billing)
   end

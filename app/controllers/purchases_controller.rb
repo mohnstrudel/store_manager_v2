@@ -21,7 +21,7 @@ class PurchasesController < ApplicationController
     render_inertia "Purchases/Show", serializer: Purchases::ShowResource,
       locals: {
         purchase: @purchase,
-        purchase_items: @purchase.purchase_items.preloaded_for_purchase,
+        purchase_items: @purchase.purchase_items.preloaded_for_purchase.ordered_by_updated_date,
         payments: @purchase.payments.chronological,
         new_payment: @purchase.payments.new(payment_date: Time.zone.today)
       }

@@ -53,7 +53,7 @@ class Sale::Woo::Importer
     sale.assign_attributes(parsed_sale.slice(*Sale.attribute_names.map(&:to_sym)).except(:woo_id, :store_id))
     sale.save!
     sale.upsert_woo_info(store_id: parsed_sale[:woo_id], pull_time: pulled_at) if parsed_sale[:woo_id].present?
-    sale.address(**addresses.reverse_merge(shipping: nil, billing: nil)) unless addresses.nil?
+    sale.save_addresses(**addresses.reverse_merge(shipping: nil, billing: nil)) unless addresses.nil?
   end
 
   def import_customer

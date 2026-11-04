@@ -62,7 +62,7 @@ RSpec.describe Sale do
     it "upserts shipping and billing address snapshots", :aggregate_failures do
       sale = create(:sale)
 
-      sale.address(
+      sale.save_addresses(
         shipping: {address_1: "Shipping St", city: "Berlin", country: "DE"},
         billing: {address_1: "Billing St", city: "Munich", country: "DE"}
       )
@@ -70,7 +70,7 @@ RSpec.describe Sale do
       expect(sale.shipping_address).to have_attributes(address_1: "Shipping St", city: "Berlin")
       expect(sale.billing_address).to have_attributes(address_1: "Billing St", city: "Munich")
 
-      sale.address(
+      sale.save_addresses(
         shipping: {address_1: "New Shipping St", city: "Hamburg", country: "DE"},
         billing: {address_1: "New Billing St", city: "Cologne", country: "DE"}
       )
@@ -84,7 +84,7 @@ RSpec.describe Sale do
       sale = create(:sale)
       create(:sale_address, sale:, kind: :shipping)
 
-      sale.address(shipping: {}, billing: nil)
+      sale.save_addresses(shipping: {}, billing: nil)
 
       expect(sale.reload.shipping_address).to be_nil
     end

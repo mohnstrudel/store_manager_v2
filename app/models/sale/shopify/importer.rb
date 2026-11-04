@@ -60,7 +60,7 @@ class Sale::Shopify::Importer
   def update_addresses
     return unless parsed.key?(:addresses)
 
-    sale.address(**address_attributes)
+    sale.save_addresses(**address_attributes)
   end
 
   def address_attributes

@@ -9,7 +9,7 @@ module Sale::Revisable
     transaction do
       assign_attributes(attributes)
       save!
-      address(shipping: shipping_address, billing: billing_address)
+      save_addresses(shipping: shipping_address, billing: billing_address)
       apply_sale_item_attributes(sale_item_attributes)
       link_purchase_items
     end
@@ -22,7 +22,7 @@ module Sale::Revisable
       assign_attributes(attributes.merge(slug: nil))
       status_changed = will_save_change_to_status?
       save!
-      address(shipping: shipping_address, billing: billing_address)
+      save_addresses(shipping: shipping_address, billing: billing_address)
       apply_sale_item_attributes(sale_item_attributes)
       push_status_to_woo_later if status_changed
       link_purchase_items

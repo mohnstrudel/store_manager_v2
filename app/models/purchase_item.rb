@@ -87,7 +87,7 @@ class PurchaseItem < ApplicationRecord
       :sale_item,
       purchase: :payments,
       sale: [:customer, :shopify_info, :woo_info, :shipping_address]
-    ).ordered_by_updated_date
+    )
   }
 
   scope :preloaded_for_warehouse, -> {
