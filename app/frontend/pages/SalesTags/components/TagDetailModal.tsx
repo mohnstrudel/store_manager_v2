@@ -65,7 +65,7 @@ function SalePreview({ sale }: { sale: SalesTagSaleLink }) {
 
   return (
     <PreviewPicture
-      alt={item.title}
+      alt={item.title ?? sale.label}
       fallbackAlt={sale.label}
       key={item.product_thumb_url}
       src={item.product_thumb_url}

@@ -44,13 +44,13 @@ class SalesTagsController < ApplicationController
   private
 
   def render_catalog(form: nil, detail: nil)
-    render inertia: "SalesTags/Index", props: {
-      sales_tags: SalesTag.with_usage_count.alphabetical.map { |tag| helpers.sales_tag_catalog_props(tag) },
-      sales_tag: form && helpers.sales_tag_props(form),
-      sales_tag_detail: detail && helpers.sales_tag_detail_props(detail),
-      tag_colors: SalesTag::COLORS,
-      can_manage_sales_tags: policy(:sales_tag).update?
-    }
+    render_inertia "SalesTags/Index", serializer: SalesTags::IndexResource,
+      locals: {
+        sales_tags: SalesTag.with_usage_count.alphabetical,
+        form:,
+        detail:,
+        can_manage_sales_tags: policy(:sales_tag).update?
+      }
   end
 
   def sales_tag_params

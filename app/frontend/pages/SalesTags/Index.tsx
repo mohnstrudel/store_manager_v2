@@ -1,19 +1,12 @@
 import ResourceIndexPage from "@/components/ResourceIndexPage";
-import type { SalesTagColor } from "@/types/salesTag";
+import type { SalesTagsIndex } from "@/types/serializers";
 import routes from "@/utils/routes";
 
 import Table from "./components/Table";
 import TagDetailModal from "./components/TagDetailModal";
 import TagFormModal from "./components/TagFormModal";
-import type { SalesTagCatalogRecord, SalesTagDetailRecord, SalesTagFormRecord } from "./types";
 
-type IndexProps = {
-  can_manage_sales_tags: boolean;
-  sales_tag: SalesTagFormRecord | null;
-  sales_tag_detail: SalesTagDetailRecord | null;
-  sales_tags: SalesTagCatalogRecord[];
-  tag_colors: SalesTagColor[];
-};
+type IndexProps = SalesTagsIndex;
 
 export default function Index({
   can_manage_sales_tags,
