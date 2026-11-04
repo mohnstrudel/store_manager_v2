@@ -67,6 +67,46 @@ RSpec.describe Variant do
     end
   end
 
+  describe "#deactivate" do
+    it "stamps deactivated_at with the current time and persists it" do
+      variant = create(:variant)
+
+      travel_to Time.zone.parse("2026-03-04 05:06:07") do
+        variant.deactivate
+      end
+
+      expect(variant.reload.deactivated_at).to eq(Time.zone.parse("2026-03-04 05:06:07"))
+    end
+
+    it "reactivates the Base Model when the last active real Variant is deactivated" do
+      variant = create(:variant)
+
+      variant.deactivate
+
+      expect(variant.product.base_variant.reload.deactivated_at).to be_nil
+    end
+  end
+
+  describe "#reactivate" do
+    it "clears deactivated_at and persists it" do
+      variant = create(:variant, deactivated_at: Time.zone.parse("2026-03-04 05:06:07"))
+
+      variant.reactivate
+
+      expect(variant.reload.deactivated_at).to be_nil
+    end
+
+    it "deactivates the Base Model when a real Variant becomes active again" do
+      variant = create(:variant, deactivated_at: Time.zone.parse("2026-03-04 05:06:07"))
+
+      travel_to Time.zone.parse("2026-05-06 07:08:09") do
+        variant.reactivate
+      end
+
+      expect(variant.product.base_variant.reload.deactivated_at).to eq(Time.zone.parse("2026-05-06 07:08:09"))
+    end
+  end
+
   describe "#has_sales_or_purchases?" do
     let(:product) { create(:product) }
     let(:variant) { product.base_variant }

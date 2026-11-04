@@ -44,7 +44,7 @@ module Product::VariantAvailability
 
     @synchronizing_variant_availability = true
     base.association(:product).target = self
-    base.update!(deactivated_at: should_deactivate_base ? Time.current : nil)
+    should_deactivate_base ? base.deactivate : base.reactivate
   ensure
     @synchronizing_variant_availability = false
   end

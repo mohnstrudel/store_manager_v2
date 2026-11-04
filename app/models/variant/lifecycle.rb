@@ -15,7 +15,7 @@ module Variant::Lifecycle
 
   def remove_or_deactivate
     if has_sales_or_purchases?
-      update!(deactivated_at: Time.current)
+      deactivate
     else
       destroy!
     end
@@ -23,6 +23,14 @@ module Variant::Lifecycle
 
   def has_sales_or_purchases?
     sale_items.exists? || purchases.exists?
+  end
+
+  def deactivate
+    update!(deactivated_at: Time.current)
+  end
+
+  def reactivate
+    update!(deactivated_at: nil)
   end
 
   def deactivated?
