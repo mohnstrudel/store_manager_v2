@@ -61,6 +61,27 @@ RSpec.describe Sale::Settlement do
     end
   end
 
+  describe ".fully_refunded" do
+    it "selects sales whose refund reaches the total and agrees with the record predicate" do
+      equal = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal("100.00"))
+      over = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal("100.01"))
+      zero_total_zero_refund = create(:sale, total: BigDecimal(0), refunded_revenue: BigDecimal(0))
+      partial = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal("99.99"))
+      zero_refund = create(:sale, total: BigDecimal("100.00"), refunded_revenue: BigDecimal(0))
+      nil_refund = create(:sale, total: BigDecimal("100.00"), refunded_revenue: nil)
+      nil_total = create(:sale, total: nil, refunded_revenue: BigDecimal("100.00"))
+      nil_both = create(:sale, total: nil, refunded_revenue: nil)
+      all_sales = [equal, over, zero_total_zero_refund, partial, zero_refund, nil_refund, nil_total, nil_both]
+
+      expect(Sale.fully_refunded).to contain_exactly(equal, over, zero_total_zero_refund)
+      expect(all_sales.select(&:fully_refunded?)).to contain_exactly(equal, over, zero_total_zero_refund)
+    end
+
+    it "selects nothing when no sale exists" do
+      expect(Sale.fully_refunded).to be_empty
+    end
+  end
+
   describe "#economically_excluded?" do
     it "mirrors the scope for a cancelled sale" do
       sale = build(:sale, status: "cancelled")

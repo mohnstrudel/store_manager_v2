@@ -32,6 +32,47 @@ RSpec.describe SaleItem::Linkable do
       expect(SaleItem.linkable).to include(linkable_sale_item)
       expect(SaleItem.linkable).not_to include(full_sale_item)
     end
+
+    it "compares quantity with the cached count at every boundary" do
+      unlinked = create(:sale_item, qty: 1, purchase_items_count: 0)
+      over_linked = create(:sale_item, qty: 1, purchase_items_count: 2)
+      zero_qty = create(:sale_item, qty: 0, purchase_items_count: 0)
+      nil_qty = create(:sale_item, qty: 1, purchase_items_count: 0).tap { it.update_columns(qty: nil) }
+
+      expect(SaleItem.linkable).to contain_exactly(linkable_sale_item, unlinked)
+      expect(SaleItem.where(id: [over_linked, zero_qty, nil_qty]).linkable).to be_empty
+    end
+  end
+
+  describe ".short_of_purchases" do
+    def link_purchase_items(sale_item, count)
+      purchase = create(:purchase, product: sale_item.product, amount: count)
+      create_list(:purchase_item, count, purchase:, sale_item:)
+    end
+
+    it "compares quantity with live purchase links at every boundary" do
+      unlinked = create(:sale_item, qty: 1)
+      short = create(:sale_item, qty: 2).tap { link_purchase_items(it, 1) }
+      covered = create(:sale_item, qty: 1).tap { link_purchase_items(it, 1) }
+      over_linked = create(:sale_item, qty: 1).tap { link_purchase_items(it, 2) }
+      zero_qty = create(:sale_item, qty: 0)
+      nil_qty = create(:sale_item, qty: 1).tap { it.update_columns(qty: nil) }
+
+      expect(SaleItem.short_of_purchases).to contain_exactly(unlinked, short)
+      expect(SaleItem.where(id: [covered, over_linked, zero_qty, nil_qty]).short_of_purchases).to be_empty
+    end
+
+    it "ignores a stale cached count" do
+      cache_says_covered = create(:sale_item, qty: 1).tap { it.update_columns(purchase_items_count: 1) }
+      cache_says_short = create(:sale_item, qty: 1).tap { link_purchase_items(it, 1) }
+      cache_says_short.update_columns(purchase_items_count: 0)
+
+      expect(SaleItem.short_of_purchases).to contain_exactly(cache_says_covered)
+    end
+
+    it "selects nothing when no sale item exists" do
+      expect(SaleItem.short_of_purchases).to be_empty
+    end
   end
 
   describe ".linkable_for" do

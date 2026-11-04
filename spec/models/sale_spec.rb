@@ -259,6 +259,55 @@ RSpec.describe Sale do
       expect(described_class.without_follow_up_payments.pluck(:id)).to match_array(expected_retained.map(&:id))
       expect(described_class.all.select(&:follow_up_payment?)).to match_array(expected_follow_ups)
     end
+
+    it "treats a part on its plan's origin sale as no follow-up" do
+      origin = create(:sale, shopify_store_id: "gid://shopify/Order/980")
+      create_plan(
+        external_id: "sub-same",
+        external_origin_order_id: "980",
+        parts: [{sequence: 1, provider_part_id: "same-1", external_order_id: "980"}]
+      )
+
+      expect(SalePaymentPlan.sole.origin_sale_id).to eq(SalePaymentPart.sole.sale_id)
+      expect(described_class.follow_up_payments).to be_empty
+      expect(described_class.without_follow_up_payments).to contain_exactly(origin)
+    end
+
+    it "treats a part on a plan without an origin sale as a follow-up" do
+      follow_up = create(:sale, shopify_store_id: "gid://shopify/Order/985")
+      create_plan(
+        external_id: "sub-no-origin",
+        external_origin_order_id: "986",
+        parts: [{sequence: 1, provider_part_id: "no-origin-1", external_order_id: "985"}]
+      )
+
+      expect(SalePaymentPlan.sole.origin_sale_id).to be_nil
+      expect(described_class.follow_up_payments).to contain_exactly(follow_up)
+      expect(described_class.without_follow_up_payments).to be_empty
+    end
+
+    it "selects nothing when no part has an imported sale" do
+      origin = create(:sale, shopify_store_id: "gid://shopify/Order/990")
+      create_plan(
+        external_id: "sub-unimported",
+        external_origin_order_id: "990",
+        parts: [
+          {sequence: 1, provider_part_id: "unimported-1", external_order_id: "990"},
+          {sequence: 2, provider_part_id: "unimported-2", external_order_id: "991"}
+        ]
+      )
+      SalePaymentPart.update_all(sale_id: nil)
+
+      expect(described_class.follow_up_payments).to be_empty
+      expect(described_class.without_follow_up_payments).to contain_exactly(origin)
+    end
+
+    it "selects nothing when no payment plan exists" do
+      sale = create(:sale)
+
+      expect(described_class.follow_up_payments).to be_empty
+      expect(described_class.without_follow_up_payments).to contain_exactly(sale)
+    end
   end
 
   describe "#projected_item_price" do

@@ -8,7 +8,7 @@ module Sale::Settlement
       validate: {allow_nil: true}
 
     scope :fully_refunded, -> {
-      where.not(refunded_revenue: nil).where.not(total: nil).where("refunded_revenue >= total")
+      where.not(refunded_revenue: nil).where.not(total: nil).where(arel_table[:refunded_revenue].gteq(arel_table[:total]))
     }
 
     scope :economically_excluded, -> {

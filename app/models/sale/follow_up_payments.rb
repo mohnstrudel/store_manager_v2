@@ -20,7 +20,7 @@ module Sale::FollowUpPayments
       SalePaymentPart.active
         .joins(:sale_payment_plan)
         .where.not(sale_id: nil)
-        .where("sale_payment_plans.origin_sale_id IS DISTINCT FROM sale_payment_parts.sale_id")
+        .where(SalePaymentPlan.arel_table[:origin_sale_id].is_distinct_from(SalePaymentPart.arel_table[:sale_id]))
         .select(:sale_id)
     end
   end

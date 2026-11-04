@@ -13,7 +13,7 @@ module SaleItem::Linkable
     }
 
     scope :linkable, -> {
-      where("qty > purchase_items_count").where(origin_sale_item_id: nil)
+      where(arel_table[:qty].gt(arel_table[:purchase_items_count])).where(origin_sale_item_id: nil)
     }
 
     scope :short_of_purchases, -> {
