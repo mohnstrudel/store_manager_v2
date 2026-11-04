@@ -160,7 +160,7 @@ class Variant::AssignmentBackfill
       )
     end
     process_candidates(:sync_base_activation, candidates) do |candidate|
-      Product.find(candidate.id).synchronize_variant_availability!
+      Product.find(candidate.id).synchronize_variant_availability
     end
   end
 

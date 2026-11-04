@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Product::Shopify::Matching
+module Product::Shopify::Matchable
   extend ActiveSupport::Concern
 
   class_methods do

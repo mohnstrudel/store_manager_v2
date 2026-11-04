@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Product::Shopify::MediaImporting
+module Product::Shopify::MediaImportable
   def import_shopify_media(parsed_media:)
     return media.destroy_all if parsed_media.blank?
 

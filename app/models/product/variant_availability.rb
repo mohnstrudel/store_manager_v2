@@ -18,9 +18,9 @@ module Product::VariantAvailability
     variants.active.base_models
   end
 
-  def synchronize_variant_availability!
+  def synchronize_variant_availability
     transaction do
-      with_variant_availability_lock { synchronize_variant_availability_under_lock! }
+      with_variant_availability_lock { synchronize_variant_availability_under_lock }
     end
   end
 
@@ -35,7 +35,7 @@ module Product::VariantAvailability
 
   private
 
-  def synchronize_variant_availability_under_lock!
+  def synchronize_variant_availability_under_lock
     return if association(:variants).target.any? { |variant| variant.base_model? && variant.new_record? }
 
     base = variants.base_models.first!

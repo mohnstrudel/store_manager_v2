@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Product::Editing::Payload
+class Product::Revisable::Payload
   def initialize(params:)
     @params = params
   end

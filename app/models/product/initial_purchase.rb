@@ -23,7 +23,7 @@ module Product::InitialPurchase
     errors.add(:initial_purchase, :invalid) if relevant_errors.any?
   end
 
-  def place_initial_purchase!(draft_variants:, variant_client_key:)
+  def place_initial_purchase(draft_variants:, variant_client_key:)
     return unless initial_purchase
 
     variant = draft_variants[variant_client_key]

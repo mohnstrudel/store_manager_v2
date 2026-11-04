@@ -8,14 +8,25 @@ module Variant::Lifecycle
     around_destroy :synchronize_product_variant_availability
     before_destroy :prevent_referenced_assignment_removal
     before_destroy :prevent_direct_base_model_removal
+
+    scope :active, -> { where(deactivated_at: nil) }
+    scope :deactivated, -> { where.not(deactivated_at: nil) }
   end
 
-  def remove_or_deactivate!
+  def remove_or_deactivate
     if has_sales_or_purchases?
       update!(deactivated_at: Time.current)
     else
       destroy!
     end
+  end
+
+  def has_sales_or_purchases?
+    sale_items.exists? || purchases.exists?
+  end
+
+  def deactivated?
+    deactivated_at?
   end
 
   private
@@ -31,7 +42,7 @@ module Variant::Lifecycle
       end
 
       result = yield
-      product.send(:synchronize_variant_availability_under_lock!) if result
+      product.send(:synchronize_variant_availability_under_lock) if result
       result
     end
   end

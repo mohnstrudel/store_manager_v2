@@ -89,7 +89,7 @@ class Sale::Shopify::SaleItemImporter
   def placeholder_product
     return nil if parsed[:product_store_id].blank?
 
-    Product.find_or_create_shopify_placeholder!(store_id: parsed[:product_store_id])
+    Product.find_or_create_shopify_placeholder(store_id: parsed[:product_store_id])
   end
 
   def imported_variant

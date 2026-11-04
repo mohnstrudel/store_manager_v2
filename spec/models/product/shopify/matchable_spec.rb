@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Product::Shopify::Matching do
+RSpec.describe Product::Shopify::Matchable do
   describe ".find_storeless_match_for_shopify" do
     let(:identity) do
       {

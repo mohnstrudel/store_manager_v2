@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Product::Titling
+module Product::Titled
   extend ActiveSupport::Concern
 
   def update_full_title

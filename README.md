@@ -101,7 +101,7 @@ Many Rails codebases organize logic by technical role (`app/forms`, `app/present
 This repo borrows the business-ownership idea from DDD but expresses it in plain Rails terms — scopes, helpers, and nearby model files come before repositories, application services, or separate domain-layer objects. So you will see files such as:
 
 - [`app/models/product/editing.rb`](app/models/product/editing.rb)
-- [`app/models/product/editing/payload.rb`](app/models/product/editing/payload.rb)
+- [`app/models/product/revisable/payload.rb`](app/models/product/revisable/payload.rb)
 - [`app/models/product/shopify/importer.rb`](app/models/product/shopify/importer.rb)
 - [`app/models/sale/statuses.rb`](app/models/sale/statuses.rb)
 - [`app/models/purchase/linking.rb`](app/models/purchase/linking.rb)
@@ -126,7 +126,7 @@ These live in `.agents/skills/`; `.claude/skills/` and `.codex/skills/` are syml
 
 Controllers load the starting record or relation, normalize params, choose a response format, and render or redirect. They are not the main home for business rules.
 
-`ProductsController` is representative: it builds a small form-translation object (`Product::Editing::Payload`) and hands its attributes to a model method (`Product#save_editing!`). Small params normalization may stay in the controller; once a form needs several normalization helpers or failed-submit rebuilding, extract a small object near the business area it belongs to (e.g. `app/models/product/editing/payload.rb`, `app/models/purchase/form_payload.rb`). These are translators for one specific business form, not generic service objects.
+`ProductsController` is representative: it builds a small form-translation object (`Product::Revisable::Payload`) and hands its attributes to a model method (`Product#revise`). Small params normalization may stay in the controller; once a form needs several normalization helpers or failed-submit rebuilding, extract a small object near the business area it belongs to (e.g. `app/models/product/revisable/payload.rb`, `app/models/purchase/form_payload.rb`). These are translators for one specific business form, not generic service objects.
 
 ### 2. Business rules and model areas
 
@@ -262,8 +262,8 @@ app/models/sale/
 
 ```text
 ProductsController
-  -> Product::Editing::Payload normalizes product, variant, store-info, purchase, and media params
-  -> Product#save_editing!
+  -> Product::Revisable::Payload normalizes product, variant, store-info, purchase, and media params
+  -> Product#revise
     -> assign product, variant, and store-info attributes
     -> sync variant options and ensure SKUs
     -> validate, then save in a transaction

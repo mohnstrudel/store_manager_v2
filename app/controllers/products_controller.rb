@@ -37,10 +37,10 @@ class ProductsController < ApplicationController
   end
 
   def create
-    payload = Product::Editing::Payload.new(params:)
+    payload = Product::Revisable::Payload.new(params:)
     @product = Product.new
 
-    @product.save_editing!(
+    @product.revise(
       product_attributes: payload.product_attributes,
       variants_attributes: payload.variants_attributes,
       store_infos_attributes: payload.store_infos_attributes,
@@ -55,9 +55,9 @@ class ProductsController < ApplicationController
   end
 
   def update
-    payload = Product::Editing::Payload.new(params:)
+    payload = Product::Revisable::Payload.new(params:)
 
-    @product.save_editing!(
+    @product.revise(
       product_attributes: payload.product_attributes,
       variants_attributes: payload.variants_attributes,
       store_infos_attributes: payload.store_infos_attributes,

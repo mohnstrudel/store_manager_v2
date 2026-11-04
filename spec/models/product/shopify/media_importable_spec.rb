@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Product::Shopify::MediaImporting do
+RSpec.describe Product::Shopify::MediaImportable do
   let(:product) { create(:product) }
   let(:downloaded_file) { instance_double(Product::Shopify::Media::Downloader) }
   let(:upsert) { instance_double(Product::Shopify::Media::Upsert) }

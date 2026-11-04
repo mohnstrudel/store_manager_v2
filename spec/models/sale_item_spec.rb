@@ -49,7 +49,7 @@ RSpec.describe SaleItem do
       real_variant = create(:variant, product: real_product)
       create(:variant, product: real_product, sku: "still-active-sku")
       origin_item = create(:sale_item, product: real_product, variant: real_variant)
-      real_variant.remove_or_deactivate!
+      real_variant.remove_or_deactivate
 
       payment_item.apply_installment_origin!(origin_item)
 

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Product::Shopify::Exporting do
+RSpec.describe Product::Shopify::Exportable do
   describe "#shopify_payload" do
     let(:franchise) { create(:franchise, title: "Studio Ghibli") }
     let(:brand) { create(:brand, title: "Zuoban Studio") }

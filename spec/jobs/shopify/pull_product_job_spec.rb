@@ -149,11 +149,11 @@ RSpec.describe Shopify::PullProductJob do
       end
 
       it "forgets the Shopify listing" do
-        allow(Product).to receive(:forget_shopify_listing!)
+        allow(Product).to receive(:forget_shopify_listing)
 
         job.perform(product_id)
 
-        expect(Product).to have_received(:forget_shopify_listing!).with(product_id)
+        expect(Product).to have_received(:forget_shopify_listing).with(product_id)
       end
     end
   end

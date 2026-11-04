@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module Product::Editing
+module Product::Revisable
   extend ActiveSupport::Concern
 
-  def save_editing!(
+  def revise(
     product_attributes:,
     variants_attributes:,
     store_infos_attributes:,
@@ -32,7 +32,7 @@ module Product::Editing
       store_infos.each { |store_info| save_store_info(store_info) }
       variants.each { |variant| save_variant(variant) }
       update_media!(media_attributes)
-      place_initial_purchase!(
+      place_initial_purchase(
         draft_variants:,
         variant_client_key: purchase_variant_client_key
       )
@@ -94,7 +94,7 @@ module Product::Editing
   def clear_changed_shopify_money_snapshots(variant)
     return unless variant.will_save_change_to_selling_price?
 
-    variant.clear_shopify_money_snapshot!(:selling_price)
+    variant.clear_shopify_money_snapshot(:selling_price)
   end
 
   def sync_variant_option_ids
@@ -210,7 +210,7 @@ module Product::Editing
     return if variant.new_record? && variant.should_be_removed?
 
     if variant.should_be_removed?
-      variant.remove_or_deactivate!
+      variant.remove_or_deactivate
       return
     end
 

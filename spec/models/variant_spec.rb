@@ -43,13 +43,6 @@ RSpec.describe Variant do
     end
   end
 
-  describe "price" do
-    it "returns 0.0 since price tracking was removed from StoreInfo" do
-      variant = create(:variant)
-      expect(variant.price).to eq(0.0)
-    end
-  end
-
   describe "auditing" do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true

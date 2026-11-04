@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Variant::Titling do
+RSpec.describe Variant::Titled do
   describe "#title" do
     context "when variant has sizes" do
       let(:first_size) { "1:4" }

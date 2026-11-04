@@ -4,13 +4,13 @@ require "rails_helper"
 
 # rubocop:todo RSpec/SpecFilePathFormat
 RSpec.describe Product do
-  describe "#save_editing!" do
+  describe "#revise" do
     let(:product) { create(:product) }
 
     it "updates an existing store info" do
       shopify_info = product.store_infos.shopify.first
 
-      product.save_editing!(
+      product.revise(
         product_attributes: editing_product_attributes(product),
         variants_attributes: [],
         store_infos_attributes: [
@@ -26,7 +26,7 @@ RSpec.describe Product do
       product.store_infos.reload.destroy_all
 
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [],
           store_infos_attributes: [
@@ -43,7 +43,7 @@ RSpec.describe Product do
       woo_info = product.store_infos.woo.first
 
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [],
           store_infos_attributes: [
@@ -60,7 +60,7 @@ RSpec.describe Product do
       shopify_info = product.store_infos.shopify.first
 
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [],
           store_infos_attributes: [
@@ -83,7 +83,7 @@ RSpec.describe Product do
       end
 
       begin
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [],
           store_infos_attributes: store_infos.map { |store_info| {id: store_info.id, store_id: store_info.store_id} },

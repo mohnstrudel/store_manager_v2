@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Product::Shopify::Exporting
+module Product::Shopify::Exportable
   def shopify_payload
     {
       title: shopify_title,

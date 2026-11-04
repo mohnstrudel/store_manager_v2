@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Product::Shopify::Pushing do
+RSpec.describe Product::Shopify::Pushable do
   include ActiveJob::TestHelper
 
   describe "#create_in_shopify_now" do
@@ -644,7 +644,7 @@ RSpec.describe Product::Shopify::Pushing do
     end
   end
 
-  describe ".forget_shopify_listing!" do
+  describe ".forget_shopify_listing" do
     let(:product) { create(:product) }
     let(:product_id) { "gid://shopify/Product/777" }
 
@@ -663,21 +663,21 @@ RSpec.describe Product::Shopify::Pushing do
 
       it "finds and destroys the product's shopify store_info" do # rubocop:todo RSpec/MultipleExpectations
         expect {
-          Product.forget_shopify_listing!(product_id)
+          Product.forget_shopify_listing(product_id)
         }.to change(StoreInfo, :count).by(-3)
 
         expect(StoreInfo.find_by(id: store_info.id)).to be_nil
       end
 
       it "removes shopify store_infos from all associated media" do # rubocop:todo RSpec/MultipleExpectations
-        Product.forget_shopify_listing!(product_id)
+        Product.forget_shopify_listing(product_id)
 
         expect(first_media.store_infos.where(store_name: "shopify")).to be_empty
         expect(second_media.store_infos.where(store_name: "shopify")).to be_empty
       end
 
       it "preserves woo store_infos on media" do
-        Product.forget_shopify_listing!(product_id)
+        Product.forget_shopify_listing(product_id)
 
         expect(second_media.store_infos.where(store_name: "woo")).to exist
       end
@@ -690,7 +690,7 @@ RSpec.describe Product::Shopify::Pushing do
 
       it "returns gracefully" do
         expect {
-          Product.forget_shopify_listing!(product_id)
+          Product.forget_shopify_listing(product_id)
         }.not_to raise_error
       end
     end

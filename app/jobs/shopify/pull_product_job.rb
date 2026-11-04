@@ -8,7 +8,7 @@ module Shopify
       payload = Shopify::Api::Client.new.fetch_product(shopify_product_id)
 
       if payload.blank?
-        Product.forget_shopify_listing!(shopify_product_id)
+        Product.forget_shopify_listing(shopify_product_id)
       else
         Product::Shopify::Importer.import!(Product::Shopify::Parser.parse(payload))
       end

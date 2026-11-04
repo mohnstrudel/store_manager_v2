@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-module Product::Shopify::Pushing
+module Product::Shopify::Pushable
   extend ActiveSupport::Concern
 
   class_methods do
-    def forget_shopify_listing!(store_id)
+    def forget_shopify_listing(store_id)
       listing = StoreInfo.find_by(store_name: "shopify", store_id:)
 
       return unless listing
 
-      listing.storable.forget_shopify_listing!(listing)
+      listing.storable.forget_shopify_listing(listing)
     end
   end
 
@@ -59,10 +59,10 @@ module Product::Shopify::Pushing
   rescue ::Shopify::Api::Client::ApiError => e
     raise unless e.message.include?("Product does not exist")
 
-    forget_shopify_listing!
+    forget_shopify_listing
   end
 
-  def forget_shopify_listing!(listing = shopify_info)
+  def forget_shopify_listing(listing = shopify_info)
     return unless listing
 
     StoreInfo

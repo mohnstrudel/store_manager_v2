@@ -49,7 +49,7 @@ RSpec.describe Product::VariantAvailability do
       product = create(:product)
       variant = create(:variant, product:)
 
-      variant.remove_or_deactivate!
+      variant.remove_or_deactivate
 
       expect(product.base_variant.reload).not_to be_deactivated
     end

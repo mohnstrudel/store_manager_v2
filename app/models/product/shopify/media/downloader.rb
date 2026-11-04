@@ -59,7 +59,7 @@ module Product::Shopify::Media
 
       DownloadedImage.new(file:, filename:, checksum:)
     rescue Down::Error => e
-      Rails.logger.error "[Product::Shopify::MediaImporting] Download failed #{url} - #{e.class}: #{e.message}"
+      Rails.logger.error "[Product::Shopify::MediaImportable] Download failed #{url} - #{e.class}: #{e.message}"
       nil
     end
 

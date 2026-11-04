@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Product do
-  describe "#save_editing!" do
+  describe "#revise" do
     let(:product) { described_class.new }
     let(:warehouse) { create(:warehouse) }
     let(:supplier) { create(:supplier) }
@@ -11,7 +11,7 @@ RSpec.describe Product do
 
     it "creates a purchase, warehouse items, and a payment" do # rubocop:disable RSpec/MultipleExpectations
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: creation_product_attributes,
           variants_attributes: [{client_key: "base-draft"}],
           store_infos_attributes: [],
@@ -39,7 +39,7 @@ RSpec.describe Product do
 
     it "raises purchase validation errors when the purchase is blank" do # rubocop:todo RSpec/MultipleExpectations
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: creation_product_attributes,
           variants_attributes: [],
           store_infos_attributes: [],
@@ -56,7 +56,7 @@ RSpec.describe Product do
 
     it "raises purchase validation errors when only part of the initial purchase is filled in" do # rubocop:todo RSpec/MultipleExpectations
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: creation_product_attributes,
           variants_attributes: [],
           store_infos_attributes: [],
@@ -85,7 +85,7 @@ RSpec.describe Product do
       expect(purchase).to receive(:variant=).with(instance_of(Variant)).ordered
       expect(purchase).to receive(:place!).ordered
 
-      product.save_editing!(
+      product.revise(
         product_attributes: creation_product_attributes,
         variants_attributes: [{client_key: "base-draft"}],
         store_infos_attributes: [],

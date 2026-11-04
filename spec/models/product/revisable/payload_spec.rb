@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Product::Editing::Payload do
+RSpec.describe Product::Revisable::Payload do
   subject(:editing_payload) { described_class.new(params:) }
 
   let(:params) do
