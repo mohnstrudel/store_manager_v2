@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module Media::Gallery
+module Galleried
   extend ActiveSupport::Concern
 
-  def add_media!(images)
+  def add_media(images)
     return if images.blank?
 
     base_position = media.maximum(:position)&.next || 0
@@ -19,14 +19,14 @@ module Media::Gallery
     end
   end
 
-  def update_media!(media_attributes)
+  def update_media(media_attributes)
     return if media_attributes.blank?
 
     existing_media = media.where(id: media_attributes.filter_map { |attrs| attrs[:id].presence }).index_by { |item| item.id.to_s }
 
     media_attributes.each do |attrs|
       if attrs[:id].blank?
-        insert_media!(attrs)
+        insert_media(attrs)
         next
       end
 
@@ -39,7 +39,7 @@ module Media::Gallery
         next
       end
 
-      revise_media_item!(media_item, attrs)
+      revise_media_item(media_item, attrs)
     end
   end
 
@@ -61,7 +61,7 @@ module Media::Gallery
       value.respond_to?(:tempfile)
   end
 
-  def insert_media!(attrs)
+  def insert_media(attrs)
     attachable = resolve_attachable(attrs[:image])
     return unless attachable
 
@@ -76,7 +76,7 @@ module Media::Gallery
     ActiveModel::Type::Boolean.new.cast(value)
   end
 
-  def revise_media_item!(media_item, attrs)
+  def revise_media_item(media_item, attrs)
     replace_media_image(media_item, attrs[:image])
 
     updates = attrs.slice(:position, :alt)

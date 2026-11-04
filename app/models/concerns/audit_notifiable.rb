@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module HasAuditNotifications
+module AuditNotifiable
   extend ActiveSupport::Concern
 
   included do

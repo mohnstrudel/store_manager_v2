@@ -12,7 +12,7 @@
 #  purchase_item_id :bigint           not null
 #
 class PurchaseExpense < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited associated_with: :purchase
 

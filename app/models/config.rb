@@ -12,7 +12,7 @@
 #  updated_at            :datetime         not null
 #
 class Config < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
   enum :sales_hook_status, {disabled: 0, active: 1}

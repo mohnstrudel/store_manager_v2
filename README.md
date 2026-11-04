@@ -177,8 +177,8 @@ Shared model concerns are reserved for behavior that truly applies across severa
 | --- | --- |
 | `Searchable` | shared `pg_search` setup and search helpers |
 | `Shopable` | shared store lookup helpers such as `find_by_shopify_id` |
-| `HasAuditNotifications` | audit-triggered background notifications |
-| `HasPreviewImages` | image handling and preview variants |
+| `AuditNotifiable` | audit-triggered background notifications |
+| `Illustrated` | image handling and preview variants |
 | `Sanitizable` | HTML or payload sanitizing helpers used by sync flows |
 
 ---

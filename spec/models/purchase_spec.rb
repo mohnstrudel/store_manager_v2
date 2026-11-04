@@ -195,11 +195,11 @@ RSpec.describe Purchase do
     end
   end
 
-  describe "HasAuditNotifications" do
+  describe "AuditNotifiable" do
     let(:purchase) { create(:purchase) }
 
-    it "includes HasAuditNotifications concern" do
-      expect(described_class).to include(HasAuditNotifications)
+    it "includes AuditNotifiable concern" do
+      expect(described_class).to include(AuditNotifiable)
     end
 
     context "when model is audited" do

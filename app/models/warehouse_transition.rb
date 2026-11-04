@@ -12,8 +12,7 @@
 #  to_warehouse_id   :bigint
 #
 class WarehouseTransition < ApplicationRecord
-  include HasAuditNotifications
-  include Lookup
+  include AuditNotifiable
 
   audited associated_with: :notification
 
@@ -24,4 +23,18 @@ class WarehouseTransition < ApplicationRecord
   validates_db_presence_of :from_warehouse, :to_warehouse
   validates_db_uniqueness_of :from_warehouse_id,
     scope: [:to_warehouse_id, :notification_id]
+
+  scope :for_notification_lookup, -> {
+    includes(:notification, :from_warehouse, :to_warehouse)
+  }
+
+  scope :with_active_notification, -> {
+    joins(:notification).merge(Notification.active)
+  }
+
+  def self.active_for_notification(from_id:, to_id:)
+    for_notification_lookup
+      .with_active_notification
+      .find_by(from_warehouse_id: from_id, to_warehouse_id: to_id)
+  end
 end

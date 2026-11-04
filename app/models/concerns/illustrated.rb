@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-module HasPreviewImages
+module Illustrated
   extend ActiveSupport::Concern
-  include Media::Gallery
+  include Galleried
 
   included do
     has_many :media, -> { ordered }, as: :mediaable, dependent: :destroy, inverse_of: :mediaable, class_name: "Media"

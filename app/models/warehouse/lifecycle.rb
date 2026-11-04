@@ -3,12 +3,16 @@
 module Warehouse::Lifecycle
   extend ActiveSupport::Concern
 
-  def destroy_if_empty!
-    if purchase_items.exists?
+  def destroy_if_empty
+    if empty?
+      destroy!
+    else
       errors.add(:base, :destroy_blocked)
       raise ActiveRecord::RecordInvalid.new(self)
     end
+  end
 
-    destroy!
+  def empty?
+    !purchase_items.exists?
   end
 end

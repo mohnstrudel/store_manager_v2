@@ -12,12 +12,12 @@ RSpec.describe Warehouse do
     Rack::Test::UploadedFile.new(tempfile.path, content_type, original_filename: filename)
   end
 
-  describe "#add_media!" do
+  describe "#add_media" do
     let(:warehouse) { create(:warehouse) }
 
     it "creates media records for valid uploads" do
       expect {
-        warehouse.add_media!([
+        warehouse.add_media([
           uploaded_test_image,
           uploaded_test_image(filename: "second.jpg")
         ])
@@ -30,12 +30,12 @@ RSpec.describe Warehouse do
     end
   end
 
-  describe "#update_media!" do
+  describe "#update_media" do
     let(:warehouse) { create(:warehouse) }
     let!(:media_item) { create(:media, :for_warehouse, mediaable: warehouse, position: 0, alt: "Original") }
 
     it "updates alt and position" do
-      warehouse.update_media!([
+      warehouse.update_media([
         {id: media_item.id, alt: "Updated", position: 5}
       ])
 
@@ -47,7 +47,7 @@ RSpec.describe Warehouse do
 
     it "ignores unknown media ids" do
       expect {
-        warehouse.update_media!([
+        warehouse.update_media([
           {id: 999_999, alt: "Missing"}
         ])
       }.not_to raise_error
@@ -65,7 +65,7 @@ RSpec.describe Warehouse do
       end
 
       begin
-        warehouse.update_media!([
+        warehouse.update_media([
           {id: media_item.id, alt: "First"},
           {id: second.id, alt: "Second"},
           {id: third.id, alt: "Third"}
@@ -81,7 +81,7 @@ RSpec.describe Warehouse do
     it "ignores foreign media and repeated ids after destruction" do
       foreign_media = create(:media, :for_warehouse, mediaable: create(:warehouse), alt: "Foreign")
 
-      warehouse.update_media!([
+      warehouse.update_media([
         {id: media_item.id, _destroy: true},
         {id: media_item.id, alt: "Restored"},
         {id: foreign_media.id, alt: "Changed"}

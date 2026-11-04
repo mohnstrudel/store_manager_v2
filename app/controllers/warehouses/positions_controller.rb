@@ -10,7 +10,7 @@ module Warehouses
       return head :bad_request unless new_position.positive?
 
       prev_position = @warehouse.position
-      @warehouse.update_position!(new_position)
+      @warehouse.move_to_position(new_position)
 
       respond_to do |format|
         format.html do

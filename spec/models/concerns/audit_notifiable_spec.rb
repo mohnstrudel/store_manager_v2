@@ -2,11 +2,11 @@
 
 require "rails_helper"
 
-describe HasAuditNotifications do
+describe AuditNotifiable do
   before do
     stub_const("DummyModel", Class.new(ApplicationRecord) do
       self.table_name = "customers"
-      include HasAuditNotifications
+      include AuditNotifiable
 
       def self.auditing_enabled
         true

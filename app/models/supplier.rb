@@ -11,7 +11,7 @@
 #  updated_at :datetime         not null
 #
 class Supplier < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   extend FriendlyId
 

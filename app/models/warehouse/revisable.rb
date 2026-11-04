@@ -1,39 +1,39 @@
 # frozen_string_literal: true
 
-module Warehouse::Editing
+module Warehouse::Revisable
   extend ActiveSupport::Concern
 
   TRANSITIONS_UPDATED = :transitions_updated
   WAREHOUSE_UPDATED = :warehouse_updated
 
-  def create_from_form!(attributes, new_media_images:)
+  def record(attributes, new_media_images:)
     transaction do
       assign_attributes(form_attributes(attributes))
-      validate_default_warehouse_choice!
+      validate_default_warehouse_choice
       save!
-      add_media!(new_media_images)
-      sync_transitions!(transition_ids_for(attributes))
+      add_media(new_media_images)
+      sync_transitions(transition_ids_for(attributes))
     end
   end
 
-  def apply_form_changes!(attributes:, transition_ids:, media_attributes:, new_media_images:)
+  def revise(attributes:, transition_ids:, media_attributes:, new_media_images:)
     transaction do
       if transitions_only_update?(attributes)
-        sync_transitions!(transition_ids)
+        sync_transitions(transition_ids)
         TRANSITIONS_UPDATED
       else
         assign_attributes(form_attributes(attributes))
-        validate_default_warehouse_choice!
+        validate_default_warehouse_choice
         save!
-        update_media!(media_attributes)
-        add_media!(new_media_images)
-        sync_transitions!(transition_ids)
+        update_media(media_attributes)
+        add_media(new_media_images)
+        sync_transitions(transition_ids)
         WAREHOUSE_UPDATED
       end
     end
   end
 
-  def update_position!(position)
+  def move_to_position(position)
     update!(position:)
   end
 
@@ -43,7 +43,7 @@ module Warehouse::Editing
     attributes.except(:to_warehouse_ids, "to_warehouse_ids")
   end
 
-  def validate_default_warehouse_choice!
+  def validate_default_warehouse_choice
     return unless blocking_default_warehouse
 
     errors.add(:is_default, :conflict)

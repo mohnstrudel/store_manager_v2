@@ -3,14 +3,14 @@
 require "rails_helper"
 
 RSpec.describe Warehouse do
-  describe "#create_from_form!" do
+  describe "#record" do
     let!(:existing_default) { create(:warehouse, :default) }
     let(:warehouse) { described_class.new }
 
     # rubocop:disable RSpec/MultipleExpectations
     it "rejects creating a new default while another default exists" do
       expect {
-        warehouse.create_from_form!(
+        warehouse.record(
           {name: "New Default", is_default: true},
           new_media_images: []
         )
@@ -25,13 +25,13 @@ RSpec.describe Warehouse do
     # rubocop:enable RSpec/MultipleExpectations
   end
 
-  describe "#apply_form_changes!" do
+  describe "#revise" do
     let(:warehouse) { create(:warehouse) }
 
     it "syncs transitions only when transition ids are the only update" do
       destination = create(:warehouse)
 
-      result = warehouse.apply_form_changes!(
+      result = warehouse.revise(
         attributes: {"to_warehouse_ids" => [destination.id.to_s]},
         transition_ids: [destination.id.to_s],
         media_attributes: [],
@@ -39,7 +39,7 @@ RSpec.describe Warehouse do
       )
 
       aggregate_failures do
-        expect(result).to eq(Warehouse::Editing::TRANSITIONS_UPDATED)
+        expect(result).to eq(Warehouse::Revisable::TRANSITIONS_UPDATED)
         expect(warehouse.from_transitions.where(to_warehouse: destination)).to exist
       end
     end
@@ -47,7 +47,7 @@ RSpec.describe Warehouse do
     it "updates attributes and syncs transitions" do
       destination = create(:warehouse)
 
-      result = warehouse.apply_form_changes!(
+      result = warehouse.revise(
         attributes: {"name" => "Updated Name"},
         transition_ids: [destination.id.to_s],
         media_attributes: [],
@@ -55,7 +55,7 @@ RSpec.describe Warehouse do
       )
 
       aggregate_failures do
-        expect(result).to eq(Warehouse::Editing::WAREHOUSE_UPDATED)
+        expect(result).to eq(Warehouse::Revisable::WAREHOUSE_UPDATED)
         expect(warehouse.reload.name).to eq("Updated Name")
         expect(warehouse.from_transitions.where(to_warehouse: destination)).to exist
       end
@@ -66,7 +66,7 @@ RSpec.describe Warehouse do
       existing_default = create(:warehouse, :default)
 
       expect {
-        warehouse.apply_form_changes!(
+        warehouse.revise(
           attributes: {is_default: true},
           transition_ids: [],
           media_attributes: [],
@@ -83,13 +83,13 @@ RSpec.describe Warehouse do
     # rubocop:enable RSpec/MultipleExpectations
   end
 
-  describe "#update_position!" do
+  describe "#move_to_position" do
     let!(:warehouse_one) { create(:warehouse, position: 1) }
     let(:warehouse) { create(:warehouse, position: 2) }
     let!(:warehouse_three) { create(:warehouse, position: 3) }
 
     it "updates the warehouse position within the ordered list" do
-      warehouse.update_position!(1)
+      warehouse.move_to_position(1)
 
       aggregate_failures do
         expect(warehouse.reload.position).to eq(1)

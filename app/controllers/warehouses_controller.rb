@@ -28,7 +28,7 @@ class WarehousesController < ApplicationController
     attributes = warehouse_params.to_h
     @warehouse = Warehouse.new(attributes.except("to_warehouse_ids"))
 
-    @warehouse.create_from_form!(
+    @warehouse.record(
       attributes,
       new_media_images: media_new_images_for(@warehouse)
     )
@@ -39,14 +39,14 @@ class WarehousesController < ApplicationController
   end
 
   def update
-    result = @warehouse.apply_form_changes!(
+    result = @warehouse.revise(
       attributes: warehouse_params.to_h,
       transition_ids: params.dig(:warehouse, :to_warehouse_ids),
       media_attributes: normalized_media_attributes_for(@warehouse),
       new_media_images: media_new_images_for(@warehouse)
     )
 
-    if result == Warehouse::Editing::TRANSITIONS_UPDATED
+    if result == Warehouse::Revisable::TRANSITIONS_UPDATED
       redirect_to @warehouse, notice: "Warehouse transitions were successfully updated", status: :see_other
     else
       redirect_to @warehouse, notice: "Warehouse was successfully updated", status: :see_other
@@ -59,7 +59,7 @@ class WarehousesController < ApplicationController
   def destroy
     warehouse_name = @warehouse.name
 
-    @warehouse.destroy_if_empty!
+    @warehouse.destroy_if_empty
     redirect_to warehouses_url, notice: "Warehouse #{warehouse_name} was successfully destroyed", status: :see_other
   rescue ActiveRecord::RecordInvalid
     flash[:alert] = @warehouse.errors.full_messages.to_sentence

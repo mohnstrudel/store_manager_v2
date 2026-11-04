@@ -15,9 +15,8 @@
 #  woo_id     :string
 #
 class Customer < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
   include Identity
-  include Listing
   include Searchable
   include Shopable
 
@@ -33,6 +32,8 @@ class Customer < ApplicationRecord
   paginates_per 50
 
   has_many :sales, dependent: :destroy, inverse_of: :customer
+
+  scope :for_listing, -> { includes(:woo_info) }
 
   normalizes :email, with: ->(email) { email&.downcase }
 end

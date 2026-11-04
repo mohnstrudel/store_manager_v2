@@ -25,7 +25,7 @@ class Purchase < ApplicationRecord
   attribute :payment_value, :decimal
 
   include Financials
-  include HasAuditNotifications
+  include AuditNotifiable
   include Linkable
   include Placeable
   include Searchable

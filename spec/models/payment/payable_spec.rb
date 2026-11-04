@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Payment::PurchasePaidSync do
+RSpec.describe Payment::Payable do
   describe "purchase paid synchronization" do
     let(:purchase) { create(:purchase, amount: 10, item_price: 100.0, paid: 0) }
 

@@ -24,7 +24,7 @@
 #  woo_id                           :string
 #
 class Variant < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
   include Lifecycle
   include Options
   include Titled

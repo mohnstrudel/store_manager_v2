@@ -20,8 +20,8 @@
 #
 class Product < ApplicationRecord
   include VariantGeneration
-  include HasAuditNotifications
-  include HasPreviewImages
+  include AuditNotifiable
+  include Illustrated
   include Revisable
   include InitialPurchase
   include Profitability

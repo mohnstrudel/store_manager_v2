@@ -20,12 +20,11 @@
 #  updated_at                :datetime         not null
 #
 class Warehouse < ApplicationRecord
-  include Editing
-  include HasAuditNotifications
-  include HasPreviewImages
+  include Revisable
+  include AuditNotifiable
+  include Illustrated
   include Financials
   include Lifecycle
-  include Listing
   include Transitions
 
   audited
@@ -39,4 +38,12 @@ class Warehouse < ApplicationRecord
 
   has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
   has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse
+
+  scope :for_listing, -> {
+    includes(:purchase_items, purchases: [:payments, :purchase_items])
+  }
+
+  scope :for_details, -> {
+    includes(purchases: [:payments, :purchase_items], media: {image_attachment: :blob})
+  }
 end

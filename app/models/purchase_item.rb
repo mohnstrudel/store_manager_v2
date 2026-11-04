@@ -26,8 +26,8 @@
 class PurchaseItem < ApplicationRecord
   include Revisable
   include Expenses
-  include HasAuditNotifications
-  include HasPreviewImages
+  include AuditNotifiable
+  include Illustrated
   include Linkable
   include Financials
   include Notifications

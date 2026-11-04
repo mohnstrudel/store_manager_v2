@@ -11,7 +11,7 @@
 #  updated_at   :datetime         not null
 #
 class ShippingCompany < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
 

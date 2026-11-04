@@ -10,8 +10,9 @@
 #  updated_at :datetime         not null
 #
 class Brand < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
   include Parsing
+  include ProductTitlePart
   include Sanitizable
 
   audited
@@ -22,11 +23,9 @@ class Brand < ApplicationRecord
   has_many :product_brands, dependent: :destroy, inverse_of: :brand
   has_many :products, through: :product_brands
 
-  after_save :update_products
-
   private
 
-  def update_products
-    products.includes(:franchise, :brands).find_each(&:update_full_title)
+  def titled_products
+    products.includes(:franchise, :brands).find_each
   end
 end

@@ -3,7 +3,7 @@
 module Warehouse::Transitions
   extend ActiveSupport::Concern
 
-  def sync_transitions!(to_warehouse_ids)
+  def sync_transitions(to_warehouse_ids)
     raw_ids = Array(to_warehouse_ids)
     return if raw_ids.blank?
 

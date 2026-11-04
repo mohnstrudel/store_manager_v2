@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Payment::PurchasePaidSync
+module Payment::Payable
   extend ActiveSupport::Concern
 
   included do

@@ -24,7 +24,7 @@
 class SaleItem < ApplicationRecord
   attr_accessor :_destroy
 
-  include HasAuditNotifications
+  include AuditNotifiable
   include Installments
   include Linkable
   include Profitability

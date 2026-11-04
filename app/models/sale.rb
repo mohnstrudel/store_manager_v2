@@ -49,7 +49,7 @@ class Sale < ApplicationRecord
   include Addressable
   include Filterable
   include FollowUpPayments
-  include HasAuditNotifications
+  include AuditNotifiable
   include Linkable
   include Profitability
   include RevenueAllocation

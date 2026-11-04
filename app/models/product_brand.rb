@@ -11,11 +11,17 @@
 #  product_id :bigint
 #
 class ProductBrand < ApplicationRecord
-  include HasAuditNotifications
-  include ProductTitling
+  include AuditNotifiable
+  include ProductTitlePart
 
   audited
 
   db_belongs_to :product, inverse_of: :product_brands
   db_belongs_to :brand, inverse_of: :product_brands
+
+  private
+
+  def titled_products
+    [product]
+  end
 end
