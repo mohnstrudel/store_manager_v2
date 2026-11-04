@@ -25,6 +25,7 @@ class Product < ApplicationRecord
   include Revisable
   include InitialPurchase
   include Profitability
+  include SaleDebts
   include SalesHistory
   include Searchable
   include Shapes

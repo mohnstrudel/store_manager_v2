@@ -2,20 +2,18 @@
 
 module Dashboard
   class DebtsController < ApplicationController
-    include DashboardDebtReporting
-
     def show
       @unpaid_purchases = Purchase.unpaid.includes(:supplier)
       @debts = if params[:q].present?
         search_query = params.expect(:q).downcase
-        sale_debts.select do |product|
+        Product.with_sale_debts.select do |product|
           product.full_title&.downcase&.include?(search_query) ||
             product.variants.any? do |variant|
               variant.title&.downcase&.include?(search_query)
             end
         end
       else
-        sale_debts
+        Product.with_sale_debts
       end
       @debts = Kaminari.paginate_array(@debts).page(params[:page]).per(25)
 
