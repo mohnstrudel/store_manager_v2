@@ -1,4 +1,4 @@
-import type { FranchiseRecord, ProductRecord } from "../types";
+import type { FranchiseFormRecord, FranchiseRecord, ProductRecord } from "../types";
 
 export function makeFranchise(overrides: Partial<FranchiseRecord> = {}): FranchiseRecord {
   return {
@@ -15,6 +15,15 @@ export function makeFranchiseProduct(overrides: Partial<ProductRecord> = {}): Pr
     id: 10,
     full_title: "Pokemon - Pikachu",
     path: "/products/10",
+    ...overrides,
+  };
+}
+
+export function makeFranchiseForm(
+  overrides: Partial<FranchiseFormRecord> = {},
+): FranchiseFormRecord {
+  return {
+    title: "Pokemon",
     ...overrides,
   };
 }

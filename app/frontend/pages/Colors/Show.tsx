@@ -16,10 +16,8 @@ type ShowProps = {
 };
 
 export default function Show({ color, products }: ShowProps) {
-  const currentColorPath =
-    color.id === null ? routes.colors.index.path() : routes.colors.show.path({ id: color.id });
-  const currentEditPath =
-    color.id === null ? routes.colors.new.path() : routes.colors.edit.path({ id: color.id });
+  const currentColorPath = routes.colors.show.path({ id: color.id });
+  const currentEditPath = routes.colors.edit.path({ id: color.id });
   const destroyColor = useConfirmAction("delete", currentColorPath);
 
   return (

@@ -8,28 +8,23 @@ class BrandsController < ApplicationController
 
     return unless stale?(etag: [@brands, request.inertia?], last_modified: @brands.maximum(:updated_at))
 
-    render inertia: "Brands/Index", props: {
-      brands: @brands.map { |brand| helpers.brand_props(brand) }
-    }
+    render_inertia "Brands/Index", serializer: Brands::IndexResource, locals: {brands: @brands}
   end
 
   def show
     @brand = Brand.includes(:products).find(params.expect(:id))
 
-    render inertia: "Brands/Show", props: {
-      brand: helpers.brand_props(@brand),
-      products: @brand.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Brands/Show", serializer: Brands::ShowResource, locals: {brand: @brand}
   end
 
   def new
     @brand = Brand.new
 
-    render inertia: "Brands/New", props: helpers.brand_form_props(@brand)
+    render_inertia "Brands/New", serializer: Brands::NewResource, locals: {brand: @brand}
   end
 
   def edit
-    render inertia: "Brands/Edit", props: helpers.brand_form_props(@brand)
+    render_inertia "Brands/Edit", serializer: Brands::EditResource, locals: {brand: @brand}
   end
 
   def create

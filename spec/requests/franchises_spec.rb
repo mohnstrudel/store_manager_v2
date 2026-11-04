@@ -100,7 +100,7 @@ RSpec.describe "Franchises" do
       expect_inertia.to render_component("Franchises/New")
       expect_inertia.to have_props(
         errors: {title: "can't be blank"},
-        franchise: {created_at: nil, id: nil, updated_at: nil, title: ""}
+        franchise: {title: ""}
       )
     end
   end

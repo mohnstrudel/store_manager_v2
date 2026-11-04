@@ -16,10 +16,8 @@ type ShowProps = {
 };
 
 export default function Show({ products, size }: ShowProps) {
-  const currentSizePath =
-    size.id === null ? routes.sizes.index.path() : routes.sizes.show.path({ id: size.id });
-  const currentEditPath =
-    size.id === null ? routes.sizes.new.path() : routes.sizes.edit.path({ id: size.id });
+  const currentSizePath = routes.sizes.show.path({ id: size.id });
+  const currentEditPath = routes.sizes.edit.path({ id: size.id });
   const destroySize = useConfirmAction("delete", currentSizePath);
 
   return (

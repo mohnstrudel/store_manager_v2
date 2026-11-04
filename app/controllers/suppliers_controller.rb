@@ -8,28 +8,23 @@ class SuppliersController < ApplicationController
 
     return unless stale?(etag: [@suppliers, request.inertia?], last_modified: @suppliers.maximum(:updated_at))
 
-    render inertia: "Suppliers/Index", props: {
-      suppliers: @suppliers.map { |supplier| helpers.supplier_props(supplier) }
-    }
+    render_inertia "Suppliers/Index", serializer: Suppliers::IndexResource, locals: {suppliers: @suppliers}
   end
 
   def show
     @purchases = @supplier.purchases.for_supplier_details
 
-    render inertia: "Suppliers/Show", props: {
-      purchases: @purchases.map { |purchase| helpers.supplier_purchase_props(purchase) },
-      supplier: helpers.supplier_props(@supplier)
-    }
+    render_inertia "Suppliers/Show", serializer: Suppliers::ShowResource, locals: {purchases: @purchases, supplier: @supplier}
   end
 
   def new
     @supplier = Supplier.new
 
-    render inertia: "Suppliers/New", props: helpers.supplier_form_props(@supplier)
+    render_inertia "Suppliers/New", serializer: Suppliers::NewResource, locals: {supplier: @supplier}
   end
 
   def edit
-    render inertia: "Suppliers/Edit", props: helpers.supplier_form_props(@supplier)
+    render_inertia "Suppliers/Edit", serializer: Suppliers::EditResource, locals: {supplier: @supplier}
   end
 
   def create

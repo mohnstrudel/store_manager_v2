@@ -24,14 +24,8 @@ export default function Table({ franchises }: TableProps) {
       </thead>
       <tbody>
         {franchises.map((franchise) => {
-          const currentFranchisePath =
-            franchise.id === null
-              ? routes.franchises.index.path()
-              : routes.franchises.show.path({ id: franchise.id });
-          const currentEditPath =
-            franchise.id === null
-              ? routes.franchises.new.path()
-              : routes.franchises.edit.path({ id: franchise.id });
+          const currentFranchisePath = routes.franchises.show.path({ id: franchise.id });
+          const currentEditPath = routes.franchises.edit.path({ id: franchise.id });
 
           return (
             <tr

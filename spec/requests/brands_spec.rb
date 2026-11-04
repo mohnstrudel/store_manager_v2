@@ -100,7 +100,7 @@ RSpec.describe "Brands" do
       expect(response).to have_http_status(:ok)
       expect_inertia.to render_component("Brands/New")
       expect_inertia.to have_props(
-        brand: {created_at: nil, id: nil, updated_at: nil, title: ""},
+        brand: {title: ""},
         errors: {title: "can't be blank"}
       )
     end

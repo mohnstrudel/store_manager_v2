@@ -9,19 +9,17 @@ class ExpenseRatesController < ApplicationController
 
     return unless stale?(etag: [@expense_rates, request.inertia?, ViteRuby.digest], last_modified:)
 
-    render inertia: "ExpenseRates/Index", props: {
-      expenseRates: @expense_rates.map { |expense_rate| helpers.expense_rate_props(expense_rate) }
-    }
+    render_inertia "ExpenseRates/Index", serializer: ExpenseRates::IndexResource, locals: {expense_rates: @expense_rates}
   end
 
   def new
     @expense_rate = ExpenseRate.new
 
-    render inertia: "ExpenseRates/New", props: helpers.expense_rate_form_props(@expense_rate)
+    render_inertia "ExpenseRates/New", serializer: ExpenseRates::NewResource, locals: {expense_rate: @expense_rate}
   end
 
   def edit
-    render inertia: "ExpenseRates/Edit", props: helpers.expense_rate_form_props(@expense_rate)
+    render_inertia "ExpenseRates/Edit", serializer: ExpenseRates::EditResource, locals: {expense_rate: @expense_rate}
   end
 
   def create

@@ -4,10 +4,10 @@ import { getFormString } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 
-import { ColorRecord } from "../types";
+import { ColorFormRecord } from "../types";
 
 type ColorFormProps = {
-  color: ColorRecord;
+  color: ColorFormRecord;
   method: "post" | "patch";
   submitLabel: string;
   url: string;

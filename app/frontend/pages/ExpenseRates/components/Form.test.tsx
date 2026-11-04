@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 
-import { makeExpenseRate } from "../test/factories";
-import type { ExpenseRateRecord } from "../types";
+import { makeExpenseRateForm } from "../test/factories";
+import type { ExpenseRateFormRecord } from "../types";
 import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -14,7 +14,7 @@ describe("ExpenseRates/components/Form", () => {
   describe("form shell", () => {
     it("configures action, method, and labels for a new expense rate", () => {
       renderForm({
-        expenseRate: makeExpenseRate({ id: null, name: "", rate_percent: 0 }),
+        expenseRate: makeExpenseRateForm({ name: "", rate_percent: 0 }),
         method: "post",
         submitLabel: "Create OpEx Rate",
         url: "/expense_rates",
@@ -98,13 +98,13 @@ describe("ExpenseRates/components/Form", () => {
 
 function renderForm({
   pageErrors = {},
-  expenseRate = makeExpenseRate(),
+  expenseRate = makeExpenseRateForm(),
   method = "patch",
   submitLabel = "Update OpEx Rate",
   url = "/expense_rates/1",
 }: {
   pageErrors?: Record<string, string>;
-  expenseRate?: ExpenseRateRecord;
+  expenseRate?: ExpenseRateFormRecord;
   method?: "post" | "patch";
   submitLabel?: string;
   url?: string;

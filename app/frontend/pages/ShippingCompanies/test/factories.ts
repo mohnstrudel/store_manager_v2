@@ -1,4 +1,8 @@
-import type { PurchaseItemRecord, ShippingCompanyRecord } from "../types";
+import type {
+  PurchaseItemRecord,
+  ShippingCompanyFormRecord,
+  ShippingCompanyRecord,
+} from "../types";
 
 export function makeShippingCompany(
   overrides: Partial<ShippingCompanyRecord> = {},
@@ -22,6 +26,16 @@ export function makeShippingCompanyPurchaseItem(
     product_full_title: "Pokemon - Pikachu",
     purchased_ago: "2 days ago",
     tracking_number: "TRACK123",
+    ...overrides,
+  };
+}
+
+export function makeShippingCompanyForm(
+  overrides: Partial<ShippingCompanyFormRecord> = {},
+): ShippingCompanyFormRecord {
+  return {
+    name: "DHL",
+    tracking_url: "https://dhl.com/track",
     ...overrides,
   };
 }

@@ -8,28 +8,23 @@ class SizesController < ApplicationController
 
     return unless stale?(etag: [@sizes, request.inertia?], last_modified: @sizes.maximum(:updated_at))
 
-    render inertia: "Sizes/Index", props: {
-      sizes: @sizes.map { |size| helpers.size_props(size) }
-    }
+    render_inertia "Sizes/Index", serializer: Sizes::IndexResource, locals: {sizes: @sizes}
   end
 
   def show
     @size = Size.includes(:products).find(params.expect(:id))
 
-    render inertia: "Sizes/Show", props: {
-      size: helpers.size_props(@size),
-      products: @size.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Sizes/Show", serializer: Sizes::ShowResource, locals: {size: @size}
   end
 
   def new
     @size = Size.new
 
-    render inertia: "Sizes/New", props: helpers.size_form_props(@size)
+    render_inertia "Sizes/New", serializer: Sizes::NewResource, locals: {size: @size}
   end
 
   def edit
-    render inertia: "Sizes/Edit", props: helpers.size_form_props(@size)
+    render_inertia "Sizes/Edit", serializer: Sizes::EditResource, locals: {size: @size}
   end
 
   def create

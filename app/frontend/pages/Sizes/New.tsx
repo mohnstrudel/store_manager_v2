@@ -2,10 +2,10 @@ import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
 
 import Form from "./components/Form";
-import { SizeRecord } from "./types";
+import { SizeFormRecord } from "./types";
 
 type NewProps = {
-  size: SizeRecord;
+  size: SizeFormRecord;
 };
 
 export default function New({ size }: NewProps) {

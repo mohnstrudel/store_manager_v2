@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 
-import { makeColor } from "../test/factories";
-import type { ColorRecord } from "../types";
+import { makeColorForm } from "../test/factories";
+import type { ColorFormRecord } from "../types";
 import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -14,7 +14,7 @@ describe("Colors/components/Form", () => {
   describe("form shell", () => {
     it("configures action, method, and labels for a new color", () => {
       renderForm({
-        color: makeColor({ id: null, value: "", created_at: null, updated_at: null }),
+        color: makeColorForm({ value: "" }),
         method: "post",
         submitLabel: "Create Color",
         url: "/colors",
@@ -80,13 +80,13 @@ describe("Colors/components/Form", () => {
 });
 
 function renderForm({
-  color = makeColor(),
+  color = makeColorForm(),
   method = "patch",
   pageErrors = {},
   submitLabel = "Update Color",
   url = "/colors/1",
 }: {
-  color?: ColorRecord;
+  color?: ColorFormRecord;
   method?: "post" | "patch";
   pageErrors?: Record<string, string>;
   submitLabel?: string;

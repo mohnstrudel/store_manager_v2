@@ -13,8 +13,7 @@ type EditProps = {
 };
 
 export default function Edit({ size }: EditProps) {
-  const currentSizePath =
-    size.id === null ? routes.sizes.index.path() : routes.sizes.show.path({ id: size.id });
+  const currentSizePath = routes.sizes.show.path({ id: size.id });
 
   return (
     <>

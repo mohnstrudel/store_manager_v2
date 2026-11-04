@@ -4,10 +4,10 @@ import { getFormString } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 
-import { BrandRecord } from "../types";
+import { BrandFormRecord } from "../types";
 
 type BrandFormProps = {
-  brand: BrandRecord;
+  brand: BrandFormRecord;
   method: "post" | "patch";
   submitLabel: string;
   url: string;

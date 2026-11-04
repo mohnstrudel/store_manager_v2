@@ -8,28 +8,23 @@ class ColorsController < ApplicationController
 
     return unless stale?(etag: [@colors, request.inertia?], last_modified: @colors.maximum(:updated_at))
 
-    render inertia: "Colors/Index", props: {
-      colors: @colors.map { |color| helpers.color_props(color) }
-    }
+    render_inertia "Colors/Index", serializer: Colors::IndexResource, locals: {colors: @colors}
   end
 
   def show
     @color = Color.includes(:products).find(params.expect(:id))
 
-    render inertia: "Colors/Show", props: {
-      color: helpers.color_props(@color),
-      products: @color.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Colors/Show", serializer: Colors::ShowResource, locals: {color: @color}
   end
 
   def new
     @color = Color.new
 
-    render inertia: "Colors/New", props: helpers.color_form_props(@color)
+    render_inertia "Colors/New", serializer: Colors::NewResource, locals: {color: @color}
   end
 
   def edit
-    render inertia: "Colors/Edit", props: helpers.color_form_props(@color)
+    render_inertia "Colors/Edit", serializer: Colors::EditResource, locals: {color: @color}
   end
 
   def create

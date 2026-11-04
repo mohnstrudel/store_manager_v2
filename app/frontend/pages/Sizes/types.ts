@@ -1,12 +1,7 @@
-export type SizeRecord = {
-  id: number | null;
-  value: string;
-  created_at: string | null;
-  updated_at: string | null;
-};
+import type { Size, SizesNew, ProductLink } from "@/types/serializers";
 
-export type ProductRecord = {
-  id: number;
-  full_title: string;
-  path: string;
-};
+export type SizeRecord = Size;
+
+export type SizeFormRecord = SizesNew["size"];
+
+export type ProductRecord = ProductLink;

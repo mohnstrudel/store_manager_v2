@@ -8,28 +8,23 @@ class FranchisesController < ApplicationController
 
     return unless stale?(etag: [@franchises, request.inertia?], last_modified: @franchises.maximum(:updated_at))
 
-    render inertia: "Franchises/Index", props: {
-      franchises: @franchises.map { |franchise| helpers.franchise_props(franchise) }
-    }
+    render_inertia "Franchises/Index", serializer: Franchises::IndexResource, locals: {franchises: @franchises}
   end
 
   def show
     @franchise = Franchise.includes(:products).find(params.expect(:id))
 
-    render inertia: "Franchises/Show", props: {
-      franchise: helpers.franchise_props(@franchise),
-      products: @franchise.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Franchises/Show", serializer: Franchises::ShowResource, locals: {franchise: @franchise}
   end
 
   def new
     @franchise = Franchise.new
 
-    render inertia: "Franchises/New", props: helpers.franchise_form_props(@franchise)
+    render_inertia "Franchises/New", serializer: Franchises::NewResource, locals: {franchise: @franchise}
   end
 
   def edit
-    render inertia: "Franchises/Edit", props: helpers.franchise_form_props(@franchise)
+    render_inertia "Franchises/Edit", serializer: Franchises::EditResource, locals: {franchise: @franchise}
   end
 
   def create

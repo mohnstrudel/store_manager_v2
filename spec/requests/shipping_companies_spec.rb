@@ -135,13 +135,7 @@ RSpec.describe "ShippingCompanies" do
       expect_inertia.to render_component("ShippingCompanies/New")
       expect_inertia.to have_props(
         errors: {tracking_url: "can't be blank"},
-        shippingCompany: {
-          created_at: nil,
-          id: nil,
-          name: "",
-          tracking_url: nil,
-          updated_at: nil
-        }
+        shippingCompany: {name: "", tracking_url: nil}
       )
     end
   end

@@ -8,28 +8,27 @@ class ShippingCompaniesController < ApplicationController
 
     return unless stale?(etag: [@shipping_companies, request.inertia?], last_modified: @shipping_companies.maximum(:updated_at))
 
-    render inertia: "ShippingCompanies/Index", props: {
-      shippingCompanies: @shipping_companies.map { |shipping_company| helpers.shipping_company_props(shipping_company) }
-    }
+    render_inertia "ShippingCompanies/Index", serializer: ShippingCompanies::IndexResource,
+      locals: {shipping_companies: @shipping_companies}
   end
 
   def show
     @purchase_items = @shipping_company.purchase_items.for_shipping_details
 
-    render inertia: "ShippingCompanies/Show", props: {
-      purchaseItems: @purchase_items.map { |purchase_item| helpers.shipping_company_purchase_item_props(purchase_item) },
-      shippingCompany: helpers.shipping_company_props(@shipping_company)
-    }
+    render_inertia "ShippingCompanies/Show", serializer: ShippingCompanies::ShowResource,
+      locals: {purchase_items: @purchase_items, shipping_company: @shipping_company}
   end
 
   def new
     @shipping_company = ShippingCompany.new
 
-    render inertia: "ShippingCompanies/New", props: helpers.shipping_company_form_props(@shipping_company)
+    render_inertia "ShippingCompanies/New", serializer: ShippingCompanies::NewResource,
+      locals: {shipping_company: @shipping_company}
   end
 
   def edit
-    render inertia: "ShippingCompanies/Edit", props: helpers.shipping_company_form_props(@shipping_company)
+    render_inertia "ShippingCompanies/Edit", serializer: ShippingCompanies::EditResource,
+      locals: {shipping_company: @shipping_company}
   end
 
   def create
