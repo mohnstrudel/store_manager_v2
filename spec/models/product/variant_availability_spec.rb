@@ -123,7 +123,7 @@ RSpec.describe Product::VariantAvailability do
   end
 
   describe "#variant_repair_candidates" do
-    it "adds same-Product deactivated real Variants with historical labels" do
+    it "adds same-Product deactivated real Variants" do
       product = create(:product)
       active_variant = create(:variant, product:)
       historical_variant = create(:variant, :with_color, product:)
@@ -134,7 +134,6 @@ RSpec.describe Product::VariantAvailability do
       candidates = product.variant_repair_candidates
 
       expect(candidates).to contain_exactly(active_variant, historical_variant)
-      expect(historical_variant.assignment_label).to eq("#{historical_variant.title} (Historical)")
       expect(candidates).not_to include(product.base_variant, other_historical_variant)
     end
   end

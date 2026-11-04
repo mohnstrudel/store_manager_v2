@@ -38,7 +38,7 @@ RSpec.feature "Variant assignment repairs" do
       expect(page).to have_text("Variant is not an available repair candidate")
       expect(page).to have_field("Variant for BROKEN-42")
 
-      select historical_variant.assignment_label, from: "Variant for BROKEN-42"
+      select "#{historical_variant.title} (Historical)", from: "Variant for BROKEN-42"
       click_button "Save"
     end
 

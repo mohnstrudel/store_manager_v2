@@ -8,28 +8,23 @@ class VersionsController < ApplicationController
 
     return unless stale?(etag: [@versions, request.inertia?], last_modified: @versions.maximum(:updated_at))
 
-    render inertia: "Versions/Index", props: {
-      versions: @versions.map { |version| helpers.version_props(version) }
-    }
+    render_inertia "Versions/Index", serializer: Versions::IndexResource, locals: {versions: @versions}
   end
 
   def show
     @version = Version.includes(:products).find(params.expect(:id))
 
-    render inertia: "Versions/Show", props: {
-      version: helpers.version_props(@version),
-      products: @version.products.map { |product| helpers.product_props(product) }
-    }
+    render_inertia "Versions/Show", serializer: Versions::ShowResource, locals: {version: @version}
   end
 
   def new
     @version = Version.new
 
-    render inertia: "Versions/New", props: helpers.version_form_props(@version)
+    render_inertia "Versions/New", serializer: Versions::FormResource, locals: {version: @version}
   end
 
   def edit
-    render inertia: "Versions/Edit", props: helpers.version_form_props(@version)
+    render_inertia "Versions/Edit", serializer: Versions::FormResource, locals: {version: @version}
   end
 
   def create

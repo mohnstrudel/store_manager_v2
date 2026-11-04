@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { mockPageProps } from "@/test/mocks/inertia";
 
-import { makeVersion } from "../test/factories";
-import type { VersionRecord } from "../types";
+import { makeNewVersionForm, makeVersion } from "../test/factories";
+import type { VersionFormRecord } from "../types";
 import Form from "./Form";
 
 type ResourceFormProps = {
@@ -53,12 +53,7 @@ describe("Versions/components/Form", () => {
         method: "post",
         submitLabel: "Create Version",
         url: "/versions",
-        version: makeVersion({
-          id: null,
-          value: "",
-          created_at: null,
-          updated_at: null,
-        }),
+        version: makeNewVersionForm(),
       });
 
       expect(resourceFormProps).toEqual({
@@ -131,7 +126,7 @@ function renderForm({
   pageErrors?: Record<string, string>;
   submitLabel?: string;
   url?: string;
-  version?: VersionRecord;
+  version?: VersionFormRecord;
 } = {}) {
   mockPageProps({ errors: pageErrors });
 

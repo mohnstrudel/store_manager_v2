@@ -115,7 +115,12 @@ describe("Products/Show/ProductOverview", () => {
 
       it("hides the row when there is no shopify id", () => {
         renderProductOverview({
-          shopify_info: { store_id: null, id_short: null, tag_list: [], product_url: null },
+          shopify_info: {
+            store_id: null,
+            id_short: null,
+            tag_list: [],
+            product_url: "https://handsomecake.com/",
+          },
         });
 
         expect(screen.queryByRole("link", { name: /SHOP/ })).not.toBeInTheDocument();

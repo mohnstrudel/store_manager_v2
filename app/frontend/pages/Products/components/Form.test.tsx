@@ -8,7 +8,7 @@ import { lastCapturedProps } from "@/test/mocks/resourceForm";
 import {
   makeProductForm,
   makePurchaseForm,
-  makeStoreInfoForm,
+  makeStoreInfoRecord,
   makeVariantForm,
 } from "../test/factories";
 import type { PurchaseFormData, StoreInfoFormData, VariantFormData } from "../types";
@@ -182,7 +182,7 @@ describe("Products/components/Form", () => {
       await renderForm({
         product: makeProductForm({
           variants: [makeVariantForm()],
-          store_infos: [makeStoreInfoForm({ id: 1, store_name: "shopify", tag_list: "featured" })],
+          store_infos: [makeStoreInfoRecord({ tag_list: "featured" })],
         }),
       });
 
@@ -212,7 +212,7 @@ describe("Products/components/Form", () => {
 
       await renderForm({
         product: makeProductForm({
-          store_infos: [makeStoreInfoForm({ id: 1, store_name: "shopify", tag_list: "featured" })],
+          store_infos: [makeStoreInfoRecord({ tag_list: "featured" })],
         }),
       });
 

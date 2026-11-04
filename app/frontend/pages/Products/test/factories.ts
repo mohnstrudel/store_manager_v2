@@ -171,6 +171,18 @@ export function makeStoreInfoForm(overrides: Partial<StoreInfoFormData> = {}): S
   };
 }
 
+export function makeStoreInfoRecord(
+  overrides: Partial<ProductFormRecord["store_infos"][number]> = {},
+): ProductFormRecord["store_infos"][number] {
+  return {
+    id: 1,
+    store_name: "shopify",
+    tag_list: "",
+    _destroy: false,
+    ...overrides,
+  };
+}
+
 export function makePurchaseForm(overrides: Partial<PurchaseFormData> = {}): PurchaseFormData {
   return {
     supplier_id: null,

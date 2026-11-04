@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 
 type ProductDescriptionProps = {
-  html: string;
+  html: string | null;
 };
 
 export default function ProductDescription({ html }: ProductDescriptionProps) {
-  const dangerousHtml = useMemo(() => ({ __html: html }), [html]);
+  const dangerousHtml = useMemo(() => ({ __html: html ?? "" }), [html]);
 
   if (!html) return null;
 

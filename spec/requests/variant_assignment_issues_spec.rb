@@ -42,8 +42,8 @@ RSpec.describe "Variant assignment issues" do
           linked_units: 0
         )
         expect(issue[:candidates]).to contain_exactly(
-          {value: active_variant.id, label: active_variant.assignment_label, base_model: false},
-          {value: historical_variant.id, label: historical_variant.assignment_label, base_model: false}
+          {value: active_variant.id, label: active_variant.title, base_model: false},
+          {value: historical_variant.id, label: "#{historical_variant.title} (Historical)", base_model: false}
         )
       end
     end
@@ -162,7 +162,7 @@ RSpec.describe "Variant assignment issues" do
           sku: "dup-1",
           product_id: product_a.id,
           product_title: product_a.full_title,
-          variant_label: variant_a.assignment_label,
+          variant_label: variant_a.title,
           edit_path: edit_product_path(product_a)
         )
         expect(issue).not_to have_key(:candidates)
@@ -171,14 +171,14 @@ RSpec.describe "Variant assignment issues" do
             product_id: product_b.id,
             product_title: product_b.full_title,
             variant_id: variant_b.id,
-            variant_label: variant_b.assignment_label,
+            variant_label: variant_b.title,
             edit_path: edit_product_path(product_b)
           },
           {
             product_id: product_c.id,
             product_title: product_c.full_title,
             variant_id: variant_c.id,
-            variant_label: variant_c.assignment_label,
+            variant_label: variant_c.title,
             edit_path: edit_product_path(product_c)
           }
         )
@@ -212,7 +212,7 @@ RSpec.describe "Variant assignment issues" do
         product_id: product.id,
         product_title: product.full_title,
         edit_path: edit_product_path(product),
-        conflicting_variant_label: holder.assignment_label,
+        conflicting_variant_label: holder.title,
         conflicting_variant_sku: "holder-sku"
       )
     end

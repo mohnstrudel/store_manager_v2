@@ -62,7 +62,7 @@ export default function PaymentsSection({ hasVariants, payments, title }: Paymen
                 <PaymentContext item={item} />
               </td>
               <td>
-                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                {capitalizeStatus(item.status)}
                 {item.purchase_item_path && (
                   <div className="mt-1">
                     <Link
@@ -106,4 +106,8 @@ function PaymentContext({ item }: { item: PaymentItemRecord }) {
   }
 
   return <>Follow-up payment</>;
+}
+
+function capitalizeStatus(status: string | null) {
+  return status ? status.charAt(0).toUpperCase() + status.slice(1) : "";
 }

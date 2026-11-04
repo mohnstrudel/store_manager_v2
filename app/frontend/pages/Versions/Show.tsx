@@ -16,8 +16,8 @@ type ShowProps = {
 };
 
 export default function Show({ products, version }: ShowProps) {
-  const currentVersionPath = routes.versions.show.path({ id: version.id! });
-  const currentEditPath = routes.versions.edit.path({ id: version.id! });
+  const currentVersionPath = routes.versions.show.path({ id: version.id });
+  const currentEditPath = routes.versions.edit.path({ id: version.id });
   const destroyVersion = useConfirmAction("delete", currentVersionPath);
 
   return (

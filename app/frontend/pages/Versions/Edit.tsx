@@ -5,10 +5,10 @@ import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
 
 import Form from "./components/Form";
-import { VersionRecord } from "./types";
+import { VersionFormRecord } from "./types";
 
 type EditProps = {
-  version: VersionRecord;
+  version: VersionFormRecord;
 };
 
 export default function Edit({ version }: EditProps) {
