@@ -1,59 +1,63 @@
 # frozen_string_literal: true
 
 class Product::Woo::Importer
-  class << self
-    def fetch_and_import(woo_id, client: ::Woo::Api::Client.new)
-      parsed_product = Product::Woo::Parser.parse(client.fetch_product(woo_id))
+  OPTION_ASSOCIATIONS = {
+    brands: [Brand, :title],
+    sizes: [Size, :value],
+    versions: [Version, :value],
+    colors: [Color, :value]
+  }.freeze
 
-      return if parsed_product.blank?
+  attr_reader :parsed_product, :product
+  private :parsed_product, :product
 
-      import!(parsed_product)
+  def self.fetch_and_import(woo_id, client: ::Woo::Api::Client.new)
+    parsed_product = Product::Woo::Parser.parse(client.fetch_product(woo_id))
+
+    return if parsed_product.blank?
+
+    import!(parsed_product)
+  end
+
+  def self.import!(parsed_product)
+    return if parsed_product.blank?
+
+    new(parsed_product).import!
+  end
+
+  def initialize(parsed_product)
+    @parsed_product = parsed_product
+  end
+
+  def import!
+    @product = Product.find_by_woo_id(parsed_product[:woo_id]) || Product.new
+    product.assign_attributes(
+      title: parsed_product[:title],
+      franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
+      shape: parsed_product[:shape].presence || Product.default_shape
+    )
+    OPTION_ASSOCIATIONS.each { |association, (model, attribute)| add_options(association, model, attribute) }
+    product.save!
+    record_store_info!
+    product
+  end
+
+  private
+
+  def add_options(association, model, attribute)
+    parsed_product[association]&.each do |value|
+      if product.public_send(association).find_by(attribute => value).nil?
+        product.public_send(association) << model.find_or_create_by(attribute => value)
+      end
     end
+  end
 
-    def import!(parsed_product)
-      return if parsed_product.blank?
-
-      product = Product.find_by_woo_id(parsed_product[:woo_id]) || Product.new
-      product.assign_attributes(
-        title: parsed_product[:title],
-        franchise: Franchise.find_or_create_by(title: parsed_product[:franchise]),
-        shape: parsed_product[:shape].presence || Product.default_shape
-      )
-
-      parsed_product[:brands]&.each do |i|
-        if product.brands.find_by(title: i).nil?
-          product.brands << Brand.find_or_create_by(title: i)
-        end
-      end
-
-      parsed_product[:sizes]&.each do |i|
-        if product.sizes.find_by(value: i).nil?
-          product.sizes << Size.find_or_create_by(value: i)
-        end
-      end
-
-      parsed_product[:versions]&.each do |i|
-        if product.versions.find_by(value: i).nil?
-          product.versions << Version.find_or_create_by(value: i)
-        end
-      end
-
-      parsed_product[:colors]&.each do |i|
-        if product.colors.find_by(value: i).nil?
-          product.colors << Color.find_or_create_by(value: i)
-        end
-      end
-
-      product.save!
-
-      product.update_or_create_store_info!(
-        store_name: :woo,
-        store_id: parsed_product[:woo_id],
-        slug: parsed_product[:store_link],
-        pull_time: Time.zone.now
-      )
-
-      product
-    end
+  def record_store_info!
+    product.update_or_create_store_info!(
+      store_name: :woo,
+      store_id: parsed_product[:woo_id],
+      slug: parsed_product[:store_link],
+      pull_time: Time.zone.now
+    )
   end
 end

@@ -3,75 +3,85 @@
 class Product::Woo::Parser
   include Sanitizable
 
-  class << self
-    def parse(woo_product)
-      return if woo_product.blank?
+  attr_reader :woo_product
+  private :woo_product
 
-      return if woo_product[:name].blank?
+  def self.parse(woo_product)
+    return if woo_product.blank?
 
-      title, franchise, shape = parse_product_name(woo_product[:name])
-      product = {
-        woo_id: woo_product[:id],
-        store_link: woo_product[:permalink],
-        shape:,
-        variants: woo_product[:variants] || woo_product[:editions],
-        title:,
-        franchise:,
-        images: woo_product[:images].pluck(:src)
-      }
+    return if woo_product[:name].blank?
 
-      if woo_product[:attributes].present?
-        attributes = woo_product[:attributes].map do |attr|
-          attrs = {}
-          options = attr[:options].presence || [attr[:option]]
-          values = options.map { |i| smart_titleize(sanitize(i)) }
+    new(woo_product).parse
+  end
 
-          case attr[:name]
-          when *::Variant.types[:version]
-            attrs[:versions] = values
-          when *::Variant.types[:size]
-            attrs[:sizes] = values
-          when *::Variant.types[:color]
-            attrs[:colors] = values
-          when *::Variant.types[:brand]
-            attrs[:brands] = values
-          end
+  def initialize(woo_product)
+    @woo_product = woo_product
+  end
 
-          attrs
-        end
+  def parse
+    title, franchise, shape = parse_product_name
+    product = {
+      woo_id: woo_product[:id],
+      store_link: woo_product[:permalink],
+      shape:,
+      variants: woo_product[:variants] || woo_product[:editions],
+      title:,
+      franchise:,
+      images: woo_product[:images].pluck(:src)
+    }
 
-        product = product.merge(*attributes.compact.reject(&:empty?))
-      end
+    product = product.merge(*parse_attributes) if woo_product[:attributes].present?
 
-      if product[:brands].nil?
-        brand_title = Brand.parse_brand(woo_product[:name])
-        product[:brands] = [brand_title] if brand_title
-      end
-
-      product
+    if product[:brands].nil?
+      brand_title = Brand.parse_brand(woo_product[:name])
+      product[:brands] = [brand_title] if brand_title
     end
 
-    private
+    product
+  end
 
-    def parse_product_name(woo_product_name)
-      woo_name = smart_titleize(sanitize(woo_product_name))
-        .sub(Size.numeric_size_match, "")
+  private
 
-      franchise = woo_name.include?(" - ") ?
-        woo_name.split(" - ").first :
-        woo_name.split(" | ").first
+  def parse_product_name
+    woo_name = smart_titleize(sanitize(woo_product[:name]))
+      .sub(Size.numeric_size_match, "")
 
-      if franchise.blank?
-        franchise = woo_name
-      end
+    franchise = woo_name.include?(" - ") ?
+      woo_name.split(" - ").first :
+      woo_name.split(" | ").first
 
-      title = woo_name.include?(" - ") ?
-        woo_name.split(" | ").first.split(" - ").last :
-        franchise
+    if franchise.blank?
+      franchise = woo_name
+    end
 
-      shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
+    title = woo_name.include?(" - ") ?
+      woo_name.split(" | ").first.split(" - ").last :
+      franchise
 
-      [title, franchise, smart_titleize(shape[0])]
+    shape = woo_name.match(/\b(bust|statue)\b/i) || ["Statue"]
+
+    [title, franchise, smart_titleize(shape[0])]
+  end
+
+  def parse_attributes
+    woo_product[:attributes].map { |attr| parse_attribute(attr) }.compact.reject(&:empty?)
+  end
+
+  def parse_attribute(attr)
+    options = attr[:options].presence || [attr[:option]]
+    values = options.map { |i| smart_titleize(sanitize(i)) }
+
+    case attr[:name]
+    when *::Variant.types[:version]
+      {versions: values}
+    when *::Variant.types[:size]
+      {sizes: values}
+    when *::Variant.types[:color]
+      {colors: values}
+    when *::Variant.types[:brand]
+      {brands: values}
+    else
+      {}
     end
   end
 end
