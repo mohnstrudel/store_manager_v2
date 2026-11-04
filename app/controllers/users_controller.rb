@@ -8,30 +8,15 @@ class UsersController < ApplicationController
 
     return unless stale?(etag: [@users, request.inertia?], last_modified: @users.maximum(:updated_at))
 
-    render inertia: "Users/Index", props: {
-      users: @users.map { |user| helpers.user_props(user) }
-    }
+    render_inertia "Users/Index", serializer: Users::IndexResource, locals: {users: @users}
   end
 
   def show
-    render inertia: "Users/Show", props: {
-      user: helpers.user_props(@user)
-    }
+    render_inertia "Users/Show", serializer: Users::ShowResource, locals: {user: @user}
   end
 
   def edit
-    render inertia: "Users/Edit", props: {
-      user: {
-        id: @user.id,
-        email_address: @user.email_address,
-        first_name: @user.first_name,
-        last_name: @user.last_name,
-        role: @user.role,
-        path: user_path(@user)
-      },
-      role_options: User.role_options_for_select,
-      is_admin: @user.admin?
-    }
+    render_inertia "Users/Edit", serializer: Users::EditResource, locals: {user: @user}
   end
 
   def update

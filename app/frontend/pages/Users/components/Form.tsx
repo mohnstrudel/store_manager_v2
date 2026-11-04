@@ -3,22 +3,16 @@ import { z } from "zod";
 import FormControl from "@/components/FormControl";
 import FormInput from "@/components/FormInput";
 import ResourceForm from "@/components/ResourceForm";
+import type { UsersEdit } from "@/types/serializers";
 import { getFormString, zodErrorsToRecord } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 
-export type UserFormValues = {
-  id: number;
-  email_address: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  path: string;
-};
+export type UserFormValues = UsersEdit["user"];
 
 type UserFormProps = {
   canEditRole: boolean;
-  roleOptions: [string, string][];
+  roleOptions: UsersEdit["role_options"];
   user: UserFormValues;
 };
 

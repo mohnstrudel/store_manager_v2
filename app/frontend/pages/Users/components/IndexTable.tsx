@@ -1,21 +1,11 @@
 import { Link } from "@inertiajs/react";
 import { PencilIcon } from "lucide-react";
 
+import type { User } from "@/types/serializers";
 import routes from "@/utils/routes";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
-export type UserRecord = {
-  id: number;
-  email_address: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
-  path: string;
-  edit_path: string;
-  destroy_path: string;
-};
+export type UserRecord = User;
 
 type IndexTableProps = {
   users: UserRecord[];
