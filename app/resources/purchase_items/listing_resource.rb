@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class PurchaseItems::ListingResource < ApplicationResource
-  include ApplicationHelper
-
   typelize_from PurchaseItem
 
   attributes :id

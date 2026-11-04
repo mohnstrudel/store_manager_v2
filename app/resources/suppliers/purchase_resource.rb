@@ -2,7 +2,6 @@
 
 class Suppliers::PurchaseResource < ApplicationResource
   include ActionView::Helpers::DateHelper
-  include ApplicationHelper
 
   typelize_from Purchase
 

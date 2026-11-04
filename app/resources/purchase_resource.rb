@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class PurchaseResource < ApplicationResource
-  include ApplicationHelper
-
   typelize_from Purchase
 
   attributes :id

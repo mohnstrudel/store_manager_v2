@@ -7,6 +7,7 @@ class ApplicationResource
   include FormattingHelper
   include UiHelper
   include StoreAdminLinksHelper
+  include PurchaseProductHelper
 
   helper Typelizer::DSL
   helper Alba::Inertia::Resource

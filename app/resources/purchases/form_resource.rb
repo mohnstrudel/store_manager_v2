@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Purchases::FormResource < ApplicationResource
-  include ApplicationHelper
-
   typelize({
     id: "number | null",
     path: :string,
