@@ -12,25 +12,6 @@ module Variant::Options
     }
   end
 
-  class_methods do
-    def types
-      {
-        version: ["Version", "Variante"],
-        size: ["Size", "Maßstab"],
-        color: ["Color", "Farbe"],
-        brand: ["Brand", "Marke"]
-      }.freeze
-    end
-
-    def shopify_types
-      {
-        version: ["Version", "Edition", "Variant", "Variante", "Variants"],
-        size: ["Size", "Scale"],
-        color: ["Color"]
-      }.freeze
-    end
-  end
-
   def base_model?
     size_id.nil? && version_id.nil? && color_id.nil?
   end

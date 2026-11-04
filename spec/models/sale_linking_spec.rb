@@ -7,9 +7,9 @@ RSpec.describe Sale do
   let(:product) { create(:product) }
   let(:supplier) { create(:supplier) }
   let(:purchase) { create(:purchase, supplier:, product:, amount: 3) }
-  let(:active_status) { described_class.active_status_names.first }
-  let(:completed_status) { described_class.completed_status_names.first }
-  let(:cancelled_status) { described_class.cancelled_status_names.first }
+  let(:active_status) { described_class::ACTIVE_STATUSES.first }
+  let(:completed_status) { described_class::COMPLETED_STATUSES.first }
+  let(:cancelled_status) { described_class::CANCELLED_STATUSES.first }
 
   describe "#link_with_purchase_items" do
     context "when sale is active" do

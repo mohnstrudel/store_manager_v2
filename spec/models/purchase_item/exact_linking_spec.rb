@@ -6,7 +6,7 @@ RSpec.describe PurchaseItem::Linking do
   let(:product) { create(:product) }
   let(:variant) { product.base_variant }
   let(:purchase) { create(:purchase, product:, variant:) }
-  let(:sale) { create(:sale, status: Sale.active_status_names.first) }
+  let(:sale) { create(:sale, status: Sale::ACTIVE_STATUSES.first) }
   let(:sale_item) { create(:sale_item, sale:, product:, variant:, qty: 2) }
 
   describe ".link_exact!" do

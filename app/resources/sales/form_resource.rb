@@ -41,7 +41,7 @@ class Sales::FormResource < ApplicationResource
     {
       customers: Customer.order(:email).map { |customer| {value: customer.id, label: customer.name_and_email} },
       products: Product.with_store_references.map { |product| {value: product.id, label: product.build_full_title_with_shop_id} },
-      status_names: Sale.status_names
+      status_names: Sale::STATUSES
     }
   end
 

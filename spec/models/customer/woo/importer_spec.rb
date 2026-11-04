@@ -32,6 +32,12 @@ RSpec.describe Customer::Woo::Importer do
 
         expect(customer.woo_info.store_id).to eq("12345")
       end
+
+      it "treats a non-numeric woo_id as valid" do
+        customer = described_class.import!({email: nil, woo_id: "abc"})
+
+        expect(customer.woo_info.store_id).to eq("abc")
+      end
     end
 
     context "when we receive invalid woo_id" do

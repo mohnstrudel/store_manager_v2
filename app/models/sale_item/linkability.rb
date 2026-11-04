@@ -5,11 +5,11 @@ module SaleItem::Linkability
 
   included do
     scope :active, -> {
-      joins(:sale).where(sales: {status: Sale.active_status_names})
+      joins(:sale).where(sales: {status: Sale::ACTIVE_STATUSES})
     }
 
     scope :completed, -> {
-      joins(:sale).where(sales: {status: Sale.completed_status_names})
+      joins(:sale).where(sales: {status: Sale::COMPLETED_STATUSES})
     }
 
     scope :linkable, -> {

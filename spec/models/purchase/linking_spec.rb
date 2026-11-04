@@ -6,8 +6,8 @@ RSpec.describe Purchase do
   let(:supplier) { create(:supplier) }
   let(:product) { create(:product) }
   let(:variant) { create(:variant, product:) }
-  let(:active_status) { Sale.active_status_names.first }
-  let(:completed_status) { Sale.completed_status_names.first }
+  let(:active_status) { Sale::ACTIVE_STATUSES.first }
+  let(:completed_status) { Sale::COMPLETED_STATUSES.first }
 
   describe "#link_purchase_items" do
     context "when there are no purchased products" do

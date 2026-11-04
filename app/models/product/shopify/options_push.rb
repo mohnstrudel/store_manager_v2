@@ -38,7 +38,7 @@ class Product::Shopify::OptionsPush
 
   def serialize_options(shopify_option_names)
     {size: product.sizes, version: product.versions, color: product.colors}.filter_map do |type, collection|
-      next if collection.none? || (Variant.shopify_types[type] & shopify_option_names).any?
+      next if collection.none? || (Variant::Shopify::OPTION_NAMES[type] & shopify_option_names).any?
 
       serialize_option(collection)
     end

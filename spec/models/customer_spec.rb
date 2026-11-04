@@ -23,28 +23,6 @@ RSpec.describe Customer do
     end
   end
 
-  describe ".woo_id_is_valid?" do
-    it "returns true for numeric woo IDs" do
-      expect(described_class.woo_id_is_valid?("123")).to be true
-    end
-
-    it "returns true for string woo IDs" do
-      expect(described_class.woo_id_is_valid?("abc")).to be true
-    end
-
-    it "returns false for zero" do
-      expect(described_class.woo_id_is_valid?(0)).to be false
-    end
-
-    it "returns false for string zero" do
-      expect(described_class.woo_id_is_valid?("0")).to be false
-    end
-
-    it "returns false for empty string" do
-      expect(described_class.woo_id_is_valid?("")).to be false
-    end
-  end
-
   describe ".for_listing" do
     it "preloads Woo store information for the index table" do
       customer = create(:customer)

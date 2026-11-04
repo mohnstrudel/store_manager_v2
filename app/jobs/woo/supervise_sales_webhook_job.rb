@@ -15,7 +15,7 @@ module Woo
       end
 
       latest_order = latest_orders.find do |order|
-        order[:status].in? Sale.active_status_names
+        order[:status].in? Sale::ACTIVE_STATUSES
       end
 
       unless latest_order
@@ -57,7 +57,7 @@ module Woo
           integration: "woo"
         },
         extra: {
-          active_status_names: Sale.active_status_names,
+          active_status_names: Sale::ACTIVE_STATUSES,
           returned_statuses: statuses,
           orders_checked: latest_orders.size
         }

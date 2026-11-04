@@ -57,7 +57,7 @@ module DashboardDebtReporting
         SUM(qty) AS total_qty
       SQL
       .joins(:sale)
-      .where(sales: {status: Sale.active_status_names})
+      .where(sales: {status: Sale::ACTIVE_STATUSES})
       .group("product_id, variant_id")
   end
 

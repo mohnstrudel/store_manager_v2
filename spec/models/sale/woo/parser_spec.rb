@@ -235,6 +235,18 @@ RSpec.describe Sale::Woo::Parser do
       end
     end
 
+    it "persists not_fully_paid for an on-hold order without a payment date" do
+      on_hold_order = sample_order.merge(status: "on-hold", date_paid: nil)
+
+      expect(described_class.parse(on_hold_order)[:sale][:settlement_status]).to eq("not_fully_paid")
+    end
+
+    it "maps every status in Sale::STATUSES", :aggregate_failures do
+      Sale::STATUSES.each do |status|
+        expect { described_class.parse(sample_order.merge(status:, date_paid: nil)) }.not_to raise_error
+      end
+    end
+
     it "raises for an unmapped Woo status instead of persisting a placeholder" do
       unmapped_order = sample_order.merge(status: "checkout-draft-unknown")
 

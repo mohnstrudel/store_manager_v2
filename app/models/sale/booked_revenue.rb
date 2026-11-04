@@ -4,7 +4,7 @@ module Sale::BookedRevenue
   extend ActiveSupport::Concern
 
   included do
-    scope :uncancelled, -> { where.not(status: cancelled_status_names) }
+    scope :uncancelled, -> { where.not(status: Sale::CANCELLED_STATUSES) }
   end
 
   class_methods do

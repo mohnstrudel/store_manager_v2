@@ -30,7 +30,7 @@ class Sale::Woo::Parser
         shipping_total: convert(order[:shipping_total]),
         status: order[:status],
         total: convert(order[:total]),
-        settlement_status: Sale.settlement_status_from_woo(status: order[:status], date_paid: order[:date_paid]),
+        settlement_status:,
         woo_created_at: parse_woo_datetime(order[:date_created]),
         woo_id: order[:id],
         woo_updated_at: parse_woo_datetime(order[:date_modified]),
@@ -63,6 +63,17 @@ class Sale::Woo::Parser
     return @sale_date if defined?(@sale_date)
 
     @sale_date = (DateTime.parse(order[:date_created]).to_date if order[:date_created].present?)
+  end
+
+  def settlement_status
+    return "not_fully_paid" if order[:status] == PARTIALLY_PAID_STATUS
+
+    case order[:status]
+    when *Sale::STATUSES
+      order[:date_paid].present? ? "paid" : "not_fully_paid"
+    else
+      raise ArgumentError, "Unmapped Woo status: #{order[:status].inspect}"
+    end
   end
 
   def parse_woo_datetime(value)

@@ -3,6 +3,13 @@
 class Product::Woo::Parser
   include Sanitizable
 
+  ATTRIBUTE_NAMES = {
+    version: ["Version", "Variante"],
+    size: ["Size", "Maßstab"],
+    color: ["Color", "Farbe"],
+    brand: ["Brand", "Marke"]
+  }.freeze
+
   attr_reader :woo_product
   private :woo_product
 
@@ -72,13 +79,13 @@ class Product::Woo::Parser
     values = options.map { |i| smart_titleize(sanitize(i)) }
 
     case attr[:name]
-    when *::Variant.types[:version]
+    when *ATTRIBUTE_NAMES[:version]
       {versions: values}
-    when *::Variant.types[:size]
+    when *ATTRIBUTE_NAMES[:size]
       {sizes: values}
-    when *::Variant.types[:color]
+    when *ATTRIBUTE_NAMES[:color]
       {colors: values}
-    when *::Variant.types[:brand]
+    when *ATTRIBUTE_NAMES[:brand]
       {brands: values}
     else
       {}

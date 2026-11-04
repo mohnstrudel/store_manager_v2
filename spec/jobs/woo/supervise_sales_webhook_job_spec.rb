@@ -8,7 +8,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
   }
   let(:client) { instance_double(Woo::Api::Client) }
   let(:sale) {
-    create(:sale, woo_store_id: "123", status: Sale.active_status_names.first)
+    create(:sale, woo_store_id: "123", status: Sale::ACTIVE_STATUSES.first)
   }
 
   before do
@@ -80,7 +80,7 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
       level: :warning,
       tags: {job: "Woo::SuperviseSalesWebhookJob", integration: "woo"},
       extra: {
-        active_status_names: Sale.active_status_names,
+        active_status_names: Sale::ACTIVE_STATUSES,
         returned_statuses: ["cancelled"],
         orders_checked: 1
       }

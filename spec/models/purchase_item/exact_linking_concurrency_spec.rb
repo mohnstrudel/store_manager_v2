@@ -15,7 +15,7 @@ RSpec.describe PurchaseItem::Linking, ".link_exact!" do
     it "records one intent when two sessions link the same purchase item to the same sale item" do
       product = create(:product)
       purchase_item = create(:purchase_item, purchase: create(:purchase, product:))
-      sale_item = create(:sale_item, sale: create(:sale, status: Sale.active_status_names.first), product:, variant: product.base_variant)
+      sale_item = create(:sale_item, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first), product:, variant: product.base_variant)
       linked = Queue.new
       release_link = Queue.new
       second_pid = Queue.new

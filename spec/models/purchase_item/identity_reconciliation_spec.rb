@@ -6,7 +6,7 @@ RSpec.describe "PurchaseItem identity reconciliation" do
   let(:product) { create(:product) }
   let(:variant_a) { create(:variant, :with_version, product:, version_value: "A") }
   let(:variant_b) { create(:variant, :with_version, product:, version_value: "B") }
-  let(:active_sale) { create(:sale, status: Sale.active_status_names.first) }
+  let(:active_sale) { create(:sale, status: Sale::ACTIVE_STATUSES.first) }
 
   before do
     variant_a

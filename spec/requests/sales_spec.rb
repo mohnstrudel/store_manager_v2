@@ -652,7 +652,7 @@ RSpec.describe "Sales" do
       expect(inertia.props[:sale][:sale_items]).to eq([])
       expect(inertia.props[:options][:customers].pluck(:value)).to include(customer.id)
       expect(inertia.props[:options][:products].pluck(:value)).to include(product.id)
-      expect(inertia.props[:options][:status_names]).to eq(Sale.status_names)
+      expect(inertia.props[:options][:status_names]).to eq(Sale::STATUSES)
     end
   end
 
@@ -687,7 +687,7 @@ RSpec.describe "Sales" do
       expect(inertia.props[:sale][:sale_items].first[:variant_availability]).to include(
         mode: "base"
       )
-      expect(inertia.props[:options][:status_names]).to eq(Sale.status_names)
+      expect(inertia.props[:options][:status_names]).to eq(Sale::STATUSES)
     end
   end
 

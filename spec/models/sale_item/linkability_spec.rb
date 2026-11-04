@@ -5,8 +5,8 @@ require "rails_helper"
 # rubocop:todo RSpec/MultipleExpectations
 RSpec.describe SaleItem::Linkability do
   describe ".active" do
-    let!(:active_sale_item) { create(:sale_item, sale: create(:sale, status: Sale.active_status_names.first)) }
-    let!(:completed_sale_item) { create(:sale_item, sale: create(:sale, status: Sale.completed_status_names.first)) }
+    let!(:active_sale_item) { create(:sale_item, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first)) }
+    let!(:completed_sale_item) { create(:sale_item, sale: create(:sale, status: Sale::COMPLETED_STATUSES.first)) }
 
     it "returns sale items from active sales" do
       expect(SaleItem.active).to include(active_sale_item)
@@ -15,8 +15,8 @@ RSpec.describe SaleItem::Linkability do
   end
 
   describe ".completed" do
-    let!(:active_sale_item) { create(:sale_item, sale: create(:sale, status: Sale.active_status_names.first)) }
-    let!(:completed_sale_item) { create(:sale_item, sale: create(:sale, status: Sale.completed_status_names.first)) }
+    let!(:active_sale_item) { create(:sale_item, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first)) }
+    let!(:completed_sale_item) { create(:sale_item, sale: create(:sale, status: Sale::COMPLETED_STATUSES.first)) }
 
     it "returns sale items from completed sales" do
       expect(SaleItem.completed).to include(completed_sale_item)
@@ -42,13 +42,13 @@ RSpec.describe SaleItem::Linkability do
     let(:purchase_with_base) { create(:purchase, product: base_product, variant: nil, amount: 2) }
 
     let!(:matching_variant_item) do
-      create(:sale_item, product: variant_product, variant:, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
+      create(:sale_item, product: variant_product, variant:, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first))
     end
     let!(:matching_base_item) do
-      create(:sale_item, product: base_product, variant: nil, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
+      create(:sale_item, product: base_product, variant: nil, qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first))
     end
     let!(:wrong_variant_item) do
-      create(:sale_item, product: variant_product, variant: create(:variant, product: variant_product), qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale.active_status_names.first))
+      create(:sale_item, product: variant_product, variant: create(:variant, product: variant_product), qty: 3, purchase_items_count: 0, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first))
     end
 
     it "filters by variant when purchase has a variant" do
@@ -66,13 +66,13 @@ RSpec.describe SaleItem::Linkability do
     let(:product) { create(:product) }
     let(:other_product) { create(:product) }
     let!(:purchase_item) { create(:purchase_item, purchase: create(:purchase, product:)) }
-    let!(:same_product_active) { create(:sale_item, product:, sale: create(:sale, status: Sale.active_status_names.first)) }
-    let!(:same_product_cancelled) { create(:sale_item, product:, sale: create(:sale, status: Sale.cancelled_status_names.first)) }
-    let!(:other_product_item) { create(:sale_item, product: other_product, sale: create(:sale, status: Sale.active_status_names.first)) }
-    let!(:fully_linked_item) { create(:sale_item, product:, qty: 1, purchase_items_count: 1, sale: create(:sale, status: Sale.active_status_names.first)) }
+    let!(:same_product_active) { create(:sale_item, product:, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first)) }
+    let!(:same_product_cancelled) { create(:sale_item, product:, sale: create(:sale, status: Sale::CANCELLED_STATUSES.first)) }
+    let!(:other_product_item) { create(:sale_item, product: other_product, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first)) }
+    let!(:fully_linked_item) { create(:sale_item, product:, qty: 1, purchase_items_count: 1, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first)) }
     let!(:wrong_variant_item) do
       variant = create(:variant, :with_version, product:)
-      create(:sale_item, product:, variant:, sale: create(:sale, status: Sale.active_status_names.first))
+      create(:sale_item, product:, variant:, sale: create(:sale, status: Sale::ACTIVE_STATUSES.first))
     end
 
     it "returns linkable sale items for the same product regardless of status" do

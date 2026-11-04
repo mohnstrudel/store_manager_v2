@@ -3,98 +3,65 @@
 module Sale::Statuses
   extend ActiveSupport::Concern
 
+  ACTIVE_STATUSES = [
+    "partially-paid",
+    "po_fully_paid",
+    "pre-ordered",
+    "processing",
+    "ready-to-fullfill",
+    "im-zulauf",
+    "container-shipped"
+  ].freeze
+
+  COMPLETED_STATUSES = ["completed", "updated-tracking"].freeze
+
+  CANCELLED_STATUSES = ["cancelled", "failed"].freeze
+
+  STATUSES = [
+    "auto-draft",
+    "cancelled",
+    "checkout-draft",
+    "completed",
+    "container-shipped",
+    "failed",
+    "im-zulauf",
+    "on-hold",
+    "partial-shipped",
+    "partially-paid",
+    "pending",
+    "po_fully_paid",
+    "pre-ordered",
+    "processing",
+    "ready-to-fullfill",
+    "refunded",
+    "trash",
+    "updated-tracking"
+  ].freeze
+
   included do
     scope :except_cancelled_or_completed, -> {
-      where.not(status: cancelled_status_names + completed_status_names)
+      where.not(status: CANCELLED_STATUSES + COMPLETED_STATUSES)
     }
 
     scope :active, -> {
-      where(status: active_status_names)
+      where(status: ACTIVE_STATUSES)
     }
 
     scope :completed, -> {
-      where(status: completed_status_names)
+      where(status: COMPLETED_STATUSES)
     }
   end
 
-  class_methods do
-    def active_status_names
-      [
-        "partially-paid",
-        "po_fully_paid",
-        "pre-ordered",
-        "processing",
-        "ready-to-fullfill",
-        "im-zulauf",
-        "container-shipped"
-      ].freeze
-    end
-
-    def completed_status_names
-      ["completed", "updated-tracking"].freeze
-    end
-
-    def cancelled_status_names
-      ["cancelled", "failed"].freeze
-    end
-
-    def status_names
-      [
-        "auto-draft",
-        "cancelled",
-        "checkout-draft",
-        "completed",
-        "container-shipped",
-        "failed",
-        "im-zulauf",
-        "on-hold",
-        "partial-shipped",
-        "partially-paid",
-        "pending",
-        "po_fully_paid",
-        "pre-ordered",
-        "processing",
-        "ready-to-fullfill",
-        "refunded",
-        "trash",
-        "updated-tracking"
-      ].freeze
-    end
-
-    def inactive_status_names
-      status_names - active_status_names - completed_status_names
-    end
-
-    def derive_status_from_shopify(fulfillment_status, financial_status)
-      case [fulfillment_status, financial_status]
-      when ["FULFILLED", "PAID"]
-        "completed"
-      when ["UNFULFILLED", "PAID"]
-        "pre-ordered"
-      when ["UNFULFILLED", "PENDING"]
-        "processing"
-      when ["UNFULFILLED", "PARTIALLY_PAID"]
-        "partially-paid"
-      when ["FULFILLED", "REFUNDED"]
-        "refunded"
-      when ["UNFULFILLED", "REFUNDED"]
-        "cancelled"
-      else
-        "processing"
-      end
-    end
-  end
-
   def active?
-    self.class.active_status_names.include?(status)
+    ACTIVE_STATUSES.include?(status)
   end
 
   def completed?
-    self.class.completed_status_names.include?(status)
+    COMPLETED_STATUSES.include?(status)
   end
 
   def cancelled?
-    self.class.cancelled_status_names.include?(status)
+    CANCELLED_STATUSES.include?(status)
   end
 
   def item_tracking_payload
