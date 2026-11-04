@@ -13,7 +13,7 @@ class PurchaseItemsController < ApplicationController
       .page(params[:page])
     @purchase_items = @purchase_items.search(params[:q]) if params[:q].present?
 
-    return unless stale?(etag: [@purchase_items, request.inertia?], last_modified: @purchase_items.maximum(:updated_at))
+    return unless stale?(etag: [@purchase_items], last_modified: @purchase_items.maximum(:updated_at))
 
     render_inertia "PurchaseItems/Index", serializer: PurchaseItems::IndexResource,
       locals: {purchase_items: @purchase_items, query: params[:q].to_s}

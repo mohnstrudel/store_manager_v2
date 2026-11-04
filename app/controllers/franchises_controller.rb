@@ -6,7 +6,7 @@ class FranchisesController < ApplicationController
   def index
     @franchises = Franchise.order(:title)
 
-    return unless stale?(etag: [@franchises, request.inertia?], last_modified: @franchises.maximum(:updated_at))
+    return unless stale?(etag: [@franchises], last_modified: @franchises.maximum(:updated_at))
 
     render_inertia "Franchises/Index", serializer: Franchises::IndexResource, locals: {franchises: @franchises}
   end

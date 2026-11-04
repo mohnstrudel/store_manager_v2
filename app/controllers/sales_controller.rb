@@ -119,7 +119,7 @@ class SalesController < ApplicationController
 
   def index_etag(criteria, catalog, can_tag_sales)
     [
-      @sales, request.inertia?, criteria, @sales.current_page, @sales.total_count,
+      @sales, criteria, @sales.current_page, @sales.total_count,
       @sales.map { |sale| [sale.id, sale.sales_tags.map(&:id).sort] },
       catalog.map { |tag| [tag.id, tag.name, tag.color, tag.updated_at.to_fs(:usec)] },
       can_tag_sales, current_user.role

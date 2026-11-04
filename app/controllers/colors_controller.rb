@@ -6,7 +6,7 @@ class ColorsController < ApplicationController
   def index
     @colors = Color.order(:value)
 
-    return unless stale?(etag: [@colors, request.inertia?], last_modified: @colors.maximum(:updated_at))
+    return unless stale?(etag: [@colors], last_modified: @colors.maximum(:updated_at))
 
     render_inertia "Colors/Index", serializer: Colors::IndexResource, locals: {colors: @colors}
   end

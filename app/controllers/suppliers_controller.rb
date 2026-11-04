@@ -6,7 +6,7 @@ class SuppliersController < ApplicationController
   def index
     @suppliers = Supplier.order(:title)
 
-    return unless stale?(etag: [@suppliers, request.inertia?], last_modified: @suppliers.maximum(:updated_at))
+    return unless stale?(etag: [@suppliers], last_modified: @suppliers.maximum(:updated_at))
 
     render_inertia "Suppliers/Index", serializer: Suppliers::IndexResource, locals: {suppliers: @suppliers}
   end

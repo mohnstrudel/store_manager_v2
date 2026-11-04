@@ -7,7 +7,7 @@ class UsersController < ApplicationController
   def index
     @users = User.all
 
-    return unless stale?(etag: [@users, request.inertia?], last_modified: @users.maximum(:updated_at))
+    return unless stale?(etag: [@users], last_modified: @users.maximum(:updated_at))
 
     render_inertia "Users/Index", serializer: Users::IndexResource, locals: {users: @users}
   end

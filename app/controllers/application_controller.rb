@@ -5,6 +5,8 @@ class ApplicationController < ActionController::Base
   include Authorization
   include Alba::Inertia::Controller
 
+  etag { inertia_configuration.version }
+
   inertia_share do
     SharedPropsResource.new({
       breadcrumb: helpers.breadcrumb_title,

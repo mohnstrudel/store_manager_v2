@@ -8,7 +8,7 @@ class WarehousesController < ApplicationController
   def index
     @warehouses = Warehouse.with_purchases_and_items.order(:position)
 
-    return unless stale?(etag: [@warehouses, request.inertia?], last_modified: @warehouses.maximum(:updated_at))
+    return unless stale?(etag: [@warehouses], last_modified: @warehouses.maximum(:updated_at))
 
     render_inertia "Warehouses/Index", serializer: Warehouses::IndexResource, locals: {warehouses: @warehouses}
   end

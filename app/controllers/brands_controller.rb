@@ -6,7 +6,7 @@ class BrandsController < ApplicationController
   def index
     @brands = Brand.order(:title)
 
-    return unless stale?(etag: [@brands, request.inertia?], last_modified: @brands.maximum(:updated_at))
+    return unless stale?(etag: [@brands], last_modified: @brands.maximum(:updated_at))
 
     render_inertia "Brands/Index", serializer: Brands::IndexResource, locals: {brands: @brands}
   end

@@ -7,7 +7,7 @@ class ExpenseRatesController < ApplicationController
     @expense_rates = ExpenseRate.ordered
     last_modified = @expense_rates.maximum(:updated_at)
 
-    return unless stale?(etag: [@expense_rates, request.inertia?, ViteRuby.digest], last_modified:)
+    return unless stale?(etag: [@expense_rates], last_modified:)
 
     render_inertia "ExpenseRates/Index", serializer: ExpenseRates::IndexResource, locals: {expense_rates: @expense_rates}
   end

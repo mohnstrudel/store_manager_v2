@@ -11,7 +11,7 @@ class PurchasesController < ApplicationController
     @purchases = @purchases.search(params[:q]) if params[:q].present?
     @warehouses = Warehouse.order(name: :asc)
 
-    return unless stale?(etag: [@purchases, @warehouses, request.inertia?], last_modified: @purchases.maximum(:updated_at))
+    return unless stale?(etag: [@purchases, @warehouses], last_modified: @purchases.maximum(:updated_at))
 
     render_inertia "Purchases/Index", serializer: Purchases::IndexResource,
       locals: {purchases: @purchases, query: params[:q].to_s, warehouses: @warehouses}

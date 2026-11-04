@@ -6,7 +6,7 @@ class VersionsController < ApplicationController
   def index
     @versions = Version.order(:value)
 
-    return unless stale?(etag: [@versions, request.inertia?], last_modified: @versions.maximum(:updated_at))
+    return unless stale?(etag: [@versions], last_modified: @versions.maximum(:updated_at))
 
     render_inertia "Versions/Index", serializer: Versions::IndexResource, locals: {versions: @versions}
   end

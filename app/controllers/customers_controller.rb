@@ -8,7 +8,7 @@ class CustomersController < ApplicationController
     @customers = @customers.search(params[:q]) if params[:q].present?
     @customers = @customers.with_woo_info.page(params[:page])
 
-    return unless stale?(etag: [@customers, request.inertia?], last_modified: @customers.maximum(:updated_at))
+    return unless stale?(etag: [@customers], last_modified: @customers.maximum(:updated_at))
 
     render_inertia "Customers/Index", serializer: Customers::IndexResource,
       locals: {customers: @customers, query: params[:q].to_s}

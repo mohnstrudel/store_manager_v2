@@ -7,7 +7,7 @@ class ProductsController < ApplicationController
   def index
     @products = Product.listed.search_by(params[:q]).page(params[:page])
 
-    return unless stale?(etag: [@products, request.inertia?], last_modified: @products.maximum(:updated_at))
+    return unless stale?(etag: [@products], last_modified: @products.maximum(:updated_at))
 
     render_inertia "Products/Index", serializer: Products::IndexResource,
       locals: {products: @products, query: params[:q]}

@@ -6,7 +6,7 @@ class SizesController < ApplicationController
   def index
     @sizes = Size.order(:value)
 
-    return unless stale?(etag: [@sizes, request.inertia?], last_modified: @sizes.maximum(:updated_at))
+    return unless stale?(etag: [@sizes], last_modified: @sizes.maximum(:updated_at))
 
     render_inertia "Sizes/Index", serializer: Sizes::IndexResource, locals: {sizes: @sizes}
   end

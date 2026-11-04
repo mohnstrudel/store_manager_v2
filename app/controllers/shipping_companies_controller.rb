@@ -6,7 +6,7 @@ class ShippingCompaniesController < ApplicationController
   def index
     @shipping_companies = ShippingCompany.order(:name)
 
-    return unless stale?(etag: [@shipping_companies, request.inertia?], last_modified: @shipping_companies.maximum(:updated_at))
+    return unless stale?(etag: [@shipping_companies], last_modified: @shipping_companies.maximum(:updated_at))
 
     render_inertia "ShippingCompanies/Index", serializer: ShippingCompanies::IndexResource,
       locals: {shipping_companies: @shipping_companies}
