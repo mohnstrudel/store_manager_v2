@@ -11,7 +11,7 @@ module Warehouse::Editing
       assign_attributes(form_attributes(attributes))
       validate_default_warehouse_choice!
       save!
-      add_new_media_from_form!(new_media_images)
+      add_media!(new_media_images)
       sync_transitions!(transition_ids_for(attributes))
     end
   end
@@ -25,8 +25,8 @@ module Warehouse::Editing
         assign_attributes(form_attributes(attributes))
         validate_default_warehouse_choice!
         save!
-        update_media_from_form!(media_attributes)
-        add_new_media_from_form!(new_media_images)
+        update_media!(media_attributes)
+        add_media!(new_media_images)
         sync_transitions!(transition_ids)
         WAREHOUSE_UPDATED
       end

@@ -7,15 +7,15 @@ module PurchaseItem::Editing
     transaction do
       assign_attributes(attributes)
       save!
-      add_new_media_from_form!(new_media_images)
+      add_media!(new_media_images)
     end
   end
 
   def apply_form_changes!(attributes:, media_attributes:, new_media_images:)
     transaction do
       update!(attributes)
-      update_media_from_form!(media_attributes)
-      add_new_media_from_form!(new_media_images)
+      update_media!(media_attributes)
+      add_media!(new_media_images)
     end
   end
 end

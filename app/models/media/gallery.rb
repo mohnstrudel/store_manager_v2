@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-module Media::FormHandling
+module Media::Gallery
   extend ActiveSupport::Concern
 
-  def add_new_media_from_form!(new_images)
-    return if new_images.blank?
+  def add_media!(images)
+    return if images.blank?
 
     base_position = media.maximum(:position)&.next || 0
 
-    new_images.each_with_index do |image, index|
+    images.each_with_index do |image, index|
       attachable = resolve_attachable(image)
       next unless attachable
 
@@ -19,21 +19,14 @@ module Media::FormHandling
     end
   end
 
-  def update_media_from_form!(media_attributes)
+  def update_media!(media_attributes)
     return if media_attributes.blank?
 
     existing_media = media.where(id: media_attributes.filter_map { |attrs| attrs[:id].presence }).index_by { |item| item.id.to_s }
 
     media_attributes.each do |attrs|
       if attrs[:id].blank?
-        attachable = resolve_attachable(attrs[:image])
-        next unless attachable
-
-        media.create!(
-          image: attachable,
-          position: attrs[:position].to_i,
-          alt: attrs[:alt].to_s
-        )
+        insert_media!(attrs)
         next
       end
 
@@ -46,14 +39,7 @@ module Media::FormHandling
         next
       end
 
-      attachable = resolve_attachable(attrs[:image])
-      media_item.image.attach(attachable) if attachable
-
-      updates = attrs.slice(:position, :alt)
-        .compact_blank
-        .transform_keys(&:to_sym)
-
-      media_item.update!(updates) if updates.any?
+      revise_media_item!(media_item, attrs)
     end
   end
 
@@ -75,7 +61,33 @@ module Media::FormHandling
       value.respond_to?(:tempfile)
   end
 
+  def insert_media!(attrs)
+    attachable = resolve_attachable(attrs[:image])
+    return unless attachable
+
+    media.create!(
+      image: attachable,
+      position: attrs[:position].to_i,
+      alt: attrs[:alt].to_s
+    )
+  end
+
   def truthy?(value)
     ActiveModel::Type::Boolean.new.cast(value)
+  end
+
+  def revise_media_item!(media_item, attrs)
+    replace_media_image(media_item, attrs[:image])
+
+    updates = attrs.slice(:position, :alt)
+      .compact_blank
+      .transform_keys(&:to_sym)
+
+    media_item.update!(updates) if updates.any?
+  end
+
+  def replace_media_image(media_item, image)
+    attachable = resolve_attachable(image)
+    media_item.image.attach(attachable) if attachable
   end
 end

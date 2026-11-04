@@ -32,7 +32,7 @@ module Product::Editing
       save!
       store_infos.each { |store_info| save_store_info(store_info) }
       variants.each { |variant| save_variant(variant) }
-      update_media_from_form!(media_attributes)
+      update_media!(media_attributes)
       save_initial_purchase!(
         draft_variants:,
         variant_client_key: purchase_variant_client_key
