@@ -886,6 +886,17 @@ describe("Sales/Index", () => {
       expect(within(dialog).getByRole("checkbox", { name: "Rush" })).not.toBeChecked();
     });
 
+    it("keeps the saved badges in the cell while the dialog edits a draft", async () => {
+      const user = userEvent.setup();
+      const { container } = renderTagged([vip]);
+
+      await openEditor(user);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
+
+      const badges = Array.from(container.querySelectorAll(".inline_cell_display .sales_tag"));
+      expect(badges.map((badge) => badge.textContent)).toEqual(["VIP"]);
+    });
+
     it("titles the dialog Add tags for an untagged sale", async () => {
       const user = userEvent.setup();
       renderTagged([]);

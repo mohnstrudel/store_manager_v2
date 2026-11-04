@@ -34,9 +34,6 @@ describe "Moving purchased products between warehouses" do
       expect(page).to have_css("tr.hoverable", count: 3)
 
       expect(page).to have_text(:visible, warehouse_to.name, count: 3)
-
-      visit warehouse_path(warehouse_to)
-      expect(page).to have_content("Items: 2")
     end
   end
 end

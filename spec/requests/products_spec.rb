@@ -719,6 +719,21 @@ RSpec.describe "Products" do
       expect(variant.reload.sku).to eq("NEW-SKU-123")
     end
 
+    it "routes a duplicate SKU error to that variant's field and keeps the stored SKU", :aggregate_failures do
+      variant = product.variants.first
+      create(:product).variants.first.update!(sku: "DUPLICATE-SKU")
+
+      patch product_path(product), params: {
+        product: {title: product.title, franchise_id: product.franchise_id, shape: product.shape},
+        variants: {"0" => {id: variant.id, sku: "DUPLICATE-SKU"}}
+      }
+
+      expect(response).to redirect_to(edit_product_path(product))
+      follow_redirect!
+      expect(inertia.props[:errors]).to include("variants.0.sku" => "has already been taken")
+      expect(variant.reload.sku).not_to eq("DUPLICATE-SKU")
+    end
+
     it "updates product editing with nested variants and store infos in the submitted form shape" do
       variant = product.variants.first
       shopify_info = product.store_infos.shopify.first

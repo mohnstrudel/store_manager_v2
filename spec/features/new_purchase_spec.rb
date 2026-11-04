@@ -10,12 +10,19 @@ RSpec.describe "Creating a new purchase" do
   let!(:warehouse) { create(:warehouse, is_default: true) }
 
   # rubocop:todo RSpec/MultipleExpectations
-  scenario "creates purchased products in the default warehouse with an initial payment, then adds a payment", :js do
+  scenario "rejects an empty purchase, then creates purchased products in the default warehouse with an initial payment and adds a payment", :js do
     # rubocop:enable RSpec/MultipleExpectations
     visit new_purchase_path
 
+    click_button "Create Purchase"
+
+    expect(page).to have_content("Fix errors and try again")
+    expect(page).to have_css("#purchase_product_id_error", text: "can't be blank")
+    expect(Purchase.count).to eq(0)
+
     choose_react_select(supplier.title, from: "Supplier")
     choose_react_select(product.build_full_title_with_shop_id, from: "Product")
+    expect(find("input[name='purchase[product_id]']", visible: false).value).to eq(product.id.to_s)
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
     fill_in "What did you pay in total?", with: "50"
@@ -47,19 +54,5 @@ RSpec.describe "Creating a new purchase" do
     expect(purchase.payments.count).to eq(2)
     expect(added_payment.value).to eq(BigDecimal(20))
     expect(added_payment.payment_date.to_date).to eq(Date.new(2026, 3, 29))
-  end
-
-  scenario "keeps the product react select working after an invalid submit", :js do # rubocop:todo RSpec/MultipleExpectations
-    visit new_purchase_path
-
-    click_button "Create Purchase"
-
-    expect(page).to have_content("Fix errors and try again")
-    expect(page).to have_css("#purchase_product_id_error", text: "can't be blank")
-    expect(Purchase.count).to eq(0)
-
-    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
-
-    expect(find("input[name='purchase[product_id]']", visible: false).value).to eq(product.id.to_s)
   end
 end

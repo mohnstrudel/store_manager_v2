@@ -93,6 +93,11 @@ RSpec.describe "Creating a product with a purchase" do
     expect(page).to have_content("Fix errors and try again")
     expect(Product.count).to eq(0)
     expect(page).to have_content("Purchase Supplier")
+    within ".purchase-fields" do
+      expect(page).to have_content("Supplier")
+      expect(page).to have_content("can't be blank")
+    end
+    expect(page).to have_css(".purchase-fields .field_with_errors .text_error.absolute", visible: :all)
     expect(find_field("purchase[item_price]").value).to eq("15")
     expect(find_field("purchase[amount]").value).to eq("2")
     expect(find_field("purchase[payment_value]").value).to eq("30")

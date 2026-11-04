@@ -241,6 +241,22 @@ describe("Sales/Show", () => {
       expect(screen.getByRole("button", { name: "Edit tags" })).toBeInTheDocument();
     });
 
+    it("opens from the keyboard onto the filter, and Tab then Space toggles the first tag", async () => {
+      const user = userEvent.setup();
+      renderShow({ tags: [] });
+      screen.getByRole("button", { name: "Add tags" }).focus();
+
+      await user.keyboard("{Enter}");
+      const dialog = await screen.findByRole("dialog");
+
+      expect(within(dialog).getByRole("searchbox", { name: "Filter tags" })).toHaveFocus();
+      await user.tab();
+      expect(within(dialog).getByRole("checkbox", { name: "Wholesale" })).toHaveFocus();
+      await user.keyboard(" ");
+      expect(within(dialog).getByRole("checkbox", { name: "Wholesale" })).toBeChecked();
+      expect(router.patch).not.toHaveBeenCalled();
+    });
+
     it("gives each palette color its own line, alphabetical within it", async () => {
       const user = userEvent.setup();
       const apple: SalesTagRecord = { id: 11, name: "apple", color: "green" };

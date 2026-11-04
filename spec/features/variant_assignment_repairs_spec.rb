@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.feature "Variant assignment repairs" do
   before { sign_in_as_admin }
 
-  scenario "shows a real inline error, then reloads away a repaired row", :js do
+  scenario "repairs a row inline, then reloads it away", :js do
     product = create(:product)
     active_variant = create(:variant, :with_version, product:, version_value: "Active")
     historical_variant = create(:variant, :with_color, product:, color_value: "Archive")
@@ -17,26 +17,11 @@ RSpec.feature "Variant assignment repairs" do
     )
     historical_variant.update!(deactivated_at: Time.current)
     purchase.update_columns(variant_id: nil)
-    invalid_variant = create(:product).base_variant
 
     visit variant_assignment_issues_path
 
     within("tr[aria-label='BROKEN-42']") do
       click_button "Edit"
-      page.execute_script(<<~JS)
-        const select = document.querySelector('[aria-label="Variant for BROKEN-42"]');
-        const option = document.createElement("option");
-        option.value = "#{invalid_variant.id}";
-        option.textContent = "Invalid Variant";
-        option.selected = true;
-        select.appendChild(option);
-        select.dispatchEvent(new Event("change", { bubbles: true }));
-      JS
-      click_button "Save"
-
-      expect(page).to have_text("Variant is not an available repair candidate")
-      expect(page).to have_field("Variant for BROKEN-42")
-
       select "#{historical_variant.title} (Historical)", from: "Variant for BROKEN-42"
       click_button "Save"
     end

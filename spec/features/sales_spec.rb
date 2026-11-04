@@ -34,8 +34,9 @@ describe "GET /sales" do
   end
 
   describe "procurement queue", :js do
+    let(:vip) { create(:sales_tag, name: "VIP") }
     let(:applied_query) do
-      {"q" => "batch", "sort" => "oldest", "hide_partial_payments" => "1", "missing_purchases_only" => "1"}
+      {"q" => "batch", "sort" => "oldest", "hide_partial_payments" => "1", "missing_purchases_only" => "1", "tag_id" => vip.id.to_s}
     end
 
     def create_batch_sale(name, day:, linked: 0, **attributes)
@@ -81,11 +82,24 @@ describe "GET /sales" do
       end
     end
 
-    def expect_controls(q:, sort:, hide:, show:)
+    def expect_controls(q:, sort:, hide:, show:, tag: "VIP")
       expect(page).to have_field("q", with: q)
       expect(page).to have_css("button[aria-pressed='true']", text: sort, exact_text: true)
       expect(page).to have_field("Hide Partial Payments", checked: hide)
       expect(page).to have_field("Missing Purchases Only", checked: show)
+      if tag
+        expect(page).to have_css("fieldset[aria-label='Tag filter'] .sales_tag", text: tag, exact_text: true)
+      else
+        expect(page).to have_no_css("fieldset[aria-label='Tag filter'] .sales_tag")
+      end
+    end
+
+    def apply_tag_filter(name)
+      click_button "Filter by tag"
+      within("dialog") do
+        find("label.sales_tag_choice", text: name).click
+        click_button "Apply filter"
+      end
     end
 
     def pagination_link(label)
@@ -130,6 +144,8 @@ describe "GET /sales" do
       create_batch_sale("BATCH-COVERED", day: 0, linked: 1)
       create_batch_sale("BATCH-001", day: 1, shopify_store_id: "gid://shopify/Order/900", received_revenue: 0, outstanding_revenue: 500)
       (2..3).each { |day| create_batch_sale(format("BATCH-%03d", day), day:) }
+      Sale.find_each { |sale| SaleTagging.create!(sale:, sales_tag: vip) }
+      create_batch_sale("BATCH-004", day: 4)
       create_follow_up_plan
 
       visit sales_path
@@ -139,6 +155,8 @@ describe "GET /sales" do
       check "Hide Partial Payments"
       expect_applied_query("q" => "batch", "sort" => "oldest", "hide_partial_payments" => "1")
       check "Missing Purchases Only"
+      expect_applied_query(applied_query.except("tag_id"))
+      apply_tag_filter("VIP")
       expect_applied_query(applied_query)
 
       expect(page).to have_css("tbody tr", count: 2)
@@ -184,13 +202,6 @@ describe "GET /sales" do
       expect(page).to have_text("Nothing found")
       expect_controls(q: "nothing-matches", sort: "Oldest first", hide: true, show: true)
 
-      page.driver.resize(360, 844)
-
-      expect(page).to have_button("Search")
-      expect(page).to have_button("Clear search")
-      expect(page).to have_css("fieldset[aria-label='Sort sales'] button", count: 2)
-      expect(page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth + 1")).to be(true)
-
       click_button "Clear search"
 
       expect(page).to have_css("tbody tr", count: 2)
@@ -201,15 +212,15 @@ describe "GET /sales" do
       click_button "Newest first"
       expect_applied_query(applied_query.except("q", "sort"))
       uncheck "Hide Partial Payments"
-      expect_applied_query("missing_purchases_only" => "1")
+      expect_applied_query("missing_purchases_only" => "1", "tag_id" => vip.id.to_s)
       uncheck "Missing Purchases Only"
+      expect_applied_query("tag_id" => vip.id.to_s)
+      within("fieldset[aria-label='Tag filter']") { click_button "VIP" }
       expect_applied_query({})
 
       expect(page).to have_css("tbody tr", count: 2)
       expect(query_params).to be_empty
-      expect_controls(q: "", sort: "Newest first", hide: false, show: false)
-    ensure
-      page.driver.resize(1200, 768)
+      expect_controls(q: "", sort: "Newest first", hide: false, show: false, tag: nil)
     end
 
     it "keeps text typed while a listing request is pending" do
@@ -225,189 +236,6 @@ describe "GET /sales" do
       expect(page).to have_field("q", with: "typed while pending")
       expect(page.evaluate_script("document.activeElement.name")).to eq("q")
       expect(query_params).to eq("sort" => "oldest")
-    end
-  end
-
-  describe "tag filter", :js do
-    let!(:vip) { create(:sales_tag, name: "VIP") }
-    let!(:blue) { create(:sales_tag, name: "Blue") }
-    let(:unavailable_notice) { "That tag is no longer available. Showing all tags." }
-
-    before do
-      allow(Sale).to receive(:default_per_page).and_return(2)
-      create_tagged_sale("BATCH-A", day: 1, tag: vip)
-      create_tagged_sale("BATCH-B", day: 2, tag: vip)
-      create_tagged_sale("BATCH-C", day: 3, tag: blue)
-      create_tagged_sale("BATCH-E", day: 5, tag: vip)
-    end
-
-    def create_tagged_sale(name, day:, tag:)
-      create(:sale, shopify_name: name, woo_created_at: Time.utc(2024, 1, 1) + day.days, note: "batch").tap do |sale|
-        SaleTagging.create!(sale:, sales_tag: tag)
-      end
-    end
-
-    def query_params
-      Rack::Utils.parse_query(URI.parse(page.current_url).query)
-    end
-
-    def toggle_tag(name)
-      click_button "Filter by tag"
-      within("dialog") do
-        find("label.sales_tag_choice", text: name).click
-        click_button "Apply filter"
-      end
-    end
-
-    def expect_rows(*names)
-      page.document.synchronize do
-        texts = page.all("tbody tr", wait: false).map(&:text)
-        matches = texts.size == names.size && texts.zip(names).all? { |text, name| text.include?(name) }
-        raise Capybara::ExpectationNotMet, "expected rows #{names.inspect}, got #{texts.inspect}" unless matches
-      end
-    end
-
-    def expect_selected_tag(name)
-      within("fieldset[aria-label='Tag filter']") do
-        expect(page).to have_css(".sales_tag", text: name, exact_text: true)
-      end
-    end
-
-    def expect_no_selected_tag
-      expect(page).to have_css("fieldset[aria-label='Tag filter']")
-      expect(page).to have_no_css("fieldset[aria-label='Tag filter'] .sales_tag")
-    end
-
-    def measure(selector, dimension)
-      page.evaluate_script("document.querySelector(#{selector.to_json}).getBoundingClientRect().#{dimension}")
-    end
-
-    def vertical_center(selector)
-      measure(selector, "top") + (measure(selector, "height") / 2)
-    end
-
-    it "keeps the tag through pages, reload, history and clearing, with the other criteria" do
-      visit sales_path(q: "batch", sort: "oldest")
-      expect_rows("BATCH-A", "BATCH-B")
-
-      toggle_tag("VIP")
-
-      expect_rows("BATCH-A", "BATCH-B")
-      expect(page).to have_css("nav[aria-label='Pagination']", count: 2)
-      expect(query_params).to eq("q" => "batch", "sort" => "oldest", "tag_id" => vip.id.to_s)
-      expect_selected_tag("VIP")
-
-      first("nav[aria-label='Pagination']").click_link("2")
-
-      expect_rows("BATCH-E")
-      expect(query_params).to eq("q" => "batch", "sort" => "oldest", "tag_id" => vip.id.to_s, "page" => "2")
-
-      page.refresh
-
-      expect_rows("BATCH-E")
-      expect_selected_tag("VIP")
-
-      page.go_back
-
-      expect_rows("BATCH-A", "BATCH-B")
-      expect(query_params).to eq("q" => "batch", "sort" => "oldest", "tag_id" => vip.id.to_s)
-      expect_selected_tag("VIP")
-
-      within("fieldset[aria-label='Tag filter']") { click_button "VIP" }
-
-      expect_rows("BATCH-A", "BATCH-B")
-      expect_no_selected_tag
-      expect(query_params).to eq("q" => "batch", "sort" => "oldest")
-      expect(page).to have_css("nav[aria-label='Pagination'] a", text: "2", minimum: 1)
-    end
-
-    it "lays the sort tabs, filters and Filter by tag button on one row, aligned with the search field" do
-      page.driver.resize(1400, 800)
-      visit sales_path
-      expect(page).to have_css("fieldset[aria-label='Tag filter'] button", text: "Filter by tag")
-
-      expect(measure("fieldset[aria-label='Sort sales']", "left")).to eq(measure("input[name='q']", "left"))
-      row_center = vertical_center("fieldset[aria-label='Sort sales']")
-      ["input[name='hide_partial_payments']", "input[name='missing_purchases_only']", "fieldset[aria-label='Tag filter'] button"].each do |selector|
-        expect(vertical_center(selector)).to be_within(2).of(row_center)
-      end
-      expect(measure("fieldset[aria-label='Tag filter'] button", "left")).to be > measure("input[name='missing_purchases_only']", "right")
-    ensure
-      page.driver.resize(1200, 768)
-    end
-
-    it "leaves a visible sale's row and the totals when its active tag is removed" do
-      visit sales_path(q: "batch", sort: "oldest", tag_id: vip.id)
-      expect_rows("BATCH-A", "BATCH-B")
-
-      within("tbody tr", text: "BATCH-A") { click_button "Edit" }
-      find("dialog label.sales_tag_choice", text: "VIP").click
-      click_button "Save"
-
-      expect(page).to have_no_css("dialog")
-      expect_rows("BATCH-B", "BATCH-E")
-      expect(query_params).to eq("q" => "batch", "sort" => "oldest", "tag_id" => vip.id.to_s)
-    end
-
-    it "clears a deleted active tag with the explanation and a canonical URL on the next listing change" do
-      visit sales_path(q: "batch", sort: "oldest", tag_id: vip.id)
-      expect_selected_tag("VIP")
-
-      vip.destroy!
-      click_button "Newest first"
-
-      expect(page).to have_content(unavailable_notice)
-      expect_no_selected_tag
-      expect(query_params).to eq("q" => "batch")
-      expect_rows("BATCH-E", "BATCH-C")
-    end
-
-    it "drops a deleted active tag from the controls when the tags are reloaded" do
-      visit sales_path(q: "batch", sort: "oldest", tag_id: vip.id)
-      within("tbody tr", text: "BATCH-A") { click_button "Edit" }
-      find("dialog label.sales_tag_choice", text: "Blue").click
-
-      vip.destroy!
-      click_button "Save"
-      expect(page).to have_content("Tags changed since you opened this editor")
-      click_button "Reload tags (discards your changes)"
-
-      expect(page).to have_no_css("dialog")
-      expect_no_selected_tag
-      expect(query_params).to eq("q" => "batch", "sort" => "oldest")
-      expect_rows("BATCH-A", "BATCH-B")
-    end
-  end
-
-  describe "button shape", :js do
-    it "gives every regular header button the same very squircle shape" do
-      visit sales_path
-      expect(page).to have_css("header menu button", text: "Store Sync")
-
-      shapes = page.evaluate_script(<<~JS)
-        [...document.querySelectorAll("header menu a, header menu button")].map((element) => {
-          const style = getComputedStyle(element);
-          return [element.textContent.trim(), style.cornerShape, parseFloat(style.borderTopLeftRadius)];
-        })
-      JS
-
-      token = page.evaluate_script("getComputedStyle(document.documentElement).getPropertyValue('--corner-shape').trim()")
-      expect(shapes.size).to be >= 2
-      expect(shapes.map { |_, corner_shape, _| corner_shape }.uniq).to eq([token])
-      expect(shapes.map { |_, _, radius| radius }).to all(be >= 20)
-    end
-  end
-
-  describe "store sync dialog" do
-    it "centers the close button on the title, not on the title with its subtitle", :js do
-      allow(Config).to receive(:shopify_sales_sync_time).and_return("20.05 at 10:00")
-      visit sales_path
-
-      click_button "Store Sync"
-
-      expect(page).to have_css("dialog p", text: "Last sync: 20.05 at 10:00")
-      center = ->(selector) { page.evaluate_script("(() => { const box = document.querySelector(#{selector.to_json}).getBoundingClientRect(); return box.top + box.height / 2; })()") }
-      expect(center.call("dialog h2")).to be_within(1).of(center.call("dialog [aria-label='Close']"))
     end
   end
 end

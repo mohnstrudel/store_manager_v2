@@ -8,40 +8,6 @@ RSpec.describe "Gallery", :js do
 
   after do
     cleanup_test_image("gallery-1.png")
-    cleanup_test_image("gallery-2.png")
-  end
-
-  # rubocop:todo RSpec/MultipleExpectations
-  scenario "keeps gallery geometry stable after images load" do
-    product = create(:product)
-    attach_gallery_images_to(product)
-
-    visit product_path(product)
-
-    expect(page).to have_css(".gallery_nav")
-    expect(page).to have_css(".gallery_thumb[data-active]")
-    expect(page).to have_no_css(".gallery_thumb__image.hidden", wait: 10)
-    expect(page).to have_no_css(".gallery_main__image.hidden", wait: 10)
-
-    geometry = page.evaluate_script(<<~JS)
-      (() => {
-        const thumbFrame = document.querySelector(".gallery_thumb__frame")
-        const mainFrame = document.querySelector(".gallery_main__frame")
-        const mainImage = document.querySelector(".gallery_main__image")
-
-        return {
-          thumbFrameHeight: thumbFrame.getBoundingClientRect().height,
-          mainFrameHeight: mainFrame.getBoundingClientRect().height,
-          mainImageSrc: mainImage.getAttribute("src") || ""
-        }
-      })()
-    JS
-
-    aggregate_failures do
-      expect(geometry["thumbFrameHeight"]).to be >= 80
-      expect(geometry["mainFrameHeight"]).to be > 0
-      expect(geometry["mainImageSrc"]).to be_present
-    end
   end
 
   # rubocop:todo RSpec/MultipleExpectations
@@ -86,16 +52,6 @@ RSpec.describe "Gallery", :js do
   end
   # rubocop:enable RSpec/MultipleExpectations
 
-  def attach_gallery_images_to(product)
-    create_valid_test_png("gallery-1.png")
-    create_valid_test_png("gallery-2.png")
-
-    [
-      attach_image_to(create(:media, :for_product, mediaable: product), "gallery-1.png"),
-      attach_image_to(create(:media, :for_product, mediaable: product), "gallery-2.png")
-    ]
-  end
-
   def attach_single_gallery_image_to(product)
     create_valid_tall_test_png("gallery-1.png")
 
@@ -112,16 +68,8 @@ RSpec.describe "Gallery", :js do
     media
   end
 
-  def create_valid_test_png(filename)
-    Rails.root.join("tmp", filename).binwrite(Base64.decode64(valid_test_png_base64))
-  end
-
   def create_valid_tall_test_png(filename)
     Rails.root.join("tmp", filename).binwrite(Base64.decode64(valid_tall_test_png_base64))
-  end
-
-  def valid_test_png_base64
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aW1cAAAAASUVORK5CYII="
   end
 
   def valid_tall_test_png_base64

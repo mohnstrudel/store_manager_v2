@@ -101,12 +101,12 @@ describe("Products/components/Form/VariantFields", () => {
   });
 
   describe("errors", () => {
-    it("shows SKU error when errors include 'sku'", () => {
+    it("shows the SKU error inline under its field without shifting the layout", () => {
       renderVariant(makeVariantForm(), {
         errors: { "variants.0.sku": "has already been taken" },
       });
 
-      expect(screen.getByText("has already been taken")).toBeInTheDocument();
+      expect(screen.getByText("has already been taken")).toHaveClass("text_error", "absolute");
     });
 
     it("shows combination error under the Size field", () => {
