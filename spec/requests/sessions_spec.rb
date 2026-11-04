@@ -44,6 +44,15 @@ RSpec.describe "Sessions" do
 
       expect(inertia.props[:flash][:alert]).to eq("Try another email address or password")
     end
+
+    it "rejects credentials without a password and signs nobody in" do
+      user = create(:user)
+
+      post session_path, params: {email_address: user.email_address}
+
+      expect(response).to have_http_status(:bad_request)
+      expect(user.sessions).to be_empty
+    end
   end
 
   describe "POST /log_out" do

@@ -7,7 +7,7 @@ module PurchaseItems
     def create
       moved_count = PurchaseItem.move_to_warehouse(
         purchase_item_ids: params[:selected_items_ids],
-        warehouse_id: params[:destination_id]
+        warehouse_id: params.expect(:destination_id)
       )
 
       return if moved_count.zero?

@@ -41,7 +41,7 @@ class WarehousesController < ApplicationController
   def update
     result = @warehouse.revise(
       attributes: warehouse_params.to_h,
-      transition_ids: params.dig(:warehouse, :to_warehouse_ids),
+      transition_ids: warehouse_params[:to_warehouse_ids],
       media_attributes: normalized_media_attributes_for(@warehouse),
       new_media_images: media_new_images_for(@warehouse)
     )

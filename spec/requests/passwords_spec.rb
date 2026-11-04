@@ -38,6 +38,16 @@ RSpec.describe "Passwords" do
         post passwords_path, params: {email_address: user.email_address}
       }.to have_enqueued_mail(PasswordsMailer, :reset)
     end
+
+    it "rejects an email address sent as a hash without sending mail" do
+      create(:user)
+
+      expect {
+        post passwords_path, params: {email_address: {id: "1"}}
+      }.not_to have_enqueued_mail(PasswordsMailer, :reset)
+
+      expect(response).to have_http_status(:bad_request)
+    end
   end
 
   describe "GET /passwords/:token/edit" do
@@ -88,6 +98,15 @@ RSpec.describe "Passwords" do
       follow_redirect!
 
       expect(inertia.props[:flash][:alert]).to eq("Passwords did not match")
+    end
+
+    it "rejects a new password without its confirmation" do
+      user = create(:user)
+
+      patch password_path(user.password_reset_token), params: {password: "newpassword"}
+
+      expect(response).to have_http_status(:bad_request)
+      expect(user.reload.authenticate("newpassword")).to be(false)
     end
   end
 end
