@@ -3,7 +3,6 @@
 module Sale::Filterable
   extend ActiveSupport::Concern
 
-  SHOP_CREATED_AT_SQL = "COALESCE(sales.shopify_created_at, sales.woo_created_at, sales.created_at)"
   SORT_DIRECTIONS = {"newest" => :desc, "oldest" => :asc}.freeze
 
   class_methods do
@@ -18,14 +17,17 @@ module Sale::Filterable
       matches = matches.with_missing_purchases if missing_purchases_only
       matches.sorted_by(sort)
     end
+
+    def shop_created_expr
+      Arel::Nodes::NamedFunction.new(
+        "COALESCE",
+        [arel_table[:shopify_created_at], arel_table[:woo_created_at], arel_table[:created_at]]
+      )
+    end
   end
 
   included do
-    scope :ordered_by_shop_created_at, -> {
-      order(
-        Arel.sql("#{SHOP_CREATED_AT_SQL} DESC")
-      )
-    }
+    scope :ordered_by_shop_created_at, -> { order(shop_created_expr.desc) }
 
     scope :sorted_by, ->(sort) {
       direction = SORT_DIRECTIONS.fetch(listing_sort(sort))

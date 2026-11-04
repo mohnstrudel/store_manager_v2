@@ -100,7 +100,7 @@ Many Rails codebases organize logic by technical role (`app/forms`, `app/present
 
 This repo borrows the business-ownership idea from DDD but expresses it in plain Rails terms — scopes, helpers, and nearby model files come before repositories, application services, or separate domain-layer objects. So you will see files such as:
 
-- [`app/models/product/editing.rb`](app/models/product/editing.rb)
+- [`app/models/product/revisable.rb`](app/models/product/revisable.rb)
 - [`app/models/product/revisable/payload.rb`](app/models/product/revisable/payload.rb)
 - [`app/models/product/shopify/importer.rb`](app/models/product/shopify/importer.rb)
 - [`app/models/sale/statuses.rb`](app/models/sale/statuses.rb)
@@ -339,9 +339,9 @@ app/
 
 ```text
 app/models/product.rb
-app/models/product/editing.rb
-app/models/product/listing.rb
-app/models/product/titling.rb
+app/models/product/revisable.rb
+app/models/product/variant_availability.rb
+app/models/product/titled.rb
 app/models/product/shopify/importer.rb
 ```
 

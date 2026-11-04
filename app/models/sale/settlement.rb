@@ -22,16 +22,6 @@ module Sale::Settlement
     scope :uncancelled, -> { where.not(status: Sale::CANCELLED_STATUSES) }
   end
 
-  class_methods do
-    def shop_created_expr
-      sales = arel_table
-      Arel::Nodes::NamedFunction.new(
-        "COALESCE",
-        [sales[:shopify_created_at], sales[:woo_created_at], sales[:created_at]]
-      )
-    end
-  end
-
   def economically_excluded?
     cancelled? || status == "refunded" || financial_status == "VOIDED" || fully_refunded?
   end

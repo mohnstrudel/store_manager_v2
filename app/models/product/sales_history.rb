@@ -4,19 +4,19 @@ module Product::SalesHistory
   extend ActiveSupport::Concern
 
   def active_sale_items
-    merchandise_sale_items(sale_items.preloaded_for_history.active)
+    merchandise_sale_items(sale_items.preloaded.active)
   end
 
   def completed_sale_items
-    merchandise_sale_items(sale_items.preloaded_for_history.completed)
+    merchandise_sale_items(sale_items.preloaded.completed)
   end
 
   def active_payment_items
-    payment_sale_items(sale_items.preloaded_for_history.active)
+    payment_sale_items(sale_items.preloaded.active)
   end
 
   def completed_payment_items
-    payment_sale_items(sale_items.preloaded_for_history.completed)
+    payment_sale_items(sale_items.preloaded.completed)
   end
 
   def variant_sales_sums

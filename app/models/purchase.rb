@@ -67,7 +67,7 @@ class Purchase < ApplicationRecord
   has_many :versions, through: :variant
   has_many :colors, through: :variant
 
-  scope :preloaded_for_listing, -> {
+  scope :preloaded_with_item_warehouses, -> {
     includes(
       :supplier,
       :payments,

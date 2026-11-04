@@ -7,7 +7,7 @@ class PurchasesController < ApplicationController
   before_action :prepare_form_options, only: %i[new edit]
 
   def index
-    @purchases = Purchase.preloaded_for_listing.order(id: :desc).page(params[:page])
+    @purchases = Purchase.preloaded_with_item_warehouses.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
     @warehouses = Warehouse.order(name: :asc)
 

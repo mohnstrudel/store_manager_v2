@@ -54,7 +54,7 @@ class SaleItem < ApplicationRecord
     )
   }
 
-  scope :preloaded_for_history, -> {
+  scope :preloaded, -> {
     includes(
       :product,
       purchase_items: :warehouse,
