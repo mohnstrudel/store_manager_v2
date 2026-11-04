@@ -24,7 +24,7 @@ class WarehouseTransition < ApplicationRecord
   validates_db_uniqueness_of :from_warehouse_id,
     scope: [:to_warehouse_id, :notification_id]
 
-  scope :for_notification_lookup, -> {
+  scope :with_notification_and_warehouses, -> {
     includes(:notification, :from_warehouse, :to_warehouse)
   }
 
@@ -33,7 +33,7 @@ class WarehouseTransition < ApplicationRecord
   }
 
   def self.active_for_notification(from_id:, to_id:)
-    for_notification_lookup
+    with_notification_and_warehouses
       .with_active_notification
       .find_by(from_warehouse_id: from_id, to_warehouse_id: to_id)
   end

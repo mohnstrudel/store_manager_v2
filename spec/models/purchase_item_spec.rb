@@ -134,12 +134,12 @@ describe PurchaseItem do
     end
   end
 
-  describe ".for_warehouse_details" do
+  describe ".preloaded_for_warehouse" do
     it "preloads product variants through the purchase for warehouse rows" do
       purchase_item = create(:purchase_item)
       create(:variant, product: purchase_item.purchase.product)
 
-      item = described_class.for_warehouse_details.find(purchase_item.id)
+      item = described_class.preloaded_for_warehouse.find(purchase_item.id)
       product = item.purchase.product
 
       aggregate_failures do

@@ -3,10 +3,6 @@
 module Sale::Titled
   extend ActiveSupport::Concern
 
-  included do
-    scope :for_link_title, -> { includes(:customer, sale_items: [{product: {media: {image_attachment: :blob}}}, :variant]) }
-  end
-
   def title
     [status&.titleize, shop_identifier].compact_blank.join(" | ")
   end

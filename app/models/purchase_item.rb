@@ -66,7 +66,7 @@ class PurchaseItem < ApplicationRecord
 
   scope :with_media, -> { includes(media: {image_attachment: :blob}) }
 
-  scope :for_show, -> {
+  scope :preloaded, -> {
     includes(
       :audits,
       :warehouse,
@@ -78,7 +78,7 @@ class PurchaseItem < ApplicationRecord
     )
   }
 
-  scope :for_purchase_details, -> {
+  scope :preloaded_for_purchase, -> {
     includes(
       :audits,
       :warehouse,
@@ -90,7 +90,7 @@ class PurchaseItem < ApplicationRecord
     ).ordered_by_updated_date
   }
 
-  scope :for_warehouse_details, -> {
+  scope :preloaded_for_warehouse, -> {
     includes(
       :shipping_company,
       sale: [:customer, :shipping_address],
@@ -103,11 +103,11 @@ class PurchaseItem < ApplicationRecord
     )
   }
 
-  scope :for_shipping_details, -> {
+  scope :with_product_and_purchase, -> {
     includes(:product, :purchase)
   }
 
-  scope :for_notifications, -> {
+  scope :with_warehouse_sale_and_sale_item, -> {
     includes(
       :warehouse,
       sale: :customer,

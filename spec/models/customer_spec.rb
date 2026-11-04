@@ -23,11 +23,11 @@ RSpec.describe Customer do
     end
   end
 
-  describe ".for_listing" do
+  describe ".with_woo_info" do
     it "preloads Woo store information for the index table" do
       customer = create(:customer)
 
-      listed_customer = described_class.for_listing.find(customer.id)
+      listed_customer = described_class.with_woo_info.find(customer.id)
 
       expect(listed_customer.association(:woo_info)).to be_loaded
     end

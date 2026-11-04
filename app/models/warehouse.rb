@@ -36,11 +36,11 @@ class Warehouse < ApplicationRecord
   has_many :purchase_items, dependent: :destroy, inverse_of: :warehouse
   has_many :purchases, through: :purchase_items
 
-  scope :for_listing, -> {
+  scope :with_purchases_and_items, -> {
     includes(:purchase_items, purchases: [:payments, :purchase_items])
   }
 
-  scope :for_details, -> {
+  scope :preloaded, -> {
     includes(purchases: [:payments, :purchase_items], media: {image_attachment: :blob})
   }
 end

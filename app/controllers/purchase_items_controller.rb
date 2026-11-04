@@ -73,7 +73,7 @@ class PurchaseItemsController < ApplicationController
   end
 
   def set_purchase_item_for_show
-    @purchase_item = PurchaseItem.for_show.find(params.expect(:id))
+    @purchase_item = PurchaseItem.preloaded.find(params.expect(:id))
   end
 
   def set_purchase_item

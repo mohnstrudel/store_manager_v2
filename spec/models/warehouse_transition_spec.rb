@@ -55,10 +55,10 @@ RSpec.describe WarehouseTransition do
   end
 
   # rubocop:todo RSpec/MultipleExpectations
-  describe ".for_notification_lookup" do
+  describe ".with_notification_and_warehouses" do
     it "preloads transition notification and warehouse endpoints" do
       transition = create(:warehouse_transition)
-      loaded_transition = described_class.for_notification_lookup.find(transition.id)
+      loaded_transition = described_class.with_notification_and_warehouses.find(transition.id)
 
       expect(loaded_transition.association(:notification)).to be_loaded
       expect(loaded_transition.association(:from_warehouse)).to be_loaded

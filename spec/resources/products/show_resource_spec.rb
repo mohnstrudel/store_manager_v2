@@ -8,7 +8,7 @@ RSpec.describe Products::ShowResource do
 
   def show(product, can_view_profitability: true)
     described_class.new({
-      product: Product.for_details.find(product.id),
+      product: Product.preloaded.find(product.id),
       purchases: product.purchases,
       can_pull_from_shopify: false,
       can_view_profitability:

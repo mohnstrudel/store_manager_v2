@@ -13,7 +13,7 @@ class ShippingCompaniesController < ApplicationController
   end
 
   def show
-    @purchase_items = @shipping_company.purchase_items.for_shipping_details
+    @purchase_items = @shipping_company.purchase_items.with_product_and_purchase
 
     render_inertia "ShippingCompanies/Show", serializer: ShippingCompanies::ShowResource,
       locals: {purchase_items: @purchase_items, shipping_company: @shipping_company}

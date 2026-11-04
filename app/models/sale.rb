@@ -83,16 +83,21 @@ class Sale < ApplicationRecord
   has_many :sale_items, dependent: :destroy, inverse_of: :sale
   has_many :products, through: :sale_items
 
-  scope :for_listing, -> {
+  scope :with_payment_plans, -> {
     includes(
+      {origin_payment_plans: [:origin_sale, {parts: :sale}]},
+      {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}}
+    )
+  }
+
+  scope :preloaded_for_listing, -> {
+    with_payment_plans.includes(
       :customer,
       :shopify_info,
       :woo_info,
       :shipping_address,
       :billing_address,
       :sales_tags,
-      {origin_payment_plans: [:origin_sale, {parts: :sale}]},
-      {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
       sale_items: [
         {product: {media: {image_attachment: :blob}}},
         {purchase_items: [:warehouse, purchase: :supplier]},
@@ -101,24 +106,26 @@ class Sale < ApplicationRecord
     )
   }
 
-  scope :for_edit, -> {
+  scope :with_items_and_addresses, -> {
     includes(:sale_items, :shipping_address, :billing_address)
   }
 
-  scope :for_details, -> {
-    includes(
+  scope :preloaded, -> {
+    with_payment_plans.includes(
       :customer,
       :shopify_info,
       :woo_info,
       :shipping_address,
       :billing_address,
-      {origin_payment_plans: [:origin_sale, {parts: :sale}]},
-      {sale_payment_parts: {sale_payment_plan: [:origin_sale, {parts: :sale}]}},
       sale_items: [
         {product: {media: {image_attachment: :blob}}},
         {purchase_items: [:warehouse, :shipping_company, {purchase: :supplier}]},
         {variant: [:version, :color, :size]}
       ]
     )
+  }
+
+  scope :with_customer_and_item_products, -> {
+    includes(:customer, sale_items: [{product: {media: {image_attachment: :blob}}}, :variant])
   }
 end

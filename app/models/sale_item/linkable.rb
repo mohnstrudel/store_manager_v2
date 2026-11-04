@@ -38,11 +38,11 @@ module SaleItem::Linkable
     def for_edit_linking(purchase_item)
       return none unless purchase_item.product_id && purchase_item.variant_id
 
-      available = for_linking.linkable.where(
+      available = preloaded_for_linking.linkable.where(
         product_id: purchase_item.product_id,
         variant_id: purchase_item.variant_id
       )
-      currently_linked = purchase_item.sale_item_id ? for_linking.where(id: purchase_item.sale_item_id) : none
+      currently_linked = purchase_item.sale_item_id ? preloaded_for_linking.where(id: purchase_item.sale_item_id) : none
 
       available.or(currently_linked).order(:id)
     end

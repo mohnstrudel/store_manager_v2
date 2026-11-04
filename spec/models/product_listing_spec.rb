@@ -27,7 +27,7 @@ RSpec.describe Product do
     end
   end
 
-  describe ".for_details" do
+  describe ".preloaded" do
     it "eager loads product detail associations" do
       product = create(:product)
       product.brands << create(:brand)
@@ -37,7 +37,7 @@ RSpec.describe Product do
       product.update!(description: "<p>Product description</p>")
       create(:purchase, product:)
 
-      relation = described_class.for_details.where(id: product.id).to_a
+      relation = described_class.preloaded.where(id: product.id).to_a
 
       aggregate_failures do
         expect(relation).to include(product)
@@ -56,12 +56,12 @@ RSpec.describe Product do
     end
   end
 
-  describe ".for_media_sync" do
+  describe ".with_media_and_shopify_info" do
     it "eager loads the media attachments for syncing" do
       product = create(:product)
       create(:media, :for_product, mediaable: product)
 
-      relation = described_class.for_media_sync.where(id: product.id).to_a
+      relation = described_class.with_media_and_shopify_info.where(id: product.id).to_a
 
       aggregate_failures do
         expect(relation).to include(product)

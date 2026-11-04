@@ -44,7 +44,7 @@ module Sales
 
     def sale_items_scope
       if action_name == "show"
-        @sale.sale_items.for_details
+        @sale.sale_items.with_purchase_warehouses
       else
         @sale.sale_items
       end

@@ -6,7 +6,7 @@ class CustomersController < ApplicationController
   def index
     @customers = Customer.order(:created_at)
     @customers = @customers.search(params[:q]) if params[:q].present?
-    @customers = @customers.for_listing.page(params[:page])
+    @customers = @customers.with_woo_info.page(params[:page])
 
     return unless stale?(etag: [@customers, request.inertia?], last_modified: @customers.maximum(:updated_at))
 
@@ -15,8 +15,8 @@ class CustomersController < ApplicationController
   end
 
   def show
-    @active_sales = @customer.sales.active.for_details.ordered_by_shop_created_at
-    @completed_sales = @customer.sales.completed.for_details.ordered_by_shop_created_at
+    @active_sales = @customer.sales.active.preloaded.ordered_by_shop_created_at
+    @completed_sales = @customer.sales.completed.preloaded.ordered_by_shop_created_at
 
     render_inertia "Customers/Show", serializer: Customers::ShowResource,
       locals: {customer: @customer, active_sales: @active_sales, completed_sales: @completed_sales}

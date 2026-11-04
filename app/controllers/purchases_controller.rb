@@ -7,7 +7,7 @@ class PurchasesController < ApplicationController
   before_action :prepare_form_options, only: %i[new edit]
 
   def index
-    @purchases = Purchase.for_listing.order(id: :desc).page(params[:page])
+    @purchases = Purchase.preloaded_for_listing.order(id: :desc).page(params[:page])
     @purchases = @purchases.search(params[:q]) if params[:q].present?
     @warehouses = Warehouse.order(name: :asc)
 
@@ -21,7 +21,7 @@ class PurchasesController < ApplicationController
     render_inertia "Purchases/Show", serializer: Purchases::ShowResource,
       locals: {
         purchase: @purchase,
-        purchase_items: @purchase.purchase_items.for_purchase_details,
+        purchase_items: @purchase.purchase_items.preloaded_for_purchase,
         payments: @purchase.payments.chronological,
         new_payment: @purchase.payments.new(payment_date: Time.zone.today)
       }
@@ -101,7 +101,7 @@ class PurchasesController < ApplicationController
   end
 
   def set_purchase_for_show
-    @purchase = Purchase.for_details.friendly.find(params.expect(:id))
+    @purchase = Purchase.preloaded.friendly.find(params.expect(:id))
   end
 
   def set_purchase

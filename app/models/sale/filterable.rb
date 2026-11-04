@@ -12,7 +12,7 @@ module Sale::Filterable
     end
 
     def listing(query:, sort:, hide_partial_payments: false, missing_purchases_only: false, tag_id: nil)
-      matches = for_listing.except_cancelled_or_completed.search_by(query)
+      matches = preloaded_for_listing.except_cancelled_or_completed.search_by(query)
       matches = matches.tagged_with(tag_id) if tag_id
       matches = matches.without_follow_up_payments if hide_partial_payments
       matches = matches.with_missing_purchases if missing_purchases_only

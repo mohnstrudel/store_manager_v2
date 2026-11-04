@@ -12,7 +12,7 @@ class SuppliersController < ApplicationController
   end
 
   def show
-    @purchases = @supplier.purchases.for_supplier_details
+    @purchases = @supplier.purchases.with_product_payments_and_variant
 
     render_inertia "Suppliers/Show", serializer: Suppliers::ShowResource, locals: {purchases: @purchases, supplier: @supplier}
   end

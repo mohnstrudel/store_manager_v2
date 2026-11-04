@@ -139,10 +139,10 @@ class SalesController < ApplicationController
   end
 
   def set_sale_for_show
-    @sale = Sale.for_details.friendly.find(params.expect(:id))
+    @sale = Sale.preloaded.friendly.find(params.expect(:id))
   end
 
   def set_sale
-    @sale = Sale.for_edit.friendly.find(params.expect(:id))
+    @sale = Sale.with_items_and_addresses.friendly.find(params.expect(:id))
   end
 end

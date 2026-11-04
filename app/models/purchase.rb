@@ -67,7 +67,7 @@ class Purchase < ApplicationRecord
   has_many :versions, through: :variant
   has_many :colors, through: :variant
 
-  scope :for_listing, -> {
+  scope :preloaded_for_listing, -> {
     includes(
       :supplier,
       :payments,
@@ -77,15 +77,11 @@ class Purchase < ApplicationRecord
     )
   }
 
-  scope :for_form_select, -> {
-    includes(:product, :supplier).order(purchase_date: :desc, created_at: :desc)
-  }
-
-  scope :for_supplier_details, -> {
+  scope :with_product_payments_and_variant, -> {
     includes(:product, :payments, variant: [:color, :size, :version])
   }
 
-  scope :for_details, -> {
+  scope :preloaded, -> {
     includes(
       :supplier,
       :payments,

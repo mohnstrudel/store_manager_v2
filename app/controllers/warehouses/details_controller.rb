@@ -3,11 +3,11 @@
 module Warehouses
   class DetailsController < ApplicationController
     def show
-      @warehouse = Warehouse.for_details.find(params.expect(:id))
+      @warehouse = Warehouse.preloaded.find(params.expect(:id))
       @selected_id = params[:selected].presence&.to_i
       @purchase_items = @warehouse
         .purchase_items
-        .for_warehouse_details
+        .preloaded_for_warehouse
         .ordered_by_current_warehouse_entry
         .page(params[:page])
       @total_purchase_items = @warehouse.purchase_items.size

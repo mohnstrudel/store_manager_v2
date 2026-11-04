@@ -97,10 +97,10 @@ class ProductsController < ApplicationController
   end
 
   def set_product
-    @product = Product.for_details.friendly.find(params.expect(:id))
+    @product = Product.preloaded.friendly.find(params.expect(:id))
   end
 
   def set_product_for_edit
-    @product = Product.for_edit.friendly.find(params.expect(:id))
+    @product = Product.with_brands_variants_and_media.friendly.find(params.expect(:id))
   end
 end

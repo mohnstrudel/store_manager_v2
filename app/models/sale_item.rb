@@ -42,9 +42,9 @@ class SaleItem < ApplicationRecord
 
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
 
-  scope :for_details, -> { includes(purchase_items: :warehouse) }
+  scope :with_purchase_warehouses, -> { includes(purchase_items: :warehouse) }
 
-  scope :for_linking, -> {
+  scope :preloaded_for_linking, -> {
     includes(
       :product,
       :shopify_info,
@@ -54,7 +54,7 @@ class SaleItem < ApplicationRecord
     )
   }
 
-  scope :for_history, -> {
+  scope :preloaded_for_history, -> {
     includes(
       :product,
       purchase_items: :warehouse,
@@ -71,7 +71,7 @@ class SaleItem < ApplicationRecord
     )
   }
 
-  scope :for_tracking_status, -> {
+  scope :with_tracking_sources, -> {
     includes(:product, variant: [:version, :color, :size], purchase_items: :warehouse)
   }
 

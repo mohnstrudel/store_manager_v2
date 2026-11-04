@@ -93,7 +93,7 @@ class Product < ApplicationRecord
     ).order(Product.arel_table[:published_at].desc.nulls_last, created_at: :desc)
   }
 
-  scope :for_details, -> {
+  scope :preloaded, -> {
     with_rich_text_description_and_embeds.includes(
       :franchise,
       :shopify_info,
@@ -118,7 +118,7 @@ class Product < ApplicationRecord
     )
   }
 
-  scope :for_edit, -> {
+  scope :with_brands_variants_and_media, -> {
     with_rich_text_description_and_embeds.includes(
       :brands,
       :variants,
@@ -127,7 +127,7 @@ class Product < ApplicationRecord
     )
   }
 
-  scope :for_media_sync, -> {
+  scope :with_media_and_shopify_info, -> {
     includes(media: [:image_attachment, :image_blob, :shopify_info])
   }
 

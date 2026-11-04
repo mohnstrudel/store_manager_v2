@@ -12,7 +12,7 @@ module Product::Shopify::Media
     end
 
     def call
-      product = Product.for_media_sync.find(product_id)
+      product = Product.with_media_and_shopify_info.find(product_id)
       api_client = Shopify::Api::Client.new
 
       new_media, existing_media = product.media.partition { |media| media.shopify_info.nil? }

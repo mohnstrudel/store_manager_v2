@@ -6,7 +6,7 @@ class WarehousesController < ApplicationController
   before_action :set_warehouse, only: %i[edit update destroy]
 
   def index
-    @warehouses = Warehouse.for_listing.order(:position)
+    @warehouses = Warehouse.with_purchases_and_items.order(:position)
 
     return unless stale?(etag: [@warehouses, request.inertia?], last_modified: @warehouses.maximum(:updated_at))
 

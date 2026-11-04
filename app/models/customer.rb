@@ -33,7 +33,7 @@ class Customer < ApplicationRecord
 
   has_many :sales, dependent: :destroy, inverse_of: :customer
 
-  scope :for_listing, -> { includes(:woo_info) }
+  scope :with_woo_info, -> { includes(:woo_info) }
 
   normalizes :email, with: ->(email) { email&.downcase }
 end

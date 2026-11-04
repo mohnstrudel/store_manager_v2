@@ -65,7 +65,7 @@ module Sale::Statuses
   end
 
   def item_tracking_payload
-    sale_items.for_tracking_status.map do |sale_item|
+    sale_items.with_tracking_sources.map do |sale_item|
       purchase_item = sale_item.purchase_items.first
       status = nil
       description = nil

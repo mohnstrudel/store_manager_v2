@@ -68,7 +68,7 @@ module PurchaseItem::Notifications
 
     def each_locked_for_notifications(purchase_item_ids, &)
       transaction do
-        for_notifications.where(id: purchase_item_ids).order(:id).lock.each(&)
+        with_warehouse_sale_and_sale_item.where(id: purchase_item_ids).order(:id).lock.each(&)
       end
     end
 
