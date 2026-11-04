@@ -8,7 +8,7 @@ module Product::Shopify::MediaImportable
     remove_obsolete_shopify_media(downloaded_files)
     upsert_shopify_media(media_items: parsed_media, downloaded_files:)
   ensure
-    downloaded_files&.close_downloads!
+    downloaded_files&.close_downloads
   end
 
   private

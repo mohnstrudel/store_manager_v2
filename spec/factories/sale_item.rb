@@ -17,10 +17,10 @@ FactoryBot.define do
 
     after(:create) do |sale_item, evaluator|
       if evaluator.woo_store_id.present? || sale_item[:woo_id].present?
-        sale_item.upsert_woo_info!(store_id: evaluator.woo_store_id || sale_item[:woo_id])
+        sale_item.upsert_woo_info(store_id: evaluator.woo_store_id || sale_item[:woo_id])
       end
 
-      sale_item.upsert_shopify_info!(store_id: evaluator.shopify_store_id || sale_item.shopify_id) if evaluator.shopify_store_id.present? || sale_item.shopify_id.present?
+      sale_item.upsert_shopify_info(store_id: evaluator.shopify_store_id || sale_item.shopify_id) if evaluator.shopify_store_id.present? || sale_item.shopify_id.present?
     end
   end
 end

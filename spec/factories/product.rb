@@ -22,8 +22,8 @@ FactoryBot.define do
     end
 
     after(:create) do |product, evaluator|
-      product.upsert_woo_info!(store_id: evaluator.woo_store_id || product[:woo_id])
-      product.upsert_shopify_info!(store_id: evaluator.shopify_store_id || product.shopify_id)
+      product.upsert_woo_info(store_id: evaluator.woo_store_id || product[:woo_id])
+      product.upsert_shopify_info(store_id: evaluator.shopify_store_id || product.shopify_id)
     end
 
     trait :with_brand do

@@ -6,10 +6,10 @@ RSpec.describe Product::Woo::Importer do
   let(:woo_products) { JSON.parse(file_fixture("api_products.json").read, symbolize_names: true) }
   let(:parsed_products) { JSON.parse(file_fixture("parsed_products.json").read, symbolize_names: true) }
 
-  describe ".import!" do
+  describe ".import" do
     context "when we parsed products from Woo API" do
       before do
-        parsed_products.each { |parsed_product| described_class.import!(parsed_product) }
+        parsed_products.each { |parsed_product| described_class.import(parsed_product) }
       end
 
       it "saves each product to the DB" do
@@ -40,7 +40,7 @@ RSpec.describe Product::Woo::Importer do
 
       it "updates the existing product instead of skipping it" do # rubocop:todo RSpec/MultipleExpectations
         expect {
-          described_class.import!(first_parsed)
+          described_class.import(first_parsed)
         }.not_to change(Product, :count)
 
         existing_product.reload

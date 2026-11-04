@@ -84,7 +84,7 @@ RSpec.describe "Customers" do
       customer = create(:customer)
       origin = create(:sale, customer:, shopify_name: "HSCM#1746", shopify_store_id: "gid://shopify/Order/100")
       follow_up = create(:sale, customer:, shopify_name: "HSCM#1747", shopify_store_id: "gid://shopify/Order/101")
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-1",

@@ -61,7 +61,7 @@ describe "GET /sales" do
     end
 
     def create_follow_up_plan
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-900",

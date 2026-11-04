@@ -130,7 +130,7 @@ RSpec.describe "Sales" do
       let!(:ordinary) { create(:sale, woo_created_at: Time.utc(2024, 1, 3), note: "batch") }
 
       before do
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-900",
@@ -268,7 +268,7 @@ RSpec.describe "Sales" do
         follow_up = create_sale_with_line(day: 2, shopify_store_id: "gid://shopify/Order/901", note: "batch")
         ordinary = create_sale_with_line(day: 3, note: "batch", received_revenue: 100, outstanding_revenue: 100)
         covered = create_sale_with_line(day: 4, linked: 1, note: "batch")
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-900",
@@ -603,8 +603,8 @@ RSpec.describe "Sales" do
 
       it "includes exact payment-plan context" do
         sale = Sale.order(:id).last
-        sale.upsert_shopify_info!(store_id: "gid://shopify/Order/100")
-        SalePaymentPlan.reconcile!(
+        sale.upsert_shopify_info(store_id: "gid://shopify/Order/100")
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-1",
@@ -821,7 +821,7 @@ RSpec.describe "Sales" do
   describe "GET /sales/:id" do
     it "renders the show Inertia component with nested sale data" do
       customer = create(:customer)
-      customer.upsert_shopify_info!(store_id: "gid://shopify/Customer/9341147185481")
+      customer.upsert_shopify_info(store_id: "gid://shopify/Customer/9341147185481")
 
       sale = create(
         :sale,
@@ -983,7 +983,7 @@ RSpec.describe "Sales" do
           shipping_cost: BigDecimal(0)
         )
 
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-deposit",
@@ -1069,7 +1069,7 @@ RSpec.describe "Sales" do
         create(:sale_address, sale: follow_up, kind: :shipping)
         create(:expense_rate, rate_percent: 10)
 
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "subscription-1",
@@ -1152,7 +1152,7 @@ RSpec.describe "Sales" do
 
       it "leaves a Shopify payment_terms order unaffected, since its schedules all belong to the one order" do
         payment_terms_sale = create(:sale, shopify_store_id: "gid://shopify/Order/950")
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "shopify",
             external_id: "terms-1",

@@ -70,7 +70,7 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
       end
 
       def create_plan(external_origin_order_id:, follow_up_order_id:)
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "sub-#{external_origin_order_id}",

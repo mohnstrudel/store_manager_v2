@@ -14,7 +14,7 @@ module Woo
         client.fetch_orders(limit || ORDERS_SIZE, pages)
       end
 
-      Sale::Woo::Importer.import_all!(Sale::Woo::Parser.parse_all(woo_orders))
+      Sale::Woo::Importer.import_all(Sale::Woo::Parser.parse_all(woo_orders))
       nil
     end
   end

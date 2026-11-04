@@ -8,13 +8,13 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
   let(:importer) { described_class.new(valid_parsed_order) }
 
   def import_order(parsed_order = valid_parsed_order)
-    described_class.import!(parsed_order)
+    described_class.import(parsed_order)
   end
 
   before do
     created_variants = {}
 
-    allow(Product::Shopify::Importer).to receive(:import!) do |parsed_product|
+    allow(Product::Shopify::Importer).to receive(:import) do |parsed_product|
       product = Product.find_by_shopify_id(parsed_product[:store_id]) || Product.find_by(title: parsed_product[:title]) || Product.new
       product.assign_attributes(
         title: parsed_product[:title],
@@ -26,7 +26,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       product
     end
 
-    allow(Variant::Shopify::Importer).to receive(:import!) do |product, parsed_variant|
+    allow(Variant::Shopify::Importer).to receive(:import) do |product, parsed_variant|
       variant_key = "#{product.id}-#{parsed_variant[:id]}"
       created_variants[variant_key] ||= begin
         variant = Variant.find_by_shopify_id(parsed_variant[:id]) || Variant.new(product: product)
@@ -34,25 +34,25 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         variant.version = Version.find_or_create_by(value: parsed_variant[:title] || "Default")
         product.fill_variant_sku(variant, "shopify-sale-#{parsed_variant[:id] || parsed_variant[:title] || SecureRandom.hex(4)}")
         variant.save!
-        variant.upsert_shopify_info!(store_id: parsed_variant[:id]) if parsed_variant[:id].present?
+        variant.upsert_shopify_info(store_id: parsed_variant[:id]) if parsed_variant[:id].present?
         variant
       end
     end
   end
 
-  describe ".import!" do
+  describe ".import" do
     context "with invalid input" do
       it "raises error when parsed_order is blank" do
-        expect { described_class.import!({}) }.to raise_error(ArgumentError, "Parsed payload cannot be blank")
+        expect { described_class.import({}) }.to raise_error(ArgumentError, "Parsed payload cannot be blank")
       end
 
       it "raises error when parsed_order is nil" do
-        expect { described_class.import!(nil) }.to raise_error(ArgumentError, "Parsed payload cannot be blank")
+        expect { described_class.import(nil) }.to raise_error(ArgumentError, "Parsed payload cannot be blank")
       end
     end
   end
 
-  describe "#import!" do
+  describe "#import" do
     context "when creating a new sale" do
       it "creates all required records" do
         import_order
@@ -177,14 +177,14 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       it "updates ext_created_at" do
         original_created_at = Sale.last.shopify_info.ext_created_at
 
-        described_class.import!(modified_order_with_new_timestamps)
+        described_class.import(modified_order_with_new_timestamps)
 
         sale = Sale.last
         expect(sale.shopify_info.ext_created_at).not_to eq(original_created_at)
       end
 
       it "updates existing address snapshots" do
-        described_class.import!(
+        described_class.import(
           valid_parsed_order.deep_dup.merge(
             addresses: {
               shipping: {address_1: "Old Shipping St", city: "Berlin"},
@@ -193,7 +193,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           )
         )
 
-        described_class.import!(
+        described_class.import(
           valid_parsed_order.deep_dup.merge(
             addresses: {
               shipping: {address_1: "New Shipping St", city: "Hamburg"},
@@ -237,7 +237,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "persists the resolved shop currency, presentment currency, rate, and effective date" do
-        described_class.import!(parsed_order_with_currency)
+        described_class.import(parsed_order_with_currency)
 
         expect(Sale.last).to have_attributes(
           shop_currency: "EUR",
@@ -248,19 +248,19 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "re-importing the same raw payload updates the same sale without duplicating currency data" do
-        2.times { described_class.import!(parsed_order_with_currency) }
+        2.times { described_class.import(parsed_order_with_currency) }
 
         expect(Sale.count).to eq(1)
         expect(Sale.last.usd_conversion_rate).to eq(BigDecimal("1.1250"))
       end
 
       it "leaves previously persisted currency data unchanged when a later import fails" do
-        described_class.import!(parsed_order_with_currency)
+        described_class.import(parsed_order_with_currency)
         sale = Sale.last
 
         allow_any_instance_of(Sale).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(Sale.new))
 
-        expect { described_class.import!(parsed_order_with_currency) }.to raise_error(Sale::Shopify::Importer::Error)
+        expect { described_class.import(parsed_order_with_currency) }.to raise_error(Sale::Shopify::Importer::Error)
 
         expect(sale.reload).to have_attributes(
           shop_currency: "EUR",
@@ -284,11 +284,11 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:importer_corrupted) { described_class.new(parsed_order_corrupted) }
 
       it "does not create a new variant when variant_title is missing" do
-        expect { described_class.import!(parsed_order_corrupted) }.not_to change(Variant, :count)
+        expect { described_class.import(parsed_order_corrupted) }.not_to change(Variant, :count)
       end
 
       it "does not create sale_item when product data is completely missing" do
-        expect { described_class.import!(parsed_order_corrupted) }.not_to change(SaleItem, :count)
+        expect { described_class.import(parsed_order_corrupted) }.not_to change(SaleItem, :count)
       end
     end
 
@@ -306,19 +306,19 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "creates product from full_title using Product::Shopify::Parser" do
-        expect { described_class.import!(parsed_order_title_only) }.to change(Product, :count).by(1)
+        expect { described_class.import(parsed_order_title_only) }.to change(Product, :count).by(1)
         product = Product.last
         expect(product.title).to eq("Princess Leia")
         expect(product.franchise.title).to eq("Star Wars")
       end
 
       it "creates variant from variant_title" do
-        expect { described_class.import!(parsed_order_title_only) }.to change(Variant, :count).by(2)
+        expect { described_class.import(parsed_order_title_only) }.to change(Variant, :count).by(2)
         expect(Variant.last.version.value).to eq("Limited Variant")
       end
 
       it "creates sale_item with product and variant" do
-        described_class.import!(parsed_order_title_only)
+        described_class.import(parsed_order_title_only)
         sale_item = SaleItem.last
         expect(sale_item.product).to be_present
         expect(sale_item.variant).to be_present
@@ -340,7 +340,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
           Array(parsed_title[:brand]).compact.each { |title| product.brands << Brand.find_or_create_by!(title:) }
         end
 
-        expect { described_class.import!(parsed_order_title_only) }.not_to change(Product, :count)
+        expect { described_class.import(parsed_order_title_only) }.not_to change(Product, :count)
         expect(SaleItem.last.product).to eq(existing_product)
       end
 
@@ -356,13 +356,13 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         second_order[:store_info][:store_id] = "gid://shopify/Order/title-only-2"
         second_order[:sale_items].first[:store_id] = "gid://shopify/LineItem/title-only-2"
 
-        allow(Product::Shopify::Importer).to receive(:import!).and_call_original
+        allow(Product::Shopify::Importer).to receive(:import).and_call_original
         allow(Shopify::PullVariantsJob).to receive(:perform_later)
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         expect {
-          described_class.import!(first_order)
-          described_class.import!(second_order)
+          described_class.import(first_order)
+          described_class.import(second_order)
         }.to change(Product, :count).by(1)
           .and change(Sale, :count).by(2)
           .and change(SaleItem, :count).by(2)
@@ -377,12 +377,12 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         parsed_order_without_variant_title[:sale][:shopify_id] = "gid://shopify/Order/title-only-no-variant"
         parsed_order_without_variant_title[:store_info][:store_id] = "gid://shopify/Order/title-only-no-variant"
 
-        allow(Product::Shopify::Importer).to receive(:import!).and_call_original
+        allow(Product::Shopify::Importer).to receive(:import).and_call_original
         allow(Shopify::PullVariantsJob).to receive(:perform_later)
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
         expect {
-          described_class.import!(parsed_order_without_variant_title)
+          described_class.import(parsed_order_without_variant_title)
         }.to change(SaleItem, :count).by(1)
           .and change(Variant, :count).by(1)
 
@@ -409,11 +409,11 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         allow(Shopify::PullVariantsJob).to receive(:perform_later)
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
         allow(Shopify::PullProductJob).to receive(:perform_later)
-        allow(Product::Shopify::Importer).to receive(:import!).and_call_original
+        allow(Product::Shopify::Importer).to receive(:import).and_call_original
       end
 
       it "creates a product linked to the known Shopify store id" do
-        described_class.import!(parsed_order_with_store_id_and_title_only)
+        described_class.import(parsed_order_with_store_id_and_title_only)
 
         sale_item = SaleItem.last
         expect(sale_item.product).to be_present
@@ -421,7 +421,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "enqueues a full Shopify product pull for the missing local product" do
-        described_class.import!(parsed_order_with_store_id_and_title_only)
+        described_class.import(parsed_order_with_store_id_and_title_only)
 
         expect(Shopify::PullProductJob).to have_received(:perform_later).with("gid://shopify/Product/title-rebuilt")
       end
@@ -440,7 +440,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
       it "creates the sale item with a placeholder product instead of crashing" do
         expect {
-          described_class.import!(parsed_order_with_unresolved_product)
+          described_class.import(parsed_order_with_unresolved_product)
         }.to change(Sale, :count).by(1)
           .and change(SaleItem, :count).by(1)
           .and change(Product, :count).by(1)
@@ -475,13 +475,13 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:variant) { create(:variant, product: product) }
 
       before do
-        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
+        allow(Product::Shopify::Importer).to receive(:import).and_return(product)
         allow(Version).to receive(:find_or_create_by).with(value: "New Variant").and_return(variant.version)
         allow(variant.version).to receive(:value).and_return("New Variant")
       end
 
       it "creates new variant with correct title" do
-        expect { described_class.import!(parsed_order_with_new_variant) }.to change(Variant, :count).by(1)
+        expect { described_class.import(parsed_order_with_new_variant) }.to change(Variant, :count).by(1)
         expect(Variant.last.version.value).to eq("New Variant")
       end
     end
@@ -510,13 +510,13 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:variant) { create(:variant, product: product) }
 
       before do
-        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
+        allow(Product::Shopify::Importer).to receive(:import).and_return(product)
         allow(Version).to receive(:find_or_create_by).with(value: "1:4 | New Variant | Red").and_return(variant.version)
         allow(variant.version).to receive(:value).and_return("1:4 | New Variant | Red")
       end
 
       it "creates new variant with multiple attributes" do
-        expect { described_class.import!(parsed_order_with_complex_variant) }.to change(Variant, :count).by(1)
+        expect { described_class.import(parsed_order_with_complex_variant) }.to change(Variant, :count).by(1)
         expect(Variant.last.version.value).to eq("1:4 | New Variant | Red")
       end
     end
@@ -542,15 +542,15 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:product) { create(:product) }
 
       before do
-        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
-        allow(Variant::Shopify::Importer).to receive(:import!).and_raise(ActiveRecord::RecordInvalid.new(Variant.new))
+        allow(Product::Shopify::Importer).to receive(:import).and_return(product)
+        allow(Variant::Shopify::Importer).to receive(:import).and_raise(ActiveRecord::RecordInvalid.new(Variant.new))
       end
 
       it "rolls back all changes when variant creation fails" do
-        expect { described_class.import!(parsed_order_with_invalid_variant) }.to raise_error(Sale::Shopify::Importer::Error)
+        expect { described_class.import(parsed_order_with_invalid_variant) }.to raise_error(Sale::Shopify::Importer::Error)
         expect {
           begin
-            described_class.import!(parsed_order_with_invalid_variant)
+            described_class.import(parsed_order_with_invalid_variant)
           rescue
             nil
           end
@@ -635,7 +635,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         modified_order = valid_parsed_order.deep_dup
         modified_order[:sale_items].first[:price] = "600.00"
 
-        described_class.import!(modified_order)
+        described_class.import(modified_order)
 
         expect { existing_sale_item.reload }.to change(existing_sale_item, :price).to(BigDecimal("600.00"))
       end
@@ -661,7 +661,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "persists sale-level revenue and payment terms fields" do
-        described_class.import!(parsed_order_with_revenue)
+        described_class.import(parsed_order_with_revenue)
 
         expect(Sale.last).to have_attributes(
           expected_revenue: BigDecimal("234.63"),
@@ -678,7 +678,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
 
       it "allocates the full order revenue to a single sale item" do
-        described_class.import!(parsed_order_with_revenue)
+        described_class.import(parsed_order_with_revenue)
 
         expect(SaleItem.last).to have_attributes(
           expected_revenue: BigDecimal("234.63"),
@@ -716,7 +716,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         )
         order[:sale_items] << second_item
 
-        described_class.import!(order)
+        described_class.import(order)
 
         first_item = SaleItem.find_by(shopify_id: order[:sale_items].first[:store_id])
         allocated_second_item = SaleItem.find_by(shopify_id: "gid://shopify/LineItem/second-item")
@@ -747,7 +747,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:product) { create(:product) }
       let(:purchase_variant) do
         variant = create(:variant, :with_version, product:)
-        variant.upsert_shopify_info!(
+        variant.upsert_shopify_info(
           store_id: valid_parsed_order[:sale_items].first[:variant_store_id]
         )
         variant
@@ -777,7 +777,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
         sale_item.update(purchase_items_count: 0)
 
-        allow(Product::Shopify::Importer).to receive(:import!).and_return(product)
+        allow(Product::Shopify::Importer).to receive(:import).and_return(product)
       end
 
       it "records a pending link intent for each linked purchase item" do

@@ -10,7 +10,7 @@ module Shopify
       if payload.blank?
         Product.forget_shopify_listing(shopify_product_id)
       else
-        Product::Shopify::Importer.import!(Product::Shopify::Parser.parse(payload))
+        Product::Shopify::Importer.import(Product::Shopify::Parser.parse(payload))
       end
     end
   end

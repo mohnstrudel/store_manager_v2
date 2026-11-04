@@ -61,7 +61,7 @@ RSpec.describe Sale::Filterable do
     end
 
     def link_follow_up(origin_order_id:, follow_up_order_id:)
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-#{origin_order_id}",

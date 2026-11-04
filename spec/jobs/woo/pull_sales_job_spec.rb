@@ -11,7 +11,7 @@ RSpec.describe Woo::PullSalesJob do
   before do
     allow(Woo::Api::Client).to receive(:new).and_return(client)
     allow(Sale::Woo::Parser).to receive(:parse_all).and_return(parsed_orders)
-    allow(Sale::Woo::Importer).to receive(:import_all!)
+    allow(Sale::Woo::Importer).to receive(:import_all)
   end
 
   describe "#perform" do
@@ -21,7 +21,7 @@ RSpec.describe Woo::PullSalesJob do
       expect(job.perform(id: "123")).to be_nil
 
       expect(Sale::Woo::Parser).to have_received(:parse_all).with([woo_orders.first])
-      expect(Sale::Woo::Importer).to have_received(:import_all!).with(parsed_orders)
+      expect(Sale::Woo::Importer).to have_received(:import_all).with(parsed_orders)
     end
 
     it "imports the default number of orders without an id", :aggregate_failures do
@@ -30,7 +30,7 @@ RSpec.describe Woo::PullSalesJob do
       job.perform
 
       expect(Sale::Woo::Parser).to have_received(:parse_all).with(woo_orders)
-      expect(Sale::Woo::Importer).to have_received(:import_all!).with(parsed_orders)
+      expect(Sale::Woo::Importer).to have_received(:import_all).with(parsed_orders)
     end
 
     it "passes a custom limit and page count to the client" do

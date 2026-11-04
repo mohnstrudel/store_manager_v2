@@ -20,7 +20,7 @@ class SalesTagsController < ApplicationController
   end
 
   def create
-    SalesTag.find_or_create_normalized!(**sales_tag_params)
+    SalesTag.find_or_create_normalized(**sales_tag_params)
 
     redirect_to sales_tags_path, notice: "Sales tag saved", status: :see_other
   rescue ActiveRecord::RecordInvalid => error
@@ -28,7 +28,7 @@ class SalesTagsController < ApplicationController
   end
 
   def update
-    @sales_tag.revise!(sales_tag_params)
+    @sales_tag.revise(sales_tag_params)
 
     redirect_to sales_tags_path, notice: "Sales tag saved", status: :see_other
   rescue ActiveRecord::RecordInvalid => error

@@ -4,21 +4,21 @@ class Variant::Shopify::Importer
   attr_reader :product, :parsed, :sibling_store_ids, :variant
   private :product, :parsed, :sibling_store_ids, :variant
 
-  def self.import_all!(product, parsed_variants)
+  def self.import_all(product, parsed_variants)
     store_ids = parsed_variants.pluck(:store_id)
     parsed_variants.each do |parsed_variant|
-      import!(product, parsed_variant, sibling_store_ids: store_ids)
+      import(product, parsed_variant, sibling_store_ids: store_ids)
     rescue => error
       raise StandardError, format_import_error(error, product:, parsed_variant:)
     end
-    VariantImportConflict.keep_only!(product, store_ids)
+    VariantImportConflict.keep_only(product, store_ids)
   end
 
-  def self.import!(product, parsed_payload, sibling_store_ids: [])
+  def self.import(product, parsed_payload, sibling_store_ids: [])
     raise ArgumentError, "Product cannot be blank" if product.blank?
     raise ArgumentError, "Payload cannot be blank" if parsed_payload.blank?
 
-    new(product, parsed_payload, sibling_store_ids).update_or_create!
+    new(product, parsed_payload, sibling_store_ids).update_or_create
   end
 
   def self.format_import_error(error, product:, parsed_variant:)
@@ -38,7 +38,7 @@ class Variant::Shopify::Importer
     @sibling_store_ids = sibling_store_ids
   end
 
-  def update_or_create!
+  def update_or_create
     product.with_lock do
       find_or_initialize_variant
       variant.assign_attributes(variant_attrs)
@@ -159,7 +159,7 @@ class Variant::Shopify::Importer
   end
 
   def record_conflict(holder)
-    VariantImportConflict.record!(
+    VariantImportConflict.record(
       store_id: parsed[:store_id],
       product:,
       sku: parsed[:sku],
@@ -172,13 +172,13 @@ class Variant::Shopify::Importer
   def import_variant
     variant.save!
     if parsed[:store_id]
-      variant.upsert_shopify_info!(
+      variant.upsert_shopify_info(
         store_id: parsed[:store_id],
         ext_created_at: parsed.dig(:store_info, :ext_created_at),
         ext_updated_at: parsed.dig(:store_info, :ext_updated_at),
         pull_time: Time.zone.now
       )
-      VariantImportConflict.resolve!(parsed[:store_id])
+      VariantImportConflict.resolve(parsed[:store_id])
     end
     variant
   end

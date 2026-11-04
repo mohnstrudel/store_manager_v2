@@ -6,25 +6,25 @@ class Sale::Shopify::Importer
   attr_reader :sale, :parsed
   private :sale, :parsed
 
-  def self.import!(parsed_payload)
+  def self.import(parsed_payload)
     raise ArgumentError, "Parsed payload cannot be blank" if parsed_payload.blank?
 
-    new(parsed_payload).update_or_create!
+    new(parsed_payload).update_or_create
   end
 
   def initialize(parsed_payload)
     @parsed = parsed_payload
   end
 
-  def update_or_create!
+  def update_or_create
     find_or_initialize_sale
 
     ActiveRecord::Base.transaction do
       sale.update!(sale_attributes)
-      sale.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
-      reconcile_payment_plans!
-      update_addresses!
-      update_or_create_sale_items!
+      sale.upsert_shopify_info(**parsed[:store_info], pull_time: Time.zone.now)
+      reconcile_payment_plans
+      update_addresses
+      update_or_create_sale_items
       sale.allocate_revenue_to_items
     end
 
@@ -43,21 +43,21 @@ class Sale::Shopify::Importer
   def sale_attributes
     parsed[:sale]
       .slice(*Sale.attribute_names.map(&:to_sym))
-      .merge(customer: Customer::Shopify::Importer.import!(parsed[:customer]))
+      .merge(customer: Customer::Shopify::Importer.import(parsed[:customer]))
   end
 
-  def reconcile_payment_plans!
-    SalePaymentPlan.reconcile_sale!(sale)
+  def reconcile_payment_plans
+    SalePaymentPlan.reconcile_sale(sale)
     return if parsed[:payment_plan].blank?
 
     snapshot = parsed[:payment_plan]
-    SalePaymentPlan.reconcile!(
+    SalePaymentPlan.reconcile(
       attributes: snapshot.fetch(:attributes).merge(synced_at: Time.current),
       parts: snapshot.fetch(:parts)
     )
   end
 
-  def update_addresses!
+  def update_addresses
     return unless parsed.key?(:addresses)
 
     sale.address(**address_attributes)
@@ -67,9 +67,9 @@ class Sale::Shopify::Importer
     (parsed[:addresses] || {}).reverse_merge(shipping: nil, billing: nil)
   end
 
-  def update_or_create_sale_items!
+  def update_or_create_sale_items
     parsed[:sale_items].each do |parsed_sale_item|
-      Sale::Shopify::SaleItemImporter.new(sale, parsed_sale_item).import!
+      Sale::Shopify::SaleItemImporter.new(sale, parsed_sale_item).import
     end
   end
 

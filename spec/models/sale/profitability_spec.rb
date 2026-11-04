@@ -251,7 +251,7 @@ RSpec.describe Sale::Profitability, :aggregate_failures do
   end
 
   def create_plan(parts:, external_id: "subscription-1", projected_total: nil)
-    SalePaymentPlan.reconcile!(
+    SalePaymentPlan.reconcile(
       attributes: {
         provider: "seal",
         external_id:,

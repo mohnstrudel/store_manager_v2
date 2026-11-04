@@ -15,7 +15,7 @@ RSpec.describe Media::LegacyAttachments::Backfill do
     ActiveStorage::Attachment.create!(name: Media::LegacyAttachments::NAME, record:, blob:)
   end
 
-  describe ".apply!" do
+  describe ".apply" do
     it "creates ordered Media for a product with legacy images and no Media", :aggregate_failures do
       product = create(:product)
       blob_a = uploaded_blob("first")
@@ -23,7 +23,7 @@ RSpec.describe Media::LegacyAttachments::Backfill do
       legacy_attachment(product, blob: blob_a)
       legacy_attachment(product, blob: blob_b)
 
-      result = described_class.apply!
+      result = described_class.apply
 
       expect(result.created_count).to eq(2)
       expect(result.owners_backfilled).to eq(1)
@@ -39,7 +39,7 @@ RSpec.describe Media::LegacyAttachments::Backfill do
       legacy_attachment(product, blob: blob_b)
       product.media.create!(image: blob_a, position: 0)
 
-      result = described_class.apply!
+      result = described_class.apply
 
       expect(result.created_count).to eq(1)
       expect(product.media.ordered.map { |media| media.image.blob_id }).to eq([blob_a.id, blob_b.id])
@@ -50,7 +50,7 @@ RSpec.describe Media::LegacyAttachments::Backfill do
       existing_media = create(:media, :for_product, mediaable: product)
       legacy_attachment(product)
 
-      result = described_class.apply!
+      result = described_class.apply
 
       expect(result.created_count).to eq(0)
       expect(product.media.reload).to eq([existing_media])
@@ -61,7 +61,7 @@ RSpec.describe Media::LegacyAttachments::Backfill do
       product.media.create!(position: 0)
       legacy_attachment(product)
 
-      result = described_class.apply!
+      result = described_class.apply
 
       expect(result.created_count).to eq(1)
       expect(product.media.count).to eq(2)
@@ -73,7 +73,7 @@ RSpec.describe Media::LegacyAttachments::Backfill do
       legacy_attachment(purchase_item)
       legacy_attachment(warehouse)
 
-      result = described_class.apply!
+      result = described_class.apply
 
       expect(result.created_count).to eq(2)
       expect(purchase_item.media.count).to eq(1)
@@ -94,11 +94,11 @@ RSpec.describe Media::LegacyAttachments::Backfill do
         method.call(*arguments)
       end
 
-      expect { described_class.apply! }.to raise_error("interrupted owner backfill")
+      expect { described_class.apply }.to raise_error("interrupted owner backfill")
       expect(product.media.count).to eq(0)
 
       allow_any_instance_of(Media).to receive(:save!).and_call_original
-      result = described_class.apply!
+      result = described_class.apply
       # rubocop:enable RSpec/AnyInstance
 
       expect(result.created_count).to eq(2)
@@ -109,8 +109,8 @@ RSpec.describe Media::LegacyAttachments::Backfill do
       product = create(:product)
       legacy_attachment(product)
 
-      described_class.apply!
-      result = described_class.apply!
+      described_class.apply
+      result = described_class.apply
 
       expect(result.created_count).to eq(0)
       expect(product.media.count).to eq(1)
@@ -119,7 +119,7 @@ RSpec.describe Media::LegacyAttachments::Backfill do
     it "does not touch owners with no legacy attachment" do
       create(:product)
 
-      result = described_class.apply!
+      result = described_class.apply
 
       expect(result.created_count).to eq(0)
       expect(result.owners_backfilled).to eq(0)

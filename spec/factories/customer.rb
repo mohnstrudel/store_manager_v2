@@ -13,7 +13,7 @@ FactoryBot.define do
     woo_id { SecureRandom.alphanumeric(10) }
 
     after(:create) do |customer, evaluator|
-      customer.upsert_woo_info!(store_id: evaluator.woo_store_id || customer[:woo_id])
+      customer.upsert_woo_info(store_id: evaluator.woo_store_id || customer[:woo_id])
     end
   end
 end

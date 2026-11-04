@@ -14,8 +14,8 @@ FactoryBot.define do
     shopify_id { SecureRandom.alphanumeric(10) }
 
     after(:create) do |variant, evaluator|
-      variant.upsert_woo_info!(store_id: evaluator.woo_store_id || variant[:woo_id])
-      variant.upsert_shopify_info!(store_id: evaluator.shopify_store_id || variant.shopify_id)
+      variant.upsert_woo_info(store_id: evaluator.woo_store_id || variant[:woo_id])
+      variant.upsert_shopify_info(store_id: evaluator.shopify_store_id || variant.shopify_id)
     end
 
     trait(:with_size) do

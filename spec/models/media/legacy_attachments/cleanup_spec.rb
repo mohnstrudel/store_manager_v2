@@ -15,9 +15,9 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
     ActiveStorage::Attachment.create!(name: Media::LegacyAttachments::NAME, record:, blob:)
   end
 
-  describe ".enqueue!" do
+  describe ".enqueue" do
     it "returns zeroed counts when there are no legacy attachments" do
-      result = described_class.enqueue!
+      result = described_class.enqueue
 
       expect(result.to_h).to eq(
         queued_batch_count: 0,
@@ -33,7 +33,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       legacy_attachment(product)
 
       expect {
-        expect { described_class.enqueue! }.to raise_error(described_class::Blocked)
+        expect { described_class.enqueue }.to raise_error(described_class::Blocked)
       }.not_to have_enqueued_job(Media::LegacyAttachments::CleanupJob)
     end
 
@@ -45,7 +45,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       product.media.create!(image: covered_blob)
 
       expect {
-        expect { described_class.enqueue! }.to raise_error(described_class::Blocked)
+        expect { described_class.enqueue }.to raise_error(described_class::Blocked)
       }.not_to have_enqueued_job(Media::LegacyAttachments::CleanupJob)
     end
 
@@ -54,7 +54,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       media = create(:media, :for_product, mediaable: product)
       retained = legacy_attachment(product, blob: media.image.blob)
 
-      result = described_class.enqueue!
+      result = described_class.enqueue
 
       expect(Media::LegacyAttachments::CleanupJob).to have_been_enqueued.with(
         owner_type: "Product",
@@ -72,7 +72,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       releasing_blob = uploaded_blob
       releasing = legacy_attachment(product, blob: releasing_blob)
 
-      result = described_class.enqueue!
+      result = described_class.enqueue
 
       expect(Media::LegacyAttachments::CleanupJob).to have_been_enqueued.with(
         owner_type: "Product",
@@ -91,7 +91,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
 
       result = nil
 
-      expect { result = described_class.enqueue! }
+      expect { result = described_class.enqueue }
         .not_to have_enqueued_job(Media::LegacyAttachments::CleanupJob)
 
       expect(result.unrecoverable_count).to eq(1)
@@ -103,7 +103,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       create(:media, :for_purchase_item, mediaable: purchase_item)
       unrecoverable = legacy_attachment(purchase_item)
 
-      result = described_class.enqueue!
+      result = described_class.enqueue
 
       expect(result.unrecoverable_count).to eq(1)
       expect(ActiveStorage::Attachment.exists?(unrecoverable.id)).to be true
@@ -115,7 +115,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       orphaned = legacy_attachment(product, blob: orphaned_blob)
       product.destroy!
 
-      result = described_class.enqueue!
+      result = described_class.enqueue
 
       expect(Media::LegacyAttachments::CleanupJob).to have_been_enqueued.with(
         owner_type: "Product",
@@ -131,7 +131,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       orphaned = legacy_attachment(product, blob: other_media.image.blob)
       product.destroy!
 
-      described_class.enqueue!
+      described_class.enqueue
 
       expect(Media::LegacyAttachments::CleanupJob).to have_been_enqueued.with(
         owner_type: "Product",
@@ -145,7 +145,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
       media = create(:media, :for_product, mediaable: product)
       legacy_attachment(product, blob: media.image.blob)
 
-      expect { described_class.enqueue! }.not_to(change { product.reload.updated_at })
+      expect { described_class.enqueue }.not_to(change { product.reload.updated_at })
     end
   end
 end

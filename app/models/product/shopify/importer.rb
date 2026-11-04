@@ -4,18 +4,18 @@ class Product::Shopify::Importer
   attr_reader :parsed, :product
   private :parsed, :product
 
-  def self.import!(parsed_payload)
+  def self.import(parsed_payload)
     raise ArgumentError, "Parsed payload cannot be blank" if parsed_payload.blank?
 
-    new(parsed_payload).update_or_create!
+    new(parsed_payload).update_or_create
   end
 
   def initialize(parsed_payload)
     @parsed = parsed_payload
   end
 
-  def update_or_create!
-    update_or_create_product!
+  def update_or_create
+    update_or_create_product
 
     Shopify::PullVariantsJob.perform_later(product, converted_variants) if parsed[:variants].present?
     Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
@@ -25,7 +25,7 @@ class Product::Shopify::Importer
 
   private
 
-  def update_or_create_product!
+  def update_or_create_product
     ActiveRecord::Base.transaction do
       find_or_initialize_product
       product.assign_attributes(
@@ -42,7 +42,7 @@ class Product::Shopify::Importer
       product.save!
 
       if parsed[:store_id]
-        product.upsert_shopify_info!(
+        product.upsert_shopify_info(
           store_id: parsed[:store_id],
           slug: parsed[:store_link],
           ext_created_at: parsed.dig(:store_info, :ext_created_at),

@@ -3,7 +3,7 @@
 module VariantAssignmentIssues
   class SaleItemsController < ApplicationController
     def update
-      result = Variant::AssignmentRepair.repair_sale_item!(
+      result = Variant::AssignmentRepair.repair_sale_item(
         sale_item_id: params.expect(:id),
         variant_id: repair_params.expect(:variant_id)
       )

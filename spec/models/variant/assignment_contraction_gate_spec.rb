@@ -7,7 +7,7 @@ RSpec.describe Variant::AssignmentContractionGate do
 
   let(:integrity) { instance_double(Variant::AssignmentIntegrity) }
 
-  describe "#verify!" do
+  describe "#verify" do
     it "returns the zero audit snapshot when every contraction prerequisite is clean" do
       allow(integrity).to receive_messages(
         counts: {
@@ -18,7 +18,7 @@ RSpec.describe Variant::AssignmentContractionGate do
         purchase_item_purchase_identity_mismatches: PurchaseItem.none
       )
 
-      expect(gate.verify!).to eq(
+      expect(gate.verify).to eq(
         purchases: 0,
         sale_items: 0,
         purchase_item_links: 0,
@@ -41,7 +41,7 @@ RSpec.describe Variant::AssignmentContractionGate do
         purchase_item_purchase_identity_mismatches: PurchaseItem.none
       )
 
-      expect { gate.verify! }
+      expect { gate.verify }
         .to raise_error(
           Variant::AssignmentContractionGate::IntegrityError,
           /purchases=1.*sale_items=0.*base_models=0.*base_activation=0.*duplicate_variant_store_identity=0/

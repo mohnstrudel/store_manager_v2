@@ -59,7 +59,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       create(:variant, product:, sku: "test-001")
       create(:sale, shopify_id: "gid://shopify/Order/123")
 
-      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
+      allow(Sale::Shopify::Importer).to receive(:import).and_raise(
         StandardError.new("SKU has already been taken")
       )
 
@@ -67,7 +67,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
 
     it "re-raises non-SKU errors" do
-      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
+      allow(Sale::Shopify::Importer).to receive(:import).and_raise(
         StandardError.new("API rate limit exceeded")
       )
 
@@ -75,7 +75,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
 
     it "logs and skips known importer validation failures instead of aborting the page" do
-      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
+      allow(Sale::Shopify::Importer).to receive(:import).and_raise(
         Sale::Shopify::Importer::Error.new("Failed to process SaleItem: Variant must be selected")
       )
       allow(Rails.logger).to receive(:error)
@@ -134,7 +134,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
 
       before do
         allow(Sale::Shopify::Parser).to receive(:parse).and_return({})
-        allow(Sale::Shopify::Importer).to receive(:import!).and_raise(StandardError, "boom")
+        allow(Sale::Shopify::Importer).to receive(:import).and_raise(StandardError, "boom")
       end
 
       it "does not enqueue Seal" do

@@ -29,7 +29,7 @@ module Product::Shopify::Media
       downloads_by_key.values.map(&:checksum)
     end
 
-    def close_downloads!
+    def close_downloads
       downloads_by_key.each_value { |downloaded| downloaded.file.close }
     end
 

@@ -70,7 +70,7 @@ RSpec.describe Shopify::PullProductJob do
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:fetch_product).with(product_id).and_return(api_response)
       allow(Product::Shopify::Parser).to receive(:parse).with(api_response).and_return(parsed_product)
-      allow(Product::Shopify::Importer).to receive(:import!).with(parsed_product).and_return(imported_product)
+      allow(Product::Shopify::Importer).to receive(:import).with(parsed_product).and_return(imported_product)
     end
 
     context "with valid product_id and valid response" do
@@ -87,12 +87,12 @@ RSpec.describe Shopify::PullProductJob do
       it "parses and imports the response" do
         job.perform(product_id)
         expect(Product::Shopify::Parser).to have_received(:parse).with(api_response)
-        expect(Product::Shopify::Importer).to have_received(:import!).with(parsed_product)
+        expect(Product::Shopify::Importer).to have_received(:import).with(parsed_product)
       end
 
       it "creates or updates product" do
         job.perform(product_id)
-        expect(Product::Shopify::Importer).to have_received(:import!).with(parsed_product)
+        expect(Product::Shopify::Importer).to have_received(:import).with(parsed_product)
       end
     end
 
@@ -123,7 +123,7 @@ RSpec.describe Shopify::PullProductJob do
 
     context "when importer fails" do
       before do
-        allow(Product::Shopify::Importer).to receive(:import!).and_raise(
+        allow(Product::Shopify::Importer).to receive(:import).and_raise(
           ActiveRecord::RecordInvalid.new(Product.new)
         )
       end
@@ -145,7 +145,7 @@ RSpec.describe Shopify::PullProductJob do
       it "returns early without calling parser or importer" do # rubocop:todo RSpec/MultipleExpectations
         job.perform(product_id)
         expect(Product::Shopify::Parser).not_to have_received(:parse)
-        expect(Product::Shopify::Importer).not_to have_received(:import!)
+        expect(Product::Shopify::Importer).not_to have_received(:import)
       end
 
       it "forgets the Shopify listing" do

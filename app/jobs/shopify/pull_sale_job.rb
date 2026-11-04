@@ -6,7 +6,7 @@ module Shopify
       raise ArgumentError, "Sale store_id is required" if sale_store_id.blank?
 
       response = Shopify::Api::Client.new.fetch_order(sale_store_id)
-      sale = Sale::Shopify::Importer.import!(Sale::Shopify::Parser.parse(response))
+      sale = Sale::Shopify::Importer.import(Sale::Shopify::Parser.parse(response))
 
       sale.reconcile_installment_sale_items_later if sale.linked_to_payment_plan?
     end

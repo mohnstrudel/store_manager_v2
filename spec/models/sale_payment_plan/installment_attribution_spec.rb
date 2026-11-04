@@ -12,7 +12,7 @@ RSpec.describe SalePaymentPlan do
     let!(:payment_item) { create(:sale_item, sale: follow_up_sale, product: placeholder_product) }
 
     def build_plan(external_origin_order_id: "100")
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-1",

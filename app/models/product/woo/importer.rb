@@ -16,20 +16,20 @@ class Product::Woo::Importer
 
     return if parsed_product.blank?
 
-    import!(parsed_product)
+    import(parsed_product)
   end
 
-  def self.import!(parsed_product)
+  def self.import(parsed_product)
     return if parsed_product.blank?
 
-    new(parsed_product).import!
+    new(parsed_product).import
   end
 
   def initialize(parsed_product)
     @parsed_product = parsed_product
   end
 
-  def import!
+  def import
     @product = Product.find_by_woo_id(parsed_product[:woo_id]) || Product.new
     product.assign_attributes(
       title: parsed_product[:title],
@@ -38,7 +38,7 @@ class Product::Woo::Importer
     )
     OPTION_ASSOCIATIONS.each { |association, (model, attribute)| add_options(association, model, attribute) }
     product.save!
-    record_store_info!
+    record_store_info
     product
   end
 
@@ -52,8 +52,8 @@ class Product::Woo::Importer
     end
   end
 
-  def record_store_info!
-    product.update_or_create_store_info!(
+  def record_store_info
+    product.update_or_create_store_info(
       store_name: :woo,
       store_id: parsed_product[:woo_id],
       slug: parsed_product[:store_link],

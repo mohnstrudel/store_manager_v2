@@ -9,7 +9,7 @@ module Sales
 
     def update
       tagging = tagging_params
-      reject_unreadable!(tagging)
+      reject_unreadable(tagging)
 
       @sale.retag(ids: tagging[:ids], original_ids: tagging[:original_ids])
       redirect_to return_path, notice: "Tags saved", status: :see_other
@@ -25,7 +25,7 @@ module Sales
       tagging.is_a?(ActionController::Parameters) ? tagging : ActionController::Parameters.new
     end
 
-    def reject_unreadable!(tagging)
+    def reject_unreadable(tagging)
       return if tagging[:submitted] == "1" && tagging[:new_tags].blank?
 
       @sale.errors.add(:tags, Sale::Taggable::UNREADABLE_INPUT_MESSAGE)

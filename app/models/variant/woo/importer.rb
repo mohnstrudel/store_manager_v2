@@ -19,19 +19,19 @@ class Variant::Woo::Importer
   end
 
   def import
-    variant = find_or_create_variant!
-    sync_woo_info!(variant)
+    variant = find_or_create_variant
+    sync_woo_info(variant)
     variant
   end
 
   private
 
-  def find_or_create_variant!
+  def find_or_create_variant
     options = prepared_options
 
     Variant.find_by_woo_id(parsed_variant[:woo_id]) ||
       product.variants.find_by(options) ||
-      build_variant!
+      build_variant
   end
 
   def prepared_options
@@ -42,14 +42,14 @@ class Variant::Woo::Importer
     end
   end
 
-  def build_variant!
+  def build_variant
     variant = product.variants.build(prepared_options)
     product.fill_variant_sku(variant, "woo-#{product.id}-#{parsed_variant[:woo_id]}")
     variant.save!
     variant
   end
 
-  def sync_woo_info!(variant)
+  def sync_woo_info(variant)
     woo_info = variant.woo_info || variant.store_infos.woo.new
     updates = woo_info_updates(woo_info)
 

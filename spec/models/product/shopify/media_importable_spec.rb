@@ -42,7 +42,7 @@ RSpec.describe Product::Shopify::MediaImportable do
       downloaded_checksums: ["checksum-one"],
       failed_store_ids: ["gid://shopify/MediaImage/2"],
       downloads_by_key: {"gid://shopify/MediaImage/1" => instance_double(Product::Shopify::Media::Downloader::DownloadedImage, checksum: "checksum-one")},
-      close_downloads!: true
+      close_downloads: true
     )
   end
 
@@ -92,7 +92,7 @@ RSpec.describe Product::Shopify::MediaImportable do
       expect(kept_media.reload).to be_persisted
       expect(failed_media.reload).to be_persisted
       expect { obsolete_media.reload }.to raise_error(ActiveRecord::RecordNotFound)
-      expect(downloaded_file).to have_received(:close_downloads!)
+      expect(downloaded_file).to have_received(:close_downloads)
       expect(Product::Shopify::Media::Upsert).to have_received(:new).with(product:)
     end
   end

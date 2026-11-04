@@ -29,7 +29,7 @@ module Product::Shopify::Pushable
     product_response = ::Shopify::Api::Client.new.create_product(serialized_product)
     product_store_id = product_response.fetch("id")
 
-    upsert_shopify_info!(
+    upsert_shopify_info(
       store_id: product_store_id,
       slug: product_response.fetch("handle"),
       push_time: Time.current

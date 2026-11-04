@@ -80,7 +80,7 @@ RSpec.describe "Products" do
 
       create(:sale_item, product:, variant:, sale: origin, qty: 1)
       create(:sale_item, product:, variant:, sale: follow_up, qty: 1)
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-1",
@@ -116,7 +116,7 @@ RSpec.describe "Products" do
 
       create(:sale_item, product:, variant:, sale: origin, qty: 1)
       follow_up_sales.each { |sale| create(:sale_item, product:, variant:, sale:, qty: 1) }
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-preload",
@@ -155,7 +155,7 @@ RSpec.describe "Products" do
       variant = create(:variant, product:)
       origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/950", shipping_total: BigDecimal("22.90"))
       create(:sale_item, product:, variant:, sale: origin, qty: 1, price: BigDecimal("132.14"), expected_revenue: BigDecimal("132.14"))
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-deposit",
@@ -180,7 +180,7 @@ RSpec.describe "Products" do
       variant = create(:variant, product:)
       origin = create(:sale, status: "processing", shopify_store_id: "gid://shopify/Order/951", shipping_total: BigDecimal("22.90"))
       create(:sale_item, product:, variant:, sale: origin, qty: 1, price: BigDecimal("132.14"), expected_revenue: BigDecimal("132.14"))
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-deposit-2",

@@ -4,13 +4,13 @@ class Sale::Woo::Importer
   attr_reader :parsed_order, :pulled_at, :sale
   private :parsed_order, :pulled_at, :sale
 
-  def self.import_all!(parsed_orders)
+  def self.import_all(parsed_orders)
     current_order = nil
     pulled_at = Time.zone.now
 
     parsed_orders.each do |order|
       current_order = order
-      import!(order, pulled_at:)
+      import(order, pulled_at:)
     end
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error "!!! Validation error for order #{current_order&.dig(:sale, :woo_id)}: #{e.message}"
@@ -25,8 +25,8 @@ class Sale::Woo::Importer
     raise
   end
 
-  def self.import!(parsed_order, pulled_at: Time.zone.now)
-    new(parsed_order, pulled_at).import!
+  def self.import(parsed_order, pulled_at: Time.zone.now)
+    new(parsed_order, pulled_at).import
   end
 
   def initialize(parsed_order, pulled_at)
@@ -34,10 +34,10 @@ class Sale::Woo::Importer
     @pulled_at = pulled_at
   end
 
-  def import!
+  def import
     ActiveRecord::Base.transaction do
-      upsert_sale!
-      parsed_order[:products].each { |parsed_item| import_sale_item!(parsed_item) }
+      upsert_sale
+      parsed_order[:products].each { |parsed_item| import_sale_item(parsed_item) }
       sale.allocate_revenue_to_items
       sale
     end
@@ -45,22 +45,22 @@ class Sale::Woo::Importer
 
   private
 
-  def upsert_sale!
-    parsed_sale = parsed_order[:sale].merge(customer_id: import_customer!.id)
+  def upsert_sale
+    parsed_sale = parsed_order[:sale].merge(customer_id: import_customer.id)
     addresses = parsed_order[:addresses]
 
     @sale = Sale.find_by_woo_id(parsed_sale[:woo_id]) || Sale.new
     sale.assign_attributes(parsed_sale.slice(*Sale.attribute_names.map(&:to_sym)).except(:woo_id, :store_id))
     sale.save!
-    sale.upsert_woo_info!(store_id: parsed_sale[:woo_id], pull_time: pulled_at) if parsed_sale[:woo_id].present?
+    sale.upsert_woo_info(store_id: parsed_sale[:woo_id], pull_time: pulled_at) if parsed_sale[:woo_id].present?
     sale.address(**addresses.reverse_merge(shipping: nil, billing: nil)) unless addresses.nil?
   end
 
-  def import_customer!
-    Customer::Woo::Importer.import!(parsed_order[:customer], pulled_at:)
+  def import_customer
+    Customer::Woo::Importer.import(parsed_order[:customer], pulled_at:)
   end
 
-  def import_sale_item!(parsed_item)
+  def import_sale_item(parsed_item)
     product = find_or_fetch_product(parsed_item[:product_woo_id])
 
     return if product.blank?
@@ -83,7 +83,7 @@ class Sale::Woo::Importer
         Rails.logger.error "!!! Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
       end
 
-      sale_item.upsert_woo_info!(store_id: parsed_item[:sale_item_woo_id], pull_time: pulled_at) if parsed_item[:sale_item_woo_id].present?
+      sale_item.upsert_woo_info(store_id: parsed_item[:sale_item_woo_id], pull_time: pulled_at) if parsed_item[:sale_item_woo_id].present?
     end
   end
 

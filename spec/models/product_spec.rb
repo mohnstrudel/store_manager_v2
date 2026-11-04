@@ -125,13 +125,13 @@ RSpec.describe Product do
     end
 
     it "finds products by a variant exact store_id" do
-      matching_product.variants.first.upsert_shopify_info!(store_id: "gid://shopify/ProductVariant/501")
+      matching_product.variants.first.upsert_shopify_info(store_id: "gid://shopify/ProductVariant/501")
 
       expect(described_class.search_by("gid://shopify/ProductVariant/501")).to include(matching_product)
     end
 
     it "finds products by a variant trailing store_id segment" do
-      matching_product.variants.first.upsert_shopify_info!(store_id: "gid://shopify/ProductVariant/501")
+      matching_product.variants.first.upsert_shopify_info(store_id: "gid://shopify/ProductVariant/501")
 
       expect(described_class.search_by("501")).to include(matching_product)
     end

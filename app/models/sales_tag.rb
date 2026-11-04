@@ -35,7 +35,7 @@ class SalesTag < ApplicationRecord
     left_joins(:sale_taggings).group(:id).select("sales_tags.*", "COUNT(sale_taggings.id) AS usage_count")
   }
 
-  def self.find_or_create_normalized!(name:, color: DEFAULT_COLOR)
+  def self.find_or_create_normalized(name:, color: DEFAULT_COLOR)
     candidate = new(name:, color:)
     candidate.validate!
     find_by(normalized_name: candidate.normalized_name) || candidate.tap(&:save!)
@@ -53,7 +53,7 @@ class SalesTag < ApplicationRecord
   end
   private_class_method :raise_winner_missing
 
-  def revise!(attributes)
+  def revise(attributes)
     update!(attributes)
   rescue ActiveRecord::RecordInvalid
     errors.add(:name, :taken) if errors.delete(:normalized_name).present?

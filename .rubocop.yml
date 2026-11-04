@@ -103,9 +103,9 @@ Style/FrozenStringLiteralComment:
   EnforcedStyle: always
 
 Project/BangWithoutCounterpart:
-  Enabled: false
+  Enabled: true
 Project/CapabilityModuleName:
-  Enabled: false
+  Enabled: true
   Include:
     - app/models/**/*.rb
   AllowedNames:

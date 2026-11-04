@@ -76,7 +76,7 @@ RSpec.describe Sales::ListingResource do
         refunded_revenue: 0,
         outstanding_revenue: 0
       )
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-1",
@@ -218,7 +218,7 @@ RSpec.describe Sales::ListingResource do
 
     it "falls back to amount progress when the plan carries no known projected total" do
       sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/500", expected_revenue: 1000, received_revenue: 300, outstanding_revenue: 700)
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "shopify",
           external_id: "terms-500",
@@ -237,7 +237,7 @@ RSpec.describe Sales::ListingResource do
 
     it "shows a Seal deposit's amount progress against its projected total, never a part count" do
       sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/100", received_revenue: 420, refunded_revenue: 0, outstanding_revenue: 0)
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-deposit",
@@ -262,7 +262,7 @@ RSpec.describe Sales::ListingResource do
 
     it "falls back to sale-amount progress when more than one plan claims the sale" do
       sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/200", expected_revenue: 1000, received_revenue: 300, outstanding_revenue: 700, refunded_revenue: 0)
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-ambiguous-a",
@@ -276,7 +276,7 @@ RSpec.describe Sales::ListingResource do
         },
         parts: [{provider_part_id: "subscription-ambiguous-a:1", sequence: 1, external_order_id: "200", amount: 420}]
       )
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-ambiguous-b",
@@ -298,7 +298,7 @@ RSpec.describe Sales::ListingResource do
     it "shows completed and expected parts for a real installment schedule" do
       sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/300", received_revenue: 300, refunded_revenue: 0)
       create(:sale, shopify_store_id: "gid://shopify/Order/301", received_revenue: 200, refunded_revenue: 0)
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-schedule",
@@ -326,7 +326,7 @@ RSpec.describe Sales::ListingResource do
     it "computes the amount percentage independently of the parts fraction" do
       sale = create(:sale, settlement_status: "not_fully_paid", shopify_store_id: "gid://shopify/Order/400", received_revenue: 500, refunded_revenue: 0)
       create(:sale, shopify_store_id: "gid://shopify/Order/401", received_revenue: 300, refunded_revenue: 0)
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id: "subscription-unequal",
@@ -378,7 +378,7 @@ RSpec.describe Sales::ListingResource do
   end
 
   def reconcile_two_part_plan
-    SalePaymentPlan.reconcile!(
+    SalePaymentPlan.reconcile(
       attributes: {
         provider: "seal",
         external_id: "subscription-1",
@@ -396,7 +396,7 @@ RSpec.describe Sales::ListingResource do
   end
 
   def reconcile_installment_plan(external_id:, order_id:, projected_total:)
-    SalePaymentPlan.reconcile!(
+    SalePaymentPlan.reconcile(
       attributes: {
         provider: "seal",
         external_id:,

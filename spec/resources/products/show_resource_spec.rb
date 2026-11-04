@@ -110,7 +110,7 @@ RSpec.describe Products::ShowResource do
     let(:variant) { create(:variant, product:) }
 
     def reconcile_plan(external_origin_order_id:, parts:, external_id: "subscription-1")
-      SalePaymentPlan.reconcile!(
+      SalePaymentPlan.reconcile(
         attributes: {
           provider: "seal",
           external_id:,

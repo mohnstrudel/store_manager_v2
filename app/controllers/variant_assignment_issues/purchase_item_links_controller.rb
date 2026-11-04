@@ -3,7 +3,7 @@
 module VariantAssignmentIssues
   class PurchaseItemLinksController < ApplicationController
     def update
-      result = Variant::AssignmentRepair.repair_purchase_item_link!(
+      result = Variant::AssignmentRepair.repair_purchase_item_link(
         purchase_item_id: params.expect(:id)
       )
       redirect_to return_path, notice: success_notice(result)

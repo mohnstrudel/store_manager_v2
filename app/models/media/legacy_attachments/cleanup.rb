@@ -14,17 +14,17 @@ class Media::LegacyAttachments::Cleanup
     :unrecoverable_count
   )
 
-  def self.enqueue!
-    new.enqueue!
+  def self.enqueue
+    new.enqueue
   end
 
-  def self.delete_batch!(owner_type:, attachment_ids:, purge_blob_ids:)
-    new.delete_batch!(owner_type:, attachment_ids:, purge_blob_ids:)
+  def self.delete_batch(owner_type:, attachment_ids:, purge_blob_ids:)
+    new.delete_batch(owner_type:, attachment_ids:, purge_blob_ids:)
   end
 
-  def enqueue!
+  def enqueue
     classifications = classifications_by_owner_class
-    ensure_backfill_complete!(classifications)
+    ensure_backfill_complete(classifications)
 
     purgeable_blobs = purgeable_blobs(classifications)
     purge_candidate_count = purgeable_blobs.count
@@ -39,7 +39,7 @@ class Media::LegacyAttachments::Cleanup
       Media::LegacyAttachments::Classification::DELETABLE_RELATIONS.each do |scope_name|
         purge_blobs = %i[releasing orphaned_releasing].include?(scope_name)
         relation = classification.public_send(scope_name)
-        batches, attachments = enqueue_scope!(owner_class, relation, purge_blobs:)
+        batches, attachments = enqueue_scope(owner_class, relation, purge_blobs:)
         queued_batch_count += batches
         scheduled_attachment_count += attachments
       end
@@ -54,13 +54,13 @@ class Media::LegacyAttachments::Cleanup
     )
   end
 
-  def delete_batch!(owner_type:, attachment_ids:, purge_blob_ids:)
-    owner_class = Media::LegacyAttachments.owner_class_for!(owner_type)
+  def delete_batch(owner_type:, attachment_ids:, purge_blob_ids:)
+    owner_class = Media::LegacyAttachments.owner_class_for(owner_type)
     attachment_ids = normalize_ids(attachment_ids)
     purge_blob_ids = normalize_ids(purge_blob_ids)
 
-    delete_safe_attachments!(owner_class, attachment_ids, purge_blob_ids)
-    enqueue_purge_jobs!(purge_blob_ids)
+    delete_safe_attachments(owner_class, attachment_ids, purge_blob_ids)
+    enqueue_purge_jobs(purge_blob_ids)
   end
 
   private
@@ -71,7 +71,7 @@ class Media::LegacyAttachments::Cleanup
     end
   end
 
-  def ensure_backfill_complete!(classifications)
+  def ensure_backfill_complete(classifications)
     blocked_count = classifications.sum { |_owner_class, classification| classification.blocked.count }
     return if blocked_count.zero?
 
@@ -91,7 +91,7 @@ class Media::LegacyAttachments::Cleanup
     end
   end
 
-  def enqueue_scope!(owner_class, relation, purge_blobs:)
+  def enqueue_scope(owner_class, relation, purge_blobs:)
     queued_batch_count = 0
     scheduled_attachment_count = 0
 
@@ -121,7 +121,7 @@ class Media::LegacyAttachments::Cleanup
     Array(ids).map { |id| Integer(id) }.uniq
   end
 
-  def delete_safe_attachments!(owner_class, attachment_ids, purge_blob_ids)
+  def delete_safe_attachments(owner_class, attachment_ids, purge_blob_ids)
     return if attachment_ids.empty?
 
     ActiveStorage::Attachment.transaction do
@@ -149,7 +149,7 @@ class Media::LegacyAttachments::Cleanup
     Media::LegacyAttachments.for_owner_class(owner_class)
   end
 
-  def enqueue_purge_jobs!(blob_ids)
+  def enqueue_purge_jobs(blob_ids)
     ActiveStorage::Blob.where(id: blob_ids).find_each do |blob|
       job = blob.purge_later
       next if job.respond_to?(:successfully_enqueued?) && job.successfully_enqueued?

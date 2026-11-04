@@ -9,7 +9,7 @@ module Seal
     LOCK_KEY = Zlib.crc32(name)
 
     def perform
-      return unless acquire_lock!
+      return unless acquire_lock
 
       begin
         client = Seal::Api::Client.new
@@ -22,7 +22,7 @@ module Seal
             selling_plans_by_id:,
             origin_date: origin_date_for(subscription)
           )
-          SalePaymentPlan.reconcile!(
+          SalePaymentPlan.reconcile(
             attributes: snapshot.fetch(:attributes).merge(synced_at:),
             parts: snapshot.fetch(:parts)
           )
@@ -30,13 +30,13 @@ module Seal
 
         Seal::ReconcileInstallmentSaleItemsJob.perform_later
       ensure
-        release_lock!
+        release_lock
       end
     end
 
     private
 
-    def acquire_lock!
+    def acquire_lock
       ActiveModel::Type::Boolean.new.cast(
         ActiveRecord::Base.connection.select_value("SELECT pg_try_advisory_lock(#{LOCK_KEY})")
       )
@@ -46,7 +46,7 @@ module Seal
       Sale::Shopify::OrderId.find_sale(subscription["order_id"])&.shop_created_at&.to_date
     end
 
-    def release_lock!
+    def release_lock
       ActiveRecord::Base.connection.execute("SELECT pg_advisory_unlock(#{LOCK_KEY})")
     end
   end

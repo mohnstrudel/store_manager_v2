@@ -282,7 +282,7 @@ RSpec.describe "Variant assignment issues" do
 
     it "keeps a concurrently changed unresolved row retryable" do
       purchase = create(:purchase)
-      allow(Variant::AssignmentRepair).to receive(:repair_purchase!).and_raise(
+      allow(Variant::AssignmentRepair).to receive(:repair_purchase).and_raise(
         PurchaseItem::Linkable::StaleLinkState
       )
 
@@ -302,14 +302,14 @@ RSpec.describe "Variant assignment issues" do
       purchase = create(:purchase)
       log_out
       sign_in(create(:user, :manager))
-      allow(Variant::AssignmentRepair).to receive(:repair_purchase!)
+      allow(Variant::AssignmentRepair).to receive(:repair_purchase)
 
       patch variant_assignment_issues_purchase_path(purchase), params: {
         purchase: {variant_id: purchase.variant_id}
       }
 
       expect(response).to redirect_to(noop_path)
-      expect(Variant::AssignmentRepair).not_to have_received(:repair_purchase!)
+      expect(Variant::AssignmentRepair).not_to have_received(:repair_purchase)
     end
   end
 
@@ -366,7 +366,7 @@ RSpec.describe "Variant assignment issues" do
       purchase_item = create(:purchase_item)
       allow(
         Variant::AssignmentRepair
-      ).to receive(:repair_purchase_item_link!).and_raise(
+      ).to receive(:repair_purchase_item_link).and_raise(
         PurchaseItem::Linkable::StaleLinkState
       )
 

@@ -150,7 +150,7 @@ RSpec.describe Variant::AssignmentBackfill do
       [first, failed, later].each { |purchase| purchase.update_columns(variant_id: nil) }
       repair = Variant::AssignmentRepair.new
       fail_once = true
-      allow(repair).to receive(:repair_purchase!).and_wrap_original do |original, **arguments|
+      allow(repair).to receive(:repair_purchase).and_wrap_original do |original, **arguments|
         if arguments.fetch(:purchase_id) == failed.id && fail_once
           fail_once = false
           raise ActiveRecord::Deadlocked, "retry this record"

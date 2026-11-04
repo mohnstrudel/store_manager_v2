@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe Variant::AssignmentRepair do
   let(:integrity) { Variant::AssignmentIntegrity.new }
 
-  describe ".repair_purchase!" do
+  describe ".repair_purchase" do
     it "uses repair candidates and silently reconciles linked inventory under ordered locks" do
       product = create(:product)
       current_variant = create(:variant, :with_version, product:, version_value: "Current")
@@ -18,7 +18,7 @@ RSpec.describe Variant::AssignmentRepair do
       purchase.update_columns(variant_id: nil)
       lock_queries = capture_lock_queries do
         expect(
-          described_class.repair_purchase!(
+          described_class.repair_purchase(
             purchase_id: purchase.id,
             variant_id: historical_variant.id
           )
@@ -49,7 +49,7 @@ RSpec.describe Variant::AssignmentRepair do
       other_variant = create(:product).base_variant
 
       expect {
-        described_class.repair_purchase!(
+        described_class.repair_purchase(
           purchase_id: purchase.id,
           variant_id: other_variant.id
         )
@@ -63,7 +63,7 @@ RSpec.describe Variant::AssignmentRepair do
       purchase = create(:purchase, product:)
 
       expect(
-        described_class.repair_purchase!(
+        described_class.repair_purchase(
           purchase_id: purchase.id,
           variant_id: product.base_variant.id
         )
@@ -71,7 +71,7 @@ RSpec.describe Variant::AssignmentRepair do
     end
   end
 
-  describe ".repair_sale_item!" do
+  describe ".repair_sale_item" do
     it "silently replaces incompatible inventory with exact available inventory" do
       product = create(:product)
       current_variant = create(:variant, :with_version, product:, version_value: "Current")
@@ -85,7 +85,7 @@ RSpec.describe Variant::AssignmentRepair do
 
       lock_queries = capture_lock_queries do
         expect(
-          described_class.repair_sale_item!(
+          described_class.repair_sale_item(
             sale_item_id: sale_item.id,
             variant_id: repaired_variant.id
           )
@@ -107,7 +107,7 @@ RSpec.describe Variant::AssignmentRepair do
     end
   end
 
-  describe ".repair_purchase_item_link!" do
+  describe ".repair_purchase_item_link" do
     it "silently unlinks a mismatch and fills capacity with exact available inventory" do
       original_product = create(:product)
       exact_product = create(:product)
@@ -127,7 +127,7 @@ RSpec.describe Variant::AssignmentRepair do
 
       lock_queries = capture_lock_queries do
         expect(
-          described_class.repair_purchase_item_link!(
+          described_class.repair_purchase_item_link(
             purchase_item_id: mismatched_purchase_item.id
           )
         ).to eq(:repaired)
@@ -161,7 +161,7 @@ RSpec.describe Variant::AssignmentRepair do
         variant_id: target_product.base_variant.id
       )
 
-      described_class.repair_purchase_item_link!(purchase_item_id: mismatch.id)
+      described_class.repair_purchase_item_link(purchase_item_id: mismatch.id)
 
       expect(mismatch.reload.sale_item_id).to be_nil
       expect(sale_item.reload.purchase_items_count).to eq(0)
@@ -174,12 +174,12 @@ RSpec.describe Variant::AssignmentRepair do
       purchase_item = create(:purchase_item, purchase:, sale_item:)
 
       expect(
-        described_class.repair_purchase_item_link!(purchase_item_id: purchase_item.id)
+        described_class.repair_purchase_item_link(purchase_item_id: purchase_item.id)
       ).to eq(:noop)
     end
   end
 
-  describe ".repair_purchase_item_identity!" do
+  describe ".repair_purchase_item_identity" do
     it "copies Purchase identity and silently reconciles the linked inventory" do
       product = create(:product)
       other_product = create(:product)
@@ -194,7 +194,7 @@ RSpec.describe Variant::AssignmentRepair do
       )
 
       expect(
-        described_class.repair_purchase_item_identity!(
+        described_class.repair_purchase_item_identity(
           purchase_item_id: purchase_item.id
         )
       ).to eq(:repaired)
@@ -232,7 +232,7 @@ RSpec.describe Variant::AssignmentRepair do
       purchase_item.update_columns(purchase_id: purchase.id)
 
       expect(
-        described_class.repair_purchase_item_identity!(
+        described_class.repair_purchase_item_identity(
           purchase_item_id: purchase_item.id
         )
       ).to eq(:repaired)
@@ -249,7 +249,7 @@ RSpec.describe Variant::AssignmentRepair do
     end
   end
 
-  describe ".reconcile_duplicate_shopify_identity!" do
+  describe ".reconcile_duplicate_shopify_identity" do
     it "locks affected parents before Product and Variant records" do
       stale_product = create(:product)
       canonical_product = create(:product)
@@ -280,7 +280,7 @@ RSpec.describe Variant::AssignmentRepair do
       sale_item.update_columns(variant_id: stale_variant.id)
 
       lock_queries = capture_lock_queries do
-        described_class.reconcile_duplicate_shopify_identity!(
+        described_class.reconcile_duplicate_shopify_identity(
           store_id:,
           canonical_store_info_id: canonical_variant.shopify_info.id
         )
@@ -316,7 +316,7 @@ RSpec.describe Variant::AssignmentRepair do
       )
 
       expect {
-        described_class.reconcile_duplicate_shopify_identity!(
+        described_class.reconcile_duplicate_shopify_identity(
           store_id:,
           canonical_store_info_id: stale_variant.shopify_info.id
         )
@@ -362,10 +362,10 @@ RSpec.describe Variant::AssignmentRepair do
       purchase.update_columns(variant_id: stale_variant.id)
       sale_item.update_columns(variant_id: stale_variant.id)
       repair = described_class.new
-      allow(repair).to receive(:repair_sale_item!).and_raise("dependent failure")
+      allow(repair).to receive(:repair_sale_item).and_raise("dependent failure")
 
       expect {
-        repair.reconcile_duplicate_shopify_identity!(
+        repair.reconcile_duplicate_shopify_identity(
           store_id:,
           canonical_store_info_id: canonical_variant.shopify_info.id
         )

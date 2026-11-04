@@ -148,7 +148,7 @@ RSpec.feature "Sales tags catalog", :js do
 
     scenario "locks the dialog while a tag is being saved so a newer draft cannot be lost" do
       release = Queue.new
-      allow(SalesTag).to receive(:find_or_create_normalized!).and_wrap_original do |original, **attributes|
+      allow(SalesTag).to receive(:find_or_create_normalized).and_wrap_original do |original, **attributes|
         release.pop(timeout: 5)
         original.call(**attributes)
       end

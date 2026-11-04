@@ -43,7 +43,7 @@ module Shopify
 
     def process_item(api_item)
       parsed_item = parser_class.parse(api_item)
-      creator_class.import!(parsed_item)
+      creator_class.import(parsed_item)
     end
 
     def parser_class

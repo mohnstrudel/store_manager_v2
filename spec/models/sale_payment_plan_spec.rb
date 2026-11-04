@@ -23,12 +23,12 @@ require "rails_helper"
 #  origin_sale_id           :bigint
 #
 RSpec.describe SalePaymentPlan do
-  describe ".reconcile!" do
+  describe ".reconcile" do
     it "links an existing origin and parts through normalized Shopify order IDs" do
       origin = create(:sale, shopify_store_id: "gid://shopify/Order/100")
       installment = create(:sale, shopify_store_id: "gid://shopify/Order/101")
 
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(external_origin_order_id: "100"),
         parts: [
           part_attributes(sequence: 1, provider_part_id: "origin", external_order_id: "100"),
@@ -46,8 +46,8 @@ RSpec.describe SalePaymentPlan do
       parts = [part_attributes(sequence: 1, provider_part_id: "origin", external_order_id: "100")]
 
       expect {
-        2.times { described_class.reconcile!(attributes:, parts:) }
-        described_class.reconcile!(
+        2.times { described_class.reconcile(attributes:, parts:) }
+        described_class.reconcile(
           attributes: attributes.merge(external_id: "subscription-2"),
           parts:
         )
@@ -59,7 +59,7 @@ RSpec.describe SalePaymentPlan do
     end
 
     it "links plans and parts when the Sale is imported after the provider snapshot" do
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(external_origin_order_id: "100"),
         parts: [
           part_attributes(sequence: 1, provider_part_id: "origin", external_order_id: "100"),
@@ -69,8 +69,8 @@ RSpec.describe SalePaymentPlan do
       origin = create(:sale, shopify_store_id: "gid://shopify/Order/100")
       installment = create(:sale, shopify_store_id: "gid://shopify/Order/101")
 
-      described_class.reconcile_sale!(origin)
-      described_class.reconcile_sale!(installment)
+      described_class.reconcile_sale(origin)
+      described_class.reconcile_sale(installment)
 
       expect(plan.reload.origin_sale).to eq(origin)
       expect(plan.parts.order(:sequence).map(&:sale)).to eq([origin, installment])
@@ -79,7 +79,7 @@ RSpec.describe SalePaymentPlan do
     it "links every part that reports the same order id, matching a Shopify native payment_terms schedule" do
       sale = create(:sale, shopify_store_id: "gid://shopify/Order/100")
 
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(provider: "shopify", kind: "payment_terms", external_origin_order_id: "100", expected_parts: 2),
         parts: [
           part_attributes(sequence: 1, provider_part_id: "schedule-1", external_order_id: "100"),
@@ -92,7 +92,7 @@ RSpec.describe SalePaymentPlan do
 
     it "prunes obsolete unlinked parts and preserves linked history as inactive" do
       linked_sale = create(:sale, shopify_store_id: "gid://shopify/Order/101")
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes,
         parts: [
           part_attributes(sequence: 1, provider_part_id: "part-1"),
@@ -101,7 +101,7 @@ RSpec.describe SalePaymentPlan do
         ]
       )
 
-      described_class.reconcile!(
+      described_class.reconcile(
         attributes: plan_attributes(expected_parts: 1),
         parts: [part_attributes(sequence: 1, provider_part_id: "part-1")]
       )
@@ -134,7 +134,7 @@ RSpec.describe SalePaymentPlan do
         refunded_revenue: 0,
         outstanding_revenue: 50
       )
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes,
         parts: [
           part_attributes(sequence: 1, provider_part_id: "part-1", external_order_id: "100"),
@@ -154,7 +154,7 @@ RSpec.describe SalePaymentPlan do
         received_revenue: 500,
         refunded_revenue: 0
       )
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(provider: "shopify", external_id: "terms-1"),
         parts: [
           part_attributes(sequence: 1, provider_part_id: "schedule-1", provider_completed_at: 1.day.ago),
@@ -188,7 +188,7 @@ RSpec.describe SalePaymentPlan do
         refunded_revenue: 0,
         outstanding_revenue: 0
       )
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(
           kind: "deposit",
           expected_parts: 1,
@@ -210,7 +210,7 @@ RSpec.describe SalePaymentPlan do
         refunded_revenue: 0,
         outstanding_revenue: 0
       )
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(
           kind: "deposit",
           expected_parts: 1,
@@ -233,7 +233,7 @@ RSpec.describe SalePaymentPlan do
         received_revenue: 500,
         refunded_revenue: 0
       )
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(provider: "shopify", external_id: "terms-2", expected_parts: 4),
         parts: [
           part_attributes(sequence: 1, provider_part_id: "s1", amount: 300, provider_completed_at: 1.day.ago),
@@ -282,7 +282,7 @@ RSpec.describe SalePaymentPlan do
         direct_expense_amount: BigDecimal(20)
       )
 
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(expected_parts: 2),
         parts: [
           part_attributes(sequence: 1, provider_part_id: "part-1", external_order_id: "100", amount: 300),
@@ -323,7 +323,7 @@ RSpec.describe SalePaymentPlan do
         shipping_cost: BigDecimal(0)
       )
 
-      plan = described_class.reconcile!(
+      plan = described_class.reconcile(
         attributes: plan_attributes(
           kind: "deposit",
           expected_parts: 1,

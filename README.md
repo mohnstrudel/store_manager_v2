@@ -278,7 +278,7 @@ Shopify::PullProductsJob
   -> Shopify::BasePullJob
     -> Shopify::Api::Client
     -> Product::Shopify::Parser.parse
-    -> Product::Shopify::Importer.import!
+    -> Product::Shopify::Importer.import
       -> update Product
       -> update StoreInfo
       -> enqueue variant and media follow-up jobs
@@ -289,7 +289,7 @@ Shopify::PullProductsJob
 ```text
 Shopify::PullSalesJob
   -> Sale::Shopify::Parser.parse
-  -> Sale::Shopify::Importer.import!
+  -> Sale::Shopify::Importer.import
     -> update Sale
     -> update Sale store info
     -> import SaleItems

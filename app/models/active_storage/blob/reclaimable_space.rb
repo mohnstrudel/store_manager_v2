@@ -28,7 +28,7 @@ class ActiveStorage::Blob::ReclaimableSpace
   def each_reclaimable_batch
     return enum_for(__method__) unless block_given?
 
-    ensure_listable_service!
+    ensure_listable_service
     batch = []
     service.bucket.objects.each do |object|
       batch << object
@@ -48,7 +48,7 @@ class ActiveStorage::Blob::ReclaimableSpace
 
   attr_reader :cutoff, :service
 
-  def ensure_listable_service!
+  def ensure_listable_service
     return if service.respond_to?(:name) && service.respond_to?(:bucket)
 
     raise UnsupportedService, "Configured Active Storage service does not support object listing"

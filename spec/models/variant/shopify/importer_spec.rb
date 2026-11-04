@@ -21,9 +21,9 @@ RSpec.describe Variant::Shopify::Importer do
     }
   end
 
-  describe ".import!" do
+  describe ".import" do
     it "creates a new variant with correct attributes" do # rubocop:todo RSpec/MultipleExpectations
-      expect { described_class.import!(product, parsed_variant) }.to change(Variant, :count).by(1)
+      expect { described_class.import(product, parsed_variant) }.to change(Variant, :count).by(1)
 
       variant = Variant.last
       expect(variant.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
@@ -43,7 +43,7 @@ RSpec.describe Variant::Shopify::Importer do
     end
 
     it "saves Shopify ID to StoreInfo" do
-      described_class.import!(product, parsed_variant)
+      described_class.import(product, parsed_variant)
       variant = Variant.last
       expect(variant.shopify_info).to be_present
       expect(variant.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
@@ -51,7 +51,7 @@ RSpec.describe Variant::Shopify::Importer do
     end
 
     it "updates pull_time in StoreInfo" do
-      described_class.import!(product, parsed_variant)
+      described_class.import(product, parsed_variant)
       variant = Variant.last
       expect(variant.shopify_info.pull_time).to be_within(1.second).of(Time.zone.now)
     end
@@ -71,7 +71,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "saves ext_created_at and ext_updated_at to StoreInfo" do
-        described_class.import!(product, parsed_variant_with_timestamps)
+        described_class.import(product, parsed_variant_with_timestamps)
         variant = Variant.last
         expect(variant.shopify_info.ext_created_at).to eq(Time.zone.parse(parsed_variant_with_timestamps[:store_info][:ext_created_at]))
         expect(variant.shopify_info.ext_updated_at).to eq(Time.zone.parse(parsed_variant_with_timestamps[:store_info][:ext_updated_at]))
@@ -89,7 +89,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "does not set ext_created_at and ext_updated_at" do
-        described_class.import!(product, parsed_variant_without_store_info)
+        described_class.import(product, parsed_variant_without_store_info)
         variant = Variant.last
         expect(variant.shopify_info.ext_created_at).to be_nil
         expect(variant.shopify_info.ext_updated_at).to be_nil
@@ -97,7 +97,7 @@ RSpec.describe Variant::Shopify::Importer do
     end
 
     it "creates associated attribute records if they don't exist" do # rubocop:todo RSpec/MultipleExpectations
-      expect { described_class.import!(product, parsed_variant) }.to change(Color, :count).by(1)
+      expect { described_class.import(product, parsed_variant) }.to change(Color, :count).by(1)
         .and change(Size, :count).by(1)
         .and change(Version, :count).by(1)
 
@@ -110,7 +110,7 @@ RSpec.describe Variant::Shopify::Importer do
     it "reuses existing attribute records" do # rubocop:todo RSpec/MultipleExpectations
       existing_color = create(:color, value: "Red")
 
-      expect { described_class.import!(product, parsed_variant) }.to change(Color, :count).by(0) # rubocop:todo RSpec/ChangeByZero
+      expect { described_class.import(product, parsed_variant) }.to change(Color, :count).by(0) # rubocop:todo RSpec/ChangeByZero
         .and change(Size, :count).by(1)
         .and change(Version, :count).by(1)
 
@@ -129,7 +129,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "updates the existing variant" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(product, parsed_variant) }.not_to change(Variant, :count)
+        expect { described_class.import(product, parsed_variant) }.not_to change(Variant, :count)
 
         existing_variant.reload
         expect(existing_variant.color.value).to eq("Red")
@@ -160,7 +160,7 @@ RSpec.describe Variant::Shopify::Importer do
           original_created_at = existing_variant.shopify_info.ext_created_at
           original_updated_at = existing_variant.shopify_info.ext_updated_at
 
-          described_class.import!(product, parsed_variant_with_new_timestamps)
+          described_class.import(product, parsed_variant_with_new_timestamps)
 
           existing_variant.shopify_info.reload
           expect(existing_variant.shopify_info.ext_created_at).not_to eq(original_created_at)
@@ -180,7 +180,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "updates the existing variant with shopify_id" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(product, parsed_variant) }.not_to change(Variant, :count)
+        expect { described_class.import(product, parsed_variant) }.not_to change(Variant, :count)
 
         existing_variant.reload
         expect(existing_variant.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
@@ -208,13 +208,13 @@ RSpec.describe Variant::Shopify::Importer do
       it "skips the variant instead of raising" do # rubocop:todo RSpec/MultipleExpectations
         result = nil
 
-        expect { result = described_class.import!(product, colliding_payload) }.not_to raise_error
+        expect { result = described_class.import(product, colliding_payload) }.not_to raise_error
         expect(result).to be_nil
         expect(moved.reload).to have_attributes(sku: moved.sku, version: have_attributes(value: "B"))
       end
 
       it "records the conflict with the variant that holds the options" do
-        described_class.import!(product, colliding_payload)
+        described_class.import(product, colliding_payload)
 
         expect(VariantImportConflict.sole).to have_attributes(
           product: product,
@@ -226,8 +226,8 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "resolves the conflict once the options no longer collide" do # rubocop:todo RSpec/MultipleExpectations
-        described_class.import!(product, colliding_payload)
-        described_class.import!(product, colliding_payload.merge(options: [{name: "Version", value: "C"}]))
+        described_class.import(product, colliding_payload)
+        described_class.import(product, colliding_payload.merge(options: [{name: "Version", value: "C"}]))
 
         expect(VariantImportConflict.count).to eq(0)
         expect(moved.reload.version.value).to eq("C")
@@ -243,7 +243,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "relinks the existing variant to the recreated Shopify variant" do # rubocop:todo RSpec/MultipleExpectations
-        result = described_class.import!(product, recreated_payload, sibling_store_ids: ["gid://shopify/ProductVariant/new"])
+        result = described_class.import(product, recreated_payload, sibling_store_ids: ["gid://shopify/ProductVariant/new"])
 
         expect(result).to eq(stale)
         expect(stale.reload.shopify_info.store_id).to eq("gid://shopify/ProductVariant/new")
@@ -257,7 +257,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "imports without flagging the product's base variant as a conflict" do # rubocop:todo RSpec/MultipleExpectations
-        result = described_class.import!(
+        result = described_class.import(
           product,
           {store_id: "gid://shopify/ProductVariant/1", sku: "kept", options: [{name: "Title", value: "Standard"}]}
         )
@@ -284,7 +284,7 @@ RSpec.describe Variant::Shopify::Importer do
       it "links the existing base variant" do
         imported_variant = nil
 
-        expect { imported_variant = described_class.import!(product, parsed_variant) }.not_to change(Variant, :count)
+        expect { imported_variant = described_class.import(product, parsed_variant) }.not_to change(Variant, :count)
 
         expect(imported_variant).to eq(existing_variant)
         expect(existing_variant.reload.shopify_info.store_id).to eq(parsed_variant[:store_id])
@@ -293,7 +293,7 @@ RSpec.describe Variant::Shopify::Importer do
 
     context "with blank options" do
       it "creates a base variant" do # rubocop:todo RSpec/MultipleExpectations
-        result = described_class.import!(product, {options: []})
+        result = described_class.import(product, {options: []})
         expect(result).not_to be_nil
         expect(result.size).to be_nil
         expect(result.version).to be_nil
@@ -312,7 +312,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "maps Scale option to Size" do
-        described_class.import!(product, parsed_variant_with_scale)
+        described_class.import(product, parsed_variant_with_scale)
 
         variant = Variant.last
         expect(variant.size.value).to eq("1:4")
@@ -330,7 +330,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "maps Variant option to Version" do
-        described_class.import!(product, parsed_variant_with_variant)
+        described_class.import(product, parsed_variant_with_variant)
 
         variant = Variant.last
         expect(variant.version.value).to eq("Limited")
@@ -348,7 +348,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "maps Variante option to Version" do
-        described_class.import!(product, parsed_variant_with_variante)
+        described_class.import(product, parsed_variant_with_variante)
 
         variant = Variant.last
         expect(variant.version.value).to eq("Deutsch")
@@ -366,7 +366,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "maps Variants option to Version" do
-        described_class.import!(product, parsed_variant_with_variants)
+        described_class.import(product, parsed_variant_with_variants)
 
         variant = Variant.last
         expect(variant.version.value).to eq("Standard")
@@ -385,7 +385,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "associates both colors with the product" do
-        described_class.import!(product, parsed_variant_multiple_colors)
+        described_class.import(product, parsed_variant_multiple_colors)
 
         product.reload
         expect(product.colors.map(&:value)).to include("Red", "Blue")
@@ -404,7 +404,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "creates a variant with no options (Base Model)" do # rubocop:todo RSpec/MultipleExpectations
-        result = described_class.import!(product, parsed_single_variant)
+        result = described_class.import(product, parsed_single_variant)
         expect(result).not_to be_nil
         expect(Variant.count).to eq(1)
         expect(Variant.last.version).to be_nil
@@ -423,7 +423,7 @@ RSpec.describe Variant::Shopify::Importer do
         end
 
         it "reuses the existing base variant and attaches the Shopify store info" do # rubocop:todo RSpec/MultipleExpectations
-          expect { described_class.import!(product, parsed_single_variant) }.not_to change(Variant, :count)
+          expect { described_class.import(product, parsed_single_variant) }.not_to change(Variant, :count)
 
           existing_variant.reload
           expect(existing_variant.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
@@ -459,7 +459,7 @@ RSpec.describe Variant::Shopify::Importer do
         end
 
         it "updates the local base variant instead of reusing the foreign sku row" do # rubocop:todo RSpec/MultipleExpectations
-          expect { described_class.import!(product, parsed_single_variant) }.not_to change(Variant, :count)
+          expect { described_class.import(product, parsed_single_variant) }.not_to change(Variant, :count)
 
           expect(foreign_placeholder_variant.reload.sku).to eq("fantasy-studio-nanami-kento")
 
@@ -483,7 +483,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "creates a variant with no attributes" do # rubocop:todo RSpec/MultipleExpectations
-        result = described_class.import!(product, parsed_variant_with_title)
+        result = described_class.import(product, parsed_variant_with_title)
         expect(result).not_to be_nil
         expect(Variant.count).to eq(1)
         expect(Variant.last.color).to be_nil
@@ -501,7 +501,7 @@ RSpec.describe Variant::Shopify::Importer do
         end
 
         it "updates the existing variant instead of creating a duplicate" do # rubocop:todo RSpec/MultipleExpectations
-          expect { described_class.import!(product, parsed_variant_with_title) }.not_to change(Variant, :count)
+          expect { described_class.import(product, parsed_variant_with_title) }.not_to change(Variant, :count)
 
           existing_variant.reload
           expect(existing_variant.shopify_info.store_id).to eq("gid://shopify/ProductVariant/12345")
@@ -524,7 +524,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "skips Title and processes other options" do
-        described_class.import!(product, parsed_variant_with_title_and_color)
+        described_class.import(product, parsed_variant_with_title_and_color)
 
         variant = Variant.last
         expect(variant.color.value).to eq("Red")
@@ -542,7 +542,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "creates a variant with default price/cost/weight values" do
-        described_class.import!(product, parsed_variant_without_pricing)
+        described_class.import(product, parsed_variant_without_pricing)
 
         variant = Variant.last
         expect(variant.selling_price).to eq(0.0)
@@ -563,7 +563,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "stores selling_price and leaves other fields as defaults" do
-        described_class.import!(product, parsed_variant_partial_pricing)
+        described_class.import(product, parsed_variant_partial_pricing)
 
         variant = Variant.last
         expect(variant.selling_price.to_s).to eq("199.99")
@@ -588,7 +588,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "creates a new variant on the current product and leaves the foreign one untouched" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(product, parsed_variant) }.to change(Variant, :count).by(1)
+        expect { described_class.import(product, parsed_variant) }.to change(Variant, :count).by(1)
 
         existing_variant.reload
         expect(existing_variant.product).to eq(storeless_product)
@@ -607,7 +607,7 @@ RSpec.describe Variant::Shopify::Importer do
       let!(:conflicting_variant) { create(:variant, sku: parsed_variant[:sku]) }
 
       it "creates a separate variant with the same sku on the current product" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(product, parsed_variant) }.to change(Variant, :count).by(1)
+        expect { described_class.import(product, parsed_variant) }.to change(Variant, :count).by(1)
 
         conflicting_variant.reload
         expect(conflicting_variant.product).not_to eq(product)
@@ -627,7 +627,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "stores converted USD selling price and purchase cost while preserving the EUR selling-price snapshot" do
-        variant = described_class.import!(product, parsed_variant)
+        variant = described_class.import(product, parsed_variant)
 
         expect(variant).to have_attributes(
           selling_price: BigDecimal("337.49"),
@@ -642,7 +642,7 @@ RSpec.describe Variant::Shopify::Importer do
       it "does not log a clamp warning for an in-range conversion" do
         allow(Rails.logger).to receive(:warn)
 
-        described_class.import!(product, parsed_variant)
+        described_class.import(product, parsed_variant)
 
         expect(Rails.logger).not_to have_received(:warn)
       end
@@ -661,7 +661,7 @@ RSpec.describe Variant::Shopify::Importer do
       it "clamps selling_price to the column's maximum representable magnitude and logs a warning" do # rubocop:todo RSpec/MultipleExpectations
         allow(Rails.logger).to receive(:warn)
 
-        variant = described_class.import!(product, parsed_variant)
+        variant = described_class.import(product, parsed_variant)
 
         expect(variant.selling_price).to eq(BigDecimal("99999999.99"))
         expect(Rails.logger).to have_received(:warn).with(/clamped selling_price/)
@@ -678,14 +678,14 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "clamps purchase_cost to the column's maximum representable magnitude" do
-        variant = described_class.import!(product, parsed_variant)
+        variant = described_class.import(product, parsed_variant)
 
         expect(variant.purchase_cost).to eq(BigDecimal("99999999.99"))
       end
     end
   end
 
-  describe ".import_all!" do
+  describe ".import_all" do
     let(:product) { create(:product) }
     let(:parsed_variants) do
       [
@@ -703,7 +703,7 @@ RSpec.describe Variant::Shopify::Importer do
 
     it "creates variants from parsed data" do
       expect {
-        described_class.import_all!(product, parsed_variants)
+        described_class.import_all(product, parsed_variants)
       }.to change(product.variants, :count).by(1)
     end
 
@@ -713,7 +713,7 @@ RSpec.describe Variant::Shopify::Importer do
       variant.store_infos.shopify.first.update(store_id: shopify_id)
 
       freeze_time do
-        described_class.import_all!(product, parsed_variants)
+        described_class.import_all(product, parsed_variants)
         expect(variant.store_infos.shopify.first.pull_time).to eq(Time.zone.now)
       end
     end
@@ -721,20 +721,20 @@ RSpec.describe Variant::Shopify::Importer do
     it "processes multiple variants" do
       multiple_variants = parsed_variants * 3
 
-      allow(described_class).to receive(:import!).and_call_original
+      allow(described_class).to receive(:import).and_call_original
 
       expect {
-        described_class.import_all!(product, multiple_variants)
+        described_class.import_all(product, multiple_variants)
       }.to change(product.variants, :count).by_at_least(1)
     end
 
     it "re-raises SKU collision errors" do
-      allow(described_class).to receive(:import!).and_raise(
+      allow(described_class).to receive(:import).and_raise(
         ActiveRecord::RecordInvalid.new(Variant.new.tap { |variant| variant.errors.add(:sku, "has already been taken") })
       )
 
       expect {
-        described_class.import_all!(product, parsed_variants)
+        described_class.import_all(product, parsed_variants)
       }.to raise_error(StandardError) { |error|
         expect(error.message).to include("Validation failed: Sku has already been taken")
         expect(error.message).to include("product_id: #{product.id}")
@@ -763,7 +763,7 @@ RSpec.describe Variant::Shopify::Importer do
       ]
 
       expect {
-        described_class.import_all!(product, decoy_and_normal)
+        described_class.import_all(product, decoy_and_normal)
       }.to change(product.variants, :count).by(2)
 
       normal_variant = Variant.find_by_shopify_id("gid://shopify/ProductVariant/22222")
@@ -780,7 +780,7 @@ RSpec.describe Variant::Shopify::Importer do
       end
 
       it "records the conflict and still imports the other variants" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import_all!(product, parsed_variants) }.not_to raise_error
+        expect { described_class.import_all(product, parsed_variants) }.not_to raise_error
 
         expect(VariantImportConflict.pluck(:store_id)).to eq(["gid://shopify/ProductVariant/2"])
         expect(Variant.find_by_shopify_id("gid://shopify/ProductVariant/3").version.value).to eq("C")
@@ -789,7 +789,7 @@ RSpec.describe Variant::Shopify::Importer do
       it "drops conflicts for Shopify variants that are no longer in the payload" do
         create(:variant_import_conflict, product:, store_id: "gid://shopify/ProductVariant/deleted")
 
-        described_class.import_all!(product, parsed_variants)
+        described_class.import_all(product, parsed_variants)
 
         expect(VariantImportConflict.pluck(:store_id)).to eq(["gid://shopify/ProductVariant/2"])
       end

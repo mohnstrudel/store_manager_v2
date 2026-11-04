@@ -11,7 +11,7 @@ RSpec.describe SalesTag do
     )
   end
 
-  describe ".find_or_create_normalized!" do
+  describe ".find_or_create_normalized" do
     context "with concurrent creators of the same identity" do
       it "returns the committed winner to the waiting creator without changing its name or color" do
         inserted = Queue.new
@@ -21,7 +21,7 @@ RSpec.describe SalesTag do
         winner = Thread.new do
           ActiveRecord::Base.connection_pool.with_connection do
             described_class.transaction do
-              tag = described_class.find_or_create_normalized!(name: "VIP Order", color: "sky")
+              tag = described_class.find_or_create_normalized(name: "VIP Order", color: "sky")
               inserted << true
               release_winner.pop(timeout: 5)
               tag
@@ -33,7 +33,7 @@ RSpec.describe SalesTag do
         loser = Thread.new do
           ActiveRecord::Base.connection_pool.with_connection do |connection|
             loser_pid << connection.raw_connection.backend_pid
-            described_class.find_or_create_normalized!(name: "vip order", color: "pink")
+            described_class.find_or_create_normalized(name: "vip order", color: "pink")
           end
         end
         wait_for_lock(loser_pid.pop(timeout: 5))

@@ -43,11 +43,11 @@ RSpec.describe Product::Shopify::Pushable do
     end
 
     it "updates or creates Shopify store info in the domain", :aggregate_failures do
-      allow(product).to receive(:upsert_shopify_info!).and_call_original
+      allow(product).to receive(:upsert_shopify_info).and_call_original
 
       product.create_in_shopify_now
 
-      expect(product).to have_received(:upsert_shopify_info!).with(
+      expect(product).to have_received(:upsert_shopify_info).with(
         store_id: "gid://shopify/Product/12345",
         slug: "test-product",
         push_time: kind_of(Time)
@@ -97,9 +97,9 @@ RSpec.describe Product::Shopify::Pushable do
       end
 
       it "does not update store info", :aggregate_failures do
-        allow(product).to receive(:upsert_shopify_info!)
+        allow(product).to receive(:upsert_shopify_info)
         product.create_in_shopify_now
-        expect(product).not_to have_received(:upsert_shopify_info!)
+        expect(product).not_to have_received(:upsert_shopify_info)
       end
 
       it "does not enqueue options job" do
@@ -151,14 +151,14 @@ RSpec.describe Product::Shopify::Pushable do
       end
 
       it "does not create or update store info on error", :aggregate_failures do
-        allow(product).to receive(:upsert_shopify_info!)
+        allow(product).to receive(:upsert_shopify_info)
 
         begin
           product.create_in_shopify_now
         rescue Shopify::Api::Client::ApiError
         end
 
-        expect(product).not_to have_received(:upsert_shopify_info!)
+        expect(product).not_to have_received(:upsert_shopify_info)
       end
 
       it "does not enqueue options job on error" do
@@ -182,9 +182,9 @@ RSpec.describe Product::Shopify::Pushable do
       end
 
       it "does not update store info", :aggregate_failures do
-        allow(product).to receive(:upsert_shopify_info!)
+        allow(product).to receive(:upsert_shopify_info)
         product.create_in_shopify_now
-        expect(product).not_to have_received(:upsert_shopify_info!)
+        expect(product).not_to have_received(:upsert_shopify_info)
       end
     end
 

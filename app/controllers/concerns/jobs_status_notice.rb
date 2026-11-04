@@ -5,7 +5,7 @@ module JobsStatusNotice
 
   private
 
-  def set_jobs_status_notice!
+  def set_jobs_status_notice
     flash[:notice] = {
       message: "Success! Visit",
       link: {

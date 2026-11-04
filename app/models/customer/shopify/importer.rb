@@ -6,17 +6,17 @@ class Customer::Shopify::Importer
   attr_reader :customer, :parsed
   private :customer, :parsed
 
-  def self.import!(parsed_payload)
+  def self.import(parsed_payload)
     raise ArgumentError, "Parsed payload cannot be blank" if parsed_payload.blank?
 
-    new(parsed_payload).update_or_create!
+    new(parsed_payload).update_or_create
   end
 
   def initialize(parsed_payload)
     @parsed = parsed_payload
   end
 
-  def update_or_create!
+  def update_or_create
     find_or_initialize_customer
 
     ActiveRecord::Base.transaction do
@@ -25,7 +25,7 @@ class Customer::Shopify::Importer
       customer.save!
 
       if parsed[:store_info]
-        customer.upsert_shopify_info!(**parsed[:store_info], pull_time: Time.zone.now)
+        customer.upsert_shopify_info(**parsed[:store_info], pull_time: Time.zone.now)
       end
     end
 

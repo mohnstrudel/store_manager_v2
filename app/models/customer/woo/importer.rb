@@ -7,8 +7,8 @@ class Customer::Woo::Importer
   attr_reader :parsed_customer, :pulled_at
   private :parsed_customer, :pulled_at
 
-  def self.import!(parsed_customer, pulled_at: Time.zone.now)
-    new(parsed_customer, pulled_at).import!
+  def self.import(parsed_customer, pulled_at: Time.zone.now)
+    new(parsed_customer, pulled_at).import
   end
 
   def initialize(parsed_customer, pulled_at)
@@ -16,12 +16,12 @@ class Customer::Woo::Importer
     @pulled_at = pulled_at
   end
 
-  def import!
+  def import
     customer = find_or_initialize_customer
     customer.assign_attributes(parsed_customer.except(:woo_id, :store_id))
     customer.store_infos.build(store_name: :woo, store_id: woo_id, pull_time: pulled_at) if customer.new_record? && valid_woo_id?
     customer.save!
-    customer.upsert_woo_info!(store_id: woo_id, pull_time: pulled_at) if valid_woo_id?
+    customer.upsert_woo_info(store_id: woo_id, pull_time: pulled_at) if valid_woo_id?
     customer
   end
 

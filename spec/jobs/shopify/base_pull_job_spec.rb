@@ -39,7 +39,7 @@ RSpec.describe Shopify::BasePullJob do
             @parsed_item = parsed_item
           end
 
-          def update_or_create!
+          def update_or_create
             @mock_record ||= Struct.new(:shopify_info).new(
               Struct.new(:update_column).new { true }
             )
@@ -73,7 +73,7 @@ RSpec.describe Shopify::BasePullJob do
   let(:parser) { instance_double("Parser", parse: {}) }
   let(:shopify_info) { instance_double("StoreInfo", update_column: true) }
   let(:record) { instance_double("Record", shopify_info: shopify_info) }
-  let(:creator) { instance_double("Creator", update_or_create!: record) }
+  let(:creator) { instance_double("Creator", update_or_create: record) }
   let(:parser_class) { class_double("ParserClass").as_stubbed_const }
   let(:creator_class) { class_double("CreatorClass").as_stubbed_const }
   let(:job_setter) { instance_double("JobSetter", perform_later: true) }
@@ -83,7 +83,7 @@ RSpec.describe Shopify::BasePullJob do
     allow(api_client).to receive(:fetch_test_data).and_return(api_response)
 
     allow(parser_class).to receive(:parse).and_return({})
-    allow(creator_class).to receive(:import!).and_return(record)
+    allow(creator_class).to receive(:import).and_return(record)
 
     allow(job).to receive_messages(parser_class: parser_class, creator_class: creator_class)
     allow(job_class).to receive(:set).and_return(job_setter)
@@ -127,7 +127,7 @@ RSpec.describe Shopify::BasePullJob do
     it "processes each item through parser and creator" do
       perform_job
       expect(parser_class).to have_received(:parse).exactly(2).times
-      expect(creator_class).to have_received(:import!).exactly(2).times
+      expect(creator_class).to have_received(:import).exactly(2).times
     end
 
     it "invokes the terminal-page hook when there is no next page" do
@@ -243,7 +243,7 @@ RSpec.describe Shopify::BasePullJob do
 
     context "when item processing fails" do
       before do
-        allow(creator_class).to receive(:import!).and_raise(
+        allow(creator_class).to receive(:import).and_raise(
           "Validation failed: Sku mogu-studio-tifa has already been taken"
         )
       end

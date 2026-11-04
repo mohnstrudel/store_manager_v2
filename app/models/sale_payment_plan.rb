@@ -51,7 +51,7 @@ class SalePaymentPlan < ApplicationRecord
     allow_nil: true
   validates_db_uniqueness_of :external_id, scope: :provider
 
-  def self.reconcile!(attributes:, parts:)
+  def self.reconcile(attributes:, parts:)
     plan_attributes = attributes.to_h.symbolize_keys
     provider = plan_attributes.fetch(:provider)
     external_id = plan_attributes.fetch(:external_id).to_s
@@ -67,12 +67,12 @@ class SalePaymentPlan < ApplicationRecord
       )
       plan.origin_sale = Sale::Shopify::OrderId.find_sale(plan.external_origin_order_id)
       plan.save!
-      plan.reconcile_parts!(parts)
+      plan.reconcile_parts(parts)
       plan
     end
   end
 
-  def self.reconcile_sale!(sale)
+  def self.reconcile_sale(sale)
     normalized_order_id = Sale::Shopify::OrderId.normalize(sale.shopify_store_id)
     return if normalized_order_id.blank?
 
@@ -103,11 +103,11 @@ class SalePaymentPlan < ApplicationRecord
     ExchangeRate.usd_amount(amount, currency:, date:)
   end
 
-  def reconcile_parts!(part_snapshots)
+  def reconcile_parts(part_snapshots)
     parts.update_all(active: false)
 
     Array(part_snapshots).each do |snapshot|
-      reconcile_part!(snapshot.to_h.symbolize_keys)
+      reconcile_part(snapshot.to_h.symbolize_keys)
     end
 
     parts.where(active: false, sale_id: nil).delete_all
@@ -175,7 +175,7 @@ class SalePaymentPlan < ApplicationRecord
 
   private
 
-  def reconcile_part!(snapshot)
+  def reconcile_part(snapshot)
     provider_part_id = snapshot[:provider_part_id].presence&.to_s
     sequence = snapshot.fetch(:sequence)
     part = parts.find_by(provider_part_id:) if provider_part_id
