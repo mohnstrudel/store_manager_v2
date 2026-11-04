@@ -3,7 +3,7 @@
 module Sale::Editing
   extend ActiveSupport::Concern
 
-  def create_from_form!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
+  def record!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
     attributes = normalize_form_attributes(attributes, raw_attributes)
 
     transaction do
@@ -15,7 +15,7 @@ module Sale::Editing
     end
   end
 
-  def apply_form_changes!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
+  def revise!(attributes: nil, sale_item_attributes: [], shipping_address: nil, billing_address: nil, **raw_attributes)
     attributes = normalize_form_attributes(attributes, raw_attributes)
 
     transaction do

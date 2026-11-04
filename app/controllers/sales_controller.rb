@@ -45,7 +45,7 @@ class SalesController < ApplicationController
     payload = Sale::FormPayload.new(params:)
     @sale = Sale.new(payload.sale_attributes)
 
-    @sale.create_from_form!(
+    @sale.record!(
       attributes: payload.sale_attributes,
       sale_item_attributes: payload.sale_item_attributes,
       shipping_address: payload.shipping_address_attributes,
@@ -60,7 +60,7 @@ class SalesController < ApplicationController
   def update
     payload = Sale::FormPayload.new(params:)
 
-    @sale.apply_form_changes!(
+    @sale.revise!(
       attributes: payload.sale_attributes,
       sale_item_attributes: payload.sale_item_attributes,
       shipping_address: payload.shipping_address_attributes,

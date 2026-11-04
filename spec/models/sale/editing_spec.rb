@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Sale do
-  describe "#create_from_form!" do
+  describe "#record!" do
     let(:customer) { create(:customer) }
     let(:sale) { described_class.new }
 
@@ -12,7 +12,7 @@ RSpec.describe Sale do
     end
 
     it "assigns attributes, saves the sale, and links purchase items" do
-      sale.create_from_form!(
+      sale.record!(
         customer_id: customer.id,
         status: "processing",
         total: 100
@@ -28,13 +28,13 @@ RSpec.describe Sale do
     end
   end
 
-  describe "#apply_form_changes!" do
+  describe "#revise!" do
     let(:sale) { create(:sale, status: "processing", slug: "sale-slug") }
 
     it "regenerates slug and persists form attributes" do
       previous_slug = sale.slug
 
-      sale.apply_form_changes!(status: "processing", note: "Updated")
+      sale.revise!(status: "processing", note: "Updated")
 
       aggregate_failures do
         expect(sale.reload.slug).not_to eq(previous_slug)
@@ -45,7 +45,7 @@ RSpec.describe Sale do
     it "syncs the shop order when status changes" do
       allow(sale).to receive(:sync_status_change_to_shop!)
 
-      sale.apply_form_changes!(status: "completed")
+      sale.revise!(status: "completed")
 
       expect(sale).to have_received(:sync_status_change_to_shop!)
     end
@@ -53,7 +53,7 @@ RSpec.describe Sale do
     it "does not sync the shop order when status stays the same" do
       allow(sale).to receive(:sync_status_change_to_shop!)
 
-      sale.apply_form_changes!(status: sale.status)
+      sale.revise!(status: sale.status)
 
       expect(sale).not_to have_received(:sync_status_change_to_shop!)
     end
