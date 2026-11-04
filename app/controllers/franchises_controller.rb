@@ -30,36 +30,25 @@ class FranchisesController < ApplicationController
   def create
     @franchise = Franchise.new(franchise_params)
 
-    respond_to do |format|
-      if @franchise.save
-        format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully created" }
-        format.json { render :show, status: :created, location: @franchise }
-      else
-        format.html { redirect_to new_franchise_url, inertia: inertia_errors(@franchise.errors) }
-        format.json { render json: @franchise.errors, status: :unprocessable_content }
-      end
+    if @franchise.save
+      redirect_to franchise_url(@franchise), notice: "Franchise was successfully created"
+    else
+      redirect_to new_franchise_url, inertia: inertia_errors(@franchise.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @franchise.update(franchise_params)
-        format.html { redirect_to franchise_url(@franchise), notice: "Franchise was successfully updated" }
-        format.json { render :show, status: :ok, location: @franchise }
-      else
-        format.html { redirect_to edit_franchise_url(@franchise), inertia: inertia_errors(@franchise.errors) }
-        format.json { render json: @franchise.errors, status: :unprocessable_content }
-      end
+    if @franchise.update(franchise_params)
+      redirect_to franchise_url(@franchise), notice: "Franchise was successfully updated"
+    else
+      redirect_to edit_franchise_url(@franchise), inertia: inertia_errors(@franchise.errors)
     end
   end
 
   def destroy
     @franchise.destroy
 
-    respond_to do |format|
-      format.html { redirect_to franchises_url, notice: "Franchise was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to franchises_url, notice: "Franchise was successfully destroyed"
   end
 
   private

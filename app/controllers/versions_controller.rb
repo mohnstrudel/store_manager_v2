@@ -30,36 +30,25 @@ class VersionsController < ApplicationController
   def create
     @version = Version.new(version_params)
 
-    respond_to do |format|
-      if @version.save
-        format.html { redirect_to version_url(@version), notice: "Version was successfully created" }
-        format.json { render :show, status: :created, location: @version }
-      else
-        format.html { redirect_to new_version_url, inertia: inertia_errors(@version.errors) }
-        format.json { render json: @version.errors, status: :unprocessable_content }
-      end
+    if @version.save
+      redirect_to version_url(@version), notice: "Version was successfully created"
+    else
+      redirect_to new_version_url, inertia: inertia_errors(@version.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @version.update(version_params)
-        format.html { redirect_to version_url(@version), notice: "Version was successfully updated" }
-        format.json { render :show, status: :ok, location: @version }
-      else
-        format.html { redirect_to edit_version_url(@version), inertia: inertia_errors(@version.errors) }
-        format.json { render json: @version.errors, status: :unprocessable_content }
-      end
+    if @version.update(version_params)
+      redirect_to version_url(@version), notice: "Version was successfully updated"
+    else
+      redirect_to edit_version_url(@version), inertia: inertia_errors(@version.errors)
     end
   end
 
   def destroy
     @version.destroy
 
-    respond_to do |format|
-      format.html { redirect_to versions_url, notice: "Version was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to versions_url, notice: "Version was successfully destroyed"
   end
 
   private

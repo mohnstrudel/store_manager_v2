@@ -46,44 +46,33 @@ class PurchasesController < ApplicationController
     payload = Purchase::FormPayload.new(params:)
     @purchase = Purchase.new
 
-    respond_to do |format|
-      @purchase.place(
-        attributes: payload.attributes,
-        warehouse_id: payload.initial_warehouse_id,
-        payment_value: payload.initial_payment_value
-      )
-      format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
-      format.json { render :show, status: :created, location: @purchase }
-    rescue ActiveRecord::RecordInvalid => e
-      append_initial_payment_errors(@purchase, e.record)
-      format.html { redirect_to new_purchase_url, inertia: inertia_errors(@purchase.errors) }
-      format.json { render json: @purchase.errors, status: :unprocessable_content }
-    end
+    @purchase.place(
+      attributes: payload.attributes,
+      warehouse_id: payload.initial_warehouse_id,
+      payment_value: payload.initial_payment_value
+    )
+    redirect_to purchase_url(@purchase), notice: "Purchase was successfully created"
+  rescue ActiveRecord::RecordInvalid => e
+    append_initial_payment_errors(@purchase, e.record)
+    redirect_to new_purchase_url, inertia: inertia_errors(@purchase.errors)
   end
 
   def update
     payload = Purchase::FormPayload.new(params:)
 
-    respond_to do |format|
-      @purchase.update!(payload.attributes.merge(slug: nil))
-      format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
-      format.json { render :show, status: :ok, location: @purchase }
-    rescue ActiveRecord::RecordInvalid => e
-      append_initial_payment_errors(@purchase, e.record)
-      errors = @purchase.errors.dup
-      @purchase.reload
-      format.html { redirect_to edit_purchase_url(@purchase), inertia: inertia_errors(errors) }
-      format.json { render json: errors, status: :unprocessable_content }
-    end
+    @purchase.update!(payload.attributes.merge(slug: nil))
+    redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated"
+  rescue ActiveRecord::RecordInvalid => e
+    append_initial_payment_errors(@purchase, e.record)
+    errors = @purchase.errors.dup
+    @purchase.reload
+    redirect_to edit_purchase_url(@purchase), inertia: inertia_errors(errors)
   end
 
   def destroy
     @purchase.destroy
 
-    respond_to do |format|
-      format.html { redirect_to purchases_url, notice: "Purchase was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to purchases_url, notice: "Purchase was successfully destroyed"
   end
 
   private

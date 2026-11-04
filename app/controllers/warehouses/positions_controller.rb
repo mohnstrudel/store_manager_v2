@@ -12,19 +12,11 @@ module Warehouses
       prev_position = @warehouse.position
       @warehouse.move_to_position(new_position)
 
-      respond_to do |format|
-        format.html do
-          redirect_to warehouses_url,
-            notice: "We changed \"#{@warehouse.name}\" position from #{prev_position} to #{new_position}",
-            status: :see_other
-        end
-        format.json { head :ok }
-      end
+      redirect_to warehouses_url,
+        notice: "We changed \"#{@warehouse.name}\" position from #{prev_position} to #{new_position}",
+        status: :see_other
     rescue ActiveRecord::RecordInvalid
-      respond_to do |format|
-        format.html { redirect_to warehouses_url, alert: "Failed to update position", status: :unprocessable_content }
-        format.json { head :unprocessable_content }
-      end
+      redirect_to warehouses_url, alert: "Failed to update position", status: :unprocessable_content
     end
 
     private

@@ -30,36 +30,25 @@ class ColorsController < ApplicationController
   def create
     @color = Color.new(color_params)
 
-    respond_to do |format|
-      if @color.save
-        format.html { redirect_to color_url(@color), notice: "Color was successfully created" }
-        format.json { render :show, status: :created, location: @color }
-      else
-        format.html { redirect_to new_color_url, inertia: inertia_errors(@color.errors) }
-        format.json { render json: @color.errors, status: :unprocessable_content }
-      end
+    if @color.save
+      redirect_to color_url(@color), notice: "Color was successfully created"
+    else
+      redirect_to new_color_url, inertia: inertia_errors(@color.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @color.update(color_params)
-        format.html { redirect_to color_url(@color), notice: "Color was successfully updated" }
-        format.json { render :show, status: :ok, location: @color }
-      else
-        format.html { redirect_to edit_color_url(@color), inertia: inertia_errors(@color.errors) }
-        format.json { render json: @color.errors, status: :unprocessable_content }
-      end
+    if @color.update(color_params)
+      redirect_to color_url(@color), notice: "Color was successfully updated"
+    else
+      redirect_to edit_color_url(@color), inertia: inertia_errors(@color.errors)
     end
   end
 
   def destroy
     @color.destroy
 
-    respond_to do |format|
-      format.html { redirect_to colors_url, notice: "Color was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to colors_url, notice: "Color was successfully destroyed"
   end
 
   private

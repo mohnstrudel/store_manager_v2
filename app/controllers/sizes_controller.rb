@@ -30,36 +30,25 @@ class SizesController < ApplicationController
   def create
     @size = Size.new(size_params)
 
-    respond_to do |format|
-      if @size.save
-        format.html { redirect_to size_url(@size), notice: "Size was successfully created" }
-        format.json { render :show, status: :created, location: @size }
-      else
-        format.html { redirect_to new_size_url, inertia: inertia_errors(@size.errors) }
-        format.json { render json: @size.errors, status: :unprocessable_content }
-      end
+    if @size.save
+      redirect_to size_url(@size), notice: "Size was successfully created"
+    else
+      redirect_to new_size_url, inertia: inertia_errors(@size.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @size.update(size_params)
-        format.html { redirect_to size_url(@size), notice: "Size was successfully updated" }
-        format.json { render :show, status: :ok, location: @size }
-      else
-        format.html { redirect_to edit_size_url(@size), inertia: inertia_errors(@size.errors) }
-        format.json { render json: @size.errors, status: :unprocessable_content }
-      end
+    if @size.update(size_params)
+      redirect_to size_url(@size), notice: "Size was successfully updated"
+    else
+      redirect_to edit_size_url(@size), inertia: inertia_errors(@size.errors)
     end
   end
 
   def destroy
     @size.destroy
 
-    respond_to do |format|
-      format.html { redirect_to sizes_url, notice: "Size was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to sizes_url, notice: "Size was successfully destroyed"
   end
 
   private

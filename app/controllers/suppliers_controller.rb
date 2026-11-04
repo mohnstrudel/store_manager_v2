@@ -30,36 +30,25 @@ class SuppliersController < ApplicationController
   def create
     @supplier = Supplier.new(supplier_params)
 
-    respond_to do |format|
-      if @supplier.save
-        format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully created" }
-        format.json { render :show, status: :created, location: @supplier }
-      else
-        format.html { redirect_to new_supplier_url, inertia: inertia_errors(@supplier.errors) }
-        format.json { render json: @supplier.errors, status: :unprocessable_content }
-      end
+    if @supplier.save
+      redirect_to supplier_url(@supplier), notice: "Supplier was successfully created"
+    else
+      redirect_to new_supplier_url, inertia: inertia_errors(@supplier.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @supplier.update(supplier_params.merge(slug: nil))
-        format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated" }
-        format.json { render :show, status: :ok, location: @supplier }
-      else
-        format.html { redirect_to edit_supplier_url(@supplier.reload), inertia: inertia_errors(@supplier.errors) }
-        format.json { render json: @supplier.errors, status: :unprocessable_content }
-      end
+    if @supplier.update(supplier_params.merge(slug: nil))
+      redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated"
+    else
+      redirect_to edit_supplier_url(@supplier.reload), inertia: inertia_errors(@supplier.errors)
     end
   end
 
   def destroy
     @supplier.destroy
 
-    respond_to do |format|
-      format.html { redirect_to suppliers_url, notice: "Supplier was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to suppliers_url, notice: "Supplier was successfully destroyed"
   end
 
   private

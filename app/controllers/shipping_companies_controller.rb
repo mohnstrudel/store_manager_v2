@@ -34,36 +34,25 @@ class ShippingCompaniesController < ApplicationController
   def create
     @shipping_company = ShippingCompany.new(shipping_company_params)
 
-    respond_to do |format|
-      if @shipping_company.save
-        format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully created" }
-        format.json { render :show, status: :created, location: @shipping_company }
-      else
-        format.html { redirect_to new_shipping_company_url, inertia: inertia_errors(@shipping_company.errors) }
-        format.json { render json: @shipping_company.errors, status: :unprocessable_content }
-      end
+    if @shipping_company.save
+      redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully created"
+    else
+      redirect_to new_shipping_company_url, inertia: inertia_errors(@shipping_company.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @shipping_company.update(shipping_company_params)
-        format.html { redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully updated" }
-        format.json { render :show, status: :ok, location: @shipping_company }
-      else
-        format.html { redirect_to edit_shipping_company_url(@shipping_company), inertia: inertia_errors(@shipping_company.errors) }
-        format.json { render json: @shipping_company.errors, status: :unprocessable_content }
-      end
+    if @shipping_company.update(shipping_company_params)
+      redirect_to shipping_company_url(@shipping_company), notice: "Shipping company was successfully updated"
+    else
+      redirect_to edit_shipping_company_url(@shipping_company), inertia: inertia_errors(@shipping_company.errors)
     end
   end
 
   def destroy
     @shipping_company.destroy
 
-    respond_to do |format|
-      format.html { redirect_to shipping_companies_url, notice: "Shipping company was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to shipping_companies_url, notice: "Shipping company was successfully destroyed"
   end
 
   private
