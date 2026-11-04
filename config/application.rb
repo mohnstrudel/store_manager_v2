@@ -8,7 +8,7 @@ Bundler.require(*Rails.groups)
 
 module StoreManagerV2
   class Application < Rails::Application
-    config.load_defaults 7.2
+    config.load_defaults 8.0
 
     config.active_job.queue_adapter = :sidekiq
 
