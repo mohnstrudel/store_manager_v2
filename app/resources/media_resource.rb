@@ -20,6 +20,6 @@ class MediaResource < ApplicationResource
   end
 
   def representation_path(media, variant)
-    route_for(ActiveStorage.resolve_model_to_route, media.image.representation(variant), only_path: true)
+    url_for(media.image.representation(variant))
   end
 end
