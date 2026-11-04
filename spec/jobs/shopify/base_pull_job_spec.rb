@@ -71,6 +71,26 @@ RSpec.describe Shopify::BasePullJob do
       end
     end
 
+    context "when items on the page failed to import" do
+      let(:failures) { [Shopify::Pull::Failure.new(store_id: "gid://1", message: "boom")] }
+      let(:page) { Shopify::Pull::Page.new(imported_count: 1, next_cursor: "next", failures:) }
+
+      before { allow(Sentry).to receive(:capture_exception) }
+
+      it "schedules the next page before raising the failures" do
+        expect { job.perform }.to raise_error(Shopify::Pull::Failed) { |error| expect(error.failures).to eq(failures) }
+
+        expect(job_setter).to have_received(:perform_later).with(cursor: "next")
+      end
+
+      it "reports the failures and discards the job instead of retrying the page" do
+        job_class.perform_now
+
+        expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
+        expect(job_setter).to have_received(:perform_later).once
+      end
+    end
+
     context "when Shopify responds with an HTTP error" do
       def http_error(code)
         ShopifyAPI::Errors::HttpResponseError.new(

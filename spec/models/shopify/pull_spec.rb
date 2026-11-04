@@ -64,4 +64,17 @@ RSpec.describe Shopify::Pull, :aggregate_failures do
 
     expect { pull_class.page }.to raise_error(RuntimeError, /already been taken/)
   end
+
+  describe Shopify::Pull::Failed do
+    it "describes at most the first ten failures" do
+      failures = Array.new(12) { |index| Shopify::Pull::Failure.new(store_id: "gid://#{index}", message: "boom #{index}") }
+
+      error = described_class.new(failures)
+
+      expect(error.failures).to eq(failures)
+      expect(error.message).to start_with("12 Shopify item(s) failed to import: gid://0: boom 0; ")
+      expect(error.message).to include("gid://9: boom 9")
+      expect(error.message).not_to include("gid://10")
+    end
+  end
 end

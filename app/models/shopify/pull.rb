@@ -4,6 +4,18 @@ class Shopify::Pull
   Page = Data.define(:imported_count, :next_cursor, :failures)
   Failure = Data.define(:store_id, :message)
 
+  class Failed < StandardError
+    REPORTED_FAILURES = 10
+
+    attr_reader :failures
+
+    def initialize(failures)
+      @failures = failures
+      details = failures.first(REPORTED_FAILURES).map { |failure| "#{failure.store_id}: #{failure.message}" }
+      super("#{failures.size} Shopify item(s) failed to import: #{details.join("; ")}")
+    end
+  end
+
   def self.page(cursor: nil, limit: nil)
     new.page(cursor:, limit:)
   end
