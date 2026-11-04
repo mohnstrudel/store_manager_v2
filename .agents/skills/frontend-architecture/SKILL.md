@@ -41,7 +41,8 @@ Before planning behavior-bearing frontend work or a structural refactor that aff
    - Adapters own browser or external protocols.
    - Shared components require proven reuse or a stable UI primitive. Keep page-owned UI near its page until that boundary exists.
 4. Keep the frontend/backend boundary explicit. React owns presentation and interaction state; Rails owns domain facts, persistence, authorization, and invariant-bearing writes. Change the backend contract explicitly when the UI needs new domain data or behavior.
-5. Consume backend routes through Rails-provided path props or generated helpers from `@/utils/routes`. Do not rebuild Rails route semantics in components or hand-edit generated files under `app/frontend/api`.
+5. Type page props with the generated types from `@/types/serializers`; never hand-write a type for backend props or edit that generated directory. Change the Alba resource and regenerate instead.
+6. Consume backend routes through Rails-provided path props or generated helpers from `@/utils/routes`. Do not rebuild Rails route semantics in components or hand-edit generated files under `app/frontend/api`.
 
    **Repository convention:** Use a path prop directly when Rails provides it. Otherwise use a generated helper:
 
@@ -50,8 +51,8 @@ Before planning behavior-bearing frontend work or a structural refactor that aff
    const sizePath = routes.sizes.show.path({ id: size.id });
    ```
 
-6. Keep components readable from public contract to feature composition to private mechanics. Use domain language and name non-obvious decisions or derived values when that makes ownership clear.
-7. Apply the conditional references, then validate with the repository-wide gate in `AGENTS.md`.
+7. Keep components readable from public contract to feature composition to private mechanics. Use domain language and name non-obvious decisions or derived values when that makes ownership clear.
+8. Apply the conditional references, then validate with the repository-wide gate in `AGENTS.md`.
 
 ## Refactor Safety
 

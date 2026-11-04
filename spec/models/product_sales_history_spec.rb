@@ -154,7 +154,7 @@ RSpec.describe Product do
 
       active_payment_items = product.active_payment_items
       sale = active_payment_items.first.sale
-      plan = sale.payment_plans_for_display.first
+      plan = sale.payment_plans.first
 
       aggregate_failures do
         expect(active_payment_items).to contain_exactly(follow_up_item)

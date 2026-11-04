@@ -1042,6 +1042,7 @@ type IndexOptions = {
   tag_options?: SalesTagRecord[];
   can_tag_sales?: boolean;
   last_sync_time?: string | null;
+  last_sync_at?: string | null;
 };
 
 function indexElement({
@@ -1053,11 +1054,13 @@ function indexElement({
   tag_options = [],
   can_tag_sales = true,
   last_sync_time = "20.05 at 10:00",
+  last_sync_at = null,
 }: IndexOptions = {}) {
   return (
     <Index
       can_tag_sales={can_tag_sales}
       filters={filters}
+      last_sync_at={last_sync_at}
       last_sync_time={last_sync_time}
       pagination={pagination}
       sales={sales}

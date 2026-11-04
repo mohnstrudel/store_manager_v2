@@ -80,6 +80,11 @@ GEM
       zeitwerk (>= 2.4, < 3.0)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
+    alba (4.0.1)
+    alba-inertia (0.1.4)
+      alba
+      inertia_rails
+      zeitwerk
     annotaterb (4.25.0)
       activerecord (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -634,6 +639,9 @@ GEM
     tilt (2.9.0)
     timeout (0.6.1)
     tsort (0.2.0)
+    typelizer (0.14.0)
+      benchmark
+      railties (>= 6.1.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.3.0)
@@ -681,6 +689,8 @@ PLATFORMS
 
 DEPENDENCIES
   acts-as-taggable-on
+  alba (= 4.0.1)
+  alba-inertia (~> 0.1.4)
   annotaterb
   audited
   aws-sdk-s3
@@ -702,6 +712,7 @@ DEPENDENCIES
   js_from_routes (~> 4.0)
   kaminari
   letter_opener
+  listen
   mailtrap
   parallel_tests
   pg (~> 1.6)
@@ -740,6 +751,7 @@ DEPENDENCIES
   solargraph-rails
   sprockets-rails
   standard
+  typelizer (~> 0.14.0)
   tzinfo-data
   vcr
   vite_rails

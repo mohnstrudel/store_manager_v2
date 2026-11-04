@@ -5,26 +5,15 @@ import PageHeader from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import SyncModal from "@/components/SyncModal";
-import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
+import type { SalesIndex } from "@/types/serializers";
 import routes from "@/utils/routes";
 import { useModalVisibility } from "@/utils/useModalVisibility";
 
 import { hasFilters, listingParams } from "./Index/salesListing";
 import SearchForm from "./Index/SearchForm";
 import Table from "./Index/Table";
-import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
 
-type IndexProps = {
-  sales: SaleIndexRecord[];
-  pagination: PaginationMeta;
-  search: { q: string };
-  sort: SaleSort;
-  filters: SalesFilters;
-  tag_options: SalesTagRecord[];
-  tag_colors: SalesTagColor[];
-  can_tag_sales: boolean;
-  last_sync_time: string | null;
-};
+type IndexProps = SalesIndex;
 
 export default function Index({
   sales,

@@ -164,7 +164,7 @@ The UI runs through `inertia_rails`: Rails controllers render Inertia pages and 
 - `@inertiajs/react` owns links, forms, visits, shared page props, and client-side navigation
 - Vite Ruby builds the frontend entrypoints, including Inertia SSR; Tailwind CSS compiles through the Vite Tailwind plugin
 
-The division of labor: let Rails load records, authorize requests, and prepare page props (usually in helpers and focused prop builders); keep screen wording, branching, and view-data shaping at the Inertia boundary; organize React pages by resource under `app/frontend/pages`, splitting large screens into local components and hooks; reuse shared components from `app/frontend/components`; and use generated `js-from-routes` helpers from `app/frontend/api` instead of hand-written path strings.
+The division of labor: let Rails load records, authorize requests, and prepare page props with Alba resources in `app/resources/` (Typelizer generates their TypeScript types into `app/frontend/types/serializers/`); keep screen wording, branching, and view-data shaping at the Inertia boundary; organize React pages by resource under `app/frontend/pages`, splitting large screens into local components and hooks; reuse shared components from `app/frontend/components`; and use generated `js-from-routes` helpers from `app/frontend/api` instead of hand-written path strings.
 
 UI tests are part of the design, not a polish step. Because screens combine Rails-prepared props, Inertia navigation, React state, and CSS, risky UI work should include focused component or browser-level coverage for things the code alone cannot guarantee — Inertia form submissions and validation errors, client-side navigation and shared layout behavior, dialog open/close, image/gallery state transitions, and geometry staying stable while assets load.
 
@@ -357,7 +357,7 @@ app/frontend/
   types/             shared frontend types
 ```
 
-Examples: `app/frontend/pages/Products/*`, `app/frontend/pages/Purchases/Show/*`, `app/frontend/pages/Sales/Show/*`, `app/frontend/components/*`. Helpers remain the default place for small server-side page-prop preparation.
+Examples: `app/frontend/pages/Products/*`, `app/frontend/pages/Purchases/Show/*`, `app/frontend/pages/Sales/Show/*`, `app/frontend/components/*`. Page props come from Alba resources in `app/resources/`; helpers hold the formatting those resources share with views.
 
 ### Where to put new code
 
@@ -372,7 +372,7 @@ Examples: `app/frontend/pages/Products/*`, `app/frontend/pages/Purchases/Show/*`
 | store API or GraphQL client code | `app/models/shopify/...` or another integration namespace in `app/models` | Keep low-level API code separate from business behavior. |
 | parser, importer, payload builder tied to one business area | `app/models/<model>/<integration>/...` | Keep store-specific translation near the business area it updates. |
 | screen-only rendering logic | Inertia page component, local React component or hook, or focused helper | Do not move screen wording or screen branching into models by default. |
-| small screen-only view-data shaping for one page or widget | helper or focused page-prop builder | Prefer simple edge code over a presenter; keep it mechanical and presentation-only. |
+| Inertia page props | page resource in `app/resources/<pages>/` composed from shared record resources | Annotate computed attributes with `typelize`; run `bin/rails typelizer:generate`; never hand-write the TypeScript types. |
 | coordination across several business areas or infrastructure-heavy logic | explicit folder under `app/models/<name>/` or another clear boundary | Reach for this only when a direct model API would be unnatural. |
 
 ### Naming bias

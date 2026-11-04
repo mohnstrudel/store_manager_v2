@@ -26,14 +26,6 @@ RSpec.describe Sale do
     end
   end
 
-  describe "#created_at_for_display" do
-    it "returns woo_created_at when present" do
-      sale = create(:sale, woo_created_at: 2.days.ago)
-
-      expect(sale.created_at_for_display).to be_within(1.second).of(2.days.ago)
-    end
-  end
-
   describe "#full_title" do
     it "includes customer name and woo id" do
       sale = create(:sale, woo_store_id: "woo-123")

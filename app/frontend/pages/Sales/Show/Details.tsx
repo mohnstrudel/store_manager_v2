@@ -86,8 +86,8 @@ function OriginSaleField({ plans }: { plans: SalePaymentPlanRecord[] }) {
   );
 }
 
-function formatStatus(status: string) {
-  return status
+function formatStatus(status: string | null) {
+  return (status ?? "")
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");

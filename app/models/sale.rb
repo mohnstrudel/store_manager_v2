@@ -90,10 +90,6 @@ class Sale < ApplicationRecord
     inverse_of: :origin_sale
   has_many :sale_payment_parts, dependent: :nullify, inverse_of: :sale
 
-  def created_at_for_display
-    woo_created_at || created_at
-  end
-
   def partially_paid?
     received_revenue.to_d.positive? && outstanding_revenue.to_d.positive?
   end
@@ -102,7 +98,7 @@ class Sale < ApplicationRecord
     return if sale_items.size != 1
     return if shipping_total.blank?
 
-    plans = payment_plans_for_display
+    plans = payment_plans
     return unless plans.one?
 
     plan = plans.first
@@ -112,7 +108,7 @@ class Sale < ApplicationRecord
     price if price >= 0
   end
 
-  def payment_plans_for_display
+  def payment_plans
     (origin_payment_plans.to_a + sale_payment_parts.map(&:sale_payment_plan))
       .uniq(&:id)
       .sort_by { |plan| [plan.created_at, plan.id] }

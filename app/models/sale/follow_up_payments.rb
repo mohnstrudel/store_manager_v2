@@ -19,6 +19,6 @@ module Sale::FollowUpPayments
   end
 
   def follow_up_payment?
-    payment_plans_for_display.any? { |plan| plan.origin_sale_id != id && plan.part_number_for(self).present? }
+    payment_plans.any? { |plan| plan.origin_sale_id != id && plan.part_number_for(self).present? }
   end
 end

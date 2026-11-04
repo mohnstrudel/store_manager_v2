@@ -35,7 +35,8 @@ Before planning a behavior-bearing backend change or a refactor that affects or 
    - Put plain Ruby objects in `app/models` and name them for what they are (`Client`, `Parser`, `Importer`); there is no `app/services` category. External API transport lives under its integration namespace, such as `app/models/shopify/api/client.rb`.
 4. Keep boundaries explicit: controllers own parameters, authorization, scoped loading, responses, and rendering; jobs own async scheduling, delivery, and retries; integration clients own external protocols; parsers translate external data; importers map it and call domain commands. Domain commands remain the only invariant-bearing writers.
 5. Keep reusable reads as named, relation-returning scopes with deliberate preload shapes, written with hash syntax or Arel nodes; use `Arel.sql` only when no native equivalent exists. Build Inertia props or JSON at the rendering edge without reconstructing domain data.
-6. Represent command endpoints as small resources using write HTTP verbs. Reuse controller scoping concerns only across a real controller family.
+6. Build Inertia page props with Alba resources in `app/resources/`: one page resource per page (`Sales::IndexResource`) over a locals hash, rendered with `render_inertia "<Page>", serializer:, locals:`, composed from one shared resource per record shape (`SaleResource`, extended by `Sales::ListingResource`). Annotate every computed attribute with `typelize`; Typelizer generates `app/frontend/types/serializers/` and CI fails when it is stale, so regenerate with `bin/rails typelizer:generate` after changing a resource. Helpers hold only formatting used by resources and views.
+7. Represent command endpoints as small resources using write HTTP verbs. Reuse controller scoping concerns only across a real controller family.
 
 ## Refactor Safety
 

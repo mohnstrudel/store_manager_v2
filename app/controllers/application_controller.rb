@@ -3,6 +3,7 @@
 class ApplicationController < ActionController::Base
   include Authentication
   include Authorization
+  include Alba::Inertia::Controller
 
   inertia_share do
     {

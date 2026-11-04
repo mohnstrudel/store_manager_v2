@@ -68,6 +68,12 @@ jobs:
       - name: Run backend lint
         run: bundle exec rubocop
 
+      - name: Check generated TypeScript types
+        run: |
+          TYPELIZER=true bundle exec rails typelizer:generate:refresh
+          git add --intent-to-add app/frontend/types/serializers
+          git diff --exit-code -- app/frontend/types/serializers
+
       - run: bundle exec rspec
 
   frontend:
@@ -92,6 +98,9 @@ jobs:
 
       - name: Run frontend lint
         run: pnpm lint
+
+      - name: Type-check frontend
+        run: pnpm exec tsc --noEmit
 
       - name: Run frontend tests
         run: pnpm exec vitest run

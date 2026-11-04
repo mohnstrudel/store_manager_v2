@@ -210,7 +210,7 @@ module ProductHelper
   end
 
   def product_follow_up_payment_plan(sale)
-    sale.payment_plans_for_display.find { |plan| plan.origin_sale_id != sale.id && plan.part_number_for(sale).present? }
+    sale.payment_plans.find { |plan| plan.origin_sale_id != sale.id && plan.part_number_for(sale).present? }
   end
 
   def product_payment_origin_props(plan, sale)

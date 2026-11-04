@@ -28,11 +28,7 @@ export default function SaleTags({ saleId, tags, options, colors, canTagSales }:
       <div className="-mt-2 lg:-mt-3 mb-2 flex flex-wrap items-center gap-2">
         <TagBadges tags={tags} />
         {canTagSales ? (
-          <button
-            className="btn_xs"
-            onClick={form.open}
-            type="button"
-          >
+          <button className="btn_xs" onClick={form.open} type="button">
             <TagIcon />
             {title}
           </button>

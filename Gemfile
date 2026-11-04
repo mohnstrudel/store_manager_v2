@@ -67,6 +67,7 @@ end
 group :development do
   gem "web-console"
   gem "rails_live_reload"
+  gem "listen"
   gem "annotaterb"
   gem "solargraph"
   gem "solargraph-rails"
@@ -89,3 +90,7 @@ group :test do
   gem "vcr"
   gem "webmock"
 end
+
+gem "alba", "4.0.1"
+gem "typelizer", "~> 0.14.0"
+gem "alba-inertia", "~> 0.1.4"

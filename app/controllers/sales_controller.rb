@@ -14,37 +14,31 @@ class SalesController < ApplicationController
 
     criteria = listing_criteria(catalog)
     @sales = Sale.listing(**criteria).page(params[:page])
-    pagination = helpers.pagination_props(@sales)
     can_tag_sales = policy(:sale).update_tags?
 
-    return unless stale?(etag: index_etag(criteria, pagination, catalog, can_tag_sales))
+    return unless stale?(etag: index_etag(criteria, catalog, can_tag_sales))
 
-    render inertia: "Sales/Index", props: {
-      sales: @sales.map { |sale| helpers.sale_listing_props(sale) },
-      pagination:,
-      search: {q: criteria[:query]},
-      sort: criteria[:sort],
-      filters: criteria.slice(*LISTING_FILTERS, :tag_id),
-      **tag_props(catalog, can_tag_sales),
-      last_sync_at: helpers.format_last_fetched_at(Config.shopify_sales_sync_at),
-      last_sync_time: Config.shopify_sales_sync_time
-    }
+    render_inertia "Sales/Index", serializer: Sales::IndexResource,
+      locals: {sales: @sales, criteria:, tag_catalog: catalog, can_tag_sales:}
   end
 
   def show
-    render inertia: "Sales/Show", props: {
-      sale: helpers.sale_showing_props(@sale, can_view_profitability: policy(@sale).view_profitability?),
-      **tag_props(SalesTag.all, policy(:sale).update_tags?)
-    }
+    render_inertia "Sales/Show", serializer: Sales::ShowResource,
+      locals: {
+        sale: @sale,
+        can_view_profitability: policy(@sale).view_profitability?,
+        tag_catalog: SalesTag.all,
+        can_tag_sales: policy(:sale).update_tags?
+      }
   end
 
   def new
     @sale = Sale.new
-    render inertia: "Sales/New", props: helpers.sale_form_props(@sale)
+    render_inertia "Sales/New", serializer: Sales::FormResource, locals: {sale: @sale}
   end
 
   def edit
-    render inertia: "Sales/Edit", props: helpers.sale_form_props(@sale)
+    render_inertia "Sales/Edit", serializer: Sales::FormResource, locals: {sale: @sale}
   end
 
   def create
@@ -122,21 +116,13 @@ class SalesController < ApplicationController
     {**base_listing_criteria, tag_id: available_tag_id(catalog)}
   end
 
-  def index_etag(criteria, pagination, catalog, can_tag_sales)
+  def index_etag(criteria, catalog, can_tag_sales)
     [
-      @sales, request.inertia?, criteria, pagination,
+      @sales, request.inertia?, criteria, @sales.current_page, @sales.total_count,
       @sales.map { |sale| [sale.id, sale.sales_tags.map(&:id).sort] },
       catalog.map { |tag| [tag.id, tag.name, tag.color, tag.updated_at.to_fs(:usec)] },
       can_tag_sales, current_user.role
     ]
-  end
-
-  def tag_props(catalog, can_tag_sales)
-    {
-      tag_options: catalog.sort_by(&:sort_key).map { |tag| helpers.sales_tag_props(tag) },
-      tag_colors: SalesTag::COLORS,
-      can_tag_sales:
-    }
   end
 
   def append_sale_item_errors(record, payload:)

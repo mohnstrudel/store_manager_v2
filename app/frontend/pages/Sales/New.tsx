@@ -1,13 +1,10 @@
 import ErrorNotice from "@/components/ErrorNotice";
 import PageHeader from "@/components/PageHeader";
+import type { SalesForm } from "@/types/serializers";
 
 import Form from "./components/Form";
-import type { SaleFormOptions, SaleFormRecord } from "./types";
 
-type NewProps = {
-  options: SaleFormOptions;
-  sale: SaleFormRecord;
-};
+type NewProps = SalesForm;
 
 export default function New({ options, sale }: NewProps) {
   return (

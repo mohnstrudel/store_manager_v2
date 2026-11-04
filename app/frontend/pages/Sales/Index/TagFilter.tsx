@@ -52,11 +52,7 @@ export default function TagFilter({ colors, onApply, options, selectedId }: TagF
           <XIcon aria-hidden className="size-3" />
         </button>
       ) : null}
-      <button
-        className="btn_xs"
-        onClick={open}
-        type="button"
-      >
+      <button className="btn_xs" onClick={open} type="button">
         <TagIcon />
         Filter by tag
       </button>

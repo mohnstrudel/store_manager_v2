@@ -6,12 +6,7 @@ module Sales
     before_action :set_sale_item, only: %i[show destroy]
 
     def show
-      render inertia: "SaleItems/Show", props: {
-        sale_item: helpers.sale_item_props(@sale_item),
-        purchase_items: @sale_item.purchase_items.map { |purchase_item| helpers.sale_item_purchase_item_props(purchase_item) },
-        warehouses: Warehouse.order(name: :asc).map { |warehouse| helpers.purchase_warehouse_props(warehouse) },
-        warehouse_move_path: warehouse_move_path
-      }
+      render_inertia "SaleItems/Show", serializer: SaleItems::ShowResource, locals: {sale_item: @sale_item}
     end
 
     def destroy
