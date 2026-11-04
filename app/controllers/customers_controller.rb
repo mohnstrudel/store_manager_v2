@@ -58,7 +58,7 @@ class CustomersController < ApplicationController
   private
 
   def customer_params
-    params.fetch(:customer, {}).permit(:email, :first_name, :last_name, :phone)
+    params.expect(customer: [:email, :first_name, :last_name, :phone])
   end
 
   def set_customer

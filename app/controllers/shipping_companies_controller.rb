@@ -58,7 +58,7 @@ class ShippingCompaniesController < ApplicationController
   private
 
   def shipping_company_params
-    params.fetch(:shipping_company, {}).permit(:name, :tracking_url)
+    params.expect(shipping_company: [:name, :tracking_url])
   end
 
   def set_shipping_company

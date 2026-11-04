@@ -54,7 +54,7 @@ class FranchisesController < ApplicationController
   private
 
   def franchise_params
-    params.fetch(:franchise, {}).permit(:title)
+    params.expect(franchise: [:title])
   end
 
   def set_franchise

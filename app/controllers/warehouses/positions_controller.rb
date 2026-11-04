@@ -5,7 +5,7 @@ module Warehouses
     include WarehouseScoped
 
     def update
-      new_position = params[:position].to_i
+      new_position = params.expect(:position).to_i
 
       return head :bad_request unless new_position.positive?
 

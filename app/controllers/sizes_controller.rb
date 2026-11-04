@@ -54,7 +54,7 @@ class SizesController < ApplicationController
   private
 
   def size_params
-    params.fetch(:size, {}).permit(:value)
+    params.expect(size: [:value])
   end
 
   def set_size

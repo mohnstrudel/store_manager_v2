@@ -37,6 +37,14 @@ RSpec.describe "Purchase item inline updates" do
       expect_inertia.to render_component("Warehouses/Show")
       expect(inertia.props[:errors][:shipping_company_id]).to eq("can't be blank")
     end
+
+    it "rejects a payload without the purchase_item key as a bad request" do
+      purchase_item = create(:purchase_item)
+
+      patch purchase_item_tracking_number_path(purchase_item), params: {}
+
+      expect(response).to have_http_status(:bad_request)
+    end
   end
 
   describe "PATCH /purchase_items/:purchase_item_id/shipping_company" do
@@ -53,6 +61,14 @@ RSpec.describe "Purchase item inline updates" do
       expect(response).to redirect_to(warehouse_path(warehouse))
       expect(purchase_item.reload.shipping_company).to eq(shipping_company)
     end
+
+    it "rejects a payload without the purchase_item key as a bad request" do
+      purchase_item = create(:purchase_item)
+
+      patch purchase_item_shipping_company_path(purchase_item), params: {}
+
+      expect(response).to have_http_status(:bad_request)
+    end
   end
 
   describe "PATCH /purchase_items/:purchase_item_id/shipping_cost" do
@@ -67,6 +83,14 @@ RSpec.describe "Purchase item inline updates" do
 
       expect(response).to redirect_to(warehouse_path(warehouse))
       expect(purchase_item.reload.shipping_cost).to eq(BigDecimal(12))
+    end
+
+    it "rejects a payload without the purchase_item key as a bad request" do
+      purchase_item = create(:purchase_item)
+
+      patch purchase_item_shipping_cost_path(purchase_item), params: {}
+
+      expect(response).to have_http_status(:bad_request)
     end
   end
 

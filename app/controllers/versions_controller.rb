@@ -54,7 +54,7 @@ class VersionsController < ApplicationController
   private
 
   def version_params
-    params.fetch(:version, {}).permit(:value)
+    params.expect(version: [:value])
   end
 
   def set_version

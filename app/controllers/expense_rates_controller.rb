@@ -49,7 +49,7 @@ class ExpenseRatesController < ApplicationController
   private
 
   def expense_rate_params
-    params.fetch(:expense_rate, {}).permit(:name, :rate_percent)
+    params.expect(expense_rate: [:name, :rate_percent])
   end
 
   def set_expense_rate

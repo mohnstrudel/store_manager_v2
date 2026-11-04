@@ -54,7 +54,7 @@ class SuppliersController < ApplicationController
   private
 
   def supplier_params
-    params.fetch(:supplier, {}).permit(:title)
+    params.expect(supplier: [:title])
   end
 
   def set_supplier

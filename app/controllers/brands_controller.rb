@@ -54,7 +54,7 @@ class BrandsController < ApplicationController
   private
 
   def brand_params
-    params.fetch(:brand, {}).permit(:title)
+    params.expect(brand: [:title])
   end
 
   def set_brand
