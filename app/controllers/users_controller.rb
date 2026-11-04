@@ -2,6 +2,7 @@
 
 class UsersController < ApplicationController
   before_action :set_user, only: %i[show edit update destroy]
+  before_action :ensure_admin_role_is_not_assigned, only: :update
 
   def index
     @users = User.all
@@ -20,7 +21,6 @@ class UsersController < ApplicationController
   end
 
   def update
-    user_params.delete("role") if user_params["role"] == "admin"
     if @user.update(user_params)
       redirect_to user_url(@user), notice: "User account was successfully updated"
     else
@@ -48,5 +48,9 @@ class UsersController < ApplicationController
 
   def set_user
     @user = User.find(params.expect(:id))
+  end
+
+  def ensure_admin_role_is_not_assigned
+    head :forbidden if user_params[:role] == "admin"
   end
 end

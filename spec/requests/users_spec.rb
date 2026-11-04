@@ -36,6 +36,24 @@ RSpec.describe "Users" do
       expect(user.reload.first_name).to eq("New")
     end
 
+    it "changes the role to a non-admin role" do
+      user = create(:user, role: :guest)
+
+      patch user_path(user), params: {user: {role: "manager"}}
+
+      expect(response).to redirect_to(user_path(user))
+      expect(user.reload).to be_manager
+    end
+
+    it "rejects promotion to admin without changing the user" do
+      user = create(:user, role: :manager, first_name: "Old")
+
+      patch user_path(user), params: {user: {role: "admin", first_name: "New"}}
+
+      expect(response).to have_http_status(:forbidden)
+      expect(user.reload).to have_attributes(role: "manager", first_name: "Old")
+    end
+
     it "redirects back to edit with errors on invalid email" do
       user = create(:user)
 
