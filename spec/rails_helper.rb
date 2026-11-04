@@ -37,7 +37,6 @@ RSpec.configure do |config|
   config.include Helpers::ReactSelect, type: :feature
 
   config.include Helpers::PurchaseItemScenarios, type: :model
-  config.include Helpers::SessionManagement, type: :controller
   config.include Helpers::SessionManagement, type: :request
   config.include Helpers::SessionManagement, type: :feature
 

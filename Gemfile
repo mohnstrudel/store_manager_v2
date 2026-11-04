@@ -86,7 +86,6 @@ group :test do
   gem "duck_typer", "~> 0.6.1"
   gem "pundit-matchers"
   gem "shoulda-matchers"
-  gem "rails-controller-testing"
   gem "vcr"
   gem "webmock"
 end
