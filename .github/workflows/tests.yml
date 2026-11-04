@@ -57,10 +57,18 @@ jobs:
       - name: Install Google Chrome
         uses: browser-actions/setup-chrome@v1
 
-      - name: Setup test DB
-        run: |
-          bundle exec rails db:setup
-          bundle exec rails db:test:prepare
+      - name: Use one test process per CPU
+        run: echo "PARALLEL_TEST_PROCESSORS=$(nproc)" >> "$GITHUB_ENV"
+
+      - name: Setup test DBs
+        run: bundle exec rake parallel:create parallel:load_schema
+
+      - name: Restore recorded spec runtimes
+        uses: actions/cache@v4
+        with:
+          path: tmp/parallel_runtime_rspec.log
+          key: rspec-runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: rspec-runtime-
 
       - name: Prepare assets (Tailwind)
         run: |
@@ -74,7 +82,10 @@ jobs:
           git add --intent-to-add app/frontend/types/serializers
           git diff --exit-code -- app/frontend/types/serializers
 
-      - run: bundle exec rspec
+      - name: Run backend tests
+        run: bin/parallel-rspec spec
+        env:
+          PARALLEL_RSPEC_SKIP_SETUP: "1"
 
   frontend:
     name: Frontend tests
