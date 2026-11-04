@@ -45,4 +45,8 @@ module Purchase::Financials
   def unpaid?
     payments_count.zero?
   end
+
+  def record_payment!(value)
+    payments.create!(value:)
+  end
 end

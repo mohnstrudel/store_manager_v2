@@ -238,6 +238,7 @@ app/models/product/
 app/models/purchase/
   financials.rb
   linking.rb
+  placement.rb
   warehousing.rb
 
 app/models/sale/

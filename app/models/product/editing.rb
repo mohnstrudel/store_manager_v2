@@ -253,7 +253,7 @@ module Product::Editing
 
     initial_purchase.product = self
     initial_purchase.variant = variant
-    initial_purchase.save_editing!
+    initial_purchase.place!
   rescue ActiveRecord::RecordInvalid => error
     raise if error.record.equal?(self)
 

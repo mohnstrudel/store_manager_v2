@@ -24,16 +24,14 @@ class Purchase < ApplicationRecord
   attribute :warehouse_id, :integer
   attribute :payment_value, :decimal
 
-  include Creation
-  include Editing
   include Financials
   include HasAuditNotifications
   include Linking
   include Listing
+  include Placement
   include Searchable
   include Warehousing
   include Titling
-  include Updating
   include VariantAssignment
 
   extend FriendlyId

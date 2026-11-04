@@ -61,10 +61,10 @@ class PurchasesController < ApplicationController
     @purchase = Purchase.new
 
     respond_to do |format|
-      @purchase.create_from_form!(
+      @purchase.place!(
         attributes: payload.attributes,
-        initial_warehouse_id: payload.initial_warehouse_id,
-        initial_payment_value: payload.initial_payment_value
+        warehouse_id: payload.initial_warehouse_id,
+        payment_value: payload.initial_payment_value
       )
       format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully created" }
       format.json { render :show, status: :created, location: @purchase }
@@ -79,7 +79,7 @@ class PurchasesController < ApplicationController
     payload = Purchase::FormPayload.new(params:)
 
     respond_to do |format|
-      @purchase.update_from_form!(attributes: payload.attributes.merge(slug: nil))
+      @purchase.update!(payload.attributes.merge(slug: nil))
       format.html { redirect_to purchase_url(@purchase), notice: "Purchase was successfully updated" }
       format.json { render :show, status: :ok, location: @purchase }
     rescue ActiveRecord::RecordInvalid => e

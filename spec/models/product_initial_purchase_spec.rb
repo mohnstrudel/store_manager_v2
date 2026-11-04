@@ -83,7 +83,7 @@ RSpec.describe Product do
       expect(product).to receive(:save!).ordered.and_call_original
       expect(purchase).to receive(:product=).with(product).ordered
       expect(purchase).to receive(:variant=).with(instance_of(Variant)).ordered
-      expect(purchase).to receive(:save_editing!).ordered
+      expect(purchase).to receive(:place!).ordered
 
       product.save_editing!(
         product_attributes: creation_product_attributes,
