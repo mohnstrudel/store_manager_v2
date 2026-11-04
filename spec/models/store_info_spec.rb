@@ -69,7 +69,7 @@ RSpec.describe StoreInfo do
 
   describe "store info limits" do
     it "does not count not_assigned store infos against the store connection limit" do
-      product = create(:product)
+      product = create(:product, :synced)
 
       extra_store_info = product.store_infos.build(store_name: :not_assigned)
 
@@ -79,7 +79,7 @@ RSpec.describe StoreInfo do
 
   describe "editing validations" do
     it "does not allow duplicate store names while editing store connections" do # rubocop:todo RSpec/MultipleExpectations
-      product = create(:product)
+      product = create(:product, :synced)
       duplicate_store_info = product.store_infos.build(store_name: :shopify)
 
       expect(duplicate_store_info).not_to be_valid
@@ -87,7 +87,7 @@ RSpec.describe StoreInfo do
     end
 
     it "checks persisted siblings when the owner's association is not loaded" do
-      product = create(:product)
+      product = create(:product, :synced)
       product.association(:store_infos).reset
       duplicate = described_class.new(storable: product, store_name: :shopify)
 

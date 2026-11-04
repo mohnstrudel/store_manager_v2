@@ -221,7 +221,7 @@ RSpec.describe Product::Shopify::Importer do
 
     context "when product already exists" do
       let!(:existing_product) do
-        create(:product,
+        create(:product, :synced,
           shopify_id: "gid://shopify/Product/12345",
           title: "Old Title")
       end
@@ -255,7 +255,7 @@ RSpec.describe Product::Shopify::Importer do
 
     context "when product has StoreInfo with slug but no store_id" do
       let!(:existing_product) do
-        create(:product).tap do |p|
+        create(:product, :synced).tap do |p|
           p.shopify_info.update(store_id: nil, slug: "stellar-blade-eve-statue")
         end
       end
@@ -334,7 +334,7 @@ RSpec.describe Product::Shopify::Importer do
 
     context "when a matching product is already linked to another Shopify product" do
       let!(:existing_product) do
-        create(:product,
+        create(:product, :synced,
           shopify_id: "gid://shopify/Product/already-linked",
           title: "Eve",
           franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),

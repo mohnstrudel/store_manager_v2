@@ -248,7 +248,7 @@ RSpec.describe "Products" do
     end
 
     it "includes store_infos tags in the show props" do
-      product = create(:product)
+      product = create(:product, :synced)
       shopify_info = product.store_infos.shopify.first
       shopify_info.update(tag_list: "featured, new")
 
@@ -601,7 +601,7 @@ RSpec.describe "Products" do
   end
 
   describe "PATCH /products/:id" do
-    let(:product) { create(:product) }
+    let(:product) { create(:product, :synced) }
 
     it "accepts submitting the edit form without changes", :aggregate_failures do
       original_title = product.title

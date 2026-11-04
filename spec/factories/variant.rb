@@ -5,6 +5,7 @@ FactoryBot.define do
     transient do
       woo_store_id { nil }
       shopify_store_id { nil }
+      synced { false }
     end
 
     product
@@ -14,8 +15,17 @@ FactoryBot.define do
     shopify_id { SecureRandom.alphanumeric(10) }
 
     after(:create) do |variant, evaluator|
-      variant.upsert_woo_info(store_id: evaluator.woo_store_id || variant[:woo_id])
-      variant.upsert_shopify_info(store_id: evaluator.shopify_store_id || variant.shopify_id)
+      if evaluator.synced || evaluator.woo_store_id
+        variant.upsert_woo_info(store_id: evaluator.woo_store_id || variant[:woo_id])
+      end
+
+      if evaluator.synced || evaluator.shopify_store_id
+        variant.upsert_shopify_info(store_id: evaluator.shopify_store_id || variant.shopify_id)
+      end
+    end
+
+    trait :synced do
+      synced { true }
     end
 
     trait(:with_size) do

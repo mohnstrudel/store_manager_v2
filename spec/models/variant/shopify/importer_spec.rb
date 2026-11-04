@@ -123,7 +123,7 @@ RSpec.describe Variant::Shopify::Importer do
 
     context "when variant already exists by shopify_id" do
       let!(:existing_variant) do
-        create(:variant, product: product).tap do |ed|
+        create(:variant, :synced, product: product).tap do |ed|
           ed.shopify_info.update!(store_id: "gid://shopify/ProductVariant/12345")
         end
       end
@@ -686,7 +686,7 @@ RSpec.describe Variant::Shopify::Importer do
   end
 
   describe ".import_all" do
-    let(:product) { create(:product) }
+    let(:product) { create(:product, :synced) }
     let(:parsed_variants) do
       [
         {
@@ -709,7 +709,7 @@ RSpec.describe Variant::Shopify::Importer do
 
     it "updates the pull_time on shopify_info" do
       shopify_id = parsed_variants.first[:store_id]
-      variant = create(:variant, product:)
+      variant = create(:variant, :synced, product:)
       variant.store_infos.shopify.first.update(store_id: shopify_id)
 
       freeze_time do

@@ -57,7 +57,7 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
     end
 
     context "when sale already exists" do
-      before { create(:sale, shopify_id: sale_id) }
+      before { create(:sale, :synced, shopify_id: sale_id) }
 
       it "updates existing sale instead of creating duplicate" do
         expect { job.perform(sale_id) }.not_to change(Sale, :count)

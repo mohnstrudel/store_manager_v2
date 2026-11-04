@@ -23,7 +23,7 @@ RSpec.describe Sale do
 
   describe "#shop_updated_at" do
     context "when sale has shopify_info with ext_updated_at" do
-      let(:sale) { create(:sale) }
+      let(:sale) { create(:sale, :synced) }
 
       it "returns ext_updated_at from shopify_info" do
         sale.shopify_info.update!(ext_updated_at: 1.day.ago)
@@ -38,7 +38,7 @@ RSpec.describe Sale do
     end
 
     context "when sale has woo_updated_at" do
-      let(:sale) { create(:sale, shopify_id: nil) }
+      let(:sale) { create(:sale, :synced, shopify_id: nil) }
 
       it "returns woo_updated_at" do
         sale.update!(woo_updated_at: 2.days.ago)
@@ -47,7 +47,7 @@ RSpec.describe Sale do
     end
 
     context "when sale has both shopify_info and woo_updated_at" do
-      let(:sale) { create(:sale) }
+      let(:sale) { create(:sale, :synced) }
 
       it "prioritizes shopify_info.ext_updated_at over woo_updated_at" do
         sale.shopify_info.update!(ext_updated_at: 1.day.ago)

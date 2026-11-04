@@ -30,7 +30,7 @@ RSpec.describe Media::LegacyAttachments::CleanupJob do
   end
 
   it "enqueues a purge for each stable blob ID after deleting the attachment" do
-    product = create(:product)
+    product = create(:product, :synced)
     create(:media, :for_product, mediaable: product)
     releasing_blob = uploaded_blob
     releasing = legacy_attachment(product, blob: releasing_blob)
@@ -47,7 +47,7 @@ RSpec.describe Media::LegacyAttachments::CleanupJob do
   end
 
   it "retries purge enqueue from stable arguments after attachments were already deleted" do
-    product = create(:product)
+    product = create(:product, :synced)
     create(:media, :for_product, mediaable: product)
     releasing_blob = uploaded_blob
     releasing = legacy_attachment(product, blob: releasing_blob)

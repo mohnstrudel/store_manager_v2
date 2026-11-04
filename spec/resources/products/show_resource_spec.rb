@@ -169,7 +169,7 @@ RSpec.describe Products::ShowResource do
 
   describe "timestamp columns" do
     it "returns the local timestamp first and only includes populated store timestamps" do
-      product = create(:product)
+      product = create(:product, :synced)
       product.woo_info.destroy!
       product.update_columns( # rubocop:disable Rails/SkipsModelValidations
         created_at: Time.zone.parse("2026-04-19 09:00"),

@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Products Sync API" do
-  let(:product) { create(:product) }
+  let(:product) { create(:product, :synced) }
 
   before do
     sign_in_as_admin
@@ -105,7 +105,7 @@ RSpec.describe "Products Sync API" do
 
     context "when product is not published to Shopify" do
       let(:unpublished_product) do
-        record = create(:product)
+        record = create(:product, :synced)
         record.shopify_info.update!(store_id: nil)
         record
       end

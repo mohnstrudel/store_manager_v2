@@ -14,12 +14,12 @@ RSpec.describe Webhooks::OrderUpdatesController do
   describe "when we receive a payload from Webhook" do
     before do
       create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
-      customer = create(:customer, woo_id: parsed_order[:customer][:woo_id])
-      sale = create(:sale, woo_id: parsed_order[:sale][:woo_id], customer:)
-      product = create(:product, woo_id: parsed_order[:products].first[:product_woo_id])
-      variant = create(:variant, woo_id: parsed_order[:products].first[:variant][:woo_id], product:)
+      customer = create(:customer, :synced, woo_id: parsed_order[:customer][:woo_id])
+      sale = create(:sale, :synced, woo_id: parsed_order[:sale][:woo_id], customer:)
+      product = create(:product, :synced, woo_id: parsed_order[:products].first[:product_woo_id])
+      variant = create(:variant, :synced, woo_id: parsed_order[:products].first[:variant][:woo_id], product:)
       @sale_item = create(
-        :sale_item,
+        :sale_item, :synced,
         sale:,
         product:,
         variant:,

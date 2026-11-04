@@ -253,8 +253,8 @@ RSpec.describe Variant::AssignmentRepair do
     it "locks affected parents before Product and Variant records" do
       stale_product = create(:product)
       canonical_product = create(:product)
-      stale_variant = create(:variant, :with_version, product: stale_product)
-      canonical_variant = create(:variant, :with_color, product: canonical_product)
+      stale_variant = create(:variant, :synced, :with_version, product: stale_product)
+      canonical_variant = create(:variant, :synced, :with_color, product: canonical_product)
       store_id = "gid://shopify/ProductVariant/ordered-locks"
       stale_variant.shopify_info.update!(
         store_id:,
@@ -301,8 +301,8 @@ RSpec.describe Variant::AssignmentRepair do
     end
 
     it "rechecks unique canonical provenance under the duplicate-group lock" do
-      stale_variant = create(:variant)
-      canonical_variant = create(:variant)
+      stale_variant = create(:variant, :synced)
+      canonical_variant = create(:variant, :synced)
       store_id = "gid://shopify/ProductVariant/stale-canonical"
       stale_variant.shopify_info.update!(
         store_id:,
@@ -336,8 +336,8 @@ RSpec.describe Variant::AssignmentRepair do
     it "rolls back the whole external-id reconciliation when a dependent repair fails" do
       stale_product = create(:product)
       canonical_product = create(:product)
-      stale_variant = create(:variant, :with_version, product: stale_product)
-      canonical_variant = create(:variant, :with_color, product: canonical_product)
+      stale_variant = create(:variant, :synced, :with_version, product: stale_product)
+      canonical_variant = create(:variant, :synced, :with_color, product: canonical_product)
       store_id = "gid://shopify/ProductVariant/atomic-rollback"
       stale_variant.shopify_info.update!(
         store_id:,

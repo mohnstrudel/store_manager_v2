@@ -61,7 +61,7 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
     end
 
     context "when product already exists" do
-      before { create(:product, shopify_id: "gid://shopify/Product/123") }
+      before { create(:product, :synced, shopify_id: "gid://shopify/Product/123") }
 
       it "updates existing product instead of creating duplicate" do
         allow(Product::Shopify::Importer).to receive(:import).and_call_original

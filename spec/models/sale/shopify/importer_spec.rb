@@ -212,8 +212,8 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
     context "when variant already exists" do
       let!(:existing_variant) do
         create(
-          :variant,
-          product: create(:product, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id]),
+          :variant, :synced,
+          product: create(:product, :synced, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id]),
           shopify_id: valid_parsed_order[:sale_items].first[:variant_store_id]
         )
       end
@@ -471,7 +471,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         order
       end
 
-      let(:product) { create(:product, shopify_id: "gid://shopify/Product/999999") }
+      let(:product) { create(:product, :synced, shopify_id: "gid://shopify/Product/999999") }
       let(:variant) { create(:variant, product: product) }
 
       before do
@@ -506,7 +506,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         order
       end
 
-      let(:product) { create(:product, shopify_id: "gid://shopify/Product/888888") }
+      let(:product) { create(:product, :synced, shopify_id: "gid://shopify/Product/888888") }
       let(:variant) { create(:variant, product: product) }
 
       before do
@@ -601,7 +601,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
 
     context "when product already exists" do
       let(:existing_product) do
-        create(:product,
+        create(:product, :synced,
           shopify_id: valid_parsed_order[:sale_items].first[:product_store_id],
           title: "Old Product Title")
       end
@@ -613,16 +613,16 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
     end
 
     context "when sale_item already exists" do
-      let!(:existing_sale) { create(:sale, shopify_id: valid_parsed_order[:sale][:store_id]) }
+      let!(:existing_sale) { create(:sale, :synced, shopify_id: valid_parsed_order[:sale][:store_id]) }
       let!(:existing_sale_item) do
-        product = create(:product, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id])
+        product = create(:product, :synced, shopify_id: valid_parsed_order[:sale_items].first[:product_store_id])
         variant = create(
-          :variant,
+          :variant, :synced,
           product:,
           shopify_id: valid_parsed_order[:sale_items].first[:variant_store_id]
         )
 
-        create(:sale_item,
+        create(:sale_item, :synced,
           shopify_id: valid_parsed_order[:sale_items].first[:store_id],
           price: "500.00",
           qty: 1,
@@ -755,7 +755,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       let(:purchase) { create(:purchase, product:, variant: purchase_variant, amount: 3) }
       let!(:purchase_items) { create_list(:purchase_item, 3, purchase: purchase) }
       let!(:existing_sale) do
-        sale = create(:sale, status: "pre-ordered")
+        sale = create(:sale, :synced, status: "pre-ordered")
         sale.update!(shopify_id: valid_parsed_order[:sale][:store_id])
         sale.shopify_info.update(store_id: valid_parsed_order[:store_info][:store_id])
         sale

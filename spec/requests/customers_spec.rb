@@ -225,7 +225,7 @@ RSpec.describe "Customers" do
     end
 
     it "rerenders the edit Inertia component when invalid" do
-      customer = create(:customer)
+      customer = create(:customer, :synced)
       customer.woo_info.destroy!
 
       patch customer_path(customer), params: {

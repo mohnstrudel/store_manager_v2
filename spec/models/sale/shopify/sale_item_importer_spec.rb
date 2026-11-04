@@ -6,8 +6,8 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
   let(:sale) { create(:sale) }
   let(:product_store_id) { "gid://shopify/Product/123" }
   let(:variant_store_id) { "gid://shopify/ProductVariant/456" }
-  let(:product) { create(:product, shopify_id: product_store_id, title: "Existing Product") }
-  let(:variant) { create(:variant, product:) }
+  let(:product) { create(:product, :synced, shopify_id: product_store_id, title: "Existing Product") }
+  let(:variant) { create(:variant, :synced, product:) }
 
   describe "#import" do
     context "when no product data is present" do
@@ -169,7 +169,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         }
       end
       let(:imported_product) do
-        create(:product, shopify_id: "gid://shopify/Product/999", title: "Princess Leia")
+        create(:product, :synced, shopify_id: "gid://shopify/Product/999", title: "Princess Leia")
       end
 
       before do
@@ -402,7 +402,7 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
     end
 
     context "when the resolved product is flagged non_catalog (a Seal installment placeholder)" do
-      let(:placeholder_product) { create(:product, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
+      let(:placeholder_product) { create(:product, :synced, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
       let(:parsed_sale_item) do
         {
           store_id: "gid://shopify/LineItem/installment-1",

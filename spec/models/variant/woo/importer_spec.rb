@@ -9,7 +9,7 @@ RSpec.describe Variant::Woo::Importer do
 
   before do
     products_variants.each do |product|
-      create(:product, woo_id: product[:woo_id])
+      create(:product, :synced, woo_id: product[:woo_id])
     end
   end
 

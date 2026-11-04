@@ -67,7 +67,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
     end
 
     it "queues a unique Shopify-recoverable row with its stable purge candidate", :aggregate_failures do
-      product = create(:product)
+      product = create(:product, :synced)
       create(:media, :for_product, mediaable: product)
       releasing_blob = uploaded_blob
       releasing = legacy_attachment(product, blob: releasing_blob)
@@ -84,7 +84,7 @@ RSpec.describe Media::LegacyAttachments::Cleanup do
     end
 
     it "leaves a unique row alone when its live owner is not recoverable" do
-      product = create(:product)
+      product = create(:product, :synced)
       product.shopify_info.destroy!
       create(:media, :for_product, mediaable: product)
       unrecoverable = legacy_attachment(product)

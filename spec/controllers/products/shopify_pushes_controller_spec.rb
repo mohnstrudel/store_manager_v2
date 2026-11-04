@@ -8,7 +8,7 @@ RSpec.describe Products::ShopifyPushesController do
 
   describe "POST #create" do
     context "when product is published to Shopify" do
-      let(:product) { create(:product) }
+      let(:product) { create(:product, :synced) }
 
       before do
         allow(Shopify::UpdateProductJob).to receive(:perform_later).with(product.id)
@@ -30,7 +30,7 @@ RSpec.describe Products::ShopifyPushesController do
 
     context "when product is not published to Shopify" do
       let(:product) do
-        record = create(:product)
+        record = create(:product, :synced)
         record.shopify_info.update!(store_id: nil)
         record
       end

@@ -97,8 +97,8 @@ RSpec.describe Variant::AssignmentBackfill do
 
     it "orders Shopify checkpoints by the numeric StoreInfo id used by AFTER_ID" do
       first_group = [
-        create(:variant).shopify_info,
-        create(:variant).shopify_info
+        create(:variant, :synced).shopify_info,
+        create(:variant, :synced).shopify_info
       ]
       first_group.first.update!(
         store_id: "gid://shopify/ProductVariant/z-last",
@@ -109,8 +109,8 @@ RSpec.describe Variant::AssignmentBackfill do
         pull_time: nil
       )
       second_group = [
-        create(:variant).shopify_info,
-        create(:variant).shopify_info
+        create(:variant, :synced).shopify_info,
+        create(:variant, :synced).shopify_info
       ]
       second_group.first.update!(
         store_id: "gid://shopify/ProductVariant/a-first",
@@ -259,8 +259,8 @@ RSpec.describe Variant::AssignmentBackfill do
     it "reconciles a duplicate Shopify identity from unique pull provenance atomically" do
       stale_product = create(:product)
       canonical_product = create(:product)
-      stale_variant = create(:variant, :with_version, product: stale_product)
-      canonical_variant = create(:variant, :with_color, product: canonical_product)
+      stale_variant = create(:variant, :synced, :with_version, product: stale_product)
+      canonical_variant = create(:variant, :synced, :with_color, product: canonical_product)
       duplicate_store_id = "gid://shopify/ProductVariant/123"
       stale_variant.shopify_info.update!(
         store_id: duplicate_store_id,
@@ -306,8 +306,8 @@ RSpec.describe Variant::AssignmentBackfill do
     end
 
     it "reports unresolved duplicate identity without mutating it" do
-      first = create(:variant)
-      second = create(:variant)
+      first = create(:variant, :synced)
+      second = create(:variant, :synced)
       duplicate_store_id = "gid://shopify/ProductVariant/unproven"
       first.shopify_info.update!(store_id: duplicate_store_id, pull_time: nil)
       second.shopify_info.update!(store_id: duplicate_store_id, pull_time: nil)

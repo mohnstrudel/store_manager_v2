@@ -8,7 +8,7 @@ RSpec.describe Products::ShopifyPullsController do
 
   describe "POST #create" do
     context "when product is published to Shopify" do
-      let(:product) { create(:product) }
+      let(:product) { create(:product, :synced) }
 
       before do
         allow(Shopify::PullProductJob).to receive(:perform_later).with(product.shopify_info.store_id)

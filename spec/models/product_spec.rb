@@ -86,7 +86,7 @@ RSpec.describe Product do
 
   describe "search" do
     let!(:matching_product) do
-      create(:product, title: "Spirited Away", woo_id: "woo-spirited-123").tap do |product|
+      create(:product, :synced, title: "Spirited Away", woo_id: "woo-spirited-123").tap do |product|
         size = create(:size, value: "Premium")
         version = create(:version, value: "Collector")
         color = create(:color, value: "Scarlet")
@@ -100,7 +100,7 @@ RSpec.describe Product do
         product.reload
       end
     end
-    let!(:other_product) { create(:product, title: "My Neighbor Totoro", woo_id: "woo-totoro-456") }
+    let!(:other_product) { create(:product, :synced, title: "My Neighbor Totoro", woo_id: "woo-totoro-456") }
 
     it "finds products by prefixes from their own and associated searchable fields" do
       aggregate_failures do

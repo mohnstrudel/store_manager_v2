@@ -6,7 +6,7 @@ RSpec.describe Product::Shopify::Exportable do
   describe "#shopify_payload" do
     let(:franchise) { create(:franchise, title: "Studio Ghibli") }
     let(:brand) { create(:brand, title: "Zuoban Studio") }
-    let(:product) { create(:product, title: "Spirited Away", franchise:, shape: "Statue") }
+    let(:product) { create(:product, :synced, title: "Spirited Away", franchise:, shape: "Statue") }
 
     before do
       product.brands << brand

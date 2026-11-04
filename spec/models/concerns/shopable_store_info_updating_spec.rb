@@ -31,7 +31,7 @@ RSpec.describe Shopable do
     end
 
     context "when Shopify store info already exists" do
-      let(:record) { create(:product_with_brands) }
+      let(:record) { create(:product_with_brands, :synced) }
       let!(:existing_store_info) do
         record.shopify_info.tap do |store_info|
           store_info.update!(store_id: "old-id", slug: "old-handle")

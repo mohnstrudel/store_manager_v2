@@ -6,7 +6,7 @@ RSpec.describe Product::Shopify::Pushable do
   include ActiveJob::TestHelper
 
   describe "#create_in_shopify_now" do
-    let(:product) { create(:product_with_brands) }
+    let(:product) { create(:product_with_brands, :synced) }
     let(:product_id) { product.id }
     let(:serialized_product) do
       {
@@ -236,7 +236,7 @@ RSpec.describe Product::Shopify::Pushable do
   end
 
   describe "#update_in_shopify_now" do
-    let(:product) { create(:product_with_brands) }
+    let(:product) { create(:product_with_brands, :synced) }
     let(:product_id) { product.id }
     let(:shopify_product_id) { "gid://shopify/Product/12345" }
     let(:serialized_product) do
@@ -525,7 +525,7 @@ RSpec.describe Product::Shopify::Pushable do
     end
 
     context "when shopify_info has no store_id before calling API" do
-      let(:product_without_shopify) { create(:product, title: "No Shopify") }
+      let(:product_without_shopify) { create(:product, :synced, title: "No Shopify") }
       let(:product_id_without_shopify) { product_without_shopify.id }
 
       before do
@@ -628,14 +628,14 @@ RSpec.describe Product::Shopify::Pushable do
 
   describe "#push_to_shopify_later" do
     it "enqueues an update when the product is linked to Shopify" do
-      product = create(:product)
+      product = create(:product, :synced)
 
       expect { product.push_to_shopify_later }
         .to have_enqueued_job(Shopify::UpdateProductJob).with(product.id)
     end
 
     it "enqueues a creation when the product is not linked to Shopify" do
-      product = create(:product)
+      product = create(:product, :synced)
       product.shopify_info.destroy!
       product.reload
 
@@ -645,7 +645,7 @@ RSpec.describe Product::Shopify::Pushable do
   end
 
   describe ".forget_shopify_listing" do
-    let(:product) { create(:product) }
+    let(:product) { create(:product, :synced) }
     let(:product_id) { "gid://shopify/Product/777" }
 
     context "when store_info exists for the product_id" do

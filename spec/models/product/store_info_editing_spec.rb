@@ -5,7 +5,7 @@ require "rails_helper"
 # rubocop:todo RSpec/SpecFilePathFormat
 RSpec.describe Product do
   describe "#revise" do
-    let(:product) { create(:product) }
+    let(:product) { create(:product, :synced) }
 
     it "updates an existing store info" do
       shopify_info = product.store_infos.shopify.first

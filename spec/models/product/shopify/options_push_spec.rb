@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe Product::Shopify::OptionsPush do
   describe ".call" do
-    let(:product) { create(:product_with_brands) }
+    let(:product) { create(:product_with_brands, :synced) }
     let(:product_id) { product.id }
     let(:shopify_product_id) { "gid://shopify/Product/12345" }
     let(:api_client) { instance_spy(Shopify::Api::Client) }
@@ -16,7 +16,7 @@ RSpec.describe Product::Shopify::OptionsPush do
     let(:product_version) { create(:product_version, product: product, version: version) }
     let(:product_color) { create(:product_color, product: product, color: color) }
     let(:variant) do
-      create(:variant, product: product, size: size, version: version, color: color)
+      create(:variant, :synced, product: product, size: size, version: version, color: color)
     end
 
     let(:expected_options) do

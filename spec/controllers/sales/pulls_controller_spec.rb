@@ -7,7 +7,7 @@ RSpec.describe Sales::PullsController do
   after { log_out }
 
   describe "POST #create" do
-    let(:sale) { create(:sale) }
+    let(:sale) { create(:sale, :synced) }
 
     it "triggers the Woo pull job when the sale has a woo id" do
       allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(id: sale.woo_store_id)

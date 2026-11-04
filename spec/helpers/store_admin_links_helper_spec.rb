@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe StoreAdminLinksHelper do
   describe "#sale_shop_link" do
     it "builds a Shopify admin URL for Shopify sales" do
-      sale = create(:sale)
+      sale = create(:sale, :synced)
 
       expect(helper.sale_shop_link(sale)).to include("/orders/#{sale.shopify_info.id_short}")
     end
