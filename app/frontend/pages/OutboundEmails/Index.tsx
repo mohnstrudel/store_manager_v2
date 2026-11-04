@@ -3,35 +3,13 @@ import { Link } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
 import TipMark from "@/components/TipMark";
-import type { PaginationMeta } from "@/types/pagination";
+import type { OutboundEmailsIndex } from "@/types/serializers";
 import routes from "@/utils/routes";
 
-import { formatTimestamp, stateDetails, type EmailState } from "./display";
+import { formatTimestamp, stateDetails } from "./display";
 import ProductPreview from "./ProductPreview";
 
-type OutboundEmailRow = {
-  id: number;
-  recipient: string | null;
-  recipient_name: string | null;
-  customer_path: string | null;
-  subject: string;
-  product_title: string | null;
-  product_thumb_url: string | null;
-  sale_path: string | null;
-  sale_label: string | null;
-  purchase_path: string | null;
-  purchase_label: string | null;
-  state: EmailState;
-  created_at: string;
-  accepted_at: string | null;
-  path: string;
-};
-
-type IndexProps = {
-  outbound_emails: OutboundEmailRow[];
-  pagination: PaginationMeta;
-  search: { q: string };
-};
+type IndexProps = OutboundEmailsIndex;
 
 export default function Index({ outbound_emails, pagination, search }: IndexProps) {
   return (
