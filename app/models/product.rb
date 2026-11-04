@@ -33,6 +33,7 @@ class Product < ApplicationRecord
   include Shopify::Matching
   include Shopify::Fallbacks
   include Shopify::Exporting
+  include Shopify::Pushing
   include Shopify::MediaImporting
   include StoreReferences
   include Titling
