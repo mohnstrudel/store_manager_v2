@@ -4,6 +4,13 @@ module Sale::FollowUpPayments
   extend ActiveSupport::Concern
 
   included do
+    has_many :origin_payment_plans,
+      class_name: "SalePaymentPlan",
+      foreign_key: :origin_sale_id,
+      dependent: :nullify,
+      inverse_of: :origin_sale
+    has_many :sale_payment_parts, dependent: :nullify, inverse_of: :sale
+
     scope :follow_up_payments, -> { where(id: follow_up_payment_sale_ids) }
     scope :without_follow_up_payments, -> { where.not(id: follow_up_payment_sale_ids) }
   end

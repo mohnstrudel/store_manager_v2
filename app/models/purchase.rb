@@ -61,7 +61,6 @@ class Purchase < ApplicationRecord
   belongs_to :product, optional: true, inverse_of: :purchases
   belongs_to :variant, optional: true, inverse_of: :purchases
 
-  has_many :payments, dependent: :destroy, inverse_of: :purchase
   has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
 
   has_many :sizes, through: :variant

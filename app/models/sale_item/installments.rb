@@ -4,6 +4,9 @@ module SaleItem::Installments
   extend ActiveSupport::Concern
 
   included do
+    belongs_to :origin_sale_item, class_name: "SaleItem", optional: true, inverse_of: :installment_sale_items
+    has_many :installment_sale_items, class_name: "SaleItem", foreign_key: :origin_sale_item_id, dependent: :nullify, inverse_of: :origin_sale_item
+
     scope :non_installment, -> { where(origin_sale_item_id: nil) }
   end
 

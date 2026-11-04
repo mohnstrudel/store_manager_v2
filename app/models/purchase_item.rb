@@ -50,9 +50,6 @@ class PurchaseItem < ApplicationRecord
       shipping_company: [:name]
     }
 
-  validates :shipping_company_id,
-    presence: true,
-    if: -> { tracking_number.present? }
   before_validation :derive_variant_identity
 
   db_belongs_to :warehouse, inverse_of: :purchase_items
@@ -60,8 +57,6 @@ class PurchaseItem < ApplicationRecord
   belongs_to :product, inverse_of: false
   belongs_to :variant, inverse_of: false
   belongs_to :sale_item, optional: true, counter_cache: true, inverse_of: :purchase_items
-  belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
-  has_many :purchase_expenses, dependent: :destroy, inverse_of: :purchase_item
 
   has_one :sale, through: :sale_item
   has_one :customer, through: :sale

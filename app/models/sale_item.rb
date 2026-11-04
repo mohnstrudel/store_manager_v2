@@ -39,10 +39,8 @@ class SaleItem < ApplicationRecord
   db_belongs_to :product, inverse_of: :sale_items
   db_belongs_to :sale, inverse_of: :sale_items
   belongs_to :variant, optional: true, inverse_of: :sale_items
-  belongs_to :origin_sale_item, class_name: "SaleItem", optional: true, inverse_of: :installment_sale_items
 
   has_many :purchase_items, dependent: :nullify, inverse_of: :sale_item
-  has_many :installment_sale_items, class_name: "SaleItem", foreign_key: :origin_sale_item_id, dependent: :nullify, inverse_of: :origin_sale_item
 
   scope :for_details, -> { includes(purchase_items: :warehouse) }
 

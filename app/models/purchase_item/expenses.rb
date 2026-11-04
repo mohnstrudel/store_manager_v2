@@ -4,6 +4,8 @@ module PurchaseItem::Expenses
   extend ActiveSupport::Concern
 
   included do
+    has_many :purchase_expenses, dependent: :destroy, inverse_of: :purchase_item
+
     after_create_commit :recalculate_expenses
   end
 

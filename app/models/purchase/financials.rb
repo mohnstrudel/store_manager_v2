@@ -4,6 +4,8 @@ module Purchase::Financials
   extend ActiveSupport::Concern
 
   included do
+    has_many :payments, dependent: :destroy, inverse_of: :purchase
+
     scope :unpaid, -> {
       includes(:supplier)
         .where

@@ -82,12 +82,6 @@ class Sale < ApplicationRecord
 
   has_many :sale_items, dependent: :destroy, inverse_of: :sale
   has_many :products, through: :sale_items
-  has_many :origin_payment_plans,
-    class_name: "SalePaymentPlan",
-    foreign_key: :origin_sale_id,
-    dependent: :nullify,
-    inverse_of: :origin_sale
-  has_many :sale_payment_parts, dependent: :nullify, inverse_of: :sale
 
   scope :for_listing, -> {
     includes(
