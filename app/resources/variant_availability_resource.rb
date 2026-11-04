@@ -24,6 +24,6 @@ class VariantAvailabilityResource < ApplicationResource
 
   def assignable_variants(product)
     @assignable_variants ||= {}
-    @assignable_variants[product.id] ||= product.assignable_variants.includes(:color, :size, :version).to_a
+    @assignable_variants[product.id] ||= product.assignable_variants_with_options
   end
 end

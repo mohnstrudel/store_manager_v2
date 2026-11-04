@@ -6,7 +6,8 @@ class SalesController < ApplicationController
   UNAVAILABLE_TAG_NOTICE = "That tag is no longer available. Showing all tags."
 
   before_action :set_sale_for_show, only: :show
-  before_action :set_sale, only: %i[edit update destroy]
+  before_action :set_sale_for_edit, only: :edit
+  before_action :set_sale, only: %i[update destroy]
 
   def index
     catalog = SalesTag.order(:id).to_a
@@ -140,6 +141,10 @@ class SalesController < ApplicationController
 
   def set_sale_for_show
     @sale = Sale.preloaded.friendly.find(params.expect(:id))
+  end
+
+  def set_sale_for_edit
+    @sale = Sale.with_item_variant_options_and_addresses.friendly.find(params.expect(:id))
   end
 
   def set_sale

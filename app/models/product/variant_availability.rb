@@ -18,6 +18,12 @@ module Product::VariantAvailability
     variants.active.base_models
   end
 
+  def assignable_variants_with_options
+    return assignable_among(variants.reject(&:deactivated?)) if variants.loaded?
+
+    assignable_variants.includes(:color, :size, :version).to_a
+  end
+
   def synchronize_variant_availability
     transaction do
       with_variant_availability_lock { synchronize_variant_availability_under_lock }
@@ -34,6 +40,10 @@ module Product::VariantAvailability
   end
 
   private
+
+  def assignable_among(active_variants)
+    active_variants.reject(&:base_model?).presence || active_variants.select(&:base_model?)
+  end
 
   def synchronize_variant_availability_under_lock
     return if association(:variants).target.any? { |variant| variant.base_model? && variant.new_record? }

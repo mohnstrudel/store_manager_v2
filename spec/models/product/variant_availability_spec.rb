@@ -122,6 +122,24 @@ RSpec.describe Product::VariantAvailability do
     end
   end
 
+  describe "#assignable_variants_with_options" do
+    def reload_product(product, preload:)
+      preload ? Product.includes(:variants).find(product.id) : product.reload
+    end
+
+    [true, false].each do |preload|
+      it "matches #assignable_variants when Variants are #{preload ? "preloaded" : "loaded on demand"}" do
+        base_only = create(:product)
+        with_real = create(:product)
+        active_variant = create(:variant, product: with_real)
+        create(:variant, :with_color, product: with_real).update!(deactivated_at: Time.current)
+
+        expect(reload_product(base_only, preload:).assignable_variants_with_options).to eq([base_only.base_variant])
+        expect(reload_product(with_real, preload:).assignable_variants_with_options).to eq([active_variant])
+      end
+    end
+  end
+
   describe "#variant_repair_candidates" do
     it "adds same-Product deactivated real Variants" do
       product = create(:product)

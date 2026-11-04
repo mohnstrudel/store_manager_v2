@@ -695,6 +695,22 @@ RSpec.describe "Sales" do
       )
       expect(inertia.props[:options][:status_names]).to eq(Sale::STATUSES)
     end
+
+    it "renders variant availability for every sale item without repeated queries" do
+      sale = create(:sale)
+      sale_items = create_list(:product, 2).map do |product|
+        variant = create(:variant, product:)
+        create(:sale_item, sale:, product:, variant:)
+      end
+
+      get edit_sale_path(sale)
+
+      expect(response).to have_http_status(:ok)
+      availabilities = inertia.props[:sale][:sale_items].pluck(:variant_availability)
+      expect(availabilities.pluck(:mode)).to eq(%w[select select])
+      expect(availabilities.map { |availability| availability[:variants].pluck(:value) })
+        .to eq(sale_items.map { |item| [item.variant_id] })
+    end
   end
 
   describe "POST /sales" do

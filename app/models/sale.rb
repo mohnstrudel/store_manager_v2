@@ -110,6 +110,15 @@ class Sale < ApplicationRecord
     includes(:sale_items, :shipping_address, :billing_address)
   }
 
+  scope :with_item_variant_options_and_addresses, -> {
+    with_items_and_addresses.includes(
+      sale_items: [
+        {variant: [:color, :size, :version]},
+        {product: {variants: [:color, :size, :version]}}
+      ]
+    )
+  }
+
   scope :preloaded, -> {
     with_payment_plans.includes(
       :customer,
