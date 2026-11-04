@@ -117,7 +117,7 @@ class SalePaymentPlan < ApplicationRecord
   def collected_parts
     return shopify_collected_parts if provider == "shopify"
 
-    parts.active.includes(:sale).count { |part| settled_with_positive_cash?(part.sale) }
+    active_parts.count { |part| settled_with_positive_cash?(part.sale) }
   end
 
   def projected_remainder
@@ -132,8 +132,7 @@ class SalePaymentPlan < ApplicationRecord
       return sale.sale_payment_parts.find { |part| part.sale_payment_plan_id == id && part.active? }&.sequence
     end
 
-    candidate_parts = parts.loaded? ? parts.select(&:active?) : parts.active
-    candidate_parts.find { |part| part.sale_id == sale.id }&.sequence
+    active_parts.find { |part| part.sale_id == sale.id }&.sequence
   end
 
   def profitability(expense_fraction: ExpenseRate.combined_fraction)
@@ -198,7 +197,7 @@ class SalePaymentPlan < ApplicationRecord
   def shopify_collected_parts
     return 0 unless positive_net_cash(origin_sale).positive?
 
-    parts.active.count { |part| part.provider_completed_at.present? }
+    active_parts.count { |part| part.provider_completed_at.present? }
   end
 
   def positive_net_cash(sale)
@@ -207,12 +206,16 @@ class SalePaymentPlan < ApplicationRecord
     [sale.received_revenue.to_d - sale.refunded_revenue.to_d, 0.to_d].max
   end
 
+  def active_parts
+    parts.loaded? ? parts.select(&:active?) : parts.active.includes(:sale)
+  end
+
   def settled_with_positive_cash?(sale)
     sale && sale.outstanding_revenue.to_d <= 0 && positive_net_cash(sale).positive?
   end
 
   def related_sales
-    ([origin_sale] + parts.active.includes(:sale).map(&:sale)).compact.uniq
+    ([origin_sale] + active_parts.map(&:sale)).compact.uniq
   end
 
   def total_across(summaries, term)
