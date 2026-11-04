@@ -11,7 +11,16 @@ class ApplicationResource
   helper Typelizer::DSL
   helper Alba::Inertia::Resource
 
+  ACTIVE_STORAGE_ROUTABLES = [
+    ActiveStorage::Blob, ActiveStorage::Attachment, ActiveStorage::Preview,
+    ActiveStorage::Variant, ActiveStorage::VariantWithRecord
+  ].freeze
+
   def url_for(options)
-    (options.is_a?(Hash) || options.is_a?(String)) ? super : polymorphic_path(options)
+    case options
+    when Hash, String then super
+    when *ACTIVE_STORAGE_ROUTABLES then route_for(ActiveStorage.resolve_model_to_route, options, only_path: true)
+    else polymorphic_path(options)
+    end
   end
 end
