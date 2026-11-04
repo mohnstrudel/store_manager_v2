@@ -103,7 +103,6 @@ RSpec.describe Purchase do
     it { expect(purchase_for_associations).to have_many(:payments).dependent(:destroy) }
 
     it { expect(purchase_for_associations).to have_many(:purchase_items).dependent(:destroy) }
-    it { expect(purchase_for_associations).to have_many(:warehouses).through(:purchase_items) }
 
     describe "through variant associations" do
       let(:variant) { create(:variant) }

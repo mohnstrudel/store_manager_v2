@@ -63,8 +63,6 @@ class Purchase < ApplicationRecord
 
   has_many :payments, dependent: :destroy, inverse_of: :purchase
   has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
-  has_many :purchase_expenses, through: :purchase_items
-  has_many :warehouses, through: :purchase_items
 
   has_many :sizes, through: :variant
   has_many :versions, through: :variant
