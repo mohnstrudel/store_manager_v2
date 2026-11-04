@@ -4,12 +4,33 @@ class Variant::Shopify::Importer
   attr_reader :product, :parsed, :sibling_store_ids, :variant
   private :product, :parsed, :sibling_store_ids, :variant
 
+  def self.import_all!(product, parsed_variants)
+    store_ids = parsed_variants.pluck(:store_id)
+    parsed_variants.each do |parsed_variant|
+      import!(product, parsed_variant, sibling_store_ids: store_ids)
+    rescue => error
+      raise StandardError, format_import_error(error, product:, parsed_variant:)
+    end
+    VariantImportConflict.keep_only!(product, store_ids)
+  end
+
   def self.import!(product, parsed_payload, sibling_store_ids: [])
     raise ArgumentError, "Product cannot be blank" if product.blank?
     raise ArgumentError, "Payload cannot be blank" if parsed_payload.blank?
 
     new(product, parsed_payload, sibling_store_ids).update_or_create!
   end
+
+  def self.format_import_error(error, product:, parsed_variant:)
+    [
+      error.message,
+      "product_id: #{product.id}",
+      "product_shopify_id: #{product.shopify_info&.store_id || product.shopify_id || "blank"}",
+      "variant_store_id: #{parsed_variant[:store_id].presence || "blank"}",
+      "variant_sku: #{parsed_variant[:sku].presence || "blank"}"
+    ].join("\n")
+  end
+  private_class_method :format_import_error
 
   def initialize(product, parsed_payload, sibling_store_ids)
     @product = product

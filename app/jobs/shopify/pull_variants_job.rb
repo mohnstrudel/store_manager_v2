@@ -3,25 +3,7 @@
 module Shopify
   class PullVariantsJob < ApplicationJob
     def perform(product, parsed_variants)
-      store_ids = parsed_variants.pluck(:store_id)
-      parsed_variants.each do |parsed_variant|
-        Variant::Shopify::Importer.import!(product, parsed_variant, sibling_store_ids: store_ids)
-      rescue => error
-        raise StandardError, format_import_error(error, product:, parsed_variant:)
-      end
-      VariantImportConflict.keep_only!(product, store_ids)
-    end
-
-    private
-
-    def format_import_error(error, product:, parsed_variant:)
-      [
-        error.message,
-        "product_id: #{product.id}",
-        "product_shopify_id: #{product.shopify_info&.store_id || product.shopify_id || "blank"}",
-        "variant_store_id: #{parsed_variant[:store_id].presence || "blank"}",
-        "variant_sku: #{parsed_variant[:sku].presence || "blank"}"
-      ].join("\n")
+      Variant::Shopify::Importer.import_all!(product, parsed_variants)
     end
   end
 end

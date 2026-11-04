@@ -21,4 +21,13 @@ module Sale::FollowUpPayments
   def follow_up_payment?
     payment_plans.any? { |plan| plan.origin_sale_id != id && plan.part_number_for(self).present? }
   end
+
+  def linked_to_payment_plan?
+    SalePaymentPlan.exists?(origin_sale_id: id) ||
+      SalePaymentPart.exists?(sale_id: id, active: true)
+  end
+
+  def reconcile_installment_sale_items_later
+    Seal::ReconcileInstallmentSaleItemsJob.perform_later(sale_id: id)
+  end
 end

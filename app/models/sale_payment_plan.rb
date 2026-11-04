@@ -32,6 +32,15 @@ class SalePaymentPlan < ApplicationRecord
     inverse_of: :sale_payment_plan
 
   scope :seal, -> { where(provider: "seal") }
+  scope :affecting_sale, ->(sale_id) {
+    next all if sale_id.blank?
+
+    with_parts = left_joins(:parts)
+    with_parts
+      .where(origin_sale_id: sale_id)
+      .or(with_parts.where(sale_payment_parts: {sale_id:, active: true}))
+      .distinct
+  }
   validates :provider, inclusion: {in: PROVIDERS}
   validates :kind, inclusion: {in: KINDS}
   validates :external_id, presence: true

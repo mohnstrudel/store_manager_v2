@@ -5,20 +5,10 @@ module Shopify
     def perform(sale_store_id)
       raise ArgumentError, "Sale store_id is required" if sale_store_id.blank?
 
-      client = Shopify::Api::Client.new
-      response = client.fetch_order(sale_store_id)
+      response = Shopify::Api::Client.new.fetch_order(sale_store_id)
+      sale = Sale::Shopify::Importer.import!(Sale::Shopify::Parser.parse(response))
 
-      parsed = Sale::Shopify::Parser.parse(response)
-      sale = Sale::Shopify::Importer.import!(parsed)
-
-      Seal::ReconcileInstallmentSaleItemsJob.perform_later(sale_id: sale.id) if linked_to_payment_plan?(sale)
-    end
-
-    private
-
-    def linked_to_payment_plan?(sale)
-      SalePaymentPlan.exists?(origin_sale_id: sale.id) ||
-        SalePaymentPart.exists?(sale_id: sale.id, active: true)
+      sale.reconcile_installment_sale_items_later if sale.linked_to_payment_plan?
     end
   end
 end
