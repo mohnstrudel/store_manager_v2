@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shopify
-  class PullSaleJob < ApplicationJob
+  class PullSaleJob < Shopify::ApiJob
     discard_on(Sale::Shopify::Importer::Error) do |job, error|
       event = Sentry.capture_exception(error)
 

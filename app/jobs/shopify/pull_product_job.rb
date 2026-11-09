@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shopify
-  class PullProductJob < ApplicationJob
+  class PullProductJob < Shopify::ApiJob
     queue_as :default
 
     def perform(shopify_product_id)

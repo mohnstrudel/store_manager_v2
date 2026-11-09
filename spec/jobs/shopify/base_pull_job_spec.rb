@@ -27,11 +27,9 @@ RSpec.describe Shopify::BasePullJob do
     end
   end
   let(:job) { job_class.new }
-  let(:job_setter) { instance_double(ActiveJob::ConfiguredJob, perform_later: true) }
 
   before do
     allow(pull_class).to receive(:page).and_return(page)
-    allow(job_class).to receive(:set).and_return(job_setter)
   end
 
   it "enqueues on the default queue" do
@@ -46,27 +44,23 @@ RSpec.describe Shopify::BasePullJob do
     end
 
     it "invokes the terminal-page hook when there is no next page" do
-      job.perform
+      expect { job.perform }.not_to have_enqueued_job(job_class)
 
-      expect(job_class).not_to have_received(:set)
       expect(job.terminal_page_handled?).to be(true)
     end
 
     context "when Shopify reports another page" do
       let(:page) { Shopify::Pull::Page.new(imported_count: 2, next_cursor: "next", failures: []) }
 
-      it "schedules the next page without invoking the terminal-page hook" do
-        job.perform
+      it "schedules the next page with no wait and without invoking the terminal-page hook" do
+        expect { job.perform }.to have_enqueued_job(job_class).with(cursor: "next").at(:no_wait)
 
-        expect(job_class).to have_received(:set).with(wait: 1.second)
-        expect(job_setter).to have_received(:perform_later).with(cursor: "next")
         expect(job.terminal_page_handled?).to be(false)
       end
 
       it "treats a limited pull as terminal" do
-        job.perform(limit: 5)
+        expect { job.perform(limit: 5) }.not_to have_enqueued_job(job_class)
 
-        expect(job_class).not_to have_received(:set)
         expect(job.terminal_page_handled?).to be(true)
       end
     end
@@ -80,14 +74,14 @@ RSpec.describe Shopify::BasePullJob do
       it "schedules the next page before raising the failures" do
         expect { job.perform }.to raise_error(Shopify::Pull::Failed) { |error| expect(error.failures).to eq(failures) }
 
-        expect(job_setter).to have_received(:perform_later).with(cursor: "next")
+        expect(job_class).to have_been_enqueued.with(cursor: "next")
       end
 
       it "reports the failures and discards the job instead of retrying the page" do
         job_class.perform_now
 
         expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
-        expect(job_setter).to have_received(:perform_later).once
+        expect(job_class).to have_been_enqueued.once
       end
 
       it "writes no import failure" do
@@ -95,27 +89,19 @@ RSpec.describe Shopify::BasePullJob do
       end
     end
 
-    context "when Shopify responds with an HTTP error" do
-      def http_error(code)
-        ShopifyAPI::Errors::HttpResponseError.new(
-          response: ShopifyAPI::Clients::HttpResponse.new(code:, headers: {}, body: "error")
-        )
+    context "when Shopify throttles the page" do
+      let(:job) { job_class.new(cursor: "abc", limit: 5) }
+
+      before { allow(pull_class).to receive(:page).and_raise(Shopify::Api::Client::Throttled) }
+
+      it "re-enqueues the same page with its cursor and limit" do
+        expect { job.perform_now }.to have_enqueued_job(job_class).with(cursor: "abc", limit: 5)
       end
 
-      it "re-enqueues a rate-limited page with linear backoff" do
-        allow(pull_class).to receive(:page).and_raise(http_error(429))
+      it "does not invoke the terminal-page hook" do
+        job.perform_now
 
-        job.perform(attempts: 2, cursor: "abc")
-
-        expect(job_class).to have_received(:set).with(wait: 15.seconds)
-        expect(job_setter).to have_received(:perform_later).with(attempts: 3, cursor: "abc", limit: nil)
         expect(job.terminal_page_handled?).to be(false)
-      end
-
-      it "raises other Shopify API errors" do
-        allow(pull_class).to receive(:page).and_raise(http_error(500))
-
-        expect { job.perform }.to raise_error(ShopifyAPI::Errors::HttpResponseError)
       end
     end
   end

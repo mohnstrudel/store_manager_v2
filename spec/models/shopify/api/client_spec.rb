@@ -21,6 +21,94 @@ RSpec.describe Shopify::Api::Client do
     end
   end
 
+  describe "throttling" do
+    let(:throttled_response) do
+      double(body: {"errors" => [{"message" => "Throttled", "extensions" => {"code" => "THROTTLED"}}]})
+    end
+
+    def http_error(code)
+      ShopifyAPI::Errors::HttpResponseError.new(
+        response: ShopifyAPI::Clients::HttpResponse.new(code:, headers: {}, body: "error")
+      )
+    end
+
+    queries = {
+      "fetch_product" => ->(client) { client.fetch_product("gid://shopify/Product/1") },
+      "fetch_products" => ->(client) { client.fetch_products(cursor: nil, batch_size: 10) },
+      "fetch_order" => ->(client) { client.fetch_order("gid://shopify/Order/1") },
+      "fetch_orders" => ->(client) { client.fetch_orders(cursor: nil, batch_size: 10) }
+    }
+    mutations = {
+      "create_product" => ->(client) { client.create_product("{title: \"Product\"}") },
+      "update_product" => ->(client) { client.update_product("gid://shopify/Product/1", {title: "Product"}) },
+      "create_product_options" => ->(client) { client.create_product_options("gid://shopify/Product/1", [{name: "Size"}]) },
+      "attach_media" => ->(client) { client.attach_media("gid://shopify/Product/1", [{originalSource: "https://example.com/1.jpg"}]) },
+      "update_media" => ->(client) { client.update_media([{id: "gid://shopify/MediaImage/1", alt: "Alt"}]) },
+      "reorder_media" => ->(client) { client.reorder_media("gid://shopify/Product/1", [{id: "gid://shopify/MediaImage/1", newPosition: 0}]) }
+    }
+
+    queries.merge(mutations).each do |name, call|
+      describe "##{name}" do
+        it "raises Throttled on HTTP 429" do
+          allow(mock_graphql_client).to receive(:query).and_raise(http_error(429))
+
+          expect { call.call(client) }.to raise_error(described_class::Throttled)
+        end
+
+        it "raises Throttled on a THROTTLED error inside an HTTP 200" do
+          allow(mock_graphql_client).to receive(:query).and_return(throttled_response)
+
+          expect { call.call(client) }.to raise_error(described_class::Throttled)
+        end
+
+        it "does not turn other HTTP failures into Throttled" do
+          error = http_error(500)
+          allow(mock_graphql_client).to receive(:query).and_raise(error)
+
+          expect { call.call(client) }.to raise_error(error)
+        end
+      end
+    end
+
+    mutations.each do |name, call|
+      it "#{name} sends no Sentry message when throttled" do
+        allow(Sentry).to receive(:capture_message)
+        allow(mock_graphql_client).to receive(:query).and_return(throttled_response)
+
+        expect { call.call(client) }.to raise_error(described_class::Throttled)
+
+        expect(Sentry).not_to have_received(:capture_message)
+      end
+    end
+
+    it "keeps other query errors as plain ApiError" do
+      allow(mock_graphql_client).to receive(:query).and_return(
+        double(body: {"errors" => [{"message" => "Access denied", "extensions" => {"code" => "ACCESS_DENIED"}}]})
+      )
+
+      expect { client.fetch_products(cursor: nil, batch_size: 10) }
+        .to raise_error(described_class::ApiError, "Failed to fetch products: Access denied") { |error|
+          expect(error).not_to be_a(described_class::Throttled)
+        }
+    end
+
+    it "keeps other mutation errors as plain ApiError and still reports them" do
+      allow(Sentry).to receive(:capture_message)
+      allow(mock_graphql_client).to receive(:query).and_return(
+        double(body: {"errors" => [{"message" => "Access denied", "extensions" => {"code" => "ACCESS_DENIED"}}]})
+      )
+
+      expect { client.update_product("gid://shopify/Product/1", {title: "Product"}) }
+        .to raise_error(described_class::ApiError) { |error| expect(error).not_to be_a(described_class::Throttled) }
+
+      expect(Sentry).to have_received(:capture_message)
+    end
+
+    it "treats Throttled as an ApiError so existing ApiError handling applies" do
+      expect(described_class::Throttled.new).to be_a(described_class::ApiError)
+    end
+  end
+
   describe "#fetch_product" do
     let(:product_id) { "gid://shopify/Product/123" }
     let(:product_response) do
@@ -56,6 +144,36 @@ RSpec.describe Shopify::Api::Client do
     it "returns the product data" do
       result = client.fetch_product(product_id)
       expect(result).to eq(product_response.body.dig("data", "product"))
+    end
+
+    context "when Shopify reports the query cost" do
+      let(:product_response) do
+        double(body: {
+          "data" => {"product" => {"id" => product_id}},
+          "extensions" => {
+            "cost" => {
+              "requestedQueryCost" => 62,
+              "actualQueryCost" => 9,
+              "throttleStatus" => {
+                "maximumAvailable" => 2000.0,
+                "currentlyAvailable" => 1991.0,
+                "restoreRate" => 100.0
+              }
+            }
+          }
+        })
+      end
+
+      it "logs the measured cost and the remaining budget" do
+        allow(Rails.logger).to receive(:info)
+
+        client.fetch_product(product_id)
+
+        expect(Rails.logger).to have_received(:info).with(
+          "Shopify product query cost: requested=62 actual=9 " \
+          "available=1991.0/2000.0 restore_rate=100.0"
+        )
+      end
     end
 
     context "when Shopify API returns errors" do
@@ -145,6 +263,41 @@ RSpec.describe Shopify::Api::Client do
       ])
       expect(result[:has_next_page]).to be(true)
       expect(result[:end_cursor]).to eq("next_cursor")
+    end
+
+    context "when Shopify reports the query cost" do
+      let(:products_response) do
+        double(body: {
+          "data" => {
+            "products" => {
+              "edges" => [],
+              "pageInfo" => {"hasNextPage" => false, "endCursor" => nil}
+            }
+          },
+          "extensions" => {
+            "cost" => {
+              "requestedQueryCost" => 596,
+              "actualQueryCost" => 312,
+              "throttleStatus" => {
+                "maximumAvailable" => 2000.0,
+                "currentlyAvailable" => 1688.0,
+                "restoreRate" => 100.0
+              }
+            }
+          }
+        })
+      end
+
+      it "logs the measured cost and the remaining budget" do
+        allow(Rails.logger).to receive(:info)
+
+        client.fetch_products(cursor: cursor, batch_size: batch_size)
+
+        expect(Rails.logger).to have_received(:info).with(
+          "Shopify products query cost: requested=596 actual=312 " \
+          "available=1688.0/2000.0 restore_rate=100.0"
+        )
+      end
     end
 
     context "when Shopify API returns errors" do
@@ -326,10 +479,12 @@ RSpec.describe Shopify::Api::Client do
       expect(result[:end_cursor]).to be_nil
     end
 
-    it "reports no cost when Shopify sent no extensions" do
-      result = client.fetch_orders(cursor: cursor, batch_size: batch_size)
+    it "logs no cost when Shopify sent no extensions" do
+      allow(Rails.logger).to receive(:info)
 
-      expect(result[:query_cost]).to be_nil
+      client.fetch_orders(cursor: cursor, batch_size: batch_size)
+
+      expect(Rails.logger).not_to have_received(:info)
     end
 
     context "when Shopify reports the query cost" do
@@ -353,18 +508,6 @@ RSpec.describe Shopify::Api::Client do
             }
           }
         })
-      end
-
-      it "returns the measured cost alongside the page" do
-        result = client.fetch_orders(cursor: cursor, batch_size: batch_size)
-
-        expect(result[:query_cost]).to eq(
-          requested: 862,
-          actual: 431,
-          available: 1138.0,
-          maximum: 2000.0,
-          restore_rate: 100.0
-        )
       end
 
       it "logs the measured cost and the remaining budget" do
@@ -452,7 +595,7 @@ RSpec.describe Shopify::Api::Client do
       it "still logs the throttle status Shopify reported with the error" do
         allow(mock_graphql_client).to receive(:query).and_return(
           double(body: {
-            "errors" => [{"message" => "Throttled"}],
+            "errors" => [{"message" => "Throttled", "extensions" => {"code" => "THROTTLED"}}],
             "extensions" => {
               "cost" => {
                 "requestedQueryCost" => 862,
@@ -469,7 +612,7 @@ RSpec.describe Shopify::Api::Client do
         allow(Rails.logger).to receive(:info)
 
         expect { client.fetch_orders(cursor: nil, batch_size: 250) }
-          .to raise_error(described_class::ApiError)
+          .to raise_error(described_class::Throttled)
 
         expect(Rails.logger).to have_received(:info).with(
           "Shopify orders query cost: requested=862 actual= " \
@@ -630,6 +773,36 @@ RSpec.describe Shopify::Api::Client do
     it "returns the updated product data" do
       result = client.update_product(product_id, serialized_product)
       expect(result).to eq(update_response.body.dig("data", "productUpdate", "product"))
+    end
+
+    context "when Shopify reports the query cost" do
+      let(:update_response) do
+        double(body: {
+          "data" => {"productUpdate" => {"product" => {"id" => product_id}, "userErrors" => []}},
+          "extensions" => {
+            "cost" => {
+              "requestedQueryCost" => 10,
+              "actualQueryCost" => 10,
+              "throttleStatus" => {
+                "maximumAvailable" => 2000.0,
+                "currentlyAvailable" => 1990.0,
+                "restoreRate" => 100.0
+              }
+            }
+          }
+        })
+      end
+
+      it "logs the measured cost and the remaining budget" do
+        allow(Rails.logger).to receive(:info)
+
+        client.update_product(product_id, serialized_product)
+
+        expect(Rails.logger).to have_received(:info).with(
+          "Shopify productUpdate query cost: requested=10 actual=10 " \
+          "available=1990.0/2000.0 restore_rate=100.0"
+        )
+      end
     end
 
     context "when API errors occur" do

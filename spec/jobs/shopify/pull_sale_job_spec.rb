@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
+  include ActiveJob::TestHelper
+
   let(:job) { described_class.new }
   let(:sale_id) { "gid://shopify/Order/123" }
 
@@ -54,6 +56,22 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
 
     it "raises ArgumentError when sale_id is empty" do
       expect { job.perform("") }.to raise_error(ArgumentError, "Sale store_id is required")
+    end
+
+    context "when Shopify throttles the order fetch" do
+      before do
+        client = instance_double(Shopify::Api::Client)
+        allow(client).to receive(:fetch_order).and_raise(Shopify::Api::Client::Throttled)
+        allow(Shopify::Api::Client).to receive(:new).and_return(client)
+      end
+
+      it "re-enqueues the job with the same order id" do
+        expect { described_class.perform_now(sale_id) }.to have_enqueued_job(described_class).with(sale_id)
+      end
+
+      it "records no import failure" do
+        expect { described_class.perform_now(sale_id) }.not_to change(Sale::ImportFailure, :count)
+      end
     end
 
     context "when the import fails" do
