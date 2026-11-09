@@ -15,7 +15,9 @@ Rails.application.routes.draw do
   end
 
   mount ShopifyApp::Engine, at: "shopify_app"
-  mount Sidekiq::Web => "jobs"
+  constraints ->(request) { Session.staff_request?(request) } do
+    mount Sidekiq::Web => "jobs"
+  end
 
   post "update-order", to: "webhooks/order_updates#create"
   post "sale-status", to: "webhooks/sale_statuses#create"
