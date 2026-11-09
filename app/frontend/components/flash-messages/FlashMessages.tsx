@@ -1,4 +1,3 @@
-import { Link } from "@inertiajs/react";
 import { PartyPopperIcon, TriangleAlertIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -142,9 +141,9 @@ function FlashMessageContent({ flash }: { flash: FlashMessage }) {
       {flash.link ? (
         <>
           {" "}
-          <Link className="link" href={flash.link.href}>
+          <a className="link" href={flash.link.href}>
             {flash.link.label}
-          </Link>
+          </a>
           {flash.link.suffix ? ` ${flash.link.suffix}` : null}
         </>
       ) : null}

@@ -1,4 +1,4 @@
-import { router, Link } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import { useCallback } from "react";
 
 import Modal from "./Modal";
@@ -90,9 +90,9 @@ function SyncActions({
         </button>
       </li>
       <li>
-        <Link className="w-full h-15" href="/jobs/statuses" prefetch>
+        <a className="w-full h-15" href="/jobs/statuses">
           Track Jobs Progress
-        </Link>
+        </a>
       </li>
     </menu>
   );
