@@ -146,6 +146,76 @@ RSpec.describe Shopify::Api::Client do
       expect(result).to eq(product_response.body.dig("data", "product"))
     end
 
+    context "when the product's variants fit the requested page" do
+      let(:product_response) do
+        double(body: {
+          "data" => {
+            "product" => {
+              "id" => product_id,
+              "variants" => {"pageInfo" => {"hasNextPage" => false}, "edges" => []}
+            }
+          }
+        })
+      end
+
+      it "does not report truncation" do
+        allow(Sentry).to receive(:capture_message)
+
+        client.fetch_product(product_id)
+
+        expect(Sentry).not_to have_received(:capture_message)
+      end
+    end
+
+    context "when the product's variants did not fit the requested page" do
+      let(:product_response) do
+        double(body: {
+          "data" => {
+            "product" => {
+              "id" => product_id,
+              "variants" => {"pageInfo" => {"hasNextPage" => true}, "edges" => []}
+            }
+          }
+        })
+      end
+
+      it "reports the truncated product loudly" do
+        allow(Sentry).to receive(:capture_message)
+        allow(Rails.logger).to receive(:error)
+
+        client.fetch_product(product_id)
+
+        aggregate_failures do
+          expect(Sentry).to have_received(:capture_message).with(
+            "Shopify variants truncated for 1 product(s): gid://shopify/Product/123",
+            level: :error,
+            tags: {api: "shopify", operation: "variants"},
+            extra: {product_ids: ["gid://shopify/Product/123"]}
+          )
+          expect(Rails.logger).to have_received(:error).with(
+            "Shopify variants truncated for 1 product(s): gid://shopify/Product/123"
+          )
+        end
+      end
+
+      it "still returns the product data" do
+        allow(Sentry).to receive(:capture_message)
+
+        expect(client.fetch_product(product_id)).to eq(product_response.body.dig("data", "product"))
+      end
+    end
+
+    context "when Shopify has no such product" do
+      let(:product_response) { double(body: {"data" => {"product" => nil}}) }
+
+      it "returns nil without reporting" do
+        allow(Sentry).to receive(:capture_message)
+
+        expect(client.fetch_product(product_id)).to be_nil
+        expect(Sentry).not_to have_received(:capture_message)
+      end
+    end
+
     context "when Shopify reports the query cost" do
       let(:product_response) do
         double(body: {
@@ -263,6 +333,83 @@ RSpec.describe Shopify::Api::Client do
       ])
       expect(result[:has_next_page]).to be(true)
       expect(result[:end_cursor]).to eq("next_cursor")
+    end
+
+    context "when every product's variants fit the requested page" do
+      let(:products_response) do
+        double(body: {
+          "data" => {
+            "products" => {
+              "edges" => [
+                {"node" => {
+                  "id" => "gid://shopify/Product/1",
+                  "variants" => {"pageInfo" => {"hasNextPage" => false}, "edges" => []}
+                }}
+              ],
+              "pageInfo" => {"hasNextPage" => false, "endCursor" => nil}
+            }
+          }
+        })
+      end
+
+      it "does not report truncation" do
+        allow(Sentry).to receive(:capture_message)
+
+        client.fetch_products(cursor: cursor, batch_size: batch_size)
+
+        expect(Sentry).not_to have_received(:capture_message)
+      end
+    end
+
+    context "when some products' variants were truncated" do
+      let(:products_response) do
+        double(body: {
+          "data" => {
+            "products" => {
+              "edges" => [
+                {"node" => {
+                  "id" => "gid://shopify/Product/1",
+                  "variants" => {"pageInfo" => {"hasNextPage" => true}, "edges" => []}
+                }},
+                {"node" => {
+                  "id" => "gid://shopify/Product/2",
+                  "variants" => {"pageInfo" => {"hasNextPage" => false}, "edges" => []}
+                }},
+                {"node" => {
+                  "id" => "gid://shopify/Product/3",
+                  "variants" => {"pageInfo" => {"hasNextPage" => true}, "edges" => []}
+                }}
+              ],
+              "pageInfo" => {"hasNextPage" => false, "endCursor" => nil}
+            }
+          }
+        })
+      end
+
+      it "reports only the truncated products loudly" do
+        allow(Sentry).to receive(:capture_message)
+
+        client.fetch_products(cursor: cursor, batch_size: batch_size)
+
+        expect(Sentry).to have_received(:capture_message).with(
+          "Shopify variants truncated for 2 product(s): gid://shopify/Product/1, gid://shopify/Product/3",
+          level: :error,
+          tags: {api: "shopify", operation: "variants"},
+          extra: {product_ids: ["gid://shopify/Product/1", "gid://shopify/Product/3"]}
+        )
+      end
+
+      it "still returns every fetched product" do
+        allow(Sentry).to receive(:capture_message)
+
+        result = client.fetch_products(cursor: cursor, batch_size: batch_size)
+
+        expect(result[:items].pluck("id")).to eq([
+          "gid://shopify/Product/1",
+          "gid://shopify/Product/2",
+          "gid://shopify/Product/3"
+        ])
+      end
     end
 
     context "when Shopify reports the query cost" do

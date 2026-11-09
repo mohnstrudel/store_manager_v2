@@ -27,7 +27,10 @@ module Shopify
           operation: "product"
         )
         handle_query_errors(response, resource_name: "product")
-        response.body.dig("data", "product")
+
+        product = response.body.dig("data", "product")
+        report_truncated_variants([product])
+        product
       end
 
       def fetch_products(cursor:, batch_size:)
@@ -37,7 +40,10 @@ module Shopify
           operation: "products"
         )
         handle_query_errors(response, resource_name: "products")
-        extract_pagination(response.body["data"], resource_name: "products")
+
+        page = extract_pagination(response.body["data"], resource_name: "products")
+        report_truncated_variants(page[:items])
+        page
       end
 
       def create_product(serialized_product)
@@ -193,6 +199,27 @@ module Shopify
         raise ApiError, "Failed to fetch #{resource_name}: #{error_messages}"
       end
 
+      def report_truncated_variants(products)
+        report_truncated(products, connection: "variants", description: "variants", owner: "product")
+      end
+
+      def report_truncated(records, connection:, description:, owner:)
+        truncated_ids = Array(records).filter_map do |record|
+          record["id"] if record&.dig(connection, "pageInfo", "hasNextPage")
+        end
+        return if truncated_ids.empty?
+
+        message = "Shopify #{description} truncated for #{truncated_ids.size} #{owner}(s): #{truncated_ids.join(", ")}"
+
+        Rails.logger.error(message)
+        Sentry.capture_message(
+          message,
+          level: :error,
+          tags: {api: "shopify", operation: connection},
+          extra: {"#{owner}_ids": truncated_ids}
+        )
+      end
+
       def extract_pagination(response_data, resource_name:)
         connection = response_data[resource_name]
         {
@@ -233,20 +260,7 @@ module Shopify
       end
 
       def report_truncated_line_items(orders)
-        truncated_ids = Array(orders).filter_map do |order|
-          order["id"] if order&.dig("lineItems", "pageInfo", "hasNextPage")
-        end
-        return if truncated_ids.empty?
-
-        message = "Shopify line items truncated for #{truncated_ids.size} order(s): #{truncated_ids.join(", ")}"
-
-        Rails.logger.error(message)
-        Sentry.capture_message(
-          message,
-          level: :error,
-          tags: {api: "shopify", operation: "lineItems"},
-          extra: {order_ids: truncated_ids}
-        )
+        report_truncated(orders, connection: "lineItems", description: "line items", owner: "order")
       end
 
       def wait_until_media_ready(media_nodes, timeout: 300, interval: 2)

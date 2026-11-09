@@ -29,7 +29,7 @@ module Shopify
                 id
                 title
                 handle
-                media(first: 20) {
+                media(first: 250) {
                   nodes {
                     id
                   }
@@ -54,7 +54,7 @@ module Shopify
               }
               product {
                 id
-                variants(first: 10) {
+                variants(first: 250) {
                   nodes {
                     id
                     title

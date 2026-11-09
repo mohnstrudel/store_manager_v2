@@ -21,6 +21,21 @@ RSpec.describe Shopify::Graphql::ProductQuery do
       expect(query).to include("variants")
       expect(query).to include("edges")
     end
+
+    it "requests every media a product can have and up to 250 variants" do
+      query = described_class.by_id
+
+      aggregate_failures do
+        expect(query).to include("media(first: 250)")
+        expect(query).to include("variants(first: 250)")
+      end
+    end
+
+    it "asks whether variants were truncated" do
+      expect(described_class.by_id).to match(
+        /variants\(first: 250\) \{\s*pageInfo \{\s*hasNextPage\s*\}\s*edges \{\s*node \{/
+      )
+    end
   end
 
   describe ".list" do
@@ -40,6 +55,22 @@ RSpec.describe Shopify::Graphql::ProductQuery do
       expect(query).to include("hasNextPage")
       expect(query).to include("endCursor")
     end
+
+    it "requests every media a product can have and up to 100 variants" do
+      query = described_class.list
+
+      aggregate_failures do
+        expect(query).to include("media(first: 250)")
+        expect(query).to include("variants(first: 100)")
+        expect(query).not_to include("variants(first: 250)")
+      end
+    end
+
+    it "asks whether variants were truncated" do
+      expect(described_class.list).to match(
+        /variants\(first: 100\) \{\s*pageInfo \{\s*hasNextPage\s*\}\s*edges \{\s*node \{/
+      )
+    end
   end
 
   describe "PRODUCT_FIELDS" do
@@ -57,10 +88,15 @@ RSpec.describe Shopify::Graphql::ProductQuery do
       expect(described_class::PRODUCT_FIELDS).to include("MediaImage")
     end
 
+    it "leaves the variants connection to each query" do
+      expect(described_class::PRODUCT_FIELDS).not_to include("variants")
+    end
+  end
+
+  describe "VARIANT_CONNECTION_FIELDS" do
     it "includes variant fields" do
-      expect(described_class::PRODUCT_FIELDS).to include("variants")
-      expect(described_class::PRODUCT_FIELDS).to include("sku")
-      expect(described_class::PRODUCT_FIELDS).to include("selectedOptions")
+      expect(described_class::VARIANT_CONNECTION_FIELDS).to include("sku")
+      expect(described_class::VARIANT_CONNECTION_FIELDS).to include("selectedOptions")
     end
   end
 end

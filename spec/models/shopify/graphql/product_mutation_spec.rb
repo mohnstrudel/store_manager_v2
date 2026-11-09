@@ -40,6 +40,10 @@ RSpec.describe Shopify::Graphql::ProductMutation do
       expect(mutation).to include("media")
       expect(mutation).to include("nodes")
     end
+
+    it "requests every media a product can have" do
+      expect(described_class.update).to include("media(first: 250)")
+    end
   end
 
   describe ".create_options" do
@@ -64,6 +68,10 @@ RSpec.describe Shopify::Graphql::ProductMutation do
       expect(mutation).to include("variants")
       expect(mutation).to include("options")
       expect(mutation).to include("optionValues")
+    end
+
+    it "requests up to 250 variants" do
+      expect(described_class.create_options).to include("variants(first: 250)")
     end
   end
 end

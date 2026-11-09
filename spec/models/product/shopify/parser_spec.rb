@@ -212,6 +212,34 @@ RSpec.describe Product::Shopify::Parser do
       end
     end
 
+    context "with 21 media nodes" do
+      let(:media_nodes) do
+        (0..20).map do |index|
+          {
+            "id" => "gid://shopify/MediaImage/#{index}",
+            "alt" => "View #{index}",
+            "image" => {"url" => "https://example.com/image#{index}.jpg"}
+          }
+        end
+      end
+      let(:many_media_payload) do
+        {
+          "id" => "gid://shopify/Product/12345",
+          "title" => "Test Product",
+          "handle" => "test-product",
+          "variants" => {"edges" => []},
+          "media" => {"nodes" => media_nodes}
+        }
+      end
+
+      it "parses every media node in order" do
+        result = described_class.parse(many_media_payload)
+
+        expect(result[:media].pluck(:id)).to eq(media_nodes.pluck("id"))
+        expect(result[:media].pluck(:position)).to eq((0..20).to_a)
+      end
+    end
+
     context "with minimal payload (no media, no variants, no brand)" do
       let(:minimal_payload) do
         {

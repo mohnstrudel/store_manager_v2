@@ -129,7 +129,7 @@ module Shopify
           zip
           phone
         }
-        lineItems(first: 10) {
+        lineItems(first: 50) {
           pageInfo {
             hasNextPage
           }

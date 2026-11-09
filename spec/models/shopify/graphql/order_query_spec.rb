@@ -73,9 +73,9 @@ RSpec.describe Shopify::Graphql::OrderQuery do
 
     it "asks whether line items were truncated" do
       aggregate_failures do
-        expect(described_class::SALE_FIELDS).to include("lineItems(first: 10)")
+        expect(described_class::SALE_FIELDS).to include("lineItems(first: 50)")
         expect(described_class::SALE_FIELDS).to match(
-          /lineItems\(first: 10\) \{\s*pageInfo \{\s*hasNextPage\s*\}/
+          /lineItems\(first: 50\) \{\s*pageInfo \{\s*hasNextPage\s*\}/
         )
       end
     end
@@ -117,10 +117,10 @@ RSpec.describe Shopify::Graphql::OrderQuery do
     end
 
     it "uses a lighter product payload for order sync" do
-      expect(described_class::SALE_FIELDS).not_to include("media(first: 20)")
+      expect(described_class::SALE_FIELDS).not_to include("media(")
       expect(described_class::SALE_FIELDS).not_to include("descriptionHtml")
       expect(described_class::SALE_FIELDS).not_to include("inventoryItem")
-      expect(described_class::SALE_FIELDS).not_to include("variants(first: 10)")
+      expect(described_class::SALE_FIELDS).not_to include("variants(")
     end
   end
 end

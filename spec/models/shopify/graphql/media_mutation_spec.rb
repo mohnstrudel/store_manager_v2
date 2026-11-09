@@ -25,6 +25,10 @@ RSpec.describe Shopify::Graphql::MediaMutation do
       expect(mutation).to include("status")
       expect(mutation).to include("fileStatus")
     end
+
+    it "requests every media a product can have" do
+      expect(described_class.attach).to include("media(first: 250)")
+    end
   end
 
   describe ".status_query" do
