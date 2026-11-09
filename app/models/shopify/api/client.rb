@@ -124,9 +124,7 @@ module Shopify
         response = execute(query, variables:, operation: "productUpdate")
         handle_mutation_errors(response, "productUpdate", query: query)
 
-        media_nodes = response.body.dig("data", "productUpdate", "product", "media", "nodes")
-        wait_until_media_ready(media_nodes)
-        media_nodes
+        response.body.dig("data", "productUpdate", "product", "media", "nodes")
       end
 
       def update_media(file_updates)
@@ -261,34 +259,6 @@ module Shopify
 
       def report_truncated_line_items(orders)
         report_truncated(orders, connection: "lineItems", description: "line items", owner: "order")
-      end
-
-      def wait_until_media_ready(media_nodes, timeout: 300, interval: 2)
-        deadline = Time.zone.now + timeout
-
-        media_nodes.each do |media_node|
-          loop do
-            status = media_node["status"]
-            file_status = media_node["fileStatus"]
-
-            break if status == "READY" || file_status == "READY"
-
-            remaining = deadline - Time.zone.now
-            raise ApiError, "Media #{media_node["id"]} failed to become ready within #{timeout} seconds" if remaining <= 0
-
-            sleep [interval, remaining].min
-
-            updated_status = query_media_status(media_node["id"])
-            media_node.merge!(updated_status) if updated_status
-          end
-        end
-      end
-
-      def query_media_status(media_id)
-        query = Shopify::Graphql::MediaMutation.status_query
-
-        response = execute(query, variables: {id: media_id}, operation: "mediaStatus")
-        response.body.dig("data", "node")
       end
     end
   end

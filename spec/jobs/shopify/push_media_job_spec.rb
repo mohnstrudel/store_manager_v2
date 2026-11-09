@@ -28,4 +28,64 @@ RSpec.describe Shopify::PushMediaJob do
       )
     end
   end
+
+  describe "when the push cannot finish yet" do
+    let(:not_ready) { Product::Shopify::Media::Push::NotReady.new("Shopify has not finished processing media") }
+
+    before do
+      allow(Product::Shopify::Media::Push).to receive(:call).and_raise(not_ready)
+      allow(Sentry).to receive(:capture_exception)
+    end
+
+    it "retries every 10 seconds, plus the framework jitter, with the same arguments" do
+      freeze_time do
+        described_class.perform_now(42, "gid://shopify/Product/123")
+        ActiveJob::Base.execute(enqueued_jobs.last)
+
+        waits = enqueued_jobs.map { |job| Time.zone.at(job[:at]) - Time.current }
+        expect(waits).to all(be_between(10, 10 * (1 + ActiveJob::Base.retry_jitter)))
+        expect(enqueued_jobs.size).to eq(2)
+        expect(enqueued_jobs.pluck(:args).uniq.size).to eq(1)
+        expect(Sentry).not_to have_received(:capture_exception)
+      end
+    end
+
+    it "gives up after 60 attempts, reports the last error to Sentry, and does not raise" do
+      freeze_time do
+        described_class.perform_now(42, "gid://shopify/Product/123")
+        58.times { ActiveJob::Base.execute(enqueued_jobs.last) }
+        expect(Sentry).not_to have_received(:capture_exception)
+
+        expect { ActiveJob::Base.execute(enqueued_jobs.last) }.not_to raise_error
+
+        expect(enqueued_jobs.size).to eq(59)
+        expect(Sentry).to have_received(:capture_exception).with(not_ready).once
+      end
+    end
+  end
+
+  describe "when Shopify failed to process a media" do
+    let(:media_failed) { Product::Shopify::Media::Push::MediaFailed.new("Shopify failed to process media") }
+
+    before do
+      allow(Product::Shopify::Media::Push).to receive(:call).and_raise(media_failed)
+      allow(Sentry).to receive(:capture_exception)
+    end
+
+    it "reports to Sentry and discards without retrying" do
+      expect { described_class.perform_now(42, "gid://shopify/Product/123") }.not_to raise_error
+
+      expect(Sentry).to have_received(:capture_exception).with(media_failed).once
+      expect(enqueued_jobs).to be_empty
+    end
+  end
+
+  describe "when Shopify throttles the push" do
+    before { allow(Product::Shopify::Media::Push).to receive(:call).and_raise(Shopify::Api::Client::Throttled) }
+
+    it "re-enqueues the job with the same arguments" do
+      expect { described_class.perform_now(42, "gid://shopify/Product/123") }
+        .to have_enqueued_job(described_class).with(42, "gid://shopify/Product/123")
+    end
+  end
 end

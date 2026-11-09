@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 class Product::Shopify::Media::Push::Reorder
-  def initialize(product:, product_store_id:, api_client:)
+  def initialize(product:, product_store_id:, api_client:, nodes:)
     @product = product
     @product_store_id = product_store_id
     @api_client = api_client
+    @nodes = nodes
   end
 
   def call
     media = product.media.ordered.preload(:store_infos)
-    api_product_response = api_client.fetch_product(product_store_id)
 
-    shopify_positions = api_product_response["media"]["nodes"]
+    shopify_positions = nodes
       .each_with_index
       .to_h { |node, index| [node["id"], index] }
 
@@ -23,7 +23,7 @@ class Product::Shopify::Media::Push::Reorder
 
   private
 
-  attr_reader :product, :product_store_id, :api_client
+  attr_reader :product, :product_store_id, :api_client, :nodes
 
   def position_changes(shopify_positions, media)
     media.each_with_index.filter_map do |media_item, our_position|

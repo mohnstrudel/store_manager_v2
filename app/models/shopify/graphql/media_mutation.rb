@@ -31,20 +31,6 @@ module Shopify
         GQL
       end
 
-      def self.status_query
-        <<~GQL
-          query($id: ID!) {
-            node(id: $id) {
-              ... on MediaImage {
-                id
-                status
-                fileStatus
-              }
-            }
-          }
-        GQL
-      end
-
       def self.update
         <<~GQL
           mutation($files: [FileUpdateInput!]!) {

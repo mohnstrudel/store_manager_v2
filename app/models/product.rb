@@ -128,10 +128,6 @@ class Product < ApplicationRecord
     )
   }
 
-  scope :with_media_and_shopify_info, -> {
-    includes(media: [:image_attachment, :image_blob, :shopify_info])
-  }
-
   private
 
   def destroy_variant_assignments

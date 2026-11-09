@@ -10,21 +10,16 @@ RSpec.describe Product::Shopify::Media::Push::Reorder do
   let(:second_media) { create(:media, mediaable: product, alt: "Image 2", position: 1) }
   let(:third_media) { create(:media, mediaable: product, alt: "Image 3", position: 2) }
 
-  let(:shopify_product_response) do
-    {
-      "id" => product_store_id,
-      "media" => {
-        "nodes" => [
-          {"id" => "gid://shopify/MediaImage/456"},
-          {"id" => "gid://shopify/MediaImage/457"},
-          {"id" => "gid://shopify/MediaImage/458"}
-        ]
-      }
-    }
+  let(:nodes) do
+    [
+      {"id" => "gid://shopify/MediaImage/456"},
+      {"id" => "gid://shopify/MediaImage/457"},
+      {"id" => "gid://shopify/MediaImage/458"}
+    ]
   end
 
-  before do
-    allow(api_client).to receive(:fetch_product).and_return(shopify_product_response)
+  def reorder
+    described_class.new(product:, product_store_id:, api_client:, nodes:).call
   end
 
   it "reorders only media whose positions changed" do
@@ -32,11 +27,7 @@ RSpec.describe Product::Shopify::Media::Push::Reorder do
     create(:store_info, :shopify, storable: second_media, store_id: "gid://shopify/MediaImage/458")
     create(:store_info, :shopify, storable: third_media, store_id: "gid://shopify/MediaImage/457")
 
-    described_class.new(
-      product:,
-      product_store_id:,
-      api_client:
-    ).call
+    reorder
 
     expect(api_client).to have_received(:reorder_media).with(product_store_id, [
       {id: "gid://shopify/MediaImage/458", newPosition: "1"},
@@ -49,12 +40,22 @@ RSpec.describe Product::Shopify::Media::Push::Reorder do
     create(:store_info, :shopify, storable: second_media, store_id: "gid://shopify/MediaImage/457")
     create(:store_info, :shopify, storable: third_media, store_id: "gid://shopify/MediaImage/458")
 
-    described_class.new(
-      product:,
-      product_store_id:,
-      api_client:
-    ).call
+    reorder
 
     expect(api_client).not_to have_received(:reorder_media)
+  end
+
+  it "takes the remote order from the given nodes and never fetches the product" do
+    create(:store_info, :shopify, storable: first_media, store_id: "gid://shopify/MediaImage/456")
+    create(:store_info, :shopify, storable: second_media, store_id: "gid://shopify/MediaImage/457")
+    create(:store_info, :shopify, storable: third_media, store_id: "gid://shopify/MediaImage/458")
+
+    described_class.new(product:, product_store_id:, api_client:, nodes: nodes.reverse).call
+
+    expect(api_client).to have_received(:reorder_media).with(product_store_id, [
+      {id: "gid://shopify/MediaImage/456", newPosition: "0"},
+      {id: "gid://shopify/MediaImage/458", newPosition: "2"}
+    ])
+    expect(api_client).not_to have_received(:fetch_product)
   end
 end

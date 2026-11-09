@@ -1177,6 +1177,34 @@ RSpec.describe Shopify::Api::Client do
       expect(result.first["id"]).to eq("gid://shopify/MediaImage/456")
     end
 
+    context "when Shopify is still processing the attached media" do
+      let(:processing_nodes) do
+        [
+          {"id" => "gid://shopify/MediaImage/456", "status" => "UPLOADED", "fileStatus" => "PROCESSING"},
+          {"id" => "gid://shopify/MediaImage/457", "status" => "PROCESSING", "fileStatus" => "PROCESSING"}
+        ]
+      end
+      let(:processing_response) do
+        double(body: {
+          "data" => {
+            "productUpdate" => {
+              "product" => {"id" => product_id, "media" => {"nodes" => processing_nodes}},
+              "userErrors" => []
+            }
+          }
+        })
+      end
+
+      it "returns the nodes at once without polling their status" do
+        allow(mock_graphql_client).to receive(:query).and_invoke(
+          ->(**) { processing_response },
+          ->(**) { raise "polled Shopify for media status" }
+        )
+
+        expect(client.attach_media(product_id, media_input)).to eq(processing_nodes)
+      end
+    end
+
     context "when API errors occur" do
       let(:error_response) do
         double(body: {
@@ -1429,85 +1457,6 @@ RSpec.describe Shopify::Api::Client do
         expect(Sentry).to receive(:capture_message)
         expect { client.reorder_media(product_id, moves) }.to raise_error(described_class::ApiError)
       end
-    end
-  end
-
-  describe "#wait_until_media_ready" do
-    let(:media_nodes) do
-      [
-        {
-          "id" => "gid://shopify/MediaImage/456",
-          "status" => "UPLOADED",
-          "fileStatus" => "PROCESSING"
-        }
-      ]
-    end
-
-    before do
-      allow(client).to receive(:query_media_status).and_return(
-        {"id" => "gid://shopify/MediaImage/456", "status" => "READY", "fileStatus" => "READY"}
-      )
-      allow(client).to receive(:sleep)
-    end
-
-    it "waits until media status is READY" do
-      client.send(:wait_until_media_ready, media_nodes, timeout: 1, interval: 0)
-      expect(client).to have_received(:query_media_status).with("gid://shopify/MediaImage/456")
-    end
-
-    it "returns when status is already READY" do
-      ready_nodes = [
-        {"id" => "gid://shopify/MediaImage/456", "status" => "READY", "fileStatus" => "READY"}
-      ]
-      client.send(:wait_until_media_ready, ready_nodes, timeout: 1, interval: 0)
-      expect(client).not_to have_received(:query_media_status)
-    end
-
-    it "returns when fileStatus is READY" do
-      ready_nodes = [
-        {"id" => "gid://shopify/MediaImage/456", "status" => "UPLOADED", "fileStatus" => "READY"}
-      ]
-      client.send(:wait_until_media_ready, ready_nodes, timeout: 1, interval: 0)
-      expect(client).not_to have_received(:query_media_status)
-    end
-
-    it "raises ApiError when timeout is exceeded" do
-      allow(client).to receive(:query_media_status).and_return(
-        {"id" => "gid://shopify/MediaImage/456", "status" => "PROCESSING", "fileStatus" => "PROCESSING"}
-      )
-
-      expect {
-        client.send(:wait_until_media_ready, media_nodes, timeout: 0, interval: 0)
-      }.to raise_error(described_class::ApiError, /failed to become ready within 0 seconds/)
-    end
-
-    it "does nothing when media_nodes is blank" do
-      client.send(:wait_until_media_ready, [], timeout: 1, interval: 0)
-      expect(client).not_to have_received(:query_media_status)
-    end
-  end
-
-  describe "#query_media_status" do
-    let(:media_id) { "gid://shopify/MediaImage/456" }
-    let(:status_response) do
-      double(body: {
-        "data" => {
-          "node" => {
-            "id" => media_id,
-            "status" => "READY",
-            "fileStatus" => "READY"
-          }
-        }
-      })
-    end
-
-    before do
-      allow(mock_graphql_client).to receive(:query).and_return(status_response)
-    end
-
-    it "queries media status with correct ID" do
-      result = client.send(:query_media_status, media_id)
-      expect(result).to eq(status_response.body.dig("data", "node"))
     end
   end
 

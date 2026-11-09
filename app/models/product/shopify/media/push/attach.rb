@@ -1,50 +1,40 @@
 # frozen_string_literal: true
 
 class Product::Shopify::Media::Push::Attach
-  def initialize(product:, product_store_id:, api_client:, new_media:)
+  def initialize(product:, product_store_id:, api_client:, new_media:, known_ids:)
     @product = product
     @product_store_id = product_store_id
     @api_client = api_client
     @new_media = new_media
+    @known_ids = known_ids
   end
 
   def call
-    created_media = api_client.attach_media(product_store_id, api_input)
-    create_many(local_media: new_media, shopify_media: created_media)
+    attached_nodes = api_client.attach_media(product_store_id, api_input)
+    created_nodes = attached_nodes.select { |node| node["id"].present? && known_ids.exclude?(node["id"]) }
+
+    unless created_nodes.size == new_media.size
+      raise Shopify::Api::Client::ApiError,
+        "Shopify returned #{created_nodes.size} new media after attaching #{new_media.size} images to #{product_store_id}"
+    end
+
+    create_many(local_media: new_media, shopify_media: created_nodes)
   end
 
   private
 
-  attr_reader :product, :product_store_id, :api_client, :new_media
+  attr_reader :product, :product_store_id, :api_client, :new_media, :known_ids
 
   def api_input
     new_media.map { |media| build_attach_input(media) }
   end
 
   def build_attach_input(media)
-    blob = media.image.blob
-    wait_until_file_is_available(blob)
-
     {
-      originalSource: blob.url,
+      originalSource: media.image.blob.url,
       alt: media.alt || "#{product.title} image",
       mediaContentType: "IMAGE"
     }
-  end
-
-  def wait_until_file_is_available(blob, timeout = 600, interval = 2)
-    deadline = Time.zone.now + timeout
-
-    loop do
-      return if blob.service.exist?(blob.key)
-
-      remaining = deadline - Time.zone.now
-      break if remaining <= 0
-
-      sleep [interval, remaining].min + rand(0.0..0.3)
-    end
-
-    raise "File was not uploaded to R2 in #{timeout} seconds (blob_id: #{blob.id})"
   end
 
   def create_many(local_media:, shopify_media:)
