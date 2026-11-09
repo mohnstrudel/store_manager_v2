@@ -93,6 +93,30 @@ RSpec.describe Sale::RevenueAllocation, :aggregate_failures do
     it "does nothing without sale items" do
       expect { sale.allocate_revenue_to_items }.not_to raise_error
     end
+
+    context "when a saved item has no variant" do
+      let!(:item) { create_item(BigDecimal(100)) }
+
+      before do
+        create(:variant, product:)
+        item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+        sale.update!(received_revenue: BigDecimal(100), outstanding_revenue: nil, refunded_revenue: nil)
+      end
+
+      it "allocates its amounts without choosing a variant" do
+        sale.allocate_revenue_to_items
+
+        expect(item.reload).to have_attributes(
+          received_revenue: BigDecimal(100),
+          variant_id: nil,
+          product_id: product.id
+        )
+      end
+
+      it "writes an audit for the allocation" do
+        expect { sale.allocate_revenue_to_items }.to change { item.audits.count }.by(1)
+      end
+    end
   end
 
   describe "#shipping_shares_by_item_id" do

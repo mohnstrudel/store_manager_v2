@@ -28,6 +28,7 @@ class SaleItem < ApplicationRecord
   include Installments
   include Linkable
   include Profitability
+  include RevenueAllocation
   include RevenueDefaults
   include Shopable
   include Titled

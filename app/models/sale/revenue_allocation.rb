@@ -16,7 +16,7 @@ module Sale::RevenueAllocation
     allocations = known_fields.index_with { |field| split_amount(public_send(field), shares) }
 
     items.each_with_index do |item, index|
-      item.update!(allocations.transform_values { |amounts| amounts[index] })
+      item.apply_revenue_allocation(allocations.transform_values { |amounts| amounts[index] })
     end
   end
 

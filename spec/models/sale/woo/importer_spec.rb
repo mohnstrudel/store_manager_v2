@@ -474,6 +474,49 @@ RSpec.describe Sale::Woo::Importer do
       end
     end
 
+    context "when the sale holds a stored line without a Variant" do
+      let(:product) { create(:product, woo_store_id: "woo-product") }
+      let!(:known_variant) { create(:variant, :with_version, product:, woo_store_id: "woo-variation") }
+      let!(:stored_line) do
+        create(
+          :sale_item,
+          product:,
+          variant: known_variant,
+          sale: create(:sale, woo_store_id: "woo-order"),
+          expected_revenue: BigDecimal(50),
+          woo_store_id: "stored-line"
+        )
+      end
+      let(:parsed_order) do
+        {
+          sale: sample_parsed_order[:sale].merge(
+            woo_id: "woo-order",
+            expected_revenue: "100.00",
+            received_revenue: "100.00",
+            outstanding_revenue: "0.00",
+            refunded_revenue: "0.00"
+          ),
+          customer: sample_parsed_order[:customer],
+          products: [{
+            sale_item_woo_id: "woo-line",
+            product_woo_id: "woo-product",
+            price: "50.00",
+            expected_revenue: "50.00",
+            qty: 1,
+            variant: {woo_id: "woo-variation", product_woo_id: "woo-product", options: []}
+          }]
+        }
+      end
+
+      before { stored_line.update_column(:variant_id, nil) } # rubocop:disable Rails/SkipsModelValidations
+
+      it "imports the order and allocates the stored line's revenue without choosing a Variant" do
+        described_class.import(parsed_order)
+
+        expect(stored_line.reload).to have_attributes(received_revenue: BigDecimal(50), variant_id: nil)
+      end
+    end
+
     context "when a line fails validation" do
       let(:product) { create(:product, woo_store_id: "woo-product") }
       let!(:sale) { create(:sale, woo_store_id: "woo-order", status: "processing") }

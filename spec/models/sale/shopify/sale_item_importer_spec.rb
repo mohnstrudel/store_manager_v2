@@ -428,6 +428,56 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
     end
 
+    context "when the Shopify variant resolves to a deactivated variant" do
+      let(:deactivated_variant) { product.variants.base_models.first }
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/deactivated",
+          price: "10.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_store_id: variant_store_id,
+          variant_title: "Default Title"
+        }
+      end
+
+      before do
+        create(:variant, :with_version, product:)
+        deactivated_variant.upsert_shopify_info(store_id: variant_store_id)
+      end
+
+      it "saves the line on that variant" do
+        expect(deactivated_variant).to be_deactivated
+
+        result = described_class.new(sale, parsed_sale_item).import
+
+        expect(result).to be_persisted
+        expect(result.variant).to eq(deactivated_variant)
+      end
+    end
+
+    context "when the line resolves to a deactivated variant by its title" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/by-title",
+          price: "10.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_title: "Gold"
+        }
+      end
+
+      before do
+        create(:variant, :with_version, product:)
+        create(:variant, product:, version: create(:version, value: "Gold")).deactivate
+      end
+
+      it "still fails variant assignability validation" do
+        expect { described_class.new(sale, parsed_sale_item).import }
+          .to raise_error(Sale::Shopify::Importer::Error, /Variant is not assignable/)
+      end
+    end
+
     context "when the resolved product is flagged non_catalog (a Seal installment placeholder)" do
       let(:placeholder_product) { create(:product, :synced, shopify_id: product_store_id, non_catalog: true, title: "Unattributed Installment Payment") }
       let(:parsed_sale_item) do

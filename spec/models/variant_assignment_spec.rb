@@ -20,6 +20,16 @@ RSpec.shared_examples "a normal Variant assignment" do
     expect(record.errors[:variant]).to be_present
   end
 
+  it "requires an explicit Variant when a stored record without one is edited" do
+    stored = create_record(product:, variant: create(:variant, product:))
+    stored.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+    edited = stored.class.find(stored.id)
+    change_unrelated_attribute(edited)
+
+    expect(edited).not_to be_valid
+    expect(edited.errors[:variant]).to be_present
+  end
+
   it "accepts an assignable real Variant from the same Product" do
     variant = create(:variant, product:)
 

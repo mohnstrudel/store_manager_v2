@@ -21,6 +21,7 @@ class Sale::Shopify::SaleItemImporter
 
     ActiveRecord::Base.transaction do
       sale_item.assign_attributes(sale_item_attributes)
+      sale_item.skip_variant_assignability_check = variant_linked_by_shopify?
       sale_item.save!
     end
 
@@ -180,6 +181,10 @@ class Sale::Shopify::SaleItemImporter
 
     Shopify::PullProductJob.perform_later(parsed[:product_store_id]) if parsed[:product_store_id].present?
     true
+  end
+
+  def variant_linked_by_shopify?
+    parsed[:variant_store_id].present?
   end
 
   def handle_record_invalid(error)

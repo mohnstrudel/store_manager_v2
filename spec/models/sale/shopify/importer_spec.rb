@@ -765,6 +765,36 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       end
     end
 
+    context "when the sale holds a saved item without a variant" do
+      let(:store_order_id) { "gid://shopify/Order/nil-variant" }
+      let(:existing_sale) { create(:sale, shopify_store_id: store_order_id) }
+      let(:product) { create(:product) }
+      let!(:saved_item) { create(:sale_item, sale: existing_sale, product:, expected_revenue: BigDecimal(100)) }
+      let(:order) do
+        valid_parsed_order.deep_dup.tap do |parsed_order|
+          parsed_order[:store_info] = parsed_order[:store_info].merge(store_id: store_order_id)
+          parsed_order[:sale].merge!(
+            expected_revenue: "100.00",
+            received_revenue: "100.00",
+            outstanding_revenue: "0.00",
+            refunded_revenue: "0.00"
+          )
+          parsed_order[:sale_items] = []
+        end
+      end
+
+      before do
+        create(:variant, product:)
+        saved_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+      end
+
+      it "imports the order and allocates the item's revenue without choosing a variant" do
+        import_order(order)
+
+        expect(saved_item.reload).to have_attributes(received_revenue: BigDecimal(100), variant_id: nil)
+      end
+    end
+
     context "when linking purchased products" do
       let(:product) { create(:product) }
       let(:purchase_variant) do
