@@ -19,12 +19,20 @@ RSpec.describe Media do
     it { is_expected.to belong_to(:mediaable).inverse_of(:media) }
     it { is_expected.to have_many(:store_infos).dependent(:destroy) }
 
-    it "purges the blob when the media is destroyed" do
+    it "purges the blob on the media queue when the media is destroyed" do
       media = create(:media, :for_product)
 
       expect {
         media.destroy
-      }.to have_enqueued_job(ActiveStorage::PurgeJob)
+      }.to have_enqueued_job(ActiveStorage::PurgeJob).on_queue("media")
+    end
+  end
+
+  describe "image processing queues" do
+    it "enqueues analysis and every preprocessed variant on the media queue" do
+      expect { create(:media, :for_product) }
+        .to have_enqueued_job(ActiveStorage::AnalyzeJob).on_queue("media")
+        .and have_enqueued_job(ActiveStorage::TransformJob).on_queue("media").exactly(3).times
     end
   end
 

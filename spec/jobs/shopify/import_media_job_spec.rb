@@ -57,7 +57,7 @@ RSpec.describe Shopify::ImportMediaJob do
   end
 
   describe "queue" do
-    it { expect(described_class.new.queue_name).to eq "default" }
+    it { expect(described_class.new.queue_name).to eq "media" }
   end
 
   describe "media contract" do
