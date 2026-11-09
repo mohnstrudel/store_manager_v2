@@ -5,9 +5,9 @@ module JobsStatusNotice
 
   private
 
-  def set_jobs_status_notice
+  def set_jobs_status_notice(message: "Success! Visit")
     flash[:notice] = {
-      message: "Success! Visit",
+      message:,
       link: {
         label: "jobs statuses dashboard",
         href: "/jobs/statuses",

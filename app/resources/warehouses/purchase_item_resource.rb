@@ -72,13 +72,6 @@ class Warehouses::PurchaseItemResource < ApplicationResource
     PurchasePaymentProgressResource.new(purchase_item.purchase).serializable_hash
   end
 
-  def sale_store_type(sale)
-    return nil unless sale
-    return "shopify" if sale.shopify_name.present? || sale.shopify_id.present?
-
-    "woo" if sale.woo_store_id.present?
-  end
-
   def sale_summary(sale)
     address = sale.shipping_address
 

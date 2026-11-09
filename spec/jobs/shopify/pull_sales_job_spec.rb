@@ -96,9 +96,38 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
         expect(Sentry).to have_received(:capture_exception).with(
           an_instance_of(Shopify::Pull::Failed)
             .and(having_attributes(
-              failures: [Shopify::Pull::Failure.new(store_id: "gid://shopify/Order/999", message: "Failed to process SaleItem: Variant must be selected")],
+              failures: [having_attributes(store_id: "gid://shopify/Order/999", message: "Failed to process SaleItem: Variant must be selected")],
               message: /1 Shopify item\(s\) failed to import: gid:\/\/shopify\/Order\/999: Failed to process SaleItem/
             ))
+        )
+        expect(enqueued_jobs.count { |enqueued| enqueued["job_class"] == described_class.name }).to eq(1)
+      end
+
+      it "records the failed order with the Sentry event id and failure time" do
+        sale = create(:sale, shopify_store_id: "gid://shopify/Order/999")
+        allow(Sentry).to receive(:capture_exception).and_return(instance_double(Sentry::ErrorEvent, event_id: "event-1"))
+
+        freeze_time do
+          described_class.perform_now
+
+          expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: "gid://shopify/Order/999")).to have_attributes(
+            sale:,
+            message: "Failed to process SaleItem: Variant must be selected",
+            sentry_event_id: "event-1",
+            last_failed_at: Time.current
+          )
+        end
+      end
+
+      it "reports a recording failure and stays discarded with one next-page job" do
+        recording_error = ActiveRecord::StatementInvalid.new("cannot write")
+        allow(Sale::ImportFailure).to receive(:record).and_raise(recording_error)
+
+        expect { described_class.perform_now }.not_to raise_error
+
+        expect(Sentry).to have_received(:capture_exception).with(
+          recording_error,
+          extra: {store_name: "shopify", store_order_id: "gid://shopify/Order/999"}
         )
         expect(enqueued_jobs.count { |enqueued| enqueued["job_class"] == described_class.name }).to eq(1)
       end

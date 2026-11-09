@@ -72,7 +72,7 @@ RSpec.describe Shopify::BasePullJob do
     end
 
     context "when items on the page failed to import" do
-      let(:failures) { [Shopify::Pull::Failure.new(store_id: "gid://1", message: "boom")] }
+      let(:failures) { [Shopify::Pull::Failure.new(store_id: "gid://1", message: "boom", failed_at: Time.current)] }
       let(:page) { Shopify::Pull::Page.new(imported_count: 1, next_cursor: "next", failures:) }
 
       before { allow(Sentry).to receive(:capture_exception) }
@@ -88,6 +88,10 @@ RSpec.describe Shopify::BasePullJob do
 
         expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
         expect(job_setter).to have_received(:perform_later).once
+      end
+
+      it "writes no import failure" do
+        expect { job_class.perform_now }.not_to change(Sale::ImportFailure, :count)
       end
     end
 

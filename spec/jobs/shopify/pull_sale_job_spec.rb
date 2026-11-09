@@ -56,6 +56,50 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
       expect { job.perform("") }.to raise_error(ArgumentError, "Sale store_id is required")
     end
 
+    context "when the import fails" do
+      let(:import_error) { Sale::Shopify::Importer::Error.new("Failed to process SaleItem") }
+      let(:sentry_event) { instance_double(Sentry::ErrorEvent, event_id: "event-1") }
+
+      before do
+        allow(Sale::Shopify::Importer).to receive(:import).and_raise(import_error)
+        allow(Sentry).to receive(:capture_exception).and_return(sentry_event)
+      end
+
+      it "reports the failure, records it with the event id, and discards the job" do
+        sale = create(:sale, shopify_store_id: sale_id)
+
+        freeze_time do
+          expect { described_class.perform_now(sale_id) }.not_to raise_error
+
+          expect(Sentry).to have_received(:capture_exception).with(import_error)
+          expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: sale_id)).to have_attributes(
+            sale:,
+            message: "Failed to process SaleItem",
+            sentry_event_id: "event-1",
+            failure_count: 1,
+            last_failed_at: Time.current
+          )
+        end
+      end
+
+      it "reports a recording failure and stays discarded" do
+        recording_error = ActiveRecord::StatementInvalid.new("cannot write")
+        allow(Sale::ImportFailure).to receive(:record).and_raise(recording_error)
+
+        expect { described_class.perform_now(sale_id) }.not_to raise_error
+
+        expect(Sentry).to have_received(:capture_exception).with(recording_error, extra: {store_name: "shopify", store_order_id: sale_id})
+      end
+    end
+
+    it "resolves the order's import failure after a successful pull" do
+      Sale::ImportFailure.record(store_name: "shopify", store_order_id: sale_id, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+      job.perform(sale_id)
+
+      expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: sale_id).resolved_at).to be_present
+    end
+
     context "when sale already exists" do
       before { create(:sale, :synced, shopify_id: sale_id) }
 

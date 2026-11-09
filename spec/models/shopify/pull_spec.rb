@@ -52,11 +52,13 @@ RSpec.describe Shopify::Pull, :aggregate_failures do
   it "collects skippable item failures and keeps importing the rest of the page" do
     allow(importer).to receive(:import).with({store_id: "gid://1"}).and_raise(skippable_error, "Variant must be selected")
 
-    page = pull_class.page
+    freeze_time do
+      page = pull_class.page
 
-    expect(importer).to have_received(:import).with({store_id: "gid://2"})
-    expect(page.imported_count).to eq(1)
-    expect(page.failures).to eq([described_class::Failure.new(store_id: "gid://1", message: "Variant must be selected")])
+      expect(importer).to have_received(:import).with({store_id: "gid://2"})
+      expect(page.imported_count).to eq(1)
+      expect(page.failures).to eq([described_class::Failure.new(store_id: "gid://1", message: "Variant must be selected", failed_at: Time.current)])
+    end
   end
 
   it "raises other import errors" do
@@ -67,7 +69,7 @@ RSpec.describe Shopify::Pull, :aggregate_failures do
 
   describe Shopify::Pull::Failed do
     it "describes at most the first ten failures" do
-      failures = Array.new(12) { |index| Shopify::Pull::Failure.new(store_id: "gid://#{index}", message: "boom #{index}") }
+      failures = Array.new(12) { |index| Shopify::Pull::Failure.new(store_id: "gid://#{index}", message: "boom #{index}", failed_at: Time.current) }
 
       error = described_class.new(failures)
 

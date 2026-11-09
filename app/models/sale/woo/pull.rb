@@ -9,7 +9,7 @@ class Sale::Woo::Pull
     ActiveRecord::LockWaitTimeout
   ].freeze
 
-  Failure = Data.define(:woo_id, :message)
+  Failure = Data.define(:woo_id, :message, :failed_at)
 
   class Failed < StandardError
     REPORTED_FAILURES = 10
@@ -59,6 +59,6 @@ class Sale::Woo::Pull
     raise
   rescue => error
     Rails.logger.error("Woo order #{order[:id]} failed to import: #{error.full_message(highlight: false)}")
-    Failure.new(woo_id: order[:id], message: "#{error.class}: #{error.message}")
+    Failure.new(woo_id: order[:id], message: "#{error.class}: #{error.message}", failed_at: Time.current)
   end
 end

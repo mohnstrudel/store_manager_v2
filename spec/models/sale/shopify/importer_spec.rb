@@ -61,6 +61,17 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(SaleItem.count).to eq(1)
       end
 
+      it "resolves the order's import failure when the import succeeds" do
+        store_order_id = "gid://shopify/Order/failed"
+        order = valid_parsed_order.deep_dup
+        order[:store_info] = order[:store_info].merge(store_id: store_order_id)
+        Sale::ImportFailure.record(store_name: "shopify", store_order_id:, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        import_order(order)
+
+        expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id:).resolved_at).to be_present
+      end
+
       it "keeps local sales tags when the same order is imported again" do
         order = valid_parsed_order.deep_dup
         order[:store_info] = order[:store_info].merge(store_id: "gid://shopify/Order/tagged")
@@ -544,6 +555,17 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
       before do
         allow(Product::Shopify::Importer).to receive(:import).and_return(product)
         allow(Variant::Shopify::Importer).to receive(:import).and_raise(ActiveRecord::RecordInvalid.new(Variant.new))
+      end
+
+      it "leaves the order's import failure unresolved when the import rolls back" do
+        store_order_id = "gid://shopify/Order/failed"
+        order = parsed_order_with_invalid_variant.deep_dup
+        order[:store_info] = order[:store_info].merge(store_id: store_order_id)
+        Sale::ImportFailure.record(store_name: "shopify", store_order_id:, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        expect { described_class.import(order) }.to raise_error(described_class::Error)
+
+        expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id:).resolved_at).to be_nil
       end
 
       it "rolls back all changes when variant creation fails" do

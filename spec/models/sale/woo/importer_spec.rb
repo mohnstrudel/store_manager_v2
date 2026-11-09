@@ -50,6 +50,15 @@ RSpec.describe Sale::Woo::Importer do
       expect(Sale.count).to eq(1)
     end
 
+    it "resolves the order's import failure when the import succeeds" do
+      store_order_id = parsed_sale[:woo_id].to_s
+      Sale::ImportFailure.record(store_name: "woo", store_order_id:, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+      described_class.import({sale: parsed_sale, customer: parsed_customer, products: []})
+
+      expect(Sale::ImportFailure.find_by!(store_name: "woo", store_order_id:).resolved_at).to be_present
+    end
+
     it "updates address snapshots for an existing sale", :aggregate_failures do
       existing_sale = create(:sale, woo_store_id: parsed_sale[:woo_id])
 
@@ -267,6 +276,151 @@ RSpec.describe Sale::Woo::Importer do
       end
     end
 
+    context "when a Woo line has a variation id and no recognized options" do
+      let(:product) { create(:product, woo_store_id: "woo-product") }
+      let!(:other_variant) { create(:variant, :with_version, product:) }
+      let!(:known_variant) { create(:variant, :with_version, product:, woo_store_id: "14079") }
+      let(:parsed_order) do
+        {
+          sale: sample_parsed_order[:sale].merge(woo_id: "woo-order"),
+          customer: sample_parsed_order[:customer],
+          products: [{
+            sale_item_woo_id: "woo-line",
+            product_woo_id: "woo-product",
+            price: "10.00",
+            expected_revenue: "10.00",
+            qty: 1,
+            variant: {woo_id: "14079", product_woo_id: "woo-product", options: []}
+          }]
+        }
+      end
+
+      def stored_line(variant:)
+        create(:sale_item, product:, variant:, sale: create(:sale, woo_store_id: "woo-order"), woo_store_id: "woo-line")
+      end
+
+      it "assigns the known Variant to a new line and imports the order", :aggregate_failures do
+        sale = described_class.import(parsed_order)
+
+        expect(sale).to be_persisted
+        expect(SaleItem.find_by_woo_id("woo-line").variant).to eq(known_variant)
+      end
+
+      it "fills a stored line with a blank Variant" do
+        sale_item = stored_line(variant: other_variant)
+        sale_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+
+        described_class.import(parsed_order)
+
+        expect(sale_item.reload.variant).to eq(known_variant)
+      end
+
+      it "keeps a stored Variant" do
+        sale_item = stored_line(variant: other_variant)
+
+        described_class.import(parsed_order)
+
+        expect(sale_item.reload.variant).to eq(other_variant)
+      end
+
+      it "keeps a Variant set by manual repair" do
+        sale_item = stored_line(variant: known_variant)
+        sale_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+        Variant::AssignmentRepair.repair_sale_item(sale_item_id: sale_item.id, variant_id: other_variant.id)
+
+        described_class.import(parsed_order)
+
+        expect(sale_item.reload.variant).to eq(other_variant)
+      end
+
+      it "ignores a known variation of another Product", :aggregate_failures do
+        known_variant.woo_info.update!(store_id: "elsewhere")
+        create(:variant, :with_version, product: create(:product), woo_store_id: "14079")
+
+        expect { described_class.import(parsed_order) }.to raise_error(described_class::Error, /Variant must be selected/)
+      end
+
+      it "keeps today's outcome for an unknown variation without building a Variant", :aggregate_failures do
+        known_variant.woo_info.update!(store_id: "elsewhere")
+
+        expect {
+          expect { described_class.import(parsed_order) }.to raise_error(described_class::Error, /Variant must be selected/)
+        }.not_to change(Variant, :count)
+      end
+
+      it "still assigns the Variant matching recognized options over the stored one" do
+        sale_item = stored_line(variant: other_variant)
+        parsed_order[:products].first[:variant][:options] = [{name: "version", value: known_variant.version.value}]
+
+        described_class.import(parsed_order)
+
+        expect(sale_item.reload.variant).to eq(known_variant)
+      end
+    end
+
+    context "when a line is skipped because its product was not found" do
+      let(:product) { create(:product, woo_store_id: "woo-product") }
+      let(:found_line) do
+        {sale_item_woo_id: "found-line", product_woo_id: "woo-product", price: "10.00", expected_revenue: "10.00", qty: 1}
+      end
+      let(:skipped_lines) do
+        [
+          {sale_item_woo_id: "skipped-1", product_woo_id: "gone-1", price: "10.00", expected_revenue: "10.00", qty: 1},
+          {sale_item_woo_id: "skipped-2", product_woo_id: "gone-2", price: "10.00", expected_revenue: "10.00", qty: 1}
+        ]
+      end
+      let(:parsed_order) do
+        {
+          sale: sample_parsed_order[:sale].merge(woo_id: "woo-order"),
+          customer: sample_parsed_order[:customer],
+          products: [*skipped_lines, found_line]
+        }
+      end
+      let(:failure) { Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: "woo-order") }
+
+      before do
+        create(:variant, :with_version, product:, woo_store_id: "found-variation")
+        found_line[:variant] = {woo_id: "found-variation", product_woo_id: "woo-product", options: []}
+        allow(Product::Woo::Importer).to receive(:fetch_and_import).and_return(nil)
+      end
+
+      it "saves the order and leaves an unresolved failure naming each skipped line", :aggregate_failures do
+        sale = described_class.import(parsed_order)
+
+        expect(sale.reload.sale_items.size).to eq(1)
+        expect(failure).to have_attributes(
+          message: "Woo line skipped-1 (Woo product gone-1): product not found; " \
+            "Woo line skipped-2 (Woo product gone-2): product not found",
+          sentry_event_id: nil,
+          resolved_at: nil,
+          sale:
+        )
+      end
+
+      it "stays open while a line is still skipped", :aggregate_failures do
+        2.times { described_class.import(parsed_order) }
+
+        expect(failure.resolved_at).to be_nil
+        expect(failure.failure_count).to eq(2)
+      end
+
+      it "resolves when the order imports with no skipped line" do
+        described_class.import(parsed_order)
+
+        described_class.import(parsed_order.merge(products: [found_line]))
+
+        expect(failure.resolved_at).to be_present
+      end
+
+      it "writes no failure when another line rolls the order back" do
+        invalid_line = found_line.except(:variant)
+
+        expect {
+          expect { described_class.import(parsed_order.merge(products: [*skipped_lines, invalid_line])) }.to raise_error(described_class::Error)
+        }.not_to change(Sale::ImportFailure, :count)
+      end
+    end
+
     context "when Woo reports a partially paid order" do
       it "leaves the unknown split unset on the sale and on its items", :aggregate_failures do
         partially_paid_order[:line_items].each do |line_item|
@@ -338,6 +492,14 @@ RSpec.describe Sale::Woo::Importer do
       end
 
       before { create(:variant, :with_version, product:) }
+
+      it "leaves the order's import failure unresolved when the import rolls back" do
+        Sale::ImportFailure.record(store_name: "woo", store_order_id: "woo-order", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        expect { described_class.import(parsed_order) }.to raise_error(described_class::Error)
+
+        expect(Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: "woo-order").resolved_at).to be_nil
+      end
 
       it "names the line, product, and persisted record, and rolls the order back", :aggregate_failures do
         sale_item = create(:sale_item, product:, sale:, variant: product.variants.real.first, woo_store_id: "woo-line")

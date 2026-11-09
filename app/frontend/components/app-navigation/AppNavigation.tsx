@@ -168,25 +168,6 @@ const overflowLinks: Array<NavigationLink | NavigationDivider> = [
 
 const adminLinks: NavigationLink[] = [
   {
-    href: routes.variantAssignmentIssues.index.path(),
-    label: "Variant Repairs",
-    component: "VariantAssignmentIssues/Index",
-    pageProps: {
-      counts: {
-        purchases: 0,
-        sale_items: 0,
-        purchase_item_links: 0,
-        sku_collisions: 0,
-        shopify_conflicts: 0,
-      },
-      filter: "",
-      filters: [],
-      issue_type: "purchases",
-      issues: [],
-      pagination: emptyPagination,
-    },
-  },
-  {
     href: routes.expenseRates.index.path(),
     label: "OpEx Rates",
     component: "ExpenseRates/Index",

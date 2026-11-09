@@ -83,10 +83,8 @@ describe("AppNavigation", () => {
       "/expense_rates",
     );
     expect(screen.getByRole("link", { name: "Users" })).toHaveAttribute("href", "/users");
-    expect(screen.getByRole("link", { name: "Variant Repairs" })).toHaveAttribute(
-      "href",
-      "/variant_assignment_issues",
-    );
+    expect(screen.queryByRole("link", { name: "Variant Repairs" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Broken Sales" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Analytics" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Inventory Planner" })).not.toBeInTheDocument();
   });

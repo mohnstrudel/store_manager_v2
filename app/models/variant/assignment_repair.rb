@@ -7,6 +7,7 @@ class Variant::AssignmentRepair
     :repaired_purchase_count,
     :repaired_sale_item_count
   )
+  ClosedOrderRepair = Data.define(:repaired, :skipped, :failed, :repaired_sale_ids)
 
   class << self
     def repair_purchase(purchase_id:, variant_id:)
@@ -15,6 +16,10 @@ class Variant::AssignmentRepair
 
     def repair_sale_item(sale_item_id:, variant_id:, product_id: nil)
       new.repair_sale_item(sale_item_id:, variant_id:, product_id:)
+    end
+
+    def repair_closed_sale_items(product_id:, variant_id:)
+      new.repair_closed_sale_items(product_id:, variant_id:)
     end
 
     def repair_purchase_item_link(purchase_item_id:)
@@ -229,6 +234,21 @@ class Variant::AssignmentRepair
     end
   end
 
+  def repair_closed_sale_items(product_id:, variant_id:)
+    ensure_repair_candidate(product_id, variant_id)
+    outcomes = closed_broken_sale_items(product_id).map do |sale_item_id, sale_id|
+      [repair_closed_sale_item(sale_item_id:, product_id:, variant_id:), sale_id]
+    end
+    statuses = outcomes.map(&:first)
+
+    ClosedOrderRepair.new(
+      repaired: statuses.count(:repaired),
+      skipped: statuses.count(:skipped),
+      failed: statuses.count(:failed),
+      repaired_sale_ids: outcomes.filter_map { |status, sale_id| sale_id if status == :repaired }.uniq
+    )
+  end
+
   private
 
   attr_reader :integrity
@@ -377,5 +397,38 @@ class Variant::AssignmentRepair
         product_id: canonical_variant.product_id
       ) == :repaired
     end
+  end
+
+  def ensure_repair_candidate(product_id, variant_id)
+    return if Product.find(product_id).variant_repair_candidates.exists?(id: variant_id)
+
+    raise InvalidCandidate, "Variant is not an available repair candidate"
+  end
+
+  def closed_broken_sale_items(product_id)
+    Variant::AssignmentImpact.new(integrity:).order_rows(scope: "closed", product_id:).pluck(:id, :sale_id)
+  end
+
+  def repair_closed_sale_item(sale_item_id:, product_id:, variant_id:)
+    SaleItem.transaction do
+      sale_item = SaleItem.lock.find(sale_item_id)
+      next :skipped if sale_item.purchase_items.exists?
+
+      previous_assignment = sale_item.slice(:product_id, :variant_id)
+      next :skipped unless repair_sale_item(sale_item_id:, variant_id:, product_id:) == :repaired
+
+      audit_assignment(sale_item.reload, previous_assignment)
+      :repaired
+    end
+  rescue InvalidCandidate, PurchaseItem::Linkable::StaleLinkState, ActiveRecord::ActiveRecordError => error
+    Sentry.capture_exception(error, extra: {sale_item_id:})
+    :failed
+  end
+
+  def audit_assignment(sale_item, previous_assignment)
+    changes = previous_assignment.filter_map do |attribute, previous_value|
+      [attribute, [previous_value, sale_item[attribute]]] unless previous_value == sale_item[attribute]
+    end
+    sale_item.audits.create!(action: "update", audited_changes: changes.to_h, associated: sale_item.sale)
   end
 end

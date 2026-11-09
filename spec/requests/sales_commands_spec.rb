@@ -162,6 +162,12 @@ RSpec.describe "Sales commands" do
       expect(response).to redirect_to(sales_path)
     end
 
+    it "says the pull was queued" do
+      post sale_pull_path(sale)
+
+      expect(flash[:notice]).to include(message: "Queued a new pull of this order from the store. Visit")
+    end
+
     it "does not update the bulk sync timestamp" do
       post sale_pull_path(sale)
 

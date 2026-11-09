@@ -38,11 +38,53 @@ RSpec.describe Webhooks::OrderUpdatesController do
       allow_any_instance_of(described_class).to receive(:verify_webhook).and_return(true)
     end
 
+    it "writes no import failure" do
+      expect {
+        post "/update-order", params: payload.to_json, headers: {"CONTENT_TYPE" => "application/json"}
+      }.not_to change(Sale::ImportFailure, :count)
+    end
+
     it "responds with a server error and rolls the order back", :aggregate_failures do
       post "/update-order", params: payload.to_json, headers: {"CONTENT_TYPE" => "application/json"}
 
       expect(response).to have_http_status(:internal_server_error)
       expect(sale.reload.status).to eq("processing")
+    end
+  end
+
+  context "when a line is skipped because its product was not found" do
+    let(:payload) do
+      JSON.parse(request_body, symbolize_names: true).tap do |order|
+        order[:line_items] = [order[:line_items].first]
+      end
+    end
+    let(:line) { payload[:line_items].first }
+    let(:failure) { Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: payload[:id].to_s) }
+
+    before do
+      create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
+      allow_any_instance_of(described_class).to receive(:verify_webhook).and_return(true)
+      allow(Product::Woo::Importer).to receive(:fetch_and_import).and_return(nil)
+      post "/update-order", params: payload.to_json, headers: {"CONTENT_TYPE" => "application/json"}
+    end
+
+    it "saves the order and records the skipped line", :aggregate_failures do
+      expect(response).to have_http_status(:no_content)
+      expect(failure).to have_attributes(
+        message: "Woo line #{line[:id]} (Woo product #{line[:product_id]}): product not found",
+        sentry_event_id: nil,
+        resolved_at: nil,
+        sale: Sale.find_by_woo_id(payload[:id])
+      )
+    end
+
+    it "resolves the failure when a later delivery imports the line" do
+      product = create(:product, woo_store_id: line[:product_id].to_s)
+      create(:variant, :with_version, product:)
+
+      post "/update-order", params: payload.to_json, headers: {"CONTENT_TYPE" => "application/json"}
+
+      expect(failure.resolved_at).to be_present
     end
   end
 
@@ -67,8 +109,13 @@ RSpec.describe Webhooks::OrderUpdatesController do
       )
 
       allow_any_instance_of(described_class).to receive(:verify_webhook).and_return(true)
+      Sale::ImportFailure.record(store_name: "woo", store_order_id: parsed_order[:sale][:woo_id], message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
 
       post "/update-order", params: request_body, headers: {"CONTENT_TYPE" => "application/json"}
+    end
+
+    it "resolves the order's import failure" do
+      expect(Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: parsed_order[:sale][:woo_id]).resolved_at).to be_present
     end
 
     it "updates a product sale related to the parsed product" do # rubocop:todo RSpec/MultipleExpectations

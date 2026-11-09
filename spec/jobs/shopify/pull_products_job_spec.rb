@@ -60,6 +60,27 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
       expect { job.perform }.to change(Product, :count).by(1)
     end
 
+    context "when a product fails to import" do
+      let(:failed_page) do
+        Shopify::Pull::Page.new(
+          imported_count: 0,
+          next_cursor: nil,
+          failures: [Shopify::Pull::Failure.new(store_id: "gid://shopify/Product/123", message: "boom", failed_at: Time.current)]
+        )
+      end
+
+      before do
+        allow(Product::Shopify::Pull).to receive(:page).and_return(failed_page)
+        allow(Sentry).to receive(:capture_exception)
+      end
+
+      it "reports to Sentry and writes no import failure" do
+        expect { described_class.perform_now }.not_to change(Sale::ImportFailure, :count)
+
+        expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
+      end
+    end
+
     context "when product already exists" do
       before { create(:product, :synced, shopify_id: "gid://shopify/Product/123") }
 

@@ -384,6 +384,89 @@ RSpec.describe Variant::AssignmentRepair do
     end
   end
 
+  describe "#repair_closed_sale_items" do
+    subject(:repair) { described_class.new }
+
+    let(:product) { create(:product) }
+    let(:variant) { create(:variant, :with_color, product:, color_value: "Repair") }
+
+    def broken_line(status:, line_product: product)
+      create(:sale_item, sale: create(:sale, status:), product: line_product).tap do |line|
+        line.update_columns(variant_id: nil)
+      end
+    end
+
+    it "assigns the Variant only to closed orders of the Product" do
+      cancelled = broken_line(status: "cancelled")
+      trashed = broken_line(status: "trash")
+      active = broken_line(status: "processing")
+      completed = broken_line(status: "completed")
+      other_product = broken_line(status: "refunded", line_product: create(:product))
+
+      result = repair.repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
+
+      expect(result).to have_attributes(repaired: 2, skipped: 0, failed: 0)
+      expect([cancelled, trashed].map { |line| line.reload.variant_id }).to all(eq(variant.id))
+      expect([active, completed, other_product].map { |line| line.reload.variant_id }).to all(be_nil)
+    end
+
+    it "skips and counts lines with linked purchases" do
+      linked = broken_line(status: "refunded")
+      unlinked = broken_line(status: "refunded")
+      purchase_item = create(:purchase_item, purchase: create(:purchase, product:, variant:))
+      purchase_item.update_columns(sale_item_id: linked.id)
+
+      result = repair.repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
+
+      expect(result).to have_attributes(repaired: 1, skipped: 1, failed: 0, repaired_sale_ids: [unlinked.sale_id])
+      expect(linked.reload.variant_id).to be_nil
+      expect(unlinked.reload.variant_id).to eq(variant.id)
+      expect(purchase_item.reload.sale_item_id).to eq(linked.id)
+    end
+
+    it "keeps repairing the other lines when one line fails" do
+      failing = broken_line(status: "cancelled")
+      repaired = broken_line(status: "cancelled")
+      allow(integrity).to receive(:broken_sale_item?).and_call_original
+      allow(integrity).to receive(:broken_sale_item?).with(failing.id).and_raise(ActiveRecord::Deadlocked)
+      allow(Sentry).to receive(:capture_exception)
+
+      result = described_class.new(integrity:).repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
+
+      expect(result).to have_attributes(repaired: 1, skipped: 0, failed: 1)
+      expect(repaired.reload.variant_id).to eq(variant.id)
+      expect(failing.reload.variant_id).to be_nil
+      expect(Sentry).to have_received(:capture_exception)
+        .with(an_instance_of(ActiveRecord::Deadlocked), extra: {sale_item_id: failing.id})
+    end
+
+    it "writes an audit of the Variant change without a Slack notification" do
+      allow(Rails.env).to receive_messages(production?: true, staging?: false)
+      line = broken_line(status: "cancelled")
+      variant_id = variant.id
+
+      expect {
+        repair.repair_closed_sale_items(product_id: product.id, variant_id:)
+      }.not_to have_enqueued_job(NotifyAboutRecordChanges)
+
+      expect(line.audits.last).to have_attributes(
+        action: "update",
+        audited_changes: {"variant_id" => [nil, variant_id]},
+        associated: line.sale
+      )
+    end
+
+    it "rejects a Variant of another Product before touching any line" do
+      line = broken_line(status: "cancelled")
+
+      expect {
+        repair.repair_closed_sale_items(product_id: product.id, variant_id: create(:product).base_variant.id)
+      }.to raise_error(described_class::InvalidCandidate)
+
+      expect(line.reload.variant_id).to be_nil
+    end
+  end
+
   def capture_lock_queries
     lock_queries = []
     subscriber = ActiveSupport::Notifications.subscribe(

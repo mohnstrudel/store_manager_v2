@@ -24,6 +24,44 @@ describe("Sales/Index", () => {
     );
   });
 
+  it("links to Broken Sales before Tags when the user can open it", () => {
+    renderIndex();
+
+    const broken = screen.getByRole("link", { name: "Broken" });
+    const tags = screen.getByRole("link", { name: "Tags" });
+
+    expect(broken).toHaveAttribute("href", "/broken_sales");
+    expect(broken.compareDocumentPosition(tags) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("hides Broken Sales from users who cannot open it", () => {
+    renderIndex({ can_view_broken_sales: false });
+
+    expect(screen.queryByRole("link", { name: "Broken" })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    [1, "Broken, 1 problem", "1"],
+    [99, "Broken, 99 problems", "99"],
+    [100, "Broken, 100 problems", "99+"],
+    [225, "Broken, 225 problems", "99+"],
+  ])("badges the Broken link with %i problems", (count, name, badgeText) => {
+    renderIndex({ broken_problem_count: count });
+
+    const broken = screen.getByRole("link", { name });
+    const badge = broken.querySelector(".nav_menu_badge");
+    expect(broken).toHaveAttribute("href", "/broken_sales");
+    expect(badge).toHaveTextContent(badgeText);
+    expect(badge).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("shows no badge on the Broken link when nothing is broken", () => {
+    renderIndex({ broken_problem_count: 0 });
+
+    const broken = screen.getByRole("link", { name: "Broken" });
+    expect(broken.querySelector(".nav_menu_badge")).toBeNull();
+  });
+
   it("renders the sale customer and product title in the table", () => {
     renderIndex();
 
@@ -1058,6 +1096,8 @@ type IndexOptions = {
   filters?: SalesFilters;
   tag_options?: SalesTagRecord[];
   can_tag_sales?: boolean;
+  can_view_broken_sales?: boolean;
+  broken_problem_count?: number | null;
   last_sync_time?: string | null;
   last_sync_at?: string | null;
 };
@@ -1070,12 +1110,16 @@ function indexElement({
   filters = { hide_partial_payments: false, missing_purchases_only: false, tag_id: null },
   tag_options = [],
   can_tag_sales = true,
+  can_view_broken_sales = true,
+  broken_problem_count = 0,
   last_sync_time = "20.05 at 10:00",
   last_sync_at = null,
 }: IndexOptions = {}) {
   return (
     <Index
+      broken_problem_count={broken_problem_count}
       can_tag_sales={can_tag_sales}
+      can_view_broken_sales={can_view_broken_sales}
       filters={filters}
       last_sync_at={last_sync_at}
       last_sync_time={last_sync_time}

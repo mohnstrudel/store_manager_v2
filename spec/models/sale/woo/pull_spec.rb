@@ -53,14 +53,28 @@ RSpec.describe Sale::Woo::Pull, :aggregate_failures do
       expect { described_class.run(id: "404") }.not_to change(Sale, :count)
     end
 
+    it "does not report an order with a skipped line as a failed pull" do
+      skipped_order = first_order.deep_dup
+      skipped_order[:line_items].first[:product_id] = 99
+      allow(client).to receive(:fetch_orders).and_return([skipped_order])
+      allow(Product::Woo::Importer).to receive(:fetch_and_import).and_return(nil)
+
+      expect { described_class.run }.not_to raise_error
+
+      expect(Sale.find_by_woo_id(skipped_order[:id])).to be_present
+      expect(Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: skipped_order[:id].to_s).resolved_at).to be_nil
+    end
+
     it "keeps importing the other orders when the parser rejects one" do
       allow(client).to receive(:fetch_orders).and_return([first_order, unmapped_order, last_order])
 
-      expect { described_class.run }.to raise_error(described_class::Failed) { |error|
-        expect(error.failures).to eq(
-          [described_class::Failure.new(woo_id: 999, message: 'ArgumentError: Unmapped Woo status: "new-status"')]
-        )
-      }
+      freeze_time do
+        expect { described_class.run }.to raise_error(described_class::Failed) { |error|
+          expect(error.failures).to eq(
+            [described_class::Failure.new(woo_id: 999, message: 'ArgumentError: Unmapped Woo status: "new-status"', failed_at: Time.current)]
+          )
+        }
+      end
 
       expect(Sale.find_by_woo_id(111)).to be_present
       expect(Sale.find_by_woo_id(222)).to be_present
@@ -129,7 +143,7 @@ RSpec.describe Sale::Woo::Pull, :aggregate_failures do
 
   describe Sale::Woo::Pull::Failed do
     it "describes at most the first ten failures and keeps them all" do
-      failures = Array.new(12) { |index| Sale::Woo::Pull::Failure.new(woo_id: index, message: "boom #{index}") }
+      failures = Array.new(12) { |index| Sale::Woo::Pull::Failure.new(woo_id: index, message: "boom #{index}", failed_at: Time.current) }
 
       error = described_class.new(failures)
 

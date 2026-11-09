@@ -26,6 +26,7 @@ class Sale::Shopify::Importer
       update_addresses
       update_or_create_sale_items
       sale.allocate_revenue_to_items
+      Sale::ImportFailure.resolve(store_name: "shopify", store_order_id: parsed[:store_info][:store_id])
     end
 
     sale.link_purchase_items

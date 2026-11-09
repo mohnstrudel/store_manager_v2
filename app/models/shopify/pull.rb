@@ -2,7 +2,7 @@
 
 class Shopify::Pull
   Page = Data.define(:imported_count, :next_cursor, :failures)
-  Failure = Data.define(:store_id, :message)
+  Failure = Data.define(:store_id, :message, :failed_at)
 
   class Failed < StandardError
     REPORTED_FAILURES = 10
@@ -42,7 +42,7 @@ class Shopify::Pull
     importer_class.import(parser_class.parse(item))
     true
   rescue *skippable_errors => error
-    failures << Failure.new(store_id: item["id"], message: error.message)
+    failures << Failure.new(store_id: item["id"], message: error.message, failed_at: Time.current)
     false
   end
 

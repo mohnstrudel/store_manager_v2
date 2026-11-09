@@ -1288,6 +1288,108 @@ RSpec.describe "Sales" do
       end
     end
 
+    it "lets admins open Broken Sales" do
+      get sales_path
+
+      expect(inertia.props[:can_view_broken_sales]).to be(true)
+    end
+
+    %i[manager support].each do |role|
+      it "hides Broken Sales from #{role} users" do
+        log_out
+        sign_in create(:user, role)
+
+        get sales_path
+
+        expect(inertia.props[:can_view_broken_sales]).to be(false)
+      end
+    end
+
+    describe "broken problem count" do
+      def break_order(status:)
+        sale = create(:sale, status:)
+        2.times { create(:sale_item, sale:).update_columns(variant_id: nil) }
+      end
+
+      def record_import_failures(count)
+        count.times do |index|
+          Sale::ImportFailure.record(
+            store_name: "woo", store_order_id: "failed-#{index}", message: "Woo order failed",
+            sentry_event_id: nil, failed_at: Time.current
+          )
+        end
+      end
+
+      it "totals every Broken Sales tab count for admins" do
+        integrity = instance_double(
+          Variant::AssignmentIntegrity,
+          counts: {sale_items: 81, purchases: 44, purchase_item_links: 0, sku_collisions: 96, shopify_conflicts: 1}
+        )
+        allow(Variant::AssignmentIntegrity).to receive(:new).and_return(integrity)
+        record_import_failures(3)
+
+        get sales_path
+
+        expect(inertia.props[:broken_problem_count]).to eq(225)
+      end
+
+      it "matches the sum of the tab counts on Broken Sales" do
+        break_order(status: "processing")
+        break_order(status: "cancelled")
+        create(:purchase).update_columns(variant_id: nil)
+        record_import_failures(2)
+
+        get broken_sales_path
+        tab_total = inertia.props[:counts].values.sum
+        get sales_path
+
+        expect(tab_total).to eq(7)
+        expect(inertia.props[:broken_problem_count]).to eq(tab_total)
+      end
+
+      it "keeps the count for 1 minute" do
+        allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+        record_import_failures(1)
+        get sales_path
+
+        break_order(status: "processing")
+        get sales_path
+        expect(inertia.props[:broken_problem_count]).to eq(1)
+
+        travel 61.seconds
+        get sales_path
+        expect(inertia.props[:broken_problem_count]).to eq(3)
+      end
+
+      it "serves fresh props when the count changes" do
+        sale.update_columns(updated_at: 1.day.ago)
+        get sales_path
+        old_etag = response.headers["ETag"]
+
+        record_import_failures(1)
+        get sales_path, headers: {"If-None-Match" => old_etag}
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia.props[:broken_problem_count]).to eq(1)
+      end
+
+      %i[manager support].each do |role|
+        it "neither sends nor counts for #{role} users" do
+          log_out
+          sign_in create(:user, role)
+          break_order(status: "processing")
+          allow(Variant::AssignmentIntegrity).to receive(:new).and_call_original
+          allow(Sale::ImportFailure).to receive(:unresolved).and_call_original
+
+          get sales_path
+
+          expect(inertia.props[:broken_problem_count]).to be_nil
+          expect(Variant::AssignmentIntegrity).not_to have_received(:new)
+          expect(Sale::ImportFailure).not_to have_received(:unresolved)
+        end
+      end
+    end
+
     describe "conditional requests" do
       before do
         sale.update_columns(updated_at: 1.day.ago)

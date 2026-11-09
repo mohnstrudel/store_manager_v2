@@ -20,13 +20,15 @@ class Variant::Woo::Importer
 
   def import
     variant = find_or_create_variant
-    sync_woo_info(variant)
+    sync_woo_info(variant) if variant
     variant
   end
 
   private
 
   def find_or_create_variant
+    return product.variants.where_woo_ids(parsed_variant[:woo_id]).first if parsed_variant[:options].blank?
+
     options = prepared_options
 
     Variant.find_by_woo_id(parsed_variant[:woo_id]) ||
