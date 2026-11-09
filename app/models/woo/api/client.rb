@@ -3,10 +3,8 @@
 module Woo
   module Api
     class Client
-      CONSUMER_KEY = Rails.application.credentials.dig(:woo_api, :user) || ENV.fetch("WOO_API_USER", "")
-      CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api, :pass) || ENV.fetch("WOO_API_PASS", "")
-      WRITE_CONSUMER_KEY = Rails.application.credentials.dig(:woo_api_write, :user)
-      WRITE_CONSUMER_SECRET = Rails.application.credentials.dig(:woo_api_write, :pass)
+      CONSUMER_KEY = ENV.fetch("WOO_API_USER", "")
+      CONSUMER_SECRET = ENV.fetch("WOO_API_PASS", "")
       PER_PAGE = 100
       ORDERS_URL = "https://store.handsomecake.com/wp-json/wc/v3/orders/"
       PRODUCTS_URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
@@ -34,8 +32,8 @@ module Woo
           "#{ORDERS_URL}#{order_id}",
           body: {status:},
           basic_auth: {
-            username: WRITE_CONSUMER_KEY,
-            password: WRITE_CONSUMER_SECRET
+            username: CONSUMER_KEY,
+            password: CONSUMER_SECRET
           }
         )
       end

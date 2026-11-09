@@ -11,8 +11,8 @@ RSpec.describe Webhooks::OrderUpdatesController do
   }
 
   it "rejects a payload with a wrong signature without importing it" do
-    allow(Rails.application.credentials).to receive(:dig).and_call_original
-    allow(Rails.application.credentials).to receive(:dig).with(:hooks, :order).and_return("order-secret")
+    allow(ENV).to receive(:fetch).and_call_original
+    allow(ENV).to receive(:fetch).with("WOO_WEBHOOK_SECRET").and_return("order-secret")
 
     expect {
       post "/update-order", params: request_body, headers: {"CONTENT_TYPE" => "application/json", "x-wc-webhook-signature" => "wrong"}

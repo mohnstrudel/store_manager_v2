@@ -14,7 +14,7 @@ module Webhooks
     private
 
     def ensure_webhook_is_verified
-      head :unauthorized unless verify_webhook(Rails.application.credentials.dig(:hooks, :order))
+      head :unauthorized unless verify_webhook(ENV.fetch("WOO_WEBHOOK_SECRET"))
     end
 
     def authorize_resource

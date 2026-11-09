@@ -83,7 +83,7 @@ RSpec.describe Woo::Api::Client do
   end
 
   describe "#update_order_status" do
-    it "posts the status with the write credentials" do
+    it "posts the status with the API credentials" do
       allow(HTTParty).to receive(:post)
 
       client.update_order_status("4321", "completed")
@@ -92,8 +92,8 @@ RSpec.describe Woo::Api::Client do
         "#{described_class::ORDERS_URL}4321",
         body: {status: "completed"},
         basic_auth: {
-          username: described_class::WRITE_CONSUMER_KEY,
-          password: described_class::WRITE_CONSUMER_SECRET
+          username: described_class::CONSUMER_KEY,
+          password: described_class::CONSUMER_SECRET
         }
       )
     end

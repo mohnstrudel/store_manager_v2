@@ -6,7 +6,7 @@ module Seal
       class ApiError < StandardError; end
 
       BASE_URL = "https://app.sealsubscriptions.com/shopify/merchant/api/"
-      TOKEN = Rails.application.credentials.dig(:seal_subscriptions, :token) || ENV.fetch("SEAL_SUBSCRIPTIONS_API_TOKEN", "")
+      TOKEN = ENV.fetch("SEAL_SUBSCRIPTIONS_API_TOKEN", "")
       PER_PAGE = 50
 
       class << self
