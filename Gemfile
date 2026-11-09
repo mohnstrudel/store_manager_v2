@@ -31,6 +31,7 @@ gem "vite_rails"
 gem "inertia_rails"
 gem "aws-sdk-s3", require: false
 gem "shopify_app"
+gem "ostruct"
 gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
