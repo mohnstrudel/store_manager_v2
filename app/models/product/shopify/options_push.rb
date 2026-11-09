@@ -22,7 +22,7 @@ class Product::Shopify::OptionsPush
   end
 
   def call
-    serialized_options = serialize_options(existing_option_names)
+    serialized_options = serialize_options(existing_dimensions)
 
     if serialized_options.any?
       options_response = client.create_product_options(product_store_id, serialized_options)
@@ -36,9 +36,9 @@ class Product::Shopify::OptionsPush
 
   private
 
-  def serialize_options(shopify_option_names)
-    {size: product.sizes, version: product.versions, color: product.colors}.filter_map do |type, collection|
-      next if collection.none? || (Variant::Shopify::OPTION_NAMES[type] & shopify_option_names).any?
+  def serialize_options(existing_dimensions)
+    {size: product.sizes, version: product.versions, color: product.colors}.filter_map do |dimension, collection|
+      next if collection.none? || existing_dimensions.include?(dimension)
 
       serialize_option(collection)
     end
@@ -52,9 +52,9 @@ class Product::Shopify::OptionsPush
     }
   end
 
-  def existing_option_names
+  def existing_dimensions
     selected_options = client.fetch_product(product_store_id)&.dig("variants", "edges", 0, "node", "selectedOptions")
-    selected_options.to_a.pluck("name")
+    selected_options.to_a.filter_map { |option| Variant::Shopify.dimension_for(option["name"]) }
   end
 
   def update_options_shopify_info(shopify_options)

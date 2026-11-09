@@ -258,6 +258,33 @@ RSpec.describe Product::Shopify::OptionsPush do
       end
     end
 
+    context "when the Shopify product already has an option whose name no dimension lists" do
+      let(:custom_option_payload) do
+        {
+          "variants" => {
+            "edges" => [
+              {"node" => {"selectedOptions" => [{"name" => "Bonus Version", "value" => "Gold"}]}}
+            ]
+          }
+        }
+      end
+
+      before do
+        product_size
+        product_version
+        allow(api_client).to receive(:fetch_product).with(shopify_product_id).and_return(custom_option_payload)
+        allow(api_client).to receive(:create_product_options)
+          .and_return({"options" => [], "variants" => {"nodes" => []}})
+      end
+
+      it "counts it as the Version option and pushes only the other dimensions" do
+        described_class.call(product_id:, product_store_id: shopify_product_id)
+
+        expect(api_client).to have_received(:create_product_options)
+          .with(shopify_product_id, [{name: "Size", values: [{name: "Large"}]}])
+      end
+    end
+
     context "when product has no options" do
       it "does not call create_product_options" do
         described_class.call(product_id:, product_store_id: shopify_product_id)

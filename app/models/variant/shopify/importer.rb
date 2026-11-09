@@ -83,14 +83,14 @@ class Variant::Shopify::Importer
     return attributes if parsed[:is_single_variant]
 
     parsed[:options].each do |option|
-      case option[:name]
-      when *Variant::Shopify::OPTION_NAMES[:color]
+      case Variant::Shopify.dimension_for(option[:name])
+      when :color
         attributes[:color] = Color.find_or_create_by(value: option[:value])
         product.colors |= [attributes[:color]]
-      when *Variant::Shopify::OPTION_NAMES[:size]
+      when :size
         attributes[:size] = Size.find_or_create_by(value: option[:value])
         product.sizes |= [attributes[:size]]
-      when *Variant::Shopify::OPTION_NAMES[:version]
+      when :version
         attributes[:version] = Version.find_or_create_by(value: option[:value])
         product.versions |= [attributes[:version]]
       end

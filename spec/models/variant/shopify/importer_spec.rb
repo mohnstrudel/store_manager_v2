@@ -301,75 +301,32 @@ RSpec.describe Variant::Shopify::Importer do
       end
     end
 
-    context "with Scale option" do
-      let(:parsed_variant_with_scale) do
-        {
-          store_id: "gid://shopify/ProductVariant/12345",
-          options: [
-            {name: "Scale", value: "1:4"}
-          ]
-        }
-      end
+    context "with option names" do
+      {
+        "Color" => :color,
+        "Size" => :size,
+        "Scale" => :size,
+        "Version" => :version,
+        "Edition" => :version,
+        "Variant" => :version,
+        "Variante" => :version,
+        "Variants" => :version,
+        "Bonus Version" => :version,
+        "Purchase Options" => :version,
+        "Edition:" => :version,
+        "A" => :version,
+        "Editon" => :version,
+        "Title" => nil
+      }.each do |option_name, dimension|
+        it "maps #{option_name.inspect} to #{dimension.inspect}" do
+          variant = described_class.import(
+            product,
+            {store_id: "gid://shopify/ProductVariant/12345", options: [{name: option_name, value: "Gold"}]}
+          )
 
-      it "maps Scale option to Size" do
-        described_class.import(product, parsed_variant_with_scale)
-
-        variant = Variant.last
-        expect(variant.size.value).to eq("1:4")
-      end
-    end
-
-    context "with Variant option" do
-      let(:parsed_variant_with_variant) do
-        {
-          store_id: "gid://shopify/ProductVariant/12345",
-          options: [
-            {name: "Variant", value: "Limited"}
-          ]
-        }
-      end
-
-      it "maps Variant option to Version" do
-        described_class.import(product, parsed_variant_with_variant)
-
-        variant = Variant.last
-        expect(variant.version.value).to eq("Limited")
-      end
-    end
-
-    context "with Variante option (German)" do
-      let(:parsed_variant_with_variante) do
-        {
-          store_id: "gid://shopify/ProductVariant/12345",
-          options: [
-            {name: "Variante", value: "Deutsch"}
-          ]
-        }
-      end
-
-      it "maps Variante option to Version" do
-        described_class.import(product, parsed_variant_with_variante)
-
-        variant = Variant.last
-        expect(variant.version.value).to eq("Deutsch")
-      end
-    end
-
-    context "with Variants option (English plural)" do
-      let(:parsed_variant_with_variants) do
-        {
-          store_id: "gid://shopify/ProductVariant/12345",
-          options: [
-            {name: "Variants", value: "Standard"}
-          ]
-        }
-      end
-
-      it "maps Variants option to Version" do
-        described_class.import(product, parsed_variant_with_variants)
-
-        variant = Variant.last
-        expect(variant.version.value).to eq("Standard")
+          imported = {color: variant.color, size: variant.size, version: variant.version}.compact.transform_values(&:value)
+          expect(imported).to eq(dimension ? {dimension => "Gold"} : {})
+        end
       end
     end
 
@@ -411,6 +368,19 @@ RSpec.describe Variant::Shopify::Importer do
         expect(Variant.last.size).to be_nil
         expect(Variant.last.color).to be_nil
         expect(Variant.last.title).to eq("Base Model")
+      end
+
+      context "when its option has a name no dimension lists" do
+        let(:parsed_single_variant) do
+          super().merge(options: [{name: "Bonus Version", value: "Gold"}])
+        end
+
+        it "still maps to the base variant" do
+          result = described_class.import(product, parsed_single_variant)
+
+          expect(result).to eq(product.base_variant)
+          expect(result.version).to be_nil
+        end
       end
 
       context "when the product already has a base variant without Shopify linkage" do
@@ -792,6 +762,23 @@ RSpec.describe Variant::Shopify::Importer do
         described_class.import_all(product, parsed_variants)
 
         expect(VariantImportConflict.pluck(:store_id)).to eq(["gid://shopify/ProductVariant/2"])
+      end
+    end
+
+    context "when the variants differ only by an option name no dimension lists" do
+      let(:parsed_variants) do
+        [
+          {store_id: "gid://shopify/ProductVariant/1", sku: "gold", options: [{name: "Bonus Version", value: "Gold"}]},
+          {store_id: "gid://shopify/ProductVariant/2", sku: "red", options: [{name: "Bonus Version", value: "Red"}]}
+        ]
+      end
+
+      it "imports each as its own Version variant and records no conflict" do
+        described_class.import_all(product, parsed_variants)
+
+        expect(product.variants.real.to_h { |variant| [variant.shopify_info.store_id, variant.version&.value] })
+          .to eq("gid://shopify/ProductVariant/1" => "Gold", "gid://shopify/ProductVariant/2" => "Red")
+        expect(VariantImportConflict.count).to eq(0)
       end
     end
   end
