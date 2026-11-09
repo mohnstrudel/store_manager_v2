@@ -36,7 +36,7 @@ class SaleItem < ApplicationRecord
   include Titled
   include VariantAssignment
 
-  audited associated_with: :sale
+  audited associated_with: :sale, except: :shopify_variant_id
   validate :validate_unique_woo_store_id
 
   db_belongs_to :product, inverse_of: :sale_items

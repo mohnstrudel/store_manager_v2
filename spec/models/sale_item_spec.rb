@@ -144,5 +144,12 @@ RSpec.describe SaleItem do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true
     end
+
+    it "writes no audit when only the Shopify variant ID changes" do
+      sale_item = create(:sale_item)
+
+      expect { sale_item.update!(shopify_variant_id: "gid://shopify/ProductVariant/1") }
+        .not_to change { sale_item.audits.count }
+    end
   end
 end
