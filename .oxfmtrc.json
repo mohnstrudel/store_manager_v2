@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "sortImports": true,
-  "ignorePatterns": ["app/frontend/api/**/*"],
+  "ignorePatterns": ["app/frontend/api/**/*", "app/frontend/types/serializers/**/*"],
   "printWidth": 100
 }

@@ -1,3 +1,4 @@
 [tools]
 ruby = "4.0.7"
 node = "24"
+gitleaks = "8.30.1"

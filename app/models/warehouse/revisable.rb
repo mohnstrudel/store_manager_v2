@@ -1,0 +1,70 @@
+# frozen_string_literal: true
+
+module Warehouse::Revisable
+  extend ActiveSupport::Concern
+
+  TRANSITIONS_UPDATED = :transitions_updated
+  WAREHOUSE_UPDATED = :warehouse_updated
+
+  def record(attributes, new_media_images:)
+    transaction do
+      assign_attributes(form_attributes(attributes))
+      validate_default_warehouse_choice
+      save!
+      add_media(new_media_images)
+      sync_transitions(transition_ids_for(attributes))
+    end
+  end
+
+  def revise(attributes:, transition_ids:, media_attributes:, new_media_images:)
+    transaction do
+      if transitions_only_update?(attributes)
+        sync_transitions(transition_ids)
+        TRANSITIONS_UPDATED
+      else
+        assign_attributes(form_attributes(attributes))
+        validate_default_warehouse_choice
+        save!
+        update_media(media_attributes)
+        add_media(new_media_images)
+        sync_transitions(transition_ids)
+        WAREHOUSE_UPDATED
+      end
+    end
+  end
+
+  def move_to_position(position)
+    update!(position:)
+  end
+
+  private
+
+  def form_attributes(attributes)
+    attributes.except(:to_warehouse_ids, "to_warehouse_ids")
+  end
+
+  def validate_default_warehouse_choice
+    return unless blocking_default_warehouse
+
+    errors.add(:is_default, :conflict)
+    raise ActiveRecord::RecordInvalid, self
+  end
+
+  def blocking_default_warehouse
+    @blocking_default_warehouse ||= find_blocking_default_warehouse
+  end
+
+  def find_blocking_default_warehouse
+    return unless is_default?
+
+    self.class.where(is_default: true).where.not(id: id).first
+  end
+
+  def transition_ids_for(attributes)
+    attributes[:to_warehouse_ids] || attributes["to_warehouse_ids"]
+  end
+
+  def transitions_only_update?(attributes)
+    attributes.keys.map(&:to_s) == ["to_warehouse_ids"]
+  end
+end

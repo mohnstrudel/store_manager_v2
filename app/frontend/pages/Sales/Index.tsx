@@ -5,26 +5,15 @@ import PageHeader from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import SearchResultsEmpty from "@/components/SearchResultsEmpty";
 import SyncModal from "@/components/SyncModal";
-import type { SalesTagColor, SalesTagRecord } from "@/types/salesTag";
+import type { SalesIndex } from "@/types/serializers";
 import routes from "@/utils/routes";
 import { useModalVisibility } from "@/utils/useModalVisibility";
 
 import { hasFilters, listingParams } from "./Index/salesListing";
 import SearchForm from "./Index/SearchForm";
 import Table from "./Index/Table";
-import type { PaginationMeta, SaleIndexRecord, SaleSort, SalesFilters } from "./types";
 
-type IndexProps = {
-  sales: SaleIndexRecord[];
-  pagination: PaginationMeta;
-  search: { q: string };
-  sort: SaleSort;
-  filters: SalesFilters;
-  tag_options: SalesTagRecord[];
-  tag_colors: SalesTagColor[];
-  can_tag_sales: boolean;
-  last_sync_time: string | null;
-};
+type IndexProps = SalesIndex;
 
 export default function Index({
   sales,
@@ -79,17 +68,18 @@ export default function Index({
       )}
 
       <section className="section_border_base section_wide">
-        <div className="page_search lg:items-start">
+        <div className="page_search">
           <SearchForm
             filters={filters}
             q={search.q}
             sort={sort}
             tagColors={tag_colors}
             tagOptions={tag_options}
-          />
-          <div className="pagination_top lg:min-w-0 lg:shrink-0 lg:pt-0.5">
-            <Pagination pagination={pagination} params={appliedParams} path={salesPath} />
-          </div>
+          >
+            <div className="pagination_top lg:min-w-0">
+              <Pagination pagination={pagination} params={appliedParams} path={salesPath} />
+            </div>
+          </SearchForm>
         </div>
 
         {hasSales ? (

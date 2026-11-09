@@ -2,15 +2,12 @@ import { Link } from "@inertiajs/react";
 import { FileTextIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import type { UsersEdit } from "@/types/serializers";
 import routes from "@/utils/routes";
 
-import Form, { type UserFormValues } from "./components/Form";
+import Form from "./components/Form";
 
-type EditProps = {
-  is_admin: boolean;
-  role_options: [string, string][];
-  user: UserFormValues;
-};
+type EditProps = UsersEdit;
 
 export default function Edit({ is_admin, role_options, user }: EditProps) {
   const currentUserPath = routes.users.show.path({ id: user.id });

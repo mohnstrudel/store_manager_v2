@@ -1,0 +1,34 @@
+# frozen_string_literal: true
+
+module Sale::Linkable
+  extend ActiveSupport::Concern
+
+  included do
+    scope :with_missing_purchases, -> {
+      where(id: SaleItem.short_of_purchases.select(:sale_id)).without_follow_up_payments
+    }
+  end
+
+  def link_purchase_items
+    return unless active? || completed?
+
+    PurchaseItem.link_available_to_sale_items(
+      sale_items: sale_items.linkable.order(:id).to_a
+    )
+  end
+
+  def unlinked_sale_items?
+    total_sold = sale_items.non_installment.sum(:qty)
+    total_purchased = sale_items.sum { |sale_item| sale_item.purchase_items.size }
+
+    return false if total_sold == total_purchased
+
+    identities = sale_items.non_installment.pluck(:product_id, :variant_id)
+
+    identities.any? do |product_id, variant_id|
+      PurchaseItem
+        .available_for_product_linking(product_id)
+        .exists?(variant_id:)
+    end
+  end
+end

@@ -32,6 +32,22 @@ RSpec.describe Config do
     end
   end
 
+  describe ".current" do
+    it "creates the single config row on first use and reuses it" do
+      described_class.delete_all
+
+      expect { described_class.current }.to change(described_class, :count).from(0).to(1)
+      expect { described_class.current }.not_to change(described_class, :count)
+    end
+
+    it "reads settings written by another process" do
+      described_class.disable_sales_hook
+      described_class.find(described_class.current.id).update!(sales_hook_status: :active)
+
+      expect(described_class.sales_hook_disabled?).to be false
+    end
+  end
+
   describe "auditing" do
     it "is audited" do
       expect(described_class.auditing_enabled).to be true

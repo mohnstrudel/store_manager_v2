@@ -4,11 +4,10 @@ import type { ReactNode } from "react";
 import Button from "@/components/Button";
 import FormInput from "@/components/FormInput";
 import AuthLayout from "@/layouts/AuthLayout";
+import type { EmailAddressPrefill } from "@/types/serializers";
 import routes from "@/utils/routes";
 
-type ForgotPasswordProps = {
-  email_address?: string | null;
-};
+type ForgotPasswordProps = EmailAddressPrefill;
 
 export default function New({ email_address }: ForgotPasswordProps) {
   return (

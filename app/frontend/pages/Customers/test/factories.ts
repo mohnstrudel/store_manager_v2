@@ -1,17 +1,16 @@
-import type { CustomerDetailRecord, CustomerRecord, SaleRecord } from "../types";
+import type {
+  CustomerDetailRecord,
+  CustomerFormRecord,
+  CustomerRecord,
+  SaleRecord,
+} from "../types";
 
-export function makeCustomerForm(overrides: Partial<CustomerRecord> = {}): CustomerRecord {
+export function makeCustomerForm(overrides: Partial<CustomerFormRecord> = {}): CustomerFormRecord {
   return {
-    id: null,
-    first_name: "",
-    last_name: "",
-    full_name: "",
-    email: "",
-    phone: "",
-    woo_store_id: "",
-    created_at: null,
-    updated_at: null,
-    path: "/customers/new",
+    first_name: null,
+    last_name: null,
+    email: null,
+    phone: null,
     ...overrides,
   };
 }

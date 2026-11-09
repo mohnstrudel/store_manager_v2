@@ -10,8 +10,8 @@
 #  updated_at :datetime         not null
 #
 class Franchise < ApplicationRecord
-  include HasAuditNotifications
-  include ProductTitling
+  include AuditNotifiable
+  include ProductTitlePart
 
   audited
   has_associated_audits
@@ -19,4 +19,10 @@ class Franchise < ApplicationRecord
   validates :title, presence: true
 
   has_many :products, dependent: :destroy, inverse_of: :franchise
+
+  private
+
+  def titled_products
+    products
+  end
 end

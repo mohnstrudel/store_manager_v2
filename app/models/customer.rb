@@ -15,9 +15,8 @@
 #  woo_id     :string
 #
 class Customer < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
   include Identity
-  include Listing
   include Searchable
   include Shopable
 
@@ -34,9 +33,7 @@ class Customer < ApplicationRecord
 
   has_many :sales, dependent: :destroy, inverse_of: :customer
 
-  normalizes :email, with: ->(email) { email&.downcase }
+  scope :with_woo_info, -> { includes(:woo_info) }
 
-  def self.woo_id_is_valid?(woo_id)
-    !woo_id.in? [0, "0", ""]
-  end
+  normalizes :email, with: ->(email) { email&.downcase }
 end

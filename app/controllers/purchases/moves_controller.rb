@@ -7,7 +7,7 @@ module Purchases
     def create
       moved_count = Purchase.friendly
         .where(id: purchase_ids_for_movement)
-        .sum { |purchase| purchase.move_to_warehouse!(params.expect(:destination_id)) }
+        .sum { |purchase| purchase.move_to_warehouse(params.expect(:destination_id)) }
 
       flash_movement_notice(moved_count, Warehouse.find(params.expect(:destination_id)))
       redirect_after_purchase_move

@@ -4,11 +4,10 @@ import type { ReactNode } from "react";
 import Button from "@/components/Button";
 import FormInput from "@/components/FormInput";
 import AuthLayout from "@/layouts/AuthLayout";
+import type { PasswordsEdit } from "@/types/serializers";
 import routes from "@/utils/routes";
 
-type ResetPasswordProps = {
-  token: string;
-};
+type ResetPasswordProps = PasswordsEdit;
 
 export default function Edit({ token }: ResetPasswordProps) {
   return (

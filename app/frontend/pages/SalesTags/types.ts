@@ -1,28 +1,18 @@
-import type { SalesTagRecord } from "@/types/salesTag";
+import type {
+  SalesTagsCatalog,
+  SalesTagsDetail,
+  SalesTagsIndex,
+  SalesTagsSale,
+} from "@/types/serializers";
 
-export type SalesTagCatalogRecord = SalesTagRecord & {
-  usage_count: number;
-};
+export type SalesTagCatalogRecord = SalesTagsCatalog;
 
-export type SalesTagDraft = Pick<SalesTagRecord, "name" | "color">;
+export type SalesTagFormRecord = NonNullable<SalesTagsIndex["sales_tag"]>;
 
-export type SalesTagFormRecord = SalesTagDraft & {
-  id: number | null;
-};
+export type SalesTagDraft = Pick<SalesTagFormRecord, "name" | "color">;
 
-export type SalesTagSaleItem = {
-  id: number;
-  title: string;
-  product_thumb_url: string | null;
-};
+export type SalesTagSaleItem = SalesTagsSale["items"][number];
 
-export type SalesTagSaleLink = {
-  id: number;
-  path: string;
-  label: string;
-  items: SalesTagSaleItem[];
-};
+export type SalesTagSaleLink = SalesTagsSale;
 
-export type SalesTagDetailRecord = SalesTagRecord & {
-  sales: SalesTagSaleLink[];
-};
+export type SalesTagDetailRecord = SalesTagsDetail;

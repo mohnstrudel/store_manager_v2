@@ -24,16 +24,13 @@ class Purchase < ApplicationRecord
   attribute :warehouse_id, :integer
   attribute :payment_value, :decimal
 
-  include Creation
-  include Editing
   include Financials
-  include HasAuditNotifications
-  include Linking
-  include Listing
+  include AuditNotifiable
+  include Linkable
+  include Placeable
   include Searchable
   include Warehousing
-  include Titling
-  include Updating
+  include Titled
   include VariantAssignment
 
   extend FriendlyId
@@ -64,14 +61,34 @@ class Purchase < ApplicationRecord
   belongs_to :product, optional: true, inverse_of: :purchases
   belongs_to :variant, optional: true, inverse_of: :purchases
 
-  has_many :payments, dependent: :destroy, inverse_of: :purchase
   has_many :purchase_items, dependent: :destroy, inverse_of: :purchase
-  has_many :purchase_expenses, through: :purchase_items
-  has_many :warehouses, through: :purchase_items
 
   has_many :sizes, through: :variant
   has_many :versions, through: :variant
   has_many :colors, through: :variant
+
+  scope :preloaded_with_item_warehouses, -> {
+    includes(
+      :supplier,
+      :payments,
+      {product: {media: {image_attachment: :blob}}},
+      purchase_items: [:warehouse],
+      variant: [:color, :size, :version]
+    )
+  }
+
+  scope :with_product_payments_and_variant, -> {
+    includes(:product, :payments, variant: [:color, :size, :version])
+  }
+
+  scope :preloaded, -> {
+    includes(
+      :supplier,
+      :payments,
+      {product: {media: {image_attachment: :blob}}},
+      variant: [:color, :size, :version]
+    )
+  }
 
   private
 

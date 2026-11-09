@@ -6,12 +6,12 @@ import {scanCssComments} from "./css-comments.js";
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(TOOL_DIR, "../../..");
-const GENERATED_PREFIX = "app/frontend/api/";
+const GENERATED_PREFIXES = ["app/frontend/api/", "app/frontend/types/serializers/"];
 const TEST_FILE_RE = /\.test\.tsx?$/;
 const TEST_DIR_RE = /(^|\/)test\//;
 
 export function isGeneratedPath(relativePath) {
-  return relativePath.startsWith(GENERATED_PREFIX);
+  return GENERATED_PREFIXES.some((prefix) => relativePath.startsWith(prefix));
 }
 
 export function isTestPath(relativePath) {

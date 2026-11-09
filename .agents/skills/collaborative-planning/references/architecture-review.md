@@ -21,7 +21,7 @@ Use this reference for work that changes a public contract, persistence, lifecyc
 ## Public Contracts
 
 - Map every public field or capability to a concrete flow, its implementing owner, and whether the flow exposes it now, later, or never.
-- Keep contracts narrow by capability and caller need. Factor truly identical shared meaning instead of forcing unrelated behavior into a broad contract.
+- Keep contracts narrow by capability and caller need. Factor identical shared meaning instead of forcing unrelated behavior into a broad contract.
 - Settle names, payloads, results, errors, normalization, idempotency, and acknowledgement or broadcast behavior before documenting or implementing an integration contract.
 
 ## Review Gate

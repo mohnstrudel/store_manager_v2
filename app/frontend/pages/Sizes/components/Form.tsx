@@ -4,11 +4,11 @@ import { getFormString } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 
-import { SizeRecord } from "../types";
+import { SizeFormRecord } from "../types";
 
 type SizeFormProps = {
   method: "post" | "patch";
-  size: SizeRecord;
+  size: SizeFormRecord;
   submitLabel: string;
   url: string;
 };

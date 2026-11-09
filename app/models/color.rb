@@ -10,7 +10,7 @@
 #  updated_at :datetime         not null
 #
 class Color < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
 

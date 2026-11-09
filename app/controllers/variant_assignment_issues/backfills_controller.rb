@@ -6,7 +6,7 @@ module VariantAssignmentIssues
 
     def create
       Variant::AssignmentBackfillJob.perform_later
-      set_jobs_status_notice!
+      set_jobs_status_notice
 
       redirect_to variant_assignment_issues_path
     end

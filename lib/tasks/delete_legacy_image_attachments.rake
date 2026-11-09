@@ -3,7 +3,7 @@
 desc "Queue cleanup of safe legacy `images` attachments and their purge-candidate blobs."
 task delete_legacy_image_attachments: :environment do
   begin
-    result = Media::LegacyAttachments::Cleanup.enqueue!
+    result = Media::LegacyAttachments::Cleanup.enqueue
   rescue Media::LegacyAttachments::Cleanup::Blocked => e
     abort "Refusing: #{e.message}. Run backfill_legacy_media_images first."
   end

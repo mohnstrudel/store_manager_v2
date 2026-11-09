@@ -82,7 +82,7 @@ export default function Table({ sales, sort, tagColors, tagOptions, canTagSales 
                       {sale.active || sale.completed ? (
                         <PurchasedSoldRatio
                           purchased={saleItem.purchased_count}
-                          sold={saleItem.qty}
+                          sold={saleItem.qty ?? 0}
                         />
                       ) : null}
                       {saleItem.title}

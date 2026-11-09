@@ -24,10 +24,8 @@ export default function Table({ sizes }: TableProps) {
       </thead>
       <tbody>
         {sizes.map((size) => {
-          const showPath =
-            size.id === null ? routes.sizes.index.path() : routes.sizes.show.path({ id: size.id });
-          const editPath =
-            size.id === null ? routes.sizes.new.path() : routes.sizes.edit.path({ id: size.id });
+          const showPath = routes.sizes.show.path({ id: size.id });
+          const editPath = routes.sizes.edit.path({ id: size.id });
 
           return (
             <tr className="hoverable" key={size.id} {...rowNavigationProps(showPath)}>

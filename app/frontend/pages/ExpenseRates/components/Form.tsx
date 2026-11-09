@@ -4,10 +4,10 @@ import ResourceForm from "@/components/ResourceForm";
 import { getFormString } from "@/utils/formSchema";
 import { msg } from "@/utils/validationMessages";
 
-import { ExpenseRateRecord } from "../types";
+import { ExpenseRateFormRecord } from "../types";
 
 type ExpenseRateFormProps = {
-  expenseRate: ExpenseRateRecord;
+  expenseRate: ExpenseRateFormRecord;
   method: "post" | "patch";
   submitLabel: string;
   url: string;

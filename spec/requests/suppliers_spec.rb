@@ -119,7 +119,7 @@ RSpec.describe "Suppliers" do
       expect_inertia.to render_component("Suppliers/New")
       expect_inertia.to have_props(
         errors: {title: "can't be blank"},
-        supplier: {created_at: nil, id: nil, updated_at: nil, title: ""}
+        supplier: {title: ""}
       )
     end
   end

@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Products Sync API" do
-  let(:product) { create(:product) }
+  let(:product) { create(:product, :synced) }
 
   before do
     sign_in_as_admin
@@ -105,7 +105,7 @@ RSpec.describe "Products Sync API" do
 
     context "when product is not published to Shopify" do
       let(:unpublished_product) do
-        record = create(:product)
+        record = create(:product, :synced)
         record.shopify_info.update!(store_id: nil)
         record
       end
@@ -126,6 +126,29 @@ RSpec.describe "Products Sync API" do
         expect(response).to redirect_to(product_path(unpublished_product))
         expect(flash[:notice]).to eq("Product is being pushed to Shopify")
       end
+    end
+  end
+
+  describe "missing products" do
+    before do
+      allow(Shopify::PullProductJob).to receive(:perform_later)
+      allow(Shopify::UpdateProductJob).to receive(:perform_later)
+      allow(Shopify::CreateProductJob).to receive(:perform_later)
+    end
+
+    it "returns 404 and enqueues nothing when pulling a product that does not exist", :aggregate_failures do
+      post product_shopify_pull_path(0)
+
+      expect(response).to have_http_status(:not_found)
+      expect(Shopify::PullProductJob).not_to have_received(:perform_later)
+    end
+
+    it "returns 404 and enqueues nothing when pushing a product that does not exist", :aggregate_failures do
+      post product_shopify_push_path(0)
+
+      expect(response).to have_http_status(:not_found)
+      expect(Shopify::UpdateProductJob).not_to have_received(:perform_later)
+      expect(Shopify::CreateProductJob).not_to have_received(:perform_later)
     end
   end
 end

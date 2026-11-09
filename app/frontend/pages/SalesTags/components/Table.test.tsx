@@ -65,6 +65,10 @@ describe("SalesTags/Table", () => {
     await user.clear(filter);
 
     expect(bodyRows()).toHaveLength(2);
+    expect(router.get).not.toHaveBeenCalled();
+    expect(router.visit).not.toHaveBeenCalled();
+    expect(router.push).not.toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalled();
   });
 
   it("says when no tag matches the filter", async () => {

@@ -3,15 +3,15 @@
 class Variant::AssignmentContractionGate
   IntegrityError = Class.new(StandardError)
 
-  def self.verify!
-    new.verify!
+  def self.verify
+    new.verify
   end
 
   def initialize(integrity: Variant::AssignmentIntegrity.new)
     @integrity = integrity
   end
 
-  def verify!
+  def verify
     snapshot = counts
     return snapshot if snapshot.values.all?(&:zero?)
 

@@ -2,10 +2,10 @@ import PageHeader from "@/components/PageHeader";
 import routes from "@/utils/routes";
 
 import Form from "./components/Form";
-import { BrandRecord } from "./types";
+import { BrandFormRecord } from "./types";
 
 type NewProps = {
-  brand: BrandRecord;
+  brand: BrandFormRecord;
 };
 
 export default function New({ brand }: NewProps) {

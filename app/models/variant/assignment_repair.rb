@@ -9,24 +9,24 @@ class Variant::AssignmentRepair
   )
 
   class << self
-    def repair_purchase!(purchase_id:, variant_id:)
-      new.repair_purchase!(purchase_id:, variant_id:)
+    def repair_purchase(purchase_id:, variant_id:)
+      new.repair_purchase(purchase_id:, variant_id:)
     end
 
-    def repair_sale_item!(sale_item_id:, variant_id:, product_id: nil)
-      new.repair_sale_item!(sale_item_id:, variant_id:, product_id:)
+    def repair_sale_item(sale_item_id:, variant_id:, product_id: nil)
+      new.repair_sale_item(sale_item_id:, variant_id:, product_id:)
     end
 
-    def repair_purchase_item_link!(purchase_item_id:)
-      new.repair_purchase_item_link!(purchase_item_id:)
+    def repair_purchase_item_link(purchase_item_id:)
+      new.repair_purchase_item_link(purchase_item_id:)
     end
 
-    def repair_purchase_item_identity!(purchase_item_id:)
-      new.repair_purchase_item_identity!(purchase_item_id:)
+    def repair_purchase_item_identity(purchase_item_id:)
+      new.repair_purchase_item_identity(purchase_item_id:)
     end
 
-    def reconcile_duplicate_shopify_identity!(store_id:, canonical_store_info_id:)
-      new.reconcile_duplicate_shopify_identity!(
+    def reconcile_duplicate_shopify_identity(store_id:, canonical_store_info_id:)
+      new.reconcile_duplicate_shopify_identity(
         store_id:,
         canonical_store_info_id:
       )
@@ -37,7 +37,7 @@ class Variant::AssignmentRepair
     @integrity = integrity
   end
 
-  def repair_purchase_item_link!(purchase_item_id:)
+  def repair_purchase_item_link(purchase_item_id:)
     PurchaseItem.transaction do
       link = PurchaseItem.find(purchase_item_id)
       sale_item_id = link.sale_item_id
@@ -49,14 +49,14 @@ class Variant::AssignmentRepair
         sale_items:
       )
       return :noop unless integrity.incompatible_purchase_item_link?(purchase_item_id)
-      ensure_source_sale_items_locked!(purchase_items, sale_items)
+      ensure_source_sale_items_locked(purchase_items, sale_items)
 
-      reconcile_locked_links!(sale_items:, purchase_items:)
+      reconcile_locked_links(sale_items:, purchase_items:)
       :repaired
     end
   end
 
-  def repair_purchase_item_identity!(purchase_item_id:)
+  def repair_purchase_item_identity(purchase_item_id:)
     PurchaseItem.transaction do
       purchase_item = PurchaseItem.find(purchase_item_id)
       purchase = Purchase.lock.find(purchase_item.purchase_id)
@@ -77,7 +77,7 @@ class Variant::AssignmentRepair
       locked_purchase_item = purchase_items.find { |item| item.id == purchase_item.id }
       return :noop unless integrity.purchase_item_purchase_identity_mismatch?(purchase_item.id)
 
-      ensure_source_sale_items_locked!(purchase_items, sale_items)
+      ensure_source_sale_items_locked(purchase_items, sale_items)
       locked_purchase_item.update_columns( # rubocop:disable Rails/SkipsModelValidations
         product_id: purchase.product_id,
         variant_id: purchase.variant_id,
@@ -88,12 +88,12 @@ class Variant::AssignmentRepair
         variant_id: purchase.variant_id
       )
 
-      reconcile_locked_links!(sale_items:, purchase_items:)
+      reconcile_locked_links(sale_items:, purchase_items:)
       :repaired
     end
   end
 
-  def reconcile_duplicate_shopify_identity!(store_id:, canonical_store_info_id:)
+  def reconcile_duplicate_shopify_identity(store_id:, canonical_store_info_id:)
     StoreInfo.transaction do
       unlocked_infos = duplicate_shopify_infos(store_id).order(id: :asc).to_a
       return noop_shopify_identity_reconciliation if unlocked_infos.size <= 1
@@ -146,11 +146,11 @@ class Variant::AssignmentRepair
         raise InvalidCandidate, "Shopify dependent assignments changed before reconciliation"
       end
 
-      repaired_purchase_count = repair_purchases_to_variant!(
+      repaired_purchase_count = repair_purchases_to_variant(
         locked_purchase_ids,
         canonical_variant
       )
-      repaired_sale_item_count = repair_sale_items_to_variant!(
+      repaired_sale_item_count = repair_sale_items_to_variant(
         locked_sale_item_ids,
         canonical_variant
       )
@@ -165,12 +165,12 @@ class Variant::AssignmentRepair
     end
   end
 
-  def repair_purchase!(purchase_id:, variant_id:) # rubocop:disable Project/PrivateMethodCandidate
+  def repair_purchase(purchase_id:, variant_id:) # rubocop:disable Project/PrivateMethodCandidate
     Purchase.transaction do
       purchase = Purchase.lock.find(purchase_id)
       return :noop unless integrity.broken_purchase?(purchase.id)
 
-      product, variant = lock_repair_candidate!(purchase, variant_id)
+      product, variant = lock_repair_candidate(purchase, variant_id)
       sale_items = lock_relevant_sale_items(
         source_ids: purchase.purchase_items.where.not(sale_item_id: nil).pluck(:sale_item_id),
         target_relation: fillable_sale_items(product_id: product.id, variant_id: variant.id)
@@ -180,7 +180,7 @@ class Variant::AssignmentRepair
         sale_items:
       )
       return :noop unless integrity.broken_purchase?(purchase.id)
-      ensure_source_sale_items_locked!(purchase_items, sale_items)
+      ensure_source_sale_items_locked(purchase_items, sale_items)
 
       purchase.update_columns( # rubocop:disable Rails/SkipsModelValidations
         product_id: product.id,
@@ -197,17 +197,17 @@ class Variant::AssignmentRepair
           ) # rubocop:enable Rails/SkipsModelValidations
         end
 
-      reconcile_locked_links!(sale_items:, purchase_items:)
+      reconcile_locked_links(sale_items:, purchase_items:)
       :repaired
     end
   end
 
-  def repair_sale_item!(sale_item_id:, variant_id:, product_id: nil) # rubocop:disable Project/PrivateMethodCandidate
+  def repair_sale_item(sale_item_id:, variant_id:, product_id: nil) # rubocop:disable Project/PrivateMethodCandidate
     SaleItem.transaction do
       sale_item = SaleItem.lock.find(sale_item_id)
       return :noop unless integrity.broken_sale_item?(sale_item.id)
 
-      product, variant = lock_repair_candidate!(sale_item, variant_id, product_id:)
+      product, variant = lock_repair_candidate(sale_item, variant_id, product_id:)
       sale_items = SaleItem.where(id: sale_item.id).order(id: :asc).lock.to_a
       purchase_items = lock_relevant_purchase_items(
         required_ids: sale_item.purchase_items.ids,
@@ -215,7 +215,7 @@ class Variant::AssignmentRepair
         additional_identities: [[product.id, variant.id]]
       )
       return :noop unless integrity.broken_sale_item?(sale_item.id)
-      ensure_source_sale_items_locked!(purchase_items, sale_items)
+      ensure_source_sale_items_locked(purchase_items, sale_items)
 
       sale_item.update_columns( # rubocop:disable Rails/SkipsModelValidations
         product_id: product.id,
@@ -224,7 +224,7 @@ class Variant::AssignmentRepair
       ) # rubocop:enable Rails/SkipsModelValidations
       sale_items.first.assign_attributes(product_id: product.id, variant_id: variant.id)
 
-      reconcile_locked_links!(sale_items:, purchase_items:)
+      reconcile_locked_links(sale_items:, purchase_items:)
       :repaired
     end
   end
@@ -252,16 +252,16 @@ class Variant::AssignmentRepair
     PurchaseItem.where(id: ids.compact.map(&:to_i).uniq.sort).order(id: :asc).lock.to_a
   end
 
-  def ensure_source_sale_items_locked!(purchase_items, sale_items)
+  def ensure_source_sale_items_locked(purchase_items, sale_items)
     unlocked_source_ids =
       purchase_items.pluck(:sale_item_id).compact.uniq - sale_items.pluck(:id)
     return if unlocked_source_ids.empty?
 
-    raise PurchaseItem::Linking::StaleLinkState,
+    raise PurchaseItem::Linkable::StaleLinkState,
       "PurchaseItem link state changed before all source SaleItems could be locked"
   end
 
-  def reconcile_locked_links!(sale_items:, purchase_items:)
+  def reconcile_locked_links(sale_items:, purchase_items:)
     sale_items_by_id = sale_items.index_by(&:id)
 
     purchase_items.each do |purchase_item|
@@ -270,7 +270,7 @@ class Variant::AssignmentRepair
       sale_item = sale_items_by_id[purchase_item.sale_item_id]
       next if sale_item && exact_identity?(purchase_item, sale_item)
 
-      update_repair_link!(purchase_item, nil)
+      update_repair_link(purchase_item, nil)
     end
 
     fillable_ids = SaleItem
@@ -291,7 +291,7 @@ class Variant::AssignmentRepair
         }
         .sort_by { |purchase_item| [purchase_item.created_at, purchase_item.id] }
         .first(remaining_capacity)
-        .each { |purchase_item| update_repair_link!(purchase_item, sale_item) }
+        .each { |purchase_item| update_repair_link(purchase_item, sale_item) }
     end
   end
 
@@ -304,7 +304,7 @@ class Variant::AssignmentRepair
       purchase_item.variant_id == sale_item.variant_id
   end
 
-  def update_repair_link!(purchase_item, sale_item)
+  def update_repair_link(purchase_item, sale_item)
     if purchase_item.product_id.blank? || purchase_item.variant_id.blank?
       purchase_item.sale_item = sale_item
       purchase_item.save!(validate: false)
@@ -349,16 +349,16 @@ class Variant::AssignmentRepair
     with_pull_provenance.one? ? with_pull_provenance.first : nil
   end
 
-  def repair_purchases_to_variant!(purchase_ids, canonical_variant)
+  def repair_purchases_to_variant(purchase_ids, canonical_variant)
     purchase_ids.count do |purchase_id|
-      repair_purchase!(
+      repair_purchase(
         purchase_id:,
         variant_id: canonical_variant.id
       ) == :repaired
     end
   end
 
-  def lock_repair_candidate!(record, variant_id, product_id: nil)
+  def lock_repair_candidate(record, variant_id, product_id: nil)
     product = product_id ? Product.find_by(id: product_id) : record.product || record.variant&.product
     raise InvalidCandidate, "No Product is available for this repair" unless product
 
@@ -369,9 +369,9 @@ class Variant::AssignmentRepair
     [product, variant]
   end
 
-  def repair_sale_items_to_variant!(sale_item_ids, canonical_variant)
+  def repair_sale_items_to_variant(sale_item_ids, canonical_variant)
     sale_item_ids.count do |sale_item_id|
-      repair_sale_item!(
+      repair_sale_item(
         sale_item_id:,
         variant_id: canonical_variant.id,
         product_id: canonical_variant.product_id

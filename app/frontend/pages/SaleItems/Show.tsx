@@ -9,18 +9,14 @@ import {
   metricScopeNotes,
   withScope,
 } from "@/components/profitability/metricLabels";
+import type { SaleItemsShow } from "@/types/serializers";
 import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
 
-import type { SaleItemPurchaseItemRecord, SaleItemShowRecord, WarehouseOption } from "./types";
+import type { SaleItemPurchaseItemRecord } from "./types";
 
-type ShowProps = {
-  purchase_items: SaleItemPurchaseItemRecord[];
-  sale_item: SaleItemShowRecord;
-  warehouse_move_path: string;
-  warehouses: WarehouseOption[];
-};
+type ShowProps = SaleItemsShow;
 
 export default function Show({
   purchase_items,

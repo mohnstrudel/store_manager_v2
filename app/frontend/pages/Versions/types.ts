@@ -1,12 +1,7 @@
-export type VersionRecord = {
-  created_at: string | null;
-  id: number | null;
-  updated_at: string | null;
-  value: string;
-};
+import type { Product, Version, VersionsFormVersion } from "@/types/serializers";
 
-export type ProductRecord = {
-  full_title: string;
-  id: number;
-  path: string;
-};
+export type VersionRecord = Version;
+
+export type VersionFormRecord = VersionsFormVersion;
+
+export type ProductRecord = Product;

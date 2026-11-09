@@ -1,4 +1,4 @@
-import type { PurchaseRecord, SupplierRecord } from "../types";
+import type { PurchaseRecord, SupplierFormRecord, SupplierRecord } from "../types";
 
 export function makeSupplier(overrides: Partial<SupplierRecord> = {}): SupplierRecord {
   return {
@@ -21,6 +21,13 @@ export function makeSupplierPurchase(overrides: Partial<PurchaseRecord> = {}): P
     purchased_ago: "2 days ago",
     title: "Pokemon - Pikachu",
     variant: "Default",
+    ...overrides,
+  };
+}
+
+export function makeSupplierForm(overrides: Partial<SupplierFormRecord> = {}): SupplierFormRecord {
+  return {
+    title: "GoodSmile",
     ...overrides,
   };
 }

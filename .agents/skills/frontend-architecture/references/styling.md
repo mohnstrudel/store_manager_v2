@@ -6,7 +6,7 @@ Read this reference when work changes CSS, layout, responsive or dark-mode behav
 
 - Use Tailwind as a styling primitive, not as the only language visible in JSX.
 - Use semantic classes for a reusable UI concept or repeated visual pattern. Keep small, local adjustments as inline utilities.
-- Do not extract a semantic class merely to rename one obvious utility. Extract when the name explains a stable concept or removes repeated visual decisions.
+- Do not extract a semantic class only to rename one obvious utility. Extract when the name explains a stable concept or removes repeated visual decisions.
 - Keep styles grouped by UI concept under `app/frontend/styles/application`. Keep third-party component styling isolated.
 - Prefer UI or domain names over generic names such as `wrapper`, `inner`, or `box` when the surrounding block does not provide meaning.
 
@@ -45,7 +45,7 @@ Read this reference when work changes CSS, layout, responsive or dark-mode behav
 
 - Keep responsive and dark-mode behavior paired with the base style instead of adding them as a late exception.
 - Use component props for variants that share one owner, public contract, accessibility behavior, and lifecycle. Use CSS scoping when the difference is presentation-only.
-- Split a component when a variant changes meaning, interaction, state transitions, or accessibility rather than merely changing layout.
+- Split a component when a variant changes meaning, interaction, state transitions, or accessibility rather than only changing layout.
 - Prefer existing design tokens and Tailwind scales. Use an arbitrary value only when the design has no suitable token and the value has a clear reason.
 
 ## Selector Boundaries
@@ -54,3 +54,9 @@ Read this reference when work changes CSS, layout, responsive or dark-mode behav
 - Keep global element styles small and predictable.
 - Avoid duplicated class definitions and repeated `@apply` groups.
 - Verify that markup changes do not break focus, accessible names, responsive layout, dark mode, or state visibility.
+
+## Forms and Collections
+
+- Group related form fields as bordered blocks inside a `section` with a heading, laid out in a grid. Never use tabs or accordions to separate form sections.
+- An empty collection renders an empty state that says what the content is and how to add it, never a bare table head or list chrome. Reuse the existing empty-state card; use `SearchResultsEmpty` for search results.
+- Keep visual change inside the task's scope: no new fonts, colors, or layout outside the UI the task touches. A redesign is its own task.

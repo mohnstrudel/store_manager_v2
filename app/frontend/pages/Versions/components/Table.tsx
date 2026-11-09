@@ -25,10 +25,10 @@ export default function Table({ versions }: TableProps) {
       <tbody>
         {versions.map((version) => {
           const currentVersionPath = routes.versions.show.path({
-            id: version.id!,
+            id: version.id,
           });
           const currentEditPath = routes.versions.edit.path({
-            id: version.id!,
+            id: version.id,
           });
 
           return (

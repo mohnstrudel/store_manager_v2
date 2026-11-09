@@ -4,14 +4,14 @@ module PurchaseItem::Notifications
   extend ActiveSupport::Concern
 
   class_methods do
-    def notify_order_status!(purchase_item_ids:)
+    def notify_order_status(purchase_item_ids:)
       return if purchase_item_ids.blank?
 
       each_locked_for_notifications(purchase_item_ids) do |purchase_item|
         data = notification_data_for(purchase_item)
         next unless data
 
-        record_outbound_email!(
+        record_outbound_email(
           purchase_item,
           source: :explicit_resend,
           mail_kind: :order_status_updated,
@@ -21,7 +21,7 @@ module PurchaseItem::Notifications
       end
     end
 
-    def record_status_change_notifications!(purchase_item_ids:, from_id:, to_id:)
+    def record_status_change_notifications(purchase_item_ids:, from_id:, to_id:)
       from_id = from_id.to_i
       to_id = to_id.to_i
 
@@ -35,7 +35,7 @@ module PurchaseItem::Notifications
         data = notification_data_for(purchase_item)
         next unless data
 
-        record_outbound_email!(
+        record_outbound_email(
           purchase_item,
           source: :warehouse_move,
           mail_kind: :order_status_changed,
@@ -45,7 +45,7 @@ module PurchaseItem::Notifications
       end
     end
 
-    def record_link_notifications!(purchase_item_ids:)
+    def record_link_notifications(purchase_item_ids:)
       return if purchase_item_ids.blank?
 
       each_locked_for_notifications(purchase_item_ids) do |purchase_item|
@@ -54,7 +54,7 @@ module PurchaseItem::Notifications
         data = notification_data_for(purchase_item)
         next unless data
 
-        record_outbound_email!(
+        record_outbound_email(
           purchase_item,
           source: :link,
           mail_kind: :order_status_updated,
@@ -68,7 +68,7 @@ module PurchaseItem::Notifications
 
     def each_locked_for_notifications(purchase_item_ids, &)
       transaction do
-        for_notifications.where(id: purchase_item_ids).order(:id).lock.each(&)
+        with_warehouse_sale_and_sale_item.where(id: purchase_item_ids).order(:id).lock.each(&)
       end
     end
 
@@ -88,7 +88,7 @@ module PurchaseItem::Notifications
       }
     end
 
-    def record_outbound_email!(purchase_item, source:, mail_kind:, data:, mail:)
+    def record_outbound_email(purchase_item, source:, mail_kind:, data:, mail:)
       message = mail.message
 
       OutboundEmail.create!(

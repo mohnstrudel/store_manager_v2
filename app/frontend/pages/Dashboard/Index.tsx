@@ -1,48 +1,41 @@
-import { router, Link } from "@inertiajs/react";
+import { Deferred, router, Link } from "@inertiajs/react";
 import { WebhookIcon } from "lucide-react";
 import { useCallback } from "react";
 import type { ReactNode } from "react";
 
 import PageHeader from "@/components/PageHeader";
+import type { DashboardIndex, DashboardSaleDebt, DashboardSupplierDebt } from "@/types/serializers";
 import { rowNavigationProps } from "@/utils/rowNavigation";
 
-type SaleDebtRecord = {
-  id: number;
-  path: string;
-  row_id: number;
-  title: string;
-  variant_name: string;
-  debt: number;
-};
+type IndexProps = DashboardIndex;
 
-type SupplierDebtRecord = {
-  supplier_id: number;
-  supplier_title: string;
-  supplier_path: string;
-  total_cost: string;
-  total_size: number;
-  paid: string;
-  total_debt: string;
-};
+const SALE_DEBTS_FALLBACK = <DebtSectionSkeleton label="Products Short" />;
+const SUPPLIER_DEBTS_FALLBACK = <DebtSectionSkeleton label="Supplier Debt" />;
 
-type IndexProps = {
-  debts_path: string;
-  last_orders_pull_path: string;
-  sale_debts: SaleDebtRecord[];
-  sale_debts_count: number;
-  sales_hook_disabled: boolean;
-  suppliers_debts: SupplierDebtRecord[];
-  total_suppliers_debt: string;
-};
+function DebtSectionSkeleton({ label }: { label: string }) {
+  return (
+    <section aria-busy="true" aria-label={label} className="section_border_base section_wide">
+      <DashboardSectionTitle label={label} value={null} />
+      <div className="h-24 mx-3 my-4 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
+    </section>
+  );
+}
+
+function DashboardSectionTitle({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <h3 className="flex justify-between px-3 pt-4">
+      <span>{label}</span>
+      <span>{value}</span>
+    </h3>
+  );
+}
 
 export default function Index({
   debts_path,
   last_orders_pull_path,
   sale_debts,
-  sale_debts_count,
   sales_hook_disabled,
-  suppliers_debts,
-  total_suppliers_debt,
+  supplier_debts,
 }: IndexProps) {
   return (
     <>
@@ -50,11 +43,24 @@ export default function Index({
 
       <PageHeader title="Dashboard" />
 
-      <SalesDebtSection debtsPath={debts_path} saleDebts={sale_debts} total={sale_debts_count} />
+      <Deferred data="sale_debts" fallback={SALE_DEBTS_FALLBACK}>
+        {sale_debts && (
+          <SalesDebtSection
+            debtsPath={debts_path}
+            saleDebts={sale_debts.rows}
+            total={sale_debts.count}
+          />
+        )}
+      </Deferred>
 
-      {suppliers_debts.length > 0 && (
-        <SuppliersDebtSection supplierDebts={suppliers_debts} totalDebt={total_suppliers_debt} />
-      )}
+      <Deferred data="supplier_debts" fallback={SUPPLIER_DEBTS_FALLBACK}>
+        {supplier_debts && supplier_debts.rows.length > 0 && (
+          <SuppliersDebtSection
+            supplierDebts={supplier_debts.rows}
+            totalDebt={supplier_debts.total}
+          />
+        )}
+      </Deferred>
     </>
   );
 }
@@ -106,7 +112,7 @@ function WebhookWarning({ lastOrdersPullPath }: { lastOrdersPullPath: string }) 
 
 type SalesDebtSectionProps = {
   debtsPath: string;
-  saleDebts: SaleDebtRecord[];
+  saleDebts: DashboardSaleDebt[];
   total: number;
 };
 
@@ -143,18 +149,9 @@ function SalesDebtSection({ debtsPath, saleDebts, total }: SalesDebtSectionProps
   );
 }
 
-function DashboardSectionTitle({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <h3 className="flex justify-between px-3 pt-4">
-      <span>{label}</span>
-      <span>{value}</span>
-    </h3>
-  );
-}
-
 type SuppliersDebtSectionProps = {
-  supplierDebts: SupplierDebtRecord[];
-  totalDebt: string;
+  supplierDebts: DashboardSupplierDebt[];
+  totalDebt: string | null;
 };
 
 function SuppliersDebtSection({ supplierDebts, totalDebt }: SuppliersDebtSectionProps) {

@@ -1,12 +1,7 @@
-export type BrandRecord = {
-  created_at: string | null;
-  id: number | null;
-  updated_at: string | null;
-  title: string;
-};
+import type { Brand, BrandsNew, ProductLink } from "@/types/serializers";
 
-export type ProductRecord = {
-  full_title: string;
-  id: number;
-  path: string;
-};
+export type BrandRecord = Brand;
+
+export type BrandFormRecord = BrandsNew["brand"];
+
+export type ProductRecord = ProductLink;

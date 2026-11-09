@@ -62,7 +62,7 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
               </td>
               <td>{item.qty}</td>
               <td>
-                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                {capitalizeStatus(item.status)}
                 {item.purchase_item_path && (
                   <div className="mt-1">
                     <Link
@@ -83,4 +83,8 @@ export default function SalesSection({ hasVariants, sales, title }: SalesSection
       </table>
     </div>
   );
+}
+
+function capitalizeStatus(status: string | null) {
+  return status ? status.charAt(0).toUpperCase() + status.slice(1) : "";
 }

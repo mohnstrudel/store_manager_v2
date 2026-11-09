@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { mockPageProps } from "@/test/mocks/inertia";
 import { lastCapturedProps } from "@/test/mocks/resourceForm";
 
-import { makeBrand } from "../test/factories";
-import type { BrandRecord } from "../types";
+import { makeBrandForm } from "../test/factories";
+import type { BrandFormRecord } from "../types";
 import Form from "./Form";
 
 vi.mock("@/components/ResourceForm", () => import("@/test/mocks/resourceForm"));
@@ -14,7 +14,7 @@ describe("Brands/components/Form", () => {
   describe("form shell", () => {
     it("configures action, method, and labels for a new brand", () => {
       renderForm({
-        brand: makeBrand({ id: null, title: "", created_at: null, updated_at: null }),
+        brand: makeBrandForm({ title: "" }),
         method: "post",
         submitLabel: "Create Brand",
         url: "/brands",
@@ -80,13 +80,13 @@ describe("Brands/components/Form", () => {
 });
 
 function renderForm({
-  brand = makeBrand(),
+  brand = makeBrandForm(),
   method = "patch",
   pageErrors = {},
   submitLabel = "Update Brand",
   url = "/brands/1",
 }: {
-  brand?: BrandRecord;
+  brand?: BrandFormRecord;
   method?: "post" | "patch";
   pageErrors?: Record<string, string>;
   submitLabel?: string;

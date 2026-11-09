@@ -4,12 +4,12 @@ import { getFormString } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 
-import { SupplierRecord } from "../types";
+import { SupplierFormRecord } from "../types";
 
 type SupplierFormProps = {
   method: "post" | "patch";
   submitLabel: string;
-  supplier: SupplierRecord;
+  supplier: SupplierFormRecord;
   url: string;
 };
 

@@ -3,15 +3,17 @@
 class ApplicationController < ActionController::Base
   include Authentication
   include Authorization
+  include Alba::Inertia::Controller
+
+  etag { inertia_configuration.version }
 
   inertia_share do
-    {
+    SharedPropsResource.new({
       breadcrumb: helpers.breadcrumb_title,
-      environment: Rails.env.to_s,
-      auth: {user: current_user&.slice(:id, :email_address, :role)},
-      flash: {notice: flash.notice, alert: flash.alert},
+      user: current_user,
+      flash:,
       csrf_token: form_authenticity_token
-    }
+    }).serializable_hash
   end
 
   private

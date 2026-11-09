@@ -24,14 +24,8 @@ export default function Table({ brands }: TableProps) {
       </thead>
       <tbody>
         {brands.map((brand) => {
-          const showPath =
-            brand.id === null
-              ? routes.brands.index.path()
-              : routes.brands.show.path({ id: brand.id });
-          const editPath =
-            brand.id === null
-              ? routes.brands.new.path()
-              : routes.brands.edit.path({ id: brand.id });
+          const showPath = routes.brands.show.path({ id: brand.id });
+          const editPath = routes.brands.edit.path({ id: brand.id });
 
           return (
             <tr className="hoverable" key={brand.id} {...rowNavigationProps(showPath)}>

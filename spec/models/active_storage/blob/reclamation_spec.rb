@@ -53,9 +53,9 @@ RSpec.describe ActiveStorage::Blob::Reclamation do
     stored_object_class.new(key:, size:, last_modified:)
   end
 
-  describe ".enqueue!" do
+  describe ".enqueue" do
     it "queues the retryable transport job with a stable cutoff" do
-      expect { described_class.enqueue!(cutoff:) }
+      expect { described_class.enqueue(cutoff:) }
         .to have_enqueued_job(ActiveStorage::Blob::ReclamationJob).with(cutoff: cutoff.iso8601)
     end
 
@@ -63,7 +63,7 @@ RSpec.describe ActiveStorage::Blob::Reclamation do
       job = instance_double(ActiveStorage::Blob::ReclamationJob, successfully_enqueued?: false)
       allow(ActiveStorage::Blob::ReclamationJob).to receive(:perform_later).and_return(job)
 
-      expect { described_class.enqueue!(cutoff:) }.to raise_error(described_class::EnqueueFailed)
+      expect { described_class.enqueue(cutoff:) }.to raise_error(described_class::EnqueueFailed)
     end
   end
 
@@ -77,7 +77,7 @@ RSpec.describe ActiveStorage::Blob::Reclamation do
       stored_object("c" * 28, size: 800, last_modified: 1.day.ago)
     ])
 
-    result = described_class.apply!(cutoff:, service:)
+    result = described_class.apply(cutoff:, service:)
 
     expect(result.to_h).to eq(deleted_object_count: 3, deleted_bytes: 310)
     expect(bucket.deleted_keys).to contain_exactly(blob.key, "variants/#{blob.key}/digest", "b" * 28)
@@ -99,7 +99,7 @@ RSpec.describe ActiveStorage::Blob::Reclamation do
     allow(ActiveStorage::Blob::ReclaimableSpace).to receive(:new).and_return(scanner)
     create(:attachment, blob:, record: create(:product))
 
-    result = described_class.apply!(cutoff:, service:)
+    result = described_class.apply(cutoff:, service:)
 
     expect(result.to_h).to eq(deleted_object_count: 0, deleted_bytes: 0)
     expect(bucket.deleted_keys).to be_empty
@@ -111,13 +111,13 @@ RSpec.describe ActiveStorage::Blob::Reclamation do
     objects << stored_object(blob.key, size: 100)
     bucket.delete_error = IOError.new("R2 unavailable")
 
-    expect { described_class.apply!(cutoff:, service:) }.to raise_error(IOError, "R2 unavailable")
+    expect { described_class.apply(cutoff:, service:) }.to raise_error(IOError, "R2 unavailable")
     expect(ActiveStorage::Blob.exists?(blob.id)).to be false
     expect(objects.map(&:key)).to include(blob.key)
 
     bucket.delete_error = nil
 
-    expect(described_class.apply!(cutoff:, service:).deleted_bytes).to eq(100)
+    expect(described_class.apply(cutoff:, service:).deleted_bytes).to eq(100)
     expect(objects).to be_empty
   end
 
@@ -126,7 +126,7 @@ RSpec.describe ActiveStorage::Blob::Reclamation do
     objects << stored_object(key, size: 100)
     bucket.delete_errors = [delete_error_class.new(key:, message: "access denied")]
 
-    expect { described_class.apply!(cutoff:, service:) }
+    expect { described_class.apply(cutoff:, service:) }
       .to raise_error(described_class::DeleteFailed, /#{key}: access denied/)
     expect(objects.map(&:key)).to contain_exactly(key)
   end
@@ -134,9 +134,9 @@ RSpec.describe ActiveStorage::Blob::Reclamation do
   it "is harmless when repeated after all reclaimable objects were deleted" do
     objects << stored_object("a" * 28, size: 100)
 
-    described_class.apply!(cutoff:, service:)
+    described_class.apply(cutoff:, service:)
 
-    expect(described_class.apply!(cutoff:, service:).to_h)
+    expect(described_class.apply(cutoff:, service:).to_h)
       .to eq(deleted_object_count: 0, deleted_bytes: 0)
   end
 end

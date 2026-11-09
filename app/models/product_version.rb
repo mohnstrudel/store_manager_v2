@@ -11,7 +11,7 @@
 #  version_id :bigint
 #
 class ProductVersion < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
 

@@ -16,8 +16,8 @@ type ShowProps = {
 };
 
 export default function Show({ purchases, supplier }: ShowProps) {
-  const currentSupplierPath = routes.suppliers.show.path({ id: supplier.id! });
-  const currentEditPath = routes.suppliers.edit.path({ id: supplier.id! });
+  const currentSupplierPath = routes.suppliers.show.path({ id: supplier.id });
+  const currentEditPath = routes.suppliers.edit.path({ id: supplier.id });
   const destroySupplier = useConfirmAction("delete", currentSupplierPath);
 
   return (

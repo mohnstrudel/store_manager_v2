@@ -169,11 +169,13 @@ export default function PurchaseItemRow({
                   label="Copy address"
                   text={purchaseItem.sale_address}
                 />
-                <CopyToClipboardButton
-                  className="text-xs btn_xs"
-                  label="Copy email"
-                  text={purchaseItem.customer_email}
-                />
+                {purchaseItem.customer_email && (
+                  <CopyToClipboardButton
+                    className="text-xs btn_xs"
+                    label="Copy email"
+                    text={purchaseItem.customer_email}
+                  />
+                )}
               </span>
             )}
           </div>

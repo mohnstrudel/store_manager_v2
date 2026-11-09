@@ -30,7 +30,7 @@ describe PurchaseItem do
     end
   end
 
-  describe "#link_to_sale_item!" do
+  describe ".link_exact" do
     it "links the purchase item to a sale item" do
       purchase_item = create(:purchase_item)
       sale_item = create(
@@ -39,7 +39,7 @@ describe PurchaseItem do
         variant: purchase_item.variant
       )
 
-      purchase_item.link_to_sale_item!(sale_item.id)
+      described_class.link_exact(assignments: [{purchase_item:, sale_item:}])
 
       expect(purchase_item.reload.sale_item_id).to eq(sale_item.id)
     end

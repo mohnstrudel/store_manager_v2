@@ -190,9 +190,13 @@ RSpec.describe "SalesTags" do
 
     before { sign_in_as_admin }
 
-    it "renames and recolors in place, redirecting 303 to the catalog" do
-      sale = create(:sale)
-      SaleTagging.create!(sale:, sales_tag: vip)
+    it "renames and recolors in place for every sale using it, without touching the sales, redirecting 303 to the catalog" do
+      sales = create_list(:sale, 2)
+      sales.each do |sale|
+        SaleTagging.create!(sale:, sales_tag: vip)
+        sale.update_columns(updated_at: 1.day.ago)
+      end
+      stamps = sales.map { |sale| sale.reload.updated_at }
 
       patch sales_tag_path(vip), params: {sales_tag: {name: " VIP   Client ", color: "olive"}}
 
@@ -200,7 +204,8 @@ RSpec.describe "SalesTags" do
       expect(response).to redirect_to(sales_tags_path)
       expect(flash[:notice]).to eq("Sales tag saved")
       expect(vip.reload).to have_attributes(name: "VIP Client", color: "olive")
-      expect(sale.sales_tags).to eq([vip])
+      expect(sales.map(&:sales_tags)).to eq([[vip], [vip]])
+      expect(sales.map { |sale| sale.reload.updated_at }).to eq(stamps)
     end
 
     it "rejects a rename onto another tag's identity, back to its edit form, without changing either tag" do
@@ -257,7 +262,7 @@ RSpec.describe "SalesTags" do
     end
 
     it "leaves product and store tags alone" do
-      create(:product).shopify_info.update!(tag_list: ["VIP Order"])
+      create(:product, :synced).shopify_info.update!(tag_list: ["VIP Order"])
 
       expect { delete sales_tag_path(vip) }.not_to change { [ActsAsTaggableOn::Tag.count, ActsAsTaggableOn::Tagging.count] }
     end

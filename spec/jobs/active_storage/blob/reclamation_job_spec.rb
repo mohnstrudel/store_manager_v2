@@ -9,10 +9,10 @@ RSpec.describe ActiveStorage::Blob::ReclamationJob do
 
   it "delegates reclamation to the model-owned command" do
     cutoff = 30.days.ago.change(usec: 0)
-    allow(ActiveStorage::Blob::Reclamation).to receive(:apply!)
+    allow(ActiveStorage::Blob::Reclamation).to receive(:apply)
 
     described_class.perform_now(cutoff: cutoff.iso8601)
 
-    expect(ActiveStorage::Blob::Reclamation).to have_received(:apply!).with(cutoff:)
+    expect(ActiveStorage::Blob::Reclamation).to have_received(:apply).with(cutoff:)
   end
 end

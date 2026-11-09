@@ -26,7 +26,7 @@ module Product::Profitability
   def profitability_sale_items
     sale_items
       .joins(:sale)
-      .where(sales: {status: Sale.active_status_names + Sale.completed_status_names})
+      .where(sales: {status: Sale::ACTIVE_STATUSES + Sale::COMPLETED_STATUSES})
   end
 
   private

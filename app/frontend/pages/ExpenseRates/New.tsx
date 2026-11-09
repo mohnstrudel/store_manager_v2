@@ -1,10 +1,10 @@
 import PageHeader from "@/components/PageHeader";
 
 import Form from "./components/Form";
-import { ExpenseRateRecord } from "./types";
+import { ExpenseRateFormRecord } from "./types";
 
 type NewProps = {
-  expenseRate: ExpenseRateRecord;
+  expenseRate: ExpenseRateFormRecord;
 };
 
 export default function New({ expenseRate }: NewProps) {

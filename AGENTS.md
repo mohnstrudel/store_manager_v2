@@ -5,19 +5,26 @@
 - For a new behavior-bearing or structurally uncertain change owned by the coordinating task, start with `collaborative-planning`; it owns specialist-skill loading, planning, approval, serialization judgment, and the implementation loop for work that stays in that task. Clearly mechanical changes proceed directly under Completion unless the user asks for planning.
 - For an approved spec or ticket, start with `implement`. Do not reload or rerun `collaborative-planning` unless implementation discovers a new material decision. Read only the selected spec, ticket, affected code, and applicable specialist skills.
 - For delegated research or review, follow only the assigned scope. Do not start planning, serialize work, implement, or delegate again unless the assignment explicitly requires it.
-- For Rails domain work, use `rails-domain-architecture` SKILL.md.
-- For frontend work, use `frontend-architecture` SKILL.md.
-- For Rails test boundaries, test infrastructure, and shared contracts, use `rails-testing` SKILL.md.
-- For adding or changing an inline table-cell editor, use `inline-cell-editor` SKILL.md.
+- For Rails domain work, use `rails-domain-architecture`.
+- For frontend work, use `frontend-architecture`.
+- For Rails test boundaries, test infrastructure, and shared contracts, use `rails-testing`.
+- For adding or changing an inline table-cell editor, use `inline-cell-editor`.
 - To record an approved plan as a spec in `.specs/`, use `to-spec`; to split it into implementation-ready tickets, use `to-tickets`; to execute or resume serialized work, use `implement`. Serialization keeps implementation contexts minimal; the judgment rule lives in `collaborative-planning` Handoff.
+- To write a commit message, use `commit`.
 
-## Clear communication
+## Guidance files
 
-- Lead with the result and follow [the clear-communication guides](docs/plain-language.md), applying the matching guide for architecture and plans, LLM conversations, or interface text.
+- `AGENTS.md` holds always-on rules and skills hold on-demand rules; nothing else carries project rules. State each rule in one place.
+- Skills encode decisions, contracts, and gotchas, never facts an agent can discover by inspecting the repo.
+
+## Communication
+
+- Lead with the result and end with the one next action. Runbooks and instructions are numbered commands with expected output, no prose.
+- For user-facing copy, follow `docs/plain-language/interface-text.md`.
 
 ## Source organization
 
-- Keep local methods and functions in depth-first call-site order; the applicable lint gate defines and enforces the exact rule.
+- Keep local methods and functions in depth-first call-site order; the lint gate defines and enforces the exact rule.
 
 ## Completion
 
@@ -32,16 +39,9 @@ Choose the smallest verification set that could catch a plausible defect.
 Run a full backend or frontend suite only when the user requests it, a release gate requires it, or the change affects shared infrastructure or a cross-cutting contract whose interaction risk cannot be bounded by focused checks. State the trigger. Run only the applicable stack:
 
 - Backend: `mise exec -- bin/rspec --format progress --color` and `mise exec -- bundle exec rubocop`.
-- Frontend: `mise exec -- pnpm exec vitest run`, `mise exec -- pnpm exec oxlint app/frontend`, `mise exec -- pnpm exec oxfmt --check app/frontend …`, and `mise exec -- pnpm exec tsc --noEmit`.
+- Frontend: `mise exec -- pnpm exec vitest run`, `mise exec -- pnpm run lint`, `mise exec -- pnpm run format:check`, and `mise exec -- pnpm exec tsc --noEmit`.
 
 Required checks must be green. Fix failures caused by the change; report unrelated failures.
-
-## External HTTP tests
-
-- Tests run without live external network access.
-- Use a VCR cassette for a representative provider exchange when testing method and URL construction, serialization, parsing, or payload compatibility.
-- Use WebMock for exact request assertions and deterministic failures, timeouts, malformed responses, or minimal unit cases.
-- Keep cassettes minimal and deterministic. Filter credentials, tokens, personal data, and unstable headers before committing them.
 
 ## Code comments
 
@@ -51,3 +51,4 @@ Required checks must be green. Fix failures caused by the change; report unrelat
 
 - Do not modify secrets or environment files.
 - Do not introduce new dependencies without justification.
+- A Sidekiq worker runs in development (`Procfile.dev`). Anything that calls `perform_later` — rake tasks, `bin/rails runner`, the console — executes immediately against the dev database and real external credentials; confirm with the user before running it.

@@ -2,12 +2,12 @@
 
 require "rails_helper"
 
-RSpec.describe Product, ".find_or_create_shopify_placeholder!" do
-  describe ".find_or_create_shopify_placeholder!" do
+RSpec.describe Product, ".find_or_create_shopify_placeholder" do
+  describe ".find_or_create_shopify_placeholder" do
     let(:store_id) { "gid://shopify/Product/123456789" }
 
     it "creates a distinct placeholder product for the Shopify store id" do
-      product = described_class.find_or_create_shopify_placeholder!(store_id:)
+      product = described_class.find_or_create_shopify_placeholder(store_id:)
 
       expect(product).to be_persisted
       expect(product.shopify_info.store_id).to eq(store_id)
@@ -18,8 +18,8 @@ RSpec.describe Product, ".find_or_create_shopify_placeholder!" do
     end
 
     it "reuses the same placeholder on repeated calls" do
-      first_product = described_class.find_or_create_shopify_placeholder!(store_id:)
-      second_product = described_class.find_or_create_shopify_placeholder!(store_id:)
+      first_product = described_class.find_or_create_shopify_placeholder(store_id:)
+      second_product = described_class.find_or_create_shopify_placeholder(store_id:)
 
       expect(second_product).to eq(first_product)
       expect(described_class.where(id: first_product.id).count).to eq(1)

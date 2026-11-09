@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
+  include ActiveJob::TestHelper
+
   let(:job) { described_class.new }
 
   before do
@@ -59,7 +61,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
       create(:variant, product:, sku: "test-001")
       create(:sale, shopify_id: "gid://shopify/Order/123")
 
-      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
+      allow(Sale::Shopify::Importer).to receive(:import).and_raise(
         StandardError.new("SKU has already been taken")
       )
 
@@ -67,26 +69,43 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
 
     it "re-raises non-SKU errors" do
-      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
+      allow(Sale::Shopify::Importer).to receive(:import).and_raise(
         StandardError.new("API rate limit exceeded")
       )
 
       expect { job.perform }.to raise_error(StandardError, "API rate limit exceeded")
     end
 
-    it "logs and skips known importer validation failures instead of aborting the page" do
-      allow(Sale::Shopify::Importer).to receive(:import!).and_raise(
-        Sale::Shopify::Importer::Error.new("Failed to process SaleItem: Variant must be selected")
-      )
-      allow(Rails.logger).to receive(:error)
+    context "when an order fails with a known importer error" do
+      let(:failing_order) { api_response[:items].first.merge("id" => "gid://shopify/Order/999", "name" => "#999") }
 
-      expect { job.perform }.not_to raise_error
-      expect(Rails.logger).to have_received(:error).with(/Skipping Shopify order due to import failure/)
-      expect(Sale.count).to eq(0)
+      before do
+        api_response[:items] << failing_order
+        api_response.merge!(has_next_page: true, end_cursor: "cursor-1")
+        allow(Sale::Shopify::Importer).to receive(:import).and_call_original
+        allow(Sale::Shopify::Importer).to receive(:import)
+          .with(hash_including(store_info: hash_including(store_id: "gid://shopify/Order/999")))
+          .and_raise(Sale::Shopify::Importer::Error, "Failed to process SaleItem: Variant must be selected")
+        allow(Sentry).to receive(:capture_exception)
+      end
+
+      it "imports the rest of the page, schedules the next page, then reports the failure without retrying" do
+        expect { described_class.perform_now }.to change(Sale, :count).by(1)
+          .and have_enqueued_job(described_class).with(cursor: "cursor-1")
+
+        expect(Sentry).to have_received(:capture_exception).with(
+          an_instance_of(Shopify::Pull::Failed)
+            .and(having_attributes(
+              failures: [Shopify::Pull::Failure.new(store_id: "gid://shopify/Order/999", message: "Failed to process SaleItem: Variant must be selected")],
+              message: /1 Shopify item\(s\) failed to import: gid:\/\/shopify\/Order\/999: Failed to process SaleItem/
+            ))
+        )
+        expect(enqueued_jobs.count { |enqueued| enqueued["job_class"] == described_class.name }).to eq(1)
+      end
     end
 
     context "when sale already exists" do
-      before { create(:sale, shopify_id: "gid://shopify/Order/123") }
+      before { create(:sale, :synced, shopify_id: "gid://shopify/Order/123") }
 
       it "updates existing sale instead of creating duplicate" do
         expect { job.perform }.not_to change(Sale, :count)
@@ -134,7 +153,7 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
 
       before do
         allow(Sale::Shopify::Parser).to receive(:parse).and_return({})
-        allow(Sale::Shopify::Importer).to receive(:import!).and_raise(StandardError, "boom")
+        allow(Sale::Shopify::Importer).to receive(:import).and_raise(StandardError, "boom")
       end
 
       it "does not enqueue Seal" do

@@ -3,12 +3,12 @@
 require "rails_helper"
 
 RSpec.describe Product do
-  describe ".for_media_sync" do
+  describe ".with_media_and_shopify_info" do
     it "loads media and its Shopify references for sync work" do
       product = create(:product)
       create(:media, :for_product, mediaable: product)
 
-      records = described_class.for_media_sync.where(id: product.id).to_a
+      records = described_class.with_media_and_shopify_info.where(id: product.id).to_a
 
       aggregate_failures do
         expect(records).to include(product)

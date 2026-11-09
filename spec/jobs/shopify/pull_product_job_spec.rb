@@ -70,7 +70,7 @@ RSpec.describe Shopify::PullProductJob do
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:fetch_product).with(product_id).and_return(api_response)
       allow(Product::Shopify::Parser).to receive(:parse).with(api_response).and_return(parsed_product)
-      allow(Product::Shopify::Importer).to receive(:import!).with(parsed_product).and_return(imported_product)
+      allow(Product::Shopify::Importer).to receive(:import).with(parsed_product).and_return(imported_product)
     end
 
     context "with valid product_id and valid response" do
@@ -87,12 +87,12 @@ RSpec.describe Shopify::PullProductJob do
       it "parses and imports the response" do
         job.perform(product_id)
         expect(Product::Shopify::Parser).to have_received(:parse).with(api_response)
-        expect(Product::Shopify::Importer).to have_received(:import!).with(parsed_product)
+        expect(Product::Shopify::Importer).to have_received(:import).with(parsed_product)
       end
 
       it "creates or updates product" do
         job.perform(product_id)
-        expect(Product::Shopify::Importer).to have_received(:import!).with(parsed_product)
+        expect(Product::Shopify::Importer).to have_received(:import).with(parsed_product)
       end
     end
 
@@ -123,7 +123,7 @@ RSpec.describe Shopify::PullProductJob do
 
     context "when importer fails" do
       before do
-        allow(Product::Shopify::Importer).to receive(:import!).and_raise(
+        allow(Product::Shopify::Importer).to receive(:import).and_raise(
           ActiveRecord::RecordInvalid.new(Product.new)
         )
       end
@@ -145,54 +145,15 @@ RSpec.describe Shopify::PullProductJob do
       it "returns early without calling parser or importer" do # rubocop:todo RSpec/MultipleExpectations
         job.perform(product_id)
         expect(Product::Shopify::Parser).not_to have_received(:parse)
-        expect(Product::Shopify::Importer).not_to have_received(:import!)
+        expect(Product::Shopify::Importer).not_to have_received(:import)
       end
 
-      context "when store_info exists for the product_id" do # rubocop:todo RSpec/NestedGroups
-        let!(:store_info) do
-          product.store_infos.find_by(store_name: "shopify").tap do |si|
-            si.update!(store_id: product_id)
-          end
-        end
+      it "forgets the Shopify listing" do
+        allow(Product).to receive(:forget_shopify_listing)
 
-        let(:first_media) { create(:media, :for_product, mediaable: product) }
-        let(:second_media) { create(:media, :for_product, mediaable: product) }
-        let!(:first_media_shopify_info) { create(:store_info, storable: first_media, store_name: "shopify") } # rubocop:todo RSpec/LetSetup
-        let!(:second_media_shopify_info) { create(:store_info, storable: second_media, store_name: "shopify") } # rubocop:todo RSpec/LetSetup
-        let!(:second_media_woo_info) { create(:store_info, :woo, storable: second_media) } # rubocop:todo RSpec/LetSetup
+        job.perform(product_id)
 
-        it "finds and destroys the product's shopify store_info" do # rubocop:todo RSpec/MultipleExpectations
-          expect {
-            job.perform(product_id)
-          }.to change(StoreInfo, :count).by(-3)
-
-          expect(StoreInfo.find_by(id: store_info.id)).to be_nil
-        end
-
-        it "removes shopify store_infos from all associated media" do # rubocop:todo RSpec/MultipleExpectations
-          job.perform(product_id)
-
-          expect(first_media.store_infos.where(store_name: "shopify")).to be_empty
-          expect(second_media.store_infos.where(store_name: "shopify")).to be_empty
-        end
-
-        it "preserves woo store_infos on media" do
-          job.perform(product_id)
-
-          expect(second_media.store_infos.where(store_name: "woo")).to exist
-        end
-      end
-
-      context "when no store_info exists for the product_id" do # rubocop:todo RSpec/NestedGroups
-        before do
-          product.store_infos.where(store_name: "shopify").destroy_all
-        end
-
-        it "returns gracefully" do
-          expect {
-            job.perform(product_id)
-          }.not_to raise_error
-        end
+        expect(Product).to have_received(:forget_shopify_listing).with(product_id)
       end
     end
   end

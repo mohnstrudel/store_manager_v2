@@ -15,12 +15,20 @@ Rails.application.routes.draw do
   end
 
   mount ShopifyApp::Engine, at: "shopify_app"
-  mount Sidekiq::Web => "jobs"
+  constraints ->(request) { Session.staff_request?(request) } do
+    mount Sidekiq::Web => "jobs"
+  end
 
   post "update-order", to: "webhooks/order_updates#create"
   post "sale-status", to: "webhooks/sale_statuses#create"
 
   post "mcp", to: "mcp/server#handle"
+
+  concern :paginated do
+    collection do
+      get "page/:page", action: :index
+    end
+  end
 
   defaults export: true do
     root "dashboard#index"
@@ -54,7 +62,7 @@ Rails.application.routes.draw do
       resources :purchase_item_links, only: :update
     end
 
-    resources :products do
+    resources :products, concerns: :paginated do
       scope module: :products do
         resource :assignable_variants, only: :show
         resource :shopify_push, only: :create
@@ -64,13 +72,9 @@ Rails.application.routes.draw do
           resource :products_pull, only: :create, path: "pull", controller: :pulls
         end
       end
-
-      collection do
-        get "page/:page", action: :index
-      end
     end
 
-    resources :sales do
+    resources :sales, concerns: :paginated do
       scope module: :sales do
         resources :items, only: %i[show destroy], controller: :items
         resource :purchase_item_link, only: :create, path: "link_purchase_items"
@@ -81,23 +85,15 @@ Rails.application.routes.draw do
           resource :sales_bulk_pull, only: :create, path: "pull", controller: :bulk_pulls
         end
       end
-
-      collection do
-        get "page/:page", action: :index
-      end
     end
 
-    resources :purchases do
+    resources :purchases, concerns: :paginated do
       scope module: :purchases do
         resources :payments, only: %i[create update destroy]
 
         collection do
           resource :move, only: :create
         end
-      end
-
-      collection do
-        get "page/:page", action: :index
       end
     end
 
@@ -126,15 +122,11 @@ Rails.application.routes.draw do
     get "warehouses/:id", to: "warehouses/details#show"
     get "warehouses/:id/page/:page", to: "warehouses/details#show"
 
-    resources :customers do
-      collection do
-        get "page/:page", action: :index
-      end
-    end
+    resources :customers, concerns: :paginated
 
     resources :versions, :suppliers, :sizes, :franchises, :colors, :brands, :shipping_companies
     resources :expense_rates, except: :show
     resources :outbound_emails, only: %i[index show]
-    resources :sales_tags, only: %i[index show new create edit update destroy]
+    resources :sales_tags
   end
 end

@@ -4,6 +4,8 @@ module Purchase::Financials
   extend ActiveSupport::Concern
 
   included do
+    has_many :payments, dependent: :destroy, inverse_of: :purchase
+
     scope :unpaid, -> {
       includes(:supplier)
         .where
@@ -44,5 +46,9 @@ module Purchase::Financials
 
   def unpaid?
     payments_count.zero?
+  end
+
+  def record_payment(value)
+    payments.create!(value:)
   end
 end

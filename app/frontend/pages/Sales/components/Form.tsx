@@ -96,7 +96,7 @@ function SaleStatusOption({
   currentStatus,
   statusName,
 }: {
-  currentStatus: string;
+  currentStatus: string | null;
   statusName: string;
 }) {
   const inputId = `sale_status_${statusName}`;

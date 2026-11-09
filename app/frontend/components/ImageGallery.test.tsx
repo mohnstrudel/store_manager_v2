@@ -70,11 +70,19 @@ describe("ImageGallery", () => {
 
     await user.click(screen.getByRole("button", { name: "Next image" }));
 
-    expect(screen.getByRole("button", { name: "Side" })).toHaveAttribute("data-active");
+    const sideThumb = screen.getByRole("button", { name: "Side" });
+    expect(sideThumb).toHaveAttribute("data-active");
     expect(document.querySelector(".gallery_main__image")).toHaveAttribute(
       "src",
       "/side-preview.png",
     );
+    expect(scrollIntoView).toHaveBeenCalledOnce();
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
+    expect(scrollIntoView.mock.contexts[0]).toBe(sideThumb);
   });
 
   it("shows pulsing loading frames until the gallery images load", () => {

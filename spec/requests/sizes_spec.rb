@@ -100,7 +100,7 @@ RSpec.describe "Sizes" do
       expect_inertia.to render_component("Sizes/New")
       expect_inertia.to have_props(
         errors: {value: "can't be blank"},
-        size: {id: nil, value: "", created_at: nil, updated_at: nil}
+        size: {value: ""}
       )
     end
   end

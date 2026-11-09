@@ -4,6 +4,12 @@ module PurchaseItem::Shipping
   extend ActiveSupport::Concern
 
   included do
+    belongs_to :shipping_company, optional: true, inverse_of: :purchase_items
+
+    validates :shipping_company_id,
+      presence: true,
+      if: -> { tracking_number.present? }
+
     before_save :stamp_shipped_at, if: :stamp_shipped_at?
     after_commit :update_purchase_shipping_total, if: :should_update_purchase_shipping?
   end

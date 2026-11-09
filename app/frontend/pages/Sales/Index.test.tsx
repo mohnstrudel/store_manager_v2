@@ -886,6 +886,17 @@ describe("Sales/Index", () => {
       expect(within(dialog).getByRole("checkbox", { name: "Rush" })).not.toBeChecked();
     });
 
+    it("keeps the saved badges in the cell while the dialog edits a draft", async () => {
+      const user = userEvent.setup();
+      const { container } = renderTagged([vip]);
+
+      await openEditor(user);
+      await user.click(screen.getByRole("checkbox", { name: "Rush" }));
+
+      const badges = Array.from(container.querySelectorAll(".inline_cell_display .sales_tag"));
+      expect(badges.map((badge) => badge.textContent)).toEqual(["VIP"]);
+    });
+
     it("titles the dialog Add tags for an untagged sale", async () => {
       const user = userEvent.setup();
       renderTagged([]);
@@ -1021,6 +1032,12 @@ describe("Sales/Index", () => {
       await openEditor(user);
       await user.click(screen.getByRole("checkbox", { name: "Rush" }));
       await user.click(screen.getByRole("heading", { name: "Edit tags" }));
+      screen.getByRole("checkbox", { name: "Rush" }).focus();
+      await user.keyboard("{Enter}");
+
+      expect(screen.getByRole("dialog", { name: "Edit tags" })).toBeInTheDocument();
+      expect(router.patch).not.toHaveBeenCalled();
+
       await user.click(screen.getByRole("button", { name: "Cancel" }));
       await user.click(screen.getByText("VIP"));
 
@@ -1042,6 +1059,7 @@ type IndexOptions = {
   tag_options?: SalesTagRecord[];
   can_tag_sales?: boolean;
   last_sync_time?: string | null;
+  last_sync_at?: string | null;
 };
 
 function indexElement({
@@ -1053,11 +1071,13 @@ function indexElement({
   tag_options = [],
   can_tag_sales = true,
   last_sync_time = "20.05 at 10:00",
+  last_sync_at = null,
 }: IndexOptions = {}) {
   return (
     <Index
       can_tag_sales={can_tag_sales}
       filters={filters}
+      last_sync_at={last_sync_at}
       last_sync_time={last_sync_time}
       pagination={pagination}
       sales={sales}

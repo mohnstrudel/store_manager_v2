@@ -24,12 +24,8 @@ export default function Table({ suppliers }: TableProps) {
       </thead>
       <tbody>
         {suppliers.map((supplier) => {
-          const currentSupplierPath = routes.suppliers.show.path({
-            id: supplier.id!,
-          });
-          const currentEditPath = routes.suppliers.edit.path({
-            id: supplier.id!,
-          });
+          const currentSupplierPath = routes.suppliers.show.path({ id: supplier.id });
+          const currentEditPath = routes.suppliers.edit.path({ id: supplier.id });
 
           return (
             <tr

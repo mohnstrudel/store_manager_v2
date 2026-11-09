@@ -6,71 +6,55 @@ class SuppliersController < ApplicationController
   def index
     @suppliers = Supplier.order(:title)
 
-    return unless stale?(etag: [@suppliers, request.inertia?], last_modified: @suppliers.maximum(:updated_at))
+    return unless stale?(etag: [@suppliers], last_modified: @suppliers.maximum(:updated_at))
 
-    render inertia: "Suppliers/Index", props: {
-      suppliers: @suppliers.map { |supplier| helpers.supplier_props(supplier) }
-    }
+    render_inertia "Suppliers/Index", serializer: Suppliers::IndexResource, locals: {suppliers: @suppliers}
   end
 
   def show
-    @purchases = @supplier.purchases.for_supplier_details
+    @purchases = @supplier.purchases.with_product_payments_and_variant
 
-    render inertia: "Suppliers/Show", props: {
-      purchases: @purchases.map { |purchase| helpers.supplier_purchase_props(purchase) },
-      supplier: helpers.supplier_props(@supplier)
-    }
+    render_inertia "Suppliers/Show", serializer: Suppliers::ShowResource, locals: {purchases: @purchases, supplier: @supplier}
   end
 
   def new
     @supplier = Supplier.new
 
-    render inertia: "Suppliers/New", props: helpers.supplier_form_props(@supplier)
+    render_inertia "Suppliers/New", serializer: Suppliers::NewResource, locals: {supplier: @supplier}
   end
 
   def edit
-    render inertia: "Suppliers/Edit", props: helpers.supplier_form_props(@supplier)
+    render_inertia "Suppliers/Edit", serializer: Suppliers::EditResource, locals: {supplier: @supplier}
   end
 
   def create
     @supplier = Supplier.new(supplier_params)
 
-    respond_to do |format|
-      if @supplier.save
-        format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully created" }
-        format.json { render :show, status: :created, location: @supplier }
-      else
-        format.html { redirect_to new_supplier_url, inertia: inertia_errors(@supplier.errors) }
-        format.json { render json: @supplier.errors, status: :unprocessable_content }
-      end
+    if @supplier.save
+      redirect_to supplier_url(@supplier), notice: "Supplier was successfully created"
+    else
+      redirect_to new_supplier_url, inertia: inertia_errors(@supplier.errors)
     end
   end
 
   def update
-    respond_to do |format|
-      if @supplier.update(supplier_params.merge(slug: nil))
-        format.html { redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated" }
-        format.json { render :show, status: :ok, location: @supplier }
-      else
-        format.html { redirect_to edit_supplier_url(@supplier.reload), inertia: inertia_errors(@supplier.errors) }
-        format.json { render json: @supplier.errors, status: :unprocessable_content }
-      end
+    if @supplier.update(supplier_params.merge(slug: nil))
+      redirect_to supplier_url(@supplier), notice: "Supplier was successfully updated"
+    else
+      redirect_to edit_supplier_url(@supplier.reload), inertia: inertia_errors(@supplier.errors)
     end
   end
 
   def destroy
     @supplier.destroy
 
-    respond_to do |format|
-      format.html { redirect_to suppliers_url, notice: "Supplier was successfully destroyed" }
-      format.json { head :no_content }
-    end
+    redirect_to suppliers_url, notice: "Supplier was successfully destroyed"
   end
 
   private
 
   def supplier_params
-    params.fetch(:supplier, {}).permit(:title)
+    params.expect(supplier: [:title])
   end
 
   def set_supplier

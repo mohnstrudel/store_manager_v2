@@ -1,15 +1,11 @@
-export type ShippingCompanyRecord = {
-  created_at: string | null;
-  id: number | null;
-  name: string;
-  tracking_url: string | null;
-  updated_at: string | null;
-};
+import type {
+  ShippingCompaniesNew,
+  ShippingCompaniesPurchaseItem,
+  ShippingCompany,
+} from "@/types/serializers";
 
-export type PurchaseItemRecord = {
-  id: number;
-  path: string;
-  product_full_title: string;
-  purchased_ago: string;
-  tracking_number: string;
-};
+export type ShippingCompanyRecord = ShippingCompany;
+
+export type ShippingCompanyFormRecord = ShippingCompaniesNew["shippingCompany"];
+
+export type PurchaseItemRecord = ShippingCompaniesPurchaseItem;

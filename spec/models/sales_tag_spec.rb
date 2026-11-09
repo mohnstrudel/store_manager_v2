@@ -28,29 +28,29 @@ RSpec.describe SalesTag do
     end
   end
 
-  describe ".find_or_create_normalized!" do
+  describe ".find_or_create_normalized" do
     it "trims, collapses Unicode whitespace, preserves case and derives the lowercase key" do
-      tag = described_class.find_or_create_normalized!(name: "  VIP \u00A0\u3000 Order  ", color: "sky")
+      tag = described_class.find_or_create_normalized(name: "  VIP \u00A0\u3000 Order  ", color: "sky")
 
       expect(tag).to have_attributes(name: "VIP Order", normalized_name: "vip order", color: "sky")
     end
 
     it "folds compatibility characters with NFKC" do
-      tag = described_class.find_or_create_normalized!(name: "ＶＩＰ")
+      tag = described_class.find_or_create_normalized(name: "ＶＩＰ")
 
       expect(tag).to have_attributes(name: "VIP", normalized_name: "vip", color: "green")
     end
 
     it "no longer offers gray" do
       expect(described_class::COLORS).not_to include("gray")
-      expect { described_class.find_or_create_normalized!(name: "Rush", color: "gray") }
+      expect { described_class.find_or_create_normalized(name: "Rush", color: "gray") }
         .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[:color]).to eq(["is not included in the list"]) }
     end
 
     it "reuses an existing identity and keeps its name and color" do
-      original = described_class.find_or_create_normalized!(name: "VIP Order", color: "sky")
+      original = described_class.find_or_create_normalized(name: "VIP Order", color: "sky")
 
-      reused = described_class.find_or_create_normalized!(name: "vip order", color: "pink")
+      reused = described_class.find_or_create_normalized(name: "vip order", color: "pink")
 
       expect(reused).to eq(original)
       expect(described_class.count).to eq(1)
@@ -58,12 +58,12 @@ RSpec.describe SalesTag do
     end
 
     it "accepts thirty characters and counts codepoints rather than bytes" do
-      expect(described_class.find_or_create_normalized!(name: "x" * 30).name).to eq("x" * 30)
-      expect(described_class.find_or_create_normalized!(name: "é" * 30).name).to eq("é" * 30)
+      expect(described_class.find_or_create_normalized(name: "x" * 30).name).to eq("x" * 30)
+      expect(described_class.find_or_create_normalized(name: "é" * 30).name).to eq("é" * 30)
     end
 
     it "accepts any number of words" do
-      expect(described_class.find_or_create_normalized!(name: "one two three").name).to eq("one two three")
+      expect(described_class.find_or_create_normalized(name: "one two three").name).to eq("one two three")
     end
 
     it "rejects invalid names and colors without creating a record" do
@@ -71,11 +71,11 @@ RSpec.describe SalesTag do
         "x" * 31 => [:name, "is too long (maximum is 30 characters)"],
         " \u00A0 " => [:name, "can't be blank"]
       }.each do |name, (attribute, message)|
-        expect { described_class.find_or_create_normalized!(name:) }
+        expect { described_class.find_or_create_normalized(name:) }
           .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[attribute]).to eq([message]) }
       end
 
-      expect { described_class.find_or_create_normalized!(name: "Rush", color: "orange") }
+      expect { described_class.find_or_create_normalized(name: "Rush", color: "orange") }
         .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[:color]).to eq(["is not included in the list"]) }
       expect(described_class.count).to eq(0)
     end
@@ -83,7 +83,7 @@ RSpec.describe SalesTag do
     it "does not reuse an existing identity when another field is invalid and reports only name and color errors" do
       original = create(:sales_tag, name: "VIP Order", color: "sky")
 
-      expect { described_class.find_or_create_normalized!(name: "vip order", color: "orange") }
+      expect { described_class.find_or_create_normalized(name: "vip order", color: "orange") }
         .to raise_error(ActiveRecord::RecordInvalid) { |error|
           expect(error.record.errors.attribute_names).to eq([:color])
         }
@@ -95,12 +95,12 @@ RSpec.describe SalesTag do
       create(:sales_tag, name: "Rush")
       allow(described_class).to receive(:find_by).and_return(nil)
 
-      expect { described_class.find_or_create_normalized!(name: "rush") }
+      expect { described_class.find_or_create_normalized(name: "rush") }
         .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[:name]).to eq(["changed while saving. Try again."]) }
     end
   end
 
-  describe "#revise!" do
+  describe "#revise" do
     let!(:vip) { create(:sales_tag, name: "VIP Order", color: "sky") }
     let!(:rush) { create(:sales_tag, name: "Rush", color: "pink") }
     let(:sale) { create(:sale) }
@@ -108,7 +108,7 @@ RSpec.describe SalesTag do
     before { [vip, rush].each { |tag| SaleTagging.create!(sale:, sales_tag: tag) } }
 
     it "rejects a rename onto another tag's identity as a name error, merging nothing" do
-      expect { rush.revise!(name: " vip   order ") }
+      expect { rush.revise(name: " vip   order ") }
         .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors.to_hash).to eq(name: ["has already been taken"]) }
 
       expect(rush.reload).to have_attributes(name: "Rush", color: "pink")
@@ -117,20 +117,20 @@ RSpec.describe SalesTag do
     end
 
     it "renames in place, normalizing the name and keeping the identity and assignments" do
-      vip.revise!(name: "  VIP \u00A0 Client ")
+      vip.revise(name: "  VIP \u00A0 Client ")
 
       expect(vip.reload).to have_attributes(name: "VIP Client", normalized_name: "vip client", color: "sky")
       expect(SaleTagging.where(sales_tag: vip).pluck(:sale_id)).to eq([sale.id])
     end
 
     it "lets a tag change the case of its own name" do
-      vip.revise!(name: "vip order")
+      vip.revise(name: "vip order")
 
       expect(vip.reload.name).to eq("vip order")
     end
 
     it "recolors without changing the name" do
-      vip.revise!(color: "olive")
+      vip.revise(color: "olive")
 
       expect(vip.reload).to have_attributes(name: "VIP Order", color: "olive")
     end
@@ -139,7 +139,7 @@ RSpec.describe SalesTag do
       {{color: "orange"} => [:color, "is not included in the list"],
        {name: " \u00A0 "} => [:name, "can't be blank"],
        {name: "x" * 31} => [:name, "is too long (maximum is 30 characters)"]}.each do |attributes, (attribute, message)|
-        expect { vip.revise!(attributes) }
+        expect { vip.revise(attributes) }
           .to raise_error(ActiveRecord::RecordInvalid) { |error| expect(error.record.errors[attribute]).to eq([message]) }
         expect(vip.reload).to have_attributes(name: "VIP Order", color: "sky")
       end

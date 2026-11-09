@@ -1,4 +1,4 @@
-import type { ColorRecord, ProductRecord } from "../types";
+import type { ColorFormRecord, ColorRecord, ProductRecord } from "../types";
 
 export function makeColor(overrides: Partial<ColorRecord> = {}): ColorRecord {
   return {
@@ -15,6 +15,13 @@ export function makeColorProduct(overrides: Partial<ProductRecord> = {}): Produc
     id: 10,
     full_title: "Studio Ghibli - Spirited Away",
     path: "/products/10",
+    ...overrides,
+  };
+}
+
+export function makeColorForm(overrides: Partial<ColorFormRecord> = {}): ColorFormRecord {
+  return {
+    value: "Azure",
     ...overrides,
   };
 }

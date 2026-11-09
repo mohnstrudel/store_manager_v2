@@ -3,12 +3,12 @@
 require "rails_helper"
 
 RSpec.describe Warehouse do
-  describe "#destroy_if_empty!" do
+  describe "#destroy_if_empty" do
     it "destroys an empty warehouse" do
       warehouse = create(:warehouse)
 
       expect {
-        warehouse.destroy_if_empty!
+        warehouse.destroy_if_empty
       }.to change(described_class, :count).by(-1)
     end
 
@@ -17,7 +17,7 @@ RSpec.describe Warehouse do
       create(:purchase_item, warehouse:)
 
       expect {
-        warehouse.destroy_if_empty!
+        warehouse.destroy_if_empty
       }.to raise_error(ActiveRecord::RecordInvalid, /move out all purchased products/)
 
       expect(warehouse.errors[:base]).to include(

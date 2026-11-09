@@ -12,8 +12,7 @@ type EditProps = {
 };
 
 export default function Edit({ brand }: EditProps) {
-  const currentBrandPath =
-    brand.id === null ? routes.brands.index.path() : routes.brands.show.path({ id: brand.id });
+  const currentBrandPath = routes.brands.show.path({ id: brand.id });
 
   return (
     <>

@@ -2,35 +2,10 @@ import type { ReactNode } from "react";
 
 import PageHeader from "@/components/PageHeader";
 import SearchableTableSection from "@/components/SearchableTableSection";
-import type { PaginationMeta } from "@/types/pagination";
+import type { DashboardDebt, DashboardDebts, DashboardUnpaidPurchase } from "@/types/serializers";
 import { rowNavigationProps } from "@/utils/rowNavigation";
 
-type DebtRecord = {
-  id: number;
-  path: string;
-  row_id: number;
-  title: string;
-  variant_name: string;
-  sold_amount: number;
-  purchased_amount: number;
-  debt: number;
-};
-
-type UnpaidPurchaseRecord = {
-  id: number;
-  path: string;
-  purchased_ago: string;
-  supplier_title: string;
-  item_price: string;
-  amount: number;
-};
-
-type DebtsProps = {
-  debts: DebtRecord[];
-  pagination: PaginationMeta;
-  search: { q: string };
-  unpaid_purchases: UnpaidPurchaseRecord[];
-};
+type DebtsProps = DashboardDebts;
 
 export default function Debts({ debts, pagination, search, unpaid_purchases }: DebtsProps) {
   return (
@@ -58,7 +33,7 @@ export default function Debts({ debts, pagination, search, unpaid_purchases }: D
   );
 }
 
-function DebtsTable({ debts }: { debts: DebtRecord[] }) {
+function DebtsTable({ debts }: { debts: DashboardDebt[] }) {
   return (
     <table>
       <thead>
@@ -85,7 +60,11 @@ function DebtsTable({ debts }: { debts: DebtRecord[] }) {
   );
 }
 
-function UnpaidPurchasesSection({ unpaidPurchases }: { unpaidPurchases: UnpaidPurchaseRecord[] }) {
+function UnpaidPurchasesSection({
+  unpaidPurchases,
+}: {
+  unpaidPurchases: DashboardUnpaidPurchase[];
+}) {
   return (
     <section className="table_card">
       <h3>Purchases Without Payments</h3>

@@ -2,28 +2,23 @@
 
 module Dashboard
   class DebtsController < ApplicationController
-    include DashboardDebtReporting
-
     def show
       @unpaid_purchases = Purchase.unpaid.includes(:supplier)
       @debts = if params[:q].present?
         search_query = params.expect(:q).downcase
-        sale_debts.select do |product|
+        Product.with_sale_debts.select do |product|
           product.full_title&.downcase&.include?(search_query) ||
             product.variants.any? do |variant|
               variant.title&.downcase&.include?(search_query)
             end
         end
       else
-        sale_debts
+        Product.with_sale_debts
       end
       @debts = Kaminari.paginate_array(@debts).page(params[:page]).per(25)
 
-      render inertia: "Dashboard/Debts", props: helpers.dashboard_debts_props(
-        @debts,
-        unpaid_purchases: @unpaid_purchases,
-        search: {q: params[:q].to_s}
-      )
+      render_inertia "Dashboard/Debts", serializer: Dashboard::DebtsResource,
+        locals: {debts: @debts, unpaid_purchases: @unpaid_purchases, query: params[:q].to_s}
     end
 
     private

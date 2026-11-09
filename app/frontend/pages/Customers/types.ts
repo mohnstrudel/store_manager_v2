@@ -1,48 +1,9 @@
-import type { SalePaymentPlanRecord, SalePaymentProgress, SettlementStatus } from "@/types/payment";
+import type { Customer, CustomersDetail, CustomersNew, CustomersSale } from "@/types/serializers";
 
-export type CustomerRecord = {
-  id: number | null;
-  first_name: string;
-  last_name: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  woo_store_id: string;
-  created_at: string | null;
-  updated_at: string | null;
-  path: string;
-};
+export type CustomerRecord = Customer;
 
-export type CustomerDetailRecord = CustomerRecord & {
-  shopify_id: string;
-  shopify_id_short: string;
-};
+export type CustomerFormRecord = CustomersNew["customer"];
 
-export type SaleRecord = {
-  id: number;
-  path: string;
-  payment_plans: SalePaymentPlanRecord[];
-  payment_progress: SalePaymentProgress | null;
-  partially_paid: boolean;
-  store_id: string;
-  sale_identifier: string;
-  sold_product_name: string;
-  product_thumb_url: string | null;
-  store_type: "shopify" | "woo" | null;
-  warehouses: { name: string; path: string }[];
-  total: string;
-  country: string;
-  city: string;
-  note: string;
-  created_at: string;
-  updated_at: string;
-  settlement_status: SettlementStatus;
-  is_follow_up_payment: boolean;
-};
+export type CustomerDetailRecord = CustomersDetail;
 
-export type PaginationMeta = {
-  current_page: number;
-  total_pages: number;
-  total_count: number;
-  limit: number;
-};
+export type SaleRecord = CustomersSale;

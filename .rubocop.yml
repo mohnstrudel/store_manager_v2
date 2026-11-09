@@ -102,6 +102,16 @@ Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
 
+Project/BangWithoutCounterpart:
+  Enabled: true
+Project/CapabilityModuleName:
+  Enabled: true
+  Include:
+    - app/models/**/*.rb
+  AllowedNames:
+    - Parsing
+    - Shipping
+    - Warehousing
 Project/DepthFirstCallOrder:
   Enabled: true
 Project/NoProseComments:

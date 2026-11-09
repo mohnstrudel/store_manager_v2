@@ -1,4 +1,4 @@
-import type { ProductRecord, SizeRecord } from "../types";
+import type { ProductRecord, SizeFormRecord, SizeRecord } from "../types";
 
 export function makeSize(overrides: Partial<SizeRecord> = {}): SizeRecord {
   return {
@@ -15,6 +15,13 @@ export function makeSizeProduct(overrides: Partial<ProductRecord> = {}): Product
     id: 10,
     full_title: "Studio Ghibli - Spirited Away",
     path: "/products/10",
+    ...overrides,
+  };
+}
+
+export function makeSizeForm(overrides: Partial<SizeFormRecord> = {}): SizeFormRecord {
+  return {
+    value: "1:6",
     ...overrides,
   };
 }

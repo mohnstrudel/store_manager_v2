@@ -19,29 +19,27 @@
 #  woo_id       :string
 #
 class Product < ApplicationRecord
-  attr_accessor :initial_purchase
-
   include VariantGeneration
-  include HasAuditNotifications
-  include HasPreviewImages
-  include Listing
-  include Editing
+  include AuditNotifiable
+  include Illustrated
+  include Revisable
+  include InitialPurchase
   include Profitability
+  include SaleDebts
   include SalesHistory
   include Searchable
   include Shapes
   include Shopable
-  include Shopify::Matching
-  include Shopify::Fallbacks
-  include Shopify::Exporting
-  include Shopify::MediaImporting
+  include Shopify::Matchable
+  include Shopify::Placeholders
+  include Shopify::Exportable
+  include Shopify::Pushable
+  include Shopify::MediaImportable
   include StoreReferences
-  include Titling
+  include Titled
   include VariantAvailability
 
   extend FriendlyId
-
-  SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID = "gid://shopify/Product/9499506180425"
 
   audited associated_with: :franchise
   has_associated_audits
@@ -87,9 +85,52 @@ class Product < ApplicationRecord
 
   has_rich_text :description
 
-  def self.seal_installment_placeholder
-    find_by(shopify_id: SEAL_INSTALLMENT_PLACEHOLDER_SHOPIFY_ID)
-  end
+  scope :listed, -> {
+    where(non_catalog: false).includes(
+      :shopify_info,
+      :woo_info,
+      variants: [:version, :color, :size],
+      media: {image_attachment: :blob}
+    ).order(Product.arel_table[:published_at].desc.nulls_last, created_at: :desc)
+  }
+
+  scope :preloaded, -> {
+    with_rich_text_description_and_embeds.includes(
+      :franchise,
+      :shopify_info,
+      :woo_info,
+      :brands,
+      :sizes,
+      :versions,
+      :colors,
+      media: {image_attachment: :blob},
+      purchases: [:product, :supplier, variant: [:version, :color, :size]],
+      purchase_items: [:warehouse, :purchase],
+      variants: [
+        :version,
+        :color,
+        :size,
+        :shopify_info,
+        :woo_info,
+        {sale_items: :sale},
+        {purchases: :supplier}
+      ],
+      store_infos: [:tags]
+    )
+  }
+
+  scope :with_brands_variants_and_media, -> {
+    with_rich_text_description_and_embeds.includes(
+      :brands,
+      :variants,
+      media: {image_attachment: :blob},
+      store_infos: [:tags]
+    )
+  }
+
+  scope :with_media_and_shopify_info, -> {
+    includes(media: [:image_attachment, :image_blob, :shopify_info])
+  }
 
   private
 

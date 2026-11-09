@@ -4,12 +4,10 @@ module Woo
   class SuperviseSalesWebhookJob < ApplicationJob
     queue_as :default
 
-    include Gettable
-
     def perform
       return if Config.sales_hook_disabled?
 
-      latest_orders = api_get_latest_orders
+      latest_orders = Woo::Api::Client.new.fetch_latest_orders
 
       unless latest_orders
         report_missing_latest_orders
@@ -17,7 +15,7 @@ module Woo
       end
 
       latest_order = latest_orders.find do |order|
-        order[:status].in? Sale.active_status_names
+        order[:status].in? Sale::ACTIVE_STATUSES
       end
 
       unless latest_order
@@ -59,7 +57,7 @@ module Woo
           integration: "woo"
         },
         extra: {
-          active_status_names: Sale.active_status_names,
+          active_status_names: Sale::ACTIVE_STATUSES,
           returned_statuses: statuses,
           orders_checked: latest_orders.size
         }

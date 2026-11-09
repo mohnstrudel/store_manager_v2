@@ -7,7 +7,7 @@ description: Design or refactor React and Inertia frontend code with clear behav
 
 ## Usage
 
-- Use `collaborative-planning` to run the planning process. Use this skill while gathering frontend evidence and defining the plan, then keep it active through implementation and validation.
+- Use this skill while gathering frontend evidence and defining the plan, then keep it active through implementation and validation.
 - Load `rails-domain-architecture` at the same time when work needs new backend data, routes, authorization, persistence, or domain behavior.
 - Read [components.md](references/components.md) when adding a component or structurally refactoring a component or page. Routine content edits do not require the reference.
 - Read [testing.md](references/testing.md) when adding or changing frontend tests, or when choosing a test strategy is part of the design. Routine verification of a mechanical change does not require the reference.
@@ -16,14 +16,9 @@ description: Design or refactor React and Inertia frontend code with clear behav
 - For a persisted table-cell editor, also use `inline-cell-editor`; it supplements this skill and the Rails skill.
 - Load `rails-testing` alongside this skill when work touches request specs, Cuprite specs, Rails test infrastructure, or shared Ruby contracts. This skill's `testing.md` owns the frontend seam choice; `rails-testing` owns the Rails-side boundary.
 
-## Example Policy
-
-- **Repository convention:** Follow the shown shape unless the inspected owner has a more specific existing contract.
-- **Illustration:** Apply the ownership or boundary decision without copying names or structure mechanically.
-
 ## Required Frontend Contract
 
-Before planning behavior-bearing frontend work or a structural refactor that affects or calls into question ownership, state, authority, or boundaries, write every label. Write `Not applicable — <reason>` when a label genuinely does not apply. When collaborative planning loads `architecture-review.md`, incorporate its relevant lifecycle and public-contract decisions through these labels instead of creating another checklist:
+Before planning behavior-bearing frontend work or a structural refactor that affects or calls into question ownership, state, authority, or boundaries, write every label. Write `Not applicable — <reason>` when a label does not apply. When collaborative planning loads `architecture-review.md`, incorporate its relevant lifecycle and public-contract decisions through these labels instead of creating another checklist:
 
 - **Owner and boundary:** Name the page, component, hook, provider, or browser adapter that owns the behavior. Define its public props, context, hook, or adapter contract and dependency direction. Name the backend boundary when domain data or commands are involved.
 - **State:** Name each authoritative source, its lifetime, and its permitted writers: backend props, URL, page, provider, component, or browser storage. Identify deterministic presentation values that remain derived.
@@ -40,13 +35,14 @@ Before planning behavior-bearing frontend work or a structural refactor that aff
    - Pages own composition and the page contract.
    - Page-local modules own independently meaningful page subsystems; reuse is not required for a file boundary.
    - Components own cohesive interaction and presentation.
-   - Hooks own a distinct behavior, lifecycle, synchronization process, or external integration; do not extract a hook merely to shorten a component.
+   - Hooks own a distinct behavior, lifecycle, synchronization process, or external integration; do not extract a hook only to shorten a component.
    - Providers own behavior shared by one subtree with a clear lifetime; prop depth alone does not justify Context.
    - Utilities remain pure and owner-neutral.
    - Adapters own browser or external protocols.
    - Shared components require proven reuse or a stable UI primitive. Keep page-owned UI near its page until that boundary exists.
 4. Keep the frontend/backend boundary explicit. React owns presentation and interaction state; Rails owns domain facts, persistence, authorization, and invariant-bearing writes. Change the backend contract explicitly when the UI needs new domain data or behavior.
-5. Consume backend routes through Rails-provided path props or generated helpers from `@/utils/routes`. Do not rebuild Rails route semantics in components or hand-edit generated files under `app/frontend/api`.
+5. Type page props with the generated types from `@/types/serializers`; never hand-write a type for backend props or edit that generated directory. Change the Alba resource and regenerate instead.
+6. Consume backend routes through Rails-provided path props or generated helpers from `@/utils/routes`. Do not rebuild Rails route semantics in components or hand-edit generated files under `app/frontend/api`.
 
    **Repository convention:** Use a path prop directly when Rails provides it. Otherwise use a generated helper:
 
@@ -55,8 +51,8 @@ Before planning behavior-bearing frontend work or a structural refactor that aff
    const sizePath = routes.sizes.show.path({ id: size.id });
    ```
 
-6. Keep components readable from public contract to feature composition to private mechanics. Use domain language and name non-obvious decisions or derived values when that makes ownership clear.
-7. Apply the conditional references, then validate with the repository-wide gate in `AGENTS.md`.
+7. Keep components readable from public contract to feature composition to private mechanics. Use domain language and name non-obvious decisions or derived values when that makes ownership clear.
+8. Apply the conditional references, then validate with the repository-wide gate in `AGENTS.md`.
 
 ## Refactor Safety
 
@@ -65,4 +61,4 @@ Before planning behavior-bearing frontend work or a structural refactor that aff
 - Prefer the simplest inspectable state representation. Do not add global state, Context, reducers, adapters, or compatibility layers without a distinct owner and responsibility.
 - Do not extract solely for file length or hypothetical reuse, but do not keep independent feature contracts in one file. Split by ownership and cohesion; inline wrappers that add no decision, lifecycle, protocol, or stable visual unit.
 - A component variant is valid when variants share one owner, contract, and lifecycle; split them when those meanings diverge.
-- Use props for values that vary by instance and a provider for behavior genuinely shared by a subtree. Choose based on ownership and lifetime, not a fixed component-depth rule.
+- Use props for values that vary by instance and a provider for behavior shared by a subtree. Choose based on ownership and lifetime, not a fixed component-depth rule.

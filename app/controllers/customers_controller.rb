@@ -6,36 +6,30 @@ class CustomersController < ApplicationController
   def index
     @customers = Customer.order(:created_at)
     @customers = @customers.search(params[:q]) if params[:q].present?
-    @customers = @customers.for_listing.page(params[:page])
+    @customers = @customers.with_woo_info.page(params[:page])
 
-    return unless stale?(etag: [@customers, request.inertia?], last_modified: @customers.maximum(:updated_at))
+    return unless stale?(etag: [@customers], last_modified: @customers.maximum(:updated_at))
 
-    render inertia: "Customers/Index", props: {
-      customers: @customers.map { |customer| helpers.customer_props(customer) },
-      pagination: helpers.pagination_props(@customers),
-      search: {q: params[:q].to_s}
-    }
+    render_inertia "Customers/Index", serializer: Customers::IndexResource,
+      locals: {customers: @customers, query: params[:q].to_s}
   end
 
   def show
-    @active_sales = @customer.sales.active.for_details.ordered_by_shop_created_at
-    @completed_sales = @customer.sales.completed.for_details.ordered_by_shop_created_at
+    @active_sales = @customer.sales.active.preloaded.ordered_by_shop_created_at
+    @completed_sales = @customer.sales.completed.preloaded.ordered_by_shop_created_at
 
-    render inertia: "Customers/Show", props: {
-      customer: helpers.customer_detail_props(@customer),
-      active_sales: @active_sales.map { |sale| helpers.customer_sale_props(sale) },
-      completed_sales: @completed_sales.map { |sale| helpers.customer_sale_props(sale) }
-    }
+    render_inertia "Customers/Show", serializer: Customers::ShowResource,
+      locals: {customer: @customer, active_sales: @active_sales, completed_sales: @completed_sales}
   end
 
   def new
     @customer = Customer.new
 
-    render inertia: "Customers/New", props: helpers.customer_form_props(@customer)
+    render_inertia "Customers/New", serializer: Customers::NewResource, locals: {customer: @customer}
   end
 
   def edit
-    render inertia: "Customers/Edit", props: helpers.customer_form_props(@customer)
+    render_inertia "Customers/Edit", serializer: Customers::EditResource, locals: {customer: @customer}
   end
 
   def create
@@ -64,7 +58,7 @@ class CustomersController < ApplicationController
   private
 
   def customer_params
-    params.fetch(:customer, {}).permit(:email, :first_name, :last_name, :phone)
+    params.expect(customer: [:email, :first_name, :last_name, :phone])
   end
 
   def set_customer

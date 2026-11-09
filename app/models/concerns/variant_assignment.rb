@@ -15,7 +15,7 @@ module VariantAssignment
   private
 
   def reconcile_purchase_item_identity
-    PurchaseItem.reconcile_identity_change!(self) { yield }
+    PurchaseItem.reconcile_identity_change(self) { yield }
   end
 
   def relink_purchase_items_on_update?

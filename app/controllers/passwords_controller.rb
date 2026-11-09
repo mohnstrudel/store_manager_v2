@@ -7,15 +7,15 @@ class PasswordsController < ApplicationController
   skip_after_action :verify_authorized
 
   def new
-    render inertia: "Passwords/New", props: {email_address: params[:email_address]}
+    render_inertia "Passwords/New", serializer: EmailAddressPrefillResource, locals: {email_address: params[:email_address]}
   end
 
   def edit
-    render inertia: "Passwords/Edit", props: {token: params[:token]}
+    render_inertia "Passwords/Edit", serializer: Passwords::EditResource, locals: {token: params.expect(:token)}
   end
 
   def create
-    if (user = User.find_by(email_address: params[:email_address]))
+    if (user = User.find_by(email_address: params.expect(:email_address)))
       PasswordsMailer.reset(user).deliver_later
     end
 
@@ -23,10 +23,11 @@ class PasswordsController < ApplicationController
   end
 
   def update
-    if @user.update(params.permit(:password, :password_confirmation))
+    password, password_confirmation = params.expect(:password, :password_confirmation)
+    if @user.update(password:, password_confirmation:)
       redirect_to sign_in_path, notice: "Password has been reset"
     else
-      redirect_to edit_password_path(params[:token]), alert: "Passwords did not match"
+      redirect_to edit_password_path(params.expect(:token)), alert: "Passwords did not match"
     end
   end
 

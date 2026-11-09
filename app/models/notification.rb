@@ -12,7 +12,7 @@
 #  updated_at :datetime         not null
 #
 class Notification < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
   has_associated_audits

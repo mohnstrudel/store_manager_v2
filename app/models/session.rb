@@ -13,4 +13,9 @@
 #
 class Session < ApplicationRecord
   db_belongs_to :user, inverse_of: :sessions
+
+  def self.staff_request?(request)
+    user = find_by(id: request.cookie_jar.signed[:session_id])&.user
+    user.present? && !user.guest?
+  end
 end

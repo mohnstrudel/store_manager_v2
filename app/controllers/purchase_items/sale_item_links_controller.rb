@@ -13,7 +13,7 @@ module PurchaseItems
           []
         end
 
-      PurchaseItem.link_exact!(
+      PurchaseItem.link_exact(
         assignments: [{purchase_item: @purchase_item, sale_item: target}],
         unlink_purchase_items:
       )
@@ -27,8 +27,9 @@ module PurchaseItems
       sale_item = @purchase_item.sale_item
       target_path = sale_item_path(sale_item.sale, sale_item) if sale_item
 
-      if @purchase_item.unlink_from_sale_item!
-        redirect_to (request.referer || target_path),
+      if @purchase_item.unlink_from_sale_item
+        redirect_back_or_to target_path,
+          allow_other_host: false,
           notice: "Purchase item was successfully unlinked",
           status: :see_other
       else

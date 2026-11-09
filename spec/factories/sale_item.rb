@@ -5,6 +5,7 @@ FactoryBot.define do
     transient do
       woo_store_id { nil }
       shopify_store_id { nil }
+      synced { false }
     end
 
     price { BigDecimal("873.95") }
@@ -16,11 +17,17 @@ FactoryBot.define do
     variant { product.base_variant }
 
     after(:create) do |sale_item, evaluator|
-      if evaluator.woo_store_id.present? || sale_item[:woo_id].present?
-        sale_item.upsert_woo_info!(store_id: evaluator.woo_store_id || sale_item[:woo_id])
+      if evaluator.woo_store_id.present? || (evaluator.synced && sale_item[:woo_id].present?)
+        sale_item.upsert_woo_info(store_id: evaluator.woo_store_id || sale_item[:woo_id])
       end
 
-      sale_item.upsert_shopify_info!(store_id: evaluator.shopify_store_id || sale_item.shopify_id) if evaluator.shopify_store_id.present? || sale_item.shopify_id.present?
+      if evaluator.shopify_store_id.present? || (evaluator.synced && sale_item.shopify_id.present?)
+        sale_item.upsert_shopify_info(store_id: evaluator.shopify_store_id || sale_item.shopify_id)
+      end
+    end
+
+    trait :synced do
+      synced { true }
     end
   end
 end

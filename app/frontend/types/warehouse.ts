@@ -1,4 +1,1 @@
-export type WarehouseOption = {
-  id: number;
-  name: string;
-};
+export type { WarehouseOption } from "@/types/serializers";

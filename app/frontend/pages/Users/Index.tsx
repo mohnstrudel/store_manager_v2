@@ -1,10 +1,9 @@
 import ResourceIndexPage from "@/components/ResourceIndexPage";
+import type { UsersIndex } from "@/types/serializers";
 
-import IndexTable, { type UserRecord } from "./components/IndexTable";
+import IndexTable from "./components/IndexTable";
 
-type IndexProps = {
-  users: UserRecord[];
-};
+type IndexProps = UsersIndex;
 
 export default function Index({ users }: IndexProps) {
   return (

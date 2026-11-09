@@ -4,11 +4,11 @@ import ResourceForm from "@/components/ResourceForm";
 import { getFormString } from "@/utils/formSchema";
 import { msg } from "@/utils/validationMessages";
 
-import { ShippingCompanyRecord } from "../types";
+import { ShippingCompanyFormRecord } from "../types";
 
 type ShippingCompanyFormProps = {
   method: "post" | "patch";
-  shippingCompany: ShippingCompanyRecord;
+  shippingCompany: ShippingCompanyFormRecord;
   submitLabel: string;
   url: string;
 };

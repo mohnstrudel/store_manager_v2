@@ -57,7 +57,7 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
     end
 
     context "when sale already exists" do
-      before { create(:sale, shopify_id: sale_id) }
+      before { create(:sale, :synced, shopify_id: sale_id) }
 
       it "updates existing sale instead of creating duplicate" do
         expect { job.perform(sale_id) }.not_to change(Sale, :count)
@@ -70,7 +70,7 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
       end
 
       def create_plan(external_origin_order_id:, follow_up_order_id:)
-        SalePaymentPlan.reconcile!(
+        SalePaymentPlan.reconcile(
           attributes: {
             provider: "seal",
             external_id: "sub-#{external_origin_order_id}",

@@ -3,6 +3,24 @@ name: Tests
 on: [pull_request]
 
 jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup gitleaks
+        uses: jdx/mise-action@v5
+        with:
+          install_args: gitleaks
+
+      - name: Scan git history
+        run: mise exec -- gitleaks git --redact --no-banner
+
   test:
     name: Backend tests
     runs-on: ubuntu-latest
@@ -13,6 +31,7 @@ jobs:
       PGPASSWORD: postgres
       RAILS_ENV: test
       REDIS_HOST: redis
+      SECRET_KEY_BASE: ci-test-only
 
     services:
       postgres:
@@ -57,10 +76,18 @@ jobs:
       - name: Install Google Chrome
         uses: browser-actions/setup-chrome@v1
 
-      - name: Setup test DB
-        run: |
-          bundle exec rails db:setup
-          bundle exec rails db:test:prepare
+      - name: Use one test process per CPU
+        run: echo "PARALLEL_TEST_PROCESSORS=$(nproc)" >> "$GITHUB_ENV"
+
+      - name: Setup test DBs
+        run: bundle exec rake parallel:create parallel:load_schema
+
+      - name: Restore recorded spec runtimes
+        uses: actions/cache@v4
+        with:
+          path: tmp/parallel_runtime_rspec.log
+          key: rspec-runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: rspec-runtime-
 
       - name: Prepare assets (Tailwind)
         run: |
@@ -68,7 +95,16 @@ jobs:
       - name: Run backend lint
         run: bundle exec rubocop
 
-      - run: bundle exec rspec
+      - name: Check generated TypeScript types
+        run: |
+          TYPELIZER=true bundle exec rails typelizer:generate:refresh
+          git add --intent-to-add app/frontend/types/serializers
+          git diff --exit-code -- app/frontend/types/serializers
+
+      - name: Run backend tests
+        run: bin/parallel-rspec spec
+        env:
+          PARALLEL_RSPEC_SKIP_SETUP: "1"
 
   frontend:
     name: Frontend tests
@@ -92,6 +128,9 @@ jobs:
 
       - name: Run frontend lint
         run: pnpm lint
+
+      - name: Type-check frontend
+        run: pnpm exec tsc --noEmit
 
       - name: Run frontend tests
         run: pnpm exec vitest run

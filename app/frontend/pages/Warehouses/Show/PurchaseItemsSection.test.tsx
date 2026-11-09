@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,8 +7,10 @@ import { makePagination } from "@/test/factories";
 import { mockPage } from "@/test/mocks/inertia";
 
 import { makeWarehousePurchaseItem, makeWarehouseShowRecord } from "../test/factories";
-import type { WarehousePurchaseItemRecord } from "../types";
+import type { WarehouseOption, WarehousePurchaseItemRecord } from "../types";
 import { PurchaseItemsSection } from "./PurchaseItemsSection";
+
+vi.mock("@/components/SmartSelect", () => import("@/test/mocks/smartSelect"));
 
 const writeText = vi.fn<(...args: unknown[]) => Promise<void>>();
 
@@ -144,6 +146,43 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
     expect(router.visit).not.toHaveBeenCalled();
   });
 
+  it("posts the checked rows to the warehouse move path and clears the selection after the move", async () => {
+    const user = userEvent.setup();
+
+    renderSection({
+      purchaseItems: [
+        makeWarehousePurchaseItem({ id: 10 }),
+        makeWarehousePurchaseItem({ id: 11 }),
+        makeWarehousePurchaseItem({ id: 12 }),
+      ],
+      warehouseMovePath: "/purchase_items/move?warehouse_id=1",
+      warehouses: [
+        { id: 1, name: "Warehouse From" },
+        { id: 2, name: "Warehouse To" },
+      ],
+    });
+
+    await user.click(screen.getByLabelText("Select purchase item 10"));
+    await user.click(screen.getByLabelText("Select purchase item 11"));
+    await user.selectOptions(screen.getByLabelText("Destination warehouse"), "2");
+    await user.click(screen.getByRole("button", { name: /Move/ }));
+
+    expect(router.post).toHaveBeenCalledWith(
+      "/purchase_items/move?warehouse_id=1",
+      expect.objectContaining({ destination_id: "2", selected_items_ids: [10, 11] }),
+      expect.anything(),
+    );
+
+    const options = vi.mocked(router.post).mock.calls[0][2];
+    if (!hasOnSuccess(options)) {
+      throw new Error("Expected move success callback");
+    }
+    act(() => options.onSuccess?.());
+
+    expect(screen.getByLabelText("Select purchase item 10")).not.toBeChecked();
+    expect(screen.queryByRole("button", { name: /Move/ })).not.toBeInTheDocument();
+  });
+
   it("opens inline editors without validation errors before submitting", async () => {
     const user = userEvent.setup();
 
@@ -163,8 +202,12 @@ describe("Warehouses/Show/PurchaseItemsSection", () => {
 
 function renderSection({
   purchaseItems = [makeWarehousePurchaseItem()],
+  warehouseMovePath = "/purchase_items/move",
+  warehouses = [{ id: 1, name: "Warehouse A" }],
 }: {
   purchaseItems?: WarehousePurchaseItemRecord[];
+  warehouseMovePath?: string;
+  warehouses?: WarehouseOption[];
 } = {}) {
   return render(
     <PurchaseItemsSection
@@ -175,8 +218,12 @@ function renderSection({
       shipping_companies={[{ id: 3, name: "Skyline" }]}
       total_purchase_items={purchaseItems.length}
       warehouse={makeWarehouseShowRecord()}
-      warehouse_move_path="/purchase_items/move"
-      warehouses={[{ id: 1, name: "Warehouse A" }]}
+      warehouse_move_path={warehouseMovePath}
+      warehouses={warehouses}
     />,
   );
+}
+
+function hasOnSuccess(value: unknown): value is { onSuccess?: () => void } {
+  return typeof value === "object" && value !== null;
 }

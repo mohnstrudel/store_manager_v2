@@ -2,24 +2,11 @@ import { Link } from "@inertiajs/react";
 import { PencilIcon } from "lucide-react";
 
 import Button from "@/components/Button";
+import type { UsersShow } from "@/types/serializers";
 import routes from "@/utils/routes";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 
-type UserRecord = {
-  id: number;
-  email_address: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
-  edit_path: string;
-  destroy_path: string;
-};
-
-type ShowProps = {
-  user: UserRecord;
-};
+type ShowProps = UsersShow;
 
 export default function Show({ user }: ShowProps) {
   const currentUserPath = routes.users.show.path({ id: user.id });

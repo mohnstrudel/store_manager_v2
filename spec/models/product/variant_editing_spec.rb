@@ -4,13 +4,13 @@ require "rails_helper"
 
 # rubocop:todo RSpec/SpecFilePathFormat
 RSpec.describe Product do
-  describe "#save_editing!" do
+  describe "#revise" do
     let(:product) { create(:product) }
 
     it "updates an existing variant" do
       variant = create(:variant, product:, sku: "OLD-SKU")
 
-      product.save_editing!(
+      product.revise(
         product_attributes: editing_product_attributes(product),
         variants_attributes: [
           {id: variant.id, sku: "NEW-SKU"}
@@ -29,7 +29,7 @@ RSpec.describe Product do
       create(:variant, product:, size:, version:, color:)
 
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [
             {size_id: size.id, version_id: version.id, color_id: color.id}
@@ -46,7 +46,7 @@ RSpec.describe Product do
       create(:variant, product:, sku: "EXISTING-SKU")
 
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [
             {sku: "EXISTING-SKU"}
@@ -63,7 +63,7 @@ RSpec.describe Product do
       create(:variant, sku: "GLOBAL-SKU")
 
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [
             {sku: "GLOBAL-SKU"}
@@ -82,7 +82,7 @@ RSpec.describe Product do
       create(:sale_item, product:, variant:, sale:, qty: 1)
 
       expect {
-        product.save_editing!(
+        product.revise(
           product_attributes: editing_product_attributes(product),
           variants_attributes: [
             {id: variant.id, destroy: true}

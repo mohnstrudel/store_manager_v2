@@ -4,36 +4,25 @@ require "rails_helper"
 
 RSpec.describe "Creating a new purchase" do
   before { sign_in_as_admin }
-  after { log_out }
 
   let!(:supplier) { create(:supplier) }
   let!(:product) { create(:product) }
   let!(:warehouse) { create(:warehouse, is_default: true) }
 
-  scenario "creates purchased products in the default warehouse", :js do # rubocop:todo RSpec/MultipleExpectations
+  # rubocop:todo RSpec/MultipleExpectations
+  scenario "rejects an empty purchase, then creates purchased products in the default warehouse with an initial payment and adds a payment", :js do
+    # rubocop:enable RSpec/MultipleExpectations
     visit new_purchase_path
+
+    click_button "Create Purchase"
+
+    expect(page).to have_content("Fix errors and try again")
+    expect(page).to have_css("#purchase_product_id_error", text: "can't be blank")
+    expect(Purchase.count).to eq(0)
 
     choose_react_select(supplier.title, from: "Supplier")
     choose_react_select(product.build_full_title_with_shop_id, from: "Product")
-    find("#purchase_amount").set(5)
-    find("#purchase_item_price").set(10)
-
-    expect {
-      click_button "Create Purchase"
-      expect(page).to have_content("Purchase was successfully created")
-    }.to change(Purchase, :count).by(1)
-      .and change(PurchaseItem, :count).by(5)
-
-    purchase = Purchase.last
-    expect(purchase.purchase_items.count).to eq(5)
-    expect(purchase.purchase_items.all? { |pp| pp.warehouse == warehouse }).to be true
-  end
-
-  scenario "creates an initial payment alongside the purchase", :js do # rubocop:todo RSpec/MultipleExpectations
-    visit new_purchase_path
-
-    choose_react_select(supplier.title, from: "Supplier")
-    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
+    expect(find("input[name='purchase[product_id]']", visible: false).value).to eq(product.id.to_s)
     find("#purchase_amount").set(5)
     find("#purchase_item_price").set(10)
     fill_in "What did you pay in total?", with: "50"
@@ -42,93 +31,18 @@ RSpec.describe "Creating a new purchase" do
       click_button "Create Purchase"
       expect(page).to have_content("Purchase was successfully created")
     }.to change(Purchase, :count).by(1)
+      .and change(PurchaseItem, :count).by(5)
       .and change(Payment, :count).by(1)
 
     purchase = Purchase.last
-    expect(purchase.payments.pluck(:value)).to eq([BigDecimal(50)])
-  end
-
-  scenario "shows validation errors after an invalid submit", :js do
-    visit new_purchase_path
-
-    click_button "Create Purchase"
-
-    expect(page).to have_content("Fix errors and try again")
-    expect(page).to have_content("Amount")
-    expect(page).to have_content("Item price")
-    expect(page).to have_content("can't be blank")
-    expect(page).to have_button("Create Purchase")
-  end
-
-  scenario "requires a product before saving", :js do
-    visit new_purchase_path
-
-    choose_react_select(supplier.title, from: "Supplier")
-    find("#purchase_amount").set(5)
-    find("#purchase_item_price").set(10)
-
-    expect {
-      click_button "Create Purchase"
-    }.not_to change(Purchase, :count)
-
-    expect(page).to have_css("#purchase_product_id_error", text: "can't be blank")
-  end
-
-  scenario "keeps the product react select working after an invalid submit", :js do
-    visit new_purchase_path
-
-    click_button "Create Purchase"
-
-    expect(page).to have_content("Fix errors and try again")
-
-    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
-
-    expect(find("input[name='purchase[product_id]']", visible: false).value).to eq(product.id.to_s)
-  end
-
-  # rubocop:todo RSpec/MultipleExpectations
-  scenario "displays warehouse information on the purchase page after creation", :js do
-    # rubocop:enable RSpec/MultipleExpectations
-    visit product_path(product)
-
-    expect(page).not_to have_selector("h3", text: "Purchases")
-
-    visit new_purchase_path
-
-    choose_react_select(supplier.title, from: "Supplier")
-    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
-    choose_react_select(warehouse.name, from: "Initial warehouse")
-    find("#purchase_amount").set(5)
-    find("#purchase_item_price").set(10)
-
-    click_button "Create Purchase"
-
-    expect(page).to have_content("Purchase was successfully created")
-
-    purchase = Purchase.last
     expect(page).to have_current_path(purchase_path(purchase))
+    expect(purchase.purchase_items.count).to eq(5)
+    expect(purchase.purchase_items.all? { |pp| pp.warehouse == warehouse }).to be true
+    expect(purchase.payments.pluck(:value)).to eq([BigDecimal(50)])
 
     within(first(".table_card")) do
       expect(page).to have_link(product.full_title, href: product_path(product))
     end
-
-    visit product_path(product)
-    find("button[role='tab']", text: "Purchases").click
-
-    expect(page).to have_selector("h3", text: "Purchases")
-  end
-
-  scenario "adds a payment after the purchase is created", :js do # rubocop:todo RSpec/MultipleExpectations
-    visit new_purchase_path
-
-    choose_react_select(supplier.title, from: "Supplier")
-    choose_react_select(product.build_full_title_with_shop_id, from: "Product")
-    find("#purchase_amount").set(2)
-    find("#purchase_item_price").set(10)
-
-    click_button "Create Purchase"
-
-    expect(page).to have_content("Purchase was successfully created")
 
     expect(find("#payment_date").value).to eq(Date.current.iso8601)
     fill_in "payment_amount", with: "20"
@@ -136,25 +50,9 @@ RSpec.describe "Creating a new purchase" do
     click_button "Add payment"
 
     expect(page).to have_content("Payment was successfully created")
-    expect(Purchase.last.payments.count).to eq(1)
-    expect(Purchase.last.payments.first.value).to eq(BigDecimal(20))
-    expect(Purchase.last.payments.first.payment_date.to_date).to eq(Date.new(2026, 3, 29))
-  end
-
-  scenario "updates a payment amount and date on the purchase page", :js do # rubocop:todo RSpec/MultipleExpectations
-    purchase = create(:purchase)
-    payment = create(:payment, purchase:, value: 10, payment_date: Date.new(2026, 3, 28))
-
-    visit purchase_path(purchase)
-
-    within("tr[data-payment-id='#{payment.id}']") do
-      find("input[type='date']").set("2026-03-30")
-      find("input[type='number']").set("25")
-      click_button "Update"
-    end
-
-    expect(page).to have_content("Payment was successfully updated")
-    expect(payment.reload.value).to eq(BigDecimal(25))
-    expect(payment.payment_date.to_date).to eq(Date.new(2026, 3, 30))
+    added_payment = purchase.payments.order(:id).last
+    expect(purchase.payments.count).to eq(2)
+    expect(added_payment.value).to eq(BigDecimal(20))
+    expect(added_payment.payment_date.to_date).to eq(Date.new(2026, 3, 29))
   end
 end

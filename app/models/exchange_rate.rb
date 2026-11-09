@@ -34,20 +34,20 @@ class ExchangeRate < ApplicationRecord
   end
 
   def self.rate_on(currency:, date:)
-    ensure_cached!
+    ensure_cached
 
     where(currency:).where(date: ..date).order(date: :desc).pick(:rate) ||
       median_rate_for_missing_history(currency:) ||
       raise(ArgumentError, "No ECB reference rate cached for #{currency} on or before #{date}")
   end
 
-  def self.ensure_cached!
+  def self.ensure_cached
     return if exists?
 
-    refresh!(Ecb::ExchangeRatesClient.new.fetch_all)
+    refresh(Ecb::ExchangeRatesClient.new.fetch_all)
   end
 
-  def self.refresh!(rows)
+  def self.refresh(rows)
     fetched_at = Time.current
     upsert_all(rows.map { |row| row.merge(fetched_at:) }, unique_by: %i[currency date]) # rubocop:disable Rails/SkipsModelValidations -- bulk ECB cache refresh; per-row validation would be too slow for thousands of rows
   end
@@ -62,7 +62,7 @@ class ExchangeRate < ApplicationRecord
   end
 
   def self.eur_to_usd_conversion(date:)
-    ensure_recent!
+    ensure_recent
 
     effective_date, rate = where(currency: "USD").where(date: ..date).order(date: :desc).pick(:date, :rate)
     raise ArgumentError, "No ECB EUR-to-USD rate cached on or before #{date}" unless rate
@@ -70,10 +70,10 @@ class ExchangeRate < ApplicationRecord
     Conversion.new(order_date: date, effective_date:, rate:)
   end
 
-  def self.ensure_recent!
-    return ensure_cached! unless exists?
+  def self.ensure_recent
+    return ensure_cached unless exists?
     return if maximum(:fetched_at) > REFRESH_INTERVAL.ago
 
-    refresh!(Ecb::ExchangeRatesClient.new.fetch_recent)
+    refresh(Ecb::ExchangeRatesClient.new.fetch_recent)
   end
 end

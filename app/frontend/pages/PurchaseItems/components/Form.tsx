@@ -3,7 +3,7 @@ import { useState } from "react";
 import FormInput from "@/components/FormInput";
 import FormRow from "@/components/FormRow";
 import FormSmartSelect from "@/components/FormSmartSelect";
-import ImageUploader from "@/components/ImageUploader";
+import ImageUploader, { type ImageUploaderMedia } from "@/components/ImageUploader";
 import ResourceForm from "@/components/ResourceForm";
 import { getFormString } from "@/utils/formSchema";
 import { toSelectedOption } from "@/utils/selectOptions";
@@ -37,7 +37,7 @@ export default function Form({
   purchase_item,
   submitLabel,
 }: FormProps) {
-  const [media, setMedia] = useState(() => purchase_item.media);
+  const [media, setMedia] = useState<ImageUploaderMedia[]>(() => purchase_item.media);
 
   return (
     <ResourceForm

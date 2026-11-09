@@ -24,12 +24,11 @@
 #  woo_id                           :string
 #
 class Variant < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
   include Lifecycle
   include Options
-  include Titling
+  include Titled
   include Shopable
-  include Validation
 
   audited associated_with: :product
 
@@ -41,27 +40,12 @@ class Variant < ApplicationRecord
   has_many :sale_items, inverse_of: :variant # rubocop:disable Rails/HasManyOrHasOneDependent
   has_many :purchases, inverse_of: :variant # rubocop:disable Rails/HasManyOrHasOneDependent
 
-  scope :active, -> { where(deactivated_at: nil) }
-  scope :deactivated, -> { where.not(deactivated_at: nil) }
-
-  def deactivated?
-    deactivated_at?
-  end
-
-  def has_sales_or_purchases?
-    sale_items.exists? || purchases.exists?
-  end
-
-  def clear_shopify_money_snapshot!(field)
+  def clear_shopify_money_snapshot(field)
     assign_attributes(
       "#{field}_source_amount": nil,
       "#{field}_source_currency": nil,
       "#{field}_exchange_rate": nil,
       "#{field}_exchange_rate_date": nil
     )
-  end
-
-  def price
-    0.0
   end
 end

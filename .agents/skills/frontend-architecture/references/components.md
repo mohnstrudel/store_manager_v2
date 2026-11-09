@@ -55,7 +55,7 @@ Keep `<Owner>.tsx` as the public contract and composition file, and use `<Owner>
 - Name local modules for capabilities. Do not create generic `utils.ts`, `hooks.ts`, or `components.ts` buckets.
 - Keep owner-local code private even when it has a useful test seam. Do not promote it into shared folders without proven reuse or a stable shared primitive.
 - Allow the owner to import its local modules and allow those modules to import shared primitives. Do not let production code outside the owner import from `<Owner>/`; promote a deliberate public contract instead.
-- Do not let one capability reach into another capability's private subfolder. Coordinate through the owner or extract a genuinely shared local contract.
+- Do not let one capability reach into another capability's private subfolder. Coordinate through the owner or extract a shared local contract.
 
 **Illustration:** A page and its owned sections can grow like this:
 

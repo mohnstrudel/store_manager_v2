@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { mockPageProps } from "@/test/mocks/inertia";
 
-import { makeSupplier } from "../test/factories";
-import type { SupplierRecord } from "../types";
+import { makeSupplierForm } from "../test/factories";
+import type { SupplierFormRecord } from "../types";
 import Form from "./Form";
 
 type ResourceFormProps = {
@@ -50,12 +50,7 @@ describe("Suppliers/components/Form", () => {
   describe("form shell", () => {
     it("configures action, method, and labels for a new supplier", () => {
       renderForm({
-        supplier: makeSupplier({
-          id: null,
-          title: "",
-          created_at: null,
-          updated_at: null,
-        }),
+        supplier: makeSupplierForm({ title: "" }),
         method: "post",
         submitLabel: "Create Supplier",
         url: "/suppliers",
@@ -122,13 +117,13 @@ describe("Suppliers/components/Form", () => {
 
 function renderForm({
   pageErrors = {},
-  supplier = makeSupplier(),
+  supplier = makeSupplierForm(),
   method = "patch",
   submitLabel = "Update Supplier",
   url = "/suppliers/1",
 }: {
   pageErrors?: Record<string, string>;
-  supplier?: SupplierRecord;
+  supplier?: SupplierFormRecord;
   method?: "post" | "patch";
   submitLabel?: string;
   url?: string;

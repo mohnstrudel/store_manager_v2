@@ -103,7 +103,6 @@ RSpec.describe Purchase do
     it { expect(purchase_for_associations).to have_many(:payments).dependent(:destroy) }
 
     it { expect(purchase_for_associations).to have_many(:purchase_items).dependent(:destroy) }
-    it { expect(purchase_for_associations).to have_many(:warehouses).through(:purchase_items) }
 
     describe "through variant associations" do
       let(:variant) { create(:variant) }
@@ -195,11 +194,11 @@ RSpec.describe Purchase do
     end
   end
 
-  describe "HasAuditNotifications" do
+  describe "AuditNotifiable" do
     let(:purchase) { create(:purchase) }
 
-    it "includes HasAuditNotifications concern" do
-      expect(described_class).to include(HasAuditNotifications)
+    it "includes AuditNotifiable concern" do
+      expect(described_class).to include(AuditNotifiable)
     end
 
     context "when model is audited" do
@@ -208,9 +207,9 @@ RSpec.describe Purchase do
         allow(Rails.env).to receive_messages(production?: true, staging?: false)
       end
 
-      it "enqueues NotifyAboutRecordChanges after commit in production" do
+      it "enqueues NotifyAboutRecordChanges after a commit that writes an audit in production" do
         expect {
-          purchase.save!
+          purchase.update!(order_reference: "CHANGED-1")
         }.to have_enqueued_job(NotifyAboutRecordChanges).with(purchase)
       end
 

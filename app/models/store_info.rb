@@ -41,8 +41,4 @@ class StoreInfo < ApplicationRecord
   def self.assignable_store_names
     store_names.keys - ["not_assigned"]
   end
-
-  def update_pull_time
-    update(pull_time: Time.zone.now)
-  end
 end

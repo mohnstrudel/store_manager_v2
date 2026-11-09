@@ -2,6 +2,8 @@
 
 module Purchases
   class PaymentsController < ApplicationController
+    include ReturnPath
+
     before_action :set_purchase
     before_action :set_payment, only: %i[update destroy]
 
@@ -35,11 +37,11 @@ module Purchases
       end
     end
 
-    def return_path
-      params[:return_to].presence || purchase_path(@purchase)
+    def failure_path
+      purchase_path(@purchase)
     end
 
-    def failure_path
+    def default_return_path
       purchase_path(@purchase)
     end
 

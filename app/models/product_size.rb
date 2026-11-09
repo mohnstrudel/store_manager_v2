@@ -11,7 +11,7 @@
 #  size_id    :bigint
 #
 class ProductSize < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
 

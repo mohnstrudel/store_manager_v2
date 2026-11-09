@@ -4,10 +4,10 @@ import { getFormString } from "@/utils/formSchema";
 import routes from "@/utils/routes";
 import { msg } from "@/utils/validationMessages";
 
-import { FranchiseRecord } from "../types";
+import { FranchiseFormRecord } from "../types";
 
 type FranchiseFormProps = {
-  franchise: FranchiseRecord;
+  franchise: FranchiseFormRecord;
   method: "post" | "patch";
   submitLabel: string;
   url: string;

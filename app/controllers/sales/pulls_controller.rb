@@ -12,7 +12,7 @@ module Sales
       Shopify::PullSaleJob.perform_later(shopify_id) if shopify_id
       Woo::PullSalesJob.set(wait: 90.seconds).perform_later(id: woo_id) if woo_id
 
-      set_jobs_status_notice!
+      set_jobs_status_notice
       redirect_back_or_to(sales_path)
     end
 

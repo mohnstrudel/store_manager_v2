@@ -10,7 +10,7 @@
 #  updated_at :datetime         not null
 #
 class Version < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   audited
 

@@ -11,7 +11,7 @@
 #  updated_at :datetime         not null
 #
 class Supplier < ApplicationRecord
-  include HasAuditNotifications
+  include AuditNotifiable
 
   extend FriendlyId
 
@@ -26,4 +26,18 @@ class Supplier < ApplicationRecord
   scope :includes_dashboard_associations, -> {
     includes(purchases: [:payments, :purchase_items])
   }
+
+  def self.debt_summaries
+    includes_dashboard_associations
+      .map { |supplier|
+        {
+          supplier: supplier,
+          total_size: supplier.purchases.size,
+          total_cost: supplier.purchases.sum(&:cost_total),
+          paid: supplier.purchases.sum(&:paid),
+          total_debt: supplier.purchases.sum(&:debt)
+        }
+      }
+      .sort_by { |supplier_debt| -supplier_debt[:total_debt] }
+  end
 end

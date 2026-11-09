@@ -8,10 +8,6 @@ RSpec.describe "Mobile support", :js do
     page.driver.resize(360, 844)
   end
 
-  after do
-    log_out
-  end
-
   let!(:warehouse) { create(:warehouse, is_default: true) }
   let!(:franchise) { create(:franchise) }
   let!(:customer) { create(:customer, email: "mobile@example.com") }
@@ -69,30 +65,11 @@ RSpec.describe "Mobile support", :js do
     expect(offenders).to eq([]), "#{label} has horizontal overflow: #{offenders.inspect}"
   end
 
-  it "keeps the main index pages within the viewport" do
+  it "keeps the index pages and navigation usable within the viewport" do
     visit root_path
     expect_mobile_page("dashboard")
     expect(page).to have_no_css("nav[aria-label='Breadcrumb']")
     expect(page).to have_css("h1", text: "Dashboard")
-
-    visit products_path
-    expect_mobile_page("products index")
-    expect(page).to have_css("form")
-
-    visit sales_path
-    expect_mobile_page("sales index")
-    expect(page).to have_css("form")
-
-    visit purchases_path
-    expect_mobile_page("purchases index", allow_table_scroll: true)
-
-    visit warehouses_path
-    expect_mobile_page("warehouses index")
-    expect(page).to have_css("h1", text: "Warehouses")
-  end
-
-  it "keeps navigation usable on mobile" do
-    visit root_path
 
     expect(page).to have_link("Dashboard")
     expect(page).to have_link("Sales")
@@ -116,9 +93,24 @@ RSpec.describe "Mobile support", :js do
     expect(page).to have_css("li.navigation-dropdown")
     expect(page).to have_link("Suppliers", visible: :all)
     expect_no_mobile_overflow("mobile navigation")
+
+    visit products_path
+    expect_mobile_page("products index")
+    expect(page).to have_css("form")
+
+    visit sales_path
+    expect_mobile_page("sales index")
+    expect(page).to have_css("form")
+
+    visit purchases_path
+    expect_mobile_page("purchases index", allow_table_scroll: true)
+
+    visit warehouses_path
+    expect_mobile_page("warehouses index")
+    expect(page).to have_css("h1", text: "Warehouses")
   end
 
-  it "keeps the detail pages within the viewport" do
+  it "keeps the detail pages and forms within the viewport" do
     visit product_path(product)
     expect_mobile_page("product show")
     expect(page).to have_css("h1", text: product.title)
@@ -134,9 +126,7 @@ RSpec.describe "Mobile support", :js do
     visit warehouse_path(warehouse)
     expect_mobile_page("warehouse show")
     expect(page).to have_css("h1", text: warehouse.name)
-  end
 
-  it "keeps the main forms readable on mobile" do
     visit new_product_path
     expect_mobile_page("new product")
     expect(page).to have_css("form")

@@ -7,14 +7,14 @@ import New from "./New";
 
 describe("Passwords/New", () => {
   it("renders the heading and submit button", () => {
-    render(<New />);
+    render(<New email_address={null} />);
 
     expect(screen.getByRole("heading", { name: "Forgot your password?" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Email reset instructions" })).toBeInTheDocument();
   });
 
   it("renders the email address field", () => {
-    render(<New />);
+    render(<New email_address={null} />);
 
     expect(screen.getByRole("textbox", { name: "Email address" })).toBeInTheDocument();
   });
@@ -26,14 +26,14 @@ describe("Passwords/New", () => {
   });
 
   it("posts to the passwords create route", () => {
-    render(<New />);
+    render(<New email_address={null} />);
 
     const form = screen.getByRole("button", { name: "Email reset instructions" }).closest("form");
     expect(form).toHaveAttribute("action", routes.passwords.create.path());
   });
 
   it("links to account signup and sign in", () => {
-    render(<New />);
+    render(<New email_address={null} />);
 
     expect(screen.getByRole("link", { name: "Create new account" })).toHaveAttribute(
       "href",

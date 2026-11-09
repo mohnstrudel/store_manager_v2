@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Product::Shopify::Importer do
-  describe ".import!" do
+  describe ".import" do
     let(:parsed_product) do
       {
         store_id: "gid://shopify/Product/12345",
@@ -26,7 +26,7 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     it "creates a new product with correct attributes" do # rubocop:todo RSpec/MultipleExpectations
-      expect { described_class.import!(parsed_product) }.to change(Product, :count).by(1)
+      expect { described_class.import(parsed_product) }.to change(Product, :count).by(1)
         .and change(Franchise, :count).by(1)
         .and change(Brand, :count).by(1)
         .and change(Size, :count).by(1)
@@ -46,7 +46,7 @@ RSpec.describe Product::Shopify::Importer do
       allow(Shopify::PullVariantsJob).to receive(:perform_later)
       allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
-      product = described_class.import!(parsed_product)
+      product = described_class.import(parsed_product)
 
       expect(Shopify::PullVariantsJob).to have_received(:perform_later).with(product, parsed_product[:variants])
       expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
@@ -62,7 +62,7 @@ RSpec.describe Product::Shopify::Importer do
       allow(ExchangeRate).to receive(:eur_to_usd_conversion).and_return(conversion)
       priced_variant = {store_id: "gid://shopify/ProductVariant/67890", selling_price: "450.00"}
 
-      product = described_class.import!(parsed_product.merge(variants: [priced_variant]))
+      product = described_class.import(parsed_product.merge(variants: [priced_variant]))
 
       expect(Shopify::PullVariantsJob).to have_received(:perform_later).with(
         product,
@@ -71,12 +71,12 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     it "generates correct full title" do
-      product = described_class.import!(parsed_product)
+      product = described_class.import(parsed_product)
       expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")
     end
 
     it "does not route a variant SKU to the base variant for multi-variant products" do
-      product = described_class.import!(parsed_product.merge(
+      product = described_class.import(parsed_product.merge(
         sku: "TEST-SKU-001",
         variants: [
           {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: false},
@@ -88,7 +88,7 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     it "routes provided SKU to the base variant for single-variant products" do
-      product = described_class.import!(parsed_product.merge(
+      product = described_class.import(parsed_product.merge(
         variants: [
           {store_id: "gid://shopify/ProductVariant/67890", is_single_variant: true}
         ]
@@ -98,7 +98,7 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     it "saves Shopify ID to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
-      product = described_class.import!(parsed_product)
+      product = described_class.import(parsed_product)
       product.reload
       expect(product.shopify_info).to be_present
       expect(product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
@@ -106,21 +106,21 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     it "saves ext_created_at and ext_updated_at to StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
-      product = described_class.import!(parsed_product)
+      product = described_class.import(parsed_product)
       product.reload
       expect(product.shopify_info.ext_created_at).to eq(Time.zone.parse(parsed_product[:store_info][:ext_created_at]))
       expect(product.shopify_info.ext_updated_at).to eq(Time.zone.parse(parsed_product[:store_info][:ext_updated_at]))
     end
 
     it "sets pull_time on StoreInfo" do
-      product = described_class.import!(parsed_product)
+      product = described_class.import(parsed_product)
       product.reload
       expect(product.shopify_info.pull_time).to be_within(1.second).of(Time.zone.now)
     end
 
     it "saves tags to StoreInfo" do
       parsed_with_tags = parsed_product.merge(tags: ["statue", "premium", "exclusive"])
-      product = described_class.import!(parsed_with_tags)
+      product = described_class.import(parsed_with_tags)
       product.reload
 
       expect(product.shopify_info.tag_list).to eq(["statue", "premium", "exclusive"])
@@ -128,21 +128,21 @@ RSpec.describe Product::Shopify::Importer do
 
     it "saves empty tag list when no tags are provided" do
       parsed_with_no_tags = parsed_product.merge(tags: [])
-      product = described_class.import!(parsed_with_no_tags)
+      product = described_class.import(parsed_with_no_tags)
       product.reload
 
       expect(product.shopify_info.tag_list).to eq([])
     end
 
     it "returns the product" do # rubocop:todo RSpec/MultipleExpectations
-      result = described_class.import!(parsed_product)
+      result = described_class.import(parsed_product)
       expect(result).to be_a(Product)
       expect(result).to be_persisted
     end
 
     it "raises when parsed payload is blank" do
       expect {
-        described_class.import!(nil)
+        described_class.import(nil)
       }.to raise_error(ArgumentError, "Parsed payload cannot be blank")
     end
 
@@ -154,7 +154,7 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "saves description to product" do
-        product = described_class.import!(parsed_product_with_description)
+        product = described_class.import(parsed_product_with_description)
         product.reload
 
         expect(product.description.body.to_html.strip).to eq("<p>This is a <strong>premium</strong> collectible statue.</p>")
@@ -169,7 +169,7 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "normalizes HTML by unwrapping p tags inside li", :aggregate_failures do
-        product = described_class.import!(parsed_product_with_list)
+        product = described_class.import(parsed_product_with_list)
         product.reload
 
         html = product.description.body.to_html
@@ -187,7 +187,7 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "normalizes HTML by unwrapping div tags inside li", :aggregate_failures do
-        product = described_class.import!(parsed_product_with_div_list)
+        product = described_class.import(parsed_product_with_div_list)
         product.reload
 
         html = product.description.body.to_html
@@ -201,7 +201,7 @@ RSpec.describe Product::Shopify::Importer do
       let(:parsed_product_nil_description) { parsed_product.merge(description: nil) }
 
       it "handles nil description gracefully" do
-        product = described_class.import!(parsed_product_nil_description)
+        product = described_class.import(parsed_product_nil_description)
         product.reload
 
         expect(product.description.body).to be_blank
@@ -212,7 +212,7 @@ RSpec.describe Product::Shopify::Importer do
       let(:parsed_product_no_description) { parsed_product.except(:description) }
 
       it "leaves description blank" do
-        product = described_class.import!(parsed_product_no_description)
+        product = described_class.import(parsed_product_no_description)
         product.reload
 
         expect(product.description.body).to be_blank
@@ -221,13 +221,13 @@ RSpec.describe Product::Shopify::Importer do
 
     context "when product already exists" do
       let!(:existing_product) do
-        create(:product,
+        create(:product, :synced,
           shopify_id: "gid://shopify/Product/12345",
           title: "Old Title")
       end
 
       it "updates the existing product" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(parsed_product) }.not_to change(Product, :count)
+        expect { described_class.import(parsed_product) }.not_to change(Product, :count)
 
         existing_product.reload
         expect(existing_product.title).to eq("Eve")
@@ -238,7 +238,7 @@ RSpec.describe Product::Shopify::Importer do
         original_created_at = existing_product.shopify_info.ext_created_at
         original_updated_at = existing_product.shopify_info.ext_updated_at
 
-        described_class.import!(parsed_product)
+        described_class.import(parsed_product)
 
         existing_product.shopify_info.reload
         expect(existing_product.shopify_info.ext_created_at).not_to eq(original_created_at)
@@ -248,26 +248,26 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "returns the existing product" do
-        result = described_class.import!(parsed_product)
+        result = described_class.import(parsed_product)
         expect(result).to eq(existing_product)
       end
     end
 
     context "when product has StoreInfo with slug but no store_id" do
       let!(:existing_product) do
-        create(:product).tap do |p|
+        create(:product, :synced).tap do |p|
           p.shopify_info.update(store_id: nil, slug: "stellar-blade-eve-statue")
         end
       end
 
       it "finds the existing product by its StoreInfo slug" do
-        expect { described_class.import!(parsed_product) }.not_to change(Product, :count)
+        expect { described_class.import(parsed_product) }.not_to change(Product, :count)
       end
 
       it "updates the store_id in the existing StoreInfo" do # rubocop:todo RSpec/MultipleExpectations
         expect(existing_product.shopify_info.store_id).to be_nil
 
-        expect { described_class.import!(parsed_product) }.not_to change(Product, :count)
+        expect { described_class.import(parsed_product) }.not_to change(Product, :count)
 
         existing_product.reload
         expect(existing_product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
@@ -299,7 +299,7 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "reuses the storeless product instead of creating a duplicate" do
-        expect { described_class.import!(parsed_product_without_linkage) }.not_to change(Product, :count)
+        expect { described_class.import(parsed_product_without_linkage) }.not_to change(Product, :count)
 
         existing_product.reload
         expect(existing_product.title).to eq("Eve")
@@ -324,7 +324,7 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "reuses the Woo-linked product and attaches Shopify linkage" do
-        expect { described_class.import!(parsed_product) }.not_to change(Product, :count)
+        expect { described_class.import(parsed_product) }.not_to change(Product, :count)
 
         existing_product.reload
         expect(existing_product.shopify_info.store_id).to eq("gid://shopify/Product/12345")
@@ -334,7 +334,7 @@ RSpec.describe Product::Shopify::Importer do
 
     context "when a matching product is already linked to another Shopify product" do
       let!(:existing_product) do
-        create(:product,
+        create(:product, :synced,
           shopify_id: "gid://shopify/Product/already-linked",
           title: "Eve",
           franchise: Franchise.find_or_create_by!(title: "Stellar Blade"),
@@ -346,7 +346,7 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "creates a new product instead of reusing the differently linked Shopify product" do
-        expect { described_class.import!(parsed_product) }.to change(Product, :count).by(1)
+        expect { described_class.import(parsed_product) }.to change(Product, :count).by(1)
 
         expect(Product.find_by_shopify_id("gid://shopify/Product/12345")).not_to eq(existing_product)
       end
@@ -361,11 +361,11 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "handles nil relation values gracefully" do
-        expect { described_class.import!(parsed_product_with_nil_values) }.not_to raise_error
+        expect { described_class.import(parsed_product_with_nil_values) }.not_to raise_error
       end
 
       it "does not create Brand or Size when nil" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(parsed_product_with_nil_values) }
+        expect { described_class.import(parsed_product_with_nil_values) }
           .to change(Product, :count).by(1)
           .and change(Franchise, :count).by(1)
           .and change(Brand, :count).by(0) # rubocop:todo RSpec/ChangeByZero
@@ -379,7 +379,7 @@ RSpec.describe Product::Shopify::Importer do
       it "does not enqueue PullVariantsJob" do
         allow(Shopify::PullVariantsJob).to receive(:perform_later)
 
-        described_class.import!(parsed_product_no_variants)
+        described_class.import(parsed_product_no_variants)
 
         expect(Shopify::PullVariantsJob).not_to have_received(:perform_later)
       end
@@ -391,7 +391,7 @@ RSpec.describe Product::Shopify::Importer do
       it "does not enqueue ImportMediaJob" do
         allow(Shopify::ImportMediaJob).to receive(:perform_later)
 
-        described_class.import!(parsed_product_no_media)
+        described_class.import(parsed_product_no_media)
 
         expect(Shopify::ImportMediaJob).not_to have_received(:perform_later)
       end
@@ -401,7 +401,7 @@ RSpec.describe Product::Shopify::Importer do
       let(:parsed_product_no_id) { parsed_product.except(:store_id) }
 
       it "creates a new product without store_info" do # rubocop:todo RSpec/MultipleExpectations
-        product = described_class.import!(parsed_product_no_id)
+        product = described_class.import(parsed_product_no_id)
         expect(product).to be_persisted
         expect(product.shopify_info).to be_nil
       end
@@ -411,7 +411,7 @@ RSpec.describe Product::Shopify::Importer do
       let!(:existing_brand) { create(:brand, title: "Light and Dust Studio") }
 
       it "uses existing brand instead of creating new one" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(parsed_product) }
+        expect { described_class.import(parsed_product) }
           .to change(Product, :count).by(1)
           .and change(Brand, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
@@ -423,7 +423,7 @@ RSpec.describe Product::Shopify::Importer do
       let!(:existing_size) { create(:size, value: "1:4") }
 
       it "uses existing size instead of creating new one" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(parsed_product) }
+        expect { described_class.import(parsed_product) }
           .to change(Product, :count).by(1)
           .and change(Size, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
@@ -435,7 +435,7 @@ RSpec.describe Product::Shopify::Importer do
       let!(:existing_franchise) { create(:franchise, title: "Stellar Blade") }
 
       it "uses existing franchise instead of creating new one" do # rubocop:todo RSpec/MultipleExpectations
-        expect { described_class.import!(parsed_product) }
+        expect { described_class.import(parsed_product) }
           .to change(Product, :count).by(1)
           .and change(Franchise, :count).by(0) # rubocop:todo RSpec/ChangeByZero
 
@@ -444,13 +444,13 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     it "assigns the parsed shape directly to the product" do
-      product = described_class.import!(parsed_product.merge(shape: "Bust"))
+      product = described_class.import(parsed_product.merge(shape: "Bust"))
 
       expect(product.shape).to eq("Bust")
     end
   end
 
-  describe "#update_or_create!" do
+  describe "#update_or_create" do
     let(:parsed_product) do
       {
         store_id: "gid://shopify/Product/12345",
@@ -466,11 +466,11 @@ RSpec.describe Product::Shopify::Importer do
     let(:importer) { described_class.new(parsed_product) }
 
     it "creates a new product" do
-      expect { importer.update_or_create! }.to change(Product, :count).by(1)
+      expect { importer.update_or_create }.to change(Product, :count).by(1)
     end
 
     it "returns the product" do
-      result = importer.update_or_create!
+      result = importer.update_or_create
       expect(result).to be_a(Product)
     end
 
@@ -482,7 +482,7 @@ RSpec.describe Product::Shopify::Importer do
       end
 
       it "raises the error" do
-        expect { importer.update_or_create! }.to raise_error(ActiveRecord::RecordInvalid)
+        expect { importer.update_or_create }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
   end

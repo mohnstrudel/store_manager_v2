@@ -3,7 +3,12 @@
 module Warehouse::Transitions
   extend ActiveSupport::Concern
 
-  def sync_transitions!(to_warehouse_ids)
+  included do
+    has_many :from_transitions, class_name: "WarehouseTransition", foreign_key: :from_warehouse_id, dependent: :destroy, inverse_of: :from_warehouse
+    has_many :to_transitions, class_name: "WarehouseTransition", foreign_key: :to_warehouse_id, dependent: :destroy, inverse_of: :to_warehouse
+  end
+
+  def sync_transitions(to_warehouse_ids)
     raw_ids = Array(to_warehouse_ids)
     return if raw_ids.blank?
 

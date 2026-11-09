@@ -64,8 +64,7 @@ describe("OutboundEmails/Show", () => {
       <Show
         outbound_email={{
           ...email,
-          body: null,
-          recipient: null,
+          body: "",
           state: "simulated",
           last_attempt_at: null,
           accepted_at: null,

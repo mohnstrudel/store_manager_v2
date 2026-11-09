@@ -4,6 +4,7 @@ import {isGeneratedPath, isTestPath, selectJsTargets} from "./cli.js";
 describe("isGeneratedPath", () => {
   it("flags the generated api directory", () => {
     expect(isGeneratedPath("app/frontend/api/products.ts")).toBe(true);
+    expect(isGeneratedPath("app/frontend/types/serializers/SalesIndex.ts")).toBe(true);
   });
 
   it("accepts ordinary source paths", () => {
