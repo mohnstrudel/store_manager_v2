@@ -14,8 +14,8 @@ class Product::Shopify::Media::Push::Attach
     created_nodes = attached_nodes.select { |node| node["id"].present? && known_ids.exclude?(node["id"]) }
 
     unless created_nodes.size == new_media.size
-      raise Shopify::Api::Client::ApiError,
-        "Shopify returned #{created_nodes.size} new media after attaching #{new_media.size} images to #{product_store_id}"
+      raise Product::Shopify::Media::Push::AttachMismatch,
+        "Shopify returned #{created_nodes.size} new media after attaching #{new_media.size} images to #{product_store_id} (unknown IDs: #{created_nodes.pluck("id").join(", ").presence || "none"})"
     end
 
     create_many(local_media: new_media, shopify_media: created_nodes)
@@ -32,7 +32,7 @@ class Product::Shopify::Media::Push::Attach
   def build_attach_input(media)
     {
       originalSource: media.image.blob.url,
-      alt: media.alt || "#{product.title} image",
+      alt: media.alt.presence || "#{product.title} image",
       mediaContentType: "IMAGE"
     }
   end

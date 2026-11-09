@@ -13,6 +13,8 @@ module Product::Shopify::Media
 
     class MediaFailed < StandardError; end
 
+    class AttachMismatch < StandardError; end
+
     def self.call(product_id:, product_store_id:)
       new(product_id:, product_store_id:).call
     end

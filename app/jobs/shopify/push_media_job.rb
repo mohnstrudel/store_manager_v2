@@ -6,6 +6,7 @@ module Shopify
       Sentry.capture_exception(error)
     end
     discard_on(Product::Shopify::Media::Push::MediaFailed) { |_job, error| Sentry.capture_exception(error) }
+    discard_on(Product::Shopify::Media::Push::AttachMismatch) { |_job, error| Sentry.capture_exception(error) }
 
     def perform(product_id, product_store_id)
       Product::Shopify::Media::Push.call(product_id:, product_store_id:)

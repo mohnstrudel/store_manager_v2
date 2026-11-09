@@ -89,14 +89,42 @@ RSpec.describe Product::Shopify::Media::Push::Attach do
       expect(second_media.reload.shopify_info.store_id).to eq(media_gid(4))
     end
 
-    it "raises ApiError and saves nothing when the unknown IDs do not match the new media" do
+    it "raises AttachMismatch naming the product and the unknown IDs, and saves nothing, when they do not match the new media" do
       allow(api_client).to receive(:attach_media).and_return(
         [response_node(1), response_node(2), response_node(3)]
       )
 
-      expect { attach }.to raise_error(Shopify::Api::Client::ApiError, /1 new media after attaching 2 images/)
+      expect { attach }.to raise_error(
+        Product::Shopify::Media::Push::AttachMismatch,
+        /1 new media after attaching 2 images to #{Regexp.escape(product_store_id)} \(unknown IDs: #{Regexp.escape(media_gid(3))}\)/
+      )
 
       expect(StoreInfo.where(storable: new_media)).to be_empty
+    end
+
+    it "raises AttachMismatch naming no unknown IDs when the response lists only known ones" do
+      allow(api_client).to receive(:attach_media).and_return([response_node(1), response_node(2)])
+
+      expect { attach }.to raise_error(
+        Product::Shopify::Media::Push::AttachMismatch,
+        /0 new media after attaching 2 images to #{Regexp.escape(product_store_id)} \(unknown IDs: none\)/
+      )
+
+      expect(StoreInfo.where(storable: new_media)).to be_empty
+    end
+  end
+
+  context "when a new media has a blank alt" do
+    let(:first_media) { create(:media, mediaable: product, alt: "", position: 2) }
+
+    it "sends the product title fallback as its alt and keeps the media's own alt on the store info" do
+      attach
+
+      expect(api_client).to have_received(:attach_media).with(product_store_id, [
+        include(alt: "#{product.title} image"),
+        include(alt: "Image 2")
+      ])
+      expect(first_media.reload.shopify_info.alt_text).to eq("")
     end
   end
 end

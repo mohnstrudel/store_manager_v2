@@ -80,6 +80,38 @@ RSpec.describe Shopify::PushMediaJob do
     end
   end
 
+  describe "when the attach response cannot be paired" do
+    let(:attach_mismatch) do
+      Product::Shopify::Media::Push::AttachMismatch.new("Shopify returned 1 new media after attaching 2 images")
+    end
+
+    before do
+      allow(Product::Shopify::Media::Push).to receive(:call).and_raise(attach_mismatch)
+      allow(Sentry).to receive(:capture_exception)
+    end
+
+    it "reports to Sentry and discards without retrying" do
+      expect { described_class.perform_now(42, "gid://shopify/Product/123") }.not_to raise_error
+
+      expect(Sentry).to have_received(:capture_exception).with(attach_mismatch).once
+      expect(enqueued_jobs).to be_empty
+    end
+  end
+
+  describe "when Shopify returns another API error" do
+    before do
+      allow(Product::Shopify::Media::Push).to receive(:call)
+        .and_raise(Shopify::Api::Client::ApiError, "Failed to call the productUpdate API mutation")
+    end
+
+    it "raises it for the queue's own retry and enqueues nothing" do
+      expect { described_class.perform_now(42, "gid://shopify/Product/123") }
+        .to raise_error(Shopify::Api::Client::ApiError, "Failed to call the productUpdate API mutation")
+
+      expect(enqueued_jobs).to be_empty
+    end
+  end
+
   describe "when Shopify throttles the push" do
     before { allow(Product::Shopify::Media::Push).to receive(:call).and_raise(Shopify::Api::Client::Throttled) }
 

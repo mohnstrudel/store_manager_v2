@@ -127,8 +127,8 @@ RSpec.describe Product::Shopify::Media::Push do
         allow(api_client).to receive(:attach_media).and_return([shopify_node(1), shopify_node(2), shopify_node(3)])
       end
 
-      it "raises ApiError and saves nothing" do
-        expect { push }.to raise_error(Shopify::Api::Client::ApiError, /1 new media after attaching 2 images/)
+      it "raises AttachMismatch and saves nothing" do
+        expect { push }.to raise_error(described_class::AttachMismatch, /1 new media after attaching 2 images/)
 
         expect(StoreInfo.where(storable: [third_media, fourth_media])).to be_empty
       end
