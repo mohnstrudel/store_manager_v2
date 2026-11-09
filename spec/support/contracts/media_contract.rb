@@ -13,23 +13,6 @@ RSpec.shared_examples "valid media contract" do
       expect(media_item).to include(:key, :id, :url, :alt, :position)
     end
 
-    it "has store_info nested structure" do
-      expect(media_item).to have_key(:store_info)
-      expect(media_item[:store_info]).to be_a(Hash)
-    end
-
-    it "store_info contains ext_created_at and ext_updated_at" do
-      store_info = media_item[:store_info]
-      expect(store_info).to have_key(:ext_created_at)
-      expect(store_info).to have_key(:ext_updated_at)
-    end
-
-    it "has string or nil values for timestamps" do
-      store_info = media_item[:store_info]
-      expect(store_info[:ext_created_at]).to satisfy { |v| v.nil? || v.is_a?(String) }
-      expect(store_info[:ext_updated_at]).to satisfy { |v| v.nil? || v.is_a?(String) }
-    end
-
     it "has integer position" do
       expect(media_item[:position]).to be_an(Integer)
     end

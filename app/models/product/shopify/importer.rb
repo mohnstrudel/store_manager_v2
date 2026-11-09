@@ -3,24 +3,25 @@
 class Product::Shopify::Importer
   class Error < StandardError; end
 
-  attr_reader :parsed, :product, :inline_variants
-  private :parsed, :product, :inline_variants
+  attr_reader :parsed, :product, :inline_variants, :force
+  private :parsed, :product, :inline_variants, :force
 
-  def self.import(parsed_payload, inline_variants: false)
+  def self.import(parsed_payload, inline_variants: false, force: false)
     raise ArgumentError, "Parsed payload cannot be blank" if parsed_payload.blank?
 
-    new(parsed_payload, inline_variants:).update_or_create
+    new(parsed_payload, inline_variants:, force:).update_or_create
   end
 
-  def initialize(parsed_payload, inline_variants: false)
+  def initialize(parsed_payload, inline_variants: false, force: false)
     @parsed = parsed_payload
     @inline_variants = inline_variants
+    @force = force
   end
 
   def update_or_create
     update_or_create_product
     import_variants
-    Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
+    Shopify::ImportMediaJob.perform_later(product, parsed[:media], force:) if parsed[:media]
 
     product
   end

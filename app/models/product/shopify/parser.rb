@@ -78,11 +78,7 @@ class Product::Shopify::Parser
         id: node["id"],
         alt: node["alt"],
         url: node.dig("image", "url"),
-        position: index,
-        store_info: {
-          ext_created_at: node["createdAt"],
-          ext_updated_at: node["updatedAt"]
-        }
+        position: index
       }
     end || []
   end

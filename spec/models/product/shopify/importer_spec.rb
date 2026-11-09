@@ -49,7 +49,16 @@ RSpec.describe Product::Shopify::Importer do
       product = described_class.import(parsed_product)
 
       expect(Shopify::PullVariantsJob).to have_received(:perform_later).with(product, parsed_product[:variants])
-      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: false)
+    end
+
+    it "queues the media import as forced when asked to force" do
+      allow(Shopify::PullVariantsJob).to receive(:perform_later)
+      allow(Shopify::ImportMediaJob).to receive(:perform_later)
+
+      product = described_class.import(parsed_product, force: true)
+
+      expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: true)
     end
 
     it "captures the EUR-to-USD rate before enqueuing priced variants" do
@@ -89,7 +98,7 @@ RSpec.describe Product::Shopify::Importer do
         expect(product.variants.real.map { |variant| variant.shopify_info.store_id })
           .to contain_exactly("gid://shopify/ProductVariant/1", "gid://shopify/ProductVariant/2")
         expect(Shopify::PullVariantsJob).not_to have_received(:perform_later)
-        expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
+        expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media], force: false)
       end
 
       it "converts priced variants with the EUR-to-USD rate of the import day" do

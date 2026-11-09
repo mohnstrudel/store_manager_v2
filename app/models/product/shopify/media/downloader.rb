@@ -5,7 +5,7 @@ module Product::Shopify::Media
     MAX_FILE_SIZE = 20 * 1024 * 1024
     DownloadedImage = Data.define(:file, :filename, :checksum)
 
-    attr_reader :downloads_by_key, :failed_store_ids
+    attr_reader :downloads_by_key
 
     def self.call(media_items:)
       new(media_items:).call
@@ -14,7 +14,6 @@ module Product::Shopify::Media
     def initialize(media_items:)
       @media_items = media_items
       @downloads_by_key = {}
-      @failed_store_ids = []
     end
 
     def call
@@ -38,12 +37,8 @@ module Product::Shopify::Media
     attr_reader :media_items
 
     def process_item(item)
-      return if item[:url].blank?
-
       downloaded_file = download_image(item[:url])
-      return record_failed_download(item) unless downloaded_file
-
-      store_download(item, downloaded_file)
+      store_download(item, downloaded_file) if downloaded_file
     end
 
     def download_image(url)
@@ -61,17 +56,6 @@ module Product::Shopify::Media
     rescue Down::Error => e
       Rails.logger.error "[Product::Shopify::MediaImportable] Download failed #{url} - #{e.class}: #{e.message}"
       nil
-    end
-
-    def record_failed_download(item)
-      record_failed_store_id(item[:id])
-    end
-
-    def record_failed_store_id(store_id)
-      return if store_id.blank?
-      return if failed_store_ids.include?(store_id)
-
-      failed_store_ids << store_id
     end
 
     def store_download(item, downloaded_file)

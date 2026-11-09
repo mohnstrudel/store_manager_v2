@@ -880,7 +880,7 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         product = Product.find_by_shopify_id(product_store_id)
         expect(Shopify::PullVariantsJob).not_to have_received(:perform_later)
         expect(Shopify::ImportMediaJob).to have_received(:perform_later)
-          .with(product, [hash_including(id: "gid://shopify/MediaImage/1", url: "https://cdn.shopify.com/leia.jpg")])
+          .with(product, [hash_including(id: "gid://shopify/MediaImage/1", url: "https://cdn.shopify.com/leia.jpg")], force: false)
       end
 
       it "never enqueues a product pull" do

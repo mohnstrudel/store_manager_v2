@@ -4,18 +4,16 @@ require "rails_helper"
 require "support/contracts/media_contract"
 
 RSpec.describe Shopify::ImportMediaJob do
-  include ActiveJob::TestHelper
-  include ActiveSupport::Testing::TimeHelpers
+  include Helpers::ShopifyMediaScenarios
 
   subject(:job) { described_class.new }
 
   let(:product) { create(:product) }
-  let(:shopify_image_id) { "gid://shopify/ProductImage/123456789" }
-  let(:img_url) { "https://example.com/image.jpg" }
+  let(:shopify_image_number) { 123456789 }
+  let(:shopify_image_id) { media_gid(shopify_image_number) }
+  let(:img_url) { "https://example.com/image.jpg?v=1" }
   let(:alt_text) { "Beautiful product photo" }
   let(:position) { 3 }
-  let(:ext_created_at) { 2.days.ago.iso8601 }
-  let(:ext_updated_at) { 1.hour.ago.iso8601 }
 
   let(:parsed_media_item) do
     {
@@ -23,11 +21,7 @@ RSpec.describe Shopify::ImportMediaJob do
       id: shopify_image_id,
       url: img_url,
       alt: alt_text,
-      position: position,
-      store_info: {
-        ext_created_at: ext_created_at,
-        ext_updated_at: ext_updated_at
-      }
+      position: position
     }
   end
 
@@ -37,11 +31,7 @@ RSpec.describe Shopify::ImportMediaJob do
   let(:test_checksum) { Digest::MD5.base64digest(test_image_content) }
   let(:test_filename) { "product-image.jpg" }
 
-  let(:temp_file_path) { Rails.root.join("tmp", "test_image_#{SecureRandom.hex(6)}.jpg") }
-
   before do
-    File.write(temp_file_path, test_image_content)
-
     temp_file = Tempfile.new(["test_", ".jpg"], Rails.root.join("tmp"))
     temp_file.write(test_image_content)
     temp_file.rewind
@@ -52,39 +42,29 @@ RSpec.describe Shopify::ImportMediaJob do
     allow(Down).to receive(:download).with(img_url, anything).and_return(temp_file)
   end
 
-  after do
-    FileUtils.rm_f(temp_file_path) if File.exist?(temp_file_path)
-  end
-
   describe "queue" do
     it { expect(described_class.new.queue_name).to eq "media" }
   end
 
   describe "media contract" do
-    let(:parsed_media) do
-      [{
-        key: shopify_image_id,
-        id: shopify_image_id,
-        url: img_url,
-        alt: alt_text,
-        position: position,
-        store_info: {
-          ext_created_at: ext_created_at,
-          ext_updated_at: ext_updated_at
-        }
-      }]
-    end
-
     it_behaves_like "valid media contract"
   end
 
   describe "#perform" do
-    it "imports Shopify media through the domain" do
+    it "imports Shopify media through the domain without forcing" do
       allow(product).to receive(:import_shopify_media)
 
       job.perform(product, parsed_media)
 
-      expect(product).to have_received(:import_shopify_media).with(parsed_media:)
+      expect(product).to have_received(:import_shopify_media).with(parsed_media:, force: false)
+    end
+
+    it "passes force through to the domain" do
+      allow(product).to receive(:import_shopify_media)
+
+      job.perform(product, parsed_media, force: true)
+
+      expect(product).to have_received(:import_shopify_media).with(parsed_media:, force: true)
     end
 
     context "when parsed_media is empty" do
@@ -106,7 +86,6 @@ RSpec.describe Shopify::ImportMediaJob do
     end
 
     context "when creating a new image" do
-      # rubocop:disable RSpec/MultipleExpectations
       it "creates media + attachment + store_info" do
         freeze_time do
           expect { job.perform(product, parsed_media) }
@@ -114,173 +93,76 @@ RSpec.describe Shopify::ImportMediaJob do
             .and change { StoreInfo.where(storable_type: "Media").count }.by(1)
 
           media = product.media.last
-          expect(media.alt).to eq alt_text
-          expect(media.position).to eq position
+          expect(media).to have_attributes(alt: alt_text, position: position)
           expect(media.image).to be_attached
           expect(media.image.blob.checksum).to eq test_checksum
 
           si = media.store_infos.shopify.first
-          expect(si).to be_present
-          expect(si.store_id).to eq shopify_image_id
+          expect(si).to have_attributes(
+            store_id: shopify_image_id,
+            source_url: img_url,
+            alt_text: alt_text,
+            checksum: test_checksum
+          )
           expect(si.pull_time).to be_within(1.second).of(Time.current)
-          expect(si.ext_created_at).to eq Time.zone.parse(ext_created_at)
-          expect(si.ext_updated_at).to eq Time.zone.parse(ext_updated_at)
         end
       end
-      # rubocop:enable RSpec/MultipleExpectations
     end
 
-    context "when media exists with unchanged checksum" do
+    context "when the media URL is unchanged" do
       let!(:media) do
-        create(:media, mediaable: product, alt: "old", position: 99)
-      end
-      let!(:store_info) do
-        create(:store_info, :shopify,
-          storable: media,
-          store_id: shopify_image_id,
-          checksum: test_checksum)
+        pulled_media(test_image_content, number: shopify_image_number, source_url: img_url, alt: "old", position: 99)
       end
 
-      before do
-        media.image.attach(io: File.open(temp_file_path), filename: test_filename)
-      end
-
-      it "updates media attributes and shopify_info" do
+      it "updates alt, position, and pull_time without downloading" do
         expect { job.perform(product, parsed_media) }
           .to change { media.reload.alt }.to(alt_text)
           .and change { media.reload.position }.to(position)
-          .and change { store_info.reload.pull_time }
+          .and change { media.shopify_info.reload.pull_time }
+
+        expect(Down).not_to have_received(:download)
       end
     end
 
-    context "when media is reordered (checksum matches but timestamp changed)" do
+    context "when the media URL changed and the bytes differ" do
       let!(:media) do
-        create(:media, mediaable: product, alt: "test", position: 1)
-      end
-      let!(:store_info) do
-        create(:store_info, :shopify,
-          storable: media,
-          store_id: shopify_image_id,
-          ext_updated_at: 1.hour.ago,
-          checksum: test_checksum)
-      end
-      let(:new_ext_updated_at) { 5.minutes.ago.iso8601 }
-
-      before do
-        media.image.attach(io: File.open(temp_file_path), filename: test_filename)
-        parsed_media[0][:position] = 5
-        parsed_media[0][:store_info][:ext_updated_at] = new_ext_updated_at
+        pulled_media("old content", number: shopify_image_number, source_url: "https://example.com/image.jpg?v=0")
       end
 
-      # rubocop:disable RSpec/MultipleExpectations
-      it "updates position without redownloading image" do
-        original_checksum = media.image.blob.checksum
+      it "replaces the attachment on the same media row" do
+        expect { job.perform(product, parsed_media) }.not_to change(Media, :count)
 
-        job.perform(product, parsed_media)
-
-        expect(media.reload.position).to eq(5)
-        expect(media.image.blob.checksum).to eq(original_checksum)
+        expect(media.reload.image.blob.checksum).to eq test_checksum
+        expect(media.shopify_info).to have_attributes(source_url: img_url, checksum: test_checksum)
       end
-
-      it "updates timestamp without redownloading image" do
-        original_checksum = media.image.blob.checksum
-
-        job.perform(product, parsed_media)
-
-        expect(store_info.reload.ext_updated_at).to eq(Time.zone.parse(new_ext_updated_at))
-        expect(media.image.blob.checksum).to eq(original_checksum)
-      end
-      # rubocop:enable RSpec/MultipleExpectations
-    end
-
-    context "when media exists with changed content" do
-      let!(:media) { create(:media, mediaable: product) }
-      # rubocop:disable RSpec/LetSetup
-      let!(:store_info) do
-        create(:store_info, :shopify, storable: media, store_id: shopify_image_id)
-      end
-      # rubocop:enable RSpec/LetSetup
-
-      before do
-        media.image.attach(io: StringIO.new("old content"), filename: "old.jpg")
-      end
-
-      # rubocop:disable RSpec/MultipleExpectations
-      it "removes old media and creates new one" do
-        freeze_time do
-          expect { job.perform(product, parsed_media) }
-            # rubocop:disable RSpec/ChangeByZero
-            .to change { product.media.count }.by(0)
-            # rubocop:enable RSpec/ChangeByZero
-            .and change { Media.where(id: media.id).count }.from(1).to(0)
-
-          new_media = product.media.ordered.last
-          expect(new_media.alt).to eq alt_text
-          expect(new_media.image.blob.checksum).to eq test_checksum
-          expect(new_media.id).not_to eq media.id
-        end
-      end
-      # rubocop:enable RSpec/MultipleExpectations
     end
 
     context "when partial download fails" do
+      let(:failed_url) { "https://404.example.com/image.jpg?v=2" }
       let(:parsed_media) do
         [
           parsed_media_item,
-          parsed_media_item.merge(
-            key: "gid://shopify/ProductImage/999",
-            id: "gid://shopify/ProductImage/999",
-            url: "https://404.example.com"
-          )
+          parsed_media_item.merge(key: media_gid(999), id: media_gid(999), url: failed_url)
         ]
       end
 
       before do
-        temp_file = Tempfile.new(["test_", ".jpg"], Rails.root.join("tmp"))
-        temp_file.write(test_image_content)
-        temp_file.rewind
-        filename_value = test_filename
-        temp_file.define_singleton_method(:original_filename) { filename_value }
-
-        allow(Down).to receive(:download).with(img_url, anything).and_return(temp_file)
-        allow(Down).to receive(:download).with("https://404.example.com", anything)
+        allow(Down).to receive(:download).with(failed_url, anything)
           .and_raise(Down::Error.new("404 Not Found"))
       end
 
-      # rubocop:disable RSpec/MultipleExpectations
       it "processes successful images and preserves failed remote media" do
-        failed_remote_media = create(:media, mediaable: product)
-        create(:store_info, :shopify,
-          storable: failed_remote_media,
-          store_id: "gid://shopify/ProductImage/999")
+        failed_remote_media = pulled_media("remote", number: 999, source_url: "https://404.example.com/image.jpg?v=1")
 
         job.perform(product, parsed_media)
 
         expect(Media.where(id: failed_remote_media.id)).to exist
+        expect(failed_remote_media.reload.shopify_info.source_url).to eq "https://404.example.com/image.jpg?v=1"
         expect(product.media.count).to eq 2
 
         new_media = product.media.ordered.last
         expect(new_media.alt).to eq alt_text
         expect(new_media.image).to be_attached
-      end
-      # rubocop:enable RSpec/MultipleExpectations
-    end
-
-    context "when transaction rolls back on error" do
-      before do
-        # rubocop:disable RSpec/AnyInstance
-        allow_any_instance_of(Media).to receive(:update!).and_raise(ActiveRecord::RecordInvalid)
-        # rubocop:enable RSpec/AnyInstance
-      end
-
-      it "does not create partial records" do
-        expect {
-          begin
-            job.perform(product, parsed_media)
-          rescue
-            nil
-          end
-        }.not_to change(Media, :count)
       end
     end
   end

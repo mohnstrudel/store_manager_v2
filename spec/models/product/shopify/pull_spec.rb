@@ -40,6 +40,18 @@ RSpec.describe Product::Shopify::Pull, :aggregate_failures do
     end
   end
 
+  it "queues each product's media import without forcing it" do
+    media = [{key: "gid://shopify/MediaImage/1", id: "gid://shopify/MediaImage/1", url: "https://cdn.example.com/a.jpg", alt: "", position: 0}]
+    allow(Shopify::ImportMediaJob).to receive(:perform_later)
+    allow(Product::Shopify::Parser).to receive(:parse).and_return(valid_product.merge(media:))
+    allow(api_client).to receive(:fetch_products).and_return(payload.merge(items: [{"id" => "gid://shopify/Product/2"}]))
+
+    described_class.page
+
+    expect(Shopify::ImportMediaJob).to have_received(:perform_later)
+      .with(Product.find_by_shopify_id("gid://shopify/Product/2"), media, force: false)
+  end
+
   it "stops the page on an error that is not an item failure" do
     allow(Product::Shopify::Importer).to receive(:import).and_raise("boom")
 

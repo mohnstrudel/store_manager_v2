@@ -4,8 +4,8 @@ module Shopify
   class ImportMediaJob < ApplicationJob
     queue_as :media
 
-    def perform(product, parsed_media)
-      product.import_shopify_media(parsed_media:)
+    def perform(product, parsed_media, force: false)
+      product.import_shopify_media(parsed_media:, force:)
     end
   end
 end
