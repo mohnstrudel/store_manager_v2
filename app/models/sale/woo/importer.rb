@@ -1,29 +1,10 @@
 # frozen_string_literal: true
 
 class Sale::Woo::Importer
+  class Error < StandardError; end
+
   attr_reader :parsed_order, :pulled_at, :sale
   private :parsed_order, :pulled_at, :sale
-
-  def self.import_all(parsed_orders)
-    current_order = nil
-    pulled_at = Time.zone.now
-
-    parsed_orders.each do |order|
-      current_order = order
-      import(order, pulled_at:)
-    end
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "!!! Validation error for order #{current_order&.dig(:sale, :woo_id)}: #{e.message}"
-    Rails.logger.error "!!! Failed record: #{e.record&.attributes}"
-    raise
-  rescue ActiveRecord::StatementInvalid => e
-    Rails.logger.error "!!! Database error for order #{current_order&.dig(:sale, :woo_id)}: #{e.message}"
-    raise
-  rescue => e
-    Rails.logger.error "!!! Unexpected error for order #{current_order&.dig(:sale, :woo_id)}: #{e.class} - #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-    raise
-  end
 
   def self.import(parsed_order, pulled_at: Time.zone.now)
     new(parsed_order, pulled_at).import
@@ -79,12 +60,11 @@ class Sale::Woo::Importer
         variant:
       }.compact)
 
-      unless sale_item.save!
-        Rails.logger.error "!!! Failed to save SaleItem: #{sale_item.errors.full_messages.join(", ")}"
-      end
-
+      sale_item.save!
       sale_item.upsert_woo_info(store_id: parsed_item[:sale_item_woo_id], pull_time: pulled_at) if parsed_item[:sale_item_woo_id].present?
     end
+  rescue ActiveRecord::RecordInvalid => error
+    raise Error, line_error_message(parsed_item, error)
   end
 
   def find_or_fetch_product(woo_id)
@@ -93,5 +73,14 @@ class Sale::Woo::Importer
 
     Product::Woo::Importer.fetch_and_import(woo_id)
     Product.find_by_woo_id(woo_id)
+  end
+
+  def line_error_message(parsed_item, error)
+    "Woo line #{parsed_item[:sale_item_woo_id]} (Woo product #{parsed_item[:product_woo_id]}): " \
+      "#{record_label(error.record)}: #{error.message}"
+  end
+
+  def record_label(record)
+    record.persisted? ? "#{record.class.name} ##{record.id}" : record.class.name
   end
 end

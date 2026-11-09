@@ -69,7 +69,7 @@ RSpec.describe Sale::Woo::Importer do
     end
   end
 
-  describe ".import_all" do
+  describe ".import with parsed Woo orders" do
     let(:denpasar) { "Denpasar" }
     let(:weird_link) { "hey ho, let's go" }
 
@@ -89,7 +89,7 @@ RSpec.describe Sale::Woo::Importer do
         ).tap do |e|
           e.woo_info.update(slug: weird_link)
         end
-        described_class.import_all(parsed_woo_orders)
+        parsed_woo_orders.each { |order| described_class.import(order) }
       end
 
       it "saves each product to the DB" do
@@ -141,14 +141,16 @@ RSpec.describe Sale::Woo::Importer do
     end
 
     context "when parsed orders include separate addresses" do
+      let(:parsed_orders) { woo_orders.map { |order| Sale::Woo::Parser.parse(order) } }
+
       before do
-        Sale::Woo::Parser.parse_all(woo_orders).pluck(:products).flatten.each do |p|
+        parsed_orders.pluck(:products).flatten.each do |p|
           create(:product, woo_store_id: p[:product_woo_id])
         end
       end
 
       it "persists shipping and billing address snapshots" do
-        described_class.import_all(Sale::Woo::Parser.parse_all(woo_orders))
+        parsed_orders.each { |order| described_class.import(order) }
 
         sale = Sale.find_by_woo_id(sample_order[:id])
         expect(sale.shipping_address).to have_attributes(
@@ -162,15 +164,14 @@ RSpec.describe Sale::Woo::Importer do
       end
 
       it "updates existing address snapshots" do
-        parsed_orders = Sale::Woo::Parser.parse_all(woo_orders)
-        described_class.import_all(parsed_orders)
+        parsed_orders.each { |order| described_class.import(order) }
 
-        updated_orders = Sale::Woo::Parser.parse_all(woo_orders).tap do |orders|
-          orders.first[:addresses][:shipping][:address_1] = "Updated Shipping St"
-          orders.first[:addresses][:billing][:address_1] = "Updated Billing St"
+        updated_order = Sale::Woo::Parser.parse(sample_order).tap do |order|
+          order[:addresses][:shipping][:address_1] = "Updated Shipping St"
+          order[:addresses][:billing][:address_1] = "Updated Billing St"
         end
 
-        described_class.import_all(updated_orders)
+        described_class.import(updated_order)
 
         sale = Sale.find_by_woo_id(sample_order[:id])
         expect(sale.addresses.count).to eq(2)
@@ -191,7 +192,7 @@ RSpec.describe Sale::Woo::Importer do
         Product.where_woo_ids([product_woo_id]).destroy_all
         allow(Product::Woo::Importer).to receive(:fetch_and_import).with(product_woo_id)
 
-        described_class.import_all([parsed_order_with_missing_product])
+        described_class.import(parsed_order_with_missing_product)
 
         expect(Product::Woo::Importer).to have_received(:fetch_and_import).with(product_woo_id)
       end
@@ -201,7 +202,7 @@ RSpec.describe Sale::Woo::Importer do
           create(:product, woo_store_id: product_woo_id)
         end
 
-        described_class.import_all([parsed_order_with_missing_product])
+        described_class.import(parsed_order_with_missing_product)
 
         sale = Sale.find_by_woo_id(parsed_order_with_missing_product[:sale][:woo_id])
         expect(sale.sale_items.map(&:product)).to include(Product.find_by_woo_id(product_woo_id))
@@ -210,7 +211,7 @@ RSpec.describe Sale::Woo::Importer do
       it "skips the line item when Woo returns no product" do
         allow(Product::Woo::Importer).to receive(:fetch_and_import).and_return(nil)
 
-        expect { described_class.import_all([parsed_order_with_missing_product]) }.not_to raise_error
+        expect { described_class.import(parsed_order_with_missing_product) }.not_to raise_error
       end
     end
 
@@ -257,7 +258,7 @@ RSpec.describe Sale::Woo::Importer do
           }]
         }
 
-        described_class.import_all([parsed_order])
+        described_class.import(parsed_order)
 
         aggregate_failures do
           expect(sale_item.reload.variant_id).to eq(stored_variant.id)
@@ -272,7 +273,7 @@ RSpec.describe Sale::Woo::Importer do
           create(:product, woo_store_id: line_item[:product_id].to_s)
         end
 
-        described_class.import_all(Sale::Woo::Parser.parse_all([partially_paid_order]))
+        described_class.import(Sale::Woo::Parser.parse(partially_paid_order))
 
         sale = Sale.find_by_woo_id(partially_paid_order[:id])
         expect(sale).to have_attributes(
@@ -295,7 +296,7 @@ RSpec.describe Sale::Woo::Importer do
           create(:product, woo_store_id: line_item[:product_id].to_s)
         end
 
-        described_class.import_all(Sale::Woo::Parser.parse_all([partially_paid_order_with_deposit]))
+        described_class.import(Sale::Woo::Parser.parse(partially_paid_order_with_deposit))
 
         sale = Sale.find_by_woo_id(partially_paid_order_with_deposit[:id])
         expect(sale).to have_attributes(
@@ -311,7 +312,7 @@ RSpec.describe Sale::Woo::Importer do
         excluded_order = sample_order.deep_dup.merge(status: "cancelled")
         excluded_order[:line_items].each { |line_item| create(:product, woo_store_id: line_item[:product_id].to_s) }
 
-        described_class.import_all(Sale::Woo::Parser.parse_all([excluded_order]))
+        described_class.import(Sale::Woo::Parser.parse(excluded_order))
 
         sale = Sale.find_by_woo_id(excluded_order[:id])
         expect(sale.settlement_status).to eq("paid")
@@ -319,18 +320,46 @@ RSpec.describe Sale::Woo::Importer do
       end
     end
 
-    context "when an unexpected error happens while processing an order" do
-      it "keeps the current order available for rescue logging" do
-        allow(Customer::Woo::Importer).to receive(:import).and_raise(StandardError, "boom")
-        allow(Rails.logger).to receive(:error)
+    context "when a line fails validation" do
+      let(:product) { create(:product, woo_store_id: "woo-product") }
+      let!(:sale) { create(:sale, woo_store_id: "woo-order", status: "processing") }
+      let(:parsed_order) do
+        {
+          sale: sample_parsed_order[:sale].merge(woo_id: "woo-order", status: "completed"),
+          customer: sample_parsed_order[:customer],
+          products: [{
+            sale_item_woo_id: "woo-line",
+            product_woo_id: "woo-product",
+            price: "10.00",
+            expected_revenue: "10.00",
+            qty: 1
+          }]
+        }
+      end
 
-        expect do
-          described_class.import_all([sample_parsed_order])
-        end.to raise_error(StandardError, "boom")
+      before { create(:variant, :with_version, product:) }
 
-        expect(Rails.logger).to have_received(:error).with(
-          /Unexpected error for order #{sample_parsed_order[:sale][:woo_id]}: StandardError - boom/
+      it "names the line, product, and persisted record, and rolls the order back", :aggregate_failures do
+        sale_item = create(:sale_item, product:, sale:, variant: product.variants.real.first, woo_store_id: "woo-line")
+        sale_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+
+        expect { described_class.import(parsed_order) }.to raise_error(
+          described_class::Error,
+          "Woo line woo-line (Woo product woo-product): SaleItem ##{sale_item.id}: " \
+          "Validation failed: Variant must be selected"
         )
+
+        expect(sale.reload.status).to eq("processing")
+      end
+
+      it "names only the class of a record that was never saved", :aggregate_failures do
+        expect { described_class.import(parsed_order) }.to raise_error(
+          described_class::Error,
+          "Woo line woo-line (Woo product woo-product): SaleItem: " \
+          "Validation failed: Variant must be selected"
+        )
+
+        expect(sale.reload.status).to eq("processing")
       end
     end
   end

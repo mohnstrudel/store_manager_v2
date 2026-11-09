@@ -21,6 +21,31 @@ RSpec.describe Webhooks::OrderUpdatesController do
     expect(response).to have_http_status(:unauthorized)
   end
 
+  context "when a line fails validation" do
+    let(:payload) do
+      JSON.parse(request_body, symbolize_names: true).tap do |order|
+        order[:line_items] = [order[:line_items].first.merge(meta_data: [])]
+      end
+    end
+    let(:product) { create(:product, woo_store_id: payload[:line_items].first[:product_id].to_s) }
+    let(:sale) { create(:sale, woo_store_id: payload[:id].to_s, status: "processing") }
+
+    before do
+      create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
+      variant = create(:variant, :with_version, product:)
+      sale_item = create(:sale_item, product:, sale:, variant:, woo_store_id: payload[:line_items].first[:id].to_s)
+      sale_item.update_column(:variant_id, nil) # rubocop:disable Rails/SkipsModelValidations
+      allow_any_instance_of(described_class).to receive(:verify_webhook).and_return(true)
+    end
+
+    it "responds with a server error and rolls the order back", :aggregate_failures do
+      post "/update-order", params: payload.to_json, headers: {"CONTENT_TYPE" => "application/json"}
+
+      expect(response).to have_http_status(:internal_server_error)
+      expect(sale.reload.status).to eq("processing")
+    end
+  end
+
   # rubocop:disable RSpec/ExampleLength
   describe "when we receive a payload from Webhook" do
     before do

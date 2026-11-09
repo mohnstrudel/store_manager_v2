@@ -8,10 +8,6 @@ class Sale::Woo::Parser
   attr_reader :order
   private :order
 
-  def self.parse_all(orders)
-    orders.map { |order| parse(order) }.compact
-  end
-
   def self.parse(order)
     return if order.blank?
 

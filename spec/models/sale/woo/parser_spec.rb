@@ -28,10 +28,10 @@ RSpec.describe Sale::Woo::Parser do
     create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
   end
 
-  describe "#parse_all" do
+  describe ".parse" do
     context "when we receive an array of orders from Woo API" do
       it "gives us parsed result" do
-        parsed = described_class.parse_all(woo_orders)
+        parsed = woo_orders.map { |order| described_class.parse(order) }
         sale_money_fields = %i[discount_total shipping_total total expected_revenue received_revenue outstanding_revenue refunded_revenue]
         product_money_fields = %i[price expected_revenue]
 

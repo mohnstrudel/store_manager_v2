@@ -6,7 +6,7 @@ module Webhooks
 
     def create
       request_payload = JSON.parse(request.body.read, symbolize_names: true)
-      Sale::Woo::Importer.import_all([Sale::Woo::Parser.parse(request_payload)])
+      Sale::Woo::Importer.import(Sale::Woo::Parser.parse(request_payload))
 
       head(:no_content)
     end
