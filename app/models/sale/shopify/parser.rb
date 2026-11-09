@@ -226,9 +226,6 @@ class Sale::Shopify::Parser
       []
     else
       @order["lineItems"]["nodes"].map do |line_item|
-        product_store_id = line_item.dig("variant", "product", "id") || line_item.dig("product", "id")
-        parsed_product = parse_product(line_item["product"], product_store_id)
-
         {
           price: converted_money(line_item["originalTotalSet"]),
           expected_revenue: converted_money(line_item["discountedTotalSet"]) || converted_money(line_item["originalTotalSet"]),
@@ -236,19 +233,11 @@ class Sale::Shopify::Parser
           store_id: line_item["id"],
           variant_title: line_item["variantTitle"],
           variant_store_id: line_item.dig("variant", "id"),
-          product_store_id: product_store_id,
-          full_title: line_item["title"],
-          product: parsed_product
+          product_store_id: line_item.dig("variant", "product", "id") || line_item.dig("product", "id"),
+          full_title: line_item["title"]
         }
       end
     end
-  end
-
-  def parse_product(product_payload, product_store_id)
-    return nil if product_payload.blank?
-    return nil if product_payload["title"].blank?
-
-    Product::Shopify::Parser.parse(product_payload).merge(store_id: product_store_id || product_payload["id"])
   end
 
   def parse_payment_plan

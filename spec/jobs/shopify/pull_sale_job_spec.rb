@@ -74,6 +74,88 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
       end
     end
 
+    context "when the order references a product that is not cached locally" do
+      let(:product_store_id) { "gid://shopify/Product/55" }
+      let(:variant_store_id) { "gid://shopify/ProductVariant/66" }
+      let(:product_response) do
+        {
+          "id" => product_store_id,
+          "title" => "Star Wars - Princess Leia | 1:4 Resin Statue | by von xionart",
+          "handle" => "star-wars-princess-leia",
+          "variants" => {
+            "edges" => [
+              {"node" => {"id" => variant_store_id, "title" => "Big Chest", "sku" => "leia-big", "selectedOptions" => [{"name" => "Version", "value" => "Big Chest"}]}},
+              {"node" => {"id" => "gid://shopify/ProductVariant/67", "title" => "Normal Chest", "sku" => "leia-normal", "selectedOptions" => [{"name" => "Version", "value" => "Normal Chest"}]}}
+            ]
+          },
+          "media" => {"nodes" => []}
+        }
+      end
+      let(:client) { instance_double(Shopify::Api::Client, fetch_order: order_with_line, fetch_product: product_response) }
+      let(:order_with_line) do
+        order_response.merge(
+          "lineItems" => {
+            "nodes" => [{
+              "id" => "gid://shopify/LineItem/1",
+              "title" => "Star Wars - Princess Leia | 1:4 Resin Statue",
+              "quantity" => 1,
+              "variantTitle" => "Big Chest",
+              "variant" => {"id" => variant_store_id, "product" => {"id" => product_store_id}},
+              "product" => {"id" => product_store_id}
+            }]
+          }
+        )
+      end
+
+      before do
+        allow(Shopify::Api::Client).to receive(:new).and_return(client)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
+      end
+
+      it "imports the product and its variants first, so the sale item lands on its own variant" do
+        job.perform(sale_id)
+
+        sale_item = Sale::Shopify::OrderId.find_sale(sale_id).sale_items.sole
+        expect(sale_item.product.shopify_info.store_id).to eq(product_store_id)
+        expect(sale_item.variant.shopify_info.store_id).to eq(variant_store_id)
+      end
+
+      it "queues no product pull" do
+        allow(Shopify::PullProductJob).to receive(:perform_later)
+
+        job.perform(sale_id)
+
+        expect(Shopify::PullProductJob).not_to have_received(:perform_later)
+      end
+
+      context "when Shopify throttles the product fetch" do
+        before { allow(client).to receive(:fetch_product).and_raise(Shopify::Api::Client::Throttled) }
+
+        it "re-enqueues the job with the same order id" do
+          expect { described_class.perform_now(sale_id) }.to have_enqueued_job(described_class).with(sale_id)
+        end
+
+        it "records no import failure and saves no sale" do
+          expect { described_class.perform_now(sale_id) }.not_to change { [Sale::ImportFailure.count, Sale.count] }
+        end
+      end
+
+      context "when the product fetch fails" do
+        before do
+          allow(client).to receive(:fetch_product).and_raise(Shopify::Api::Client::ApiError, "Failed to fetch product: Access denied")
+          allow(Sentry).to receive(:capture_exception)
+        end
+
+        it "records the order's import failure and discards the job" do
+          expect { described_class.perform_now(sale_id) }.not_to raise_error
+
+          expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: sale_id).message)
+            .to start_with("Failed to import product #{product_store_id}: Failed to fetch product: Access denied")
+          expect(Sale.count).to eq(0)
+        end
+      end
+    end
+
     context "when the import fails" do
       let(:import_error) { Sale::Shopify::Importer::Error.new("Failed to process SaleItem") }
       let(:sentry_event) { instance_double(Sentry::ErrorEvent, event_id: "event-1") }

@@ -17,6 +17,7 @@ class Sale::Shopify::Importer
   end
 
   def update_or_create
+    import_missing_products
     find_or_initialize_sale
 
     ActiveRecord::Base.transaction do
@@ -36,6 +37,41 @@ class Sale::Shopify::Importer
   end
 
   private
+
+  def import_missing_products
+    missing_product_store_ids.each { |store_id| import_product(store_id) }
+  end
+
+  def missing_product_store_ids
+    parsed[:sale_items].select { |line| uncached?(line) }.pluck(:product_store_id).uniq
+  end
+
+  def uncached?(line)
+    return false if line[:product_store_id].blank?
+
+    Product.find_by_shopify_id(line[:product_store_id]).nil? ||
+      (line[:variant_store_id].present? && Variant.find_by_shopify_id(line[:variant_store_id]).nil?)
+  end
+
+  def import_product(store_id)
+    payload = Shopify::Api::Client.new.fetch_product(store_id)
+    return if payload.blank?
+
+    Product::Shopify::Importer.import(Product::Shopify::Parser.parse(payload), inline_variants: true)
+  rescue Shopify::Api::Client::Throttled
+    raise
+  rescue Shopify::Api::Client::ApiError, Product::Shopify::Importer::Error, Variant::Shopify::Importer::Error => e
+    raise Error, "Failed to import product #{store_id}: #{e.message}\n#{context_details}"
+  end
+
+  def context_details
+    [
+      "sale_store_id: #{parsed.dig(:store_info, :store_id)}",
+      "sale_shopify_id: #{parsed.dig(:sale, :shopify_id)}",
+      "sale_shopify_name: #{parsed.dig(:sale, :shopify_name)}",
+      "customer_store_id: #{parsed.dig(:customer, :store_info, :store_id)}"
+    ].join(", ")
+  end
 
   def find_or_initialize_sale
     @sale = Sale.find_by_shopify_id(parsed[:store_info][:store_id]) || Sale.new
@@ -77,12 +113,6 @@ class Sale::Shopify::Importer
   def handle_record_invalid(error)
     model_name = error.record.class.name
     detailed_errors = error.record.errors.full_messages.join(", ")
-    context_details = [
-      "sale_store_id: #{parsed.dig(:store_info, :store_id)}",
-      "sale_shopify_id: #{parsed.dig(:sale, :shopify_id)}",
-      "sale_shopify_name: #{parsed.dig(:sale, :shopify_name)}",
-      "customer_store_id: #{parsed.dig(:customer, :store_info, :store_id)}"
-    ].join(", ")
 
     raise Error, "Failed to process #{model_name}: #{detailed_errors}\n#{context_details}"
   end

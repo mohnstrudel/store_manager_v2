@@ -698,14 +698,14 @@ RSpec.describe Variant::Shopify::Importer do
       }.to change(product.variants, :count).by_at_least(1)
     end
 
-    it "re-raises SKU collision errors" do
+    it "re-raises SKU collision errors as an Importer::Error naming the variant" do
       allow(described_class).to receive(:import).and_raise(
         ActiveRecord::RecordInvalid.new(Variant.new.tap { |variant| variant.errors.add(:sku, "has already been taken") })
       )
 
       expect {
         described_class.import_all(product, parsed_variants)
-      }.to raise_error(StandardError) { |error|
+      }.to raise_error(described_class::Error) { |error|
         expect(error.message).to include("Validation failed: Sku has already been taken")
         expect(error.message).to include("product_id: #{product.id}")
         expect(error.message).to include("product_shopify_id: #{product.shopify_info.store_id}")

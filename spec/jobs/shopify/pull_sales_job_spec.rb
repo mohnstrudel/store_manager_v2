@@ -140,6 +140,37 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
         expect { job.perform }.not_to change(Sale, :count)
       end
     end
+
+    context "when Shopify throttles the fetch of a product an order references" do
+      let(:order_with_uncached_product) do
+        api_response[:items].first.merge(
+          "lineItems" => {
+            "nodes" => [{
+              "id" => "gid://shopify/LineItem/1",
+              "title" => "Star Wars - Princess Leia | 1:4 Resin Statue",
+              "quantity" => 1,
+              "variant" => {"id" => "gid://shopify/ProductVariant/66", "product" => {"id" => "gid://shopify/Product/55"}},
+              "product" => {"id" => "gid://shopify/Product/55"}
+            }]
+          }
+        )
+      end
+      let(:client) { instance_double(Shopify::Api::Client, fetch_orders: {items: [order_with_uncached_product], has_next_page: true, end_cursor: "cursor-1"}) }
+
+      before do
+        allow(client).to receive(:fetch_product).and_raise(Shopify::Api::Client::Throttled)
+        allow(Shopify::Api::Client).to receive(:new).and_return(client)
+      end
+
+      it "retries the same page instead of counting the order as a failure or moving to the next page" do
+        expect { described_class.perform_now(cursor: "cursor-0") }
+          .to have_enqueued_job(described_class).with(cursor: "cursor-0")
+
+        expect(enqueued_jobs.count { |enqueued| enqueued["job_class"] == described_class.name }).to eq(1)
+        expect(Sale::ImportFailure.count).to eq(0)
+        expect(Sale.count).to eq(0)
+      end
+    end
   end
 
   describe "Seal sync handoff" do

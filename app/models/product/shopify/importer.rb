@@ -3,23 +3,23 @@
 class Product::Shopify::Importer
   class Error < StandardError; end
 
-  attr_reader :parsed, :product
-  private :parsed, :product
+  attr_reader :parsed, :product, :inline_variants
+  private :parsed, :product, :inline_variants
 
-  def self.import(parsed_payload)
+  def self.import(parsed_payload, inline_variants: false)
     raise ArgumentError, "Parsed payload cannot be blank" if parsed_payload.blank?
 
-    new(parsed_payload).update_or_create
+    new(parsed_payload, inline_variants:).update_or_create
   end
 
-  def initialize(parsed_payload)
+  def initialize(parsed_payload, inline_variants: false)
     @parsed = parsed_payload
+    @inline_variants = inline_variants
   end
 
   def update_or_create
     update_or_create_product
-
-    Shopify::PullVariantsJob.perform_later(product, converted_variants) if parsed[:variants].present?
+    import_variants
     Shopify::ImportMediaJob.perform_later(product, parsed[:media]) if parsed[:media]
 
     product
@@ -116,6 +116,16 @@ class Product::Shopify::Importer
     detailed_errors = error.record.errors.full_messages.join(", ")
 
     raise Error, "Failed to process #{model_name}: #{detailed_errors}"
+  end
+
+  def import_variants
+    return if parsed[:variants].blank?
+
+    if inline_variants
+      Variant::Shopify::Importer.import_all(product, converted_variants)
+    else
+      Shopify::PullVariantsJob.perform_later(product, converted_variants)
+    end
   end
 
   def converted_variants

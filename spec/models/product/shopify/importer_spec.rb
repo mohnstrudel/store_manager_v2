@@ -70,6 +70,51 @@ RSpec.describe Product::Shopify::Importer do
       )
     end
 
+    context "when asked to import variants inline" do
+      let(:variants) do
+        [
+          {store_id: "gid://shopify/ProductVariant/1", sku: "inline-a", options: [{name: "Version", value: "A"}]},
+          {store_id: "gid://shopify/ProductVariant/2", sku: "inline-b", options: [{name: "Version", value: "B"}]}
+        ]
+      end
+
+      before do
+        allow(Shopify::PullVariantsJob).to receive(:perform_later)
+        allow(Shopify::ImportMediaJob).to receive(:perform_later)
+      end
+
+      it "imports the variants before returning and queues only the media" do
+        product = described_class.import(parsed_product.merge(variants:), inline_variants: true)
+
+        expect(product.variants.real.map { |variant| variant.shopify_info.store_id })
+          .to contain_exactly("gid://shopify/ProductVariant/1", "gid://shopify/ProductVariant/2")
+        expect(Shopify::PullVariantsJob).not_to have_received(:perform_later)
+        expect(Shopify::ImportMediaJob).to have_received(:perform_later).with(product, parsed_product[:media])
+      end
+
+      it "converts priced variants with the EUR-to-USD rate of the import day" do
+        conversion = ExchangeRate::Conversion.new(
+          order_date: Date.new(2026, 9, 4),
+          effective_date: Date.new(2026, 9, 2),
+          rate: BigDecimal("1.1578")
+        )
+        allow(ExchangeRate).to receive(:eur_to_usd_conversion).and_return(conversion)
+        priced = variants.map { |variant| variant.merge(selling_price: "450.00") }
+
+        product = described_class.import(parsed_product.merge(variants: priced), inline_variants: true)
+
+        expect(product.variants.real.map(&:selling_price)).to all(eq(BigDecimal("521.01")))
+      end
+
+      it "imports nothing for a product without variants" do
+        allow(Variant::Shopify::Importer).to receive(:import_all)
+
+        described_class.import(parsed_product.merge(variants: nil), inline_variants: true)
+
+        expect(Variant::Shopify::Importer).not_to have_received(:import_all)
+      end
+    end
+
     it "generates correct full title" do
       product = described_class.import(parsed_product)
       expect(product.full_title).to eq("Stellar Blade — Eve | Light and Dust Studio")

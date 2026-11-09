@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Variant::Shopify::Importer
+  class Error < StandardError; end
+
   attr_reader :product, :parsed, :sibling_store_ids, :variant
   private :product, :parsed, :sibling_store_ids, :variant
 
@@ -9,7 +11,7 @@ class Variant::Shopify::Importer
     parsed_variants.each do |parsed_variant|
       import(product, parsed_variant, sibling_store_ids: store_ids)
     rescue => error
-      raise StandardError, format_import_error(error, product:, parsed_variant:)
+      raise Error, format_import_error(error, product:, parsed_variant:)
     end
     VariantImportConflict.keep_only(product, store_ids)
   end
