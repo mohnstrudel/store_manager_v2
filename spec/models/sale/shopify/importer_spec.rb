@@ -667,6 +667,26 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         )
       end
 
+      it "imports a line whose Shopify variant is not linked on a product with real variants and allocates its revenue" do
+        line = parsed_order_with_revenue[:sale_items].first
+        product = create(:product, :synced, shopify_id: line[:product_store_id])
+        create(:variant, :with_version, product:)
+
+        expect { described_class.import(parsed_order_with_revenue) }.to change(SaleItem, :count).by(1)
+
+        expect(SaleItem.sole).to have_attributes(
+          variant: product.variants.base_models.first,
+          shopify_variant_id: line[:variant_store_id],
+          expected_revenue: BigDecimal("234.63"),
+          received_revenue: BigDecimal("100.00"),
+          outstanding_revenue: BigDecimal("134.63"),
+          refunded_revenue: BigDecimal(0)
+        )
+        expect(Sale.last).to be_shopify_variant_unlinked
+        expect(Sale.last.sales_tags).to be_empty
+        expect(SalesTag.count).to eq(0)
+      end
+
       it "allocates order revenue proportionally across multiple line items" do
         order = parsed_order_with_revenue.deep_dup
         order[:sale].merge!(

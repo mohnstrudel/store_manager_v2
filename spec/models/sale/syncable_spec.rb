@@ -71,6 +71,44 @@ RSpec.describe Sale do
     end
   end
 
+  describe "#shopify_variant_unlinked?" do
+    let(:sale) { create(:sale) }
+    let(:shopify_variant_id) { "gid://shopify/ProductVariant/50971387363657" }
+
+    it "is true when any item's Shopify variant has no local match" do
+      create(:sale_item, sale:, shopify_variant_id: nil)
+      create(:sale_item, sale:, shopify_variant_id:)
+
+      expect(sale).to be_shopify_variant_unlinked
+    end
+
+    it "is false once every item's Shopify variant is linked or absent" do
+      product = create(:product)
+      linked = create(:variant, product:, shopify_store_id: shopify_variant_id)
+      create(:sale_item, sale:, product:, variant: linked, shopify_variant_id:)
+      create(:sale_item, sale:, shopify_variant_id: nil)
+
+      expect(sale).not_to be_shopify_variant_unlinked
+    end
+
+    it "is false for a sale without items" do
+      expect(sale).not_to be_shopify_variant_unlinked
+    end
+
+    it "answers from preloaded items and links without querying" do
+      create(:sale_item, sale:, shopify_variant_id:)
+      preloaded = described_class.includes(sale_items: :shopify_variant_info).find(sale.id)
+      queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { |*, payload| queries << payload[:sql] }
+
+      preloaded.shopify_variant_unlinked?
+
+      expect(queries).to be_empty
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+  end
+
   describe "#push_status_to_woo_later" do
     it "enqueues the Woo status push" do
       sale = create(:sale)

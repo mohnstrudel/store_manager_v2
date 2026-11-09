@@ -55,6 +55,90 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
         expect(sale_item.variant).to eq(variant)
         expect(sale_item.shopify_id).to eq("gid://shopify/LineItem/1")
       end
+
+      it "records the line's Shopify variant ID" do
+        result = described_class.new(sale, parsed_sale_item).import
+
+        expect(result.shopify_variant_id).to eq(variant_store_id)
+      end
+    end
+
+    context "when a re-imported line no longer carries a Shopify variant" do
+      let!(:saved_item) do
+        create(
+          :sale_item,
+          sale:,
+          product:,
+          shopify_id: "gid://shopify/LineItem/variant-removed",
+          shopify_variant_id: variant_store_id
+        )
+      end
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/variant-removed",
+          price: "10.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_title: "Default Title"
+        }
+      end
+
+      it "stores no Shopify variant ID" do
+        described_class.new(sale, parsed_sale_item).import
+
+        expect(saved_item.reload.shopify_variant_id).to be_nil
+      end
+    end
+
+    context "when the line's Shopify variant is not linked to a local variant" do
+      let(:unlinked_variant_store_id) { "gid://shopify/ProductVariant/50971387363657" }
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/unlinked",
+          price: "10.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          variant_store_id: unlinked_variant_store_id,
+          variant_title: "Gold"
+        }
+      end
+
+      before { product }
+
+      context "when the product has real variants" do
+        let(:base_variant) { product.variants.base_models.first }
+
+        before { create(:variant, :with_version, product:) }
+
+        it "saves the line on the product's deactivated base variant and records the Shopify variant ID" do
+          expect(base_variant).to be_deactivated
+
+          result = described_class.new(sale, parsed_sale_item).import
+
+          expect(result).to be_persisted
+          expect(result).to have_attributes(variant: base_variant, shopify_variant_id: unlinked_variant_store_id)
+        end
+
+        it "moves the line to the linked variant once the Shopify variant is linked" do
+          item = described_class.new(sale, parsed_sale_item).import
+          expect(item).to be_shopify_variant_unlinked
+          linked = create(:variant, product:, version: create(:version, value: "Gold"), shopify_store_id: unlinked_variant_store_id)
+
+          described_class.new(sale, parsed_sale_item).import
+
+          expect(item.reload).to have_attributes(variant: linked, shopify_variant_id: unlinked_variant_store_id)
+          expect(item).not_to be_shopify_variant_unlinked
+        end
+      end
+
+      context "when the product has no real variants" do
+        it "saves the line on the product's base variant and records the Shopify variant ID" do
+          result = described_class.new(sale, parsed_sale_item).import
+
+          expect(result).to have_attributes(variant: product.base_variant, shopify_variant_id: unlinked_variant_store_id)
+          expect(result.variant).to be_base_model
+        end
+      end
     end
 
     context "when the product built from the line's title does not import" do

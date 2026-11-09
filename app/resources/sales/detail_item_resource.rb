@@ -20,6 +20,9 @@ class Sales::DetailItemResource < ApplicationResource
     thumb_url(item.product)
   end
 
+  typelize :boolean
+  attribute :shopify_variant_unlinked, &:shopify_variant_unlinked?
+
   many :purchase_items, resource: Sales::DetailPurchaseItemResource
 
   typelize :string, nullable: true

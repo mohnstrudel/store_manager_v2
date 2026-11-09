@@ -8,6 +8,7 @@ import { rowNavigationProps, stopRowNavigation } from "@/utils/rowNavigation";
 
 import PurchasedSoldRatio from "../components/PurchasedSoldRatio";
 import TagBadges from "../components/TagBadges";
+import UnlinkedVariantMark from "../components/UnlinkedVariantMark";
 import type { SaleIndexRecord, SaleSort } from "../types";
 import TagsCell from "./TagsCell";
 
@@ -89,6 +90,7 @@ export default function Table({ sales, sort, tagColors, tagOptions, canTagSales 
                     </li>
                   ))}
                 </ul>
+                {sale.shopify_variant_unlinked && <UnlinkedVariantMark />}
               </td>
 
               {canTagSales ? (

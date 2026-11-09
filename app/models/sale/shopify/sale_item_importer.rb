@@ -17,7 +17,7 @@ class Sale::Shopify::SaleItemImporter
 
     ActiveRecord::Base.transaction do
       sale_item.assign_attributes(sale_item_attributes)
-      sale_item.skip_variant_assignability_check = variant_linked_by_shopify?
+      sale_item.skip_variant_assignability_check = shopify_variant_line?
       sale_item.save!
     end
 
@@ -85,13 +85,25 @@ class Sale::Shopify::SaleItemImporter
     return @imported_variant if defined?(@imported_variant)
 
     @imported_variant =
-      if parsed[:variant_store_id].present?
-        Variant.find_by_shopify_id(parsed[:variant_store_id])
+      if shopify_variant_line?
+        Variant.find_by_shopify_id(parsed[:variant_store_id]) || base_model_variant_for(resolved_product)
       elsif normalized_variant_title.blank? && !base_model_variant_title?
         nil
       else
         create_custom_variant
       end
+  end
+
+  def shopify_variant_line?
+    parsed[:variant_store_id].present?
+  end
+
+  def base_model_variant_for(product)
+    return product.base_variant if product.base_variant
+
+    product.build_base_variant
+    product.save!
+    product.base_variant
   end
 
   def normalized_variant_title
@@ -125,14 +137,6 @@ class Sale::Shopify::SaleItemImporter
     )
   end
 
-  def base_model_variant_for(product)
-    return product.base_variant if product.base_variant
-
-    product.build_base_variant
-    product.save!
-    product.base_variant
-  end
-
   def sale_item_attributes
     {
       price: parsed[:price],
@@ -142,11 +146,7 @@ class Sale::Shopify::SaleItemImporter
       sale: sale,
       product: resolved_product,
       variant: imported_variant
-    }.compact
-  end
-
-  def variant_linked_by_shopify?
-    parsed[:variant_store_id].present?
+    }.compact.merge(shopify_variant_id: parsed[:variant_store_id])
   end
 
   def handle_record_invalid(error)

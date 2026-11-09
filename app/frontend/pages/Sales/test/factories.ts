@@ -42,6 +42,7 @@ export function makeSaleIndexRecord(overrides: Partial<SaleIndexRecord> = {}): S
     partially_paid: false,
     settlement_status: null,
     is_follow_up_payment: false,
+    shopify_variant_unlinked: false,
     ...overrides,
   };
 }
@@ -204,6 +205,7 @@ export function makeSaleShowSaleItem(
     qty: 2,
     product_path: "/products/pikachu",
     product_thumb_url: null,
+    shopify_variant_unlinked: false,
     purchase_items: [makeSaleShowPurchaseItem()],
     price: "1060",
     profitability: null,

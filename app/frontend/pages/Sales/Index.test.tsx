@@ -96,6 +96,45 @@ describe("Sales/Index", () => {
     expect(screen.queryByText("Processing")).not.toBeInTheDocument();
   });
 
+  describe("unlinked Shopify variant mark", () => {
+    it("marks a sale whose Shopify variant has no match with a link to the Shopify conflicts", () => {
+      renderIndex({ sales: [makeSaleIndexRecord({ shopify_variant_unlinked: true })] });
+
+      const mark = screen.getByRole("link", { name: "BROKEN" });
+      expect(mark).toHaveAttribute("href", "/broken_sales?issue_type=shopify_conflicts");
+      expect(mark).toHaveAttribute(
+        "title",
+        "Shopify variant has no match here. Fix it in Broken Sales.",
+      );
+    });
+
+    it("marks only the affected sale", () => {
+      renderIndex({
+        sales: [
+          makeSaleIndexRecord({ id: 1, shopify_variant_unlinked: true }),
+          makeSaleIndexRecord({ id: 2, shopify_variant_unlinked: false }),
+        ],
+      });
+
+      expect(screen.getAllByRole("link", { name: "BROKEN" })).toHaveLength(1);
+    });
+
+    it("shows no mark when every Shopify variant is linked or absent", () => {
+      renderIndex({ sales: [makeSaleIndexRecord({ shopify_variant_unlinked: false })] });
+
+      expect(screen.queryByRole("link", { name: "BROKEN" })).not.toBeInTheDocument();
+    });
+
+    it("does not open the sale when the mark is used", async () => {
+      const user = userEvent.setup();
+      renderIndex({ sales: [makeSaleIndexRecord({ shopify_variant_unlinked: true })] });
+
+      await user.click(screen.getByRole("link", { name: "BROKEN" }));
+
+      expect(router.visit).not.toHaveBeenCalled();
+    });
+  });
+
   describe("payment progress marker", () => {
     it("shows scheduled payment progress before the sale details", () => {
       renderIndex({

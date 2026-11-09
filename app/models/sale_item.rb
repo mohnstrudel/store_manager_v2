@@ -18,6 +18,7 @@
 #  product_id           :bigint           not null
 #  sale_id              :bigint           not null
 #  shopify_id           :string
+#  shopify_variant_id   :string
 #  variant_id           :bigint
 #  woo_id               :string
 #
@@ -31,6 +32,7 @@ class SaleItem < ApplicationRecord
   include RevenueAllocation
   include RevenueDefaults
   include Shopable
+  include Syncable
   include Titled
   include VariantAssignment
 

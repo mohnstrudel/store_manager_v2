@@ -81,6 +81,41 @@ describe("Sales/Show/Items", () => {
     expect(screen.queryByText(/MISSING/)).not.toBeInTheDocument();
   });
 
+  it("marks an item whose Shopify variant has no match with a link to the Shopify conflicts", () => {
+    renderItems([makeSaleShowSaleItem({ shopify_variant_unlinked: true })]);
+
+    const mark = screen.getByRole("link", { name: "BROKEN" });
+    expect(mark).toHaveAttribute("href", "/broken_sales?issue_type=shopify_conflicts");
+    expect(mark).toHaveAttribute(
+      "title",
+      "Shopify variant has no match here. Fix it in Broken Sales.",
+    );
+  });
+
+  it("marks only the affected item", () => {
+    renderItems([
+      makeSaleShowSaleItem({ id: 11, title: "Pikachu Figure", shopify_variant_unlinked: true }),
+      makeSaleShowSaleItem({ id: 12, title: "Eevee Figure", shopify_variant_unlinked: false }),
+    ]);
+
+    const rows = screen.getAllByRole("row");
+    expect(within(rows[1]).getByRole("link", { name: "BROKEN" })).toBeInTheDocument();
+    expect(within(rows[2]).queryByRole("link", { name: "BROKEN" })).not.toBeInTheDocument();
+  });
+
+  it("shows no mark when the item's Shopify variant is linked or absent", () => {
+    renderItems([makeSaleShowSaleItem({ shopify_variant_unlinked: false })]);
+
+    expect(screen.queryByRole("link", { name: "BROKEN" })).not.toBeInTheDocument();
+  });
+
+  it("shows the unlinked mark beside the missing-purchases marker", () => {
+    renderItems([makeSaleShowSaleItem({ purchase_items: [], shopify_variant_unlinked: true })]);
+
+    expect(screen.getByRole("link", { name: "BROKEN" })).toBeInTheDocument();
+    expect(screen.getByText("MISSING 2 PURCHASES")).toBeInTheDocument();
+  });
+
   it("hides the checkbox column when no sale items have linked purchases", () => {
     renderItems([
       makeSaleShowSaleItem({ purchase_items: [] }),

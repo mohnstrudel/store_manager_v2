@@ -1240,6 +1240,82 @@ RSpec.describe "Sales" do
     end
   end
 
+  describe "GET /sales unlinked Shopify variants" do
+    let(:shopify_variant_id) { "gid://shopify/ProductVariant/50971387363657" }
+    let(:linked_variant_id) { "gid://shopify/ProductVariant/1" }
+
+    def sale_with_linked_item
+      product = create(:product)
+      variant = create(:variant, product:, shopify_store_id: linked_variant_id)
+      create(:sale).tap { |sale| create(:sale_item, sale:, product:, variant:, shopify_variant_id: linked_variant_id) }
+    end
+
+    def flags
+      inertia.props[:sales].to_h { |sale| [sale[:id], sale[:shopify_variant_unlinked]] }
+    end
+
+    it "flags only the sales that hold an item whose Shopify variant has no local match" do
+      unlinked = create(:sale).tap { |sale| create(:sale_item, sale:, shopify_variant_id:) }
+      linked = sale_with_linked_item
+      without_shopify_variant = create(:sale).tap { |sale| create(:sale_item, sale:) }
+
+      get sales_path
+
+      expect(flags).to eq(unlinked.id => true, linked.id => false, without_shopify_variant.id => false)
+    end
+
+    it "loads the Shopify variant links of the whole page in one query" do
+      3.times { |index| create(:sale).tap { |sale| create(:sale_item, sale:, shopify_variant_id: "#{shopify_variant_id}#{index}") } }
+      link_queries = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+        link_queries << payload[:sql] if payload[:sql].include?(%("store_infos"."store_id" IN))
+      end
+
+      begin
+        get sales_path
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(flags.values).to eq([true, true, true])
+      expect(link_queries.size).to eq(1)
+    end
+
+    it "serves fresh props once the Shopify variant gets linked, without touching the sale" do
+      sale = create(:sale)
+      sale_item = create(:sale_item, sale:, shopify_variant_id:)
+      sale.update_columns(updated_at: 1.day.ago)
+      stamp = sale.reload.updated_at
+      get sales_path
+      old_etag = response.headers["ETag"]
+      expect(flags).to eq(sale.id => true)
+
+      create(:variant, product: sale_item.product, shopify_store_id: shopify_variant_id)
+      get sales_path, headers: {"If-None-Match" => old_etag}
+
+      expect(response).to have_http_status(:ok)
+      expect(flags).to eq(sale.id => false)
+      expect(sale.reload.updated_at).to eq(stamp)
+    end
+  end
+
+  describe "GET /sales/:id unlinked Shopify variants" do
+    it "flags each item whose Shopify variant has no local match" do
+      sale = create(:sale)
+      product = create(:product)
+      linked_variant = create(:variant, product:, shopify_store_id: "gid://shopify/ProductVariant/1")
+      linked = create(:sale_item, sale:, product:, variant: linked_variant, shopify_variant_id: "gid://shopify/ProductVariant/1")
+      unlinked = create(:sale_item, sale:, shopify_variant_id: "gid://shopify/ProductVariant/50971387363657")
+      without_shopify_variant = create(:sale_item, sale:)
+
+      get sale_path(sale)
+
+      flags = inertia.props[:sale][:sale_items].to_h { |item| [item[:id], item[:shopify_variant_unlinked]] }
+      expect(flags).to eq(linked.id => false, unlinked.id => true, without_shopify_variant.id => false)
+    end
+  end
+
   describe "GET /sales tags" do
     let(:sale) { create(:sale) }
     let!(:zebra) { create(:sales_tag, name: "Zebra", color: "pink") }

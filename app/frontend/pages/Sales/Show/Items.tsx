@@ -16,6 +16,7 @@ import type { WarehouseOption } from "@/types/warehouse";
 import { useConfirmAction } from "@/utils/useConfirmAction";
 import { useWarehouseMoveSelection } from "@/utils/useWarehouseMoveSelection";
 
+import UnlinkedVariantMark from "../components/UnlinkedVariantMark";
 import type { SaleShowPurchaseItemRecord, SaleShowSaleItemRecord } from "../types";
 
 type ItemsProps = {
@@ -114,6 +115,7 @@ function SaleItemRow({
         <Link className="link no-underline font-semibold" href={saleItem.product_path} prefetch>
           {saleItem.title}
         </Link>
+        {saleItem.shopify_variant_unlinked && <UnlinkedVariantMark />}
         {hasPurchaseItems && (
           <menu>
             {saleItem.purchase_items.map((purchaseItem) => (

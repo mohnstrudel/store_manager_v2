@@ -34,6 +34,10 @@ module Sale::Syncable
     (usd_amount.to_d / usd_conversion_rate).round(2)
   end
 
+  def shopify_variant_unlinked?
+    sale_items.any?(&:shopify_variant_unlinked?)
+  end
+
   def push_status_to_woo_later
     Woo::PushSaleJob.perform_later(self)
   end
