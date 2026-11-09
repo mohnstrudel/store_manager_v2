@@ -78,7 +78,6 @@ export default function Index({
 
       {syncOpen && (
         <SyncModal
-          fetchLimitedLabel="Fetch Last 100 Sales"
           id="sales-index-sync-modal"
           lastSyncAt={lastSyncLabel}
           onClose={closeSync}

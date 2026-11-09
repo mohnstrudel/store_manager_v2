@@ -324,6 +324,17 @@ RSpec.describe Shopify::Api::Client do
       )
     end
 
+    it "asks once for the products updated since the given time, with no separate media query" do
+      updated_since = Time.utc(2026, 11, 10, 9, 45)
+
+      client.fetch_products(cursor: cursor, batch_size: batch_size, updated_since:)
+
+      expect(mock_graphql_client).to have_received(:query).once.with(
+        query: Shopify::Graphql::ProductQuery.list(updated_since:),
+        variables: {first: batch_size, after: cursor}
+      )
+    end
+
     it "returns structured response with items and pagination info" do
       result = client.fetch_products(cursor: cursor, batch_size: batch_size)
 
@@ -612,6 +623,17 @@ RSpec.describe Shopify::Api::Client do
           first: batch_size,
           after: cursor
         }
+      )
+    end
+
+    it "asks once for the orders updated since the given time" do
+      updated_since = Time.utc(2026, 11, 10, 9, 45)
+
+      client.fetch_orders(cursor: cursor, batch_size: batch_size, updated_since:)
+
+      expect(mock_graphql_client).to have_received(:query).once.with(
+        query: Shopify::Graphql::OrderQuery.list(updated_since:),
+        variables: {first: batch_size, after: cursor}
       )
     end
 

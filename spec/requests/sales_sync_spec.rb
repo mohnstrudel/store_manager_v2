@@ -6,36 +6,40 @@ RSpec.describe "Sales Sync API" do
   before { sign_in_as_admin }
 
   describe "POST /sales/pull" do
-    it "enqueues Shopify and delayed Woo sync without enqueuing Seal directly", :aggregate_failures do
-      allow(Config).to receive(:update_shopify_sales_sync_time)
-      allow(Shopify::PullSalesJob).to receive(:perform_later).with(limit: nil)
-      allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(limit: nil)
-      allow(Seal::SyncPaymentPlansJob).to receive(:perform_later)
+    it "enqueues a full Shopify pull and a delayed Woo pull with no limit, without enqueuing Seal directly", :aggregate_failures do
+      freeze_time do
+        post sales_bulk_pull_path
 
-      post sales_bulk_pull_path
-
-      expect(Config).to have_received(:update_shopify_sales_sync_time)
-      expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: nil)
-      expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
-      expect(Seal::SyncPaymentPlansJob).not_to have_received(:perform_later)
+        expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: false)
+        expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: nil).at(90.seconds.from_now)
+        expect(Seal::SyncPaymentPlansJob).not_to have_been_enqueued
+      end
     end
 
-    it "passes the limit parameter through to the Shopify and Woo jobs", :aggregate_failures do
-      allow(Config).to receive(:update_shopify_sales_sync_time)
-      allow(Shopify::PullSalesJob).to receive(:perform_later).with(limit: "100")
-      allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later).with(limit: "100")
+    it "enqueues a Shopify changes pull and a delayed Woo pull of the latest 100 for scope=changes", :aggregate_failures do
+      freeze_time do
+        post sales_bulk_pull_path(scope: "changes")
 
-      post sales_bulk_pull_path(limit: 100)
+        expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: true)
+        expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: 100).at(90.seconds.from_now)
+        expect(Seal::SyncPaymentPlansJob).not_to have_been_enqueued
+      end
+    end
 
-      expect(Shopify::PullSalesJob).to have_received(:perform_later).with(limit: "100")
-      expect(Woo::PullSalesJob).to have_received(:set).with(wait: 90.seconds)
+    it "pulls everything when only the retired limit param is sent", :aggregate_failures do
+      post sales_bulk_pull_path(limit: "100")
+
+      expect(Shopify::PullSalesJob).to have_been_enqueued.with(changes_only: false)
+      expect(Woo::PullSalesJob).to have_been_enqueued.with(limit: nil)
+    end
+
+    it "leaves the stored sync time to the pull itself" do
+      Config.update_shopify_sales_sync_time(Time.utc(2026, 11, 10, 10))
+
+      expect { post sales_bulk_pull_path(scope: "changes") }.not_to change(Config, :shopify_sales_sync_at)
     end
 
     it "redirects back with a jobs dashboard notice", :aggregate_failures do
-      allow(Config).to receive(:update_shopify_sales_sync_time)
-      allow(Shopify::PullSalesJob).to receive(:perform_later)
-      allow(Woo::PullSalesJob).to receive_message_chain(:set, :perform_later)
-
       post sales_bulk_pull_path
 
       expect(response).to redirect_to(sales_path)

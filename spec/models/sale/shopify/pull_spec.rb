@@ -38,6 +38,14 @@ RSpec.describe Sale::Shopify::Pull, :aggregate_failures do
     end
   end
 
+  it "fetches a full page of orders changed since the given time" do
+    updated_since = Time.zone.local(2026, 11, 10, 9, 45)
+
+    described_class.page(cursor: "abc", updated_since:)
+
+    expect(api_client).to have_received(:fetch_orders).with(cursor: "abc", batch_size: 250, updated_since:)
+  end
+
   it "stops the page on an error that is not an item failure" do
     allow(Sale::Shopify::Importer).to receive(:import).and_raise("boom")
 

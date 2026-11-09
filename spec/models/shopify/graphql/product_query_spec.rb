@@ -71,6 +71,35 @@ RSpec.describe Shopify::Graphql::ProductQuery do
         /variants\(first: 100\) \{\s*pageInfo \{\s*hasNextPage\s*\}\s*edges \{\s*node \{/
       )
     end
+
+    context "without updated_since" do
+      it "lists the newest created products first with no filter" do
+        query = described_class.list
+
+        expect(query).to include("sortKey: CREATED_AT")
+        expect(query).to include("reverse: true")
+        expect(query).not_to include("UPDATED_AT")
+        expect(query).not_to include("updated_at")
+      end
+    end
+
+    context "with updated_since" do
+      let(:updated_since) { ActiveSupport::TimeZone["Asia/Singapore"].local(2026, 11, 10, 17, 45) }
+      let(:query) { described_class.list(updated_since:) }
+
+      it "filters to products updated at or after that moment in UTC and sorts by update time" do
+        expect(query).to include(%(query: "updated_at:>='2026-11-10T09:45:00Z'"))
+        expect(query).to include("sortKey: UPDATED_AT")
+        expect(query).not_to include("CREATED_AT")
+        expect(query).not_to include("reverse")
+      end
+
+      it "filters on the product alone and keeps the same selection" do
+        expect(query.scan("updated_at:").size).to eq(1)
+        expect(query).to include("media(first: 250)")
+        expect(query).to include("variants(first: 100)")
+      end
+    end
   end
 
   describe "PRODUCT_FIELDS" do

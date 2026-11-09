@@ -40,6 +40,14 @@ RSpec.describe Product::Shopify::Pull, :aggregate_failures do
     end
   end
 
+  it "fetches a full page of products changed since the given time" do
+    updated_since = Time.zone.local(2026, 11, 10, 9, 45)
+
+    described_class.page(cursor: "abc", updated_since:)
+
+    expect(api_client).to have_received(:fetch_products).with(cursor: "abc", batch_size: 250, updated_since:)
+  end
+
   it "queues each product's media import without forcing it" do
     media = [{key: "gid://shopify/MediaImage/1", id: "gid://shopify/MediaImage/1", url: "https://cdn.example.com/a.jpg", alt: "", position: 0}]
     allow(Shopify::ImportMediaJob).to receive(:perform_later)

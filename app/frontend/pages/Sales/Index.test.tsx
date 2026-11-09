@@ -870,8 +870,29 @@ describe("Sales/Index", () => {
 
       expect(screen.getByText("Sales Synchronization")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Fetch Everything" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Fetch Last 100 Sales" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Fetch Changes" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Last 100/ })).not.toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Track Jobs Progress" })).toBeInTheDocument();
+    });
+
+    it("posts the changes scope to the sales pull path when Fetch Changes is clicked", async () => {
+      const user = userEvent.setup();
+      renderIndex();
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
+      await user.click(screen.getByRole("button", { name: "Fetch Changes" }));
+
+      expect(router.post).toHaveBeenCalledWith("/sales/pull", { scope: "changes" });
+    });
+
+    it("posts no params to the sales pull path when Fetch Everything is clicked", async () => {
+      const user = userEvent.setup();
+      renderIndex();
+
+      await user.click(screen.getByRole("button", { name: "Store Sync" }));
+      await user.click(screen.getByRole("button", { name: "Fetch Everything" }));
+
+      expect(router.post).toHaveBeenCalledWith("/sales/pull", {});
     });
 
     it("shows the last sync time when last_sync_time is provided", async () => {

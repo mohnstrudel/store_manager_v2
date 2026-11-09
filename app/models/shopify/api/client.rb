@@ -33,9 +33,9 @@ module Shopify
         product
       end
 
-      def fetch_products(cursor:, batch_size:)
+      def fetch_products(cursor:, batch_size:, updated_since: nil)
         response = execute(
-          Shopify::Graphql::ProductQuery.list,
+          Shopify::Graphql::ProductQuery.list(updated_since:),
           variables: {first: Integer(batch_size), after: cursor},
           operation: "products"
         )
@@ -98,9 +98,9 @@ module Shopify
         order
       end
 
-      def fetch_orders(cursor:, batch_size:)
+      def fetch_orders(cursor:, batch_size:, updated_since: nil)
         response = execute(
-          Shopify::Graphql::OrderQuery.list,
+          Shopify::Graphql::OrderQuery.list(updated_since:),
           variables: {first: Integer(batch_size), after: cursor},
           operation: "orders"
         )

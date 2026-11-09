@@ -39,6 +39,34 @@ RSpec.describe Shopify::Graphql::OrderQuery do
       expect(query).to include("hasNextPage")
       expect(query).to include("endCursor")
     end
+
+    context "without updated_since" do
+      it "lists the newest created orders first with no filter" do
+        query = described_class.list
+
+        expect(query).to include("sortKey: CREATED_AT")
+        expect(query).to include("reverse: true")
+        expect(query).not_to include("UPDATED_AT")
+        expect(query).not_to include("updated_at")
+      end
+    end
+
+    context "with updated_since" do
+      let(:updated_since) { ActiveSupport::TimeZone["Asia/Singapore"].local(2026, 11, 10, 17, 45) }
+      let(:query) { described_class.list(updated_since:) }
+
+      it "filters to orders updated at or after that moment in UTC and sorts by update time" do
+        expect(query).to include(%(query: "updated_at:>='2026-11-10T09:45:00Z'"))
+        expect(query).to include("sortKey: UPDATED_AT")
+        expect(query).not_to include("CREATED_AT")
+        expect(query).not_to include("reverse")
+      end
+
+      it "keeps the same selection" do
+        expect(query).to include("lineItems(first: 50)")
+        expect(query).to include("customer")
+      end
+    end
   end
 
   describe "SALE_FIELDS" do

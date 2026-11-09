@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
+  include ActiveJob::TestHelper
+
   let(:job) { described_class.new }
 
   describe "#perform" do
@@ -79,6 +81,14 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
 
         expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
       end
+
+      it "still stores the start time of the pull" do
+        started_at = Time.utc(2026, 11, 10, 12)
+
+        travel_to(started_at) { described_class.perform_now }
+
+        expect(Config.shopify_products_sync_at).to eq(started_at)
+      end
     end
 
     context "when product already exists" do
@@ -89,6 +99,86 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
 
         expect { job.perform }.not_to change(Product, :count)
       end
+    end
+  end
+
+  describe "sync time" do
+    let(:client) { instance_double(Shopify::Api::Client) }
+    let(:started_at) { Time.utc(2026, 11, 10, 12) }
+
+    before do
+      allow(Shopify::Api::Client).to receive(:new).and_return(client)
+      allow(client).to receive(:fetch_products).and_return(items: [], has_next_page: false, end_cursor: nil)
+    end
+
+    it "stores the start of a full pull as the products sync time on its last page and leaves the sales sync time alone" do
+      travel_to(started_at) { described_class.perform_now }
+
+      expect(Config.shopify_products_sync_at).to eq(started_at)
+      expect(Config.shopify_sales_sync_at).to be_nil
+    end
+
+    it "fetches the products updated since 15 minutes before the stored products sync time on a changes pull" do
+      Config.update_shopify_products_sync_time(Time.utc(2026, 11, 10, 10))
+      Config.update_shopify_sales_sync_time(Time.utc(2026, 11, 10, 11))
+
+      travel_to(started_at) { described_class.perform_now(changes_only: true) }
+
+      expect(client).to have_received(:fetch_products)
+        .with(cursor: nil, batch_size: 250, updated_since: Time.utc(2026, 11, 10, 9, 45))
+      expect(Config.shopify_products_sync_at).to eq(started_at)
+    end
+
+    it "pulls three pages of a changes pull with one filter and stores the start time only after the third" do
+      Config.update_shopify_products_sync_time(Time.utc(2026, 11, 10, 10))
+      allow(client).to receive(:fetch_products).and_return(
+        {items: [], has_next_page: true, end_cursor: "cursor-1"},
+        {items: [], has_next_page: true, end_cursor: "cursor-2"},
+        {items: [], has_next_page: false, end_cursor: nil}
+      )
+
+      travel_to(started_at) { described_class.perform_now(changes_only: true) }
+      travel_to(started_at + 1.minute) { ActiveJob::Base.execute(enqueued_jobs.last) }
+      expect(Config.shopify_products_sync_at).to eq(Time.utc(2026, 11, 10, 10))
+      travel_to(started_at + 3.minutes) { ActiveJob::Base.execute(enqueued_jobs.last) }
+
+      filter = Time.utc(2026, 11, 10, 9, 45)
+      expect(client).to have_received(:fetch_products).with(cursor: nil, batch_size: 250, updated_since: filter)
+      expect(client).to have_received(:fetch_products).with(cursor: "cursor-1", batch_size: 250, updated_since: filter)
+      expect(client).to have_received(:fetch_products).with(cursor: "cursor-2", batch_size: 250, updated_since: filter)
+      expect(Config.shopify_products_sync_at).to eq(started_at)
+    end
+
+    it "fetches every product when a changes pull has no stored products sync time" do
+      described_class.perform_now(changes_only: true)
+
+      expect(client).to have_received(:fetch_products).with(cursor: nil, batch_size: 250, updated_since: nil)
+    end
+
+    it "stores nothing before the last page" do
+      allow(client).to receive(:fetch_products).and_return(items: [], has_next_page: true, end_cursor: "cursor-1")
+
+      described_class.perform_now
+
+      expect(Config.shopify_products_sync_at).to be_nil
+    end
+
+    it "keeps the stored USD prices of products a changes pull does not return" do
+      unchanged = create(
+        :variant, :synced,
+        selling_price: BigDecimal("521.01"), selling_price_source_amount: BigDecimal("450.00"),
+        selling_price_source_currency: "EUR", selling_price_exchange_rate: BigDecimal("1.1578"),
+        selling_price_exchange_rate_date: Date.new(2026, 9, 2)
+      )
+      Config.update_shopify_products_sync_time(Time.utc(2026, 11, 10, 10))
+
+      described_class.perform_now(changes_only: true)
+
+      expect(unchanged.reload).to have_attributes(
+        selling_price: BigDecimal("521.01"),
+        selling_price_exchange_rate: BigDecimal("1.1578"),
+        selling_price_exchange_rate_date: Date.new(2026, 9, 2)
+      )
     end
   end
 end

@@ -16,12 +16,12 @@ class Shopify::Pull
     end
   end
 
-  def self.page(cursor: nil, limit: nil)
-    new.page(cursor:, limit:)
+  def self.page(cursor: nil, updated_since: nil)
+    new.page(cursor:, updated_since:)
   end
 
-  def page(cursor:, limit:)
-    payload = fetch(Shopify::Api::Client.new, cursor:, batch_size: Integer(limit || batch_size))
+  def page(cursor:, updated_since:)
+    payload = fetch(Shopify::Api::Client.new, cursor:, batch_size:, updated_since:)
     failures = []
     imported_count = payload[:items].count { |item| import(item, failures) }
 
@@ -30,7 +30,7 @@ class Shopify::Pull
 
   private
 
-  def fetch(api_client, cursor:, batch_size:)
+  def fetch(api_client, cursor:, batch_size:, updated_since:)
     raise NotImplementedError, "#{self.class} must implement #fetch"
   end
 

@@ -14,7 +14,9 @@ RSpec.describe Shopify::Pull, :aggregate_failures do
     skippable_error = self.skippable_error
 
     Class.new(described_class) do
-      define_method(:fetch) { |api_client, cursor:, batch_size:| api_client.fetch_orders(cursor:, batch_size:) }
+      define_method(:fetch) do |api_client, cursor:, batch_size:, updated_since:|
+        api_client.fetch_orders(cursor:, batch_size:, updated_since:)
+      end
       define_method(:batch_size) { 10 }
       define_method(:importer_class) { importer }
       define_method(:parser_class) { parser }
@@ -28,19 +30,21 @@ RSpec.describe Shopify::Pull, :aggregate_failures do
     allow(parser).to receive(:parse) { |item| {store_id: item["id"]} }
   end
 
-  it "fetches one page with the default batch size and imports every parsed item" do
+  it "fetches one unfiltered page with the default batch size and imports every parsed item" do
     page = pull_class.page
 
-    expect(api_client).to have_received(:fetch_orders).with(cursor: nil, batch_size: 10)
+    expect(api_client).to have_received(:fetch_orders).with(cursor: nil, batch_size: 10, updated_since: nil)
     expect(importer).to have_received(:import).with({store_id: "gid://1"})
     expect(importer).to have_received(:import).with({store_id: "gid://2"})
     expect(page).to have_attributes(imported_count: 2, next_cursor: nil, failures: [])
   end
 
-  it "fetches the requested limit and cursor, converting a string limit" do
-    pull_class.page(cursor: "abc", limit: "5")
+  it "fetches the given cursor and updated_since with the default batch size" do
+    updated_since = Time.zone.local(2026, 11, 10, 9, 45)
 
-    expect(api_client).to have_received(:fetch_orders).with(cursor: "abc", batch_size: 5)
+    pull_class.page(cursor: "abc", updated_since:)
+
+    expect(api_client).to have_received(:fetch_orders).with(cursor: "abc", batch_size: 10, updated_since:)
   end
 
   it "returns the end cursor only when Shopify reports another page" do

@@ -3,8 +3,8 @@
 class Sale::Shopify::Pull < Shopify::Pull
   private
 
-  def fetch(api_client, cursor:, batch_size:)
-    api_client.fetch_orders(cursor:, batch_size:)
+  def fetch(api_client, cursor:, batch_size:, updated_since:)
+    api_client.fetch_orders(cursor:, batch_size:, updated_since:)
   end
 
   def batch_size

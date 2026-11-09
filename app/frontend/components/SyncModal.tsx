@@ -6,37 +6,22 @@ import Modal from "./Modal";
 type SyncModalProps = {
   id: string;
   lastSyncAt?: string | null;
-  fetchAllLabel?: string;
-  fetchLimitedLabel: string;
   onClose: () => void;
   pullPath: string;
   title: string;
 };
 
-const LIMITED_SYNC_COUNT = 100;
+type PullParams = { scope?: "changes" };
 
-export default function SyncModal({
-  id,
-  lastSyncAt,
-  fetchAllLabel = "Fetch Everything",
-  fetchLimitedLabel,
-  onClose,
-  pullPath,
-  title,
-}: SyncModalProps) {
-  const { fetchEverything, fetchRecentRecords } = useStoreSyncActions({
+export default function SyncModal({ id, lastSyncAt, onClose, pullPath, title }: SyncModalProps) {
+  const { fetchChanges, fetchEverything } = useStoreSyncActions({
     onClose,
     pullPath,
   });
 
   return (
     <Modal id={id} onClose={onClose} subtitle={lastSyncAt} title={title}>
-      <SyncActions
-        fetchAllLabel={fetchAllLabel}
-        fetchLimitedLabel={fetchLimitedLabel}
-        onFetchAll={fetchEverything}
-        onFetchLimited={fetchRecentRecords}
-      />
+      <SyncActions onFetchChanges={fetchChanges} onFetchEverything={fetchEverything} />
     </Modal>
   );
 }
@@ -48,45 +33,38 @@ type StoreSyncActionsOptions = {
 
 function useStoreSyncActions({ onClose, pullPath }: StoreSyncActionsOptions) {
   const fetchStoreRecords = useCallback(
-    (limit?: number) => {
-      router.post(pullPath, limit ? { limit } : {});
+    (params: PullParams) => {
+      router.post(pullPath, params);
       onClose();
     },
     [onClose, pullPath],
   );
 
-  const fetchEverything = useCallback(() => fetchStoreRecords(), [fetchStoreRecords]);
-  const fetchRecentRecords = useCallback(
-    () => fetchStoreRecords(LIMITED_SYNC_COUNT),
+  const fetchEverything = useCallback(() => fetchStoreRecords({}), [fetchStoreRecords]);
+  const fetchChanges = useCallback(
+    () => fetchStoreRecords({ scope: "changes" }),
     [fetchStoreRecords],
   );
 
-  return { fetchEverything, fetchRecentRecords };
+  return { fetchChanges, fetchEverything };
 }
 
 type SyncActionsProps = {
-  fetchAllLabel: string;
-  fetchLimitedLabel: string;
-  onFetchAll: () => void;
-  onFetchLimited: () => void;
+  onFetchChanges: () => void;
+  onFetchEverything: () => void;
 };
 
-function SyncActions({
-  fetchAllLabel,
-  fetchLimitedLabel,
-  onFetchAll,
-  onFetchLimited,
-}: SyncActionsProps) {
+function SyncActions({ onFetchChanges, onFetchEverything }: SyncActionsProps) {
   return (
     <menu className="flex flex-col gap-4">
       <li>
-        <button className="w-full h-15 btn_blue" onClick={onFetchAll} type="button">
-          {fetchAllLabel}
+        <button className="w-full h-15 btn_blue" onClick={onFetchEverything} type="button">
+          Fetch Everything
         </button>
       </li>
       <li>
-        <button className="w-full h-15" onClick={onFetchLimited} type="button">
-          {fetchLimitedLabel}
+        <button className="w-full h-15" onClick={onFetchChanges} type="button">
+          Fetch Changes
         </button>
       </li>
       <li>

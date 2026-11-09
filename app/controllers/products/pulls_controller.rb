@@ -5,8 +5,7 @@ module Products
     include JobsStatusNotice
 
     def create
-      Shopify::PullProductsJob.perform_later(limit: params[:limit]&.to_i)
-      Config.update_shopify_products_sync_time
+      Shopify::PullProductsJob.perform_later(changes_only: params[:scope] == "changes")
       set_jobs_status_notice
 
       redirect_back_or_to(products_path)

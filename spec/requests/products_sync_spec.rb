@@ -10,30 +10,32 @@ RSpec.describe "Products Sync API" do
   end
 
   describe "POST /products/pull" do
-    context "with limit parameter" do
-      it "converts string limit to integer before enqueuing job", :aggregate_failures do
-        allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: 100)
-        allow(Config).to receive(:update_shopify_products_sync_time)
+    it "enqueues a full pull when no scope is given", :aggregate_failures do
+      post products_pull_path
 
-        post products_pull_path(limit: "100")
-
-        expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: 100)
-        expect(response).to redirect_to(products_path)
-        expect(flash[:notice]).to include(message: "Success! Visit")
-      end
+      expect(Shopify::PullProductsJob).to have_been_enqueued.with(changes_only: false)
+      expect(response).to redirect_to(products_path)
+      expect(flash[:notice]).to include(message: "Success! Visit")
     end
 
-    context "without limit parameter" do
-      it "enqueues job with nil limit", :aggregate_failures do
-        allow(Shopify::PullProductsJob).to receive(:perform_later).with(limit: nil)
-        allow(Config).to receive(:update_shopify_products_sync_time)
+    it "enqueues a changes pull for scope=changes", :aggregate_failures do
+      post products_pull_path(scope: "changes")
 
-        post products_pull_path
+      expect(Shopify::PullProductsJob).to have_been_enqueued.with(changes_only: true)
+      expect(response).to redirect_to(products_path)
+      expect(flash[:notice]).to include(message: "Success! Visit")
+    end
 
-        expect(Shopify::PullProductsJob).to have_received(:perform_later).with(limit: nil)
-        expect(response).to redirect_to(products_path)
-        expect(flash[:notice]).to include(message: "Success! Visit")
-      end
+    it "pulls everything when only the retired limit param is sent" do
+      post products_pull_path(limit: "100")
+
+      expect(Shopify::PullProductsJob).to have_been_enqueued.with(changes_only: false)
+    end
+
+    it "leaves the stored sync time to the pull itself" do
+      Config.update_shopify_products_sync_time(Time.utc(2026, 11, 10, 10))
+
+      expect { post products_pull_path(scope: "changes") }.not_to change(Config, :shopify_products_sync_at)
     end
   end
 
