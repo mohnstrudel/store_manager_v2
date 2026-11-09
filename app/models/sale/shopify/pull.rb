@@ -20,6 +20,6 @@ class Sale::Shopify::Pull < Shopify::Pull
   end
 
   def skippable_errors
-    [Sale::Shopify::Importer::Error]
+    [Sale::Shopify::Importer::Error, Customer::Shopify::Importer::Error]
   end
 end

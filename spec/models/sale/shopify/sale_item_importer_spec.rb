@@ -98,6 +98,33 @@ RSpec.describe Sale::Shopify::SaleItemImporter do
       end
     end
 
+    context "when the parsed Shopify product fails validation" do
+      let(:parsed_sale_item) do
+        {
+          store_id: "gid://shopify/LineItem/invalid-product",
+          price: "15.00",
+          qty: 1,
+          product_store_id: product_store_id,
+          product: {
+            store_id: product_store_id,
+            title: "",
+            franchise: "Parsed Franchise",
+            shape: "Statue",
+            sku: "invalid-product-sku",
+            variants: []
+          }
+        }
+      end
+
+      it "fails the sale import with the product's errors and the sale item's context" do
+        expect { described_class.new(sale, parsed_sale_item).import }
+          .to raise_error(Sale::Shopify::Importer::Error) { |error|
+            expect(error.message).to start_with("Failed to process Product: Title can't be blank\nsale_store_id: ")
+            expect(error.message).to include("sale_item_store_id: gid://shopify/LineItem/invalid-product", "product_store_id: #{product_store_id}")
+          }
+      end
+    end
+
     context "when only the full title is available" do
       let(:parsed_sale_item) do
         {

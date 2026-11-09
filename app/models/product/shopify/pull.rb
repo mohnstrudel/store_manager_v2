@@ -18,4 +18,8 @@ class Product::Shopify::Pull < Shopify::Pull
   def parser_class
     Product::Shopify::Parser
   end
+
+  def skippable_errors
+    [Product::Shopify::Importer::Error]
+  end
 end

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Product::Shopify::Importer
+  class Error < StandardError; end
+
   attr_reader :parsed, :product
   private :parsed, :product
 
@@ -52,6 +54,8 @@ class Product::Shopify::Importer
         )
       end
     end
+  rescue ActiveRecord::RecordInvalid => e
+    handle_record_invalid(e)
   end
 
   def find_or_initialize_product
@@ -105,6 +109,13 @@ class Product::Shopify::Importer
     return parsed[:sku] if single_variant_variant
 
     nil
+  end
+
+  def handle_record_invalid(error)
+    model_name = error.record.class.name
+    detailed_errors = error.record.errors.full_messages.join(", ")
+
+    raise Error, "Failed to process #{model_name}: #{detailed_errors}"
   end
 
   def converted_variants

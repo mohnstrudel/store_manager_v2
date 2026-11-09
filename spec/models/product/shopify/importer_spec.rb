@@ -475,14 +475,11 @@ RSpec.describe Product::Shopify::Importer do
     end
 
     context "when validations fail" do
-      before do
-        allow_any_instance_of(Product).to receive(:save!).and_raise( # rubocop:todo RSpec/AnyInstance
-          ActiveRecord::RecordInvalid.new(Product.new)
-        )
-      end
+      let(:parsed_product) { super().merge(title: "") }
 
-      it "raises the error" do
-        expect { importer.update_or_create }.to raise_error(ActiveRecord::RecordInvalid)
+      it "raises an Importer::Error naming the invalid record and its validation errors" do
+        expect { importer.update_or_create }
+          .to raise_error(described_class::Error, "Failed to process Product: Title can't be blank")
       end
     end
   end
