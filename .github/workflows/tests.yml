@@ -3,6 +3,24 @@ name: Tests
 on: [pull_request]
 
 jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup gitleaks
+        uses: jdx/mise-action@v5
+        with:
+          install_args: gitleaks
+
+      - name: Scan git history
+        run: mise exec -- gitleaks git --redact --no-banner
+
   test:
     name: Backend tests
     runs-on: ubuntu-latest

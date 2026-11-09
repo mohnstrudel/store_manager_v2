@@ -1,0 +1,7 @@
+51490df5666bf8707d46ec5d616dae3b91f427a1:spec/fixtures/files/api_partially_paid_order.json:generic-api-key:99
+62fc8f8df09abbed51a9d022949f4f2be0193379:spec/fixtures/files/shopify_api_orders.rb:generic-api-key:146
+62fc8f8df09abbed51a9d022949f4f2be0193379:spec/fixtures/files/shopify_api_orders.rb:generic-api-key:17
+62fc8f8df09abbed51a9d022949f4f2be0193379:spec/fixtures/files/shopify_api_orders.rb:generic-api-key:275
+967add553751294a612d431e11607960e1b52d75:spec/fixtures/files/api_partially_paid_order.json:generic-api-key:99
+c8064222d58bcb5fcd7d1c36e2522dbf8ff103d2:spec/fixtures/files/api_hooks_order.json:generic-api-key:145
+c8064222d58bcb5fcd7d1c36e2522dbf8ff103d2:spec/fixtures/files/api_hooks_order.json:generic-api-key:297
