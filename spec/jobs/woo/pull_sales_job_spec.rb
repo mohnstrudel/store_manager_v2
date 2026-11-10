@@ -78,6 +78,103 @@ RSpec.describe Woo::PullSalesJob, :aggregate_failures do
     end
   end
 
+  describe "Woo API failures" do
+    let(:user) { create(:user) }
+    let(:sentry_event) { instance_double(Sentry::ErrorEvent, event_id: "event-1") }
+    let(:unavailable) { Woo::Api::Client::Unavailable.new("Woo is down", status: 502, url: "https://woo.test/orders/", body_preview: "<html>") }
+    let(:jobs_link) { {label: "Open the jobs dashboard", href: "/jobs/statuses"} }
+
+    before { allow(Sentry).to receive(:capture_exception).and_return(sentry_event) }
+
+    context "when Woo cannot be reached" do
+      before { allow(Sale::Woo::Pull).to receive(:run).and_raise(unavailable) }
+
+      it "retries with the same arguments while attempts remain" do
+        expect { described_class.perform_now(id: "123", requested_by: user) }
+          .to have_enqueued_job(described_class).with(id: "123", requested_by: user)
+      end
+
+      it "stays quiet while attempts remain", :aggregate_failures do
+        expect { described_class.perform_now(requested_by: user) }
+          .not_to have_broadcasted_to(user).from_channel(NotificationsChannel)
+
+        expect(Sentry).not_to have_received(:capture_exception)
+      end
+
+      it "gives up after five attempts, reports once, and alerts the requester once", :aggregate_failures do
+        expect { perform_enqueued_jobs { described_class.perform_later(requested_by: user) } }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "WooCommerce did not respond, so nothing was pulled. Try again in a few minutes.", link: jobs_link)
+          .exactly(:once)
+
+        expect(Sale::Woo::Pull).to have_received(:run).exactly(5).times
+        expect(Sentry).to have_received(:capture_exception)
+          .with(unavailable, extra: {status: 502, url: "https://woo.test/orders/", body_preview: "<html>"}).once
+      end
+
+      it "records a pulled order as failed once attempts run out", :aggregate_failures do
+        sale = create(:sale, woo_store_id: "123")
+
+        perform_enqueued_jobs { described_class.perform_later(id: "123") }
+
+        expect(Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: "123")).to have_attributes(
+          sale:, message: "Woo is down", sentry_event_id: "event-1", failure_count: 1, resolved_at: nil
+        )
+      end
+
+      it "records nothing for a pull that is not about one order" do
+        perform_enqueued_jobs { described_class.perform_later }
+
+        expect(Sale::ImportFailure.count).to eq(0)
+      end
+
+      it "never tells the requester the pull finished", :aggregate_failures do
+        expect { perform_enqueued_jobs { described_class.perform_later(requested_by: user) } }
+          .not_to have_broadcasted_to(user).from_channel(NotificationsChannel).with(kind: "notice", message: "WooCommerce sales pull finished.")
+      end
+    end
+
+    context "when Woo rejects the request" do
+      let(:rejected) { Woo::Api::Client::Error.new("HTTP 401", status: 401, url: "https://woo.test/orders/", body_preview: "no") }
+
+      before { allow(Sale::Woo::Pull).to receive(:run).and_raise(rejected) }
+
+      it "does not retry, reports it, and alerts the requester", :aggregate_failures do
+        expect { described_class.perform_now(id: "123", requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "WooCommerce returned an unexpected response, so nothing was pulled.", link: jobs_link)
+
+        expect(enqueued_jobs).to be_empty
+        expect(Sentry).to have_received(:capture_exception)
+          .with(rejected, extra: {status: 401, url: "https://woo.test/orders/", body_preview: "no"})
+        expect(Sale::ImportFailure.count).to eq(0)
+      end
+    end
+
+    context "when Woo has no such order" do
+      before { allow(Sale::Woo::Pull).to receive(:run).and_raise(Woo::Api::Client::NotFound.new("gone", status: 404)) }
+
+      it "tells the requester without leaving an unresolvable broken sale", :aggregate_failures do
+        expect { described_class.perform_now(id: "123", requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "This order was not found in WooCommerce.")
+
+        expect(enqueued_jobs).to be_empty
+        expect(Sale::ImportFailure.count).to eq(0)
+      end
+    end
+
+    context "when something else breaks" do
+      it "still tells the requester, without claiming what was or was not pulled" do
+        allow(Sale::Woo::Pull).to receive(:run).and_raise(RuntimeError, "boom")
+
+        expect { expect { described_class.perform_now(requested_by: user) }.to raise_error(RuntimeError, "boom") }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "The WooCommerce pull failed.", link: jobs_link)
+      end
+    end
+  end
+
   describe "requester notifications" do
     let(:user) { create(:user) }
 

@@ -10,6 +10,32 @@ module Woo
       PRODUCTS_URL = "https://store.handsomecake.com/wp-json/wc/v3/products/"
       ORDERS_ORDER_BY = "modified"
       PUBLISHED_STATUS = "publish"
+      NETWORK_ERRORS = [
+        Timeout::Error,
+        SocketError,
+        SystemCallError,
+        IOError,
+        OpenSSL::SSL::SSLError,
+        Net::ProtocolError,
+        Net::HTTPBadResponse,
+        HTTParty::Error
+      ].freeze
+      BODY_PREVIEW_LENGTH = 500
+
+      class Error < StandardError
+        attr_reader :status, :url, :body_preview
+
+        def initialize(message, status: nil, url: nil, body_preview: nil)
+          super(message)
+          @status = status
+          @url = url
+          @body_preview = body_preview
+        end
+      end
+
+      class Unavailable < Error; end
+
+      class NotFound < Error; end
 
       def fetch_orders(total_records, pages = nil)
         fetch_all(ORDERS_URL, total_records, pages, orderby: ORDERS_ORDER_BY)
@@ -44,151 +70,68 @@ module Woo
         total_records = total_records.to_i
         pages ||= (total_records <= PER_PAGE) ? 1 : total_records.fdiv(PER_PAGE).ceil
 
-        (1..pages)
-          .map { |page| get(url, status:, per_page: PER_PAGE, page:, orderby:) }
-          .flatten
-          .compact_blank
+        (1..pages).flat_map { |page| get(url, status:, per_page: PER_PAGE, page:, orderby:) }
       end
 
       def get(url, status: nil, per_page: nil, page: nil, orderby: nil)
         query = {status:, per_page:, page:, orderby:}.compact
 
         response = perform_get_request(url, query)
-        return if response.blank?
-
-        parse_get_response(response, url:, query:)
+        parse_body(response, url:)
       end
 
       def perform_get_request(url, query)
-        retries = 0
-
-        begin
-          HTTParty.get(
-            url,
-            query:,
-            basic_auth: {
-              username: CONSUMER_KEY,
-              password: CONSUMER_SECRET
-            }
-          )
-        rescue => e
-          retries += 1
-          retry if retries < 3 && retry_get_request?
-
-          report_get_request_failure(url:, query:, error: e, retries:)
-          nil
-        end
-      end
-
-      def retry_get_request?
-        sleep 10
-        true
-      end
-
-      def report_get_request_failure(url:, query:, error:, retries:)
-        Rails.logger.error "Gettable. Error: #{error.class}: #{error.message}"
-        Sentry.capture_message(
-          "Woo API GET failed after retries",
-          level: :error,
-          tags: sentry_tags,
-          extra: {
-            url:,
-            query:,
-            error_class: error.class.name,
-            error_message: error.message,
-            retries:
+        HTTParty.get(
+          url,
+          query:,
+          basic_auth: {
+            username: CONSUMER_KEY,
+            password: CONSUMER_SECRET
           }
         )
+      rescue *NETWORK_ERRORS => error
+        raise Unavailable.new("Woo API GET #{url} failed: #{error.class}: #{error.message}", url:)
       end
 
-      def sentry_tags
-        {
-          integration: "woo",
-          concern: "Gettable"
-        }
-      end
-
-      def parse_get_response(response, url:, query:)
-        unless response_successful?(response)
-          report_unsuccessful_get_response(
-            url:,
-            query:,
-            response:,
-            error_payload: parse_error_payload(response.body)
-          )
-          return nil
-        end
-
-        if response.body.blank?
-          report_blank_get_response(url:, query:, response:)
-          return nil
-        end
+      def parse_body(response, url:)
+        raise_rejection(response, url:) unless response.code.to_i.between?(200, 299)
+        raise_rejection(response, url:, reason: "blank body") if response.body.blank?
 
         JSON.parse(response.body, symbolize_names: true)
-      rescue JSON::ParserError => e
-        report_invalid_get_response(url:, query:, response:, error: e)
-        nil
+      rescue JSON::ParserError
+        raise_rejection(response, url:, reason: "invalid JSON")
       end
 
-      def response_successful?(response)
-        return response.success? if response.respond_to?(:success?)
+      def raise_rejection(response, url:, reason: nil)
+        status = response.code.to_i
+        body = response.body.to_s
+        error_class = error_class_for(status)
+        detail = reason || error_message(body) || "unexpected response"
 
-        response.code.to_i.between?(200, 299)
-      end
-
-      def report_unsuccessful_get_response(url:, query:, response:, error_payload:)
-        Rails.logger.error("Gettable. Unsuccessful response for #{url}: HTTP #{response.code}")
-        Sentry.capture_message(
-          "Woo API GET returned unsuccessful response",
-          level: :error,
-          tags: sentry_tags,
-          extra: {
-            url:,
-            query:,
-            status_code: response.code.to_i,
-            error_code: error_payload&.dig(:code),
-            error_message: error_payload&.dig(:message),
-            error_data: error_payload&.dig(:data),
-            body_preview: response.body.to_s.first(500)
-          }
+        raise error_class.new(
+          "Woo API GET #{url} returned HTTP #{status}: #{detail}",
+          status:,
+          url:,
+          body_preview: body.first(BODY_PREVIEW_LENGTH)
         )
       end
 
-      def parse_error_payload(body)
+      def error_class_for(status)
+        if status == 404
+          NotFound
+        elsif status == 429 || status >= 500
+          Unavailable
+        else
+          Error
+        end
+      end
+
+      def error_message(body)
         return if body.blank?
 
-        JSON.parse(body, symbolize_names: true)
+        JSON.parse(body, symbolize_names: true).then { |payload| payload[:message] if payload.is_a?(Hash) }
       rescue JSON::ParserError
         nil
-      end
-
-      def report_blank_get_response(url:, query:, response:)
-        Rails.logger.warn("Gettable. Blank response body for #{url}")
-        Sentry.capture_message(
-          "Woo API GET returned blank body",
-          level: :warning,
-          tags: sentry_tags,
-          extra: {
-            url:,
-            query:,
-            response_class: response.class.name
-          }
-        )
-      end
-
-      def report_invalid_get_response(url:, query:, response:, error:)
-        Rails.logger.error "Gettable. Failed to parse response for #{url}: #{error.message}"
-        Sentry.capture_message(
-          "Woo API GET returned invalid JSON",
-          level: :error,
-          tags: sentry_tags,
-          extra: {
-            url:,
-            query:,
-            error_message: error.message,
-            body_preview: response.body.to_s.first(500)
-          }
-        )
       end
     end
   end

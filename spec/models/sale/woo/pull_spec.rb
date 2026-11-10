@@ -47,10 +47,30 @@ RSpec.describe Sale::Woo::Pull, :aggregate_failures do
       expect(Sale.find_by_woo_id(222)).to be_nil
     end
 
-    it "imports nothing when Woo returns no order for the id" do
-      allow(client).to receive(:fetch_order).with("404").and_return(nil)
+    it "raises NotFound and imports nothing when Woo has no order for the id" do
+      allow(client).to receive(:fetch_order).with("404").and_raise(Woo::Api::Client::NotFound.new("gone"))
 
-      expect { described_class.run(id: "404") }.not_to change(Sale, :count)
+      expect { expect { described_class.run(id: "404") }.to raise_error(Woo::Api::Client::NotFound) }.not_to change(Sale, :count)
+    end
+
+    it "raises and imports nothing when fetching the orders fails" do
+      allow(client).to receive(:fetch_orders).and_raise(Woo::Api::Client::Unavailable.new("down"))
+
+      expect { expect { described_class.run }.to raise_error(Woo::Api::Client::Unavailable) }.not_to change(Sale, :count)
+    end
+
+    it "fails only the order whose product cannot be fetched and imports the rest" do
+      unreachable_order = first_order.deep_dup
+      unreachable_order[:line_items].first[:product_id] = 99
+      allow(client).to receive(:fetch_orders).and_return([unreachable_order, last_order])
+      allow(Product::Woo::Importer).to receive(:fetch_and_import).with(99).and_raise(Woo::Api::Client::Unavailable.new("down"))
+
+      expect { described_class.run }.to raise_error(described_class::Failed) { |error|
+        expect(error.failures).to match([have_attributes(woo_id: unreachable_order[:id], message: "Woo::Api::Client::Unavailable: down")])
+      }
+
+      expect(Sale.find_by_woo_id(unreachable_order[:id])).to be_nil
+      expect(Sale.find_by_woo_id(last_order[:id])).to be_present
     end
 
     it "does not report an order with a skipped line as a failed pull" do

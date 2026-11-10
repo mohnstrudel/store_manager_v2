@@ -49,10 +49,10 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     expect(Config.sales_hook_disabled?).to be true
   end
 
-  it "captures context and keeps the webhook enabled when latest orders are unavailable" do
+  it "captures context and keeps the webhook enabled when latest orders are unavailable", :aggregate_failures do
     Config.enable_sales_hook
 
-    allow(client).to receive(:fetch_latest_orders).and_return(nil)
+    allow(client).to receive(:fetch_latest_orders).and_raise(Woo::Api::Client::Unavailable.new("Woo is down", status: 503))
 
     job.perform
 
@@ -60,7 +60,8 @@ RSpec.describe Woo::SuperviseSalesWebhookJob do
     expect(Sentry).to have_received(:capture_message).with(
       "Woo supervise sales webhook could not load latest orders",
       level: :error,
-      tags: {job: "Woo::SuperviseSalesWebhookJob", integration: "woo"}
+      tags: {job: "Woo::SuperviseSalesWebhookJob", integration: "woo"},
+      extra: {error_class: "Woo::Api::Client::Unavailable", error_message: "Woo is down", status: 503}
     )
   end
 

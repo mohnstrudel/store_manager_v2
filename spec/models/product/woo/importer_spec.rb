@@ -64,10 +64,16 @@ RSpec.describe Product::Woo::Importer do
       expect(product.woo_store_id).to eq(woo_product[:id].to_s)
     end
 
-    it "returns nil when Woo returns no product" do
-      allow(client).to receive(:fetch_product).with(999).and_return(nil)
+    it "returns nil when Woo does not have the product" do
+      allow(client).to receive(:fetch_product).with(999).and_raise(Woo::Api::Client::NotFound.new("gone"))
 
       expect(described_class.fetch_and_import(999, client:)).to be_nil
+    end
+
+    it "lets any other Woo failure through instead of calling the product missing" do
+      allow(client).to receive(:fetch_product).with(999).and_raise(Woo::Api::Client::Unavailable.new("down"))
+
+      expect { described_class.fetch_and_import(999, client:) }.to raise_error(Woo::Api::Client::Unavailable, "down")
     end
   end
 end

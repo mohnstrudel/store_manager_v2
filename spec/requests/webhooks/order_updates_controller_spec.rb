@@ -89,6 +89,39 @@ RSpec.describe Webhooks::OrderUpdatesController do
     end
   end
 
+  context "when Woo cannot be reached for a line's product" do
+    let(:payload) do
+      JSON.parse(request_body, symbolize_names: true).tap do |order|
+        order[:line_items] = [order[:line_items].first]
+      end
+    end
+
+    before do
+      create(:exchange_rate, date: Date.new(2000, 1, 1), currency: "USD", rate: BigDecimal("1.1250"))
+      allow_any_instance_of(described_class).to receive(:verify_webhook).and_return(true)
+    end
+
+    it "acknowledges the delivery, writes nothing, and queues a pull of that order", :aggregate_failures do
+      allow(Product::Woo::Importer).to receive(:fetch_and_import).and_raise(Woo::Api::Client::Unavailable.new("Woo is down"))
+
+      expect {
+        post "/update-order", params: payload.to_json, headers: {"CONTENT_TYPE" => "application/json"}
+      }.not_to change(Sale, :count)
+
+      expect(response).to have_http_status(:no_content)
+      expect(Woo::PullSalesJob).to have_been_enqueued.with(id: payload[:id].to_s)
+    end
+
+    it "does not hide a rejected request behind a queued pull", :aggregate_failures do
+      allow(Product::Woo::Importer).to receive(:fetch_and_import).and_raise(Woo::Api::Client::Error.new("HTTP 401", status: 401))
+
+      post "/update-order", params: payload.to_json, headers: {"CONTENT_TYPE" => "application/json"}
+
+      expect(response).to have_http_status(:internal_server_error)
+      expect(Woo::PullSalesJob).not_to have_been_enqueued
+    end
+  end
+
   # rubocop:disable RSpec/ExampleLength
   describe "when we receive a payload from Webhook" do
     before do

@@ -7,12 +7,8 @@ module Woo
     def perform
       return if Config.sales_hook_disabled?
 
-      latest_orders = Woo::Api::Client.new.fetch_latest_orders
-
-      unless latest_orders
-        report_missing_latest_orders
-        return
-      end
+      latest_orders = fetch_latest_orders
+      return unless latest_orders
 
       latest_order = latest_orders.find do |order|
         order[:status].in? Sale::ACTIVE_STATUSES
@@ -33,14 +29,26 @@ module Woo
 
     private
 
-    def report_missing_latest_orders
-      Rails.logger.error("[Woo::SuperviseSalesWebhookJob] Latest Woo orders were unavailable")
+    def fetch_latest_orders
+      Woo::Api::Client.new.fetch_latest_orders
+    rescue Woo::Api::Client::Error => error
+      report_missing_latest_orders(error)
+      nil
+    end
+
+    def report_missing_latest_orders(error)
+      Rails.logger.error("[Woo::SuperviseSalesWebhookJob] Latest Woo orders were unavailable: #{error.message}")
       Sentry.capture_message(
         "Woo supervise sales webhook could not load latest orders",
         level: :error,
         tags: {
           job: self.class.name,
           integration: "woo"
+        },
+        extra: {
+          error_class: error.class.name,
+          error_message: error.message,
+          status: error.status
         }
       )
     end
