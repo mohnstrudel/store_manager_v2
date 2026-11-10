@@ -53,8 +53,7 @@ class Product::Shopify::OptionsPush
   end
 
   def existing_dimensions
-    selected_options = client.fetch_product(product_store_id)&.dig("variants", "edges", 0, "node", "selectedOptions")
-    selected_options.to_a.filter_map { |option| Variant::Shopify.dimension_for(option["name"]) }
+    client.fetch_product_option_names(product_store_id).to_a.filter_map { |name| Variant::Shopify.dimension_for(name) }
   end
 
   def update_options_shopify_info(shopify_options)

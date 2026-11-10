@@ -82,12 +82,67 @@ RSpec.describe Shopify::PullProductsJob, :aggregate_failures do
         expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
       end
 
-      it "still stores the start time of the pull" do
-        started_at = Time.utc(2026, 11, 10, 12)
+      it "keeps the sync time of the last clean pull, so a changes pull fetches the product again" do
+        last_clean_pull = Time.utc(2026, 11, 10, 10)
+        Config.update_shopify_products_sync_time(last_clean_pull)
 
-        travel_to(started_at) { described_class.perform_now }
+        travel_to(Time.utc(2026, 11, 10, 12)) { described_class.perform_now }
 
-        expect(Config.shopify_products_sync_at).to eq(started_at)
+        expect(Config.shopify_products_sync_at).to eq(last_clean_pull)
+      end
+
+      it "keeps the sync time when only an earlier page of the pull failed" do
+        last_clean_pull = Time.utc(2026, 11, 10, 10)
+        Config.update_shopify_products_sync_time(last_clean_pull)
+        failed_first_page = Shopify::Pull::Page.new(imported_count: 0, next_cursor: "cursor-1", failures: failed_page.failures)
+        clean_last_page = Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures: [])
+        allow(Product::Shopify::Pull).to receive(:page).and_return(failed_first_page, clean_last_page)
+
+        travel_to(Time.utc(2026, 11, 10, 12)) { described_class.perform_now }
+        travel_to(Time.utc(2026, 11, 10, 12, 1)) { ActiveJob::Base.execute(enqueued_jobs.last) }
+
+        expect(Config.shopify_products_sync_at).to eq(last_clean_pull)
+      end
+
+      it "stores nothing when the first pull of a store fails, so the next changes pull fetches every product" do
+        described_class.perform_now
+
+        expect(Config.shopify_products_sync_at).to be_nil
+      end
+    end
+
+    context "when the requester started the pull" do
+      let(:user) { create(:user) }
+      let(:jobs_link) { {label: "Open the jobs dashboard", href: "/jobs/statuses"} }
+
+      it "alerts once that some products could not be pulled and links the jobs dashboard" do
+        failed_page = Shopify::Pull::Page.new(
+          imported_count: 0,
+          next_cursor: nil,
+          failures: [Shopify::Pull::Failure.new(store_id: "gid://shopify/Product/123", message: "boom", failed_at: Time.current)]
+        )
+        allow(Product::Shopify::Pull).to receive(:page).and_return(failed_page)
+        allow(Sentry).to receive(:capture_exception)
+
+        expect { described_class.perform_now(requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
+          .with(kind: "alert", message: "Some Shopify products could not be pulled.", link: jobs_link)
+      end
+
+      it "alerts once that the pull stopped when an unexpected error ends it" do
+        allow(Product::Shopify::Pull).to receive(:page).and_raise("boom")
+
+        expect { expect { described_class.perform_now(requested_by: user) }.to raise_error("boom") }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
+          .with(kind: "alert", message: "The Shopify products pull stopped before it finished.", link: jobs_link)
+      end
+
+      it "tells the requester the pull finished once every page imported" do
+        allow(Product::Shopify::Pull).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures: []))
+
+        expect { described_class.perform_now(requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "notice", message: "Shopify products pull finished.")
       end
     end
 

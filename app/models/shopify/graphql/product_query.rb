@@ -74,6 +74,40 @@ module Shopify
         GQL
       end
 
+      def self.media_by_id
+        <<~GQL
+          query ProductMediaById($id: ID!) {
+            product(id: $id) {
+              id
+              media(first: 250) {
+                nodes {
+                  ... on MediaImage {
+                    id
+                    alt
+                    status
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+          }
+        GQL
+      end
+
+      def self.options_by_id
+        <<~GQL
+          query ProductOptionsById($id: ID!) {
+            product(id: $id) {
+              id
+              options {
+                name
+              }
+            }
+          }
+        GQL
+      end
+
       def self.list(updated_since: nil)
         <<~GQL
           query FetchProducts($first: Int!, $after: String) {

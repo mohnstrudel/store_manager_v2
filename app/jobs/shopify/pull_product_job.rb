@@ -5,6 +5,7 @@ module Shopify
     include NotifiesRequester
 
     queue_as :default
+    sidekiq_options retry: false
 
     def perform(shopify_product_id, requested_by: nil)
       payload = Shopify::Api::Client.new.fetch_product(shopify_product_id)
@@ -22,6 +23,10 @@ module Shopify
 
     def job_title
       "Shopify product pull"
+    end
+
+    def failure_notification(_error)
+      {message: "This product could not be pulled from Shopify.", link: jobs_dashboard_link}
     end
   end
 end

@@ -78,9 +78,13 @@ RSpec.describe Product::Shopify::OptionsPush do
 
     before do
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
-      allow(api_client).to receive(:fetch_product).and_return(
-        {"variants" => {"edges" => [{"node" => {"selectedOptions" => [{"name" => "Title", "value" => "Default Title"}]}}]}}
-      )
+      allow(api_client).to receive(:fetch_product_option_names).and_return(["Title"])
+    end
+
+    it "asks Shopify only for the names of the product's options" do
+      described_class.call(product_id:, product_store_id: shopify_product_id)
+
+      expect(api_client).to have_received(:fetch_product_option_names).with(shopify_product_id).once
     end
 
     it "finds the product by ID" do
@@ -232,20 +236,10 @@ RSpec.describe Product::Shopify::OptionsPush do
     end
 
     context "when the Shopify product already has an option for the same dimension" do
-      let(:legacy_edition_payload) do
-        {
-          "variants" => {
-            "edges" => [
-              {"node" => {"selectedOptions" => [{"name" => "Edition", "value" => "A"}]}}
-            ]
-          }
-        }
-      end
-
       before do
         product_size
         product_version
-        allow(api_client).to receive(:fetch_product).with(shopify_product_id).and_return(legacy_edition_payload)
+        allow(api_client).to receive(:fetch_product_option_names).with(shopify_product_id).and_return(["Edition"])
         allow(api_client).to receive(:create_product_options)
           .and_return({"options" => [], "variants" => {"nodes" => []}})
       end
@@ -259,25 +253,32 @@ RSpec.describe Product::Shopify::OptionsPush do
     end
 
     context "when the Shopify product already has an option whose name no dimension lists" do
-      let(:custom_option_payload) do
-        {
-          "variants" => {
-            "edges" => [
-              {"node" => {"selectedOptions" => [{"name" => "Bonus Version", "value" => "Gold"}]}}
-            ]
-          }
-        }
-      end
-
       before do
         product_size
         product_version
-        allow(api_client).to receive(:fetch_product).with(shopify_product_id).and_return(custom_option_payload)
+        allow(api_client).to receive(:fetch_product_option_names).with(shopify_product_id).and_return(["Bonus Version"])
         allow(api_client).to receive(:create_product_options)
           .and_return({"options" => [], "variants" => {"nodes" => []}})
       end
 
       it "counts it as the Version option and pushes only the other dimensions" do
+        described_class.call(product_id:, product_store_id: shopify_product_id)
+
+        expect(api_client).to have_received(:create_product_options)
+          .with(shopify_product_id, [{name: "Size", values: [{name: "Large"}]}])
+      end
+    end
+
+    context "when Shopify no longer lists the product" do
+      before do
+        product_size
+        allow(api_client).to receive_messages(
+          fetch_product_option_names: nil,
+          create_product_options: {"options" => [], "variants" => {"nodes" => []}}
+        )
+      end
+
+      it "pushes every dimension the product has" do
         described_class.call(product_id:, product_store_id: shopify_product_id)
 
         expect(api_client).to have_received(:create_product_options)

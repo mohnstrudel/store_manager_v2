@@ -107,6 +107,73 @@ RSpec.describe Shopify::Api::Client do
     it "treats Throttled as an ApiError so existing ApiError handling applies" do
       expect(described_class::Throttled.new).to be_a(described_class::ApiError)
     end
+
+    describe "the wait it carries" do
+      def throttled_response_with(cost)
+        double(body: {
+          "errors" => [{"message" => "Throttled", "extensions" => {"code" => "THROTTLED"}}],
+          "extensions" => {"cost" => cost}
+        })
+      end
+
+      def throttled_error
+        client.fetch_product("gid://shopify/Product/1")
+      rescue described_class::Throttled => error
+        error
+      end
+
+      def cost(requested: 862, available: 12.0, rate: 100.0)
+        {
+          "requestedQueryCost" => requested,
+          "actualQueryCost" => nil,
+          "throttleStatus" => {"maximumAvailable" => 2000.0, "currentlyAvailable" => available, "restoreRate" => rate}
+        }
+      end
+
+      it "defaults to no wait" do
+        expect(described_class::Throttled.new.retry_after).to be_nil
+        expect(described_class::Throttled.new("Shopify throttled").message).to eq("Shopify throttled")
+      end
+
+      it "is the seconds the bucket needs to restore the missing points of the requested query" do
+        allow(mock_graphql_client).to receive(:query).and_return(throttled_response_with(cost(requested: 862, available: 12.0, rate: 100.0)))
+
+        expect(throttled_error.retry_after).to eq(8.5)
+      end
+
+      it "is zero when the bucket already holds the requested points" do
+        allow(mock_graphql_client).to receive(:query).and_return(throttled_response_with(cost(requested: 100, available: 400.0)))
+
+        expect(throttled_error.retry_after).to eq(0.0)
+      end
+
+      it "is unknown when Shopify reports no cost" do
+        allow(mock_graphql_client).to receive(:query).and_return(throttled_response)
+
+        expect(throttled_error.retry_after).to be_nil
+      end
+
+      it "is unknown when the cost lacks the requested cost, the available points, or a restore rate" do
+        [cost(requested: nil), cost(available: nil), cost(rate: nil), cost(rate: 0.0)].each do |incomplete|
+          allow(mock_graphql_client).to receive(:query).and_return(throttled_response_with(incomplete))
+
+          expect(throttled_error.retry_after).to be_nil
+        end
+      end
+
+      it "is the Retry-After header of an HTTP 429" do
+        response = ShopifyAPI::Clients::HttpResponse.new(code: 429, headers: {"retry-after" => ["3.0"]}, body: "slow down")
+        allow(mock_graphql_client).to receive(:query).and_raise(ShopifyAPI::Errors::HttpResponseError.new(response:))
+
+        expect(throttled_error.retry_after).to eq(3.0)
+      end
+
+      it "is unknown on an HTTP 429 without a Retry-After header" do
+        allow(mock_graphql_client).to receive(:query).and_raise(http_error(429))
+
+        expect(throttled_error.retry_after).to be_nil
+      end
+    end
   end
 
   describe "#fetch_product" do
@@ -285,6 +352,98 @@ RSpec.describe Shopify::Api::Client do
           client.fetch_product(product_id)
         }.to raise_error(described_class::ApiError, "Failed to fetch product: Invalid product ID")
       end
+    end
+  end
+
+  describe "#fetch_product_media" do
+    let(:product_id) { "gid://shopify/Product/123" }
+    let(:nodes) do
+      [
+        {"id" => "gid://shopify/MediaImage/1", "alt" => "Front", "status" => "READY", "createdAt" => "2026-11-10T01:00:00Z", "updatedAt" => "2026-11-10T01:00:00Z"},
+        {}
+      ]
+    end
+    let(:media_response) { double(body: {"data" => {"product" => {"id" => product_id, "media" => {"nodes" => nodes}}}}) }
+
+    before do
+      allow(mock_graphql_client).to receive(:query).and_return(media_response)
+    end
+
+    it "raises ArgumentError when the product ID is blank" do
+      expect { client.fetch_product_media(nil) }.to raise_error(ArgumentError, "Product Shopify ID (store_id) is required")
+      expect { client.fetch_product_media("") }.to raise_error(ArgumentError, "Product Shopify ID (store_id) is required")
+    end
+
+    it "runs the media query for the product and returns the media nodes as listed" do
+      expect(client.fetch_product_media(product_id)).to eq(nodes)
+      expect(mock_graphql_client).to have_received(:query).with(
+        query: Shopify::Graphql::ProductQuery.media_by_id,
+        variables: {id: product_id}
+      )
+    end
+
+    it "returns nil when Shopify has no such product" do
+      allow(mock_graphql_client).to receive(:query).and_return(double(body: {"data" => {"product" => nil}}))
+
+      expect(client.fetch_product_media(product_id)).to be_nil
+    end
+
+    it "raises ApiError with the Shopify messages" do
+      allow(mock_graphql_client).to receive(:query).and_return(double(body: {"errors" => [{"message" => "Access denied"}]}))
+
+      expect { client.fetch_product_media(product_id) }
+        .to raise_error(described_class::ApiError, "Failed to fetch product media: Access denied")
+    end
+
+    it "logs the measured cost and the remaining budget" do
+      allow(mock_graphql_client).to receive(:query).and_return(
+        double(body: media_response.body.merge(
+          "extensions" => {"cost" => {"requestedQueryCost" => 12, "actualQueryCost" => 4, "throttleStatus" => {"maximumAvailable" => 1000.0, "currentlyAvailable" => 996.0, "restoreRate" => 50.0}}}
+        ))
+      )
+      allow(Rails.logger).to receive(:info)
+
+      client.fetch_product_media(product_id)
+
+      expect(Rails.logger).to have_received(:info).with(
+        "Shopify productMedia query cost: requested=12 actual=4 available=996.0/1000.0 restore_rate=50.0"
+      )
+    end
+  end
+
+  describe "#fetch_product_option_names" do
+    let(:product_id) { "gid://shopify/Product/123" }
+    let(:options_response) do
+      double(body: {"data" => {"product" => {"id" => product_id, "options" => [{"name" => "Size"}, {"name" => "Color"}]}}})
+    end
+
+    before do
+      allow(mock_graphql_client).to receive(:query).and_return(options_response)
+    end
+
+    it "raises ArgumentError when the product ID is blank" do
+      expect { client.fetch_product_option_names(nil) }.to raise_error(ArgumentError, "Product Shopify ID (store_id) is required")
+    end
+
+    it "runs the options query for the product and returns the option names" do
+      expect(client.fetch_product_option_names(product_id)).to eq(%w[Size Color])
+      expect(mock_graphql_client).to have_received(:query).with(
+        query: Shopify::Graphql::ProductQuery.options_by_id,
+        variables: {id: product_id}
+      )
+    end
+
+    it "returns nil when Shopify has no such product" do
+      allow(mock_graphql_client).to receive(:query).and_return(double(body: {"data" => {"product" => nil}}))
+
+      expect(client.fetch_product_option_names(product_id)).to be_nil
+    end
+
+    it "raises ApiError with the Shopify messages" do
+      allow(mock_graphql_client).to receive(:query).and_return(double(body: {"errors" => [{"message" => "Access denied"}]}))
+
+      expect { client.fetch_product_option_names(product_id) }
+        .to raise_error(described_class::ApiError, "Failed to fetch product options: Access denied")
     end
   end
 

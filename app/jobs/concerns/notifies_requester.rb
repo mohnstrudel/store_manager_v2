@@ -3,16 +3,18 @@
 module NotifiesRequester
   extend ActiveSupport::Concern
 
+  FAILURE_ALERT_MEMORY = 30.days
+
   included do
     after_discard do |job, error|
-      job.send(:notify_requester_of_failure, error)
+      job.send(:notify_requester_of_discard, error)
     end
   end
 
   private
 
-  def notify_requester_of_failure(error)
-    requester&.notify(kind: :alert, **failure_notification(error))
+  def notify_requester_of_discard(error)
+    notify_requester_of_failure(error) if error.is_a?(StandardError) && requester && claim_failure_alert
   end
 
   def requester
@@ -21,8 +23,16 @@ module NotifiesRequester
     user if user.is_a?(User)
   end
 
+  def claim_failure_alert
+    Rails.cache.write("notifies_requester/failure_alert/#{job_id}", true, unless_exist: true, expires_in: FAILURE_ALERT_MEMORY)
+  end
+
+  def notify_requester_of_failure(error)
+    requester&.notify(kind: :alert, **failure_notification(error))
+  end
+
   def failure_notification(_error)
-    raise NotImplementedError, "#{self.class} must implement #failure_notification"
+    raise NoMethodError, "#{self.class} must implement #failure_notification"
   end
 
   def notify_requester_of_success(message)

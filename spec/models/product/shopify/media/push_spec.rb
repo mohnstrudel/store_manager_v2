@@ -24,17 +24,24 @@ RSpec.describe Product::Shopify::Media::Push do
     nil
   end
 
-  def shopify_node(number, status: "READY")
+  def shopify_node(number, status: "READY", alt: nil)
     {
       "id" => media_gid(number),
+      "alt" => alt,
       "status" => status,
       "createdAt" => "2024-01-15T10:00:00Z",
       "updatedAt" => "2024-01-15T10:00:00Z"
-    }
+    }.compact
   end
 
   def shopify_lists(*nodes)
-    allow(api_client).to receive(:fetch_product).and_return({"id" => product_store_id, "media" => {"nodes" => nodes}})
+    allow(api_client).to receive(:fetch_product_media).and_return(nodes)
+  end
+
+  def advisory_lock_held?
+    ActiveRecord::Base.connection.select_value(<<~SQL.squish).to_i.positive?
+      SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid()
+    SQL
   end
 
   def link(media, number, checksum: media.image.blob.checksum, alt_text: media.alt)
@@ -52,7 +59,7 @@ RSpec.describe Product::Shopify::Media::Push do
     it "makes no Shopify call" do
       push
 
-      expect(api_client).not_to have_received(:fetch_product)
+      expect(api_client).not_to have_received(:fetch_product_media)
       expect(api_client).not_to have_received(:attach_media)
       expect(api_client).not_to have_received(:update_media)
       expect(api_client).not_to have_received(:reorder_media)
@@ -89,37 +96,31 @@ RSpec.describe Product::Shopify::Media::Push do
       expect(api_client).not_to have_received(:reorder_media)
     end
 
-    it "fetches the product once and attaches once" do
+    it "lists the product's media once, with the light media query, and attaches once" do
       expect { push }.to raise_error(described_class::NotReady)
 
-      expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+      expect(api_client).to have_received(:fetch_product_media).with(product_store_id).once
       expect(api_client).to have_received(:attach_media).once
     end
 
-    it "runs the storage check, the fetch, and the attach inside the product lock, in that order" do
+    it "checks storage before taking the push lock, and lists and attaches only while holding it" do
       events = []
-      allow_any_instance_of(Product).to receive(:with_lock).and_wrap_original do |original, *args, &block|
-        original.call(*args) do
-          events << :locked
-          block.call.tap { events << :unlocked }
-        end
-      end
       allow(storage).to receive(:exist?) do
-        events << :storage_checked
+        events << (advisory_lock_held? ? :storage_checked_locked : :storage_checked)
         true
       end
-      allow(api_client).to receive(:fetch_product) do
-        events << :fetched
-        {"id" => product_store_id, "media" => {"nodes" => [shopify_node(1), shopify_node(2)]}}
+      allow(api_client).to receive(:fetch_product_media) do
+        events << (advisory_lock_held? ? :listed_locked : :listed)
+        [shopify_node(1), shopify_node(2)]
       end
       allow(api_client).to receive(:attach_media) do
-        events << :attached
+        events << (advisory_lock_held? ? :attached_locked : :attached)
         [shopify_node(1), shopify_node(2), shopify_node(3), shopify_node(4)]
       end
 
       expect { push }.to raise_error(described_class::NotReady)
 
-      expect(events).to eq([:locked, :storage_checked, :storage_checked, :fetched, :attached, :unlocked])
+      expect(events).to eq([:storage_checked, :storage_checked, :listed_locked, :attached_locked])
     end
 
     context "when Shopify answers with a different number of new media than were attached" do
@@ -135,8 +136,12 @@ RSpec.describe Product::Shopify::Media::Push do
     end
 
     context "when the next attempt runs after the attach" do
+      let(:storage_checks) { [] }
+
       before do
+        allow(storage).to receive(:exist?) { |key| storage_checks << key }
         attach_attempt
+        storage_checks.clear
         shopify_lists(shopify_node(1), shopify_node(2), shopify_node(3), shopify_node(4))
       end
 
@@ -144,6 +149,24 @@ RSpec.describe Product::Shopify::Media::Push do
         push
 
         expect(api_client).to have_received(:attach_media).once
+      end
+
+      it "checks no file in storage, because no image is waiting to be attached" do
+        push
+
+        expect(storage_checks).to be_empty
+      end
+
+      it "lists the product's media once" do
+        listings = 0
+        allow(api_client).to receive(:fetch_product_media) do
+          listings += 1
+          [shopify_node(1), shopify_node(2), shopify_node(3), shopify_node(4)]
+        end
+
+        push
+
+        expect(listings).to eq(1)
       end
 
       it "sends no update when nothing changed and no reorder when the order matches" do
@@ -168,6 +191,104 @@ RSpec.describe Product::Shopify::Media::Push do
     end
   end
 
+  context "when an earlier attempt attached the images on Shopify but could not save their IDs" do
+    let!(:first_info) { link(first_media, 1) }
+
+    before do
+      third_media
+      fourth_media
+    end
+
+    it "links the images Shopify already holds instead of attaching them again" do
+      shopify_lists(shopify_node(1), shopify_node(3, status: "PROCESSING", alt: "Image 3"), shopify_node(4, status: "PROCESSING", alt: "Image 4"))
+
+      expect { push }.to raise_error(described_class::NotReady, /#{Regexp.escape(product_store_id)}/)
+
+      expect(api_client).not_to have_received(:attach_media)
+      expect(third_media.reload.shopify_info).to have_attributes(store_id: media_gid(3), alt_text: "Image 3", checksum: third_media.image.blob.checksum)
+      expect(fourth_media.reload.shopify_info.store_id).to eq(media_gid(4))
+    end
+
+    it "attaches only the images Shopify does not hold yet" do
+      shopify_lists(shopify_node(1), shopify_node(3, status: "PROCESSING", alt: "Image 3"))
+      allow(api_client).to receive(:attach_media).and_return([shopify_node(1), shopify_node(3), shopify_node(4, status: "PROCESSING")])
+
+      expect { push }.to raise_error(described_class::NotReady)
+
+      expect(api_client).to have_received(:attach_media).with(product_store_id, [include(alt: "Image 4")]).once
+      expect(third_media.reload.shopify_info.store_id).to eq(media_gid(3))
+      expect(fourth_media.reload.shopify_info.store_id).to eq(media_gid(4))
+    end
+
+    it "does not attach again after an attach whose answer never arrived" do
+      listed = [shopify_node(1)]
+      allow(api_client).to receive(:fetch_product_media) { listed.dup }
+      allow(api_client).to receive(:attach_media) do
+        listed.push(shopify_node(3, status: "PROCESSING", alt: "Image 3"), shopify_node(4, status: "PROCESSING", alt: "Image 4"))
+        raise Net::ReadTimeout
+      end
+
+      expect { push }.to raise_error(Net::ReadTimeout)
+      expect(StoreInfo.shopify.where(storable: [third_media, fourth_media])).to be_empty
+
+      expect { push }.to raise_error(described_class::NotReady)
+
+      expect(api_client).to have_received(:attach_media).once
+      expect(third_media.reload.shopify_info.store_id).to eq(media_gid(3))
+      expect(fourth_media.reload.shopify_info.store_id).to eq(media_gid(4))
+    end
+  end
+
+  context "when an earlier attach was discarded because Shopify's answer could not be paired" do
+    let!(:first_info) { link(first_media, 1) }
+
+    before do
+      third_media
+      fourth_media
+    end
+
+    it "links what Shopify holds on the next push instead of attaching the images again" do
+      listed = [shopify_node(1)]
+      allow(api_client).to receive(:fetch_product_media) { listed.dup }
+      allow(api_client).to receive(:attach_media) do
+        listed.push(shopify_node(3, status: "PROCESSING", alt: "Image 3"), shopify_node(4, status: "PROCESSING", alt: "Image 4"))
+        [shopify_node(1), shopify_node(3, status: "PROCESSING")]
+      end
+
+      expect { push }.to raise_error(described_class::AttachMismatch)
+      expect(StoreInfo.shopify.where(storable: [third_media, fourth_media])).to be_empty
+
+      expect { push }.to raise_error(described_class::NotReady)
+
+      expect(api_client).to have_received(:attach_media).once
+      expect(third_media.reload.shopify_info.store_id).to eq(media_gid(3))
+      expect(fourth_media.reload.shopify_info.store_id).to eq(media_gid(4))
+    end
+  end
+
+  context "when Shopify lists media nobody here has linked" do
+    let!(:first_info) { link(first_media, 1) }
+
+    before do
+      third_media
+      fourth_media
+    end
+
+    it "attaches the new images and leaves the unknown media alone" do
+      shopify_lists(shopify_node(1), shopify_node(9, alt: "Added in the Shopify admin"))
+      allow(api_client).to receive(:attach_media).and_return(
+        [shopify_node(1), shopify_node(9), shopify_node(3, status: "PROCESSING"), shopify_node(4, status: "PROCESSING")]
+      )
+
+      expect { push }.to raise_error(described_class::NotReady)
+
+      expect(api_client).to have_received(:attach_media).once
+      expect(third_media.reload.shopify_info.store_id).to eq(media_gid(3))
+      expect(fourth_media.reload.shopify_info.store_id).to eq(media_gid(4))
+      expect(StoreInfo.shopify.where(store_id: media_gid(9))).to be_empty
+    end
+  end
+
   context "when a new media file is not in storage yet" do
     before do
       link(first_media, 1)
@@ -179,7 +300,7 @@ RSpec.describe Product::Shopify::Media::Push do
     it "raises NotReady before any Shopify call and saves nothing" do
       expect { push }.to raise_error(described_class::NotReady, /#{third_media.id}/)
 
-      expect(api_client).not_to have_received(:fetch_product)
+      expect(api_client).not_to have_received(:fetch_product_media)
       expect(api_client).not_to have_received(:attach_media)
       expect(third_media.reload.shopify_info).to be_nil
     end
@@ -202,7 +323,7 @@ RSpec.describe Product::Shopify::Media::Push do
           {id: media_gid(1), newPosition: "0"},
           {id: media_gid(2), newPosition: "1"}
         ]).ordered
-        expect(api_client).to have_received(:fetch_product).once
+        expect(api_client).to have_received(:fetch_product_media).once
         expect(api_client).not_to have_received(:attach_media)
         expect(second_info.reload).to have_attributes(checksum: second_media.image.blob.checksum, alt_text: "Image 2")
       end
@@ -284,7 +405,7 @@ RSpec.describe Product::Shopify::Media::Push do
     end
 
     it "cleans up Shopify store infos when Shopify no longer lists the product" do
-      allow(api_client).to receive(:fetch_product).and_return(nil)
+      allow(api_client).to receive(:fetch_product_media).and_return(nil)
 
       expect { push }.not_to raise_error
 

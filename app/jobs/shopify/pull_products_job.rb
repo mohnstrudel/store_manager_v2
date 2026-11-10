@@ -12,6 +12,10 @@ module Shopify
       Product::Shopify::Pull
     end
 
+    def stamp_past_failures?
+      false
+    end
+
     def stamp_sync(started_at)
       Config.update_shopify_products_sync_time(started_at)
     end
@@ -20,8 +24,14 @@ module Shopify
       "Shopify products pull"
     end
 
-    def failure_notification(_error)
-      {message: "Some Shopify products could not be pulled.", link: jobs_dashboard_link}
+    def failure_notification(error)
+      message = if error.is_a?(Shopify::Pull::Failed)
+        "Some Shopify products could not be pulled."
+      else
+        "The Shopify products pull stopped before it finished."
+      end
+
+      {message:, link: jobs_dashboard_link}
     end
   end
 end

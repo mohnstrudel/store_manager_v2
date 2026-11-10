@@ -193,6 +193,11 @@ RSpec.describe Shopify::BasePullJob do
         expect { job_class.perform_now }.not_to change(Sale::ImportFailure, :count)
       end
 
+      it "carries how many items failed so far to the next page, adding this page's" do
+        expect { job_class.perform_now(cursor: "page-2", started_at:, updated_since: nil, failed_count: 2) }
+          .to have_enqueued_job(job_class).with(cursor: "next", started_at:, updated_since: nil, failed_count: 3)
+      end
+
       context "when it is the last page" do
         let(:page) { Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures:) }
 
@@ -202,6 +207,40 @@ RSpec.describe Shopify::BasePullJob do
           expect(stamped_syncs).to eq([started_at])
           expect(terminal_pages).to eq([nil])
           expect(Sentry).to have_received(:capture_exception).with(an_instance_of(Shopify::Pull::Failed))
+        end
+      end
+
+      context "when the job holds the sync time back after failures" do
+        let(:job_class) do
+          Class.new(super()) do
+            define_method(:stamp_past_failures?) { false }
+          end
+        end
+
+        it "stores nothing after a last page that failed, but still runs the terminal-page hook" do
+          allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures:))
+
+          travel_to(started_at) { job_class.perform_now }
+
+          expect(stamped_syncs).to be_empty
+          expect(terminal_pages).to eq([nil])
+        end
+
+        it "stores nothing after a clean last page when an earlier page failed" do
+          allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures: []))
+
+          travel_to(started_at) { job_class.perform_now(cursor: "last", started_at:, updated_since: nil, failed_count: 1) }
+
+          expect(stamped_syncs).to be_empty
+          expect(terminal_pages).to eq([nil])
+        end
+
+        it "stores the start time when nothing failed" do
+          allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures: []))
+
+          travel_to(started_at) { job_class.perform_now }
+
+          expect(stamped_syncs).to eq([started_at])
         end
       end
     end
@@ -237,6 +276,57 @@ RSpec.describe Shopify::BasePullJob do
           .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
           .and have_broadcasted_to(user).from_channel(NotificationsChannel)
           .with(kind: "alert", message: "Some test records could not be pulled.")
+      end
+
+      context "when items failed to import" do
+        let(:failures) { [Shopify::Pull::Failure.new(store_id: "gid://1", message: "boom", failed_at: Time.current)] }
+
+        before { allow(Sentry).to receive(:capture_exception) }
+
+        it "tells the requester nothing about a failed page while more pages remain" do
+          allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 1, next_cursor: "next", failures:))
+
+          expect { job_class.perform_now(requested_by: user) }.not_to have_broadcasted_to(user).from_channel(NotificationsChannel)
+        end
+
+        it "tells the requester once, after the last page, when only an earlier page failed" do # rubocop:disable RSpec/ExampleLength
+          expect { job_class.perform_now(cursor: "last", started_at:, updated_since: nil, failed_count: 2, requested_by: user) }
+            .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
+            .and have_broadcasted_to(user).from_channel(NotificationsChannel)
+            .with(kind: "alert", message: "Some test records could not be pulled.")
+        end
+
+        it "tells the requester once when the last page failed after an earlier page did" do
+          allow(pull_class).to receive(:page).and_return(Shopify::Pull::Page.new(imported_count: 1, next_cursor: nil, failures:))
+
+          expect { job_class.perform_now(cursor: "last", started_at:, updated_since: nil, failed_count: 4, requested_by: user) }
+            .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
+        end
+
+        it "hands the alert the number of items that failed across the pull" do
+          errors = []
+          job_class.define_method(:failure_notification) do |error|
+            errors << error
+            {message: "Some test records could not be pulled."}
+          end
+
+          job_class.perform_now(cursor: "last", started_at:, updated_since: nil, failed_count: 4, requested_by: user)
+
+          expect(errors).to match([an_instance_of(Shopify::Pull::Failed).and(have_attributes(message: start_with("4 Shopify item(s)")))])
+        end
+      end
+
+      it "tells the requester once when the pull stops on an unexpected error" do
+        allow(pull_class).to receive(:page).and_raise("boom")
+
+        expect { expect { job_class.perform_now(requested_by: user) }.to raise_error("boom") }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
+          .and have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "Some test records could not be pulled.")
+      end
+
+      it "is not retried by Sidekiq after the requester was told it failed" do
+        expect(described_class.get_sidekiq_options).to include("retry" => false)
       end
     end
 

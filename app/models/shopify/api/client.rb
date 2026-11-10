@@ -8,7 +8,14 @@ module Shopify
 
       class ApiError < StandardError; end
 
-      class Throttled < ApiError; end
+      class Throttled < ApiError
+        attr_reader :retry_after
+
+        def initialize(message = nil, retry_after: nil)
+          super(message)
+          @retry_after = retry_after
+        end
+      end
 
       def initialize
         session = ShopifyAPI::Auth::Session.new(
@@ -19,7 +26,7 @@ module Shopify
       end
 
       def fetch_product(product_store_id)
-        raise ArgumentError, "Product Shopify ID (store_id) is required" if product_store_id.blank?
+        require_product_store_id(product_store_id)
 
         response = execute(
           Shopify::Graphql::ProductQuery.by_id,
@@ -31,6 +38,32 @@ module Shopify
         product = response.body.dig("data", "product")
         report_truncated_variants([product])
         product
+      end
+
+      def fetch_product_media(product_store_id)
+        require_product_store_id(product_store_id)
+
+        response = execute(
+          Shopify::Graphql::ProductQuery.media_by_id,
+          variables: {id: product_store_id},
+          operation: "productMedia"
+        )
+        handle_query_errors(response, resource_name: "product media")
+
+        response.body.dig("data", "product", "media", "nodes")
+      end
+
+      def fetch_product_option_names(product_store_id)
+        require_product_store_id(product_store_id)
+
+        response = execute(
+          Shopify::Graphql::ProductQuery.options_by_id,
+          variables: {id: product_store_id},
+          operation: "productOptions"
+        )
+        handle_query_errors(response, resource_name: "product options")
+
+        response.body.dig("data", "product", "options")&.pluck("name")
       end
 
       def fetch_products(cursor:, batch_size:, updated_since: nil)
@@ -160,16 +193,20 @@ module Shopify
 
       private
 
+      def require_product_store_id(product_store_id)
+        raise ArgumentError, "Product Shopify ID (store_id) is required" if product_store_id.blank?
+      end
+
       def execute(query, variables:, operation:)
         response = graphql_client.query(query:, variables:)
         log_query_cost(response, operation:)
-        raise Throttled, "Shopify throttled #{operation}" if throttled?(response)
+        raise Throttled.new("Shopify throttled #{operation}", retry_after: restore_wait(response)) if throttled?(response)
 
         response
       rescue ShopifyAPI::Errors::HttpResponseError => e
         raise unless e.response.code == 429
 
-        raise Throttled, "Shopify throttled #{operation} with HTTP 429"
+        raise Throttled.new("Shopify throttled #{operation} with HTTP 429", retry_after: e.response.retry_request_after)
       end
 
       def log_query_cost(response, operation:)
@@ -187,6 +224,17 @@ module Shopify
 
       def throttled?(response)
         response.body["errors"].to_a.any? { |error| error.dig("extensions", "code") == "THROTTLED" }
+      end
+
+      def restore_wait(response)
+        cost = response.body.dig("extensions", "cost")
+        return if cost.blank?
+
+        throttle = cost["throttleStatus"] || {}
+        requested, available, rate = cost["requestedQueryCost"], throttle["currentlyAvailable"], throttle["restoreRate"]
+        return unless requested && available && rate&.positive?
+
+        [(requested - available).fdiv(rate), 0.0].max
       end
 
       def handle_query_errors(response, resource_name:)

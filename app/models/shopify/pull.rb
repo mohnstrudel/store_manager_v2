@@ -9,10 +9,10 @@ class Shopify::Pull
 
     attr_reader :failures
 
-    def initialize(failures)
+    def initialize(failures, total: failures.size)
       @failures = failures
       details = failures.first(REPORTED_FAILURES).map { |failure| "#{failure.store_id}: #{failure.message}" }
-      super("#{failures.size} Shopify item(s) failed to import: #{details.join("; ")}")
+      super("#{total} Shopify item(s) failed to import: #{details.join("; ")}")
     end
   end
 

@@ -1,14 +1,9 @@
 # frozen_string_literal: true
 
+require "zlib"
+
 module Product::Shopify::Media
   class Push
-    Snapshot = Data.define(:new_media, :existing_media, :nodes) do
-      def attached?
-        new_media.any?
-      end
-    end
-    private_constant :Snapshot
-
     class NotReady < StandardError; end
 
     class MediaFailed < StandardError; end
@@ -34,15 +29,15 @@ module Product::Shopify::Media
     def call
       product = Product.find(product_id)
       api_client = Shopify::Api::Client.new
+      media = load_media(product)
+      return if media.empty?
 
-      snapshot = product.with_lock { attach_new_media(product, api_client) }
-      return if snapshot.nil?
+      attach_new_media(product, api_client, media.select { |item| item.shopify_info.nil? })
 
-      raise NotReady, "Attached #{snapshot.new_media.size} image(s) to #{product_store_id}" if snapshot.attached?
-
-      ensure_ready(snapshot.nodes)
-      Update.new(product:, api_client:, existing_media: snapshot.existing_media).call
-      Reorder.new(product:, product_store_id:, api_client:, nodes: snapshot.nodes).call
+      nodes = fetch_nodes(api_client)
+      ensure_ready(nodes)
+      Update.new(product:, api_client:, existing_media: media.select(&:shopify_info)).call
+      Reorder.new(product:, product_store_id:, api_client:, nodes:).call
     rescue Shopify::Api::Client::ApiError => e
       raise unless e.message.include?("Product does not exist")
 
@@ -53,28 +48,42 @@ module Product::Shopify::Media
 
     attr_reader :product_id, :product_store_id
 
-    def attach_new_media(product, api_client)
-      media = product.media.with_attached_image.includes(:shopify_info).to_a
-      return if media.empty?
+    def load_media(product)
+      product.media.with_attached_image.includes(:shopify_info).to_a
+    end
 
-      new_media, existing_media = media.partition { |item| item.shopify_info.nil? }
+    def attach_new_media(product, api_client, pending)
+      return if pending.empty?
 
-      self.class.ensure_files_stored(new_media)
-      nodes = fetch_nodes(api_client)
-      known_ids = nodes.filter_map { |node| node["id"] }
+      self.class.ensure_files_stored(pending)
+      linked = serialized_per_product { link_new_media(product, api_client, pending.map(&:id)) }
+      raise NotReady, "Linked #{linked} image(s) to #{product_store_id}" if linked.positive?
+    end
 
-      if new_media.any?
-        Attach.new(product:, product_store_id:, api_client:, new_media:, known_ids:).call
+    def serialized_per_product
+      ActiveRecord::Base.transaction do
+        ActiveRecord::Base.lease_connection.execute("SELECT pg_advisory_xact_lock(#{Zlib.crc32("#{self.class.name}:#{product_id}")})")
+        yield
       end
+    end
 
-      Snapshot.new(new_media:, existing_media:, nodes:)
+    def link_new_media(product, api_client, verified_ids)
+      media = load_media(product)
+      new_media = media.select { |item| item.shopify_info.nil? && verified_ids.include?(item.id) }
+      return 0 if new_media.empty?
+
+      Attach.new(
+        product:, product_store_id:, api_client:, new_media:,
+        nodes: fetch_nodes(api_client),
+        claimed_ids: media.filter_map { |item| item.shopify_info&.store_id }
+      ).call
     end
 
     def fetch_nodes(api_client)
-      payload = api_client.fetch_product(product_store_id)
-      raise Shopify::Api::Client::ApiError, "Failed to fetch product: Product does not exist" if payload.nil?
+      nodes = api_client.fetch_product_media(product_store_id)
+      raise Shopify::Api::Client::ApiError, "Failed to fetch product: Product does not exist" if nodes.nil?
 
-      payload["media"]["nodes"]
+      nodes
     end
 
     def ensure_ready(nodes)

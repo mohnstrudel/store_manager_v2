@@ -26,9 +26,7 @@ RSpec.describe Product::Shopify::Media::Push, ".call" do
       allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
       allow(ActiveStorage::Blob.service).to receive(:exist?).and_return(true)
       allow(api_client).to receive_messages(update_media: [], reorder_media: nil)
-      allow(api_client).to receive(:fetch_product) do
-        {"id" => product_store_id, "media" => {"nodes" => listed_nodes.dup}}
-      end
+      allow(api_client).to receive(:fetch_product_media) { listed_nodes.dup }
       allow(api_client).to receive(:attach_media) do
         attach_started << true
         release_attach.pop(timeout: 5)
@@ -48,6 +46,31 @@ RSpec.describe Product::Shopify::Media::Push, ".call" do
     ensure
       release_attach&.push(true)
       [first, second].compact.each { |thread| thread.join(5) }
+    end
+
+    it "lets another writer update the product while an attach is in flight" do
+      product = create(:product, :synced)
+      create(:media, mediaable: product, alt: "Image")
+      attach_started = Queue.new
+      release_attach = Queue.new
+      api_client = instance_spy(Shopify::Api::Client)
+      allow(Shopify::Api::Client).to receive(:new).and_return(api_client)
+      allow(ActiveStorage::Blob.service).to receive(:exist?).and_return(true)
+      allow(api_client).to receive(:fetch_product_media).and_return([])
+      allow(api_client).to receive(:attach_media) do
+        attach_started << true
+        release_attach.pop(timeout: 5)
+        [{"id" => media_gid(1), "status" => "PROCESSING"}]
+      end
+
+      pusher = Thread.new { push_in_own_connection(product.id) }
+      attach_started.pop(timeout: 5)
+
+      expect { Timeout.timeout(2) { product.update!(title: "Edited while an attach was in flight") } }.not_to raise_error
+      expect(product.reload.title).to eq("Edited while an attach was in flight")
+    ensure
+      release_attach&.push(true)
+      pusher&.join(5)
     end
 
     def push_in_own_connection(product_id)

@@ -5,6 +5,7 @@ require "rails_helper"
 RSpec.describe Woo::Api::Client do
   let(:client) { described_class.new }
   let(:basic_auth) { {username: described_class::CONSUMER_KEY, password: described_class::CONSUMER_SECRET} }
+  let(:request_options) { {basic_auth:, open_timeout: 5, read_timeout: 20} }
   let(:json_response) { instance_double(HTTParty::Response, body: '[{"id": 1}]', code: 200, success?: true) }
 
   describe "#fetch_order", :vcr do
@@ -27,7 +28,7 @@ RSpec.describe Woo::Api::Client do
         expect(HTTParty).to have_received(:get).with(
           described_class::ORDERS_URL,
           query: {per_page: 100, page:, orderby: "modified"},
-          basic_auth:
+          **request_options
         )
       end
     end
@@ -63,7 +64,7 @@ RSpec.describe Woo::Api::Client do
       expect(HTTParty).to have_received(:get).with(
         described_class::ORDERS_URL,
         query: {per_page: 100, page: 1, orderby: "modified"},
-        basic_auth:
+        **request_options
       )
     end
   end
@@ -77,13 +78,13 @@ RSpec.describe Woo::Api::Client do
       expect(HTTParty).to have_received(:get).with(
         "#{described_class::PRODUCTS_URL}42",
         query: {status: "publish"},
-        basic_auth:
+        **request_options
       )
     end
   end
 
   describe "#update_order_status" do
-    it "posts the status with the API credentials" do
+    it "posts the status with the API credentials and the same timeouts as a read" do
       allow(HTTParty).to receive(:post)
 
       client.update_order_status("4321", "completed")
@@ -91,11 +92,20 @@ RSpec.describe Woo::Api::Client do
       expect(HTTParty).to have_received(:post).with(
         "#{described_class::ORDERS_URL}4321",
         body: {status: "completed"},
-        basic_auth: {
-          username: described_class::CONSUMER_KEY,
-          password: described_class::CONSUMER_SECRET
-        }
+        **request_options
       )
+    end
+  end
+
+  describe "timeouts" do
+    it "gives the connection 5 seconds and each read 20, so a stalled store cannot hold a pull for a minute per page" do
+      connections = []
+      allow(Net::HTTP).to receive(:new).and_wrap_original { |original, *args| original.call(*args).tap { |http| connections << http } }
+      stub_request(:get, "#{described_class::ORDERS_URL}1").to_return(status: 200, body: '{"id": 1}')
+
+      client.fetch_order(1)
+
+      expect(connections).to contain_exactly(have_attributes(open_timeout: 5, read_timeout: 20))
     end
   end
 

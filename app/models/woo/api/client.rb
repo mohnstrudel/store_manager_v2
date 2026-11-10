@@ -21,6 +21,8 @@ module Woo
         HTTParty::Error
       ].freeze
       BODY_PREVIEW_LENGTH = 500
+      OPEN_TIMEOUT = 5
+      READ_TIMEOUT = 20
 
       class Error < StandardError
         attr_reader :status, :url, :body_preview
@@ -54,14 +56,7 @@ module Woo
       end
 
       def update_order_status(order_id, status)
-        HTTParty.post(
-          "#{ORDERS_URL}#{order_id}",
-          body: {status:},
-          basic_auth: {
-            username: CONSUMER_KEY,
-            password: CONSUMER_SECRET
-          }
-        )
+        HTTParty.post("#{ORDERS_URL}#{order_id}", body: {status:}, **request_options)
       end
 
       private
@@ -81,16 +76,17 @@ module Woo
       end
 
       def perform_get_request(url, query)
-        HTTParty.get(
-          url,
-          query:,
-          basic_auth: {
-            username: CONSUMER_KEY,
-            password: CONSUMER_SECRET
-          }
-        )
+        HTTParty.get(url, query:, **request_options)
       rescue *NETWORK_ERRORS => error
         raise Unavailable.new("Woo API GET #{url} failed: #{error.class}: #{error.message}", url:)
+      end
+
+      def request_options
+        {
+          basic_auth: {username: CONSUMER_KEY, password: CONSUMER_SECRET},
+          open_timeout: OPEN_TIMEOUT,
+          read_timeout: READ_TIMEOUT
+        }
       end
 
       def parse_body(response, url:)

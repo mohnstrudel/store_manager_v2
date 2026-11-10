@@ -82,5 +82,12 @@ RSpec.describe Shopify::Pull, :aggregate_failures do
       expect(error.message).to include("gid://9: boom 9")
       expect(error.message).not_to include("gid://10")
     end
+
+    it "counts the failures it lists unless told how many the whole pull had" do
+      failures = [Shopify::Pull::Failure.new(store_id: "gid://1", message: "boom", failed_at: Time.current)]
+
+      expect(described_class.new(failures).message).to start_with("1 Shopify item(s) failed to import: gid://1: boom")
+      expect(described_class.new(failures, total: 7).message).to start_with("7 Shopify item(s) failed to import: gid://1: boom")
+    end
   end
 end

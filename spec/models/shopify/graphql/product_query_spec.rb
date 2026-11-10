@@ -38,6 +38,36 @@ RSpec.describe Shopify::Graphql::ProductQuery do
     end
   end
 
+  describe ".media_by_id" do
+    let(:query) { described_class.media_by_id }
+
+    it "asks for the product's media and nothing else" do
+      aggregate_failures do
+        expect(query).to include("query ProductMediaById", "product(id: $id)", "media(first: 250)", "... on MediaImage")
+        expect(query).not_to include("variants")
+        expect(query).not_to include("title")
+        expect(query).not_to include("image {")
+      end
+    end
+
+    it "asks for the fields a media push pairs, waits on, and records" do
+      expect(query).to match(/id\s+alt\s+status\s+createdAt\s+updatedAt/)
+    end
+  end
+
+  describe ".options_by_id" do
+    let(:query) { described_class.options_by_id }
+
+    it "asks for the names of the product's options and nothing else" do
+      aggregate_failures do
+        expect(query).to include("query ProductOptionsById", "product(id: $id)")
+        expect(query).to match(/options\s*\{\s*name\s*\}/)
+        expect(query).not_to include("variants")
+        expect(query).not_to include("media")
+      end
+    end
+  end
+
   describe ".list" do
     it "returns a valid GraphQL query string" do
       query = described_class.list
