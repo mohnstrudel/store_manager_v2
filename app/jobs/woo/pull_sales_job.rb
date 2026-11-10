@@ -19,7 +19,7 @@ module Woo
       end
     end
 
-    discard_on(Woo::Api::Client::Error) { |job, error| job.send(:report, error) }
+    discard_on(Woo::Api::Client::Error) { |job, error| job.send(:discard_api_error, error) }
     retry_on(Woo::Api::Client::Unavailable, wait: :polynomially_longer, attempts: 5) do |job, error|
       job.send(:record_unreachable_order, error, job.send(:report, error))
     end
@@ -32,8 +32,24 @@ module Woo
 
     private
 
+    def discard_api_error(error)
+      report(error)
+      resolve_missing_order if error.is_a?(Woo::Api::Client::NotFound)
+    end
+
     def report(error)
       Sentry.capture_exception(error, extra: {status: error.status, url: error.url, body_preview: error.body_preview})
+    end
+
+    def resolve_missing_order
+      return if order_id.blank?
+
+      Sale::ImportFailure.resolve(store_name: "woo", store_order_id: order_id)
+    end
+
+    def order_id
+      options = arguments.last
+      options[:id] if options.is_a?(Hash)
     end
 
     def record_unreachable_order(error, event)
@@ -46,11 +62,6 @@ module Woo
         sentry_event_id: event&.event_id,
         failed_at: Time.current
       )
-    end
-
-    def order_id
-      options = arguments.last
-      options[:id] if options.is_a?(Hash)
     end
 
     def failure_notification(error)

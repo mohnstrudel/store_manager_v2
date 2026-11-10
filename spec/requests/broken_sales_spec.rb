@@ -154,6 +154,43 @@ RSpec.describe "Broken sales" do
       end
     end
 
+    it "does not run a query per link row" do
+      count_queries = lambda do
+        queries = 0
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+          queries += 1 unless payload[:cached] || %w[SCHEMA TRANSACTION].include?(payload[:name])
+        end
+
+        begin
+          get broken_sales_path, params: {issue_type: "purchase_item_links"}
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+
+        queries
+      end
+      add_link_with_replacement = lambda do
+        original_product = create(:product)
+        target_product = create(:product)
+        mismatch = create(
+          :purchase_item,
+          purchase: create(:purchase, product: original_product),
+          sale_item: create(:sale_item, product: original_product, qty: 2)
+        )
+        create(:purchase_item, purchase: create(:purchase, product: target_product))
+        mismatch.sale_item.update_columns(product_id: target_product.id, variant_id: target_product.base_variant.id)
+      end
+
+      add_link_with_replacement.call
+      count_queries.call
+      baseline = count_queries.call
+      5.times { add_link_with_replacement.call }
+
+      expect(count_queries.call).to eq(baseline)
+      expect(inertia.props[:issues].size).to eq(6)
+      expect(inertia.props[:issues]).to all(include(exact_replacements_available: 1))
+    end
+
     it "renders every member of a three-variant collision group with edit links and no repair control" do
       product_a = create(:product)
       product_b = create(:product)
@@ -300,6 +337,23 @@ RSpec.describe "Broken sales" do
         get broken_sales_path
 
         expect_inertia.to have_props(issue_type: "purchases", scope: nil, product_id: nil)
+      end
+
+      it "chooses the default tab from the tab counts without a second look at the broken order lines" do
+        broken_line(status: "processing", revenue: 10)
+        line_lookups = []
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+          line_lookups << payload[:sql] if payload[:sql].start_with?(%(SELECT 1 AS one FROM "sale_items"))
+        end
+
+        begin
+          get broken_sales_path
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+
+        expect_inertia.to have_props(issue_type: "sale_items")
+        expect(line_lookups).to be_empty
       end
 
       it "describes an order row with its store, status, customer, amount, and product" do
@@ -522,6 +576,36 @@ RSpec.describe "Broken sales" do
 
         expect(count_queries.call).to eq(baseline)
       end
+
+      it "does not run a query per order row with an import failure" do
+        count_queries = lambda do
+          queries = 0
+          subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+            queries += 1 unless payload[:cached] || %w[SCHEMA TRANSACTION].include?(payload[:name])
+          end
+
+          begin
+            get broken_sales_path, params: {issue_type: "sale_items"}
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+
+          queries
+        end
+        add_failed_order = lambda do |index|
+          broken_line(status: nil, revenue: 10, sale: woo_sale("failed-#{index}"))
+          record_failure("failed-#{index}", message: "Order #{index} failed")
+        end
+
+        add_failed_order.call(0)
+        count_queries.call
+        baseline = count_queries.call
+        (1..4).each { |index| add_failed_order.call(index) }
+
+        expect(count_queries.call).to eq(baseline)
+        expect(inertia.props[:issues].size).to eq(5)
+        expect(inertia.props[:issues].pluck(:import_failure)).to all(include("message" => a_string_starting_with("Order ")))
+      end
     end
   end
 
@@ -575,7 +659,7 @@ RSpec.describe "Broken sales" do
       }
 
       expect(response).to redirect_to(broken_sales_path)
-      expect(flash[:notice]).to eq("Variant assignment is already repaired")
+      expect(flash[:notice]).to eq("This Purchase already has a Variant. Nothing was changed.")
     end
 
     it "keeps a concurrently changed unresolved row retryable" do
@@ -625,6 +709,11 @@ RSpec.describe "Broken sales" do
       expect(response).to redirect_to(
         broken_sales_path(issue_type: "sale_items")
       )
+      expect(sale_item.audits.last).to have_attributes(
+        action: "update",
+        audited_changes: {"variant_id" => [nil, sale_item.product.base_variant.id]},
+        user: admin
+      )
     end
 
     it "queues one pull of the order after the repair commits when the order has an unresolved import failure" do
@@ -637,7 +726,7 @@ RSpec.describe "Broken sales" do
 
       patch broken_sales_sale_item_path(sale_item), params: {sale_item: {variant_id: sale_item.product.base_variant.id}}
 
-      expect(Woo::PullSalesJob).to have_received(:perform_later).with(id: "88").once
+      expect(Woo::PullSalesJob).to have_received(:perform_later).with(id: "88", requested_by: admin).once
       expect(enqueues).to eq([baseline])
       expect(flash[:notice]).to eq("Fixed: 1 unit can now be reserved. Queued a new pull of the order from the store.")
     end
@@ -664,12 +753,12 @@ RSpec.describe "Broken sales" do
       expect(flash[:notice]).to eq("Fixed: history now records the Variant for this line.")
     end
 
-    it "keeps the already repaired notice for a no-op" do
+    it "says nothing was changed for a no-op" do
       sale_item = create(:sale_item)
 
       patch broken_sales_sale_item_path(sale_item), params: {sale_item: {variant_id: sale_item.product.base_variant.id}}
 
-      expect(flash[:notice]).to eq("Variant assignment is already repaired")
+      expect(flash[:notice]).to eq("This line already has a Variant. Nothing was changed.")
     end
 
     it "queues nothing for a no-op repair or a line without an unresolved failure" do
@@ -714,6 +803,8 @@ RSpec.describe "Broken sales" do
       expect(response).to redirect_to(return_to)
       expect(flash[:notice]).to eq("Fixed: history now records the Variant for 1 closed line. Skipped 1 line.")
       expect([closed, linked, active].map { |line| line.reload.variant_id }).to eq([variant.id, nil, nil])
+      expect(closed.audits.last).to have_attributes(audited_changes: {"variant_id" => [nil, variant.id]}, user: admin)
+      expect([linked, active].map { |line| line.audits.count }).to eq([1, 1])
     end
 
     it "queues one pull per repaired order with an unresolved import failure after the repairs commit" do
@@ -729,14 +820,14 @@ RSpec.describe "Broken sales" do
         return_to:
       }
 
-      expect(Woo::PullSalesJob).to have_received(:perform_later).with(id: "88").once
+      expect(Woo::PullSalesJob).to have_received(:perform_later).with(id: "88", requested_by: admin).once
       expect(enqueues).to eq([baseline])
       expect(flash[:notice]).to eq("Fixed: history now records the Variant for 3 closed lines. Queued a new pull of 1 order from the store.")
     end
 
     it "reports lines that failed" do
       allow(Variant::AssignmentRepair).to receive(:repair_closed_sale_items).and_return(
-        Variant::AssignmentRepair::ClosedOrderRepair.new(repaired: 0, skipped: 0, failed: 2, repaired_sale_ids: [])
+        Variant::AssignmentRepair::ClosedOrderRepair.new(repaired: 0, skipped: 0, failed: 2, repaired_sale_ids: [], queued_pulls: 0)
       )
 
       post broken_sales_product_closed_order_repair_path(product), params: {
@@ -807,6 +898,18 @@ RSpec.describe "Broken sales" do
       expect(exact_inventory.reload.sale_item_id).to eq(sale_item.id)
     end
 
+    it "says nothing was changed for a link that no longer needs repair" do
+      product = create(:product)
+      purchase_item = create(:purchase_item, purchase: create(:purchase, product:), sale_item: create(:sale_item, product:))
+
+      patch broken_sales_purchase_item_link_path(purchase_item), params: {
+        return_to: broken_sales_path(issue_type: "purchase_item_links")
+      }
+
+      expect(response).to redirect_to(broken_sales_path(issue_type: "purchase_item_links"))
+      expect(flash[:notice]).to eq("This PurchaseItem link no longer needs repair. Nothing was changed.")
+    end
+
     it "keeps a concurrently changed unresolved link retryable" do
       purchase_item = create(:purchase_item)
       allow(
@@ -837,7 +940,7 @@ RSpec.describe "Broken sales" do
 
       post broken_sales_import_failure_pull_path(failure), params: {return_to: broken_sales_path(issue_type: "import_failures", page: 2)}
 
-      expect(Woo::PullSalesJob).to have_received(:perform_later).with(id: "77")
+      expect(Woo::PullSalesJob).to have_received(:perform_later).with(id: "77", requested_by: admin)
       expect(response).to redirect_to(broken_sales_path(issue_type: "import_failures", page: 2))
       expect(flash[:notice]).to eq("Queued a new pull of order 77 from the store.")
     end
@@ -848,7 +951,7 @@ RSpec.describe "Broken sales" do
 
       post broken_sales_import_failure_pull_path(failure)
 
-      expect(Shopify::PullSaleJob).to have_received(:perform_later).with("gid://shopify/Order/5150")
+      expect(Shopify::PullSaleJob).to have_received(:perform_later).with("gid://shopify/Order/5150", requested_by: admin)
       expect(response).to redirect_to(broken_sales_path(issue_type: "import_failures"))
       expect(flash[:notice]).to eq("Queued a new pull of order 5150 from the store.")
     end

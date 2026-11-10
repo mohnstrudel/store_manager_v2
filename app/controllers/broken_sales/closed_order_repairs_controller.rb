@@ -7,10 +7,10 @@ module BrokenSales
     def create
       result = Variant::AssignmentRepair.repair_closed_sale_items(
         product_id: Product.friendly.find(params.expect(:product_id)).id,
-        variant_id: repair_params.expect(:variant_id)
+        variant_id: repair_params.expect(:variant_id),
+        requested_by: Current.user
       )
-      queued_pulls = Sale::ImportFailure.pull_unresolved_later(sale_ids: result.repaired_sale_ids)
-      redirect_to return_path, notice: result_notice(result, queued_pulls)
+      redirect_to return_path, notice: result_notice(result)
     rescue Variant::AssignmentRepair::InvalidCandidate => error
       redirect_to return_path, inertia: {errors: {variant_id: error.message}}
     end
@@ -21,12 +21,12 @@ module BrokenSales
       params.expect(closed_order_repair: [:variant_id])
     end
 
-    def result_notice(result, queued_pulls)
+    def result_notice(result)
       [
         repaired_notice(result.repaired),
         ("Skipped #{helpers.pluralize(result.skipped, "line")}." if result.skipped.positive?),
         ("Could not assign #{helpers.pluralize(result.failed, "line")}. Try again." if result.failed.positive?),
-        ("Queued a new pull of #{helpers.pluralize(queued_pulls, "order")} from the store." if queued_pulls.positive?)
+        ("Queued a new pull of #{helpers.pluralize(result.queued_pulls, "order")} from the store." if result.queued_pulls.positive?)
       ].compact.join(" ")
     end
 

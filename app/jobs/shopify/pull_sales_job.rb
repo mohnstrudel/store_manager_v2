@@ -32,11 +32,11 @@ module Shopify
 
     def handle_terminal_page(updated_since:)
       Seal::SyncPaymentPlansJob.perform_later
-      retry_unresolved_failures if updated_since
+      retry_unresolved_failures(updated_since:) if updated_since
     end
 
-    def retry_unresolved_failures
-      Sale::ImportFailure.shopify.unresolved.find_each(&:pull_later)
+    def retry_unresolved_failures(updated_since:)
+      Sale::ImportFailure.shopify.unresolved.last_failed_before(updated_since).find_each(&:pull_later)
     end
 
     def job_title

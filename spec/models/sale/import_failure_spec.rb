@@ -97,13 +97,34 @@ RSpec.describe Sale::ImportFailure, :aggregate_failures do
       )
     end
 
-    it "reopens a row when the failure is newer than its resolution" do
+    it "starts a new failure history when the failure is newer than the row's resolution" do
       record_failure
+      record_failure(failed_at: failed_at + 30.minutes)
       stored_failure.update!(resolved_at: failed_at + 1.hour)
 
+      record_failure(message: "boom again", failed_at: failed_at + 2.hours)
+
+      expect(stored_failure).to have_attributes(
+        message: "boom again",
+        resolved_at: nil,
+        failure_count: 1,
+        first_failed_at: failed_at + 2.hours,
+        last_failed_at: failed_at + 2.hours
+      )
+    end
+
+    it "keeps counting from the reopened failure" do
+      record_failure
+      stored_failure.update!(resolved_at: failed_at + 1.hour)
       record_failure(failed_at: failed_at + 2.hours)
 
-      expect(stored_failure).to have_attributes(resolved_at: nil, failure_count: 2, last_failed_at: failed_at + 2.hours)
+      record_failure(failed_at: failed_at + 3.hours)
+
+      expect(stored_failure).to have_attributes(
+        failure_count: 2,
+        first_failed_at: failed_at + 2.hours,
+        last_failed_at: failed_at + 3.hours
+      )
     end
 
     it "ignores a failure older than the row's resolution" do
@@ -153,6 +174,72 @@ RSpec.describe Sale::ImportFailure, :aggregate_failures do
         error,
         extra: {store_name: "shopify", store_order_id:}
       )
+    end
+  end
+
+  describe ".last_failed_before" do
+    it "keeps the failures whose last failure predates the time" do
+      record_failure(store_order_id: "gid://shopify/Order/old", failed_at: failed_at)
+      record_failure(store_order_id: "gid://shopify/Order/at", failed_at: failed_at + 1.hour)
+      record_failure(store_order_id: "gid://shopify/Order/new", failed_at: failed_at + 2.hours)
+
+      expect(described_class.last_failed_before(failed_at + 1.hour).pluck(:store_order_id)).to eq(["gid://shopify/Order/old"])
+    end
+  end
+
+  describe "#pull_later" do
+    include ActiveJob::TestHelper
+
+    let(:user) { create(:user) }
+
+    it "queues a Shopify order pull by store order id" do
+      record_failure
+
+      expect { stored_failure.pull_later }.to have_enqueued_job(Shopify::PullSaleJob).with(store_order_id)
+    end
+
+    it "queues a Woo order pull by store order id" do
+      record_failure(store_name: "woo", store_order_id: "77")
+      woo_failure = described_class.find_by!(store_name: "woo", store_order_id: "77")
+
+      expect { woo_failure.pull_later }.to have_enqueued_job(Woo::PullSalesJob).with(id: "77")
+    end
+
+    it "tells the Shopify pull who asked for it" do
+      record_failure
+
+      expect { stored_failure.pull_later(requested_by: user) }
+        .to have_enqueued_job(Shopify::PullSaleJob).with(store_order_id, requested_by: user)
+    end
+
+    it "tells the Woo pull who asked for it" do
+      record_failure(store_name: "woo", store_order_id: "77")
+      woo_failure = described_class.find_by!(store_name: "woo", store_order_id: "77")
+
+      expect { woo_failure.pull_later(requested_by: user) }
+        .to have_enqueued_job(Woo::PullSalesJob).with(id: "77", requested_by: user)
+    end
+  end
+
+  describe ".pull_unresolved_later" do
+    include ActiveJob::TestHelper
+
+    let(:user) { create(:user) }
+
+    it "queues one pull per unresolved failure of the sales, for the requester, and counts them" do
+      sale = create(:sale, shopify_store_id: store_order_id)
+      record_failure
+      resolved_sale = create(:sale, shopify_store_id: "gid://shopify/Order/456")
+      record_failure(store_order_id: "gid://shopify/Order/456")
+      described_class.resolve(store_name: "shopify", store_order_id: "gid://shopify/Order/456")
+      create(:sale, shopify_store_id: "gid://shopify/Order/789")
+      record_failure(store_order_id: "gid://shopify/Order/789")
+
+      queued = described_class.pull_unresolved_later(sale_ids: [sale.id, resolved_sale.id], requested_by: user)
+
+      expect(queued).to eq(1)
+      expect(enqueued_jobs.size).to eq(1)
+      expect(Shopify::PullSaleJob).to have_been_enqueued.with(store_order_id, requested_by: user).once
     end
   end
 

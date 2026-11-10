@@ -74,7 +74,7 @@ class BrokenSales::IndexResource < ApplicationResource
     resource = VIEW_RESOURCES.fetch(page.fetch(:view)) { ISSUE_RESOURCES.fetch(page.fetch(:issue_type)) }
     resource.new(
       page.fetch(:records),
-      params: page.slice(:reasons, :siblings_by_sku, :import_failures_by_sale_id, :impact)
+      params: page.slice(:reasons, :siblings_by_sku, :import_failures_by_sale_id, :replacements_by_identity, :impact)
     ).serializable_hash
   end
 

@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Variant::AssignmentRepair do
+  include ActiveJob::TestHelper
+
   let(:integrity) { Variant::AssignmentIntegrity.new }
 
   describe ".repair_purchase" do
@@ -104,6 +106,126 @@ RSpec.describe Variant::AssignmentRepair do
           'ORDER BY "purchase_items"."id" ASC'
         )
       end
+    end
+
+    it "audits the identity change on the SaleItem's Sale without a Slack notification" do
+      allow(Rails.env).to receive_messages(production?: true, staging?: false)
+      product = create(:product)
+      sale_item = create(:sale_item, product:)
+      sale_item.update_columns(variant_id: nil)
+      variant = create(:variant, :with_color, product:, color_value: "Repair")
+
+      expect {
+        described_class.repair_sale_item(sale_item_id: sale_item.id, variant_id: variant.id)
+      }.not_to have_enqueued_job(NotifyAboutRecordChanges)
+
+      expect(sale_item.audits.last).to have_attributes(
+        action: "update",
+        version: 2,
+        audited_changes: {"variant_id" => [nil, variant.id]},
+        associated: sale_item.sale
+      )
+    end
+
+    it "audits a Product change together with the Variant change" do
+      product = create(:product)
+      other_product = create(:product)
+      sale_item = create(:sale_item, product: other_product)
+      sale_item.update_columns(variant_id: nil)
+
+      described_class.repair_sale_item(sale_item_id: sale_item.id, variant_id: product.base_variant.id, product_id: product.id)
+
+      expect(sale_item.audits.last.audited_changes).to eq(
+        "product_id" => [other_product.id, product.id],
+        "variant_id" => [nil, product.base_variant.id]
+      )
+    end
+
+    it "writes no audit for a no-op" do
+      sale_item = create(:sale_item)
+
+      expect {
+        described_class.repair_sale_item(sale_item_id: sale_item.id, variant_id: sale_item.variant_id)
+      }.not_to change(Audited.audit_class, :count)
+    end
+
+    it "attributes the audit to the acting user and request" do
+      user = create(:user)
+      product = create(:product)
+      sale_item = create(:sale_item, product:)
+      sale_item.update_columns(variant_id: nil)
+
+      Audited.audit_class.as_user(user) do
+        described_class.repair_sale_item(sale_item_id: sale_item.id, variant_id: product.base_variant.id)
+      end
+
+      expect(sale_item.audits.last).to have_attributes(user:, request_uuid: be_present)
+    end
+  end
+
+  describe ".repair_sale_item_and_requeue_import" do
+    include ActiveJob::TestHelper
+
+    let(:user) { create(:user) }
+    let(:product) { create(:product) }
+    let(:red) { create(:variant, :with_color, product:, color_value: "Red") }
+
+    def broken_line(**attributes)
+      create(:sale_item, product:, variant: red, **attributes).tap do |line|
+        line.update_columns(variant_id: nil)
+      end
+    end
+
+    it "reports what the repair unblocked, using the state before the repair" do
+      line = broken_line(qty: 2)
+
+      result = described_class.repair_sale_item_and_requeue_import(sale_item_id: line.id, variant_id: red.id)
+
+      expect(result).to have_attributes(status: :repaired, sale_item: line, queued_pulls: 0)
+      expect(result).not_to be_noop
+      expect(result.unblocked_consequences).to include({kind: :units_not_reserved, units: 2}, {kind: :debt_miscounted})
+      expect(line.reload.variant_id).to eq(red.id)
+      expect(result.sale_item.title).to eq("#{product.full_title} → #{red.title}")
+    end
+
+    it "queues one pull of the order for the requester after the repair when the order has an unresolved import failure" do
+      sale = create(:sale, shopify_id: nil, woo_store_id: "88")
+      line = broken_line(sale:)
+      Sale::ImportFailure.record(store_name: "woo", store_order_id: "88", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+      result = described_class.repair_sale_item_and_requeue_import(sale_item_id: line.id, variant_id: red.id, requested_by: user)
+
+      expect(result.queued_pulls).to eq(1)
+      expect(Woo::PullSalesJob).to have_been_enqueued.with(id: "88", requested_by: user).once
+    end
+
+    it "queues nothing for an order without an unresolved import failure" do
+      line = broken_line
+
+      result = described_class.repair_sale_item_and_requeue_import(sale_item_id: line.id, variant_id: red.id, requested_by: user)
+
+      expect(result.queued_pulls).to eq(0)
+      expect(enqueued_jobs).to be_empty
+    end
+
+    it "reports a no-op without consequences or pulls" do
+      sale = create(:sale, shopify_id: nil, woo_store_id: "88")
+      fixed = create(:sale_item, sale:, product:, variant: red)
+      Sale::ImportFailure.record(store_name: "woo", store_order_id: "88", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+      result = described_class.repair_sale_item_and_requeue_import(sale_item_id: fixed.id, variant_id: red.id, requested_by: user)
+
+      expect(result).to be_noop
+      expect(result).to have_attributes(status: :noop, unblocked_consequences: [], queued_pulls: 0)
+      expect(enqueued_jobs).to be_empty
+    end
+
+    it "rejects a Variant outside the Product's repair candidates" do
+      line = broken_line
+
+      expect {
+        described_class.repair_sale_item_and_requeue_import(sale_item_id: line.id, variant_id: create(:product).base_variant.id)
+      }.to raise_error(described_class::InvalidCandidate)
     end
   end
 
@@ -424,20 +546,19 @@ RSpec.describe Variant::AssignmentRepair do
       expect(purchase_item.reload.sale_item_id).to eq(linked.id)
     end
 
-    it "keeps repairing the other lines when one line fails" do
-      failing = broken_line(status: "cancelled")
-      repaired = broken_line(status: "cancelled")
-      allow(integrity).to receive(:broken_sale_item?).and_call_original
-      allow(integrity).to receive(:broken_sale_item?).with(failing.id).and_raise(ActiveRecord::Deadlocked)
+    it "changes nothing and counts every closed line as failed when the repair raises" do
+      first = broken_line(status: "cancelled")
+      second = broken_line(status: "refunded")
+      broken_line(status: "processing")
+      allow(Audited.audit_class).to receive(:insert_all!).and_raise(ActiveRecord::Deadlocked)
       allow(Sentry).to receive(:capture_exception)
 
-      result = described_class.new(integrity:).repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
+      result = repair.repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
 
-      expect(result).to have_attributes(repaired: 1, skipped: 0, failed: 1)
-      expect(repaired.reload.variant_id).to eq(variant.id)
-      expect(failing.reload.variant_id).to be_nil
+      expect(result).to have_attributes(repaired: 0, skipped: 0, failed: 2, repaired_sale_ids: [], queued_pulls: 0)
+      expect([first, second].map { |line| line.reload.variant_id }).to all(be_nil)
       expect(Sentry).to have_received(:capture_exception)
-        .with(an_instance_of(ActiveRecord::Deadlocked), extra: {sale_item_id: failing.id})
+        .with(an_instance_of(ActiveRecord::Deadlocked), extra: {product_id: product.id, variant_id: variant.id})
     end
 
     it "writes an audit of the Variant change without a Slack notification" do
@@ -456,6 +577,89 @@ RSpec.describe Variant::AssignmentRepair do
       )
     end
 
+    it "audits every repaired line after its existing audits, attributed to the acting user" do
+      user = create(:user)
+      lines = Array.new(2) { broken_line(status: "cancelled") }
+      untouched = broken_line(status: "processing")
+      lines.first.update_columns(variant_id: product.base_variant.id)
+      lines.first.update!(price: 10)
+      lines.first.update_columns(variant_id: nil)
+      variant_id = variant.id
+
+      Audited.audit_class.as_user(user) { repair.repair_closed_sale_items(product_id: product.id, variant_id:) }
+
+      expect(lines.map { |line| line.audits.reload.pluck(:version) }).to eq([[1, 2, 3], [1, 2]])
+      expect(lines.map { |line| line.audits.last }).to all(
+        have_attributes(
+          action: "update",
+          audited_changes: {"variant_id" => [nil, variant_id]},
+          user:,
+          request_uuid: be_present,
+          associated: be_a(Sale)
+        )
+      )
+      expect(untouched.audits.count).to eq(1)
+    end
+
+    it "uses the same number of queries however many lines it repairs" do
+      count_queries = lambda do
+        queries = 0
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+          queries += 1 unless payload[:cached] || %w[SCHEMA TRANSACTION].include?(payload[:name])
+        end
+        begin
+          repair.repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+        queries
+      end
+
+      variant_id = variant.id
+      broken_line_on_variant = -> { create(:sale_item, sale: create(:sale, status: "cancelled"), product:, variant:).tap { |line| line.update_columns(variant_id: nil) } }
+      broken_line_on_variant.call
+      one_line = count_queries.call
+      Array.new(5) { broken_line_on_variant.call }
+
+      expect(count_queries.call).to eq(one_line)
+      expect(SaleItem.where(variant_id:).count).to eq(6)
+    end
+
+    it "locks the closed lines in id order before the Product and the Variant" do
+      broken_line(status: "cancelled")
+      variant_id = variant.id
+
+      lock_queries = capture_lock_queries { repair.repair_closed_sale_items(product_id: product.id, variant_id:) }
+
+      expect(lock_queries.grep(/FROM "sale_items"/).first).to include('ORDER BY "sale_items"."id" ASC', "FOR UPDATE OF sale_items")
+      expect(lock_queries.index { |sql| sql.include?('FROM "sale_items"') }).to be < lock_queries.index { |sql| sql.include?('FROM "products"') }
+    end
+
+    it "queues one pull per repaired order with an unresolved import failure for the requester" do
+      user = create(:user)
+      failed_sale = create(:sale, status: "cancelled", shopify_id: nil, woo_store_id: "88")
+      2.times { create(:sale_item, sale: failed_sale, product:).update_columns(variant_id: nil) }
+      healthy = broken_line(status: "cancelled")
+      Sale::ImportFailure.record(store_name: "woo", store_order_id: "88", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+      result = repair.repair_closed_sale_items(product_id: product.id, variant_id: variant.id, requested_by: user)
+
+      expect(result).to have_attributes(repaired: 3, queued_pulls: 1, repaired_sale_ids: contain_exactly(failed_sale.id, healthy.sale_id))
+      expect(Woo::PullSalesJob).to have_been_enqueued.with(id: "88", requested_by: user).once
+    end
+
+    it "queues no pull for an order whose lines were skipped" do
+      sale = create(:sale, status: "refunded", shopify_id: nil, woo_store_id: "88")
+      linked = create(:sale_item, sale:, product:).tap { |line| line.update_columns(variant_id: nil) }
+      create(:purchase_item, purchase: create(:purchase, product:)).update_columns(sale_item_id: linked.id)
+      Sale::ImportFailure.record(store_name: "woo", store_order_id: "88", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+      result = repair.repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
+
+      expect(result).to have_attributes(repaired: 0, skipped: 1, queued_pulls: 0)
+      expect(enqueued_jobs).to be_empty
+    end
+
     it "rejects a Variant of another Product before touching any line" do
       line = broken_line(status: "cancelled")
 
@@ -464,6 +668,23 @@ RSpec.describe Variant::AssignmentRepair do
       }.to raise_error(described_class::InvalidCandidate)
 
       expect(line.reload.variant_id).to be_nil
+    end
+
+    it "rejects a Variant of another Product although no closed line needs repair" do
+      expect {
+        repair.repair_closed_sale_items(product_id: product.id, variant_id: create(:product).base_variant.id)
+      }.to raise_error(described_class::InvalidCandidate)
+    end
+
+    it "reassigns a line whose Variant belongs to another Product" do
+      line = broken_line(status: "trash")
+      line.update_columns(variant_id: create(:product).base_variant.id)
+
+      result = repair.repair_closed_sale_items(product_id: product.id, variant_id: variant.id)
+
+      expect(result).to have_attributes(repaired: 1)
+      expect(line.reload.variant_id).to eq(variant.id)
+      expect(line.audits.last.audited_changes["variant_id"].last).to eq(variant.id)
     end
   end
 

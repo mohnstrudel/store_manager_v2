@@ -282,9 +282,9 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     let(:client) { instance_double(Shopify::Api::Client) }
     let(:last_page) { {items: [], has_next_page: false, end_cursor: nil} }
 
-    def record_failure(store_name, store_order_id)
+    def record_failure(store_name, store_order_id, failed_at: Time.zone.local(2026, 11, 10, 8))
       Sale::ImportFailure.record(
-        store_name:, store_order_id:, message: "boom", sentry_event_id: nil, failed_at: Time.zone.local(2026, 11, 10, 8)
+        store_name:, store_order_id:, message: "boom", sentry_event_id: nil, failed_at:
       )
     end
 
@@ -304,6 +304,15 @@ RSpec.describe Shopify::PullSalesJob, :aggregate_failures do
     end
 
     it "enqueues one single-order pull per unresolved Shopify failure on the last page of a changes pull" do
+      described_class.perform_now(changes_only: true)
+
+      expect(enqueued_arguments(Shopify::PullSaleJob))
+        .to contain_exactly(["gid://shopify/Order/1"], ["gid://shopify/Order/2"])
+    end
+
+    it "skips a failure recorded since the window the changes pull covers opened" do
+      record_failure("shopify", "gid://shopify/Order/4", failed_at: Time.zone.local(2026, 11, 10, 9, 50))
+
       described_class.perform_now(changes_only: true)
 
       expect(enqueued_arguments(Shopify::PullSaleJob))

@@ -74,6 +74,70 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
       end
     end
 
+    context "when Shopify has no such order" do
+      let(:user) { create(:user) }
+      let(:client) { instance_double(Shopify::Api::Client, fetch_order: nil) }
+
+      before do
+        allow(Shopify::Api::Client).to receive(:new).and_return(client)
+        allow(Sentry).to receive(:capture_exception)
+      end
+
+      it "discards the job without retrying or reporting" do
+        expect { described_class.perform_now(sale_id) }.not_to raise_error
+
+        expect(enqueued_jobs).to be_empty
+        expect(Sentry).not_to have_received(:capture_exception)
+      end
+
+      it "resolves the order's unresolved import failure so nothing retries it" do
+        Sale::ImportFailure.record(store_name: "shopify", store_order_id: sale_id, message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        described_class.perform_now(sale_id)
+
+        expect(Sale::ImportFailure.shopify.unresolved).to be_empty
+        expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: sale_id).resolved_at).to be_present
+      end
+
+      it "records no import failure for an order that never failed" do
+        expect { described_class.perform_now(sale_id) }.not_to change(Sale::ImportFailure, :count)
+      end
+
+      it "tells the requester the order was not found" do
+        expect { described_class.perform_now(sale_id, requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "This order was not found in Shopify.")
+      end
+    end
+
+    context "when Shopify rejects the order query" do
+      let(:user) { create(:user) }
+      let(:client) { instance_double(Shopify::Api::Client) }
+
+      before do
+        allow(client).to receive(:fetch_order).and_raise(Shopify::Api::Client::ApiError, "Failed to fetch order: Access denied")
+        allow(Shopify::Api::Client).to receive(:new).and_return(client)
+        allow(Sentry).to receive(:capture_exception).and_return(instance_double(Sentry::ErrorEvent, event_id: "event-1"))
+      end
+
+      it "records the order's import failure and discards the job instead of retrying" do
+        sale = create(:sale, shopify_store_id: sale_id)
+
+        expect { described_class.perform_now(sale_id) }.not_to raise_error
+
+        expect(enqueued_jobs).to be_empty
+        expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: sale_id)).to have_attributes(
+          sale:, message: "Failed to fetch order: Access denied", sentry_event_id: "event-1", failure_count: 1
+        )
+      end
+
+      it "tells the requester the order could not be pulled" do
+        expect { described_class.perform_now(sale_id, requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "This order could not be pulled from Shopify.", link: {label: "Open broken sales", href: "/broken_sales"})
+      end
+    end
+
     context "when the order references a product that is not cached locally" do
       let(:product_store_id) { "gid://shopify/Product/55" }
       let(:variant_store_id) { "gid://shopify/ProductVariant/66" }
@@ -156,6 +220,32 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
       end
     end
 
+    context "when something else breaks and Sidekiq runs the job again" do
+      let(:user) { create(:user) }
+
+      before do
+        allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+        allow(Sale::Shopify::Importer).to receive(:import).and_raise(RuntimeError, "boom")
+      end
+
+      it "tells the requester once" do
+        payload = described_class.new(sale_id, requested_by: user).serialize
+
+        expect { 3.times { expect { described_class.execute(payload) }.to raise_error("boom") } }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "This order could not be pulled from Shopify.", link: {label: "Open broken sales", href: "/broken_sales"})
+          .exactly(:once)
+      end
+
+      it "keeps raising for a run nobody requested, so Sidekiq retries it" do
+        payload = described_class.new(sale_id).serialize
+
+        expect { 3.times { expect { described_class.execute(payload) }.to raise_error("boom") } }
+          .not_to have_broadcasted_to(user).from_channel(NotificationsChannel)
+        expect(Sale::ImportFailure.count).to eq(0)
+      end
+    end
+
     context "when the import fails" do
       let(:import_error) { Sale::Shopify::Importer::Error.new("Failed to process SaleItem") }
       let(:sentry_event) { instance_double(Sentry::ErrorEvent, event_id: "event-1") }
@@ -189,6 +279,30 @@ RSpec.describe Shopify::PullSaleJob, :aggregate_failures do
         expect { described_class.perform_now(sale_id) }.not_to raise_error
 
         expect(Sentry).to have_received(:capture_exception).with(recording_error, extra: {store_name: "shopify", store_order_id: sale_id})
+      end
+
+      context "with a customer error" do
+        let(:import_error) { Customer::Shopify::Importer::Error.new("Failed to process Customer: Email is invalid") }
+
+        it "reports the failure, records it with the event id, and discards the job" do
+          expect { described_class.perform_now(sale_id) }.not_to raise_error
+
+          expect(enqueued_jobs).to be_empty
+          expect(Sentry).to have_received(:capture_exception).with(import_error)
+          expect(Sale::ImportFailure.find_by!(store_name: "shopify", store_order_id: sale_id)).to have_attributes(
+            message: "Failed to process Customer: Email is invalid",
+            sentry_event_id: "event-1",
+            failure_count: 1
+          )
+        end
+      end
+
+      it "tells the requester the order could not be pulled" do
+        user = create(:user)
+
+        expect { described_class.perform_now(sale_id, requested_by: user) }
+          .to have_broadcasted_to(user).from_channel(NotificationsChannel)
+          .with(kind: "alert", message: "This order could not be pulled from Shopify.", link: {label: "Open broken sales", href: "/broken_sales"})
       end
     end
 

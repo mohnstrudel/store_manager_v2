@@ -23,7 +23,7 @@ module BrokenSales
     end
 
     def success_notice(result)
-      (result == :noop) ? "Variant assignment is already repaired" : "Purchase Variant was repaired"
+      (result == :noop) ? "This Purchase already has a Variant. Nothing was changed." : "Purchase Variant was repaired"
     end
 
     def stale_repair_message

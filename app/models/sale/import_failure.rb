@@ -23,6 +23,7 @@ class Sale::ImportFailure < ApplicationRecord
   enum :store_name, {woo: "woo", shopify: "shopify"}
 
   scope :unresolved, -> { where(resolved_at: nil) }
+  scope :last_failed_before, ->(time) { where(last_failed_at: ...time) }
 
   def self.record_safely(**attributes)
     record(**attributes)
@@ -45,18 +46,20 @@ class Sale::ImportFailure < ApplicationRecord
     find_by(store_name:, store_order_id:, resolved_at: nil)&.update!(resolved_at: Time.current)
   end
 
-  def self.pull_unresolved_later(sale_ids:)
-    unresolved.where(sale_id: sale_ids).to_a.each(&:pull_later).size
+  def self.pull_unresolved_later(sale_ids:, requested_by: nil)
+    unresolved.where(sale_id: sale_ids).to_a.each { |failure| failure.pull_later(requested_by:) }.size
   end
 
   def register(message:, sentry_event_id:, failed_at:)
     return if resolved_at&.after?(failed_at)
 
+    reopened = resolved_at.present?
     update!(
       sale: find_sale,
       message:,
       sentry_event_id:,
-      failure_count: failure_count + 1,
+      first_failed_at: reopened ? failed_at : first_failed_at,
+      failure_count: reopened ? 1 : failure_count + 1,
       last_failed_at: failed_at,
       resolved_at: nil
     )
@@ -66,8 +69,9 @@ class Sale::ImportFailure < ApplicationRecord
     (shopify? && Sale::Shopify::OrderId.normalize(store_order_id)) || store_order_id
   end
 
-  def pull_later
-    shopify? ? Shopify::PullSaleJob.perform_later(store_order_id) : Woo::PullSalesJob.perform_later(id: store_order_id)
+  def pull_later(requested_by: nil)
+    requester = {requested_by:}.compact
+    shopify? ? Shopify::PullSaleJob.perform_later(store_order_id, **requester) : Woo::PullSalesJob.perform_later(id: store_order_id, **requester)
   end
 
   private

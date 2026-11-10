@@ -16,7 +16,7 @@ module BrokenSales
     private
 
     def success_notice(result)
-      (result == :noop) ? "Variant assignment is already repaired" : "PurchaseItem link was repaired"
+      (result == :noop) ? "This PurchaseItem link no longer needs repair. Nothing was changed." : "PurchaseItem link was repaired"
     end
 
     def stale_repair_message

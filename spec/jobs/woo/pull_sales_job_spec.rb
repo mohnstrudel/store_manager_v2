@@ -162,6 +162,32 @@ RSpec.describe Woo::PullSalesJob, :aggregate_failures do
         expect(enqueued_jobs).to be_empty
         expect(Sale::ImportFailure.count).to eq(0)
       end
+
+      it "resolves the order's unresolved import failure so it stops waiting for a retry", :aggregate_failures do
+        Sale::ImportFailure.record(store_name: "woo", store_order_id: "123", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        described_class.perform_now(id: "123")
+
+        expect(Sale::ImportFailure.unresolved).to be_empty
+        expect(Sale::ImportFailure.find_by!(store_name: "woo", store_order_id: "123").resolved_at).to be_present
+      end
+
+      it "leaves the failures of other orders and of the Shopify store unresolved", :aggregate_failures do
+        Sale::ImportFailure.record(store_name: "woo", store_order_id: "456", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+        Sale::ImportFailure.record(store_name: "shopify", store_order_id: "123", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        described_class.perform_now(id: "123")
+
+        expect(Sale::ImportFailure.unresolved.pluck(:store_order_id)).to contain_exactly("456", "123")
+      end
+
+      it "resolves nothing for a pull that is not about one order", :aggregate_failures do
+        Sale::ImportFailure.record(store_name: "woo", store_order_id: "123", message: "boom", sentry_event_id: nil, failed_at: 1.hour.ago)
+
+        described_class.perform_now
+
+        expect(Sale::ImportFailure.unresolved.pluck(:store_order_id)).to eq(["123"])
+      end
     end
 
     context "when something else breaks" do
@@ -171,6 +197,27 @@ RSpec.describe Woo::PullSalesJob, :aggregate_failures do
         expect { expect { described_class.perform_now(requested_by: user) }.to raise_error(RuntimeError, "boom") }
           .to have_broadcasted_to(user).from_channel(NotificationsChannel)
           .with(kind: "alert", message: "The WooCommerce pull failed.", link: jobs_link)
+      end
+
+      context "when Sidekiq runs the job again" do
+        before do
+          allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+          allow(Sale::Woo::Pull).to receive(:run).and_raise(RuntimeError, "boom")
+        end
+
+        it "tells the requester once", :aggregate_failures do
+          payload = described_class.new(id: "123", requested_by: user).serialize
+
+          expect { 3.times { expect { described_class.execute(payload) }.to raise_error("boom") } }
+            .to have_broadcasted_to(user).from_channel(NotificationsChannel).exactly(:once)
+        end
+
+        it "keeps raising for a webhook run, which nobody requested, so Sidekiq retries it", :aggregate_failures do
+          payload = described_class.new(id: "123").serialize
+
+          expect { 3.times { expect { described_class.execute(payload) }.to raise_error("boom") } }
+            .not_to have_broadcasted_to(user).from_channel(NotificationsChannel)
+        end
       end
     end
   end

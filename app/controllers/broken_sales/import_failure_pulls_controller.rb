@@ -6,7 +6,7 @@ module BrokenSales
 
     def create
       failure = Sale::ImportFailure.find(params.expect(:import_failure_id))
-      failure.pull_later
+      failure.pull_later(requested_by: Current.user)
 
       redirect_to return_path, notice: "Queued a new pull of order #{failure.store_order_number} from the store."
     end

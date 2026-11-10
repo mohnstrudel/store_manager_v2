@@ -938,6 +938,63 @@ RSpec.describe Sale::Shopify::Importer, :aggregate_failures do
         expect(SaleItem.sole.variant.shopify_info.store_id).to eq(variant_store_id)
       end
 
+      it "fetches a cached product again when it was pulled before the order's last update" do
+        create(:product, :synced, shopify_id: product_store_id).shopify_info.update!(pull_time: Time.zone.parse("2025-04-01"))
+
+        import_order(order)
+
+        expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+        expect(SaleItem.sole.variant.shopify_info.store_id).to eq(variant_store_id)
+      end
+
+      it "does not fetch a cached product again when it was pulled after the order's last update" do
+        product = create(:product, :synced, shopify_id: product_store_id)
+        product.shopify_info.update!(pull_time: Time.zone.parse("2025-06-01"))
+
+        import_order(order)
+
+        expect(Shopify::Api::Client).not_to have_received(:new)
+        expect(SaleItem.sole.variant).to eq(product.base_variant)
+      end
+
+      it "fetches a missing product again however recently a cached product was pulled" do
+        create(:product, :synced, shopify_id: "gid://shopify/Product/other").shopify_info.update!(pull_time: Time.zone.parse("2025-06-01"))
+
+        import_order(order)
+
+        expect(api_client).to have_received(:fetch_product).with(product_store_id).once
+      end
+
+      it "looks the cached products and variants up once per order, however many lines it has" do
+        product = create(:product, :synced, shopify_id: product_store_id)
+        variant_store_ids = Array.new(4) { |index| "gid://shopify/ProductVariant/cached-#{index}" }
+        variant_store_ids.each { |store_id| create(:variant, :synced, :with_version, product:, shopify_id: store_id) }
+        lines_for = lambda do |store_ids|
+          store_ids.each_with_index.map { |store_id, index| line("gid://shopify/LineItem/cached-#{index}", variant_store_id: store_id, variant_title: "Cached") }
+        end
+        count_store_id_lookups = lambda do |parsed_order|
+          lookups = 0
+          subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _started, _finished, _id, payload|
+            lookups += 1 if payload[:sql].start_with?("SELECT") && payload[:sql].include?('"store_infos"."store_id"')
+          end
+          begin
+            import_order(parsed_order)
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+          lookups
+        end
+
+        one_line = order.deep_dup.merge(sale_items: lines_for.call(variant_store_ids.first(1)))
+        four_lines = order.deep_dup.tap do |parsed_order|
+          parsed_order[:store_info] = parsed_order[:store_info].merge(store_id: "gid://shopify/Order/four-lines")
+          parsed_order[:sale_items] = lines_for.call(variant_store_ids)
+        end
+
+        expect(count_store_id_lookups.call(four_lines)).to eq(count_store_id_lookups.call(one_line))
+        expect(SaleItem.count).to eq(4)
+      end
+
       it "fetches a product when its line has no variant" do
         allow(api_client).to receive(:fetch_product).with(product_store_id).and_return(single_variant_product)
         product_only = order.deep_dup

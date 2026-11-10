@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 class Sale::Shopify::SaleItemImporter
-  attr_reader :sale_item, :sale, :parsed
-  private :sale_item, :sale, :parsed
+  attr_reader :sale_item, :sale, :parsed, :catalog
+  private :sale_item, :sale, :parsed, :catalog
 
-  def initialize(sale, parsed_sale_item)
+  def initialize(sale, parsed_sale_item, catalog: Sale::Shopify::Catalog.new([parsed_sale_item]))
     @sale = sale
     @parsed = parsed_sale_item
+    @catalog = catalog
   end
 
   def import
@@ -61,7 +62,7 @@ class Sale::Shopify::SaleItemImporter
   def existing_product_from_store_id
     return nil if parsed[:product_store_id].blank?
 
-    Product.find_by_shopify_id(parsed[:product_store_id])
+    catalog.product(parsed[:product_store_id])
   end
 
   def product_from_full_title
@@ -86,7 +87,7 @@ class Sale::Shopify::SaleItemImporter
 
     @imported_variant =
       if shopify_variant_line?
-        Variant.find_by_shopify_id(parsed[:variant_store_id]) || base_model_variant_for(resolved_product)
+        catalog.variant(parsed[:variant_store_id]) || base_model_variant_for(resolved_product)
       elsif normalized_variant_title.blank? && !base_model_variant_title?
         nil
       else

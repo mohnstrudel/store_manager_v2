@@ -20,6 +20,17 @@ module PurchaseItem::Linkable
   end
 
   class_methods do
+    def unlinked_ids_by_identity(identities)
+      return {} if identities.empty?
+
+      where(sale_item_id: nil)
+        .merge(identities.map { |product_id, variant_id| where(product_id:, variant_id:) }.reduce(:or))
+        .order(:id)
+        .pluck(:product_id, :variant_id, :id)
+        .group_by { |product_id, variant_id, _id| [product_id, variant_id] }
+        .transform_values { |rows| rows.map(&:last) }
+    end
+
     def link_available_to_sale_items(sale_items:, purchase_items: all)
       reserved_purchase_item_ids = []
       assignments = Array(sale_items).sort_by(&:id).flat_map do |sale_item|

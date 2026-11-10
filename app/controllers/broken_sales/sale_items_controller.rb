@@ -5,13 +5,12 @@ module BrokenSales
     include ReturnPath
 
     def update
-      blocked = blocked_consequences
-      result = Variant::AssignmentRepair.repair_sale_item(
+      result = Variant::AssignmentRepair.repair_sale_item_and_requeue_import(
         sale_item_id: params.expect(:id),
-        variant_id: repair_params.expect(:variant_id)
+        variant_id: repair_params.expect(:variant_id),
+        requested_by: Current.user
       )
-      queued_pulls = (result == :repaired) ? pull_failed_order_later : 0
-      redirect_to return_path, notice: success_notice(result, blocked, queued_pulls)
+      redirect_to return_path, notice: success_notice(result)
     rescue Variant::AssignmentRepair::InvalidCandidate => error
       redirect_to return_path, inertia: {errors: {variant_id: error.message}}
     rescue PurchaseItem::Linkable::StaleLinkState
@@ -20,31 +19,21 @@ module BrokenSales
 
     private
 
-    def blocked_consequences
-      sale_item = SaleItem.preload(:sale, product: :variants, variant: {product: :variants}).find(params.expect(:id))
-      integrity = Variant::AssignmentIntegrity.new
-      Variant::AssignmentImpact.new(integrity:).consequences(sale_item, reason: integrity.reason_for(:sale_items, sale_item))
-    end
-
     def repair_params
       params.expect(sale_item: [:variant_id])
     end
 
-    def pull_failed_order_later
-      Sale::ImportFailure.pull_unresolved_later(sale_ids: SaleItem.where(id: params.expect(:id)).select(:sale_id))
+    def success_notice(result)
+      return "This line already has a Variant. Nothing was changed." if result.noop?
+
+      [unblocked_notice(result), ("Queued a new pull of the order from the store." if result.queued_pulls.positive?)].compact.join(" ")
     end
 
-    def success_notice(result, blocked, queued_pulls)
-      return "Variant assignment is already repaired" if result == :noop
-
-      [unblocked_notice(blocked), ("Queued a new pull of the order from the store." if queued_pulls.positive?)].compact.join(" ")
-    end
-
-    def unblocked_notice(blocked)
-      unblocked = blocked.filter_map do |consequence|
+    def unblocked_notice(result)
+      unblocked = result.unblocked_consequences.filter_map do |consequence|
         case consequence.fetch(:kind)
         when :units_not_reserved then "#{helpers.pluralize(consequence.fetch(:units), "unit")} can now be reserved"
-        when :debt_miscounted then "this sale now counts in what we owe for #{SaleItem.find(params.expect(:id)).title}"
+        when :debt_miscounted then "this sale now counts in what we owe for #{result.sale_item.title}"
         end
       end
 

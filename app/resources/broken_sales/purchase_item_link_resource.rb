@@ -53,12 +53,12 @@ class BrokenSales::PurchaseItemLinkResource < BrokenSales::IssueResource
 
   typelize :number
   attribute :exact_replacements_available do |purchase_item|
-    replacements(purchase_item.sale_item).count
+    replacement_ids(purchase_item.sale_item).size
   end
 
   typelize "Array<number>"
   attribute :exact_replacement_ids do |purchase_item|
-    replacements(purchase_item.sale_item).ids
+    replacement_ids(purchase_item.sale_item)
   end
 
   typelize :number
@@ -67,7 +67,7 @@ class BrokenSales::PurchaseItemLinkResource < BrokenSales::IssueResource
     [sale_item.qty.to_i - sale_item.purchase_items_count.to_i + 1, 0].max
   end
 
-  def replacements(sale_item)
-    PurchaseItem.where(sale_item_id: nil, product_id: sale_item.product_id, variant_id: sale_item.variant_id).order(:id)
+  def replacement_ids(sale_item)
+    params.fetch(:replacements_by_identity).fetch([sale_item.product_id, sale_item.variant_id], [])
   end
 end

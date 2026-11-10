@@ -39,18 +39,13 @@ class Sale::Shopify::Importer
   private
 
   def import_missing_products
-    missing_product_store_ids.each { |store_id| import_product(store_id) }
+    store_ids = catalog.missing_product_store_ids(order_updated_at: parsed.dig(:store_info, :ext_updated_at)&.in_time_zone)
+    store_ids.each { |store_id| import_product(store_id) }
+    catalog.reload if store_ids.any?
   end
 
-  def missing_product_store_ids
-    parsed[:sale_items].select { |line| uncached?(line) }.pluck(:product_store_id).uniq
-  end
-
-  def uncached?(line)
-    return false if line[:product_store_id].blank?
-
-    Product.find_by_shopify_id(line[:product_store_id]).nil? ||
-      (line[:variant_store_id].present? && Variant.find_by_shopify_id(line[:variant_store_id]).nil?)
+  def catalog
+    @catalog ||= Sale::Shopify::Catalog.new(parsed[:sale_items])
   end
 
   def import_product(store_id)
@@ -106,7 +101,7 @@ class Sale::Shopify::Importer
 
   def update_or_create_sale_items
     parsed[:sale_items].each do |parsed_sale_item|
-      Sale::Shopify::SaleItemImporter.new(sale, parsed_sale_item).import
+      Sale::Shopify::SaleItemImporter.new(sale, parsed_sale_item, catalog:).import
     end
   end
 
