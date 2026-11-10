@@ -36,11 +36,7 @@ const primaryLinks: NavigationLink[] = [
     pageProps: {
       debts_path: routes.dashboardDebts.show.path(),
       last_orders_pull_path: routes.dashboardLastOrdersPulls.create.path(),
-      sale_debts: [],
-      sale_debts_count: 0,
       sales_hook_disabled: false,
-      suppliers_debts: [],
-      total_suppliers_debt: "0",
     },
   },
   {
